@@ -2,31 +2,14 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\CapAsignaturasConstants;
 use Glory\App\Models\Alumno;
 
 class ReportePlanAlumnoHtmlBuilder
 {
-    private const ASIGNATURAS = [
-        'conduccion_racional' => 'Conducción racional',
-        'reglamentacion' => 'Reglamentación',
-        'seguridad_vial' => 'Seguridad vial',
-        'servicio_logistica' => 'Servicio y logística',
-        'salud_seguridad' => 'Salud y seguridad',
-        'medio_ambiente' => 'Medio ambiente',
-        'mercancias_peligrosas' => 'Mercancías peligrosas',
-        'viajeros' => 'Viajeros',
-    ];
-
-    private const HORAS_REQUERIDAS = [
-        'conduccion_racional' => 7,
-        'reglamentacion' => 4,
-        'seguridad_vial' => 6,
-        'servicio_logistica' => 4,
-        'salud_seguridad' => 4,
-        'medio_ambiente' => 4,
-        'mercancias_peligrosas' => 3,
-        'viajeros' => 3,
-    ];
+    /* Delegadas a CapAsignaturasConstants (fuente unica de verdad) */
+    private const ASIGNATURAS = CapAsignaturasConstants::NOMBRES;
+    private const HORAS_REQUERIDAS = CapAsignaturasConstants::HORAS_REQUERIDAS;
 
     public function construir(array $alumno, array $progreso, array $clases, array $centro, string $estilos): string
     {

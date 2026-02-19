@@ -16,6 +16,8 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\CapAsignaturasConstants;
+
 class CalendarEngine
 {
     /* Constantes legales del curso CAP */
@@ -23,17 +25,11 @@ class CalendarEngine
     const MINIMO_DIAS = 4;
     const MAXIMO_HORAS_DIA_ALUMNO = 9;
 
-    /* Asignaturas del CAP con sus duraciones en horas */
-    const ASIGNATURAS = [
-        'conduccion_racional' => ['nombre' => 'Conducción racional', 'codigo' => 'CR', 'horas' => 7],
-        'reglamentacion' => ['nombre' => 'Reglamentación', 'codigo' => 'REG', 'horas' => 4],
-        'seguridad_vial' => ['nombre' => 'Seguridad vial', 'codigo' => 'SV', 'horas' => 6],
-        'servicio_logistica' => ['nombre' => 'Servicio y logística', 'codigo' => 'SL', 'horas' => 4],
-        'salud_seguridad' => ['nombre' => 'Salud y seguridad', 'codigo' => 'SS', 'horas' => 4],
-        'medio_ambiente' => ['nombre' => 'Medio ambiente', 'codigo' => 'MA', 'horas' => 4],
-        'mercancias_peligrosas' => ['nombre' => 'Mercancías peligrosas', 'codigo' => 'MP', 'horas' => 3],
-        'viajeros' => ['nombre' => 'Viajeros', 'codigo' => 'VIA', 'horas' => 3],
-    ];
+    /*
+     * Asignaturas del CAP: delegadas a CapAsignaturasConstants (fuente unica de verdad).
+     * Se mantiene la referencia aqui para compatibilidad con sub-servicios del motor.
+     */
+    const ASIGNATURAS = CapAsignaturasConstants::ASIGNATURAS;
 
     private int $centroId;
     private array $configuracion;

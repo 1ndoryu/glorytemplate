@@ -2,6 +2,10 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+use App\Config\Schema\_generated\CapDisponibilidadCols;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
 use Glory\App\Models\Alumno;
 
 class CalendarDataLoader
@@ -10,12 +14,12 @@ class CalendarDataLoader
      * Mapeo de nombre de día a número (1=lunes ... 5=viernes).
      */
     private const DIAS_A_NUMERO = [
-        'lunes' => 1,
-        'martes' => 2,
-        'miercoles' => 3,
-        'miércoles' => 3,
-        'jueves' => 4,
-        'viernes' => 5,
+        CapDisponibilidadEnums::DIA_LUNES => 1,
+        CapDisponibilidadEnums::DIA_MARTES => 2,
+        CapDisponibilidadEnums::DIA_MIERCOLES => 3,
+        'miércoles' => 3, /* Variante con tilde para normalización defensiva */
+        CapDisponibilidadEnums::DIA_JUEVES => 4,
+        CapDisponibilidadEnums::DIA_VIERNES => 5,
     ];
 
     /**
@@ -25,7 +29,7 @@ class CalendarDataLoader
     {
         global $wpdb;
 
-        $tabla = $wpdb->prefix . 'cap_disponibilidad';
+        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
 
         if (empty($alumnosIds)) {
             return [];
@@ -76,7 +80,7 @@ class CalendarDataLoader
     {
         global $wpdb;
 
-        $tabla = $wpdb->prefix . 'cap_clases';
+        $tabla = $wpdb->prefix . CapClasesCols::TABLA;
         $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
         if (!$fechaBase) {
             return [];
@@ -104,8 +108,8 @@ class CalendarDataLoader
     {
         global $wpdb;
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $minutosCompletadosPorAlumno = [];
         $minutosAsignadosPorAlumno = [];
 
@@ -168,8 +172,8 @@ class CalendarDataLoader
     ): array {
         global $wpdb;
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $minutosRestantesAsignaturaPorAlumno = [];
 
         if (empty($alumnosIds)) {

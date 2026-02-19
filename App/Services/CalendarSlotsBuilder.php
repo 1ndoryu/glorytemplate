@@ -2,6 +2,9 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapConfiguracionCols;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
+
 class CalendarSlotsBuilder
 {
     public function generarSlotsDisponibles(
@@ -19,7 +22,13 @@ class CalendarSlotsBuilder
             error_log("[CAP ENGINE] generarSlotsDisponibles usando modo: {$modo}");
         }
 
-        $nombresDias = [0 => 'lunes', 1 => 'martes', 2 => 'miercoles', 3 => 'jueves', 4 => 'viernes'];
+        $nombresDias = [
+            0 => CapDisponibilidadEnums::DIA_LUNES,
+            1 => CapDisponibilidadEnums::DIA_MARTES,
+            2 => CapDisponibilidadEnums::DIA_MIERCOLES,
+            3 => CapDisponibilidadEnums::DIA_JUEVES,
+            4 => CapDisponibilidadEnums::DIA_VIERNES,
+        ];
         $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
         if (!$fechaBase) {
             error_log("[CAP ENGINE ERROR] No se pudo parsear fecha: '{$fechaInicioSemana}'");
@@ -56,21 +65,21 @@ class CalendarSlotsBuilder
             }
 
             $slotsMorning = $this->generarSlotsRango(
-                (string) $configuracion['hora_inicio_manana'],
-                (string) $configuracion['hora_fin_manana'],
+                (string) $configuracion[CapConfiguracionCols::HORA_INICIO_MANANA],
+                (string) $configuracion[CapConfiguracionCols::HORA_FIN_MANANA],
                 $fecha,
                 $diaSemana,
                 $duracionClase,
                 $clasesBloqueadas
             );
 
-            $horaFinTarde = (string) $configuracion['hora_fin_tarde'];
-            if ($diaSemana === 5 && !empty($configuracion['viernes_especial'])) {
-                $horaFinTarde = (string) $configuracion['hora_fin_viernes'];
+            $horaFinTarde = (string) $configuracion[CapConfiguracionCols::HORA_FIN_TARDE];
+            if ($diaSemana === 5 && !empty($configuracion[CapConfiguracionCols::VIERNES_ESPECIAL])) {
+                $horaFinTarde = (string) $configuracion[CapConfiguracionCols::HORA_FIN_VIERNES];
             }
 
             $slotsAfternoon = $this->generarSlotsRango(
-                (string) $configuracion['hora_inicio_tarde'],
+                (string) $configuracion[CapConfiguracionCols::HORA_INICIO_TARDE],
                 $horaFinTarde,
                 $fecha,
                 $diaSemana,
@@ -86,7 +95,7 @@ class CalendarSlotsBuilder
 
     private function obtenerHorariosFlexiblesNormalizados(array $configuracion): ?array
     {
-        $raw = $configuracion['horarios_semanales'] ?? null;
+        $raw = $configuracion[CapConfiguracionCols::HORARIOS_SEMANALES] ?? null;
         if ($raw === null || $raw === '') {
             return null;
         }
@@ -96,7 +105,15 @@ class CalendarSlotsBuilder
             return null;
         }
 
-        $dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+        $dias = [
+            CapDisponibilidadEnums::DIA_LUNES,
+            CapDisponibilidadEnums::DIA_MARTES,
+            CapDisponibilidadEnums::DIA_MIERCOLES,
+            CapDisponibilidadEnums::DIA_JUEVES,
+            CapDisponibilidadEnums::DIA_VIERNES,
+            'sabado', /* No es dia lectivo, se incluye solo para sanitizar JSON */
+            'domingo',
+        ];
         $normalizados = [];
         foreach ($dias as $dia) {
             $normalizados[$dia] = [];

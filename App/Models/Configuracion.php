@@ -8,6 +8,9 @@
 
 namespace Glory\App\Models;
 
+use App\Config\Schema\_generated\CapCentrosCols;
+use App\Config\Schema\_generated\CapConfiguracionCols;
+
 class Configuracion
 {
     private string $tablaCentros;
@@ -16,8 +19,8 @@ class Configuracion
     public function __construct()
     {
         global $wpdb;
-        $this->tablaCentros = $wpdb->prefix . 'cap_centros';
-        $this->tablaConfig = $wpdb->prefix . 'cap_configuracion';
+        $this->tablaCentros = $wpdb->prefix . CapCentrosCols::TABLA;
+        $this->tablaConfig = $wpdb->prefix . CapConfiguracionCols::TABLA;
     }
 
     /**
@@ -56,17 +59,17 @@ class Configuracion
     private function configuracionDefecto(int $centroId): array
     {
         return [
-            'centro_id' => $centroId,
-            'timezone' => 'Europe/Madrid',
-            'hora_inicio_manana' => '09:00',
-            'hora_fin_manana' => '14:00',
-            'hora_inicio_tarde' => '16:00',
-            'hora_fin_tarde' => '21:00',
-            'viernes_especial' => 0,
-            'hora_fin_viernes' => '15:00',
-            'alumnos_max_clase' => 20,
-            'duracion_clase' => 60,
-            'duracion_descanso' => 15,
+            CapConfiguracionCols::CENTRO_ID => $centroId,
+            CapConfiguracionCols::TIMEZONE => 'Europe/Madrid',
+            CapConfiguracionCols::HORA_INICIO_MANANA => '09:00',
+            CapConfiguracionCols::HORA_FIN_MANANA => '14:00',
+            CapConfiguracionCols::HORA_INICIO_TARDE => '16:00',
+            CapConfiguracionCols::HORA_FIN_TARDE => '21:00',
+            CapConfiguracionCols::VIERNES_ESPECIAL => 0,
+            CapConfiguracionCols::HORA_FIN_VIERNES => '15:00',
+            CapConfiguracionCols::ALUMNOS_MAX_CLASE => 20,
+            CapConfiguracionCols::DURACION_CLASE => 60,
+            CapConfiguracionCols::DURACION_DESCANSO => 15,
         ];
     }
 
@@ -83,17 +86,17 @@ class Configuracion
         ));
 
         $datosValidados = $this->validarDatos($datos);
-        $datosValidados['updated_at'] = current_time('mysql');
+        $datosValidados[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
 
         if ($existe) {
             $resultado = $wpdb->update(
                 $this->tablaConfig,
                 $datosValidados,
-                ['centro_id' => $centroId]
+                [CapConfiguracionCols::CENTRO_ID => $centroId]
             );
         } else {
-            $datosValidados['centro_id'] = $centroId;
-            $datosValidados['created_at'] = current_time('mysql');
+            $datosValidados[CapConfiguracionCols::CENTRO_ID] = $centroId;
+            $datosValidados[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
             $resultado = $wpdb->insert($this->tablaConfig, $datosValidados);
         }
 
@@ -124,39 +127,39 @@ class Configuracion
 
         $datosValidados = [];
 
-        if (isset($datos['nombre'])) {
-            $datosValidados['nombre'] = sanitize_text_field($datos['nombre']);
+        if (isset($datos[CapCentrosCols::NOMBRE])) {
+            $datosValidados[CapCentrosCols::NOMBRE] = sanitize_text_field($datos[CapCentrosCols::NOMBRE]);
         }
 
-        if (isset($datos['direccion'])) {
-            $datosValidados['direccion'] = sanitize_text_field($datos['direccion']);
+        if (isset($datos[CapCentrosCols::DIRECCION])) {
+            $datosValidados[CapCentrosCols::DIRECCION] = sanitize_text_field($datos[CapCentrosCols::DIRECCION]);
         }
 
-        if (isset($datos['telefono'])) {
-            $datosValidados['telefono'] = sanitize_text_field($datos['telefono']);
+        if (isset($datos[CapCentrosCols::TELEFONO])) {
+            $datosValidados[CapCentrosCols::TELEFONO] = sanitize_text_field($datos[CapCentrosCols::TELEFONO]);
         }
 
-        if (isset($datos['email'])) {
-            $email = sanitize_email($datos['email']);
+        if (isset($datos[CapCentrosCols::EMAIL])) {
+            $email = sanitize_email($datos[CapCentrosCols::EMAIL]);
             if (is_email($email)) {
-                $datosValidados['email'] = $email;
+                $datosValidados[CapCentrosCols::EMAIL] = $email;
             }
         }
 
-        if (isset($datos['logo_url'])) {
-            $datosValidados['logo_url'] = esc_url_raw($datos['logo_url']);
+        if (isset($datos[CapCentrosCols::LOGO_URL])) {
+            $datosValidados[CapCentrosCols::LOGO_URL] = esc_url_raw($datos[CapCentrosCols::LOGO_URL]);
         }
 
         if (empty($datosValidados)) {
             return false;
         }
 
-        $datosValidados['updated_at'] = current_time('mysql');
+        $datosValidados[CapCentrosCols::UPDATED_AT] = current_time('mysql');
 
         $resultado = $wpdb->update(
             $this->tablaCentros,
             $datosValidados,
-            ['id' => $centroId]
+            [CapCentrosCols::ID => $centroId]
         );
 
         return $resultado !== false;
@@ -176,10 +179,10 @@ class Configuracion
         }
 
         $insertado = $wpdb->insert($this->tablaCentros, [
-            'user_id' => $userId,
-            'nombre' => sanitize_text_field($nombre),
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql'),
+            CapCentrosCols::USER_ID => $userId,
+            CapCentrosCols::NOMBRE => sanitize_text_field($nombre),
+            CapCentrosCols::CREATED_AT => current_time('mysql'),
+            CapCentrosCols::UPDATED_AT => current_time('mysql'),
         ]);
 
         if (!$insertado) {
@@ -190,8 +193,8 @@ class Configuracion
 
         /* Crear configuración por defecto */
         $configDefecto = $this->configuracionDefecto($centroId);
-        $configDefecto['created_at'] = current_time('mysql');
-        $configDefecto['updated_at'] = current_time('mysql');
+        $configDefecto[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
+        $configDefecto[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
 
         $wpdb->insert($this->tablaConfig, $configDefecto);
 
@@ -209,11 +212,11 @@ class Configuracion
         $validados = [];
 
         /* Validación de timezone */
-        if (isset($datos['timezone'])) {
-            $tz = sanitize_text_field($datos['timezone']);
+        if (isset($datos[CapConfiguracionCols::TIMEZONE])) {
+            $tz = sanitize_text_field($datos[CapConfiguracionCols::TIMEZONE]);
             /* Verificar que sea una timezone válida */
             if (in_array($tz, timezone_identifiers_list(), true)) {
-                $validados['timezone'] = $tz;
+                $validados[CapConfiguracionCols::TIMEZONE] = $tz;
             }
         }
 
@@ -222,36 +225,36 @@ class Configuracion
             return preg_match('/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/', $hora);
         };
 
-        if (isset($datos['hora_inicio_manana']) && $horasValidas($datos['hora_inicio_manana'])) {
-            $validados['hora_inicio_manana'] = $datos['hora_inicio_manana'];
+        if (isset($datos[CapConfiguracionCols::HORA_INICIO_MANANA]) && $horasValidas($datos[CapConfiguracionCols::HORA_INICIO_MANANA])) {
+            $validados[CapConfiguracionCols::HORA_INICIO_MANANA] = $datos[CapConfiguracionCols::HORA_INICIO_MANANA];
         }
 
-        if (isset($datos['hora_fin_manana']) && $horasValidas($datos['hora_fin_manana'])) {
-            $validados['hora_fin_manana'] = $datos['hora_fin_manana'];
+        if (isset($datos[CapConfiguracionCols::HORA_FIN_MANANA]) && $horasValidas($datos[CapConfiguracionCols::HORA_FIN_MANANA])) {
+            $validados[CapConfiguracionCols::HORA_FIN_MANANA] = $datos[CapConfiguracionCols::HORA_FIN_MANANA];
         }
 
-        if (isset($datos['hora_inicio_tarde']) && $horasValidas($datos['hora_inicio_tarde'])) {
-            $validados['hora_inicio_tarde'] = $datos['hora_inicio_tarde'];
+        if (isset($datos[CapConfiguracionCols::HORA_INICIO_TARDE]) && $horasValidas($datos[CapConfiguracionCols::HORA_INICIO_TARDE])) {
+            $validados[CapConfiguracionCols::HORA_INICIO_TARDE] = $datos[CapConfiguracionCols::HORA_INICIO_TARDE];
         }
 
-        if (isset($datos['hora_fin_tarde']) && $horasValidas($datos['hora_fin_tarde'])) {
-            $validados['hora_fin_tarde'] = $datos['hora_fin_tarde'];
+        if (isset($datos[CapConfiguracionCols::HORA_FIN_TARDE]) && $horasValidas($datos[CapConfiguracionCols::HORA_FIN_TARDE])) {
+            $validados[CapConfiguracionCols::HORA_FIN_TARDE] = $datos[CapConfiguracionCols::HORA_FIN_TARDE];
         }
 
-        if (isset($datos['hora_fin_viernes']) && $horasValidas($datos['hora_fin_viernes'])) {
-            $validados['hora_fin_viernes'] = $datos['hora_fin_viernes'];
+        if (isset($datos[CapConfiguracionCols::HORA_FIN_VIERNES]) && $horasValidas($datos[CapConfiguracionCols::HORA_FIN_VIERNES])) {
+            $validados[CapConfiguracionCols::HORA_FIN_VIERNES] = $datos[CapConfiguracionCols::HORA_FIN_VIERNES];
         }
 
-        if (isset($datos['viernes_especial'])) {
-            $validados['viernes_especial'] = $datos['viernes_especial'] ? 1 : 0;
+        if (isset($datos[CapConfiguracionCols::VIERNES_ESPECIAL])) {
+            $validados[CapConfiguracionCols::VIERNES_ESPECIAL] = $datos[CapConfiguracionCols::VIERNES_ESPECIAL] ? 1 : 0;
         }
 
         /* Validación de Horarios Semanales (JSON Flexible) */
-        if (isset($datos['horarios_semanales'])) {
+        if (isset($datos[CapConfiguracionCols::HORARIOS_SEMANALES])) {
             /* Si viene como string JSON, decodificar primero para validar */
-            $horarios = is_string($datos['horarios_semanales'])
-                ? json_decode($datos['horarios_semanales'], true)
-                : $datos['horarios_semanales'];
+            $horarios = is_string($datos[CapConfiguracionCols::HORARIOS_SEMANALES])
+                ? json_decode($datos[CapConfiguracionCols::HORARIOS_SEMANALES], true)
+                : $datos[CapConfiguracionCols::HORARIOS_SEMANALES];
 
             if (is_array($horarios)) {
                 /* Sanitizar estructura: { lunes: [{inicio: '09:00', fin: '14:00'}], ... } */
@@ -276,23 +279,23 @@ class Configuracion
                     }
                 }
                 /* Guardar como JSON string */
-                $validados['horarios_semanales'] = json_encode($horariosLimpios);
+                $validados[CapConfiguracionCols::HORARIOS_SEMANALES] = json_encode($horariosLimpios);
             }
         }
 
-        if (isset($datos['alumnos_max_clase'])) {
-            $max = (int) $datos['alumnos_max_clase'];
-            $validados['alumnos_max_clase'] = max(1, min(100, $max));
+        if (isset($datos[CapConfiguracionCols::ALUMNOS_MAX_CLASE])) {
+            $max = (int) $datos[CapConfiguracionCols::ALUMNOS_MAX_CLASE];
+            $validados[CapConfiguracionCols::ALUMNOS_MAX_CLASE] = max(1, min(100, $max));
         }
 
-        if (isset($datos['duracion_clase'])) {
-            $duracion = (int) $datos['duracion_clase'];
-            $validados['duracion_clase'] = max(30, min(120, $duracion));
+        if (isset($datos[CapConfiguracionCols::DURACION_CLASE])) {
+            $duracion = (int) $datos[CapConfiguracionCols::DURACION_CLASE];
+            $validados[CapConfiguracionCols::DURACION_CLASE] = max(30, min(120, $duracion));
         }
 
-        if (isset($datos['duracion_descanso'])) {
-            $descanso = (int) $datos['duracion_descanso'];
-            $validados['duracion_descanso'] = max(5, min(60, $descanso));
+        if (isset($datos[CapConfiguracionCols::DURACION_DESCANSO])) {
+            $descanso = (int) $datos[CapConfiguracionCols::DURACION_DESCANSO];
+            $validados[CapConfiguracionCols::DURACION_DESCANSO] = max(5, min(60, $descanso));
         }
 
         return $validados;

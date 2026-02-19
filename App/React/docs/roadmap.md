@@ -1,10 +1,17 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-19  
-> **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso  
+> **Última actualización:** 2026-02-20  
+> **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso | ⏳ PLAN_ANTI_HARDCODE Fase 3 completada  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+
+- 2026-02-20: ✅ **[AG-SCH]** PLAN_ANTI_HARDCODE — Fase 1+2+3 completadas.
+    - Fase 1: 7 Glory TableSchemas creados, generador ejecutado (7 Cols, 3 Enums, 7 DTOs, 1 schema.ts, 7 Repos). CapAsignaturasConstants centralizada.
+    - Fase 2: 3 modelos migrados (Alumno.php, Clase.php, Configuracion.php) — 0 hardcode restante.
+    - Fase 3: 10 servicios migrados (StripeService, CalendarEngine, CalendarPersistenceService, CalendarDataLoader, CalendarSlotsBuilder, CalendarEngineConfigProvider, ReporteService, ReportePlanAlumnoHtmlBuilder, ReporteControlHorasHtmlBuilder, CapService). CapBootstrap sin cambios necesarios. 0 hardcode restante en capa de servicios.
+    - [Decisión]: Días de la semana usan CapDisponibilidadEnums::DIA_* (opción A del plan). CalendarEngine::ASIGNATURAS delega a CapAsignaturasConstants::ASIGNATURAS.
+    - [Pendiente]: Fases 4 (API/Seeder), 5 (Frontend TS), 6 (Hardening try-catch), 7 (Validación).
 
 - 2026-02-19: ✅ **[AG-AUD]** Correcciones integrales post-auditoría (`AUDITORIA_COMPLETA.md`) aplicadas.
     - Backend seguridad: callbacks REST seguros con try-catch global, validación de pertenencia por `centro_id` en actualizar/eliminar alumno, disponibilidad y toggle bloqueo.

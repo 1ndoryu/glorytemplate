@@ -8,6 +8,10 @@
 
 namespace Glory\App\Models;
 
+use App\Config\Schema\_generated\CapAlumnosCols;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+
 class Clase
 {
     private string $tabla;
@@ -16,8 +20,8 @@ class Clase
     public function __construct()
     {
         global $wpdb;
-        $this->tabla = $wpdb->prefix . 'cap_clases';
-        $this->tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $this->tabla = $wpdb->prefix . CapClasesCols::TABLA;
+        $this->tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
     }
 
     /**
@@ -30,7 +34,7 @@ class Clase
     public function obtenerSemana(int $centroId, string $fechaInicio): array
     {
         global $wpdb;
-        $tablaAlumnos = $wpdb->prefix . 'cap_alumnos';
+        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
 
         $fechaFin = date('Y-m-d', strtotime($fechaInicio . ' +4 days'));
 
@@ -88,7 +92,7 @@ class Clase
     public function obtenerAlumnosClase(int $claseId): array
     {
         global $wpdb;
-        $tablaAlumnos = $wpdb->prefix . 'cap_alumnos';
+        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
 
         return $wpdb->get_results($wpdb->prepare(
             "SELECT a.id, a.nombre, asi.asistio
@@ -155,7 +159,7 @@ class Clase
             return false;
         }
 
-        $datosValidados['created_at'] = current_time('mysql');
+        $datosValidados[CapClasesCols::CREATED_AT] = current_time('mysql');
 
         $insertado = $wpdb->insert($this->tabla, $datosValidados);
 
@@ -177,7 +181,7 @@ class Clase
         $actualizado = $wpdb->update(
             $this->tabla,
             $datosValidados,
-            ['id' => $id]
+            [CapClasesCols::ID => $id]
         );
 
         return $actualizado !== false;
@@ -191,8 +195,9 @@ class Clase
         global $wpdb;
 
         /* Verificar que no esté bloqueada */
+        $colBloqueada = CapClasesCols::BLOQUEADA;
         $bloqueada = $wpdb->get_var($wpdb->prepare(
-            "SELECT bloqueada FROM {$this->tabla} WHERE id = %d",
+            "SELECT {$colBloqueada} FROM {$this->tabla} WHERE id = %d",
             $id
         ));
 
@@ -201,10 +206,10 @@ class Clase
         }
 
         /* Eliminar asistencias asociadas */
-        $wpdb->delete($this->tablaAsistencia, ['clase_id' => $id]);
+        $wpdb->delete($this->tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $id]);
 
         /* Eliminar la clase */
-        $eliminado = $wpdb->delete($this->tabla, ['id' => $id]);
+        $eliminado = $wpdb->delete($this->tabla, [CapClasesCols::ID => $id]);
 
         return $eliminado !== false;
     }
@@ -216,8 +221,9 @@ class Clase
     {
         global $wpdb;
 
+        $colBloqueada = CapClasesCols::BLOQUEADA;
         $estadoActual = $wpdb->get_var($wpdb->prepare(
-            "SELECT bloqueada FROM {$this->tabla} WHERE id = %d",
+            "SELECT {$colBloqueada} FROM {$this->tabla} WHERE id = %d",
             $id
         ));
 
@@ -225,8 +231,8 @@ class Clase
 
         $actualizado = $wpdb->update(
             $this->tabla,
-            ['bloqueada' => $nuevoEstado],
-            ['id' => $id]
+            [CapClasesCols::BLOQUEADA => $nuevoEstado],
+            [CapClasesCols::ID => $id]
         );
 
         return $actualizado !== false;
@@ -252,10 +258,10 @@ class Clase
         }
 
         $insertado = $wpdb->insert($this->tablaAsistencia, [
-            'clase_id' => $claseId,
-            'alumno_id' => $alumnoId,
-            'asistio' => 0,
-            'created_at' => current_time('mysql'),
+            CapAsistenciaCols::CLASE_ID => $claseId,
+            CapAsistenciaCols::ALUMNO_ID => $alumnoId,
+            CapAsistenciaCols::ASISTIO => 0,
+            CapAsistenciaCols::CREATED_AT => current_time('mysql'),
         ]);
 
         return $insertado !== false;
@@ -270,10 +276,10 @@ class Clase
 
         $actualizado = $wpdb->update(
             $this->tablaAsistencia,
-            ['asistio' => $asistio ? 1 : 0],
+            [CapAsistenciaCols::ASISTIO => $asistio ? 1 : 0],
             [
-                'clase_id' => $claseId,
-                'alumno_id' => $alumnoId,
+                CapAsistenciaCols::CLASE_ID => $claseId,
+                CapAsistenciaCols::ALUMNO_ID => $alumnoId,
             ]
         );
 
@@ -287,14 +293,14 @@ class Clase
     {
         $validados = [];
 
-        if (isset($datos['centro_id'])) {
-            $validados['centro_id'] = (int) $datos['centro_id'];
+        if (isset($datos[CapClasesCols::CENTRO_ID])) {
+            $validados[CapClasesCols::CENTRO_ID] = (int) $datos[CapClasesCols::CENTRO_ID];
         } elseif (!$esActualizacion) {
             return null;
         }
 
-        if (isset($datos['fecha'])) {
-            $fecha = sanitize_text_field($datos['fecha']);
+        if (isset($datos[CapClasesCols::FECHA])) {
+            $fecha = sanitize_text_field($datos[CapClasesCols::FECHA]);
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
                 return null;
             }
@@ -302,39 +308,39 @@ class Clase
             if ($diaSemana > 5) {
                 return null;
             }
-            $validados['fecha'] = $fecha;
+            $validados[CapClasesCols::FECHA] = $fecha;
         } elseif (!$esActualizacion) {
             return null;
         }
 
-        if (isset($datos['hora_inicio'])) {
-            $hora = sanitize_text_field($datos['hora_inicio']);
+        if (isset($datos[CapClasesCols::HORA_INICIO])) {
+            $hora = sanitize_text_field($datos[CapClasesCols::HORA_INICIO]);
             if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
                 return null;
             }
-            $validados['hora_inicio'] = $hora;
+            $validados[CapClasesCols::HORA_INICIO] = $hora;
         } elseif (!$esActualizacion) {
             return null;
         }
 
-        if (isset($datos['hora_fin'])) {
-            $hora = sanitize_text_field($datos['hora_fin']);
+        if (isset($datos[CapClasesCols::HORA_FIN])) {
+            $hora = sanitize_text_field($datos[CapClasesCols::HORA_FIN]);
             if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
                 return null;
             }
-            $validados['hora_fin'] = $hora;
+            $validados[CapClasesCols::HORA_FIN] = $hora;
         }
 
-        if (isset($datos['asignatura'])) {
-            $validados['asignatura'] = sanitize_text_field($datos['asignatura']);
+        if (isset($datos[CapClasesCols::ASIGNATURA])) {
+            $validados[CapClasesCols::ASIGNATURA] = sanitize_text_field($datos[CapClasesCols::ASIGNATURA]);
         }
 
-        if (isset($datos['duracion_minutos'])) {
-            $validados['duracion_minutos'] = (int) $datos['duracion_minutos'];
+        if (isset($datos[CapClasesCols::DURACION_MINUTOS])) {
+            $validados[CapClasesCols::DURACION_MINUTOS] = (int) $datos[CapClasesCols::DURACION_MINUTOS];
         }
 
-        if (isset($datos['bloqueada'])) {
-            $validados['bloqueada'] = $datos['bloqueada'] ? 1 : 0;
+        if (isset($datos[CapClasesCols::BLOQUEADA])) {
+            $validados[CapClasesCols::BLOQUEADA] = $datos[CapClasesCols::BLOQUEADA] ? 1 : 0;
         }
 
         return $validados;

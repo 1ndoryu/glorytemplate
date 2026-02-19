@@ -8,55 +8,22 @@
 
 namespace Glory\App\Models;
 
+use App\Config\Schema\_generated\CapAlumnosCols;
+use App\Config\Schema\_generated\CapAlumnosEnums;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+use App\Config\Schema\_generated\CapDisponibilidadCols;
+use App\Config\Schema\CapAsignaturasConstants;
+
 class Alumno
 {
     private string $tabla;
 
     /*
-     * Mapa completo de alias de asignatura a códigos canónicos.
-     * Incluye IDs numéricos, códigos cortos y variantes legacy del seeder.
-     * Fuente de verdad única para normalizar cualquier valor de asignatura.
+     * Delegación a CapAsignaturasConstants para compatibilidad.
+     * La fuente de verdad es CapAsignaturasConstants.
      */
-    private const ASIGNATURA_ALIAS = [
-        /* IDs numéricos */
-        '1' => 'conduccion_racional',
-        '2' => 'reglamentacion',
-        '3' => 'seguridad_vial',
-        '4' => 'servicio_logistica',
-        '5' => 'salud_seguridad',
-        '6' => 'medio_ambiente',
-        '7' => 'mercancias_peligrosas',
-        '8' => 'viajeros',
-        /* Códigos cortos del frontend */
-        'CR' => 'conduccion_racional',
-        'REG' => 'reglamentacion',
-        'SV' => 'seguridad_vial',
-        'SL' => 'servicio_logistica',
-        'SS' => 'salud_seguridad',
-        'MA' => 'medio_ambiente',
-        'MP' => 'mercancias_peligrosas',
-        'VIA' => 'viajeros',
-        /* Variantes legacy del seeder */
-        'racionalizacion' => 'conduccion_racional',
-        'salud_ergonomia' => 'salud_seguridad',
-        'entorno_economico' => 'medio_ambiente',
-        'evaluacion' => 'viajeros',
-    ];
-
-    /*
-     * Los 8 códigos canónicos que son la fuente de verdad.
-     * Cualquier otro valor debe mapearse a uno de estos.
-     */
-    public const ASIGNATURAS_CANONICAS = [
-        'conduccion_racional',
-        'reglamentacion',
-        'seguridad_vial',
-        'servicio_logistica',
-        'salud_seguridad',
-        'medio_ambiente',
-        'mercancias_peligrosas',
-        'viajeros',
-    ];
+    public const ASIGNATURAS_CANONICAS = CapAsignaturasConstants::TODOS;
 
     /**
      * Normaliza un código de asignatura a su forma canónica.
@@ -68,7 +35,7 @@ class Alumno
     public static function normalizarCodigoAsignatura(string $codigo): string
     {
         $codigo = trim($codigo);
-        return self::ASIGNATURA_ALIAS[$codigo] ?? $codigo;
+        return CapAsignaturasConstants::ALIAS[$codigo] ?? $codigo;
     }
 
     /**
@@ -84,11 +51,11 @@ class Alumno
         $normalizado = [];
 
         foreach ($progreso as $fila) {
-            $codigoCanon = self::normalizarCodigoAsignatura($fila['asignatura']);
+            $codigoCanon = self::normalizarCodigoAsignatura($fila[CapClasesCols::ASIGNATURA]);
 
             if (!isset($normalizado[$codigoCanon])) {
                 $normalizado[$codigoCanon] = [
-                    'asignatura' => $codigoCanon,
+                    CapClasesCols::ASIGNATURA => $codigoCanon,
                     'horas' => 0,
                 ];
             }
@@ -112,10 +79,10 @@ class Alumno
     public function normalizarAsignaturasEnBD(int $centroId): int
     {
         global $wpdb;
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $totalActualizados = 0;
 
-        foreach (self::ASIGNATURA_ALIAS as $alias => $canonico) {
+        foreach (CapAsignaturasConstants::ALIAS as $alias => $canonico) {
             if ($alias === $canonico) {
                 continue;
             }
@@ -140,7 +107,7 @@ class Alumno
     public function __construct()
     {
         global $wpdb;
-        $this->tabla = $wpdb->prefix . 'cap_alumnos';
+        $this->tabla = $wpdb->prefix . CapAlumnosCols::TABLA;
     }
 
     /**
@@ -157,12 +124,12 @@ class Alumno
         $limite = $opciones['limite'] ?? 50;
         $offset = $opciones['offset'] ?? 0;
         $busqueda = $opciones['busqueda'] ?? '';
-        $ordenarPor = $opciones['ordenar_por'] ?? 'nombre';
+        $ordenarPor = $opciones['ordenar_por'] ?? CapAlumnosCols::NOMBRE;
         $orden = $opciones['orden'] ?? 'ASC';
 
-        $columnas = ['nombre', 'email', 'created_at'];
+        $columnas = [CapAlumnosCols::NOMBRE, CapAlumnosCols::EMAIL, CapAlumnosCols::CREATED_AT];
         if (!in_array($ordenarPor, $columnas)) {
-            $ordenarPor = 'nombre';
+            $ordenarPor = CapAlumnosCols::NOMBRE;
         }
         $orden = strtoupper($orden) === 'DESC' ? 'DESC' : 'ASC';
 
@@ -179,8 +146,8 @@ class Alumno
 
         $ordenarPorSql = "a.{$ordenarPor}";
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $query = $wpdb->prepare(
             "SELECT a.*, 
@@ -218,8 +185,8 @@ class Alumno
         }
 
         $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $query = $wpdb->prepare(
             "SELECT a.*, 
                 (SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
@@ -284,8 +251,8 @@ class Alumno
             return false;
         }
 
-        $datosValidados['created_at'] = current_time('mysql');
-        $datosValidados['updated_at'] = current_time('mysql');
+        $datosValidados[CapAlumnosCols::CREATED_AT] = current_time('mysql');
+        $datosValidados[CapAlumnosCols::UPDATED_AT] = current_time('mysql');
 
         $insertado = $wpdb->insert($this->tabla, $datosValidados);
 
@@ -304,12 +271,12 @@ class Alumno
             return false;
         }
 
-        $datosValidados['updated_at'] = current_time('mysql');
+        $datosValidados[CapAlumnosCols::UPDATED_AT] = current_time('mysql');
 
         $actualizado = $wpdb->update(
             $this->tabla,
             $datosValidados,
-            ['id' => $id]
+            [CapAlumnosCols::ID => $id]
         );
 
         return $actualizado !== false;
@@ -323,15 +290,15 @@ class Alumno
         global $wpdb;
 
         /* Primero eliminar disponibilidad asociada */
-        $tablaDisponibilidad = $wpdb->prefix . 'cap_disponibilidad';
-        $wpdb->delete($tablaDisponibilidad, ['alumno_id' => $id]);
+        $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
+        $wpdb->delete($tablaDisponibilidad, [CapDisponibilidadCols::ALUMNO_ID => $id]);
 
         /* Luego eliminar asistencias */
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $wpdb->delete($tablaAsistencia, ['alumno_id' => $id]);
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::ALUMNO_ID => $id]);
 
         /* Finalmente eliminar el alumno */
-        $eliminado = $wpdb->delete($this->tabla, ['id' => $id]);
+        $eliminado = $wpdb->delete($this->tabla, [CapAlumnosCols::ID => $id]);
 
         return $eliminado !== false;
     }
@@ -343,47 +310,51 @@ class Alumno
     {
         $validados = [];
 
-        if (isset($datos['centro_id'])) {
-            $validados['centro_id'] = (int) $datos['centro_id'];
+        if (isset($datos[CapAlumnosCols::CENTRO_ID])) {
+            $validados[CapAlumnosCols::CENTRO_ID] = (int) $datos[CapAlumnosCols::CENTRO_ID];
         } elseif (!$esActualizacion) {
             return null;
         }
 
-        if (isset($datos['nombre'])) {
-            $nombre = sanitize_text_field($datos['nombre']);
+        if (isset($datos[CapAlumnosCols::NOMBRE])) {
+            $nombre = sanitize_text_field($datos[CapAlumnosCols::NOMBRE]);
             if (empty($nombre)) {
                 return null;
             }
-            $validados['nombre'] = $nombre;
+            $validados[CapAlumnosCols::NOMBRE] = $nombre;
         } elseif (!$esActualizacion) {
             return null;
         }
 
-        if (isset($datos['email'])) {
-            $email = sanitize_email($datos['email']);
+        if (isset($datos[CapAlumnosCols::EMAIL])) {
+            $email = sanitize_email($datos[CapAlumnosCols::EMAIL]);
             if (!is_email($email)) {
                 return null;
             }
-            $validados['email'] = $email;
+            $validados[CapAlumnosCols::EMAIL] = $email;
         }
 
-        if (isset($datos['telefono'])) {
-            $validados['telefono'] = sanitize_text_field($datos['telefono']);
+        if (isset($datos[CapAlumnosCols::TELEFONO])) {
+            $validados[CapAlumnosCols::TELEFONO] = sanitize_text_field($datos[CapAlumnosCols::TELEFONO]);
         }
 
-        if (isset($datos['dni'])) {
-            $validados['dni'] = sanitize_text_field($datos['dni']);
+        if (isset($datos[CapAlumnosCols::DNI])) {
+            $validados[CapAlumnosCols::DNI] = sanitize_text_field($datos[CapAlumnosCols::DNI]);
         }
 
-        if (isset($datos['horas_completadas'])) {
-            $validados['horas_completadas'] = floatval($datos['horas_completadas']);
+        if (isset($datos[CapAlumnosCols::HORAS_COMPLETADAS])) {
+            $validados[CapAlumnosCols::HORAS_COMPLETADAS] = floatval($datos[CapAlumnosCols::HORAS_COMPLETADAS]);
         }
 
-        if (isset($datos['estado'])) {
-            $estadosValidos = ['activo', 'completado', 'pausado'];
-            $estado = sanitize_text_field($datos['estado']);
+        if (isset($datos[CapAlumnosCols::ESTADO])) {
+            $estadosValidos = [
+                CapAlumnosEnums::ESTADO_ACTIVO,
+                CapAlumnosEnums::ESTADO_COMPLETADO,
+                CapAlumnosEnums::ESTADO_PAUSADO,
+            ];
+            $estado = sanitize_text_field($datos[CapAlumnosCols::ESTADO]);
             if (in_array($estado, $estadosValidos)) {
-                $validados['estado'] = $estado;
+                $validados[CapAlumnosCols::ESTADO] = $estado;
             }
         }
 
@@ -399,8 +370,8 @@ class Alumno
     public function obtenerProgreso(int $alumnoId): array
     {
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $progreso = $wpdb->get_results($wpdb->prepare(
             "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas
@@ -422,8 +393,8 @@ class Alumno
     public function obtenerProgresoAsignado(int $alumnoId): array
     {
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $progreso = $wpdb->get_results($wpdb->prepare(
             "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas
@@ -443,8 +414,8 @@ class Alumno
     public function obtenerHorasAsignadas(int $alumnoId): float
     {
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         return (float) $wpdb->get_var($wpdb->prepare(
             "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
@@ -463,8 +434,8 @@ class Alumno
     public function recalcularHorasCompletadas(int $alumnoId): float
     {
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $horas = (float) $wpdb->get_var($wpdb->prepare(
             "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
@@ -477,8 +448,8 @@ class Alumno
         /* Actualizar cache en tabla de alumnos */
         $wpdb->update(
             $this->tabla,
-            ['horas_completadas' => $horas, 'updated_at' => current_time('mysql')],
-            ['id' => $alumnoId]
+            [CapAlumnosCols::HORAS_COMPLETADAS => $horas, CapAlumnosCols::UPDATED_AT => current_time('mysql')],
+            [CapAlumnosCols::ID => $alumnoId]
         );
 
         return $horas;
@@ -517,8 +488,8 @@ class Alumno
             return;
         }
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $placeholdersSubquery = implode(',', array_fill(0, count($ids), '%d'));
         $placeholdersWhere = implode(',', array_fill(0, count($ids), '%d'));
 
@@ -565,8 +536,8 @@ class Alumno
         /* 35 horas = límite del curso CAP */
         $limitMinutos = 35 * 60;
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $placeholders = implode(',', array_fill(0, count($idsFiltrados), '%d'));
 
         $condicionExcluir = '';

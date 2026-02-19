@@ -2,6 +2,9 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+
 class CalendarPersistenceService
 {
     /**
@@ -23,8 +26,8 @@ class CalendarPersistenceService
     ): array {
         global $wpdb;
 
-        $tablaClases = $wpdb->prefix . 'cap_clases';
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
 
         $fechaBase = \DateTime::createFromFormat('!Y-m-d', $fechaInicioSemana);
         $fechaFin = $fechaBase ? (clone $fechaBase)->modify('+4 days')->format('Y-m-d') : $fechaInicioSemana;
@@ -44,14 +47,14 @@ class CalendarPersistenceService
 
         foreach ($distribucion as $clase) {
             $insertado = $wpdb->insert($tablaClases, [
-                'centro_id' => $centroId,
-                'fecha' => $clase['fecha'],
-                'hora_inicio' => $clase['hora_inicio'],
-                'hora_fin' => $clase['hora_fin'],
-                'asignatura' => $clase['asignatura'],
-                'duracion_minutos' => $duracionClase,
-                'bloqueada' => 0,
-                'created_at' => current_time('mysql')
+                CapClasesCols::CENTRO_ID => $centroId,
+                CapClasesCols::FECHA => $clase['fecha'],
+                CapClasesCols::HORA_INICIO => $clase['hora_inicio'],
+                CapClasesCols::HORA_FIN => $clase['hora_fin'],
+                CapClasesCols::ASIGNATURA => $clase['asignatura'],
+                CapClasesCols::DURACION_MINUTOS => $duracionClase,
+                CapClasesCols::BLOQUEADA => 0,
+                CapClasesCols::CREATED_AT => current_time('mysql')
             ]);
 
             if (!$insertado) {
@@ -62,10 +65,10 @@ class CalendarPersistenceService
 
             foreach ($clase['alumnos'] as $alumnoId) {
                 $wpdb->insert($tablaAsistencia, [
-                    'clase_id' => $claseId,
-                    'alumno_id' => $alumnoId,
-                    'asistio' => 0,
-                    'created_at' => current_time('mysql')
+                    CapAsistenciaCols::CLASE_ID => $claseId,
+                    CapAsistenciaCols::ALUMNO_ID => $alumnoId,
+                    CapAsistenciaCols::ASISTIO => 0,
+                    CapAsistenciaCols::CREATED_AT => current_time('mysql')
                 ]);
             }
 

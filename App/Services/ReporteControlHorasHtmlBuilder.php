@@ -2,20 +2,14 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\CapAsignaturasConstants;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
 use Glory\App\Models\Alumno;
 
 class ReporteControlHorasHtmlBuilder
 {
-    private const ASIGNATURAS = [
-        'conduccion_racional' => 'Conducción racional',
-        'reglamentacion' => 'Reglamentación',
-        'seguridad_vial' => 'Seguridad vial',
-        'servicio_logistica' => 'Servicio y logística',
-        'salud_seguridad' => 'Salud y seguridad',
-        'medio_ambiente' => 'Medio ambiente',
-        'mercancias_peligrosas' => 'Mercancías peligrosas',
-        'viajeros' => 'Viajeros',
-    ];
+    /* Delegada a CapAsignaturasConstants (fuente unica de verdad) */
+    private const ASIGNATURAS = CapAsignaturasConstants::NOMBRES;
 
     public function construir(array $clasesPorDia, string $fechaSemana, array $centro, string $estilos): string
     {
@@ -34,11 +28,11 @@ class ReporteControlHorasHtmlBuilder
         }
 
         $diasLabels = [
-            'lunes' => 'Lunes',
-            'martes' => 'Martes',
-            'miercoles' => 'Miércoles',
-            'jueves' => 'Jueves',
-            'viernes' => 'Viernes',
+            CapDisponibilidadEnums::DIA_LUNES => 'Lunes',
+            CapDisponibilidadEnums::DIA_MARTES => 'Martes',
+            CapDisponibilidadEnums::DIA_MIERCOLES => 'Miércoles',
+            CapDisponibilidadEnums::DIA_JUEVES => 'Jueves',
+            CapDisponibilidadEnums::DIA_VIERNES => 'Viernes',
         ];
 
         $nombreCentro = $this->esc((string)($centro['nombre'] ?? 'Centro CAP'));

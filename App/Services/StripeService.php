@@ -12,6 +12,9 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapSuscripcionesCols;
+use App\Config\Schema\_generated\CapSuscripcionesEnums;
+
 class StripeService
 {
     private const OPTION_TEST_PUBLISHABLE = 'cap_stripe_test_publishable';
@@ -302,7 +305,7 @@ class StripeService
     private function procesarCheckoutCompletado(object $session): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $centroId = $session->metadata->centro_id ?? null;
         if (!$centroId) {
@@ -317,19 +320,19 @@ class StripeService
         ));
 
         $datos = [
-            'stripe_customer_id' => $session->customer,
-            'stripe_subscription_id' => $session->subscription,
-            'estado' => 'activa',
-            'fecha_inicio' => current_time('mysql'),
-            'fecha_fin' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            'updated_at' => current_time('mysql'),
+            CapSuscripcionesCols::STRIPE_CUSTOMER_ID => $session->customer,
+            CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $session->subscription,
+            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
+            CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
+            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+1 month')),
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ];
 
         if ($existente) {
-            $wpdb->update($tabla, $datos, ['id' => $existente]);
+            $wpdb->update($tabla, $datos, [CapSuscripcionesCols::ID => $existente]);
         } else {
-            $datos['centro_id'] = $centroId;
-            $datos['created_at'] = current_time('mysql');
+            $datos[CapSuscripcionesCols::CENTRO_ID] = $centroId;
+            $datos[CapSuscripcionesCols::CREATED_AT] = current_time('mysql');
             $wpdb->insert($tabla, $datos);
         }
 
@@ -342,16 +345,16 @@ class StripeService
     private function procesarPagoExitoso(object $invoice): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $subscriptionId = $invoice->subscription;
         if (!$subscriptionId) return;
 
         $wpdb->update($tabla, [
-            'estado' => 'activa',
-            'fecha_fin' => date('Y-m-d H:i:s', strtotime('+1 month')),
-            'updated_at' => current_time('mysql'),
-        ], ['stripe_subscription_id' => $subscriptionId]);
+            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
+            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+1 month')),
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
+        ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscriptionId]);
 
         error_log("[CAP Stripe] Pago exitoso para suscripción {$subscriptionId}");
     }
@@ -362,17 +365,17 @@ class StripeService
     private function procesarPagoFallido(object $invoice): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $subscriptionId = $invoice->subscription;
         if (!$subscriptionId) return;
 
         /* Dar 3 días de gracia */
         $wpdb->update($tabla, [
-            'estado' => 'pago_fallido',
-            'fecha_fin' => date('Y-m-d H:i:s', strtotime('+3 days')),
-            'updated_at' => current_time('mysql'),
-        ], ['stripe_subscription_id' => $subscriptionId]);
+            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_PAGO_FALLIDO,
+            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+3 days')),
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
+        ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscriptionId]);
 
         error_log("[CAP Stripe] Pago fallido para suscripción {$subscriptionId}");
     }
@@ -383,19 +386,19 @@ class StripeService
     private function procesarSuscripcionActualizada(object $subscription): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
-        $estado = 'activa';
+        $estado = CapSuscripcionesEnums::ESTADO_ACTIVA;
         if ($subscription->status === 'past_due') {
-            $estado = 'pago_fallido';
+            $estado = CapSuscripcionesEnums::ESTADO_PAGO_FALLIDO;
         } elseif ($subscription->status === 'canceled' || $subscription->status === 'unpaid') {
-            $estado = 'expirada';
+            $estado = CapSuscripcionesEnums::ESTADO_EXPIRADA;
         }
 
         $wpdb->update($tabla, [
-            'estado' => $estado,
-            'updated_at' => current_time('mysql'),
-        ], ['stripe_subscription_id' => $subscription->id]);
+            CapSuscripcionesCols::ESTADO => $estado,
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
+        ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscription->id]);
 
         error_log("[CAP Stripe] Suscripción {$subscription->id} actualizada a estado: {$estado}");
     }
@@ -406,12 +409,12 @@ class StripeService
     private function procesarSuscripcionCancelada(object $subscription): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $wpdb->update($tabla, [
-            'estado' => 'cancelada',
-            'updated_at' => current_time('mysql'),
-        ], ['stripe_subscription_id' => $subscription->id]);
+            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_CANCELADA,
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
+        ], [CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $subscription->id]);
 
         error_log("[CAP Stripe] Suscripción {$subscription->id} cancelada");
     }

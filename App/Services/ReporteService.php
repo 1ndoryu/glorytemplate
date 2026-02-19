@@ -12,6 +12,11 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapCentrosCols;
+use App\Config\Schema\_generated\CapClasesCols;
+use App\Config\Schema\_generated\CapConfiguracionCols;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 
@@ -51,14 +56,14 @@ class ReporteService
     private function cargarTimezone(): void
     {
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_configuracion';
+        $tabla = $wpdb->prefix . CapConfiguracionCols::TABLA;
 
         $config = $wpdb->get_row($wpdb->prepare(
             "SELECT timezone FROM {$tabla} WHERE centro_id = %d",
             $this->centroId
         ), 'ARRAY_A');
 
-        $this->timezone = $config['timezone'] ?? 'Europe/Madrid';
+        $this->timezone = $config[CapConfiguracionCols::TIMEZONE] ?? 'Europe/Madrid';
 
         /* Aplicar timezone si es válida */
         if (in_array($this->timezone, timezone_identifiers_list(), true)) {
@@ -153,8 +158,8 @@ class ReporteService
     private function obtenerClasesAlumno(int $alumnoId): array
     {
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         return $wpdb->get_results($wpdb->prepare(
             "SELECT c.*, a.asistio
@@ -172,7 +177,7 @@ class ReporteService
     private function obtenerDatosCentro(): array
     {
         global $wpdb;
-        $tablaCentros = $wpdb->prefix . 'cap_centros';
+        $tablaCentros = $wpdb->prefix . CapCentrosCols::TABLA;
 
         $centro = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$tablaCentros} WHERE id = %d",
@@ -193,24 +198,24 @@ class ReporteService
     private function agruparClasesPorDia(array $clases): array
     {
         $dias = [
-            'lunes' => [],
-            'martes' => [],
-            'miercoles' => [],
-            'jueves' => [],
-            'viernes' => []
+            CapDisponibilidadEnums::DIA_LUNES => [],
+            CapDisponibilidadEnums::DIA_MARTES => [],
+            CapDisponibilidadEnums::DIA_MIERCOLES => [],
+            CapDisponibilidadEnums::DIA_JUEVES => [],
+            CapDisponibilidadEnums::DIA_VIERNES => []
         ];
 
         foreach ($clases as $clase) {
             $diaSemana = strtolower(date('l', strtotime($clase['fecha'])));
             $diaMap = [
-                'monday' => 'lunes',
-                'tuesday' => 'martes',
-                'wednesday' => 'miercoles',
-                'thursday' => 'jueves',
-                'friday' => 'viernes'
+                'monday' => CapDisponibilidadEnums::DIA_LUNES,
+                'tuesday' => CapDisponibilidadEnums::DIA_MARTES,
+                'wednesday' => CapDisponibilidadEnums::DIA_MIERCOLES,
+                'thursday' => CapDisponibilidadEnums::DIA_JUEVES,
+                'friday' => CapDisponibilidadEnums::DIA_VIERNES
             ];
 
-            $dia = $diaMap[$diaSemana] ?? 'lunes';
+            $dia = $diaMap[$diaSemana] ?? CapDisponibilidadEnums::DIA_LUNES;
             $dias[$dia][] = $clase;
         }
 

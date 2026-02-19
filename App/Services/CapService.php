@@ -9,6 +9,9 @@
 
 namespace Glory\App\Services;
 
+use App\Config\Schema\_generated\CapConfiguracionCols;
+use App\Config\Schema\_generated\CapSuscripcionesCols;
+use App\Config\Schema\_generated\CapSuscripcionesEnums;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
@@ -64,14 +67,14 @@ class CapService
                 if ($centroId) {
                     /* Crear suscripción trial para el nuevo centro */
                     global $wpdb;
-                    $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+                    $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
                     $wpdb->insert($tablaSuscripciones, [
-                        'centro_id' => $centroId,
-                        'estado' => 'activa',
-                        'fecha_inicio' => current_time('mysql'),
-                        'fecha_fin' => date('Y-m-d', strtotime('+14 days')),
-                        'created_at' => current_time('mysql'),
-                        'updated_at' => current_time('mysql'),
+                        CapSuscripcionesCols::CENTRO_ID => $centroId,
+                        CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
+                        CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
+                        CapSuscripcionesCols::FECHA_FIN => date('Y-m-d', strtotime('+14 days')),
+                        CapSuscripcionesCols::CREATED_AT => current_time('mysql'),
+                        CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
                     ]);
 
                     error_log("[CAP] Centro creado automáticamente para user_id: {$userId}, centro_id: {$centroId}");
@@ -93,14 +96,14 @@ class CapService
         }
 
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $estado = $wpdb->get_var($wpdb->prepare(
             "SELECT estado FROM {$tabla} WHERE centro_id = %d ORDER BY created_at DESC LIMIT 1",
             $centroId
         ));
 
-        return $estado === 'activa';
+        return $estado === CapSuscripcionesEnums::ESTADO_ACTIVA;
     }
 
     /**
@@ -122,7 +125,7 @@ class CapService
         return [
             'totalAlumnos' => $alumnos,
             'clasesEstaSemana' => $clasesEstaSemana,
-            'capacidadMaxima' => $config['alumnos_max_clase'] ?? 20,
+            'capacidadMaxima' => $config[CapConfiguracionCols::ALUMNOS_MAX_CLASE] ?? 20,
             'suscripcionActiva' => $this->tieneSubscripcionActiva(),
         ];
     }
