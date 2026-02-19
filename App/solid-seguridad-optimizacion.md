@@ -115,8 +115,8 @@
 | OPT04 | NotificacionesController JSON join | JOIN depende de `(datos::jsonb->>'seguidor_id')` — frágil si estructura cambia. Considerar columna dedicada. | PENDIENTE |
 | OPT05 | AdminController reportes | LIMIT 10 fijo sin paginación. | PENDIENTE |
 | OPT06 | PostgresService .env parser | No maneja comillas en valores ni comentarios. Sobreescribe env del sistema con putenv(). | PENDIENTE |
-| OPT07 | StripeService SSL | SSL implícito (CURLOPT_SSL_VERIFYPEER no configurado explícitamente). | PENDIENTE |
-| OPT08 | StripeService retry | Sin retry/backoff para API de pagos — timeout = fallo permanente. | PENDIENTE |
+| OPT07 | StripeService SSL | SSL explícito (CURLOPT_SSL_VERIFYPEER=true, CURLOPT_SSL_VERIFYHOST=2). Ya estaba configurado R69. | HECHO |
+| OPT08 | StripeService retry | Retry con backoff exponencial (1s/2s/4s, max 3 intentos). Solo en curl error + HTTP 5xx. NO en 4xx. | HECHO |
 | OPT09 | SamplesRepository 873 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PENDIENTE |
 | OPT10 | UsuariosExtRepository 603 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PENDIENTE |
 

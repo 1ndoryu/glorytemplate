@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 class StripeService
 {
     private const API_BASE = 'https://api.stripe.com/v1';
+    private const MAX_REINTENTOS = 3;
 
     /* Configuración de planes — subidas ilimitadas en todos, varía transferencia y descargas */
     private const PLANES = [
@@ -64,7 +65,12 @@ class StripeService
     }
 
     /**
-     * Realiza una petición HTTP a la API de Stripe.
+     * Realiza una petición HTTP a la API de Stripe con reintentos y backoff exponencial.
+     *
+     * Reintenta automáticamente en errores transitorios (curl timeout/conexión, HTTP 5xx).
+     * NO reintenta en errores de cliente (HTTP 4xx).
+     * Backoff: 1s, 2s, 4s entre intentos.
+     *
      * @param string $accountId ID de cuenta Connect (header Stripe-Account) — null para cuenta principal.
      */
     private static function request(string $method, string $endpoint, array $params = [], ?string $accountId = null): array
@@ -74,7 +80,7 @@ class StripeService
             return ['error' => 'Stripe no configurado'];
         }
 
-        $url = self::API_BASE . $endpoint;
+        $urlBase = self::API_BASE . $endpoint;
 
         $headers = [
             'Authorization: Bearer ' . $secretKey,
@@ -85,72 +91,139 @@ class StripeService
             $headers[] = 'Stripe-Account: ' . $accountId;
         }
 
-        $ch = null;
+        $ultimoError = '';
 
-        try {
-            $ch = curl_init();
-
-            if ($ch === false) {
-                KamplesLogger::error('Stripe API: curl_init() falló', ['endpoint' => $endpoint]);
-                return ['error' => 'Error interno: no se pudo inicializar cURL'];
-            }
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-
-            if ($method === 'POST') {
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
-            } elseif ($method === 'GET' && !empty($params)) {
-                $url .= '?' . http_build_query($params);
-            }
-
-            curl_setopt($ch, CURLOPT_URL, $url);
-
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $curlError = curl_error($ch);
-            curl_close($ch);
+        for ($intento = 1; $intento <= self::MAX_REINTENTOS; $intento++) {
             $ch = null;
 
-            /* Verificar error de red/curl antes de decodificar */
-            if ($response === false) {
-                KamplesLogger::error('Stripe API: error de red (curl)', [
-                    'endpoint' => $endpoint,
-                    'error' => $curlError,
+            try {
+                $ch = curl_init();
+
+                if ($ch === false) {
+                    KamplesLogger::error('Stripe API: curl_init() falló', ['endpoint' => $endpoint]);
+                    return ['error' => 'Error interno: no se pudo inicializar cURL'];
+                }
+
+                $url = $urlBase;
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+                if ($method === 'POST') {
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+                } elseif ($method === 'GET' && !empty($params)) {
+                    $url .= '?' . http_build_query($params);
+                }
+
+                curl_setopt($ch, CURLOPT_URL, $url);
+
+                $response = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
+                curl_close($ch);
+                $ch = null;
+
+                /* Error de red/curl — reintentar si quedan intentos */
+                if ($response === false) {
+                    $ultimoError = $curlError;
+                    if ($intento < self::MAX_REINTENTOS) {
+                        $espera = (int) pow(2, $intento - 1);
+                        KamplesLogger::warning('Stripe API: error de red, reintentando', [
+                            'endpoint'        => $endpoint,
+                            'intento'         => $intento,
+                            'maxIntentos'     => self::MAX_REINTENTOS,
+                            'esperaSegundos'  => $espera,
+                            'error'           => $curlError,
+                        ]);
+                        sleep($espera);
+                        continue;
+                    }
+                    KamplesLogger::error('Stripe API: error de red tras agotar reintentos', [
+                        'endpoint'  => $endpoint,
+                        'intentos'  => self::MAX_REINTENTOS,
+                        'error'     => $curlError,
+                        'accountId' => $accountId,
+                    ]);
+                    return ['error' => 'Error de conexión con Stripe: ' . $curlError];
+                }
+
+                $data = json_decode($response, true) ?? [];
+
+                /* HTTP 5xx — error transitorio del servidor, reintentar */
+                if ($httpCode >= 500) {
+                    $ultimoError = $data['error']['message'] ?? "HTTP {$httpCode}";
+                    if ($intento < self::MAX_REINTENTOS) {
+                        $espera = (int) pow(2, $intento - 1);
+                        KamplesLogger::warning('Stripe API: respuesta 5xx, reintentando', [
+                            'endpoint'        => $endpoint,
+                            'httpCode'        => $httpCode,
+                            'intento'         => $intento,
+                            'maxIntentos'     => self::MAX_REINTENTOS,
+                            'esperaSegundos'  => $espera,
+                            'error'           => $ultimoError,
+                        ]);
+                        sleep($espera);
+                        continue;
+                    }
+                    /* Agotados reintentos en 5xx — cae al log de error abajo */
+                }
+
+                /* HTTP 4xx — error del cliente, NO reintentar */
+                if ($httpCode >= 400) {
+                    $contexto = [
+                        'endpoint' => $endpoint,
+                        'httpCode' => $httpCode,
+                        'error'    => $data['error']['message'] ?? 'desconocido',
+                    ];
+                    if ($accountId) {
+                        $contexto['accountId'] = $accountId;
+                    }
+                    if ($intento > 1) {
+                        $contexto['intentosUsados'] = $intento;
+                    }
+                    KamplesLogger::error('Stripe API error', $contexto);
+                }
+
+                return $data;
+            } catch (\Throwable $e) {
+                $ultimoError = $e->getMessage();
+                if ($intento < self::MAX_REINTENTOS) {
+                    $espera = (int) pow(2, $intento - 1);
+                    KamplesLogger::warning('Stripe API: excepción transitoria, reintentando', [
+                        'endpoint'        => $endpoint,
+                        'intento'         => $intento,
+                        'maxIntentos'     => self::MAX_REINTENTOS,
+                        'esperaSegundos'  => $espera,
+                        'error'           => $ultimoError,
+                    ]);
+                    sleep($espera);
+                    continue;
+                }
+                KamplesLogger::error('Stripe API: excepción inesperada tras agotar reintentos', [
+                    'endpoint'  => $endpoint,
+                    'intentos'  => self::MAX_REINTENTOS,
+                    'error'     => $e->getMessage(),
                     'accountId' => $accountId,
                 ]);
-                return ['error' => 'Error de conexión con Stripe: ' . $curlError];
-            }
-
-            $data = json_decode($response, true) ?? [];
-
-            if ($httpCode >= 400) {
-                $contexto = [
-                    'endpoint' => $endpoint,
-                    'httpCode' => $httpCode,
-                    'error'    => $data['error']['message'] ?? 'desconocido',
-                ];
-                if ($accountId) $contexto['accountId'] = $accountId;
-                KamplesLogger::error('Stripe API error', $contexto);
-            }
-
-            return $data;
-        } catch (\Throwable $e) {
-            KamplesLogger::error('Stripe API: excepción inesperada', [
-                'endpoint' => $endpoint,
-                'error' => $e->getMessage(),
-                'accountId' => $accountId,
-            ]);
-            return ['error' => 'Error interno en petición a Stripe'];
-        } finally {
-            if ($ch !== null) {
-                curl_close($ch);
+                return ['error' => 'Error interno en petición a Stripe'];
+            } finally {
+                if ($ch instanceof \CurlHandle) {
+                    curl_close($ch);
+                }
             }
         }
+
+        /* Fallback de seguridad — no debería llegar aquí */
+        KamplesLogger::error('Stripe API: reintentos agotados sin respuesta', [
+            'endpoint'    => $endpoint,
+            'intentos'    => self::MAX_REINTENTOS,
+            'ultimoError' => $ultimoError,
+        ]);
+        return ['error' => 'Error de conexión con Stripe tras ' . self::MAX_REINTENTOS . ' intentos'];
     }
 
     /**
