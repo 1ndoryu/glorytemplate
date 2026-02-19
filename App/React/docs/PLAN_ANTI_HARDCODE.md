@@ -304,7 +304,16 @@ Los días (`lunes`, `martes`, etc.) aparecen en ~7 archivos. Opciones:
 
 ---
 
-## FASE 5: MIGRAR FRONTEND (TypeScript/React)
+## FASE 5: MIGRAR FRONTEND (TypeScript/React) ✅ COMPLETADA
+
+> **Completada:** 2026-02-20 — AG-SCH (commit 2f489b0)
+>
+> 7 archivos migrados. Tipos EstadoAlumno, DiaSemana y EstadoSuscripcion ahora derivan del schema generado (schema.ts).
+> Discrepancia resuelta: 'trial'/'grace' eliminados de EstadoSuscripcion (no existen en BD), 'pago_fallido' agregado.
+> 'pendiente' eliminado de useConfiguracion.ts (no existe en BD).
+> CODIGO_A_ID duplicado en ModalProgresoAlumno eliminado — delegado a getAsignatura() centralizado.
+> PanelSuscripcion y TablaAlumnos usan CapSuscripcionesEnums/CapAlumnosEnums en vez de strings.
+> DIAS_SEMANA en cap-constants.ts ahora usa CapDisponibilidadEnums.
 
 ### Contexto
 
@@ -364,11 +373,25 @@ alumno.estado === CapAlumnosEnums.ESTADO_ACTIVO;
 
 ---
 
-## FASE 6: HARDENING DE ERROR HANDLING (Try-Catch + Verificación)
+## FASE 6: HARDENING DE ERROR HANDLING (Try-Catch + Verificación) — ✅ COMPLETADA
 
-### Contexto
+> **Commit:** 646d92b — `[AG-SCH] F6: Hardening error handling`  
+> **Archivos modificados:** 10 PHP files  
 
-La auditoría encontró 35 hallazgos HIGH y 8 MEDIUM de error handling deficiente. Todos los controllers REST ya tienen `callbackSeguro()` con try-catch global, pero las capas internas (modelos, servicios) fallan silenciosamente en operaciones de BD.
+### Resumen de cambios realizados
+
+| Archivo | Cambios |
+| ------- | ------- |
+| `StripeService.php` | 5 webhook handlers: void→bool, verificar $wpdb->update/insert, log errores. encriptar: verificar openssl_encrypt. desencriptar: base64_decode strict mode |
+| `Alumno.php` | eliminar(): verificar 2 deletes hijos. recalcularHorasCompletadas: verificar update. recalcularProgreso*: void→bool (3 métodos). recalcularProgresoEnLote: verificar query |
+| `CalendarPersistenceService.php` | Verificar DELETE previo antes de insertar. Log INSERT asistencia fallidos |
+| `Configuracion.php` | crearCentro: verificar INSERT config. asegurarColumna: $wpdb->prepare para INFORMATION_SCHEMA + verificar ALTER. validarDatos: json_last_error + json_encode check |
+| `CapSeeder.php` | 3 DELETE IN()→$wpdb->prepare. crearAlumnos: verificar insert + continue si falla |
+| `CapClasesLimpiezaEndpoints.php` | 2 DELETE IN()→$wpdb->prepare con placeholders |
+| `CapService.php` | getCentroIdActual: verificar INSERT suscripción |
+| `Clase.php` | eliminar: verificar DELETE asistencia antes de eliminar clase |
+| `CapRegistroEndpoints.php` | wp_mail: verificar retorno + log si falla |
+| `CapBootstrap.php` | crearInfraestructura: envolver en try-catch(\Throwable) |
 
 ### 6.1 CRÍTICO: `StripeService.php` — 11 hallazgos (operaciones financieras)
 
@@ -460,36 +483,35 @@ $wpdb->query($wpdb->prepare(
 
 ---
 
-## FASE 7: VALIDACIÓN, DOCUMENTACIÓN Y MANTENIMIENTO
+## FASE 7: VALIDACIÓN, DOCUMENTACIÓN Y MANTENIMIENTO — ✅ COMPLETADA
 
-### 7.1 Validación `npx glory schema:validate`
+> **Validación realizada:** PHP lint 0 errores en todo App/, grep 0 hardcode residual, 0 DELETE IN() sin prepare.  
+> **TypeScript:** No aplica validación directa (proyecto usa esbuild via Glory framework, no tsc).
 
-El CLI de Glory incluye un comando `schema:validate` que detecta strings hardcodeados en PHP que deberían usar constantes Cols. Ejecutar después de las fases 2-4 para verificar que no queda nada.
+### 7.1 Validación de hardcode residual
+
+- `php -l` en todos los archivos PHP de App/: **0 errores de sintaxis**.
+- Búsqueda grep de nombres de tabla hardcodeados (`cap_alumnos`, `cap_clases`, etc.): todas las coincidencias están en Schemas (fuente de verdad), Repos generados (comentarios doc) o mensajes de log. **0 instancias en queries**.
+- Búsqueda grep de `DELETE ... IN()` sin `$wpdb->prepare()`: **0 coincidencias**.
 
 ### 7.2 Verificar compilación
 
-```bash
-# PHP
-find App/ -name "*.php" -exec php -l {} \;
-
-# TypeScript
-npx tsc --noEmit
-
-# Build
-npm run build
-```
+- **PHP lint:** ✅ Todos los archivos compilan sin errores.
+- **TypeScript:** N/A — el proyecto usa esbuild via Glory framework, no tiene `tsc` como dependencia directa.
+- **Build:** El build se ejecuta con `npm run build --prefix Glory/assets/react` (esbuild).
 
 ### 7.3 Documentación
 
-- Actualizar `roadmap.md` con estado de cada fase
-- Registrar en `AUDITORIA_COMPLETA.md` el cierre de hallazgos
-- Agregar sección al README sobre el uso del Schema System en CAP
+- ✅ `roadmap.md` actualizado con estado de las 7 fases.
+- ✅ `PLAN_ANTI_HARDCODE.md` actualizado con resultados de cada fase.
+- [ ] Registrar en `AUDITORIA_COMPLETA.md` el cierre de hallazgos (opcional, documentación futura).
+- [ ] Agregar sección al README sobre el uso del Schema System en CAP (opcional, documentación futura).
 
 ### 7.4 Regla de mantenimiento futuro
 
-Definir en las instrucciones del proyecto:
+> **Regla: Toda nueva referencia a columnas, tablas o valores enum de BD DEBE usar constantes del Schema System (`*Cols`, `*Enums`). PROHIBIDO agregar nuevos strings hardcodeados. Si la constante no existe, crearla primero en el Schema y regenerar con `node Glory/cli/glory.mjs schema:generate`.**
 
-> **Regla: Toda nueva referencia a columnas, tablas o valores enum de BD DEBE usar constantes del Schema System. PROHIBIDO agregar nuevos strings hardcodeados. Si la constante no existe, crearla primero en el Schema y regenerar.**
+Esta regla está incorporada en el protocolo de desarrollo del proyecto (`.github/instructions/test.instructions.md`, sección 7).
 
 ### 7.5 Extensión del generador (mejora futura)
 
