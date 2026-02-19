@@ -10,6 +10,8 @@ import {Input, Boton, Badge, Spinner, Tooltip} from '../ui';
 import {IconoBuscar, IconoEditar, IconoEliminar, IconoOrdenar, IconoReloj, IconoDescargar} from '../icons';
 import type {Alumno, FiltrosAlumnos} from '../../hooks/useAlumnos';
 import {calcularProgreso, estadoProgreso} from '../../hooks/useAlumnos';
+import {CAP_REGLAS} from '../../constants';
+import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
 
 interface TablaAlumnosProps {
     alumnos: Alumno[];
@@ -28,18 +30,6 @@ interface TablaAlumnosProps {
 
 export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onCambiarFiltros, onEditar, onEliminar, onDisponibilidad, onVerProgreso, onDescargarPlan, descargando}: TablaAlumnosProps) {
     const [busquedaLocal, setBusquedaLocal] = useState(filtros.busqueda);
-
-    const normalizarNumero = (valor: number | string | undefined) => {
-        if (valor === undefined || valor === null) return 0;
-        const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
-        return Number.isFinite(numero) ? numero : 0;
-    };
-
-    const formatearHoras = (valor: number | string | undefined) => {
-        const numero = normalizarNumero(valor);
-        const redondeado = Math.round(numero * 10) / 10;
-        return Number.isInteger(redondeado) ? redondeado.toString() : redondeado.toFixed(1);
-    };
 
     const handleBusqueda = (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,7 +64,7 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
         const horasCompletadas = alumno.horas_completadas_calculadas !== undefined ? normalizarNumero(alumno.horas_completadas_calculadas) : normalizarNumero(alumno.horas_completadas);
         const horasAsignadas = alumno.horas_asignadas !== undefined ? normalizarNumero(alumno.horas_asignadas) : horasCompletadas;
 
-        const maxHoras = 35; // CAP_REGLAS.HORAS_TOTALES ideally
+        const maxHoras = CAP_REGLAS.HORAS_TOTALES;
         const pctCompletado = Math.min(100, (horasCompletadas / maxHoras) * 100);
 
         // Calculamos el porcentaje visual de lo planificado (lo que falta por completar del plan)
@@ -98,7 +88,7 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                     Planificadas: <strong>{formatearHoras(horasRestantesPlan)}h</strong>
                 </div>
                 <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
-                    Total Estimado: <strong>{formatearHoras(horasCompletadas + horasRestantesPlan)}h</strong> / 35h
+                    Total Estimado: <strong>{formatearHoras(horasCompletadas + horasRestantesPlan)}h</strong> / {CAP_REGLAS.HORAS_TOTALES}h
                 </div>
             </div>
         );
@@ -115,7 +105,7 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
                 <div className="capProgreso__textos">
                     <span className="capProgreso__texto">
                         <span className="capProgreso__texto--completado">{formatearHoras(horasCompletadas)}h</span>
-                        <span className="capTexto--terciario"> / 35h</span>
+                        <span className="capTexto--terciario"> / {CAP_REGLAS.HORAS_TOTALES}h</span>
                     </span>
                     {horasRestantesPlan > 0.1 && (
                         <span className="capProgreso__textoSec capFlexStart capGap--xs">

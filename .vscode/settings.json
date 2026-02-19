@@ -1,7 +1,74 @@
 {
+    "php.validate.enable": false,
+    "git.autoRepositoryDetection": "subFolders",
+    "git.openRepositoryInParentFolders": "always",
+    "git.repositoryScanMaxDepth": 10,
+    "git.repositoryScanIgnoredFolders": [
+        "vendor",
+        "node_modules"
+    ],
+    "git.detectSubmodules": true,
     "postman.settings.dotenv-detection-notification-visibility": false,
     "files.exclude": {
         "**/.history": true
     },
-    "search.useIgnoreFiles": false
+    "search.useIgnoreFiles": false,
+    "intelephense.environment.includePaths": ["vendor/php-stubs/wordpress-stubs"],
+    "intelephense.files.exclude": ["**/.git/**", "**/.svn/**", "**/.hg/**", "**/CVS/**", "**/.DS_Store/**", "**/node_modules/**", "**/bower_components/**", "**/vendor/**/{Test,test,Tests,tests}/**", "**/.history/**"],
+    "intelephense.stubs": ["wordpress", "standard", "Core", "date", "json", "pcre", "reflection", "spl", "tokenizer", "SimpleXML", "dom", "xml", "curl", "gd", "zip", "mbstring", "intl", "fileinfo", "pdo", "mysqli", "openssl", "session", "hash", "filter", "iconv", "fpm", "random", "ctype", "sodium", "calendar", "math", "bcmath", "exif"],
+    "cssVarsValidator.enable": true,
+    "cssVarsValidator.variableFiles": [
+        "App/React/styles/variables.css",
+        "**/variables.css",
+        "**/vars.css",
+        "**/_variables.scss",
+        "**/tokens.css"
+    ],
+    "cssVarsValidator.includePatterns": [
+        "App/**"
+    ],
+    "cssVarsValidator.hardcodedDetection.enabled": false,
+    "cssVarsValidator.hardcodedDetection.severity": "error",
+    "cssVarsValidator.hardcodedDetection.properties": {
+        "font-size": true,
+        "font-family": true,
+        "font-weight": true,
+        "line-height": true,
+        "color": true,
+        "background-color": true,
+        "background": true,
+        "border-color": true,
+        "border-radius": true,
+        "gap": true,
+        "margin": true,
+        "padding": true,
+        "width": false,
+        "height": false,
+        "box-shadow": true,
+        "transition": true,
+        "opacity": true
+    },
+    "cssVarsValidator.hardcodedDetection.allowedValues": [
+        "0",
+        "auto",
+        "inherit",
+        "initial",
+        "unset",
+        "none",
+        "transparent",
+        "currentColor",
+        "100%"
+    ],
+    "cssVarsValidator.excludePatterns": [
+        "**/Glory/**",
+        "**/node_modules/**",
+        "**/vendor/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/*.min.css"
+    ],
+    "cssVarsValidator.scanAllFiles": true,
+    "cssVarsValidator.inlineDetection.enabled": false,
+    "cssVarsValidator.duplicateClassDetection.enabled": false,
+    "cssVarsValidator.duplicateClassDetection.crossFile": false
 }

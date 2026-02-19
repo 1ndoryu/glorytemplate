@@ -18,7 +18,6 @@ class Configuracion
         global $wpdb;
         $this->tablaCentros = $wpdb->prefix . 'cap_centros';
         $this->tablaConfig = $wpdb->prefix . 'cap_configuracion';
-        $this->asegurarColumnaFlexibilidad();
     }
 
     /**
@@ -46,7 +45,7 @@ class Configuracion
         $config = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->tablaConfig} WHERE centro_id = %d",
             $centroId
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         return $config ?: $this->configuracionDefecto($centroId);
     }
@@ -111,7 +110,7 @@ class Configuracion
         $centro = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->tablaCentros} WHERE id = %d",
             $centroId
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         return $centro ?: null;
     }
@@ -282,17 +281,17 @@ class Configuracion
         }
 
         if (isset($datos['alumnos_max_clase'])) {
-            $max = absint($datos['alumnos_max_clase']);
+            $max = (int) $datos['alumnos_max_clase'];
             $validados['alumnos_max_clase'] = max(1, min(100, $max));
         }
 
         if (isset($datos['duracion_clase'])) {
-            $duracion = absint($datos['duracion_clase']);
+            $duracion = (int) $datos['duracion_clase'];
             $validados['duracion_clase'] = max(30, min(120, $duracion));
         }
 
         if (isset($datos['duracion_descanso'])) {
-            $descanso = absint($datos['duracion_descanso']);
+            $descanso = (int) $datos['duracion_descanso'];
             $validados['duracion_descanso'] = max(5, min(60, $descanso));
         }
 

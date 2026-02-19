@@ -30,6 +30,7 @@ class Clase
     public function obtenerSemana(int $centroId, string $fechaInicio): array
     {
         global $wpdb;
+        $tablaAlumnos = $wpdb->prefix . 'cap_alumnos';
 
         $fechaFin = date('Y-m-d', strtotime($fechaInicio . ' +4 days'));
 
@@ -41,11 +42,41 @@ class Clase
             $centroId,
             $fechaInicio,
             $fechaFin
-        ), ARRAY_A);
+        ), 'ARRAY_A');
+
+        if (empty($clases)) {
+            return [];
+        }
+
+        $idsClases = array_map(static fn(array $clase): int => (int) $clase['id'], $clases);
+        $placeholders = implode(',', array_fill(0, count($idsClases), '%d'));
+
+        $sqlAlumnos = $wpdb->prepare(
+            "SELECT asi.clase_id, a.id, a.nombre, asi.asistio
+             FROM {$this->tablaAsistencia} asi
+             JOIN {$tablaAlumnos} a ON asi.alumno_id = a.id
+             WHERE asi.clase_id IN ({$placeholders})",
+            ...$idsClases
+        );
+
+        $filasAlumnos = $wpdb->get_results($sqlAlumnos, 'ARRAY_A') ?: [];
+        $alumnosPorClase = [];
+        foreach ($filasAlumnos as $filaAlumno) {
+            $claseId = (int) $filaAlumno['clase_id'];
+            if (!isset($alumnosPorClase[$claseId])) {
+                $alumnosPorClase[$claseId] = [];
+            }
+
+            $alumnosPorClase[$claseId][] = [
+                'id' => (int) $filaAlumno['id'],
+                'nombre' => $filaAlumno['nombre'],
+                'asistio' => (int) $filaAlumno['asistio'],
+            ];
+        }
 
         /* Añadir alumnos asignados a cada clase */
         foreach ($clases as &$clase) {
-            $clase['alumnos'] = $this->obtenerAlumnosClase($clase['id']);
+            $clase['alumnos'] = $alumnosPorClase[(int) $clase['id']] ?? [];
         }
 
         return $clases ?: [];
@@ -65,7 +96,7 @@ class Clase
              JOIN {$tablaAlumnos} a ON asi.alumno_id = a.id
              WHERE asi.clase_id = %d",
             $claseId
-        ), ARRAY_A) ?: [];
+        ), 'ARRAY_A') ?: [];
     }
 
     /**
@@ -102,7 +133,7 @@ class Clase
         $clase = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->tabla} WHERE id = %d",
             $id
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         if (!$clase) {
             return null;
@@ -257,7 +288,7 @@ class Clase
         $validados = [];
 
         if (isset($datos['centro_id'])) {
-            $validados['centro_id'] = absint($datos['centro_id']);
+            $validados['centro_id'] = (int) $datos['centro_id'];
         } elseif (!$esActualizacion) {
             return null;
         }
@@ -299,7 +330,7 @@ class Clase
         }
 
         if (isset($datos['duracion_minutos'])) {
-            $validados['duracion_minutos'] = absint($datos['duracion_minutos']);
+            $validados['duracion_minutos'] = (int) $datos['duracion_minutos'];
         }
 
         if (isset($datos['bloqueada'])) {

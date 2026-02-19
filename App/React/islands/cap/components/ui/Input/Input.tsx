@@ -4,7 +4,7 @@
  * Campo de entrada reutilizable con validación y estados.
  */
 
-import {type InputHTMLAttributes, forwardRef} from 'react';
+import {type InputHTMLAttributes, forwardRef, useId} from 'react';
 import './Input.css';
 
 type TipoInput = 'text' | 'email' | 'password' | 'number' | 'tel' | 'search';
@@ -19,7 +19,8 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(({tipo = 'text', etiqueta, error, ayuda, icono, iconoDerecha, className = '', id, disabled, ...props}, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || `input-${generatedId}`;
 
     const clasesWrapper = ['capInput', error && 'capInput--error', disabled && 'capInput--deshabilitado', icono && 'capInput--conIcono', iconoDerecha && 'capInput--conIconoDerecha', className].filter(Boolean).join(' ');
 

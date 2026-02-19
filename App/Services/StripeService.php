@@ -166,10 +166,16 @@ class StripeService
         }
 
         try {
-            /* Inicializar Stripe SDK */
-            \Stripe\Stripe::setApiKey($this->secretKey);
+            $stripeClass = '\\Stripe\\Stripe';
+            $checkoutSessionClass = '\\Stripe\\Checkout\\Session';
+            if (!class_exists($stripeClass) || !class_exists($checkoutSessionClass)) {
+                return ['error' => 'Stripe SDK no está disponible en el servidor'];
+            }
 
-            $session = \Stripe\Checkout\Session::create([
+            /* Inicializar Stripe SDK */
+            $stripeClass::setApiKey($this->secretKey);
+
+            $session = $checkoutSessionClass::create([
                 'payment_method_types' => ['card'],
                 'mode' => 'subscription',
                 'customer_email' => $email,
@@ -209,9 +215,15 @@ class StripeService
         }
 
         try {
-            \Stripe\Stripe::setApiKey($this->secretKey);
+            $stripeClass = '\\Stripe\\Stripe';
+            $billingPortalSessionClass = '\\Stripe\\BillingPortal\\Session';
+            if (!class_exists($stripeClass) || !class_exists($billingPortalSessionClass)) {
+                return null;
+            }
 
-            $session = \Stripe\BillingPortal\Session::create([
+            $stripeClass::setApiKey($this->secretKey);
+
+            $session = $billingPortalSessionClass::create([
                 'customer' => $stripeCustomerId,
                 'return_url' => $urlRetorno,
             ]);
@@ -233,9 +245,15 @@ class StripeService
         }
 
         try {
-            \Stripe\Stripe::setApiKey($this->secretKey);
+            $stripeClass = '\\Stripe\\Stripe';
+            $webhookClass = '\\Stripe\\Webhook';
+            if (!class_exists($stripeClass) || !class_exists($webhookClass)) {
+                return ['error' => 'Stripe SDK no está disponible en el servidor', 'status' => 500];
+            }
 
-            $event = \Stripe\Webhook::constructEvent(
+            $stripeClass::setApiKey($this->secretKey);
+
+            $event = $webhookClass::constructEvent(
                 $payload,
                 $sigHeader,
                 $this->webhookSecret
@@ -267,10 +285,12 @@ class StripeService
             }
 
             return ['exito' => true, 'tipo' => $event->type];
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            error_log('[CAP Stripe] Error de firma webhook: ' . $e->getMessage());
-            return ['error' => 'Firma inválida', 'status' => 400];
         } catch (\Exception $e) {
+            if (stripos($e->getMessage(), 'signature') !== false) {
+                error_log('[CAP Stripe] Error de firma webhook: ' . $e->getMessage());
+                return ['error' => 'Firma inválida', 'status' => 400];
+            }
+
             error_log('[CAP Stripe] Error procesando webhook: ' . $e->getMessage());
             return ['error' => $e->getMessage(), 'status' => 500];
         }
@@ -462,7 +482,11 @@ class StripeService
      */
     private function obtenerClaveEncriptacion(): string
     {
-        $key = defined('AUTH_KEY') ? AUTH_KEY : 'cap-fallback-key-insegura';
+        if (!defined('AUTH_KEY') || AUTH_KEY === '') {
+            throw new \RuntimeException('AUTH_KEY no está definida. No se puede encriptar configuración de Stripe.');
+        }
+
+        $key = AUTH_KEY;
         return hash('sha256', $key, true);
     }
 

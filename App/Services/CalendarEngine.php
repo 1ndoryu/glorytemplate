@@ -16,6 +16,8 @@
 
 namespace Glory\App\Services;
 
+use Glory\App\Models\Alumno;
+
 class CalendarEngine
 {
     /* Constantes legales del curso CAP */
@@ -51,10 +53,12 @@ class CalendarEngine
     private array $minutosAsignadosPorAlumno = [];
     /* Minutos restantes por asignatura para cada alumno */
     private array $minutosRestantesAsignaturaPorAlumno = [];
+    private CalendarReglasValidator $calendarReglasValidator;
 
     public function __construct(int $centroId)
     {
         $this->centroId = $centroId;
+        $this->calendarReglasValidator = new CalendarReglasValidator();
         $this->cargarConfiguracion();
         $this->aplicarTimezone();
     }
@@ -340,7 +344,7 @@ class CalendarEngine
                {$condicionExcluir}
                GROUP BY a.alumno_id";
 
-           $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), ARRAY_A);
+           $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), 'ARRAY_A');
 
         /* Inicializar todos en 0 */
         foreach ($alumnosIds as $alumnoId) {
@@ -845,7 +849,7 @@ class CalendarEngine
               {$condicionExcluir}
             GROUP BY a.alumno_id, c.asignatura";
 
-        $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), ARRAY_A);
+        $resultados = $wpdb->get_results($wpdb->prepare($queryStr, $params), 'ARRAY_A');
 
         foreach ($resultados as $row) {
             $alumnoId = (int) $row['alumno_id'];
@@ -886,32 +890,7 @@ class CalendarEngine
      */
     private function normalizarCodigoAsignatura(string $codigo): string
     {
-        $codigoLimpio = strtolower(trim($codigo));
-        $alias = [
-            '1' => 'conduccion_racional',
-            '2' => 'reglamentacion',
-            '3' => 'seguridad_vial',
-            '4' => 'servicio_logistica',
-            '5' => 'salud_seguridad',
-            '6' => 'medio_ambiente',
-            '7' => 'mercancias_peligrosas',
-            '8' => 'viajeros',
-            'cr' => 'conduccion_racional',
-            'reg' => 'reglamentacion',
-            'sv' => 'seguridad_vial',
-            'sl' => 'servicio_logistica',
-            'ss' => 'salud_seguridad',
-            'ma' => 'medio_ambiente',
-            'mp' => 'mercancias_peligrosas',
-            'via' => 'viajeros',
-            'racionalizacion' => 'conduccion_racional',
-            'entorno_economico' => 'medio_ambiente',
-            'operativa' => 'servicio_logistica',
-            'normativa' => 'reglamentacion',
-            'conduccion_economica' => 'conduccion_racional',
-        ];
-
-        return $alias[$codigoLimpio] ?? $codigoLimpio;
+        return Alumno::normalizarCodigoAsignatura($codigo);
     }
 
     /**
@@ -1047,77 +1026,14 @@ class CalendarEngine
      */
     public function validarReglas(array $clases, int $alumnoId): array
     {
-        $errores = [];
-
-        $horasTotales = $this->calcularHorasTotales($clases, $alumnoId);
-        $diasUnicos = $this->contarDiasUnicos($clases, $alumnoId);
-        $maxHorasDia = $this->calcularMaxHorasDia($clases, $alumnoId);
-
-        if ($horasTotales < self::HORAS_TOTALES_CURSO) {
-            $errores[] = "Faltan " . (self::HORAS_TOTALES_CURSO - $horasTotales) . " horas para completar el curso";
-        }
-
-        if ($diasUnicos < self::MINIMO_DIAS) {
-            $errores[] = "El curso debe realizarse en al menos " . self::MINIMO_DIAS . " días";
-        }
-
-        if ($maxHorasDia > self::MAXIMO_HORAS_DIA_ALUMNO) {
-            $errores[] = "Ningún día puede superar " . self::MAXIMO_HORAS_DIA_ALUMNO . " horas por alumno";
-        }
-
-        return $errores;
-    }
-
-    /**
-     * Calcula las horas totales asignadas a un alumno
-     */
-    private function calcularHorasTotales(array $clases, int $alumnoId): float
-    {
-        $minutosTotales = 0;
-
-        foreach ($clases as $clase) {
-            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
-                $minutosTotales += $this->duracionClase;
-            }
-        }
-
-        return $minutosTotales / 60;
-    }
-
-    /**
-     * Cuenta los días únicos con clases para un alumno
-     */
-    private function contarDiasUnicos(array $clases, int $alumnoId): int
-    {
-        $dias = [];
-
-        foreach ($clases as $clase) {
-            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
-                $dias[$clase['fecha']] = true;
-            }
-        }
-
-        return count($dias);
-    }
-
-    /**
-     * Calcula el máximo de horas en un día para un alumno
-     */
-    private function calcularMaxHorasDia(array $clases, int $alumnoId): float
-    {
-        $minutosPorDia = [];
-
-        foreach ($clases as $clase) {
-            if (in_array($alumnoId, $clase['alumnos'] ?? [])) {
-                $fecha = $clase['fecha'];
-                if (!isset($minutosPorDia[$fecha])) {
-                    $minutosPorDia[$fecha] = 0;
-                }
-                $minutosPorDia[$fecha] += $this->duracionClase;
-            }
-        }
-
-        return empty($minutosPorDia) ? 0 : max($minutosPorDia) / 60;
+        return $this->calendarReglasValidator->validarReglas(
+            $clases,
+            $alumnoId,
+            $this->duracionClase,
+            self::HORAS_TOTALES_CURSO,
+            self::MINIMO_DIAS,
+            self::MAXIMO_HORAS_DIA_ALUMNO
+        );
     }
 
     /**

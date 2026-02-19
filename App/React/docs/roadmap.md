@@ -1,10 +1,47 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-12  
+> **Última actualización:** 2026-02-19  
 > **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+
+- 2026-02-19: ✅ **[AG-AUD]** Correcciones integrales post-auditoría (`AUDITORIA_COMPLETA.md`) aplicadas.
+    - Backend seguridad: callbacks REST seguros con try-catch global, validación de pertenencia por `centro_id` en actualizar/eliminar alumno, disponibilidad y toggle bloqueo.
+    - Backend hardening: rate limit de registro público + complejidad mínima de contraseña + bloqueo explícito de demo cuando no está permitido.
+    - Backend rendimiento: removida migración runtime de `Configuracion` (ahora versionada en `CapBootstrap`), eliminación de N+1 en `Clase::obtenerSemana`, recálculo de progreso en lote en `Alumno`.
+    - Backend consistencia: `control-horas` devuelve PDF base64 (sin `echo/exit`), eliminado método muerto `registrar()`, removida duplicación de mapa de asignaturas en `CapEndpoints`.
+    - Frontend calidad: fix `setTimeout` fuera de `useEffect` en `PanelStripe`, manejo seguro de clipboard, `Input` con `useId`, util compartida `formateoHoras`, reemplazo de hardcode `35` por `CAP_REGLAS.HORAS_TOTALES`.
+    - Fuente única de asignaturas: `CalendarEngine` y `ReporteService` usan normalización canónica de `Alumno`.
+
+- 2026-02-19: ✅ **[AG-AUD]** Split parcial de arquitectura REST completado.
+    - Extraídos endpoints de demo a `App/Api/CapDemoEndpoints.php`.
+    - Extraídos endpoints de Stripe a `App/Api/CapStripeEndpoints.php`.
+    - Extraídos endpoints de reportes a `App/Api/CapReportesEndpoints.php`.
+    - `CapEndpoints` queda como orquestador de rutas por dominio y reduce responsabilidades directas.
+
+- 2026-02-19: ✅ **[AG-AUD]** Split estructural de `CapEndpoints` completado en dominios restantes.
+    - Extraídos endpoints de configuración/dashboard a `App/Api/CapConfigEndpoints.php`.
+    - Extraídos endpoints de registro público a `App/Api/CapRegistroEndpoints.php`.
+    - Extraídos endpoints CRUD de alumnos a `App/Api/CapAlumnosEndpoints.php`.
+    - Extraídos endpoints de progreso/debug de alumnos a `App/Api/CapAlumnosProgresoEndpoints.php`.
+    - Extraídos endpoints de disponibilidad a `App/Api/CapDisponibilidadEndpoints.php`.
+    - Extraídos endpoints de generación/consulta de calendario a `App/Api/CapCalendarioGeneracionEndpoints.php`.
+    - Extraídos endpoints de gestión de clases a `App/Api/CapClasesGestionEndpoints.php`.
+    - Extraídos endpoints de limpieza masiva/semanal de clases a `App/Api/CapClasesLimpiezaEndpoints.php`.
+    - `CapEndpoints` consolidado como registro/orquestación de rutas, eliminando responsabilidades de dominio.
+
+- 2026-02-19: ✅ **[AG-REP]** Split de `ReporteService` completado con builders dedicados de reportes PDF.
+    - `ReporteService` quedó como orquestador y bajó a 184 líneas.
+    - Extraído `ReportePdfStyles` para centralizar estilos PDF.
+    - Extraídos `ReportePlanAlumnoHtmlBuilder` y `ReporteControlHorasHtmlBuilder` para separar templates por dominio.
+    - Hardening aplicado: escape HTML de datos dinámicos antes de renderizar PDF y `try-catch` explícito en `generarControlHoras`.
+    - [Arquitectura]: separar estilos compartidos evita duplicación y acelera próximos splits de reportes.
+
+- 2026-02-19: ✅ **[AG-REP]** Avance inicial de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarReglasValidator` para validación legal de horas/días por alumno.
+    - `CalendarEngine::validarReglas()` ahora delega y reduce responsabilidad directa del motor.
+    - [Arquitectura]: primer corte seguro para desacoplar reglas antes de extraer slots/demanda/persistencia.
 
 - 2026-02-12: **RESUELTO Y VERIFICADO EN DEBUG.LOG: Progreso por asignatura consistente + horarios flexibles respetados**
     - `CalendarEngine::distribuirAsignaturas()` pasó a lógica por **déficit real por alumno/asignatura** en cada slot. Resultado verificado: asignadas=35h y desglose exacto `7+4+6+4+4+4+3+3` por alumno.

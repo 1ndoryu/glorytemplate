@@ -10,11 +10,12 @@
 namespace Glory\App\Services;
 
 use Glory\App\Database\CapSchema;
+use Glory\App\Models\Configuracion;
 
 class CapBootstrap
 {
     private const VERSION_OPTION = 'cap_db_version';
-    private const CURRENT_VERSION = '1.0.1';
+    private const CURRENT_VERSION = '1.0.2';
 
     /**
      * Inicializa el módulo CAP registrando todos los hooks necesarios
@@ -57,6 +58,10 @@ class CapBootstrap
 
         /* Crear todas las tablas del módulo */
         $schema->crearTablas();
+
+        /* Migraciones complementarias de configuración (versionadas) */
+        $configuracion = new Configuracion();
+        $configuracion->asegurarColumnaFlexibilidad();
 
         /* Registrar rol personalizado */
         CapSchema::registrarRol();

@@ -201,7 +201,7 @@ class Alumno
             array_merge($params, [$limite, $offset])
         );
 
-        return $wpdb->get_results($query, ARRAY_A) ?: [];
+        return $wpdb->get_results($query, 'ARRAY_A') ?: [];
     }
 
     /**
@@ -238,7 +238,7 @@ class Alumno
             array_merge([$centroId], $idsFiltrados)
         );
 
-        return $wpdb->get_results($query, ARRAY_A) ?: [];
+        return $wpdb->get_results($query, 'ARRAY_A') ?: [];
     }
 
     /**
@@ -251,7 +251,7 @@ class Alumno
         $alumno = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$this->tabla} WHERE id = %d",
             $id
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         return $alumno ?: null;
     }
@@ -344,7 +344,7 @@ class Alumno
         $validados = [];
 
         if (isset($datos['centro_id'])) {
-            $validados['centro_id'] = absint($datos['centro_id']);
+            $validados['centro_id'] = (int) $datos['centro_id'];
         } elseif (!$esActualizacion) {
             return null;
         }
@@ -409,7 +409,7 @@ class Alumno
              WHERE a.alumno_id = %d AND c.fecha <= CURDATE()
              GROUP BY c.asignatura",
             $alumnoId
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         return $this->normalizarProgresoAsignaturas($progreso ?: []);
     }
@@ -432,7 +432,7 @@ class Alumno
              WHERE a.alumno_id = %d
              GROUP BY c.asignatura",
             $alumnoId
-        ), ARRAY_A);
+        ), 'ARRAY_A');
 
         return $this->normalizarProgresoAsignaturas($progreso ?: []);
     }
@@ -497,9 +497,7 @@ class Alumno
             $centroId
         ));
 
-        foreach ($alumnosIds as $alumnoId) {
-            $this->recalcularHorasCompletadas((int) $alumnoId);
-        }
+        $this->recalcularProgresoEnLote($alumnosIds);
     }
 
     /**
@@ -508,9 +506,38 @@ class Alumno
      */
     public function recalcularProgresoAlumnos(array $alumnosIds): void
     {
-        foreach ($alumnosIds as $alumnoId) {
-            $this->recalcularHorasCompletadas((int) $alumnoId);
+        $this->recalcularProgresoEnLote($alumnosIds);
+    }
+
+    private function recalcularProgresoEnLote(array $alumnosIds): void
+    {
+        global $wpdb;
+        $ids = array_values(array_unique(array_filter(array_map('intval', $alumnosIds))));
+        if (empty($ids)) {
+            return;
         }
+
+        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $placeholdersSubquery = implode(',', array_fill(0, count($ids), '%d'));
+        $placeholdersWhere = implode(',', array_fill(0, count($ids), '%d'));
+
+        $query = "
+            UPDATE {$this->tabla} al
+            LEFT JOIN (
+                SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos) / 60, 0) AS horas
+                FROM {$tablaAsistencia} a
+                JOIN {$tablaClases} c ON a.clase_id = c.id
+                WHERE c.fecha <= CURDATE() AND a.alumno_id IN ({$placeholdersSubquery})
+                GROUP BY a.alumno_id
+            ) calc ON al.id = calc.alumno_id
+            SET al.horas_completadas = COALESCE(calc.horas, 0),
+                al.updated_at = %s
+            WHERE al.id IN ({$placeholdersWhere})
+        ";
+
+        $params = array_merge($ids, [current_time('mysql')], $ids);
+        $wpdb->query($wpdb->prepare($query, ...$params));
     }
 
     /**

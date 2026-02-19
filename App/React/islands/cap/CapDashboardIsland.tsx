@@ -11,11 +11,23 @@ import {useDashboardStore} from './stores/useDashboardStore';
 import './styles/index.css';
 
 interface CapDashboardIslandProps {
-    user: {
+    user?: {
         id: number;
         name: string;
         email: string;
         isAdmin?: boolean;
+    };
+    restNonce?: string;
+    restUrl?: string;
+    siteUrl?: string;
+}
+
+interface CapDashboardIslandPropsCompletas {
+    user: {
+        id: number;
+        name: string;
+        email: string;
+        isAdmin: boolean;
     };
     restNonce: string;
     restUrl: string;
@@ -36,7 +48,33 @@ function initWpApiSettings(nonce: string, root: string) {
     }
 }
 
-export function CapDashboardIsland({user, restNonce, restUrl, siteUrl}: CapDashboardIslandProps) {
+function normalizarPropsDashboard(rawProps: Record<string, unknown>): CapDashboardIslandPropsCompletas {
+    const props = rawProps as CapDashboardIslandProps;
+    const gloryContext = typeof window !== 'undefined' ? (window as any).GLORY_CONTEXT : null;
+    const user = props.user ?? {id: 0, name: '', email: '', isAdmin: false};
+
+    return {
+        user: {
+            id: typeof user.id === 'number' ? user.id : 0,
+            name: typeof user.name === 'string' ? user.name : '',
+            email: typeof user.email === 'string' ? user.email : '',
+            isAdmin: typeof user.isAdmin === 'boolean' ? user.isAdmin : false,
+        },
+        restNonce: typeof props.restNonce === 'string'
+            ? props.restNonce
+            : (typeof gloryContext?.nonce === 'string' ? gloryContext.nonce : ''),
+        restUrl: typeof props.restUrl === 'string'
+            ? props.restUrl
+            : (typeof gloryContext?.restUrl === 'string' ? `${gloryContext.restUrl.replace(/\/$/, '')}/cap/v1` : '/wp-json/cap/v1'),
+        siteUrl: typeof props.siteUrl === 'string'
+            ? props.siteUrl
+            : (typeof gloryContext?.siteUrl === 'string' ? gloryContext.siteUrl : window.location.origin),
+    };
+}
+
+export function CapDashboardIsland(rawProps: Record<string, unknown>) {
+    const {user, restNonce, restUrl, siteUrl} = normalizarPropsDashboard(rawProps);
+
     /*
      * Inyección síncrona del nonce ANTES de que se ejecuten los useEffect de los hijos
      * Esto garantiza que las llamadas API tengan el nonce disponible

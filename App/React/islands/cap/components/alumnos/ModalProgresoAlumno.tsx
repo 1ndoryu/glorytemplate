@@ -10,6 +10,7 @@ import {useState, useEffect} from 'react';
 import {Modal, Badge, Spinner, Tooltip} from '../ui';
 import {ASIGNATURAS_CAP, CAP_REGLAS} from '../../constants';
 import type {Alumno} from '../../hooks/useAlumnos';
+import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
 
 interface ProgresoAsignatura {
     asignaturaId: number;
@@ -86,13 +87,16 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
     useEffect(() => {
         if (!visible || !alumno) return;
 
+        const abortController = new AbortController();
+
         const cargarProgreso = async () => {
             setCargando(true);
             try {
                 const nonce = (window as any).wpApiSettings?.nonce || '';
                 const response = await fetch(`/wp-json/cap/v1/alumnos/${alumno.id}/progreso`, {
                     headers: {'X-WP-Nonce': nonce},
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    signal: abortController.signal
                 });
 
                 if (!response.ok) throw new Error('Error al cargar progreso');
@@ -138,7 +142,12 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                  */
                 setHorasAsignadas(totalAsignadoMapeado);
                 setHorasCompletadas(totalCompletadoMapeado);
-            } catch {
+            } catch (errorCarga) {
+                if (abortController.signal.aborted) {
+                    return;
+                }
+
+                console.error('[ModalProgresoAlumno] Error cargando progreso', errorCarga);
                 /* En caso de error usar datos del alumno como fallback */
                 const fallback = ASIGNATURAS_CAP.map(asig => ({
                     asignaturaId: asig.id,
@@ -149,26 +158,20 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                 setHorasAsignadas(alumno.horas_completadas || 0);
                 setHorasCompletadas(alumno.horas_completadas || 0);
             } finally {
-                setCargando(false);
+                if (!abortController.signal.aborted) {
+                    setCargando(false);
+                }
             }
         };
 
         cargarProgreso();
+
+        return () => {
+            abortController.abort();
+        };
     }, [visible, alumno]);
 
     if (!alumno) return null;
-
-    const normalizarNumero = (valor: number | string | undefined) => {
-        if (valor === undefined || valor === null) return 0;
-        const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
-        return Number.isFinite(numero) ? numero : 0;
-    };
-
-    const formatearHoras = (valor: number | string | undefined) => {
-        const numero = normalizarNumero(valor);
-        const redondeado = Math.round(numero * 10) / 10;
-        return Number.isInteger(redondeado) ? redondeado.toString() : redondeado.toFixed(1);
-    };
 
     const horasTotales = normalizarNumero(horasCompletadas);
     const horasPlan = normalizarNumero(horasAsignadas);
@@ -200,7 +203,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                 <span className="capTexto--xs capTexto--secundario capMb--xs">Completadas</span>
                                 <div className="capFlexCenter capGap--xs">
                                     <span className="capTitulo--xl capTexto--exito">{formatearHoras(horasTotales)}h</span>
-                                    <span className="capTexto--xs capTexto--terciario">/ 35h</span>
+                                    <span className="capTexto--xs capTexto--terciario">/ {CAP_REGLAS.HORAS_TOTALES}h</span>
                                 </div>
                             </div>
                             <div className="capTarjetaEstadistica capTarjetaEstadistica--info">
@@ -237,7 +240,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                             Faltantes: <strong>{formatearHoras(horasFaltantesGlobal)}h</strong>
                                         </div>
                                         <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
-                                            Total: <strong>{formatearHoras(horasPlan)}h</strong> / 35h
+                                            Total: <strong>{formatearHoras(horasPlan)}h</strong> / {CAP_REGLAS.HORAS_TOTALES}h
                                         </div>
                                     </div>
                                 }
