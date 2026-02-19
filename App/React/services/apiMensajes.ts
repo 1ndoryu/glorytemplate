@@ -16,7 +16,7 @@ export const obtenerConversaciones = async (): Promise<RespuestaApi<Conversacion
         return await apiGet<Conversacion[]>('/mensajes/conversaciones');
     } catch (err) {
         log.error('Error obteniendo conversaciones', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 
@@ -29,7 +29,7 @@ export const obtenerMensajes = async (
         return await apiGet<Mensaje[]>(`/mensajes/${conversacionId}`, { page: pagina });
     } catch (err) {
         log.error('Error obteniendo mensajes', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 

@@ -69,7 +69,7 @@ export const obtenerEstadisticasCreador = async (): Promise<RespuestaApi<Estadis
         return await apiGet<EstadisticasCreador>('/dashboard/stats');
     } catch (err) {
         log.error('Error obteniendo estadísticas', err);
-        return { ok: true, data: estadisticasVacias, error: null, status: 200 };
+        return { ok: false, data: estadisticasVacias, error: 'Error de red', status: 500 };
     }
 };
 
@@ -79,7 +79,7 @@ export const obtenerTopSamples = async (): Promise<RespuestaApi<SampleStats[]>> 
         return await apiGet<SampleStats[]>('/dashboard/top-samples');
     } catch (err) {
         log.error('Error obteniendo top samples', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 
@@ -91,7 +91,7 @@ export const obtenerTransacciones = async (
         return await apiGet<TransaccionCreador[]>('/dashboard/transacciones', { page: pagina });
     } catch (err) {
         log.error('Error obteniendo transacciones', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 
@@ -103,7 +103,7 @@ export const obtenerIngresosPorPeriodo = async (
         return await apiGet<IngresosPorPeriodo[]>('/dashboard/ingresos', { periodo });
     } catch (err) {
         log.error('Error obteniendo ingresos', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 
@@ -166,7 +166,7 @@ export const obtenerEstadoConnect = async (): Promise<RespuestaApi<DatosConnect>
     } catch (err) {
         log.error('Error obteniendo estado Connect', err);
         return {
-            ok: true,
+            ok: false,
             data: {
                 estado: 'no_configurado',
                 connectId: null,
@@ -174,8 +174,8 @@ export const obtenerEstadoConnect = async (): Promise<RespuestaApi<DatosConnect>
                 payoutsActivos: false,
                 detalle: null,
             },
-            error: null,
-            status: 200,
+            error: 'Error de red',
+            status: 500,
         };
     }
 };
@@ -209,10 +209,10 @@ export const obtenerBalanceConnect = async (): Promise<RespuestaApi<BalanceConne
     } catch (err) {
         log.error('Error obteniendo balance Connect', err);
         return {
-            ok: true,
+            ok: false,
             data: { disponible: 0, pendiente: 0, moneda: 'usd' },
-            error: null,
-            status: 200,
+            error: 'Error de red',
+            status: 500,
         };
     }
 };

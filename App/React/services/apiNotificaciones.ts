@@ -45,7 +45,7 @@ export const obtenerNotificaciones = async (
         return await apiGet<Notificacion[]>('/notificaciones', { page: pagina });
     } catch (err) {
         log.error('Error obteniendo notificaciones', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
     }
 };
 
