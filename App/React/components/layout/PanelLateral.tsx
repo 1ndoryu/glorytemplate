@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { PanelDetalleSample } from '@app/components/feed/PanelDetalleSample';
 import { PanelSugerencias } from '@app/components/feed/PanelSugerencias';
+import { crearLogger } from '@app/services/logger';
 /* PanelLibreria: sin uso temporal, pendiente reutilizacion en Explorador (C281) */
 import { ErrorBoundaryMezclador } from '@mezclador/components/ErrorBoundaryMezclador';
 import { MezcladorPanel } from '@mezclador/components/MezcladorPanel';
@@ -19,12 +20,16 @@ const LS_KEY_ANCHO = 'kamples:anchoPanelLateral';
 const ANCHO_MIN = 280;
 const ANCHO_MAX = 700;
 const ANCHO_DEFAULT = 340;
+const log = crearLogger('PanelLateral');
 
 const leerAnchoGuardado = (): number => {
     try {
         const val = localStorage.getItem(LS_KEY_ANCHO);
         return val ? Math.max(ANCHO_MIN, Math.min(ANCHO_MAX, Number(val))) : ANCHO_DEFAULT;
-    } catch { return ANCHO_DEFAULT; }
+    } catch (error) {
+        log.warn('No se pudo leer ancho guardado del panel lateral', error);
+        return ANCHO_DEFAULT;
+    }
 };
 
 export const PanelLateral = (): JSX.Element | null => {
@@ -60,7 +65,11 @@ export const PanelLateral = (): JSX.Element | null => {
             document.removeEventListener('mousemove', mover);
             document.removeEventListener('mouseup', soltar);
             /* Guardar en localStorage */
-            try { localStorage.setItem(LS_KEY_ANCHO, String(ancho)); } catch {}
+            try {
+                localStorage.setItem(LS_KEY_ANCHO, String(ancho));
+            } catch (error) {
+                log.warn('No se pudo persistir ancho del panel lateral', error);
+            }
         };
 
         document.addEventListener('mousemove', mover);

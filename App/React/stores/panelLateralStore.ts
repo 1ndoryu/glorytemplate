@@ -9,17 +9,22 @@
 
 import { create } from 'zustand';
 import type { SampleResumen } from '@app/types';
+import { crearLogger } from '@app/services/logger';
 
 type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | 'mezclador' | 'libreria' | null;
 
 /* C155: Clave localStorage para persistir preferencia */
 const LS_KEY_SUGERENCIAS = 'kamples:sugerenciasAlDarLike';
+const log = crearLogger('panelLateralStore');
 
 const leerPreferenciaSugerencias = (): boolean => {
     try {
         const val = localStorage.getItem(LS_KEY_SUGERENCIAS);
         return val === null ? true : val === '1';
-    } catch { return true; }
+    } catch (error) {
+        log.warn('No se pudo leer preferencia de sugerencias', error);
+        return true;
+    }
 };
 
 interface PanelLateralState {
@@ -69,7 +74,11 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     sugerenciasAlDarLike: leerPreferenciaSugerencias(),
 
     setSugerenciasAlDarLike: (valor) => {
-        try { localStorage.setItem(LS_KEY_SUGERENCIAS, valor ? '1' : '0'); } catch { /* noop */ }
+        try {
+            localStorage.setItem(LS_KEY_SUGERENCIAS, valor ? '1' : '0');
+        } catch (error) {
+            log.warn('No se pudo guardar preferencia de sugerencias', error);
+        }
         set({ sugerenciasAlDarLike: valor });
     },
 

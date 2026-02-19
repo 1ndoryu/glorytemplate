@@ -169,9 +169,7 @@ class SamplesUploadController
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
             /* S22 fix: limpiar archivo huérfano y retornar error real */
-            if (\file_exists($subido['file'])) {
-                @\unlink($subido['file']);
-            }
+            self::eliminarArchivoSiExiste($subido['file'], 'archivo huerfano de subida tras error de insercion');
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al registrar el sample'], 500);
         }
 
@@ -207,8 +205,14 @@ class SamplesUploadController
                     \flush();
                 }
 
-                @\set_time_limit(600);
-                @\ini_set('memory_limit', '256M');
+                if (\function_exists('set_time_limit') && !\set_time_limit(600)) {
+                    KamplesLogger::warning('No se pudo ampliar set_time_limit para pipeline async', ['sampleId' => $datosPipeline['sampleId']]);
+                }
+
+                $resultadoMemoria = \ini_set('memory_limit', '256M');
+                if ($resultadoMemoria === false) {
+                    KamplesLogger::warning('No se pudo ajustar memory_limit para pipeline async', ['sampleId' => $datosPipeline['sampleId']]);
+                }
 
                 try {
                     PipelineAudio::procesar(
@@ -229,5 +233,27 @@ class SamplesUploadController
             'ok' => true, 'sample_id' => $sampleId, 'id_corto' => $idCorto,
             'slug' => $slug, 'url' => $subido['url'], 'estado' => 'procesando',
         ], 201);
+    }
+
+    private static function eliminarArchivoSiExiste(string $ruta, string $contexto): void
+    {
+        if (!$ruta || !\file_exists($ruta)) {
+            return;
+        }
+
+        try {
+            if (!\unlink($ruta)) {
+                KamplesLogger::warning('No se pudo eliminar archivo en SamplesUploadController', [
+                    'ruta' => $ruta,
+                    'contexto' => $contexto,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Error eliminando archivo en SamplesUploadController', [
+                'ruta' => $ruta,
+                'contexto' => $contexto,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -1,4 +1,4 @@
-# Auditoría try-catch — Kamples
+haz# Auditoría try-catch — Kamples
 
 > **Fecha:** 19/02/2026  
 > **Agente:** AG-SEC  

@@ -136,13 +136,22 @@ class KamplesLogger
         self::$limpiezaEjecutada = true;
 
         $marker = $directorio . '/.last_cleanup';
-        if (file_exists($marker)) {
-            $ultimaLimpieza = (int) file_get_contents($marker);
-            if (time() - $ultimaLimpieza < 86400) return;
-        }
+        try {
+            if (file_exists($marker)) {
+                $contenidoMarker = file_get_contents($marker);
+                if ($contenidoMarker !== false) {
+                    $ultimaLimpieza = (int) $contenidoMarker;
+                    if (time() - $ultimaLimpieza < 86400) return;
+                }
+            }
 
-        self::limpiarLogsViejos($directorio);
-        file_put_contents($marker, (string) time());
+            self::limpiarLogsViejos($directorio);
+            if (file_put_contents($marker, (string) time()) === false) {
+                throw new \RuntimeException('No se pudo escribir marker de limpieza de logs');
+            }
+        } catch (\Throwable $e) {
+            error_log('[KamplesLogger] Error en limpiarSiCorresponde: ' . $e->getMessage());
+        }
     }
 
     /*
@@ -162,8 +171,12 @@ class KamplesLogger
 
         foreach ($archivos as $archivo) {
             if (filemtime($archivo) < $umbral) {
-                if (@unlink($archivo)) {
-                    $eliminados++;
+                try {
+                    if (unlink($archivo)) {
+                        $eliminados++;
+                    }
+                } catch (\Throwable $e) {
+                    error_log('[KamplesLogger] Error eliminando log viejo: ' . $e->getMessage());
                 }
             }
         }
@@ -223,21 +236,29 @@ class KamplesLogger
         if (!is_dir($directorio)) {
             /* wp_mkdir_p crea directorios recursivamente */
             if (function_exists('wp_mkdir_p')) {
-                \wp_mkdir_p($directorio);
+                if (!\wp_mkdir_p($directorio)) {
+                    throw new \RuntimeException('No se pudo crear directorio de logs con wp_mkdir_p');
+                }
             } else {
-                mkdir($directorio, 0755, true);
+                if (!mkdir($directorio, 0755, true) && !is_dir($directorio)) {
+                    throw new \RuntimeException('No se pudo crear directorio de logs con mkdir');
+                }
             }
 
             /* Proteger con .htaccess para evitar acceso público */
             $htaccess = $directorio . '/.htaccess';
             if (!file_exists($htaccess)) {
-                file_put_contents($htaccess, "Deny from all\n");
+                if (file_put_contents($htaccess, "Deny from all\n") === false) {
+                    throw new \RuntimeException('No se pudo crear .htaccess en logs');
+                }
             }
 
             /* Agregar index.php vacío como protección adicional */
             $index = $directorio . '/index.php';
             if (!file_exists($index)) {
-                file_put_contents($index, "<?php // Silence is golden.\n");
+                if (file_put_contents($index, "<?php // Silence is golden.\n") === false) {
+                    throw new \RuntimeException('No se pudo crear index.php en logs');
+                }
             }
         }
 
