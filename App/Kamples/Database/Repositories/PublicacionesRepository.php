@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\PublicacionesDTO;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class PublicacionesRepository extends BaseRepository
 {
@@ -36,7 +38,7 @@ class PublicacionesRepository extends BaseRepository
         $col = PublicacionesCols::AUTOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . PublicacionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -49,7 +51,7 @@ class PublicacionesRepository extends BaseRepository
         $tabla = PublicacionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . PublicacionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -111,8 +113,9 @@ class PublicacionesRepository extends BaseRepository
         $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
 
         /* Subquery de reacción del usuario actual */
+        $tl = LikesCols::TABLA;
         $likedSubquery = isset($params['current_user'])
-            ? ", (SELECT l.reaccion FROM likes l WHERE l.tipo = 'publicacion' AND l.target_id = p.id AND l.usuario_id = :current_user LIMIT 1) AS reaccion_usuario"
+            ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
         return static::consultar(
@@ -295,6 +298,22 @@ class PublicacionesRepository extends BaseRepository
             "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
             . ", " . PublicacionesCols::REPOST_ID . ") VALUES (:autor, '', :repostId) RETURNING " . PublicacionesCols::ID,
             ['autor' => $autorId, 'repostId' => $repostId]
+        );
+    }
+
+    /*
+     * Actualizar estado y detalle JSON del veredicto de moderación IA.
+     * Usado por ServicioModeracionIA tras analizar publicación.
+     */
+    public static function actualizarVeredictoModeracion(int $id, string $estado, string $detalle): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+                . PublicacionesCols::MODERACION_ESTADO . " = :estado, "
+                . PublicacionesCols::MODERACION_DETALLE . " = :detalle"
+                . " WHERE " . PublicacionesCols::ID . " = :id",
+            ['estado' => $estado, 'detalle' => $detalle, 'id' => $id]
         );
     }
 }

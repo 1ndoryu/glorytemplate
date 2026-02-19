@@ -16,7 +16,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
@@ -39,18 +39,12 @@ class ServicioBan
          * Incremento atómico + lectura en un solo statement para evitar race condition.
          * Dos requests concurrentes no pueden leer el mismo valor.
          */
-        $resultado = PostgresService::consultarUno(
-            "UPDATE usuarios_ext SET violaciones_moderacion = COALESCE(violaciones_moderacion, 0) + 1
-             WHERE id = :id RETURNING violaciones_moderacion",
-            ['id' => $userId]
-        );
-
-        $violaciones = (int) ($resultado[UsuariosExtCols::VIOLACIONES_MODERACION] ?? 0);
+        $violaciones = UsuariosExtRepository::incrementarViolaciones($userId);
 
         if ($violaciones === 0) {
             KamplesLogger::warning('ServicioBan: no se pudo incrementar violaciones', [
                 'userId' => $userId,
-            ], 'moderacion');
+            ]);
             return false;
         }
 
@@ -59,7 +53,7 @@ class ServicioBan
             'razon' => $razon,
             'tipo' => $tipoContenido,
             'totalViolaciones' => $violaciones,
-        ], 'moderacion');
+        ]);
 
         /* Determinar si aplica ban según escala */
         $horasBan = 0;
@@ -76,17 +70,14 @@ class ServicioBan
             $banHasta = date('c', time() + ($horasBan * 3600));
             $banRazon = "Ban automático por {$violaciones} violaciones de moderación. Última: {$razon}";
 
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET baneado_hasta = :hasta, ban_razon = :razon WHERE id = :id",
-                ['hasta' => $banHasta, 'razon' => $banRazon, 'id' => $userId]
-            );
+            UsuariosExtRepository::aplicarBan($userId, $banHasta, $banRazon);
 
             KamplesLogger::warning('Ban aplicado', [
                 'userId' => $userId,
                 'horas' => $horasBan,
                 'violaciones' => $violaciones,
                 'hasta' => $banHasta,
-            ], 'moderacion');
+            ]);
 
             return true;
         }
@@ -100,10 +91,7 @@ class ServicioBan
      */
     public static function verificarBan(int $userId): ?array
     {
-        $usuario = PostgresService::consultarUno(
-            "SELECT baneado_hasta, ban_razon FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
+        $usuario = UsuariosExtRepository::obtenerDatosBan($userId);
 
         if (!$usuario || !$usuario[UsuariosExtCols::BANEADO_HASTA]) return null;
 
@@ -116,10 +104,7 @@ class ServicioBan
         }
 
         /* Ban expirado, limpiar */
-        PostgresService::ejecutar(
-            "UPDATE usuarios_ext SET baneado_hasta = NULL, ban_razon = NULL WHERE id = :id",
-            ['id' => $userId]
-        );
+        UsuariosExtRepository::limpiarBan($userId);
 
         return null;
     }

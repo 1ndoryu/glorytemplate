@@ -36,7 +36,7 @@ class SuscripcionesRepository extends BaseRepository
         $col = SuscripcionesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . SuscripcionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -49,7 +49,7 @@ class SuscripcionesRepository extends BaseRepository
         $tabla = SuscripcionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . SuscripcionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }

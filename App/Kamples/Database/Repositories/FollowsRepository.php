@@ -36,7 +36,7 @@ class FollowsRepository extends BaseRepository
         $tabla = FollowsCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . FollowsCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }

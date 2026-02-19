@@ -12,7 +12,7 @@
 
 namespace App\Kamples\Api;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 
 class GeneradorIdCorto
 {
@@ -58,11 +58,6 @@ class GeneradorIdCorto
      */
     private static function existeEnBd(string $id): bool
     {
-        $resultado = PostgresService::consultarUno(
-            "SELECT 1 FROM samples WHERE id_corto = :id LIMIT 1",
-            ['id' => $id]
-        );
-
-        return $resultado !== null;
+        return SamplesRepository::existeIdCorto($id);
     }
 }

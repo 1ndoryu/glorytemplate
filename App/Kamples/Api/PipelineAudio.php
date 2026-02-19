@@ -18,7 +18,7 @@
 
 namespace App\Kamples\Api;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
@@ -367,7 +367,7 @@ class PipelineAudio
         $sql = "UPDATE samples SET " . \implode(', ', $setClauses) . " WHERE id = :id";
 
         try {
-            PostgresService::ejecutar($sql, $params);
+            SamplesRepository::ejecutar($sql, $params);
         } catch (\Exception $e) {
             KamplesLogger::error('Pipeline: Error actualizando sample en DB', [
                 'sampleId' => $sampleId,

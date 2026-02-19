@@ -39,7 +39,7 @@ class ComentariosRepository extends BaseRepository
         $col = ComentariosCols::AUTOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . ComentariosCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -52,7 +52,7 @@ class ComentariosRepository extends BaseRepository
         $tabla = ComentariosCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . ComentariosCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -306,5 +306,44 @@ class ComentariosRepository extends BaseRepository
         );
 
         return $row ? (int) $row[ComentariosCols::AUTOR_ID] : null;
+    }
+
+    /*
+     * Buscar si el mismo autor ya publicó el mismo contenido en la ventana de tiempo indicada.
+     * Usado por ServicioAntiSpam para deteccion de comentarios duplicados.
+     * Retorna el registro duplicado o null si no hay.
+     * ventanaSeg se interpola como entero validado — no puede inyectar SQL.
+     */
+    public static function buscarDuplicadoReciente(int $autorId, string $contenido, int $ventanaSeg): ?array
+    {
+        $tabla = ComentariosCols::TABLA;
+        return static::consultarUno(
+            "SELECT " . ComentariosCols::ID . " FROM {$tabla}
+             WHERE " . ComentariosCols::AUTOR_ID . " = :autor
+             AND " . ComentariosCols::CONTENIDO . " = :contenido
+             AND " . ComentariosCols::CREATED_AT . " > NOW() - INTERVAL '{$ventanaSeg} seconds'
+             LIMIT 1",
+            [
+                'autor'    => $autorId,
+                'contenido' => $contenido,
+            ]
+        );
+    }
+
+    /*
+     * Actualizar estado y detalle JSON del veredicto de moderación IA.
+     * Usado por ServicioModeracionIA tras analizar comentario.
+     * El campo moderacion_detalle requiere cast ::jsonb en PostgreSQL.
+     */
+    public static function actualizarVeredictoModeracion(int $id, string $estado, string $detalle): void
+    {
+        $tabla = ComentariosCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+                . ComentariosCols::MODERACION_ESTADO . " = :estado, "
+                . ComentariosCols::MODERACION_DETALLE . " = :detalle::jsonb"
+                . " WHERE " . ComentariosCols::ID . " = :id",
+            ['estado' => $estado, 'detalle' => $detalle, 'id' => $id]
+        );
     }
 }

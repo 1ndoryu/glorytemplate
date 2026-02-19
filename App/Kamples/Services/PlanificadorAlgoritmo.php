@@ -19,7 +19,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\AlgoritmoEstadoRepository;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 use App\Config\Schema\_generated\AlgoritmoEstadoCols;
 
@@ -80,26 +80,13 @@ class PlanificadorAlgoritmo
         if (!$columna || !$triggerKey) return $resultado;
 
         /* Asegurar registro en la tabla */
-        PostgresService::ejecutar(
-            "INSERT INTO algoritmo_estado (usuario_id) VALUES (:userId) ON CONFLICT (usuario_id) DO NOTHING",
-            ['userId' => $userId]
-        );
+        AlgoritmoEstadoRepository::upsertEstado($userId);
 
         /* Incrementar contadores */
-        PostgresService::ejecutar(
-            "UPDATE algoritmo_estado
-             SET {$columna} = {$columna} + 1,
-                 {$columna}_preciso = {$columna}_preciso + 1,
-                 ultima_actividad = NOW()
-             WHERE usuario_id = :userId",
-            ['userId' => $userId]
-        );
+        AlgoritmoEstadoRepository::incrementarContador($userId, $columna);
 
         /* Leer estado actual */
-        $estado = PostgresService::consultarUno(
-            "SELECT * FROM algoritmo_estado WHERE usuario_id = :userId",
-            ['userId' => $userId]
-        );
+        $estado = AlgoritmoEstadoRepository::obtenerEstado($userId);
 
         if (!$estado) return $resultado;
 
@@ -152,14 +139,7 @@ class PlanificadorAlgoritmo
         \delete_transient('kamples_feed_' . $userId . '_100');
 
         /* Resetear contadores rápidos */
-        PostgresService::ejecutar(
-            "UPDATE algoritmo_estado
-             SET cnt_likes = 0, cnt_reproducciones = 0, cnt_completas = 0,
-                 cnt_descargas = 0, cnt_follows = 0, cnt_comentarios = 0,
-                 ultimo_rapido = NOW()
-             WHERE usuario_id = :userId",
-            ['userId' => $userId]
-        );
+        AlgoritmoEstadoRepository::resetearContadoresRapidos($userId);
 
         KamplesLogger::debug("Planificador: Recálculo rápido disparado para usuario #{$userId}");
     }
@@ -184,16 +164,7 @@ class PlanificadorAlgoritmo
         }
 
         /* Resetear contadores precisos + incrementar versión del perfil */
-        PostgresService::ejecutar(
-            "UPDATE algoritmo_estado
-             SET cnt_likes_preciso = 0, cnt_reproducciones_preciso = 0,
-                 cnt_completas_preciso = 0, cnt_descargas_preciso = 0,
-                 cnt_follows_preciso = 0, cnt_comentarios_preciso = 0,
-                 ultimo_preciso = NOW(),
-                 version_perfil = version_perfil + 1
-             WHERE usuario_id = :userId",
-            ['userId' => $userId]
-        );
+        AlgoritmoEstadoRepository::resetearContadoresPrecisos($userId);
 
         KamplesLogger::debug("Planificador: Recálculo preciso disparado para usuario #{$userId}");
     }
@@ -219,13 +190,7 @@ class PlanificadorAlgoritmo
         $intervaloPrecisoInactivo = ($config['preciso']['intervalo_inactivo_min'] ?? 960) * 60;
 
         /* Obtener todos los usuarios con estado registrado */
-        $usuarios = PostgresService::consultar(
-            "SELECT usuario_id,
-                    EXTRACT(EPOCH FROM NOW() - ultimo_rapido) as seg_desde_rapido,
-                    EXTRACT(EPOCH FROM NOW() - ultimo_preciso) as seg_desde_preciso,
-                    EXTRACT(EPOCH FROM NOW() - ultima_actividad) as seg_inactivo
-             FROM algoritmo_estado"
-        );
+        $usuarios = AlgoritmoEstadoRepository::obtenerTodosParaEvaluacion();
 
         foreach ($usuarios as $u) {
             $uid = (int) $u[AlgoritmoEstadoCols::USUARIO_ID];
@@ -265,14 +230,7 @@ class PlanificadorAlgoritmo
      */
     public static function obtenerEstado(int $userId): ?array
     {
-        return PostgresService::consultarUno(
-            "SELECT *,
-                    EXTRACT(EPOCH FROM NOW() - ultimo_rapido)::int as seg_desde_rapido,
-                    EXTRACT(EPOCH FROM NOW() - ultimo_preciso)::int as seg_desde_preciso,
-                    EXTRACT(EPOCH FROM NOW() - ultima_actividad)::int as seg_inactivo
-             FROM algoritmo_estado WHERE usuario_id = :userId",
-            ['userId' => $userId]
-        );
+        return AlgoritmoEstadoRepository::obtenerEstadoDiagnostico($userId);
     }
 
     /**
@@ -282,9 +240,7 @@ class PlanificadorAlgoritmo
      */
     public static function forzarRecalculoGlobal(): int
     {
-        $usuarios = PostgresService::consultar(
-            "SELECT usuario_id FROM algoritmo_estado"
-        );
+        $usuarios = AlgoritmoEstadoRepository::obtenerTodosIds();
 
         $count = 0;
         foreach ($usuarios as $u) {

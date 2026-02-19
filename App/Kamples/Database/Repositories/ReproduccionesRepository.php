@@ -13,6 +13,9 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\ReproduccionesDTO;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ReproduccionesRepository extends BaseRepository
 {
@@ -35,7 +38,7 @@ class ReproduccionesRepository extends BaseRepository
         $col = ReproduccionesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . ReproduccionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -48,7 +51,7 @@ class ReproduccionesRepository extends BaseRepository
         $tabla = ReproduccionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . ReproduccionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -138,9 +141,9 @@ class ReproduccionesRepository extends BaseRepository
     public static function historialUsuario(int $userId, int $limit = 20, int $offset = 0): array
     {
         $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples()
-             . " JOIN " . ReproduccionesCols::TABLA . " r ON r." . ReproduccionesCols::SAMPLE_ID . " = s.id"
-             . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId AND s.estado = 'activo'"
-             . " GROUP BY s.id, u.id, u.username, u.nombre_visible, u.avatar_url, u.verificado, u.wp_user_id"
+             . " JOIN " . ReproduccionesCols::TABLA . " r ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+             . " GROUP BY s." . SamplesCols::ID . ", u." . UsuariosExtCols::ID . ", u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::WP_USER_ID
              . " ORDER BY MAX(r." . ReproduccionesCols::CREATED_AT . ") DESC LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]);

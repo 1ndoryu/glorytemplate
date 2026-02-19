@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\NotificacionesCols;
 use App\Config\Schema\_generated\NotificacionesDTO;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class NotificacionesRepository extends BaseRepository
 {
@@ -35,7 +36,7 @@ class NotificacionesRepository extends BaseRepository
         $col = NotificacionesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . NotificacionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -48,7 +49,7 @@ class NotificacionesRepository extends BaseRepository
         $tabla = NotificacionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . NotificacionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -64,11 +65,11 @@ class NotificacionesRepository extends BaseRepository
 
         return static::consultar(
             "SELECT n." . NotificacionesCols::ID . ", n." . NotificacionesCols::TIPO
-            . ", n.titulo, n.mensaje, n.datos, n." . NotificacionesCols::LEIDA
-            . ", n.enlace, n." . NotificacionesCols::CREATED_AT . " as \"creadaAt\","
-            . " u.username as \"actorUsername\", u.nombre_visible as \"actorNombre\","
-            . " u.avatar_url as \"actorAvatar\", u.wp_user_id as \"actorWpUserId\""
-            . " FROM {$tabla} n LEFT JOIN usuarios_ext u ON u.id = n.actor_id"
+            . ", n." . NotificacionesCols::TITULO . ", n." . NotificacionesCols::MENSAJE . ", n." . NotificacionesCols::DATOS . ", n." . NotificacionesCols::LEIDA
+            . ", n." . NotificacionesCols::ENLACE . ", n." . NotificacionesCols::CREATED_AT . " as \"creadaAt\","
+            . " u." . UsuariosExtCols::USERNAME . " as \"actorUsername\", u." . UsuariosExtCols::NOMBRE_VISIBLE . " as \"actorNombre\","
+            . " u." . UsuariosExtCols::AVATAR_URL . " as \"actorAvatar\", u." . UsuariosExtCols::WP_USER_ID . " as \"actorWpUserId\""
+            . " FROM {$tabla} n LEFT JOIN " . UsuariosExtCols::TABLA . " u ON u." . UsuariosExtCols::ID . " = n." . NotificacionesCols::ACTOR_ID
             . " WHERE n." . NotificacionesCols::USUARIO_ID . " = :userId"
             . " ORDER BY n." . NotificacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]
@@ -130,6 +131,38 @@ class NotificacionesRepository extends BaseRepository
             "INSERT INTO {$tabla} (" . NotificacionesCols::USUARIO_ID . ", " . NotificacionesCols::TIPO . ", datos)"
             . " VALUES (:userId, :tipo, :datos::jsonb)",
             ['userId' => $userId, 'tipo' => $tipo, 'datos' => $datosJson]
+        );
+    }
+
+    /*
+     * Crear notificacion completa con todos los campos.
+     * Usado por ServicioNotificaciones como punto unico de insercion.
+     * Excluir auto-notificaciones debe hacerse ANTES de llamar este metodo.
+     */
+    public static function crearCompleta(
+        int    $destinatarioId,
+        string $tipo,
+        string $titulo,
+        string $mensaje,
+        string $datosJson,
+        ?int   $actorId,
+        ?string $enlace
+    ): void {
+        $tabla = NotificacionesCols::TABLA;
+
+        static::ejecutar(
+            "INSERT INTO {$tabla} (" . NotificacionesCols::USUARIO_ID . ", " . NotificacionesCols::TIPO
+            . ", titulo, mensaje, datos, actor_id, enlace)"
+            . " VALUES (:userId, :tipo, :titulo, :mensaje, :datos::jsonb, :actorId, :enlace)",
+            [
+                'userId'  => $destinatarioId,
+                'tipo'    => $tipo,
+                'titulo'  => $titulo,
+                'mensaje' => $mensaje,
+                'datos'   => $datosJson,
+                'actorId' => $actorId,
+                'enlace'  => $enlace,
+            ]
         );
     }
 }

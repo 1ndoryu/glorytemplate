@@ -46,7 +46,7 @@ class SamplesRepository extends BaseRepository
         $colEstado = SamplesCols::ESTADO;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$colEstado} = :estado ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$colEstado} = :estado ORDER BY " . SamplesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             [
                 'estado' => SamplesEnums::ESTADO_ACTIVO,
                 'limit' => $limit,
@@ -64,7 +64,7 @@ class SamplesRepository extends BaseRepository
         $col = SamplesCols::CREADOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY " . SamplesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['creadorId' => $creadorId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -77,7 +77,7 @@ class SamplesRepository extends BaseRepository
         $tabla = SamplesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . SamplesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -460,11 +460,11 @@ class SamplesRepository extends BaseRepository
     public static function descargadosDeUsuario(int $userId, int $limit, int $offset): array
     {
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " JOIN " . \App\Config\Schema\_generated\DescargasCols::TABLA . " d ON d."
-             . \App\Config\Schema\_generated\DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . " AND d." . \App\Config\Schema\_generated\DescargasCols::USUARIO_ID . " = :dlUser"
+             . " JOIN " . DescargasCols::TABLA . " d ON d."
+             . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " AND d." . DescargasCols::USUARIO_ID . " = :dlUser"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-             . " ORDER BY d." . \App\Config\Schema\_generated\DescargasCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
+             . " ORDER BY d." . DescargasCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['dlUser' => $userId, 'limit' => $limit, 'offset' => $offset]);
     }
@@ -482,13 +482,13 @@ class SamplesRepository extends BaseRepository
         }
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " LEFT JOIN " . \App\Config\Schema\_generated\DescargasCols::TABLA . " d ON d."
-             . \App\Config\Schema\_generated\DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . " AND d." . \App\Config\Schema\_generated\DescargasCols::USUARIO_ID . " = :uid"
+             . " LEFT JOIN " . DescargasCols::TABLA . " d ON d."
+             . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'{$carpetaClause}"
-             . " AND (d." . \App\Config\Schema\_generated\DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)"
+             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . " ORDER BY GREATEST("
-             . "   COALESCE(d." . \App\Config\Schema\_generated\DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp),"
+             . "   COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp),"
              . "   s." . SamplesCols::PUBLICADO_AT
              . " ) DESC"
              . " LIMIT :limit OFFSET :offset";
@@ -502,7 +502,7 @@ class SamplesRepository extends BaseRepository
     public static function contarColeccionados(int $userId, string $carpeta = ''): int
     {
         $ts = SamplesCols::TABLA;
-        $td = \App\Config\Schema\_generated\DescargasCols::TABLA;
+        $td = DescargasCols::TABLA;
 
         $params = ['uid' => $userId, 'uid2' => $userId];
         $carpetaClause = '';
@@ -513,10 +513,10 @@ class SamplesRepository extends BaseRepository
 
         $sql = "SELECT COUNT(DISTINCT s." . SamplesCols::ID . ") AS total"
              . " FROM {$ts} s"
-             . " LEFT JOIN {$td} d ON d." . \App\Config\Schema\_generated\DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . " AND d." . \App\Config\Schema\_generated\DescargasCols::USUARIO_ID . " = :uid"
+             . " LEFT JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'{$carpetaClause}"
-             . " AND (d." . \App\Config\Schema\_generated\DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)";
+             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)";
 
         $row = static::consultarUno($sql, $params);
         return (int) ($row['total'] ?? 0);
@@ -528,7 +528,7 @@ class SamplesRepository extends BaseRepository
     public static function carpetasColeccionados(int $userId): array
     {
         $ts = SamplesCols::TABLA;
-        $td = \App\Config\Schema\_generated\DescargasCols::TABLA;
+        $td = DescargasCols::TABLA;
 
         $sql = "SELECT"
              . "  COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') AS primaria,"
@@ -536,8 +536,8 @@ class SamplesRepository extends BaseRepository
              . "  COUNT(*) AS total"
              . " FROM ("
              . "  SELECT s." . SamplesCols::ID . ", s." . SamplesCols::METADATA . " FROM {$ts} s"
-             . "  JOIN {$td} d ON d." . \App\Config\Schema\_generated\DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . "  AND d." . \App\Config\Schema\_generated\DescargasCols::USUARIO_ID . " = :uid"
+             . "  JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . "  AND d." . DescargasCols::USUARIO_ID . " = :uid"
              . "  WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . "  UNION"
              . "  SELECT s." . SamplesCols::ID . ", s." . SamplesCols::METADATA . " FROM {$ts} s"
@@ -559,7 +559,7 @@ class SamplesRepository extends BaseRepository
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$ts} s"
-            . " LEFT JOIN usuarios_ext u ON s." . SamplesCols::CREADOR_ID . " = u.id"
+            . " LEFT JOIN " . \App\Config\Schema\_generated\UsuariosExtCols::TABLA . " u ON s." . SamplesCols::CREADOR_ID . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
             . " WHERE {$whereSQL}",
             $params
         );
@@ -581,7 +581,7 @@ class SamplesRepository extends BaseRepository
         $params['limit'] = $limit;
         $params['offset'] = $offset;
 
-        $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples($userId)
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE {$whereSQL} {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, $params);
@@ -593,10 +593,10 @@ class SamplesRepository extends BaseRepository
      */
     public static function obtenerPorSlugOIdCorto(string $slug, ?int $userId = null): ?array
     {
-        $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples($userId)
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE (LOWER(s." . SamplesCols::SLUG . ") = LOWER(:slug) OR s."
              . SamplesCols::ID_CORTO . " = :slug)"
-             . " AND s." . SamplesCols::ESTADO . " NOT IN ('eliminado')";
+             . " AND s." . SamplesCols::ESTADO . " NOT IN ('" . SamplesEnums::ESTADO_ELIMINADO . "')";
 
         return static::consultarUno($sql, ['slug' => $slug]);
     }
@@ -606,7 +606,7 @@ class SamplesRepository extends BaseRepository
      */
     public static function listarFeed(?int $userId, string $orderBy, int $limit, int $offset): array
     {
-        $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples($userId)
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . " {$orderBy} LIMIT :limit OFFSET :offset";
 
@@ -629,7 +629,7 @@ class SamplesRepository extends BaseRepository
             . ", " . SamplesCols::MOSTRAR_EN_COMUNIDAD . ", " . SamplesCols::PUBLICADO_AT . ", "
             . SamplesCols::CREATED_AT . ", " . SamplesCols::UPDATED_AT . ")"
             . " VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,"
-            . " :rutaOriginal, 'procesando', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW())"
+            . " :rutaOriginal, '" . SamplesEnums::ESTADO_PROCESANDO . "', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW())"
             . " RETURNING " . SamplesCols::ID,
             $datos
         );
@@ -692,5 +692,179 @@ class SamplesRepository extends BaseRepository
             . " ORDER BY " . SamplesCols::CREATED_AT . " DESC LIMIT 1",
             ['userId' => $creadorId]
         );
+    }
+
+    /*
+     * Obtener campos minimos para generar embedding (GeneradorEmbeddings).
+     */
+    public static function buscarParaEmbedding(int $id): ?array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . SamplesCols::BPM . ", " . SamplesCols::KEY . ", " . SamplesCols::ESCALA
+            . ", " . SamplesCols::TIPO . ", " . SamplesCols::DURACION . ", " . SamplesCols::ES_PREMIUM
+            . ", " . SamplesCols::TAGS
+            . " FROM {$ts} WHERE " . SamplesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Actualizar el embedding vectorial de un sample.
+     * $vectorStr debe ser string formato PostgreSQL: '[0.5,0,1,...]'.
+     */
+    public static function actualizarEmbedding(int $id, string $vectorStr): bool
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::ejecutar(
+            "UPDATE {$ts} SET " . SamplesCols::EMBEDDING . " = :embedding::vector WHERE " . SamplesCols::ID . " = :id",
+            ['embedding' => $vectorStr, 'id' => $id]
+        ) >= 0;
+    }
+
+    /*
+     * Obtener todos los samples activos sin embedding para generacion batch.
+     */
+    public static function buscarSinEmbeddingActivos(): array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::BPM . ", " . SamplesCols::KEY
+            . ", " . SamplesCols::ESCALA . ", " . SamplesCols::TIPO . ", " . SamplesCols::DURACION
+            . ", " . SamplesCols::ES_PREMIUM . ", " . SamplesCols::TAGS
+            . " FROM {$ts} WHERE " . SamplesCols::EMBEDDING . " IS NULL AND "
+            . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+        );
+    }
+
+    /*
+     * Obtener embeddings de samples con los que el usuario interactuó.
+     * Usado por GeneradorEmbeddings::perfilUsuario para construir perfil vectorial.
+     * Retorna filas con: embedding::text, tipo_interaccion, peso.
+     */
+    public static function buscarInteraccionesParaPerfil(int $userId): array
+    {
+        $sql = "SELECT s." . SamplesCols::EMBEDDING . "::text, tipo_interaccion, peso FROM ("
+             . " SELECT " . LikesCols::TARGET_ID . " as sample_id, 'like' as tipo_interaccion, 3 as peso"
+             . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+             . " UNION ALL"
+             . " SELECT " . DescargasCols::SAMPLE_ID . ", 'descarga', 5"
+             . " FROM " . DescargasCols::TABLA . " WHERE " . DescargasCols::USUARIO_ID . " = :userId"
+             . " UNION ALL"
+             . " SELECT " . ReproduccionesCols::SAMPLE_ID . ","
+             . " CASE WHEN " . ReproduccionesCols::COMPLETADA . " THEN 'reproduccion_completa' ELSE 'reproduccion' END,"
+             . " CASE WHEN " . ReproduccionesCols::COMPLETADA . " THEN 2 ELSE 1 END"
+             . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId"
+             . ") interacciones"
+             . " JOIN " . SamplesCols::TABLA . " s ON s." . SamplesCols::ID . " = interacciones.sample_id"
+             . " WHERE s." . SamplesCols::EMBEDDING . " IS NOT NULL";
+
+        return static::consultar($sql, ['userId' => $userId]);
+    }
+
+    /*
+     * Verificar si pgvector esta activo (extension existe y columna embedding existe).
+     * Usado por MotorRecomendacion para condicionar el uso de similitud coseno.
+     */
+    public static function verificarPgvector(): bool
+    {
+        try {
+            $ext = static::consultarUno("SELECT 1 FROM pg_extension WHERE extname = 'vector'");
+            $col = static::consultarUno(
+                "SELECT 1 FROM information_schema.columns WHERE table_name = '" . SamplesCols::TABLA . "' AND column_name = '" . SamplesCols::EMBEDDING . "'"
+            );
+            return ($ext !== null && $col !== null);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /*
+     * Verificar si un sample tiene embedding calculado.
+     */
+    public static function verificarTieneEmbedding(int $id): bool
+    {
+        $ts = SamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . SamplesCols::EMBEDDING . " IS NOT NULL as tiene FROM {$ts} WHERE " . SamplesCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        return (bool) ($row['tiene'] ?? false);
+    }
+
+    /*
+     * Buscar samples duplicados por audio_hash (excluye el sample original).
+     * Usado por DeduplicadorAudio.
+     */
+    public static function buscarConHash(string $hash, int $excluirId): array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID . ", " . SamplesCols::TITULO
+            . " FROM {$ts} WHERE " . SamplesCols::AUDIO_HASH . " = :hash AND " . SamplesCols::ID . " != :id"
+            . " AND " . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            ['hash' => $hash, 'id' => $excluirId]
+        );
+    }
+
+    /*
+     * Guardar hash perceptual de audio.
+     */
+    public static function actualizarHash(int $id, string $hash): void
+    {
+        $ts = SamplesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$ts} SET " . SamplesCols::AUDIO_HASH . " = :hash WHERE " . SamplesCols::ID . " = :id",
+            ['hash' => $hash, 'id' => $id]
+        );
+    }
+
+    /*
+     * Marcar sample como 'en_supervision' por deteccion de duplicado.
+     */
+    public static function marcarEnSupervision(int $id): void
+    {
+        $ts = SamplesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$ts} SET " . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_EN_SUPERVISION . "' WHERE " . SamplesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Obtener campos de un sample para DeduplicadorAudio.
+     */
+    public static function buscarParaDeduplicacion(int $id): ?array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID
+            . ", " . SamplesCols::RUTA_ORIGINAL . ", " . SamplesCols::DURACION
+            . " FROM {$ts} WHERE " . SamplesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
+     * Verificar si un id_corto ya existe en la tabla samples.
+     * Usado por GeneradorIdCorto para garantizar unicidad antes de asignar.
+     */
+    public static function existeIdCorto(string $idCorto): bool
+    {
+        $ts = SamplesCols::TABLA;
+        $resultado = static::consultarUno(
+            "SELECT 1 FROM {$ts} WHERE " . SamplesCols::ID_CORTO . " = :id LIMIT 1",
+            ['id' => $idCorto]
+        );
+        return $resultado !== null;
     }
 }

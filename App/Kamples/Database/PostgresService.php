@@ -327,8 +327,8 @@ class PostgresService
         }
 
         /* Extraer tablas de la query: FROM tabla, JOIN tabla, INTO tabla, UPDATE tabla */
-        /* Excluir funciones SQL: NOW(), GENERATE_SERIES(), etc. — captamos si hay "(" despues */
-        $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)\s*(?!\s*\()/i';
+        /* Se usa \b para delimitar el nombre; funciones SQL se filtran con $ignorar */
+        $patron = '/\b(?:FROM|JOIN|INTO|UPDATE)\s+([a-z_]+)\b/i';
         if (preg_match_all($patron, $sql, $matches)) {
             /* Funciones/keywords SQL que pueden aparecer despues de FROM/JOIN pero no son tablas */
             $ignorar = [

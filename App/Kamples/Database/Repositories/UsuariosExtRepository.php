@@ -14,6 +14,12 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\UsuariosExtDTO;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\ReproduccionesCols;
+use App\Config\Schema\_generated\DescargasCols;
 
 class UsuariosExtRepository extends BaseRepository
 {
@@ -35,7 +41,7 @@ class UsuariosExtRepository extends BaseRepository
         $tabla = UsuariosExtCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . UsuariosExtCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -333,5 +339,264 @@ class UsuariosExtRepository extends BaseRepository
         );
 
         return $row ? (int) $row[UsuariosExtCols::ID] : null;
+    }
+
+    /*
+     * Obtener username por ID (para mensajes de notificacion legibles).
+     * Retorna 'usuario' como fallback si no se encuentra.
+     */
+    public static function buscarUsername(int $id): string
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . UsuariosExtCols::USERNAME . " FROM {$tabla} WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        return $row[UsuariosExtCols::USERNAME] ?? 'usuario';
+    }
+
+    /*
+     * Contar interacciones totales del usuario (likes sample + reproducciones + descargas).
+     * Usado por PerfilUsuario para detectar usuario nuevo sin historial.
+     */
+    public static function contarInteracciones(int $userId): int
+    {
+        $row = static::consultarUno(
+            "SELECT"
+            . " (SELECT COUNT(*) FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "') +"
+            . " (SELECT COUNT(*) FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId2) +"
+            . " (SELECT COUNT(*) FROM " . DescargasCols::TABLA . " WHERE " . DescargasCols::USUARIO_ID . " = :userId3) as total",
+            ['userId' => $userId, 'userId2' => $userId, 'userId3' => $userId]
+        );
+
+        return (int) ($row['total'] ?? 0);
+    }
+
+    /*
+     * BPM promedio de samples likeados/reproducidos por el usuario (excluye dislikes).
+     */
+    public static function bpmPromedio(int $userId): ?int
+    {
+        $row = static::consultarUno(
+            "SELECT AVG(s." . SamplesCols::BPM . ")::int as bpm_prom"
+            . " FROM " . SamplesCols::TABLA . " s"
+            . " WHERE s." . SamplesCols::BPM . " IS NOT NULL AND s." . SamplesCols::ID . " IN ("
+            . " SELECT " . LikesCols::TARGET_ID . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
+            . " UNION"
+            . " SELECT " . ReproduccionesCols::SAMPLE_ID . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId2"
+            . ")",
+            ['userId' => $userId, 'userId2' => $userId]
+        );
+
+        return $row && $row['bpm_prom'] !== null ? (int) $row['bpm_prom'] : null;
+    }
+
+    /*
+     * Key musical mas frecuente en samples likeados/reproducidos.
+     */
+    public static function keyFavorita(int $userId): ?string
+    {
+        $row = static::consultarUno(
+            "SELECT s." . SamplesCols::KEY . " as key_fav, COUNT(*) as cnt"
+            . " FROM " . SamplesCols::TABLA . " s"
+            . " WHERE s." . SamplesCols::KEY . " IS NOT NULL AND s." . SamplesCols::ID . " IN ("
+            . " SELECT " . LikesCols::TARGET_ID . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
+            . " UNION"
+            . " SELECT " . ReproduccionesCols::SAMPLE_ID . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId2"
+            . ")"
+            . " GROUP BY s." . SamplesCols::KEY . " ORDER BY cnt DESC LIMIT 1",
+            ['userId' => $userId, 'userId2' => $userId]
+        );
+
+        return $row['key_fav'] ?? null;
+    }
+
+    /*
+     * Tipo de sample mas frecuente en samples likeados/reproducidos.
+     */
+    public static function tipoFavorito(int $userId): ?string
+    {
+        $row = static::consultarUno(
+            "SELECT s." . SamplesCols::TIPO . " as tipo_fav, COUNT(*) as cnt"
+            . " FROM " . SamplesCols::TABLA . " s"
+            . " WHERE s." . SamplesCols::ID . " IN ("
+            . " SELECT " . LikesCols::TARGET_ID . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
+            . " UNION"
+            . " SELECT " . ReproduccionesCols::SAMPLE_ID . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId2"
+            . ")"
+            . " GROUP BY s." . SamplesCols::TIPO . " ORDER BY cnt DESC LIMIT 1",
+            ['userId' => $userId, 'userId2' => $userId]
+        );
+
+        return $row['tipo_fav'] ?? null;
+    }
+
+    /*
+     * Top 5 creadores con mayor afinidad del usuario.
+     * Pesos: encanta=2, like=1, reproduccion=0.5, descarga=1.5.
+     * Excluye al propio usuario y requiere afinidad >= 2.
+     */
+    public static function obtenerCreadoresFavoritos(int $userId): array
+    {
+        $resultado = static::consultar(
+            "SELECT " . SamplesCols::CREADOR_ID . ", SUM(score) as afinidad FROM ("
+            . " SELECT s." . SamplesCols::CREADOR_ID . ","
+            . " CASE WHEN l." . LikesCols::REACCION . " = '" . LikesEnums::REACCION_ENCANTA . "' THEN 2.0 ELSE 1.0 END as score"
+            . " FROM " . LikesCols::TABLA . " l"
+            . " JOIN " . SamplesCols::TABLA . " s ON l." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+            . " WHERE l." . LikesCols::USUARIO_ID . " = :userId AND l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
+            . " UNION ALL"
+            . " SELECT s." . SamplesCols::CREADOR_ID . ", 0.5 as score"
+            . " FROM " . ReproduccionesCols::TABLA . " r"
+            . " JOIN " . SamplesCols::TABLA . " s ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId2"
+            . " UNION ALL"
+            . " SELECT s." . SamplesCols::CREADOR_ID . ", 1.5 as score"
+            . " FROM " . DescargasCols::TABLA . " d"
+            . " JOIN " . SamplesCols::TABLA . " s ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE d." . DescargasCols::USUARIO_ID . " = :userId3"
+            . ") interacciones"
+            . " WHERE " . SamplesCols::CREADOR_ID . " != :userId4"
+            . " GROUP BY " . SamplesCols::CREADOR_ID
+            . " HAVING SUM(score) >= 2"
+            . " ORDER BY afinidad DESC"
+            . " LIMIT 5",
+            ['userId' => $userId, 'userId2' => $userId, 'userId3' => $userId, 'userId4' => $userId]
+        );
+
+        return \array_column($resultado, SamplesCols::CREADOR_ID);
+    }
+
+    /* --- Metodos de gestion de bans --- */
+
+    /*
+     * Incrementar violaciones_moderacion en 1 atomicamente con UPDATE RETURNING.
+     * Evita race conditions en requests concurrentes.
+     * Retorna el nuevo total de violaciones, o 0 si el usuario no existe.
+     */
+    public static function incrementarViolaciones(int $userId): int
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $resultado = static::consultarUno(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::VIOLACIONES_MODERACION . " = COALESCE(" . UsuariosExtCols::VIOLACIONES_MODERACION . ", 0) + 1
+             WHERE " . UsuariosExtCols::ID . " = :id RETURNING " . UsuariosExtCols::VIOLACIONES_MODERACION,
+            ['id' => $userId]
+        );
+        return (int) ($resultado[UsuariosExtCols::VIOLACIONES_MODERACION] ?? 0);
+    }
+
+    /*
+     * Aplicar ban temporal: actualiza baneado_hasta y ban_razon.
+     */
+    public static function aplicarBan(int $userId, string $banHasta, string $banRazon): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::BANEADO_HASTA . " = :hasta, " . UsuariosExtCols::BAN_RAZON . " = :razon
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['hasta' => $banHasta, 'razon' => $banRazon, 'id' => $userId]
+        );
+    }
+
+    /*
+     * Obtener datos de ban de un usuario (baneado_hasta + ban_razon).
+     * Retorna null si el usuario no existe.
+     */
+    public static function obtenerDatosBan(int $userId): ?array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        return static::consultarUno(
+            "SELECT " . UsuariosExtCols::BANEADO_HASTA . ", " . UsuariosExtCols::BAN_RAZON . "
+             FROM {$tabla} WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+    }
+
+    /*
+     * Limpiar ban expirado: pone baneado_hasta=NULL y ban_razon=NULL.
+     */
+    public static function limpiarBan(int $userId): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::BANEADO_HASTA . " = NULL, " . UsuariosExtCols::BAN_RAZON . " = NULL
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+    }
+
+    /* --- Metodos de integracion con Stripe --- */
+
+    /*
+     * Guardar stripe_connect_id tras crear cuenta Connect.
+     */
+    public static function guardarStripeConnectId(int $userId, string $connectId): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::STRIPE_CONNECT_ID . " = :connectId
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['connectId' => $connectId, 'id' => $userId]
+        );
+    }
+
+    /*
+     * Obtener stripe_customer_id de un usuario.
+     * Retorna null si no tiene customer de Stripe.
+     */
+    public static function obtenerStripeCustomerId(int $userId): ?string
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT " . UsuariosExtCols::STRIPE_CUSTOMER_ID . " FROM {$tabla}
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+        return $row[UsuariosExtCols::STRIPE_CUSTOMER_ID] ?? null;
+    }
+
+    /*
+     * Obtener stripe_connect_id de un creador para transferencias.
+     * Retorna null si el creador no tiene cuenta Connect.
+     */
+    public static function obtenerStripeConnectIdPorUsuario(int $userId): ?string
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT " . UsuariosExtCols::STRIPE_CONNECT_ID . " FROM {$tabla}
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+        return $row[UsuariosExtCols::STRIPE_CONNECT_ID] ?? null;
+    }
+
+    /*
+     * Obtener datos del usuario necesarios para crear un Stripe Customer
+     * (email, nombre_visible, username).
+     */
+    public static function obtenerDatosStripe(int $userId): ?array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        return static::consultarUno(
+            "SELECT " . UsuariosExtCols::EMAIL . ", " . UsuariosExtCols::NOMBRE_VISIBLE . ", "
+                . UsuariosExtCols::USERNAME . ", " . UsuariosExtCols::STRIPE_CUSTOMER_ID . "
+             FROM {$tabla} WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+    }
+
+    /*
+     * Guardar stripe_customer_id tras crear customer en Stripe.
+     */
+    public static function guardarStripeCustomerId(int $userId, string $customerId): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::STRIPE_CUSTOMER_ID . " = :customerId
+             WHERE " . UsuariosExtCols::ID . " = :id",
+            ['customerId' => $customerId, 'id' => $userId]
+        );
     }
 }

@@ -40,7 +40,8 @@ class LikesRepository extends BaseRepository
         $col = LikesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            /* Tabla likes no tiene columna id — se ordena por created_at */
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -53,7 +54,7 @@ class LikesRepository extends BaseRepository
         $tabla = LikesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . LikesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }

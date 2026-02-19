@@ -11,7 +11,7 @@
 
 namespace App\Kamples\Api\Helpers;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
@@ -26,12 +26,7 @@ class UsuarioHelper
         $wpUserId = AuthMiddleware::obtenerWpUserId();
         if (!$wpUserId) return null;
 
-        $row = PostgresService::consultarUno(
-            "SELECT id FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpUserId]
-        );
-
-        return $row ? (int) $row[UsuariosExtCols::ID] : null;
+        return UsuariosExtRepository::obtenerIdPorWpId($wpUserId);
     }
 
     /**
@@ -40,10 +35,7 @@ class UsuarioHelper
     public static function obtenerPorWpId(?int $wpUserId = null): ?array
     {
         $wpUserId = $wpUserId ?? AuthMiddleware::obtenerWpUserId();
-        return PostgresService::consultarUno(
-            "SELECT * FROM usuarios_ext WHERE wp_user_id = :wpId",
-            ['wpId' => $wpUserId]
-        );
+        return UsuariosExtRepository::buscarPorWpId((int) $wpUserId);
     }
 
     /**
@@ -51,10 +43,7 @@ class UsuarioHelper
      */
     public static function obtenerPorId(int $id): ?array
     {
-        return PostgresService::consultarUno(
-            "SELECT * FROM usuarios_ext WHERE id = :id",
-            ['id' => $id]
-        );
+        return UsuariosExtRepository::buscarPorId($id);
     }
 
     /**

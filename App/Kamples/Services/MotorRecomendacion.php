@@ -17,7 +17,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
@@ -59,17 +59,7 @@ class MotorRecomendacion
     private static function pgvectorActivo(): bool
     {
         if (self::$pgvectorDisponible !== null) return self::$pgvectorDisponible;
-        try {
-            $ext = PostgresService::consultarUno(
-                "SELECT 1 FROM pg_extension WHERE extname = 'vector'"
-            );
-            $col = PostgresService::consultarUno(
-                "SELECT 1 FROM information_schema.columns WHERE table_name = 'samples' AND column_name = 'embedding'"
-            );
-            self::$pgvectorDisponible = ($ext !== null && $col !== null);
-        } catch (\Exception $e) {
-            self::$pgvectorDisponible = false;
-        }
+        self::$pgvectorDisponible = SamplesRepository::verificarPgvector();
         return self::$pgvectorDisponible;
     }
 
@@ -213,7 +203,7 @@ class MotorRecomendacion
                 ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
                 LIMIT :limit OFFSET :offset";
 
-        $resultado = PostgresService::consultar($sql, $queryParams);
+        $resultado = SamplesRepository::consultar($sql, $queryParams);
 
         KamplesLogger::info('Algoritmo: Resultados obtenidos', [
             'userId' => $userId, 'totalResultados' => \count($resultado),
@@ -240,7 +230,7 @@ class MotorRecomendacion
              . "   * GREATEST(0.1, 1 - EXTRACT(EPOCH FROM NOW() - s.publicado_at) / (86400 * 30)) DESC"
              . " LIMIT :limit OFFSET :offset";
 
-        return PostgresService::consultar($sql, ['limit' => $limite, 'offset' => $offset]);
+        return SamplesRepository::consultar($sql, ['limit' => $limite, 'offset' => $offset]);
     }
 
     /**
@@ -277,15 +267,9 @@ class MotorRecomendacion
     {
         $config = self::cargarPesos();
 
-        /* Intentar búsqueda por embedding si pgvector está activo */
         if (self::pgvectorActivo()) {
-            $tieneEmbedding = PostgresService::consultarUno(
-                "SELECT embedding IS NOT NULL as tiene FROM samples WHERE id = :id",
-                ['id' => $sampleId]
-            );
-
-            if ($tieneEmbedding && ($tieneEmbedding['tiene'] ?? false)) {
-                $similares = PostgresService::consultar(
+            if (SamplesRepository::verificarTieneEmbedding($sampleId)) {
+                $similares = SamplesRepository::consultar(
                     NormalizadorSample::sqlSelectSamples()
                     . " WHERE s.estado = 'activo' AND s.id != :sampleId AND s.embedding IS NOT NULL"
                     . " ORDER BY s.embedding <=> (SELECT embedding FROM samples WHERE id = :sampleId)"
@@ -298,10 +282,7 @@ class MotorRecomendacion
         }
 
         /* Fallback: scoring por tags, BPM, key, tipo */
-        $sample = PostgresService::consultarUno(
-            "SELECT tags, bpm, key, tipo, escala FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarMetadataParaSimilares($sampleId);
 
         if (!$sample) return [];
 
@@ -336,6 +317,6 @@ class MotorRecomendacion
              . " ORDER BY ({$tagScore} + {$bpmScore} + {$keyScore} + {$tipoScore}) DESC,"
              . " s.total_likes DESC LIMIT :limit";
 
-        return PostgresService::consultar($sql, $params);
+        return SamplesRepository::consultar($sql, $params);
     }
 }

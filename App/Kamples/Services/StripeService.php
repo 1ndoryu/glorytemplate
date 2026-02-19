@@ -14,7 +14,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
@@ -188,10 +188,7 @@ class StripeService
         ]);
 
         if (isset($cuenta['id'])) {
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET stripe_connect_id = :connectId WHERE id = :userId",
-                ['connectId' => $cuenta['id'], 'userId' => $userId]
-            );
+            UsuariosExtRepository::guardarStripeConnectId($userId, $cuenta['id']);
         }
 
         return $cuenta;
@@ -215,19 +212,16 @@ class StripeService
      */
     public static function transferirACreador(int $creadorId, int $monto, string $moneda = 'usd', string $descripcion = ''): array
     {
-        $connectId = PostgresService::consultarUno(
-            "SELECT stripe_connect_id FROM usuarios_ext WHERE id = :id",
-            ['id' => $creadorId]
-        );
+        $connectId = UsuariosExtRepository::obtenerStripeConnectIdPorUsuario($creadorId);
 
-        if (!$connectId || empty($connectId[UsuariosExtCols::STRIPE_CONNECT_ID])) {
+        if (!$connectId) {
             return ['error' => 'Creador sin cuenta Connect configurada'];
         }
 
         return self::request('POST', '/transfers', [
             'amount'      => $monto,
             'currency'    => $moneda,
-            'destination' => $connectId[UsuariosExtCols::STRIPE_CONNECT_ID],
+            'destination' => $connectId,
             'description' => $descripcion,
         ]);
     }
@@ -317,11 +311,7 @@ class StripeService
 
     private static function obtenerCustomerId(int $userId): ?string
     {
-        $row = PostgresService::consultarUno(
-            "SELECT stripe_customer_id FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
-        return $row[UsuariosExtCols::STRIPE_CUSTOMER_ID] ?? null;
+        return UsuariosExtRepository::obtenerStripeCustomerId($userId);
     }
 
     private static function obtenerOCrearCustomer(int $userId): ?string
@@ -329,10 +319,7 @@ class StripeService
         $existing = self::obtenerCustomerId($userId);
         if ($existing) return $existing;
 
-        $usuario = PostgresService::consultarUno(
-            "SELECT email, nombre_visible, username FROM usuarios_ext WHERE id = :id",
-            ['id' => $userId]
-        );
+        $usuario = UsuariosExtRepository::obtenerDatosStripe($userId);
 
         if (!$usuario) return null;
 
@@ -343,10 +330,7 @@ class StripeService
         ]);
 
         if (isset($customer['id'])) {
-            PostgresService::ejecutar(
-                "UPDATE usuarios_ext SET stripe_customer_id = :customerId WHERE id = :id",
-                ['customerId' => $customer['id'], 'id' => $userId]
-            );
+            UsuariosExtRepository::guardarStripeCustomerId($userId, $customer['id']);
             return $customer['id'];
         }
 

@@ -18,7 +18,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
 
@@ -57,10 +57,7 @@ class DeduplicadorAudio
      */
     public static function calcularYVerificar(int $sampleId): void
     {
-        $sample = PostgresService::consultarUno(
-            "SELECT id, creador_id, ruta_original, duracion FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarParaDeduplicacion($sampleId);
 
         if (!$sample || empty($sample[SamplesCols::RUTA_ORIGINAL])) {
             KamplesLogger::warning('DeduplicadorAudio: sample no encontrado o sin ruta', ['sampleId' => $sampleId]);
@@ -81,19 +78,12 @@ class DeduplicadorAudio
         }
 
         /* Guardar hash en BD */
-        PostgresService::ejecutar(
-            "UPDATE samples SET audio_hash = :hash WHERE id = :id",
-            ['hash' => $hash, 'id' => $sampleId]
-        );
+        SamplesRepository::actualizarHash($sampleId, $hash);
 
         KamplesLogger::info('DeduplicadorAudio: hash calculado', ['sampleId' => $sampleId, 'hash' => $hash]);
 
         /* Buscar duplicados (de otros creadores) */
-        $duplicados = PostgresService::consultar(
-            "SELECT id, creador_id, titulo FROM samples
-             WHERE audio_hash = :hash AND id != :id AND estado = 'activo'",
-            ['hash' => $hash, 'id' => $sampleId]
-        );
+        $duplicados = SamplesRepository::buscarConHash($hash, $sampleId);
 
         if (empty($duplicados)) return;
 
@@ -106,10 +96,7 @@ class DeduplicadorAudio
             if ($dupCreadorId === $creadorId) continue;
 
             /* Duplicado de otro creador: marcar para supervisión */
-            PostgresService::ejecutar(
-                "UPDATE samples SET estado = 'en_supervision' WHERE id = :id",
-                ['id' => $sampleId]
-            );
+            SamplesRepository::marcarEnSupervision($sampleId);
 
             /* C266: Notificar al dueño original via ServicioNotificaciones */
             ServicioNotificaciones::crear(
@@ -126,9 +113,9 @@ class DeduplicadorAudio
             );
 
             KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [
-                'sampleNuevo'    => $sampleId,
-                'sampleOriginal' => $dup[SamplesCols::ID],
-                'creadorNuevo'   => $creadorId,
+                'sampleNuevo'     => $sampleId,
+                'sampleOriginal'  => $dup[SamplesCols::ID],
+                'creadorNuevo'    => $creadorId,
                 'creadorOriginal' => $dupCreadorId,
             ]);
 

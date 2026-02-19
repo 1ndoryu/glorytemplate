@@ -35,7 +35,7 @@ class MensajesRepository extends BaseRepository
         $col = MensajesCols::AUTOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . MensajesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -48,7 +48,7 @@ class MensajesRepository extends BaseRepository
         $tabla = MensajesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . MensajesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }

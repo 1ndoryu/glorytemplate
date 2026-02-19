@@ -19,7 +19,8 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\LogModeracion as KamplesLogger;
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\PublicacionesRepository;
+use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Services\ServicioBan;
 use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\Api\AnalizadoresModeracion;
@@ -74,15 +75,10 @@ class ServicioModeracionIA
 
         /* Guardar resultado en BD */
         try {
-            PostgresService::ejecutar(
-                "UPDATE publicaciones
-                 SET moderacion_estado = :estado, moderacion_detalle = :detalle
-                 WHERE id = :id",
-                [
-                    'estado' => $veredicto['nivel'],
-                    'detalle' => \json_encode($veredicto),
-                    'id' => $publicacionId,
-                ]
+            PublicacionesRepository::actualizarVeredictoModeracion(
+                $publicacionId,
+                $veredicto['nivel'],
+                \json_encode($veredicto)
             );
         } catch (\Throwable $e) {
             KamplesLogger::error('ModeracionIA: Error guardando veredicto', [
@@ -104,7 +100,7 @@ class ServicioModeracionIA
      * @param string $texto Contenido textual
      * @param string|null $mediaUrl URL del archivo multimedia adjunto
      * @param string $tipoContenido 'texto', 'imagen', 'audio'
-     * @return array { nivel, razon, detalles }
+     * @return array{nivel: string, razon: string, detalles: array}
      */
     public static function moderarComentario(int $comentarioId, int $autorId, string $texto, ?string $mediaUrl = null, string $tipoContenido = 'texto'): array
     {
@@ -138,13 +134,10 @@ class ServicioModeracionIA
 
         /* Guardar estado en BD */
         try {
-            PostgresService::ejecutar(
-                "UPDATE comentarios SET moderacion_estado = :estado, moderacion_detalle = :detalle::jsonb WHERE id = :id",
-                [
-                    'estado' => $veredicto['nivel'],
-                    'detalle' => \json_encode($veredicto),
-                    'id' => $comentarioId,
-                ]
+            ComentariosRepository::actualizarVeredictoModeracion(
+                $comentarioId,
+                $veredicto['nivel'],
+                \json_encode($veredicto)
             );
         } catch (\Throwable $e) {
             KamplesLogger::error('ModeracionIA: Error guardando veredicto comentario', [

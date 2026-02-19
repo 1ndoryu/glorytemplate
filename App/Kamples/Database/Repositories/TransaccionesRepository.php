@@ -36,7 +36,7 @@ class TransaccionesRepository extends BaseRepository
         $col = TransaccionesCols::CREADOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY " . TransaccionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['creadorId' => $creadorId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -49,7 +49,7 @@ class TransaccionesRepository extends BaseRepository
         $tabla = TransaccionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . TransaccionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }

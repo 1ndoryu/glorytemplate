@@ -24,7 +24,7 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesCols;
 
@@ -150,21 +150,13 @@ class GeneradorEmbeddings
      */
     public static function guardarEmbedding(int $sampleId): bool
     {
-        $sample = PostgresService::consultarUno(
-            "SELECT bpm, key, escala, tipo, duracion, es_premium, tags FROM samples WHERE id = :id",
-            ['id' => $sampleId]
-        );
+        $sample = SamplesRepository::buscarParaEmbedding($sampleId);
 
         if (!$sample) return false;
 
         $vectorStr = self::generarString($sample);
 
-        PostgresService::ejecutar(
-            "UPDATE samples SET embedding = :embedding::vector WHERE id = :id",
-            ['embedding' => $vectorStr, 'id' => $sampleId]
-        );
-
-        return true;
+        return SamplesRepository::actualizarEmbedding($sampleId, $vectorStr);
     }
 
     /**
@@ -175,18 +167,12 @@ class GeneradorEmbeddings
      */
     public static function generarTodos(): int
     {
-        $samples = PostgresService::consultar(
-            "SELECT id, bpm, key, escala, tipo, duracion, es_premium, tags
-             FROM samples WHERE embedding IS NULL AND estado = 'activo'"
-        );
+        $samples = SamplesRepository::buscarSinEmbeddingActivos();
 
         $actualizados = 0;
         foreach ($samples as $sample) {
             $vectorStr = self::generarString($sample);
-            PostgresService::ejecutar(
-                "UPDATE samples SET embedding = :embedding::vector WHERE id = :id",
-                ['embedding' => $vectorStr, 'id' => (int) $sample[SamplesCols::ID]]
-            );
+            SamplesRepository::actualizarEmbedding((int) $sample[SamplesCols::ID], $vectorStr);
             $actualizados++;
         }
 
@@ -202,26 +188,7 @@ class GeneradorEmbeddings
      */
     public static function perfilUsuario(int $userId): ?array
     {
-        /*
-         * Obtener embeddings de samples con los que el usuario interactuó.
-         * Pesos: like=3, descarga=5, reproducción=1, reproducción completa=2
-         */
-        $sql = "SELECT s.embedding::text, tipo_interaccion, peso FROM (
-                    SELECT target_id as sample_id, 'like' as tipo_interaccion, 3 as peso
-                    FROM likes WHERE usuario_id = :userId AND tipo = 'sample'
-                    UNION ALL
-                    SELECT sample_id, 'descarga', 5
-                    FROM descargas WHERE usuario_id = :userId
-                    UNION ALL
-                    SELECT sample_id,
-                           CASE WHEN completada THEN 'reproduccion_completa' ELSE 'reproduccion' END,
-                           CASE WHEN completada THEN 2 ELSE 1 END
-                    FROM reproducciones WHERE usuario_id = :userId
-                ) interacciones
-                JOIN samples s ON s.id = interacciones.sample_id
-                WHERE s.embedding IS NOT NULL";
-
-        $rows = PostgresService::consultar($sql, ['userId' => $userId]);
+        $rows = SamplesRepository::buscarInteraccionesParaPerfil($userId);
 
         if (empty($rows)) return null;
 

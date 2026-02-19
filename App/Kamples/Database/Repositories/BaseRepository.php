@@ -29,8 +29,9 @@ abstract class BaseRepository
     /*
      * Ejecuta SELECT y retorna array de filas.
      * Delegado directo a PostgresService.
+     * Publico para permitir que Services con SQL dinamico usen repos sin acceder a PostgresService.
      */
-    protected static function consultar(string $sql, array $params = []): array
+    public static function consultar(string $sql, array $params = []): array
     {
         return PostgresService::consultar($sql, $params);
     }
@@ -38,7 +39,7 @@ abstract class BaseRepository
     /*
      * Ejecuta SELECT y retorna una sola fila o null.
      */
-    protected static function consultarUno(string $sql, array $params = []): ?array
+    public static function consultarUno(string $sql, array $params = []): ?array
     {
         return PostgresService::consultarUno($sql, $params);
     }
@@ -46,7 +47,7 @@ abstract class BaseRepository
     /*
      * Ejecuta INSERT/UPDATE/DELETE y retorna filas afectadas (-1 si falla).
      */
-    protected static function ejecutar(string $sql, array $params = []): int
+    public static function ejecutar(string $sql, array $params = []): int
     {
         return PostgresService::ejecutar($sql, $params);
     }
@@ -54,7 +55,7 @@ abstract class BaseRepository
     /*
      * Ejecuta INSERT y retorna el ID generado (null si falla).
      */
-    protected static function insertar(string $sql, array $params = []): ?int
+    public static function insertar(string $sql, array $params = []): ?int
     {
         return PostgresService::insertar($sql, $params);
     }
@@ -81,7 +82,7 @@ abstract class BaseRepository
         $tabla = static::tabla();
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
             ['limit' => $limit, 'offset' => $offset]
         );
     }

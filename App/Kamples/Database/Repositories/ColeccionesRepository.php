@@ -17,6 +17,7 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\ConstructorSenales;
@@ -42,7 +43,7 @@ class ColeccionesRepository extends BaseRepository
         $col = ColeccionesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY id DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . ColeccionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -55,7 +56,7 @@ class ColeccionesRepository extends BaseRepository
         $tabla = ColeccionesCols::TABLA;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY created_at DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . ColeccionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -99,6 +100,7 @@ class ColeccionesRepository extends BaseRepository
         $tu = UsuariosExtCols::TABLA;
         $ts = SamplesCols::TABLA;
         $tf = FollowsCols::TABLA;
+        $tl = LikesCols::TABLA;
 
         $params = ['offset' => $offset];
         $whereBusqueda = '';
@@ -117,6 +119,9 @@ class ColeccionesRepository extends BaseRepository
             $reaccionLike = LikesEnums::REACCION_LIKE;
             $reaccionEncanta = LikesEnums::REACCION_ENCANTA;
             $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+            $fSeguidorId = FollowsCols::SEGUIDOR_ID;
+            $fSeguidoId = FollowsCols::SEGUIDO_ID;
+            $coleccionId = ColeccionSamplesCols::COLECCION_ID;
 
             $sql = "
                 WITH user_tags AS (
@@ -124,7 +129,7 @@ class ColeccionesRepository extends BaseRepository
                     FROM (
                         SELECT UNNEST({$tagsLiked}) as tag,
                                CASE WHEN l.reaccion = '{$reaccionEncanta}' THEN 2.0 ELSE 1.0 END as peso
-                        FROM likes l
+                        FROM {$tl} l
                         JOIN {$ts} s_l ON l.target_id = s_l.id
                         WHERE l.usuario_id = :userId AND l.tipo = '{$tipoSample}'
                           AND l.reaccion IN ('{$reaccionLike}','{$reaccionEncanta}')
@@ -151,12 +156,12 @@ class ColeccionesRepository extends BaseRepository
                                WHERE ut.tag = ANY(ct.todos_tags)
                            ), 0) / GREATEST(1.0, array_length(ct.todos_tags, 1)::float) as tag_score,
                            CASE WHEN EXISTS(
-                               SELECT 1 FROM {$tf} WHERE seguidor_id = :userId AND seguido_id = c." . ColeccionesCols::USUARIO_ID . "
+                               SELECT 1 FROM {$tf} WHERE {$fSeguidorId} = :userId AND {$fSeguidoId} = c." . ColeccionesCols::USUARIO_ID . "
                            ) THEN 1.3 ELSE 1.0 END as follow_boost,
                            1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c." . ColeccionesCols::UPDATED_AT . ") / 86400.0) as frescura
                     FROM {$t} c
                     JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
-                    LEFT JOIN coleccion_tags ct ON ct.coleccion_id = c." . ColeccionesCols::ID . "
+                    LEFT JOIN coleccion_tags ct ON ct.{$coleccionId} = c." . ColeccionesCols::ID . "
                     WHERE c." . ColeccionesCols::PUBLICA . " = true
                       AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2 WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ")) > 0
                       {$whereBusqueda}
@@ -348,8 +353,8 @@ class ColeccionesRepository extends BaseRepository
             . " FROM {$ts} s"
             . " INNER JOIN {$tcs} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
             . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = :coleccionId"
-            . " AND s." . SamplesCols::ESTADO . " = 'activo'"
-            . " ORDER BY cs." . ColeccionSamplesCols::CREATED_AT . " ASC",
+            . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+            . " ORDER BY cs." . ColeccionSamplesCols::ADDED_AT . " ASC",
             ['coleccionId' => $coleccionId]
         );
     }

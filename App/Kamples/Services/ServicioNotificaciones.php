@@ -13,7 +13,8 @@
 
 namespace App\Kamples\Services;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\NotificacionesRepository;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
@@ -46,18 +47,14 @@ class ServicioNotificaciones
         }
 
         try {
-            PostgresService::ejecutar(
-                "INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, datos, actor_id, enlace)
-                 VALUES (:userId, :tipo, :titulo, :mensaje, :datos::jsonb, :actorId, :enlace)",
-                [
-                    'userId'  => $destinatarioId,
-                    'tipo'    => $tipo,
-                    'titulo'  => $titulo,
-                    'mensaje' => $mensaje,
-                    'datos'   => json_encode($datos),
-                    'actorId' => $actorId,
-                    'enlace'  => $enlace,
-                ]
+            NotificacionesRepository::crearCompleta(
+                $destinatarioId,
+                $tipo,
+                $titulo,
+                $mensaje,
+                json_encode($datos),
+                $actorId,
+                $enlace
             );
         } catch (\Throwable $e) {
             KamplesLogger::error('ServicioNotificaciones: error creando notificacion', [
@@ -267,11 +264,7 @@ class ServicioNotificaciones
     private static function obtenerNombreActor(int $actorId): string
     {
         try {
-            $row = PostgresService::consultarUno(
-                "SELECT username FROM usuarios_ext WHERE id = :id",
-                ['id' => $actorId]
-            );
-            return $row[UsuariosExtCols::USERNAME] ?? 'usuario';
+            return UsuariosExtRepository::buscarUsername($actorId);
         } catch (\Throwable $e) {
             return 'usuario';
         }

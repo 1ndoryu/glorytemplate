@@ -11,7 +11,7 @@
 
 namespace App\Kamples\Database\Repositories;
 
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\DescargasCols;
@@ -38,8 +38,7 @@ class AdminRepository
         $pro = UsuariosExtEnums::PLAN_PRO;
         $premium = UsuariosExtEnums::PLAN_PREMIUM;
 
-        return PostgresService::consultarUno("
-            SELECT
+        return SamplesRepository::consultarUno("
                 (SELECT COUNT(*) FROM {$tu}) as total_usuarios,
                 (SELECT COUNT(*) FROM {$ts} WHERE " . SamplesCols::ESTADO . " = '{$activo}') as total_samples,
                 (SELECT COUNT(*) FROM {$td}) as total_descargas,
@@ -69,9 +68,9 @@ class AdminRepository
              GROUP BY DATE(created_at) ORDER BY fecha";
 
         return [
-            'registros' => PostgresService::consultar($sqlBase($tu), ['dias' => $dias]),
-            'uploads'   => PostgresService::consultar($sqlBase($ts), ['dias' => $dias]),
-            'descargas' => PostgresService::consultar($sqlBase($td), ['dias' => $dias]),
+            'registros' => SamplesRepository::consultar($sqlBase($tu), ['dias' => $dias]),
+            'uploads'   => SamplesRepository::consultar($sqlBase($ts), ['dias' => $dias]),
+            'descargas' => SamplesRepository::consultar($sqlBase($td), ['dias' => $dias]),
         ];
     }
 
@@ -116,7 +115,7 @@ class AdminRepository
             default     => 'u.' . UsuariosExtCols::CREATED_AT . ' DESC',
         };
 
-        $data = PostgresService::consultar(
+        $data = SamplesRepository::consultar(
             "SELECT u." . UsuariosExtCols::ID . ", u." . UsuariosExtCols::USERNAME
             . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::EMAIL
             . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
@@ -133,7 +132,7 @@ class AdminRepository
 
         /* Count total sin offset */
         $paramsCount = array_diff_key($params, ['offset' => true, 'porPagina' => true]);
-        $total = PostgresService::consultarUno(
+        $total = SamplesRepository::consultarUno(
             "SELECT COUNT(*) as total FROM {$tu} u WHERE {$where}",
             $paramsCount
         );
