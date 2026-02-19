@@ -43,6 +43,42 @@
     - `CalendarEngine::validarReglas()` ahora delega y reduce responsabilidad directa del motor.
     - [Arquitectura]: primer corte seguro para desacoplar reglas antes de extraer slots/demanda/persistencia.
 
+- 2026-02-19: ✅ **[AG-REP]** Segundo avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarSlotsBuilder` para generación de slots (legacy + horarios flexibles + bloqueo).
+    - Extraído `CalendarDemandCalculator` para cálculo de demanda por slot e interpolación de disponibilidad.
+    - `CalendarEngine` redujo de 1029 a 814 líneas tras delegar slots/demanda.
+    - [Arquitectura]: el motor queda más cerca de rol orquestador y facilita próximos cortes de distribución/persistencia.
+
+- 2026-02-19: ✅ **[AG-REP]** Tercer avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarPersistenceService` para borrado/regeneración de clases y persistencia de asistencias.
+    - Extraído `CalendarCoverageNoticeBuilder` para cálculo de horas no cubiertas y rangos consecutivos.
+    - `CalendarEngine` redujo de 814 a 683 líneas tras delegar persistencia/avisos.
+    - [Arquitectura]: se reduce acoplamiento con infraestructura y el motor se consolida como orquestador de flujo.
+
+- 2026-02-19: ✅ **[AG-REP]** Cuarto avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarSubjectDistributor` para la lógica de asignación por déficit y actualización de minutos por alumno/asignatura.
+    - `CalendarEngine::distribuirAsignaturas()` ahora delega y conserva solo coordinación de estado.
+    - `CalendarEngine` redujo de 683 a 577 líneas tras delegar distribución.
+    - [Arquitectura]: se separa la regla de negocio principal del flujo de orquestación, facilitando pruebas unitarias aisladas.
+
+- 2026-02-19: ✅ **[AG-REP]** Quinto avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarDataLoader` para disponibilidad, clases bloqueadas y acumulados/minutos restantes por alumno.
+    - `CalendarEngine` dejó de contener consultas SQL de carga y pasó a delegar el acceso a datos.
+    - `CalendarEngine` redujo de 577 a 427 líneas tras delegar capa de datos.
+    - [Arquitectura]: separación clara entre orquestación, lógica de negocio y persistencia/carga de datos.
+
+- 2026-02-19: ✅ **[AG-REP]** Sexto avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarEngineConfigProvider` para carga de configuración y aplicación de timezone.
+    - Extraído `CalendarConflictDetector` para detección de conflictos de aforo.
+    - `CalendarEngine` redujo de 427 a 381 líneas tras delegar configuración/conflictos.
+    - [Arquitectura]: el motor se acerca a un rol de orquestador puro, con reglas e infraestructura desacopladas.
+
+- 2026-02-19: ✅ **[AG-REP]** Séptimo avance de split en `CalendarEngine` aplicado.
+    - Extraído `CalendarWeekContextBuilder` para centralizar armado de contexto semanal (generación y preview).
+    - Limpieza de código muerto en el motor sin eliminar comentarios funcionales/documentales.
+    - `CalendarEngine` redujo de 381 a 311 líneas.
+    - [Arquitectura]: se consolidó separación de orquestación vs. preparación de contexto semanal.
+
 - 2026-02-12: **RESUELTO Y VERIFICADO EN DEBUG.LOG: Progreso por asignatura consistente + horarios flexibles respetados**
     - `CalendarEngine::distribuirAsignaturas()` pasó a lógica por **déficit real por alumno/asignatura** en cada slot. Resultado verificado: asignadas=35h y desglose exacto `7+4+6+4+4+4+3+3` por alumno.
     - Se mantiene la regla de 35h máximas por alumno y se descartan en cada clase los alumnos que no requieren la asignatura seleccionada.
