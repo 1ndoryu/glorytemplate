@@ -28,6 +28,7 @@ use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Kamples\KamplesLogger;
 
 class ColeccionesController
 {
@@ -93,6 +94,7 @@ class ColeccionesController
     /* C169: Soporte busqueda en mis colecciones */
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -100,6 +102,12 @@ class ColeccionesController
         $colecciones = ColeccionesRepository::listarDelUsuario($userId, $busqueda);
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::listar', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /*
@@ -109,6 +117,7 @@ class ColeccionesController
      */
     public static function explorar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $page = \max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
         $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
@@ -127,10 +136,17 @@ class ColeccionesController
         unset($col);
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::explorar', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function obtener(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $id = (int) $request->get_param('id');
 
         $coleccion = ColeccionesRepository::obtenerConCreador($id);
@@ -165,6 +181,12 @@ class ColeccionesController
         unset($coleccion[UsuariosExtCols::WP_USER_ID]);
 
         return new \WP_REST_Response(['data' => $coleccion], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::obtener', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -173,6 +195,7 @@ class ColeccionesController
      */
     public static function sugerencias(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $colId = (int) $request->get_param('id');
         $page = \max(1, (int) $request->get_param('page'));
         $perPage = \max(1, (int) $request->get_param('per_page'));
@@ -219,6 +242,12 @@ class ColeccionesController
             'data' => NormalizadorSample::normalizarLista($samples),
             'contexto' => ['topTags' => $topTags, 'avgBpm' => $avgBpm, 'dominantKey' => $dominantKey],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::sugerencias', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -227,6 +256,7 @@ class ColeccionesController
      */
     public static function relevantesParaSample(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -246,5 +276,11 @@ class ColeccionesController
         }
 
         return new \WP_REST_Response(['data' => $colecciones], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::relevantesParaSample', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

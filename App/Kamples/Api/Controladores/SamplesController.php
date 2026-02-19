@@ -79,6 +79,7 @@ class SamplesController
      */
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         /* C202: Rate limit anti-scraping para usuarios anónimos (60 req/minuto por IP) */
         if (!get_current_user_id()) {
             $rl = RateLimiter::verificarIp('listar_samples', 60, 60);
@@ -176,6 +177,10 @@ class SamplesController
                 ],
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::listar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -183,6 +188,7 @@ class SamplesController
      */
     public static function obtener(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $slug = $request->get_param('slug');
 
         /*
@@ -202,6 +208,10 @@ class SamplesController
         }
 
         return new \WP_REST_Response(['data' => NormalizadorSample::normalizar($sample)], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::obtener error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -210,6 +220,7 @@ class SamplesController
      */
     public static function feed(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         /* C202: Rate limit anti-scraping para usuarios anónimos (60 req/minuto por IP) */
         if (!get_current_user_id()) {
             $rl = RateLimiter::verificarIp('feed_samples', 60, 60);
@@ -276,6 +287,10 @@ class SamplesController
             'feed' => $tipo,
             'page' => $page,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::feed error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
 

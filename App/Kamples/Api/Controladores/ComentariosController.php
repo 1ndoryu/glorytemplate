@@ -31,6 +31,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
+use App\Kamples\KamplesLogger;
 
 class ComentariosController
 {
@@ -96,6 +97,7 @@ class ComentariosController
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $tipo = $request->get_param('tipo');
         $targetId = (int) $request->get_param('targetId');
         $page = \max(1, (int) $request->get_param('page'));
@@ -119,11 +121,16 @@ class ComentariosController
         $resultado = self::normalizarComentarios($comentarios, $currentUserId);
 
         return new \WP_REST_Response(['data' => $resultado, 'page' => $page], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController::listar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* C264: Editar comentario (solo autor) */
     public static function editar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -159,6 +166,10 @@ class ComentariosController
                 'editadoAt' => \date('c'),
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController::editar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* C264: Eliminar comentario — delegado a ComentariosEscrituraController */
@@ -166,6 +177,7 @@ class ComentariosController
     /* C264: Reportar comentario */
     public static function reportar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -189,6 +201,10 @@ class ComentariosController
         ReportesRepository::crearReporte('comentario', $id, $userId, $razon);
 
         return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController::reportar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* C265: Likes delegados a ComentariosInteraccionController */
@@ -196,6 +212,7 @@ class ComentariosController
     /* C265: Listar respuestas de un comentario */
     public static function listarRespuestas(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $parentId = (int) $request->get_param('id');
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
@@ -204,6 +221,10 @@ class ComentariosController
         $resultado = self::normalizarComentarios($respuestas, $currentUserId);
 
         return new \WP_REST_Response(['data' => $resultado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController::listarRespuestas error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /*

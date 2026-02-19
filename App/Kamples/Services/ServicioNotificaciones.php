@@ -16,11 +16,12 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\Repositories\NotificacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
-use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\LikesEnums;
 
 class ServicioNotificaciones
 {
+    /* TC16: Cache estatico para evitar N+1 en obtenerNombreActor */
+    private static array $cacheNombres = [];
     /**
      * Crear una notificacion.
      * Si $actorId === $destinatarioId, no se crea (excluye auto-notificaciones).
@@ -261,11 +262,18 @@ class ServicioNotificaciones
 
     /**
      * Obtener username para mensajes legibles.
+     * Cache estatico evita queries repetidas para el mismo actor (N+1).
      */
     private static function obtenerNombreActor(int $actorId): string
     {
+        if (isset(self::$cacheNombres[$actorId])) {
+            return self::$cacheNombres[$actorId];
+        }
+
         try {
-            return UsuariosExtRepository::buscarUsername($actorId);
+            $nombre = UsuariosExtRepository::buscarUsername($actorId);
+            self::$cacheNombres[$actorId] = $nombre;
+            return $nombre;
         } catch (\Throwable $e) {
             return 'usuario';
         }

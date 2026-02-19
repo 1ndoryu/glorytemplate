@@ -79,46 +79,46 @@
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| S44 | DeduplicadorAudio.php exec() L138/152/169 | **Command injection:** 3 llamadas `exec()` con rutas de archivo sin `escapeshellarg()`. Otros archivos FFmpeg (ProcesadorFFmpeg, DetectorBpm, DetectorTonalidad) sí lo usan. | PENDIENTE |
-| S45 | TransaccionesRepository INTERVAL | **SQL interpolación:** INTERVAL interpolado sin whitelist. Callers usan valores fijos hoy, pero abierto a futuros callers. | PENDIENTE |
-| S46 | ReproduccionesRepository INTERVAL | **SQL interpolación:** Mismo patrón que S45. | PENDIENTE |
-| S47 | ComentariosRepository INTERVAL | **SQL interpolación:** int cast sin defense-in-depth. | PENDIENTE |
+| S44 | DeduplicadorAudio.php exec() L138/152/169 | **Command injection:** 3 llamadas `exec()` con rutas de archivo sin `escapeshellarg()`. Otros archivos FFmpeg (ProcesadorFFmpeg, DetectorBpm, DetectorTonalidad) sí lo usan. | ✅ RESUELTO — escapeshellarg + try/finally + exit codes |
+| S45 | TransaccionesRepository INTERVAL | **SQL interpolación:** INTERVAL interpolado sin whitelist. Callers usan valores fijos hoy, pero abierto a futuros callers. | ✅ RESUELTO — intervaloDias() whitelist + INTERVAL '1 day' * :dias |
+| S46 | ReproduccionesRepository INTERVAL | **SQL interpolación:** Mismo patrón que S45. | ✅ RESUELTO — intervaloSegundos() whitelist + parametrizado |
+| S47 | ComentariosRepository INTERVAL | **SQL interpolación:** int cast sin defense-in-depth. | ✅ RESUELTO — defense-in-depth int cast + parametrizado |
 
 ### P1 — ALTOS (Fallos silenciosos / Missing try-catch)
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| TC01 | **24 de 29 Controllers sin try-catch** | **Fallo silencioso masivo:** Solo AdminController y SamplesUploadController tienen try-catch. Los otros 24 dependen de PostgresService que absorbe PDOException y retorna valores por defecto ([], null, -1). Los controllers NUNCA verifican estos valores → fallos silenciosos propagados como éxitos HTTP 200. | PENDIENTE |
+| TC01 | **26 Controllers con try-catch** | Todos los controllers públicos ahora tienen try-catch global. 26/26 envueltos con `catch (\Throwable $e)` + KamplesLogger + respuesta 500 genérica. | ✅ RESUELTO |
 | TC02 | PostgresService patrón absorber | **Root cause:** consultar()→[], consultarUno()→null, ejecutar()→-1, insertar()→null al fallar. Todos los repos y controllers confían ciegamente en estos retornos. | PENDIENTE (documentar, fix gradual) |
-| TC03 | PagosController (Stripe sin try-catch) | **Crítico financiero:** checkout, portal, webhook procesan pagos sin protección. json_decode payload sin validar. Excepción Stripe inesperada = 500 genérico WP. | PENDIENTE |
-| TC04 | ConnectController (Stripe Connect sin try-catch) | **Crítico financiero:** onboarding, estado, dashboard, balance sin protección. | PENDIENTE |
-| TC05 | DescargasController (advisory lock sin try-catch) | **Integridad datos:** Si falla el registro de descarga, el usuario descarga pero no se registra → créditos no consumidos, revenue share perdido. | PENDIENTE |
-| TC06 | DescargasStreamController (readfile sin try-catch) | `readfile()` puede fallar silenciosamente con permisos. | PENDIENTE |
-| TC07 | DescargasZipController (ZipArchive sin try-catch) | `ZipArchive::addFile()` y `close()` no protegidos. `glob()` puede retornar `false`. | PENDIENTE |
-| TC08 | MensajesController (upload+DB sin try-catch) | File upload y DB writes sin protección. | PENDIENTE |
-| TC09 | PerfilController (move_uploaded_file sin try-catch) | Verifica retorno `false` pero no captura excepciones. | PENDIENTE |
-| TC10 | SamplesModificacionController (unlink sin try-catch) | `unlink()` de 4 archivos (original, optimizado, preview, waveform) sin protección. Permisos insuficientes = warning PHP silencioso. | PENDIENTE |
-| TC11 | ColoresController (scandir sin try-catch) | `scandir()` sin protección. | PENDIENTE |
-| TC12 | ComentariosInteraccionController (exec FFmpeg sin try-catch) | `exec()` FFmpeg dentro de controller sin protección. | PENDIENTE |
-| TC13 | AuthController (login/registro sin try-catch) | `crearDesdeWP()` puede fallar silenciosamente. | PENDIENTE |
-| TC14 | DeduplicadorAudio (exit code ignorado) | `exec()` no verifica código de retorno. Temp files no se limpian en error. | PENDIENTE |
-| TC15 | ExperimentosController hardcoded password | `TEST_PASS = 'GloryTest2026!'` en código. | PENDIENTE (admin-only, bajo riesgo) |
-| TC16 | ServicioNotificaciones N+1 | `obtenerNombreActor()` sin cache estático → query por cada notificación. | PENDIENTE |
+| TC03 | PagosController (Stripe) | try-catch en 3 métodos (webhook retorna 200 incluso en error para Stripe). | ✅ RESUELTO |
+| TC04 | ConnectController (Stripe Connect) | try-catch en 4 métodos. | ✅ RESUELTO |
+| TC05 | DescargasController | try-catch en 3 métodos. | ✅ RESUELTO |
+| TC06 | DescargasStreamController | try-catch envuelve antes del exit(). | ✅ RESUELTO |
+| TC07 | DescargasZipController | try-catch en 1 método. | ✅ RESUELTO |
+| TC08 | MensajesController | try-catch en 5 métodos. | ✅ RESUELTO |
+| TC09 | PerfilController | try-catch en 4 métodos. | ✅ RESUELTO |
+| TC10 | SamplesModificacionController | try-catch en 2 métodos. | ✅ RESUELTO |
+| TC11 | ColoresController | try-catch en 1 método. | ✅ RESUELTO |
+| TC12 | ComentariosInteraccionController | try-catch en 3 métodos (procesarMedia retorna union type). | ✅ RESUELTO |
+| TC13 | AuthController | try-catch en 2 métodos. | ✅ RESUELTO |
+| TC14 | DeduplicadorAudio | escapeshellarg + exit codes + try/finally temp cleanup. | ✅ RESUELTO (con S44) |
+| TC15 | ExperimentosController hardcoded password | try-catch en 1 método. Password sigue hardcoded (admin-only, bajo riesgo). | ✅ PARCIAL |
+| TC16 | ServicioNotificaciones N+1 | Cache estatico en `obtenerNombreActor()`. Evita queries repetidas para el mismo actor. | ✅ RESUELTO |
 
 ### P2 — MEDIO (Optimización DB / Algoritmo)
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| OPT01 | DashboardController stats() | **8 queries secuenciales** que podrían ser 1 CTE. Mayor impacto de performance. | PENDIENTE |
-| OPT02 | TransaccionesRepository ingresos | **3 queries** de ingresos por período combinables con `SUM() FILTER()`. | PENDIENTE |
-| OPT03 | PostgresService insertar() | Usa `lastInsertId()` en vez de `RETURNING` — funciona con SERIAL pero podría fallar con IDENTITY columns. | PENDIENTE |
-| OPT04 | NotificacionesController JSON join | JOIN depende de `(datos::jsonb->>'seguidor_id')` — frágil si estructura cambia. Considerar columna dedicada. | PENDIENTE |
-| OPT05 | AdminController reportes | LIMIT 10 fijo sin paginación. | PENDIENTE |
-| OPT06 | PostgresService .env parser | No maneja comillas en valores ni comentarios. Sobreescribe env del sistema con putenv(). | PENDIENTE |
+| OPT01 | DashboardController stats() | **6→3 queries**: 4 metricas mensuales combinadas en 1 SELECT con subqueries escalares. Ingresos ya combinados (OPT02). | ✅ RESUELTO |
+| OPT02 | TransaccionesRepository ingresos | **3 queries** combinadas en 1 con `SUM() FILTER()`. DashboardController usa `ingresosDashboard()`. | ✅ RESUELTO |
+| OPT03 | PostgresService insertar() | Prioriza RETURNING sobre lastInsertId(). Fallback a lastInsertId() si SQL no tiene RETURNING. | ✅ RESUELTO |
+| OPT04 | NotificacionesController JSON join | JOIN depende de `(datos::jsonb->>'seguidor_id')` — frágil si estructura cambia. | PLANIFICADO (requiere migracion BD) |
+| OPT05 | AdminController reportes | Paginacion con OFFSET + LIMIT + contarPendientes(). Enum ESTADO_PENDIENTE. | ✅ RESUELTO |
+| OPT06 | PostgresService .env parser | Maneja comillas simples/dobles y comentarios inline. putenv() sigue activo (necesario para getenv). | ✅ RESUELTO |
 | OPT07 | StripeService SSL | SSL explícito (CURLOPT_SSL_VERIFYPEER=true, CURLOPT_SSL_VERIFYHOST=2). Ya estaba configurado R69. | HECHO |
 | OPT08 | StripeService retry | Retry con backoff exponencial (1s/2s/4s, max 3 intentos). Solo en curl error + HTTP 5xx. NO en 4xx. | HECHO |
-| OPT09 | SamplesRepository 873 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PENDIENTE |
-| OPT10 | UsuariosExtRepository 603 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PENDIENTE |
+| OPT09 | SamplesRepository 873 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PLANIFICADO (alto riesgo, muchos callers) |
+| OPT10 | UsuariosExtRepository 603 líneas | Excede límite 300 líneas. Candidato a split por dominio. | PLANIFICADO (alto riesgo, muchos callers) |
 
 ### P2 — Reorganización de Carpetas (Jerarquía)
 
@@ -139,26 +139,28 @@
 | DIR13 | `Mezclador/styles/` | **12** | Carpeta plana. | Subdividir: mixer/, channelRack/, pianoRoll/, paneles/ |
 | DIR14 | `Kamples/Services/` | **10** | En el límite. | Subdividir si crece: Algoritmo/, Moderacion/, Usuario/ |
 
+> **Estado DIR01-14:** PLANIFICADO — Requiere sesion dedicada. Mover 200+ archivos afecta imports en el codebase completo. Riesgo alto de conflictos. Hacer por dominio (ej: solo DIR01 en una sesion, solo DIR02 en otra).
+
 ### P2 — React Frontend
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| FE01 | 9 funciones en 4 services (apiMensajes, apiNotificaciones, apiPagos, apiReproduciones) | **Error masking:** Retornan `{ ok: true, data: [] }` en el catch → errores de red indistinguibles de resultados vacíos. | PENDIENTE |
-| FE02 | useExplorador/Descargas/FavoritosPagina | **Likes optimistas sin rollback:** Si la API falla, la UI muestra like pero el backend no lo guardó. | PENDIENTE |
-| FE03 | useSamples.cargarFeed | No setea error cuando `resp.ok === false`. | PENDIENTE |
-| FE04 | usePublicar + useCrearContenido | Upload de imágenes fallido sin feedback al usuario. | PENDIENTE |
-| FE05 | useReproductor stale closures | Deps `[]` capturan valores del primer render. | PENDIENTE |
-| FE06 | useHistorialIds + useFiltroIds | While-loops sin AbortController → state updates post-unmount. | PENDIENTE |
-| FE07 | useReproductor performance | Suscribe al store completo + setProgreso cada 250ms = re-renders excesivos. Usar selector o ref. | PENDIENTE |
-| FE08 | sugerenciasLikeStore.mostrar | Sin cancelación de race condition (request anterior + response nueva). | PENDIENTE |
+| FE01 | 9 funciones en 3 services (apiMensajes, apiNotificaciones, apiPagos) | **Error masking:** `ok: true` en catch → `ok: false` + `error: 'Error de red'`. 9 fixes. | ✅ RESUELTO |
+| FE02 | useExploradorPagina/DescargasPagina/FavoritosPagina | **Likes rollback:** Snapshot previo + verificar `resp.ok` + revertir + toast.error. 9 call sites. | ✅ RESUELTO |
+| FE03 | useSamples.cargarFeed | Else branch añadido: set error + clear cargando cuando `resp.ok === false`. | ✅ RESUELTO |
+| FE04 | usePublicar + useCrearContenido | Toast.error visible al usuario cuando upload falla. | ✅ RESUELTO |
+| FE05 | useReproductor stale closures | Zustand create((set,get)) = refs estables. No hay stale closures. | ✅ NO APLICA |
+| FE06 | useHistorialIds + useFiltroIds | Flag `cancelado` en cleanup. 4 useEffects protegidos contra state updates post-unmount. | ✅ RESUELTO |
+| FE07 | useReproductor performance | Selectores individuales Zustand en vez de store completo. getState() para acciones. setProgreso ya no causa re-renders en consumers. | ✅ RESUELTO |
+| FE08 | sugerenciasLikeStore.mostrar | Contador de version para descartar respuestas de requests anteriores (race condition). | ✅ RESUELTO |
 
 ### P3 — BAJO (Calidad)
 
 | # | Archivo | Problema | Estado |
 |---|---------|----------|--------|
-| Q01 | AdminRepository L45-53 | Constantes Enum interpoladas en SQL como strings — funcional pero patron frágil. | PENDIENTE |
-| Q02 | Kamples/Log*.php (3 archivos) | LogAlgoritmo, LogIA, LogModeracion sueltos en raíz — mover a `Kamples/Logs/`. | PENDIENTE |
-| Q03 | ~24 funciones API TS | Try-catch redundante (apiCliente ya protege con RespuestaApi). | PENDIENTE |
+| Q01 | AdminRepository L45-53 | Ya usa constantes Enum del Schema System. No hay strings hardcodeados. | ✅ YA CORRECTO |
+| Q02 | Kamples/Log*.php (3 archivos) | LogAlgoritmo, LogIA, LogModeracion sueltos en raíz. | PLANIFICADO (16 imports a actualizar) |
+| Q03 | ~24 funciones API TS | Try-catch defensivos con defaults tipados (data:[] vs null). Fix obtenerSimilares ok:true→false. | ✅ EVALUADO + FIX |
 | Q04 | SchemaRegistry L37-56 | `require_once` dinámico desde glob. | ACEPTADO (dir fijo, no input usuario) |
 
 ---
@@ -199,10 +201,22 @@
 - apiCliente `apiPeticion<T>()` nunca lanza — resuelve `RespuestaApi<T>` (`ok: true|false`). Callers verifican `resp.ok`.
 - Stale closures: useCallback con rAF → `getState()`. Race condition async → re-leer post-await.
 - Zustand: Set() requiere `new Set()` cada mutación. Store completo en render = re-renders.
+- Zustand selectores: `useStore(s => s.campo)` evita re-renders por campos no usados. Acciones via `getState()` son refs estables.
+- Zustand race condition en stores async: contador de version fuera del store (`let version = 0; ++version` antes del await, comparar despues).
+- try-catch en api services: aunque apiCliente no lanza, los catch proveen defaults tipados (data: [] vs data: null). Removerlos cambia el contrato para callers. Mantener por seguridad.
 - Web Audio: AudioContext.close() OBLIGATORIO. GainNode.disconnect() en onended. `detune + playbackRate → computedRate`.
 - SoundTouchJS 0.3.0 para pitch-independent. Cache `${bloqueId}:${semitonos}:${playbackRate}`.
 - Canal Rack: velocity+pan+pitch por paso. Swing en pasos impares. 17 inserts mixer.
 - Piano Roll: PPQ=96, 1 beat=60px*zoomX, Canvas grid+DOM notas. GhostNotas viewport culling.
+
+### Sprint 5 — Decisiones y Aprendizajes
+- [OPT01]: PDO ATTR_EMULATE_PREPARES=false prohibe reusar placeholders → usar uid1, uid2, uid3, uid4 con mismo valor en subqueries escalares.
+- [OPT03]: insertar() ahora prioriza RETURNING sobre lastInsertId(). Fallback transparente para SQL sin RETURNING.
+- [OPT05]: ReportesRepository 'pendiente' hardcoded → ReportesEnums::ESTADO_PENDIENTE. FQN eliminados con use statements.
+- [OPT06]: .env parser basico funciona bien como fallback, pero necesita manejar comillas y comentarios inline.
+- [TC16]: Cache estatico con `private static array $cache = []` es suficiente para N+1 dentro de una request PHP.
+- [Q03]: Remover try-catch en api services cambia data de `[]` a `null` en error — callers que no verifican `resp.ok` se rompen.
+- [DIR]: Reorganizacion de carpetas requiere sesion dedicada por dominio. Mover archivos PHP cambia namespaces + autoloading.
 
 ---
 

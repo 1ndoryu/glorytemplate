@@ -27,6 +27,7 @@ class ComentariosInteraccionController
     /* C265: Dar like a un comentario */
     public static function darLike(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -47,11 +48,16 @@ class ComentariosInteraccionController
         }
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
+        } catch (\Throwable $e) {
+            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::darLike error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* C265: Quitar like de un comentario */
     public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -66,6 +72,10 @@ class ComentariosInteraccionController
         $totalLikes = LikesRepository::recalcularTotalComentario($id);
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
+        } catch (\Throwable $e) {
+            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::quitarLike error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -82,6 +92,7 @@ class ComentariosInteraccionController
         int $userId,
         ?string $contenido
     ): array|\WP_REST_Response {
+        try {
         $archivos = $request->get_file_params();
         $archivo = $archivos['media'] ?? null;
 
@@ -157,7 +168,7 @@ class ComentariosInteraccionController
                 $rutaMp3 = \preg_replace('/\.[^.]+$/', '.mp3', $rutaOriginal);
                 $convertido = self::convertirAudioComentario($rutaOriginal, $rutaMp3);
                 if ($convertido && \file_exists($rutaMp3)) {
-                    @\unlink($rutaOriginal);
+                    self::eliminarArchivoSiExiste($rutaOriginal, 'audio original tras conversion a mp3');
                     $mediaUrl = \preg_replace('/\.[^.]+$/', '.mp3', $subido['url']);
                     $mediaMetadata = \json_encode([
                         'formato' => 'mp3',
@@ -185,6 +196,10 @@ class ComentariosInteraccionController
         }
 
         return [$mediaUrl, $mediaMetadata, $contenido];
+        } catch (\Throwable $e) {
+            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::procesarMedia error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error procesando media'], 500);
+        }
     }
 
     /* C201: Convierte audio de comentario a MP3 ligero (128kbps, mono, 44100Hz) */
@@ -298,5 +313,27 @@ class ComentariosInteraccionController
         }
 
         return null;
+    }
+
+    private static function eliminarArchivoSiExiste(string $ruta, string $contexto): void
+    {
+        if (!\file_exists($ruta)) {
+            return;
+        }
+
+        try {
+            if (!\unlink($ruta)) {
+                KamplesLogger::warning('No se pudo eliminar archivo multimedia de comentario', [
+                    'ruta' => $ruta,
+                    'contexto' => $contexto,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Error eliminando archivo multimedia de comentario', [
+                'ruta' => $ruta,
+                'contexto' => $contexto,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

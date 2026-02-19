@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class MensajesController
 {
@@ -76,6 +77,7 @@ class MensajesController
 
     public static function listarConversaciones(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -115,10 +117,21 @@ class MensajesController
         }
 
         return new \WP_REST_Response(['data' => $resultado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::listarConversaciones', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function obtenerMensajes(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -144,10 +157,21 @@ class MensajesController
         unset($msg);
 
         return new \WP_REST_Response(['data' => $mensajes], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::obtenerMensajes', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function enviarMensaje(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -318,10 +342,21 @@ class MensajesController
         }
 
         return new \WP_REST_Response(['data' => $mensaje], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::enviarMensaje', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function marcarLeida(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -330,10 +365,21 @@ class MensajesController
         MensajesRepository::marcarLeidos($conversacionId, $userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::marcarLeida', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function iniciarConversacion(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -376,5 +422,15 @@ class MensajesController
                 'noLeidos' => 0, 'enLinea' => false,
             ]
         ], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::iniciarConversacion', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }

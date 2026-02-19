@@ -53,6 +53,7 @@ class ExperimentosController
      */
     public static function generar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         KamplesLogger::info('Experimentos: Solicitud recibida', [
             'wpUserId' => \get_current_user_id(),
         ]);
@@ -115,6 +116,16 @@ class ExperimentosController
             'ok'   => true,
             'data' => $resumen,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ExperimentosController::generar', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**

@@ -73,6 +73,6 @@ export const obtenerSimilares = async (
         );
     } catch (err) {
         log.error('Error obteniendo samples similares', err);
-        return { ok: true, data: [], error: null, status: 200 };
+        return { ok: false, data: [], error: 'Error de red', status: 0 };
     }
 };

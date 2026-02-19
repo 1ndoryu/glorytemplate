@@ -231,7 +231,8 @@ class AdminController
     }
 
     /*
-     * GET /admin/moderacion?page=1 — Publicaciones pendientes + samples recientes
+     * GET /admin/moderacion?page=1&reportes_page=1 — Publicaciones pendientes + reportes
+     * OPT05: Reportes ahora soportan paginacion independiente.
      */
     public static function listarModeracion(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -239,11 +240,15 @@ class AdminController
             $page = max(1, (int) ($request->get_param('page') ?? 1));
             $offset = ($page - 1) * 20;
 
-            /* Publicaciones pendientes de moderación */
+            /* Publicaciones pendientes de moderacion */
             $publicaciones = PublicacionesRepository::listarPendientesModeracion($offset);
 
-            /* Reportes pendientes */
-            $reportes = ReportesRepository::listarPendientes();
+            /* Reportes pendientes con paginacion */
+            $reportesPage = max(1, (int) ($request->get_param('reportes_page') ?? 1));
+            $reportesLimit = min(50, max(1, (int) ($request->get_param('reportes_limit') ?? 10)));
+            $reportesOffset = ($reportesPage - 1) * $reportesLimit;
+            $reportes = ReportesRepository::listarPendientes($reportesLimit, $reportesOffset);
+            $reportesTotal = ReportesRepository::contarPendientes();
 
             /* C193: Fallback avatar moderación */
             foreach ($publicaciones as &$pub) {
@@ -259,6 +264,7 @@ class AdminController
                 'data' => [
                     'publicaciones' => $publicaciones,
                     'reportes' => $reportes,
+                    'reportesTotal' => $reportesTotal,
                 ]
             ], 200);
         } catch (\Throwable $e) {

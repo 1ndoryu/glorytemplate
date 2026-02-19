@@ -13,6 +13,8 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\ReportesCols;
 use App\Config\Schema\_generated\ReportesDTO;
+use App\Config\Schema\_generated\ReportesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ReportesRepository extends BaseRepository
 {
@@ -43,11 +45,13 @@ class ReportesRepository extends BaseRepository
 
     /*
      * Listar reportes pendientes con username del reportador.
+     * OPT05: Soporta offset para paginacion.
      */
-    public static function listarPendientes(int $limit = 10): array
+    public static function listarPendientes(int $limit = 10, int $offset = 0): array
     {
         $tr = ReportesCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+        $estadoPendiente = ReportesEnums::ESTADO_PENDIENTE;
 
         return static::consultar(
             "SELECT r." . ReportesCols::ID
@@ -57,12 +61,28 @@ class ReportesRepository extends BaseRepository
             . ", r." . ReportesCols::RAZON
             . ", r." . ReportesCols::ESTADO
             . ", r." . ReportesCols::CREATED_AT
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME . " as reportador_username"
-            . " FROM {$tr} r JOIN {$tu} u ON r." . ReportesCols::REPORTADOR_ID . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
-            . " WHERE r." . ReportesCols::ESTADO . " = 'pendiente'"
-            . " ORDER BY r." . ReportesCols::CREATED_AT . " DESC LIMIT :limit",
-            ['limit' => $limit]
+            . ", u." . UsuariosExtCols::USERNAME . " as reportador_username"
+            . " FROM {$tr} r JOIN {$tu} u ON r." . ReportesCols::REPORTADOR_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE r." . ReportesCols::ESTADO . " = :estado"
+            . " ORDER BY r." . ReportesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
+            ['estado' => $estadoPendiente, 'limit' => $limit, 'offset' => $offset]
         );
+    }
+
+    /*
+     * Contar total de reportes pendientes (para paginacion).
+     */
+    public static function contarPendientes(): int
+    {
+        $tabla = ReportesCols::TABLA;
+        $estadoPendiente = ReportesEnums::ESTADO_PENDIENTE;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla} WHERE " . ReportesCols::ESTADO . " = :estado",
+            ['estado' => $estadoPendiente]
+        );
+
+        return $row ? (int) $row['total'] : 0;
     }
 
     /*

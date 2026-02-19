@@ -11,6 +11,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\NotificacionesRepository;
+use App\Kamples\KamplesLogger;
 
 class NotificacionesController
 {
@@ -40,6 +41,7 @@ class NotificacionesController
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -58,10 +60,15 @@ class NotificacionesController
         }
 
         return new \WP_REST_Response(['data' => $notificaciones], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('NotificacionesController::listar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function marcarLeida(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -69,16 +76,25 @@ class NotificacionesController
         NotificacionesRepository::marcarLeida($notifId, $userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('NotificacionesController::marcarLeida error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function marcarTodasLeidas(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         NotificacionesRepository::marcarTodasLeidas($userId);
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('NotificacionesController::marcarTodasLeidas error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -86,11 +102,16 @@ class NotificacionesController
      */
     public static function conteoNoLeidas(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $total = NotificacionesRepository::contarNoLeidas($userId);
 
         return new \WP_REST_Response(['total' => $total], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('NotificacionesController::conteoNoLeidas error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

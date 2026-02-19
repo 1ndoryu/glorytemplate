@@ -12,6 +12,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class DescargasStreamController
 {
@@ -31,6 +32,7 @@ class DescargasStreamController
      */
     public static function streamDescarga(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $token = $request->get_param('token');
         if (!$token) {
             return new \WP_REST_Response(['code' => 'token_requerido'], 400);
@@ -87,5 +89,15 @@ class DescargasStreamController
         \header('X-Content-Type-Options: nosniff');
         readfile($rutaArchivo);
         exit;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DescargasStreamController::streamDescarga', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error al descargar el archivo',
+            ], 500);
+        }
     }
 }

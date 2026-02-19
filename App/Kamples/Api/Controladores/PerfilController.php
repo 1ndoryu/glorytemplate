@@ -19,6 +19,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\FollowsRepository;
+use App\Kamples\KamplesLogger;
 
 class PerfilController
 {
@@ -57,6 +58,7 @@ class PerfilController
      */
     public static function obtenerPerfil(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $username = $request->get_param('username');
 
         $perfil = UsuariosExtRepository::buscarPerfilPublico($username);
@@ -92,6 +94,10 @@ class PerfilController
         }
 
         return new \WP_REST_Response(['data' => $normalizado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::obtenerPerfil error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -99,6 +105,7 @@ class PerfilController
      */
     public static function usuarioActual(): \WP_REST_Response
     {
+        try {
         $wpUser = AuthMiddleware::obtenerUsuarioActual();
         if (!$wpUser) {
             return new \WP_REST_Response(['code' => 'no_auth', 'message' => 'No autenticado'], 401);
@@ -141,6 +148,10 @@ class PerfilController
         $normalizado = self::normalizarUsuario($datos);
 
         return new \WP_REST_Response(['data' => $normalizado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::usuarioActual error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -188,6 +199,7 @@ class PerfilController
      */
     public static function actualizarPerfil(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
         $body = $request->get_json_params();
 
@@ -247,6 +259,10 @@ class PerfilController
         $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $ext ?? []));
 
         return new \WP_REST_Response(['data' => $normalizado, 'ok' => true, 'message' => 'Perfil actualizado'], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::actualizarPerfil error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -256,6 +272,7 @@ class PerfilController
      */
     public static function subirAvatar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
         $files = $request->get_file_params();
 
@@ -330,5 +347,9 @@ class PerfilController
             'data' => $normalizado,
             'avatarUrl' => $avatarUrl,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::subirAvatar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

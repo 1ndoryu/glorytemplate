@@ -24,6 +24,7 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Kamples\KamplesLogger;
 
 class PublicacionesController
 {
@@ -83,6 +84,7 @@ class PublicacionesController
 
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $page = \max(1, (int) $request->get_param('page'));
         $filtro = $request->get_param('filtro');
         $autor = $request->get_param('autor');
@@ -160,10 +162,15 @@ class PublicacionesController
         }
 
         return new \WP_REST_Response(['data' => $publicaciones, 'page' => $page], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesController::listar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function obtener(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $id = (int) $request->get_param('id');
 
         $pub = PublicacionesRepository::obtenerConAutor($id);
@@ -200,10 +207,15 @@ class PublicacionesController
         $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
 
         return new \WP_REST_Response(['data' => $pub], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesController::obtener error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function listarComentarios(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $pubId = (int) $request->get_param('id');
         $page = \max(1, (int) $request->get_param('page'));
         $offset = ($page - 1) * 20;
@@ -221,6 +233,10 @@ class PublicacionesController
         unset($com);
 
         return new \WP_REST_Response(['data' => $comentarios], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesController::listarComentarios error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* pgArrayAPhp eliminado — usar NormalizadorSample::pgArrayToPhp (DRY) */
@@ -232,6 +248,7 @@ class PublicacionesController
      */
     public static function subirImagen(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -279,5 +296,9 @@ class PublicacionesController
         $url = $uploadDir['baseurl'] . '/kamples/publicaciones/' . $userId . '/' . $nombreArchivo;
 
         return new \WP_REST_Response(['ok' => true, 'url' => $url], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesController::subirImagen error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

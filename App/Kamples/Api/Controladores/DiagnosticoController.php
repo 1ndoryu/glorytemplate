@@ -12,6 +12,7 @@ use App\Kamples\Database\VerificarPgvector;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class DiagnosticoController
 {
@@ -39,6 +40,7 @@ class DiagnosticoController
      */
     public static function health(): \WP_REST_Response
     {
+        try {
         $conectado = SamplesRepository::estaConectado();
 
         return new \WP_REST_Response([
@@ -47,6 +49,16 @@ class DiagnosticoController
             'version'  => '1.0.0',
             'time'     => current_time('mysql'),
         ], $conectado ? 200 : 503);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DiagnosticoController::health', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -54,6 +66,7 @@ class DiagnosticoController
      */
     public static function verificarPgvector(): \WP_REST_Response
     {
+        try {
         /* S13: Solo admin puede ver info interna de BD */
         if (!UsuarioHelper::esAdmin()) {
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'Solo administradores.'], 403);
@@ -76,5 +89,15 @@ class DiagnosticoController
                 ? 'pgvector funcional — conexión, extensión, tabla e índice OK'
                 : 'Hay errores en la configuración de pgvector',
         ], $todosOk ? 200 : 503);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DiagnosticoController::verificarPgvector', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }

@@ -20,6 +20,7 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\ReproduccionesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class ReproduccionesController
 {
@@ -59,6 +60,7 @@ class ReproduccionesController
      */
     public static function registrar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -98,6 +100,10 @@ class ReproduccionesController
         }
 
         return new \WP_REST_Response(['ok' => true], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ReproduccionesController::registrar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -105,6 +111,7 @@ class ReproduccionesController
      */
     public static function historial(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -118,6 +125,10 @@ class ReproduccionesController
             'data' => NormalizadorSample::normalizarLista($samples),
             'page' => $page,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ReproduccionesController::historial error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -126,6 +137,7 @@ class ReproduccionesController
      */
     public static function similares(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $sampleId = (int) $request->get_param('id');
         $limite = (int) $request->get_param('limite');
 
@@ -143,5 +155,9 @@ class ReproduccionesController
         $similares = SamplesRepository::buscarSimilares($sampleId, $tags, $bpm, $key, $tipo, $limite);
 
         return new \WP_REST_Response(['data' => NormalizadorSample::normalizarLista($similares)], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ReproduccionesController::similares error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

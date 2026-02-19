@@ -56,6 +56,7 @@ class PagosController
      */
     public static function crearCheckout(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -89,6 +90,16 @@ class PagosController
             'ok'  => true,
             'url' => $resultado['url'],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en PagosController::crearCheckout', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /*
@@ -96,6 +107,7 @@ class PagosController
      */
     public static function crearPortal(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -114,6 +126,16 @@ class PagosController
             'ok'  => true,
             'url' => $resultado['url'],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en PagosController::crearPortal', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /*
@@ -125,6 +147,7 @@ class PagosController
      */
     public static function webhook(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $payload = $request->get_body();
         $signature = $request->get_header('stripe-signature') ?? '';
 
@@ -161,6 +184,14 @@ class PagosController
         }
 
         return new \WP_REST_Response(['recibido' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en PagosController::webhook', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            /* Retornar 200 para evitar reintentos de Stripe */
+            return new \WP_REST_Response(['recibido' => true, 'error_interno' => true], 200);
+        }
     }
 
     /*

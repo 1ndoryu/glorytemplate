@@ -58,6 +58,7 @@ class SamplesModificacionController
      */
     public static function actualizar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $sampleId = (int) $request->get_param('slug');
         $usuarioId = UsuarioHelper::obtenerIdPg();
         $esAdmin = UsuarioHelper::esAdmin();
@@ -206,6 +207,10 @@ class SamplesModificacionController
         }
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesModificacionController::actualizar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -215,6 +220,7 @@ class SamplesModificacionController
      */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $sampleId = (int) $request->get_param('slug');
         $usuarioId = UsuarioHelper::obtenerIdPg();
         $esAdmin = UsuarioHelper::esAdmin();
@@ -245,7 +251,7 @@ class SamplesModificacionController
                     $rutaCompleta = $baseDir . '/' . \ltrim($sample[$campo], '/');
                 }
                 if (\file_exists($rutaCompleta)) {
-                    @\unlink($rutaCompleta);
+                    self::eliminarArchivoSiExiste($rutaCompleta, 'archivo principal de sample');
                 }
             }
         }
@@ -255,11 +261,11 @@ class SamplesModificacionController
         if ($rutaBase) {
             $rutaWaveform = \preg_replace('/\.[^.]+$/', '.json', $rutaBase);
             if ($rutaWaveform && \file_exists($rutaWaveform)) {
-                @\unlink($rutaWaveform);
+                self::eliminarArchivoSiExiste($rutaWaveform, 'waveform derivado');
             }
             $rutaAbsWaveform = $baseDir . '/' . \ltrim($rutaWaveform, '/');
             if (\file_exists($rutaAbsWaveform)) {
-                @\unlink($rutaAbsWaveform);
+                self::eliminarArchivoSiExiste($rutaAbsWaveform, 'waveform absoluto derivado');
             }
         }
 
@@ -273,5 +279,31 @@ class SamplesModificacionController
         ]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesModificacionController::eliminar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    private static function eliminarArchivoSiExiste(string $ruta, string $contexto): void
+    {
+        if (!\file_exists($ruta)) {
+            return;
+        }
+
+        try {
+            if (!\unlink($ruta)) {
+                KamplesLogger::warning('No se pudo eliminar archivo al borrar sample', [
+                    'ruta' => $ruta,
+                    'contexto' => $contexto,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Error eliminando archivo al borrar sample', [
+                'ruta' => $ruta,
+                'contexto' => $contexto,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

@@ -317,15 +317,18 @@ class ComentariosRepository extends BaseRepository
     public static function buscarDuplicadoReciente(int $autorId, string $contenido, int $ventanaSeg): ?array
     {
         $tabla = ComentariosCols::TABLA;
+        /* Defense-in-depth: int cast + parametrización. INTERVAL '1 second' * :seg evita interpolación. */
+        $segValidado = max(1, (int) $ventanaSeg);
         return static::consultarUno(
             "SELECT " . ComentariosCols::ID . " FROM {$tabla}
              WHERE " . ComentariosCols::AUTOR_ID . " = :autor
              AND " . ComentariosCols::CONTENIDO . " = :contenido
-             AND " . ComentariosCols::CREATED_AT . " > NOW() - INTERVAL '{$ventanaSeg} seconds'
+             AND " . ComentariosCols::CREATED_AT . " > NOW() - INTERVAL '1 second' * :seg
              LIMIT 1",
             [
-                'autor'    => $autorId,
+                'autor'     => $autorId,
                 'contenido' => $contenido,
+                'seg'       => $segValidado,
             ]
         );
     }

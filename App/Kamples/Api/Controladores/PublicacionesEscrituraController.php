@@ -31,6 +31,7 @@ class PublicacionesEscrituraController
 {
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -125,6 +126,10 @@ class PublicacionesEscrituraController
         }
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::crear error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -133,6 +138,7 @@ class PublicacionesEscrituraController
      */
     public static function actualizar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -203,6 +209,10 @@ class PublicacionesEscrituraController
         ]);
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::actualizar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -211,6 +221,7 @@ class PublicacionesEscrituraController
      */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -238,10 +249,15 @@ class PublicacionesEscrituraController
         KamplesLogger::info('Publicación eliminada', ['publicacionId' => $id]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::eliminar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function crearComentario(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -275,10 +291,15 @@ class PublicacionesEscrituraController
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'comentario');
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::crearComentario error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function repostear(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -287,5 +308,9 @@ class PublicacionesEscrituraController
         $id = PublicacionesRepository::crearRepost($userId, $pubId);
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::repostear error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

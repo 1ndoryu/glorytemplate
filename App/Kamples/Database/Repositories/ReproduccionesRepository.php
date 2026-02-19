@@ -92,6 +92,20 @@ class ReproduccionesRepository extends BaseRepository
     /*
      * Buscar reproducción reciente del mismo sample por usuario (anti-bot).
      */
+    /*
+     * Whitelist de intervalos válidos para debounce.
+     * Previene SQL interpolation en INTERVAL.
+     */
+    private static function intervaloSegundos(string $intervalo): int
+    {
+        $mapa = [
+            '10 seconds' => 10,
+            '30 seconds' => 30,
+            '60 seconds' => 60,
+        ];
+        return $mapa[$intervalo] ?? 30;
+    }
+
     public static function buscarRecientePorUsuario(int $userId, int $sampleId, string $intervalo = '30 seconds'): ?array
     {
         $tabla = ReproduccionesCols::TABLA;
@@ -100,8 +114,8 @@ class ReproduccionesRepository extends BaseRepository
             "SELECT " . ReproduccionesCols::ID . " FROM {$tabla}"
             . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId"
             . " AND " . ReproduccionesCols::SAMPLE_ID . " = :sampleId"
-            . " AND " . ReproduccionesCols::CREATED_AT . " >= NOW() - INTERVAL '{$intervalo}'",
-            ['userId' => $userId, 'sampleId' => $sampleId]
+            . " AND " . ReproduccionesCols::CREATED_AT . " >= NOW() - INTERVAL '1 second' * :seg",
+            ['userId' => $userId, 'sampleId' => $sampleId, 'seg' => self::intervaloSegundos($intervalo)]
         );
     }
 

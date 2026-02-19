@@ -33,7 +33,6 @@ use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
-use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 
@@ -43,6 +42,7 @@ class ComentariosEscrituraController
 
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -195,11 +195,16 @@ class ComentariosEscrituraController
                 ],
             ],
         ], 201);
+        } catch (\Throwable $e) {
+            \App\Kamples\KamplesLogger::error('ComentariosEscrituraController::crear error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /* C264: Eliminar comentario (autor o admin) */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -230,6 +235,10 @@ class ComentariosEscrituraController
         );
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            \App\Kamples\KamplesLogger::error('ComentariosEscrituraController::eliminar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**

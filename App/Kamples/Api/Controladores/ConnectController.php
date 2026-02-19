@@ -61,6 +61,7 @@ class ConnectController
      */
     public static function onboarding(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -133,6 +134,16 @@ class ConnectController
             'ok'  => true,
             'url' => $enlace['url'],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ConnectController::onboarding', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -140,6 +151,7 @@ class ConnectController
      */
     public static function estado(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -202,6 +214,16 @@ class ConnectController
                 'requerimientosPendientes' => count($cuenta['requirements']['currently_due'] ?? []),
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ConnectController::estado', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -209,6 +231,7 @@ class ConnectController
      */
     public static function dashboard(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -236,6 +259,16 @@ class ConnectController
             'ok'  => true,
             'url' => $loginLink['url'],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ConnectController::dashboard', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -243,6 +276,7 @@ class ConnectController
      */
     public static function balance(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -300,5 +334,15 @@ class ConnectController
                 'moneda'     => $moneda,
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ConnectController::balance', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }

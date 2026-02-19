@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\KamplesLogger;
 
 class SocialController
 {
@@ -73,6 +74,7 @@ class SocialController
      */
     public static function misSeguidos(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -80,10 +82,15 @@ class SocialController
 
         $ids = array_map(fn($row) => ['id' => (int) $row['id']], $seguidos);
         return new \WP_REST_Response(['data' => $ids], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::misSeguidos error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function seguir(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $seguidorId = UsuarioHelper::obtenerIdPg();
         if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -112,10 +119,15 @@ class SocialController
         PlanificadorAlgoritmo::registrarInteraccion($seguidorId, 'follow');
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::seguir error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function dejarDeSeguir(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $seguidorId = UsuarioHelper::obtenerIdPg();
         if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -125,10 +137,15 @@ class SocialController
         FollowsRepository::actualizarContadores($seguidorId, $targetId);
 
         return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::dejarDeSeguir error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function darLike(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -206,10 +223,15 @@ class SocialController
         PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === LikesEnums::REACCION_DISLIKE ? 'dislike' : 'like');
 
         return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::darLike error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -229,5 +251,9 @@ class SocialController
         MotorRecomendacion::invalidarCache($userId);
 
         return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::quitarLike error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

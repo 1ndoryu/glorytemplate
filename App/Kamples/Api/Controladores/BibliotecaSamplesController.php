@@ -22,6 +22,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
+use App\Kamples\KamplesLogger;
 
 class BibliotecaSamplesController
 {
@@ -71,6 +72,7 @@ class BibliotecaSamplesController
      */
     public static function favoritos(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -95,6 +97,16 @@ class BibliotecaSamplesController
                 ],
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en BibliotecaSamplesController::favoritos', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -102,6 +114,7 @@ class BibliotecaSamplesController
      */
     public static function misDescargas(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -126,6 +139,16 @@ class BibliotecaSamplesController
                 ],
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en BibliotecaSamplesController::misDescargas', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -134,6 +157,7 @@ class BibliotecaSamplesController
      */
     public static function coleccionados(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -158,6 +182,16 @@ class BibliotecaSamplesController
                 ],
             ],
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en BibliotecaSamplesController::coleccionados', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -165,6 +199,7 @@ class BibliotecaSamplesController
      */
     public static function carpetasColeccionados(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -191,5 +226,15 @@ class BibliotecaSamplesController
         }
 
         return new \WP_REST_Response(['data' => $arbol], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en BibliotecaSamplesController::carpetasColeccionados', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }

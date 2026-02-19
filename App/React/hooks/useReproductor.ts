@@ -1,7 +1,11 @@
 /*
  * Hook: useReproductor
  * Interfaz simplificada para controlar el reproductor global.
- * Envuelve reproductorStore + lógica de Audio API.
+ * Envuelve reproductorStore + logica de Audio API.
+ *
+ * FE07: Selectores individuales en vez de suscripcion al store completo.
+ * setProgreso (4x/seg) ya no causa re-renders en consumers que no leen progreso.
+ * Acciones via getState() — refs estables, sin re-renders.
  */
 
 import { useEffect, useRef, useCallback } from 'react';
@@ -11,8 +15,19 @@ import type { SampleResumen } from '../types/sample';
 
 const log = crearLogger('useReproductor');
 
+/* Acciones estables del store (nunca cambian, no causan re-render) */
+const obtenerAcciones = () => useReproductorStore.getState();
+
 export const useReproductor = () => {
-    const store = useReproductorStore();
+    /* Selectores individuales: cada uno solo re-renderiza cuando su valor cambia */
+    const sampleActual = useReproductorStore(s => s.sampleActual);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const progreso = useReproductorStore(s => s.progreso);
+    const duracion = useReproductorStore(s => s.duracion);
+    const volumen = useReproductorStore(s => s.volumen);
+    const muted = useReproductorStore(s => s.muted);
+    const cola = useReproductorStore(s => s.cola);
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const intervaloRef = useRef<number | null>(null);
 
@@ -25,17 +40,18 @@ export const useReproductor = () => {
 
         const audio = audioRef.current;
 
+        /* Handlers usan getState() para evitar stale closures */
         const onLoadedMetadata = () => {
-            store.setDuracion(audio.duration);
+            obtenerAcciones().setDuracion(audio.duration);
         };
 
         const onEnded = () => {
-            store.siguiente();
+            obtenerAcciones().siguiente();
         };
 
         const onError = (e: Event) => {
             log.error('Error de audio', e);
-            store.pause();
+            obtenerAcciones().pause();
         };
 
         audio.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -55,25 +71,25 @@ export const useReproductor = () => {
     /* Sincronizar volumen y muted */
     useEffect(() => {
         if (audioRef.current) {
-            audioRef.current.volume = store.volumen;
-            audioRef.current.muted = store.muted;
+            audioRef.current.volume = volumen;
+            audioRef.current.muted = muted;
         }
-    }, [store.volumen, store.muted]);
+    }, [volumen, muted]);
 
-    /* Reproducir/Pausar según estado */
+    /* Reproducir/Pausar segun estado */
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        if (store.reproduciendo) {
+        if (reproduciendo) {
             audio.play().catch((err) => {
                 log.warn('No se pudo reproducir', err);
-                store.pause();
+                obtenerAcciones().pause();
             });
 
-            /* Actualizar progreso */
+            /* Progreso via getState() — no re-renderiza el hook, solo actualiza el store */
             intervaloRef.current = window.setInterval(() => {
-                store.setProgreso(audio.currentTime);
+                obtenerAcciones().setProgreso(audio.currentTime);
             }, 250);
         } else {
             audio.pause();
@@ -82,47 +98,47 @@ export const useReproductor = () => {
                 intervaloRef.current = null;
             }
         }
-    }, [store.reproduciendo]);
+    }, [reproduciendo]);
 
     /* Cargar nuevo sample */
     useEffect(() => {
         const audio = audioRef.current;
-        if (!audio || !store.sampleActual) return;
+        if (!audio || !sampleActual) return;
 
-        const urlAudio = store.sampleActual.rutaPreview ?? '';
+        const urlAudio = sampleActual.rutaPreview ?? '';
         if (urlAudio && audio.src !== urlAudio) {
             audio.src = urlAudio;
             audio.load();
-            log.info('Cargando sample', store.sampleActual.titulo);
+            log.info('Cargando sample', sampleActual.titulo);
         }
-    }, [store.sampleActual]);
+    }, [sampleActual]);
 
     const reproducir = useCallback((sample: SampleResumen) => {
-        store.setSample(sample);
+        obtenerAcciones().setSample(sample);
     }, []);
 
     const seekTo = useCallback((tiempo: number) => {
         if (audioRef.current) {
             audioRef.current.currentTime = tiempo;
-            store.setProgreso(tiempo);
+            obtenerAcciones().setProgreso(tiempo);
         }
     }, []);
 
     return {
-        sampleActual: store.sampleActual,
-        reproduciendo: store.reproduciendo,
-        progreso: store.progreso,
-        duracion: store.duracion,
-        volumen: store.volumen,
-        muted: store.muted,
-        cola: store.cola,
+        sampleActual,
+        reproduciendo,
+        progreso,
+        duracion,
+        volumen,
+        muted,
+        cola,
         reproducir,
-        pausar: store.pause,
-        togglePlay: store.togglePlay,
-        siguiente: store.siguiente,
-        anterior: store.anterior,
+        pausar: obtenerAcciones().pause,
+        togglePlay: obtenerAcciones().togglePlay,
+        siguiente: obtenerAcciones().siguiente,
+        anterior: obtenerAcciones().anterior,
         seekTo,
-        setVolumen: store.setVolumen,
-        toggleMute: store.toggleMute,
+        setVolumen: obtenerAcciones().setVolumen,
+        toggleMute: obtenerAcciones().toggleMute,
     };
 };

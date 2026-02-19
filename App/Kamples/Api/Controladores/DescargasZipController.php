@@ -20,6 +20,7 @@ use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class DescargasZipController
 {
@@ -33,6 +34,7 @@ class DescargasZipController
      */
     public static function descargarZipColeccion(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -122,7 +124,7 @@ class DescargasZipController
         $zipsViejos = \glob($carpetaZips . "/coleccion_{$coleccionId}_*.zip");
         foreach ($zipsViejos as $zipViejo) {
             if (\basename($zipViejo) !== $nombreZip) {
-                @\unlink($zipViejo);
+                self::eliminarArchivoSiExiste($zipViejo);
             }
         }
 
@@ -203,5 +205,33 @@ class DescargasZipController
             'creditosUsados' => $creditosNecesarios,
             'yaDescargados' => \count($idsYaDescargados),
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DescargasZipController::descargarZipColeccion', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    private static function eliminarArchivoSiExiste(string $ruta): void
+    {
+        if (!\file_exists($ruta)) {
+            return;
+        }
+
+        try {
+            if (!\unlink($ruta)) {
+                KamplesLogger::warning('No se pudo eliminar ZIP viejo de cache', ['ruta' => $ruta]);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Error eliminando ZIP viejo de cache', [
+                'ruta' => $ruta,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

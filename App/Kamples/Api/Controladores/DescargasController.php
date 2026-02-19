@@ -24,6 +24,7 @@ use App\Kamples\Services\StripeService;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
+use App\Kamples\KamplesLogger;
 
 class DescargasController
 {
@@ -70,6 +71,7 @@ class DescargasController
      */
     public static function descargar(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -187,6 +189,16 @@ class DescargasController
             'formato' => $calidad,
             'tamano'  => $tamanoBytes,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DescargasController::descargar', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -194,6 +206,7 @@ class DescargasController
      */
     public static function limites(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -224,6 +237,16 @@ class DescargasController
             'transferenciaUsadaGb' => $usadoGb,
             'transferenciaIlimitada' => $limiteGb <= 0,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DescargasController::limites', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     /**
@@ -236,6 +259,7 @@ class DescargasController
         int $sampleId,
         string $plan
     ): void {
+        try {
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $precioMensual = $configPlan['precio_mensual'] ?? 0;
         $revenueShare = $configPlan['revenue_share'] ?? 0;
@@ -252,5 +276,13 @@ class DescargasController
             $compradorId, $creadorId, $sampleId,
             \round($montoPorDescarga, 4), $pagoCreador, $comisionPlataforma
         );
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en registrarTransaccionRevenueShare', [
+                'compradorId' => $compradorId,
+                'creadorId' => $creadorId,
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

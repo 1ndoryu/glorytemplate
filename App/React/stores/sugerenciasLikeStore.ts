@@ -1,7 +1,9 @@
 /*
  * Store: sugerenciasLikeStore — Kamples
- * Controla el modal "También te podría gustar" que aparece tras dar like.
+ * Controla el modal "Tambien te podria gustar" que aparece tras dar like.
  * Carga samples similares via API y los muestra brevemente.
+ *
+ * FE08: Contador de version para descartar respuestas de requests anteriores (race condition).
  */
 
 import { create } from 'zustand';
@@ -19,6 +21,9 @@ interface SugerenciasLikeState {
     cerrar: () => void;
 }
 
+/* Contador de version fuera del store para evitar race conditions */
+let versionRequest = 0;
+
 export const useSugerenciasLikeStore = create<SugerenciasLikeState>((set) => ({
     abierto: false,
     sampleOrigen: null,
@@ -26,13 +31,19 @@ export const useSugerenciasLikeStore = create<SugerenciasLikeState>((set) => ({
     cargando: false,
 
     mostrar: async (sample) => {
+        const versionActual = ++versionRequest;
         set({ abierto: true, sampleOrigen: sample, sugerencias: [], cargando: true });
 
         try {
             const resp = await obtenerSimilares(sample.id, 5);
+
+            /* Si hubo otra llamada a mostrar() mientras esperabamos, descartar */
+            if (versionActual !== versionRequest) return;
+
             const lista = resp.ok && resp.data ? resp.data : [];
             set({ sugerencias: lista, cargando: false });
         } catch {
+            if (versionActual !== versionRequest) return;
             set({ sugerencias: [], cargando: false });
         }
     },

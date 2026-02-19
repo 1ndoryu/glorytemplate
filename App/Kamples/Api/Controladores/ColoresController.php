@@ -10,6 +10,8 @@
 
 namespace App\Kamples\Api\Controladores;
 
+use App\Kamples\KamplesLogger;
+
 class ColoresController
 {
     public static function registrarRutas(string $namespace): void
@@ -23,6 +25,7 @@ class ColoresController
 
     public static function listar(): \WP_REST_Response
     {
+        try {
         $cacheKey = 'kamples_colors_list';
         $cached = get_transient($cacheKey);
 
@@ -54,5 +57,15 @@ class ColoresController
         return new \WP_REST_Response([
             'ok' => true, 'imagenes' => $imagenes, 'total' => count($imagenes), 'cache' => false,
         ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColoresController::listar', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }

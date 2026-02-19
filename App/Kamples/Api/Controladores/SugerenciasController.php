@@ -23,6 +23,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\DescargasRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\KamplesLogger;
 
 class SugerenciasController
 {
@@ -55,13 +56,18 @@ class SugerenciasController
      */
     public static function sugerenciasDescargas(\WP_REST_Request $request): \WP_REST_Response
     {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $contexto = DescargasRepository::contextoDescargas($userId);
-        $idsExcluir = DescargasRepository::idsDescargados($userId);
+            $contexto = DescargasRepository::contextoDescargas($userId);
+            $idsExcluir = DescargasRepository::idsDescargados($userId);
 
-        return self::calcularSugerencias($contexto, $idsExcluir, $request);
+            return self::calcularSugerencias($contexto, $idsExcluir, $request);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SugerenciasController::sugerenciasDescargas error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**
@@ -69,13 +75,18 @@ class SugerenciasController
      */
     public static function sugerenciasFavoritos(\WP_REST_Request $request): \WP_REST_Response
     {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $contexto = LikesRepository::contextoFavoritos($userId);
-        $idsExcluir = LikesRepository::idsFavoritos($userId);
+            $contexto = LikesRepository::contextoFavoritos($userId);
+            $idsExcluir = LikesRepository::idsFavoritos($userId);
 
-        return self::calcularSugerencias($contexto, $idsExcluir, $request);
+            return self::calcularSugerencias($contexto, $idsExcluir, $request);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SugerenciasController::sugerenciasFavoritos error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 
     /**

@@ -185,6 +185,10 @@ class PostgresService
 
     /*
      * Ejecuta un INSERT y retorna el ID generado.
+    /*
+     * Ejecuta un INSERT y retorna el ID generado.
+     * OPT03: Prioriza RETURNING (mas fiable con IDENTITY columns en PG 10+).
+     * Fallback a lastInsertId() si el SQL no incluye RETURNING.
      * Retorna null si falla.
      */
     public static function insertar(string $sql, array $params = []): ?int
@@ -199,6 +203,16 @@ class PostgresService
         try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
+
+            /* Si el SQL usa RETURNING, obtener el ID del resultado */
+            if (stripos($sql, 'RETURNING') !== false) {
+                $row = $stmt->fetch(PDO::FETCH_NUM);
+                if ($row !== false && isset($row[0])) {
+                    return (int) $row[0];
+                }
+            }
+
+            /* Fallback para INSERT sin RETURNING */
             return (int) $pdo->lastInsertId();
         } catch (PDOException $e) {
             $contexto = ['error' => $e->getMessage()];
@@ -290,6 +304,20 @@ class PostgresService
             if (count($parts) === 2) {
                 $key = trim($parts[0]);
                 $val = trim($parts[1]);
+                /* OPT06: Manejar valores entre comillas simples/dobles */
+                if (
+                    (str_starts_with($val, '"') && str_ends_with($val, '"'))
+                    || (str_starts_with($val, "'") && str_ends_with($val, "'"))
+                ) {
+                    $val = substr($val, 1, -1);
+                }
+                /* Ignorar comentarios inline despues del valor */
+                if (!str_starts_with($val, '#')) {
+                    $posComentario = strpos($val, ' #');
+                    if ($posComentario !== false) {
+                        $val = trim(substr($val, 0, $posComentario));
+                    }
+                }
                 $_ENV[$key] = $val;
                 putenv("{$key}={$val}");
             }
