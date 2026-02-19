@@ -87,6 +87,13 @@
     flex-wrap: wrap;
 }
 
+/* C307: Cuerpo — browser (opcional) + timeline en fila */
+.mezcladorCuerpo {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
 .mezcladorControlesGrupo {
     display: flex;
     align-items: center;
@@ -118,13 +125,76 @@
 .mezcladorBpmControl {
     display: flex;
     align-items: center;
+}
+
+/* C304: Song Position Display */
+.songPosition {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado2, var(--fondoElevado1));
+    cursor: pointer;
+    user-select: none;
+    margin-left: 4px;
+}
+
+.songPosition:hover {
+    border-color: var(--acento);
+}
+
+.songPositionValor {
+    font-family: 'Courier New', monospace;
+    font-size: var(--fuenteXs);
+    font-variant-numeric: tabular-nums;
+    color: var(--acento);
+    letter-spacing: 0.5px;
+    min-width: 64px;
+    text-align: center;
+}
+
+.songPositionEtiqueta {
+    font-size: 9px;
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+}
+
+/* C298: InputTempo estilo FL Studio — drag vertical, doble click editar */
+.inputTempo {
+    display: flex;
+    align-items: center;
     gap: 2px;
 }
 
-.mezcladorBpmInput {
-    width: 48px;
-    padding: 2px 4px;
+.inputTempoValor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    min-width: 48px;
+    padding: 0 6px;
     border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    font-variant-numeric: tabular-nums;
+    cursor: ns-resize;
+    user-select: none;
+}
+
+.inputTempoValor:hover {
+    border-color: var(--acento);
+}
+
+.inputTempoEdicion {
+    height: 28px;
+    width: 48px;
+    padding: 0 4px;
+    border: 1px solid var(--acento);
     border-radius: var(--radioSm);
     background: var(--fondoElevado1);
     color: var(--textoPrimario);
@@ -133,11 +203,7 @@
     outline: none;
 }
 
-.mezcladorBpmInput:focus {
-    border-color: var(--acento);
-}
-
-.mezcladorBpmLabel {
+.inputTempoEtiqueta {
     font-size: 10px;
     color: var(--textoTerciario);
     text-transform: uppercase;
@@ -228,4 +294,26 @@
 .mezcladorSpinner {
     animation: mezcladorGirar 1s linear infinite;
     color: var(--textoTerciario);
+}
+
+/* C305+C306: Monitor de onda y Peak meter */
+.mezcladorVisualizadores {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: var(--espacioXs);
+}
+
+.monitorOnda {
+    height: 28px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.medidorPicos {
+    height: 28px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: rgba(0, 0, 0, 0.3);
 }

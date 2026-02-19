@@ -17,6 +17,7 @@ import { crearAccionesHistorial } from './accionesHistorial';
 import { crearAccionesSeleccion } from './accionesSeleccion';
 import { crearAccionesBloques } from './accionesBloques';
 import { crearAccionesCargaAudio, crearPistaVacia } from './accionesCargaAudio';
+import { crearAccionesPista } from './accionesPista';
 
 const leerBpmGuardado = (): number => {
     try {
@@ -126,6 +127,9 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         }));
         motorAudio.setSilenciarPista(pistaId, nuevoSil, pista.volumen);
     },
+
+    /* C297: Acciones de pista extraídas a slice */
+    ...crearAccionesPista(set, get),
 
     /* Reproduccion */
     setReproduciendo: (valor) => set({ reproduciendo: valor }),

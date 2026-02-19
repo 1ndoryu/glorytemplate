@@ -31,22 +31,25 @@ export const VentanaFlotante = ({
     const dragRef = useRef({ offsetX: 0, offsetY: 0 });
     const ventanaRef = useRef<HTMLDivElement>(null);
 
-    /* No renderizar si no existe o está minimizada */
-    if (!ventana || ventana.minimizada) return null;
+    /* Posición estable para useCallback — evita re-crear si ventana es null */
+    const posicionRef = useRef({ x: 0, y: 0 });
+    if (ventana) {
+        posicionRef.current = ventana.posicion;
+    }
 
-    /* Iniciar drag desde la barra de título */
+    /* Iniciar drag desde la barra de título — ANTES del early return (regla de hooks) */
     const iniciarDrag = useCallback((e: React.MouseEvent) => {
-        /* No arrastrar si el click es sobre un botón */
         if ((e.target as HTMLElement).closest('button')) return;
         e.preventDefault();
+        e.stopPropagation();
 
         dragRef.current = {
-            offsetX: e.clientX - ventana.posicion.x,
-            offsetY: e.clientY - ventana.posicion.y,
+            offsetX: e.clientX - posicionRef.current.x,
+            offsetY: e.clientY - posicionRef.current.y,
         };
         setArrastrando(true);
         enfocar(id);
-    }, [ventana.posicion, id, enfocar]);
+    }, [id, enfocar]);
 
     /* Listeners de documento para drag suave */
     useEffect(() => {
@@ -84,6 +87,9 @@ export const VentanaFlotante = ({
         return () => window.removeEventListener('keydown', handler);
     }, [id, cerrar]);
 
+    /* No renderizar si no existe o está minimizada — DESPUÉS de todos los hooks */
+    if (!ventana || ventana.minimizada) return null;
+
     return (
         <div
             ref={ventanaRef}
@@ -94,7 +100,10 @@ export const VentanaFlotante = ({
                 width: ancho,
                 zIndex: ventana.zIndex,
             }}
-            onMouseDown={() => enfocar(id)}
+            onMouseDown={(e) => {
+                e.stopPropagation();
+                enfocar(id);
+            }}
         >
             {/* Barra de título — arrastreable */}
             <div
@@ -105,14 +114,14 @@ export const VentanaFlotante = ({
                 <div className="ventanaFlotanteBotones">
                     <button
                         className="ventanaFlotanteBoton"
-                        onClick={() => minimizar(id)}
+                        onClick={(e) => { e.stopPropagation(); minimizar(id); }}
                         title="Minimizar"
                     >
                         <Minus size={12} />
                     </button>
                     <button
                         className="ventanaFlotanteBoton ventanaFlotanteBotonCerrar"
-                        onClick={() => cerrar(id)}
+                        onClick={(e) => { e.stopPropagation(); cerrar(id); }}
                         title="Cerrar"
                     >
                         <X size={12} />

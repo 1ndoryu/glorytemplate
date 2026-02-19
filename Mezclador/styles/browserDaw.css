@@ -1,0 +1,127 @@
+/*
+ * browserDaw.css — Estilos del panel browser del DAW (C307).
+ * Panel lateral izquierdo con árbol de carpetas y samples arrastrables.
+ */
+
+.browserDaw {
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+    overflow: hidden;
+}
+
+.browserDawCabecera {
+    padding: 6px var(--espacioSm);
+    border-bottom: 1px solid var(--bordeSutil);
+    background: var(--fondoBase);
+}
+
+.browserDawTitulo {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.browserDawContenido {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioXs) 0;
+}
+
+.browserDawVacio {
+    padding: var(--espacioMd);
+    font-size: 10px;
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+/* Carpeta */
+.browserDawCarpeta {
+    margin-bottom: 1px;
+}
+
+.browserDawCarpetaItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding: 3px var(--espacioSm);
+    background: none;
+    border: none;
+    color: var(--textoSecundario);
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: background var(--transicionRapida);
+}
+
+.browserDawCarpetaItem:hover {
+    background: var(--fondoElevado2);
+    color: var(--textoPrimario);
+}
+
+.browserDawCarpetaNombre {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.browserDawCarpetaConteo {
+    font-size: 9px;
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+/* Samples dentro de carpeta */
+.browserDawSamples {
+    padding-left: 12px;
+}
+
+.browserDawSampleItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--espacioSm);
+    font-size: 10px;
+    color: var(--textoTerciario);
+    cursor: grab;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.browserDawSampleItem:hover {
+    background: var(--fondoElevado2);
+    color: var(--acento);
+}
+
+.browserDawSampleItem:active {
+    cursor: grabbing;
+}
+
+.browserDawSampleNombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.browserDawSampleVacio {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    padding: 2px var(--espacioSm);
+}
+
+/* Subcarpetas */
+.browserDawSubcarpeta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px var(--espacioSm) 2px 20px;
+    font-size: 10px;
+    color: var(--textoTerciario);
+}

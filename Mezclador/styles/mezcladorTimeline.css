@@ -116,6 +116,10 @@
 .mezcladorPistaControlesEspaciador {
     width: 80px;
     flex-shrink: 0;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--fondoBase);
 }
 
 .mezcladorTimelineRegla {
@@ -160,6 +164,20 @@
     border-bottom: 1px solid var(--bordeSutil);
 }
 
+/* C297: Alturas de pista */
+.mezcladorPistaAlturaCompacta {
+    min-height: 32px;
+}
+.mezcladorPistaAlturaCompacta .mezcladorPistaContenido {
+    min-height: 32px;
+}
+.mezcladorPistaAlturaMinimizada {
+    min-height: 20px;
+}
+.mezcladorPistaAlturaMinimizada .mezcladorPistaContenido {
+    min-height: 20px;
+}
+
 .mezcladorPistaSilenciada {
     opacity: 0.5;
 }
@@ -186,6 +204,9 @@
     padding: var(--espacioXs);
     border-right: 1px solid var(--bordeSutil);
     background: var(--fondoElevado1);
+    position: sticky;
+    left: 0;
+    z-index: 1;
 }
 
 .mezcladorPistaNombre {
@@ -195,11 +216,39 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 72px;
+    cursor: default;
+}
+
+/* C297: Indicador de color de pista */
+.mezcladorPistaColorIndicador {
+    width: 100%;
+    height: 3px;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+/* C297: Input para renombrar pista inline */
+.mezcladorPistaNombreInput {
+    font-size: 10px;
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--acento);
+    border-radius: 2px;
+    max-width: 72px;
+    padding: 0 2px;
+    outline: none;
+    text-align: center;
 }
 
 .mezcladorPistaBotones {
     display: flex;
     gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.mezcladorPistaControles:hover .mezcladorPistaBotones {
+    opacity: 1;
 }
 
 .mezcladorPistaBoton {
