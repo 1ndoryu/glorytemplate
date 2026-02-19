@@ -11,6 +11,7 @@ import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
+import { toast } from '@app/stores/toastStore';
 
 const log = crearLogger('useDescargasPagina');
 
@@ -77,7 +78,12 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                 )
             );
             try {
-                await darLike('sample', sampleId, reaccion);
+                const resp = await darLike('sample', sampleId, reaccion);
+                /* FE02: Rollback si la API rechaza */
+                if (!resp.ok) {
+                    setSamples(prevSamples);
+                    toast.error('Error al procesar la reacción');
+                }
             } catch (err) {
                 setSamples(prevSamples);
                 log.error('Error al dar like', err);
@@ -93,7 +99,11 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                 )
             );
             try {
-                await quitarLike('sample', sampleId);
+                const resp = await quitarLike('sample', sampleId);
+                if (!resp.ok) {
+                    setSamples(prevSamples);
+                    toast.error('Error al quitar la reacción');
+                }
             } catch (err) {
                 setSamples(prevSamples);
                 log.error('Error al quitar like', err);
@@ -108,7 +118,11 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                 )
             );
             try {
-                await darLike('sample', sampleId, 'like');
+                const resp = await darLike('sample', sampleId, 'like');
+                if (!resp.ok) {
+                    setSamples(prevSamples);
+                    toast.error('Error al procesar la reacción');
+                }
             } catch (err) {
                 setSamples(prevSamples);
                 log.error('Error al dar like', err);
