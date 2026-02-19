@@ -4,7 +4,7 @@
  * Usa Web Audio API con scheduling preciso (lookahead).
  */
 
-import { CONSTANTES_MEZCLADOR } from '../types/mezclador';
+import { CONSTANTES_MEZCLADOR, DECLIC_DURACIONES } from '../types/mezclador';
 import { decodificarAudio } from '../utils/audioBufferUtils';
 import { obtenerBufferProcesado, limpiarCachePitch, obtenerBufferInvertido, limpiarCacheInvertidos } from './pitchShiftService';
 
@@ -91,6 +91,7 @@ class MotorAudio {
      * Programar un buffer para reproducirse en un momento específico.
      * C215: Soporta invertido (reverse), fadeIn y fadeOut via GainNode ramps.
      * C271: Soporta modo stretch (pitch independiente de velocidad).
+     * C287: Soporta pan estéreo y declicking automático.
      */
     programarReproduccion(
         buffer: AudioBuffer,
@@ -108,7 +109,11 @@ class MotorAudio {
         /* C271: Modo tonal — resample (vinilo) o stretch (SoundTouch) */
         modoTonalidad: 'resample' | 'stretch' = 'resample',
         /* C271: ID del bloque para cache SoundTouch */
-        bloqueId = ''
+        bloqueId = '',
+        /* C287: Balance estéreo (-1 a 1) */
+        pan = 0,
+        /* C287: Modo declicking (micro-fade anti-click) */
+        modoDeclic: 'none' | 'corto' | 'medio' | 'largo' = 'none'
     ): AudioBufferSourceNode {
         const ctx = this.obtenerContexto();
         const fuente = ctx.createBufferSource();
@@ -160,22 +165,42 @@ class MotorAudio {
         const gainNodo = ctx.createGain();
         fuente.connect(gainNodo);
 
+        /*
+         * C287: StereoPannerNode para balance L/R.
+         * pan=0 → centro, -1 → izquierda, 1 → derecha.
+         */
         const gainPista = this.obtenerGainPista(pistaId);
-        gainNodo.connect(gainPista);
+        if (pan !== 0) {
+            const panNodo = ctx.createStereoPanner();
+            panNodo.pan.value = Math.max(-1, Math.min(1, pan));
+            gainNodo.connect(panNodo);
+            panNodo.connect(gainPista);
+        } else {
+            gainNodo.connect(gainPista);
+        }
+
+        /*
+         * C287: Declicking — micro-fade al inicio/fin para evitar clicks digitales.
+         * Se aplica ADEMÁS de los fades visibles del usuario.
+         */
+        const declicDur = DECLIC_DURACIONES[modoDeclic] ?? 0;
 
         /*
          * C215: Aplicar fade in/out vía rampas de ganancia.
+         * C287: Si hay declicking, el fade mínimo es el declicking duration.
          */
-        if (fadeIn > 0 && fadeIn < duracion) {
+        const fadeInEfectivo = Math.max(fadeIn, declicDur);
+        if (fadeInEfectivo > 0 && fadeInEfectivo < duracion) {
             gainNodo.gain.setValueAtTime(0, cuando);
-            gainNodo.gain.linearRampToValueAtTime(volumen, cuando + fadeIn);
+            gainNodo.gain.linearRampToValueAtTime(volumen, cuando + fadeInEfectivo);
         } else {
             gainNodo.gain.setValueAtTime(volumen, cuando);
         }
 
-        if (fadeOut > 0 && fadeOut < duracion) {
-            const inicioFadeOut = cuando + duracion - fadeOut;
-            if (inicioFadeOut > cuando + fadeIn) {
+        const fadeOutEfectivo = Math.max(fadeOut, declicDur);
+        if (fadeOutEfectivo > 0 && fadeOutEfectivo < duracion) {
+            const inicioFadeOut = cuando + duracion - fadeOutEfectivo;
+            if (inicioFadeOut > cuando + fadeInEfectivo) {
                 gainNodo.gain.setValueAtTime(volumen, inicioFadeOut);
                 gainNodo.gain.linearRampToValueAtTime(0, cuando + duracion);
             }

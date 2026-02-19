@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
 import { ModalConfigDaw } from './ModalConfigDaw';
+import { BarraVentanasMinimizadas } from './BarraVentanasMinimizadas';
 import { Timeline } from './Timeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -186,6 +187,9 @@ const MezcladorContenido = (): JSX.Element => {
                 abierto={modalConfigDawAbierto}
                 onCerrar={() => setModalConfigDawAbierto(false)}
             />
+
+            {/* C287: Barra de ventanas minimizadas */}
+            <BarraVentanasMinimizadas />
         </div>
     );
 };

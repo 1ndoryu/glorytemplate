@@ -21,6 +21,7 @@ use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Database\Repositories\SamplesRepository;
 
 class SamplesModificacionController
@@ -89,7 +90,7 @@ class SamplesModificacionController
         }
 
         if (isset($body['descripcion'])) {
-            $campos[] = 'descripcion = :descripcion';
+            $campos[] = SamplesCols::DESCRIPCION . ' = :descripcion';
             $params['descripcion'] = \sanitize_textarea_field($body['descripcion']);
         }
 
@@ -99,7 +100,7 @@ class SamplesModificacionController
             if (\count($tags) < 2) {
                 return new \WP_REST_Response(['code' => 'tags_insuficientes', 'message' => 'Se requieren al menos 2 tags'], 400);
             }
-            $campos[] = 'tags = :tags';
+            $campos[] = SamplesCols::TAGS . ' = :tags';
             $params['tags'] = NormalizadorSample::phpArrayToPg($tags);
         }
 
@@ -115,44 +116,44 @@ class SamplesModificacionController
             if (!\in_array($body['tipo'], $tiposValidos, true)) {
                 return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
             }
-            $campos[] = 'tipo = :tipo';
+            $campos[] = SamplesCols::TIPO . ' = :tipo';
             $params['tipo'] = $body['tipo'];
         }
 
         if (isset($body['esPremium'])) {
-            $campos[] = 'es_premium = :esPremium';
+            $campos[] = SamplesCols::ES_PREMIUM . ' = :esPremium';
             $params['esPremium'] = ((bool) $body['esPremium']) ? 'true' : 'false';
         }
 
         if (isset($body['precio'])) {
-            $campos[] = 'precio = :precio';
+            $campos[] = SamplesCols::PRECIO . ' = :precio';
             $params['precio'] = $body['precio'] !== null ? (float) $body['precio'] : null;
         }
 
         if (isset($body['permitirDescarga'])) {
-            $campos[] = 'permitir_descarga = :descarga';
+            $campos[] = SamplesCols::PERMITIR_DESCARGA . ' = :descarga';
             $params['descarga'] = ((bool) $body['permitirDescarga']) ? 'true' : 'false';
         }
 
         if (isset($body['licenciaLibre'])) {
-            $campos[] = 'licencia_libre = :licencia';
+            $campos[] = SamplesCols::LICENCIA_LIBRE . ' = :licencia';
             $params['licencia'] = ((bool) $body['licenciaLibre']) ? 'true' : 'false';
         }
 
         /* C220: Toggle de visibilidad en comunidad */
         if (isset($body['mostrarEnComunidad'])) {
-            $campos[] = 'mostrar_en_comunidad = :comunidad';
+            $campos[] = SamplesCols::MOSTRAR_EN_COMUNIDAD . ' = :comunidad';
             $params['comunidad'] = ((bool) $body['mostrarEnComunidad']) ? 'true' : 'false';
         }
 
         if (isset($body['imagenUrl'])) {
-            $campos[] = 'imagen_url = :imagenUrl';
+            $campos[] = SamplesCols::IMAGEN_URL . ' = :imagenUrl';
             $params['imagenUrl'] = \esc_url_raw($body['imagenUrl']);
         }
 
         /* Solo admin puede verificar/desverificar */
         if (isset($body['verificado']) && $esAdmin) {
-            $campos[] = 'verificado = :verificado';
+            $campos[] = SamplesCols::VERIFICADO . ' = :verificado';
             $params['verificado'] = ((bool) $body['verificado']) ? 'true' : 'false';
 
             /* C266: Notificar al creador si se verifica el sample */
@@ -164,6 +165,9 @@ class SamplesModificacionController
                     $sample[SamplesCols::SLUG] ?? null
                 );
             }
+
+            /* Invalidar cache feed: el badge verificado debe reflejarse inmediatamente */
+            MotorRecomendacion::invalidarCacheGlobal();
         }
 
         /* Solo admin puede cambiar el estado */
@@ -174,8 +178,11 @@ class SamplesModificacionController
                 SamplesEnums::ESTADO_PROCESANDO,
             ];
             if (\in_array($body['estado'], $estadosValidos, true)) {
-                $campos[] = 'estado = :estado';
+                $campos[] = SamplesCols::ESTADO . ' = :estado';
                 $params['estado'] = $body['estado'];
+
+                /* Cambio de estado afecta feeds globales */
+                MotorRecomendacion::invalidarCacheGlobal();
             }
         }
 

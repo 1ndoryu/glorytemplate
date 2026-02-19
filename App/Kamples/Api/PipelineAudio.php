@@ -19,6 +19,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
@@ -238,7 +239,7 @@ class PipelineAudio
         }
 
         /* Paso 8: Activar sample en PostgreSQL */
-        $actualizaciones['estado'] = 'activo';
+        $actualizaciones['estado'] = SamplesEnums::ESTADO_ACTIVO;
         $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
 
         self::actualizarSample($sampleId, $actualizaciones);
@@ -265,7 +266,7 @@ class PipelineAudio
             ]);
         }
 
-        KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => 'activo']);
+        KamplesLogger::info('Pipeline: Procesamiento completado', ['sampleId' => $sampleId, 'estado' => SamplesEnums::ESTADO_ACTIVO]);
     }
 
     /*

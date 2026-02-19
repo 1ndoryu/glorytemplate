@@ -446,7 +446,7 @@ class SamplesRepository extends BaseRepository
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . \App\Config\Schema\_generated\LikesCols::TABLA . " l ON l."
              . \App\Config\Schema\_generated\LikesCols::TARGET_ID . " = s." . SamplesCols::ID
-             . " AND l." . \App\Config\Schema\_generated\LikesCols::TIPO . " = 'sample'"
+             . " AND l." . \App\Config\Schema\_generated\LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
              . " AND l." . \App\Config\Schema\_generated\LikesCols::USUARIO_ID . " = :favUser"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . " ORDER BY l." . \App\Config\Schema\_generated\LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
@@ -748,7 +748,7 @@ class SamplesRepository extends BaseRepository
     public static function buscarInteraccionesParaPerfil(int $userId): array
     {
         $sql = "SELECT s." . SamplesCols::EMBEDDING . "::text, tipo_interaccion, peso FROM ("
-             . " SELECT " . LikesCols::TARGET_ID . " as sample_id, 'like' as tipo_interaccion, 3 as peso"
+             . " SELECT " . LikesCols::TARGET_ID . " as sample_id, '" . LikesEnums::REACCION_LIKE . "' as tipo_interaccion, 3 as peso"
              . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
              . " UNION ALL"
              . " SELECT " . DescargasCols::SAMPLE_ID . ", 'descarga', 5"

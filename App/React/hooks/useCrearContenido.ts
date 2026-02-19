@@ -85,7 +85,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
      */
     useEffect(() => {
         const archivo = useCrearModalStore.getState().consumirArchivo();
-        if (archivo) {
+        if (archivo instanceof File && archivo.name) {
             setAudioExterno(archivo);
             log.info('Archivo pre-cargado inyectado desde Mezclador', { nombre: archivo.name });
         }

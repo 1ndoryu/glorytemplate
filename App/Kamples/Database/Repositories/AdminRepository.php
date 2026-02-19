@@ -38,6 +38,7 @@ class AdminRepository
         $pro = UsuariosExtEnums::PLAN_PRO;
         $premium = UsuariosExtEnums::PLAN_PREMIUM;
 
+        /* TO-DO: 'pendiente' hardcodeado — no hay PublicacionesEnums ni ReportesEnums para moderacion_estado/estado. Generar cuando se agreguen CHECK constraints al schema. */
         return SamplesRepository::consultarUno("
                 (SELECT COUNT(*) FROM {$tu}) as total_usuarios,
                 (SELECT COUNT(*) FROM {$ts} WHERE " . SamplesCols::ESTADO . " = '{$activo}') as total_samples,

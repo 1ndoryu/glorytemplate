@@ -27,13 +27,14 @@ use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 
 class ComentariosController
 {
-    private const TIPOS_VALIDOS = ['sample', 'publicacion'];
+    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION];
 
     public static function registrarRutas(string $namespace): void
     {

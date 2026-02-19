@@ -52,6 +52,7 @@ export function crearAccionesBloques(set: SetMezclador, get: GetMezclador) {
         /*
          * Cambiar duración de un bloque (stretch/clip).
          * Recalcula playbackRate en stretch; aplica recorteFin en clip.
+         * C284 fix: stretch resetea recorteFin; clip account recorteInicio.
          */
         setDuracionBloque: (bloqueId: string, nuevaDuracion: number) => {
             const { bpmProyecto, compasProyecto, modoResizeGlobal } = get();
@@ -61,26 +62,38 @@ export function crearAccionesBloques(set: SetMezclador, get: GetMezclador) {
                     bloques: p.bloques.map(b => {
                         if (b.id !== bloqueId || !b.audioBuffer) return b;
                         const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
+                        const recorteInicioActual = b.recorteInicio ?? 0;
 
                         if (modoResizeGlobal === 'clip') {
-                            const durMaxCompases = b.audioBuffer.duration / (durCompas * b.playbackRate);
+                            /*
+                             * C284: La duración máxima en clip depende del buffer disponible
+                             * descontando recorteInicio (ej: bloque dividido).
+                             * recorteFin es posición absoluta en el buffer (no relativa).
+                             */
+                            const bufferDisponible = b.audioBuffer.duration - recorteInicioActual;
+                            const durMaxCompases = bufferDisponible / (durCompas * b.playbackRate);
                             const durClamped = Math.max(0.25, Math.min(nuevaDuracion, durMaxCompases));
-                            const recorteFin = durClamped * durCompas * b.playbackRate;
+                            const recorteFin = recorteInicioActual + durClamped * durCompas * b.playbackRate;
                             const numPeaks = Math.max(60, Math.round(durClamped * 60));
                             const waveformPeaks = extraerPeaks(
                                 b.audioBuffer, numPeaks,
-                                b.recorteInicio, recorteFin - b.recorteInicio
+                                recorteInicioActual, recorteFin - recorteInicioActual
                             );
                             return { ...b, duracionCompases: durClamped, recorteFin, waveformPeaks };
                         }
 
-                        /* Modo stretch: recalcular playbackRate */
+                        /*
+                         * Modo stretch: recalcular playbackRate.
+                         * C284 fix: resetear recorteFin a null para usar buffer completo
+                         * (desde recorteInicio). El stretch controla duración via playbackRate.
+                         */
+                        const bufferDisponible = b.audioBuffer.duration - recorteInicioActual;
                         const durClamped = Math.max(0.25, nuevaDuracion);
                         const durWall = durClamped * durCompas;
                         const nuevoRate = Math.round(
-                            Math.max(0.25, Math.min(4, b.audioBuffer.duration / durWall)) * 1e6
+                            Math.max(0.25, Math.min(4, bufferDisponible / durWall)) * 1e6
                         ) / 1e6;
-                        return { ...b, duracionCompases: durClamped, playbackRate: nuevoRate };
+                        return { ...b, duracionCompases: durClamped, playbackRate: nuevoRate, recorteFin: null };
                     }),
                 })),
             }));

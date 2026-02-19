@@ -32,12 +32,13 @@ use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 
 class ComentariosEscrituraController
 {
-    private const TIPOS_VALIDOS = ['sample', 'publicacion'];
+    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION];
 
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -157,7 +158,7 @@ class ComentariosEscrituraController
                 KamplesLogger::warning('Moderación async de comentario falló', [
                     'comentarioId' => $comentarioIdMod,
                     'error' => $e->getMessage(),
-                ], 'moderacion');
+                ]);
             }
         });
 
@@ -236,19 +237,19 @@ class ComentariosEscrituraController
             $padreAutorId = ComentariosRepository::buscarAutorId($parentId);
             if ($padreAutorId && $padreAutorId !== $userId) {
                 $sampleSlug = null;
-                if ($tipo === 'sample') {
+                if ($tipo === ComentariosEnums::TIPO_SAMPLE) {
                     $sInfo = SamplesRepository::buscarInfoNotificacion($targetId);
                     $sampleSlug = $sInfo[SamplesCols::SLUG] ?? null;
                 }
                 ServicioNotificaciones::respuestaComentario(
                     $padreAutorId, $userId, $parentId,
-                    $tipo === 'sample' ? $targetId : null, $sampleSlug
+                    $tipo === ComentariosEnums::TIPO_SAMPLE ? $targetId : null, $sampleSlug
                 );
             }
             return;
         }
 
-        if ($tipo === 'sample') {
+        if ($tipo === ComentariosEnums::TIPO_SAMPLE) {
             $sampleInfo = SamplesRepository::buscarInfoNotificacion($targetId);
             if ($sampleInfo && (int) $sampleInfo[SamplesCols::CREADOR_ID] !== $userId) {
                 ServicioNotificaciones::nuevoComentario(
@@ -256,7 +257,7 @@ class ComentariosEscrituraController
                     $sampleInfo[SamplesCols::TITULO] ?? '', $sampleInfo[SamplesCols::SLUG] ?? null
                 );
             }
-        } elseif ($tipo === 'publicacion') {
+        } elseif ($tipo === ComentariosEnums::TIPO_PUBLICACION) {
             $pubAutorId = PublicacionesRepository::buscarAutorId($targetId);
             if ($pubAutorId && $pubAutorId !== $userId) {
                 ServicioNotificaciones::crear(

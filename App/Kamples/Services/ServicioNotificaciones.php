@@ -17,6 +17,7 @@ use App\Kamples\Database\Repositories\NotificacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class ServicioNotificaciones
 {
@@ -67,11 +68,11 @@ class ServicioNotificaciones
 
     /* Helpers de tipos comunes */
 
-    public static function likeSample(int $destinatarioId, int $actorId, int $sampleId, string $sampleTitulo, ?string $sampleSlug = null, string $reaccion = 'like'): void
+    public static function likeSample(int $destinatarioId, int $actorId, int $sampleId, string $sampleTitulo, ?string $sampleSlug = null, string $reaccion = LikesEnums::REACCION_LIKE): void
     {
         $actorNombre = self::obtenerNombreActor($actorId);
-        $tipoNotif = $reaccion === 'encanta' ? 'encanta' : 'like';
-        $emoji = $reaccion === 'encanta' ? 'le encanta' : 'le gusta';
+        $tipoNotif = $reaccion === LikesEnums::REACCION_ENCANTA ? 'encanta' : 'like';
+        $emoji = $reaccion === LikesEnums::REACCION_ENCANTA ? 'le encanta' : 'le gusta';
 
         self::crear(
             $destinatarioId,
@@ -90,10 +91,10 @@ class ServicioNotificaciones
         );
     }
 
-    public static function likePublicacion(int $destinatarioId, int $actorId, int $publicacionId, string $reaccion = 'like'): void
+    public static function likePublicacion(int $destinatarioId, int $actorId, int $publicacionId, string $reaccion = LikesEnums::REACCION_LIKE): void
     {
         $actorNombre = self::obtenerNombreActor($actorId);
-        $emoji = $reaccion === 'encanta' ? 'le encanta' : 'le gusta';
+        $emoji = $reaccion === LikesEnums::REACCION_ENCANTA ? 'le encanta' : 'le gusta';
 
         self::crear(
             $destinatarioId,

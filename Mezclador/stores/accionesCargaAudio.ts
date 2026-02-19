@@ -78,6 +78,11 @@ function construirBloque(datos: DatosBloqueNuevo, get: GetMezclador): BloqueMezc
         detune: 0,
         /* C271: Por defecto resample (pitch ligado a velocidad) */
         modoTonalidad: 'resample',
+        /* C287: Nuevas propiedades de audio profesional */
+        pan: 0,
+        modoDeclic: 'none',
+        invertirPolaridad: false,
+        intercambiarEstereo: false,
     };
 }
 

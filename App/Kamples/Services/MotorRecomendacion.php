@@ -19,6 +19,11 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\PerfilUsuario;
@@ -135,7 +140,8 @@ class MotorRecomendacion
         $pesoNovedad = $pesos['novedad'] ?? 0.10;
         if ($pesoNovedad > 0) {
             $diasBoost = (int) ($params['novedad_dias_boost'] ?? 14);
-            $additiveParts[] = "({$pesoNovedad} * GREATEST(0, 1 - LN(GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 86400)) / LN({$diasBoost})))";
+            $sPubAt = SamplesCols::PUBLICADO_AT;
+        $additiveParts[] = "({$pesoNovedad} * GREATEST(0, 1 - LN(GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 86400)) / LN({$diasBoost})))";
         }
 
         /* Señal 5: Grafo social — samples de seguidos + likes de seguidos */
@@ -173,11 +179,16 @@ class MotorRecomendacion
         $penConfig = $params['penalizacion_ya_escuchado'] ?? [];
         $umbralRepro = (int) ($penConfig['umbral_reproducciones'] ?? 3);
         $factorPen = (float) ($penConfig['factor_penalizacion'] ?? 0.3);
-        $penalizacion = "(CASE WHEN (SELECT COUNT(*) FROM reproducciones WHERE usuario_id = :userId AND sample_id = s.id) >= {$umbralRepro} THEN {$factorPen} ELSE 1 END)";
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $sId = SamplesCols::ID;
+        $penalizacion = "(CASE WHEN (SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$umbralRepro} THEN {$factorPen} ELSE 1 END)";
 
         /* C178: Boost para samples verificados por humano */
         $boostVerificado = (float) ($params['verificado_boost'] ?? 1.15);
-        $multiplicadorVerificado = "(CASE WHEN s.verificado = true THEN {$boostVerificado} ELSE 1 END)";
+        $sVerif = SamplesCols::VERIFICADO;
+        $multiplicadorVerificado = "(CASE WHEN s.{$sVerif} = true THEN {$boostVerificado} ELSE 1 END)";
 
         $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$multiplicadorVerificado}";
 
@@ -188,16 +199,42 @@ class MotorRecomendacion
          * C74: Penalización suave a partir del Nº sample por creador.
          * Los primeros rankean alto, los siguientes bajan pero NUNCA se excluyen.
          */
+        /*
+         * FIX verificado_sample: El CTE debe usar los mismos aliases que sqlSelectSamples()
+         * para que NormalizadorSample::normalizar() encuentre 'verificado_sample'.
+         * Sin el alias, s.verificado es sobreescrito por u.verificado en el array asociativo
+         * de PDO (último valor con mismo key gana), y 'verificado_sample' no existe → siempre false.
+         */
+        $ts = SamplesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $sEstado = SamplesCols::ESTADO;
+        $sMostrar = SamplesCols::MOSTRAR_EN_COMUNIDAD;
+        $uId = UsuariosExtCols::ID;
+        $uUser = UsuariosExtCols::USERNAME;
+        $uNombre = UsuariosExtCols::NOMBRE_VISIBLE;
+        $uAvatar = UsuariosExtCols::AVATAR_URL;
+        $uVerif = UsuariosExtCols::VERIFICADO;
+        $uWpId = UsuariosExtCols::WP_USER_ID;
+        $tl = LikesCols::TABLA;
+        $lUid = LikesCols::USUARIO_ID;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+
         $sql = "WITH scored AS (
-                    SELECT s.*, u.username, u.nombre_visible, u.avatar_url, u.verificado,
-                           u.wp_user_id AS creador_wp_user_id,
-                           u.id as creador_id,
-                           (SELECT reaccion FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND target_id = s.id LIMIT 1) AS reaccion_usuario,
+                    SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
+                           u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},
+                           u.{$uWpId} AS creador_wp_user_id,
+                           u.{$uId} as creador_id,
+                           (SELECT {$lReacc} FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} LIMIT 1) AS reaccion_usuario,
                            ({$scoreTotal}) as score,
-                           ROW_NUMBER() OVER (PARTITION BY s.creador_id ORDER BY ({$scoreTotal}) DESC) as rn
-                    FROM samples s
-                    LEFT JOIN usuarios_ext u ON s.creador_id = u.id
-                    WHERE s.estado = 'activo'
+                           ROW_NUMBER() OVER (PARTITION BY s.{$sCreadorId} ORDER BY ({$scoreTotal}) DESC) as rn
+                    FROM {$ts} s
+                    LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
+                    WHERE s.{$sEstado} = '{$eActivo}'
                 )
                 SELECT * FROM scored
                 ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
@@ -224,10 +261,17 @@ class MotorRecomendacion
      */
     private static function feedNuevoUsuario(int $limite, int $offset, ?int $userId = null): array
     {
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $sTotLikes = SamplesCols::TOTAL_LIKES;
+        $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " WHERE s.estado = 'activo'"
-             . " ORDER BY (s.total_likes * 2 + s.total_reproducciones + s.total_descargas * 3)"
-             . "   * GREATEST(0.1, 1 - EXTRACT(EPOCH FROM NOW() - s.publicado_at) / (86400 * 30)) DESC"
+             . " WHERE s.{$sEstado} = '{$eActivo}'"
+             . " ORDER BY (s.{$sTotLikes} * 2 + s.{$sTotRepro} + s.{$sTotDesc} * 3)"
+             . "   * GREATEST(0.1, 1 - EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / (86400 * 30)) DESC"
              . " LIMIT :limit OFFSET :offset";
 
         return SamplesRepository::consultar($sql, ['limit' => $limite, 'offset' => $offset]);
@@ -267,12 +311,18 @@ class MotorRecomendacion
     {
         $config = self::cargarPesos();
 
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $sId = SamplesCols::ID;
+        $sEmbed = SamplesCols::EMBEDDING;
+        $ts = SamplesCols::TABLA;
+
         if (self::pgvectorActivo()) {
             if (SamplesRepository::verificarTieneEmbedding($sampleId)) {
                 $similares = SamplesRepository::consultar(
                     NormalizadorSample::sqlSelectSamples()
-                    . " WHERE s.estado = 'activo' AND s.id != :sampleId AND s.embedding IS NOT NULL"
-                    . " ORDER BY s.embedding <=> (SELECT embedding FROM samples WHERE id = :sampleId)"
+                    . " WHERE s.{$sEstado} = '{$eActivo}' AND s.{$sId} != :sampleId AND s.{$sEmbed} IS NOT NULL"
+                    . " ORDER BY s.{$sEmbed} <=> (SELECT {$sEmbed} FROM {$ts} WHERE {$sId} = :sampleId)"
                     . " LIMIT :limit",
                     ['sampleId' => $sampleId, 'limit' => $limite]
                 );
@@ -295,27 +345,33 @@ class MotorRecomendacion
         $params = ['sampleId' => $sampleId, 'limit' => $limite];
 
         /* Score por tags en común */
+        $sTags = SamplesCols::TAGS;
         $tagParts = [];
         foreach (\array_slice($tags, 0, 10) as $i => $tag) {
-            $tagParts[] = "CASE WHEN :tag{$i} = ANY(s.tags) THEN 2 ELSE 0 END";
+            $tagParts[] = "CASE WHEN :tag{$i} = ANY(s.{$sTags}) THEN 2 ELSE 0 END";
             $params["tag{$i}"] = $tag;
         }
         $tagScore = !empty($tagParts) ? '(' . \implode(' + ', $tagParts) . ')' : '0';
 
+        $sBpm = SamplesCols::BPM;
+        $sKey = SamplesCols::KEY;
+        $sTipo = SamplesCols::TIPO;
+        $sTotLk = SamplesCols::TOTAL_LIKES;
+
         $bpmScore = $bpm
-            ? "GREATEST(0, {$toleranciaBpm} - ABS(COALESCE(s.bpm, 0) - {$bpm})) / {$toleranciaBpm} * 5"
+            ? "GREATEST(0, {$toleranciaBpm} - ABS(COALESCE(s.{$sBpm}, 0) - {$bpm})) / {$toleranciaBpm} * 5"
             : "0";
 
-        $keyScore = $key ? "CASE WHEN s.key = :simKey THEN 5 ELSE 0 END" : "0";
+        $keyScore = $key ? "CASE WHEN s.{$sKey} = :simKey THEN 5 ELSE 0 END" : "0";
         if ($key) $params['simKey'] = $key;
 
-        $tipoScore = "CASE WHEN s.tipo = :simTipo THEN 3 ELSE 0 END";
+        $tipoScore = "CASE WHEN s.{$sTipo} = :simTipo THEN 3 ELSE 0 END";
         $params['simTipo'] = $tipo;
 
         $sql = NormalizadorSample::sqlSelectSamples()
-             . " WHERE s.estado = 'activo' AND s.id != :sampleId"
+             . " WHERE s.{$sEstado} = '{$eActivo}' AND s.{$sId} != :sampleId"
              . " ORDER BY ({$tagScore} + {$bpmScore} + {$keyScore} + {$tipoScore}) DESC,"
-             . " s.total_likes DESC LIMIT :limit";
+             . " s.{$sTotLk} DESC LIMIT :limit";
 
         return SamplesRepository::consultar($sql, $params);
     }

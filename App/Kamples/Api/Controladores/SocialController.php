@@ -44,9 +44,9 @@ class SocialController
             'callback'            => [self::class, 'darLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             'args'                => [
-                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => ['sample', 'publicacion']],
+                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION]],
                 'target_id' => ['required' => true, 'type' => 'integer'],
-                'reaccion'  => ['required' => false, 'type' => 'string', 'enum' => ['like', 'dislike', 'encanta'], 'default' => 'like'],
+                'reaccion'  => ['required' => false, 'type' => 'string', 'enum' => [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA], 'default' => LikesEnums::REACCION_LIKE],
             ],
         ]);
 
@@ -55,7 +55,7 @@ class SocialController
             'callback'            => [self::class, 'quitarLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             'args'                => [
-                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => ['sample', 'publicacion']],
+                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION]],
                 'target_id' => ['required' => true, 'type' => 'integer'],
             ],
         ]);
@@ -138,7 +138,7 @@ class SocialController
 
         $tipo     = sanitize_text_field($request->get_param('tipo'));
         $targetId = (int) $request->get_param('target_id');
-        $reaccion = sanitize_text_field($request->get_param('reaccion') ?? 'like');
+        $reaccion = sanitize_text_field($request->get_param('reaccion') ?? LikesEnums::REACCION_LIKE);
 
         /* Validar reacción */
         $reaccionesValidas = [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA];
@@ -203,7 +203,7 @@ class SocialController
         MotorRecomendacion::invalidarCache($userId);
 
         /* C45: registrar interacción para el planificador del algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === 'dislike' ? 'dislike' : 'like');
+        PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === LikesEnums::REACCION_DISLIKE ? 'dislike' : 'like');
 
         return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
     }

@@ -15,6 +15,7 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\LikesDTO;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
 
@@ -240,8 +241,8 @@ class LikesRepository extends BaseRepository
             . ", s." . \App\Config\Schema\_generated\SamplesCols::BPM
             . ", s." . \App\Config\Schema\_generated\SamplesCols::KEY
             . " FROM {$ts} s JOIN {$tl} l ON l." . LikesCols::TARGET_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " AND l." . LikesCols::TIPO . " = 'sample'"
-            . " WHERE l." . LikesCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            . " AND l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+            . " WHERE l." . LikesCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
     }
@@ -255,7 +256,7 @@ class LikesRepository extends BaseRepository
 
         $rows = static::consultar(
             "SELECT " . LikesCols::TARGET_ID . " as sample_id FROM {$tabla} WHERE "
-            . LikesCols::TIPO . " = 'sample' AND " . LikesCols::USUARIO_ID . " = :uid",
+            . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::USUARIO_ID . " = :uid",
             ['uid' => $userId]
         );
 
@@ -273,8 +274,8 @@ class LikesRepository extends BaseRepository
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$tl} l JOIN {$ts} s ON l." . LikesCols::TARGET_ID . " = s."
             . \App\Config\Schema\_generated\SamplesCols::ID
-            . " WHERE l." . LikesCols::TIPO . " = 'sample' AND l." . LikesCols::USUARIO_ID . " = :uid"
-            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            . " WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND l." . LikesCols::USUARIO_ID . " = :uid"
+            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
         return (int) ($row['total'] ?? 0);

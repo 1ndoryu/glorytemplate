@@ -43,6 +43,14 @@ export interface BloqueMezclador {
      * stretch: pitch independiente via SoundTouch DSP
      */
     modoTonalidad: 'resample' | 'stretch';
+    /* C287: Balance estéreo (-1 izquierda, 0 centro, 1 derecha) */
+    pan: number;
+    /* C287: Declicking — micro-fade automático al inicio/fin para evitar clicks digitales */
+    modoDeclic: 'none' | 'corto' | 'medio' | 'largo';
+    /* C287: Invertir polaridad (flip fase) — TO-DO: requiere procesamiento de buffer */
+    invertirPolaridad: boolean;
+    /* C287: Intercambiar canales L/R — TO-DO: requiere procesamiento de buffer */
+    intercambiarEstereo: boolean;
 }
 
 /* C215: Configuración parcial para actualizar un bloque */
@@ -61,6 +69,14 @@ export interface ConfigBloque {
     detune?: number;
     /* C271: Modo de procesamiento tonal */
     modoTonalidad?: 'resample' | 'stretch';
+    /* C287: Balance estéreo */
+    pan?: number;
+    /* C287: Declicking automático */
+    modoDeclic?: 'none' | 'corto' | 'medio' | 'largo';
+    /* C287: Invertir polaridad */
+    invertirPolaridad?: boolean;
+    /* C287: Intercambiar estéreo */
+    intercambiarEstereo?: boolean;
 }
 
 /* Una pista en la timeline */
@@ -132,12 +148,23 @@ export const ZOOM_MIN = 1;
 export const ZOOM_MAX = 4;
 export const ZOOM_PASO = 0.05;
 
+/*
+ * C287: Duración en segundos del declicking según modo.
+ * Son micro-fades imperceptibles para evitar clicks digitales.
+ */
+export const DECLIC_DURACIONES: Record<string, number> = {
+    none: 0,
+    corto: 0.003,
+    medio: 0.01,
+    largo: 0.03,
+};
+
 /* Constantes del mezclador */
 export const CONSTANTES_MEZCLADOR = {
     BPM_DEFAULT: 120,
     COMPAS_DEFAULT: { numerador: 4, denominador: 4 } as Compas,
     COMPASES_DEFAULT: 4,
-    COMPASES_MAX: 32,
+    COMPASES_MAX: 999,
     PISTAS_MAX: 16,
     DURACION_MAXIMA_SEGUNDOS: 300,
     ANCHO_PANEL_MIN: 400,

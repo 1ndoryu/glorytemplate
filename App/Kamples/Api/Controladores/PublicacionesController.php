@@ -22,6 +22,8 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\FollowsCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class PublicacionesController
 {
@@ -93,30 +95,39 @@ class PublicacionesController
          * C71: Moderación — solo mostrar posts aprobados o pendientes (sin moderar aún).
          * Posts en supervisión o pendientes solo visibles para su autor.
          */
+        $pModEstado = PublicacionesCols::MODERACION_ESTADO;
+        $pAutorId = PublicacionesCols::AUTOR_ID;
+        $uUser = UsuariosExtCols::USERNAME;
+        $pTotLikes = PublicacionesCols::TOTAL_LIKES;
+        $pCreAt = PublicacionesCols::CREATED_AT;
+
         $userId = UsuarioHelper::obtenerIdPg();
         if ($userId) {
-            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado' OR ((p.moderacion_estado = 'revision' OR p.moderacion_estado = 'pendiente') AND p.autor_id = :currentUser))";
+            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado' OR ((p.{$pModEstado} = 'revision' OR p.{$pModEstado} = 'pendiente') AND p.{$pAutorId} = :currentUser))";
             $params['currentUser'] = $userId;
         } else {
-            $donde .= " AND (p.moderacion_estado IS NULL OR p.moderacion_estado = 'aprobado')";
+            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado')";
         }
 
         if ($filtro === 'siguiendo') {
             if ($userId) {
-                $donde .= " AND p.autor_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId)";
+                $tf = FollowsCols::TABLA;
+                $fSeguidoId = FollowsCols::SEGUIDO_ID;
+                $fSeguidorId = FollowsCols::SEGUIDOR_ID;
+                $donde .= " AND p.{$pAutorId} IN (SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :userId)";
                 $params['userId'] = $userId;
             }
         }
 
         /* C93: Filtrar por autor (username) para tab de publicaciones en perfil */
         if (!empty($autor)) {
-            $donde .= " AND u.username = :autor";
+            $donde .= " AND u.{$uUser} = :autor";
             $params['autor'] = sanitize_text_field($autor);
         }
 
         $orderBy = $filtro === 'populares'
-            ? 'ORDER BY p.total_likes DESC, p.created_at DESC'
-            : 'ORDER BY p.created_at DESC';
+            ? "ORDER BY p.{$pTotLikes} DESC, p.{$pCreAt} DESC"
+            : "ORDER BY p.{$pCreAt} DESC";
 
         /* Obtener userId actual para campo liked */
         $currentUserId = UsuarioHelper::obtenerIdPg();
@@ -133,7 +144,7 @@ class PublicacionesController
             $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
             $pub['totalReposts'] = (int) ($pub[PublicacionesCols::TOTAL_REPOSTS] ?? 0);
             $pub['creadoAt'] = $pub[PublicacionesCols::CREATED_AT] ?? '';
-            $pub['liked'] = \in_array($pub['reaccion_usuario'] ?? null, ['like', 'encanta'], true);
+            $pub['liked'] = \in_array($pub['reaccion_usuario'] ?? null, [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true);
             $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
             unset($pub['reaccion_usuario']);
             $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;

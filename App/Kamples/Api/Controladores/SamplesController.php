@@ -27,6 +27,9 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class SamplesController
 {
@@ -86,7 +89,19 @@ class SamplesController
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
 
-        $where  = ["s.estado = 'activo'"];
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $eElim = SamplesEnums::ESTADO_ELIMINADO;
+        $uUser = UsuariosExtCols::USERNAME;
+        $sTitulo = SamplesCols::TITULO;
+        $sDesc = SamplesCols::DESCRIPCION;
+        $sMeta = SamplesCols::METADATA;
+        $sBpm = SamplesCols::BPM;
+        $sKey = SamplesCols::KEY;
+        $sTipo = SamplesCols::TIPO;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
+
+        $where  = ["s.{$sEstado} = '{$eActivo}'"];
         $params = [];
 
         /*
@@ -95,44 +110,44 @@ class SamplesController
          */
         $creador = $request->get_param('creador');
         if (!empty($creador)) {
-            $where  = ["s.estado NOT IN ('eliminado')"];
-            $where[]  = "LOWER(u.username) = LOWER(:creador)";
+            $where  = ["s.{$sEstado} NOT IN ('{$eElim}')"];
+            $where[]  = "LOWER(u.{$uUser}) = LOWER(:creador)";
             $params['creador'] = $creador;
         }
 
         $busqueda = $request->get_param('busqueda');
         if (!empty($busqueda)) {
-            $where[]  = "(s.titulo ILIKE :busqueda OR s.descripcion ILIKE :busqueda)";
+            $where[]  = "(s.{$sTitulo} ILIKE :busqueda OR s.{$sDesc} ILIKE :busqueda)";
             $params['busqueda'] = '%' . $busqueda . '%';
         }
 
         $genero = $request->get_param('genero');
         if (!empty($genero)) {
-            $where[]  = "s.metadata->'genero' ? :genero";
+            $where[]  = "s.{$sMeta}->'genero' ? :genero";
             $params['genero'] = $genero;
         }
 
         $bpmMin = $request->get_param('bpm_min');
         if ($bpmMin !== null) {
-            $where[]  = "s.bpm >= :bpm_min";
+            $where[]  = "s.{$sBpm} >= :bpm_min";
             $params['bpm_min'] = (int) $bpmMin;
         }
 
         $bpmMax = $request->get_param('bpm_max');
         if ($bpmMax !== null) {
-            $where[]  = "s.bpm <= :bpm_max";
+            $where[]  = "s.{$sBpm} <= :bpm_max";
             $params['bpm_max'] = (int) $bpmMax;
         }
 
         $key = $request->get_param('key');
         if (!empty($key)) {
-            $where[]  = "s.key = :key";
+            $where[]  = "s.{$sKey} = :key";
             $params['key'] = $key;
         }
 
         $tipo = $request->get_param('tipo');
         if (!empty($tipo)) {
-            $where[]  = "s.tipo = :tipo";
+            $where[]  = "s.{$sTipo} = :tipo";
             $params['tipo'] = $tipo;
         }
 
@@ -143,7 +158,7 @@ class SamplesController
         /* Obtener userId para subquery liked — null si no autenticado */
         $userId = UsuarioHelper::obtenerIdPg();
 
-        $samples = SamplesRepository::listarConFiltros($userId, $whereSQL, $params, 'ORDER BY s.publicado_at DESC NULLS LAST', $perPage, $offset);
+        $samples = SamplesRepository::listarConFiltros($userId, $whereSQL, $params, 'ORDER BY s.' . SamplesCols::PUBLICADO_AT . ' DESC NULLS LAST', $perPage, $offset);
 
         /*
          * Envolver data + pagination bajo una clave 'data' para que
@@ -240,10 +255,15 @@ class SamplesController
             }
         }
 
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+        $sTotLk = SamplesCols::TOTAL_LIKES;
+        $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
+
         $orderBy = match ($tipo) {
-            'trending'  => 'ORDER BY (s.total_descargas + s.total_likes * 2 + s.total_reproducciones) DESC',
-            'recientes' => 'ORDER BY s.publicado_at DESC NULLS LAST',
-            default     => 'ORDER BY s.publicado_at DESC NULLS LAST',
+            'trending'  => "ORDER BY (s.{$sTotDesc} + s.{$sTotLk} * 2 + s.{$sTotRepro}) DESC",
+            'recientes' => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
+            default     => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
         };
 
         /* Obtener userId para subquery liked en fallback */

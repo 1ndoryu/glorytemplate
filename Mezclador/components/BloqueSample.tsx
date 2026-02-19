@@ -186,6 +186,13 @@ export const BloqueSample = ({
 
                 onIniciarDrag(bloque.id, bloque.pistaId, e);
             }}
+            /* C286: Doble click abre la configuración avanzada del bloque */
+            onDoubleClick={(e) => {
+                if (modoCortarActivo) return;
+                e.stopPropagation();
+                e.preventDefault();
+                setModalConfigAbierto(true);
+            }}
             onClick={alClickBloque}
             onMouseMove={alMoverMouse}
             onMouseLeave={alSalirMouse}

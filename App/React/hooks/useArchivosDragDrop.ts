@@ -89,11 +89,13 @@ export const useArchivosDragDrop = () => {
      * ya que el File viene del export interno (siempre WAV válido).
      */
     const setAudioExterno = useCallback((archivo: File) => {
+        if (!archivo?.name) return;
+        const nombre = archivo.name;
         setAudioAdjunto({
             archivo,
-            nombre: archivo.name,
-            tamano: formatearTamano(archivo.size),
-            formato: archivo.name.split('.').pop()?.toUpperCase() ?? 'WAV',
+            nombre,
+            tamano: formatearTamano(archivo.size ?? 0),
+            formato: nombre.split('.').pop()?.toUpperCase() ?? 'WAV',
         });
     }, []);
 

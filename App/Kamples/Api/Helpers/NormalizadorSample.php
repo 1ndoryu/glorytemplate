@@ -13,6 +13,8 @@ namespace App\Kamples\Api\Helpers;
 
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class NormalizadorSample
 {
@@ -157,7 +159,7 @@ class NormalizadorSample
             'audioHash'        => $row[SamplesCols::AUDIO_HASH] ?? null,
             'creador'          => $creador,
             /* C144/C145: reaccion_usuario puede ser 'like', 'dislike', 'encanta' o null */
-            'liked'            => !empty($row[self::ALIAS_REACCION_USUARIO]) && in_array($row[self::ALIAS_REACCION_USUARIO], ['like', 'encanta'], true),
+            'liked'            => !empty($row[self::ALIAS_REACCION_USUARIO]) && in_array($row[self::ALIAS_REACCION_USUARIO], [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true),
             'reaccion'         => $row[self::ALIAS_REACCION_USUARIO] ?? null,
             /* C178: verificacion de metadata por humano */
             'verificado'       => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
@@ -191,23 +193,59 @@ class NormalizadorSample
          * Seguridad: $userId es ?int (tipado estricto), se castea a int para garantizar que es numérico.
          */
         $reaccionExpr = $userId !== null
-            ? "(SELECT reaccion FROM likes WHERE usuario_id = " . (int) $userId . " AND tipo = 'sample' AND target_id = s.id LIMIT 1)"
+            ? "(SELECT " . LikesCols::REACCION . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = " . (int) $userId . " AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::TARGET_ID . " = s." . SamplesCols::ID . " LIMIT 1)"
             : "NULL";
 
         /*
          * C202: No incluir ruta_original / ruta_optimizada en queries publicos.
          * Esto evita que la API exponga URLs directas a archivos sensibles.
          */
-        return "SELECT s.id, s.titulo, s.slug, s.id_corto, s.descripcion,
-                       s.bpm, s.key, s.escala, s.duracion, s.formato, s.tamano,
-                       s.tags, s.tipo, s.estado, s.es_premium, s.precio, s.metadata,
-                       s.ruta_preview, s.ruta_waveform,
-                       s.imagen_url, s.total_descargas, s.total_likes, s.total_reproducciones,
-                       s.audio_hash, s.verificado AS verificado_sample, s.mostrar_en_comunidad,
-                       u.id as creador_id, u.username, u.nombre_visible,
-                       u.avatar_url, u.verificado, u.wp_user_id AS creador_wp_user_id,
+        $sId = SamplesCols::ID;
+        $sTitulo = SamplesCols::TITULO;
+        $sSlug = SamplesCols::SLUG;
+        $sIdCorto = SamplesCols::ID_CORTO;
+        $sDesc = SamplesCols::DESCRIPCION;
+        $sBpm = SamplesCols::BPM;
+        $sKey = SamplesCols::KEY;
+        $sEscala = SamplesCols::ESCALA;
+        $sDuracion = SamplesCols::DURACION;
+        $sFormato = SamplesCols::FORMATO;
+        $sTamano = SamplesCols::TAMANO;
+        $sTags = SamplesCols::TAGS;
+        $sTipo = SamplesCols::TIPO;
+        $sEstado = SamplesCols::ESTADO;
+        $sPremium = SamplesCols::ES_PREMIUM;
+        $sPrecio = SamplesCols::PRECIO;
+        $sMeta = SamplesCols::METADATA;
+        $sPreview = SamplesCols::RUTA_PREVIEW;
+        $sWaveform = SamplesCols::RUTA_WAVEFORM;
+        $sImagen = SamplesCols::IMAGEN_URL;
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+        $sTotLikes = SamplesCols::TOTAL_LIKES;
+        $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
+        $sHash = SamplesCols::AUDIO_HASH;
+        $sVerif = SamplesCols::VERIFICADO;
+        $sMostrar = SamplesCols::MOSTRAR_EN_COMUNIDAD;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $ts = SamplesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+        $uId = UsuariosExtCols::ID;
+        $uUser = UsuariosExtCols::USERNAME;
+        $uNombre = UsuariosExtCols::NOMBRE_VISIBLE;
+        $uAvatar = UsuariosExtCols::AVATAR_URL;
+        $uVerif = UsuariosExtCols::VERIFICADO;
+        $uWpId = UsuariosExtCols::WP_USER_ID;
+
+        return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
+                       s.{$sBpm}, s.{$sKey}, s.{$sEscala}, s.{$sDuracion}, s.{$sFormato}, s.{$sTamano},
+                       s.{$sTags}, s.{$sTipo}, s.{$sEstado}, s.{$sPremium}, s.{$sPrecio}, s.{$sMeta},
+                       s.{$sPreview}, s.{$sWaveform},
+                       s.{$sImagen}, s.{$sTotDesc}, s.{$sTotLikes}, s.{$sTotRepro},
+                       s.{$sHash}, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
+                       u.{$uId} as creador_id, u.{$uUser}, u.{$uNombre},
+                       u.{$uAvatar}, u.{$uVerif}, u.{$uWpId} AS creador_wp_user_id,
                        {$reaccionExpr} AS reaccion_usuario
-                FROM samples s
-                LEFT JOIN usuarios_ext u ON s.creador_id = u.id";
+                FROM {$ts} s
+                LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
     }
 }

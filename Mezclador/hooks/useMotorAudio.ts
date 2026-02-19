@@ -87,7 +87,10 @@ export const useMotorAudio = () => {
                     bloque.detune ?? 0,
                     /* C271: Modo tonal del bloque */
                     bloque.modoTonalidad ?? 'resample',
-                    bloque.id
+                    bloque.id,
+                    /* C287: Pan estéreo y declicking */
+                    bloque.pan ?? 0,
+                    bloque.modoDeclic ?? 'none'
                 );
             }
         }

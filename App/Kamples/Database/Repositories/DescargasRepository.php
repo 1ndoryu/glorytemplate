@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\DescargasDTO;
+use App\Config\Schema\_generated\SamplesEnums;
 
 class DescargasRepository extends BaseRepository
 {
@@ -165,7 +166,7 @@ class DescargasRepository extends BaseRepository
             . ", s." . \App\Config\Schema\_generated\SamplesCols::BPM
             . ", s." . \App\Config\Schema\_generated\SamplesCols::KEY
             . " FROM {$ts} s JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
     }
@@ -197,7 +198,7 @@ class DescargasRepository extends BaseRepository
             "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s."
             . \App\Config\Schema\_generated\SamplesCols::ID
             . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid"
-            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = 'activo'",
+            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
         return (int) ($row['total'] ?? 0);

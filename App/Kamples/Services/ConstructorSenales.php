@@ -17,6 +17,12 @@
 
 namespace App\Kamples\Services;
 
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\ReproduccionesCols;
+use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\GeneradorEmbeddings;
 
 class ConstructorSenales
@@ -83,12 +89,14 @@ class ConstructorSenales
 
         $params['userProfileVector'] = GeneradorEmbeddings::vectorAString($perfil);
 
+        $sEmbed = SamplesCols::EMBEDDING;
+
         /*
          * Distancia coseno (<=>): 0 = idénticos, 2 = opuestos.
          * Convertir a similitud: 1 - distancia/2 => rango [0, 1].
          */
-        return "({$peso} * CASE WHEN s.embedding IS NOT NULL
-            THEN GREATEST(0, 1 - (s.embedding <=> :userProfileVector::vector) / 2)
+        return "({$peso} * CASE WHEN s.{$sEmbed} IS NOT NULL
+            THEN GREATEST(0, 1 - (s.{$sEmbed} <=> :userProfileVector::vector) / 2)
             ELSE 0 END)";
     }
 
@@ -115,6 +123,25 @@ class ConstructorSenales
         $tagsDescargas = self::sqlTagsEnriquecidos('s5');
         $tagsCompletadas = self::sqlTagsEnriquecidos('s6');
 
+        $tl = LikesCols::TABLA;
+        $lUid = LikesCols::USUARIO_ID;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
+        $ts = SamplesCols::TABLA;
+        $sId = SamplesCols::ID;
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $trDur = ReproduccionesCols::DURACION_ESCUCHADA;
+        $trComp = ReproduccionesCols::COMPLETADA;
+        $td = DescargasCols::TABLA;
+        $dUid = DescargasCols::USUARIO_ID;
+        $dSid = DescargasCols::SAMPLE_ID;
+
         /*
          * Sub-factor 1: Afinidad por tags de samples likeados (0.30)
          * Cuenta tags en comun ponderados: encanta=2, like=1, dislike excluido.
@@ -123,10 +150,10 @@ class ConstructorSenales
             SELECT SUM(liked_tags.peso)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT UNNEST({$tagsLiked}) as tag,
-                       CASE WHEN l.reaccion = 'encanta' THEN 2 ELSE 1 END as peso
-                FROM likes l
-                JOIN samples s2 ON l.target_id = s2.id
-                WHERE l.usuario_id = :userId AND l.tipo = 'sample' AND l.reaccion IN ('like', 'encanta')
+                       CASE WHEN l.{$lReacc} = '{$lrEncanta}' THEN 2 ELSE 1 END as peso
+                FROM {$tl} l
+                JOIN {$ts} s2 ON l.{$lTarget} = s2.{$sId}
+                WHERE l.{$lUid} = :userId AND l.{$lTipo} = '{$ltSample}' AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
             ) liked_tags
             WHERE liked_tags.tag = ANY({$tagsCandidato})
         ), 0)";
@@ -136,9 +163,9 @@ class ConstructorSenales
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT UNNEST({$tagsRepro}) as tag
-                FROM reproducciones r
-                JOIN samples s3 ON r.sample_id = s3.id
-                WHERE r.usuario_id = :userId
+                FROM {$trep} r
+                JOIN {$ts} s3 ON r.{$trSid} = s3.{$sId}
+                WHERE r.{$trUid} = :userId
             ) repro_tags
             WHERE repro_tags.tag = ANY({$tagsCandidato})
         ), 0)";
@@ -148,9 +175,9 @@ class ConstructorSenales
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT UNNEST({$tagsTiempo}) as tag
-                FROM reproducciones r2
-                JOIN samples s4 ON r2.sample_id = s4.id
-                WHERE r2.usuario_id = :userId AND r2.duracion_escuchada > 10
+                FROM {$trep} r2
+                JOIN {$ts} s4 ON r2.{$trSid} = s4.{$sId}
+                WHERE r2.{$trUid} = :userId AND r2.{$trDur} > 10
             ) tiempo_tags
             WHERE tiempo_tags.tag = ANY({$tagsCandidato})
         ), 0)";
@@ -160,9 +187,9 @@ class ConstructorSenales
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT UNNEST({$tagsDescargas}) as tag
-                FROM descargas d
-                JOIN samples s5 ON d.sample_id = s5.id
-                WHERE d.usuario_id = :userId
+                FROM {$td} d
+                JOIN {$ts} s5 ON d.{$dSid} = s5.{$sId}
+                WHERE d.{$dUid} = :userId
             ) desc_tags
             WHERE desc_tags.tag = ANY({$tagsCandidato})
         ), 0)";
@@ -172,9 +199,9 @@ class ConstructorSenales
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
                 SELECT UNNEST({$tagsCompletadas}) as tag
-                FROM reproducciones r3
-                JOIN samples s6 ON r3.sample_id = s6.id
-                WHERE r3.usuario_id = :userId AND r3.completada = true
+                FROM {$trep} r3
+                JOIN {$ts} s6 ON r3.{$trSid} = s6.{$sId}
+                WHERE r3.{$trUid} = :userId AND r3.{$trComp} = true
             ) comp_tags
             WHERE comp_tags.tag = ANY({$tagsCandidato})
         ), 0)";
@@ -205,17 +232,32 @@ class ConstructorSenales
         $tagsCandidato = self::sqlTagsEnriquecidos('s');
         $tagsInner = self::sqlTagsEnriquecidos('s_inner');
 
+        $sBpm = SamplesCols::BPM;
+        $sKey = SamplesCols::KEY;
+        $sTipo = SamplesCols::TIPO;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $tl = LikesCols::TABLA;
+        $lTarget = LikesCols::TARGET_ID;
+        $lUid = LikesCols::USUARIO_ID;
+        $lTipo = LikesCols::TIPO;
+        $lReacc = LikesCols::REACCION;
+        $ts = SamplesCols::TABLA;
+        $sId = SamplesCols::ID;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
+
         /* BPM proximidad al promedio del usuario */
         $bpmProm = $perfilUsuario['bpmProm'] ?? 0;
         $bpmScore = $bpmProm > 0
-            ? "GREATEST(0, ({$toleranciaBpm} - ABS(COALESCE(s.bpm, 0) - {$bpmProm}))::float / {$toleranciaBpm})"
+            ? "GREATEST(0, ({$toleranciaBpm} - ABS(COALESCE(s.{$sBpm}, 0) - {$bpmProm}))::float / {$toleranciaBpm})"
             : "0.5";
 
         /* Key match: coincide con la key favorita del usuario */
         $keyFav = $perfilUsuario['keyFav'] ?? null;
         if ($keyFav) {
             $params['keyFavUsuario'] = $keyFav;
-            $keyScore = "CASE WHEN s.key = :keyFavUsuario THEN 1 ELSE 0 END";
+            $keyScore = "CASE WHEN s.{$sKey} = :keyFavUsuario THEN 1 ELSE 0 END";
         } else {
             $keyScore = "0.5";
         }
@@ -226,9 +268,9 @@ class ConstructorSenales
             FROM (
                 SELECT tag, COUNT(*) as freq FROM (
                     SELECT UNNEST({$tagsInner}) as tag
-                    FROM likes l_inner
-                    JOIN samples s_inner ON l_inner.target_id = s_inner.id
-                    WHERE l_inner.usuario_id = :userId AND l_inner.tipo = 'sample' AND l_inner.reaccion IN ('like', 'encanta')
+                    FROM {$tl} l_inner
+                    JOIN {$ts} s_inner ON l_inner.{$lTarget} = s_inner.{$sId}
+                    WHERE l_inner.{$lUid} = :userId AND l_inner.{$lTipo} = '{$ltSample}' AND l_inner.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
                 ) t GROUP BY tag ORDER BY freq DESC LIMIT 8
             ) top_tags
             WHERE top_tags.tag = ANY({$tagsCandidato})
@@ -238,7 +280,7 @@ class ConstructorSenales
         $tipoFav = $perfilUsuario['tipoFav'] ?? null;
         if ($tipoFav) {
             $params['tipoFavUsuario'] = $tipoFav;
-            $tipoScore = "CASE WHEN s.tipo = :tipoFavUsuario THEN 1 ELSE 0 END";
+            $tipoScore = "CASE WHEN s.{$sTipo} = :tipoFavUsuario THEN 1 ELSE 0 END";
         } else {
             $tipoScore = "0.5";
         }
@@ -253,7 +295,7 @@ class ConstructorSenales
                 $placeholders[] = ":{$key}";
             }
             $listaCreadores = \implode(', ', $placeholders);
-            $creadorScore = "CASE WHEN s.creador_id IN ({$listaCreadores}) THEN 1 ELSE 0 END";
+            $creadorScore = "CASE WHEN s.{$sCreadorId} IN ({$listaCreadores}) THEN 1 ELSE 0 END";
         } else {
             $creadorScore = "0";
         }
@@ -287,23 +329,45 @@ class ConstructorSenales
         if (!\in_array($ventanaCorta, $ventanasValidas, true)) $ventanaCorta = '24 hours';
         if (!\in_array($ventanaMedia, $ventanasValidas, true)) $ventanaMedia = '7 days';
 
+        $tl = LikesCols::TABLA;
+        $lReacc = LikesCols::REACCION;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lCreAt = LikesCols::CREATED_AT;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrDislike = LikesEnums::REACCION_DISLIKE;
+        $sId = SamplesCols::ID;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
+        $trep = ReproduccionesCols::TABLA;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $trCreAt = ReproduccionesCols::CREATED_AT;
+        $td = DescargasCols::TABLA;
+        $dSid = DescargasCols::SAMPLE_ID;
+        $dCreAt = DescargasCols::CREATED_AT;
+        $tf = FollowsCols::TABLA;
+        $fSeguidoId = FollowsCols::SEGUIDO_ID;
+        $fCreAt = FollowsCols::CREATED_AT;
+
         /* Reacciones en ultimas 24h: encanta=2, like=1, dislike=-1 */
-        $likes24h = "COALESCE((SELECT SUM(CASE WHEN reaccion = 'encanta' THEN 2 WHEN reaccion = 'like' THEN 1 WHEN reaccion = 'dislike' THEN -1 ELSE 0 END) FROM likes WHERE tipo = 'sample' AND target_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+        $likes24h = "COALESCE((SELECT SUM(CASE WHEN {$lReacc} = '{$lrEncanta}' THEN 2 WHEN {$lReacc} = '{$lrLike}' THEN 1 WHEN {$lReacc} = '{$lrDislike}' THEN -1 ELSE 0 END) FROM {$tl} WHERE {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} AND {$lCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
-        $repro24h = "COALESCE((SELECT COUNT(*) FROM reproducciones WHERE sample_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+        $repro24h = "COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trSid} = s.{$sId} AND {$trCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
-        $descargas7d = "COALESCE((SELECT COUNT(*) FROM descargas WHERE sample_id = s.id AND created_at > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+        $descargas7d = "COALESCE((SELECT COUNT(*) FROM {$td} WHERE {$dSid} = s.{$sId} AND {$dCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
-        $follows7d = "COALESCE((SELECT COUNT(*) FROM follows WHERE seguido_id = s.creador_id AND created_at > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+        $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
         /* Normalizar por horas desde publicación para medir velocity */
-        $horasPublicado = "GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 3600)";
+        $horasPublicado = "GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 3600)";
 
         return "({$peso} * (
             {$pesoLikes24h} * ({$likes24h}::float / {$horasPublicado}) +
             {$pesoRepro24h} * ({$repro24h}::float / {$horasPublicado}) +
-            {$pesoDescargas7d} * ({$descargas7d}::float / GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 86400)) +
-            {$pesoFollows7d} * ({$follows7d}::float / GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 86400))
+            {$pesoDescargas7d} * ({$descargas7d}::float / GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 86400)) +
+            {$pesoFollows7d} * ({$follows7d}::float / GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 86400))
         ))";
     }
 
@@ -313,16 +377,30 @@ class ConstructorSenales
      */
     public static function sqlGrafoSocial(int $userId, float $peso, array &$params): string
     {
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $tf = FollowsCols::TABLA;
+        $fSeguidoId = FollowsCols::SEGUIDO_ID;
+        $fSeguidorId = FollowsCols::SEGUIDOR_ID;
+        $tl = LikesCols::TABLA;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $lUid = LikesCols::USUARIO_ID;
+        $sId = SamplesCols::ID;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
+
         /* Sub-factor 1: el creador del sample es un usuario seguido (60% del peso social) */
-        $seguidoDirecto = "CASE WHEN s.creador_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId) THEN 1 ELSE 0 END";
+        $seguidoDirecto = "CASE WHEN s.{$sCreadorId} IN (SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :userId) THEN 1 ELSE 0 END";
 
         /* Sub-factor 2: seguidos han reaccionado positivamente a este sample (40% peso social) */
         $likeadoPorSeguidos = "LEAST(1, COALESCE((
-            SELECT SUM(CASE WHEN l.reaccion = 'encanta' THEN 2 ELSE 1 END)::float
-            FROM likes l
-            WHERE l.tipo = 'sample' AND l.target_id = s.id
-            AND l.reaccion IN ('like', 'encanta')
-            AND l.usuario_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId)
+            SELECT SUM(CASE WHEN l.{$lReacc} = '{$lrEncanta}' THEN 2 ELSE 1 END)::float
+            FROM {$tl} l
+            WHERE l.{$lTipo} = '{$ltSample}' AND l.{$lTarget} = s.{$sId}
+            AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
+            AND l.{$lUid} IN (SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :userId)
         ), 0) / 4)";
 
         return "({$peso} * (0.6 * {$seguidoDirecto} + 0.4 * {$likeadoPorSeguidos}))";

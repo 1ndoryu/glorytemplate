@@ -114,6 +114,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R61:** Repository Pattern — Migración completa de controladores (Opción C). 27 controladores migrados: 0 PostgresService directo en ningún controller. ~340 queries SQL movidas a 18 repositorios tipados (BaseRepository + custom methods). Repos expandidos: UsuariosExtRepository (21 métodos), SamplesRepository (35 métodos), NotificacionesRepository (7 métodos), PublicacionesRepository (8 custom). BaseRepository: `estaConectado()` para health checks. Plan detallado en `App/docs/plan-repository-pattern.md`. Pendiente: Tier 3 Services (ConstructorSenales, PerfilUsuario, MotorRecomendacion).
 **R62:** Repository Pattern completo — Tier 3 Services + Api + Helpers migrados. 0 PostgresService fuera de infraestructura (`BaseRepository`, `PostgresService.php`, `VerificarPgvector.php`). Servicios migrados (10): PerfilUsuario, GeneradorEmbeddings, ServicioNotificaciones, DeduplicadorAudio, MotorRecomendacion, PlanificadorAlgoritmo, ServicioAntiSpam, ServicioBan, StripeService, ConstructorSenales. Api migrados: GeneradorIdCorto, PipelineAudio, ServicioModeracionIA, Helpers/UsuarioHelper. Repos expandidos: AlgoritmoEstadoRepository (+8 métodos), UsuariosExtRepository (+14 métodos totales sesión, ban+stripe), SamplesRepository (+10 métodos), NotificacionesRepository (+crearCompleta), ComentariosRepository (+buscarDuplicadoReciente+actualizarVeredictoModeracion), PublicacionesRepository (+actualizarVeredictoModeracion). BaseRepository: consultar/consultarUno/ejecutar/insertar cambiados de `protected` a `public`. Fixes: ColeccionesRepository CREATED_AT→ADDED_AT, AlgoritmoEstadoCols::ID→USUARIO_ID, LogModeracion 3er arg inválido removido, docblock array shape corregido.
 **R63:** Auditoría hardcode completa + bugfix regex PostgresService. Eliminados TODOS los strings hardcodeados de SQL en 20 repositorios: ORDER BY id/created_at → Cols::ID/CREATED_AT (15 repos), SamplesRepository (audio_hash, estados enum, JOINs, CTE interacciones, pgvector), ReproduccionesRepository (historialUsuario reescrito), NotificacionesRepository (listarConActor reescrito), UsuariosExtRepository (5 métodos analíticos con 6 imports nuevos), ColeccionesRepository (CTE explorar + FollowsCols), PublicacionesRepository (likedSubquery con LikesCols), BaseRepository (buscarTodos dinámico). Fix crítico: regex `validarQueryContraSchema()` usaba negative lookahead `(?!\s*\()` que causaba backtracking y truncaba nombres de tabla (reproducciones→reproduccione, likes→like). Solución: reemplazar por `\b` word boundary — la lista `$ignorar` ya filtra funciones SQL. Fix: ColeccionesRepository import LikesCols faltante.
+**R64:** Auditoría hardcode COMPLETA fuera de repositorios (14 archivos). SQL: MotorRecomendacion (3 métodos, CTE+subqueries+pgvector), ConstructorSenales (5 métodos, 6 señales), NormalizadorSample (sqlSelectSamples 35+ vars), SamplesController (filtros WHERE+ORDER BY), PublicacionesController (moderación+follows+ORDER BY), PipelineAudio ('activo'→SamplesEnums). Repos SQL residuales: DescargasRepository (2×'activo'), LikesRepository (3×'sample'+2×'activo'), SamplesRepository ('sample'+'like'). PHP Enums: SocialController (REST schema+defaults), ComentariosController/Escritura (TIPOS_VALIDOS→ComentariosEnums), ServicioNotificaciones (defaults+comparaciones→LikesEnums), PublicacionesController (liked→LikesEnums), NormalizadorSample (liked→LikesEnums). SamplesModificacionController: 11 SET clauses→SamplesCols constants. Bugfix verificado: `invalidarCacheGlobal()` al verificar/cambiar estado sample — transients servían datos stale sin verificado_sample. Fix: ComentariosEscrituraController LogModeracion warning() 3er arg inválido. AdminRepository: TODO 'pendiente' sin Enums generado.
 
 ---
 
@@ -214,11 +215,69 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 # Comentarios pendientes
 
-273. Explorador no funciona bien (pendiente de aclarar por usuario).
-281.4-281.7 Ordenamiento IA de carpetas (pro/premium), presets, instrucciones.
-284. Modo clip falla intermitentemente con loops comprimidos + chop.
-286. Auditoría seguridad Sprint 4 completada — ver solid-seguridad-optimizacion.md.
-287. Auditoría Mezclador DAW Sprint 4 completada — ver solid-seguridad-optimizacion.md.
+# AGENTE ONE 
+
+284. Modo clip falla, cuando estiro un audio con el modo strech bien, pero supongamos un caso, contraigo un audio con strecth, y luego lo modifico con clip, la duración el audio, su tiempo o su velocidad (no se como describir exactamente) cambia, es decir, si el audio antes duraba 4 compases, pasa a 3,7, es un ejemplo, es un problema dificil de describir.
+285. Scroll del mini daw, el scroll del mini ahora ramplazara los botones del zoom por algo mejor.
+El scroll acostado aparecera arriba de mezcladorTimelineZoom con unos 34px de alto, y dentro habrá una vista previa de todas las pistas y dentro lineas simulando donde hay audios, pero o sea, esto es para que visualmente el usuario tenga una idea, esto es un minimapa, bueno en vscode el minimapa ese un scroll que muestra muy pequeño el audio, entonces, lo especial de este minimapa es que si lo estiras o sea, cambias su tamaño, hace zoom negativo o positivo segun su tamaño, algo asi funciona fl studio, igual con el scroll parado, en el fl studio para el scroll parado no cambia su tamaño de la misma forma que el scroll parado, tiene un especie cosa que no se como describirla que al manter presionado y mover hacia o abajo cambia el zoom vertical. 
+esto tambien implica eliminar las composiciones, ahora las composiciones son infinitas tenicamente, en base a cuanto se tira el scroll a la derecha, en fl studio a medida que tiras el scroll a la derecha llegas a un maximo de 36 compases vacíos porque el scroll termina por salirse y desaparecer hasta que agregas un audio, no se como explicar este sistema pero espero que me entiendas, es un mecanimos que basandose en el ultimo audio define la distancia maxima a la que se puede ir moviendo el scroll, el  zoom en fl studio maximo permite ver 18 compases (que tambien es afectado obviamente por la cantidad de audios, es decir, si hay audios compando de el compas 1 y luego el 100, puedes hacer zoom hasta verlo todos)y el mas cercano 0,5 compases, l
+tambien presionado con la rueda del mouse y tirando hacia arriba o abajo se llega a un maximo 1000 compases, pero vamos a limitar el zoom maximo a 30 para evitarnos problemas futuros. 
+286. Dar doble click a una tarjeta de audio en el mini daw debería poder abrir las configuraciones.
+287. Vamos a mejorar la interfaz de la configuracion de los audios, primero hacerlo un poco mas grande y ancha, que no se salga de la pantalla. unos 700 de ancho esta bien.
+la mejora radica en algo profesional, son varios puntos, pero le pedi una IA que me detallara la configuracion cuando se toca 2 veces en una tarjeta de audio, obviamente son muchas cosas, si algo no se puede se tiene que anotar, o si algo es muy dificil se debe dejar pendiente para planificar mejor.
+Controles Principales (Cabecera)
+On/Off (LED): Activa o silencia el canal.
+Pan (Knob): Controla el balance estéreo (izquierda/derecha).
+Vol (Knob): Ganancia o volumen principal del sample.
+Pitch (Knob): Cambia el tono (afinación) en centésimas.
+Range (Display): Define cuántos semitonos sube o baja el knob de Pitch (rango de acción).
+Track (Display numérico): Asigna el audio a un canal específico del Mixer.
+Content (Gestión del Archivo)
+File/Folder Icons: Abre el explorador para cargar el archivo .wav/.mp3.
+Keep on disk (Switch): Lee el audio directamente del disco duro (streaming) en vez de cargar todo en la RAM.
+Resample (Switch): Activa la interpolación de alta calidad al cambiar el tono.
+Load regions / Slice markers (Switch): Lee la metadata del archivo para importar marcadores de loop o cortes ya existentes.
+Declicking mode (Dropdown): Selecciona el algoritmo de suavizado (fade muy corto) al inicio/final para evitar "clicks" digitales.
+Time Stretching (Manipulación de Tiempo/Tono)
+Pitch (Knob): Cambia el tono independiente del tiempo (según el algoritmo).
+Mul (Knob): Multiplicador de tiempo (alarga o encoge el sample porcentualmente).
+Time (Knob): Ajusta la duración a un tiempo específico (ej. 4 beats exactos).
+Mode (Dropdown): Algoritmo usado (ej. Resample, Stretch, Auto).
+Precomputed Effects (Procesamiento Destructivo/Previo)
+Remove DC offset (Switch): Centra la onda en la línea cero (evita distorsión silenciosa).
+Reverse polarity (Switch): Invierte la fase de la onda (arriba es abajo).
+Normalize (Switch): Sube el volumen del pico más alto al máximo posible (0dB) sin distorsionar.
+Reverse (Switch): Invierte el audio para que suene al revés.
+Fade stereo / Swap stereo (Switch): Cruza o intercambia los canales L y R.
+Edición de Sample (Knobs inferiores)
+SMP Start (Knob): Recorta el inicio del sample (ignora los primeros milisegundos).
+Length (Knob): Recorta el final (reduce la duración total).
+In / Out (Knobs): Crea un Fade In (entrada gradual) o Fade Out (salida gradual) de volumen.
+Crossfade (Knob): Si el audio se repite (loop), suaviza la unión entre el final y el inicio mezclándolos.
+Trim (Knob): Umbral de puerta de ruido para silenciar partes bajas (gate).
+
+Algo quen se menciona es que ahora los modales del daw tienen que ser ventanas, bueno simular ventanas que se puede mover libremente y cerrar, cuando se minimizan se grupan en iconos en la parte inferior. 
+
+
+# AGENTE TWO (tareas libres)
+
+274. Que se pueda filtrar por samples free y de pagos en el feed samples 
+288. La pagina de explorar funciona casi bien. Primero, si los samples no tienen, por defecto deberían aparecer en en la carpeta samples, pero no aparecen a pesar de que el contador los cuenta.
+
+289.1 no se porque la ia en algun momento genero null para la carpeta secundaria
+  "carpeta_primaria": "Samples",
+  "carpeta_secundaria": null,
+
+la instrucción dice asi
+
+- "carpeta_secundaria": Subcarpeta dentro de carpeta_primaria. Opciones por carpeta: Drums: "Kicks","Snares","Claps","HiHats","Toms","Percussion". Loops: "Drum Loops","Perc Loops","Bass Loops","Melodic Loops". Samples: usa el genero principal (ej: "Hip Hop","Phonk","Trap","Lo-Fi","Jazz","R&B"). FX: "Impacts","Risers","Sweeps","Atmos". Instruments: "Bass","Chords","Leads","Pads","Keys","Strings". Vocals: "Phrases","One Shots","Chops".
+
+eligio samples pero no eligio la carpeta secundaria, creo que hay que ser mas detallado con las carpetas, y ver como se puede arreglar para evitar null, etc, y decirle que no diga null. 
+290. no se puede selecionar me encanta o dislike porque exploradorHeader se pone por encima en la lista de samples del explorador.
+291. En la pagina de explorador, si bien parece que los samples funciona bien, la forma en la que se ven los samples aunque no esta males la correcta, agregaremos otra forma de ordenas los samples, vistas 
+
+
+# AGENTE THRE
 
 ---
 
@@ -321,3 +380,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Mezclador-Audit]: Buffers invertidos se recrean en cada schedule — cachear como pitchShift. `limpiarProyecto` y `destruir()` deben llamar `limpiarCache()`.
 - [Mezclador-Audit]: `inferirCompas` y `aplicarPitchShift` pueden dividir por 0 — guard bpm>0 y rate>0.
 - [Mezclador-Audit]: `setTiempoActual` en rAF causa 60fps re-renders — throttle o usar ref selectivo para cursor.
+- [Cache-Feed]: MotorRecomendacion transients guardan filas crudas PDO. Al verificar/cambiar estado, llamar `invalidarCacheGlobal()` o el badge no se refleja.
+- [Hardcode-Audit]: R63 solo cubrió repositorios. Servicios (MotorRecomendacion, ConstructorSenales), Helpers (NormalizadorSample), Controllers (SamplesController, PublicacionesController, SocialController, Comentarios*, SamplesModificacion) también tenían hardcodes. Auditoría completa requiere grep de enums + column names EN TODOS los PHP.
+- [Enums-Gaps]: AdminRepository usa 'pendiente' para moderacion_estado y reportes.estado — no hay PublicacionesEnums ni ReportesEnums para estos valores. Generar CHECK constraints en schemas cuando se formalice.
+- [SET-Clauses]: SamplesModificacionController construye SET dinámico con `$campos[] = 'col = :param'`. Usar `SamplesCols::COL . ' = :param'` igual que en WHERE clauses.
+- [LogModeracion]: Solo acepta 2 args (mensaje, contexto). El 3er arg canal ('moderacion') es inválido — ya está implícito por la clase alias.
