@@ -236,45 +236,20 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 294. ✅ [AG-ONE] KnobControl SVG — Componente rotary knob con arco 270°, drag vertical, shift fine-control, bipolar para pan/pitch, wheel, double-click reset. Integrado en ModalConfigBloque reemplazando sliders.
 295. ✅ [AG-ONE] Reset individual doble-click — Todos los controles (knobs y toggles) soportan doble-click reset. Eliminado botón global "Restablecer todo".
 296. ✅ [AG-ONE] Zoom freeze durante resize — fijarTotalExtendido()/desfijarTotalExtendido() en store. obtenerTotalExtendido() retorna max(fijado, calculado) durante resize para evitar shrink.
-297. [EN CURSO — AG-ONE] Menú Contextual de Pista (Track Header) en la playlist (actualmente no se puede cambiar la altura de las pistas pero debería, se hara un menu contextual con las siguientes opciones):
-Identidad y Organización Visual
-Rename, color and icon...: Abre un modal para editar las 3 propiedades principales de la pista: Nombre (string), Color (hex) e Icono (id/image).
-Random color: Asigna un color aleatorio a la pista (útil para diferenciar rápidamente).
-Change color...: Abre solo el selector de color (color picker).
-Change icon...: Abre solo el selector de iconos.
-Reset: Restaura la pista a su estado por defecto (Nombre "Track X", color gris, sin icono).
-Layout y Dimensiones
-Size (Submenú): Permite seleccionar la altura vertical de la pista (ej. 100%, 50%, Minimizado).
-Lock to this size: Un interruptor (boolean) que bloquea la altura. Impide que el usuario redimensione la pista arrastrando los bordes con el mouse.
-Gestión de Clips (Contenido)
-Lock to content: Bloquea la pista para que solo acepte un tipo de clip específico (ej. si pones un Audio Clip, ya no deja poner patrones MIDI en esa misma fila).
-Mute all clips: Itera sobre todos los clips que estén en esta coordenada Y (pista) y los desactiva.
-Unmute all clips: Reactiva todos los clips de la pista.
-Ayudas Visuales
-las notas MIDI de otros patrones para usarlas como guía de referencia al componer.
-Operaciones de Pista (CRUD y Orden)
-Insert one: Inserta una pista vacía nueva en la posición actual, desplazando las demás hacia abajo.
-Clone...: Duplica la pista actual (copiando nombre, color y configuración) y la inserta abajo.
-Delete: Elimina la pista y usualmente pregunta si borrar también los clips que contiene.
-Move up: Intercambia la posición de la pista con la superior (Array index - 1).
-Move down: Intercambia la posición de la pista con la inferior (Array index + 1).
-298. [EN CURSO — AG-ONE] El input de tempo es muy generico, debe ser como el fl studio, sin los botones de arriba y abajo, si dejo pulsado y tiro hacia arriba sube el tempo, si tiro hacia abajo, baja, si doy doble click puedo escribir el valor. Los inputs aca tienen que tener la misma altura que los botones del nav de daw, si se mantiene la consistencia visual.
-299. [EN CURSO — AG-ONE] el minimapaDaw da a veces lo muevo o cambio el tamaño y se mueve unos unos cm hacia una determinada posicion, o sea, es rigido sin sentido, no entiendo porque, debe ser totalmente libre, las vistas, tambien cuando lo cambio de tamaño se mueve a otro lugar.
-300. [EN CURSO — AG-ONE] las pistas no tienen que dejar de verse nunca al hacer scroll horizontal (o sea el mezcladorPistaControles)
-301. [EN CURSO — AG-ONE] en mezcladorPistaControles los botones de silenciar o borrar deben estar ocultos por defecto mostrarse cuando se haga hover en el mezcladorPistaControles
-302. [EN CURSO — AG-ONE] Cuando intento arrastrar la ventana de configuracion de audio de una tarjeta, se mueve la tarjeta tambien aunque el mouse no este cerca de ella.
-y aparece 
-react-dom.development.js:15688 
- Uncaught Error: Rendered more hooks than during the previous render.
-    at VentanaFlotante (VentanaFlotante.tsx:38:25)
-303. [EN CURSO — AG-ONE] La linea de tiempo solo se mueve cuando doy click, debería poder moverse en tiempo real, arrastrandola tambien en el minidaw.
-304. [EN CURSO — AG-ONE] El tiempo de la linea de tiemp debería verse, agregar un visualizador de duracion o tiempo, no se como describirlo, en fin, en fl studio se llama song position, y tiene dos modos M:S:CS y B:S:T y cambia de un modo a otro con click, aqui tambien debería poder ser igual.
-305. [EN CURSO — AG-ONE] visualizador de onda en tiempo real mientras se reproduce, en fl studio se llama monitor.
-306. [EN CURSO — AG-ONE] peak master, es igual lo anterior pero son 2 bloques horizontales que suben y bajan segun el volumen, supongo ambos represetan el canal derecho y izquierdo.
-307. [EN CURSO — AG-ONE] un boton que activa o desactiva el browser (aparecera a la derecha) (este boton activa o desactiva el panel de la derecha), como en el panel cuando esta contraido no va a caber, lo mejor es que aparezca por fuera en un panel a la izquierda, este panel es un panel extra, tambien se podra ocultar y mostrar al mismo tiempo con el panel del daw (por favor este sistema de paneles este centralizado y bien solid primero, no queremos problemas en el futuro), usara centralizadamente el componente de exploradorCarpetas en la pagina de explorador, si se esta en la pagina de explorar este panel no se abrira porque es redundandte tener 2 exploradorCarpetas. Esto lleva a la siguiente tarea. 
-307.1 [EN CURSO — AG-ONE] exploradorCarpetas cuando este activo desde el daw, mostrara los samples que contiene solo con el nombre, asi como funciona en el fl studio, y se podra arrastrar un audio de ahi a la pista, por supuesto esto implica que las carpetas se puedan contraer expandir para ver sus contenidos.
-309. El minimapa sigue teniendo movimientos rigidos
-311. La configuracion avanzada, el boton de on y off debería estar en el header del modal y debería funcionar para apagar o encender ese bloque de audio.
+297. ✅ [AG-ONE] Menú contextual de pista — 9 acciones en store (accionesPista.ts slice): renombrar, color aleatorio, cambiar altura (normal→compacta→minimizada), duplicar, mover arriba/abajo, insertar debajo, silenciar todos bloques, resetear, eliminar. MenuContextual con right-click en controles pista. Inline rename con doble-click. Indicador de color (3px bar). CSS altura clases.
+298. ✅ [AG-ONE] InputTempo FL-style — Drag vertical para cambiar BPM (mousedown+mousemove+mouseup en document), shift para fine control (0.1 vs 1 step), doble-click para editar con input texto, wheel para ajustar. Misma altura que botones nav.
+299. ✅ [AG-ONE] MinimapaDaw rewrite — Lectura directa del DOM, skip sync durante drag, cálculo correcto de viewport. Eliminados movimientos rígidos/saltos al mover o redimensionar.
+300. ✅ [AG-ONE] Sticky track controls — CSS position:sticky left:0 z-index:2 en .mezcladorPistaControles para que nunca se oculten al scroll horizontal.
+301. ✅ [AG-ONE] Hover buttons — Botones de silenciar/borrar en .mezcladorPistaControles con opacity:0 por defecto, opacity:1 en hover. Transición suave.
+302. ✅ [AG-ONE] VentanaFlotante hooks fix — Todos los hooks movidos ANTES del early return. posicionRef añadido. stopPropagation en drag. Eliminado error "Rendered more hooks than during the previous render".
+303. ✅ [AG-ONE] Timeline drag real-time — BarraCompases rewrite: mousedown+mousemove+mouseup pattern reemplazando simple onClick. Actualización en tiempo real al arrastrar.
+304. ✅ [AG-ONE] SongPosition display — Componente con dos modos: M:S:CS (minutos:segundos:centésimas) y B:S:T (barra:step:tick). Click para cambiar entre modos. Usa segundosACompases() + compasProyecto.
+305. ✅ [AG-ONE] Monitor de onda — MonitorOnda.tsx: canvas con waveform en tiempo real via masterAnalyser + getByteTimeDomainData() en rAF loop. Línea central + trazo con color var(--acento).
+306. ✅ [AG-ONE] Peak meter estéreo — MedidorPicos.tsx: ChannelSplitter(2) + 2 AnalyserNodes stereo en motorAudioService. Canvas con 2 barras verticales L/R, decay smoothing (0.92), gradiente verde→amarillo→rojo. obtenerAnalyserEstereo() getter.
+307. ✅ [AG-ONE] Browser panel — browserDawStore.ts (Zustand: abierto, carpetasExpandidas Set), useBrowserDaw.ts (lazy loading carpetas + samples por carpeta), PanelBrowserDaw.tsx (108 lín, folder tree colapsable + samples draggable). Botón toggle en header MezcladorPanel con iconos PanelLeftOpen/Close. CSS browserDaw.css (127 lín).
+307.1 ✅ [AG-ONE] Drag samples desde browser — Items con draggable + onDragStart seteando application/kamples-sample dataTransfer format (mismo formato que feed existente). Carpetas expandibles con chevron + icono.
+309. ✅ [AG-ONE] Fix minimapa movimientos rígidos — Manipulación directa del DOM durante drag (viewportRef + actualizarViewportDOM), throttling con requestAnimationFrame para React state y scroll del timeline, React state sincronizado solo al soltar. CSS will-change: left, width. Elimina micro-lag de re-renders en cada mousemove.
+311. ✅ [AG-ONE] On/off bloque en header modal — Botón Power movido al header de VentanaFlotante vía nueva prop botonesExtra. Refactor SRP: lógica extraída a useConfigBloque.ts (115 lín), componente reducido de 465 → 299 líneas. Variable cerrarVentana no usada eliminada.
 
 
 
@@ -426,3 +401,6 @@ react-dom.development.js:15688
 - [Filtros-Feed]: esPremium ya viene en SampleResumen — filtrado client-side es suficiente sin cambios en backend (filtrosStore + useMemo en FeedSamples). Server-side solo necesario si paginación se ve afectada.
 - [Cuadricula]: Para vistas minimalistas (solo portada+nombre), no incluir reproductor — mantener componente separado y simple (TarjetaSampleCuadricula) sin dependencia de stores de audio.
 - [LogModeracion]: Solo acepta 2 args (mensaje, contexto). El 3er arg canal ('moderacion') es inválido — ya está implícito por la clase alias.
+- [Mezclador-MinimapaDaw]: Re-renders por setState en mousemove = movimiento rígido. Solución: manipulación directa del DOM (viewportRef.style.left/width) + rAF throttle para React state. Solo sincronizar React en mouseup.
+- [Mezclador-VentanaFlotante]: Prop `botonesExtra` (ReactNode) para inyectar acciones en header sin modificar VentanaFlotante. OCP puro.
+- [Mezclador-ModalConfigBloque]: useConfigBloque hook con crearToggle() factory para toggles uniformes. Reduce componente de 465 a 299 líneas.

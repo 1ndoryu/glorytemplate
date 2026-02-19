@@ -3,6 +3,8 @@
  * C285: Barra horizontal de 34px que muestra vista pajarito de todas las pistas.
  * C299: Fix movimiento rígido — lectura directa del DOM para evitar stale closures,
  * desactivar sync durante drag, mantener viewport fijo durante resize.
+ * C309: Eliminada rigidez residual — manipulación directa del DOM durante drag,
+ * throttling con requestAnimationFrame, React state solo se sincroniza al soltar.
  */
 
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
@@ -29,12 +31,18 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
     const setNivelZoom = useMezcladorStore(s => s.setNivelZoom);
     const totalExtendido = useMezcladorStore(s => s.obtenerTotalExtendido());
     const minimapaRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
 
     const [scrollFrac, setScrollFrac] = useState(0);
     const viewportFrac = Math.min(1, 1 / nivelZoom);
     const viewportLeft = scrollFrac * (1 - viewportFrac);
 
-    /* Flag para evitar ping-pong sync durante drag */
+    /*
+     * Refs para drag sin re-renders.
+     * dragInfo: datos de inicio del drag.
+     * rafId: ID del requestAnimationFrame pendiente.
+     * pendingDrag: último estado calculado durante drag (scroll + zoom opcional).
+     */
     const dragInfo = useRef<{
         tipo: 'mover' | 'izquierda' | 'derecha';
         startX: number;
@@ -44,6 +52,8 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
         startNivelZoom: number;
         minimapaAncho: number;
     } | null>(null);
+    const rafId = useRef<number | null>(null);
+    const pendingDrag = useRef<{ scrollFrac: number; zoom?: number } | null>(null);
 
     /* Sincronizar scroll del timeline — solo cuando NO hay drag activo */
     useEffect(() => {
@@ -99,6 +109,18 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
         el.scrollLeft = fraccion * maxScroll;
     }, [timelineRef]);
 
+    /*
+     * Actualizar viewport directamente en el DOM sin React re-render.
+     * Esto elimina la rigidez durante drag porque evita el ciclo:
+     * setState → reconciliación → paint.
+     */
+    const actualizarViewportDOM = useCallback((vLeft: number, vFrac: number) => {
+        const el = viewportRef.current;
+        if (!el) return;
+        el.style.left = `${vLeft * 100}%`;
+        el.style.width = `${vFrac * 100}%`;
+    }, []);
+
     /* Iniciar drag — lee siempre del DOM para evitar stale closures */
     const iniciarDrag = useCallback((tipo: 'mover' | 'izquierda' | 'derecha', e: React.MouseEvent) => {
         e.preventDefault();
@@ -118,9 +140,21 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
             startNivelZoom: nivelZoom,
             minimapaAncho,
         };
+
+        /* Cancelar cualquier rAF pendiente al iniciar nuevo drag */
+        if (rafId.current) {
+            cancelAnimationFrame(rafId.current);
+            rafId.current = null;
+        }
+        pendingDrag.current = null;
     }, [timelineRef, nivelZoom]);
 
-    /* Handlers globales de drag */
+    /*
+     * Handlers globales de drag.
+     * C309: El viewport se actualiza directamente en el DOM (instantáneo).
+     * setNivelZoom y setScrollFrac se throttlean con rAF para evitar
+     * cascadas de re-renders que causan rigidez.
+     */
     useEffect(() => {
         const mover = (e: MouseEvent) => {
             const info = dragInfo.current;
@@ -129,74 +163,91 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
             const deltaX = e.clientX - info.startX;
             const deltaFrac = deltaX / info.minimapaAncho;
 
+            let nuevoScroll = 0;
+            let nuevoZoom: number | undefined;
+            let vFrac = info.startViewportFrac;
+            let vLeft = 0;
+
             if (info.tipo === 'mover') {
-                /*
-                 * Mover viewport libremente.
-                 * deltaFrac es la distancia en el espacio del minimapa.
-                 * Para que el viewport siga el mouse 1:1 en píxeles del minimapa,
-                 * la nueva posición left es startViewportLeft + deltaFrac.
-                 * Luego derivar scrollFrac = viewportLeft / (1 - viewportFrac).
-                 */
                 const nuevoLeft = info.startViewportLeft + deltaFrac;
                 const maxMov = 1 - info.startViewportFrac;
                 if (maxMov <= 0) return;
-                const nuevoScroll = Math.max(0, Math.min(1, nuevoLeft / maxMov));
-                setScrollFrac(nuevoScroll);
-                scrollTimeline(nuevoScroll);
+                nuevoScroll = Math.max(0, Math.min(1, nuevoLeft / maxMov));
+                vLeft = nuevoScroll * (1 - vFrac);
 
             } else if (info.tipo === 'derecha') {
-                /*
-                 * Resize derecha: el borde izquierdo del viewport se mantiene fijo.
-                 * Cambiar zoom según el delta del borde derecho.
-                 */
                 const nuevoViewportFrac = Math.max(
                     1 / maxZoom,
                     Math.min(1, info.startViewportFrac + deltaFrac)
                 );
-                const nuevoZoom = Math.max(ZOOM_MIN, Math.min(maxZoom, 1 / nuevoViewportFrac));
-                setNivelZoom(nuevoZoom);
-
-                /* Mantener borde izquierdo fijo: recalcular scrollFrac */
-                const vFracNuevo = 1 / nuevoZoom;
-                const maxMovNuevo = 1 - vFracNuevo;
+                nuevoZoom = Math.max(ZOOM_MIN, Math.min(maxZoom, 1 / nuevoViewportFrac));
+                vFrac = 1 / nuevoZoom;
+                const maxMovNuevo = 1 - vFrac;
                 if (maxMovNuevo > 0) {
-                    const nuevoScroll = Math.max(0, Math.min(1, info.startViewportLeft / maxMovNuevo));
-                    setScrollFrac(nuevoScroll);
-                    scrollTimeline(nuevoScroll);
+                    nuevoScroll = Math.max(0, Math.min(1, info.startViewportLeft / maxMovNuevo));
+                } else {
+                    nuevoScroll = 0;
                 }
+                vLeft = nuevoScroll * (1 - vFrac);
 
             } else if (info.tipo === 'izquierda') {
-                /*
-                 * Resize izquierda: el borde derecho del viewport se mantiene fijo.
-                 * rightEdge = startViewportLeft + startViewportFrac
-                 */
                 const nuevoViewportFrac = Math.max(
                     1 / maxZoom,
                     Math.min(1, info.startViewportFrac - deltaFrac)
                 );
-                const nuevoZoom = Math.max(ZOOM_MIN, Math.min(maxZoom, 1 / nuevoViewportFrac));
-                setNivelZoom(nuevoZoom);
-
-                /* Mantener borde derecho fijo */
+                nuevoZoom = Math.max(ZOOM_MIN, Math.min(maxZoom, 1 / nuevoViewportFrac));
+                vFrac = 1 / nuevoZoom;
                 const rightEdge = info.startViewportLeft + info.startViewportFrac;
-                const vFracNuevo = 1 / nuevoZoom;
-                const newLeft = rightEdge - vFracNuevo;
-                const maxMovNuevo = 1 - vFracNuevo;
+                const newLeft = rightEdge - vFrac;
+                const maxMovNuevo = 1 - vFrac;
                 if (maxMovNuevo > 0) {
-                    const nuevoScroll = Math.max(0, Math.min(1, newLeft / maxMovNuevo));
-                    setScrollFrac(nuevoScroll);
-                    scrollTimeline(nuevoScroll);
+                    nuevoScroll = Math.max(0, Math.min(1, newLeft / maxMovNuevo));
+                } else {
+                    nuevoScroll = 0;
                 }
+                vLeft = nuevoScroll * (1 - vFrac);
+            }
+
+            /* Actualización inmediata del viewport en el DOM — sin React */
+            actualizarViewportDOM(vLeft, vFrac);
+
+            /* Guardar estado pendiente para aplicar en rAF */
+            pendingDrag.current = { scrollFrac: nuevoScroll, zoom: nuevoZoom };
+
+            /* Throttle con rAF: React state + scroll del timeline */
+            if (!rafId.current) {
+                rafId.current = requestAnimationFrame(() => {
+                    rafId.current = null;
+                    const pending = pendingDrag.current;
+                    if (!pending) return;
+                    if (pending.zoom !== undefined) setNivelZoom(pending.zoom);
+                    scrollTimeline(pending.scrollFrac);
+                });
             }
         };
 
         const soltar = () => {
-            if (dragInfo.current) {
-                /* Sincronizar estado final desde DOM */
-                const realFrac = leerScrollFracDOM(timelineRef.current);
-                setScrollFrac(realFrac);
-                dragInfo.current = null;
+            if (!dragInfo.current) return;
+
+            /* Cancelar rAF pendiente */
+            if (rafId.current) {
+                cancelAnimationFrame(rafId.current);
+                rafId.current = null;
             }
+
+            /* Aplicar último estado pendiente */
+            const pending = pendingDrag.current;
+            if (pending) {
+                if (pending.zoom !== undefined) setNivelZoom(pending.zoom);
+                scrollTimeline(pending.scrollFrac);
+            }
+
+            /* Sincronizar estado final desde DOM */
+            const realFrac = leerScrollFracDOM(timelineRef.current);
+            setScrollFrac(realFrac);
+
+            pendingDrag.current = null;
+            dragInfo.current = null;
         };
 
         document.addEventListener('mousemove', mover);
@@ -204,8 +255,12 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
         return () => {
             document.removeEventListener('mousemove', mover);
             document.removeEventListener('mouseup', soltar);
+            if (rafId.current) {
+                cancelAnimationFrame(rafId.current);
+                rafId.current = null;
+            }
         };
-    }, [scrollTimeline, setNivelZoom, maxZoom, timelineRef]);
+    }, [scrollTimeline, setNivelZoom, maxZoom, timelineRef, actualizarViewportDOM]);
 
     /* Click fuera del viewport — saltar a esa posición */
     const alClickMinimapa = useCallback((e: React.MouseEvent) => {
@@ -254,6 +309,7 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
             ))}
 
             <div
+                ref={viewportRef}
                 className="minimapaViewport"
                 style={{
                     left: `${viewportLeft * 100}%`,

@@ -1,18 +1,15 @@
 /*
- * ModalConfigBloque — Configuración avanzada de un bloque de audio.
- * C287: Rediseño completo — ventana flotante draggable de 700px con controles
- * profesionales organizados en secciones inspiradas en FL Studio Channel Settings.
- * Se abre desde doble click (C286) o botón 3 puntos en BloqueSample.
+ * ModalConfigBloque — Configuración avanzada de bloque de audio.
+ * C287: Ventana flotante 700px, controles FL Studio Channel Settings.
+ * C311: On/Off movido al header vía botonesExtra. Lógica en useConfigBloque.
  */
 
-import { useState, useCallback, useEffect } from 'react';
 import { RotateCcw, Power, Music } from 'lucide-react';
-import type { BloqueMezclador, ConfigBloque } from '../types/mezclador';
+import type { BloqueMezclador } from '../types/mezclador';
 import { useMezcladorStore } from '../stores/mezcladorStore';
-import { useVentanasStore } from '../stores/ventanasStore';
 import { VentanaFlotante } from './VentanaFlotante';
 import { KnobControl } from './KnobControl';
-import { invalidarCacheBloque } from '../services/pitchShiftService';
+import { useConfigBloque } from '../hooks/useConfigBloque';
 
 interface ModalConfigBloqueProps {
     bloque: BloqueMezclador;
@@ -23,168 +20,46 @@ export const ModalConfigBloque = ({
     bloque,
     onCerrar,
 }: ModalConfigBloqueProps): JSX.Element => {
-    const actualizarConfigBloque = useMezcladorStore(s => s.actualizarConfigBloque);
-    const setDuracionBloque = useMezcladorStore(s => s.setDuracionBloque);
-    const bpmProyecto = useMezcladorStore(s => s.bpmProyecto);
-    const compasProyecto = useMezcladorStore(s => s.compasProyecto);
-    const abrirVentana = useVentanasStore(s => s.abrirVentana);
-    const cerrarVentana = useVentanasStore(s => s.cerrarVentana);
-
-    /* ID único de la ventana basado en el bloque */
-    const ventanaId = `config-bloque-${bloque.id}`;
-
-    /* Registrar ventana al montar */
-    useEffect(() => {
-        abrirVentana({
-            id: ventanaId,
-            tipo: 'configBloque',
-            titulo: bloque.sample.titulo,
-            bloqueId: bloque.id,
-            posicion: {
-                x: Math.max(20, Math.round(window.innerWidth / 2 - 350)),
-                y: Math.max(20, Math.round(window.innerHeight / 2 - 280)),
-            },
-        });
-    }, []);
-
-    /* Cerrar la ventana y notificar al padre */
-    const ventana = useVentanasStore(s => s.ventanas.find(v => v.id === ventanaId));
-    useEffect(() => {
-        /* Si la ventana fue cerrada desde VentanaFlotante, propagar al padre */
-        if (ventana === undefined) {
-            onCerrar();
-        }
-    }, [ventana, onCerrar]);
-
-    /* Estado local para edición — se aplica inmediatamente */
-    const [silenciado, setSilenciado] = useState(bloque.silenciado);
-    const [invertido, setInvertido] = useState(bloque.invertido);
-    const [normalizado, setNormalizado] = useState(bloque.normalizado);
-    const [fadeIn, setFadeIn] = useState(bloque.fadeIn);
-    const [fadeOut, setFadeOut] = useState(bloque.fadeOut);
-    const [volumen, setVolumen] = useState(bloque.volumen);
-    const [playbackRate, setPlaybackRate] = useState(bloque.playbackRate);
-    const [detune, setDetune] = useState(bloque.detune ?? 0);
-    const [modoTonalidad, setModoTonalidad] = useState<'resample' | 'stretch'>(bloque.modoTonalidad ?? 'resample');
-    const [pan, setPan] = useState(bloque.pan ?? 0);
-    const [modoDeclic, setModoDeclic] = useState(bloque.modoDeclic ?? 'none');
-    const [invertirPolaridad, setInvertirPolaridad] = useState(bloque.invertirPolaridad ?? false);
-    const [intercambiarEstereo, setIntercambiarEstereo] = useState(bloque.intercambiarEstereo ?? false);
-
-    /* Duración total del buffer en segundos */
-    const duracionBuffer = bloque.audioBuffer?.duration ?? 0;
-    const durCompas = (60 / bpmProyecto) * compasProyecto.numerador;
-    const duracionWall = bloque.duracionCompases * durCompas;
-
-    /* Aplicar cambios en tiempo real */
-    const aplicar = useCallback((config: ConfigBloque) => {
-        actualizarConfigBloque(bloque.id, config);
-    }, [bloque.id, actualizarConfigBloque]);
-
-    /* Toggle on/off (silenciar bloque) */
-    const toggleSilenciado = () => {
-        const nuevo = !silenciado;
-        setSilenciado(nuevo);
-        useMezcladorStore.setState(prev => ({
-            pistas: prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.map(b =>
-                    b.id === bloque.id ? { ...b, silenciado: nuevo } : b
-                ),
-            })),
-        }));
-    };
-
-    /* Pan */
-    const alCambiarPan = (valor: number) => {
-        const clamped = Math.max(-1, Math.min(1, valor));
-        setPan(clamped);
-        aplicar({ pan: clamped });
-    };
-
-    /* Volumen */
-    const alCambiarVolumen = (valor: number) => {
-        const clamped = Math.max(0, Math.min(2, valor));
-        setVolumen(clamped);
-        aplicar({ volumen: clamped });
-    };
-
-    /* Pitch / Speed */
-    const alCambiarRate = (valor: number) => {
-        const clamped = Math.max(0.25, Math.min(4, valor));
-        setPlaybackRate(clamped);
-        const nuevaDuracion = duracionBuffer / (clamped * durCompas);
-        setDuracionBloque(bloque.id, Math.max(0.25, nuevaDuracion));
-    };
-
-    /* Detune en semitonos */
-    const alCambiarDetune = (valor: number) => {
-        const clamped = Math.max(-12, Math.min(12, Math.round(valor)));
-        setDetune(clamped);
-        if (modoTonalidad === 'stretch') invalidarCacheBloque(bloque.id);
-        aplicar({ detune: clamped });
-    };
-
-    /* Modo tonal */
-    const alCambiarModoTonalidad = (modo: 'resample' | 'stretch') => {
-        setModoTonalidad(modo);
-        invalidarCacheBloque(bloque.id);
-        aplicar({ modoTonalidad: modo });
-    };
-
-    /* Fade In */
-    const alCambiarFadeIn = (valor: number) => {
-        const clamped = Math.max(0, Math.min(duracionWall / 2, valor));
-        setFadeIn(clamped);
-        aplicar({ fadeIn: clamped });
-    };
-
-    /* Fade Out */
-    const alCambiarFadeOut = (valor: number) => {
-        const clamped = Math.max(0, Math.min(duracionWall / 2, valor));
-        setFadeOut(clamped);
-        aplicar({ fadeOut: clamped });
-    };
-
-    /* Declicking */
-    const alCambiarDeclic = (modo: 'none' | 'corto' | 'medio' | 'largo') => {
-        setModoDeclic(modo);
-        aplicar({ modoDeclic: modo });
-    };
-
-    /* Toggle reverse */
-    const toggleInvertido = () => {
-        const nuevo = !invertido;
-        setInvertido(nuevo);
-        aplicar({ invertido: nuevo });
-    };
-
-    /* Toggle normalizar */
-    const toggleNormalizado = () => {
-        const nuevo = !normalizado;
-        setNormalizado(nuevo);
-        aplicar({ normalizado: nuevo });
-    };
-
-    /* Toggle invertir polaridad */
-    const toggleInvertirPolaridad = () => {
-        const nuevo = !invertirPolaridad;
-        setInvertirPolaridad(nuevo);
-        aplicar({ invertirPolaridad: nuevo });
-    };
-
-    /* Toggle intercambiar estéreo */
-    const toggleIntercambiarEstereo = () => {
-        const nuevo = !intercambiarEstereo;
-        setIntercambiarEstereo(nuevo);
-        aplicar({ intercambiarEstereo: nuevo });
-    };
+    const {
+        ventanaId, silenciado, invertido, normalizado, fadeIn, fadeOut,
+        volumen, playbackRate, detune, modoTonalidad, pan, modoDeclic,
+        invertirPolaridad, intercambiarEstereo,
+        duracionBuffer, duracionWall,
+        setSilenciado,
+        toggleSilenciado, alCambiarPan, alCambiarVolumen, alCambiarRate,
+        alCambiarDetune, alCambiarModoTonalidad, alCambiarFadeIn,
+        alCambiarFadeOut, alCambiarDeclic,
+        toggleInvertido, toggleNormalizado, toggleInvertirPolaridad, toggleIntercambiarEstereo,
+    } = useConfigBloque(bloque, onCerrar);
 
     return (
         <VentanaFlotante
             id={ventanaId}
             titulo={bloque.sample.titulo}
             ancho={700}
+            botonesExtra={
+                <button
+                    className={`ventanaFlotanteBoton configBloqueHeaderLed ${!silenciado ? 'configBloqueHeaderLedActivo' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); toggleSilenciado(); }}
+                    onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        if (silenciado) {
+                            setSilenciado(false);
+                            useMezcladorStore.setState(prev => ({
+                                pistas: prev.pistas.map(p => ({
+                                    ...p,
+                                    bloques: p.bloques.map(b =>
+                                        b.id === bloque.id ? { ...b, silenciado: false } : b
+                                    ),
+                                })),
+                            }));
+                        }
+                    }}
+                    title={silenciado ? 'Activar bloque' : 'Desactivar bloque'}
+                >
+                    <Power size={12} />
+                </button>
+            }
         >
             <div className="configBloqueContenido">
                 {/* Sección: Cabecera principal con info y controles maestros */}
@@ -205,26 +80,8 @@ export const ModalConfigBloque = ({
                         </span>
                     </div>
 
-                    {/* Controles principales: On/Off + Knobs (Pan + Vol + Pitch) */}
+                    {/* Controles principales: Knobs (Pan + Vol + Pitch) */}
                     <div className="configBloqueControlGrid">
-                        {/* On/Off LED */}
-                        <div className="configBloqueControlGrupo">
-                            <button
-                                className={`configBloqueLed ${!silenciado ? 'configBloqueLedActivo' : ''}`}
-                                onClick={toggleSilenciado}
-                                onDoubleClick={(e) => {
-                                    e.stopPropagation();
-                                    if (silenciado) { setSilenciado(false); useMezcladorStore.setState(prev => ({ pistas: prev.pistas.map(p => ({ ...p, bloques: p.bloques.map(b => b.id === bloque.id ? { ...b, silenciado: false } : b) })) })); }
-                                }}
-                                title={silenciado ? 'Activar canal' : 'Silenciar canal'}
-                            >
-                                <Power size={14} />
-                            </button>
-                            <span className="configBloqueControlEtiqueta">
-                                {silenciado ? 'OFF' : 'ON'}
-                            </span>
-                        </div>
-
                         {/* Pan — Knob bipolar */}
                         <KnobControl
                             valor={pan}

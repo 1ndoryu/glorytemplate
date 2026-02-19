@@ -2,6 +2,7 @@
  * VentanaFlotante — Ventana arrastreable dentro del DAW.
  * C287: Reemplaza modales fijos por ventanas libres que se pueden mover,
  * minimizar y cerrar. Al minimizar, un icono aparece en BarraVentanasMinimizadas.
+ * C311: Prop botonesExtra para renderizar acciones adicionales en el header.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -12,6 +13,8 @@ interface VentanaFlotanteProps {
     id: string;
     titulo: string;
     ancho?: number;
+    /** Nodo React que se renderiza en el header antes de minimizar/cerrar */
+    botonesExtra?: React.ReactNode;
     children: React.ReactNode;
 }
 
@@ -19,6 +22,7 @@ export const VentanaFlotante = ({
     id,
     titulo,
     ancho = 700,
+    botonesExtra,
     children,
 }: VentanaFlotanteProps): JSX.Element | null => {
     const ventana = useVentanasStore(s => s.ventanas.find(v => v.id === id));
@@ -112,6 +116,7 @@ export const VentanaFlotante = ({
             >
                 <span className="ventanaFlotanteTituloTexto">{titulo}</span>
                 <div className="ventanaFlotanteBotones">
+                    {botonesExtra}
                     <button
                         className="ventanaFlotanteBoton"
                         onClick={(e) => { e.stopPropagation(); minimizar(id); }}

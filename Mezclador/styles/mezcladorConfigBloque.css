@@ -129,6 +129,21 @@
     color: #000;
 }
 
+/* C311: LED on/off en el header de VentanaFlotante */
+.configBloqueHeaderLed {
+    color: var(--textoTerciario);
+    border-radius: 3px;
+    transition: color var(--transicionRapida);
+}
+
+.configBloqueHeaderLed:hover {
+    color: var(--exito, #22c55e);
+}
+
+.configBloqueHeaderLedActivo {
+    color: var(--exito, #22c55e);
+}
+
 /* Dos columnas */
 .configBloqueColumnas {
     display: flex;
