@@ -40,14 +40,16 @@ export const useFiltroIds = (
     /* Cargar IDs de samples likeados */
     useEffect(() => {
         if (!filtroLikeados || likeadosCargados.current) return;
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
                 const ids = new Set<number>();
                 let pagina = 1;
                 let continuar = true;
-                while (continuar) {
+                while (continuar && !cancelado) {
                     const resp = await obtenerMisFavoritos(pagina, 100);
+                    if (cancelado) return;
                     if (resp.ok && resp.data?.data?.length) {
                         resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
                         if (resp.data.data.length < 100) continuar = false;
@@ -56,27 +58,32 @@ export const useFiltroIds = (
                         continuar = false;
                     }
                 }
-                setIdsLikeados(ids);
-                likeadosCargados.current = true;
+                if (!cancelado) {
+                    setIdsLikeados(ids);
+                    likeadosCargados.current = true;
+                }
             } catch (err) {
-                log.error('Error cargando IDs likeados', err);
+                if (!cancelado) log.error('Error cargando IDs likeados', err);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
         cargar();
+        return () => { cancelado = true; };
     }, [filtroLikeados]);
 
     /* Cargar IDs de samples descargados */
     useEffect(() => {
         if (!filtroDescargados || descargadosCargados.current) return;
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
                 const ids = new Set<number>();
                 let pagina = 1;
                 let continuar = true;
-                while (continuar) {
+                while (continuar && !cancelado) {
                     const resp = await obtenerMisDescargas(pagina, 100);
+                    if (cancelado) return;
                     if (resp.ok && resp.data?.data?.length) {
                         resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
                         if (resp.data.data.length < 100) continuar = false;
@@ -85,23 +92,28 @@ export const useFiltroIds = (
                         continuar = false;
                     }
                 }
-                setIdsDescargados(ids);
-                descargadosCargados.current = true;
+                if (!cancelado) {
+                    setIdsDescargados(ids);
+                    descargadosCargados.current = true;
+                }
             } catch (err) {
-                log.error('Error cargando IDs descargados', err);
+                if (!cancelado) log.error('Error cargando IDs descargados', err);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
         cargar();
+        return () => { cancelado = true; };
     }, [filtroDescargados]);
 
     /* Cargar IDs de usuarios seguidos */
     useEffect(() => {
         if (!filtroDeSeguidos || seguidosCargados.current) return;
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
                 const resp = await obtenerMisSeguidos();
+                if (cancelado) return;
                 if (resp.ok && resp.data) {
                     const ids = new Set<number>();
                     (resp.data as { id: number }[]).forEach((u) => ids.add(u.id));
@@ -109,11 +121,12 @@ export const useFiltroIds = (
                 }
                 seguidosCargados.current = true;
             } catch (err) {
-                log.error('Error cargando IDs seguidos', err);
+                if (!cancelado) log.error('Error cargando IDs seguidos', err);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
         cargar();
+        return () => { cancelado = true; };
     }, [filtroDeSeguidos]);
 
     return { idsLikeados, idsDescargados, idsSeguidos, cargando };

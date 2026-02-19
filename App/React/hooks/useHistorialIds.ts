@@ -28,6 +28,8 @@ export const useHistorialIds = (activo: boolean): UseHistorialIdsResult => {
     useEffect(() => {
         if (!activo || cargadoRef.current) return;
 
+        let cancelado = false;
+
         const cargar = async () => {
             setCargando(true);
             try {
@@ -37,8 +39,9 @@ export const useHistorialIds = (activo: boolean): UseHistorialIdsResult => {
 
                 /* Cargar todas las páginas del historial
                  * apiGet auto-unwrap: json.data ya es SampleResumen[] directamente */
-                while (continuar) {
+                while (continuar && !cancelado) {
                     const resp = await obtenerHistorial(pagina, 100);
+                    if (cancelado) return;
                     const lista = resp.ok && Array.isArray(resp.data) ? resp.data : [];
                     if (lista.length > 0) {
                         lista.forEach((s) => ids.add(s.id));
@@ -52,15 +55,21 @@ export const useHistorialIds = (activo: boolean): UseHistorialIdsResult => {
                     }
                 }
 
-                setIdsReproducidos(ids);
-                cargadoRef.current = true;
+                if (!cancelado) {
+                    setIdsReproducidos(ids);
+                    cargadoRef.current = true;
+                }
             } catch (err) {
-                log.error('Error cargando historial de reproducciones', err);
+                if (!cancelado) {
+                    log.error('Error cargando historial de reproducciones', err);
+                }
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
 
         cargar();
+
+        return () => { cancelado = true; };
     }, [activo]);
 
     return { idsReproducidos, cargando };

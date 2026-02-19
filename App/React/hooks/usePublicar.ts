@@ -8,6 +8,7 @@
 import { useState, useCallback, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { crearLogger } from '@app/services/logger';
+import { toast } from '@app/stores/toastStore';
 
 const log = crearLogger('usePublicar');
 
@@ -88,6 +89,7 @@ export const usePublicar = (opciones: OpcionesPublicar = {}) => {
                     urlsReales.push(resp.data.url);
                 } else {
                     log.error('Error subiendo imagen', resp);
+                    toast.error(resp.error ?? 'Error al subir imagen');
                 }
             }
 

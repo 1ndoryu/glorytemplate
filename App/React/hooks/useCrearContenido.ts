@@ -12,6 +12,7 @@ import { subirSample } from '@app/services/apiSamples';
 import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { crearLogger } from '@app/services/logger';
+import { toast } from '@app/stores/toastStore';
 
 const log = crearLogger('useCrearContenido');
 
@@ -48,7 +49,8 @@ export const generarPeaks = async (archivo: File, barras = 60): Promise<number[]
         }
         await contexto.close();
         return peaks;
-    } catch {
+    } catch (error) {
+        log.warn('No se pudieron generar peaks del audio, usando fallback', error);
         return Array(barras).fill(0.3);
     }
 };
@@ -160,57 +162,66 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         }
 
         log.info('Publicando', { tags, tieneAudio: !!audioAdjunto, imagenes: imagenes.length });
+        try {
+            if (audioAdjunto?.archivo) {
+                const resp = await subirSample({
+                    audio: audioAdjunto.archivo,
+                    titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
+                    contenido: contenido.trim(),
+                    tags,
+                    permitirDescarga,
+                    licenciaLibre: permitirDescarga,
+                    esPremium,
+                    precio: esPremium ? parseFloat(precio) || undefined : undefined,
+                    mostrarEnComunidad,
+                });
+                if (!resp.ok) {
+                    setErrorSubida(resp.error ?? 'Error al subir el sample');
+                    setPublicando(false);
+                    return;
+                }
+                log.info('Sample subido exitosamente', resp.data);
+            } else {
+                const urlsReales: string[] = [];
+                for (const img of imagenes) {
+                    const respImg = await subirImagenPublicacion(img.archivo);
+                    if (respImg.ok && respImg.data?.url) {
+                        urlsReales.push(respImg.data.url);
+                    } else {
+                        log.error('Error subiendo imagen', respImg);
+                        toast.error(respImg.error ?? 'Error al subir imagen');
+                    }
+                }
+                const resp = await crearPublicacion({
+                    tipo: 'social',
+                    contenido: contenido.trim(),
+                    imagenes: urlsReales.length > 0 ? urlsReales : undefined,
+                });
+                if (!resp.ok) {
+                    setErrorSubida(resp.error ?? 'Error al publicar');
+                    setPublicando(false);
+                    return;
+                }
+                log.info('Publicacion creada', resp.data);
+            }
 
-        if (audioAdjunto?.archivo) {
-            const resp = await subirSample({
-                audio: audioAdjunto.archivo,
-                titulo: audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
-                contenido: contenido.trim(),
-                tags,
-                permitirDescarga,
-                licenciaLibre: permitirDescarga,
-                esPremium,
-                precio: esPremium ? parseFloat(precio) || undefined : undefined,
-                mostrarEnComunidad,
-            });
-            if (!resp.ok) {
-                setErrorSubida(resp.error ?? 'Error al subir el sample');
+            setExitoSubida(true);
+
+            /* C223: Notificar al feed para que refresque la lista de samples */
+            if (audioAdjunto?.archivo) {
+                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_CREADO));
+            }
+
+            setTimeout(() => {
                 setPublicando(false);
-                return;
-            }
-            log.info('Sample subido exitosamente', resp.data);
-        } else {
-            const urlsReales: string[] = [];
-            for (const img of imagenes) {
-                const respImg = await subirImagenPublicacion(img.archivo);
-                if (respImg.ok && respImg.data?.url) urlsReales.push(respImg.data.url);
-                else log.error('Error subiendo imagen', respImg);
-            }
-            const resp = await crearPublicacion({
-                tipo: 'social',
-                contenido: contenido.trim(),
-                imagenes: urlsReales.length > 0 ? urlsReales : undefined,
-            });
-            if (!resp.ok) {
-                setErrorSubida(resp.error ?? 'Error al publicar');
-                setPublicando(false);
-                return;
-            }
-            log.info('Publicacion creada', resp.data);
-        }
-
-        setExitoSubida(true);
-
-        /* C223: Notificar al feed para que refresque la lista de samples */
-        if (audioAdjunto?.archivo) {
-            window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_CREADO));
-        }
-
-        setTimeout(() => {
+                resetear();
+                alCompletarPublicacion?.();
+            }, 1500);
+        } catch (error) {
+            log.error('Error inesperado al publicar contenido', error);
+            setErrorSubida('Error de conexión al publicar contenido');
             setPublicando(false);
-            resetear();
-            alCompletarPublicacion?.();
-        }, 1500);
+        }
     }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, precio, resetear, alCompletarPublicacion]);
 
     /* Ctrl+Enter para publicar */

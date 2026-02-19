@@ -106,6 +106,12 @@ export const useSamples = () => {
                     totalPaginas: pagina + 1, /* Feed infinito, siempre hay más páginas en teoría */
                     hayMas: resp.data!.length >= 20,
                 }));
+            } else {
+                setEstado(prev => ({
+                    ...prev,
+                    cargando: false,
+                    error: resp.error ?? 'Error al cargar feed',
+                }));
             }
         } catch (err) {
             log.error('Error cargando feed', err);
