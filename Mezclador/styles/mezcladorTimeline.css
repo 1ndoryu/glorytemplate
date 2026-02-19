@@ -1,0 +1,264 @@
+/* mezcladorTimeline.css — Minimapa DAW, timeline, barra compases, pistas, divisiones */
+
+/* C285: Wrapper del timeline — minimap + contenido scrollable */
+.mezcladorTimelineWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* C285: Minimapa estilo FL Studio */
+.minimapaDaw {
+    position: relative;
+    height: 34px;
+    flex-shrink: 0;
+    background: var(--fondoElevado1, #1a1a2e);
+    border-bottom: 1px solid var(--bordeSutil);
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+}
+
+/* Representación simplificada de cada bloque en el minimapa */
+.minimapaBloque {
+    position: absolute;
+    border-radius: 1px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Viewport — zona visible de la timeline */
+.minimapaViewport {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--acento);
+    border-radius: 2px;
+    cursor: grab;
+    z-index: 2;
+    min-width: 8px;
+    transition: background var(--transicionRapida);
+}
+
+.minimapaViewport:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.minimapaViewport:active {
+    cursor: grabbing;
+}
+
+/* Handles de resize en los bordes del viewport */
+.minimapaHandleIzq,
+.minimapaHandleDer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 3;
+    transition: background var(--transicionRapida);
+}
+
+.minimapaHandleIzq {
+    left: 0;
+    border-radius: 2px 0 0 2px;
+}
+
+.minimapaHandleDer {
+    right: 0;
+    border-radius: 0 2px 2px 0;
+}
+
+.minimapaHandleIzq:hover,
+.minimapaHandleDer:hover {
+    background: var(--acento);
+    opacity: 0.5;
+}
+
+/* Info de compases visibles (esquina derecha) */
+.minimapaZoomInfo {
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 9px;
+    color: var(--textoTerciario);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Timeline */
+.mezcladorTimeline {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+}
+
+/* C217: Contenedor de zoom — controla el ancho escalado */
+.mezcladorTimelineZoom {
+    min-width: 100%;
+    position: relative;
+}
+
+.mezcladorTimelineEncabezado {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--fondoBase);
+}
+
+.mezcladorPistaControlesEspaciador {
+    width: 80px;
+    flex-shrink: 0;
+}
+
+.mezcladorTimelineRegla {
+    flex: 1;
+    position: relative;
+}
+
+.mezcladorTimelinePistas {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra de compases */
+.mezcladorBarraCompases {
+    position: relative;
+    height: 24px;
+    border-bottom: 1px solid var(--bordeSutil);
+    cursor: pointer;
+    user-select: none;
+}
+
+.mezcladorCompasLabel {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--bordeSutil);
+    box-sizing: border-box;
+}
+
+.mezcladorCompasNumero {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    padding-left: 4px;
+}
+
+/* Pista individual */
+.mezcladorPista {
+    display: flex;
+    min-height: 48px;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.mezcladorPistaSilenciada {
+    opacity: 0.5;
+}
+
+/* Resaltado visual cuando se arrastra un bloque sobre esta pista */
+.mezcladorPistaDragHover {
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    transition: background 100ms ease;
+}
+
+.mezcladorPistaDragHover .mezcladorPistaContenido {
+    outline: 1px dashed var(--acento);
+    outline-offset: -1px;
+}
+
+.mezcladorPistaControles {
+    width: 80px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--espacioXs);
+    border-right: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+}
+
+.mezcladorPistaNombre {
+    font-size: 10px;
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 72px;
+}
+
+.mezcladorPistaBotones {
+    display: flex;
+    gap: 2px;
+}
+
+.mezcladorPistaBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: color var(--transicionRapida);
+}
+
+.mezcladorPistaBoton:hover {
+    color: var(--textoPrimario);
+}
+
+.mezcladorPistaBoton.activo {
+    color: var(--error, #ef4444);
+}
+
+/* Contenido de la pista (drop zone + bloques) */
+.mezcladorPistaContenido {
+    flex: 1;
+    position: relative;
+    min-height: 48px;
+}
+
+.mezcladorPistaVacia {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--textoTerciario);
+    pointer-events: none;
+}
+
+/* Divisiones de compás (líneas verticales) */
+.mezcladorDivisionCompas {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--bordeSutil);
+    pointer-events: none;
+}
+
+/* C216: Líneas principales (compases) más visibles */
+.mezcladorDivisionPrincipal {
+    background: var(--bordeDefault, #444);
+}
+
+/* C216: Líneas secundarias (sub-beats) más sutiles */
+.mezcladorDivisionSecundaria {
+    background: var(--bordeSutil);
+    opacity: 0.4;
+}

@@ -6,11 +6,12 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { RotateCcw, RefreshCw, Power, Music } from 'lucide-react';
+import { RotateCcw, Power, Music } from 'lucide-react';
 import type { BloqueMezclador, ConfigBloque } from '../types/mezclador';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { useVentanasStore } from '../stores/ventanasStore';
 import { VentanaFlotante } from './VentanaFlotante';
+import { KnobControl } from './KnobControl';
 import { invalidarCacheBloque } from '../services/pitchShiftService';
 
 interface ModalConfigBloqueProps {
@@ -179,56 +180,6 @@ export const ModalConfigBloque = ({
         aplicar({ intercambiarEstereo: nuevo });
     };
 
-    /* Restablecer todo a valores por defecto */
-    const restablecer = () => {
-        const rateOriginal = bloque.sample.bpm
-            ? bloque.sample.bpm / bpmProyecto
-            : 1;
-        const rateClamped = Math.max(0.25, Math.min(4, rateOriginal));
-
-        setVolumen(1);
-        setPlaybackRate(rateClamped);
-        setFadeIn(0);
-        setFadeOut(0);
-        setInvertido(false);
-        setNormalizado(false);
-        setDetune(0);
-        setModoTonalidad('resample');
-        setPan(0);
-        setModoDeclic('none');
-        setSilenciado(false);
-        setInvertirPolaridad(false);
-        setIntercambiarEstereo(false);
-        invalidarCacheBloque(bloque.id);
-
-        aplicar({
-            volumen: 1,
-            playbackRate: rateClamped,
-            fadeIn: 0,
-            fadeOut: 0,
-            invertido: false,
-            normalizado: false,
-            detune: 0,
-            modoTonalidad: 'resample',
-            pan: 0,
-            modoDeclic: 'none',
-            invertirPolaridad: false,
-            intercambiarEstereo: false,
-        });
-
-        useMezcladorStore.setState(prev => ({
-            pistas: prev.pistas.map(p => ({
-                ...p,
-                bloques: p.bloques.map(b =>
-                    b.id === bloque.id ? { ...b, silenciado: false } : b
-                ),
-            })),
-        }));
-
-        const nuevaDuracion = duracionBuffer / (rateClamped * durCompas);
-        setDuracionBloque(bloque.id, Math.max(0.25, nuevaDuracion));
-    };
-
     return (
         <VentanaFlotante
             id={ventanaId}
@@ -254,13 +205,17 @@ export const ModalConfigBloque = ({
                         </span>
                     </div>
 
-                    {/* Controles principales: On/Off + Pan + Vol + Pitch */}
+                    {/* Controles principales: On/Off + Knobs (Pan + Vol + Pitch) */}
                     <div className="configBloqueControlGrid">
                         {/* On/Off LED */}
                         <div className="configBloqueControlGrupo">
                             <button
                                 className={`configBloqueLed ${!silenciado ? 'configBloqueLedActivo' : ''}`}
                                 onClick={toggleSilenciado}
+                                onDoubleClick={(e) => {
+                                    e.stopPropagation();
+                                    if (silenciado) { setSilenciado(false); useMezcladorStore.setState(prev => ({ pistas: prev.pistas.map(p => ({ ...p, bloques: p.bloques.map(b => b.id === bloque.id ? { ...b, silenciado: false } : b) })) })); }
+                                }}
                                 title={silenciado ? 'Activar canal' : 'Silenciar canal'}
                             >
                                 <Power size={14} />
@@ -270,56 +225,43 @@ export const ModalConfigBloque = ({
                             </span>
                         </div>
 
-                        {/* Pan */}
-                        <div className="configBloqueControlGrupo configBloqueControlAncho">
-                            <label className="configBloqueControlEtiqueta">Pan</label>
-                            <input
-                                type="range"
-                                min={-1}
-                                max={1}
-                                step={0.01}
-                                value={pan}
-                                onChange={(e) => alCambiarPan(parseFloat(e.target.value))}
-                                className="configBloqueSlider"
-                            />
-                            <span className="configBloqueControlValor">
-                                {pan === 0 ? 'C' : pan < 0 ? `${Math.round(Math.abs(pan) * 100)}L` : `${Math.round(pan * 100)}R`}
-                            </span>
-                        </div>
+                        {/* Pan — Knob bipolar */}
+                        <KnobControl
+                            valor={pan}
+                            min={-1}
+                            max={1}
+                            paso={0.01}
+                            etiqueta="Pan"
+                            valorPorDefecto={0}
+                            bipolar={true}
+                            formatoValor={(v) => v === 0 ? 'C' : v < 0 ? `${Math.round(Math.abs(v) * 100)}L` : `${Math.round(v * 100)}R`}
+                            onChange={alCambiarPan}
+                        />
 
-                        {/* Volumen */}
-                        <div className="configBloqueControlGrupo configBloqueControlAncho">
-                            <label className="configBloqueControlEtiqueta">Vol</label>
-                            <input
-                                type="range"
-                                min={0}
-                                max={2}
-                                step={0.01}
-                                value={volumen}
-                                onChange={(e) => alCambiarVolumen(parseFloat(e.target.value))}
-                                className="configBloqueSlider"
-                            />
-                            <span className="configBloqueControlValor">
-                                {Math.round(volumen * 100)}%
-                            </span>
-                        </div>
+                        {/* Volumen — Knob */}
+                        <KnobControl
+                            valor={volumen}
+                            min={0}
+                            max={2}
+                            paso={0.01}
+                            etiqueta="Vol"
+                            valorPorDefecto={1}
+                            formatoValor={(v) => `${Math.round(v * 100)}%`}
+                            onChange={alCambiarVolumen}
+                        />
 
-                        {/* Pitch (detune semitonos) */}
-                        <div className="configBloqueControlGrupo configBloqueControlAncho">
-                            <label className="configBloqueControlEtiqueta">Pitch</label>
-                            <input
-                                type="range"
-                                min={-12}
-                                max={12}
-                                step={1}
-                                value={detune}
-                                onChange={(e) => alCambiarDetune(parseFloat(e.target.value))}
-                                className="configBloqueSlider"
-                            />
-                            <span className="configBloqueControlValor">
-                                {detune > 0 ? `+${detune}` : detune} st
-                            </span>
-                        </div>
+                        {/* Pitch (detune semitonos) — Knob bipolar */}
+                        <KnobControl
+                            valor={detune}
+                            min={-12}
+                            max={12}
+                            paso={1}
+                            etiqueta="Pitch"
+                            valorPorDefecto={0}
+                            bipolar={true}
+                            formatoValor={(v) => `${v > 0 ? '+' : ''}${v} st`}
+                            onChange={alCambiarDetune}
+                        />
                     </div>
                 </div>
 
@@ -331,18 +273,18 @@ export const ModalConfigBloque = ({
                         <div className="configBloqueSeccion">
                             <h4 className="configBloqueSeccionTitulo">Time Stretching</h4>
 
-                            <div className="configBloqueFila">
-                                <label className="configBloqueLabel">Velocidad</label>
-                                <input
-                                    type="range"
+                            <div className="configBloqueFilaKnobs">
+                                <KnobControl
+                                    valor={playbackRate}
                                     min={0.25}
                                     max={4}
-                                    step={0.05}
-                                    value={playbackRate}
-                                    onChange={(e) => alCambiarRate(parseFloat(e.target.value))}
-                                    className="configBloqueSlider"
+                                    paso={0.05}
+                                    etiqueta="Speed"
+                                    valorPorDefecto={1}
+                                    formatoValor={(v) => `x${v.toFixed(2)}`}
+                                    onChange={alCambiarRate}
+                                    tamano={38}
                                 />
-                                <span className="configBloqueValor">x{playbackRate.toFixed(2)}</span>
                             </div>
 
                             <div className="configBloqueFila">
@@ -351,6 +293,7 @@ export const ModalConfigBloque = ({
                                     <button
                                         className={`configBloqueModoBtn ${modoTonalidad === 'resample' ? 'activo' : ''}`}
                                         onClick={() => alCambiarModoTonalidad('resample')}
+                                        onDoubleClick={(e) => { e.stopPropagation(); alCambiarModoTonalidad('resample'); }}
                                         title="Resample: pitch ligado a velocidad (vinilo)"
                                         type="button"
                                     >
@@ -359,6 +302,7 @@ export const ModalConfigBloque = ({
                                     <button
                                         className={`configBloqueModoBtn ${modoTonalidad === 'stretch' ? 'activo' : ''}`}
                                         onClick={() => alCambiarModoTonalidad('stretch')}
+                                        onDoubleClick={(e) => { e.stopPropagation(); alCambiarModoTonalidad('resample'); }}
                                         title="Stretch: pitch independiente (SoundTouch)"
                                         type="button"
                                     >
@@ -377,32 +321,29 @@ export const ModalConfigBloque = ({
                         <div className="configBloqueSeccion">
                             <h4 className="configBloqueSeccionTitulo">Edición de Sample</h4>
 
-                            <div className="configBloqueFila">
-                                <label className="configBloqueLabel">Fade In</label>
-                                <input
-                                    type="range"
+                            <div className="configBloqueFilaKnobs">
+                                <KnobControl
+                                    valor={fadeIn}
                                     min={0}
                                     max={Math.max(0.1, duracionWall / 2)}
-                                    step={0.01}
-                                    value={fadeIn}
-                                    onChange={(e) => alCambiarFadeIn(parseFloat(e.target.value))}
-                                    className="configBloqueSlider"
+                                    paso={0.01}
+                                    etiqueta="Fade In"
+                                    valorPorDefecto={0}
+                                    formatoValor={(v) => `${v.toFixed(2)}s`}
+                                    onChange={alCambiarFadeIn}
+                                    tamano={38}
                                 />
-                                <span className="configBloqueValor">{fadeIn.toFixed(2)}s</span>
-                            </div>
-
-                            <div className="configBloqueFila">
-                                <label className="configBloqueLabel">Fade Out</label>
-                                <input
-                                    type="range"
+                                <KnobControl
+                                    valor={fadeOut}
                                     min={0}
                                     max={Math.max(0.1, duracionWall / 2)}
-                                    step={0.01}
-                                    value={fadeOut}
-                                    onChange={(e) => alCambiarFadeOut(parseFloat(e.target.value))}
-                                    className="configBloqueSlider"
+                                    paso={0.01}
+                                    etiqueta="Fade Out"
+                                    valorPorDefecto={0}
+                                    formatoValor={(v) => `${v.toFixed(2)}s`}
+                                    onChange={alCambiarFadeOut}
+                                    tamano={38}
                                 />
-                                <span className="configBloqueValor">{fadeOut.toFixed(2)}s</span>
                             </div>
 
                             <div className="configBloqueFila">
@@ -447,7 +388,8 @@ export const ModalConfigBloque = ({
                                 <button
                                     className={`configBloqueToggle ${invertido ? 'activo' : ''}`}
                                     onClick={toggleInvertido}
-                                    title="Reproducir al revés"
+                                    onDoubleClick={(e) => { e.stopPropagation(); if (invertido) toggleInvertido(); }}
+                                    title="Reverse (doble-click para restablecer)"
                                 >
                                     <RotateCcw size={12} />
                                     <span>Reverse</span>
@@ -456,7 +398,8 @@ export const ModalConfigBloque = ({
                                 <button
                                     className={`configBloqueToggle ${normalizado ? 'activo' : ''}`}
                                     onClick={toggleNormalizado}
-                                    title="Normalizar volumen al máximo (0dB)"
+                                    onDoubleClick={(e) => { e.stopPropagation(); if (normalizado) toggleNormalizado(); }}
+                                    title="Normalize (doble-click para restablecer)"
                                 >
                                     <span>Normalize</span>
                                 </button>
@@ -464,7 +407,8 @@ export const ModalConfigBloque = ({
                                 <button
                                     className={`configBloqueToggle ${invertirPolaridad ? 'activo' : ''}`}
                                     onClick={toggleInvertirPolaridad}
-                                    title="Invertir fase de la onda (pendiente procesamiento)"
+                                    onDoubleClick={(e) => { e.stopPropagation(); if (invertirPolaridad) toggleInvertirPolaridad(); }}
+                                    title="Inv. Polaridad (doble-click para restablecer)"
                                 >
                                     <span>Inv. Polaridad</span>
                                 </button>
@@ -472,7 +416,8 @@ export const ModalConfigBloque = ({
                                 <button
                                     className={`configBloqueToggle ${intercambiarEstereo ? 'activo' : ''}`}
                                     onClick={toggleIntercambiarEstereo}
-                                    title="Intercambiar canales L/R (pendiente procesamiento)"
+                                    onDoubleClick={(e) => { e.stopPropagation(); if (intercambiarEstereo) toggleIntercambiarEstereo(); }}
+                                    title="Swap L/R (doble-click para restablecer)"
                                 >
                                     <span>Swap L/R</span>
                                 </button>
@@ -513,16 +458,6 @@ export const ModalConfigBloque = ({
                         </div>
                     </div>
                 </div>
-
-                {/* Restablecer */}
-                <button
-                    className="configBloqueRestablecer"
-                    onClick={restablecer}
-                    title="Restablecer todas las propiedades a valores originales"
-                >
-                    <RefreshCw size={12} />
-                    <span>Restablecer todo</span>
-                </button>
             </div>
         </VentanaFlotante>
     );

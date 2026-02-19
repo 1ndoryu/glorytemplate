@@ -40,6 +40,8 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     modoCortarActivo: false,
     snapResolucion: 'beat' as SnapResolucion,
     nivelZoom: 1,
+    /* C296: Total extendido congelado durante resize */
+    _totalExtendidoFijado: null,
 
     /* Slices de acciones especializadas */
     ...crearAccionesHistorial(set, get),
@@ -181,8 +183,10 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     obtenerTodosBloques: () => get().pistas.flatMap(p => p.bloques),
 
     /* C285: Total extendido = max(totalCompases, último bloque + relleno) */
+    /* C296: Si hay un valor fijado (durante resize), devolver max(fijado, calculado) para evitar saltos */
     obtenerTotalExtendido: () => {
-        const { pistas, totalCompases } = get();
+        const state = get();
+        const { pistas, totalCompases } = state;
         let ultimoFin = 0;
         for (const pista of pistas) {
             for (const bloque of pista.bloques) {
@@ -190,6 +194,23 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 if (fin > ultimoFin) ultimoFin = fin;
             }
         }
-        return Math.max(totalCompases, Math.ceil(ultimoFin) + RELLENO_COMPASES);
+        const calculado = Math.max(totalCompases, Math.ceil(ultimoFin) + RELLENO_COMPASES);
+        /* Si hay un total fijado (resize activo), nunca encoger debajo del fijado */
+        const fijado = state._totalExtendidoFijado;
+        if (fijado !== null) {
+            return Math.max(fijado, calculado);
+        }
+        return calculado;
+    },
+
+    /* C296: Fijar total extendido al valor actual (llamar al iniciar resize) */
+    fijarTotalExtendido: () => {
+        const total = get().obtenerTotalExtendido();
+        set({ _totalExtendidoFijado: total });
+    },
+
+    /* C296: Desfijar total extendido (llamar al terminar resize) */
+    desfijarTotalExtendido: () => {
+        set({ _totalExtendidoFijado: null });
     },
 }));

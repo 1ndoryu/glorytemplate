@@ -1,0 +1,231 @@
+/* mezcladorBase.css — Panel principal, cabecera, controles superiores, snap/zoom, spinner */
+
+/* Panel principal del mezclador */
+.mezcladorPanel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--fondoBase);
+}
+
+/* Cabecera */
+.mezcladorCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+/* C233: Acciones de proyecto en cabecera (subir, descargar, publicar, limpiar) */
+.mezcladorCabeceraAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+/* C233: Botón de cabecera — mismo estilo que botonAccion */
+.mezcladorBotonCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.mezcladorBotonCabecera:hover {
+    color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
+}
+
+.mezcladorBotonCabecera:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.mezcladorCargando {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    animation: mezcladorPulsar 1s ease-in-out infinite;
+}
+
+/* C251: Mismo estilo que mezcladorBotonCabecera */
+.mezcladorCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.mezcladorCerrar:hover {
+    color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
+}
+
+/* Controles superiores */
+.mezcladorControles {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioXs) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.mezcladorControlesGrupo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.mezcladorBotonPlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--acento);
+    color: var(--acentoTexto);
+    border: none;
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    transition: background var(--transicionRapida);
+}
+
+.mezcladorBotonPlay:hover {
+    background: var(--acentoHover);
+}
+
+.mezcladorBotonPlay.activo {
+    background: var(--error, #ef4444);
+}
+
+.mezcladorBpmControl {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.mezcladorBpmInput {
+    width: 48px;
+    padding: 2px 4px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    text-align: center;
+    outline: none;
+}
+
+.mezcladorBpmInput:focus {
+    border-color: var(--acento);
+}
+
+.mezcladorBpmLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+}
+
+/* C233.1: Altura uniforme 28px en todos los botones del mezclador */
+.mezcladorBotonCompas,
+.mezcladorBotonAccion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid var(--bordeSutil);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: all var(--transicionRapida);
+}
+
+.mezcladorBotonCompas:hover,
+.mezcladorBotonAccion:hover {
+    color: var(--textoPrimario);
+    border-color: var(--bordeActivo);
+}
+
+.mezcladorBotonAccion:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.mezcladorBotonLimpiar:hover {
+    color: var(--error, #ef4444);
+    border-color: var(--error, #ef4444);
+}
+
+.mezcladorCompasContador {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    min-width: 40px;
+    text-align: center;
+}
+
+/* C216: Separador vertical entre grupos de controles */
+.mezcladorSeparadorVertical {
+    width: 1px;
+    height: 16px;
+    background: var(--bordeSutil);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+
+/* C216: Label y select de snap */
+.mezcladorSnapLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.mezcladorSnapSelect {
+    padding: 2px 4px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    font-size: 10px;
+    outline: none;
+    cursor: pointer;
+    min-width: 44px;
+}
+
+.mezcladorSnapSelect:focus {
+    border-color: var(--acento);
+}
+
+/* C217: Label de nivel de zoom */
+.mezcladorZoomLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    min-width: 32px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.mezcladorSpinner {
+    animation: mezcladorGirar 1s linear infinite;
+    color: var(--textoTerciario);
+}

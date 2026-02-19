@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MoreHorizontal, Copy } from 'lucide-react';
 import type { BloqueMezclador } from '../types/mezclador';
 import { anchoBloquePorc, posicionBloquePorc, snapABeat, snapConResolucion } from '../utils/compasUtils';
@@ -38,6 +39,9 @@ export const BloqueSample = ({
     const guardarSnapshot = useMezcladorStore(s => s._guardarSnapshot);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const toggleSeleccionBloque = useMezcladorStore(s => s.toggleSeleccionBloque);
+    /* C296: Fijar/desfijar total extendido durante resize para evitar saltos de zoom */
+    const fijarTotalExtendido = useMezcladorStore(s => s.fijarTotalExtendido);
+    const desfijarTotalExtendido = useMezcladorStore(s => s.desfijarTotalExtendido);
     const ancho = anchoBloquePorc(bloque.duracionCompases, totalCompases);
     const izquierda = posicionBloquePorc(bloque.compasInicio, totalCompases);
 
@@ -55,6 +59,8 @@ export const BloqueSample = ({
 
         /* C224: Guardar snapshot antes del resize para undo */
         guardarSnapshot();
+        /* C296: Congelar total extendido para evitar saltos de zoom */
+        fijarTotalExtendido();
 
         /* Encontrar el contenedor de la pista para calcular ancho */
         const contenedor = (e.target as HTMLElement).closest('.mezcladorPistaContenido');
@@ -91,6 +97,8 @@ export const BloqueSample = ({
         const soltar = () => {
             resizingRef.current = false;
             setResizing(false);
+            /* C296: Descongelar total extendido */
+            desfijarTotalExtendido();
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
         };
@@ -282,12 +290,13 @@ export const BloqueSample = ({
                 onMouseDown={iniciarResize}
             />
 
-            {/* C215: Modal de configuración avanzada */}
-            {modalConfigAbierto && (
+            {/* C215: Modal de configuración avanzada — C292: Portal para evitar bubbling de eventos al bloque */}
+            {modalConfigAbierto && createPortal(
                 <ModalConfigBloque
                     bloque={bloque}
                     onCerrar={() => setModalConfigAbierto(false)}
-                />
+                />,
+                document.body
             )}
         </div>
     );

@@ -14,7 +14,8 @@ import { Timeline } from './Timeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
-import '../styles/mezclador.css';
+/* C293: CSS refactorizado en módulos */
+import '../styles/index.css';
 
 export const MezcladorPanel = (): JSX.Element => {
     /*

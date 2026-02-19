@@ -1,0 +1,307 @@
+/* mezcladorConfigBloque.css — Estilos del panel de configuracion de bloque (VentanaFlotante) */
+
+/* C287: Contenido del modal de configuracion de bloque (dentro de VentanaFlotante) */
+.configBloqueContenido {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.configBloqueSeccion {
+    background: var(--fondoTerciario, rgba(255, 255, 255, 0.03));
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.configBloqueCabeceraPrincipal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.configBloqueInfo {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.configBloqueInfoItem {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--textoTerciario);
+    background: var(--fondoElevado2, #2a2a3e);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.configBloqueControlGrid {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.configBloqueControlGrupo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.configBloqueControlAncho {
+    flex: 1;
+    min-width: 140px;
+}
+
+.configBloqueControlEtiqueta {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    min-width: 24px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.configBloqueControlValor {
+    font-size: 10px;
+    color: var(--textoSecundario);
+    min-width: 32px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.configBloqueSlider {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--fondoElevado2, #2a2a3e);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.configBloqueSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--acento);
+    cursor: pointer;
+    border: none;
+}
+
+.configBloqueSlider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--acento);
+    cursor: pointer;
+    border: none;
+}
+
+/* LED on/off */
+.configBloqueLed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--fondoElevado2, #2a2a3e);
+    border: 1px solid var(--bordeSutil);
+    border-radius: 4px;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.configBloqueLed:hover {
+    border-color: var(--bordeActivo);
+}
+
+.configBloqueLedActivo {
+    background: var(--exito, #22c55e);
+    border-color: var(--exito, #22c55e);
+    color: #000;
+}
+
+/* Dos columnas */
+.configBloqueColumnas {
+    display: flex;
+    gap: 10px;
+}
+
+.configBloqueColumna {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.configBloqueSeccionTitulo {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--textoSecundario);
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.configBloqueFila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.configBloqueFilaInfo {
+    margin-bottom: 2px;
+}
+
+.configBloqueLabel {
+    font-size: 10px;
+    color: var(--textoTerciario);
+    min-width: 54px;
+    flex-shrink: 0;
+}
+
+.configBloqueValor {
+    font-size: 10px;
+    color: var(--textoSecundario);
+    min-width: 36px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* Selector modo tonal / declicking */
+.configBloqueModoTonal {
+    display: flex;
+    gap: 2px;
+    background: var(--fondoTerciario, rgba(255, 255, 255, 0.05));
+    border-radius: 4px;
+    padding: 2px;
+    flex: 1;
+}
+
+.configBloqueModoBtn {
+    flex: 1;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--textoSecundario);
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+}
+
+.configBloqueModoBtn:hover {
+    color: var(--textoPrimario);
+}
+
+.configBloqueModoBtn.activo {
+    background: var(--acento);
+    color: white;
+    font-weight: 600;
+}
+
+/* Grid de toggles de efectos */
+.configBloqueTogglesGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.configBloqueToggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: var(--textoSecundario);
+    background: var(--fondoElevado2, #2a2a3e);
+    border: 1px solid var(--bordeDefault, #333);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background var(--transicionRapida), border-color var(--transicionRapida), color var(--transicionRapida);
+}
+
+.configBloqueToggle:hover {
+    border-color: var(--acento);
+}
+
+.configBloqueToggle.activo {
+    background: var(--acento);
+    color: var(--fondoBase, #121212);
+    border-color: var(--acento);
+    font-weight: 600;
+}
+
+.configBloquePendientes {
+    margin-top: 6px;
+}
+
+.configBloquePendienteLabel {
+    font-size: 9px;
+    color: var(--textoTerciario);
+    opacity: 0.6;
+    font-style: italic;
+}
+
+/* Grid de info del archivo */
+.configBloqueInfoGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.configBloqueInfoFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.configBloqueInfoKey {
+    font-size: 10px;
+    color: var(--textoTerciario);
+}
+
+.configBloqueInfoVal {
+    font-size: 10px;
+    color: var(--textoSecundario);
+    font-variant-numeric: tabular-nums;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Boton restablecer */
+.configBloqueRestablecer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    padding: 6px;
+    font-size: 11px;
+    color: var(--textoSecundario);
+    background: none;
+    border: 1px dashed var(--bordeSutil);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+/* C295: Eliminar boton restablecer global, solo quedan resets individuales */
+.configBloqueRestablecer {
+    display: none;
+}

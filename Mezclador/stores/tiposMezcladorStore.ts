@@ -53,6 +53,9 @@ export interface MezcladorState {
     modoResizeGlobal: 'stretch' | 'clip';
     setModoResizeGlobal: (modo: 'stretch' | 'clip') => void;
 
+    /* C296: Total extendido congelado durante resize para evitar saltos visuales */
+    _totalExtendidoFijado: number | null;
+
     /* Historial undo/redo */
     _historial: SnapshotMezclador[];
     _posicionHistorial: number;
@@ -110,4 +113,7 @@ export interface MezcladorState {
     obtenerTodosBloques: () => BloqueMezclador[];
     /* C285: Total de compases extendido (dinámico basado en contenido + padding) */
     obtenerTotalExtendido: () => number;
+    /* C296: Congelar/descongelar total extendido durante resize para evitar saltos */
+    fijarTotalExtendido: () => void;
+    desfijarTotalExtendido: () => void;
 }

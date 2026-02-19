@@ -223,10 +223,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 286. ✅ [AG-ONE] Doble click en BloqueSample abre ModalConfigBloque.
 287. ✅ [AG-ONE] Config audio profesional — ModalConfigBloque reescrito (700px VentanaFlotante): cabecera (On/Off LED+Pan+Vol+Pitch), Time Stretching (speed+modo), Sample Editing (fades+declicking+recorte), Effects (reverse+normalize+inv.polaridad+swap L/R), File Info. VentanaFlotante draggable+minimize. BarraVentanasMinimizadas. ModalConfigDaw convertido a VentanaFlotante. ventanasStore.ts nuevo.
 
-274. Que se pueda filtrar por samples free y de pagos en el feed samples 
-288. La pagina de explorar funciona casi bien. Primero, si los samples no tienen, por defecto deberían aparecer en en la carpeta samples, pero no aparecen a pesar de que el contador los cuenta.
+274. [EN CURSO — AG-ONE] Que se pueda filtrar por samples free y de pagos en el feed samples 
+288. [EN CURSO — AG-ONE] La pagina de explorar funciona casi bien. Primero, si los samples no tienen, por defecto deberían aparecer en en la carpeta samples, pero no aparecen a pesar de que el contador los cuenta.
 
-289.1 no se porque la ia en algun momento genero null para la carpeta secundaria
+289.1 [EN CURSO — AG-ONE] no se porque la ia en algun momento genero null para la carpeta secundaria
   "carpeta_primaria": "Samples",
   "carpeta_secundaria": null,
 
@@ -235,13 +235,51 @@ la instrucción dice asi
 - "carpeta_secundaria": Subcarpeta dentro de carpeta_primaria. Opciones por carpeta: Drums: "Kicks","Snares","Claps","HiHats","Toms","Percussion". Loops: "Drum Loops","Perc Loops","Bass Loops","Melodic Loops". Samples: usa el genero principal (ej: "Hip Hop","Phonk","Trap","Lo-Fi","Jazz","R&B"). FX: "Impacts","Risers","Sweeps","Atmos". Instruments: "Bass","Chords","Leads","Pads","Keys","Strings". Vocals: "Phrases","One Shots","Chops".
 
 eligio samples pero no eligio la carpeta secundaria, creo que hay que ser mas detallado con las carpetas, y ver como se puede arreglar para evitar null, etc, y decirle que no diga null. 
-290. no se puede selecionar me encanta o dislike porque exploradorHeader se pone por encima en la lista de samples del explorador.
-291. En la pagina de explorador, si bien parece que los samples funcionan bien, la forma en la que se ven los samples aunque no esta mal es la correcta, agregaremos otra forma de ordenas los samples, vistas que simulan a un explorador de archivo, se podra cambiar la vista entre cuadricula y lista,en lista se mantiene tal cual como esta ahora, y en cuadricula pues, solo se vera el nombre y la portada.
-292. Cuando intento arrastrar la ventana de  configuracion de un audio del mini daw, este desaparece y lo que se vuelve es la tarjeta de audio, (debería abrirse con doble click pero no se abre), y algunas cosas como la linea del tiempo se ponen por encima.
-293. El css del mezclador ya se ha hecho muy grande, hay que refactorizar el archivo.
-294. los botones que se indican como Knob de las configuraciones de audio, deben verse como Knob.
-295. Quitar el boton de restablacer, ahora todos los botones de configuracion de audio deben restablecerse individualmente si se da doble click en ellos.
-296. Es molesto que el zoom cambie o se mueva el scroll cuando cambio el tamaño o ancho de una tarjeta de audio.
+290. [EN CURSO — AG-ONE] no se puede selecionar me encanta o dislike porque exploradorHeader se pone por encima en la lista de samples del explorador.
+291. [EN CURSO — AG-ONE] En la pagina de explorador, si bien parece que los samples funcionan bien, la forma en la que se ven los samples aunque no esta mal es la correcta, agregaremos otra forma de ordenas los samples, vistas que simulan a un explorador de archivo, se podra cambiar la vista entre cuadricula y lista,en lista se mantiene tal cual como esta ahora, y en cuadricula pues, solo se vera el nombre y la portada.
+292. [EN CURSO — AG-ONE] Cuando intento arrastrar la ventana de  configuracion de un audio del mini daw, este desaparece y lo que se vuelve es la tarjeta de audio, (debería abrirse con doble click pero no se abre), y algunas cosas como la linea del tiempo se ponen por encima.
+293. [EN CURSO — AG-ONE] El css del mezclador ya se ha hecho muy grande, hay que refactorizar el archivo.
+294. [EN CURSO — AG-ONE] los botones que se indican como Knob de las configuraciones de audio, deben verse como Knob.
+295. [EN CURSO — AG-ONE] Quitar el boton de restablacer, ahora todos los botones de configuracion de audio deben restablecerse individualmente si se da doble click en ellos.
+296. [EN CURSO — AG-ONE] Es molesto que el zoom cambie o se mueva el scroll cuando cambio el tamaño o ancho de una tarjeta de audio, no debe pasar.
+297. Menú Contextual de Pista (Track Header) en la playlist (actualmente no se puede cambiar la altura de las pistas pero debería, se hara un menu contextual con las siguientes opciones):
+Identidad y Organización Visual
+Rename, color and icon...: Abre un modal para editar las 3 propiedades principales de la pista: Nombre (string), Color (hex) e Icono (id/image).
+Random color: Asigna un color aleatorio a la pista (útil para diferenciar rápidamente).
+Change color...: Abre solo el selector de color (color picker).
+Change icon...: Abre solo el selector de iconos.
+Reset: Restaura la pista a su estado por defecto (Nombre "Track X", color gris, sin icono).
+Layout y Dimensiones
+Size (Submenú): Permite seleccionar la altura vertical de la pista (ej. 100%, 50%, Minimizado).
+Lock to this size: Un interruptor (boolean) que bloquea la altura. Impide que el usuario redimensione la pista arrastrando los bordes con el mouse.
+Gestión de Clips (Contenido)
+Lock to content: Bloquea la pista para que solo acepte un tipo de clip específico (ej. si pones un Audio Clip, ya no deja poner patrones MIDI en esa misma fila).
+Mute all clips: Itera sobre todos los clips que estén en esta coordenada Y (pista) y los desactiva.
+Unmute all clips: Reactiva todos los clips de la pista.
+Ayudas Visuales
+las notas MIDI de otros patrones para usarlas como guía de referencia al componer.
+Operaciones de Pista (CRUD y Orden)
+Insert one: Inserta una pista vacía nueva en la posición actual, desplazando las demás hacia abajo.
+Clone...: Duplica la pista actual (copiando nombre, color y configuración) y la inserta abajo.
+Delete: Elimina la pista y usualmente pregunta si borrar también los clips que contiene.
+Move up: Intercambia la posición de la pista con la superior (Array index - 1).
+Move down: Intercambia la posición de la pista con la inferior (Array index + 1).
+298. El input de tempo es muy generico, debe ser como el fl studio, sin los botones de arriba y abajo, si dejo pulsado y tiro hacia arriba sube el tempo, si tiro hacia abajo, baja, si doy doble click puedo escribir el valor. Los inputs aca tienen que tener la misma altura que los botones del nav de daw, si se mantiene la consistencia visual.
+299. el minimapaDaw da a veces lo muevo o cambio el tamaño y se mueve unos unos cm hacia una determinada posicion, o sea, es rigido sin sentido, no entiendo porque, debe ser totalmente libre, las vistas, tambien cuando lo cambio de tamaño se mueve a otro lugar.
+300. las pistas no tienen que dejar de verse nunca al hacer scroll horizontal (o sea el mezcladorPistaControles)
+301. en mezcladorPistaControles los botones de silenciar o borrar deben estar ocultos por defecto mostrarse cuando se haga hover en el mezcladorPistaControles
+302. Cuando intento arrastrar la ventana de configuracion de audio de una tarjeta, se mueve la tarjeta tambien aunque el mouse no este cerca de ella.
+y aparece 
+react-dom.development.js:15688 
+ Uncaught Error: Rendered more hooks than during the previous render.
+    at VentanaFlotante (VentanaFlotante.tsx:38:25)
+303. La linea de tiempo solo se mueve cuando doy click, debería poder moverse en tiempo real, arrastrandola tambien en el minidaw.
+304. El tiempo de la linea de tiemp debería verse, agregar un visualizador de duracion o tiempo, no se como describirlo, en fin, en fl studio se llama song position, y tiene dos modos M:S:CS y B:S:T y cambia de un modo a otro con click, aqui tambien debería poder ser igual.
+305. visualizador de onda en tiempo real mientras se reproduce, en fl studio se llama monitor.
+306. peak master, es igual lo anterior pero son 2 bloques horizontales que suben y bajan segun el volumen, supongo ambos represetan el canal derecho y izquierdo.
+307. un boton que activa o desactiva el browser (aparecera a la derecha) (este boton activa o desactiva el panel de la derecha), como en el panel cuando esta contraido no va a caber, lo mejor es que aparezca por fuera en un panel a la izquierda, este panel es un panel extra, tambien se podra ocultar y mostrar al mismo tiempo con el panel del daw (por favor este sistema de paneles este centralizado y bien solid primero, no queremos problemas en el futuro), usara centralizadamente el componente de exploradorCarpetas en la pagina de explorador, si se esta en la pagina de explorar este panel no se abrira porque es redundandte tener 2 exploradorCarpetas. Esto lleva a la siguiente tarea. 
+307.1 exploradorCarpetas cuando este activo desde el daw, mostrara los samples que contiene solo con el nombre, asi como funciona en el fl studio, y se podra arrastrar un audio de ahi a la pista, por supuesto esto implica que las carpetas se puedan contraer expandir para ver sus contenidos.
+
 
 
 # AGENTE TWO (tareas libres)

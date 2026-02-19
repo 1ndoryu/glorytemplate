@@ -1,0 +1,337 @@
+/* mezcladorBloques.css — Bloques de sample, botones, tags, modo cortar, waveform, cursor, agregar pista, error boundary, panel lateral resize, animaciones */
+
+/* Bloque de sample en la timeline */
+.mezcladorBloque {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: color-mix(in srgb, var(--colorBloque, var(--acento)) 20%, transparent);
+    border: 1px solid var(--colorBloque, var(--acento));
+    border-radius: 3px;
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow var(--transicionRapida);
+    z-index: 1;
+}
+
+.mezcladorBloque:hover {
+    box-shadow: 0 0 0 1px var(--colorBloque, var(--acento));
+}
+
+.mezcladorBloque:active {
+    cursor: grabbing;
+}
+
+/* Reducir opacidad del bloque siendo arrastrado */
+.mezcladorBloque.mezcladorBloqueDragging {
+    opacity: 0.3;
+    pointer-events: none;
+    filter: grayscale(0.5);
+}
+
+/* C267: Selección más visible — glow + borde grueso + fondo tintado */
+.mezcladorBloque.mezcladorBloqueSeleccionado {
+    outline: 3px solid var(--acento);
+    outline-offset: -1px;
+    z-index: 3;
+    background: color-mix(in srgb, var(--acento) 18%, var(--fondoElevado2));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--acento) 40%, transparent);
+}
+
+/* C242: Ghost preview — indica dónde aterrizará el bloque al soltar */
+.mezcladorBloqueGhost {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    border: 2px dashed var(--acento);
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.6;
+    transition: left 50ms ease-out;
+}
+
+/* Bloque en proceso de resize (C204) */
+.mezcladorBloque.mezcladorBloqueResizing {
+    z-index: 5;
+    box-shadow: 0 0 0 2px var(--colorBloque, var(--acento));
+}
+
+/* Handle derecho para stretch/pitch (C204) */
+.mezcladorBloqueResizeHandle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 6px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 2;
+    background: transparent;
+    transition: background var(--transicionRapida);
+    border-radius: 0 3px 3px 0;
+}
+
+.mezcladorBloqueResizeHandle:hover,
+.mezcladorBloqueResizing .mezcladorBloqueResizeHandle {
+    background: var(--colorBloque, var(--acento));
+    opacity: 0.7;
+}
+
+.mezcladorBloqueCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1px 4px;
+    min-height: 14px;
+}
+
+.mezcladorBloqueTitulo {
+    font-size: 10px;
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    line-height: 1.2;
+}
+
+.mezcladorBloqueEliminar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: 2px;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.mezcladorBloque:hover .mezcladorBloqueEliminar {
+    opacity: 1;
+}
+
+.mezcladorBloqueEliminar:hover {
+    color: var(--error, #ef4444);
+}
+
+/* C215: Grupo de botones en cabecera del bloque */
+.mezcladorBloqueBotones {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+    flex-shrink: 0;
+}
+
+.mezcladorBloque:hover .mezcladorBloqueBotones {
+    opacity: 1;
+}
+
+.mezcladorBloqueBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color var(--transicionRapida), background var(--transicionRapida);
+}
+
+.mezcladorBloqueBoton:hover {
+    color: var(--textoSecundario);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.mezcladorBloqueBoton.mezcladorBloqueEliminar:hover {
+    color: var(--error, #ef4444);
+}
+
+/* C215: Indicadores visuales de config (REV, IN, OUT) */
+.mezcladorBloqueIndicadores {
+    display: flex;
+    gap: 2px;
+    padding: 0 3px;
+    flex-wrap: wrap;
+}
+
+.mezcladorBloqueTag {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--textoSecundario);
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+/* C214: Modo cortar — cursor tijera sobre bloques */
+.mezcladorBloqueCortando {
+    cursor: crosshair;
+}
+
+/* C232: Línea preview de corte — se muestra al mover mouse con herramienta cortar */
+.mezcladorBloqueLineaCorte {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--error, #ef4444);
+    opacity: 0.7;
+    z-index: 5;
+    pointer-events: none;
+    border-radius: 1px;
+    box-shadow: 0 0 4px var(--error, #ef4444);
+}
+
+/* C214: Botón activo (ej. Scissors en controles) */
+.mezcladorBotonActivo {
+    background: var(--acento) !important;
+    color: var(--fondoBase) !important;
+    border-color: var(--acento) !important;
+}
+
+.mezcladorBloqueWaveform {
+    flex: 1;
+    width: 100%;
+    color: var(--colorBloque, var(--acento));
+    opacity: 0.6;
+}
+
+/* Cursor de reproducción */
+.mezcladorCursorReproduccion {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    z-index: 10;
+    pointer-events: none;
+    /*
+     * C222: Calcular left alineado al área de contenido (después de 80px de controles).
+     * Se usa --cursorPorcentaje via inline style.
+     */
+}
+
+.mezcladorCursorLinea {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--acento);
+}
+
+.mezcladorCursorCabeza {
+    position: absolute;
+    top: -2px;
+    left: -4px;
+    width: 10px;
+    height: 10px;
+    background: var(--acento);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+}
+
+/* Botón añadir pista */
+.mezcladorAgregarPista {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm);
+    background: none;
+    border: none;
+    border-top: 1px dashed var(--bordeSutil);
+    color: var(--textoTerciario);
+    font-size: 11px;
+    cursor: pointer;
+    transition: color var(--transicionRapida);
+}
+
+.mezcladorAgregarPista:hover {
+    color: var(--acento);
+}
+
+/* C209: Animar pista cuando se arrastra un sample externo sobre ella */
+.mezcladorPistaContenido:has(.mezcladorPistaVacia) {
+    transition: background var(--transicionRapida);
+}
+
+/* Error boundary */
+.mezcladorError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacio2xl);
+    text-align: center;
+}
+
+.mezcladorErrorTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.mezcladorErrorDetalle {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    margin: 0;
+}
+
+.mezcladorErrorBoton {
+    padding: var(--espacioXs) var(--espacioMd);
+    background: var(--acento);
+    color: var(--acentoTexto);
+    border: none;
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    font-size: var(--fuenteSm);
+}
+
+/* Handle de resize del panel lateral */
+.panelLateralResizeHandle {
+    position: absolute;
+    top: 0;
+    left: -3px;
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 10;
+    background: transparent;
+    transition: background var(--transicionRapida);
+}
+
+.panelLateralResizeHandle:hover,
+.panelLateralResizeHandle.activo {
+    background: var(--acento);
+    opacity: 0.5;
+}
+
+/* Animaciones */
+@keyframes mezcladorPulsar {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes mezcladorGirar {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
