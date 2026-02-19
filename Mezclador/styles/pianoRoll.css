@@ -1,0 +1,584 @@
+/*
+ * pianoRoll.css — Estilos del editor Piano Roll.
+ * C310: Grid de notas, teclado, toolbar, panel control.
+ * Nomenclatura en español, camelCase.
+ */
+
+/* ============================================================
+ * LAYOUT PRINCIPAL
+ * ============================================================ */
+
+.pianoRollContenedor {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 400px;
+    background: var(--daw-fondo, #1a1a2e);
+    color: #ccc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 11px;
+    user-select: none;
+    overflow: hidden;
+}
+
+/* ============================================================
+ * CABECERA / TOOLBAR
+ * ============================================================ */
+
+.pianoRollCabecera {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    background: #16162a;
+    border-bottom: 1px solid #2a2a4a;
+    flex-shrink: 0;
+    min-height: 32px;
+}
+
+.pianoRollGrupoHerramientas {
+    display: flex;
+    gap: 1px;
+    background: #1e1e38;
+    border-radius: 4px;
+    padding: 1px;
+}
+
+.pianoRollBotonHerramienta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #888;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+}
+
+.pianoRollBotonHerramienta:hover {
+    background: #2a2a4e;
+    color: #bbb;
+}
+
+.pianoRollBotonHerramientaActiva {
+    background: #3a3a6e;
+    color: #fff;
+}
+
+.pianoRollSeparador {
+    width: 1px;
+    height: 20px;
+    background: #2a2a4a;
+    margin: 0 6px;
+    flex-shrink: 0;
+}
+
+.pianoRollSelectSnap {
+    background: #1e1e38;
+    color: #ccc;
+    border: 1px solid #2a2a4a;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    height: 24px;
+    cursor: pointer;
+    outline: none;
+}
+
+.pianoRollSelectSnap:hover {
+    border-color: #4a4a7a;
+}
+
+.pianoRollToggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    height: 24px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #888;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.12s;
+}
+
+.pianoRollToggle:hover {
+    color: #bbb;
+    background: #2a2a4e;
+}
+
+.pianoRollToggleActivo {
+    color: #8ae234;
+    border-color: rgba(138, 226, 52, 0.3);
+    background: rgba(138, 226, 52, 0.08);
+}
+
+.pianoRollEtiquetaSnap {
+    color: #666;
+    font-size: 10px;
+    margin-right: 4px;
+}
+
+/* ============================================================
+ * AREA PRINCIPAL (teclado + regla + grid)
+ * ============================================================ */
+
+.pianoRollAreaPrincipal {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ============================================================
+ * TECLADO PIANO (lateral izquierdo)
+ * ============================================================ */
+
+.pianoRollTeclado {
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    background: #111;
+    border-right: 1px solid #333;
+    z-index: 2;
+}
+
+.pianoRollTecladoInner {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+.pianoRollTecla {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    padding-left: 4px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    transition: background 0.06s;
+    box-sizing: border-box;
+}
+
+.pianoRollTeclaBlanca {
+    background: #d4d4d4;
+    color: #333;
+}
+
+.pianoRollTeclaNegra {
+    background: #333;
+    color: #999;
+    z-index: 1;
+}
+
+.pianoRollTecla:hover {
+    filter: brightness(1.15);
+}
+
+.pianoRollTeclaActiva {
+    background: #5c82ff !important;
+    color: #fff !important;
+}
+
+.pianoRollTeclaLabel {
+    font-size: 9px;
+    font-weight: 500;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* ============================================================
+ * ZONA GRID (regla + canvas + notas)
+ * ============================================================ */
+
+.pianoRollZonaGrid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ============================================================
+ * REGLA TEMPORAL (superior)
+ * ============================================================ */
+
+.pianoRollRegla {
+    height: 22px;
+    flex-shrink: 0;
+    position: relative;
+    background: #16162a;
+    border-bottom: 1px solid #333;
+    overflow: hidden;
+}
+
+.pianoRollReglaCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ============================================================
+ * GRID DE NOTAS
+ * ============================================================ */
+
+.pianoRollGrid {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+.pianoRollGridCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.pianoRollNotasContenedor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* ============================================================
+ * NOTA INDIVIDUAL
+ * ============================================================ */
+
+.pianoRollNota {
+    position: absolute;
+    border-radius: 2px;
+    cursor: grab;
+    box-sizing: border-box;
+    min-width: 4px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    transition: filter 0.08s;
+    z-index: 1;
+}
+
+.pianoRollNota:hover {
+    filter: brightness(1.15);
+    z-index: 2;
+}
+
+.pianoRollNotaSeleccionada {
+    outline: 1px solid #fff;
+    outline-offset: -1px;
+    z-index: 3;
+}
+
+.pianoRollNotaSilenciada {
+    opacity: 0.35;
+}
+
+.pianoRollNotaCuerpo {
+    flex: 1;
+    height: 100%;
+    pointer-events: none;
+}
+
+.pianoRollNotaHandleIzq,
+.pianoRollNotaHandleDer {
+    position: absolute;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    cursor: ew-resize;
+    z-index: 2;
+}
+
+.pianoRollNotaHandleIzq {
+    left: 0;
+}
+
+.pianoRollNotaHandleDer {
+    right: 0;
+}
+
+.pianoRollNotaHandleIzq:hover,
+.pianoRollNotaHandleDer:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Velocity visual: borde inferior proporcional */
+.pianoRollNotaVelocity {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+/* ============================================================
+ * CURSOR DE REPRODUCCION
+ * ============================================================ */
+
+.pianoRollCursorReproduccion {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #ff4444;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* ============================================================
+ * MARQUEE DE SELECCION
+ * ============================================================ */
+
+.pianoRollMarquee {
+    position: absolute;
+    border: 1px dashed rgba(100, 150, 255, 0.7);
+    background: rgba(100, 150, 255, 0.08);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* ============================================================
+ * GHOST NOTES
+ * ============================================================ */
+
+.pianoRollGhostNota {
+    position: absolute;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Contenedor overlay de ghost notes (se superpone al grid) */
+.pianoRollGhostContenedor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* ============================================================
+ * PANEL DE CONTROL INFERIOR
+ * ============================================================ */
+
+.pianoRollPanelControl {
+    border-top: 1px solid #333;
+    background: #12122a;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pianoRollPanelControlCabecera {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 8px;
+    background: #16162a;
+    border-bottom: 1px solid #2a2a3a;
+    min-height: 22px;
+}
+
+.pianoRollPanelControlToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    font-size: 10px;
+    flex-shrink: 0;
+}
+
+.pianoRollPanelControlToggle:hover {
+    color: #ccc;
+}
+
+.pianoRollPanelControlTab {
+    padding: 2px 8px;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-size: 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.1s;
+}
+
+.pianoRollPanelControlTab:hover {
+    color: #aaa;
+}
+
+.pianoRollPanelControlTabActivo {
+    color: #ccc;
+    background: #2a2a4a;
+}
+
+.pianoRollPanelControlCuerpo {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 60px;
+}
+
+/* Barras de velocity / pan / pitch */
+.pianoRollBarraControl {
+    position: absolute;
+    bottom: 0;
+    width: 3px;
+    min-width: 3px;
+    background: #fcaf3e;
+    border-radius: 1px 1px 0 0;
+    cursor: ns-resize;
+    transition: background 0.1s;
+}
+
+.pianoRollBarraControl:hover {
+    filter: brightness(1.3);
+}
+
+.pianoRollBarraControlSeleccionada {
+    outline: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================================
+ * MINIMAPA
+ * ============================================================ */
+
+.pianoRollMinimapa {
+    flex-shrink: 0;
+    height: 28px;
+    position: relative;
+    background: #0e0e1e;
+    border-top: 1px solid #2a2a4a;
+    border-bottom: 1px solid #2a2a4a;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.pianoRollMinimapaCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ============================================================
+ * MENU CONTEXTUAL
+ * ============================================================ */
+
+.pianoRollMenuContextual {
+    position: fixed;
+    z-index: 9999;
+    background: #1e1e38;
+    border: 1px solid #3a3a5a;
+    border-radius: 6px;
+    padding: 4px 0;
+    min-width: 160px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    font-size: 11px;
+    color: #ccc;
+}
+
+.pianoRollMenuContextualItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    color: #ccc;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.08s;
+}
+
+.pianoRollMenuContextualItem:hover {
+    background: #2a2a4e;
+}
+
+.pianoRollMenuContextualTitulo {
+    color: #888;
+    cursor: default;
+    font-weight: 500;
+}
+
+.pianoRollMenuContextualTitulo:hover {
+    background: transparent;
+}
+
+.pianoRollMenuContextualSeparador {
+    height: 1px;
+    background: #2a2a4a;
+    margin: 3px 8px;
+}
+
+.pianoRollMenuContextualColores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 4px 12px;
+}
+
+.pianoRollMenuContextualColor {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.pianoRollMenuContextualColor:hover {
+    transform: scale(1.25);
+    border-color: #fff;
+}
+
+.pianoRollMenuContextualVelocity {
+    display: flex;
+    gap: 3px;
+    padding: 4px 12px;
+}
+
+.pianoRollMenuContextualVelBtn {
+    flex: 1;
+    padding: 3px 0;
+    border: 1px solid #3a3a5a;
+    background: transparent;
+    color: #aaa;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.pianoRollMenuContextualVelBtn:hover {
+    background: #2a2a4e;
+    color: #fff;
+    border-color: #5a5a8a;
+}
+

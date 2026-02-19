@@ -284,7 +284,14 @@ react-dom.development.js:15688
 
 # AGENTE THRE
 
-310. [EN CURSO — AG-THRE] Piano Roll — Editor melódico/rítmico de notas tipo FL Studio. **Plan:** `App/docs/plan-piano-roll.md`. **Estado:** Implementando Fase PR-A→PR-D completas.
+310. ✅ [AG-THRE] Piano Roll — Editor melódico/rítmico completo tipo FL Studio. **Plan:** `App/docs/plan-piano-roll.md`.
+**Implementado:** 
+- PR-A: types/pianoRoll.ts (PPQ=96, 6 herramientas, 10 snaps, paleta 16 colores), utils/pianoRollUtils.ts (~130lín), pianoRollStore.ts (210lín UI state), accionesNotas.ts (~530lín CRUD+undo/redo+setFinePitch+setColor).
+- PR-B: 11 componentes — PianoRoll.tsx (VentanaFlotante+portal+atajos teclado), GridNotas.tsx (canvas+DOM hybrid), NotaRect.tsx (velocity opacity+handles resize), TecladoPiano.tsx (C0-B8 vertical), ReglaTemporal.tsx (canvas compases), CabeceraPianoRoll.tsx (6 herramientas+snap+ghost+preview), PanelControl.tsx (velocity/pan/pitch tabs), BarraVelocity.tsx (drag vertical), GhostNotas.tsx (notas otros canales semitransparentes), MenuContextualPR.tsx (copiar/cortar/pegar/eliminar/color/velocity), MinimapaPianoRoll.tsx (canvas overview+click navigate).
+- PR-C: pianoRollAudioService.ts (previewNota+programarNotasPianoRoll), PanelControl con finePitch integrado.
+- PR-D: Atajos teclado (P/S/C/B/D/T+1-6, Ctrl+Z/Y, Ctrl+A, Delete, Ctrl+C/V, flechas transponer), marquee selection, ghost notes toggle.
+- CSS: pianoRoll.css (~560lín), ventanasStore tipo union extendido, tsconfig react-dom path.
+**Pendiente:** Integración con Channel Rack de AG-TWO (sync steps↔notas), reproducción de notas en modo 'pat' (requiere programarPatron de AG-TWO).
 
 
 ---
@@ -406,6 +413,14 @@ react-dom.development.js:15688
 - [Enums-Gaps]: AdminRepository usa 'pendiente' para moderacion_estado y reportes.estado — no hay PublicacionesEnums ni ReportesEnums para estos valores. Generar CHECK constraints en schemas cuando se formalice.
 - [SET-Clauses]: SamplesModificacionController construye SET dinámico con `$campos[] = 'col = :param'`. Usar `SamplesCols::COL . ' = :param'` igual que en WHERE clauses.
 - [Explorador-SQL]: carpetasColeccionados() usa COALESCE para agrupar, pero coleccionadosDeUsuario/contarColeccionados NO lo usaban en WHERE. Siempre verificar consistencia COALESCE entre COUNT y SELECT filtrado.
+- [PianoRoll]: PPQ=96 como constante global. 1 beat = 60px * zoomX. ticksAPx/pxATicks centralizados en pianoRollUtils.ts.
+- [PianoRoll]: Hooks en Mezclador/hooks/ usan `../` (1 nivel arriba), componentes en Mezclador/components/PianoRoll/ usan `../../` (2 niveles). Error frecuente: confundir niveles de path relativos.
+- [PianoRoll]: accionesNotas.ts usa `notasPorCanal: Map<"patronId:canalId", NotaPianoRoll[]>` como store independiente. Migración trivial cuando AG-TWO agregue `notas[]` a CanalRack.
+- [PianoRoll]: Rendering híbrido — Canvas para grid de fondo (líneas, teclas negras) + DOM divs para notas interactivas. Mejor rendimiento que full-canvas por interactividad nativa.
+- [PianoRoll]: pianoRollAudioService.ts no modifica motorAudioService — lo consume como dependencia. `previewNota()` usa `detune` para pitch shift, `programarNotasPianoRoll()` itera notas y llama `programarReproduccion()`.
+- [PianoRoll]: El TS server de VS Code a veces no detecta archivos recién creados con `create_file`. Ejecutar `npx tsc --noEmit` desde terminal confirma compilación real. Los errores de "módulo no encontrado" son falsos positivos temporales.
+- [PianoRoll]: GhostNotas itera `notasPorCanal` Map buscando keys con mismo `patronId:` prefix pero diferente `canalId`. Culling viewport obligatorio para rendimiento.
+- [PianoRoll]: MenuContextualPR usa `position: fixed` + clamping al viewport para evitar desbordamiento. Cerrar con click fuera o Escape.
 - [IA-Prompt]: La IA puede devolver null para campos obligatorios aunque se listen opciones. Agregar "OBLIGATORIO, NUNCA null" explícitamente + fallback PHP con !empty() en vez de ?? null.
 - [CSS-Stacking]: Cuando un header con imagen se posiciona visualmente antes del contenido scrollable, agregar z-index:0 al header y z-index:1 al contenido para evitar que tape botones interactivos.
 - [Filtros-Feed]: esPremium ya viene en SampleResumen — filtrado client-side es suficiente sin cambios en backend (filtrosStore + useMemo en FeedSamples). Server-side solo necesario si paginación se ve afectada.
