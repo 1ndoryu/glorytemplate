@@ -8,6 +8,7 @@
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge} from '../ui';
 import {IconoTarjeta, IconoEnlaceExterno} from '../icons';
 import type {EstadoSuscripcion} from '../../hooks/useConfiguracion';
+import {CapSuscripcionesEnums} from '../../../../types/_generated/schema';
 
 interface PanelSuscripcionProps {
     suscripcion: EstadoSuscripcion | null;
@@ -27,12 +28,12 @@ function formatearFecha(fecha: string): string {
 
 function obtenerVarianteBadge(estado: string): 'exito' | 'advertencia' | 'error' | 'info' {
     switch (estado) {
-        case 'activa':
+        case CapSuscripcionesEnums.ESTADO_ACTIVA:
             return 'exito';
-        case 'pendiente':
+        case CapSuscripcionesEnums.ESTADO_PAGO_FALLIDO:
             return 'advertencia';
-        case 'expirada':
-        case 'cancelada':
+        case CapSuscripcionesEnums.ESTADO_EXPIRADA:
+        case CapSuscripcionesEnums.ESTADO_CANCELADA:
             return 'error';
         default:
             return 'info';
@@ -41,13 +42,13 @@ function obtenerVarianteBadge(estado: string): 'exito' | 'advertencia' | 'error'
 
 function obtenerEtiquetaEstado(estado: string): string {
     switch (estado) {
-        case 'activa':
+        case CapSuscripcionesEnums.ESTADO_ACTIVA:
             return 'Activa';
-        case 'pendiente':
-            return 'Pendiente';
-        case 'expirada':
+        case CapSuscripcionesEnums.ESTADO_PAGO_FALLIDO:
+            return 'Pago Fallido';
+        case CapSuscripcionesEnums.ESTADO_EXPIRADA:
             return 'Expirada';
-        case 'cancelada':
+        case CapSuscripcionesEnums.ESTADO_CANCELADA:
             return 'Cancelada';
         default:
             return estado;
@@ -86,13 +87,13 @@ export function PanelSuscripcion({suscripcion, userName, userEmail}: PanelSuscri
                     {/* Fecha de expiración */}
                     {suscripcion && (
                         <div className="capSuscripcionInfo__fila">
-                            <span className="capSuscripcionInfo__etiqueta">{suscripcion.estado === 'activa' ? 'Próxima facturación' : 'Expiró el'}</span>
+                            <span className="capSuscripcionInfo__etiqueta">{suscripcion.estado === CapSuscripcionesEnums.ESTADO_ACTIVA ? 'Próxima facturación' : 'Expiró el'}</span>
                             <span className="capSuscripcionInfo__valor">{formatearFecha(suscripcion.fechaFin)}</span>
                         </div>
                     )}
 
                     {/* Barra de progreso para trial */}
-                    {esTrial && suscripcion?.estado === 'activa' && (
+                    {esTrial && suscripcion?.estado === CapSuscripcionesEnums.ESTADO_ACTIVA && (
                         <div className="capSuscripcionInfo__progreso">
                             <div className="capSuscripcionInfo__progresoHeader">
                                 <span className="capTexto capTexto--sm capTexto--secundario">Días restantes de prueba</span>
@@ -119,7 +120,7 @@ export function PanelSuscripcion({suscripcion, userName, userEmail}: PanelSuscri
 
                     {/* Botón de gestión */}
                     <div className="capFormConfig__acciones capMt--lg">
-                        <Boton variante="outline" tamano="md" disabled={!suscripcion || suscripcion.estado !== 'activa'}>
+                        <Boton variante="outline" tamano="md" disabled={!suscripcion || suscripcion.estado !== CapSuscripcionesEnums.ESTADO_ACTIVA}>
                             <IconoEnlaceExterno />
                             Gestionar Pagos
                         </Boton>

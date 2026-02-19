@@ -272,36 +272,35 @@ Los días (`lunes`, `martes`, etc.) aparecen en ~7 archivos. Opciones:
 
 ---
 
-## FASE 4: MIGRAR API ENDPOINTS A SCHEMA SYSTEM
+## FASE 4: MIGRAR API ENDPOINTS A SCHEMA SYSTEM ✅ COMPLETADA
 
-### Archivos a migrar
+> **Completada:** 2026-02-20 — AG-SCH (commit ce9a868)
+>
+> 8 archivos migrados (7 API endpoints + CapSeeder), 3 sin cambios necesarios (sin SQL directo).
+> CapSeeder fue la migración más pesada: se eliminó propiedad $prefix, array hardcodeado de asignaturas (3ra copia), y se reemplazaron ~33 insert keys + ~10 table refs + 2 enums + 5 dias.
+> Los archivos sin cambios (CapAlumnosEndpoints, CapDemoEndpoints, CapReportesEndpoints) delegan a modelos/servicios ya migrados en Fases 2-3.
+
+### Archivos migrados (8 de 11 con cambios, 3 sin hardcode)
 
 | Archivo                           | Cols hc. | Tablas hc. | Enums hc.       |
 | --------------------------------- | -------- | ---------- | --------------- |
-| `CapRegistroEndpoints.php`        | ~6       | 3          | 1 (`'activa'`)  |
-| `CapAlumnosEndpoints.php`         | ~3       | 0          | 0               |
-| `CapAlumnosProgresoEndpoints.php` | ~4       | 2          | 8 (asignaturas) |
-| `CapConfigEndpoints.php`          | ~2       | 1          | 0               |
-| `CapClasesGestionEndpoints.php`   | ~4       | 2          | 0               |
-| `CapClasesLimpiezaEndpoints.php`  | ~2       | 2          | 0               |
-| `CapDisponibilidadEndpoints.php`  | ~4       | 1          | 5 (días)        |
-| `CapDemoEndpoints.php`            | 0        | 0          | 0               |
-| `CapStripeEndpoints.php`          | ~2       | 1          | 0               |
-| `CapReportesEndpoints.php`        | 0        | 0          | 0               |
-
-### 4.1 `CapSeeder.php` (concentración extrema de hardcode)
-
-- ~20 columnas hardcodeadas
-- 3 definiciones de enums
-- 1 definición completa de asignaturas (la 3ra copia)
-- 5 queries sin `$wpdb->prepare()`
-- Migrar completamente a constantes del schema
+| `CapRegistroEndpoints.php`        | ~~6~~ 0  | ~~3~~ 0    | ~~1~~ 0         |
+| `CapAlumnosEndpoints.php`         | 0        | 0          | 0 (sin cambios) |
+| `CapAlumnosProgresoEndpoints.php` | ~~4~~ 0  | ~~2~~ 0    | ~~8~~ 0         |
+| `CapConfigEndpoints.php`          | ~~2~~ 0  | ~~1~~ 0    | 0               |
+| `CapClasesGestionEndpoints.php`   | ~~4~~ 0  | ~~2~~ 0    | 0               |
+| `CapClasesLimpiezaEndpoints.php`  | ~~2~~ 0  | ~~2~~ 0    | 0               |
+| `CapDisponibilidadEndpoints.php`  | ~~4~~ 0  | ~~1~~ 0    | ~~5~~ 0         |
+| `CapDemoEndpoints.php`            | 0        | 0          | 0 (sin cambios) |
+| `CapStripeEndpoints.php`          | ~~2~~ 0  | ~~1~~ 0    | 0               |
+| `CapReportesEndpoints.php`        | 0        | 0          | 0 (sin cambios) |
+| `CapSeeder.php`                   | ~~20~~ 0 | ~~10~~ 0   | ~~7~~ 0         |
 
 ### Entregable Fase 4
 
-- Todos los endpoints usan constantes generadas
-- CapSeeder completamente migrado
-- 0 strings de BD en capa API
+- ✅ Todos los endpoints usan constantes generadas
+- ✅ CapSeeder completamente migrado (eliminadas propiedades $prefix y $asignaturas)
+- ✅ 0 strings de BD en capa API
 
 ---
 

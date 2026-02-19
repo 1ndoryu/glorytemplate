@@ -1,10 +1,17 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-02-20  
-> **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso | ⏳ PLAN_ANTI_HARDCODE Fase 3 completada  
+> **Estado:** ✅ Fase 12.1 - Correcciones Críticas de Progreso | ⏳ PLAN_ANTI_HARDCODE Fase 4 completada  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+
+- 2026-02-20: ✅ **[AG-SCH]** PLAN_ANTI_HARDCODE — Fase 4 completada (commit ce9a868).
+    - Fase 4: 8 archivos migrados (7 API endpoints + CapSeeder). 3 sin cambios necesarios (sin SQL directo).
+    - CapSeeder: eliminada propiedad $prefix, array hardcodeado $asignaturas (3ra copia), constructor simplificado. ~33 insert keys + ~10 table refs + 2 enums + 5 dias reemplazados.
+    - API endpoints migrados: CapRegistroEndpoints, CapAlumnosProgresoEndpoints, CapConfigEndpoints, CapClasesGestionEndpoints, CapClasesLimpiezaEndpoints, CapDisponibilidadEndpoints, CapStripeEndpoints.
+    - [Resultado]: 0 strings hardcodeados de BD en capas Models + Services + API + Seeder.
+    - [Pendiente]: Fases 5 (Frontend TS), 6 (Hardening try-catch), 7 (Validación), 8 (Auditoría profunda).
 
 - 2026-02-20: ✅ **[AG-SCH]** PLAN_ANTI_HARDCODE — Fase 1+2+3 completadas.
     - Fase 1: 7 Glory TableSchemas creados, generador ejecutado (7 Cols, 3 Enums, 7 DTOs, 1 schema.ts, 7 Repos). CapAsignaturasConstants centralizada.

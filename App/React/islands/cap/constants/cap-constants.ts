@@ -6,6 +6,7 @@
  */
 
 import type { Asignatura, DiaSemana } from '../types';
+import { CapDisponibilidadEnums } from '../../../types/_generated/schema';
 
 /* Configuraciones visuales del calendario
  * Zoom +30% aplicado para mejor visualización de tarjetas
@@ -44,8 +45,14 @@ export const CAP_REGLAS = {
     UMBRAL_DESCANSO_LARGO: 9
 } as const;
 
-/* Días laborables de la semana */
-export const DIAS_SEMANA: DiaSemana[] = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+/* Días laborables de la semana — derivados del schema generado */
+export const DIAS_SEMANA: DiaSemana[] = [
+    CapDisponibilidadEnums.DIA_LUNES,
+    CapDisponibilidadEnums.DIA_MARTES,
+    CapDisponibilidadEnums.DIA_MIERCOLES,
+    CapDisponibilidadEnums.DIA_JUEVES,
+    CapDisponibilidadEnums.DIA_VIERNES
+];
 
 /* Labels para los días de la semana */
 export const DIAS_LABELS: Record<DiaSemana, string> = {

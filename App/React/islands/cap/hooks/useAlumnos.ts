@@ -7,6 +7,7 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
+import type {ICapAlumnos} from '../../../types/_generated/schema';
 
 export interface Alumno {
     id: number;
@@ -18,7 +19,8 @@ export interface Alumno {
     horas_completadas: number;
     horas_asignadas?: number;
     horas_completadas_calculadas?: number;
-    estado: 'activo' | 'completado' | 'pausado';
+    /* Derivado del schema generado para consistencia con la BD */
+    estado: ICapAlumnos['estado'];
     created_at: string;
     updated_at: string;
 }

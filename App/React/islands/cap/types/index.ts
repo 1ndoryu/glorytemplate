@@ -3,7 +3,13 @@
  *
  * Interfaces y tipos centrales del módulo CAP (Certificado de Aptitud Profesional).
  * Organizado por dominio para facilitar importaciones.
+ *
+ * Los tipos de enum y dia derivan del schema generado (schema.ts)
+ * para mantener consistencia frontend/backend.
  */
+
+import type {ICapAlumnos, ICapDisponibilidad, ICapSuscripciones} from '../../../types/_generated/schema';
+export {CapAlumnosEnums, CapDisponibilidadEnums, CapSuscripcionesEnums} from '../../../types/_generated/schema';
 
 /* Usuario y Autenticación */
 export interface Usuario {
@@ -62,11 +68,12 @@ export interface Alumno {
     telefono: string;
     dni: string;
     horasCompletadas: number;
-    estado: 'activo' | 'completado' | 'pausado';
+    estado: ICapAlumnos['estado'];
     createdAt: string;
 }
 
-export type EstadoAlumno = Alumno['estado'];
+/* Derivado del schema generado para consistencia con la BD */
+export type EstadoAlumno = ICapAlumnos['estado'];
 
 /* Disponibilidad */
 export interface SlotDisponibilidad {
@@ -81,7 +88,8 @@ export interface DisponibilidadAlumno {
 }
 
 /* Calendario y Clases */
-export type DiaSemana = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes';
+/* Derivado del schema generado para consistencia con la BD */
+export type DiaSemana = ICapDisponibilidad['dia'];
 
 /*
  * Datos del alumno asignado a una clase.
@@ -117,7 +125,8 @@ export interface Asignatura {
 }
 
 /* Suscripciones */
-export type EstadoSuscripcion = 'activa' | 'expirada' | 'cancelada' | 'trial' | 'grace';
+/* Derivado del schema generado — trial/grace eliminados (no existen en BD), pago_fallido agregado */
+export type EstadoSuscripcion = ICapSuscripciones['estado'];
 
 export interface Suscripcion {
     id: number;

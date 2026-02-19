@@ -8,7 +8,7 @@
 
 import {useState, useEffect} from 'react';
 import {Modal, Badge, Spinner, Tooltip} from '../ui';
-import {ASIGNATURAS_CAP, CAP_REGLAS} from '../../constants';
+import {ASIGNATURAS_CAP, CAP_REGLAS, getAsignatura} from '../../constants';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
 
@@ -36,44 +36,13 @@ interface ModalProgresoAlumnoProps {
 }
 
 /*
- * Normaliza códigos de asignatura del backend a IDs numéricos del frontend.
- * El backend puede devolver nombres internos como "conduccion_racional".
+ * Obtiene el ID numérico de una asignatura a partir de su código backend.
+ * Delega a getAsignatura() centralizada en cap-constants.ts para evitar
+ * duplicar el mapeo de alias (CODIGOS_ALIAS).
  */
-const CODIGO_A_ID: Record<string, number> = {
-    conduccion_racional: 1,
-    CR: 1,
-    reglamentacion: 2,
-    REG: 2,
-    seguridad_vial: 3,
-    SV: 3,
-    servicio_logistica: 4,
-    SL: 4,
-    salud_seguridad: 5,
-    SS: 5,
-    salud_ergonomia: 5,
-    medio_ambiente: 6,
-    MA: 6,
-    entorno_economico: 6,
-    mercancias_peligrosas: 7,
-    MP: 7,
-    viajeros: 8,
-    VIA: 8,
-    evaluacion: 8,
-    racionalizacion: 1
-};
-
 const obtenerAsignaturaId = (valorAsignatura: string): number | null => {
-    const idDirecto = CODIGO_A_ID[valorAsignatura];
-    if (idDirecto) {
-        return idDirecto;
-    }
-
-    const numero = parseInt(valorAsignatura, 10);
-    if (!Number.isNaN(numero) && numero >= 1 && numero <= 8) {
-        return numero;
-    }
-
-    return null;
+    const asignatura = getAsignatura(valorAsignatura);
+    return asignatura ? asignatura.id : null;
 };
 
 export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {

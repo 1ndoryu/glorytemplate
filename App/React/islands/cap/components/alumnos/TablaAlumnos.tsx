@@ -12,6 +12,7 @@ import type {Alumno, FiltrosAlumnos} from '../../hooks/useAlumnos';
 import {calcularProgreso, estadoProgreso} from '../../hooks/useAlumnos';
 import {CAP_REGLAS} from '../../constants';
 import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
+import {CapAlumnosEnums} from '../../../../types/_generated/schema';
 
 interface TablaAlumnosProps {
     alumnos: Alumno[];
@@ -48,14 +49,14 @@ export function TablaAlumnos({alumnos, total, cargando, eliminando, filtros, onC
 
     const renderEstadoBadge = (estado: string) => {
         const variantes: Record<string, 'exito' | 'info' | 'neutral'> = {
-            activo: 'info',
-            completado: 'exito',
-            pausado: 'neutral'
+            [CapAlumnosEnums.ESTADO_ACTIVO]: 'info',
+            [CapAlumnosEnums.ESTADO_COMPLETADO]: 'exito',
+            [CapAlumnosEnums.ESTADO_PAUSADO]: 'neutral'
         };
         const etiquetas: Record<string, string> = {
-            activo: 'Activo',
-            completado: 'Completado',
-            pausado: 'Pausado'
+            [CapAlumnosEnums.ESTADO_ACTIVO]: 'Activo',
+            [CapAlumnosEnums.ESTADO_COMPLETADO]: 'Completado',
+            [CapAlumnosEnums.ESTADO_PAUSADO]: 'Pausado'
         };
         return <Badge variante={variantes[estado] || 'neutral'}>{etiquetas[estado] || estado}</Badge>;
     };

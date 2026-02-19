@@ -7,6 +7,7 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
+import type {ICapSuscripciones} from '../../../types/_generated/schema';
 
 export interface DatosCentro {
     id: number;
@@ -36,7 +37,8 @@ export interface ConfiguracionHorarios {
 }
 
 export interface EstadoSuscripcion {
-    estado: 'activa' | 'expirada' | 'pendiente' | 'cancelada';
+    /* Derivado del schema generado — 'pendiente' eliminado (no existe en BD), 'pago_fallido' incluido */
+    estado: ICapSuscripciones['estado'];
     fechaInicio: string;
     fechaFin: string;
     diasRestantes: number;
