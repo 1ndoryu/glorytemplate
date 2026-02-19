@@ -16,6 +16,7 @@ use App\Kamples\Database\Repositories\ReproduccionesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\Database\Repositories\TransaccionesRepository;
+use App\Kamples\KamplesLogger;
 
 class DashboardController
 {
@@ -46,6 +47,7 @@ class DashboardController
 
     public static function stats(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -55,9 +57,11 @@ class DashboardController
         $reproduccionesMes = ReproduccionesRepository::contarDelCreadorMes($userId);
         $reproduccionesTotal = SamplesRepository::totalReproduccionesCreador($userId);
         $seguidoresNuevos = FollowsRepository::seguidoresNuevosMes($userId);
-        $ingresosMes = TransaccionesRepository::ingresosCreadorMes($userId);
-        $ingresosAnterior = TransaccionesRepository::ingresosCreadorMesAnterior($userId);
-        $ingresosTotal = TransaccionesRepository::ingresosCreadorTotal($userId);
+        /* OPT02: 3 queries de ingresos combinadas en 1 con SUM FILTER */
+        $ingresos = TransaccionesRepository::ingresosDashboard($userId);
+        $ingresosMes = $ingresos['ingresosMes'];
+        $ingresosAnterior = $ingresos['ingresosAnterior'];
+        $ingresosTotal = $ingresos['ingresosTotal'];
 
         return new \WP_REST_Response(['data' => [
             'ingresosTotal'       => $ingresosTotal,
@@ -71,20 +75,42 @@ class DashboardController
             'seguidoresNuevosMes' => $seguidoresNuevos,
             'samplesPublicados'   => (int) ($usuario[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
         ]], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DashboardController::stats', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function topSamples(): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
         $samples = SamplesRepository::topSamplesCreador($userId);
 
         return new \WP_REST_Response(['data' => $samples], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DashboardController::topSamples', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function transacciones(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -94,10 +120,21 @@ class DashboardController
         $transacciones = TransaccionesRepository::listarDelCreador($userId, 20, $offset);
 
         return new \WP_REST_Response(['data' => $transacciones], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DashboardController::transacciones', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 
     public static function ingresos(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
@@ -111,5 +148,15 @@ class DashboardController
         $ingresos = TransaccionesRepository::ingresosGrafico($userId, $intervalo);
 
         return new \WP_REST_Response(['data' => $ingresos], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DashboardController::ingresos', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
     }
 }
