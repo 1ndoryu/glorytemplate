@@ -9,6 +9,8 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
+use App\Config\Schema\_generated\CapDisponibilidadCols;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
 
 class CapDisponibilidadEndpoints
 {
@@ -69,7 +71,7 @@ class CapDisponibilidadEndpoints
         }
 
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_disponibilidad';
+        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
 
         $slots = $wpdb->get_results($wpdb->prepare(
             "SELECT dia, hora, disponible FROM {$tabla} WHERE alumno_id = %d",
@@ -111,14 +113,20 @@ class CapDisponibilidadEndpoints
         }
 
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_disponibilidad';
+        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
 
-        $eliminado = $wpdb->delete($tabla, ['alumno_id' => $alumnoId]);
+        $eliminado = $wpdb->delete($tabla, [CapDisponibilidadCols::ALUMNO_ID => $alumnoId]);
         if ($eliminado === false) {
             return new \WP_REST_Response(['error' => 'No se pudo limpiar la disponibilidad anterior'], 500);
         }
 
-        $diasValidos = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+        $diasValidos = [
+            CapDisponibilidadEnums::DIA_LUNES,
+            CapDisponibilidadEnums::DIA_MARTES,
+            CapDisponibilidadEnums::DIA_MIERCOLES,
+            CapDisponibilidadEnums::DIA_JUEVES,
+            CapDisponibilidadEnums::DIA_VIERNES,
+        ];
 
         foreach ($datos['slots'] as $slot) {
             if (!isset($slot['dia']) || !isset($slot['hora'])) {
@@ -138,12 +146,12 @@ class CapDisponibilidadEndpoints
             }
 
             $insertado = $wpdb->insert($tabla, [
-                'alumno_id' => $alumnoId,
-                'dia' => $dia,
-                'hora' => $hora,
-                'disponible' => $disponible ? 1 : 0,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
+                CapDisponibilidadCols::ALUMNO_ID => $alumnoId,
+                CapDisponibilidadCols::DIA => $dia,
+                CapDisponibilidadCols::HORA => $hora,
+                CapDisponibilidadCols::DISPONIBLE => $disponible ? 1 : 0,
+                CapDisponibilidadCols::CREATED_AT => current_time('mysql'),
+                CapDisponibilidadCols::UPDATED_AT => current_time('mysql'),
             ]);
 
             if ($insertado === false) {

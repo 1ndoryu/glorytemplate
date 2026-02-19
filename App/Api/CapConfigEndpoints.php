@@ -9,6 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Configuracion;
+use App\Config\Schema\_generated\CapSuscripcionesCols;
 
 class CapConfigEndpoints
 {
@@ -51,7 +52,7 @@ class CapConfigEndpoints
         $configModel = new Configuracion();
 
         global $wpdb;
-        $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+        $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
         $suscripcion = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$tablaSuscripciones} WHERE centro_id = %d ORDER BY id DESC LIMIT 1",
             $centroId

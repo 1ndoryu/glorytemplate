@@ -653,3 +653,346 @@ Schemas   Models   Services   API/Seed  Frontend  Hardening  Validación
 - `App/Database/CapSeeder.php`
 
 ### Total: 8 archivos nuevos + ~35 archivos modificados + archivos generados automáticos
+---
+
+## FASE 8: AUDITORÍA PROFUNDA — FALLOS SILENCIOSOS, CÓDIGO MUERTO Y DEFICIENCIAS ESTRUCTURALES (NO DOCUMENTADO PREVIAMENTE)
+
+> **Fecha de detección:** 2026-02-19  
+> **Origen:** Revisión cruzada de TODO el codebase (endpoints, repositorios, modelos, servicios, frontend)  
+> **Hallazgos nuevos:** 176 (64 endpoints + 60 repositorios/data + 79 modelos/servicios + 52 frontend) — deducidos los ya documentados en Fase 6  
+> **Impacto:** Múltiples vectores de fallo silencioso, código muerto, pérdida de datos, y desincronización frontend/backend
+
+---
+
+### 8.0 BLOQUEANTE — `BaseRepository` NO EXISTE (CRÍTICO)
+
+Los 7 repositorios en `App/Database/Repositories/` extienden `BaseRepository`, pero **esta clase no existe en ningún lugar del proyecto** (ni en App, ni en Glory, ni en vendor). Esto significa que:
+
+- **Toda la capa de repositorios es código muerto**. Cualquier intento de instanciar un repositorio lanza `Fatal Error`.
+- Los endpoints que sí funcionan lo hacen porque hacen queries `$wpdb` directas, saltando los repositorios.
+- El generador CLI (`repositoryGenerate.mjs`) genera repos que extienden `BaseRepository` pero nunca se creó la clase base.
+
+**Acción:** Crear `BaseRepository` en Glory o en App, o bien eliminar los repositorios y reescribir el acceso a datos. Los repos actuales también tienen imports muertos de DTOs (7 archivos) y hardcode de columnas en `ORDER BY`.
+
+| Archivo | Hallazgo |
+|---------|----------|
+| Todos los 7 repos | `extends BaseRepository` — Fatal Error al instanciar |
+| Todos los 7 repos | DTO importado pero nunca usado |
+| Todos los 7 repos | `ORDER BY created_at DESC` con string literal en vez de constante Cols |
+
+---
+
+### 8.1 CERO TRANSACCIONES EN TODO EL CODEBASE (CRÍTICO)
+
+**No existe ni una sola transacción** (`START TRANSACTION` / `COMMIT` / `ROLLBACK`) en todo el proyecto. Cada operación multi-tabla es vulnerable a inconsistencia de datos:
+
+| Archivo | Operación | Riesgo |
+|---------|-----------|--------|
+| `CalendarPersistenceService.php` | DELETE clases existentes + INSERT nuevas + INSERT asistencias | **El más crítico**: si falla a mitad, semana con datos parciales |
+| `Alumno.php:eliminar()` | DELETE disponibilidad + DELETE asistencia + DELETE alumno | Si falla el último, registros huérfanos |
+| `Clase.php:eliminar()` | DELETE asistencias + DELETE clase | Asistencias borradas pero clase persiste |
+| `Configuracion.php:crearCentro()` | INSERT centro + INSERT config default | Centro sin configuración |
+| `CapService.php:getCentroIdActual()` | INSERT centro + INSERT suscripción trial | Centro sin suscripción = acceso bloqueado |
+| `CapSeeder.php:seedAll()` | 4 inserts masivos secuenciales | Datos demo parciales irrecuperables |
+| `CapSeeder.php:cleanAll()` | 4 DELETEs secuenciales | Datos borrados parcialmente |
+| `CapRegistroEndpoints.php` | INSERT centro + INSERT config + INSERT suscripción + wp_create_user | Usuario creado sin centro, o centro sin suscripción |
+| `CapDisponibilidadEndpoints.php` | DELETE all + INSERT loop | Disponibilidad borrada pero no reinsertada |
+| `CapClasesGestionEndpoints.php` | DELETE asistencias + DELETE clase | Igual que Clase.php |
+| `CapClasesLimpiezaEndpoints.php` | SELECT IDs + DELETE asist. + DELETE clases | Race condition entre SELECT y DELETE |
+
+**Acción:** Implementar `$wpdb->query('START TRANSACTION')` / `COMMIT` / `ROLLBACK` en todas las operaciones multi-tabla. Crear helper reutilizable `conTransaccion(callable $fn)` para simplificar.
+
+---
+
+### 8.2 CERO TRY-CATCH EN MODELOS (ALTO)
+
+Los 3 modelos (`Alumno.php`, `Clase.php`, `Configuracion.php`) no tienen **ni un solo** bloque `try-catch`. Toda excepción de BD propaga como fatal error sin manejo. Combinado con la ausencia de transacciones, cualquier error intermedio deja datos inconsistentes.
+
+| Archivo | Líneas | Operaciones desprotegidas |
+|---------|--------|--------------------------|
+| `Alumno.php` | 578 | ~15 operaciones $wpdb (insert/update/delete/query) |
+| `Clase.php` | 349 | ~10 operaciones $wpdb |
+| `Configuracion.php` | 324 | ~8 operaciones $wpdb + 2 ALTER TABLE |
+
+**Acción:** Envolver operaciones de escritura en try-catch. Mínimo: `eliminar()`, `crear()`, `actualizar()`, `recalcularHoras*()` en cada modelo.
+
+---
+
+### 8.3 ARCHIVOS QUE EXCEDEN LÍMITES DE LÍNEAS (MEDIO)
+
+| Archivo | Líneas | Límite | Exceso |
+|---------|--------|--------|--------|
+| `Alumno.php` | 578 | 300 | +278 (93%) |
+| `StripeService.php` | 509 | 300 | +209 (70%) |
+| `Configuracion.php` | 324 | 300 | +24 (8%) |
+| `Clase.php` | 349 | 300 | +49 (16%) |
+| `CalendarEngine.php` | 349 | 300 | +49 (16%) |
+| `useCalendario.ts` | 772 | 120 (hooks) | +652 (543%) |
+
+**Acción:** Split obligatorio según protocolo. `useCalendario.ts` es el caso más extremo (6x el límite). Dividir en: `useCalendarioNavegacion.ts`, `useCalendarioClases.ts`, `useCalendarioGeneracion.ts`, `useCalendarioEdicion.ts`, `useCalendarioHistorial.ts`.
+
+---
+
+### 8.4 ENDPOINTS CON ACCESO DIRECTO A BD (ALTO — ARQUITECTURA)
+
+8 de 12 endpoints hacen queries `$wpdb` directas en vez de usar modelos/repositorios. Esto viola SRP, dificulta testing, y genera hardcode de tablas/columnas fuera de la capa de datos:
+
+| Endpoint | Operaciones directas |
+|----------|---------------------|
+| `CapRegistroEndpoints.php` | 3 inserts (`cap_centros`, `cap_configuracion`, `cap_suscripciones`) |
+| `CapAlumnosProgresoEndpoints.php` | 6+ queries (asistencia, clases, alumnos) |
+| `CapConfigEndpoints.php` | query a `cap_suscripciones` |
+| `CapClasesGestionEndpoints.php` | delete asistencia + delete clase |
+| `CapClasesLimpiezaEndpoints.php` | deletes masivos sin transacción |
+| `CapDisponibilidadEndpoints.php` | select/delete/insert disponibilidad |
+| `CapStripeEndpoints.php` | query a `cap_suscripciones` |
+| `CapCalendarioGeneracionEndpoints.php` | indirectamente via modelos sin repos |
+
+**Acción:** Canalizar TODAS las operaciones de datos por modelos/repositorios. Eliminar queries `$wpdb` directas de endpoints.
+
+---
+
+### 8.5 STRIPE: FALLOS DE SEGURIDAD FINANCIERA (CRÍTICO)
+
+Hallazgos NO documentados en Fase 6 (que solo cubría verificar retorno de `$wpdb`):
+
+| # | Hallazgo | Impacto |
+|---|----------|---------|
+| 1 | **SIN idempotency key** en `crearCheckoutSession()` | Reintentos del browser duplican cobros |
+| 2 | **Webhooks SIN protección contra replay** | Stripe puede reenviar eventos y duplicar cambios de estado |
+| 3 | **`procesarCheckoutCompletado()` SELECT+INSERT sin transacción** | Webhooks concurrentes del mismo checkout crean suscripciones duplicadas |
+| 4 | **Esquema de encriptación con bug de IV** | Si los 16 bytes random del IV contienen `0x3A3A` (`::`) → `explode('::', ...)` corta en posición incorrecta → desencriptación falla silenciosamente retornando `''` |
+| 5 | **`desencriptar()` retorna `''` en error** en lugar de `false`/exception | Keys corruptas se interpretan como "no configuradas", no como error |
+| 6 | **Sin timeout ni retry** para llamadas a Stripe API | Network hang deja request PHP colgado indefinidamente |
+| 7 | **`openssl_random_pseudo_bytes` sin verificar `$crypto_strong`** | IV potencialmente no criptográficamente seguro |
+| 8 | **Estados de Stripe hardcodeados** | `'past_due'`, `'canceled'`, `'unpaid'` como strings literales — deben ser constantes |
+| 9 | **`$session->metadata->centro_id` sin verificar existencia del centro** | Webhook con metadata manipulada puede crear suscripciones huérfanas |
+
+**Acción:** Estos son adicionales a los hallazgos H-1..H-11 de Fase 6. Requieren su propia subfase de hardening Stripe.
+
+---
+
+### 8.6 OPEN REDIRECT EN STRIPE ENDPOINTS (ALTO — SEGURIDAD)
+
+| Archivo | Parámetro | Riesgo |
+|---------|-----------|--------|
+| `CapStripeEndpoints.php` | `$datos['urlExito']` | URL de redirección post-checkout sin validar dominio |
+| `CapStripeEndpoints.php` | `$datos['urlCancelado']` | Ídem |
+| `CapStripeEndpoints.php` | `$datos['urlRetorno']` | URL de portal sin `esc_url()` ni validación |
+
+**Acción:** Validar que las URLs pertenezcan al dominio del sitio (`wp_validate_redirect()` o `home_url()` check).
+
+---
+
+### 8.7 INPUT VALIDATION AUSENTE EN ENDPOINTS (ALTO)
+
+Parámetros de request pasados sin sanitización a modelos/servicios:
+
+| Endpoint | Parámetro | Riesgo |
+|----------|-----------|--------|
+| `CapAlumnosEndpoints` | `$request->get_json_params()` completo | Payload arbitrario llega al modelo |
+| `CapAlumnosEndpoints` | `limite`, `offset` | Sin `intval()` |
+| `CapAlumnosEndpoints` | `busqueda` | Sin `sanitize_text_field()` |
+| `CapConfigEndpoints` | `$datos['config']`, `$datos['centro']` | Sin sanitización |
+| `CapClasesLimpiezaEndpoints` | `$fecha` | Sin sanitizar antes de `new DateTime()` |
+| `CapCalendarioEndpoints` | `$alumnosIds`, `$exclusiones`, `$semana` | Arrays sin validar tipo/contenido |
+| `CapStripeEndpoints` | `$datos` config Stripe | Sin sanitización |
+| `CapReportesEndpoints` | `$semana` | Sin `sanitize_text_field()` ni validación de formato |
+
+**Acción:** Sanitizar CADA parámetro de entrada en el endpoint antes de pasarlo a capas inferiores. Crear función helper `sanitizarEntrada($datos, $reglas)`.
+
+---
+
+### 8.8 `callbackSeguro` DUPLICADO EN 9 CLASES (MEDIO — DRY)
+
+Cada clase de endpoint define su propia copia idéntica de `callbackSeguro()`. Son ~15 líneas duplicadas 9 veces.
+
+**Acción:** Extraer a trait `ConCallbackSeguro` o a clase base `BaseEndpoint`.
+
+---
+
+### 8.9 DISCREPANCIA DE TIPOS FRONTEND: 3 DEFINICIONES INCOMPATIBLES DE `EstadoSuscripcion` (CRÍTICO)
+
+| Ubicación | Valores |
+|-----------|---------|
+| Schema backend (BD) | `activa`, `expirada`, `cancelada`, `pago_fallido` |
+| `types/index.ts` | `activa`, `expirada`, `cancelada`, `trial`, `grace` |
+| `useConfiguracion.ts` (inline) | `activa`, `expirada`, `pendiente`, `cancelada` |
+
+Tres definiciones incompatibles del mismo tipo. `pago_fallido` del backend no existe en ninguna definición frontend. `trial`, `grace`, `pendiente` no existen en BD.
+
+**Acción:** Unificar en `schema.ts` generado + evaluar si `trial`/`grace`/`pendiente` deben agregarse al schema BD o eliminarse del frontend.
+
+---
+
+### 8.10 FRONTEND: RACE CONDITIONS Y CLEANUP AUSENTE (ALTO)
+
+| Archivo | Línea aprox. | Hallazgo |
+|---------|-------------|----------|
+| `useCalendario.ts` | ~183 | useEffect con fetch **SIN AbortController**. Navegación rápida entre semanas muestra clases de semana equivocada |
+| `useAlumnos.ts` | ~260 | useEffect con fetch sin cleanup. Cambio rápido de filtros = race condition |
+| `useConfiguracion.ts` | ~220 | useEffect sin AbortController |
+| `useStripe.ts` | ~105 | useEffect sin AbortController |
+| `PanelDemo.tsx` | ~40 | useEffect de montaje sin cleanup |
+| `SeccionReportes.tsx` | ~30 | useEffect sin cleanup |
+| `SeccionAlumnos.tsx` | ~43 | `setTimeout` en render body sin `useEffect` ni cleanup — crea timeout nuevo en cada re-render |
+| `SeccionConfiguracion.tsx` | ~24 | Mismo patrón de setTimeout fuera de useEffect |
+
+**Acción:** Agregar `AbortController` a todo `useEffect` con operaciones async. Mover `setTimeout` a `useEffect` con cleanup.
+
+---
+
+### 8.11 FRONTEND: ERROR MASKING Y FEEDBACK AUSENTE (ALTO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `PanelDemo.tsx:poblarDatos()` | Si `response.json()` falla, muestra **"Datos creados"** (éxito falso) |
+| `PanelDemo.tsx:obtenerEstado()` | Si falla, no muestra error. Panel queda en `estado === null` sin explicación |
+| `PanelDemo.tsx:limpiarDatos()` | Error genérico oculta borrado parcial |
+| `ModalProgresoAlumno.tsx` | Fetch falla → muestra fallback con 0s **sin indicar que son datos aproximados** |
+| `PanelHorarios.tsx` | `JSON.parse` falla → `console.error` + return sin feedback visual |
+| `useCalendario.ts:generarCalendario()` | No verifica `response.ok` antes de parsear JSON — HTTP 500 con JSON válido se procesa como éxito |
+| `useCalendario.ts:moverMultiplesClases()` | `Promise.all` falla parcialmente → revierte TODO en frontend pero backend tiene cambios parciales = desincronización |
+
+**Acción:** Toda operación fallida debe dar feedback visual al usuario (toast, badge, alerta). Prohibido retornar success en catch.
+
+---
+
+### 8.12 FRONTEND: OPTIMISTIC UPDATES SIN ROLLBACK CORRECTO (ALTO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `useCalendario.ts:actualizarClase()` | Rollback usa snapshot del closure que puede contener estado optimista previo, no el real del servidor |
+| `useCalendario.ts:moverMultiplesClases()` | `Promise.all` con rollback total del frontend, pero las peticiones exitosas ya se persistieron en backend |
+
+**Acción:** Implementar rollback individual por operación, o cambiar a updates confirmados (no optimistas) para operaciones batch.
+
+---
+
+### 8.13 ZUSTAND STORE SIN SELECTORES (MEDIO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `CapLayout.tsx` | `useDashboardStore()` sin selector — desestructura 7 props. Cualquier cambio al store re-renderiza todo el layout |
+
+**Acción:** `useDashboardStore(s => s.seccionActiva)` en vez de desestructurar todo.
+
+---
+
+### 8.14 CÓDIGO MUERTO Y DUPLICADO (MEDIO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `useHistorial.ts` | Hook completo posiblemente no usado — `useCalendario` tiene su propio sistema de historial interno |
+| `ModalProgresoAlumno.tsx` | `CODIGO_A_ID` duplica lógica de `CODIGOS_ALIAS` de cap-constants.ts |
+| `Alumno` (tipo TS) | Definido 3 veces: `useAlumnos.ts` (snake_case), `types/index.ts` (camelCase), `schema.ts` (generado) |
+| `API_BASE` | Duplicado en `useCalendario.ts`, `useAlumnos.ts`, `useConfiguracion.ts`, `useDisponibilidad.ts` |
+| 7 repos | Imports muertos de DTO (7) y Enums (2) |
+
+---
+
+### 8.15 MUTACIÓN DIRECTA DE ESTADO REACT (MEDIO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `PanelHorarios.tsx:handleRangoChange()` | `nuevosHorarios[diaId][index][campo] = valor` — muta objeto in-place (copia superficial no protege arrays internos) |
+| `PanelHorarios.tsx:eliminarRango()` | `splice()` muta array in-place — React puede no detectar el cambio |
+
+**Acción:** Copia profunda o inmutable update pattern (`map` + spread).
+
+---
+
+### 8.16 SECURITY: ERROR DETAIL LEAKS (BAJO)
+
+| Archivo | Hallazgo |
+|---------|----------|
+| `CapReportesEndpoints.php` | `$error->getMessage()` expuesto al cliente — puede contener paths del servidor |
+| `useStripe.ts` | `console.error` con stack traces de endpoints Stripe |
+
+---
+
+### 8.17 RACE CONDITION EN REGISTRO (MEDIO)
+
+`CapRegistroEndpoints.php` ~L142: `username_exists()` + `email_exists()` + `wp_create_user()` — dos registros simultáneos con el mismo email podrían pasar ambos checks. WordPress `wp_create_user` lanza error si duplicado, pero el error se maneja como genérico sin informar "email ya existe".
+
+---
+
+### 8.18 `CapSchema.php` — SIN FK CONSTRAINTS (MEDIO)
+
+Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
+- Borrar un centro no cascadea a alumnos
+- Borrar un alumno no cascadea a disponibilidad/asistencia
+- El código intenta borrar manualmente (secuencial, sin transacción), pero errores intermedios dejan datos huérfanos
+
+**Acción:** Evaluar agregar `ON DELETE CASCADE` en constraints FK, o al mínimo documentar que la integridad referencial es responsabilidad del código (y entonces las transacciones de 8.1 son absolutamente imprescindibles).
+
+---
+
+### 8.19 N+1 QUERIES EN SEEDER (MEDIO)
+
+`CapSeeder.php:asignarAsistencias()` ejecuta `SELECT COUNT` + `INSERT` por cada combinación clase × alumno. Con 40 clases × 6 alumnos = ~240 queries individuales. Debería usar `INSERT ... ON DUPLICATE KEY UPDATE` o batch insert.
+
+---
+
+### 8.20 LOGOUT SIN NONCE (BAJO)
+
+`CapLayout.tsx:handleCerrarSesion` construye URL `/wp-login.php?action=logout` sin `_wpnonce`. WordPress mostrará "¿Estás seguro?" en vez de hacer logout directo.
+
+---
+
+### 8.21 BOTÓN MUERTO (BAJO)
+
+`PanelSuscripcion.tsx` ~L122: Botón "Gestionar Pagos" no tiene `onClick` handler. Está deshabilitado condicionalmente pero nunca hace nada.
+
+---
+
+### 8.22 TYPO EN NOMBRE DE FUNCIÓN (BAJO)
+
+`useCalendario.ts` ~L700: `borrarSemanacompleta` debería ser `borrarSemanaCompleta` (camelCase correcto).
+
+---
+
+### RESUMEN FASE 8 POR PRIORIDAD DE EJECUCIÓN
+
+| Prioridad | ID | Descripción | Esfuerzo |
+|-----------|----|-------------|----------|
+| **P0 — Bloqueante** | 8.0 | Crear `BaseRepository` o eliminar repos muertos | Medio |
+| **P0 — Bloqueante** | 8.1 | Implementar transacciones en TODAS las operaciones multi-tabla | Alto |
+| **P1 — Crítico** | 8.5 | Hardening Stripe (idempotency, webhook replay, crypto bug) | Alto |
+| **P1 — Crítico** | 8.9 | Unificar `EstadoSuscripcion` (3 definiciones incompatibles) | Bajo |
+| **P1 — Crítico** | 8.2 | Try-catch en modelos | Medio |
+| **P2 — Alto** | 8.4 | Canalizar acceso BD por repos/modelos, no directo en endpoints | Alto |
+| **P2 — Alto** | 8.6 | Fix open redirect en Stripe URLs | Bajo |
+| **P2 — Alto** | 8.7 | Input validation en endpoints | Medio |
+| **P2 — Alto** | 8.10 | AbortController en useEffects | Medio |
+| **P2 — Alto** | 8.11 | Eliminar error masking en frontend | Medio |
+| **P2 — Alto** | 8.12 | Rollback correcto en optimistic updates | Medio |
+| **P3 — Medio** | 8.3 | Split archivos que exceden límites | Medio |
+| **P3 — Medio** | 8.8 | Extraer `callbackSeguro` a trait | Bajo |
+| **P3 — Medio** | 8.13 | Selectores Zustand | Bajo |
+| **P3 — Medio** | 8.14 | Eliminar código muerto | Bajo |
+| **P3 — Medio** | 8.15 | Inmutable updates en PanelHorarios | Bajo |
+| **P3 — Medio** | 8.17 | Race condition en registro | Bajo |
+| **P3 — Medio** | 8.18 | FK constraints o documentar ausencia | Bajo |
+| **P3 — Medio** | 8.19 | Batch inserts en Seeder | Bajo |
+| **P4 — Bajo** | 8.16 | Error detail leaks | Bajo |
+| **P4 — Bajo** | 8.20 | Logout nonce | Bajo |
+| **P4 — Bajo** | 8.21 | Botón muerto | Bajo |
+| **P4 — Bajo** | 8.22 | Typo función | Bajo |
+
+---
+
+### MÉTRICAS ACTUALIZADAS (incluyendo Fase 8)
+
+| Métrica | Antes (solo F1-F7) | Después de F8 |
+|---------|---------------------|---------------|
+| Transacciones BD | 0 | Objetivo: 11 operaciones protegidas |
+| Try-catch en modelos | 0 | Objetivo: cobertura completa |
+| BaseRepository | Inexistente (7 repos muertos) | Objetivo: funcional o eliminado |
+| Definiciones incompatibles EstadoSuscripcion | 3 | Objetivo: 1 fuente única |
+| useEffects sin cleanup | 8 | Objetivo: 0 |
+| Error masking frontend | 7 casos | Objetivo: 0 |
+| Archivos sobre límite de líneas | 6 | Objetivo: 0 |
+| Open redirect vectors | 3 | Objetivo: 0 |
+| Inputs sin sanitizar en endpoints | 10+ | Objetivo: 0 |
+| Código muerto | ~12 archivos/funciones | Objetivo: 0 |

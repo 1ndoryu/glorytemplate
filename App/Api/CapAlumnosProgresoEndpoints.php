@@ -9,6 +9,10 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
+use App\Config\Schema\_generated\CapAlumnosCols;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+use App\Config\Schema\CapAsignaturasConstants;
 
 class CapAlumnosProgresoEndpoints
 {
@@ -95,7 +99,7 @@ class CapAlumnosProgresoEndpoints
         $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
 
         if ($debugProgreso) {
-            $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
+            $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
 
             $duplicados = (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM (
@@ -136,16 +140,7 @@ class CapAlumnosProgresoEndpoints
         $horasAsignadas = round($horasAsignadas, 2);
 
         if ($debugProgreso) {
-            $requeridas = [
-                'conduccion_racional' => 7,
-                'reglamentacion' => 4,
-                'seguridad_vial' => 6,
-                'servicio_logistica' => 4,
-                'salud_seguridad' => 4,
-                'medio_ambiente' => 4,
-                'mercancias_peligrosas' => 3,
-                'viajeros' => 3,
-            ];
+            $requeridas = CapAsignaturasConstants::HORAS_REQUERIDAS;
 
             $this->registrarLog('  [COMPARACION] Asignadas vs requeridas por asignatura:');
             foreach ($requeridas as $codigo => $horasReq) {
@@ -193,9 +188,9 @@ class CapAlumnosProgresoEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
-        $tablaAlumnos = $wpdb->prefix . 'cap_alumnos';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
+        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
 
         $alumno = $wpdb->get_row($wpdb->prepare(
             "SELECT id, nombre, horas_completadas, centro_id FROM {$tablaAlumnos} WHERE id = %d",

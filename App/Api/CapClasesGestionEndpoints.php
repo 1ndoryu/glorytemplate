@@ -10,6 +10,8 @@ namespace Glory\App\Api;
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
 
 class CapClasesGestionEndpoints
 {
@@ -92,18 +94,18 @@ class CapClasesGestionEndpoints
         $datosActualizar = [];
 
         if (isset($datos['hora_inicio'])) {
-            $datosActualizar['hora_inicio'] = sanitize_text_field($datos['hora_inicio']);
+            $datosActualizar[CapClasesCols::HORA_INICIO] = sanitize_text_field($datos['hora_inicio']);
         }
         if (isset($datos['hora_fin'])) {
-            $datosActualizar['hora_fin'] = sanitize_text_field($datos['hora_fin']);
+            $datosActualizar[CapClasesCols::HORA_FIN] = sanitize_text_field($datos['hora_fin']);
         }
         if (isset($datos['asignatura'])) {
-            $datosActualizar['asignatura'] = $this->normalizarAsignaturaParaPersistencia($datos['asignatura']);
+            $datosActualizar[CapClasesCols::ASIGNATURA] = $this->normalizarAsignaturaParaPersistencia($datos['asignatura']);
         }
         if (isset($datos['fecha'])) {
             $fecha = sanitize_text_field($datos['fecha']);
             if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
-                $datosActualizar['fecha'] = $fecha;
+                $datosActualizar[CapClasesCols::FECHA] = $fecha;
             }
         }
 
@@ -147,20 +149,20 @@ class CapClasesGestionEndpoints
         }
 
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $alumnosAfectados = $wpdb->get_col($wpdb->prepare(
             "SELECT alumno_id FROM {$tablaAsistencia} WHERE clase_id = %d",
             $claseId
         ));
 
-        $asistenciaEliminada = $wpdb->delete($tablaAsistencia, ['clase_id' => $claseId]);
+        $asistenciaEliminada = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $claseId]);
         if ($asistenciaEliminada === false) {
             return new \WP_REST_Response(['error' => 'Error al eliminar asistencias'], 500);
         }
 
-        $eliminado = $wpdb->delete($tablaClases, ['id' => $claseId]);
+        $eliminado = $wpdb->delete($tablaClases, [CapClasesCols::ID => $claseId]);
         if ($eliminado === false) {
             return new \WP_REST_Response(['error' => 'Error al eliminar la clase'], 500);
         }

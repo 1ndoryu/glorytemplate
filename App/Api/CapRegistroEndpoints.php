@@ -8,6 +8,10 @@
 namespace Glory\App\Api;
 
 use Glory\App\Services\StripeService;
+use App\Config\Schema\_generated\CapCentrosCols;
+use App\Config\Schema\_generated\CapConfiguracionCols;
+use App\Config\Schema\_generated\CapSuscripcionesCols;
+use App\Config\Schema\_generated\CapSuscripcionesEnums;
 
 class CapRegistroEndpoints
 {
@@ -116,16 +120,16 @@ class CapRegistroEndpoints
         $user->set_role('cap_admin');
 
         global $wpdb;
-        $tablaCentros = $wpdb->prefix . 'cap_centros';
-        $tablaConfig = $wpdb->prefix . 'cap_configuracion';
-        $tablaSuscripciones = $wpdb->prefix . 'cap_suscripciones';
+        $tablaCentros = $wpdb->prefix . CapCentrosCols::TABLA;
+        $tablaConfig = $wpdb->prefix . CapConfiguracionCols::TABLA;
+        $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $centroInsertado = $wpdb->insert($tablaCentros, [
-            'user_id' => $userId,
-            'nombre' => $nombreCentro,
-            'email' => $email,
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql'),
+            CapCentrosCols::USER_ID => $userId,
+            CapCentrosCols::NOMBRE => $nombreCentro,
+            CapCentrosCols::EMAIL => $email,
+            CapCentrosCols::CREATED_AT => current_time('mysql'),
+            CapCentrosCols::UPDATED_AT => current_time('mysql'),
         ]);
 
         if ($centroInsertado === false) {
@@ -138,9 +142,9 @@ class CapRegistroEndpoints
         $centroId = (int) $wpdb->insert_id;
 
         $configInsertada = $wpdb->insert($tablaConfig, [
-            'centro_id' => $centroId,
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql'),
+            CapConfiguracionCols::CENTRO_ID => $centroId,
+            CapConfiguracionCols::CREATED_AT => current_time('mysql'),
+            CapConfiguracionCols::UPDATED_AT => current_time('mysql'),
         ]);
 
         if ($configInsertada === false) {
@@ -151,12 +155,12 @@ class CapRegistroEndpoints
         }
 
         $suscripcionInsertada = $wpdb->insert($tablaSuscripciones, [
-            'centro_id' => $centroId,
-            'estado' => 'activa',
-            'fecha_inicio' => current_time('mysql'),
-            'fecha_fin' => date('Y-m-d', strtotime('+14 days')),
-            'created_at' => current_time('mysql'),
-            'updated_at' => current_time('mysql'),
+            CapSuscripcionesCols::CENTRO_ID => $centroId,
+            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
+            CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
+            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d', strtotime('+14 days')),
+            CapSuscripcionesCols::CREATED_AT => current_time('mysql'),
+            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ]);
 
         if ($suscripcionInsertada === false) {

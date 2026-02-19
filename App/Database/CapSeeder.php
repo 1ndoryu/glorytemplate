@@ -9,9 +9,16 @@
 
 namespace Glory\App\Database;
 
+use App\Config\Schema\_generated\CapAlumnosCols;
+use App\Config\Schema\_generated\CapAlumnosEnums;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
+use App\Config\Schema\_generated\CapDisponibilidadCols;
+use App\Config\Schema\_generated\CapDisponibilidadEnums;
+use App\Config\Schema\CapAsignaturasConstants;
+
 class CapSeeder
 {
-    private string $prefix;
     private int $centroId;
 
     /* 
@@ -34,25 +41,12 @@ class CapSeeder
     ];
 
     /*
-     * Asignaturas CAP con sus duraciones en horas.
-     * Usan los mismos códigos canónicos que CalendarEngine::ASIGNATURAS
-     * para evitar inconsistencias en GROUP BY de progreso.
+     * Asignaturas CAP derivadas de CapAsignaturasConstants.
+     * Fuente única de verdad para codigos canonicos.
      */
-    private array $asignaturas = [
-        ['codigo' => 'conduccion_racional', 'nombre' => 'Conducción racional', 'duracion' => 7],
-        ['codigo' => 'reglamentacion', 'nombre' => 'Reglamentación', 'duracion' => 4],
-        ['codigo' => 'seguridad_vial', 'nombre' => 'Seguridad vial', 'duracion' => 6],
-        ['codigo' => 'servicio_logistica', 'nombre' => 'Servicio y logística', 'duracion' => 4],
-        ['codigo' => 'salud_seguridad', 'nombre' => 'Salud y seguridad', 'duracion' => 4],
-        ['codigo' => 'medio_ambiente', 'nombre' => 'Medio ambiente', 'duracion' => 4],
-        ['codigo' => 'mercancias_peligrosas', 'nombre' => 'Mercancías peligrosas', 'duracion' => 3],
-        ['codigo' => 'viajeros', 'nombre' => 'Viajeros', 'duracion' => 3],
-    ];
 
     public function __construct(int $centroId)
     {
-        global $wpdb;
-        $this->prefix = $wpdb->prefix . 'cap_';
         $this->centroId = $centroId;
     }
 
@@ -81,7 +75,7 @@ class CapSeeder
     public function hayDatosDemo(): bool
     {
         global $wpdb;
-        $tablaAlumnos = $this->prefix . 'alumnos';
+        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
 
         $count = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$tablaAlumnos} WHERE centro_id = %d AND email LIKE %s",
@@ -99,8 +93,8 @@ class CapSeeder
     {
         global $wpdb;
 
-        $tablaAlumnos = $this->prefix . 'alumnos';
-        $tablaClases = $this->prefix . 'clases';
+        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $alumnosDemo = $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM {$tablaAlumnos} WHERE centro_id = %d AND email LIKE %s",
@@ -199,7 +193,7 @@ class CapSeeder
 
         try {
             /* Obtener IDs de alumnos demo */
-            $tablaAlumnos = $this->prefix . 'alumnos';
+            $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
             $alumnosIds = $wpdb->get_col($wpdb->prepare(
                 "SELECT id FROM {$tablaAlumnos} WHERE centro_id = %d AND email LIKE %s",
                 $this->centroId,
@@ -217,11 +211,11 @@ class CapSeeder
             $idsPlaceholder = implode(',', array_map('intval', $alumnosIds));
 
             /* Eliminar asistencias de alumnos demo */
-            $tablaAsistencia = $this->prefix . 'asistencia';
+            $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
             $wpdb->query("DELETE FROM {$tablaAsistencia} WHERE alumno_id IN ({$idsPlaceholder})");
 
             /* Eliminar clases de la semana actual (las creadas por el seeder) */
-            $tablaClases = $this->prefix . 'clases';
+            $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
             $hoy = new \DateTime();
             $diaSemana = (int) $hoy->format('N');
             $lunes = clone $hoy;
@@ -244,7 +238,7 @@ class CapSeeder
             ));
 
             /* Eliminar disponibilidad de alumnos demo */
-            $tablaDisponibilidad = $this->prefix . 'disponibilidad';
+            $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
             $wpdb->query("DELETE FROM {$tablaDisponibilidad} WHERE alumno_id IN ({$idsPlaceholder})");
 
             /* Eliminar alumnos demo */
@@ -274,7 +268,7 @@ class CapSeeder
     private function crearAlumnos(): array
     {
         global $wpdb;
-        $tabla = $this->prefix . 'alumnos';
+        $tabla = $wpdb->prefix . CapAlumnosCols::TABLA;
         $alumnosCreados = [];
 
         /* Distribución de progreso: nuevos, en curso, casi listos, completados */
@@ -282,21 +276,21 @@ class CapSeeder
 
         foreach ($this->nombresEjemplo as $index => $datos) {
             $horasCompletadas = $distribucionHoras[$index] ?? 0;
-            $estado = 'activo';
+            $estado = CapAlumnosEnums::ESTADO_ACTIVO;
             if ($horasCompletadas >= 35) {
-                $estado = 'completado';
+                $estado = CapAlumnosEnums::ESTADO_COMPLETADO;
             }
 
             $wpdb->insert($tabla, [
-                'centro_id' => $this->centroId,
-                'nombre' => $datos['nombre'],
-                'email' => $datos['email'],
-                'telefono' => $datos['telefono'],
-                'dni' => $datos['dni'],
-                'horas_completadas' => $horasCompletadas,
-                'estado' => $estado,
-                'created_at' => current_time('mysql'),
-                'updated_at' => current_time('mysql'),
+                CapAlumnosCols::CENTRO_ID => $this->centroId,
+                CapAlumnosCols::NOMBRE => $datos['nombre'],
+                CapAlumnosCols::EMAIL => $datos['email'],
+                CapAlumnosCols::TELEFONO => $datos['telefono'],
+                CapAlumnosCols::DNI => $datos['dni'],
+                CapAlumnosCols::HORAS_COMPLETADAS => $horasCompletadas,
+                CapAlumnosCols::ESTADO => $estado,
+                CapAlumnosCols::CREATED_AT => current_time('mysql'),
+                CapAlumnosCols::UPDATED_AT => current_time('mysql'),
             ]);
 
             $alumnosCreados[] = [
@@ -316,8 +310,14 @@ class CapSeeder
     private function crearDisponibilidades(array $alumnos): void
     {
         global $wpdb;
-        $tabla = $this->prefix . 'disponibilidad';
-        $dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
+        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
+        $dias = [
+            CapDisponibilidadEnums::DIA_LUNES,
+            CapDisponibilidadEnums::DIA_MARTES,
+            CapDisponibilidadEnums::DIA_MIERCOLES,
+            CapDisponibilidadEnums::DIA_JUEVES,
+            CapDisponibilidadEnums::DIA_VIERNES,
+        ];
 
         /* Patrones de disponibilidad */
         $patrones = [
@@ -344,12 +344,12 @@ class CapSeeder
             foreach ($diasDisponibles as $dia) {
                 foreach ($horas as $hora) {
                     $wpdb->insert($tabla, [
-                        'alumno_id' => $alumno['id'],
-                        'dia' => $dia,
-                        'hora' => $hora,
-                        'disponible' => 1,
-                        'created_at' => current_time('mysql'),
-                        'updated_at' => current_time('mysql'),
+                        CapDisponibilidadCols::ALUMNO_ID => $alumno['id'],
+                        CapDisponibilidadCols::DIA => $dia,
+                        CapDisponibilidadCols::HORA => $hora,
+                        CapDisponibilidadCols::DISPONIBLE => 1,
+                        CapDisponibilidadCols::CREATED_AT => current_time('mysql'),
+                        CapDisponibilidadCols::UPDATED_AT => current_time('mysql'),
                     ]);
                 }
             }
@@ -363,7 +363,7 @@ class CapSeeder
     private function crearClasesEjemplo(): array
     {
         global $wpdb;
-        $tabla = $this->prefix . 'clases';
+        $tabla = $wpdb->prefix . CapClasesCols::TABLA;
         $clasesCreadas = [];
 
         /* Obtener lunes de la semana actual */
@@ -376,7 +376,7 @@ class CapSeeder
         $horariosManana = ['09:00', '10:00', '11:00', '12:00', '13:00'];
         $horariosTarde = ['16:00', '17:00', '18:00', '19:00', '20:00'];
 
-        $asignaturasRotativas = array_map(fn($a) => $a['codigo'], $this->asignaturas);
+        $asignaturasRotativas = CapAsignaturasConstants::TODOS;
         $indexAsignatura = 0;
 
         /* Crear clases para cada día de la semana */
@@ -399,14 +399,14 @@ class CapSeeder
                 $horaFin = date('H:i', strtotime($horaInicio) + 3600);
 
                 $wpdb->insert($tabla, [
-                    'centro_id' => $this->centroId,
-                    'fecha' => $fechaStr,
-                    'hora_inicio' => $horaInicio . ':00',
-                    'hora_fin' => $horaFin . ':00',
-                    'asignatura' => $asignatura,
-                    'duracion_minutos' => 60,
-                    'bloqueada' => $bloqueada,
-                    'created_at' => current_time('mysql'),
+                    CapClasesCols::CENTRO_ID => $this->centroId,
+                    CapClasesCols::FECHA => $fechaStr,
+                    CapClasesCols::HORA_INICIO => $horaInicio . ':00',
+                    CapClasesCols::HORA_FIN => $horaFin . ':00',
+                    CapClasesCols::ASIGNATURA => $asignatura,
+                    CapClasesCols::DURACION_MINUTOS => 60,
+                    CapClasesCols::BLOQUEADA => $bloqueada,
+                    CapClasesCols::CREATED_AT => current_time('mysql'),
                 ]);
 
                 $clasesCreadas[] = [
@@ -428,14 +428,14 @@ class CapSeeder
                 $horaFin = date('H:i', strtotime($horaInicio) + 3600);
 
                 $wpdb->insert($tabla, [
-                    'centro_id' => $this->centroId,
-                    'fecha' => $fechaStr,
-                    'hora_inicio' => $horaInicio . ':00',
-                    'hora_fin' => $horaFin . ':00',
-                    'asignatura' => $asignatura,
-                    'duracion_minutos' => 60,
-                    'bloqueada' => 0,
-                    'created_at' => current_time('mysql'),
+                    CapClasesCols::CENTRO_ID => $this->centroId,
+                    CapClasesCols::FECHA => $fechaStr,
+                    CapClasesCols::HORA_INICIO => $horaInicio . ':00',
+                    CapClasesCols::HORA_FIN => $horaFin . ':00',
+                    CapClasesCols::ASIGNATURA => $asignatura,
+                    CapClasesCols::DURACION_MINUTOS => 60,
+                    CapClasesCols::BLOQUEADA => 0,
+                    CapClasesCols::CREATED_AT => current_time('mysql'),
                 ]);
 
                 $clasesCreadas[] = [
@@ -460,7 +460,7 @@ class CapSeeder
     private function asignarAsistencias(array $alumnos, array $clases): void
     {
         global $wpdb;
-        $tablaAsistencia = $this->prefix . 'asistencia';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
 
         /* Cantidad de alumnos por clase (entre 4 y 8 para realismo) */
         $alumnosTotal = count($alumnos);
@@ -485,10 +485,10 @@ class CapSeeder
 
                 if (!$yaAsignado) {
                     $wpdb->insert($tablaAsistencia, [
-                        'clase_id' => $clase['id'],
-                        'alumno_id' => $alumno['id'],
-                        'asistio' => 1,
-                        'created_at' => current_time('mysql'),
+                        CapAsistenciaCols::CLASE_ID => $clase['id'],
+                        CapAsistenciaCols::ALUMNO_ID => $alumno['id'],
+                        CapAsistenciaCols::ASISTIO => 1,
+                        CapAsistenciaCols::CREATED_AT => current_time('mysql'),
                     ]);
                 }
             }

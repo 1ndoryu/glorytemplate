@@ -9,6 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Services\StripeService;
+use App\Config\Schema\_generated\CapSuscripcionesCols;
 
 class CapStripeEndpoints
 {
@@ -112,7 +113,7 @@ class CapStripeEndpoints
         }
 
         global $wpdb;
-        $tabla = $wpdb->prefix . 'cap_suscripciones';
+        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
         $suscripcion = $wpdb->get_row($wpdb->prepare(
             "SELECT stripe_customer_id FROM {$tabla} WHERE centro_id = %d AND stripe_customer_id IS NOT NULL ORDER BY id DESC LIMIT 1",
             $centroId

@@ -9,6 +9,8 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
+use App\Config\Schema\_generated\CapAsistenciaCols;
+use App\Config\Schema\_generated\CapClasesCols;
 
 class CapClasesLimpiezaEndpoints
 {
@@ -69,8 +71,8 @@ class CapClasesLimpiezaEndpoints
         $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
 
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
         $clasesIds = $wpdb->get_col($wpdb->prepare(
@@ -137,8 +139,8 @@ class CapClasesLimpiezaEndpoints
         $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
 
         global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . 'cap_asistencia';
-        $tablaClases = $wpdb->prefix . 'cap_clases';
+        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
         $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
         $clasesIds = $wpdb->get_col($wpdb->prepare(
