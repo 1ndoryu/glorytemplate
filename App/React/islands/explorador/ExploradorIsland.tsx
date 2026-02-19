@@ -188,6 +188,7 @@ const ExploradorBase = (): JSX.Element => {
                                     key={sample.id}
                                     sample={sample}
                                     onClickTitulo={manejarClickTitulo}
+                                    onMenu={menu.abrirMenu}
                                 />
                             ))}
                         </div>

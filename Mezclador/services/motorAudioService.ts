@@ -34,7 +34,27 @@ class MotorAudio {
             sampleRate: CONSTANTES_MEZCLADOR.SAMPLE_RATE,
         });
         this.masterGain = this.contexto.createGain();
-        this.masterGain.connect(this.contexto.destination);
+
+        /*
+         * C314: Crear masterAnalyser + stereo split desde iniciar(),
+         * no solo en inicializarMixer(). El monitor de onda y peak meter
+         * necesitan estos nodos aunque el mixer no esté inicializado.
+         */
+        this.masterAnalyser = this.contexto.createAnalyser();
+        this.masterAnalyser.fftSize = 2048;
+        this.masterGain.connect(this.masterAnalyser);
+        this.masterAnalyser.connect(this.contexto.destination);
+
+        /* Stereo split para peak meters L/R */
+        this.splitterEstereo = this.contexto.createChannelSplitter(2);
+        this.analyserL = this.contexto.createAnalyser();
+        this.analyserL.fftSize = 256;
+        this.analyserR = this.contexto.createAnalyser();
+        this.analyserR.fftSize = 256;
+        this.masterAnalyser.connect(this.splitterEstereo);
+        this.splitterEstereo.connect(this.analyserL, 0);
+        this.splitterEstereo.connect(this.analyserR, 1);
+
         this.iniciado = true;
 
         return this.contexto;
@@ -445,19 +465,31 @@ class MotorAudio {
 
         /* El destino depende de si es master o insert regular */
         if (insertId === 0) {
-            /* Master → destination */
-            analyser.connect(ctx.destination);
-            this.masterAnalyser = analyser;
-
-            /* C306: Stereo split para peak meters L/R */
-            this.splitterEstereo = ctx.createChannelSplitter(2);
-            this.analyserL = ctx.createAnalyser();
-            this.analyserL.fftSize = 256;
-            this.analyserR = ctx.createAnalyser();
-            this.analyserR.fftSize = 256;
-            analyser.connect(this.splitterEstereo);
-            this.splitterEstereo.connect(this.analyserL, 0);
-            this.splitterEstereo.connect(this.analyserR, 1);
+            /*
+             * C314: Si iniciar() ya creó masterAnalyser + stereo split,
+             * reconectar la cadena del mixer a través de ellos en vez de
+             * crear nodos duplicados. El analyser local del insert queda
+             * para metering propio del insert 0.
+             */
+            if (this.masterAnalyser) {
+                /* Desconectar masterGain→masterAnalyser viejo, reconectar
+                   masterGain→insert chain→masterAnalyser→destination */
+                this.masterGain?.disconnect();
+                this.masterGain?.connect(inputGain);
+                analyser.connect(this.masterAnalyser);
+            } else {
+                /* Fallback si iniciar() no corrió primero (no debería pasar) */
+                analyser.connect(ctx.destination);
+                this.masterAnalyser = analyser;
+                this.splitterEstereo = ctx.createChannelSplitter(2);
+                this.analyserL = ctx.createAnalyser();
+                this.analyserL.fftSize = 256;
+                this.analyserR = ctx.createAnalyser();
+                this.analyserR.fftSize = 256;
+                analyser.connect(this.splitterEstereo);
+                this.splitterEstereo.connect(this.analyserL, 0);
+                this.splitterEstereo.connect(this.analyserR, 1);
+            }
         } else {
             /* Insert → Master inputGain */
             const masterNodes = this.mixerInserts.get(0);

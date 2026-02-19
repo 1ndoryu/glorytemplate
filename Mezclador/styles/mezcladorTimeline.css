@@ -119,7 +119,7 @@
     flex-shrink: 0;
     position: sticky;
     left: 0;
-    z-index: 1;
+    z-index: 3;
     background: var(--fondoBase);
 }
 
@@ -165,18 +165,40 @@
     border-bottom: 1px solid var(--bordeSutil);
 }
 
-/* C297: Alturas de pista */
+/* C297+C318: Alturas de pista con height forzado para que realmente cambie */
 .mezcladorPistaAlturaCompacta {
     min-height: 32px;
+    max-height: 32px;
+    height: 32px;
 }
 .mezcladorPistaAlturaCompacta .mezcladorPistaContenido {
     min-height: 32px;
+    max-height: 32px;
+}
+.mezcladorPistaAlturaCompacta .mezcladorPistaControles {
+    max-height: 32px;
+    overflow: hidden;
+    padding: 1px var(--espacioXs);
+    gap: 1px;
 }
 .mezcladorPistaAlturaMinimizada {
     min-height: 20px;
+    max-height: 20px;
+    height: 20px;
 }
 .mezcladorPistaAlturaMinimizada .mezcladorPistaContenido {
     min-height: 20px;
+    max-height: 20px;
+}
+.mezcladorPistaAlturaMinimizada .mezcladorPistaControles {
+    max-height: 20px;
+    overflow: hidden;
+    padding: 0 var(--espacioXs);
+    gap: 0;
+}
+.mezcladorPistaAlturaMinimizada .mezcladorPistaBotones,
+.mezcladorPistaAlturaMinimizada .mezcladorPistaColorIndicador {
+    display: none;
 }
 
 .mezcladorPistaSilenciada {
@@ -204,10 +226,19 @@
     gap: 2px;
     padding: var(--espacioXs);
     border-right: 1px solid var(--bordeSutil);
-    background: var(--fondoElevado1);
+    /*
+     * C312: Fondo con color de pista via custom property.
+     * C316: Fondo sólido + z-index alto para que las líneas de tiempo
+     * no atraviesen los controles sticky.
+     */
+    background:
+        linear-gradient(var(--fondoElevado1) 0%, var(--fondoElevado1) 100%),
+        var(--colorPista, #555);
+    background-blend-mode: color;
+    background-color: color-mix(in srgb, var(--colorPista, #555) 15%, var(--fondoElevado1));
     position: sticky;
     left: 0;
-    z-index: 1;
+    z-index: 3;
 }
 
 .mezcladorPistaNombre {
@@ -220,11 +251,13 @@
     cursor: default;
 }
 
-/* C297: Indicador de color de pista */
+/* C297: Indicador lateral — borde izquierdo con color de pista */
 .mezcladorPistaColorIndicador {
-    width: 100%;
-    height: 3px;
-    border-radius: 1px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
     flex-shrink: 0;
 }
 

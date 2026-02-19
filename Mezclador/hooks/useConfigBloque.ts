@@ -3,7 +3,7 @@
  * Extraído de ModalConfigBloque para cumplir SRP y límite de 300 líneas.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { BloqueMezclador, ConfigBloque } from '../types/mezclador';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { useVentanasStore } from '../stores/ventanasStore';
@@ -32,10 +32,19 @@ export const useConfigBloque = (bloque: BloqueMezclador, onCerrar: () => void) =
         });
     }, []);
 
-    /* Detectar cierre externo de la ventana */
+    /*
+     * C319: Detectar cierre externo de la ventana.
+     * Usar ref para evitar cerrar antes de que la ventana se registre en el store.
+     * Solo cerrar cuando la ventana fue vista al menos una vez y luego desaparece.
+     */
     const ventana = useVentanasStore(s => s.ventanas.find(v => v.id === ventanaId));
+    const ventanaVista = useRef(false);
     useEffect(() => {
-        if (ventana === undefined) onCerrar();
+        if (ventana !== undefined) {
+            ventanaVista.current = true;
+        } else if (ventanaVista.current) {
+            onCerrar();
+        }
     }, [ventana, onCerrar]);
 
     /* Estado local — se aplica inmediatamente al store */

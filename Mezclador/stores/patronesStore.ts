@@ -100,7 +100,8 @@ export const usePatronesStore = create<PatronesState>((set, get) => {
     return {
         patrones: [patronInicial],
         patronActivo: patronInicial.id,
-        modoReproduccion: 'pat',
+        /* C313: Iniciar en modo song para que la playlist esté activa por defecto */
+        modoReproduccion: 'song',
 
         /* CRUD Patrones */
         crearPatron: (nombre) => {

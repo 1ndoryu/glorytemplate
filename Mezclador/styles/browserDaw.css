@@ -105,6 +105,12 @@
     cursor: grabbing;
 }
 
+/* C327: Evitar que el icono se encoja con nombres largos */
+.browserDawSampleItem svg {
+    flex-shrink: 0;
+    min-width: 10px;
+}
+
 .browserDawSampleNombre {
     overflow: hidden;
     text-overflow: ellipsis;

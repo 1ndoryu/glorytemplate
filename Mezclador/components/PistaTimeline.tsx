@@ -138,13 +138,14 @@ export const PistaTimeline = ({
             data-pista-id={pista.id}
         >
             {/* Controles laterales — click derecho abre menú contextual */}
-            <div className="mezcladorPistaControles" onContextMenu={abrirMenu}>
-                {/* Indicador de color de pista */}
-                <div
-                    className="mezcladorPistaColorIndicador"
-                    style={{ backgroundColor: pista.color ?? '#555' }}
-                />
-
+            {/* C312: Color de pista como fondo de controles con opacidad */}
+            <div
+                className="mezcladorPistaControles"
+                onContextMenu={abrirMenu}
+                style={{
+                    '--colorPista': pista.color ?? '#555',
+                } as React.CSSProperties}
+            >
                 {/* Nombre editable inline */}
                 {editandoNombre ? (
                     <input

@@ -4,22 +4,22 @@
 .channelRack {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 6px;
-    min-width: 600px;
+    gap: 2px;
+    padding: 4px;
+    min-width: 500px;
     max-height: 70vh;
     overflow-y: auto;
     background: var(--fondoElevado1, #1e1e2e);
 }
 
-/* Cabecera del Channel Rack */
+/* C322: Cabecera compacta */
 .cabeceraChannelRack {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 4px 6px;
-    border-bottom: 1px solid var(--bordeDefault, #333);
+    gap: 6px;
+    padding: 2px 4px;
+    border-bottom: 1px solid var(--bordeSutil, #333);
     flex-shrink: 0;
 }
 
@@ -29,20 +29,21 @@
     gap: 8px;
 }
 
+/* C320: Loop LED con variables CSS */
 .cabeceraChannelRackLoop {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    border: 1px solid #555;
-    background: #333;
+    border: 1px solid var(--bordeSutil, #555);
+    background: var(--fondoElevado2, #333);
     cursor: pointer;
     padding: 0;
 }
 
 .cabeceraChannelRackLoopActivo {
-    background: #4fc3f7;
-    border-color: #4fc3f7;
-    box-shadow: 0 0 4px #4fc3f7;
+    background: var(--acento, #4fc3f7);
+    border-color: var(--acento, #4fc3f7);
+    box-shadow: 0 0 4px var(--acento, #4fc3f7);
 }
 
 .cabeceraChannelRackPasos {
@@ -264,52 +265,52 @@
     flex-shrink: 0;
 }
 
-/* Canal Strip (fila del Channel Rack) */
+/* C322: Canal Strip compacto */
 .canalStrip {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 4px;
-    border-radius: 3px;
+    gap: 3px;
+    padding: 1px 3px;
+    border-radius: 2px;
     background: var(--fondoElevado2, #252538);
-    min-height: 28px;
+    min-height: 24px;
 }
 
 .canalStrip:hover {
     background: var(--fondoElevado3, #2e2e48);
 }
 
-/* LED de mute/solo */
+/* C320+C322: LED mute/solo con variables CSS */
 .canalStripLed {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    border: 1px solid #555;
-    background: #4caf50;
+    border: 1px solid var(--bordeSutil, #555);
+    background: var(--exito, #4caf50);
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
 }
 
 .canalStripLedMute {
-    background: #e57373;
+    background: var(--error, #e57373);
 }
 
 .canalStripLedSolo {
-    background: #ffd54f;
-    border-color: #ffd54f;
-    box-shadow: 0 0 3px #ffd54f;
+    background: var(--advertencia, #ffd54f);
+    border-color: var(--advertencia, #ffd54f);
+    box-shadow: 0 0 3px var(--advertencia, #ffd54f);
 }
 
-/* Nombre del canal */
+/* C322: Nombre canal compacto */
 .canalStripNombre {
-    width: 80px;
-    font-size: 11px;
+    width: 70px;
+    font-size: 10px;
     color: var(--textoPrimario, #e0e0e0);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 2px;
-    padding: 1px 4px;
+    padding: 0 3px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -349,10 +350,10 @@
     min-width: 0;
 }
 
-/* Paso / Botón individual del step sequencer */
+/* C320+C322: Steps compactos con variables CSS */
 .pasoBoton {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     border: none;
     border-radius: 2px;
     cursor: pointer;
@@ -363,24 +364,24 @@
 
 /* Color base: grupo de 4 pasos, alternando brillo */
 .pasoBotonGrupoImpar {
-    background: #2a2a3e;
+    background: var(--fondoBoton, #2a2a3e);
 }
 
 .pasoBotonGrupoPar {
-    background: #323248;
+    background: var(--fondoElevado2, #323248);
 }
 
 /* Paso activo */
 .pasoBotonActivo {
-    background: #f06292;
+    background: var(--acento, #f06292);
 }
 
 .pasoBotonActivoGrupoImpar {
-    background: #f06292;
+    background: var(--acento, #f06292);
 }
 
 .pasoBotonActivoGrupoPar {
-    background: #e91e63;
+    background: color-mix(in srgb, var(--acento, #e91e63) 85%, #000);
 }
 
 .pasoBoton:hover {
@@ -418,12 +419,13 @@
     border-color: var(--acento, #4fc3f7);
 }
 
+/* C320: Graph editor background con variable CSS */
 .graphEditorCanvas {
     display: flex;
     align-items: flex-end;
     gap: 1px;
-    height: 60px;
-    background: #1a1a28;
+    height: 50px;
+    background: var(--fondoBase, #1a1a28);
     border-radius: 3px;
     padding: 2px;
 }
@@ -444,11 +446,11 @@
     opacity: 0.3;
 }
 
-/* Contenedor del channel rack: lista de canales */
+/* C322: Lista de canales compacta */
 .channelRackCanales {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 /* Botón toggle de graph editor por canal */

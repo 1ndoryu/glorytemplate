@@ -4,7 +4,7 @@
  * Barra superior del mezclador con acciones principales.
  */
 
-import { Play, Square, Scissors, Undo2, Redo2, MoveHorizontal, Crop, LayoutGrid, Sliders } from 'lucide-react';
+import { Play, Square, Scissors, Undo2, Redo2, MoveHorizontal, Crop, LayoutGrid, Sliders, Grid2x2, ListMusic } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePatronesStore } from '../stores/patronesStore';
 import { useVentanasStore } from '../stores/ventanasStore';
@@ -96,24 +96,22 @@ export const ControlesMezclador = ({
 
             {/* C285: Botones de compás y zoom eliminados — ahora en MinimapaDaw */}
 
-            {/* Grupo central: PAT/SONG toggle + abrir ventanas */}
+            {/* C321: PAT/SONG como iconos con estilos de botonAccion */}
             <div className="mezcladorControlesGrupo">
-                <div className="mezcladorModoToggle">
-                    <button
-                        className={`mezcladorModoBoton ${modoReproduccion === 'pat' ? 'mezcladorModoBotonActivo' : ''}`}
-                        onClick={() => setModoReproduccion('pat')}
-                        title="Modo patrón: reproduce el patrón activo en loop"
-                    >
-                        PAT
-                    </button>
-                    <button
-                        className={`mezcladorModoBoton ${modoReproduccion === 'song' ? 'mezcladorModoBotonActivo' : ''}`}
-                        onClick={() => setModoReproduccion('song')}
-                        title="Modo canción: reproduce la playlist completa"
-                    >
-                        SONG
-                    </button>
-                </div>
+                <button
+                    className={`mezcladorBotonAccion ${modoReproduccion === 'pat' ? 'mezcladorBotonActivo' : ''}`}
+                    onClick={() => setModoReproduccion('pat')}
+                    title="Modo patrón: reproduce el patrón activo en loop"
+                >
+                    <Grid2x2 size={13} />
+                </button>
+                <button
+                    className={`mezcladorBotonAccion ${modoReproduccion === 'song' ? 'mezcladorBotonActivo' : ''}`}
+                    onClick={() => setModoReproduccion('song')}
+                    title="Modo canción: reproduce la playlist completa"
+                >
+                    <ListMusic size={13} />
+                </button>
                 <button
                     className="mezcladorBotonAccion"
                     onClick={abrirChannelRack}

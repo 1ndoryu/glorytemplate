@@ -4,7 +4,7 @@
  * Contiene opciones de snap y ajustes globales del proyecto.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { useVentanasStore } from '../stores/ventanasStore';
 import { VentanaFlotante } from './VentanaFlotante';
@@ -51,9 +51,16 @@ export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.
         }
     }, [abierto]);
 
-    /* Si la ventana fue cerrada desde VentanaFlotante, propagar al padre */
+    /*
+     * C324: Detectar cierre externo — solo cerrar si la ventana fue vista
+     * al menos una vez y luego desaparece. Evita parpadeo inicial.
+     */
+    const ventanaVista = useRef(false);
     useEffect(() => {
-        if (abierto && ventana === undefined) {
+        if (!abierto) { ventanaVista.current = false; return; }
+        if (ventana !== undefined) {
+            ventanaVista.current = true;
+        } else if (ventanaVista.current) {
             onCerrar();
         }
     }, [ventana, abierto, onCerrar]);

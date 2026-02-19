@@ -222,6 +222,11 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
                     if (!pending) return;
                     if (pending.zoom !== undefined) setNivelZoom(pending.zoom);
                     scrollTimeline(pending.scrollFrac);
+                    /*
+                     * C315: Sincronizar React state durante drag para evitar que
+                     * re-renders con scrollFrac viejo sobreescriban la posición DOM.
+                     */
+                    setScrollFrac(pending.scrollFrac);
                 });
             }
         };
@@ -240,11 +245,16 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
             if (pending) {
                 if (pending.zoom !== undefined) setNivelZoom(pending.zoom);
                 scrollTimeline(pending.scrollFrac);
+                /*
+                 * C315: Usar scrollFrac del pending directamente en vez de leer
+                 * del DOM. El DOM puede no haber actualizado aún tras scrollTimeline,
+                 * causando que el viewport salte a una posición vieja al soltar.
+                 */
+                setScrollFrac(pending.scrollFrac);
+            } else {
+                /* Sin pending — leer posición actual del DOM como fallback */
+                setScrollFrac(leerScrollFracDOM(timelineRef.current));
             }
-
-            /* Sincronizar estado final desde DOM */
-            const realFrac = leerScrollFracDOM(timelineRef.current);
-            setScrollFrac(realFrac);
 
             pendingDrag.current = null;
             dragInfo.current = null;

@@ -71,8 +71,24 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
         const clamp = Math.max(40, Math.min(300, bpm));
         try { localStorage.setItem(LS_KEY_BPM, String(clamp)); } catch {}
 
-        const { reproduciendo, tiempoActual, bpmProyecto: bpmAnterior, compasProyecto } = get();
-        set({ bpmProyecto: clamp });
+        const { reproduciendo, tiempoActual, bpmProyecto: bpmAnterior, compasProyecto, pistas } = get();
+
+        /*
+         * C317: Recalcular playbackRate de todos los bloques proporcionalmente
+         * al cambio de BPM para mantener sync visual ondas-timeline.
+         * ratio > 1 = más rápido, ratio < 1 = más lento.
+         */
+        const ratio = clamp / bpmAnterior;
+        const pistasActualizadas = pistas.map(p => ({
+            ...p,
+            bloques: p.bloques.map(b => ({
+                ...b,
+                playbackRate: Math.max(0.25, Math.min(4, b.playbackRate * ratio)),
+                playbackRateOriginal: Math.max(0.25, Math.min(4, b.playbackRateOriginal * ratio)),
+            })),
+        }));
+
+        set({ bpmProyecto: clamp, pistas: pistasActualizadas });
 
         if (reproduciendo) {
             const posicionCompases = segundosACompases(tiempoActual, bpmAnterior, compasProyecto);
@@ -186,10 +202,16 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
     },
     obtenerTodosBloques: () => get().pistas.flatMap(p => p.bloques),
 
-    /* C285: Total extendido = max(totalCompases, último bloque + relleno) */
-    /* C296: Si hay un valor fijado (durante resize), devolver max(fijado, calculado) para evitar saltos */
+    /*
+     * C285+C315: Total extendido = max(totalCompases, último bloque + relleno)
+     * C296: Si hay un valor fijado (durante resize), devolver exactamente ese
+     * valor para evitar que el minimap se mueva al redimensionar bloques.
+     */
     obtenerTotalExtendido: () => {
         const state = get();
+        const fijado = state._totalExtendidoFijado;
+        if (fijado !== null) return fijado;
+
         const { pistas, totalCompases } = state;
         let ultimoFin = 0;
         for (const pista of pistas) {
@@ -198,13 +220,7 @@ export const useMezcladorStore = create<MezcladorState>((set, get) => ({
                 if (fin > ultimoFin) ultimoFin = fin;
             }
         }
-        const calculado = Math.max(totalCompases, Math.ceil(ultimoFin) + RELLENO_COMPASES);
-        /* Si hay un total fijado (resize activo), nunca encoger debajo del fijado */
-        const fijado = state._totalExtendidoFijado;
-        if (fijado !== null) {
-            return Math.max(fijado, calculado);
-        }
-        return calculado;
+        return Math.max(totalCompases, Math.ceil(ultimoFin) + RELLENO_COMPASES);
     },
 
     /* C296: Fijar total extendido al valor actual (llamar al iniciar resize) */

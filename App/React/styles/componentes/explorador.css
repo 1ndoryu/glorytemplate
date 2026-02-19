@@ -269,20 +269,59 @@
     overflow: hidden;
 }
 
+/* C326: Overlay play/pause sobre la portada */
+.tarjetaCuadriculaOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    border-radius: var(--radioSm);
+    pointer-events: none;
+}
+
+.tarjetaCuadricula:hover .tarjetaCuadriculaOverlay {
+    opacity: 1;
+}
+
+/* Overlay siempre visible durante reproducción */
+.tarjetaCuadriculaOverlayActivo {
+    opacity: 1;
+}
+
+/* Borde sutil durante reproducción */
+.tarjetaCuadriculaReproduciendo {
+    outline: 2px solid var(--acento, #4fc3f7);
+    outline-offset: -2px;
+    border-radius: var(--radioMd);
+}
+
 .tarjetaCuadriculaImg {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* C326: Nombre en 2 líneas con line-clamp */
 .tarjetaCuadriculaNombre {
     font-size: var(--textoSm);
     color: var(--textoAlto);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     line-height: 1.3;
+    cursor: pointer;
+}
+
+.tarjetaCuadriculaNombre:hover {
+    text-decoration: underline;
 }
 
 /* Responsive: en móvil, carpetas arriba */

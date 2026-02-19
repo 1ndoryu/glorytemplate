@@ -267,7 +267,8 @@ export const ZOOM_PASO = 0.05;
 /* C285: Límites de compases visibles para el minimapa */
 export const COMPASES_VISIBLES_MAX = 30;
 export const COMPASES_VISIBLES_MIN = 0.5;
-export const RELLENO_COMPASES = 36;
+/* C313: Relleno reducido — el DAW inicia con 8 compases (4 default + 4 padding) */
+export const RELLENO_COMPASES = 4;
 
 /*
  * C287: Duración en segundos del declicking según modo.

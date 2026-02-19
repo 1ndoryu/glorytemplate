@@ -224,32 +224,27 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 286. ✅ [AG-ONE] Doble click en BloqueSample abre ModalConfigBloque.
 287. ✅ [AG-ONE] Config audio profesional — ModalConfigBloque reescrito (700px VentanaFlotante): cabecera (On/Off LED+Pan+Vol+Pitch), Time Stretching (speed+modo), Sample Editing (fades+declicking+recorte), Effects (reverse+normalize+inv.polaridad+swap L/R), File Info. VentanaFlotante draggable+minimize. BarraVentanasMinimizadas. ModalConfigDaw convertido a VentanaFlotante. ventanasStore.ts nuevo.
 
-274. ✅ [AG-ONE] Filtro free/premium en feed — FiltroPrecio type en filtrosStore (todos|gratis|premium), filtrado client-side en FeedSamples useMemo, selector ternario en ModalFiltros con DollarSign icon, CSS en modalFiltros.css.
-288. ✅ [AG-ONE] Samples sin carpeta no aparecían en filtro "Samples" — COALESCE(..., 'Samples') en WHERE de coleccionadosDeUsuario() y contarColeccionados() para consistencia con carpetasColeccionados() que ya lo usaba.
+**R67 [AG-ONE] C274+C288-C311:** Filtro free/premium (filtrosStore client-side), COALESCE samples sin carpeta, IA null→"General" fallback, z-index explorador, vista cuadrícula, portal config, CSS 6 módulos, KnobControl SVG, reset doble-click, zoom freeze, menú contextual pista (9 acciones+rename inline+color), InputTempo FL-style, MinimapaDaw rewrite (DOM directo+rAF), sticky controls, hover buttons, VentanaFlotante hooks fix, timeline drag real-time, SongPosition (M:S:CS / B:S:T), MonitorOnda canvas, MedidorPicos estéreo L/R, PanelBrowserDaw (tree+drag), minimapa fix rigidez (DOM+throttle), on/off header modal (botonesExtra+useConfigBloque SRP).
 
-289.1 ✅ [AG-ONE] IA generaba null para carpeta_secundaria — Prompt mejorado: "OBLIGATORIO, NUNCA null ni vacio" + fallback "General". PipelineAudio.php ahora usa !empty() + fallback 'General' en vez de ?? null. Prompt ampliado con mas generos para Samples (Electronic, Pop, Rock, Reggaeton, Latin).
+**R68 [AG-DAW] C312-C327:** Color indicador→fondo controls (color-mix 15%), 8 compases + Song default, masterAnalyser en iniciar() reutilizado por insert 0, minimap rigidez (rAF sync + pending.scrollFrac + fijado exacto), controls fondo+z-index:3, BPM sync playbackRate proporcional, height+max-height+overflow tracks, ventanaVista ref fix parpadeo config (bloque+daw), CSS vars Channel Rack+Mixer, PAT/SONG→Grid2x2/ListMusic iconos, Channel Rack compacto, On/Off resuelto por fix parpadeo, cuadrícula explorador (useSamplePreview hook + overlay play + context menu + 2 líneas), browserDawSampleItem icon flex-shrink fix.
 
-290. ✅ [AG-ONE] exploradorHeader tapaba botones like/dislike — z-index:0 en .exploradorHeader + position:relative;z-index:1 en .exploradorContenido.
-291. ✅ [AG-ONE] Vista cuadricula en explorador — Toggle lista/cuadricula con iconos List/LayoutGrid en header. TarjetaSampleCuadricula.tsx (solo portada+nombre). CSS: .cuadriculaDeSamples grid auto-fill minmax(140px,1fr), .tarjetaCuadricula card hover, .exploradorVistaToggle segmented control.
-292. ✅ [AG-ONE] Fix drag ventana config — createPortal(ModalConfigBloque, document.body) para evitar bubble de eventos a BloqueSample.
-293. ✅ [AG-ONE] CSS refactor Mezclador — mezclador.css (1524 lín) dividido en 6 módulos: mezcladorBase(231), mezcladorTimeline(264), mezcladorBloques(337), mezcladorModalesLegacy(252), mezcladorVentanas(188), mezcladorConfigBloque(307). Barrel index.css.
-294. ✅ [AG-ONE] KnobControl SVG — Componente rotary knob con arco 270°, drag vertical, shift fine-control, bipolar para pan/pitch, wheel, double-click reset. Integrado en ModalConfigBloque reemplazando sliders.
-295. ✅ [AG-ONE] Reset individual doble-click — Todos los controles (knobs y toggles) soportan doble-click reset. Eliminado botón global "Restablecer todo".
-296. ✅ [AG-ONE] Zoom freeze durante resize — fijarTotalExtendido()/desfijarTotalExtendido() en store. obtenerTotalExtendido() retorna max(fijado, calculado) durante resize para evitar shrink.
-297. ✅ [AG-ONE] Menú contextual de pista — 9 acciones en store (accionesPista.ts slice): renombrar, color aleatorio, cambiar altura (normal→compacta→minimizada), duplicar, mover arriba/abajo, insertar debajo, silenciar todos bloques, resetear, eliminar. MenuContextual con right-click en controles pista. Inline rename con doble-click. Indicador de color (3px bar). CSS altura clases.
-298. ✅ [AG-ONE] InputTempo FL-style — Drag vertical para cambiar BPM (mousedown+mousemove+mouseup en document), shift para fine control (0.1 vs 1 step), doble-click para editar con input texto, wheel para ajustar. Misma altura que botones nav.
-299. ✅ [AG-ONE] MinimapaDaw rewrite — Lectura directa del DOM, skip sync durante drag, cálculo correcto de viewport. Eliminados movimientos rígidos/saltos al mover o redimensionar.
-300. ✅ [AG-ONE] Sticky track controls — CSS position:sticky left:0 z-index:2 en .mezcladorPistaControles para que nunca se oculten al scroll horizontal.
-301. ✅ [AG-ONE] Hover buttons — Botones de silenciar/borrar en .mezcladorPistaControles con opacity:0 por defecto, opacity:1 en hover. Transición suave.
-302. ✅ [AG-ONE] VentanaFlotante hooks fix — Todos los hooks movidos ANTES del early return. posicionRef añadido. stopPropagation en drag. Eliminado error "Rendered more hooks than during the previous render".
-303. ✅ [AG-ONE] Timeline drag real-time — BarraCompases rewrite: mousedown+mousemove+mouseup pattern reemplazando simple onClick. Actualización en tiempo real al arrastrar.
-304. ✅ [AG-ONE] SongPosition display — Componente con dos modos: M:S:CS (minutos:segundos:centésimas) y B:S:T (barra:step:tick). Click para cambiar entre modos. Usa segundosACompases() + compasProyecto.
-305. ✅ [AG-ONE] Monitor de onda — MonitorOnda.tsx: canvas con waveform en tiempo real via masterAnalyser + getByteTimeDomainData() en rAF loop. Línea central + trazo con color var(--acento).
-306. ✅ [AG-ONE] Peak meter estéreo — MedidorPicos.tsx: ChannelSplitter(2) + 2 AnalyserNodes stereo en motorAudioService. Canvas con 2 barras verticales L/R, decay smoothing (0.92), gradiente verde→amarillo→rojo. obtenerAnalyserEstereo() getter.
-307. ✅ [AG-ONE] Browser panel — browserDawStore.ts (Zustand: abierto, carpetasExpandidas Set), useBrowserDaw.ts (lazy loading carpetas + samples por carpeta), PanelBrowserDaw.tsx (108 lín, folder tree colapsable + samples draggable). Botón toggle en header MezcladorPanel con iconos PanelLeftOpen/Close. CSS browserDaw.css (127 lín).
-307.1 ✅ [AG-ONE] Drag samples desde browser — Items con draggable + onDragStart seteando application/kamples-sample dataTransfer format (mismo formato que feed existente). Carpetas expandibles con chevron + icono.
-309. ✅ [AG-ONE] Fix minimapa movimientos rígidos — Manipulación directa del DOM durante drag (viewportRef + actualizarViewportDOM), throttling con requestAnimationFrame para React state y scroll del timeline, React state sincronizado solo al soltar. CSS will-change: left, width. Elimina micro-lag de re-renders en cada mousemove.
-311. ✅ [AG-ONE] On/off bloque en header modal — Botón Power movido al header de VentanaFlotante vía nueva prop botonesExtra. Refactor SRP: lógica extraída a useConfigBloque.ts (115 lín), componente reducido de 465 → 299 líneas. Variable cerrarVentana no usada eliminada.
+---
+312. ✅ [AG-DAW] Color indicador → fondo mezcladorPistaControles con color-mix(in srgb, var(--colorPista) 15%, var(--fondoElevado1)). Eliminado div indicador.
+313. ✅ [AG-DAW] RELLENO_COMPASES 36→4; modoReproduccion default 'pat'→'song'.
+314. ✅ [AG-DAW] masterAnalyser+stereoSplit en iniciar(). crearInsertMixer(0) reutiliza existente.
+315. ✅ [AG-DAW] Minimap: rAF syncs scrollFrac, soltar usa pending.scrollFrac, obtenerTotalExtendido retorna fijado exacto.
+316. ✅ [AG-DAW] Controls fondo var(--fondoElevado1) + z-index:3 (controls+espaciador).
+317. ✅ [AG-DAW] setBpm recalcula playbackRate/playbackRateOriginal proporcionalmente: ratio = newBpm/oldBpm.
+318. ✅ [AG-DAW] height+max-height+overflow:hidden en compacta(32px) y minimizada(20px).
+319. ✅ [AG-DAW] ventanaVista ref en useConfigBloque — solo cierra si ventana fue vista y luego desaparece.
+320. ✅ [AG-DAW] Channel Rack + Mixer CSS: hardcoded→var(--acento/exito/error/advertencia/fondoBoton/fondoBase/bordeSutil).
+321. ✅ [AG-DAW] PAT/SONG toggle → Grid2x2/ListMusic iconos con mezcladorBotonAccion.
+322. ✅ [AG-DAW] Channel Rack compacto: padding 6→4, gap 4→2, min-width 600→500, steps 18→16, canal 28→24.
+323. (reservado)
+324. ✅ [AG-DAW] ModalConfigDaw ventanaVista ref — mismo patrón que C319, reset en !abierto.
+325. ✅ [AG-DAW] On/Off button funciona — root cause era parpadeo C319/C324. CSS configBloqueHeaderLed ya existía.
+326. ✅ [AG-DAW] Cuadrícula explorador: useSamplePreview.ts hook, play overlay con iconos, context menu, nombre 2 líneas (line-clamp:2).
+327. ✅ [AG-DAW] browserDawSampleItem svg flex-shrink:0 + min-width:10px.
 
 
 
@@ -404,3 +399,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Mezclador-MinimapaDaw]: Re-renders por setState en mousemove = movimiento rígido. Solución: manipulación directa del DOM (viewportRef.style.left/width) + rAF throttle para React state. Solo sincronizar React en mouseup.
 - [Mezclador-VentanaFlotante]: Prop `botonesExtra` (ReactNode) para inyectar acciones en header sin modificar VentanaFlotante. OCP puro.
 - [Mezclador-ModalConfigBloque]: useConfigBloque hook con crearToggle() factory para toggles uniformes. Reduce componente de 465 a 299 líneas.
+- [Mezclador-C314]: masterAnalyser (fftSize=2048) + stereo ChannelSplitter se crean en iniciar(). crearInsertMixer(0) verifica if (this.masterAnalyser) y reutiliza en vez de crear duplicados.
+- [Mezclador-C319]: Race condition ventanaFlotante: useEffect close-detection corre ANTES de que abrirVentana() propague al store → ventana=undefined → cierra inmediato. Fix: ref `ventanaVista` que solo permite cerrar si la ventana fue vista (true) y luego desaparece.
+- [Mezclador-C315]: MinimapaDaw soltar: NUNCA leer scrollFrac del DOM post-drag — usar pending.scrollFrac directo. obtenerTotalExtendido con fijado: retornar valor exacto, no max(fijado,calc).
+- [Mezclador-C317]: setBpm escala playbackRate proporcionalmente: ratio = newBpm/oldBpm. Aplica a playbackRate Y playbackRateOriginal para preservar ajustes manuales del usuario.
+- [CSS-C320]: Hardcoded colors en componentes DAW: loop LED→var(--acento), mute→var(--error), solo→var(--advertencia), steps→var(--fondoBoton). Siempre usar fallback: var(--nombre, #hex).
+- [Explorador-C326]: useSamplePreview hook reutilizable — Audio element + CustomEvent coordinación + cleanup. Usado por TarjetaSampleCuadricula. Compartir evento 'kamples:reproduccion-sample' con TarjetaSample.
+- [CSS-Icons]: SVG icons dentro de flex containers necesitan flex-shrink:0 para no encogerse con texto largo (C327).
