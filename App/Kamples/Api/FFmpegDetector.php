@@ -82,18 +82,22 @@ class FFmpegDetector
         }
 
         /* 2. Intentar desde PATH del sistema — S38 fix: escapeshellarg */
-        if ($esWindows) {
-            $output = \shell_exec(\sprintf('where %s 2>nul', \escapeshellarg($nombre)));
-        } else {
-            $output = \shell_exec(\sprintf('which %s 2>/dev/null', \escapeshellarg($nombre)));
-        }
-
-        if ($output) {
-            $ruta = \trim(\explode("\n", $output)[0]);
-            if (!empty($ruta) && \file_exists($ruta)) {
-                KamplesLogger::debug("Binario {$nombre} encontrado via PATH", ['ruta' => $ruta]);
-                return $ruta;
+        try {
+            if ($esWindows) {
+                $output = \shell_exec(\sprintf('where %s 2>nul', \escapeshellarg($nombre)));
+            } else {
+                $output = \shell_exec(\sprintf('which %s 2>/dev/null', \escapeshellarg($nombre)));
             }
+
+            if ($output) {
+                $ruta = \trim(\explode("\n", $output)[0]);
+                if (!empty($ruta) && \file_exists($ruta)) {
+                    KamplesLogger::debug("Binario {$nombre} encontrado via PATH", ['ruta' => $ruta]);
+                    return $ruta;
+                }
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error("FFmpegDetector: error buscando {$nombre} en PATH", ['error' => $e->getMessage()]);
         }
 
         /* 3. Buscar en ubicaciones comunes */

@@ -217,40 +217,46 @@ const ComunidadBase = (): JSX.Element => {
 
     const manejarLikePost = useCallback(async (postId: number, reaccion?: TipoReaccion) => {
         const post = publicaciones.find((p) => p.id === postId);
-        if (reaccion) {
-            /* Reaccion especifica desde tooltip */
-            const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setPublicaciones((prev) =>
-                prev.map((p) =>
-                    p.id === postId
-                        ? { ...p, liked: esPositivo, reaccion, totalLikes: Math.max(0, p.totalLikes + delta) }
-                        : p
-                )
-            );
-            await darLike('publicacion', postId, reaccion);
-        } else if (post?.liked || post?.reaccion) {
-            /* Quitar reaccion */
-            const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
-            setPublicaciones((prev) =>
-                prev.map((p) =>
-                    p.id === postId
-                        ? { ...p, liked: false, reaccion: null, totalLikes: Math.max(0, p.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : p
-                )
-            );
-            await quitarLike('publicacion', postId);
-        } else {
-            /* Like simple */
-            setPublicaciones((prev) =>
-                prev.map((p) =>
-                    p.id === postId
-                        ? { ...p, liked: true, reaccion: 'like' as const, totalLikes: p.totalLikes + 1 }
-                        : p
-                )
-            );
-            await darLike('publicacion', postId, 'like');
+        const snapshot = publicaciones;
+
+        try {
+            if (reaccion) {
+                /* Reaccion especifica desde tooltip */
+                const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setPublicaciones((prev) =>
+                    prev.map((p) =>
+                        p.id === postId
+                            ? { ...p, liked: esPositivo, reaccion, totalLikes: Math.max(0, p.totalLikes + delta) }
+                            : p
+                    )
+                );
+                await darLike('publicacion', postId, reaccion);
+            } else if (post?.liked || post?.reaccion) {
+                /* Quitar reaccion */
+                const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+                setPublicaciones((prev) =>
+                    prev.map((p) =>
+                        p.id === postId
+                            ? { ...p, liked: false, reaccion: null, totalLikes: Math.max(0, p.totalLikes - (eraPositivo ? 1 : 0)) }
+                            : p
+                    )
+                );
+                await quitarLike('publicacion', postId);
+            } else {
+                /* Like simple */
+                setPublicaciones((prev) =>
+                    prev.map((p) =>
+                        p.id === postId
+                            ? { ...p, liked: true, reaccion: 'like' as const, totalLikes: p.totalLikes + 1 }
+                            : p
+                    )
+                );
+                await darLike('publicacion', postId, 'like');
+            }
+        } catch {
+            setPublicaciones(snapshot);
         }
     }, [publicaciones]);
 

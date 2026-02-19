@@ -37,12 +37,16 @@ export const BotonFollow = ({
         const valorAnterior = siguiendo;
         setSiguiendo(!siguiendo);
 
-        const resp = siguiendo
-            ? await dejarDeSeguir(usuarioId)
-            : await seguirUsuario(usuarioId);
+        try {
+            const resp = siguiendo
+                ? await dejarDeSeguir(usuarioId)
+                : await seguirUsuario(usuarioId);
 
-        if (!resp.ok) {
-            /* Revertir si falla */
+            if (!resp.ok) {
+                /* Revertir si falla */
+                setSiguiendo(valorAnterior);
+            }
+        } catch {
             setSiguiendo(valorAnterior);
         }
 

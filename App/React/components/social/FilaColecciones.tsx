@@ -19,9 +19,13 @@ export const FilaColecciones = (): JSX.Element | null => {
 
     useEffect(() => {
         const cargar = async () => {
-            const resp = await listarColeccionesPublicas();
-            if (resp.ok && resp.data) {
-                setColecciones(resp.data.slice(0, MAX_COLECCIONES));
+            try {
+                const resp = await listarColeccionesPublicas();
+                if (resp.ok && resp.data) {
+                    setColecciones(resp.data.slice(0, MAX_COLECCIONES));
+                }
+            } catch {
+                /* Error cargando colecciones — fila no se muestra */
             }
         };
         cargar();

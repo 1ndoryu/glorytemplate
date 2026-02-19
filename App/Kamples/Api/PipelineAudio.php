@@ -106,28 +106,36 @@ class PipelineAudio
             $mp3TemporalIA = $directorio . '/tmp_ia_' . $idCorto . '.mp3';
 
             /* Generar MP3 optimizado de los primeros 20s para IA */
-            $cmdIA = \sprintf(
-                '%s -y -i %s -t %d -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050 %s 2>&1',
-                \escapeshellarg($ffmpeg),
-                \escapeshellarg($rutaArchivo),
-                $limiteSegundosIA,
-                \escapeshellarg($mp3TemporalIA)
-            );
+            try {
+                $cmdIA = \sprintf(
+                    '%s -y -i %s -t %d -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050 %s 2>&1',
+                    \escapeshellarg($ffmpeg),
+                    \escapeshellarg($rutaArchivo),
+                    $limiteSegundosIA,
+                    \escapeshellarg($mp3TemporalIA)
+                );
 
-            \exec($cmdIA, $outputIA, $exitCodeIA);
+                \exec($cmdIA, $outputIA, $exitCodeIA);
 
-            if ($exitCodeIA === 0 && \file_exists($mp3TemporalIA)) {
-                $rutaAudioParaIA = $mp3TemporalIA;
-                $audioRecortado = ($duracion ?? 0) > $limiteSegundosIA;
-                KamplesLogger::info('Pipeline: MP3 temporal para IA generado', [
-                    'recortado' => $audioRecortado,
-                    'tamano_original' => \filesize($rutaArchivo),
-                    'tamano_mp3' => \filesize($mp3TemporalIA),
-                ]);
-            } else {
-                /* Fallback al archivo original si falla la conversión */
-                KamplesLogger::warning('Pipeline: No se pudo generar MP3 temporal para IA, usando original', [
-                    'exitCode' => $exitCodeIA,
+                if ($exitCodeIA === 0 && \file_exists($mp3TemporalIA)) {
+                    $rutaAudioParaIA = $mp3TemporalIA;
+                    $audioRecortado = ($duracion ?? 0) > $limiteSegundosIA;
+                    KamplesLogger::info('Pipeline: MP3 temporal para IA generado', [
+                        'recortado' => $audioRecortado,
+                        'tamano_original' => \filesize($rutaArchivo),
+                        'tamano_mp3' => \filesize($mp3TemporalIA),
+                    ]);
+                } else {
+                    /* Fallback al archivo original si falla la conversión */
+                    KamplesLogger::warning('Pipeline: No se pudo generar MP3 temporal para IA, usando original', [
+                        'exitCode' => $exitCodeIA,
+                    ]);
+                    $mp3TemporalIA = null;
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Pipeline: error generando MP3 temporal para IA', [
+                    'error' => $e->getMessage(),
+                    'archivo' => \basename($rutaArchivo),
                 ]);
                 $mp3TemporalIA = null;
             }
@@ -146,7 +154,11 @@ class PipelineAudio
 
         /* Limpiar MP3 temporal */
         if ($mp3TemporalIA && \file_exists($mp3TemporalIA)) {
-            @\unlink($mp3TemporalIA);
+            try {
+                \unlink($mp3TemporalIA);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Pipeline: no se pudo eliminar MP3 temporal IA', ['error' => $e->getMessage()]);
+            }
         }
 
         if ($metadataIA) {

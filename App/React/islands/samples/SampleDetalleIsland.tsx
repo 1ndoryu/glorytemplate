@@ -111,70 +111,100 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
 
     const manejarLike = useCallback(async () => {
         if (!sample) return;
-        if (liked || reaccionActual) {
-            setLiked(false);
-            setReaccionActual(null);
-            await quitarLike('sample', sample.id);
-        } else {
-            setLiked(true);
-            setReaccionActual('like');
-            /* C156: mostrar similares al dar like si preferencia activa */
-            if (sugerenciasAlDarLike) setMostrarSimilares(true);
-            await darLike('sample', sample.id, 'like');
+        const prevLiked = liked;
+        const prevReaccion = reaccionActual;
+
+        try {
+            if (liked || reaccionActual) {
+                setLiked(false);
+                setReaccionActual(null);
+                await quitarLike('sample', sample.id);
+            } else {
+                setLiked(true);
+                setReaccionActual('like');
+                /* C156: mostrar similares al dar like si preferencia activa */
+                if (sugerenciasAlDarLike) setMostrarSimilares(true);
+                await darLike('sample', sample.id, 'like');
+            }
+        } catch {
+            setLiked(prevLiked);
+            setReaccionActual(prevReaccion);
         }
     }, [liked, reaccionActual, sample, sugerenciasAlDarLike]);
 
     /* Reaccion especifica desde tooltip */
     const manejarReaccionDetalle = useCallback(async (reaccion: TipoReaccion) => {
         if (!sample) return;
-        setLiked(reaccion !== 'dislike');
-        setReaccionActual(reaccion);
-        /* C156: mostrar similares en reaccion positiva si preferencia activa */
-        if (reaccion !== 'dislike' && sugerenciasAlDarLike) setMostrarSimilares(true);
-        await darLike('sample', sample.id, reaccion);
+        const prevLiked = liked;
+        const prevReaccion = reaccionActual;
+
+        try {
+            setLiked(reaccion !== 'dislike');
+            setReaccionActual(reaccion);
+            /* C156: mostrar similares en reaccion positiva si preferencia activa */
+            if (reaccion !== 'dislike' && sugerenciasAlDarLike) setMostrarSimilares(true);
+            await darLike('sample', sample.id, reaccion);
+        } catch {
+            setLiked(prevLiked);
+            setReaccionActual(prevReaccion);
+        }
     }, [sample, sugerenciasAlDarLike]);
 
     const manejarQuitarReaccionDetalle = useCallback(async () => {
         if (!sample) return;
-        setLiked(false);
-        setReaccionActual(null);
-        await quitarLike('sample', sample.id);
+        const prevLiked = liked;
+        const prevReaccion = reaccionActual;
+
+        try {
+            setLiked(false);
+            setReaccionActual(null);
+            await quitarLike('sample', sample.id);
+        } catch {
+            setLiked(prevLiked);
+            setReaccionActual(prevReaccion);
+        }
     }, [sample]);
 
     /* Like en samples similares (optimistic UI con reacciones) */
     const manejarLikeSimilar = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sim = similares.find((s) => s.id === sampleId);
-        if (reaccion) {
-            const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSimilares((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, reaccion);
-        } else if (sim?.liked || sim?.reaccion) {
-            const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-            setSimilares((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : s
-                )
-            );
-            await quitarLike('sample', sampleId);
-        } else {
-            setSimilares((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, 'like');
+        const snapshot = similares;
+
+        try {
+            if (reaccion) {
+                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setSimilares((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, reaccion);
+            } else if (sim?.liked || sim?.reaccion) {
+                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
+                setSimilares((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                            : s
+                    )
+                );
+                await quitarLike('sample', sampleId);
+            } else {
+                setSimilares((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, 'like');
+            }
+        } catch {
+            setSimilares(snapshot);
         }
     }, [similares]);
 

@@ -74,6 +74,7 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
     /* Like optimista sincronizado con la lista local */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sample = samples.find((s) => s.id === sampleId);
+        const prevSamples = samples;
         if (reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
@@ -85,7 +86,12 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                         : s
                 )
             );
-            await darLike('sample', sampleId, reaccion);
+            try {
+                await darLike('sample', sampleId, reaccion);
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al dar like', err);
+            }
         } else if (sample?.liked || sample?.reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             setSamples((prev) =>
@@ -95,7 +101,12 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                         : s
                 )
             );
-            await quitarLike('sample', sampleId);
+            try {
+                await quitarLike('sample', sampleId);
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al quitar like', err);
+            }
         } else {
             setSamples((prev) =>
                 prev.map((s) =>
@@ -104,7 +115,12 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                         : s
                 )
             );
-            await darLike('sample', sampleId, 'like');
+            try {
+                await darLike('sample', sampleId, 'like');
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al dar like', err);
+            }
         }
     }, [samples]);
 

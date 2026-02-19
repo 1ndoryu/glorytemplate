@@ -57,69 +57,76 @@ class DeduplicadorAudio
      */
     public static function calcularYVerificar(int $sampleId): void
     {
-        $sample = SamplesRepository::buscarParaDeduplicacion($sampleId);
+        try {
+            $sample = SamplesRepository::buscarParaDeduplicacion($sampleId);
 
-        if (!$sample || empty($sample[SamplesCols::RUTA_ORIGINAL])) {
-            KamplesLogger::warning('DeduplicadorAudio: sample no encontrado o sin ruta', ['sampleId' => $sampleId]);
-            return;
-        }
+            if (!$sample || empty($sample[SamplesCols::RUTA_ORIGINAL])) {
+                KamplesLogger::warning('DeduplicadorAudio: sample no encontrado o sin ruta', ['sampleId' => $sampleId]);
+                return;
+            }
 
-        $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL];
-        if (!file_exists($rutaArchivo)) {
-            KamplesLogger::warning('DeduplicadorAudio: archivo no existe', ['ruta' => $rutaArchivo]);
-            return;
-        }
+            $rutaArchivo = $sample[SamplesCols::RUTA_ORIGINAL];
+            if (!file_exists($rutaArchivo)) {
+                KamplesLogger::warning('DeduplicadorAudio: archivo no existe', ['ruta' => $rutaArchivo]);
+                return;
+            }
 
-        /* Calcular hash perceptual */
-        $hash = self::calcularHash($rutaArchivo, (float) ($sample[SamplesCols::DURACION] ?? 0));
-        if (!$hash) {
-            KamplesLogger::warning('DeduplicadorAudio: no se pudo calcular hash', ['sampleId' => $sampleId]);
-            return;
-        }
+            /* Calcular hash perceptual */
+            $hash = self::calcularHash($rutaArchivo, (float) ($sample[SamplesCols::DURACION] ?? 0));
+            if (!$hash) {
+                KamplesLogger::warning('DeduplicadorAudio: no se pudo calcular hash', ['sampleId' => $sampleId]);
+                return;
+            }
 
-        /* Guardar hash en BD */
-        SamplesRepository::actualizarHash($sampleId, $hash);
+            /* Guardar hash en BD */
+            SamplesRepository::actualizarHash($sampleId, $hash);
 
-        KamplesLogger::info('DeduplicadorAudio: hash calculado', ['sampleId' => $sampleId, 'hash' => $hash]);
+            KamplesLogger::info('DeduplicadorAudio: hash calculado', ['sampleId' => $sampleId, 'hash' => $hash]);
 
-        /* Buscar duplicados (de otros creadores) */
-        $duplicados = SamplesRepository::buscarConHash($hash, $sampleId);
+            /* Buscar duplicados (de otros creadores) */
+            $duplicados = SamplesRepository::buscarConHash($hash, $sampleId);
 
-        if (empty($duplicados)) return;
+            if (empty($duplicados)) return;
 
-        $creadorId = (int) $sample[SamplesCols::CREADOR_ID];
+            $creadorId = (int) $sample[SamplesCols::CREADOR_ID];
 
-        foreach ($duplicados as $dup) {
-            $dupCreadorId = (int) $dup[SamplesCols::CREADOR_ID];
+            foreach ($duplicados as $dup) {
+                $dupCreadorId = (int) $dup[SamplesCols::CREADOR_ID];
 
-            /* Duplicados del mismo creador se permiten */
-            if ($dupCreadorId === $creadorId) continue;
+                /* Duplicados del mismo creador se permiten */
+                if ($dupCreadorId === $creadorId) continue;
 
-            /* Duplicado de otro creador: marcar para supervisión */
-            SamplesRepository::marcarEnSupervision($sampleId);
+                /* Duplicado de otro creador: marcar para supervisión */
+                SamplesRepository::marcarEnSupervision($sampleId);
 
-            /* C266: Notificar al dueño original via ServicioNotificaciones */
-            ServicioNotificaciones::crear(
-                $dupCreadorId,
-                'duplicado_detectado',
-                "Se detecto un posible duplicado de tu sample \"{$dup[SamplesCols::TITULO]}\"",
-                [
-                    'sampleOriginalId'   => (int) $dup[SamplesCols::ID],
-                    'sampleDuplicadoId'  => $sampleId,
-                    'tituloOriginal'     => $dup[SamplesCols::TITULO],
-                ],
-                $creadorId,
-                'Duplicado detectado'
-            );
+                /* C266: Notificar al dueño original via ServicioNotificaciones */
+                ServicioNotificaciones::crear(
+                    $dupCreadorId,
+                    'duplicado_detectado',
+                    "Se detecto un posible duplicado de tu sample \"{$dup[SamplesCols::TITULO]}\"",
+                    [
+                        'sampleOriginalId'   => (int) $dup[SamplesCols::ID],
+                        'sampleDuplicadoId'  => $sampleId,
+                        'tituloOriginal'     => $dup[SamplesCols::TITULO],
+                    ],
+                    $creadorId,
+                    'Duplicado detectado'
+                );
 
-            KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [
-                'sampleNuevo'     => $sampleId,
-                'sampleOriginal'  => $dup[SamplesCols::ID],
-                'creadorNuevo'    => $creadorId,
-                'creadorOriginal' => $dupCreadorId,
+                KamplesLogger::warning('DeduplicadorAudio: duplicado detectado', [
+                    'sampleNuevo'     => $sampleId,
+                    'sampleOriginal'  => $dup[SamplesCols::ID],
+                    'creadorNuevo'    => $creadorId,
+                    'creadorOriginal' => $dupCreadorId,
+                ]);
+
+                break; /* Solo marcar una vez */
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('DeduplicadorAudio: error en calcularYVerificar', [
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
             ]);
-
-            break; /* Solo marcar una vez */
         }
     }
 
@@ -137,33 +144,44 @@ class DeduplicadorAudio
 
         /* Extraer primeros N segundos como PCM raw */
         $tempInicio = tempnam(sys_get_temp_dir(), 'kmp_hash_ini_');
-        $cmd = sprintf(
-            '"%s" -y -i "%s" -t %d -ar %d -ac 1 -f s16le "%s" 2>&1',
-            $ffmpeg, $rutaArchivo, $seg, $sr, $tempInicio
-        );
-        exec($cmd, $output, $exitCode);
+        $tempFinal = null;
 
-        if ($exitCode !== 0 || !file_exists($tempInicio)) {
-            @unlink($tempInicio);
-            return null;
-        }
-
-        $pcmInicio = file_get_contents($tempInicio);
-        @unlink($tempInicio);
-
-        /* Extraer últimos N segundos */
-        $pcmFinal = '';
-        if ($duracion > $seg * 2) {
-            $offset = max(0, $duracion - $seg);
-            $tempFinal = tempnam(sys_get_temp_dir(), 'kmp_hash_fin_');
+        try {
             $cmd = sprintf(
-                '"%s" -y -i "%s" -ss %.2f -t %d -ar %d -ac 1 -f s16le "%s" 2>&1',
-                $ffmpeg, $rutaArchivo, $offset, $seg, $sr, $tempFinal
+                '%s -y -i %s -t %d -ar %d -ac 1 -f s16le %s 2>&1',
+                \escapeshellarg($ffmpeg), \escapeshellarg($rutaArchivo), $seg, $sr, \escapeshellarg($tempInicio)
             );
-            exec($cmd);
-            if (file_exists($tempFinal)) {
-                $pcmFinal = file_get_contents($tempFinal);
-                @unlink($tempFinal);
+            exec($cmd, $output, $exitCode);
+
+            if ($exitCode !== 0 || !file_exists($tempInicio)) {
+                KamplesLogger::warning('DeduplicadorAudio: FFmpeg falló extrayendo inicio', ['exitCode' => $exitCode]);
+                return null;
+            }
+
+            $pcmInicio = \file_get_contents($tempInicio);
+
+            /* Extraer últimos N segundos */
+            $pcmFinal = '';
+            if ($duracion > $seg * 2) {
+                $offset = max(0, $duracion - $seg);
+                $tempFinal = tempnam(sys_get_temp_dir(), 'kmp_hash_fin_');
+                $cmd = sprintf(
+                    '%s -y -i %s -ss %.2f -t %d -ar %d -ac 1 -f s16le %s 2>&1',
+                    \escapeshellarg($ffmpeg), \escapeshellarg($rutaArchivo), $offset, $seg, $sr, \escapeshellarg($tempFinal)
+                );
+                $outputFin = [];
+                exec($cmd, $outputFin, $exitCodeFin);
+                if ($exitCodeFin === 0 && file_exists($tempFinal)) {
+                    $pcmFinal = \file_get_contents($tempFinal);
+                }
+            }
+        } finally {
+            /* Limpieza garantizada de archivos temporales */
+            if ($tempInicio && file_exists($tempInicio)) {
+                unlink($tempInicio);
+            }
+            if ($tempFinal && file_exists($tempFinal)) {
+                unlink($tempFinal);
             }
         }
 
@@ -218,11 +236,15 @@ class DeduplicadorAudio
         if ($envPath && file_exists($envPath)) return $envPath;
 
         /* Buscar en PATH del sistema */
-        $cmd = PHP_OS_FAMILY === 'Windows' ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
-        exec($cmd, $output, $exitCode);
+        try {
+            $cmd = PHP_OS_FAMILY === 'Windows' ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
+            exec($cmd, $output, $exitCode);
 
-        if ($exitCode === 0 && !empty($output[0]) && file_exists(trim($output[0]))) {
-            return trim($output[0]);
+            if ($exitCode === 0 && !empty($output[0]) && file_exists(trim($output[0]))) {
+                return trim($output[0]);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('DeduplicadorAudio: error buscando FFmpeg', ['error' => $e->getMessage()]);
         }
 
         return null;

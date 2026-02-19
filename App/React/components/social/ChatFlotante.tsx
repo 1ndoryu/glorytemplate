@@ -35,8 +35,12 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     /* Cargar mensajes al abrir */
     useEffect(() => {
         const cargar = async () => {
-            const resp = await obtenerMensajes(chat.conversacionId);
-            if (resp.ok && resp.data) setMensajes(resp.data);
+            try {
+                const resp = await obtenerMensajes(chat.conversacionId);
+                if (resp.ok && resp.data) setMensajes(resp.data);
+            } catch {
+                /* Error de red al cargar mensajes — se muestra chat vacío */
+            }
         };
         cargar();
     }, [chat.conversacionId]);
@@ -73,7 +77,13 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
         };
         setMensajes((prev) => [...prev, mensajeOptimista]);
 
-        await enviarMensaje(chat.conversacionId, contenido);
+        try {
+            await enviarMensaje(chat.conversacionId, contenido);
+        } catch {
+            /* Revertir mensaje optimista si falla */
+            setMensajes((prev) => prev.filter((m) => m.id !== mensajeOptimista.id));
+            toast.error('Error al enviar mensaje');
+        }
         setEnviando(false);
         inputRef.current?.focus();
     }, [texto, enviando, chat.conversacionId, usuario]);
@@ -103,7 +113,12 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
         };
         setMensajes((prev) => [...prev, msgOptimista]);
 
-        await enviarMensajeMultimedia(chat.conversacionId, tipo, archivo);
+        try {
+            await enviarMensajeMultimedia(chat.conversacionId, tipo, archivo);
+        } catch {
+            setMensajes((prev) => prev.filter((m) => m.id !== msgOptimista.id));
+            toast.error('Error al enviar archivo');
+        }
         setEnviando(false);
 
         /* Limpiar input file */

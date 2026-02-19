@@ -44,44 +44,63 @@ class GroqHttpClient
         ?string &$curlErrorOut = null
     ): ?string {
         $json = \json_encode($payload);
+        $ch = null;
 
-        $ch = \curl_init($url);
-        \curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $json,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
-            CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        try {
+            $ch = \curl_init($url);
 
-        $respuesta = \curl_exec($ch);
-        $httpCode  = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = \curl_error($ch);
-        \curl_close($ch);
+            if ($ch === false) {
+                KamplesLogger::error("GroqHttpClient: curl_init() falló ({$etiqueta})");
+                $curlErrorOut = 'curl_init failed';
+                return null;
+            }
 
-        $httpCodeOut = $httpCode;
-        $retryAfterOut = 0.0;
-        $curlErrorOut = $curlError;
-
-        if ($curlError) {
-            KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
-            $retryAfterOut = self::extraerRetryAfter($respuestaTexto);
-            KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
-                'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
-                'retryAfterSugerido' => $retryAfterOut,
-                'url' => \preg_replace('/key=[^&]+/', 'key=***', $url),
+            \curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $json,
+                CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+                CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
+                CURLOPT_SSL_VERIFYPEER => true,
             ]);
-            return null;
-        }
 
-        return $respuesta;
+            $respuesta = \curl_exec($ch);
+            $httpCode  = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = \curl_error($ch);
+            \curl_close($ch);
+            $ch = null;
+
+            $httpCodeOut = $httpCode;
+            $retryAfterOut = 0.0;
+            $curlErrorOut = $curlError;
+
+            if ($curlError) {
+                KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
+                return null;
+            }
+
+            if ($httpCode !== 200) {
+                $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
+                $retryAfterOut = self::extraerRetryAfter($respuestaTexto);
+                KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
+                    'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
+                    'retryAfterSugerido' => $retryAfterOut,
+                    'url' => \preg_replace('/key=[^&]+/', 'key=***', $url),
+                ]);
+                return null;
+            }
+
+            return $respuesta;
+        } catch (\Throwable $e) {
+            KamplesLogger::error("GroqHttpClient: excepción inesperada ({$etiqueta})", ['error' => $e->getMessage()]);
+            $curlErrorOut = $e->getMessage();
+            return null;
+        } finally {
+            if ($ch !== null) {
+                \curl_close($ch);
+            }
+        }
     }
 
     /**
@@ -98,38 +117,55 @@ class GroqHttpClient
     ): ?string {
         $payload = $campos;
         $payload[$campoArchivo] = $archivo;
+        $ch = null;
 
-        $ch = \curl_init($url);
-        \curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
-            CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        try {
+            $ch = \curl_init($url);
 
-        $respuesta = \curl_exec($ch);
-        $httpCode  = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = \curl_error($ch);
-        \curl_close($ch);
+            if ($ch === false) {
+                KamplesLogger::error("GroqHttpClient: curl_init() falló multipart ({$etiqueta})");
+                return null;
+            }
 
-        if ($curlError) {
-            KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
-            return null;
-        }
-
-        if ($httpCode !== 200) {
-            $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
-            KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
-                'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
-                'url' => $url,
+            \curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+                CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
+                CURLOPT_SSL_VERIFYPEER => true,
             ]);
-            return null;
-        }
 
-        return \is_string($respuesta) ? $respuesta : null;
+            $respuesta = \curl_exec($ch);
+            $httpCode  = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = \curl_error($ch);
+            \curl_close($ch);
+            $ch = null;
+
+            if ($curlError) {
+                KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
+                return null;
+            }
+
+            if ($httpCode !== 200) {
+                $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
+                KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
+                    'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
+                    'url' => $url,
+                ]);
+                return null;
+            }
+
+            return \is_string($respuesta) ? $respuesta : null;
+        } catch (\Throwable $e) {
+            KamplesLogger::error("GroqHttpClient: excepción inesperada multipart ({$etiqueta})", ['error' => $e->getMessage()]);
+            return null;
+        } finally {
+            if ($ch !== null) {
+                \curl_close($ch);
+            }
+        }
     }
 
     /**

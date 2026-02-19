@@ -54,59 +54,70 @@ export const SamplesIsland = (): JSX.Element => {
     /* Like con optimistic UI y soporte de reacciones */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sample = samples.find((s) => s.id === sampleId);
-        if (reaccion) {
-            /* Reaccion seleccionada desde tooltip */
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, reaccion);
-        } else if (sample?.liked || sample?.reaccion) {
-            /* Quitar reaccion */
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : s
-                )
-            );
-            await quitarLike('sample', sampleId);
-        } else {
-            /* Like simple */
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, 'like');
+        const snapshot = samples;
+
+        try {
+            if (reaccion) {
+                /* Reaccion seleccionada desde tooltip */
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, reaccion);
+            } else if (sample?.liked || sample?.reaccion) {
+                /* Quitar reaccion */
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                            : s
+                    )
+                );
+                await quitarLike('sample', sampleId);
+            } else {
+                /* Like simple */
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, 'like');
+            }
+        } catch {
+            setSamples(snapshot);
         }
     }, [samples]);
 
     /* Cargar samples */
     const cargarSamples = useCallback(async () => {
         setCargando(true);
-        const respuesta = await listarSamples(filtros);
-        if (respuesta.ok && respuesta.data) {
-            const lista = respuesta.data as unknown as RespuestaListaSamples;
-            setSamples(lista.data ?? []);
-            setPaginacion({
-                page: lista.pagination?.page ?? 1,
-                pages: lista.pagination?.pages ?? 1,
-                total: lista.pagination?.total ?? 0,
-            });
-        } else {
+        try {
+            const respuesta = await listarSamples(filtros);
+            if (respuesta.ok && respuesta.data) {
+                const lista = respuesta.data as unknown as RespuestaListaSamples;
+                setSamples(lista.data ?? []);
+                setPaginacion({
+                    page: lista.pagination?.page ?? 1,
+                    pages: lista.pagination?.pages ?? 1,
+                    total: lista.pagination?.total ?? 0,
+                });
+            } else {
+                setSamples([]);
+            }
+        } catch {
             setSamples([]);
+        } finally {
+            setCargando(false);
         }
-        setCargando(false);
     }, [filtros]);
 
     useEffect(() => {

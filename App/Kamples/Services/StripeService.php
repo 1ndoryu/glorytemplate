@@ -85,48 +85,72 @@ class StripeService
             $headers[] = 'Stripe-Account: ' . $accountId;
         }
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $ch = null;
 
-        if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
-        } elseif ($method === 'GET' && !empty($params)) {
-            $url .= '?' . http_build_query($params);
-        }
+        try {
+            $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $url);
+            if ($ch === false) {
+                KamplesLogger::error('Stripe API: curl_init() falló', ['endpoint' => $endpoint]);
+                return ['error' => 'Error interno: no se pudo inicializar cURL'];
+            }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
-        /* Verificar error de red/curl antes de decodificar */
-        if ($response === false) {
-            KamplesLogger::error('Stripe API: error de red (curl)', [
+            if ($method === 'POST') {
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+            } elseif ($method === 'GET' && !empty($params)) {
+                $url .= '?' . http_build_query($params);
+            }
+
+            curl_setopt($ch, CURLOPT_URL, $url);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            $ch = null;
+
+            /* Verificar error de red/curl antes de decodificar */
+            if ($response === false) {
+                KamplesLogger::error('Stripe API: error de red (curl)', [
+                    'endpoint' => $endpoint,
+                    'error' => $curlError,
+                    'accountId' => $accountId,
+                ]);
+                return ['error' => 'Error de conexión con Stripe: ' . $curlError];
+            }
+
+            $data = json_decode($response, true) ?? [];
+
+            if ($httpCode >= 400) {
+                $contexto = [
+                    'endpoint' => $endpoint,
+                    'httpCode' => $httpCode,
+                    'error'    => $data['error']['message'] ?? 'desconocido',
+                ];
+                if ($accountId) $contexto['accountId'] = $accountId;
+                KamplesLogger::error('Stripe API error', $contexto);
+            }
+
+            return $data;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Stripe API: excepción inesperada', [
                 'endpoint' => $endpoint,
-                'error' => $curlError,
+                'error' => $e->getMessage(),
                 'accountId' => $accountId,
             ]);
-            return ['error' => 'Error de conexión con Stripe: ' . $curlError];
+            return ['error' => 'Error interno en petición a Stripe'];
+        } finally {
+            if ($ch !== null) {
+                curl_close($ch);
+            }
         }
-
-        $data = json_decode($response, true) ?? [];
-
-        if ($httpCode >= 400) {
-            $contexto = [
-                'endpoint' => $endpoint,
-                'httpCode' => $httpCode,
-                'error'    => $data['error']['message'] ?? 'desconocido',
-            ];
-            if ($accountId) $contexto['accountId'] = $accountId;
-            KamplesLogger::error('Stripe API error', $contexto);
-        }
-
-        return $data;
     }
 
     /**

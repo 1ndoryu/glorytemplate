@@ -8,6 +8,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { obtenerMisFavoritos, obtenerMisDescargas } from '@app/services/apiSamples';
 import { obtenerMisSeguidos } from '@app/services/apiSocial';
+import { crearLogger } from '@app/services/logger';
+
+const log = crearLogger('useFiltroIds');
 
 interface UseFiltroIdsResult {
     idsLikeados: Set<number>;
@@ -39,22 +42,26 @@ export const useFiltroIds = (
         if (!filtroLikeados || likeadosCargados.current) return;
         const cargar = async () => {
             setCargando(true);
-            const ids = new Set<number>();
-            let pagina = 1;
-            let continuar = true;
-            while (continuar) {
-                const resp = await obtenerMisFavoritos(pagina, 100);
-                if (resp.ok && resp.data?.data?.length) {
-                    resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
-                    if (resp.data.data.length < 100) continuar = false;
-                    else pagina++;
-                } else {
-                    continuar = false;
+            try {
+                const ids = new Set<number>();
+                let pagina = 1;
+                let continuar = true;
+                while (continuar) {
+                    const resp = await obtenerMisFavoritos(pagina, 100);
+                    if (resp.ok && resp.data?.data?.length) {
+                        resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
+                        if (resp.data.data.length < 100) continuar = false;
+                        else pagina++;
+                    } else {
+                        continuar = false;
+                    }
                 }
+                setIdsLikeados(ids);
+                likeadosCargados.current = true;
+            } catch (err) {
+                log.error('Error cargando IDs likeados', err);
             }
-            setIdsLikeados(ids);
             setCargando(false);
-            likeadosCargados.current = true;
         };
         cargar();
     }, [filtroLikeados]);
@@ -64,22 +71,26 @@ export const useFiltroIds = (
         if (!filtroDescargados || descargadosCargados.current) return;
         const cargar = async () => {
             setCargando(true);
-            const ids = new Set<number>();
-            let pagina = 1;
-            let continuar = true;
-            while (continuar) {
-                const resp = await obtenerMisDescargas(pagina, 100);
-                if (resp.ok && resp.data?.data?.length) {
-                    resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
-                    if (resp.data.data.length < 100) continuar = false;
-                    else pagina++;
-                } else {
-                    continuar = false;
+            try {
+                const ids = new Set<number>();
+                let pagina = 1;
+                let continuar = true;
+                while (continuar) {
+                    const resp = await obtenerMisDescargas(pagina, 100);
+                    if (resp.ok && resp.data?.data?.length) {
+                        resp.data.data.forEach((s: { id: number }) => ids.add(s.id));
+                        if (resp.data.data.length < 100) continuar = false;
+                        else pagina++;
+                    } else {
+                        continuar = false;
+                    }
                 }
+                setIdsDescargados(ids);
+                descargadosCargados.current = true;
+            } catch (err) {
+                log.error('Error cargando IDs descargados', err);
             }
-            setIdsDescargados(ids);
             setCargando(false);
-            descargadosCargados.current = true;
         };
         cargar();
     }, [filtroDescargados]);
@@ -89,14 +100,18 @@ export const useFiltroIds = (
         if (!filtroDeSeguidos || seguidosCargados.current) return;
         const cargar = async () => {
             setCargando(true);
-            const resp = await obtenerMisSeguidos();
-            if (resp.ok && resp.data) {
-                const ids = new Set<number>();
-                (resp.data as { id: number }[]).forEach((u) => ids.add(u.id));
-                setIdsSeguidos(ids);
+            try {
+                const resp = await obtenerMisSeguidos();
+                if (resp.ok && resp.data) {
+                    const ids = new Set<number>();
+                    (resp.data as { id: number }[]).forEach((u) => ids.add(u.id));
+                    setIdsSeguidos(ids);
+                }
+                seguidosCargados.current = true;
+            } catch (err) {
+                log.error('Error cargando IDs seguidos', err);
             }
             setCargando(false);
-            seguidosCargados.current = true;
         };
         cargar();
     }, [filtroDeSeguidos]);

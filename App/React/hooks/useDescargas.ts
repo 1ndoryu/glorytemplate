@@ -32,9 +32,13 @@ export const useDescargas = (): RetornoDescargas => {
 
     const recargarLimites = useCallback(async () => {
         if (!autenticado) return;
-        const resp = await obtenerLimites();
-        if (resp.ok && resp.data) {
-            setLimites(resp.data);
+        try {
+            const resp = await obtenerLimites();
+            if (resp.ok && resp.data) {
+                setLimites(resp.data);
+            }
+        } catch (err) {
+            log.error('Error recargando límites de descarga', err);
         }
     }, [autenticado]);
 

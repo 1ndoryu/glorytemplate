@@ -51,8 +51,14 @@ export const BotonLike = ({
             setLiked(false);
             setReaccion(null);
             setTotal(total - 1);
-            const resp = await quitarLike(tipo, targetId);
-            if (!resp.ok) {
+            try {
+                const resp = await quitarLike(tipo, targetId);
+                if (!resp.ok) {
+                    setLiked(likedAnterior);
+                    setReaccion(reaccionAnterior);
+                    setTotal(totalAnterior);
+                }
+            } catch {
                 setLiked(likedAnterior);
                 setReaccion(reaccionAnterior);
                 setTotal(totalAnterior);
@@ -63,8 +69,14 @@ export const BotonLike = ({
             setTotal(total + 1);
             setAnimando(true);
             setTimeout(() => setAnimando(false), 300);
-            const resp = await darLike(tipo, targetId, 'like');
-            if (!resp.ok) {
+            try {
+                const resp = await darLike(tipo, targetId, 'like');
+                if (!resp.ok) {
+                    setLiked(likedAnterior);
+                    setReaccion(reaccionAnterior);
+                    setTotal(totalAnterior);
+                }
+            } catch {
                 setLiked(likedAnterior);
                 setReaccion(reaccionAnterior);
                 setTotal(totalAnterior);
@@ -97,8 +109,14 @@ export const BotonLike = ({
             setTimeout(() => setAnimando(false), 300);
         }
 
-        const resp = await darLike(tipo, targetId, nuevaReaccion);
-        if (!resp.ok) {
+        try {
+            const resp = await darLike(tipo, targetId, nuevaReaccion);
+            if (!resp.ok) {
+                setLiked(likedAnterior);
+                setReaccion(reaccionAnterior);
+                setTotal(totalAnterior);
+            }
+        } catch {
             setLiked(likedAnterior);
             setReaccion(reaccionAnterior);
             setTotal(totalAnterior);
@@ -121,8 +139,14 @@ export const BotonLike = ({
         setReaccion(null);
         setTotal(Math.max(0, total - (eraPositivo ? 1 : 0)));
 
-        const resp = await quitarLike(tipo, targetId);
-        if (!resp.ok) {
+        try {
+            const resp = await quitarLike(tipo, targetId);
+            if (!resp.ok) {
+                setLiked(likedAnterior);
+                setReaccion(reaccionAnterior);
+                setTotal(totalAnterior);
+            }
+        } catch {
             setLiked(likedAnterior);
             setReaccion(reaccionAnterior);
             setTotal(totalAnterior);

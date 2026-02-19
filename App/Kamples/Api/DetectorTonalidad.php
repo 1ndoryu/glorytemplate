@@ -64,30 +64,29 @@ class DetectorTonalidad
         /* Exportar a PCM mono 4kHz signed 16-bit LE */
         $tmpPcm = \tempnam(\sys_get_temp_dir(), 'kamples_key_') . '.pcm';
 
-        $cmd = \sprintf(
-            '%s -y -i %s -ac 1 -ar %d -f s16le -t %d %s 2>&1',
-            \escapeshellarg($ffmpegBin),
-            \escapeshellarg($rutaArchivo),
-            self::SAMPLE_RATE,
-            self::DURACION_MAX,
-            \escapeshellarg($tmpPcm)
-        );
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -ac 1 -ar %d -f s16le -t %d %s 2>&1',
+                \escapeshellarg($ffmpegBin),
+                \escapeshellarg($rutaArchivo),
+                self::SAMPLE_RATE,
+                self::DURACION_MAX,
+                \escapeshellarg($tmpPcm)
+            );
 
-        \exec($cmd, $output, $returnCode);
+            \exec($cmd, $output, $returnCode);
 
-        if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
-            KamplesLogger::error('DetectorTonalidad: Error exportando PCM');
-            @\unlink($tmpPcm);
-            return null;
-        }
+            if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
+                KamplesLogger::error('DetectorTonalidad: Error exportando PCM');
+                return null;
+            }
 
-        /* Leer datos PCM signed 16-bit */
-        $datosRaw = \file_get_contents($tmpPcm);
-        @\unlink($tmpPcm);
+            /* Leer datos PCM signed 16-bit */
+            $datosRaw = \file_get_contents($tmpPcm);
 
-        if (!$datosRaw || \strlen($datosRaw) < 2000) {
-            return null;
-        }
+            if (!$datosRaw || \strlen($datosRaw) < 2000) {
+                return null;
+            }
 
         $muestras = \array_values(\unpack('s*', $datosRaw));
         $totalMuestras = \count($muestras);
@@ -159,11 +158,19 @@ class DetectorTonalidad
         /* Confianza basada en la correlación (0-1) */
         $confianza = \max(0.0, \min(1.0, ($mejorCorrelacion + 1) / 2));
 
-        return [
-            'key' => $mejorKey,
-            'escala' => $mejorEscala,
-            'confianza' => \round($confianza, 2),
-        ];
+            return [
+                'key' => $mejorKey,
+                'escala' => $mejorEscala,
+                'confianza' => \round($confianza, 2),
+            ];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('DetectorTonalidad: ' . $e->getMessage());
+            return null;
+        } finally {
+            if (\file_exists($tmpPcm)) {
+                \unlink($tmpPcm);
+            }
+        }
     }
 
     /**

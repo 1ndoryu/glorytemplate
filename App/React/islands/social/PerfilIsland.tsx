@@ -215,37 +215,46 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
         estabaLiked = sampleEncontrado?.liked ?? false;
         reaccionAnterior = sampleEncontrado?.reaccion ?? null;
 
-        if (reaccion) {
-            const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            const actualizar = (lista: SampleResumen[]) =>
-                lista.map(s => s.id === sampleId
-                    ? {...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta)}
-                    : s
-                );
-            setSamplesPerfil(actualizar);
-            setLikesPerfil(actualizar);
-            await darLike('sample', sampleId, reaccion);
-        } else if (estabaLiked || reaccionAnterior) {
-            const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
-            const actualizar = (lista: SampleResumen[]) =>
-                lista.map(s => s.id === sampleId
-                    ? {...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0))}
-                    : s
-                );
-            setSamplesPerfil(actualizar);
-            setLikesPerfil(actualizar);
-            await quitarLike('sample', sampleId);
-        } else {
-            const actualizar = (lista: SampleResumen[]) =>
-                lista.map(s => s.id === sampleId
-                    ? {...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1}
-                    : s
-                );
-            setSamplesPerfil(actualizar);
-            setLikesPerfil(actualizar);
-            await darLike('sample', sampleId, 'like');
+        /* Snapshots para rollback */
+        const snapSamples = samplesPerfil;
+        const snapLikes = likesPerfil;
+
+        try {
+            if (reaccion) {
+                const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                const actualizar = (lista: SampleResumen[]) =>
+                    lista.map(s => s.id === sampleId
+                        ? {...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta)}
+                        : s
+                    );
+                setSamplesPerfil(actualizar);
+                setLikesPerfil(actualizar);
+                await darLike('sample', sampleId, reaccion);
+            } else if (estabaLiked || reaccionAnterior) {
+                const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
+                const actualizar = (lista: SampleResumen[]) =>
+                    lista.map(s => s.id === sampleId
+                        ? {...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0))}
+                        : s
+                    );
+                setSamplesPerfil(actualizar);
+                setLikesPerfil(actualizar);
+                await quitarLike('sample', sampleId);
+            } else {
+                const actualizar = (lista: SampleResumen[]) =>
+                    lista.map(s => s.id === sampleId
+                        ? {...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1}
+                        : s
+                    );
+                setSamplesPerfil(actualizar);
+                setLikesPerfil(actualizar);
+                await darLike('sample', sampleId, 'like');
+            }
+        } catch {
+            setSamplesPerfil(snapSamples);
+            setLikesPerfil(snapLikes);
         }
     }, [samplesPerfil, likesPerfil]);
 

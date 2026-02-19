@@ -67,9 +67,14 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         if (!id) return;
         const cargar = async () => {
             setCargando(true);
-            const resp = await obtenerColeccion(id);
-            if (resp.ok && resp.data) setColeccion(resp.data);
-            setCargando(false);
+            try {
+                const resp = await obtenerColeccion(id);
+                if (resp.ok && resp.data) setColeccion(resp.data);
+            } catch {
+                /* Fallo de carga silencioso */
+            } finally {
+                setCargando(false);
+            }
         };
         cargar();
     }, [id]);

@@ -18,6 +18,9 @@ import {
     type UsuarioAdmin,
     type DatosModeracion,
 } from '../services/apiAdmin';
+import { crearLogger } from '../services/logger';
+
+const log = crearLogger('useAdminPanel');
 
 export function useAdminPanel() {
     const [kpis, setKpis] = useState<KpisAdmin | null>(null);
@@ -35,13 +38,17 @@ export function useAdminPanel() {
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            const [resKpis, resActividad] = await Promise.all([
-                obtenerResumenAdmin(),
-                obtenerActividadAdmin(14),
-            ]);
+            try {
+                const [resKpis, resActividad] = await Promise.all([
+                    obtenerResumenAdmin(),
+                    obtenerActividadAdmin(14),
+                ]);
 
-            if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
-            if (resActividad.ok && resActividad.data) setActividad(resActividad.data);
+                if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
+                if (resActividad.ok && resActividad.data) setActividad(resActividad.data);
+            } catch (err) {
+                log.error('Error cargando KPIs y actividad', err);
+            }
             setCargando(false);
         };
         cargar();
@@ -49,15 +56,19 @@ export function useAdminPanel() {
 
     /* Cargar usuarios cuando cambia la pestaña, búsqueda, filtro o página */
     const cargarUsuarios = useCallback(async () => {
-        const res = await listarUsuariosAdmin(
-            paginaUsuarios,
-            busquedaUsuarios,
-            filtroPlannUsuarios,
-            'fecha'
-        );
-        if (res.ok && res.data) {
-            setUsuarios(res.data.data ?? []);
-            setTotalUsuarios(res.data.total ?? 0);
+        try {
+            const res = await listarUsuariosAdmin(
+                paginaUsuarios,
+                busquedaUsuarios,
+                filtroPlannUsuarios,
+                'fecha'
+            );
+            if (res.ok && res.data) {
+                setUsuarios(res.data.data ?? []);
+                setTotalUsuarios(res.data.total ?? 0);
+            }
+        } catch (err) {
+            log.error('Error cargando usuarios admin', err);
         }
     }, [paginaUsuarios, busquedaUsuarios, filtroPlannUsuarios]);
 
@@ -69,9 +80,13 @@ export function useAdminPanel() {
 
     /* Cargar moderación cuando cambia la pestaña */
     const cargarModeracion = useCallback(async () => {
-        const res = await listarModeracion();
-        if (res.ok && res.data) {
-            setModeracion(res.data);
+        try {
+            const res = await listarModeracion();
+            if (res.ok && res.data) {
+                setModeracion(res.data);
+            }
+        } catch (err) {
+            log.error('Error cargando moderación', err);
         }
     }, []);
 
@@ -86,11 +101,16 @@ export function useAdminPanel() {
         id: number,
         cambios: { plan?: string; rol?: string; verificado?: boolean; ban_hasta?: string | null }
     ) => {
-        const res = await actualizarUsuarioAdmin(id, cambios);
-        if (res.ok) {
-            await cargarUsuarios();
+        try {
+            const res = await actualizarUsuarioAdmin(id, cambios);
+            if (res.ok) {
+                await cargarUsuarios();
+            }
+            return res.ok;
+        } catch (err) {
+            log.error('Error actualizando usuario', err);
+            return false;
         }
-        return res.ok;
     }, [cargarUsuarios]);
 
     /* Acciones de moderación */
@@ -99,14 +119,19 @@ export function useAdminPanel() {
         id: number,
         accion: 'aprobar' | 'rechazar'
     ) => {
-        const res = await moderarContenido(tipo, id, accion);
-        if (res.ok) {
-            await cargarModeracion();
-            /* Refrescar KPIs para actualizar contadores */
-            const resKpis = await obtenerResumenAdmin();
-            if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
+        try {
+            const res = await moderarContenido(tipo, id, accion);
+            if (res.ok) {
+                await cargarModeracion();
+                /* Refrescar KPIs para actualizar contadores */
+                const resKpis = await obtenerResumenAdmin();
+                if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
+            }
+            return res.ok;
+        } catch (err) {
+            log.error('Error moderando contenido', err);
+            return false;
         }
-        return res.ok;
     }, [cargarModeracion]);
 
     return {

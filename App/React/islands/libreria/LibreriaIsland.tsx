@@ -100,36 +100,41 @@ export const LibreriaIsland = (): JSX.Element => {
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            if (tabActiva === 'explorar') {
-                const resp = await listarColeccionesPublicas(busqueda || undefined);
-                if (resp.ok && resp.data) {
-                    setColeccionesPublicas(resp.data);
-                } else {
-                    setColeccionesPublicas([]);
+            try {
+                if (tabActiva === 'explorar') {
+                    const resp = await listarColeccionesPublicas(busqueda || undefined);
+                    if (resp.ok && resp.data) {
+                        setColeccionesPublicas(resp.data);
+                    } else {
+                        setColeccionesPublicas([]);
+                    }
+                } else if (tabActiva === 'colecciones') {
+                    const resp = await listarColecciones(undefined, busqueda || undefined);
+                    if (resp.ok && resp.data) {
+                        setColecciones(resp.data);
+                    } else {
+                        setColecciones([]);
+                    }
+                } else if (tabActiva === 'subidos') {
+                    /* subidos: usar filtro creador con username del auth store — C169: con búsqueda */
+                    const { useAuthStore } = await import('@app/stores/authStore');
+                    const username = useAuthStore.getState().usuario?.username;
+                    const resp = await listarSamples({
+                        creador: username || undefined,
+                        busqueda: busqueda || undefined,
+                        perPage: 20,
+                    });
+                    if (resp.ok && resp.data) {
+                        setSamples(resp.data.data ?? []);
+                    } else {
+                        setSamples([]);
+                    }
                 }
-            } else if (tabActiva === 'colecciones') {
-                const resp = await listarColecciones(undefined, busqueda || undefined);
-                if (resp.ok && resp.data) {
-                    setColecciones(resp.data);
-                } else {
-                    setColecciones([]);
-                }
-            } else if (tabActiva === 'subidos') {
-                /* subidos: usar filtro creador con username del auth store — C169: con búsqueda */
-                const { useAuthStore } = await import('@app/stores/authStore');
-                const username = useAuthStore.getState().usuario?.username;
-                const resp = await listarSamples({
-                    creador: username || undefined,
-                    busqueda: busqueda || undefined,
-                    perPage: 20,
-                });
-                if (resp.ok && resp.data) {
-                    setSamples(resp.data.data ?? []);
-                } else {
-                    setSamples([]);
-                }
+            } catch {
+                /* Fallo silencioso — listas quedan vacías */
+            } finally {
+                setCargando(false);
             }
-            setCargando(false);
         };
         cargar();
     }, [tabActiva, busqueda]);
@@ -146,37 +151,43 @@ export const LibreriaIsland = (): JSX.Element => {
 
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sample = samples.find((s) => s.id === sampleId);
-        if (reaccion) {
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, reaccion);
-        } else if (sample?.liked || sample?.reaccion) {
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : s
-                )
-            );
-            await quitarLike('sample', sampleId);
-        } else {
-            setSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                        : s
-                )
-            );
-            await darLike('sample', sampleId, 'like');
+        const snapshot = samples;
+
+        try {
+            if (reaccion) {
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, reaccion);
+            } else if (sample?.liked || sample?.reaccion) {
+                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
+                            : s
+                    )
+                );
+                await quitarLike('sample', sampleId);
+            } else {
+                setSamples((prev) =>
+                    prev.map((s) =>
+                        s.id === sampleId
+                            ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
+                            : s
+                    )
+                );
+                await darLike('sample', sampleId, 'like');
+            }
+        } catch {
+            setSamples(snapshot);
         }
     }, [samples]);
 

@@ -24,14 +24,23 @@ export function aplicarTemaApp(tema: TemaApp): void {
 
 export function guardarTemaApp(tema: TemaApp): void {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(CLAVE_STORAGE_TEMA, tema);
+    try {
+        window.localStorage.setItem(CLAVE_STORAGE_TEMA, tema);
+    } catch {
+        /* QuotaExceededError o SecurityError en modo privado/restrictivo */
+    }
 }
 
 export function obtenerTemaGuardado(): TemaApp | null {
     if (typeof window === 'undefined') return null;
 
-    const tema = window.localStorage.getItem(CLAVE_STORAGE_TEMA);
-    return esTemaValido(tema) ? tema : null;
+    try {
+        const tema = window.localStorage.getItem(CLAVE_STORAGE_TEMA);
+        return esTemaValido(tema) ? tema : null;
+    } catch {
+        /* SecurityError en navegadores restrictivos */
+        return null;
+    }
 }
 
 export function obtenerTemaAppActual(): TemaApp {

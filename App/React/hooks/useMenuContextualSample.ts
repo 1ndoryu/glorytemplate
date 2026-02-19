@@ -127,16 +127,20 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 etiqueta: 'Descargar archivo',
                 onClick: async () => {
                     if (!estado.sample) return;
-                    const resp = await descargarSample(estado.sample.id);
-                    if (resp.ok && resp.data?.url) {
-                        const a = document.createElement('a');
-                        a.href = resp.data.url;
-                        a.download = resp.data.nombre || estado.sample.titulo || 'sample';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    } else if (resp.status === 429 || resp.status === 403) {
-                        toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                    try {
+                        const resp = await descargarSample(estado.sample.id);
+                        if (resp.ok && resp.data?.url) {
+                            const a = document.createElement('a');
+                            a.href = resp.data.url;
+                            a.download = resp.data.nombre || estado.sample.titulo || 'sample';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        } else if (resp.status === 429 || resp.status === 403) {
+                            toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                        }
+                    } catch {
+                        toast.error('Error de red al descargar');
                     }
                 },
                 separadorDespues: true,

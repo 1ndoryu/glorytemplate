@@ -107,16 +107,17 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R61-R64:** Repository Pattern completo — 27 controllers migrados, ~340 queries → 18 repos tipados. Tier 3 Services + Api + Helpers: 0 PostgresService fuera de infraestructura. Auditoría hardcode completa (repos + 14 archivos servicios/controladores). Fix regex `validarQueryContraSchema()` (`\b` word boundary). Enums residuales: AdminRepository TODO.
 **R65-R66 [AG-ONE]:** C284-C296 Mezclador DAW — fix clip mode, MinimapaDaw (viewport drag/zoom/click-to-jump), ModalConfigBloque reescrito (VentanaFlotante 700px profesional), VentanaFlotante.tsx+ventanasStore.ts, KnobControl SVG, reset doble-click, zoom freeze. Explorador: COALESCE, IA null→"General", z-index, vista cuadrícula. Feed: filtro free/premium client-side.
 **R67 [AG-ONE] C274+C288-C311:** createPortal fix, CSS 6 módulos, menú contextual pista (9 acciones+rename+color), InputTempo FL-style, MinimapaDaw rewrite (DOM+rAF), sticky controls, SongPosition (M:S:CS / B:S:T), MonitorOnda canvas, MedidorPicos estéreo, PanelBrowserDaw, on/off header modal, useConfigBloque SRP.
-**R68 [AG-DAW] C312-C327:** Color indicador→fondo controls (color-mix 15%), RELLENO_COMPASES 36→4, masterAnalyser+stereoSplit reutilizado, minimap rAF sync, BPM sync playbackRate proporcional, height+max-height+overflow tracks, ventanaVista ref fix parpadeo, CSS vars Channel Rack+Mixer, PAT/SONG iconos, Channel Rack compacto, cuadrícula explorador (useSamplePreview+overlay+context menu), browserDawSampleItem flex fix.
+**R68 [AG-DAW] C312-C327:** Color indicador→fondo controls (color-mix 15%), RELLENO*COMPASES 36→4, masterAnalyser+stereoSplit reutilizado, minimap rAF sync, BPM sync playbackRate proporcional, height+max-height+overflow tracks, ventanaVista ref fix parpadeo, CSS vars Channel Rack+Mixer, PAT/SONG iconos, Channel Rack compacto, cuadrícula explorador (useSamplePreview+overlay+context menu), browserDawSampleItem flex fix.
 **[AG-TWO] C308:** Channel Rack + Patterns + Mixer completo — patronesStore, mixerStore, motor audio mixer nodes+step playback, 7 componentes Channel Rack (PasoBoton/StepGrid/CanalStrip/SelectorPatron/CabeceraChannelRack/GraphEditor/ChannelRack), 7 componentes Mixer (FaderControl/PeakMeter/InsertStrip/EQVisualizer/SlotEfectoUI/PanelDetalleInsert/MixerConsola+useMixer), ClipPatron en PistaTimeline. 25 archivos, 0 errores.
 **[AG-THRE] C310:** Piano Roll completo — pianoRollStore+accionesNotas (~530lín CRUD+undo/redo), 11 componentes (GridNotas canvas+DOM hybrid, NotaRect, TecladoPiano C0-B8, ReglaTemporal, CabeceraPianoRoll, PanelControl velocity/pan/pitch, BarraVelocity, GhostNotas, MenuContextualPR, MinimapaPianoRoll), pianoRollAudioService, atajos teclado, marquee selection. Pendiente: integración con Channel Rack AG-TWO (sync steps↔notas).
 **[AG-SQL] Auditoría SQL:** Escaneo completo 168 PHP + 22 migraciones. 58 hallazgos (19 CRITICAL, 25 MEDIUM, 14 LOW). Documento completo: `App/docs/auditoria-sql.md`. Plan de optimización BD: 12 índices nuevos, triggers counter-cache, JSONB expression indexes, fix discrepancia oneshot/one shot, particionamiento futuro.
-**[AG-SQL] Corrección SQL completa (58/58):** Todos los hallazgos resueltos. Enums creados (MensajesEnums, ReportesEnums) y extendidos (PublicacionesEnums, ComentariosEnums). AssetMeta centralizado (24 reemplazos en 5 archivos Glory). SeoMetabox usa MetaTagRenderer. StripeConfig con constantes OPT_*. PostSyncHandler::META_CLAVE_* públicas + usadas en DefaultContentSynchronizer y DefaultContentRepository. $wpdb->prepare() en Form/Newsletter/CachePurger. @unlink/@opcache_reset eliminados. Bug 'one shot'→'oneshot' corregido. Migración v021: 14 indices + 2 JSONB expression indexes.
+**[AG-SQL] Corrección SQL completa (58/58):** Todos los hallazgos resueltos. Enums creados (MensajesEnums, ReportesEnums) y extendidos (PublicacionesEnums, ComentariosEnums). AssetMeta centralizado (24 reemplazos en 5 archivos Glory). SeoMetabox usa MetaTagRenderer. StripeConfig con constantes OPT*_. PostSyncHandler::META*CLAVE*_ públicas + usadas en DefaultContentSynchronizer y DefaultContentRepository. $wpdb->prepare() en Form/Newsletter/CachePurger. @unlink/@opcache_reset eliminados. Bug 'one shot'→'oneshot' corregido. Migración v021: 14 indices + 2 JSONB expression indexes.
 **[AG-SEC] Auditoría Seguridad PHP:** 86 archivos Kamples auditados (seguridad+calidad). 23 hallazgos (3 P0, 7 P1, 8 P2, 5 P3). P0-1: command injection DeduplicadorAudio (exec sin escapeshellarg). P0-2/P0-3: INTERVAL interpolation sin whitelist en TransaccionesRepo/ReproduccionesRepo/ComentariosRepo. Documento: `App/docs/auditoria-seguridad-php.md`.
 **[AG-AUD] Auditoría Profunda 10 archivos:** Deep audit de DeduplicadorAudio, 3 repos (Transacciones/Reproducciones/Comentarios), 3 controllers (Notificaciones/Dashboard/Experimentos), PostgresService, ServicioNotificaciones, StripeService. 39 hallazgos nuevos/extendidos (4 P0, 11 P1, 12 P2, 12 P3). Documento: `App/docs/auditoria-profunda-10archivos.md`.
 **[AG-RFE] Auditoría React Frontend:** 23 services + 17 hooks + 20 stores auditados. 42 hallazgos (6 P0, 12 P1, 14 P2, 10 P3). P0: error masking en 9 funciones (ok:true en catch). P1: likes sin rollback (3 hooks), fallos silenciosos sin feedback, stale closures. P2: sin AbortController (2 hooks), rendimiento reproductorStore. Documento: `App/docs/auditoria-react-frontend.md`.
 
 **[AG-TRY] Auditoría Try-Catch:** Escaneo completo 168 PHP en App/Kamples/ + Glory/src/. 91 hallazgos (32 CRITICAL, 45 MEDIUM, 14 LOW) en 33 archivos. 14 hallazgos nuevos vs auditoría parcial previa (77→91). Archivos protegidos documentados (PostgresService, KamplesLogger, VerificarPgvector, StripeWebhookVerifier). Documento: `App/docs/auditoria-try-catch.md`.
+**R69 [AG-SEC] Corrección Try-Catch completa (~73/73):** Todos los hallazgos resueltos. PHP: 9 archivos (ProcesadorFFmpeg 4 métodos, DetectorBpm/Tonalidad try-catch-finally+cleanup, DeduplicadorAudio 2 fix, PipelineAudio exec+@unlink, ComentariosInteraccionController 3 métodos, StripeService try-finally+SSL, GroqHttpClient 2 curl, FFmpegDetector shell_exec). TS hooks: 8 archivos (useAdminPanel 5, useFiltroIds 3, useHistorialIds, useDescargas, useDescargasPagina 2, useFavoritosPagina 2, useExploradorPagina, useMenuContextualSample). TS componentes/stores: 7 archivos (BotonLike 3, BotonFollow, ChatFlotante 3, TopBar, LandingPublica, FilaColecciones, sugerenciasLikeStore). Services: motorAudioService, tema.ts. Islands: 12 archivos (SamplesIsland, DescubrirIsland, LibreriaIsland, PerfilIsland, SampleDetalleIsland 4, ComunidadIsland, NotificacionesIsland 3, ColeccionDetalleIsland, DashboardCreadorIsland 3, ChatIsland 3, MensajesIsland). Patrón: snapshot→try{mutate+await}catch{rollback+toast}finally{setCargando(false)}.
 
 ---
 
@@ -179,7 +180,6 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
 - Menú contextual publicaciones (eliminar/reportar/copiar/ver post/editar (los admin puede editar cualquier post y los usuarios sus propos post))
 
-
 ---
 
 ## Notas y Decisiones
@@ -210,142 +210,100 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ---
 
-## Lecciones Aprendidas (por dominio)
+## Lecciones Aprendidas (solo gotchas proyecto — reglas generales en test.instructions.md)
 
-### API / Backend / PHP
+### PHP / PostgreSQL / WordPress
 
 - `apiGet` hace `json.data ?? json` → NUNCA `resp.data.data`. Tipear `RespuestaApi<T[]>`.
-- PG TEXT[] requiere `'{val1,val2}'`, usar `pgArrayAPhp()`. PDO devuelve string `"{}"` — parsear.
+- PG TEXT[] requiere `'{val1,val2}'` + `pgArrayAPhp()`. PDO devuelve string `"{}"` — parsear.
 - Backend snake_case, frontend camelCase — normalizadores obligatorios. IDs: `String()` en comparaciones.
-- Validar longitud ANTES de sanitizar. `esc_url_raw()` DB, `esc_url()` HTML.
-- Rate limit login/registro por IP. PDO INTERVAL: concatenar, no bind.
 - `\filter_var`, `\session_id` en namespaces PHP requieren `\`.
 - PageManager: `reactPage('padre/hijo')` NO auto-creaba padre WP.
-- PDO ATTR_EMULATE_PREPARES=false: exception si params tiene keys sin placeholder (usar `array_diff_key`). Prohibe reusar placeholder (`:uid` x2 → usar `:uid2`).
-- AdminController: `AuthMiddleware::requerirAdmin()` como permission_callback. Subqueries SELECT para contar relaciones.
-- Columnas PG: verificar nombres exactos con psql (baneado_hasta, autor_id, tabla samples usa `creador_id` NO `usuario_id`).
-- `wp_handle_upload()` solo en wp-admin — require `includes/file.php` en REST API.
+- PDO `ATTR_EMULATE_PREPARES=false`: excepción si params tiene keys sin placeholder (`array_diff_key`). Prohibe reusar placeholder (`:uid` x2 → `:uid2`).
+- Columnas PG: verificar nombres exactos (tabla samples usa `creador_id` NO `usuario_id`).
+- `(int) $request->get_param('page')` devuelve 0 si ausente → siempre `max(1, ...)`.
+- PG credenciales: PostgresService EXIGE `KAMPLES_PG_USER` y `KAMPLES_PG_PASSWORD` en .env (sin defaults).
+- LogModeracion: solo 2 args (mensaje, contexto). ServicioBan/AntiSpam/Comentarios usan como alias.
+- Cache Feed: transients guardan filas crudas. Al cambiar estado → `invalidarCacheGlobal()`.
 - Créditos = cupo diario (COUNT hoy vs límite). Bonus: columna `creditos_bonus`.
-- Precios sincronizados en: StripeService (backend), PlanesIsland, LandingPublica, roadmap.
-- `(int) $request->get_param('page')` devuelve 0 si no se envía → offset negativo. Siempre `max(1, ...)`.
-- PG credenciales: PostgresService EXIGE KAMPLES_PG_USER y KAMPLES_PG_PASSWORD en .env (sin defaults).
-- LogModeracion: solo 2 args (mensaje, contexto). ServicioBan/AntiSpam/Comentarios deben usarlo como alias.
-- Cache Feed: transients guardan filas crudas. Al verificar/cambiar estado, llamar `invalidarCacheGlobal()`.
+- Precios sincronizados en: StripeService, PlanesIsland, LandingPublica, roadmap.
+- `wp_handle_upload()` solo en wp-admin — require `includes/file.php` en REST API.
 
-### Repository Pattern
+### Repository / Schema System
 
-- `contarConFiltros`/`listarConFiltros` aceptan WHERE dinámico + params — pragmático para filtros complejos.
-- JOINs van en el repo de la entidad principal (ej: `listarConActor` en NotificacionesRepo).
-- `crearConConflict` para upserts con ON CONFLICT DO NOTHING.
-- BaseRepository::estaConectado() wrappea PostgresService — controllers NO importar PG directamente.
-- ComentariosRepo::insertarComentario recibe `array $datos` (keys: autor, tipo, target, contenido, tipoContenido, mediaUrl, mediaMetadata, parentId).
+- `contarConFiltros`/`listarConFiltros` aceptan WHERE dinámico + params.
+- JOINs en repo de entidad principal. `crearConConflict` para upserts ON CONFLICT.
+- BaseRepository::estaConectado() wrappea PG — controllers NO importar PG directamente.
 - NormalizadorSample::sqlSelectSamples(?int $userId) para SELECTs con JOIN.
-- Auditoría: R63 solo cubrió repos. R64 completó servicios/controllers/helpers. Grep enums + column names en TODOS los PHP.
-
-### Schema System
-
-- Cols constants en `App\Config\Schema\_generated\`. Patrón: `$row[XxxCols::COLUMNA]`.
-- SQL aliases (reaccion_usuario, total de COUNT) se dejan como strings. Datos WP no se migran.
-- Enums generados desde arrays `check` del schema. Regenerar al añadir valor CHECK.
-- Union types TS derivados de `ISamples['tipo']`. Si se añade CHECK y se regenera, TS rompe donde no se maneja.
-- Interfaces manuales (Sample, Usuario) se mantienen porque la API normaliza a español.
-- Regex `validarQueryContraSchema()`: NUNCA negative lookahead `(?!\s*\()` → causa backtracking. Usar `\b` word boundary + lista `$ignorar`.
-- Enums gaps: AdminRepo usa 'pendiente' sin PublicacionesEnums/ReportesEnums. TODO: generar CHECK constraints.
-- SET clauses dinámicos: usar `SamplesCols::COL . ' = :param'`.
+- Cols en `App\Config\Schema\_generated\`. Patrón: `$row[XxxCols::COLUMNA]`. SQL aliases se dejan como strings.
+- Union types TS derivados de `ISamples['tipo']`. Si se regenera, TS rompe donde no se maneja.
+- Interfaces manuales (Sample, Usuario) porque la API normaliza a español.
+- Regex `validarQueryContraSchema()`: NUNCA negative lookahead → usar `\b` word boundary.
 
 ### React / TypeScript
 
-- NUNCA hooks después de early return. React Compiler: no `Date.now()` render/useMemo, no refs `.current` render.
-- PageRenderer fix: render-time state update (no useEffect→setState). `setPaginasCache(prev => ...)`.
-- Tras refactors: `npm run type-check`. CampoTexto onChange: cast `as unknown as`.
-- Spread `...archivos` colisiona con `resetear` — listar props explícitamente.
+- React Compiler: no `Date.now()` en render/useMemo, no refs `.current` en render.
+- PageRenderer: render-time state update (no useEffect→setState). `setPaginasCache(prev => ...)`.
+- `npm run type-check` tras refactors. CampoTexto onChange: cast `as unknown as`.
 - useTabsIsla(islaId, tabs, activaInicial) — re-registra tabs en keep-alive.
-- copiarAlPortapapeles fallback execCommand para http://. `usePlanesModalStore.getState().abrir()` fuera de React.
-- CustomEvent + listener para refrescar feeds. Ref pattern para stale closures en `[]` deps.
-- Sidebar: `itemsFinales: SidebarItemDef[]` tipar explícitamente. Badge variantes: neutro|acento|exito|error|advertencia|info|premium.
+- copiarAlPortapapeles fallback execCommand para http://. `getState().abrir()` fuera de React.
+- CustomEvent + listener para refrescar feeds.
 - MAPA_RUTAS en LayoutPrincipal.tsx actualizar al añadir sidebar items.
 - crearModalStore.abrir(archivo?, esMezcla?) backward compatible. consumirArchivo() retorna y limpia File.
+- Badge variantes: neutro|acento|exito|error|advertencia|info|premium.
 
 ### CSS / UI
 
-- `:has(.reproductorGlobal)` bottom dinámico. `pointer-events` NO animable — usar `::before` bridge.
-- No select nativo — dropdown con MenuContextual. Metadata emocion: splitear, filtrar >30 chars.
-- Gráficas CSS: barras agrupadas > apiladas. Colores lejanos en espectro. Eje referencia obligatorio.
-- SVG icons en flex containers: `flex-shrink:0` para no encogerse con texto largo.
-- z-index stacking: header con imagen z-index:0, contenido scrollable z-index:1.
-- Hardcoded colors DAW: loop LED→var(--acento), mute→var(--error), solo→var(--advertencia), steps→var(--fondoBoton). Siempre fallback: var(--nombre, #hex).
+- `:has(.reproductorGlobal)` bottom dinámico. `pointer-events` NO animable → `::before` bridge.
+- No select nativo → dropdown con MenuContextual. Emocion: splitear, filtrar >30 chars.
+- Gráficas CSS: barras agrupadas > apiladas. Colores lejanos en espectro.
+- SVG icons en flex: `flex-shrink:0`. z-index: header imagen z:0, contenido scrollable z:1.
+- Colors DAW mapeados: loop→`--acento`, mute→`--error`, solo→`--advertencia`, steps→`--fondoBoton`.
 
-### Mezclador DAW (general)
+### Mezclador DAW
 
-- Aislado en `/Mezclador/` con tsconfig propio (baseUrl → Glory/assets/react). ErrorBoundary requiere import React.
-- Web Audio: AudioContext singleton, GainNode/pista, OfflineAudioContext export.
-- `detune` + `playbackRate` → `computedRate = rate * 2^(detune/1200)`. Compensación se cancela algebraicamente — NO compensar.
-- `fuente.start(when, offset, duration)`: duration es buffer-time, multiplicar por playbackRate para wall-clock.
-- Drag: dataTransfer + CustomEvent fallback. Timeline: document.addEventListener + cleanup. Refs en closures.
-- inferirCompas: usar `duracionSample/playbackRate`, no duración cruda. Guard bpm>0 y rate>0.
-- Stretch = cambiar duracionCompases. `playbackRate = buffer.duration / (durCompases * durCompas)`. Clamped [0.25,4.0].
+- Aislado `/Mezclador/` con tsconfig propio. ErrorBoundary requiere import React.
+- AudioContext singleton, GainNode/pista. `iniciar()` verificar `state !== 'closed'`.
+- `detune + playbackRate → computedRate = rate * 2^(detune/1200)`. NO compensar (se cancela).
+- `fuente.start(when, offset, duration)`: duration es buffer-time × playbackRate = wall-clock.
+- Stretch: `playbackRate = buffer.duration / (durCompases * durCompas)`. Clamped [0.25,4.0].
 - Drift resize: `duracionOriginalCompases` + `playbackRateOriginal` inmutables. Recalcular desde originales.
 - Clip mode: playbackRate fijo, ajustar recorteFin. durMax = `(buffer.duration/playbackRate)/durCompas`.
-- Undo/redo: SnapshotMezclador {pistas, totalCompases} sin audioBuffers. Truncar forward. MAX=30.
-- snapConResolucion() central. calcularLineasCuadricula() visual. Zoom wrapper escala width%.
-- Fin real audio: max(compasInicio+duracionCompases) de todos los bloques, no totalCompases.
-- Botones bloque: stopPropagation + verificar closest('.mezcladorBloqueBotones') onMouseDown.
-- Modal contextual: guard !modalConfigAbierto + overlay stopPropagation.
-- Corte: dividir waveformPeaks proporcionalmente. Preview: snapConResolucion → % dentro del bloque.
-- Selección múltiple: Set<string>, Ctrl+click toggle, batch move delta uniforme. Shift+drag: duplicar ANTES de drag.
-- BPM mid-playback: convertir a compases antes, reconvertir con BPM nuevo. setBpm escala playbackRate proporcionalmente (ratio = newBpm/oldBpm, aplica a playbackRate Y playbackRateOriginal).
-- Ghost preview: posicionDragFantasma → MezcladorPanel → Timeline → PistaTimeline.
-- panelLateralStore.expandido: resetear false en cerrar(). Audio local: File.arrayBuffer() + decodeAudioData.
-- Toggles herramienta (corte, resize): barra visible, no en modales.
+- Undo/redo: SnapshotMezclador sin audioBuffers. Truncar forward. MAX=30.
+- Fin real audio: max(compasInicio+duracionCompases) todos los bloques, no totalCompases.
+- BPM mid-playback: ratio = newBpm/oldBpm, aplica a playbackRate Y playbackRateOriginal.
+- Selección múltiple: Set<string>, Ctrl+click, batch move delta. Shift+drag: duplicar ANTES de drag.
+- MinimapaDaw: DOM+rAF (no setState en mousemove). React sync solo en mouseup. pending.scrollFrac.
+- SoundTouchJS 0.3.0 pitch-independent. Cache `${bloqueId}:${semitonos}:${playbackRate}`.
+- `modoTonalidad` per-block (resample|stretch). motorAudioService bifurca reproducción/offline.
+- `obtenerTotalExtendido()` = max(totalCompases, ceil(ultimoFin)+4). Zoom: step=max(0.05, zoom\*0.1).
+- VentanaFlotante: drag titlebar, clamping, z-index auto. ventanasStore: Map<id>, enfocar sube z.
+- Pan: StereoPannerNode entre GainNode y destination [-1,1].
+- Declicking: micro-fades lineares inicio/fin (5/10/20ms).
+- masterAnalyser (fftSize=2048) + stereo ChannelSplitter. crearInsertMixer(0) reutiliza si existe.
 - FFmpeg waveform: `-f f32le -ac 1 -ar 8000` + unpack('g\*') + picos por chunks. 60 barras.
-- `iniciar()` debe verificar `state !== 'closed'`. `setSilenciarPista` recibe `volumenReal` 3er param.
-- Buffers invertidos: cachear como pitchShift. `limpiarProyecto`/`destruir()` llaman `limpiarCache()`.
-- `setTiempoActual` en rAF = 60fps re-renders — throttle o ref selectivo.
-- SoundTouchJS 0.3.0 para pitch-independent stretch. Cache `${bloqueId}:${semitonos}:${playbackRate}`. Invalidar al cambiar modo/detune.
-- `modoTonalidad` per-block (resample|stretch). Default resample. motorAudioService bifurca en programarReproduccion y renderizarOffline.
-- `obtenerTotalExtendido()` = max(totalCompases, ceil(ultimoFin) + RELLENO_COMPASES). RELLENO_COMPASES ahora 4 (era 36).
-- Zoom proporcional: step = max(0.05, nivelZoom \* 0.1). maxZoom dinámico = totalExtendido / COMPASES_VISIBLES_MIN.
-- VentanaFlotante: drag por titlebar, clamping viewport, z-index auto-incrementante. `botonesExtra` ReactNode para OCP.
-- ventanasStore: Map<id> múltiples ventanas. enfocarVentana() sube z-index.
-- MinimapaDaw: 3 modos drag (mover/izquierda/derecha). Edge handles 6px. DOM directo+rAF (evitar setState en mousemove). Solo sincronizar React en mouseup. Soltar: NUNCA leer scrollFrac del DOM post-drag — usar pending.scrollFrac. obtenerTotalExtendido con fijado: retornar valor exacto.
-- Pan: StereoPannerNode entre GainNode y destination. Range -1 a 1.
-- Declicking: none/corto(5ms)/medio(10ms)/largo(20ms). Micro-fades lineares inicio/fin bloque.
-- useConfigBloque: crearToggle() factory. Reduce componente 465→299 líneas. ventanaVista ref para race condition close-detection.
-- masterAnalyser (fftSize=2048) + stereo ChannelSplitter en iniciar(). crearInsertMixer(0) reutiliza si existe.
-- Color indicador→fondo controls con color-mix(in srgb, var(--colorPista) 15%, var(--fondoElevado1)).
+- Buffers invertidos: cachear como pitchShift. `limpiarProyecto`/`destruir()` → `limpiarCache()`.
+- Color fondo controls: `color-mix(in srgb, var(--colorPista) 15%, var(--fondoElevado1))`.
 
-### Mezclador — Channel Rack / Mixer / Modes
+### Channel Rack / Mixer / Piano Roll
 
-- patronesStore CRUD con canales anidados. Cada paso: velocity+pan+pitch. Swing = `+ (swing * durPaso * 0.5)` en pasos impares.
-- 17 inserts (Master=0 + 16). Cadena: inputGain → EQ[3 BiquadFilter] → fader(GainNode) → panner → analyser → master/destination. actualizarPeaks threshold >0.01.
-- useMixer hook: rAF loop lee peaks, sincronizarInsert/sincronizarEQ callbacks store→Web Audio.
-- modoReproduccion 'pat'|'song'. useMotorAudio bifurca: pat→programarPatronActivo, song→programarBloques. Cursor PAT loops al final.
-- pista.clipsPatron coexiste con pista.bloques. PistaTimeline renderiza ambos.
+- patronesStore CRUD canales anidados. Paso: velocity+pan+pitch. Swing pasos impares.
+- 17 inserts. Cadena: inputGain→EQ[3 BiquadFilter]→fader→panner→analyser→master. Peaks threshold >0.01.
+- modoReproduccion 'pat'|'song'. PAT loops al final. pista.clipsPatron coexiste con bloques.
+- PPQ=96. 1 beat=60px\*zoomX. Canvas grid + DOM notas (híbrido).
+- accionesNotas: `Map<"patronId:canalId", NotaPianoRoll[]>`. pianoRollAudioService consume motorAudio.
+- GhostNotas: keys con mismo `patronId:` prefix. Culling viewport obligatorio.
+- Hooks en `hooks/` usan `../`, componentes en `components/PianoRoll/` usan `../../`.
 
-### Piano Roll
+### Patrones Proyecto
 
-- PPQ=96. 1 beat = 60px \* zoomX. ticksAPx/pxATicks en pianoRollUtils.ts.
-- Hooks en Mezclador/hooks/ usan `../`, componentes en Mezclador/components/PianoRoll/ usan `../../`. Error frecuente: niveles path.
-- accionesNotas.ts: `notasPorCanal: Map<"patronId:canalId", NotaPianoRoll[]>`. Migración trivial cuando AG-TWO agregue `notas[]` a CanalRack.
-- Rendering híbrido: Canvas grid fondo + DOM divs notas interactivas (mejor rendimiento por interactividad nativa).
-- pianoRollAudioService no modifica motorAudioService — lo consume. `previewNota()` usa `detune`, `programarNotasPianoRoll()` itera notas.
-- TS server VS Code a veces no detecta archivos recién creados. `npx tsc --noEmit` confirma compilación real.
-- GhostNotas itera Map buscando keys con mismo `patronId:` prefix. Culling viewport obligatorio.
-- MenuContextualPR: `position: fixed` + clamping viewport. Cerrar con click fuera o Escape.
-
-### Patrones Generales
-
-- NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.
-- BarraAccionesPost: shape mínimo + callbacks opcionales. EnlaceCreador: avatar+nombre+nav.
-- calcularSugerencias(): SQL genérico reutilizable. FeedSamples dual: precargado + infinite scroll.
-- Búsqueda cross-entity: ILIKE por endpoint, no unificado. Descripciones con hashtags: `replace(/#\w+/g, '')`.
-- Algoritmo colecciones CTE: user_tags LIMIT 15. sqlTagsEnriquecidos public.
-- Modal contextual: `{ x: clientX, y: clientY }` + Math.min viewport. verificado_boost: 1.15 post-penalización.
-- IA prompt: agregar "OBLIGATORIO, NUNCA null" + fallback PHP !empty().
-- Filtros Feed: esPremium en SampleResumen → client-side suficiente (filtrosStore + useMemo).
-- Cuadrícula: TarjetaSampleCuadricula sin reproductor ni dependencia stores audio. useSamplePreview hook reutilizable.
-- Explorador SQL: COALESCE consistencia entre COUNT y SELECT filtrado.
-- Cache SWR: `conversacionesCargadas` + `ultimaCargaConversaciones` + `necesitaRefrescar()` TTL 2min.
-- Seguridad audio: .htaccess bloquea WAV+MP3. HMAC streaming en DescargasController. API no expone rutas.
-- VPS plan en App/docs/plan-vps-kamples.md. Docker: pdo_pgsql+FFmpeg+Node. KAMPLES_PG_HOST='postgres'. Schema System archivos commiteados — NO regenerar en VPS. WP_DEBUG=FALSE.
-- coolify-manager: env per-project, `Get-SiteEnvVars` expande `${VAR}`, `New-CoolifyWordPressStack -Template kamples`, setup-kamples.ps1, deploy-theme.ps1 post-deploy auto.
+- NormalizadorSample: alias SQL columnas homónimas. extraerTagsMetadata() combina campos IA.
+- calcularSugerencias() SQL genérico. FeedSamples dual: precargado + infinite scroll.
+- Búsqueda: ILIKE por endpoint. Hashtags: `replace(/#\w+/g, '')`.
+- Algoritmo colecciones CTE: user_tags LIMIT 15. verificado_boost: 1.15 post-penalización.
+- IA prompt: "OBLIGATORIO, NUNCA null" + fallback PHP !empty().
+- Filtros Feed: esPremium client-side (filtrosStore + useMemo).
+- Cache SWR: `necesitaRefrescar()` TTL 2min.
+- Seguridad audio: .htaccess bloquea WAV+MP3. HMAC streaming. API no expone rutas.
+- VPS: Docker pdo_pgsql+FFmpeg+Node. Schema archivos commiteados — NO regenerar en VPS.
+- coolify-manager: env per-project, `Get-SiteEnvVars`, setup-kamples.ps1, deploy-theme.ps1.

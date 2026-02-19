@@ -33,8 +33,12 @@ export const LandingPublica = (): JSX.Element => {
 
     useEffect(() => {
         const cargar = async () => {
-            const resp = await obtenerFeed('trending');
-            if (resp.ok && resp.data) setTrending(resp.data.slice(0, 6));
+            try {
+                const resp = await obtenerFeed('trending');
+                if (resp.ok && resp.data) setTrending(resp.data.slice(0, 6));
+            } catch {
+                /* Error cargando trending para landing — se muestra landing sin samples */
+            }
         };
         cargar();
     }, []);

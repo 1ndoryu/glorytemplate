@@ -76,26 +76,41 @@ export const NotificacionesIsland = (): JSX.Element => {
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            const resp = await obtenerNotificaciones();
-            if (resp.ok && resp.data) {
-                setNotificaciones(resp.data);
+            try {
+                const resp = await obtenerNotificaciones();
+                if (resp.ok && resp.data) {
+                    setNotificaciones(resp.data);
+                }
+            } catch {
+                /* Fallo de carga — notificaciones quedan vacías */
+            } finally {
+                setCargando(false);
             }
-            setCargando(false);
         };
         cargar();
     }, []);
 
     const manejarMarcarLeida = useCallback(async (id: number) => {
+        const snapshot = notificaciones;
         setNotificaciones((prev) =>
             prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
         );
-        await marcarLeida(id);
-    }, []);
+        try {
+            await marcarLeida(id);
+        } catch {
+            setNotificaciones(snapshot);
+        }
+    }, [notificaciones]);
 
     const manejarMarcarTodas = useCallback(async () => {
+        const snapshot = notificaciones;
         setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
-        await marcarTodasLeidas();
-    }, []);
+        try {
+            await marcarTodasLeidas();
+        } catch {
+            setNotificaciones(snapshot);
+        }
+    }, [notificaciones]);
 
     /* Click en notificacion -> navegar al recurso via enlace o fallback */
     const manejarClick = useCallback(

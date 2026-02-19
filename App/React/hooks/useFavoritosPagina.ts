@@ -46,13 +46,20 @@ export function useFavoritosPagina(): UseFavoritosPaginaResultado {
 
     /* Proveedor paginado para tab "Más Ideas" */
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
-        const resp = await obtenerSugerenciasFavoritos(pagina);
-        return resp.ok && resp.data ? resp.data : [];
+        try {
+            const resp = await obtenerSugerenciasFavoritos(pagina);
+            return resp.ok && resp.data ? resp.data : [];
+        } catch (err) {
+            log.error('Error cargando sugerencias de favoritos', err);
+            return [];
+        }
     }, []);
 
     /* Like optimista — al quitar like, eliminar sample de la lista */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         const sample = samples.find((s) => s.id === sampleId);
+        const prevSamples = samples;
+        const prevTotal = totalFavoritos;
         if (reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
@@ -70,12 +77,24 @@ export function useFavoritosPagina(): UseFavoritosPaginaResultado {
                     )
                 );
             }
-            await darLike('sample', sampleId, reaccion);
+            try {
+                await darLike('sample', sampleId, reaccion);
+            } catch (err) {
+                setSamples(prevSamples);
+                setTotalFavoritos(prevTotal);
+                log.error('Error al dar like', err);
+            }
         } else if (sample?.liked || sample?.reaccion) {
             /* Quitar like: eliminar de la lista de favoritos */
             setSamples((prev) => prev.filter((s) => s.id !== sampleId));
             setTotalFavoritos((prev) => Math.max(0, prev - 1));
-            await quitarLike('sample', sampleId);
+            try {
+                await quitarLike('sample', sampleId);
+            } catch (err) {
+                setSamples(prevSamples);
+                setTotalFavoritos(prevTotal);
+                log.error('Error al quitar like', err);
+            }
         } else {
             setSamples((prev) =>
                 prev.map((s) =>
@@ -84,9 +103,14 @@ export function useFavoritosPagina(): UseFavoritosPaginaResultado {
                         : s
                 )
             );
-            await darLike('sample', sampleId, 'like');
+            try {
+                await darLike('sample', sampleId, 'like');
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al dar like', err);
+            }
         }
-    }, [samples]);
+    }, [samples, totalFavoritos]);
 
     return { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike };
 }

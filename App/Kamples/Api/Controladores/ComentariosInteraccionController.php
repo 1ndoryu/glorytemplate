@@ -196,15 +196,20 @@ class ComentariosInteraccionController
             return false;
         }
 
-        $cmd = \sprintf(
-            '%s -y -i %s -codec:a libmp3lame -b:a 128k -ac 1 -ar 44100 %s 2>&1',
-            \escapeshellarg($ffmpeg),
-            \escapeshellarg($entrada),
-            \escapeshellarg($salida)
-        );
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -codec:a libmp3lame -b:a 128k -ac 1 -ar 44100 %s 2>&1',
+                \escapeshellarg($ffmpeg),
+                \escapeshellarg($entrada),
+                \escapeshellarg($salida)
+            );
 
-        \exec($cmd, $output, $returnCode);
-        return $returnCode === 0 && \file_exists($salida);
+            \exec($cmd, $output, $returnCode);
+            return $returnCode === 0 && \file_exists($salida);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController: error convirtiendo audio', ['error' => $e->getMessage()]);
+            return false;
+        }
     }
 
     /* C201: Genera peaks waveform (60 barras) para audio de comentario */
@@ -217,51 +222,59 @@ class ComentariosInteraccionController
 
         /* O18 fix: usar random_bytes en vez de uniqid predecible */
         $tmpPcm = \sys_get_temp_dir() . '/kamples_comment_pcm_' . \bin2hex(\random_bytes(8)) . '.raw';
-        $cmd = \sprintf(
-            '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
-            \escapeshellarg($ffmpeg),
-            \escapeshellarg($rutaAudio),
-            \escapeshellarg($tmpPcm)
-        );
 
-        \exec($cmd, $output, $returnCode);
-        if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
-            @\unlink($tmpPcm);
-            return null;
-        }
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -f f32le -acodec pcm_f32le -ac 1 -ar 8000 %s 2>&1',
+                \escapeshellarg($ffmpeg),
+                \escapeshellarg($rutaAudio),
+                \escapeshellarg($tmpPcm)
+            );
 
-        $raw = \file_get_contents($tmpPcm);
-        @\unlink($tmpPcm);
-
-        if (!$raw || \strlen($raw) < 4) return null;
-
-        $samples = \unpack('f*', $raw);
-        if (!$samples) return null;
-
-        $total = \count($samples);
-        $porBarra = \max(1, (int) \floor($total / $barras));
-        $picos = [];
-
-        for ($i = 0; $i < $barras; $i++) {
-            $inicio = $i * $porBarra + 1;
-            $max = 0;
-            for ($j = 0; $j < $porBarra; $j++) {
-                $idx = $inicio + $j;
-                if (isset($samples[$idx])) {
-                    $val = \abs($samples[$idx]);
-                    if ($val > $max) $max = $val;
-                }
+            \exec($cmd, $output, $returnCode);
+            if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
+                return null;
             }
-            $picos[] = \round($max, 4);
+
+            $raw = \file_get_contents($tmpPcm);
+
+            if (!$raw || \strlen($raw) < 4) return null;
+
+            $samples = \unpack('f*', $raw);
+            if (!$samples) return null;
+
+            $total = \count($samples);
+            $porBarra = \max(1, (int) \floor($total / $barras));
+            $picos = [];
+
+            for ($i = 0; $i < $barras; $i++) {
+                $inicio = $i * $porBarra + 1;
+                $max = 0;
+                for ($j = 0; $j < $porBarra; $j++) {
+                    $idx = $inicio + $j;
+                    if (isset($samples[$idx])) {
+                        $val = \abs($samples[$idx]);
+                        if ($val > $max) $max = $val;
+                    }
+                }
+                $picos[] = \round($max, 4);
+            }
+
+            /* Normalizar entre 0 y 1 */
+            $maximo = \max($picos) ?: 1;
+            $picos = \array_map(fn($p) => \round(\max(0.03, $p / $maximo), 3), $picos);
+
+            \file_put_contents($rutaSalida, \json_encode($picos));
+
+            return $picos;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController: error generando waveform', ['error' => $e->getMessage()]);
+            return null;
+        } finally {
+            if (\file_exists($tmpPcm)) {
+                \unlink($tmpPcm);
+            }
         }
-
-        /* Normalizar entre 0 y 1 */
-        $maximo = \max($picos) ?: 1;
-        $picos = \array_map(fn($p) => \round(\max(0.03, $p / $maximo), 3), $picos);
-
-        \file_put_contents($rutaSalida, \json_encode($picos));
-
-        return $picos;
     }
 
     /* Localiza el binario FFmpeg desde .env o PATH del sistema */
@@ -270,14 +283,18 @@ class ComentariosInteraccionController
         $envPath = \defined('FFMPEG_PATH') ? FFMPEG_PATH : (\getenv('FFMPEG_PATH') ?: null);
         if ($envPath && \is_executable($envPath)) return $envPath;
 
-        $esWindows = \strtoupper(\substr(PHP_OS, 0, 3)) === 'WIN';
-        $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
-        $resultado = \trim(\shell_exec($cmd) ?? '');
+        try {
+            $esWindows = \strtoupper(\substr(PHP_OS, 0, 3)) === 'WIN';
+            $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
+            $resultado = \trim(\shell_exec($cmd) ?? '');
 
-        if ($resultado) {
-            $lineas = \explode("\n", $resultado);
-            $ruta = \trim($lineas[0]);
-            if (\is_executable($ruta)) return $ruta;
+            if ($resultado) {
+                $lineas = \explode("\n", $resultado);
+                $ruta = \trim($lineas[0]);
+                if (\is_executable($ruta)) return $ruta;
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ComentariosController: error buscando FFmpeg', ['error' => $e->getMessage()]);
         }
 
         return null;

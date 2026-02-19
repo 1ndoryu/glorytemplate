@@ -40,30 +40,29 @@ class DetectorBpm
         /* Exportar a PCM mono 8kHz float32 little-endian con FFmpeg */
         $tmpPcm = \tempnam(\sys_get_temp_dir(), 'kamples_bpm_') . '.pcm';
 
-        $cmd = \sprintf(
-            '%s -y -i %s -ac 1 -ar %d -f f32le -t %d %s 2>&1',
-            \escapeshellarg($ffmpegBin),
-            \escapeshellarg($rutaArchivo),
-            self::SAMPLE_RATE,
-            self::DURACION_MAX,
-            \escapeshellarg($tmpPcm)
-        );
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -ac 1 -ar %d -f f32le -t %d %s 2>&1',
+                \escapeshellarg($ffmpegBin),
+                \escapeshellarg($rutaArchivo),
+                self::SAMPLE_RATE,
+                self::DURACION_MAX,
+                \escapeshellarg($tmpPcm)
+            );
 
-        \exec($cmd, $output, $returnCode);
+            \exec($cmd, $output, $returnCode);
 
-        if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
-            KamplesLogger::error('DetectorBpm: Error exportando PCM');
-            @\unlink($tmpPcm);
-            return null;
-        }
+            if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
+                KamplesLogger::error('DetectorBpm: Error exportando PCM');
+                return null;
+            }
 
-        /* Leer datos PCM float32 */
-        $datos = \file_get_contents($tmpPcm);
-        @\unlink($tmpPcm);
+            /* Leer datos PCM float32 */
+            $datos = \file_get_contents($tmpPcm);
 
-        if (!$datos || \strlen($datos) < 4000) {
-            return null;
-        }
+            if (!$datos || \strlen($datos) < 4000) {
+                return null;
+            }
 
         $muestras = \array_values(\unpack('f*', $datos));
         $totalMuestras = \count($muestras);
@@ -145,9 +144,17 @@ class DetectorBpm
             return null;
         }
 
-        return [
-            'bpm' => (int) $bpm,
-            'confianza' => \round($confianza, 2),
-        ];
+            return [
+                'bpm' => (int) $bpm,
+                'confianza' => \round($confianza, 2),
+            ];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('DetectorBpm: ' . $e->getMessage());
+            return null;
+        } finally {
+            if (\file_exists($tmpPcm)) {
+                \unlink($tmpPcm);
+            }
+        }
     }
 }

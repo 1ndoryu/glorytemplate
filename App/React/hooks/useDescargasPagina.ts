@@ -52,8 +52,13 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
 
     /* Proveedor paginado para tab "Más Ideas" */
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
-        const resp = await obtenerSugerenciasDescargas(pagina);
-        return resp.ok && resp.data ? resp.data : [];
+        try {
+            const resp = await obtenerSugerenciasDescargas(pagina);
+            return resp.ok && resp.data ? resp.data : [];
+        } catch (err) {
+            log.error('Error cargando sugerencias de descargas', err);
+            return [];
+        }
     }, []);
 
     /* Like optimista sincronizado con la lista local */
@@ -63,6 +68,7 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
             const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+            const prevSamples = samples;
             setSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
@@ -70,9 +76,15 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                         : s
                 )
             );
-            await darLike('sample', sampleId, reaccion);
+            try {
+                await darLike('sample', sampleId, reaccion);
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al dar like', err);
+            }
         } else if (sample?.liked || sample?.reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+            const prevSamples = samples;
             setSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
@@ -80,8 +92,14 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                         : s
                 )
             );
-            await quitarLike('sample', sampleId);
+            try {
+                await quitarLike('sample', sampleId);
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al quitar like', err);
+            }
         } else {
+            const prevSamples = samples;
             setSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
@@ -89,7 +107,12 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                         : s
                 )
             );
-            await darLike('sample', sampleId, 'like');
+            try {
+                await darLike('sample', sampleId, 'like');
+            } catch (err) {
+                setSamples(prevSamples);
+                log.error('Error al dar like', err);
+            }
         }
     }, [samples]);
 

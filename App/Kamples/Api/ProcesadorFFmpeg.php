@@ -25,15 +25,19 @@ class ProcesadorFFmpeg
      */
     public static function calcularDuracion(string $rutaArchivo, string $ffprobeBin): float
     {
-        $cmd = \sprintf(
-            '%s -v quiet -show_entries format=duration -of csv=p=0 %s 2>&1',
-            \escapeshellarg($ffprobeBin),
-            \escapeshellarg($rutaArchivo)
-        );
-        $output = \shell_exec($cmd);
-        if ($output) {
-            $duracion = (float) \trim($output);
-            if ($duracion > 0) return \round($duracion, 2);
+        try {
+            $cmd = \sprintf(
+                '%s -v quiet -show_entries format=duration -of csv=p=0 %s 2>&1',
+                \escapeshellarg($ffprobeBin),
+                \escapeshellarg($rutaArchivo)
+            );
+            $output = \shell_exec($cmd);
+            if ($output) {
+                $duracion = (float) \trim($output);
+                if ($duracion > 0) return \round($duracion, 2);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ProcesadorFFmpeg: error calculando duración', ['error' => $e->getMessage()]);
         }
 
         /* Fallback: estimar por tamaño */
@@ -58,58 +62,69 @@ class ProcesadorFFmpeg
     {
         $tmpPcm = \tempnam(\sys_get_temp_dir(), 'kamples_wf_') . '.pcm';
 
-        $cmd = \sprintf(
-            '%s -y -i %s -ac 1 -ar 8000 -f s16le %s 2>&1',
-            \escapeshellarg($ffmpegBin),
-            \escapeshellarg($rutaArchivo),
-            \escapeshellarg($tmpPcm)
-        );
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -ac 1 -ar 8000 -f s16le %s 2>&1',
+                \escapeshellarg($ffmpegBin),
+                \escapeshellarg($rutaArchivo),
+                \escapeshellarg($tmpPcm)
+            );
 
-        \exec($cmd, $output, $returnCode);
+            \exec($cmd, $output, $returnCode);
 
-        if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
-            $peaks = self::peaksFallback();
-            $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
-            \file_put_contents($rutaSalida, $json);
-            @\unlink($tmpPcm);
-            return true;
-        }
-
-        $datosRaw = \file_get_contents($tmpPcm);
-        @\unlink($tmpPcm);
-
-        if (!$datosRaw || \strlen($datosRaw) < 200) {
-            $peaks = self::peaksFallback();
-            $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
-            \file_put_contents($rutaSalida, $json);
-            return true;
-        }
-
-        $muestras = \unpack('s*', $datosRaw);
-        $muestras = \array_values($muestras);
-        $totalMuestras = \count($muestras);
-        $muestrasPorBarra = \max(1, \intdiv($totalMuestras, self::WAVEFORM_BARRAS));
-        $peaks = [];
-
-        for ($i = 0; $i < self::WAVEFORM_BARRAS; $i++) {
-            $inicio = $i * $muestrasPorBarra;
-            if ($inicio >= $totalMuestras) break;
-
-            $max = 0;
-            $fin = \min($inicio + $muestrasPorBarra, $totalMuestras);
-
-            $paso = \max(1, \intdiv($fin - $inicio, 500));
-            for ($j = $inicio; $j < $fin; $j += $paso) {
-                $abs = \abs($muestras[$j]);
-                if ($abs > $max) $max = $abs;
+            if ($returnCode !== 0 || !\file_exists($tmpPcm)) {
+                $peaks = self::peaksFallback();
+                $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
+                \file_put_contents($rutaSalida, $json);
+                return true;
             }
 
-            $peaks[] = \round($max / 32768, 4);
-        }
+            $datosRaw = \file_get_contents($tmpPcm);
 
-        $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
-        \file_put_contents($rutaSalida, $json);
-        return true;
+            if (!$datosRaw || \strlen($datosRaw) < 200) {
+                $peaks = self::peaksFallback();
+                $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
+                \file_put_contents($rutaSalida, $json);
+                return true;
+            }
+
+            $muestras = \unpack('s*', $datosRaw);
+            $muestras = \array_values($muestras);
+            $totalMuestras = \count($muestras);
+            $muestrasPorBarra = \max(1, \intdiv($totalMuestras, self::WAVEFORM_BARRAS));
+            $peaks = [];
+
+            for ($i = 0; $i < self::WAVEFORM_BARRAS; $i++) {
+                $inicio = $i * $muestrasPorBarra;
+                if ($inicio >= $totalMuestras) break;
+
+                $max = 0;
+                $fin = \min($inicio + $muestrasPorBarra, $totalMuestras);
+
+                $paso = \max(1, \intdiv($fin - $inicio, 500));
+                for ($j = $inicio; $j < $fin; $j += $paso) {
+                    $abs = \abs($muestras[$j]);
+                    if ($abs > $max) $max = $abs;
+                }
+
+                $peaks[] = \round($max / 32768, 4);
+            }
+
+            $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
+            \file_put_contents($rutaSalida, $json);
+            return true;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ProcesadorFFmpeg: error generando waveform', ['error' => $e->getMessage()]);
+            /* Fallback en caso de error inesperado */
+            $peaks = self::peaksFallback();
+            $json = \json_encode(['peaks' => $peaks, 'barras' => \count($peaks)]);
+            \file_put_contents($rutaSalida, $json);
+            return true;
+        } finally {
+            if (\file_exists($tmpPcm)) {
+                \unlink($tmpPcm);
+            }
+        }
     }
 
     /**
@@ -131,15 +146,20 @@ class ProcesadorFFmpeg
      */
     public static function convertirAMp3(string $entrada, string $salida, string $ffmpegBin): bool
     {
-        $cmd = \sprintf(
-            '%s -y -i %s -codec:a libmp3lame -b:a 320k -ar 44100 %s 2>&1',
-            \escapeshellarg($ffmpegBin),
-            \escapeshellarg($entrada),
-            \escapeshellarg($salida)
-        );
+        try {
+            $cmd = \sprintf(
+                '%s -y -i %s -codec:a libmp3lame -b:a 320k -ar 44100 %s 2>&1',
+                \escapeshellarg($ffmpegBin),
+                \escapeshellarg($entrada),
+                \escapeshellarg($salida)
+            );
 
-        \exec($cmd, $output, $returnCode);
-        return $returnCode === 0 && \file_exists($salida);
+            \exec($cmd, $output, $returnCode);
+            return $returnCode === 0 && \file_exists($salida);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ProcesadorFFmpeg: error convirtiendo a MP3', ['error' => $e->getMessage()]);
+            return false;
+        }
     }
 
     /**
@@ -147,17 +167,22 @@ class ProcesadorFFmpeg
      */
     public static function generarPreview(string $entrada, string $salida, float $duracion, string $ffmpegBin): bool
     {
-        $fadeStart = \max(0, $duracion - 2);
-        $cmd = \sprintf(
-            '%s -y -i %s -t %s -codec:a libmp3lame -b:a 128k -ar 44100 -af %s %s 2>&1',
-            \escapeshellarg($ffmpegBin),
-            \escapeshellarg($entrada),
-            \escapeshellarg((string) \round($duracion, 2)),
-            \escapeshellarg('afade=t=out:st=' . \round($fadeStart, 2) . ':d=2'),
-            \escapeshellarg($salida)
-        );
+        try {
+            $fadeStart = \max(0, $duracion - 2);
+            $cmd = \sprintf(
+                '%s -y -i %s -t %s -codec:a libmp3lame -b:a 128k -ar 44100 -af %s %s 2>&1',
+                \escapeshellarg($ffmpegBin),
+                \escapeshellarg($entrada),
+                \escapeshellarg((string) \round($duracion, 2)),
+                \escapeshellarg('afade=t=out:st=' . \round($fadeStart, 2) . ':d=2'),
+                \escapeshellarg($salida)
+            );
 
-        \exec($cmd, $output, $returnCode);
-        return $returnCode === 0 && \file_exists($salida);
+            \exec($cmd, $output, $returnCode);
+            return $returnCode === 0 && \file_exists($salida);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ProcesadorFFmpeg: error generando preview', ['error' => $e->getMessage()]);
+            return false;
+        }
     }
 }

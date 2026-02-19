@@ -47,13 +47,17 @@ export const TopBar = (): JSX.Element => {
     useEffect(() => {
         if (!autenticado) return;
         const cargar = async () => {
-            const resp = await obtenerLimites();
-            if (resp.ok && resp.data) {
-                setCreditosInfo({
-                    usadas: resp.data.usadas,
-                    limite: resp.data.limite,
-                    ilimitado: resp.data.ilimitado,
-                });
+            try {
+                const resp = await obtenerLimites();
+                if (resp.ok && resp.data) {
+                    setCreditosInfo({
+                        usadas: resp.data.usadas,
+                        limite: resp.data.limite,
+                        ilimitado: resp.data.ilimitado,
+                    });
+                }
+            } catch {
+                /* Error de red cargando créditos — se reintenta en el siguiente intervalo */
             }
         };
         cargar();

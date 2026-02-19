@@ -279,29 +279,33 @@ const DashboardIslandBase = (): JSX.Element => {
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            const [resStats, resTop, resTrans, resIngresos, resConnect] = await Promise.all([
-                obtenerEstadisticasCreador(),
-                obtenerTopSamples(),
-                obtenerTransacciones(),
-                obtenerIngresosPorPeriodo('mes'),
-                obtenerEstadoConnect(),
-            ]);
+            try {
+                const [resStats, resTop, resTrans, resIngresos, resConnect] = await Promise.all([
+                    obtenerEstadisticasCreador(),
+                    obtenerTopSamples(),
+                    obtenerTransacciones(),
+                    obtenerIngresosPorPeriodo('mes'),
+                    obtenerEstadoConnect(),
+                ]);
 
-            if (resStats.ok && resStats.data) setStats(resStats.data);
-            if (resTop.ok && resTop.data) setTopSamples(resTop.data);
-            if (resTrans.ok && resTrans.data) setTransacciones(resTrans.data);
-            if (resIngresos.ok && resIngresos.data) setIngresos(resIngresos.data);
+                if (resStats.ok && resStats.data) setStats(resStats.data);
+                if (resTop.ok && resTop.data) setTopSamples(resTop.data);
+                if (resTrans.ok && resTrans.data) setTransacciones(resTrans.data);
+                if (resIngresos.ok && resIngresos.data) setIngresos(resIngresos.data);
 
-            if (resConnect.ok && resConnect.data) {
-                setEstadoConnect(resConnect.data);
-                /* Solo cargar balance si la cuenta está activa */
-                if (resConnect.data.estado === 'activo') {
-                    const resBalance = await obtenerBalanceConnect();
-                    if (resBalance.ok && resBalance.data) setBalanceConnect(resBalance.data);
+                if (resConnect.ok && resConnect.data) {
+                    setEstadoConnect(resConnect.data);
+                    /* Solo cargar balance si la cuenta está activa */
+                    if (resConnect.data.estado === 'activo') {
+                        const resBalance = await obtenerBalanceConnect();
+                        if (resBalance.ok && resBalance.data) setBalanceConnect(resBalance.data);
+                    }
                 }
+            } catch {
+                /* Fallo de carga — dashboard queda vacio */
+            } finally {
+                setCargando(false);
             }
-
-            setCargando(false);
         };
         cargar();
     }, []);
@@ -309,19 +313,27 @@ const DashboardIslandBase = (): JSX.Element => {
     /* Iniciar onboarding Connect */
     const manejarOnboarding = useCallback(async () => {
         setConectando(true);
-        const resultado = await iniciarOnboardingConnect();
-        if (resultado.ok && resultado.url) {
-            window.location.href = resultado.url;
-        } else {
+        try {
+            const resultado = await iniciarOnboardingConnect();
+            if (resultado.ok && resultado.url) {
+                window.location.href = resultado.url;
+            }
+        } catch {
+            /* Fallo silencioso */
+        } finally {
             setConectando(false);
         }
     }, []);
 
     /* Abrir dashboard Stripe */
     const manejarDashboardStripe = useCallback(async () => {
-        const resultado = await abrirDashboardStripe();
-        if (resultado.ok && resultado.url) {
-            window.open(resultado.url, '_blank');
+        try {
+            const resultado = await abrirDashboardStripe();
+            if (resultado.ok && resultado.url) {
+                window.open(resultado.url, '_blank');
+            }
+        } catch {
+            /* Fallo silencioso */
         }
     }, []);
 

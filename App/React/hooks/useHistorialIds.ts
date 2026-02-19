@@ -6,6 +6,9 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { obtenerHistorial } from '@app/services/apiReproduciones';
+import { crearLogger } from '@app/services/logger';
+
+const log = crearLogger('useHistorialIds');
 
 interface UseHistorialIdsResult {
     idsReproducidos: Set<number>;
@@ -27,30 +30,34 @@ export const useHistorialIds = (activo: boolean): UseHistorialIdsResult => {
 
         const cargar = async () => {
             setCargando(true);
-            const ids = new Set<number>();
-            let pagina = 1;
-            let continuar = true;
+            try {
+                const ids = new Set<number>();
+                let pagina = 1;
+                let continuar = true;
 
-            /* Cargar todas las páginas del historial
-             * apiGet auto-unwrap: json.data ya es SampleResumen[] directamente */
-            while (continuar) {
-                const resp = await obtenerHistorial(pagina, 100);
-                const lista = resp.ok && Array.isArray(resp.data) ? resp.data : [];
-                if (lista.length > 0) {
-                    lista.forEach((s) => ids.add(s.id));
-                    if (lista.length < 100) {
-                        continuar = false;
+                /* Cargar todas las páginas del historial
+                 * apiGet auto-unwrap: json.data ya es SampleResumen[] directamente */
+                while (continuar) {
+                    const resp = await obtenerHistorial(pagina, 100);
+                    const lista = resp.ok && Array.isArray(resp.data) ? resp.data : [];
+                    if (lista.length > 0) {
+                        lista.forEach((s) => ids.add(s.id));
+                        if (lista.length < 100) {
+                            continuar = false;
+                        } else {
+                            pagina++;
+                        }
                     } else {
-                        pagina++;
+                        continuar = false;
                     }
-                } else {
-                    continuar = false;
                 }
-            }
 
-            setIdsReproducidos(ids);
+                setIdsReproducidos(ids);
+                cargadoRef.current = true;
+            } catch (err) {
+                log.error('Error cargando historial de reproducciones', err);
+            }
             setCargando(false);
-            cargadoRef.current = true;
         };
 
         cargar();

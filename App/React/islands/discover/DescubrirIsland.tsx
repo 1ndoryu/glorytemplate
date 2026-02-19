@@ -44,19 +44,26 @@ export const DescubrirIsland = (): JSX.Element => {
                     }))
                 );
 
-            if (reaccion) {
-                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                actualizarSecciones((s) => ({ ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }));
-                await darLike('sample', sampleId, reaccion);
-            } else if (sample?.liked || sample?.reaccion) {
-                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                actualizarSecciones((s) => ({ ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }));
-                await quitarLike('sample', sampleId);
-            } else {
-                actualizarSecciones((s) => ({ ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }));
-                await darLike('sample', sampleId, 'like');
+            /* Snapshot para rollback */
+            const snapshot = secciones;
+
+            try {
+                if (reaccion) {
+                    const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                    const esPositivo = reaccion !== 'dislike';
+                    const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                    actualizarSecciones((s) => ({ ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }));
+                    await darLike('sample', sampleId, reaccion);
+                } else if (sample?.liked || sample?.reaccion) {
+                    const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
+                    actualizarSecciones((s) => ({ ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }));
+                    await quitarLike('sample', sampleId);
+                } else {
+                    actualizarSecciones((s) => ({ ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }));
+                    await darLike('sample', sampleId, 'like');
+                }
+            } catch {
+                setSecciones(snapshot);
             }
         },
         [secciones]
@@ -66,43 +73,48 @@ export const DescubrirIsland = (): JSX.Element => {
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
-            const [resTrending, resRecientes, resDescubrir] = await Promise.all([
-                obtenerFeed('trending'),
-                obtenerFeed('recientes'),
-                obtenerFeed('descubrir'),
-            ]);
+            try {
+                const [resTrending, resRecientes, resDescubrir] = await Promise.all([
+                    obtenerFeed('trending'),
+                    obtenerFeed('recientes'),
+                    obtenerFeed('descubrir'),
+                ]);
 
-            const nuevasSecciones: SeccionDescubrir[] = [];
+                const nuevasSecciones: SeccionDescubrir[] = [];
 
-            if (resDescubrir.ok && resDescubrir.data?.length) {
-                nuevasSecciones.push({
-                    id: 'para-ti',
-                    titulo: 'Para ti',
-                    icono: <Sparkles size={18} />,
-                    samples: resDescubrir.data,
-                });
+                if (resDescubrir.ok && resDescubrir.data?.length) {
+                    nuevasSecciones.push({
+                        id: 'para-ti',
+                        titulo: 'Para ti',
+                        icono: <Sparkles size={18} />,
+                        samples: resDescubrir.data,
+                    });
+                }
+
+                if (resTrending.ok && resTrending.data?.length) {
+                    nuevasSecciones.push({
+                        id: 'trending',
+                        titulo: 'Trending',
+                        icono: <Flame size={18} />,
+                        samples: resTrending.data,
+                    });
+                }
+
+                if (resRecientes.ok && resRecientes.data?.length) {
+                    nuevasSecciones.push({
+                        id: 'nuevos',
+                        titulo: 'Nuevos',
+                        icono: <Clock size={18} />,
+                        samples: resRecientes.data,
+                    });
+                }
+
+                setSecciones(nuevasSecciones);
+            } catch {
+                /* Fallo de carga — secciones quedan vacías */
+            } finally {
+                setCargando(false);
             }
-
-            if (resTrending.ok && resTrending.data?.length) {
-                nuevasSecciones.push({
-                    id: 'trending',
-                    titulo: 'Trending',
-                    icono: <Flame size={18} />,
-                    samples: resTrending.data,
-                });
-            }
-
-            if (resRecientes.ok && resRecientes.data?.length) {
-                nuevasSecciones.push({
-                    id: 'nuevos',
-                    titulo: 'Nuevos',
-                    icono: <Clock size={18} />,
-                    samples: resRecientes.data,
-                });
-            }
-
-            setSecciones(nuevasSecciones);
-            setCargando(false);
         };
         cargar();
     }, []);

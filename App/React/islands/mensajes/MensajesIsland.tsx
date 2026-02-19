@@ -73,9 +73,13 @@ const MensajesIslandBase = (): JSX.Element => {
     /* Abrir una conversación */
     const abrirConversacion = useCallback(
         async (conv: Conversacion) => {
-            if (conv.noLeidos > 0) {
-                useMensajesStore.getState().marcarConversacionLeida(conv.id);
-                await marcarConversacionLeida(conv.id);
+            try {
+                if (conv.noLeidos > 0) {
+                    useMensajesStore.getState().marcarConversacionLeida(conv.id);
+                    await marcarConversacionLeida(conv.id);
+                }
+            } catch {
+                /* Fallo al marcar leída no bloquea la navegación */
             }
             navegar(`/mensajes/${conv.id}/`);
         },

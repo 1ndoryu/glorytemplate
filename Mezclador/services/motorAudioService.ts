@@ -30,9 +30,15 @@ class MotorAudio {
     iniciar(): AudioContext {
         if (this.contexto && this.iniciado) return this.contexto;
 
-        this.contexto = new AudioContext({
-            sampleRate: CONSTANTES_MEZCLADOR.SAMPLE_RATE,
-        });
+        try {
+            this.contexto = new AudioContext({
+                sampleRate: CONSTANTES_MEZCLADOR.SAMPLE_RATE,
+            });
+        } catch (err) {
+            /* Fallback sin sampleRate fijo si el navegador no lo soporta */
+            console.error('[MotorAudio] Error creando AudioContext con sampleRate, intentando sin opciones', err);
+            this.contexto = new AudioContext();
+        }
         this.masterGain = this.contexto.createGain();
 
         /*
@@ -287,11 +293,18 @@ class MotorAudio {
 
     /* Crear OfflineAudioContext para exportar */
     crearContextoOffline(duracion: number): OfflineAudioContext {
-        return new OfflineAudioContext(
-            CONSTANTES_MEZCLADOR.CANALES,
-            Math.ceil(duracion * CONSTANTES_MEZCLADOR.SAMPLE_RATE),
-            CONSTANTES_MEZCLADOR.SAMPLE_RATE
-        );
+        const duracionSegura = Math.max(0.1, duracion);
+        const totalFrames = Math.ceil(duracionSegura * CONSTANTES_MEZCLADOR.SAMPLE_RATE);
+        try {
+            return new OfflineAudioContext(
+                CONSTANTES_MEZCLADOR.CANALES,
+                totalFrames,
+                CONSTANTES_MEZCLADOR.SAMPLE_RATE
+            );
+        } catch (err) {
+            console.error('[MotorAudio] Error creando OfflineAudioContext', err);
+            throw err;
+        }
     }
 
     /* Renderizar mezcla offline */

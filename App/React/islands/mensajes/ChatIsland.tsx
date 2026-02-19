@@ -99,34 +99,37 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
 
         const cargar = async () => {
             setCargando(true);
-
-            /* Cargar lista de conversaciones si no se tiene */
-            let convs = conversaciones;
-            if (convs.length === 0) {
-                const respConvs = await obtenerConversaciones();
-                if (respConvs.ok && respConvs.data) {
-                    setConversaciones(respConvs.data);
-                    convs = respConvs.data;
+            try {
+                /* Cargar lista de conversaciones si no se tiene */
+                let convs = conversaciones;
+                if (convs.length === 0) {
+                    const respConvs = await obtenerConversaciones();
+                    if (respConvs.ok && respConvs.data) {
+                        setConversaciones(respConvs.data);
+                        convs = respConvs.data;
+                    }
                 }
+
+                /* Buscar conversación activa */
+                const convActiva = convs.find((c) => c.id === conversacionId) ?? null;
+                setConversacion(convActiva);
+
+                /* Cargar mensajes */
+                const resp = await obtenerMensajes(conversacionId);
+                if (resp.ok && resp.data) {
+                    setMensajes(resp.data);
+                }
+
+                /* Marcar como leída */
+                if (convActiva && convActiva.noLeidos > 0) {
+                    useMensajesStore.getState().marcarConversacionLeida(conversacionId);
+                    await marcarConversacionLeida(conversacionId);
+                }
+            } catch {
+                /* Fallo de carga silencioso */
+            } finally {
+                setCargando(false);
             }
-
-            /* Buscar conversación activa */
-            const convActiva = convs.find((c) => c.id === conversacionId) ?? null;
-            setConversacion(convActiva);
-
-            /* Cargar mensajes */
-            const resp = await obtenerMensajes(conversacionId);
-            if (resp.ok && resp.data) {
-                setMensajes(resp.data);
-            }
-
-            /* Marcar como leída */
-            if (convActiva && convActiva.noLeidos > 0) {
-                useMensajesStore.getState().marcarConversacionLeida(conversacionId);
-                await marcarConversacionLeida(conversacionId);
-            }
-
-            setCargando(false);
         };
         cargar();
     }, [conversacionId, setMensajes, setConversaciones]);
@@ -159,8 +162,13 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
         agregarMensaje(mensajeOptimista);
         actualizarUltimoMensaje(conversacionId, contenido);
 
-        await enviarMensaje(conversacionId, contenido);
-        setEnviando(false);
+        try {
+            await enviarMensaje(conversacionId, contenido);
+        } catch {
+            /* TO-DO: rollback del mensaje optimista en caso de fallo */
+        } finally {
+            setEnviando(false);
+        }
 
         /* Enfocar input de nuevo */
         inputRef.current?.focus();
@@ -192,9 +200,14 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
         agregarMensaje(msgOptimista);
         actualizarUltimoMensaje(conversacionId, esImagen ? '[Imagen]' : '[Audio]');
 
-        await enviarMensajeMultimedia(conversacionId, tipo, archivo);
-        setEnviando(false);
-        if (archivoRef.current) archivoRef.current.value = '';
+        try {
+            await enviarMensajeMultimedia(conversacionId, tipo, archivo);
+        } catch {
+            /* TO-DO: rollback del mensaje multimedia optimista */
+        } finally {
+            setEnviando(false);
+            if (archivoRef.current) archivoRef.current.value = '';
+        }
     }, [conversacionId, usuario, agregarMensaje, actualizarUltimoMensaje]);
 
     /* Enviar con Enter (Shift+Enter para nueva línea) */
