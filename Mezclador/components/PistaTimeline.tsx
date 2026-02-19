@@ -142,9 +142,6 @@ export const PistaTimeline = ({
             <div
                 className="mezcladorPistaControles"
                 onContextMenu={abrirMenu}
-                style={{
-                    '--colorPista': pista.color ?? '#555',
-                } as React.CSSProperties}
             >
                 {/* Nombre editable inline */}
                 {editandoNombre ? (

@@ -5,7 +5,7 @@
     display: flex;
     gap: 0;
     height: 380px;
-    background: var(--fondoElevado1, #1e1e2e);
+    background: var(--fondoElevado1);
 }
 
 /* Área scrollable de strips */
@@ -17,7 +17,7 @@
     flex: 1;
     padding: 6px 4px;
     scrollbar-width: thin;
-    scrollbar-color: var(--bordeSutil, #444) transparent;
+    scrollbar-color: var(--bordeSutil) transparent;
 }
 
 .mixerConsolaStrips::-webkit-scrollbar {
@@ -25,16 +25,16 @@
 }
 
 .mixerConsolaStrips::-webkit-scrollbar-thumb {
-    background: var(--bordeSutil, #444);
-    border-radius: 3px;
+    background: var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
 }
 
 /* Separador entre Master y el resto */
 .mixerConsolaSeparador {
     width: 2px;
-    background: var(--acento, #4fc3f7);
+    background: var(--acento);
     margin: 8px 3px;
-    border-radius: 1px;
+    border-radius: var(--radiusMezclador);
     flex-shrink: 0;
 }
 
@@ -48,19 +48,19 @@
     min-width: 44px;
     max-width: 52px;
     border-top: 3px solid transparent;
-    border-radius: 4px 4px 0 0;
-    background: var(--fondoElevado2, #252538);
+    border-radius: var(--radiusMezclador);
+    background: var(--fondoElevado2);
     transition: background 0.1s;
     flex-shrink: 0;
 }
 
 .insertStrip:hover {
-    background: var(--fondoElevado3, #2e2e48);
+    background: var(--fondoElevado3);
 }
 
 .insertStripSeleccionado {
-    background: var(--fondoElevado3, #2e2e48);
-    box-shadow: inset 0 0 0 1px var(--acento, #4fc3f7);
+    background: var(--fondoElevado3);
+    box-shadow: inset 0 0 0 1px var(--acento);
 }
 
 .insertStripSilenciado {
@@ -71,10 +71,10 @@
 .insertStripNombre {
     font-size: 10px;
     font-weight: 700;
-    color: var(--textoPrimario, #e0e0e0);
-    background: var(--fondoInput, #1a1a2e);
-    border: 1px solid var(--bordeDefault, #333);
-    border-radius: 3px;
+    color: var(--textoPrimario);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
     padding: 2px 4px;
     cursor: pointer;
     width: 100%;
@@ -85,7 +85,7 @@
 }
 
 .insertStripNombre:hover {
-    border-color: var(--acento, #4fc3f7);
+    border-color: var(--acento);
 }
 
 /* Botones de mute/solo */
@@ -100,10 +100,10 @@
     font-size: 9px;
     font-weight: 700;
     padding: 2px;
-    border: 1px solid var(--bordeDefault, #333);
-    border-radius: 2px;
-    background: var(--fondoBoton, #2a2a3e);
-    color: var(--textoSecundario, #aaa);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
+    background: var(--fondoElevado1);
+    color: var(--textoSecundario);
     cursor: pointer;
     text-align: center;
     display: flex;
@@ -112,26 +112,26 @@
 }
 
 .insertStripBoton:hover {
-    background: var(--fondoBotonHover, #3a3a5e);
+    background: var(--fondoElevado2);
 }
 
 /* C320: Mute/solo botones con variables CSS */
 .insertStripBotonActivo {
-    background: var(--error, #e57373);
-    color: var(--fondoBase, #000);
-    border-color: var(--error, #e57373);
+    background: var(--error);
+    color: var(--fondoBase);
+    border-color: var(--error);
 }
 
 .insertStripBotonSolo {
-    background: var(--advertencia, #ffd54f);
-    color: var(--fondoBase, #000);
-    border-color: var(--advertencia, #ffd54f);
+    background: var(--advertencia);
+    color: var(--fondoBase);
+    border-color: var(--advertencia);
 }
 
 /* Label del nombre completo debajo */
 .insertStripLabel {
     font-size: 8px;
-    color: var(--textoSecundario, #888);
+    color: var(--textoSecundario);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -155,9 +155,9 @@
 .faderControlPista {
     position: relative;
     width: 8px;
-    border-radius: 4px;
-    background: linear-gradient(to top, var(--fondoInput, #1a1a2e), var(--fondoBoton, #2a2a3e));
-    border: 1px solid var(--bordeDefault, #333);
+    border-radius: var(--radiusMezclador);
+    background: linear-gradient(to top, var(--fondoElevado1), var(--fondoElevado2));
+    border: 1px solid var(--bordeSutil);
     cursor: ns-resize;
 }
 
@@ -166,7 +166,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    border-radius: 0 0 3px 3px;
+    border-radius: var(--radiusMezclador);
     pointer-events: none;
 }
 
@@ -175,15 +175,15 @@
     left: -3px;
     right: -3px;
     height: 6px;
-    background: var(--textoPrimario, #e0e0e0);
-    border-radius: 2px;
+    background: var(--textoPrimario);
+    border-radius: var(--radiusMezclador);
     pointer-events: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .faderControlDb {
     font-size: 8px;
-    color: var(--textoSecundario, #888);
+    color: var(--textoSecundario);
     text-align: center;
     white-space: nowrap;
 }
@@ -197,7 +197,7 @@
 
 .peakMeterBarra {
     width: 4px;
-    border-radius: 1px;
+    border-radius: var(--radiusMezclador);
     transition: height 0.05s linear;
     min-height: 1px;
 }
@@ -208,8 +208,8 @@
     flex-direction: column;
     gap: 4px;
     padding: 6px;
-    background: var(--fondoElevado2, #252538);
-    border-radius: 4px;
+    background: var(--fondoElevado2);
+    border-radius: var(--radiusMezclador);
 }
 
 .eqVisualizerCabecera {
@@ -217,28 +217,28 @@
     align-items: center;
     justify-content: space-between;
     font-size: 11px;
-    color: var(--textoPrimario, #e0e0e0);
+    color: var(--textoPrimario);
 }
 
 .eqVisualizerToggle {
     font-size: 9px;
     padding: 1px 6px;
-    border: 1px solid var(--bordeDefault, #333);
-    border-radius: 2px;
-    background: var(--fondoBoton, #2a2a3e);
-    color: var(--textoSecundario, #aaa);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
+    background: var(--fondoElevado1);
+    color: var(--textoSecundario);
     cursor: pointer;
 }
 
 .eqVisualizerToggleActivo {
-    background: var(--exito, #4caf50);
-    color: var(--fondoBase, #000);
-    border-color: var(--exito, #4caf50);
+    background: var(--exito);
+    color: var(--fondoBase);
+    border-color: var(--exito);
 }
 
 .eqVisualizerCanvas {
-    border-radius: 3px;
-    background: var(--fondoBase, #0d0d18);
+    border-radius: var(--radiusMezclador);
+    background: var(--fondoBase);
     cursor: crosshair;
 }
 
@@ -274,9 +274,9 @@
 
 .slotEfectoCabecera {
     font-size: 10px;
-    color: var(--textoSecundario, #aaa);
+    color: var(--textoSecundario);
     padding: 2px 4px;
-    border-bottom: 1px solid var(--bordeDefault, #333);
+    border-bottom: 1px solid var(--bordeSutil);
 }
 
 .slotEfecto {
@@ -285,11 +285,11 @@
     gap: 4px;
     padding: 2px 4px;
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
 }
 
 .slotEfecto:hover {
-    background: var(--fondoElevado3, #2e2e48);
+    background: var(--fondoElevado3);
 }
 
 .slotEfectoOcupado {
@@ -299,30 +299,30 @@
 .slotEfectoLed {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
-    border: 1px solid var(--bordeSutil, #555);
-    background: var(--fondoElevado2, #333);
+    border-radius: var(--radiusMezclador);
+    border: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado2);
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
 }
 
 .slotEfectoLedActivo {
-    background: var(--exito, #4caf50);
-    border-color: var(--exito, #4caf50);
-    box-shadow: 0 0 3px var(--exito, #4caf50);
+    background: var(--exito);
+    border-color: var(--exito);
+    box-shadow: 0 0 3px var(--exito);
 }
 
 .slotEfectoIndice {
     font-size: 9px;
-    color: var(--textoSecundario, #888);
+    color: var(--textoSecundario);
     width: 14px;
     text-align: center;
 }
 
 .slotEfectoNombre {
     font-size: 10px;
-    color: var(--textoPrimario, #e0e0e0);
+    color: var(--textoPrimario);
     flex: 1;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -332,21 +332,21 @@
 /* Panel Detalle Insert (derecho) */
 .panelDetalleInsert {
     width: 280px;
-    border-left: 1px solid var(--bordeDefault, #333);
+    border-left: 1px solid var(--bordeSutil);
     padding: 8px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow-y: auto;
     flex-shrink: 0;
-    background: var(--fondoElevado2, #252538);
+    background: var(--fondoElevado2);
 }
 
 .panelDetalleInsertVacio {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--textoSecundario, #888);
+    color: var(--textoSecundario);
     font-size: 12px;
 }
 
@@ -359,15 +359,15 @@
 .panelDetalleInsertNombre {
     font-size: 13px;
     font-weight: 600;
-    color: var(--textoPrimario, #e0e0e0);
-    background: var(--fondoInput, #1a1a2e);
-    border: 1px solid var(--bordeDefault, #333);
-    border-radius: 3px;
+    color: var(--textoPrimario);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
     padding: 4px 6px;
 }
 
 .panelDetalleInsertNombre:focus {
-    border-color: var(--acento, #4fc3f7);
+    border-color: var(--acento);
     outline: none;
 }
 
@@ -380,7 +380,7 @@
 .panelDetalleInsertColor {
     width: 14px;
     height: 14px;
-    border-radius: 3px;
+    border-radius: var(--radiusMezclador);
     border: 1px solid transparent;
     cursor: pointer;
     padding: 0;
@@ -402,15 +402,15 @@
     gap: 6px;
     font-size: 11px;
     padding: 4px;
-    background: var(--fondoElevado1, #1e1e2e);
-    border-radius: 3px;
+    background: var(--fondoElevado1);
+    border-radius: var(--radiusMezclador);
 }
 
 .panelDetalleInsertRoutingLabel {
-    color: var(--textoSecundario, #aaa);
+    color: var(--textoSecundario);
 }
 
 .panelDetalleInsertRoutingValor {
-    color: var(--textoPrimario, #e0e0e0);
+    color: var(--textoPrimario);
     font-weight: 600;
 }

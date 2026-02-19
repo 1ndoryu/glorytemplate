@@ -1,4 +1,7 @@
 /* index.css — Punto de entrada de estilos del Mezclador (C293) */
+
+
+
 @import './mezcladorBase.css';
 @import './mezcladorTimeline.css';
 @import './mezcladorBloques.css';

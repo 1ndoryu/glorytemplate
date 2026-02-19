@@ -5,9 +5,9 @@
     position: absolute;
     top: 3px;
     bottom: 3px;
-    background: color-mix(in srgb, var(--colorBloque, var(--acento)) 20%, transparent);
-    border: 1px solid var(--colorBloque, var(--acento));
-    border-radius: 3px;
+    background: color-mix(in srgb, var(--colorBloque) 20%, transparent);
+    border: 1px solid var(--colorBloque);
+    border-radius: var(--radiusMezclador);
     cursor: grab;
     overflow: hidden;
     display: flex;
@@ -17,7 +17,7 @@
 }
 
 .mezcladorBloque:hover {
-    box-shadow: 0 0 0 1px var(--colorBloque, var(--acento));
+    box-shadow: 0 0 0 1px var(--colorBloque);
 }
 
 .mezcladorBloque:active {
@@ -47,7 +47,7 @@
     bottom: 3px;
     background: color-mix(in srgb, var(--acento) 12%, transparent);
     border: 2px dashed var(--acento);
-    border-radius: 3px;
+    border-radius: var(--radiusMezclador);
     pointer-events: none;
     z-index: 2;
     opacity: 0.6;
@@ -57,7 +57,7 @@
 /* Bloque en proceso de resize (C204) */
 .mezcladorBloque.mezcladorBloqueResizing {
     z-index: 5;
-    box-shadow: 0 0 0 2px var(--colorBloque, var(--acento));
+    box-shadow: 0 0 0 2px var(--colorBloque);
 }
 
 /* Handle derecho para stretch/pitch (C204) */
@@ -71,12 +71,12 @@
     z-index: 2;
     background: transparent;
     transition: background var(--transicionRapida);
-    border-radius: 0 3px 3px 0;
+    border-radius: var(--radiusMezclador);
 }
 
 .mezcladorBloqueResizeHandle:hover,
 .mezcladorBloqueResizing .mezcladorBloqueResizeHandle {
-    background: var(--colorBloque, var(--acento));
+    background: var(--colorBloque);
     opacity: 0.7;
 }
 
@@ -108,7 +108,7 @@
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
     flex-shrink: 0;
     opacity: 0;
     transition: opacity var(--transicionRapida);
@@ -119,7 +119,7 @@
 }
 
 .mezcladorBloqueEliminar:hover {
-    color: var(--error, #ef4444);
+    color: var(--error);
 }
 
 /* C215: Grupo de botones en cabecera del bloque */
@@ -146,10 +146,12 @@
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: var(--radiusMezclador);
     padding: 0;
     flex-shrink: 0;
-    transition: color var(--transicionRapida), background var(--transicionRapida);
+    transition:
+        color var(--transicionRapida),
+        background var(--transicionRapida);
 }
 
 .mezcladorBloqueBoton:hover {
@@ -158,7 +160,7 @@
 }
 
 .mezcladorBloqueBoton.mezcladorBloqueEliminar:hover {
-    color: var(--error, #ef4444);
+    color: var(--error);
 }
 
 /* C215: Indicadores visuales de config (REV, IN, OUT) */
@@ -174,7 +176,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     padding: 0 2px;
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
     background: rgba(255, 255, 255, 0.12);
     color: var(--textoSecundario);
     line-height: 1.4;
@@ -192,12 +194,12 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: var(--error, #ef4444);
+    background: var(--error);
     opacity: 0.7;
     z-index: 5;
     pointer-events: none;
-    border-radius: 1px;
-    box-shadow: 0 0 4px var(--error, #ef4444);
+    border-radius: var(--radiusMezclador);
+    box-shadow: 0 0 4px var(--error);
 }
 
 /* C214: Botón activo (ej. Scissors en controles) */
@@ -210,7 +212,7 @@
 .mezcladorBloqueWaveform {
     flex: 1;
     width: 100%;
-    color: var(--colorBloque, var(--acento));
+    color: var(--colorBloque);
     opacity: 0.6;
 }
 
@@ -301,7 +303,7 @@
     background: var(--acento);
     color: var(--acentoTexto);
     border: none;
-    border-radius: var(--radioSm);
+    border-radius: var(--radiusMezclador);
     cursor: pointer;
     font-size: var(--fuenteSm);
 }
@@ -327,11 +329,20 @@
 
 /* Animaciones */
 @keyframes mezcladorPulsar {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }
 
 @keyframes mezcladorGirar {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }

@@ -14,7 +14,7 @@
     position: relative;
     height: 34px;
     flex-shrink: 0;
-    background: var(--fondoElevado1, #1a1a2e);
+    background: var(--fondoElevado1);
     border-bottom: 1px solid var(--bordeSutil);
     cursor: pointer;
     user-select: none;
@@ -24,7 +24,7 @@
 /* Representación simplificada de cada bloque en el minimapa */
 .minimapaBloque {
     position: absolute;
-    border-radius: 1px;
+    border-radius: var(--radiusMezclador);
     opacity: 0.5;
     pointer-events: none;
 }
@@ -36,7 +36,7 @@
     bottom: 0;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--acento);
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
     cursor: grab;
     z-index: 2;
     min-width: 8px;
@@ -66,12 +66,12 @@
 
 .minimapaHandleIzq {
     left: 0;
-    border-radius: 2px 0 0 2px;
+    border-radius: var(--radiusMezclador);
 }
 
 .minimapaHandleDer {
     right: 0;
-    border-radius: 0 2px 2px 0;
+    border-radius: var(--radiusMezclador);
 }
 
 .minimapaHandleIzq:hover,
@@ -231,11 +231,9 @@
      * C316: Fondo sólido + z-index alto para que las líneas de tiempo
      * no atraviesen los controles sticky.
      */
-    background:
-        linear-gradient(var(--fondoElevado1) 0%, var(--fondoElevado1) 100%),
-        var(--colorPista, #555);
+    background: linear-gradient(var(--fondoElevado1) 0%, var(--fondoElevado1) 100%), var(--colorPista);
     background-blend-mode: color;
-    background-color: color-mix(in srgb, var(--colorPista, #555) 15%, var(--fondoElevado1));
+    background-color: color-mix(in srgb, var(--colorPista) 15%, var(--fondoElevado1));
     position: sticky;
     left: 0;
     z-index: 3;
@@ -267,7 +265,7 @@
     color: var(--textoPrimario);
     background: var(--fondoElevado2);
     border: 1px solid var(--acento);
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
     max-width: 72px;
     padding: 0 2px;
     outline: none;
@@ -295,7 +293,7 @@
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    border-radius: 2px;
+    border-radius: var(--radiusMezclador);
     transition: color var(--transicionRapida);
 }
 
@@ -304,7 +302,7 @@
 }
 
 .mezcladorPistaBoton.activo {
-    color: var(--error, #ef4444);
+    color: var(--error);
 }
 
 /* Contenido de la pista (drop zone + bloques) */
@@ -337,7 +335,7 @@
 
 /* C216: Líneas principales (compases) más visibles */
 .mezcladorDivisionPrincipal {
-    background: var(--bordeDefault, #444);
+    background: var(--bordeSutil);
 }
 
 /* C216: Líneas secundarias (sub-beats) más sutiles */

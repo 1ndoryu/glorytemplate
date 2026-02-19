@@ -9,9 +9,8 @@
 }
 
 .configBloqueSeccion {
-    background: var(--fondoTerciario, rgba(255, 255, 255, 0.03));
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
+    border-radius: var(--radiusMezclador);
     padding: 10px;
 }
 
@@ -33,9 +32,9 @@
     gap: 3px;
     font-size: 10px;
     color: var(--textoTerciario);
-    background: var(--fondoElevado2, #2a2a3e);
+    background: var(--fondoElevado2);
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--radiusMezclador);
 }
 
 .configBloqueControlGrid {
@@ -79,8 +78,8 @@
     height: 4px;
     -webkit-appearance: none;
     appearance: none;
-    background: var(--fondoElevado2, #2a2a3e);
-    border-radius: 2px;
+    background: var(--fondoElevado2);
+    border-radius: var(--radiusMezclador);
     outline: none;
     cursor: pointer;
 }
@@ -89,7 +88,7 @@
     -webkit-appearance: none;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
+    border-radius: var(--radiusMezclador);
     background: var(--acento);
     cursor: pointer;
     border: none;
@@ -98,7 +97,7 @@
 .configBloqueSlider::-moz-range-thumb {
     width: 12px;
     height: 12px;
-    border-radius: 50%;
+    border-radius: var(--radiusMezclador);
     background: var(--acento);
     cursor: pointer;
     border: none;
@@ -111,9 +110,9 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    background: var(--fondoElevado2, #2a2a3e);
+    background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
-    border-radius: 4px;
+    border-radius: var(--radiusMezclador);
     color: var(--textoTerciario);
     cursor: pointer;
     transition: all var(--transicionRapida);
@@ -124,24 +123,24 @@
 }
 
 .configBloqueLedActivo {
-    background: var(--exito, #22c55e);
-    border-color: var(--exito, #22c55e);
+    background: var(--exito);
+    border-color: var(--exito);
     color: #000;
 }
 
 /* C311: LED on/off en el header de VentanaFlotante */
 .configBloqueHeaderLed {
     color: var(--textoTerciario);
-    border-radius: 3px;
+    border-radius: var(--radiusMezclador);
     transition: color var(--transicionRapida);
 }
 
 .configBloqueHeaderLed:hover {
-    color: var(--exito, #22c55e);
+    color: var(--exito);
 }
 
 .configBloqueHeaderLedActivo {
-    color: var(--exito, #22c55e);
+    color: var(--exito);
 }
 
 /* Dos columnas */
@@ -198,8 +197,8 @@
 .configBloqueModoTonal {
     display: flex;
     gap: 2px;
-    background: var(--fondoTerciario, rgba(255, 255, 255, 0.05));
-    border-radius: 4px;
+    background: var(--acentoMuted);
+    border-radius: var(--radiusMezclador);
     padding: 2px;
     flex: 1;
 }
@@ -212,7 +211,7 @@
     color: var(--textoSecundario);
     background: none;
     border: none;
-    border-radius: 3px;
+    border-radius: var(--radiusMezclador);
     cursor: pointer;
     transition: all var(--transicionRapida);
     white-space: nowrap;
@@ -242,11 +241,14 @@
     padding: 4px 8px;
     font-size: 10px;
     color: var(--textoSecundario);
-    background: var(--fondoElevado2, #2a2a3e);
-    border: 1px solid var(--bordeDefault, #333);
-    border-radius: 4px;
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radiusMezclador);
     cursor: pointer;
-    transition: background var(--transicionRapida), border-color var(--transicionRapida), color var(--transicionRapida);
+    transition:
+        background var(--transicionRapida),
+        border-color var(--transicionRapida),
+        color var(--transicionRapida);
 }
 
 .configBloqueToggle:hover {
@@ -255,7 +257,7 @@
 
 .configBloqueToggle.activo {
     background: var(--acento);
-    color: var(--fondoBase, #121212);
+    color: var(--fondoBase);
     border-color: var(--acento);
     font-weight: 600;
 }
@@ -311,7 +313,7 @@
     color: var(--textoSecundario);
     background: none;
     border: 1px dashed var(--bordeSutil);
-    border-radius: 4px;
+    border-radius: var(--radiusMezclador);
     cursor: pointer;
     transition: all var(--transicionRapida);
 }

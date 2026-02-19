@@ -4,20 +4,21 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Maximize2, Minimize2, Settings, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useMezclador } from '../hooks/useMezclador';
-import { ControlesMezclador } from './ControlesMezclador';
-import { ModalConfigDaw } from './ModalConfigDaw';
-import { BarraVentanasMinimizadas } from './BarraVentanasMinimizadas';
-import { Timeline } from './Timeline';
-import { ChannelRack } from './ChannelRack/ChannelRack';
-import { MixerConsola } from './Mixer/MixerConsola';
-import { PanelBrowserDaw } from './PanelBrowserDaw';
-import { useMezcladorStore } from '../stores/mezcladorStore';
-import { usePanelLateralStore } from '@app/stores/panelLateralStore';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
-import { useBrowserDaw } from '../hooks/useBrowserDaw';
+import {PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Maximize2, Minimize2, Settings, PanelLeftOpen, PanelLeftClose} from 'lucide-react';
+import {useEffect, useRef, useState} from 'react';
+import {useMezclador} from '../hooks/useMezclador';
+import {ControlesMezclador} from './ControlesMezclador';
+import {ModalConfigDaw} from './ModalConfigDaw';
+import {BarraVentanasMinimizadas} from './BarraVentanasMinimizadas';
+import {Timeline} from './Timeline';
+import {ChannelRack} from './ChannelRack/ChannelRack';
+import {MixerConsola} from './Mixer/MixerConsola';
+import {PanelBrowserDaw} from './PanelBrowserDaw';
+import {useMezcladorStore} from '../stores/mezcladorStore';
+import {usePanelLateralStore} from '@app/stores/panelLateralStore';
+import {useCrearModalStore} from '@app/stores/crearModalStore';
+import {useBrowserDaw} from '../hooks/useBrowserDaw';
+import {FEATURE_FLAGS} from '../featureFlags';
 /* C293: CSS refactorizado en módulos */
 import '../styles/index.css';
 
@@ -33,26 +34,11 @@ export const MezcladorPanel = (): JSX.Element => {
 const MezcladorContenido = (): JSX.Element => {
     /* Sincronizar estado del mezcladorStore al montarse */
     const abrir = useMezcladorStore(s => s.abrir);
-    useEffect(() => { abrir(); }, [abrir]);
+    useEffect(() => {
+        abrir();
+    }, [abrir]);
 
-    const {
-        estaCargando,
-        exportando,
-        toggleReproduccion,
-        reproduciendo,
-        seek,
-        timelineRef,
-        iniciarDragBloque,
-        alDragOver,
-        alDropExterno,
-        descargarMezcla,
-        obtenerArchivoParaPublicar,
-        puedeExportar,
-        pistaIdHover,
-        dragState,
-        posicionDragFantasma,
-        duracionBloqueDrag,
-    } = useMezclador();
+    const {estaCargando, exportando, toggleReproduccion, reproduciendo, seek, timelineRef, iniciarDragBloque, alDragOver, alDropExterno, descargarMezcla, obtenerArchivoParaPublicar, puedeExportar, pistaIdHover, dragState, posicionDragFantasma, duracionBloqueDrag} = useMezclador();
 
     const cerrarMezclador = useMezcladorStore(s => s.cerrar);
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
@@ -105,71 +91,32 @@ const MezcladorContenido = (): JSX.Element => {
             {/* C233: Cabecera simplificada — acciones de proyecto + cerrar */}
             <div className="mezcladorCabecera">
                 <div className="mezcladorCabeceraAcciones">
-                    {estaCargando && (
-                        <span className="mezcladorCargando">Cargando...</span>
-                    )}
+                    {estaCargando && <span className="mezcladorCargando">Cargando...</span>}
                     {/* C307: Toggle browser */}
-                    <button
-                        className={`mezcladorBotonCabecera ${browser.abierto ? 'mezcladorBotonActivo' : ''}`}
-                        onClick={browser.toggle}
-                        title={browser.abierto ? 'Cerrar browser' : 'Abrir browser'}
-                    >
+                    <button className={`mezcladorBotonCabecera ${browser.abierto ? 'mezcladorBotonActivo' : ''}`} onClick={browser.toggle} title={browser.abierto ? 'Cerrar browser' : 'Abrir browser'}>
                         {browser.abierto ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
                     </button>
-                    <button
-                        className="mezcladorBotonCabecera"
-                        onClick={() => inputArchivoRef.current?.click()}
-                        title="Subir audio desde PC"
-                    >
+                    <button className="mezcladorBotonCabecera" onClick={() => inputArchivoRef.current?.click()} title="Subir audio desde PC">
                         <FolderUp size={14} />
                     </button>
-                    <input
-                        ref={inputArchivoRef}
-                        type="file"
-                        accept="audio/*"
-                        multiple
-                        onChange={alSeleccionarArchivo}
-                        style={{ display: 'none' }}
-                    />
+                    <input ref={inputArchivoRef} type="file" accept="audio/*" multiple onChange={alSeleccionarArchivo} style={{display: 'none'}} />
                     {exportando && <Loader size={14} className="mezcladorSpinner" />}
-                    <button
-                        className="mezcladorBotonCabecera"
-                        onClick={descargarMezcla}
-                        disabled={!puedeExportar || exportando}
-                        title="Descargar mezcla (1 crédito)"
-                    >
+                    <button className="mezcladorBotonCabecera" onClick={descargarMezcla} disabled={!puedeExportar || exportando} title="Descargar mezcla (1 crédito)">
                         <Download size={14} />
                     </button>
-                    <button
-                        className="mezcladorBotonCabecera"
-                        onClick={alPublicar}
-                        disabled={!puedeExportar || exportando}
-                        title="Publicar mezcla"
-                    >
+                    <button className="mezcladorBotonCabecera" onClick={alPublicar} disabled={!puedeExportar || exportando} title="Publicar mezcla">
                         <Upload size={14} />
                     </button>
-                    <button
-                        className="mezcladorBotonCabecera mezcladorBotonLimpiar"
-                        onClick={limpiarProyecto}
-                        title="Limpiar proyecto"
-                    >
+                    <button className="mezcladorBotonCabecera mezcladorBotonLimpiar" onClick={limpiarProyecto} title="Limpiar proyecto">
                         <Trash2 size={14} />
                     </button>
                 </div>
                 {/* C241+C253: Botón config + expandir/contraer + cerrar */}
                 <div className="mezcladorCabeceraAcciones">
-                    <button
-                        className="mezcladorBotonCabecera"
-                        onClick={() => setModalConfigDawAbierto(true)}
-                        title="Configuración del DAW"
-                    >
+                    <button className="mezcladorBotonCabecera" onClick={() => setModalConfigDawAbierto(true)} title="Configuración del DAW">
                         <Settings size={14} />
                     </button>
-                    <button
-                        className="mezcladorBotonCabecera"
-                        onClick={toggleExpandido}
-                        title={expandido ? 'Contraer panel' : 'Expandir panel'}
-                    >
+                    <button className="mezcladorBotonCabecera" onClick={toggleExpandido} title={expandido ? 'Contraer panel' : 'Expandir panel'}>
                         {expandido ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                     </button>
                     <button className="mezcladorCerrar" onClick={cerrar}>
@@ -179,48 +126,23 @@ const MezcladorContenido = (): JSX.Element => {
             </div>
 
             {/* Controles: play, BPM, compases, snap, zoom, cortar */}
-            <ControlesMezclador
-                onToggleReproduccion={toggleReproduccion}
-                reproduciendo={reproduciendo}
-            />
+            <ControlesMezclador onToggleReproduccion={toggleReproduccion} reproduciendo={reproduciendo} />
 
             {/* C307: Cuerpo — browser (opcional) + timeline */}
             <div className="mezcladorCuerpo">
-                {browser.abierto && (
-                    <PanelBrowserDaw
-                        carpetas={browser.carpetas}
-                        samplesPorCarpeta={browser.samplesPorCarpeta}
-                        carpetasExpandidas={browser.carpetasExpandidas}
-                        cargando={browser.cargando}
-                        onToggleCarpeta={browser.toggleCarpeta}
-                    />
-                )}
+                {browser.abierto && <PanelBrowserDaw carpetas={browser.carpetas} samplesPorCarpeta={browser.samplesPorCarpeta} carpetasExpandidas={browser.carpetasExpandidas} cargando={browser.cargando} onToggleCarpeta={browser.toggleCarpeta} />}
 
                 {/* Timeline con pistas */}
-                <Timeline
-                    timelineRef={timelineRef}
-                    onSeek={seek}
-                    onIniciarDrag={iniciarDragBloque}
-                    onDragOver={alDragOver}
-                    onDrop={alDropExterno}
-                    pistaIdHover={pistaIdHover}
-                    dragActivo={dragState.activo}
-                    bloqueIdDrag={dragState.bloqueId}
-                    posicionDragFantasma={posicionDragFantasma}
-                    duracionBloqueDrag={duracionBloqueDrag}
-                />
+                <Timeline timelineRef={timelineRef} onSeek={seek} onIniciarDrag={iniciarDragBloque} onDragOver={alDragOver} onDrop={alDropExterno} pistaIdHover={pistaIdHover} dragActivo={dragState.activo} bloqueIdDrag={dragState.bloqueId} posicionDragFantasma={posicionDragFantasma} duracionBloqueDrag={duracionBloqueDrag} />
             </div>
 
             {/* C253: Modal de configuración global del DAW */}
-            <ModalConfigDaw
-                abierto={modalConfigDawAbierto}
-                onCerrar={() => setModalConfigDawAbierto(false)}
-            />
-            {/* Channel Rack y Mixer como ventanas flotantes */}
-            <ChannelRack />
-            <MixerConsola />
-            {/* C287: Barra de ventanas minimizadas */}
-            <BarraVentanasMinimizadas />
+            <ModalConfigDaw abierto={modalConfigDawAbierto} onCerrar={() => setModalConfigDawAbierto(false)} />
+            {/* Channel Rack y Mixer como ventanas flotantes — controlados por featureFlags */}
+            {FEATURE_FLAGS.channelRack && <ChannelRack />}
+            {FEATURE_FLAGS.mixer && <MixerConsola />}
+            {/* C287: Barra de ventanas minimizadas (depende de ventanas flotantes) */}
+            {FEATURE_FLAGS.ventanasFlotantes && <BarraVentanasMinimizadas />}
         </div>
     );
 };
