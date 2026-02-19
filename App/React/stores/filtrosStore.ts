@@ -10,6 +10,8 @@ import { create } from 'zustand';
 
 export type TipoOrdenamiento = 'inteligente' | 'recientes' | 'destacados';
 export type PeriodoDestacados = 'semana' | 'mes' | 'anio';
+/* C274: Filtro por tipo de precio */
+export type FiltroPrecio = 'todos' | 'gratis' | 'premium';
 
 interface EstadoFiltros {
     busqueda: string;
@@ -33,6 +35,9 @@ interface EstadoFiltros {
     bpmMin: number | null;
     bpmMax: number | null;
 
+    /* C274: Filtro free/premium */
+    filtroPrecio: FiltroPrecio;
+
     /* Acciones */
     setBusqueda: (busqueda: string) => void;
     setPagina: (pagina: number) => void;
@@ -52,6 +57,9 @@ interface EstadoFiltros {
     /* C116: Acciones BPM */
     setBpmRango: (min: number | null, max: number | null) => void;
 
+    /* C274: Acción precio */
+    setFiltroPrecio: (filtro: FiltroPrecio) => void;
+
     resetearFiltros: () => void;
 }
 
@@ -68,6 +76,7 @@ const filtrosIniciales = {
     tagsExcluidos: [] as string[],
     bpmMin: null as number | null,
     bpmMax: null as number | null,
+    filtroPrecio: 'todos' as FiltroPrecio,
 };
 
 /*
@@ -158,6 +167,9 @@ export const useFiltrosStore = create<EstadoFiltros>((set) => ({
 
     /* C116: BPM rango */
     setBpmRango: (min, max) => set({ bpmMin: min, bpmMax: max, pagina: 1 }),
+
+    /* C274: Filtro free/premium */
+    setFiltroPrecio: (filtro) => set({ filtroPrecio: filtro, pagina: 1 }),
 
     resetearFiltros: () => set({ ...filtrosIniciales }),
 }));

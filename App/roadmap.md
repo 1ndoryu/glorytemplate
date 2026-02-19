@@ -116,6 +116,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R63:** Auditoría hardcode completa + bugfix regex PostgresService. Eliminados TODOS los strings hardcodeados de SQL en 20 repositorios: ORDER BY id/created_at → Cols::ID/CREATED_AT (15 repos), SamplesRepository (audio_hash, estados enum, JOINs, CTE interacciones, pgvector), ReproduccionesRepository (historialUsuario reescrito), NotificacionesRepository (listarConActor reescrito), UsuariosExtRepository (5 métodos analíticos con 6 imports nuevos), ColeccionesRepository (CTE explorar + FollowsCols), PublicacionesRepository (likedSubquery con LikesCols), BaseRepository (buscarTodos dinámico). Fix crítico: regex `validarQueryContraSchema()` usaba negative lookahead `(?!\s*\()` que causaba backtracking y truncaba nombres de tabla (reproducciones→reproduccione, likes→like). Solución: reemplazar por `\b` word boundary — la lista `$ignorar` ya filtra funciones SQL. Fix: ColeccionesRepository import LikesCols faltante.
 **R64:** Auditoría hardcode COMPLETA fuera de repositorios (14 archivos). SQL: MotorRecomendacion (3 métodos, CTE+subqueries+pgvector), ConstructorSenales (5 métodos, 6 señales), NormalizadorSample (sqlSelectSamples 35+ vars), SamplesController (filtros WHERE+ORDER BY), PublicacionesController (moderación+follows+ORDER BY), PipelineAudio ('activo'→SamplesEnums). Repos SQL residuales: DescargasRepository (2×'activo'), LikesRepository (3×'sample'+2×'activo'), SamplesRepository ('sample'+'like'). PHP Enums: SocialController (REST schema+defaults), ComentariosController/Escritura (TIPOS_VALIDOS→ComentariosEnums), ServicioNotificaciones (defaults+comparaciones→LikesEnums), PublicacionesController (liked→LikesEnums), NormalizadorSample (liked→LikesEnums). SamplesModificacionController: 11 SET clauses→SamplesCols constants. Bugfix verificado: `invalidarCacheGlobal()` al verificar/cambiar estado sample — transients servían datos stale sin verificado_sample. Fix: ComentariosEscrituraController LogModeracion warning() 3er arg inválido. AdminRepository: TODO 'pendiente' sin Enums generado.
 **R65:** [AG-ONE] C284+C285+C286+C287 Mezclador DAW mejoras. C284: fix clip mode tras stretch (recorteInicio). C286: doble click BloqueSample abre config. C287: ModalConfigBloque reescrito 700px VentanaFlotante profesional (cabecera LED+Pan+Vol+Pitch, Time Stretching, Sample Editing fades+declicking, Effects reverse+normalize+inv.polaridad+swap, File Info), VentanaFlotante.tsx+ventanasStore.ts+BarraVentanasMinimizadas.tsx nuevos, ModalConfigDaw convertido a VentanaFlotante. C285: MinimapaDaw.tsx (34px, viewport drag=scroll, edges=zoom, click-to-jump, wheel), obtenerTotalExtendido() con relleno 36 compases, ZOOM_MAX=200 dinámico proporcional, eliminados botones zoom/compás de ControlesMezclador, Timeline reestructurado con wrapper, BarraCompases+CursorReproduccion+useTimeline usan totalExtendido.
+**R66:** [AG-ONE] C292-C296 Mezclador + C274+C288-C291 Explorador/Feed. Mezclador: C292 createPortal fix drag config, C293 CSS 1524→6 módulos, C294 KnobControl SVG rotary, C295 reset doble-click individual, C296 fijarTotalExtendido zoom freeze. Explorador: C288 COALESCE WHERE para samples sin carpeta, C289 IA prompt "NUNCA null"+fallback 'General', C290 z-index header vs samples, C291 vista cuadrícula toggle lista/grid con TarjetaSampleCuadricula.tsx. Feed: C274 filtro free/premium client-side (filtrosStore+FeedSamples+ModalFiltros).
 
 ---
 
@@ -223,25 +224,18 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 286. ✅ [AG-ONE] Doble click en BloqueSample abre ModalConfigBloque.
 287. ✅ [AG-ONE] Config audio profesional — ModalConfigBloque reescrito (700px VentanaFlotante): cabecera (On/Off LED+Pan+Vol+Pitch), Time Stretching (speed+modo), Sample Editing (fades+declicking+recorte), Effects (reverse+normalize+inv.polaridad+swap L/R), File Info. VentanaFlotante draggable+minimize. BarraVentanasMinimizadas. ModalConfigDaw convertido a VentanaFlotante. ventanasStore.ts nuevo.
 
-274. [EN CURSO — AG-ONE] Que se pueda filtrar por samples free y de pagos en el feed samples 
-288. [EN CURSO — AG-ONE] La pagina de explorar funciona casi bien. Primero, si los samples no tienen, por defecto deberían aparecer en en la carpeta samples, pero no aparecen a pesar de que el contador los cuenta.
+274. ✅ [AG-ONE] Filtro free/premium en feed — FiltroPrecio type en filtrosStore (todos|gratis|premium), filtrado client-side en FeedSamples useMemo, selector ternario en ModalFiltros con DollarSign icon, CSS en modalFiltros.css.
+288. ✅ [AG-ONE] Samples sin carpeta no aparecían en filtro "Samples" — COALESCE(..., 'Samples') en WHERE de coleccionadosDeUsuario() y contarColeccionados() para consistencia con carpetasColeccionados() que ya lo usaba.
 
-289.1 [EN CURSO — AG-ONE] no se porque la ia en algun momento genero null para la carpeta secundaria
-  "carpeta_primaria": "Samples",
-  "carpeta_secundaria": null,
+289.1 ✅ [AG-ONE] IA generaba null para carpeta_secundaria — Prompt mejorado: "OBLIGATORIO, NUNCA null ni vacio" + fallback "General". PipelineAudio.php ahora usa !empty() + fallback 'General' en vez de ?? null. Prompt ampliado con mas generos para Samples (Electronic, Pop, Rock, Reggaeton, Latin).
 
-la instrucción dice asi
-
-- "carpeta_secundaria": Subcarpeta dentro de carpeta_primaria. Opciones por carpeta: Drums: "Kicks","Snares","Claps","HiHats","Toms","Percussion". Loops: "Drum Loops","Perc Loops","Bass Loops","Melodic Loops". Samples: usa el genero principal (ej: "Hip Hop","Phonk","Trap","Lo-Fi","Jazz","R&B"). FX: "Impacts","Risers","Sweeps","Atmos". Instruments: "Bass","Chords","Leads","Pads","Keys","Strings". Vocals: "Phrases","One Shots","Chops".
-
-eligio samples pero no eligio la carpeta secundaria, creo que hay que ser mas detallado con las carpetas, y ver como se puede arreglar para evitar null, etc, y decirle que no diga null. 
-290. [EN CURSO — AG-ONE] no se puede selecionar me encanta o dislike porque exploradorHeader se pone por encima en la lista de samples del explorador.
-291. [EN CURSO — AG-ONE] En la pagina de explorador, si bien parece que los samples funcionan bien, la forma en la que se ven los samples aunque no esta mal es la correcta, agregaremos otra forma de ordenas los samples, vistas que simulan a un explorador de archivo, se podra cambiar la vista entre cuadricula y lista,en lista se mantiene tal cual como esta ahora, y en cuadricula pues, solo se vera el nombre y la portada.
-292. [EN CURSO — AG-ONE] Cuando intento arrastrar la ventana de  configuracion de un audio del mini daw, este desaparece y lo que se vuelve es la tarjeta de audio, (debería abrirse con doble click pero no se abre), y algunas cosas como la linea del tiempo se ponen por encima.
-293. [EN CURSO — AG-ONE] El css del mezclador ya se ha hecho muy grande, hay que refactorizar el archivo.
-294. [EN CURSO — AG-ONE] los botones que se indican como Knob de las configuraciones de audio, deben verse como Knob.
-295. [EN CURSO — AG-ONE] Quitar el boton de restablacer, ahora todos los botones de configuracion de audio deben restablecerse individualmente si se da doble click en ellos.
-296. [EN CURSO — AG-ONE] Es molesto que el zoom cambie o se mueva el scroll cuando cambio el tamaño o ancho de una tarjeta de audio, no debe pasar.
+290. ✅ [AG-ONE] exploradorHeader tapaba botones like/dislike — z-index:0 en .exploradorHeader + position:relative;z-index:1 en .exploradorContenido.
+291. ✅ [AG-ONE] Vista cuadricula en explorador — Toggle lista/cuadricula con iconos List/LayoutGrid en header. TarjetaSampleCuadricula.tsx (solo portada+nombre). CSS: .cuadriculaDeSamples grid auto-fill minmax(140px,1fr), .tarjetaCuadricula card hover, .exploradorVistaToggle segmented control.
+292. ✅ [AG-ONE] Fix drag ventana config — createPortal(ModalConfigBloque, document.body) para evitar bubble de eventos a BloqueSample.
+293. ✅ [AG-ONE] CSS refactor Mezclador — mezclador.css (1524 lín) dividido en 6 módulos: mezcladorBase(231), mezcladorTimeline(264), mezcladorBloques(337), mezcladorModalesLegacy(252), mezcladorVentanas(188), mezcladorConfigBloque(307). Barrel index.css.
+294. ✅ [AG-ONE] KnobControl SVG — Componente rotary knob con arco 270°, drag vertical, shift fine-control, bipolar para pan/pitch, wheel, double-click reset. Integrado en ModalConfigBloque reemplazando sliders.
+295. ✅ [AG-ONE] Reset individual doble-click — Todos los controles (knobs y toggles) soportan doble-click reset. Eliminado botón global "Restablecer todo".
+296. ✅ [AG-ONE] Zoom freeze durante resize — fijarTotalExtendido()/desfijarTotalExtendido() en store. obtenerTotalExtendido() retorna max(fijado, calculado) durante resize para evitar shrink.
 297. Menú Contextual de Pista (Track Header) en la playlist (actualmente no se puede cambiar la altura de las pistas pero debería, se hara un menu contextual con las siguientes opciones):
 Identidad y Organización Visual
 Rename, color and icon...: Abre un modal para editar las 3 propiedades principales de la pista: Nombre (string), Color (hex) e Icono (id/image).
@@ -284,6 +278,46 @@ react-dom.development.js:15688
 
 # AGENTE TWO (tareas libres)
 
+
+308. Esta tarea es dificil. (Channel rack y patterns) (309 es necesaria, pero se puede adelantar este sistema)
+
+Segun las especificaciones que recibi, el fl studio funciona algo asi, esto implica que al lado de tempo se elegir entre reproducir el PAT o el song, cuand oesta el pat se reproduce el channel rack. Esto involucra Patterns, hay un selector para cambiar de patters y una barra lateral de ellos. Los Patters se pueden agregar a las lineas de tiempo, y cuando se modifica un pattern se abre el channel rack.
+
+El "Channel Rack" combina un gestor de instrumentos con un secuenciador por pasos.
+
+## 1. Cabecera (Global Tools)
+* **Channel Filter (`Dropdown`):** Selector para filtrar la vista por grupos de instrumentos (ej. "All", "Drums", "Synths").
+* **Swing (`Knob`):** Control global de "humanización". Desplaza ligeramente los pasos pares para romper la rigidez robótica.
+* **Loop Switch (`LED/Toggle`):** Define si el patrón actual se reproduce en bucle o solo una vez.
+
+## 2. Tira de Canal (Izquierda)
+Controles individuales para cada instrumento cargado.
+
+* **Mute/Solo (`Indicator LED`):**
+    * *Click Izquierdo:* Mute/Unmute (Silenciar).
+    * *Click Derecho:* Solo (Aísla este canal y silencia los demás).
+* **Pan (`Knob`):** Paneo estéreo (Izquierda/Derecha) previo al mixer.
+* **Vol (`Knob`):** Ganancia/Volumen inicial del canal.
+* **Mixer Track Routing (`Number Box`):** Selector numérico que asigna el audio de este instrumento a un canal específico de la Mesa de Mezclas (Mixer).
+* **Channel Button (`Button/Rectangle`):** Muestra el nombre del instrumento (ej. "808 Kick").
+    * *Acción:* Al hacer click, abre la interfaz del Plugin o Sampler.
+* **Channel Selector (`Small LED`):** Indicador visual a la derecha del botón del canal. Permite seleccionar múltiples canales para operaciones en grupo (borrar, clonar, etc.).
+
+## 3. Secuenciador por Pasos (Derecha)
+La matriz principal para la composición rítmica.
+
+* **Step Grid (`Button Matrix`):**
+    * Cada botón representa una unidad de tiempo (usualmente una semicorchea).
+    * *Estado Activo:* El botón se ilumina y disparará el sonido.
+    * *Visual:* Los botones cambian de color en bloques (ej. 4 grises, 4 rojos) para representar visualmente los beats del compás.
+* **Graph Editor (`Overlay`):** (Funcionalidad avanzada) Panel desplegable sobre los pasos para ajustar parámetros individuales por nota:
+    * Velocity (Volumen individual).
+    * Pitch (Tono individual).
+    * Pan (Paneo individual).
+
+## 4. Gestión y Footer
+* **Add Button (`+ Button`):** Abre el menú contextual para insertar un nuevo Generador (VST) o Sampler. (Aqui no tenemos VST aun asi no agregaremos este boton, dejaremos que se puedan agregar mas canales, solo soportaremos canales de sonidos y samples, los samples se podran arrastrar aca tambien)
+* **Resize Handler (`Drag Handle`):** Permite arrastrar el borde derecho para aumentar la cantidad de pasos visibles (16, 32, 64 steps...).
 
 
 
@@ -402,4 +436,9 @@ react-dom.development.js:15688
 - [Hardcode-Audit]: R63 solo cubrió repositorios. Servicios (MotorRecomendacion, ConstructorSenales), Helpers (NormalizadorSample), Controllers (SamplesController, PublicacionesController, SocialController, Comentarios*, SamplesModificacion) también tenían hardcodes. Auditoría completa requiere grep de enums + column names EN TODOS los PHP.
 - [Enums-Gaps]: AdminRepository usa 'pendiente' para moderacion_estado y reportes.estado — no hay PublicacionesEnums ni ReportesEnums para estos valores. Generar CHECK constraints en schemas cuando se formalice.
 - [SET-Clauses]: SamplesModificacionController construye SET dinámico con `$campos[] = 'col = :param'`. Usar `SamplesCols::COL . ' = :param'` igual que en WHERE clauses.
+- [Explorador-SQL]: carpetasColeccionados() usa COALESCE para agrupar, pero coleccionadosDeUsuario/contarColeccionados NO lo usaban en WHERE. Siempre verificar consistencia COALESCE entre COUNT y SELECT filtrado.
+- [IA-Prompt]: La IA puede devolver null para campos obligatorios aunque se listen opciones. Agregar "OBLIGATORIO, NUNCA null" explícitamente + fallback PHP con !empty() en vez de ?? null.
+- [CSS-Stacking]: Cuando un header con imagen se posiciona visualmente antes del contenido scrollable, agregar z-index:0 al header y z-index:1 al contenido para evitar que tape botones interactivos.
+- [Filtros-Feed]: esPremium ya viene en SampleResumen — filtrado client-side es suficiente sin cambios en backend (filtrosStore + useMemo en FeedSamples). Server-side solo necesario si paginación se ve afectada.
+- [Cuadricula]: Para vistas minimalistas (solo portada+nombre), no incluir reproductor — mantener componente separado y simple (TarjetaSampleCuadricula) sin dependencia de stores de audio.
 - [LogModeracion]: Solo acepta 2 args (mensaje, contexto). El 3er arg canal ('moderacion') es inválido — ya está implícito por la clase alias.

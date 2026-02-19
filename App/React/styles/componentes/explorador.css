@@ -14,13 +14,15 @@
     overflow-y: auto;
 }
 
-/* Header con título y stats */
+/* Header con título y stats — z-index bajo para no tapar botones de samples (C290) */
 .exploradorHeader {
     display: flex;
     align-items: center;
     gap: var(--espacioLg);
     padding-bottom: var(--espacioMd);
     border-bottom: 1px solid var(--bordeSutil);
+    position: relative;
+    z-index: 0;
 }
 
 .exploradorHeaderImg {
@@ -52,13 +54,15 @@
     color: var(--textoMedio);
 }
 
-/* Layout de dos columnas: carpetas | samples */
+/* Layout de dos columnas: carpetas | samples — z-index 1 para estar sobre header (C290) */
 .exploradorContenido {
     display: grid;
     grid-template-columns: 220px 1fr;
     gap: var(--espacioLg);
     flex: 1;
     min-height: 0;
+    position: relative;
+    z-index: 1;
 }
 
 /* Panel de carpetas (izquierda) */
@@ -201,6 +205,84 @@
     padding: var(--espacioXl);
     color: var(--textoMedio);
     flex: 1;
+}
+
+/* C291: Toggle de vista lista/cuadricula */
+.exploradorVistaToggle {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    background-color: var(--fondoElevado1);
+    border-radius: var(--radioSm);
+    padding: 2px;
+}
+
+.exploradorVistaBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioXs);
+    border: none;
+    background: none;
+    color: var(--textoMedio);
+    cursor: pointer;
+    border-radius: var(--radioXs);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.exploradorVistaBoton:hover {
+    color: var(--textoAlto);
+    background-color: var(--fondoElevado2);
+}
+
+.exploradorVistaActiva {
+    color: var(--textoAlto);
+    background-color: var(--fondoElevado2);
+}
+
+/* C291: Vista cuadricula */
+.cuadriculaDeSamples {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--espacioMd);
+    padding: var(--espacioXs);
+}
+
+.tarjetaCuadricula {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    cursor: pointer;
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs);
+    transition: background-color 0.15s ease;
+}
+
+.tarjetaCuadricula:hover {
+    background-color: var(--fondoElevado1);
+}
+
+.tarjetaCuadriculaPortada {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radioSm);
+    overflow: hidden;
+}
+
+.tarjetaCuadriculaImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tarjetaCuadriculaNombre {
+    font-size: var(--textoSm);
+    color: var(--textoAlto);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.3;
 }
 
 /* Responsive: en móvil, carpetas arriba */

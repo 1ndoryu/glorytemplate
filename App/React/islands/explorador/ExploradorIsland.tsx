@@ -5,9 +5,10 @@
  * y la lista de samples a la derecha. Descargados + subidos = "coleccionados".
  */
 
-import { useEffect, useCallback } from 'react';
-import { FolderOpen, ArrowLeft, Folder, FolderClosed } from 'lucide-react';
+import { useEffect, useCallback, useState } from 'react';
+import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useExploradorPagina } from '@app/hooks/useExploradorPagina';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -30,6 +31,9 @@ const ExploradorBase = (): JSX.Element => {
     const { navegar } = useNavigationStore();
     const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
     const menu = useMenuContextualSample();
+
+    /* C291: Vista lista/cuadricula */
+    const [vistaActiva, setVistaActiva] = useState<'lista' | 'cuadricula'>('lista');
 
     const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
@@ -79,6 +83,26 @@ const ExploradorBase = (): JSX.Element => {
                     <div className="exploradorMeta">
                         <span>{totalSamples} sample{totalSamples !== 1 ? 's' : ''} coleccionados</span>
                     </div>
+                </div>
+
+                {/* C291: Toggle vista lista/cuadricula */}
+                <div className="exploradorVistaToggle">
+                    <button
+                        className={`exploradorVistaBoton ${vistaActiva === 'lista' ? 'exploradorVistaActiva' : ''}`}
+                        onClick={() => setVistaActiva('lista')}
+                        type="button"
+                        title="Vista lista"
+                    >
+                        <List size={18} />
+                    </button>
+                    <button
+                        className={`exploradorVistaBoton ${vistaActiva === 'cuadricula' ? 'exploradorVistaActiva' : ''}`}
+                        onClick={() => setVistaActiva('cuadricula')}
+                        type="button"
+                        title="Vista cuadrícula"
+                    >
+                        <LayoutGrid size={18} />
+                    </button>
                 </div>
             </div>
 
@@ -156,7 +180,19 @@ const ExploradorBase = (): JSX.Element => {
                                 }
                             </p>
                         </div>
+                    ) : vistaActiva === 'cuadricula' ? (
+                        /* C291: Vista cuadrícula — solo portada y nombre */
+                        <div className="cuadriculaDeSamples">
+                            {samples.map((sample) => (
+                                <TarjetaSampleCuadricula
+                                    key={sample.id}
+                                    sample={sample}
+                                    onClickTitulo={manejarClickTitulo}
+                                />
+                            ))}
+                        </div>
                     ) : (
+                        /* Vista lista — tarjeta completa */
                         <div className="listaDeSamples">
                             {samples.map((sample) => (
                                 <TarjetaSample

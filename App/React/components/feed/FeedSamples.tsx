@@ -104,6 +104,7 @@ export const FeedSamples = ({
     const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
     const bpmMin = useFiltrosStore(s => s.bpmMin);
     const bpmMax = useFiltrosStore(s => s.bpmMax);
+    const filtroPrecio = useFiltrosStore(s => s.filtroPrecio);
     const incluirTag = useFiltrosStore(s => s.incluirTag);
     const excluirTag = useFiltrosStore(s => s.excluirTag);
     const quitarTag = useFiltrosStore(s => s.quitarTag);
@@ -343,6 +344,13 @@ export const FeedSamples = ({
             });
         }
 
+        /* C274: Filtro por precio (gratis/premium) */
+        if (filtroPrecio === 'gratis') {
+            resultado = resultado.filter((s) => !s.esPremium);
+        } else if (filtroPrecio === 'premium') {
+            resultado = resultado.filter((s) => s.esPremium);
+        }
+
         /* Inclusión/exclusión por tags (C134: usa tags del metadata IA) */
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
         return resultado.filter((s) => {
@@ -350,7 +358,7 @@ export const FeedSamples = ({
             return tagsIncluidos.every((t) => tagsSample.includes(t))
                 && tagsExcluidos.every((t) => !tagsSample.includes(t));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, idsExcluidos, idsCreadoresIncluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
 
     /* Notificar conteo al padre (ultra-eficiente: solo lee .length) */
     useEffect(() => {

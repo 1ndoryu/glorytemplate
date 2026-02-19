@@ -6,10 +6,10 @@
  */
 
 import { useCallback } from 'react';
-import { Play, Heart, Users, Download } from 'lucide-react';
+import { Play, Heart, Users, Download, DollarSign } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useFiltrosStore, type FiltroPrecio } from '@app/stores/filtrosStore';
 import '../../styles/componentes/modalFiltros.css';
 
 interface FiltroToggleDef {
@@ -31,10 +31,12 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
         likeados,
         deSeguidos,
         descargados,
+        filtroPrecio,
         toggleYaReproducidos,
         toggleLikeados,
         toggleDeSeguidos,
         toggleDescargados,
+        setFiltroPrecio,
         resetearFiltros,
     } = useFiltrosStore();
 
@@ -45,7 +47,14 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
         { id: 'descargados', etiqueta: 'Ocultar ya descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
     ];
 
-    const hayFiltrosActivos = yaReproducidos || likeados || deSeguidos || descargados;
+    const hayFiltrosActivos = yaReproducidos || likeados || deSeguidos || descargados || filtroPrecio !== 'todos';
+
+    /* C274: Opciones del selector de precio */
+    const opcionesPrecio: { valor: FiltroPrecio; etiqueta: string }[] = [
+        { valor: 'todos', etiqueta: 'Todos' },
+        { valor: 'gratis', etiqueta: 'Gratis' },
+        { valor: 'premium', etiqueta: 'Premium' },
+    ];
 
     const manejarReset = useCallback(() => {
         resetearFiltros();
@@ -71,6 +80,26 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
                             </span>
                         </button>
                     ))}
+                </div>
+
+                {/* C274: Selector de precio free/premium */}
+                <div className="filtroPrecioSeccion">
+                    <div className="filtroPrecioEtiqueta">
+                        <DollarSign size={16} />
+                        <span>Tipo de sample</span>
+                    </div>
+                    <div className="filtroPrecioOpciones">
+                        {opcionesPrecio.map((op) => (
+                            <button
+                                key={op.valor}
+                                className={`filtroPrecioBoton ${filtroPrecio === op.valor ? 'filtroPrecioBotonActivo' : ''}`}
+                                onClick={() => setFiltroPrecio(op.valor)}
+                                type="button"
+                            >
+                                {op.etiqueta}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="filtrosAcciones">

@@ -171,7 +171,8 @@ class PipelineAudio
                 'descripcion'          => $metadataIA['descripcion'],
                 'descripcion_es'       => $metadataIA['descripcion_es'],
                 'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? 'Samples',
-                'carpeta_secundaria'   => $metadataIA['carpeta_secundaria'] ?? null,
+                /* C289: Fallback 'General' si la IA devuelve null/vacio para carpeta_secundaria */
+                'carpeta_secundaria'   => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
                 'key_confianza'        => $analisisTecnico['key_confianza'],
             ]);

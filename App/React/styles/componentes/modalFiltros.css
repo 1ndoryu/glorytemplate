@@ -98,3 +98,54 @@
     gap: var(--espacioMd);
     padding-top: var(--espacioMd);
 }
+
+/* C274: Selector de precio free/premium */
+.filtroPrecioSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.filtroPrecioEtiqueta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteMd);
+    color: var(--textoSecundario);
+}
+
+.filtroPrecioOpciones {
+    display: flex;
+    gap: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    padding: 3px;
+}
+
+.filtroPrecioBoton {
+    flex: 1;
+    padding: var(--espacioXs) var(--espacioMd);
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    font-weight: 500;
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+.filtroPrecioBoton:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado3);
+}
+
+.filtroPrecioBotonActivo {
+    background: var(--acento);
+    color: var(--blanco);
+}
+
+.filtroPrecioBotonActivo:hover {
+    background: var(--acento);
+    color: var(--blanco);
+}

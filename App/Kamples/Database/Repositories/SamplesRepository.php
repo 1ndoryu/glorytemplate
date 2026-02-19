@@ -477,7 +477,8 @@ class SamplesRepository extends BaseRepository
         $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $limit, 'offset' => $offset];
         $carpetaClause = '';
         if ($carpeta !== '') {
-            $carpetaClause = " AND s." . SamplesCols::METADATA . "->>'carpeta_primaria' = :carpeta";
+            /* C288: COALESCE para que samples sin carpeta_primaria se traten como 'Samples' */
+            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') = :carpeta";
             $params['carpeta'] = $carpeta;
         }
 
@@ -507,7 +508,8 @@ class SamplesRepository extends BaseRepository
         $params = ['uid' => $userId, 'uid2' => $userId];
         $carpetaClause = '';
         if ($carpeta !== '') {
-            $carpetaClause = " AND s." . SamplesCols::METADATA . "->>'carpeta_primaria' = :carpeta";
+            /* C288: COALESCE para consistencia con carpetasColeccionados() */
+            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') = :carpeta";
             $params['carpeta'] = $carpeta;
         }
 
