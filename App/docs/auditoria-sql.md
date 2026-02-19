@@ -1,28 +1,34 @@
 # Auditoría SQL & Plan de Optimización de Base de Datos
 
-> **Versión:** 1.0  
-> **Fecha:** 19/02/2026  
+> **Versión:** 2.0  
+> **Fecha:** 19/02/2026 (actualizado: 19/02/2026)  
 > **Agente:** AG-SQL  
 > **Alcance:** App/Kamples/ (PostgreSQL) + Glory/src/ (WordPress/MySQL)  
-> **Archivos escaneados:** ~168 PHP + 22 SQL migraciones
+> **Archivos escaneados:** ~168 PHP + 22 SQL migraciones  
+> **Estado:** COMPLETADO — 58/58 hallazgos resueltos
 
 ---
 
 ## Resumen Ejecutivo
 
-| Severidad | App/Kamples | Glory/src | Total |
-|-----------|-------------|-----------|-------|
-| **CRITICAL** | 7 | 12 | **19** |
-| **MEDIUM** | 18 | 7 | **25** |
-| **LOW** | 6 | 8 | **14** |
-| **Total** | 31 | 27 | **58** |
+| Severidad | App/Kamples | Glory/src | Total | Resueltos |
+|-----------|-------------|-----------|-------|-----------|
+| **CRITICAL** | 7 | 12 | **19** | **19** |
+| **MEDIUM** | 18 | 7 | **25** | **25** |
+| **LOW** | 6 | 8 | **14** | **14** |
+| **Total** | 31 | 27 | **58** | **58** |
 
-**Estado actual:** El proyecto tiene un SchemaSystem robusto (18 schemas, constantes `*Cols`, DTOs generados, `*Enums`), pero aún persisten hardcodings en:
-- PipelineAudio (tabla + 21 columnas como strings)
-- AdminRepository (columnas comunes sin constante)
-- ConstructorSenales (claves JSONB sin constante)
-- FormController y NewsletterController (tablas MySQL sin schema)
-- ~20 instancias de meta keys duplicadas en Glory/src
+### Resolución aplicada
+
+- **Enums creados:** MensajesEnums.php, ReportesEnums.php (nuevos) + PublicacionesEnums, ComentariosEnums (extendidos)
+- **Constantes centralizadas:** AssetMeta (meta keys Glory), SamplesRepository::CARPETA_DEFAULT, PostSyncHandler::META_CLAVE_* (públicas)
+- **SeoMetabox:** Eliminadas constantes duplicadas, ahora usa MetaTagRenderer::META_*
+- **StripeConfig:** Option names como constantes de clase (OPT_SECRET_KEY, etc.)
+- **DefaultContentRepository + Synchronizer:** Usan PostSyncHandler::META_CLAVE_* centralizadas
+- **Bug corregido:** 'one shot' → 'oneshot' (JsonRepairer, NormalizadorSample, MotorRecomendacion)
+- **Seguridad:** $wpdb->prepare() aplicado a SHOW TABLES + 6 DELETE en CachePurger
+- **Migración v021:** 14 índices nuevos + 2 expression indexes JSONB
+- **@unlink/@opcache_reset eliminados:** CachePurger ahora usa try-catch
 
 ---
 

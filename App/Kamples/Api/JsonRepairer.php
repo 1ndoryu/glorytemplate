@@ -15,6 +15,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\LogIA as KamplesLogger;
+use App\Config\Schema\_generated\SamplesEnums;
 
 class JsonRepairer
 {
@@ -219,11 +220,15 @@ PROMPT;
      */
     public static function validarMetadata(array $data): array
     {
-        $tiposValidos = ['one shot', 'loop'];
+        /* Bug fix: 'one shot' (con espacio) era inconsistente con CHECK constraint 'oneshot'. Se acepta ambos formatos de input pero se normaliza al valor del enum */
+        $tiposValidos = [SamplesEnums::TIPO_ONESHOT, SamplesEnums::TIPO_LOOP, 'one shot'];
 
-        $tipo = isset($data['tipo']) && \in_array(\strtolower($data['tipo']), $tiposValidos, true)
-            ? \strtolower($data['tipo'])
-            : 'one shot';
+        $tipoRaw = isset($data['tipo']) ? \strtolower($data['tipo']) : '';
+        /* Normalizar 'one shot' → 'oneshot' para coincidir con el CHECK constraint */
+        if ($tipoRaw === 'one shot') $tipoRaw = SamplesEnums::TIPO_ONESHOT;
+        $tipo = \in_array($tipoRaw, [SamplesEnums::TIPO_ONESHOT, SamplesEnums::TIPO_LOOP], true)
+            ? $tipoRaw
+            : SamplesEnums::TIPO_ONESHOT;
 
         return [
             'nombre_archivo_base'  => self::sanitizarTexto($data['nombre_archivo_base'] ?? '', 80),

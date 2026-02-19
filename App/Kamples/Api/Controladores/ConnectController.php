@@ -22,6 +22,11 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class ConnectController
 {
+    /* Estados semánticos derivados de la API de Stripe Connect */
+    private const ESTADO_ACTIVO = 'activo';
+    private const ESTADO_PENDIENTE = 'pendiente';
+    private const ESTADO_RESTRINGIDO = 'restringido';
+
     public static function registrarRutas(string $namespace): void
     {
         register_rest_route($namespace, '/connect/onboarding', [
@@ -177,11 +182,11 @@ class ConnectController
 
         /* Determinar estado semántico */
         if ($cargosActivos && $payoutsActivos) {
-            $estado = 'activo';
+            $estado = self::ESTADO_ACTIVO;
         } elseif ($detallesPendientes) {
-            $estado = 'pendiente';
+            $estado = self::ESTADO_PENDIENTE;
         } else {
-            $estado = 'restringido';
+            $estado = self::ESTADO_RESTRINGIDO;
         }
 
         return new \WP_REST_Response([

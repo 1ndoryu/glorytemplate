@@ -23,6 +23,7 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ServicioAntiSpam;
@@ -62,19 +63,23 @@ class ComentariosEscrituraController
 
         if ($esFormData) {
             $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
-            $tipoContenido = \sanitize_text_field($request->get_param('tipoContenido') ?? 'texto');
+            $tipoContenido = \sanitize_text_field($request->get_param('tipoContenido') ?? ComentariosEnums::TIPO_CONTENIDO_TEXTO);
             $parentId = $request->get_param('parentId') ? (int) $request->get_param('parentId') : null;
         } else {
             $body = $request->get_json_params();
             $contenido = \sanitize_textarea_field($body['contenido'] ?? '');
-            $tipoContenido = 'texto';
+            $tipoContenido = ComentariosEnums::TIPO_CONTENIDO_TEXTO;
             $parentId = isset($body['parentId']) ? (int) $body['parentId'] : null;
         }
 
         /* Validar tipo de contenido */
-        $tiposContenidoPermitidos = ['texto', 'imagen', 'audio'];
+        $tiposContenidoPermitidos = [
+            ComentariosEnums::TIPO_CONTENIDO_TEXTO,
+            ComentariosEnums::TIPO_CONTENIDO_IMAGEN,
+            ComentariosEnums::TIPO_CONTENIDO_AUDIO,
+        ];
         if (!\in_array($tipoContenido, $tiposContenidoPermitidos, true)) {
-            $tipoContenido = 'texto';
+            $tipoContenido = ComentariosEnums::TIPO_CONTENIDO_TEXTO;
         }
 
         /* C164: Rate limiting — 10 comentarios por minuto */
@@ -82,7 +87,7 @@ class ComentariosEscrituraController
         if ($limitResp) return $limitResp;
 
         /* Validar contenido: requerido para texto, opcional para multimedia */
-        if ($tipoContenido === 'texto' && empty($contenido)) {
+        if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_TEXTO && empty($contenido)) {
             return new \WP_REST_Response(['code' => 'contenido_vacio', 'message' => 'El comentario necesita contenido'], 400);
         }
 

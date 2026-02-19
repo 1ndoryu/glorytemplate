@@ -17,6 +17,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\MensajesCols;
+use App\Config\Schema\_generated\MensajesEnums;
 use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
@@ -97,10 +98,10 @@ class MensajesController
 
             /* Preview del último mensaje según tipo */
             $previewMsg = $ultimoMsg[MensajesCols::CONTENIDO] ?? '';
-            $tipoUltimo = $ultimoMsg[MensajesCols::TIPO] ?? 'texto';
-            if ($tipoUltimo === 'imagen') $previewMsg = '[Imagen]';
-            elseif ($tipoUltimo === 'audio') $previewMsg = '[Audio]';
-            elseif ($tipoUltimo === 'sample') $previewMsg = '[Sample] ' . ($ultimoMsg[MensajesCols::CONTENIDO] ?? '');
+            $tipoUltimo = $ultimoMsg[MensajesCols::TIPO] ?? MensajesEnums::TIPO_TEXTO;
+            if ($tipoUltimo === MensajesEnums::TIPO_IMAGEN) $previewMsg = '[Imagen]';
+            elseif ($tipoUltimo === MensajesEnums::TIPO_AUDIO) $previewMsg = '[Audio]';
+            elseif ($tipoUltimo === MensajesEnums::TIPO_SAMPLE) $previewMsg = '[Sample] ' . ($ultimoMsg[MensajesCols::CONTENIDO] ?? '');
 
             $resultado[] = [
                 'id'              => (int) $conv[ConversacionesCols::ID],
@@ -158,17 +159,22 @@ class MensajesController
 
         if ($esFormData) {
             $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
-            $tipo = \sanitize_text_field($request->get_param('tipo') ?? 'texto');
+            $tipo = \sanitize_text_field($request->get_param('tipo') ?? MensajesEnums::TIPO_TEXTO);
         } else {
             $body = $request->get_json_params();
             $contenido = \sanitize_textarea_field($body['contenido'] ?? '');
-            $tipo = \sanitize_text_field($body['tipo'] ?? 'texto');
+            $tipo = \sanitize_text_field($body['tipo'] ?? MensajesEnums::TIPO_TEXTO);
         }
 
         /* Validar tipos permitidos */
-        $tiposPermitidos = ['texto', 'imagen', 'audio', 'sample'];
+        $tiposPermitidos = [
+            MensajesEnums::TIPO_TEXTO,
+            MensajesEnums::TIPO_IMAGEN,
+            MensajesEnums::TIPO_AUDIO,
+            MensajesEnums::TIPO_SAMPLE,
+        ];
         if (!in_array($tipo, $tiposPermitidos, true)) {
-            $tipo = 'texto';
+            $tipo = MensajesEnums::TIPO_TEXTO;
         }
 
         /* C164: Rate limiting — 30 mensajes por minuto */

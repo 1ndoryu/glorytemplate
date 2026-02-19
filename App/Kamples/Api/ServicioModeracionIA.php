@@ -18,6 +18,8 @@
 
 namespace App\Kamples\Api;
 
+use App\Config\Schema\_generated\PublicacionesEnums;
+
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
@@ -160,12 +162,16 @@ class ServicioModeracionIA
      */
     private static function determinarVeredicto(array $resultados): array
     {
-        $prioridad = ['rechazado' => 3, 'revision' => 2, 'aprobado' => 1];
-        $nivelFinal = 'aprobado';
+        $prioridad = [
+            PublicacionesEnums::MODERACION_RECHAZADO => 3,
+            PublicacionesEnums::MODERACION_REVISION => 2,
+            PublicacionesEnums::MODERACION_APROBADO => 1,
+        ];
+        $nivelFinal = PublicacionesEnums::MODERACION_APROBADO;
         $razonFinal = '';
 
         foreach ($resultados as $capa => $resultado) {
-            $nivel = $resultado['nivel'] ?? 'aprobado';
+            $nivel = $resultado['nivel'] ?? PublicacionesEnums::MODERACION_APROBADO;
             if (($prioridad[$nivel] ?? 0) > ($prioridad[$nivelFinal] ?? 0)) {
                 $nivelFinal = $nivel;
                 $razonFinal = $resultado['categoria'] ?? $resultado['razon'] ?? $capa;

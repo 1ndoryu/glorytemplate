@@ -339,7 +339,7 @@ class MotorRecomendacion
         $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
         $bpm = $sample[SamplesCols::BPM] ? (int) $sample[SamplesCols::BPM] : null;
         $key = $sample[SamplesCols::KEY] ?? null;
-        $tipo = $sample[SamplesCols::TIPO] ?? 'one shot';
+        $tipo = $sample[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT;
         $toleranciaBpm = $config['parametros']['bpm_tolerancia'] ?? 15;
 
         $params = ['sampleId' => $sampleId, 'limit' => $limite];

@@ -174,7 +174,7 @@ class BibliotecaSamplesController
         $arbol = [];
         $indice = [];
         foreach ($rows as $row) {
-            $pri = $row['primaria'] ?? 'Samples';
+            $pri = $row['primaria'] ?? SamplesRepository::CARPETA_DEFAULT;
             $sec = $row['secundaria'] ?? null;
             $cnt = (int) ($row['total'] ?? 0);
 

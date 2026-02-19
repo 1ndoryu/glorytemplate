@@ -20,6 +20,7 @@ namespace App\Kamples\Api;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
@@ -170,7 +171,7 @@ class PipelineAudio
                 'descripcion_corta_es' => $metadataIA['descripcion_corta_es'],
                 'descripcion'          => $metadataIA['descripcion'],
                 'descripcion_es'       => $metadataIA['descripcion_es'],
-                'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? 'Samples',
+                'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
                 /* C289: Fallback 'General' si la IA devuelve null/vacio para carpeta_secundaria */
                 'carpeta_secundaria'   => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
@@ -341,12 +342,14 @@ class PipelineAudio
     {
         /* S40 fix: whitelist de columnas permitidas (defensa contra SQL injection por keys dinámicas) */
         $columnasPermitidas = [
-            'duracion', 'bpm', 'key', 'escala', 'tipo', 'metadata',
-            'ruta_original', 'ruta_waveform', 'ruta_optimizada', 'ruta_preview',
-            'estado', 'publicado_at', 'titulo', 'slug', 'tags',
-            'nombre_archivo', 'formato', 'waveform_peaks',
+            SamplesCols::DURACION, SamplesCols::BPM, SamplesCols::KEY, SamplesCols::ESCALA,
+            SamplesCols::TIPO, SamplesCols::METADATA, SamplesCols::RUTA_ORIGINAL,
+            SamplesCols::RUTA_WAVEFORM, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW,
+            SamplesCols::ESTADO, SamplesCols::PUBLICADO_AT, SamplesCols::TITULO,
+            SamplesCols::SLUG, SamplesCols::TAGS, 'nombre_archivo', SamplesCols::FORMATO,
+            'waveform_peaks',
         ];
-        $columnasJsonb = ['metadata', 'media_metadata', 'tags_ia'];
+        $columnasJsonb = [SamplesCols::METADATA, 'media_metadata', 'tags_ia'];
         $setClauses = [];
         $params = ['id' => $sampleId];
 
@@ -366,7 +369,8 @@ class PipelineAudio
 
         if (empty($setClauses)) return;
 
-        $sql = "UPDATE samples SET " . \implode(', ', $setClauses) . " WHERE id = :id";
+        $tabla = SamplesCols::TABLA;
+        $sql = "UPDATE {$tabla} SET " . \implode(', ', $setClauses) . " WHERE id = :id";
 
         try {
             SamplesRepository::ejecutar($sql, $params);

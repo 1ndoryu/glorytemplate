@@ -19,6 +19,8 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ReportesCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\PublicacionesEnums;
+use App\Config\Schema\_generated\ReportesEnums;
 
 class AdminRepository
 {
@@ -37,15 +39,16 @@ class AdminRepository
         $activo = SamplesEnums::ESTADO_ACTIVO;
         $pro = UsuariosExtEnums::PLAN_PRO;
         $premium = UsuariosExtEnums::PLAN_PREMIUM;
+        $modPendiente = PublicacionesEnums::MODERACION_PENDIENTE;
+        $repPendiente = ReportesEnums::ESTADO_PENDIENTE;
 
-        /* TO-DO: 'pendiente' hardcodeado — no hay PublicacionesEnums ni ReportesEnums para moderacion_estado/estado. Generar cuando se agreguen CHECK constraints al schema. */
-        return SamplesRepository::consultarUno("
+        return SamplesRepository::consultarUno("SELECT
                 (SELECT COUNT(*) FROM {$tu}) as total_usuarios,
                 (SELECT COUNT(*) FROM {$ts} WHERE " . SamplesCols::ESTADO . " = '{$activo}') as total_samples,
                 (SELECT COUNT(*) FROM {$td}) as total_descargas,
                 (SELECT COUNT(*) FROM {$tp}) as total_publicaciones,
-                (SELECT COUNT(*) FROM {$tp} WHERE " . PublicacionesCols::MODERACION_ESTADO . " = 'pendiente') as pendientes_moderacion,
-                (SELECT COUNT(*) FROM {$tr} WHERE " . ReportesCols::ESTADO . " = 'pendiente') as reportes_pendientes,
+                (SELECT COUNT(*) FROM {$tp} WHERE " . PublicacionesCols::MODERACION_ESTADO . " = '{$modPendiente}') as pendientes_moderacion,
+                (SELECT COUNT(*) FROM {$tr} WHERE " . ReportesCols::ESTADO . " = '{$repPendiente}') as reportes_pendientes,
                 (SELECT COUNT(*) FROM {$tu} WHERE " . UsuariosExtCols::PLAN . " = '{$pro}') as usuarios_pro,
                 (SELECT COUNT(*) FROM {$tu} WHERE " . UsuariosExtCols::PLAN . " = '{$premium}') as usuarios_premium,
                 (SELECT COUNT(*) FROM {$ts} WHERE " . SamplesCols::CREATED_AT . " > NOW() - INTERVAL '7 days') as samples_semana,
@@ -63,7 +66,7 @@ class AdminRepository
         $td = DescargasCols::TABLA;
 
         $sqlBase = fn(string $tabla) =>
-            "SELECT DATE(created_at) as fecha, COUNT(*) as total
+        "SELECT DATE(created_at) as fecha, COUNT(*) as total
              FROM {$tabla}
              WHERE created_at > NOW() - INTERVAL '1 day' * :dias
              GROUP BY DATE(created_at) ORDER BY fecha";
@@ -96,8 +99,8 @@ class AdminRepository
 
         if (!empty($busqueda)) {
             $where .= ' AND (u.' . UsuariosExtCols::USERNAME . ' ILIKE :busqueda'
-                     . ' OR u.' . UsuariosExtCols::NOMBRE_VISIBLE . ' ILIKE :busqueda'
-                     . ' OR u.' . UsuariosExtCols::EMAIL . ' ILIKE :busqueda)';
+                . ' OR u.' . UsuariosExtCols::NOMBRE_VISIBLE . ' ILIKE :busqueda'
+                . ' OR u.' . UsuariosExtCols::EMAIL . ' ILIKE :busqueda)';
             $params['busqueda'] = '%' . $busqueda . '%';
         }
 
@@ -118,16 +121,16 @@ class AdminRepository
 
         $data = SamplesRepository::consultar(
             "SELECT u." . UsuariosExtCols::ID . ", u." . UsuariosExtCols::USERNAME
-            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::EMAIL
-            . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
-            . ", u." . UsuariosExtCols::PLAN . ", u." . UsuariosExtCols::ROL
-            . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::BANEADO_HASTA . " AS ban_hasta"
-            . ", u." . UsuariosExtCols::CREATED_AT . ", u." . UsuariosExtCols::UPDATED_AT
-            . ", (SELECT COUNT(*) FROM {$ts} s WHERE s." . SamplesCols::CREADOR_ID . " = u." . UsuariosExtCols::ID
-            . " AND s." . SamplesCols::ESTADO . " = '{$activo}') as total_samples"
-            . ", (SELECT COUNT(*) FROM {$td} d WHERE d." . DescargasCols::USUARIO_ID . " = u." . UsuariosExtCols::ID
-            . ") as total_descargas"
-            . " FROM {$tu} u WHERE {$where} ORDER BY {$orderBy} LIMIT :porPagina OFFSET :offset",
+                . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::EMAIL
+                . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
+                . ", u." . UsuariosExtCols::PLAN . ", u." . UsuariosExtCols::ROL
+                . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::BANEADO_HASTA . " AS ban_hasta"
+                . ", u." . UsuariosExtCols::CREATED_AT . ", u." . UsuariosExtCols::UPDATED_AT
+                . ", (SELECT COUNT(*) FROM {$ts} s WHERE s." . SamplesCols::CREADOR_ID . " = u." . UsuariosExtCols::ID
+                . " AND s." . SamplesCols::ESTADO . " = '{$activo}') as total_samples"
+                . ", (SELECT COUNT(*) FROM {$td} d WHERE d." . DescargasCols::USUARIO_ID . " = u." . UsuariosExtCols::ID
+                . ") as total_descargas"
+                . " FROM {$tu} u WHERE {$where} ORDER BY {$orderBy} LIMIT :porPagina OFFSET :offset",
             $params
         );
 

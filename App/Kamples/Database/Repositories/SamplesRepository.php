@@ -27,6 +27,9 @@ use App\Kamples\Database\Repositories\DescargasRepository;
 
 class SamplesRepository extends BaseRepository
 {
+    /* Carpeta por defecto para samples sin carpeta_primaria asignada en metadata */
+    public const CARPETA_DEFAULT = 'Samples';
+
     protected static function tabla(): string
     {
         return SamplesCols::TABLA;
@@ -477,8 +480,8 @@ class SamplesRepository extends BaseRepository
         $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $limit, 'offset' => $offset];
         $carpetaClause = '';
         if ($carpeta !== '') {
-            /* C288: COALESCE para que samples sin carpeta_primaria se traten como 'Samples' */
-            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') = :carpeta";
+            /* C288: COALESCE para que samples sin carpeta_primaria se traten como carpeta por defecto */
+            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
             $params['carpeta'] = $carpeta;
         }
 
@@ -509,7 +512,7 @@ class SamplesRepository extends BaseRepository
         $carpetaClause = '';
         if ($carpeta !== '') {
             /* C288: COALESCE para consistencia con carpetasColeccionados() */
-            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') = :carpeta";
+            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
             $params['carpeta'] = $carpeta;
         }
 
@@ -533,7 +536,7 @@ class SamplesRepository extends BaseRepository
         $td = DescargasCols::TABLA;
 
         $sql = "SELECT"
-             . "  COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', 'Samples') AS primaria,"
+             . "  COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') AS primaria,"
              . "  s." . SamplesCols::METADATA . "->>'carpeta_secundaria' AS secundaria,"
              . "  COUNT(*) AS total"
              . " FROM ("

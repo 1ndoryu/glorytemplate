@@ -16,6 +16,8 @@
 
 namespace App\Kamples\Database;
 
+use App\Config\Schema\_generated\SamplesCols;
+
 class VerificarPgvector
 {
     /*
@@ -98,10 +100,12 @@ class VerificarPgvector
 
     private static function verificarColumnaEmbedding(): array
     {
+        $tabla = SamplesCols::TABLA;
+        $columna = SamplesCols::EMBEDDING;
         $fila = PostgresService::consultarUno(
             "SELECT column_name, udt_name
              FROM information_schema.columns
-             WHERE table_name = 'samples' AND column_name = 'embedding'"
+             WHERE table_name = '{$tabla}' AND column_name = '{$columna}'"
         );
 
         if ($fila === null) {
@@ -119,10 +123,13 @@ class VerificarPgvector
         ];
     }
 
+    private const IDX_EMBEDDING = 'idx_samples_embedding';
+
     private static function verificarIndiceHnsw(): array
     {
+        $idx = self::IDX_EMBEDDING;
         $fila = PostgresService::consultarUno(
-            "SELECT indexname, indexdef FROM pg_indexes WHERE indexname = 'idx_samples_embedding'"
+            "SELECT indexname, indexdef FROM pg_indexes WHERE indexname = '{$idx}'"
         );
 
         if ($fila === null) {
@@ -139,7 +146,7 @@ class VerificarPgvector
             'nombre' => 'Índice HNSW',
             'ok' => $esHnsw,
             'detalle' => $esHnsw
-                ? 'idx_samples_embedding con vector_cosine_ops'
+                ? self::IDX_EMBEDDING . ' con vector_cosine_ops'
                 : "Existe pero no es HNSW: {$fila['indexdef']}",
         ];
     }

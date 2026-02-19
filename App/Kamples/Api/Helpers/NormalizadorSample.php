@@ -12,6 +12,7 @@
 namespace App\Kamples\Api\Helpers;
 
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
@@ -140,8 +141,8 @@ class NormalizadorSample
             'formato'          => $row[SamplesCols::FORMATO] ?? null,
             'tamano'           => isset($row[SamplesCols::TAMANO]) ? (int) $row[SamplesCols::TAMANO] : 0,
             'tags'             => $tags,
-            'tipo'             => $row[SamplesCols::TIPO] ?? 'one shot',
-            'estado'           => $row[SamplesCols::ESTADO] ?? 'procesando',
+            'tipo'             => $row[SamplesCols::TIPO] ?? SamplesEnums::TIPO_ONESHOT,
+            'estado'           => $row[SamplesCols::ESTADO] ?? SamplesEnums::ESTADO_PROCESANDO,
             'esPremium'        => (bool) ($row[SamplesCols::ES_PREMIUM] ?? false),
             'precio'           => isset($row[SamplesCols::PRECIO]) ? (float) $row[SamplesCols::PRECIO] : null,
             'metadata'         => $metadata,

@@ -237,7 +237,7 @@ class ComentariosController
                 'contenido' => $fila[ComentariosCols::CONTENIDO] ?? '',
                 'creadoAt' => $fila[ComentariosCols::CREATED_AT] ?? '',
                 'editadoAt' => $fila[ComentariosCols::UPDATED_AT] ?? null,
-                'tipoContenido' => $fila[ComentariosCols::TIPO_CONTENIDO] ?? 'texto',
+                'tipoContenido' => $fila[ComentariosCols::TIPO_CONTENIDO] ?? ComentariosEnums::TIPO_CONTENIDO_TEXTO,
                 'mediaUrl' => $fila[ComentariosCols::MEDIA_URL] ?? null,
                 'mediaMetadata' => $meta,
                 'parentId' => $fila[ComentariosCols::PARENT_ID] ? (int) $fila[ComentariosCols::PARENT_ID] : null,

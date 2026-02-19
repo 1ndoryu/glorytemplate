@@ -17,6 +17,7 @@ use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\ConversacionesCols;
+use App\Config\Schema\_generated\MensajesEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\NotificacionesRepository;
@@ -243,7 +244,7 @@ class ExperimentosController
         }
 
         /* Insertar mensaje del test user */
-        MensajesRepository::insertarMensaje($convId, $testUserId, $contenido, 'texto', null, null);
+        MensajesRepository::insertarMensaje($convId, $testUserId, $contenido, MensajesEnums::TIPO_TEXTO, null, null);
 
         /* Actualizar timestamp de la conversación */
         ConversacionesRepository::actualizarUltimoMensaje($convId);

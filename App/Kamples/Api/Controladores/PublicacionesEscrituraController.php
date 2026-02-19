@@ -23,6 +23,7 @@ use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\PublicacionesCols;
+use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 
@@ -178,9 +179,14 @@ class PublicacionesEscrituraController
 
         /* Solo admin puede cambiar estado de moderación */
         if (isset($body['moderacionEstado']) && $esAdmin) {
-            $estadosValidos = ['pendiente', 'aprobado', 'revision', 'rechazado'];
+            $estadosValidos = [
+                PublicacionesEnums::MODERACION_PENDIENTE,
+                PublicacionesEnums::MODERACION_APROBADO,
+                PublicacionesEnums::MODERACION_REVISION,
+                PublicacionesEnums::MODERACION_RECHAZADO,
+            ];
             if (\in_array($body['moderacionEstado'], $estadosValidos, true)) {
-                $campos[] = 'moderacion_estado = :modEstado';
+                $campos[] = PublicacionesCols::MODERACION_ESTADO . ' = :modEstado';
                 $params['modEstado'] = $body['moderacionEstado'];
             }
         }
