@@ -178,31 +178,44 @@ class Configuracion
             return false;
         }
 
-        $insertado = $wpdb->insert($this->tablaCentros, [
-            CapCentrosCols::USER_ID => $userId,
-            CapCentrosCols::NOMBRE => sanitize_text_field($nombre),
-            CapCentrosCols::CREATED_AT => current_time('mysql'),
-            CapCentrosCols::UPDATED_AT => current_time('mysql'),
-        ]);
+        /* Transacción: INSERT centro + INSERT config deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
 
-        if (!$insertado) {
+        try {
+            $insertado = $wpdb->insert($this->tablaCentros, [
+                CapCentrosCols::USER_ID => $userId,
+                CapCentrosCols::NOMBRE => sanitize_text_field($nombre),
+                CapCentrosCols::CREATED_AT => current_time('mysql'),
+                CapCentrosCols::UPDATED_AT => current_time('mysql'),
+            ]);
+
+            if (!$insertado) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Configuracion] ERROR: Fallo al crear centro para user {$userId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            $centroId = $wpdb->insert_id;
+
+            /* Crear configuración por defecto */
+            $configDefecto = $this->configuracionDefecto($centroId);
+            $configDefecto[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
+            $configDefecto[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
+
+            $configInsertada = $wpdb->insert($this->tablaConfig, $configDefecto);
+            if ($configInsertada === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Configuracion] ERROR: Fallo al crear configuración por defecto para centro {$centroId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            $wpdb->query('COMMIT');
+            return $centroId;
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log("[CAP Configuracion] ERROR: Transacción fallida en crearCentro para user {$userId}: {$e->getMessage()}");
             return false;
         }
-
-        $centroId = $wpdb->insert_id;
-
-        /* Crear configuración por defecto, verificar retorno */
-        $configDefecto = $this->configuracionDefecto($centroId);
-        $configDefecto[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
-        $configDefecto[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
-
-        $configInsertada = $wpdb->insert($this->tablaConfig, $configDefecto);
-        if ($configInsertada === false) {
-            error_log("[CAP Configuracion] ERROR: Fallo al crear configuración por defecto para centro {$centroId}. DB error: {$wpdb->last_error}");
-            /* El centro se creó pero sin config; retornar centroId para que el caller pueda actuar */
-        }
-
-        return $centroId;
     }
 
     /**

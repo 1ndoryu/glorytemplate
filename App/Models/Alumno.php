@@ -291,26 +291,43 @@ class Alumno
     {
         global $wpdb;
 
-        /* Primero eliminar disponibilidad asociada */
-        $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
-        $resultadoDisp = $wpdb->delete($tablaDisponibilidad, [CapDisponibilidadCols::ALUMNO_ID => $id]);
-        if ($resultadoDisp === false) {
-            error_log("[CAP Alumno] ERROR: Fallo al eliminar disponibilidad del alumno {$id}. DB error: {$wpdb->last_error}");
+        /* Transacción: DELETE disponibilidad + asistencias + alumno deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            /* Primero eliminar disponibilidad asociada */
+            $tablaDisponibilidad = $wpdb->prefix . CapDisponibilidadCols::TABLA;
+            $resultadoDisp = $wpdb->delete($tablaDisponibilidad, [CapDisponibilidadCols::ALUMNO_ID => $id]);
+            if ($resultadoDisp === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Alumno] ERROR: Fallo al eliminar disponibilidad del alumno {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            /* Luego eliminar asistencias */
+            $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+            $resultadoAsis = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::ALUMNO_ID => $id]);
+            if ($resultadoAsis === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Alumno] ERROR: Fallo al eliminar asistencias del alumno {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            /* Finalmente eliminar el alumno */
+            $eliminado = $wpdb->delete($this->tabla, [CapAlumnosCols::ID => $id]);
+            if ($eliminado === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Alumno] ERROR: Fallo al eliminar alumno {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            $wpdb->query('COMMIT');
+            return true;
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log("[CAP Alumno] ERROR: Transacción fallida en eliminar alumno {$id}: {$e->getMessage()}");
             return false;
         }
-
-        /* Luego eliminar asistencias */
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $resultadoAsis = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::ALUMNO_ID => $id]);
-        if ($resultadoAsis === false) {
-            error_log("[CAP Alumno] ERROR: Fallo al eliminar asistencias del alumno {$id}. DB error: {$wpdb->last_error}");
-            return false;
-        }
-
-        /* Finalmente eliminar el alumno */
-        $eliminado = $wpdb->delete($this->tabla, [CapAlumnosCols::ID => $id]);
-
-        return $eliminado !== false;
     }
 
     /**

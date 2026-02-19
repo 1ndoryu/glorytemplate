@@ -88,6 +88,9 @@ class CapClasesLimpiezaEndpoints
             ]);
         }
 
+        /* Transacción: DELETE asistencias + DELETE clases deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
         /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
         $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
         $resultadoAsistencia = $wpdb->query($wpdb->prepare(
@@ -95,6 +98,7 @@ class CapClasesLimpiezaEndpoints
             ...$clasesIds
         ));
         if ($resultadoAsistencia === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }
 
@@ -104,8 +108,11 @@ class CapClasesLimpiezaEndpoints
         ));
 
         if ($eliminadas === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar clases'], 500);
         }
+
+        $wpdb->query('COMMIT');
 
         $alumnoModel = new Alumno();
         $alumnoModel->recalcularProgresoCentro($centroId);
@@ -162,6 +169,9 @@ class CapClasesLimpiezaEndpoints
             ]);
         }
 
+        /* Transacción: DELETE asistencias + DELETE clases deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
         /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
         $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
         $resultadoAsistencia = $wpdb->query($wpdb->prepare(
@@ -169,6 +179,7 @@ class CapClasesLimpiezaEndpoints
             ...$clasesIds
         ));
         if ($resultadoAsistencia === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }
 
@@ -180,8 +191,11 @@ class CapClasesLimpiezaEndpoints
         ));
 
         if ($eliminadas === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar clases de la semana'], 500);
         }
+
+        $wpdb->query('COMMIT');
 
         $alumnoModel = new Alumno();
         $alumnoModel->recalcularProgresoCentro($centroId);

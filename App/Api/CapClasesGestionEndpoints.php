@@ -157,15 +157,22 @@ class CapClasesGestionEndpoints
             $claseId
         ));
 
+        /* Transacción: DELETE asistencias + DELETE clase deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
         $asistenciaEliminada = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $claseId]);
         if ($asistenciaEliminada === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'Error al eliminar asistencias'], 500);
         }
 
         $eliminado = $wpdb->delete($tablaClases, [CapClasesCols::ID => $claseId]);
         if ($eliminado === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'Error al eliminar la clase'], 500);
         }
+
+        $wpdb->query('COMMIT');
 
         if (!empty($alumnosAfectados)) {
             $alumnoModel = new Alumno();

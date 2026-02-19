@@ -124,6 +124,9 @@ class CapRegistroEndpoints
         $tablaConfig = $wpdb->prefix . CapConfiguracionCols::TABLA;
         $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
+        /* Transacción: centro + config + suscripción deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
         $centroInsertado = $wpdb->insert($tablaCentros, [
             CapCentrosCols::USER_ID => $userId,
             CapCentrosCols::NOMBRE => $nombreCentro,
@@ -133,6 +136,7 @@ class CapRegistroEndpoints
         ]);
 
         if ($centroInsertado === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,
                 'message' => 'No se pudo crear el centro asociado'
@@ -148,6 +152,7 @@ class CapRegistroEndpoints
         ]);
 
         if ($configInsertada === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,
                 'message' => 'No se pudo crear la configuración inicial'
@@ -164,11 +169,14 @@ class CapRegistroEndpoints
         ]);
 
         if ($suscripcionInsertada === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,
                 'message' => 'No se pudo crear la suscripción inicial'
             ], 500);
         }
+
+        $wpdb->query('COMMIT');
 
         $asunto = 'Bienvenido a la plataforma CAP';
         $mensaje = sprintf(

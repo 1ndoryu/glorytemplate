@@ -33,66 +33,77 @@ class CalendarPersistenceService
         $fechaFin = $fechaBase ? (clone $fechaBase)->modify('+4 days')->format('Y-m-d') : $fechaInicioSemana;
         $fechaBorradoDesde = $fechaDesde ?? $fechaInicioSemana;
 
-        /* Eliminar clases existentes no bloqueadas del rango, verificar retorno */
-        $resultadoDelete = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$tablaClases}
-             WHERE centro_id = %d
-             AND fecha BETWEEN %s AND %s
-             AND bloqueada = 0",
-            $centroId,
-            $fechaBorradoDesde,
-            $fechaFin
-        ));
+        /* Transacción: DELETE clases + INSERT clases + INSERT asistencias deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
 
-        if ($resultadoDelete === false) {
-            error_log("[CAP Calendar] ERROR: Fallo al eliminar clases previas para centro {$centroId}. DB error: {$wpdb->last_error}");
-            return [];
-        }
+        try {
+            /* Eliminar clases existentes no bloqueadas del rango, verificar retorno */
+            $resultadoDelete = $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$tablaClases}
+                 WHERE centro_id = %d
+                 AND fecha BETWEEN %s AND %s
+                 AND bloqueada = 0",
+                $centroId,
+                $fechaBorradoDesde,
+                $fechaFin
+            ));
 
-        $clasesCreadas = [];
-
-        foreach ($distribucion as $clase) {
-            $insertado = $wpdb->insert($tablaClases, [
-                CapClasesCols::CENTRO_ID => $centroId,
-                CapClasesCols::FECHA => $clase['fecha'],
-                CapClasesCols::HORA_INICIO => $clase['hora_inicio'],
-                CapClasesCols::HORA_FIN => $clase['hora_fin'],
-                CapClasesCols::ASIGNATURA => $clase['asignatura'],
-                CapClasesCols::DURACION_MINUTOS => $duracionClase,
-                CapClasesCols::BLOQUEADA => 0,
-                CapClasesCols::CREATED_AT => current_time('mysql')
-            ]);
-
-            if (!$insertado) {
-                continue;
+            if ($resultadoDelete === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Calendar] ERROR: Fallo al eliminar clases previas para centro {$centroId}. DB error: {$wpdb->last_error}");
+                return [];
             }
 
-            $claseId = $wpdb->insert_id;
+            $clasesCreadas = [];
 
-            foreach ($clase['alumnos'] as $alumnoId) {
-                $asistenciaInsertada = $wpdb->insert($tablaAsistencia, [
-                    CapAsistenciaCols::CLASE_ID => $claseId,
-                    CapAsistenciaCols::ALUMNO_ID => $alumnoId,
-                    CapAsistenciaCols::ASISTIO => 0,
-                    CapAsistenciaCols::CREATED_AT => current_time('mysql')
+            foreach ($distribucion as $clase) {
+                $insertado = $wpdb->insert($tablaClases, [
+                    CapClasesCols::CENTRO_ID => $centroId,
+                    CapClasesCols::FECHA => $clase['fecha'],
+                    CapClasesCols::HORA_INICIO => $clase['hora_inicio'],
+                    CapClasesCols::HORA_FIN => $clase['hora_fin'],
+                    CapClasesCols::ASIGNATURA => $clase['asignatura'],
+                    CapClasesCols::DURACION_MINUTOS => $duracionClase,
+                    CapClasesCols::BLOQUEADA => 0,
+                    CapClasesCols::CREATED_AT => current_time('mysql')
                 ]);
 
-                if ($asistenciaInsertada === false) {
-                    error_log("[CAP Calendar] ERROR: Fallo al insertar asistencia para clase_id={$claseId}, alumno_id={$alumnoId}. DB error: {$wpdb->last_error}");
+                if (!$insertado) {
+                    continue;
                 }
+
+                $claseId = $wpdb->insert_id;
+
+                foreach ($clase['alumnos'] as $alumnoId) {
+                    $asistenciaInsertada = $wpdb->insert($tablaAsistencia, [
+                        CapAsistenciaCols::CLASE_ID => $claseId,
+                        CapAsistenciaCols::ALUMNO_ID => $alumnoId,
+                        CapAsistenciaCols::ASISTIO => 0,
+                        CapAsistenciaCols::CREATED_AT => current_time('mysql')
+                    ]);
+
+                    if ($asistenciaInsertada === false) {
+                        error_log("[CAP Calendar] ERROR: Fallo al insertar asistencia para clase_id={$claseId}, alumno_id={$alumnoId}. DB error: {$wpdb->last_error}");
+                    }
+                }
+
+                $clasesCreadas[] = [
+                    'id' => $claseId,
+                    'fecha' => $clase['fecha'],
+                    'hora_inicio' => $clase['hora_inicio'],
+                    'hora_fin' => $clase['hora_fin'],
+                    'asignatura' => $clase['asignatura'],
+                    'asignatura_nombre' => $clase['asignatura_nombre'],
+                    'alumnos_count' => count($clase['alumnos'])
+                ];
             }
 
-            $clasesCreadas[] = [
-                'id' => $claseId,
-                'fecha' => $clase['fecha'],
-                'hora_inicio' => $clase['hora_inicio'],
-                'hora_fin' => $clase['hora_fin'],
-                'asignatura' => $clase['asignatura'],
-                'asignatura_nombre' => $clase['asignatura_nombre'],
-                'alumnos_count' => count($clase['alumnos'])
-            ];
+            $wpdb->query('COMMIT');
+            return $clasesCreadas;
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log("[CAP Calendar] ERROR: Transacción fallida en crearClases para centro {$centroId}: {$e->getMessage()}");
+            return [];
         }
-
-        return $clasesCreadas;
     }
 }

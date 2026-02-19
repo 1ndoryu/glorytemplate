@@ -205,17 +205,33 @@ class Clase
             return false;
         }
 
-        /* Eliminar asistencias asociadas, verificar retorno */
-        $resultadoAsis = $wpdb->delete($this->tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $id]);
-        if ($resultadoAsis === false) {
-            error_log("[CAP Clase] ERROR: Fallo al eliminar asistencias de la clase {$id}. DB error: {$wpdb->last_error}");
+        /* Transacción: DELETE asistencias + DELETE clase deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
+        try {
+            /* Eliminar asistencias asociadas, verificar retorno */
+            $resultadoAsis = $wpdb->delete($this->tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $id]);
+            if ($resultadoAsis === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Clase] ERROR: Fallo al eliminar asistencias de la clase {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            /* Eliminar la clase */
+            $eliminado = $wpdb->delete($this->tabla, [CapClasesCols::ID => $id]);
+            if ($eliminado === false) {
+                $wpdb->query('ROLLBACK');
+                error_log("[CAP Clase] ERROR: Fallo al eliminar clase {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            $wpdb->query('COMMIT');
+            return true;
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log("[CAP Clase] ERROR: Transacción fallida en eliminar clase {$id}: {$e->getMessage()}");
             return false;
         }
-
-        /* Eliminar la clase */
-        $eliminado = $wpdb->delete($this->tabla, [CapClasesCols::ID => $id]);
-
-        return $eliminado !== false;
     }
 
     /**

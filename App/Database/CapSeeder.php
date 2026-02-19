@@ -154,11 +154,16 @@ class CapSeeder
         }
 
         try {
+            global $wpdb;
+            /* Transacción: todas las inserciones demo deben ser atómicas */
+            $wpdb->query('START TRANSACTION');
+
             $alumnosCreados = $this->crearAlumnos();
             $this->crearDisponibilidades($alumnosCreados);
             $clasesCreadas = $this->crearClasesEjemplo();
             $this->asignarAsistencias($alumnosCreados, $clasesCreadas);
 
+            $wpdb->query('COMMIT');
             $this->registrarAccion('seed', count($alumnosCreados));
 
             return [
@@ -169,7 +174,9 @@ class CapSeeder
                     'clases' => count($clasesCreadas),
                 ]
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log('[CapSeeder::seedAll] Rollback — ' . $e->getMessage());
             return [
                 'exito' => false,
                 'error' => $e->getMessage()
@@ -207,6 +214,9 @@ class CapSeeder
                     'eliminados' => ['alumnos' => 0, 'clases' => 0]
                 ];
             }
+
+            /* Transacción: todas las eliminaciones demo deben ser atómicas */
+            $wpdb->query('START TRANSACTION');
 
             $idsPlaceholder = implode(',', array_map('intval', $alumnosIds));
 
@@ -254,6 +264,7 @@ class CapSeeder
                 ...$alumnosIds
             ));
 
+            $wpdb->query('COMMIT');
             $this->registrarAccion('clean', count($alumnosIds));
 
             return [
@@ -264,7 +275,9 @@ class CapSeeder
                     'clases' => (int) $clasesEliminadas,
                 ]
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log('[CapSeeder::cleanAll] Rollback — ' . $e->getMessage());
             return [
                 'exito' => false,
                 'error' => $e->getMessage()

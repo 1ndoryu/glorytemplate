@@ -115,8 +115,12 @@ class CapDisponibilidadEndpoints
         global $wpdb;
         $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
 
+        /* Transacción: DELETE slots anteriores + INSERT nuevos deben ser atómicos */
+        $wpdb->query('START TRANSACTION');
+
         $eliminado = $wpdb->delete($tabla, [CapDisponibilidadCols::ALUMNO_ID => $alumnoId]);
         if ($eliminado === false) {
+            $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudo limpiar la disponibilidad anterior'], 500);
         }
 
@@ -155,10 +159,12 @@ class CapDisponibilidadEndpoints
             ]);
 
             if ($insertado === false) {
+                $wpdb->query('ROLLBACK');
                 return new \WP_REST_Response(['error' => 'No se pudo guardar la disponibilidad'], 500);
             }
         }
 
+        $wpdb->query('COMMIT');
         return new \WP_REST_Response(['exito' => true, 'message' => 'Disponibilidad guardada']);
     }
 }
