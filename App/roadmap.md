@@ -112,6 +112,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **[AG-THRE] C310:** Piano Roll completo — pianoRollStore+accionesNotas (~530lín CRUD+undo/redo), 11 componentes (GridNotas canvas+DOM hybrid, NotaRect, TecladoPiano C0-B8, ReglaTemporal, CabeceraPianoRoll, PanelControl velocity/pan/pitch, BarraVelocity, GhostNotas, MenuContextualPR, MinimapaPianoRoll), pianoRollAudioService, atajos teclado, marquee selection. Pendiente: integración con Channel Rack AG-TWO (sync steps↔notas).
 **[AG-SQL] Auditoría SQL:** Escaneo completo 168 PHP + 22 migraciones. 58 hallazgos (19 CRITICAL, 25 MEDIUM, 14 LOW). Documento completo: `App/docs/auditoria-sql.md`. Plan de optimización BD: 12 índices nuevos, triggers counter-cache, JSONB expression indexes, fix discrepancia oneshot/one shot, particionamiento futuro.
 **[AG-SEC] Auditoría Seguridad PHP:** 86 archivos Kamples auditados (seguridad+calidad). 23 hallazgos (3 P0, 7 P1, 8 P2, 5 P3). P0-1: command injection DeduplicadorAudio (exec sin escapeshellarg). P0-2/P0-3: INTERVAL interpolation sin whitelist en TransaccionesRepo/ReproduccionesRepo/ComentariosRepo. Documento: `App/docs/auditoria-seguridad-php.md`.
+**[AG-AUD] Auditoría Profunda 10 archivos:** Deep audit de DeduplicadorAudio, 3 repos (Transacciones/Reproducciones/Comentarios), 3 controllers (Notificaciones/Dashboard/Experimentos), PostgresService, ServicioNotificaciones, StripeService. 39 hallazgos nuevos/extendidos (4 P0, 11 P1, 12 P2, 12 P3). Documento: `App/docs/auditoria-profunda-10archivos.md`.
 
 ---
 
@@ -172,7 +173,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 - Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes`
 - Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
-- Menú contextual publicaciones (eliminar/reportar/copiar/ver post)
+- Menú contextual publicaciones (eliminar/reportar/copiar/ver post/editar (los admin puede editar cualquier post y los usuarios sus propos post))
+
 
 ---
 
