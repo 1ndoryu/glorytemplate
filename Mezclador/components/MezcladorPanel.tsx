@@ -4,16 +4,20 @@
  * Aislado de la app principal via ErrorBoundary.
  */
 
-import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { PanelRightClose, Download, Upload, FolderUp, Trash2, Loader, Maximize2, Minimize2, Settings, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useMezclador } from '../hooks/useMezclador';
 import { ControlesMezclador } from './ControlesMezclador';
 import { ModalConfigDaw } from './ModalConfigDaw';
 import { BarraVentanasMinimizadas } from './BarraVentanasMinimizadas';
 import { Timeline } from './Timeline';
+import { ChannelRack } from './ChannelRack/ChannelRack';
+import { MixerConsola } from './Mixer/MixerConsola';
+import { PanelBrowserDaw } from './PanelBrowserDaw';
 import { useMezcladorStore } from '../stores/mezcladorStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { useBrowserDaw } from '../hooks/useBrowserDaw';
 /* C293: CSS refactorizado en módulos */
 import '../styles/index.css';
 
@@ -65,6 +69,9 @@ const MezcladorContenido = (): JSX.Element => {
     /* C253: Modal de configuración del DAW */
     const [modalConfigDawAbierto, setModalConfigDawAbierto] = useState(false);
 
+    /* C307: Browser del DAW */
+    const browser = useBrowserDaw();
+
     /* Cerrar el mezclador Y el panel lateral */
     const cerrar = () => {
         cerrarMezclador();
@@ -101,6 +108,14 @@ const MezcladorContenido = (): JSX.Element => {
                     {estaCargando && (
                         <span className="mezcladorCargando">Cargando...</span>
                     )}
+                    {/* C307: Toggle browser */}
+                    <button
+                        className={`mezcladorBotonCabecera ${browser.abierto ? 'mezcladorBotonActivo' : ''}`}
+                        onClick={browser.toggle}
+                        title={browser.abierto ? 'Cerrar browser' : 'Abrir browser'}
+                    >
+                        {browser.abierto ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+                    </button>
                     <button
                         className="mezcladorBotonCabecera"
                         onClick={() => inputArchivoRef.current?.click()}
@@ -169,26 +184,41 @@ const MezcladorContenido = (): JSX.Element => {
                 reproduciendo={reproduciendo}
             />
 
-            {/* Timeline con pistas */}
-            <Timeline
-                timelineRef={timelineRef}
-                onSeek={seek}
-                onIniciarDrag={iniciarDragBloque}
-                onDragOver={alDragOver}
-                onDrop={alDropExterno}
-                pistaIdHover={pistaIdHover}
-                dragActivo={dragState.activo}
-                bloqueIdDrag={dragState.bloqueId}
-                posicionDragFantasma={posicionDragFantasma}
-                duracionBloqueDrag={duracionBloqueDrag}
-            />
+            {/* C307: Cuerpo — browser (opcional) + timeline */}
+            <div className="mezcladorCuerpo">
+                {browser.abierto && (
+                    <PanelBrowserDaw
+                        carpetas={browser.carpetas}
+                        samplesPorCarpeta={browser.samplesPorCarpeta}
+                        carpetasExpandidas={browser.carpetasExpandidas}
+                        cargando={browser.cargando}
+                        onToggleCarpeta={browser.toggleCarpeta}
+                    />
+                )}
+
+                {/* Timeline con pistas */}
+                <Timeline
+                    timelineRef={timelineRef}
+                    onSeek={seek}
+                    onIniciarDrag={iniciarDragBloque}
+                    onDragOver={alDragOver}
+                    onDrop={alDropExterno}
+                    pistaIdHover={pistaIdHover}
+                    dragActivo={dragState.activo}
+                    bloqueIdDrag={dragState.bloqueId}
+                    posicionDragFantasma={posicionDragFantasma}
+                    duracionBloqueDrag={duracionBloqueDrag}
+                />
+            </div>
 
             {/* C253: Modal de configuración global del DAW */}
             <ModalConfigDaw
                 abierto={modalConfigDawAbierto}
                 onCerrar={() => setModalConfigDawAbierto(false)}
             />
-
+            {/* Channel Rack y Mixer como ventanas flotantes */}
+            <ChannelRack />
+            <MixerConsola />
             {/* C287: Barra de ventanas minimizadas */}
             <BarraVentanasMinimizadas />
         </div>

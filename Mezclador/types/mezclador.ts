@@ -79,6 +79,118 @@ export interface ConfigBloque {
     intercambiarEstereo?: boolean;
 }
 
+/* ============================================================
+ * PATTERN SYSTEM — Step sequencer + patrones reutilizables
+ * ============================================================ */
+
+/* Un paso individual en el secuenciador */
+export interface Paso {
+    activo: boolean;
+    velocity: number;      /* 0.0 - 1.0 (default 0.78 como FL) */
+    pan: number;           /* -1 a 1 (0 = centro) */
+    pitch: number;         /* semitonos offset (-12 a +12) */
+}
+
+/* Un canal dentro del Channel Rack (un instrumento/sample) */
+export interface CanalRack {
+    id: string;
+    nombre: string;
+    color: string;
+    sampleId: string | null;
+    audioBuffer: AudioBuffer | null;
+    rutaAudio: string | null;
+    volumen: number;
+    pan: number;
+    silenciado: boolean;
+    solo: boolean;
+    mixerInsertId: number;
+    pasos: Paso[];
+    tipo: 'sample' | 'oneshot';
+}
+
+/* Un patrón completo (equivale a un Pattern en FL Studio) */
+export interface Patron {
+    id: string;
+    nombre: string;
+    color: string;
+    canales: CanalRack[];
+    totalPasos: number;
+    pasosVisibles: number;
+    subdivisionPaso: number;
+    swing: number;
+    loop: boolean;
+    creadoEn: number;
+    modificadoEn: number;
+}
+
+/* Referencia de un patrón colocado en la playlist (timeline) */
+export interface ClipPatron {
+    id: string;
+    patronId: string;
+    pistaId: string;
+    compasInicio: number;
+    duracionCompases: number;
+    silenciado: boolean;
+    color: string;
+}
+
+/* ============================================================
+ * MIXER — Consola de mezcla con inserts, EQ, y FX
+ * ============================================================ */
+
+/* Un slot de efecto en un insert del mixer */
+export interface SlotEfecto {
+    id: string;
+    indice: number;
+    tipo: string | null;
+    activo: boolean;
+    parametros: Record<string, number>;
+}
+
+/* Banda del ecualizador paramétrico */
+export interface BandaEQ {
+    frecuencia: number;
+    ganancia: number;
+    q: number;
+    tipo: 'lowshelf' | 'highshelf' | 'peaking' | 'lowpass' | 'highpass';
+    activo: boolean;
+}
+
+/* Un canal/insert del mixer */
+export interface InsertMixer {
+    id: number;
+    nombre: string;
+    color: string;
+    volumen: number;
+    pan: number;
+    silenciado: boolean;
+    solo: boolean;
+    eq: BandaEQ[];
+    eqActivo: boolean;
+    slots: SlotEfecto[];
+    enviarA: number;
+    peakL: number;
+    peakR: number;
+    envios: { insertDestinoId: number; nivel: number; preFader: boolean }[];
+}
+
+/* Estado completo del mixer */
+export interface EstadoMixer {
+    inserts: InsertMixer[];
+    insertSeleccionado: number;
+    visible: boolean;
+    anchoInsert: number;
+}
+
+/* Nodos Web Audio de un insert del mixer */
+export interface MixerInsertNodes {
+    inputGain: GainNode;
+    fader: GainNode;
+    panner: StereoPannerNode;
+    eqBandas: BiquadFilterNode[];
+    analyser: AnalyserNode;
+}
+
 /* Una pista en la timeline */
 export interface PistaMezclador {
     id: string;
@@ -86,6 +198,10 @@ export interface PistaMezclador {
     volumen: number;
     silenciada: boolean;
     bloques: BloqueMezclador[];
+    clipsPatron: ClipPatron[];
+    color: string;
+    icono: string | null;
+    altura: 'normal' | 'compacta' | 'minimizada';
 }
 
 /* Estado completo del mezclador */
@@ -189,3 +305,67 @@ export const COLORES_BLOQUE: Record<string, string> = {
     fx: '#fb923c',
     default: 'var(--textoTerciario)',
 };
+
+/* Constantes del Channel Rack */
+export const CONSTANTES_CHANNEL_RACK = {
+    PASOS_DEFAULT: 16,
+    PASOS_MIN: 4,
+    PASOS_MAX: 64,
+    CANALES_MAX: 32,
+    VELOCITY_DEFAULT: 0.78,
+    SWING_DEFAULT: 0,
+    SUBDIVISION_DEFAULT: 1,
+} as const;
+
+/* Constantes del Mixer */
+export const CONSTANTES_MIXER = {
+    TOTAL_INSERTS: 16,
+    SLOTS_FX: 10,
+    EQ_BANDAS: 3,
+    VOLUMEN_MAX: 1.25,
+    ANCHO_INSERT_DEFAULT: 64,
+} as const;
+
+/* Colores por defecto para patrones nuevos */
+export const COLORES_PATRON: string[] = [
+    '#6c63ff', '#ff6b6b', '#51cf66', '#ffd43b',
+    '#339af0', '#f06595', '#20c997', '#ff922b',
+    '#845ef7', '#e64980', '#12b886', '#fab005',
+    '#4c6ef5', '#d6336c', '#099268', '#e67700',
+];
+
+/* Crear un paso vacío con valores por defecto */
+export const crearPasoVacio = (): Paso => ({
+    activo: false,
+    velocity: CONSTANTES_CHANNEL_RACK.VELOCITY_DEFAULT,
+    pan: 0,
+    pitch: 0,
+});
+
+/* Crear un InsertMixer con valores por defecto */
+export const crearInsertDefault = (id: number): InsertMixer => ({
+    id,
+    nombre: id === 0 ? 'Master' : `Insert ${id}`,
+    color: id === 0 ? '#6c63ff' : '#555',
+    volumen: 0.8,
+    pan: 0,
+    silenciado: false,
+    solo: false,
+    eq: [
+        { frecuencia: 200, ganancia: 0, q: 1, tipo: 'lowshelf', activo: true },
+        { frecuencia: 1000, ganancia: 0, q: 1, tipo: 'peaking', activo: true },
+        { frecuencia: 8000, ganancia: 0, q: 1, tipo: 'highshelf', activo: true },
+    ],
+    eqActivo: true,
+    slots: Array.from({ length: CONSTANTES_MIXER.SLOTS_FX }, (_, i) => ({
+        id: `slot-${id}-${i}`,
+        indice: i,
+        tipo: null,
+        activo: true,
+        parametros: {},
+    })),
+    enviarA: id === 0 ? -1 : 0,
+    peakL: 0,
+    peakR: 0,
+    envios: [],
+});

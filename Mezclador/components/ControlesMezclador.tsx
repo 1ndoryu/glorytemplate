@@ -4,8 +4,14 @@
  * Barra superior del mezclador con acciones principales.
  */
 
-import { Play, Square, Scissors, Undo2, Redo2, MoveHorizontal, Crop } from 'lucide-react';
+import { Play, Square, Scissors, Undo2, Redo2, MoveHorizontal, Crop, LayoutGrid, Sliders } from 'lucide-react';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { usePatronesStore } from '../stores/patronesStore';
+import { useVentanasStore } from '../stores/ventanasStore';
+import { InputTempo } from './InputTempo';
+import { SongPosition } from './SongPosition';
+import { MonitorOnda } from './MonitorOnda';
+import { MedidorPicos } from './MedidorPicos';
 
 interface ControlesMezcladorProps {
     onToggleReproduccion: () => void;
@@ -26,10 +32,16 @@ export const ControlesMezclador = ({
     const puedeRehacer = useMezcladorStore(s => s.puedeRehacer);
     const modoResizeGlobal = useMezcladorStore(s => s.modoResizeGlobal);
     const setModoResizeGlobal = useMezcladorStore(s => s.setModoResizeGlobal);
+    const modoReproduccion = usePatronesStore(s => s.modoReproduccion);
+    const setModoReproduccion = usePatronesStore(s => s.setModoReproduccion);
+    const abrirVentana = useVentanasStore(s => s.abrirVentana);
 
-    const alCambiarBpm = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const valor = parseInt(e.target.value, 10);
-        if (!isNaN(valor)) setBpm(valor);
+    const abrirChannelRack = () => {
+        abrirVentana({ id: 'channelRack', tipo: 'channelRack', titulo: 'Channel Rack', posicion: { x: 80, y: 120 } });
+    };
+
+    const abrirMixer = () => {
+        abrirVentana({ id: 'mixer', tipo: 'mixer', titulo: 'Mixer', posicion: { x: 100, y: 150 } });
     };
 
     return (
@@ -63,19 +75,60 @@ export const ControlesMezclador = ({
                 </button>
 
                 <div className="mezcladorBpmControl">
-                    <input
-                        type="number"
-                        className="mezcladorBpmInput"
-                        value={bpmProyecto}
-                        onChange={alCambiarBpm}
+                    <InputTempo
+                        valor={bpmProyecto}
+                        onChange={setBpm}
                         min={40}
                         max={300}
+                        etiqueta="BPM"
                     />
-                    <span className="mezcladorBpmLabel">BPM</span>
+                </div>
+
+                {/* C304: Song Position Display */}
+                <SongPosition />
+
+                {/* C305+C306: Monitor de onda y Peak meter */}
+                <div className="mezcladorVisualizadores">
+                    <MonitorOnda activo={reproduciendo} />
+                    <MedidorPicos activo={reproduciendo} />
                 </div>
             </div>
 
             {/* C285: Botones de compás y zoom eliminados — ahora en MinimapaDaw */}
+
+            {/* Grupo central: PAT/SONG toggle + abrir ventanas */}
+            <div className="mezcladorControlesGrupo">
+                <div className="mezcladorModoToggle">
+                    <button
+                        className={`mezcladorModoBoton ${modoReproduccion === 'pat' ? 'mezcladorModoBotonActivo' : ''}`}
+                        onClick={() => setModoReproduccion('pat')}
+                        title="Modo patrón: reproduce el patrón activo en loop"
+                    >
+                        PAT
+                    </button>
+                    <button
+                        className={`mezcladorModoBoton ${modoReproduccion === 'song' ? 'mezcladorModoBotonActivo' : ''}`}
+                        onClick={() => setModoReproduccion('song')}
+                        title="Modo canción: reproduce la playlist completa"
+                    >
+                        SONG
+                    </button>
+                </div>
+                <button
+                    className="mezcladorBotonAccion"
+                    onClick={abrirChannelRack}
+                    title="Abrir Channel Rack"
+                >
+                    <LayoutGrid size={13} />
+                </button>
+                <button
+                    className="mezcladorBotonAccion"
+                    onClick={abrirMixer}
+                    title="Abrir Mixer"
+                >
+                    <Sliders size={13} />
+                </button>
+            </div>
 
             {/* Grupo derecho: herramienta de corte + modo resize */}
             <div className="mezcladorControlesGrupo">

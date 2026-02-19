@@ -5,6 +5,7 @@
  */
 
 import { CONSTANTES_MEZCLADOR, DECLIC_DURACIONES } from '../types/mezclador';
+import type { MixerInsertNodes, Patron, CanalRack } from '../types/mezclador';
 import { decodificarAudio } from '../utils/audioBufferUtils';
 import { obtenerBufferProcesado, limpiarCachePitch, obtenerBufferInvertido, limpiarCacheInvertidos } from './pitchShiftService';
 
@@ -15,6 +16,15 @@ class MotorAudio {
     private nodosActivos: AudioBufferSourceNode[] = [];
     private gainsCanales: Map<string, GainNode> = new Map();
     private iniciado = false;
+
+    /* Mixer: nodos Web Audio por insert */
+    private mixerInserts: Map<number, MixerInsertNodes> = new Map();
+    private masterAnalyser: AnalyserNode | null = null;
+
+    /* C306: Stereo split para peak meters L/R */
+    private splitterEstereo: ChannelSplitterNode | null = null;
+    private analyserL: AnalyserNode | null = null;
+    private analyserR: AnalyserNode | null = null;
 
     /* Inicializar AudioContext — requiere gesto de usuario */
     iniciar(): AudioContext {
@@ -373,14 +383,362 @@ class MotorAudio {
             try { gain.disconnect(); } catch { /* ya desconectado */ }
         }
         this.gainsCanales.clear();
+        /* Desconectar mixer inserts */
+        this.destruirMixerInserts();
         if (this.contexto && this.contexto.state !== 'closed') {
             await this.contexto.close();
         }
         this.contexto = null;
         this.masterGain = null;
+        this.masterAnalyser = null;
+        this.splitterEstereo = null;
+        this.analyserL = null;
+        this.analyserR = null;
         this.iniciado = false;
-        /* Liberar caches de buffers al destruir */
         this.limpiarCache();
+    }
+
+    /* ============================================================
+     * MIXER — Routing por inserts con EQ y AnalyserNode
+     * ============================================================ */
+
+    /* Crear BiquadFilterNode para una banda de EQ */
+    private crearBandaEQNodo(
+        ctx: BaseAudioContext,
+        tipo: BiquadFilterType,
+        frecuencia: number,
+        ganancia: number
+    ): BiquadFilterNode {
+        const filtro = ctx.createBiquadFilter();
+        filtro.type = tipo;
+        filtro.frequency.value = frecuencia;
+        filtro.gain.value = ganancia;
+        filtro.Q.value = 1;
+        return filtro;
+    }
+
+    /* Crear cadena de nodos para un insert del mixer */
+    crearInsertMixer(insertId: number): void {
+        const ctx = this.obtenerContexto();
+
+        const inputGain = ctx.createGain();
+        const fader = ctx.createGain();
+        fader.gain.value = 0.8;
+        const panner = ctx.createStereoPanner();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+
+        /* EQ: 3 bandas paramétric — lowshelf, peaking, highshelf */
+        const eqBandas: BiquadFilterNode[] = [
+            this.crearBandaEQNodo(ctx, 'lowshelf', 200, 0),
+            this.crearBandaEQNodo(ctx, 'peaking', 1000, 0),
+            this.crearBandaEQNodo(ctx, 'highshelf', 8000, 0),
+        ];
+
+        /* Chain: input → EQ0 → EQ1 → EQ2 → fader → panner → analyser */
+        inputGain.connect(eqBandas[0]);
+        eqBandas[0].connect(eqBandas[1]);
+        eqBandas[1].connect(eqBandas[2]);
+        eqBandas[2].connect(fader);
+        fader.connect(panner);
+        panner.connect(analyser);
+
+        /* El destino depende de si es master o insert regular */
+        if (insertId === 0) {
+            /* Master → destination */
+            analyser.connect(ctx.destination);
+            this.masterAnalyser = analyser;
+
+            /* C306: Stereo split para peak meters L/R */
+            this.splitterEstereo = ctx.createChannelSplitter(2);
+            this.analyserL = ctx.createAnalyser();
+            this.analyserL.fftSize = 256;
+            this.analyserR = ctx.createAnalyser();
+            this.analyserR.fftSize = 256;
+            analyser.connect(this.splitterEstereo);
+            this.splitterEstereo.connect(this.analyserL, 0);
+            this.splitterEstereo.connect(this.analyserR, 1);
+        } else {
+            /* Insert → Master inputGain */
+            const masterNodes = this.mixerInserts.get(0);
+            if (masterNodes) {
+                analyser.connect(masterNodes.inputGain);
+            } else {
+                /* Si el master aún no existe, conectar temporalmente a destination */
+                analyser.connect(ctx.destination);
+            }
+        }
+
+        this.mixerInserts.set(insertId, { inputGain, fader, panner, eqBandas, analyser });
+    }
+
+    /* Inicializar todos los inserts del mixer (Master + 16) */
+    inicializarMixer(): void {
+        if (this.mixerInserts.size > 0) return;
+        /* Crear Master primero */
+        this.crearInsertMixer(0);
+        /* Luego los inserts 1-16 (se conectan al master) */
+        for (let i = 1; i <= 16; i++) {
+            this.crearInsertMixer(i);
+        }
+    }
+
+    /* Actualizar parámetros de un insert desde el store */
+    actualizarInsertMixer(insertId: number, volumen: number, pan: number, silenciado: boolean): void {
+        const nodos = this.mixerInserts.get(insertId);
+        if (!nodos) return;
+        nodos.fader.gain.value = silenciado ? 0 : volumen;
+        nodos.panner.pan.value = pan;
+    }
+
+    /* Actualizar una banda EQ de un insert */
+    actualizarEQInsert(insertId: number, bandaIdx: number, frecuencia: number, ganancia: number, q: number): void {
+        const nodos = this.mixerInserts.get(insertId);
+        if (!nodos || !nodos.eqBandas[bandaIdx]) return;
+        const banda = nodos.eqBandas[bandaIdx];
+        banda.frequency.value = frecuencia;
+        banda.gain.value = ganancia;
+        banda.Q.value = q;
+    }
+
+    /* Obtener peak levels de un insert */
+    obtenerPeaks(insertId: number): { peakL: number; peakR: number } {
+        const nodos = this.mixerInserts.get(insertId);
+        if (!nodos) return { peakL: 0, peakR: 0 };
+
+        const data = new Float32Array(nodos.analyser.frequencyBinCount);
+        nodos.analyser.getFloatTimeDomainData(data);
+
+        let max = 0;
+        for (let i = 0; i < data.length; i++) {
+            const abs = Math.abs(data[i]);
+            if (abs > max) max = abs;
+        }
+        /* Mono simplificado; stereo split requeriría ChannelSplitter */
+        return { peakL: max, peakR: max };
+    }
+
+    /* Obtener el AnalyserNode del master para visualización */
+    obtenerMasterAnalyser(): AnalyserNode | null {
+        return this.masterAnalyser;
+    }
+
+    /* C306: Obtener analysers estéreo L/R */
+    obtenerAnalyserEstereo(): { izquierdo: AnalyserNode | null; derecho: AnalyserNode | null } {
+        return { izquierdo: this.analyserL, derecho: this.analyserR };
+    }
+
+    /* Programar reproducción de un canal del Channel Rack a un insert del mixer */
+    programarReproduccionCanal(
+        buffer: AudioBuffer,
+        canalId: string,
+        mixerInsertId: number,
+        cuando: number,
+        offset: number,
+        duracion: number,
+        playbackRate: number,
+        volumen: number,
+        invertido = false,
+        fadeIn = 0,
+        fadeOut = 0,
+        detune = 0,
+        modoTonalidad: 'resample' | 'stretch' = 'resample',
+        bloqueId = '',
+        pan = 0,
+        modoDeclic: 'none' | 'corto' | 'medio' | 'largo' = 'corto'
+    ): AudioBufferSourceNode | null {
+        const ctx = this.obtenerContexto();
+
+        /* Verificar que el insert del mixer existe */
+        const insertNodes = this.mixerInserts.get(mixerInsertId);
+        if (!insertNodes) {
+            /* Fallback: reproducir por el sistema legacy */
+            return this.programarReproduccion(
+                buffer, canalId, cuando, offset, duracion,
+                playbackRate, volumen, invertido, fadeIn, fadeOut,
+                detune, modoTonalidad, bloqueId, pan, modoDeclic
+            );
+        }
+
+        const fuente = ctx.createBufferSource();
+
+        /* Procesamiento de buffer (stretch/invertido) */
+        let bufferFinal: AudioBuffer;
+        let rateParaFuente: number;
+        let detuneParaFuente: number;
+
+        if (modoTonalidad === 'stretch' && (detune !== 0 || playbackRate !== 1)) {
+            bufferFinal = obtenerBufferProcesado(ctx, bloqueId, buffer, detune, playbackRate);
+            rateParaFuente = 1;
+            detuneParaFuente = 0;
+        } else {
+            bufferFinal = buffer;
+            rateParaFuente = playbackRate;
+            detuneParaFuente = detune;
+        }
+
+        if (invertido) {
+            fuente.buffer = obtenerBufferInvertido(ctx, bloqueId, bufferFinal);
+        } else {
+            fuente.buffer = bufferFinal;
+        }
+
+        fuente.playbackRate.value = rateParaFuente;
+        if (detuneParaFuente !== 0) {
+            fuente.detune.value = detuneParaFuente * 100;
+        }
+
+        /* Gain del canal → conectar al insert del mixer */
+        const gainNodo = ctx.createGain();
+        fuente.connect(gainNodo);
+
+        /* Pan per-canal antes del mixer */
+        if (pan !== 0) {
+            const panNodo = ctx.createStereoPanner();
+            panNodo.pan.value = Math.max(-1, Math.min(1, pan));
+            gainNodo.connect(panNodo);
+            panNodo.connect(insertNodes.inputGain);
+        } else {
+            gainNodo.connect(insertNodes.inputGain);
+        }
+
+        /* Declicking + fades */
+        const declicDur = DECLIC_DURACIONES[modoDeclic] ?? 0;
+        const fadeInEfectivo = Math.max(fadeIn, declicDur);
+        if (fadeInEfectivo > 0 && fadeInEfectivo < duracion) {
+            gainNodo.gain.setValueAtTime(0, cuando);
+            gainNodo.gain.linearRampToValueAtTime(volumen, cuando + fadeInEfectivo);
+        } else {
+            gainNodo.gain.setValueAtTime(volumen, cuando);
+        }
+
+        const fadeOutEfectivo = Math.max(fadeOut, declicDur);
+        if (fadeOutEfectivo > 0 && fadeOutEfectivo < duracion) {
+            const inicioFadeOut = cuando + duracion - fadeOutEfectivo;
+            if (inicioFadeOut > cuando + fadeInEfectivo) {
+                gainNodo.gain.setValueAtTime(volumen, inicioFadeOut);
+                gainNodo.gain.linearRampToValueAtTime(0, cuando + duracion);
+            }
+        }
+
+        const tasaEfectiva = rateParaFuente * Math.pow(2, (detuneParaFuente * 100) / 1200);
+        fuente.start(cuando, offset, duracion * tasaEfectiva);
+        this.nodosActivos.push(fuente);
+
+        fuente.onended = () => {
+            gainNodo.disconnect();
+            this.nodosActivos = this.nodosActivos.filter(n => n !== fuente);
+        };
+
+        return fuente;
+    }
+
+    /* ============================================================
+     * STEP SEQUENCER — Reproducción de patrones
+     * ============================================================ */
+
+    /*
+     * Programar un patrón completo para reproducción.
+     * Cada paso activo produce un trigger de sample.
+     * Se usa tanto en modo PAT como en SONG (con offset).
+     */
+    programarPatron(
+        patron: Patron,
+        bpm: number,
+        desdeSegundo: number,
+        mixerInicializado: boolean
+    ): void {
+        /* Duración de un paso = 1 semicorchea = (60/bpm) / 4 */
+        const duracionPasoReal = (60 / bpm) / 4;
+
+        for (const canal of patron.canales) {
+            if (canal.silenciado || !canal.audioBuffer) continue;
+
+            /* Si hay algún canal en solo, solo reproducir esos */
+            const haySolo = patron.canales.some(c => c.solo);
+            if (haySolo && !canal.solo) continue;
+
+            for (let i = 0; i < canal.pasos.length; i++) {
+                const paso = canal.pasos[i];
+                if (!paso.activo) continue;
+
+                /* Momento en que suena este paso */
+                let cuando = desdeSegundo + (i * duracionPasoReal);
+
+                /* Swing: desplazar pasos impares */
+                if (patron.swing > 0 && i % 2 === 1) {
+                    cuando += duracionPasoReal * patron.swing * 0.5;
+                }
+
+                const ctx = this.obtenerContexto();
+                const ahora = ctx.currentTime;
+
+                /* Solo programar pasos que están en el futuro */
+                if (cuando < ahora - 0.01) continue;
+
+                const volumenFinal = paso.velocity * canal.volumen;
+                const duracionSample = canal.audioBuffer.duration;
+
+                if (mixerInicializado) {
+                    this.programarReproduccionCanal(
+                        canal.audioBuffer,
+                        canal.id,
+                        canal.mixerInsertId,
+                        cuando,
+                        0,
+                        duracionSample,
+                        1,
+                        volumenFinal,
+                        false,
+                        0, 0,
+                        paso.pitch,
+                        'resample',
+                        canal.id,
+                        paso.pan !== 0 ? paso.pan : canal.pan,
+                        'corto'
+                    );
+                } else {
+                    this.programarReproduccion(
+                        canal.audioBuffer,
+                        canal.id,
+                        cuando,
+                        0,
+                        duracionSample,
+                        1,
+                        volumenFinal,
+                        false,
+                        0, 0,
+                        paso.pitch,
+                        'resample',
+                        canal.id,
+                        paso.pan !== 0 ? paso.pan : canal.pan,
+                        'corto'
+                    );
+                }
+            }
+        }
+    }
+
+    /* Destruir todos los nodos del mixer */
+    private destruirMixerInserts(): void {
+        for (const nodos of this.mixerInserts.values()) {
+            try {
+                nodos.inputGain.disconnect();
+                nodos.fader.disconnect();
+                nodos.panner.disconnect();
+                nodos.analyser.disconnect();
+                for (const banda of nodos.eqBandas) {
+                    banda.disconnect();
+                }
+            } catch { /* nodos ya desconectados */ }
+        }
+        this.mixerInserts.clear();
+        this.masterAnalyser = null;
+    }
+
+    /* Verificar si el mixer está inicializado */
+    esMixerInicializado(): boolean {
+        return this.mixerInserts.size > 0;
     }
 
     /* Limpiar caché de buffers (liberar memoria) */

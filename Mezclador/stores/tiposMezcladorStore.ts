@@ -4,7 +4,7 @@
  */
 
 import type { SampleResumen } from '@app/types';
-import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
+import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion, ClipPatron } from '../types/mezclador';
 
 /* Snapshot para historial de undo/redo */
 export interface SnapshotMezclador {
@@ -82,6 +82,15 @@ export interface MezcladorState {
     eliminarPista: (pistaId: string) => void;
     setVolumenPista: (pistaId: string, volumen: number) => void;
     toggleSilenciarPista: (pistaId: string) => void;
+    renombrarPista: (pistaId: string, nombre: string) => void;
+    cambiarColorPista: (pistaId: string, color: string) => void;
+    cambiarAlturaPista: (pistaId: string, altura: 'normal' | 'compacta' | 'minimizada') => void;
+    duplicarPista: (pistaId: string) => void;
+    moverPista: (pistaId: string, direccion: 'arriba' | 'abajo') => void;
+    insertarPista: (indice: number) => void;
+    silenciarTodosBloquesPista: (pistaId: string, silenciar: boolean) => void;
+    resetPista: (pistaId: string) => void;
+    colorAleatorio: (pistaId: string) => void;
 
     /* Bloques */
     agregarSample: (sample: SampleResumen, pistaId?: string) => Promise<void>;

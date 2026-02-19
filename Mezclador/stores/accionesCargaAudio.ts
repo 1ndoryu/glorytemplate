@@ -19,6 +19,10 @@ export const crearPistaVacia = (nombre?: string): PistaMezclador => ({
     volumen: 1,
     silenciada: false,
     bloques: [],
+    clipsPatron: [],
+    color: '#555',
+    icono: null,
+    altura: 'normal',
 });
 
 interface DatosBloqueNuevo {

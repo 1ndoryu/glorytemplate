@@ -1,13 +1,17 @@
 /*
- * PistaTimeline — Una pista individual con sus bloques y controles
- * Drop zone para samples externos, contiene los BloqueSample
+ * PistaTimeline — Una pista individual con sus bloques y controles.
+ * Drop zone para samples externos, contiene los BloqueSample.
+ * C297: Menú contextual con rename inline, color, height, duplicar, etc.
  */
 
-import { Volume2, VolumeX, Trash2 } from 'lucide-react';
-import type { PistaMezclador } from '../types/mezclador';
+import { useState, useRef, useCallback } from 'react';
+import { Volume2, VolumeX, Trash2, Copy, ArrowUp, ArrowDown, Palette, RotateCcw } from 'lucide-react';
+import type { PistaMezclador, ClipPatron } from '../types/mezclador';
 import { BloqueSample } from './BloqueSample';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { usePatronesStore } from '../stores/patronesStore';
 import { calcularLineasCuadricula, anchoBloquePorc, posicionBloquePorc } from '../utils/compasUtils';
+import { MenuContextual, type MenuItemDef } from '@app/components/ui/MenuContextual';
 
 interface PistaTimelineProps {
     pista: PistaMezclador;
@@ -41,12 +45,58 @@ export const PistaTimeline = ({
 }: PistaTimelineProps): JSX.Element => {
     const toggleSilenciarPista = useMezcladorStore(s => s.toggleSilenciarPista);
     const eliminarPista = useMezcladorStore(s => s.eliminarPista);
+    const renombrarPista = useMezcladorStore(s => s.renombrarPista);
+    const colorAleatorio = useMezcladorStore(s => s.colorAleatorio);
+    const duplicarPista = useMezcladorStore(s => s.duplicarPista);
+    const moverPista = useMezcladorStore(s => s.moverPista);
+    const insertarPista = useMezcladorStore(s => s.insertarPista);
+    const cambiarAlturaPista = useMezcladorStore(s => s.cambiarAlturaPista);
+    const resetPista = useMezcladorStore(s => s.resetPista);
     const pistas = useMezcladorStore(s => s.pistas);
     const compasProyecto = useMezcladorStore(s => s.compasProyecto);
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const bloquesSeleccionados = useMezcladorStore(s => s.bloquesSeleccionados);
     const limpiarSeleccion = useMezcladorStore(s => s.limpiarSeleccion);
     const puedeBorrar = pistas.length > 1;
+
+    /* C297: Estado del menú contextual y rename inline */
+    const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+    const [editandoNombre, setEditandoNombre] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const indicePista = pistas.findIndex(p => p.id === pista.id);
+
+    const abrirMenu = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenu({ x: e.clientX, y: e.clientY });
+    }, []);
+
+    const cerrarMenu = useCallback(() => setMenu(null), []);
+
+    const confirmarRename = useCallback(() => {
+        if (!inputRef.current) return;
+        const nuevo = inputRef.current.value.trim();
+        if (nuevo && nuevo !== pista.nombre) renombrarPista(pista.id, nuevo);
+        setEditandoNombre(false);
+    }, [pista.id, pista.nombre, renombrarPista]);
+
+    /* Ciclar altura: normal → compacta → minimizada → normal */
+    const ciclarAltura = useCallback(() => {
+        const mapa = { normal: 'compacta', compacta: 'minimizada', minimizada: 'normal' } as const;
+        cambiarAlturaPista(pista.id, mapa[pista.altura ?? 'normal']);
+    }, [pista.id, pista.altura, cambiarAlturaPista]);
+
+    const itemsMenu: MenuItemDef[] = [
+        { id: 'renombrar', etiqueta: 'Renombrar', onClick: () => { setEditandoNombre(true); setTimeout(() => inputRef.current?.select(), 0); } },
+        { id: 'color', etiqueta: 'Color aleatorio', icono: <Palette size={12} />, onClick: () => colorAleatorio(pista.id), separadorDespues: true },
+        { id: 'altura', etiqueta: `Altura: ${pista.altura ?? 'normal'}`, onClick: ciclarAltura },
+        { id: 'duplicar', etiqueta: 'Duplicar', icono: <Copy size={12} />, onClick: () => duplicarPista(pista.id), separadorDespues: true },
+        { id: 'arriba', etiqueta: 'Mover arriba', icono: <ArrowUp size={12} />, onClick: () => moverPista(pista.id, 'arriba') },
+        { id: 'abajo', etiqueta: 'Mover abajo', icono: <ArrowDown size={12} />, onClick: () => moverPista(pista.id, 'abajo') },
+        { id: 'insertar', etiqueta: 'Insertar debajo', onClick: () => insertarPista(indicePista + 1), separadorDespues: true },
+        { id: 'reset', etiqueta: 'Resetear pista', icono: <RotateCcw size={12} />, onClick: () => resetPista(pista.id) },
+        ...(puedeBorrar ? [{ id: 'eliminar', etiqueta: 'Eliminar', icono: <Trash2 size={12} />, peligro: true, onClick: () => eliminarPista(pista.id) }] : []),
+    ];
 
     /* C216: Líneas de cuadrícula según resolución de snap */
     const lineasCuadricula = calcularLineasCuadricula(totalCompases, compasProyecto, snapResolucion);
@@ -84,12 +134,39 @@ export const PistaTimeline = ({
 
     return (
         <div
-            className={`mezcladorPista ${pista.silenciada ? 'mezcladorPistaSilenciada' : ''} ${esHover ? 'mezcladorPistaDragHover' : ''}`}
+            className={`mezcladorPista mezcladorPistaAltura${(pista.altura ?? 'normal').charAt(0).toUpperCase() + (pista.altura ?? 'normal').slice(1)} ${pista.silenciada ? 'mezcladorPistaSilenciada' : ''} ${esHover ? 'mezcladorPistaDragHover' : ''}`}
             data-pista-id={pista.id}
         >
-            {/* Controles laterales de la pista */}
-            <div className="mezcladorPistaControles">
-                <span className="mezcladorPistaNombre">{pista.nombre}</span>
+            {/* Controles laterales — click derecho abre menú contextual */}
+            <div className="mezcladorPistaControles" onContextMenu={abrirMenu}>
+                {/* Indicador de color de pista */}
+                <div
+                    className="mezcladorPistaColorIndicador"
+                    style={{ backgroundColor: pista.color ?? '#555' }}
+                />
+
+                {/* Nombre editable inline */}
+                {editandoNombre ? (
+                    <input
+                        ref={inputRef}
+                        className="mezcladorPistaNombreInput"
+                        defaultValue={pista.nombre}
+                        onBlur={confirmarRename}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') confirmarRename();
+                            if (e.key === 'Escape') setEditandoNombre(false);
+                        }}
+                        autoFocus
+                    />
+                ) : (
+                    <span
+                        className="mezcladorPistaNombre"
+                        onDoubleClick={() => { setEditandoNombre(true); setTimeout(() => inputRef.current?.select(), 0); }}
+                    >
+                        {pista.nombre}
+                    </span>
+                )}
+
                 <div className="mezcladorPistaBotones">
                     <button
                         className={`mezcladorPistaBoton ${pista.silenciada ? 'activo' : ''}`}
@@ -146,6 +223,28 @@ export const PistaTimeline = ({
                     />
                 ))}
 
+                {/* Clips de patrón en la playlist */}
+                {pista.clipsPatron?.map(clip => {
+                    const patron = usePatronesStore.getState().obtenerPatron(clip.patronId);
+                    if (!patron) return null;
+                    const izquierda = posicionBloquePorc(clip.compasInicio, totalCompases);
+                    const ancho = anchoBloquePorc(clip.duracionCompases, totalCompases);
+                    return (
+                        <div
+                            key={clip.id}
+                            className="clipPatron"
+                            style={{
+                                left: `${izquierda}%`,
+                                width: `${ancho}%`,
+                                backgroundColor: patron.color,
+                            }}
+                            title={patron.nombre}
+                        >
+                            <span className="clipPatronNombre">{patron.nombre}</span>
+                        </div>
+                    );
+                })}
+
                 {/* C242: Ghost preview — muestra dónde aterrizará el bloque */}
                 {mostrarGhost && (
                     <div
@@ -171,6 +270,15 @@ export const PistaTimeline = ({
 
                 {/* Placeholder cuando está vacío — C250: sin texto */}
             </div>
+
+            {/* C297: Menú contextual de pista */}
+            <MenuContextual
+                abierto={menu !== null}
+                onCerrar={cerrarMenu}
+                items={itemsMenu}
+                x={menu?.x ?? 0}
+                y={menu?.y ?? 0}
+            />
         </div>
     );
 };

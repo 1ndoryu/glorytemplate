@@ -236,7 +236,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 294. ✅ [AG-ONE] KnobControl SVG — Componente rotary knob con arco 270°, drag vertical, shift fine-control, bipolar para pan/pitch, wheel, double-click reset. Integrado en ModalConfigBloque reemplazando sliders.
 295. ✅ [AG-ONE] Reset individual doble-click — Todos los controles (knobs y toggles) soportan doble-click reset. Eliminado botón global "Restablecer todo".
 296. ✅ [AG-ONE] Zoom freeze durante resize — fijarTotalExtendido()/desfijarTotalExtendido() en store. obtenerTotalExtendido() retorna max(fijado, calculado) durante resize para evitar shrink.
-297. Menú Contextual de Pista (Track Header) en la playlist (actualmente no se puede cambiar la altura de las pistas pero debería, se hara un menu contextual con las siguientes opciones):
+297. [EN CURSO — AG-ONE] Menú Contextual de Pista (Track Header) en la playlist (actualmente no se puede cambiar la altura de las pistas pero debería, se hara un menu contextual con las siguientes opciones):
 Identidad y Organización Visual
 Rename, color and icon...: Abre un modal para editar las 3 propiedades principales de la pista: Nombre (string), Color (hex) e Icono (id/image).
 Random color: Asigna un color aleatorio a la pista (útil para diferenciar rápidamente).
@@ -258,70 +258,34 @@ Clone...: Duplica la pista actual (copiando nombre, color y configuración) y la
 Delete: Elimina la pista y usualmente pregunta si borrar también los clips que contiene.
 Move up: Intercambia la posición de la pista con la superior (Array index - 1).
 Move down: Intercambia la posición de la pista con la inferior (Array index + 1).
-298. El input de tempo es muy generico, debe ser como el fl studio, sin los botones de arriba y abajo, si dejo pulsado y tiro hacia arriba sube el tempo, si tiro hacia abajo, baja, si doy doble click puedo escribir el valor. Los inputs aca tienen que tener la misma altura que los botones del nav de daw, si se mantiene la consistencia visual.
-299. el minimapaDaw da a veces lo muevo o cambio el tamaño y se mueve unos unos cm hacia una determinada posicion, o sea, es rigido sin sentido, no entiendo porque, debe ser totalmente libre, las vistas, tambien cuando lo cambio de tamaño se mueve a otro lugar.
-300. las pistas no tienen que dejar de verse nunca al hacer scroll horizontal (o sea el mezcladorPistaControles)
-301. en mezcladorPistaControles los botones de silenciar o borrar deben estar ocultos por defecto mostrarse cuando se haga hover en el mezcladorPistaControles
-302. Cuando intento arrastrar la ventana de configuracion de audio de una tarjeta, se mueve la tarjeta tambien aunque el mouse no este cerca de ella.
+298. [EN CURSO — AG-ONE] El input de tempo es muy generico, debe ser como el fl studio, sin los botones de arriba y abajo, si dejo pulsado y tiro hacia arriba sube el tempo, si tiro hacia abajo, baja, si doy doble click puedo escribir el valor. Los inputs aca tienen que tener la misma altura que los botones del nav de daw, si se mantiene la consistencia visual.
+299. [EN CURSO — AG-ONE] el minimapaDaw da a veces lo muevo o cambio el tamaño y se mueve unos unos cm hacia una determinada posicion, o sea, es rigido sin sentido, no entiendo porque, debe ser totalmente libre, las vistas, tambien cuando lo cambio de tamaño se mueve a otro lugar.
+300. [EN CURSO — AG-ONE] las pistas no tienen que dejar de verse nunca al hacer scroll horizontal (o sea el mezcladorPistaControles)
+301. [EN CURSO — AG-ONE] en mezcladorPistaControles los botones de silenciar o borrar deben estar ocultos por defecto mostrarse cuando se haga hover en el mezcladorPistaControles
+302. [EN CURSO — AG-ONE] Cuando intento arrastrar la ventana de configuracion de audio de una tarjeta, se mueve la tarjeta tambien aunque el mouse no este cerca de ella.
 y aparece 
 react-dom.development.js:15688 
  Uncaught Error: Rendered more hooks than during the previous render.
     at VentanaFlotante (VentanaFlotante.tsx:38:25)
-303. La linea de tiempo solo se mueve cuando doy click, debería poder moverse en tiempo real, arrastrandola tambien en el minidaw.
-304. El tiempo de la linea de tiemp debería verse, agregar un visualizador de duracion o tiempo, no se como describirlo, en fin, en fl studio se llama song position, y tiene dos modos M:S:CS y B:S:T y cambia de un modo a otro con click, aqui tambien debería poder ser igual.
-305. visualizador de onda en tiempo real mientras se reproduce, en fl studio se llama monitor.
-306. peak master, es igual lo anterior pero son 2 bloques horizontales que suben y bajan segun el volumen, supongo ambos represetan el canal derecho y izquierdo.
-307. un boton que activa o desactiva el browser (aparecera a la derecha) (este boton activa o desactiva el panel de la derecha), como en el panel cuando esta contraido no va a caber, lo mejor es que aparezca por fuera en un panel a la izquierda, este panel es un panel extra, tambien se podra ocultar y mostrar al mismo tiempo con el panel del daw (por favor este sistema de paneles este centralizado y bien solid primero, no queremos problemas en el futuro), usara centralizadamente el componente de exploradorCarpetas en la pagina de explorador, si se esta en la pagina de explorar este panel no se abrira porque es redundandte tener 2 exploradorCarpetas. Esto lleva a la siguiente tarea. 
-307.1 exploradorCarpetas cuando este activo desde el daw, mostrara los samples que contiene solo con el nombre, asi como funciona en el fl studio, y se podra arrastrar un audio de ahi a la pista, por supuesto esto implica que las carpetas se puedan contraer expandir para ver sus contenidos.
+303. [EN CURSO — AG-ONE] La linea de tiempo solo se mueve cuando doy click, debería poder moverse en tiempo real, arrastrandola tambien en el minidaw.
+304. [EN CURSO — AG-ONE] El tiempo de la linea de tiemp debería verse, agregar un visualizador de duracion o tiempo, no se como describirlo, en fin, en fl studio se llama song position, y tiene dos modos M:S:CS y B:S:T y cambia de un modo a otro con click, aqui tambien debería poder ser igual.
+305. [EN CURSO — AG-ONE] visualizador de onda en tiempo real mientras se reproduce, en fl studio se llama monitor.
+306. [EN CURSO — AG-ONE] peak master, es igual lo anterior pero son 2 bloques horizontales que suben y bajan segun el volumen, supongo ambos represetan el canal derecho y izquierdo.
+307. [EN CURSO — AG-ONE] un boton que activa o desactiva el browser (aparecera a la derecha) (este boton activa o desactiva el panel de la derecha), como en el panel cuando esta contraido no va a caber, lo mejor es que aparezca por fuera en un panel a la izquierda, este panel es un panel extra, tambien se podra ocultar y mostrar al mismo tiempo con el panel del daw (por favor este sistema de paneles este centralizado y bien solid primero, no queremos problemas en el futuro), usara centralizadamente el componente de exploradorCarpetas en la pagina de explorador, si se esta en la pagina de explorar este panel no se abrira porque es redundandte tener 2 exploradorCarpetas. Esto lleva a la siguiente tarea. 
+307.1 [EN CURSO — AG-ONE] exploradorCarpetas cuando este activo desde el daw, mostrara los samples que contiene solo con el nombre, asi como funciona en el fl studio, y se podra arrastrar un audio de ahi a la pista, por supuesto esto implica que las carpetas se puedan contraer expandir para ver sus contenidos.
+309. El minimapa sigue teniendo movimientos rigidos
+311. La configuracion avanzada, el boton de on y off debería estar en el header del modal y debería funcionar para apagar o encender ese bloque de audio.
 
 
 
-# AGENTE TWO (tareas libres)
+# AGENTE TWO
 
-
-308. Esta tarea es dificil. (Channel rack y patterns) (309 es necesaria, pero se puede adelantar este sistema)
-
-Segun las especificaciones que recibi, el fl studio funciona algo asi, esto implica que al lado de tempo se elegir entre reproducir el PAT o el song, cuand oesta el pat se reproduce el channel rack. Esto involucra Patterns, hay un selector para cambiar de patters y una barra lateral de ellos. Los Patters se pueden agregar a las lineas de tiempo, y cuando se modifica un pattern se abre el channel rack.
-
-El "Channel Rack" combina un gestor de instrumentos con un secuenciador por pasos.
-
-## 1. Cabecera (Global Tools)
-* **Channel Filter (`Dropdown`):** Selector para filtrar la vista por grupos de instrumentos (ej. "All", "Drums", "Synths").
-* **Swing (`Knob`):** Control global de "humanización". Desplaza ligeramente los pasos pares para romper la rigidez robótica.
-* **Loop Switch (`LED/Toggle`):** Define si el patrón actual se reproduce en bucle o solo una vez.
-
-## 2. Tira de Canal (Izquierda)
-Controles individuales para cada instrumento cargado.
-
-* **Mute/Solo (`Indicator LED`):**
-    * *Click Izquierdo:* Mute/Unmute (Silenciar).
-    * *Click Derecho:* Solo (Aísla este canal y silencia los demás).
-* **Pan (`Knob`):** Paneo estéreo (Izquierda/Derecha) previo al mixer.
-* **Vol (`Knob`):** Ganancia/Volumen inicial del canal.
-* **Mixer Track Routing (`Number Box`):** Selector numérico que asigna el audio de este instrumento a un canal específico de la Mesa de Mezclas (Mixer).
-* **Channel Button (`Button/Rectangle`):** Muestra el nombre del instrumento (ej. "808 Kick").
-    * *Acción:* Al hacer click, abre la interfaz del Plugin o Sampler.
-* **Channel Selector (`Small LED`):** Indicador visual a la derecha del botón del canal. Permite seleccionar múltiples canales para operaciones en grupo (borrar, clonar, etc.).
-
-## 3. Secuenciador por Pasos (Derecha)
-La matriz principal para la composición rítmica.
-
-* **Step Grid (`Button Matrix`):**
-    * Cada botón representa una unidad de tiempo (usualmente una semicorchea).
-    * *Estado Activo:* El botón se ilumina y disparará el sonido.
-    * *Visual:* Los botones cambian de color en bloques (ej. 4 grises, 4 rojos) para representar visualmente los beats del compás.
-* **Graph Editor (`Overlay`):** (Funcionalidad avanzada) Panel desplegable sobre los pasos para ajustar parámetros individuales por nota:
-    * Velocity (Volumen individual).
-    * Pitch (Tono individual).
-    * Pan (Paneo individual).
-
-## 4. Gestión y Footer
-* **Add Button (`+ Button`):** Abre el menú contextual para insertar un nuevo Generador (VST) o Sampler. (Aqui no tenemos VST aun asi no agregaremos este boton, dejaremos que se puedan agregar mas canales, solo soportaremos canales de sonidos y samples, los samples se podran arrastrar aca tambien)
-* **Resize Handler (`Drag Handle`):** Permite arrastrar el borde derecho para aumentar la cantidad de pasos visibles (16, 32, 64 steps...).
-
-
+308. ✅ [AG-TWO] Channel Rack + Patterns + Mixer completo. **Plan:** `App/docs/plan-daw-channelrack-mixer.md`. **Implementado:** Fase A (tipos+stores+motor audio: 13 tipos nuevos, patronesStore, mixerStore, motor audio mixer nodes+step playback, modo PAT/SONG), Fase B (Channel Rack UI: 7 componentes — PasoBoton, StepGrid, CanalStrip, SelectorPatron, CabeceraChannelRack, GraphEditor, ChannelRack), Fase C (Mixer UI: 7 componentes — FaderControl, PeakMeter, InsertStrip, EQVisualizer, SlotEfectoUI, PanelDetalleInsert, MixerConsola + useMixer hook metering rAF), Fase D (ClipPatron en PistaTimeline), CSS (mezcladorChannelRack.css+mezcladorMixer.css), Integración (ventanasStore tipos, ControlesMezclador PAT/SONG toggle + botones abrir, MezcladorPanel renderiza ChannelRack+MixerConsola). 25 archivos tocados, 0 errores.
 
 # AGENTE THRE
+
+310. [EN CURSO — AG-THRE] Piano Roll — Editor melódico/rítmico de notas tipo FL Studio. **Plan:** `App/docs/plan-piano-roll.md`. **Estado:** Implementando Fase PR-A→PR-D completas.
+
 
 ---
 
@@ -412,6 +376,11 @@ La matriz principal para la composición rítmica.
 - [Mezclador]: MinimapaDaw 3 modos drag: 'mover' (scroll), 'izquierda' (zoom+reajuste scroll), 'derecha' (zoom). Edge handles de 6px. Porcentaje viewport = compasesVisibles/totalExtendido.
 - [Mezclador]: Pan implementado via StereoPannerNode en motorAudioService. Range -1 a 1. Nodo insertado entre GainNode y destination.
 - [Mezclador]: Declicking modes: none/corto(5ms)/medio(10ms)/largo(20ms). Micro-fades lineares en motorAudioService al inicio/fin de cada bloque.
+- [Mezclador-ChannelRack]: patronesStore usa CRUD completo con canales anidados. Cada paso tiene velocity+pan+pitch. Swing se aplica a pasos impares en programarPatron: `+ (swing * durPaso * 0.5)`.
+- [Mezclador-Mixer]: 17 inserts (Master id=0 + 16). Cadena Web Audio: inputGain → EQ[3 BiquadFilter] → fader(GainNode) → panner(StereoPannerNode) → analyser(AnalyserNode) → master/destination. actualizarPeaks con threshold >0.01 para evitar 60fps re-renders.
+- [Mezclador-Mixer]: useMixer hook con rAF loop lee peaks de todos los AnalyserNodes y pushea al store. sincronizarInsert/sincronizarEQ callbacks para sync store→Web Audio tras cambios UI.
+- [Mezclador-Modes]: modoReproduccion 'pat'|'song' en patronesStore. useMotorAudio bifurca en reproducir(): pat→programarPatronActivo, song→programarBloques. Cursor en PAT mode loops al final del patrón.
+- [Mezclador-ClipPatron]: pista.clipsPatron coexiste con pista.bloques. PistaTimeline renderiza ambos. programarBloques itera clipsPatron llamando programarPatron con offset.
 
 **Patrones generales:**
 - NormalizadorSample: alias SQL para columnas homónimas. extraerTagsMetadata() combina campos IA.

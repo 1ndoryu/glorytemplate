@@ -8,7 +8,7 @@ import { create } from 'zustand';
 
 export interface VentanaInfo {
     id: string;
-    tipo: 'configBloque' | 'configDaw';
+    tipo: 'configBloque' | 'configDaw' | 'pianoRoll' | 'channelRack' | 'mixer';
     titulo: string;
     minimizada: boolean;
     posicion: { x: number; y: number };
