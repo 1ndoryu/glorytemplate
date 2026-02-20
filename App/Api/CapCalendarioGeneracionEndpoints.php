@@ -202,43 +202,47 @@ class CapCalendarioGeneracionEndpoints
     }
 
     /**
-     * Sanitiza el array de exclusiones para generarConExclusiones.
-     * Cada exclusion debe tener estructura: { alumnoId: int, dia: string, hora: string }
+     * Sanitiza el mapa de exclusiones para generarConExclusiones.
+     *
+     * Formato esperado del frontend: { slotKey: number[] }
+     * Donde slotKey tiene formato "YYYY-MM-DD_HH:MM" y el valor es un
+     * array de IDs de alumnos a excluir de ese slot.
+     *
+     * CalendarEngine::generarConExclusiones itera este mapa:
+     *   foreach ($exclusiones as $slotKey => $alumnosExcluidos)
+     *
      * @param mixed $exclusiones Datos del request
-     * @return array Exclusiones sanitizadas
+     * @return array Mapa sanitizado de slotKey => int[]
      */
     private function sanitizarExclusiones($exclusiones): array
     {
         if (!is_array($exclusiones)) {
             return [];
         }
+
         $resultado = [];
-        foreach ($exclusiones as $excl) {
-            if (!is_array($excl)) {
+        foreach ($exclusiones as $slotKey => $alumnosExcluidos) {
+            /* Validar formato de slotKey: YYYY-MM-DD_HH:MM */
+            $slotKeySanitizado = sanitize_text_field((string) $slotKey);
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}$/', $slotKeySanitizado)) {
                 continue;
             }
-            $item = [];
-            if (isset($excl['alumnoId'])) {
-                $item['alumnoId'] = absint($excl['alumnoId']);
+
+            if (!is_array($alumnosExcluidos)) {
+                continue;
             }
-            if (isset($excl['dia'])) {
-                $dia = sanitize_text_field($excl['dia']);
-                /* Solo aceptar dias validos o fechas YYYY-MM-DD */
-                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dia) || preg_match('/^[a-zA-Z]+$/', $dia)) {
-                    $item['dia'] = $dia;
-                }
-            }
-            if (isset($excl['hora'])) {
-                $hora = sanitize_text_field($excl['hora']);
-                /* Formato HH:MM o HH:MM:SS */
-                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
-                    $item['hora'] = $hora;
-                }
-            }
-            if (!empty($item)) {
-                $resultado[] = $item;
+
+            /* Sanitizar IDs de alumnos */
+            $idsSanitizados = array_values(array_filter(
+                array_map('absint', $alumnosExcluidos),
+                static fn(int $id) => $id > 0
+            ));
+
+            if (!empty($idsSanitizados)) {
+                $resultado[$slotKeySanitizado] = $idsSanitizados;
             }
         }
+
         return $resultado;
     }
 }
