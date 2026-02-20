@@ -7,30 +7,13 @@
  * para mantener la duración original de la asignatura.
  */
 
-import {useState, useCallback, useMemo} from 'react';
-import type {Clase, DiaSemana, AlumnoClase} from '../../types';
-import {ASIGNATURAS_CAP, getAsignatura, getAsignaturaPorCodigo, SLOTS_HORARIOS} from '../../constants';
+import type {Clase, DiaSemana} from '../../types';
+import {ASIGNATURAS_CAP, getAsignatura, SLOTS_HORARIOS} from '../../constants';
 import {Modal, Boton} from '../ui';
 import {IconoReloj, IconoUsuarios, IconoCandado, IconoGuardar, IconoLibro, IconoEliminar} from '../icons';
-import {detectarColision, resolverDesplazamientoCascada, encontrarHorarioDisponibleMasCercano} from '../../utils/collisionUtils';
 import {ModalConflictoDrag} from './ModalConflictoDrag';
-
-/*
- * Convierte hora HH:MM a minutos totales desde medianoche.
- */
-function horaAMinutos(hora: string): number {
-    const [h, m] = hora.split(':').map(Number);
-    return h * 60 + m;
-}
-
-/*
- * Convierte minutos totales a formato HH:MM.
- */
-function minutosAHora(minutos: number): string {
-    const h = Math.floor(minutos / 60);
-    const m = minutos % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-}
+import {useDetalleClase} from '../../hooks/useDetalleClase';
+import type {CambiosClase} from '../../hooks/useDetalleClase';
 
 interface ModalDetalleClaseProps {
     clase: Clase | null;
@@ -47,216 +30,15 @@ interface ModalDetalleClaseProps {
     eliminando?: boolean;
 }
 
-export interface CambiosClase {
-    horaInicio?: string;
-    horaFin?: string;
-    asignaturaId?: number;
-}
-
 export function ModalDetalleClase({clase, abierto, onCerrar, onGuardar, onToggleBloqueo, onMoverClase, fechasSemana, clasesPorDia, onMoverMultiplesClases, guardando = false, onEliminar, eliminando = false}: ModalDetalleClaseProps) {
-    /*
-     * Función helper para formatear hora (quita segundos).
-     * Ej: "10:00:00" -> "10:00"
-     */
-    const formatearHora = (hora: string | undefined | null): string => {
-        if (!hora) return '08:00';
-        return hora.substring(0, 5);
-    };
-
-    /* Obtener ID de asignatura inicial de la clase */
-    const obtenerAsignaturaIdInicial = (): number => {
-        if (!clase) return 1;
-        if (typeof clase.asignaturaId === 'number') {
-            return clase.asignaturaId;
-        }
-        return getAsignaturaPorCodigo(String(clase.asignaturaId))?.id || 1;
-    };
-
-    /*
-     * Calcular duración original de la clase en minutos.
-     * Se usa para recalcular la hora fin cuando cambia la hora inicio.
-     */
-    const duracionOriginalMinutos = useMemo(() => {
-        if (!clase) return 60; // 1 hora por defecto
-        const inicio = horaAMinutos(formatearHora(clase.horaInicio));
-        const fin = horaAMinutos(formatearHora(clase.horaFin));
-        return fin - inicio;
-    }, [clase]);
-
-    /*
-     * Estado local para edición.
-     * Gracias a la key en el componente padre (SeccionCalendario),
-     * el componente se remonta cuando cambia la clase seleccionada.
-     * Por eso podemos inicializar directamente con los valores de la clase.
-     */
-    const [horaInicio, setHoraInicio] = useState(() => formatearHora(clase?.horaInicio));
-    const [horaFin, setHoraFin] = useState(() => formatearHora(clase?.horaFin));
-    const [asignaturaId, setAsignaturaId] = useState<number>(obtenerAsignaturaIdInicial);
-    const [confirmandoEliminar, setConfirmandoEliminar] = useState(false);
-    const [conflictoData, setConflictoData] = useState<{
-        claseMoviendo: Clase;
-        claseExistente: Clase;
-        nuevaHoraInicio: string;
-        nuevaHoraFin: string;
-    } | null>(null);
-
-    /*
-     * Handler para cambio de hora de inicio.
-     * Recalcula automáticamente la hora fin manteniendo la duración original.
-     */
-    const handleCambioHoraInicio = (nuevaHoraInicio: string) => {
-        setHoraInicio(nuevaHoraInicio);
-        setConflictoData(null);
-        
-        /* Recalcular hora fin automáticamente */
-        const minutosInicio = horaAMinutos(nuevaHoraInicio);
-        const minutosFin = minutosInicio + duracionOriginalMinutos;
-        
-        /* Limitar a las 23:00 como máximo */
-        const minutosFinLimitados = Math.min(minutosFin, 23 * 60);
-        setHoraFin(minutosAHora(minutosFinLimitados));
-    };
-
-    /* Detectar cambios comparando con valores originales */
-    const hayCambios = (() => {
-        if (!clase) return false;
-
-        const horaInicioOriginal = formatearHora(clase.horaInicio);
-        const horaFinOriginal = formatearHora(clase.horaFin);
-        const asigOriginal = obtenerAsignaturaIdInicial();
-
-        return horaInicio !== horaInicioOriginal || horaFin !== horaFinOriginal || asignaturaId !== asigOriginal;
-    })();
-
-    /*
-     * Usamos alumnosData que viene directamente de la API con cada clase.
-     * Esto evita el problema de paginación del hook useAlumnos.
-     */
-    const alumnosClase: AlumnoClase[] = clase?.alumnosData || [];
-
-    /* Resolver clases del día actual para validar conflictos de horario */
-    const obtenerClasesDiaActual = (): Clase[] => {
-        if (!clase || !clasesPorDia) return [];
-
-        const fechaClase = new Date(`${clase.fecha}T00:00:00`);
-        const diaIndices: Record<number, DiaSemana> = {
-            1: 'lunes',
-            2: 'martes',
-            3: 'miercoles',
-            4: 'jueves',
-            5: 'viernes'
-        };
-        const diaKey = diaIndices[fechaClase.getDay()];
-        return diaKey ? clasesPorDia[diaKey] || [] : [];
-    };
-
-    /* Manejar guardado */
-    const handleGuardar = async () => {
-        if (!clase || !hayCambios) return;
-
-        const cambios: CambiosClase = {};
-
-        /* Validación rápida para evitar solapamientos en el modal */
-        const horaInicioOriginal = formatearHora(clase.horaInicio);
-        const horaFinOriginal = formatearHora(clase.horaFin);
-        const cambiaHorario = horaInicio !== horaInicioOriginal || horaFin !== horaFinOriginal;
-        if (cambiaHorario) {
-            const clasesDia = obtenerClasesDiaActual();
-            const conflicto = detectarColision(horaInicio, horaFin, clasesDia, clase.id);
-            if (conflicto) {
-                setConflictoData({
-                    claseMoviendo: clase,
-                    claseExistente: conflicto,
-                    nuevaHoraInicio: horaInicio,
-                    nuevaHoraFin: horaFin
-                });
-                return;
-            }
-        }
-
-        if (horaInicio !== horaInicioOriginal) {
-            cambios.horaInicio = horaInicio;
-        }
-        if (horaFin !== horaFinOriginal) {
-            cambios.horaFin = horaFin;
-        }
-
-        const asigOriginal = typeof clase.asignaturaId === 'number' ? clase.asignaturaId : getAsignaturaPorCodigo(String(clase.asignaturaId))?.id || 1;
-        if (asignaturaId !== asigOriginal) {
-            cambios.asignaturaId = asignaturaId;
-        }
-
-        await onGuardar(clase.id, cambios);
-    };
-
-    /* Manejar bloqueo */
-    const handleBloqueo = () => {
-        if (clase) {
-            onToggleBloqueo(clase.id);
-        }
-    };
-
-    /* Resolver conflicto desplazando clases */
-    const handleDesplazarClases = async () => {
-        if (!clase || !conflictoData || !onMoverMultiplesClases) return;
-
-        const clasesDia = obtenerClasesDiaActual();
-        const cambios = resolverDesplazamientoCascada(clase, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDia);
-
-        /* Si no se puede desplazar (clases bloqueadas en el camino), usar horario cercano */
-        if (!cambios) {
-            setConflictoData(null);
-            handleMoverCercano();
-            return;
-        }
-
-        setConflictoData(null);
-        await onMoverMultiplesClases(cambios);
-        onCerrar();
-    };
-
-    /* Resolver conflicto moviendo al horario más cercano */
-    const handleMoverCercano = async () => {
-        if (!clase || !conflictoData) return;
-
-        const clasesDia = obtenerClasesDiaActual();
-        const horario = encontrarHorarioDisponibleMasCercano(
-            conflictoData.nuevaHoraInicio,
-            conflictoData.nuevaHoraFin,
-            clasesDia,
-            clase.id
-        );
-
-        if (!horario) {
-            setConflictoData(null);
-            return;
-        }
-
-        setConflictoData(null);
-        await onGuardar(clase.id, {horaInicio: horario.horaInicio, horaFin: horario.horaFin});
-    };
-
-    /* Cerrar modal y limpiar alerta interna */
-    const handleCerrar = () => {
-        setConflictoData(null);
-        onCerrar();
-    };
-
-    /* Manejar eliminación con doble confirmación */
-    const handleEliminar = useCallback(async () => {
-        if (!clase || !onEliminar) return;
-
-        if (!confirmandoEliminar) {
-            /* Primera vez: mostrar confirmación */
-            setConfirmandoEliminar(true);
-            /* Reset automático después de 3 segundos */
-            setTimeout(() => setConfirmandoEliminar(false), 3000);
-            return;
-        }
-
-        /* Segunda vez: eliminar */
-        await onEliminar(clase.id, clase.bloqueada);
-    }, [clase, onEliminar, confirmandoEliminar]);
+    const {
+        horaInicio, horaFin, asignaturaId, setAsignaturaId, setHoraFin,
+        confirmandoEliminar, conflictoData, setConflictoData,
+        hayCambios, alumnosClase, duracionOriginalMinutos,
+        handleCambioHoraInicio, handleGuardar, handleBloqueo,
+        handleDesplazarClases, handleMoverCercano, handleCerrar, handleEliminar,
+        formatearHora,
+    } = useDetalleClase({clase, onGuardar, onToggleBloqueo, onCerrar, onMoverMultiplesClases, clasesPorDia, onEliminar});
 
     if (!clase) return null;
 

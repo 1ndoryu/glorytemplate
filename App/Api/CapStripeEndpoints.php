@@ -24,7 +24,10 @@ class CapStripeEndpoints
 
     public function guardarConfigStripe(\WP_REST_Request $request): \WP_REST_Response
     {
-        $datos = $request->get_json_params();
+        $raw = $request->get_json_params();
+        /* Filtrar solo los campos esperados por StripeService */
+        $camposPermitidos = ['testPublishableKey', 'testSecretKey', 'livePublishableKey', 'liveSecretKey', 'webhookSecret', 'priceId', 'modoTest'];
+        $datos = array_intersect_key($raw, array_flip($camposPermitidos));
         $stripeService = new StripeService();
         $resultado = $stripeService->guardarConfiguracion($datos);
 

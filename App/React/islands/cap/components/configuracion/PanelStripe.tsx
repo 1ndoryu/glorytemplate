@@ -6,64 +6,20 @@
  * Permite configurar API keys, webhook secret y modo test/live.
  */
 
-import {useEffect, useState} from 'react';
 import {useStripe} from '../../hooks/useStripe';
+import {usePanelStripeUI} from '../../hooks/usePanelStripeUI';
 import {Tarjeta, TarjetaHeader, Boton, Input, Alerta, Spinner, Badge} from '../ui';
 import {CreditCard, Key, Link, AlertTriangle, Check, Eye, EyeOff, Copy} from 'lucide-react';
 
 export function PanelStripe() {
     const {estado, formulario, cargando, guardando, error, exito, setFormulario, guardarConfiguracion, limpiarMensajes} = useStripe();
 
-    /* Estados para mostrar/ocultar claves secretas */
-    const [mostrarTestSecret, setMostrarTestSecret] = useState(false);
-    const [mostrarLiveSecret, setMostrarLiveSecret] = useState(false);
-    const [mostrarWebhookSecret, setMostrarWebhookSecret] = useState(false);
-    const [copiado, setCopiado] = useState(false);
-    const [errorCopia, setErrorCopia] = useState<string | null>(null);
-
-    /* Limpiar mensajes después de 4 segundos */
-    useEffect(() => {
-        if (!exito && !error) {
-            return;
-        }
-
-        const timeoutId = window.setTimeout(() => {
-            limpiarMensajes();
-        }, 4000);
-
-        return () => {
-            window.clearTimeout(timeoutId);
-        };
-    }, [exito, error, limpiarMensajes]);
-
-    useEffect(() => {
-        if (!errorCopia) {
-            return;
-        }
-
-        const timeoutId = window.setTimeout(() => {
-            setErrorCopia(null);
-        }, 3000);
-
-        return () => {
-            window.clearTimeout(timeoutId);
-        };
-    }, [errorCopia]);
-
-    /* Copiar URL de webhook */
-    const copiarWebhookUrl = async () => {
-        if (estado?.webhookUrl) {
-            try {
-                await navigator.clipboard.writeText(estado.webhookUrl);
-                setErrorCopia(null);
-                setCopiado(true);
-                window.setTimeout(() => setCopiado(false), 2000);
-            } catch (errorClipboard) {
-                console.error('[PanelStripe] Error copiando URL de webhook', errorClipboard);
-                setErrorCopia('No se pudo copiar la URL. Copia manualmente el valor mostrado.');
-            }
-        }
-    };
+    const {
+        mostrarTestSecret, setMostrarTestSecret,
+        mostrarLiveSecret, setMostrarLiveSecret,
+        mostrarWebhookSecret, setMostrarWebhookSecret,
+        copiado, errorCopia, copiarWebhookUrl,
+    } = usePanelStripeUI({exito, error, limpiarMensajes, webhookUrl: estado?.webhookUrl});
 
     if (cargando) {
         return (

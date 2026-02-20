@@ -6,10 +6,9 @@
  * Solo visible para administradores en entornos de desarrollo.
  */
 
-import {useState, useEffect} from 'react';
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge, Spinner} from '../ui';
 import {IconoBaseDatos, IconoAdvertencia, IconoEliminar, IconoUsuarios} from '../icons';
-import {API_BASE} from '../../constants/cap-constants';
+import {usePanelDemo} from '../../hooks/usePanelDemo';
 
 /* Declaración de tipo para wpApiSettings de WordPress */
 declare global {
@@ -21,182 +20,11 @@ declare global {
     }
 }
 
-interface EstadoDemo {
-    activo: boolean;
-    permitido: boolean;
-    estadisticas: {
-        alumnos: number;
-        clases: number;
-    };
-}
-
 export function PanelDemo() {
-    const [estado, setEstado] = useState<EstadoDemo | null>(null);
-    const [cargando, setCargando] = useState(true);
-    const [ejecutando, setEjecutando] = useState<'seed' | 'clean' | 'limpiarTodas' | null>(null);
-    const [mensaje, setMensaje] = useState<{tipo: 'exito' | 'error'; texto: string} | null>(null);
-    const [confirmandoLimpiarTodas, setConfirmandoLimpiarTodas] = useState(false);
-
-    /* Obtener estado inicial */
-    useEffect(() => {
-        const controller = new AbortController();
-        obtenerEstado(controller.signal);
-        return () => controller.abort();
-    }, []);
-
-    const obtenerEstado = async (signal?: AbortSignal) => {
-        try {
-            const response = await fetch(`${API_BASE}/demo/status`, {
-                headers: {
-                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                },
-                signal
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEstado(data);
-            }
-        } catch (error) {
-            /* Ignorar cancelaciones por AbortController */
-            if (error instanceof DOMException && error.name === 'AbortError') return;
-            console.error('Error al obtener estado demo:', error);
-        } finally {
-            setCargando(false);
-        }
-    };
-
-    const poblarDatos = async () => {
-        setEjecutando('seed');
-        setMensaje(null);
-
-        try {
-            const response = await fetch(`${API_BASE}/demo/seed`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                }
-            });
-
-            /* Verificar si la respuesta HTTP fue exitosa */
-            if (!response.ok) {
-                setMensaje({tipo: 'error', texto: `Error ${response.status}: ${response.statusText}`});
-                return;
-            }
-
-            /* Intentar parsear JSON */
-            try {
-                const data = await response.json();
-                if (data.exito) {
-                    setMensaje({
-                        tipo: 'exito',
-                        texto: `Datos creados: ${data.estadisticas?.alumnos || 0} alumnos, ${data.estadisticas?.clases || 0} clases`
-                    });
-                } else {
-                    setMensaje({tipo: 'error', texto: data.error || 'Error al poblar datos'});
-                }
-            } catch {
-                /* Respuesta HTTP ok pero JSON invalido: estado incierto, no reportar exito falso */
-                setMensaje({tipo: 'error', texto: 'La respuesta del servidor no es válida. Verifica el estado de los datos.'});
-            }
-
-            /* Siempre refrescar el estado al final */
-            await obtenerEstado();
-        } catch (error) {
-            console.error('Error de conexión:', error);
-            setMensaje({tipo: 'error', texto: 'Error de conexión al servidor'});
-        } finally {
-            setEjecutando(null);
-        }
-    };
-
-    const limpiarDatos = async () => {
-        if (!confirm('¿Estás seguro de que deseas eliminar todos los datos de demostración?')) {
-            return;
-        }
-
-        setEjecutando('clean');
-        setMensaje(null);
-
-        try {
-            const response = await fetch(`${API_BASE}/demo/clean`, {
-                method: 'DELETE',
-                headers: {
-                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.exito) {
-                setMensaje({
-                    tipo: 'exito',
-                    texto: `Datos eliminados: ${data.eliminados.alumnos} alumnos, ${data.eliminados.clases} clases`
-                });
-                /* Refrescar estado en segundo plano */
-                obtenerEstado().catch(() => {});
-            } else {
-                setMensaje({tipo: 'error', texto: data.error || 'Error al limpiar datos'});
-            }
-        } catch (error) {
-            setMensaje({tipo: 'error', texto: 'Error de conexión al limpiar datos'});
-        } finally {
-            setEjecutando(null);
-        }
-    };
-
-    /* Función para eliminar TODAS las clases (incluso huérfanas) */
-    const limpiarTodasLasClases = async () => {
-        if (!confirmandoLimpiarTodas) {
-            /* Primera vez: mostrar confirmación */
-            setConfirmandoLimpiarTodas(true);
-            setMensaje({tipo: 'error', texto: '¡ATENCIÓN! Esto eliminará TODAS las clases. Click de nuevo para confirmar.'});
-            /* Reset automático después de 5 segundos */
-            setTimeout(() => {
-                setConfirmandoLimpiarTodas(false);
-                setMensaje(null);
-            }, 5000);
-            return;
-        }
-
-        /* Segunda confirmación con prompt */
-        const confirmacion = prompt('Escribe ELIMINAR_TODO para confirmar:');
-        if (confirmacion !== 'ELIMINAR_TODO') {
-            setMensaje({tipo: 'error', texto: 'Operación cancelada'});
-            setConfirmandoLimpiarTodas(false);
-            return;
-        }
-
-        setEjecutando('limpiarTodas');
-        setMensaje(null);
-        setConfirmandoLimpiarTodas(false);
-
-        try {
-            const response = await fetch(`${API_BASE}/clases/limpiar-todas?confirmar=ELIMINAR_TODO&incluirBloqueadas=true`, {
-                method: 'DELETE',
-                headers: {
-                    'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.exito) {
-                setMensaje({
-                    tipo: 'exito',
-                    texto: data.mensaje || `Se eliminaron ${data.eliminadas} clases`
-                });
-                await obtenerEstado();
-            } else {
-                setMensaje({tipo: 'error', texto: data.error || 'Error al limpiar clases'});
-            }
-        } catch (error) {
-            setMensaje({tipo: 'error', texto: 'Error de conexión al limpiar clases'});
-        } finally {
-            setEjecutando(null);
-        }
-    };
+    const {
+        estado, cargando, ejecutando, mensaje, confirmandoLimpiarTodas,
+        poblarDatos, limpiarDatos, limpiarTodasLasClases,
+    } = usePanelDemo();
 
     /* Mientras carga, mostrar spinner */
     if (cargando) {

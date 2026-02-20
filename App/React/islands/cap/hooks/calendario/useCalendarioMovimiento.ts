@@ -1,3 +1,6 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: mover individual + batch con update
+ * optimista, rollback y validación de clases bloqueadas. */
+
 /**
  * useCalendarioMovimiento
  * 

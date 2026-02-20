@@ -8,116 +8,24 @@
  * Las horas de disponibilidad se adaptan al horario configurado de la autoescuela.
  */
 
-import {useState, useCallback, useEffect, useRef} from 'react';
 import {Boton, Alerta, Modal} from '../ui';
 import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad, ModalProgresoAlumno} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
-import {useAlumnos, type Alumno} from '../../hooks/useAlumnos';
-import {useReportes} from '../../hooks/useReportes';
-import {useConfiguracion} from '../../hooks/useConfiguracion';
-import {calcularRangoHoras} from '../../utils/horariosUtils';
+import {useSeccionAlumnos} from '../../hooks/useSeccionAlumnos';
 
 export function SeccionAlumnos() {
-    const {alumnos, total, cargando, guardando, eliminando, error, exito, filtros, crearAlumno, actualizarAlumno, eliminarAlumno, cambiarFiltros, limpiarMensajes} = useAlumnos();
-    const {descargarPlanAlumno} = useReportes();
-
-    /* Obtener configuración del centro para las horas de disponibilidad */
-    const {config} = useConfiguracion();
-    const rangoHoras = calcularRangoHoras(config);
-
-    const [modalVisible, setModalVisible] = useState(false);
-    const [alumnoEditar, setAlumnoEditar] = useState<Alumno | null>(null);
-    const [confirmandoEliminar, setConfirmandoEliminar] = useState<number | null>(null);
-
-    /* Estado para modal de disponibilidad */
-    const [modalDisponibilidadVisible, setModalDisponibilidadVisible] = useState(false);
-    const [alumnoDisponibilidad, setAlumnoDisponibilidad] = useState<Alumno | null>(null);
-
-    /* Estado para modal de progreso por asignatura */
-    const [modalProgresoVisible, setModalProgresoVisible] = useState(false);
-    const [alumnoProgreso, setAlumnoProgreso] = useState<Alumno | null>(null);
-
-    /* Estado para descarga individual de plan de formación */
-    const [descargandoAlumno, setDescargandoAlumno] = useState<number | null>(null);
-
-    /* Limpiar mensajes automaticamente despues de 4 segundos */
-    useEffect(() => {
-        if (exito || error) {
-            const timer = setTimeout(limpiarMensajes, 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [exito, error, limpiarMensajes]);
-
-    const handleNuevoAlumno = () => {
-        setAlumnoEditar(null);
-        setModalVisible(true);
-    };
-
-    const handleEditar = (alumno: Alumno) => {
-        setAlumnoEditar(alumno);
-        setModalVisible(true);
-    };
-
-    /* Ref para timer de confirmacion de eliminacion */
-    const timerConfirmacionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    const handleEliminar = async (id: number) => {
-        /* Primera llamada: mostrar confirmación */
-        if (confirmandoEliminar !== id) {
-            setConfirmandoEliminar(id);
-            /* Auto-limpiar confirmación después de 3 segundos */
-            if (timerConfirmacionRef.current) clearTimeout(timerConfirmacionRef.current);
-            timerConfirmacionRef.current = setTimeout(() => setConfirmandoEliminar(null), 3000);
-            return;
-        }
-        /* Segunda llamada: ejecutar eliminación */
-        setConfirmandoEliminar(null);
-        await eliminarAlumno(id);
-    };
-
-    const handleGuardar = async (datos: Partial<Alumno>): Promise<boolean> => {
-        if (alumnoEditar) {
-            return await actualizarAlumno(alumnoEditar.id, datos);
-        }
-        return await crearAlumno(datos);
-    };
-
-    const handleCerrarModal = () => {
-        setModalVisible(false);
-        setAlumnoEditar(null);
-    };
-
-    /* Handlers para disponibilidad */
-    const handleAbrirDisponibilidad = (alumno: Alumno) => {
-        setAlumnoDisponibilidad(alumno);
-        setModalDisponibilidadVisible(true);
-    };
-
-    const handleCerrarDisponibilidad = () => {
-        setModalDisponibilidadVisible(false);
-        setAlumnoDisponibilidad(null);
-    };
-
-    /* Handlers para modal de progreso */
-    const handleVerProgreso = (alumno: Alumno) => {
-        setAlumnoProgreso(alumno);
-        setModalProgresoVisible(true);
-    };
-
-    const handleCerrarProgreso = () => {
-        setModalProgresoVisible(false);
-        setAlumnoProgreso(null);
-    };
-
-    /* Handler para descarga individual del plan de formación desde la tabla */
-    const handleDescargarPlan = useCallback(async (alumno: Alumno) => {
-        setDescargandoAlumno(alumno.id);
-        try {
-            await descargarPlanAlumno(alumno.id, alumno.nombre);
-        } finally {
-            setDescargandoAlumno(null);
-        }
-    }, [descargarPlanAlumno]);
+    const {
+        alumnos, total, cargando, guardando, eliminando, error, exito, filtros, cambiarFiltros,
+        rangoHoras,
+        modalVisible, alumnoEditar,
+        modalDisponibilidadVisible, alumnoDisponibilidad,
+        modalProgresoVisible, alumnoProgreso,
+        descargandoAlumno,
+        handleNuevoAlumno, handleEditar, handleEliminar, handleGuardar, handleCerrarModal,
+        handleAbrirDisponibilidad, handleCerrarDisponibilidad,
+        handleVerProgreso, handleCerrarProgreso,
+        handleDescargarPlan,
+    } = useSeccionAlumnos();
 
     return (
         <div className="capSeccion capAnimFadeIn">

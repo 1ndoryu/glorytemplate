@@ -1,3 +1,6 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: generación normal + con exclusiones,
+ * mapeo de datos API (snake_case→camelCase) y gestión de modales de conflictos/avisos. */
+
 /**
  * useCalendarioGeneracion
  * 

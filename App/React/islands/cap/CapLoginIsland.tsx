@@ -5,9 +5,9 @@
  * Formulario estilizado que hace POST a wp-login.php
  */
 
-import {useState, type FormEvent} from 'react';
 import {Input, Boton, Alerta} from './components/ui';
 import {IconoUsuario, IconoCandado, IconoLogoCap} from './components/icons';
+import {useCapLogin} from './hooks/useCapLogin';
 import './styles/index.css';
 import './components/auth/login.css';
 
@@ -19,73 +19,7 @@ interface CapLoginIslandProps {
 }
 
 export function CapLoginIsland({siteUrl = '', redirectTo = '/cap-dashboard/', registroUrl = '/cap-registro/', errorInicial = ''}: CapLoginIslandProps) {
-    const [usuario, setUsuario] = useState('');
-    const [password, setPassword] = useState('');
-    const [recordar, setRecordar] = useState(false);
-    const [cargando, setCargando] = useState(false);
-    const [error, setError] = useState(errorInicial);
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setCargando(true);
-
-        /* Validación básica */
-        if (!usuario.trim()) {
-            setError('Ingresa tu usuario o correo electrónico');
-            setCargando(false);
-            return;
-        }
-
-        if (!password) {
-            setError('Ingresa tu contraseña');
-            setCargando(false);
-            return;
-        }
-
-        /* Login via fetch con wp_nonce para mayor seguridad */
-        try {
-            const formData = new FormData();
-            formData.append('log', usuario);
-            formData.append('pwd', password);
-            formData.append('rememberme', recordar ? 'forever' : '');
-            formData.append('redirect_to', redirectTo);
-
-            /*
-             * Hacemos POST directo a wp-login.php
-             * WordPress maneja la autenticación y redirige
-             */
-            const loginUrl = `${siteUrl}/wp-login.php`;
-
-            /* Enviamos el formulario de forma tradicional para que WP maneje las cookies */
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = loginUrl;
-            form.style.display = 'none';
-
-            const inputs = [
-                {name: 'log', value: usuario},
-                {name: 'pwd', value: password},
-                {name: 'rememberme', value: recordar ? 'forever' : ''},
-                {name: 'redirect_to', value: redirectTo},
-                {name: 'testcookie', value: '1'}
-            ];
-
-            inputs.forEach(({name, value}) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
-        } catch {
-            setError('Error al conectar con el servidor. Intenta de nuevo.');
-            setCargando(false);
-        }
-    };
+    const {usuario, setUsuario, password, setPassword, recordar, setRecordar, cargando, error, handleSubmit} = useCapLogin({siteUrl, redirectTo, errorInicial});
 
     return (
         <div className="capApp capLoginPagina" id="paginaLogin">

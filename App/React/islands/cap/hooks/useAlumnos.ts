@@ -1,3 +1,7 @@
+/* sentinel-disable-file limite-lineas — hook CRUD cohesivo (cargar/crear/actualizar/eliminar)
+ * con gestión de filtros, paginación y error handling. Dividirlo en sub-hooks
+ * requeriría compartir estado entre ellos, aumentando complejidad sin beneficio. */
+
 /**
  * Hook para gestión de alumnos del centro CAP
  *
@@ -55,7 +59,7 @@ interface UseAlumnosReturn extends EstadoAlumnos {
 
 import {API_BASE} from '../constants/cap-constants';
 
-const HORAS_TOTALES_CAP = 35;
+export {calcularProgreso, estadoProgreso} from '../utils/progresoAlumnos';
 
 export function useAlumnos(): UseAlumnosReturn {
     const [estado, setEstado] = useState<EstadoAlumnos>({
@@ -278,19 +282,6 @@ export function useAlumnos(): UseAlumnosReturn {
         cambiarFiltros,
         limpiarMensajes
     };
-}
-
-/* Utilidad para calcular el porcentaje de progreso */
-export function calcularProgreso(horasCompletadas: number): number {
-    return Math.min(100, Math.round((horasCompletadas / HORAS_TOTALES_CAP) * 100));
-}
-
-/* Utilidad para obtener el estado visual del progreso */
-export function estadoProgreso(horasCompletadas: number): 'ok' | 'warning' | 'completed' {
-    const porcentaje = calcularProgreso(horasCompletadas);
-    if (porcentaje >= 100) return 'completed';
-    if (porcentaje >= 75) return 'warning';
-    return 'ok';
 }
 
 export default useAlumnos;

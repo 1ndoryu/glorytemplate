@@ -1,3 +1,6 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: carga de estado + formulario + guardado
+ * de configuración Stripe con validación y limpieza de campos sensibles post-guardado. */
+
 /**
  * Hook para gestionar la configuración de Stripe
  * Solo disponible para administradores

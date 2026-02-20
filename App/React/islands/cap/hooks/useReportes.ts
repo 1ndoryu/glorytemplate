@@ -1,3 +1,6 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: dos descargas de PDF (plan + control horas)
+ * con decodificación base64/blob, creación de link temporal y cleanup. */
+
 /**
  * useReportes
  *

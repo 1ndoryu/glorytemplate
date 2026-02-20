@@ -22,10 +22,11 @@ function home()
     // Cargar bloques guardados (si existen)
     $blocksJson = get_post_meta($pageId, '_glory_page_blocks', true);
     $blocks = $blocksJson ? json_decode($blocksJson, true) : null;
-
-    // Verificar si el usuario actual puede editar
+    
+    if ($blocks !== null && json_last_error() !== JSON_ERROR_NONE) {
+        $blocks = null;
+    }
     $isAdmin = current_user_can('edit_pages');
-
     // Endpoint para guardar cambios
     $saveEndpoint = $isAdmin ? rest_url('glory/v1/page-blocks/' . $pageId) : null;
     $restNonce = $isAdmin ? wp_create_nonce('wp_rest') : null;

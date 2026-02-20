@@ -7,7 +7,6 @@
  * Ofrece la opción de desplazar las clases afectadas hacia abajo.
  */
 
-import React from 'react';
 import {Modal, Boton} from '../ui';
 import type {Clase} from '../../types';
 import {getAsignatura} from '../../constants';

@@ -6,11 +6,10 @@
  * Ahora soporta Smart Drag & Drop con detección de conflictos.
  */
 
-import { useMemo, useState, useCallback } from 'react';
-import { DndContext, DragOverlay, closestCenter, PointerSensor, useSensor, useSensors, pointerWithin, rectIntersection } from '@dnd-kit/core';
-import type { DragStartEvent, DragEndEvent, DragMoveEvent, CollisionDetection, DroppableContainer, Collision } from '@dnd-kit/core';
+import { useMemo } from 'react';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { Clase, DiaSemana } from '../../types';
-import { DIAS_SEMANA, CALENDARIO_CONFIG } from '../../constants/cap-constants';
+import { DIAS_SEMANA } from '../../constants/cap-constants';
 import { NavegadorSemana } from './NavegadorSemana';
 import { BarraAcciones } from './BarraAcciones';
 import { ColumnaDia } from './ColumnaDia';
@@ -18,7 +17,7 @@ import { DragOverlayClase } from './DragOverlayClase';
 import { ModalConflictoDrag } from './ModalConflictoDrag';
 import { Spinner } from '../ui';
 import { IconoCalendario } from '../icons';
-import { validarMovimiento, resolverDesplazamientoCascada, horaAMinutos, encontrarHorarioDisponibleMasCercano } from '../../utils/collisionUtils';
+import { useCalendarioDragDrop } from '../../hooks/useCalendarioDragDrop';
 
 /*
  * Parsea una fecha YYYY-MM-DD como fecha local (no UTC).
@@ -58,24 +57,6 @@ interface CalendarioSemanalProps {
 }
 
 export function CalendarioSemanal({ clases, semanaActual, fechasSemana, cargando, generando, onSemanaAnterior, onSemanaSiguiente, onIrHoy, onToggleBloqueo, onGenerar, onClaseClick, puedeDeshacer = false, onDeshacer, onBorrarSemana, onMoverClase, onMoverMultiplesClases }: CalendarioSemanalProps) {
-    /* Estado para el arrastre activo */
-    const [claseArrastrada, setClaseArrastrada] = useState<Clase | null>(null);
-
-    /* Estado para preview de drop */
-    const [previewDrop, setPreviewDrop] = useState<{ fecha: string; top: number; height: number } | null>(null);
-
-    /* Notificaciones UI */
-    const [notificaciones, setNotificaciones] = useState<{ id: string; mensaje: string }[]>([]);
-
-    /* Estado para conflicto detectado */
-    const [conflictoData, setConflictoData] = useState<{
-        claseMoviendo: Clase;
-        claseExistente: Clase;
-        nuevaHoraInicio: string;
-        nuevaHoraFin: string;
-        fechaDestino: string;
-    } | null>(null);
-
     /* Sensores de DnD */
     const sensores = useSensors(
         useSensor(PointerSensor, {
@@ -87,7 +68,6 @@ export function CalendarioSemanal({ clases, semanaActual, fechasSemana, cargando
 
     /* Verificar si estamos en la semana actual */
     const esSemanaActual = useMemo(() => {
-        // Simple check based on dates
         const hoy = new Date();
         const lunesActual = new Date(semanaActual);
         const lunesHoy = new Date(hoy);
@@ -135,243 +115,17 @@ export function CalendarioSemanal({ clases, semanaActual, fechasSemana, cargando
         return mapa;
     }, [clases]);
 
+    /* Hook de Drag & Drop: extrae toda la lógica de arrastre, conflictos y notificaciones */
+    const {
+        claseArrastrada, previewDrop, notificaciones, conflictoData,
+        collisionDetection, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel,
+        moverHorarioCercano, cancelarConflicto, resolverConflicto,
+    } = useCalendarioDragDrop({clasesPorDia, onMoverClase, onMoverMultiplesClases});
+
     /* Verificar si un día es hoy */
     const esHoy = (fecha: Date): boolean => {
         return fecha.getTime() === hoy.getTime();
     };
-
-    const notificarMovimiento = useCallback((mensaje: string) => {
-        const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        setNotificaciones(prev => [...prev, { id, mensaje }]);
-
-        window.setTimeout(() => {
-            setNotificaciones(prev => prev.filter(item => item.id !== id));
-        }, 3200);
-    }, []);
-
-    const collisionDetection: CollisionDetection = useCallback((args: Parameters<CollisionDetection>[0]) => {
-        /*
-         * Corrige acceso a droppableContainers: es un array, no Map.
-         * Esto evita errores en runtime al filtrar por día.
-         */
-        const obtenerData = (id: string | number) =>
-            args.droppableContainers.find((container: DroppableContainer) => container.id === id)?.data?.current as { type?: string } | undefined;
-
-        const pointerCollisions = pointerWithin(args);
-        const baseCollisions = pointerCollisions.length ? pointerCollisions : rectIntersection(args);
-
-        const soloDias = baseCollisions.filter((collision: Collision) => obtenerData(collision.id)?.type === 'dia');
-
-        if (soloDias.length > 0) {
-            return soloDias;
-        }
-
-        return closestCenter(args).filter((collision: Collision) => obtenerData(collision.id)?.type === 'dia');
-    }, []);
-
-    /* Handlers de drag & drop */
-    const handleDragStart = useCallback((event: DragStartEvent) => {
-        const { active } = event;
-        const claseData = active.data.current?.clase as Clase | undefined;
-        if (claseData) {
-            setClaseArrastrada(claseData);
-        }
-    }, []);
-
-    const handleDragMove = useCallback(
-        (event: DragMoveEvent) => {
-            const { active, over, delta } = event;
-
-            const claseData = active.data.current?.clase as Clase | undefined;
-            if (!claseData || claseData.bloqueada) {
-                setPreviewDrop(null);
-                return;
-            }
-
-            const fechaDestino = over?.data.current?.fecha as string | undefined;
-            if (!fechaDestino) {
-                setPreviewDrop(null);
-                return;
-            }
-
-            const minutosOriginales = horaAMinutos(claseData.horaInicio) - CALENDARIO_CONFIG.HORA_INICIO_DIA * 60;
-            const topOriginal = Math.max(0, minutosOriginales * CALENDARIO_CONFIG.PIXELS_POR_MINUTO);
-            const duracionMinutos = horaAMinutos(claseData.horaFin) - horaAMinutos(claseData.horaInicio);
-            const altura = Math.max(CALENDARIO_CONFIG.ALTO_MINIMO_CLASE, duracionMinutos * CALENDARIO_CONFIG.PIXELS_POR_MINUTO - 2);
-
-            const nuevoTopRaw = Math.max(0, Math.min(topOriginal + delta.y, CALENDARIO_CONFIG.ALTURA_TOTAL_COLUMNA - altura));
-
-            const fechaObj = parsearFechaLocal(fechaDestino);
-            const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
-            const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
-
-            if (!diaKey) {
-                setPreviewDrop(null);
-                return;
-            }
-
-            const clasesDestino = clasesPorDia[diaKey];
-            const validacion = validarMovimiento(nuevoTopRaw, claseData, clasesDestino);
-            const minutosInicio = horaAMinutos(validacion.nuevaHoraInicio) - CALENDARIO_CONFIG.HORA_INICIO_DIA * 60;
-            const topSnap = Math.max(0, Math.min(minutosInicio * CALENDARIO_CONFIG.PIXELS_POR_MINUTO, CALENDARIO_CONFIG.ALTURA_TOTAL_COLUMNA - altura));
-
-            setPreviewDrop({
-                fecha: fechaDestino,
-                top: topSnap,
-                height: altura
-            });
-        },
-        [clasesPorDia]
-    );
-
-    const handleDragEnd = useCallback(
-        async (event: DragEndEvent) => {
-            const { active, over, delta } = event;
-
-            setClaseArrastrada(null);
-            setPreviewDrop(null);
-
-            if (!over || !onMoverClase) {
-                notificarMovimiento('No se pudo mover la clase. Suelta dentro del calendario.');
-                return;
-            }
-
-            /* Datos de origen */
-            const claseData = active.data.current?.clase as Clase | undefined;
-            if (!claseData) return;
-
-            /* Datos de destino (día) */
-            const fechaDestino = over.data.current?.fecha as string | undefined;
-            if (!fechaDestino) {
-                notificarMovimiento('No se pudo mover la clase. Suelta dentro del día destino.');
-                return;
-            }
-
-            /* No mover clases bloqueadas */
-            if (claseData.bloqueada) {
-                notificarMovimiento('La clase está bloqueada y no se puede mover.');
-                return;
-            }
-
-            /*
-             * Calcular nueva ubicación temporal
-             * 1. Obtener posición original en píxeles
-             * 2. Sumar delta.y
-             * 3. Convertir a hora
-             */
-            const minutosOriginales = horaAMinutos(claseData.horaInicio) - CALENDARIO_CONFIG.HORA_INICIO_DIA * 60;
-            const topOriginal = Math.max(0, minutosOriginales * CALENDARIO_CONFIG.PIXELS_POR_MINUTO);
-
-            const nuevoTop = Math.max(0, topOriginal + delta.y);
-
-            /* Obtener clases del día destino para validar colisiones */
-            /* Encontrar el día de la semana basado en la fecha string */
-            const fechaObj = parsearFechaLocal(fechaDestino);
-            const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
-            const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
-
-            // Si el día no es lunes-viernes (ej fin de semana), abortar (aunque el droppable no debería estar ahí)
-            if (!diaKey) return;
-
-            const clasesDestino = clasesPorDia[diaKey];
-
-            /* Validar movimiento */
-            const validacion = validarMovimiento(nuevoTop, claseData, clasesDestino);
-
-            if (validacion.valido) {
-                const mismaFecha = fechaDestino === claseData.fecha;
-                const mismaHora = validacion.nuevaHoraInicio === claseData.horaInicio && validacion.nuevaHoraFin === claseData.horaFin;
-
-                if (mismaFecha && mismaHora) {
-                    return;
-                }
-
-                // Caso A: Sin conflicto, mover directamente
-                await onMoverClase(claseData.id, fechaDestino, validacion.nuevaHoraInicio, validacion.nuevaHoraFin);
-            } else if (validacion.conflicto) {
-                // Caso B: Conflicto, mostrar modal
-                setConflictoData({
-                    claseMoviendo: claseData,
-                    claseExistente: validacion.conflicto.clase,
-                    nuevaHoraInicio: validacion.nuevaHoraInicio,
-                    nuevaHoraFin: validacion.nuevaHoraFin,
-                    fechaDestino: fechaDestino
-                });
-            } else {
-                notificarMovimiento('No se pudo mover la clase a esa hora.');
-            }
-        },
-        [onMoverClase, clasesPorDia, notificarMovimiento]
-    );
-
-    const handleDragCancel = useCallback(() => {
-        setClaseArrastrada(null);
-        setPreviewDrop(null);
-    }, []);
-
-    /* Mover clase al horario disponible más cercano */
-    const moverHorarioCercano = useCallback(async () => {
-        if (!conflictoData || !onMoverClase) return;
-
-        const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
-        const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
-        const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
-        if (!diaKey) return;
-
-        const clasesDestino = clasesPorDia[diaKey];
-        const horario = encontrarHorarioDisponibleMasCercano(
-            conflictoData.nuevaHoraInicio,
-            conflictoData.nuevaHoraFin,
-            clasesDestino,
-            conflictoData.claseMoviendo.id
-        );
-
-        if (!horario) {
-            notificarMovimiento('No hay un horario disponible cercano para mover la clase.');
-            setConflictoData(null);
-            return;
-        }
-
-        setConflictoData(null);
-        await onMoverClase(conflictoData.claseMoviendo.id, conflictoData.fechaDestino, horario.horaInicio, horario.horaFin);
-    }, [conflictoData, clasesPorDia, onMoverClase, notificarMovimiento]);
-
-    const cancelarConflicto = () => {
-        setConflictoData(null);
-    };
-
-    /* Handler para resolver conflicto con desplazamiento (Push) */
-    const resolverConflicto = useCallback(async () => {
-        if (!conflictoData || !onMoverMultiplesClases) return;
-
-        /* Encontrar el día para obtener todas las clases */
-        const fechaObj = parsearFechaLocal(conflictoData.fechaDestino);
-        const diaIndices = { 1: 'lunes', 2: 'martes', 3: 'miercoles', 4: 'jueves', 5: 'viernes' } as const;
-        const diaKey = diaIndices[fechaObj.getDay() as keyof typeof diaIndices];
-        if (!diaKey) return;
-
-        const clasesDestino = clasesPorDia[diaKey];
-
-        /* Calcular desplazamientos necesarios */
-        const cambios = resolverDesplazamientoCascada(conflictoData.claseMoviendo, conflictoData.nuevaHoraInicio, conflictoData.nuevaHoraFin, clasesDestino);
-
-        /* Si no se puede desplazar (clases bloqueadas en el camino), intentar encontrar horario cercano */
-        if (!cambios) {
-            notificarMovimiento('No se puede desplazar porque hay clases bloqueadas en el camino. Se buscará un horario alternativo.');
-            /* Intentar mover a horario cercano automáticamente */
-            moverHorarioCercano();
-            return;
-        }
-
-        /* Añadir fecha de destino a cada cambio si cambia de día */
-        const cambiosConFecha = cambios.map(c => ({
-            ...c,
-            nuevaFecha: conflictoData.fechaDestino
-        }));
-
-        setConflictoData(null);
-        await onMoverMultiplesClases(cambiosConFecha);
-    }, [conflictoData, onMoverMultiplesClases, clasesPorDia, notificarMovimiento, moverHorarioCercano]);
 
     return (
         <DndContext sensors={sensores} collisionDetection={collisionDetection} onDragStart={handleDragStart} onDragMove={handleDragMove} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>

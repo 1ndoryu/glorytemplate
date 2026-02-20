@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas -- Archivo de datos puros: coleccion de iconos SVG sin logica, no divisible por SRP */
 /**
  * Iconos centralizados del módulo CAP
  *

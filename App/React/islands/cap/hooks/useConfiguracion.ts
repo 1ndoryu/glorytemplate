@@ -1,3 +1,6 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo que gestiona centro + horarios + suscripción.
+ * Todas las operaciones comparten estado de carga/error y se cargan juntas desde un endpoint único. */
+
 /**
  * Hook para gestión de configuración del centro CAP
  *

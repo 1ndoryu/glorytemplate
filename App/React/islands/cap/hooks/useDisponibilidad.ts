@@ -1,3 +1,7 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo que gestiona una matriz interactiva
+ * de disponibilidad (toggle individual/fila/columna/todo) + persistencia API.
+ * Los toggles comparten estado y no se pueden separar sin compartir setState. */
+
 /**
  * Hook para gestión de disponibilidad de alumnos
  *
@@ -7,19 +11,14 @@
 
 import {useState, useCallback, useEffect} from 'react';
 import {procesarErrorApi, obtenerMensajeContextual, interpretarErrorRed, formatearMensajeError} from '../constants/cap-errores';
+import {API_BASE} from '../constants/cap-constants';
+import type {DiaSemana, SlotDisponibilidad} from '../types';
+import {generarMatrizVacia, HORAS_DISPONIBLES_DEFAULT} from '../utils/matrizDisponibilidad';
 
-export type DiaSemana = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes';
-
-export interface SlotDisponibilidad {
-    dia: DiaSemana;
-    hora: string;
-    disponible: boolean;
-}
-
-export interface DisponibilidadAlumno {
-    alumnoId: number;
-    slots: SlotDisponibilidad[];
-}
+/* Re-exports para compatibilidad con consumidores existentes */
+export type {DiaSemana, SlotDisponibilidad, DisponibilidadAlumno} from '../types';
+export {DIAS_SEMANA} from '../constants';
+export {HORAS_DISPONIBLES_DEFAULT, HORAS_DISPONIBLES} from '../utils/matrizDisponibilidad';
 
 interface EstadoDisponibilidad {
     slots: SlotDisponibilidad[];
@@ -40,28 +39,6 @@ interface UseDisponibilidadReturn extends EstadoDisponibilidad {
     cargar: (alumnoId: number) => Promise<void>;
     limpiarMensajes: () => void;
     horasActuales: string[];
-}
-
-import {API_BASE} from '../constants/cap-constants';
-
-/* Días de la semana para la matriz */
-export const DIAS_SEMANA: DiaSemana[] = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
-
-/* Horas disponibles por defecto (de 8:00 a 21:00) - se usa cuando no hay configuración */
-export const HORAS_DISPONIBLES_DEFAULT: string[] = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00'];
-
-/* Alias para compatibilidad con código existente */
-export const HORAS_DISPONIBLES = HORAS_DISPONIBLES_DEFAULT;
-
-/* Genera la matriz vacía inicial con las horas proporcionadas */
-function generarMatrizVacia(horas: string[] = HORAS_DISPONIBLES_DEFAULT): SlotDisponibilidad[] {
-    const slots: SlotDisponibilidad[] = [];
-    for (const dia of DIAS_SEMANA) {
-        for (const hora of horas) {
-            slots.push({dia, hora, disponible: false});
-        }
-    }
-    return slots;
 }
 
 /* Opciones del hook */

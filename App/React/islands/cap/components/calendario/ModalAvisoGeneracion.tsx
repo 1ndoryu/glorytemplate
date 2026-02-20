@@ -6,7 +6,6 @@
  * Explica detalladamente por qué faltan horas y qué acciones puede tomar el usuario.
  */
 
-import React from 'react';
 import {Modal, Boton} from '../ui';
 import {IconoInfo, IconoUsuarios, IconoReloj} from '../icons';
 import type {AvisoGeneracion} from '../../types';

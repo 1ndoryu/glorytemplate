@@ -9,7 +9,6 @@ import {useState} from 'react';
 import {Input, Boton, Badge, Spinner, Tooltip} from '../ui';
 import {IconoBuscar, IconoEditar, IconoEliminar, IconoOrdenar, IconoReloj, IconoDescargar} from '../icons';
 import type {Alumno, FiltrosAlumnos} from '../../hooks/useAlumnos';
-import {calcularProgreso, estadoProgreso} from '../../hooks/useAlumnos';
 import {CAP_REGLAS} from '../../constants';
 import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
 import {CapAlumnosEnums} from '../../../../types/_generated/schema';
