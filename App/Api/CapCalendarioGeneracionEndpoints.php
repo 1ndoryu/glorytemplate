@@ -75,8 +75,12 @@ class CapCalendarioGeneracionEndpoints
                 $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
             }
 
-            $statusCode = $resultado['exito'] ? 200 : 409;
-            return new \WP_REST_Response($resultado, $statusCode);
+            /* Siempre HTTP 200: conflictos de aforo son resultados esperados
+             * que el frontend procesa via modal de resolucion. El campo 'exito'
+             * en el body ya distingue exito vs conflictos. Usar 409 provocaba
+             * que el frontend tratara la respuesta como error generico sin
+             * mostrar el modal de conflictos. */
+            return new \WP_REST_Response($resultado, 200);
         } catch (\Throwable $e) {
             guardarLog('[CapCalendarioGeneracion::generarCalendario] ' . $e->getMessage(), 'error');
             return new \WP_REST_Response(['error' => 'Error al generar el calendario'], 500);
@@ -152,8 +156,8 @@ class CapCalendarioGeneracionEndpoints
                 $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
             }
 
-            $statusCode = $resultado['exito'] ? 200 : 409;
-            return new \WP_REST_Response($resultado, $statusCode);
+            /* HTTP 200 incluso con conflictos: el frontend usa 'exito' del body */
+            return new \WP_REST_Response($resultado, 200);
         } catch (\Throwable $e) {
             guardarLog('[CapCalendarioGeneracion::generarConExclusiones] ' . $e->getMessage(), 'error');
             return new \WP_REST_Response(['error' => 'Error al generar el calendario con exclusiones'], 500);
