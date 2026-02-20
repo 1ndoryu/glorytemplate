@@ -19,125 +19,145 @@ class CapCalendarioGeneracionEndpoints
 
     public function obtenerClases(\WP_REST_Request $request): \WP_REST_Response
     {
-        $capService = CapService::getInstance();
-        $centroId = $capService->getCentroIdActual();
-        if (!$centroId) {
-            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
-        }
+        try {
+            $capService = CapService::getInstance();
+            $centroId = $capService->getCentroIdActual();
+            if (!$centroId) {
+                return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+            }
 
-        $claseModel = new Clase();
-        $semana = $this->validarFecha($request->get_param('semana')) ?? date('Y-m-d');
-        return new \WP_REST_Response(['clases' => $claseModel->obtenerSemana($centroId, $semana)]);
+            $claseModel = new Clase();
+            $semana = $this->validarFecha($request->get_param('semana')) ?? date('Y-m-d');
+            return new \WP_REST_Response(['clases' => $claseModel->obtenerSemana($centroId, $semana)]);
+        } catch (\Throwable $e) {
+            guardarLog('[CapCalendarioGeneracion::obtenerClases] ' . $e->getMessage(), 'error');
+            return new \WP_REST_Response(['error' => 'Error al obtener las clases'], 500);
+        }
     }
 
     public function generarCalendario(\WP_REST_Request $request): \WP_REST_Response
     {
-        $capService = CapService::getInstance();
-        $centroId = $capService->getCentroIdActual();
-        if (!$centroId) {
-            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
-        }
+        try {
+            $capService = CapService::getInstance();
+            $centroId = $capService->getCentroIdActual();
+            if (!$centroId) {
+                return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+            }
 
-        $datos = $request->get_json_params();
-        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
-        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
-        $fechaDesde = $this->validarFecha($datos['fechaDesde'] ?? null);
+            $datos = $request->get_json_params();
+            $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+            $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
+            $fechaDesde = $this->validarFecha($datos['fechaDesde'] ?? null);
 
-        $alumnoModel = new Alumno();
+            $alumnoModel = new Alumno();
 
-        if (empty($alumnosIds)) {
-            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
-            $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
-        }
+            if (empty($alumnosIds)) {
+                $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+                $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
+            }
 
-        $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
-
-        if (empty($alumnosIds)) {
-            return new \WP_REST_Response([
-                'exito' => false,
-                'clases' => [],
-                'conflictos' => [],
-                'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
-            ], 200);
-        }
-
-        $engine = new CalendarEngine($centroId);
-        $resultado = $engine->generar($semana, $alumnosIds, $fechaDesde);
-
-        if ($resultado['exito'] && !empty($alumnosIds)) {
             $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        }
+            $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
 
-        $statusCode = $resultado['exito'] ? 200 : 409;
-        return new \WP_REST_Response($resultado, $statusCode);
+            if (empty($alumnosIds)) {
+                return new \WP_REST_Response([
+                    'exito' => false,
+                    'clases' => [],
+                    'conflictos' => [],
+                    'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
+                ], 200);
+            }
+
+            $engine = new CalendarEngine($centroId);
+            $resultado = $engine->generar($semana, $alumnosIds, $fechaDesde);
+
+            if ($resultado['exito'] && !empty($alumnosIds)) {
+                $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+            }
+
+            $statusCode = $resultado['exito'] ? 200 : 409;
+            return new \WP_REST_Response($resultado, $statusCode);
+        } catch (\Throwable $e) {
+            guardarLog('[CapCalendarioGeneracion::generarCalendario] ' . $e->getMessage(), 'error');
+            return new \WP_REST_Response(['error' => 'Error al generar el calendario'], 500);
+        }
     }
 
     public function previewCalendario(\WP_REST_Request $request): \WP_REST_Response
     {
-        $capService = CapService::getInstance();
-        $centroId = $capService->getCentroIdActual();
-        if (!$centroId) {
-            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+        try {
+            $capService = CapService::getInstance();
+            $centroId = $capService->getCentroIdActual();
+            if (!$centroId) {
+                return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+            }
+
+            $datos = $request->get_json_params();
+            $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+            $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
+
+            if (empty($alumnosIds)) {
+                $alumnoModel = new Alumno();
+                $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+                $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
+            }
+
+            $engine = new CalendarEngine($centroId);
+            $preview = $engine->obtenerPreview($semana, $alumnosIds);
+
+            return new \WP_REST_Response($preview);
+        } catch (\Throwable $e) {
+            guardarLog('[CapCalendarioGeneracion::previewCalendario] ' . $e->getMessage(), 'error');
+            return new \WP_REST_Response(['error' => 'Error al obtener el preview del calendario'], 500);
         }
-
-        $datos = $request->get_json_params();
-        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
-        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
-
-        if (empty($alumnosIds)) {
-            $alumnoModel = new Alumno();
-            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
-            $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
-        }
-
-        $engine = new CalendarEngine($centroId);
-        $preview = $engine->obtenerPreview($semana, $alumnosIds);
-
-        return new \WP_REST_Response($preview);
     }
 
     public function generarConExclusiones(\WP_REST_Request $request): \WP_REST_Response
     {
-        $capService = CapService::getInstance();
-        $centroId = $capService->getCentroIdActual();
-        if (!$centroId) {
-            return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
-        }
+        try {
+            $capService = CapService::getInstance();
+            $centroId = $capService->getCentroIdActual();
+            if (!$centroId) {
+                return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
+            }
 
-        $datos = $request->get_json_params();
-        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
-        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
-        $exclusiones = $this->sanitizarExclusiones($datos['exclusiones'] ?? []);
+            $datos = $request->get_json_params();
+            $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+            $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
+            $exclusiones = $this->sanitizarExclusiones($datos['exclusiones'] ?? []);
 
-        $alumnoModel = new Alumno();
+            $alumnoModel = new Alumno();
 
-        if (empty($alumnosIds)) {
-            $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
-            $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
-        }
+            if (empty($alumnosIds)) {
+                $alumnos = $alumnoModel->obtenerPorCentro($centroId, ['limite' => 1000]);
+                $alumnosIds = array_map(static fn($alumno) => (int) $alumno['id'], $alumnos);
+            }
 
-        $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
-
-        if (empty($alumnosIds)) {
-            return new \WP_REST_Response([
-                'exito' => false,
-                'clases' => [],
-                'conflictos' => [],
-                'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
-            ], 200);
-        }
-
-        $engine = new CalendarEngine($centroId);
-        $resultado = $engine->generarConExclusiones($semana, $alumnosIds, $exclusiones);
-
-        if ($resultado['exito'] && !empty($alumnosIds)) {
             $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
-        }
+            $alumnosIds = $alumnoModel->filtrarAlumnosNoCompletados($centroId, $alumnosIds, $semana);
 
-        $statusCode = $resultado['exito'] ? 200 : 409;
-        return new \WP_REST_Response($resultado, $statusCode);
+            if (empty($alumnosIds)) {
+                return new \WP_REST_Response([
+                    'exito' => false,
+                    'clases' => [],
+                    'conflictos' => [],
+                    'mensaje' => 'Todos los alumnos ya han completado las 35 horas del curso CAP.'
+                ], 200);
+            }
+
+            $engine = new CalendarEngine($centroId);
+            $resultado = $engine->generarConExclusiones($semana, $alumnosIds, $exclusiones);
+
+            if ($resultado['exito'] && !empty($alumnosIds)) {
+                $alumnoModel->recalcularProgresoAlumnos($alumnosIds);
+            }
+
+            $statusCode = $resultado['exito'] ? 200 : 409;
+            return new \WP_REST_Response($resultado, $statusCode);
+        } catch (\Throwable $e) {
+            guardarLog('[CapCalendarioGeneracion::generarConExclusiones] ' . $e->getMessage(), 'error');
+            return new \WP_REST_Response(['error' => 'Error al generar el calendario con exclusiones'], 500);
+        }
     }
 
     /**

@@ -9,9 +9,8 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
-use App\Config\Schema\_generated\CapAlumnosCols;
-use App\Config\Schema\_generated\CapAsistenciaCols;
-use App\Config\Schema\_generated\CapClasesCols;
+use Glory\App\Database\Repositories\CapAlumnosRepository;
+use Glory\App\Database\Repositories\CapAsistenciaRepository;
 use App\Config\Schema\CapAsignaturasConstants;
 use Glory\App\Api\Traits\ConCallbackSeguro;
 
@@ -32,8 +31,6 @@ class CapAlumnosProgresoEndpoints
 
     public function obtenerProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
     {
-        global $wpdb;
-
         $alumnoId = (int) $request->get_param('id');
         $capService = CapService::getInstance();
         $centroId = $capService->getCentroIdActual();
@@ -65,18 +62,7 @@ class CapAlumnosProgresoEndpoints
         $progresoAsignado = $alumnoModel->obtenerProgresoAsignado($alumnoId);
 
         if ($debugProgreso) {
-            $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-
-            $duplicados = (int) $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM (
-                    SELECT clase_id, alumno_id, COUNT(*) as cnt
-                    FROM {$tablaAsistencia}
-                    WHERE alumno_id = %d
-                    GROUP BY clase_id, alumno_id
-                    HAVING cnt > 1
-                ) as dupes",
-                $alumnoId
-            ));
+            $duplicados = CapAsistenciaRepository::contarDuplicadosPorAlumno($alumnoId);
 
             if ($duplicados > 0) {
                 $this->registrarLog("  [ALERTA] {$duplicados} pares duplicados en cap_asistencia para alumno #{$alumnoId}");
@@ -144,8 +130,6 @@ class CapAlumnosProgresoEndpoints
 
     public function debugProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response
     {
-        global $wpdb;
-
         $alumnoId = (int) $request->get_param('id');
         $capService = CapService::getInstance();
         $centroId = $capService->getCentroIdActual();
@@ -154,53 +138,16 @@ class CapAlumnosProgresoEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
-        $tablaAlumnos = $wpdb->prefix . CapAlumnosCols::TABLA;
-
-        $alumno = $wpdb->get_row($wpdb->prepare(
-            "SELECT id, nombre, horas_completadas, centro_id FROM {$tablaAlumnos} WHERE id = %d",
-            $alumnoId
-        ), 'ARRAY_A');
+        $alumno = CapAlumnosRepository::buscarPorId($alumnoId);
 
         if (!$alumno || (int) $alumno['centro_id'] !== $centroId) {
             return new \WP_REST_Response(['error' => 'Alumno no encontrado en este centro'], 404);
         }
 
-        $clasesRaw = $wpdb->get_results($wpdb->prepare(
-            "SELECT c.id, c.fecha, c.hora_inicio, c.hora_fin, c.asignatura,
-                    c.duracion_minutos, c.bloqueada
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d
-             ORDER BY c.fecha ASC, c.hora_inicio ASC",
-            $alumnoId
-        ), 'ARRAY_A');
-
-        $groupByCrudo = $wpdb->get_results($wpdb->prepare(
-            "SELECT c.asignatura, SUM(c.duracion_minutos) / 60 as horas, COUNT(*) as num_clases
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d
-             GROUP BY c.asignatura",
-            $alumnoId
-        ), 'ARRAY_A');
-
-        $totalFlat = (float) $wpdb->get_var($wpdb->prepare(
-            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d",
-            $alumnoId
-        ));
-
-        $totalFlatCompletadas = (float) $wpdb->get_var($wpdb->prepare(
-            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d AND c.fecha <= CURDATE()",
-            $alumnoId
-        ));
+        $clasesRaw = CapAsistenciaRepository::obtenerClasesDeAlumno($alumnoId);
+        $groupByCrudo = CapAsistenciaRepository::obtenerResumenPorAsignatura($alumnoId);
+        $totalFlat = CapAsistenciaRepository::obtenerTotalHoras($alumnoId, false);
+        $totalFlatCompletadas = CapAsistenciaRepository::obtenerTotalHoras($alumnoId, true);
 
         $alumnoModel = new Alumno();
         $progresoCompletado = $alumnoModel->obtenerProgreso($alumnoId);

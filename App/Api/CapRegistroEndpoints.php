@@ -8,6 +8,9 @@
 namespace Glory\App\Api;
 
 use Glory\App\Services\StripeService;
+use Glory\App\Database\Repositories\CapCentrosRepository;
+use Glory\App\Database\Repositories\CapConfiguracionRepository;
+use Glory\App\Database\Repositories\CapSuscripcionesRepository;
 use App\Config\Schema\_generated\CapCentrosCols;
 use App\Config\Schema\_generated\CapConfiguracionCols;
 use App\Config\Schema\_generated\CapSuscripcionesCols;
@@ -139,15 +142,11 @@ class CapRegistroEndpoints
         $user = new \WP_User($userId);
         $user->set_role('cap_admin');
 
+        /* Transacción cross-repo: centro + config + suscripción deben ser atómicos */
         global $wpdb;
-        $tablaCentros = $wpdb->prefix . CapCentrosCols::TABLA;
-        $tablaConfig = $wpdb->prefix . CapConfiguracionCols::TABLA;
-        $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
-
-        /* Transacción: centro + config + suscripción deben ser atómicos */
         $wpdb->query('START TRANSACTION');
 
-        $centroInsertado = $wpdb->insert($tablaCentros, [
+        $centroId = CapCentrosRepository::insertar([
             CapCentrosCols::USER_ID => $userId,
             CapCentrosCols::NOMBRE => $nombreCentro,
             CapCentrosCols::EMAIL => $email,
@@ -155,7 +154,7 @@ class CapRegistroEndpoints
             CapCentrosCols::UPDATED_AT => current_time('mysql'),
         ]);
 
-        if ($centroInsertado === false) {
+        if ($centroId === false) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,
@@ -163,15 +162,13 @@ class CapRegistroEndpoints
             ], 500);
         }
 
-        $centroId = (int) $wpdb->insert_id;
-
-        $configInsertada = $wpdb->insert($tablaConfig, [
+        $configId = CapConfiguracionRepository::insertar([
             CapConfiguracionCols::CENTRO_ID => $centroId,
             CapConfiguracionCols::CREATED_AT => current_time('mysql'),
             CapConfiguracionCols::UPDATED_AT => current_time('mysql'),
         ]);
 
-        if ($configInsertada === false) {
+        if ($configId === false) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,
@@ -179,7 +176,7 @@ class CapRegistroEndpoints
             ], 500);
         }
 
-        $suscripcionInsertada = $wpdb->insert($tablaSuscripciones, [
+        $suscripcionId = CapSuscripcionesRepository::insertar([
             CapSuscripcionesCols::CENTRO_ID => $centroId,
             CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
             CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
@@ -188,7 +185,7 @@ class CapRegistroEndpoints
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ]);
 
-        if ($suscripcionInsertada === false) {
+        if ($suscripcionId === false) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response([
                 'error' => true,

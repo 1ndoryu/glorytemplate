@@ -40,5 +40,44 @@ class CapSuscripcionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
+    /**
+     * Busca la suscripción más reciente de un centro.
+     */
+    public static function buscarUltimaPorCentro(int $centroId): ?array
+    {
+        $tabla = static::tablaCompleta();
+        $colCentroId = CapSuscripcionesCols::CENTRO_ID;
+        $colId = CapSuscripcionesCols::ID;
+
+        $resultados = static::consultar(
+            "SELECT * FROM {$tabla} WHERE {$colCentroId} = :centroId ORDER BY {$colId} DESC LIMIT 1",
+            ['centroId' => $centroId]
+        );
+
+        return $resultados[0] ?? null;
+    }
+
+    /**
+     * Obtiene el stripe_customer_id activo de un centro.
+     * Retorna null si no existe suscripción con customer ID.
+     */
+    public static function buscarCustomerIdPorCentro(int $centroId): ?string
+    {
+        $tabla = static::tablaCompleta();
+        $colCentroId = CapSuscripcionesCols::CENTRO_ID;
+        $colCustomerId = CapSuscripcionesCols::STRIPE_CUSTOMER_ID;
+        $colId = CapSuscripcionesCols::ID;
+
+        $resultados = static::consultar(
+            "SELECT {$colCustomerId} FROM {$tabla} WHERE {$colCentroId} = :centroId AND {$colCustomerId} IS NOT NULL ORDER BY {$colId} DESC LIMIT 1",
+            ['centroId' => $centroId]
+        );
+
+        if (empty($resultados)) {
+            return null;
+        }
+
+        $customerId = $resultados[0][$colCustomerId] ?? null;
+        return !empty($customerId) ? (string) $customerId : null;
+    }
 }

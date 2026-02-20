@@ -9,7 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Configuracion;
-use App\Config\Schema\_generated\CapSuscripcionesCols;
+use Glory\App\Database\Repositories\CapSuscripcionesRepository;
 use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapConfigEndpoints
@@ -27,12 +27,7 @@ class CapConfigEndpoints
 
         $configModel = new Configuracion();
 
-        global $wpdb;
-        $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
-        $suscripcion = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$tablaSuscripciones} WHERE centro_id = %d ORDER BY id DESC LIMIT 1",
-            $centroId
-        ), 'ARRAY_A');
+        $suscripcion = CapSuscripcionesRepository::buscarUltimaPorCentro($centroId);
 
         return new \WP_REST_Response([
             'config' => $configModel->obtener($centroId),

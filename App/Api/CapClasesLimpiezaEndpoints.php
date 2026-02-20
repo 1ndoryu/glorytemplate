@@ -9,8 +9,8 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
-use App\Config\Schema\_generated\CapAsistenciaCols;
-use App\Config\Schema\_generated\CapClasesCols;
+use Glory\App\Database\Repositories\CapAsistenciaRepository;
+use Glory\App\Database\Repositories\CapClasesRepository;
 use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapClasesLimpiezaEndpoints
@@ -36,15 +36,7 @@ class CapClasesLimpiezaEndpoints
 
         $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
 
-        global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
-
-        $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
-        $clasesIds = $wpdb->get_col($wpdb->prepare(
-            "SELECT id FROM {$tablaClases} WHERE centro_id = %d{$where}",
-            $centroId
-        ));
+        $clasesIds = CapClasesRepository::buscarIdsPorCentro($centroId, $incluirBloqueadas);
 
         if (empty($clasesIds)) {
             return new \WP_REST_Response([
@@ -55,23 +47,15 @@ class CapClasesLimpiezaEndpoints
         }
 
         /* Transacción: DELETE asistencias + DELETE clases deben ser atómicos */
+        global $wpdb;
         $wpdb->query('START TRANSACTION');
 
-        /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
-        $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
-        $resultadoAsistencia = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$placeholders})",
-            ...$clasesIds
-        ));
-        if ($resultadoAsistencia === false) {
+        if (!CapAsistenciaRepository::eliminarPorClaseIds($clasesIds)) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }
 
-        $eliminadas = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$tablaClases} WHERE centro_id = %d{$where}",
-            $centroId
-        ));
+        $eliminadas = CapClasesRepository::eliminarPorCentro($centroId, $incluirBloqueadas);
 
         if ($eliminadas === false) {
             $wpdb->query('ROLLBACK');
@@ -120,17 +104,7 @@ class CapClasesLimpiezaEndpoints
 
         $incluirBloqueadas = $request->get_param('incluirBloqueadas') === 'true' || $request->get_param('incluirBloqueadas') === true;
 
-        global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
-
-        $where = $incluirBloqueadas ? '' : ' AND bloqueada = 0';
-        $clasesIds = $wpdb->get_col($wpdb->prepare(
-            "SELECT id FROM {$tablaClases} WHERE centro_id = %d AND fecha >= %s AND fecha <= %s{$where}",
-            $centroId,
-            $fecha,
-            $finDia
-        ));
+        $clasesIds = CapClasesRepository::buscarIdsPorCentroYSemana($centroId, $fecha, $finDia, $incluirBloqueadas);
 
         if (empty($clasesIds)) {
             return new \WP_REST_Response([
@@ -141,25 +115,15 @@ class CapClasesLimpiezaEndpoints
         }
 
         /* Transacción: DELETE asistencias + DELETE clases deben ser atómicos */
+        global $wpdb;
         $wpdb->query('START TRANSACTION');
 
-        /* Usar $wpdb->prepare para DELETE IN() — defensa en profundidad */
-        $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
-        $resultadoAsistencia = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$tablaAsistencia} WHERE clase_id IN ({$placeholders})",
-            ...$clasesIds
-        ));
-        if ($resultadoAsistencia === false) {
+        if (!CapAsistenciaRepository::eliminarPorClaseIds($clasesIds)) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudieron eliminar asistencias'], 500);
         }
 
-        $eliminadas = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$tablaClases} WHERE centro_id = %d AND fecha >= %s AND fecha <= %s{$where}",
-            $centroId,
-            $fecha,
-            $finDia
-        ));
+        $eliminadas = CapClasesRepository::eliminarPorCentroYSemana($centroId, $fecha, $finDia, $incluirBloqueadas);
 
         if ($eliminadas === false) {
             $wpdb->query('ROLLBACK');

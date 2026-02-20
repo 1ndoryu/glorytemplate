@@ -9,7 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Services\StripeService;
-use App\Config\Schema\_generated\CapSuscripcionesCols;
+use Glory\App\Database\Repositories\CapSuscripcionesRepository;
 use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapStripeEndpoints
@@ -79,14 +79,9 @@ class CapStripeEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        global $wpdb;
-        $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
-        $suscripcion = $wpdb->get_row($wpdb->prepare(
-            "SELECT " . CapSuscripcionesCols::STRIPE_CUSTOMER_ID . " FROM {$tabla} WHERE " . CapSuscripcionesCols::CENTRO_ID . " = %d AND " . CapSuscripcionesCols::STRIPE_CUSTOMER_ID . " IS NOT NULL ORDER BY " . CapSuscripcionesCols::ID . " DESC LIMIT 1",
-            $centroId
-        ), 'ARRAY_A');
+        $customerId = CapSuscripcionesRepository::buscarCustomerIdPorCentro($centroId);
 
-        if (!$suscripcion || empty($suscripcion[CapSuscripcionesCols::STRIPE_CUSTOMER_ID])) {
+        if (!$customerId) {
             return new \WP_REST_Response([
                 'error' => 'No tienes una suscripción activa con Stripe'
             ], 404);
@@ -97,7 +92,7 @@ class CapStripeEndpoints
         $urlRetorno = isset($datos['urlRetorno']) ? sanitize_text_field($datos['urlRetorno']) : home_url('/cap-dashboard/');
 
         $stripeService = new StripeService();
-        $url = $stripeService->getPortalUrl($suscripcion['stripe_customer_id'], $urlRetorno);
+        $url = $stripeService->getPortalUrl($customerId, $urlRetorno);
 
         if (!$url) {
             return new \WP_REST_Response(['error' => 'Error al generar enlace del portal'], 500);

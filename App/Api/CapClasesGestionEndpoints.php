@@ -10,7 +10,8 @@ namespace Glory\App\Api;
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
-use App\Config\Schema\_generated\CapAsistenciaCols;
+use Glory\App\Database\Repositories\CapAsistenciaRepository;
+use Glory\App\Database\Repositories\CapClasesRepository;
 use App\Config\Schema\_generated\CapClasesCols;
 use Glory\App\Api\Traits\ConCallbackSeguro;
 
@@ -124,26 +125,18 @@ class CapClasesGestionEndpoints
             ], 409);
         }
 
-        global $wpdb;
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
-
-        $alumnosAfectados = $wpdb->get_col($wpdb->prepare(
-            "SELECT alumno_id FROM {$tablaAsistencia} WHERE clase_id = %d",
-            $claseId
-        ));
+        $alumnosAfectados = CapAsistenciaRepository::buscarAlumnoIdsPorClase($claseId);
 
         /* Transacción: DELETE asistencias + DELETE clase deben ser atómicos */
+        global $wpdb;
         $wpdb->query('START TRANSACTION');
 
-        $asistenciaEliminada = $wpdb->delete($tablaAsistencia, [CapAsistenciaCols::CLASE_ID => $claseId]);
-        if ($asistenciaEliminada === false) {
+        if (!CapAsistenciaRepository::eliminarPorClaseId($claseId)) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'Error al eliminar asistencias'], 500);
         }
 
-        $eliminado = $wpdb->delete($tablaClases, [CapClasesCols::ID => $claseId]);
-        if ($eliminado === false) {
+        if (!CapClasesRepository::eliminar($claseId)) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'Error al eliminar la clase'], 500);
         }

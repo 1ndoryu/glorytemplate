@@ -9,6 +9,7 @@ namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
 use Glory\App\Models\Alumno;
+use Glory\App\Database\Repositories\CapDisponibilidadRepository;
 use App\Config\Schema\_generated\CapDisponibilidadCols;
 use App\Config\Schema\_generated\CapDisponibilidadEnums;
 use Glory\App\Api\Traits\ConCallbackSeguro;
@@ -46,13 +47,7 @@ class CapDisponibilidadEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
-        global $wpdb;
-        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
-
-        $slots = $wpdb->get_results($wpdb->prepare(
-            "SELECT dia, hora, disponible FROM {$tabla} WHERE alumno_id = %d",
-            $alumnoId
-        ), 'ARRAY_A');
+        $slots = CapDisponibilidadRepository::buscarSlotsPorAlumno($alumnoId);
 
         $slotsFormateados = array_map(static function ($slot) {
             return [
@@ -88,14 +83,11 @@ class CapDisponibilidadEndpoints
             return new \WP_REST_Response(['error' => 'Datos de slots requeridos'], 400);
         }
 
-        global $wpdb;
-        $tabla = $wpdb->prefix . CapDisponibilidadCols::TABLA;
-
         /* Transacción: DELETE slots anteriores + INSERT nuevos deben ser atómicos */
+        global $wpdb;
         $wpdb->query('START TRANSACTION');
 
-        $eliminado = $wpdb->delete($tabla, [CapDisponibilidadCols::ALUMNO_ID => $alumnoId]);
-        if ($eliminado === false) {
+        if (!CapDisponibilidadRepository::eliminarPorAlumno($alumnoId)) {
             $wpdb->query('ROLLBACK');
             return new \WP_REST_Response(['error' => 'No se pudo limpiar la disponibilidad anterior'], 500);
         }
@@ -125,7 +117,7 @@ class CapDisponibilidadEndpoints
                 continue;
             }
 
-            $insertado = $wpdb->insert($tabla, [
+            $insertadoId = CapDisponibilidadRepository::insertar([
                 CapDisponibilidadCols::ALUMNO_ID => $alumnoId,
                 CapDisponibilidadCols::DIA => $dia,
                 CapDisponibilidadCols::HORA => $hora,
@@ -134,7 +126,7 @@ class CapDisponibilidadEndpoints
                 CapDisponibilidadCols::UPDATED_AT => current_time('mysql'),
             ]);
 
-            if ($insertado === false) {
+            if ($insertadoId === false) {
                 $wpdb->query('ROLLBACK');
                 return new \WP_REST_Response(['error' => 'No se pudo guardar la disponibilidad'], 500);
             }

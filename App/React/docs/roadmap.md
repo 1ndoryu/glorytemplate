@@ -1,10 +1,21 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-22  
-> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (22/22 front + 20/22 total, 2 backend pendientes de esfuerzo alto)  
+> **Última actualización:** 2026-02-20  
+> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (22/22 items, 0 pendientes)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+
+### Completado — 8.4 Endpoints migrados a Repositorios (AG-CMP, 2026-02-20)
+
+> 7 endpoints migrados. 0 queries `$wpdb` directas en capa API. 15 métodos custom creados en 4 repos.
+
+- **CapSuscripcionesRepo:** `buscarUltimaPorCentro()`, `buscarCustomerIdPorCentro()`
+- **CapAsistenciaRepo:** `buscarAlumnoIdsPorClase()`, `eliminarPorClaseId()`, `eliminarPorClaseIds()`, `contarDuplicadosPorAlumno()`, `obtenerClasesDeAlumno()`, `obtenerResumenPorAsignatura()`, `obtenerTotalHoras()`
+- **CapClasesRepo:** `buscarIdsPorCentro()`, `buscarIdsPorCentroYSemana()`, `eliminarPorCentro()`, `eliminarPorCentroYSemana()`
+- **CapDisponibilidadRepo:** `buscarSlotsPorAlumno()`, `eliminarPorAlumno()`
+- **PLAN_ANTI_HARDCODE.md:** Compactado de 1036 a ~170 líneas. Fases 1-7 + F8 completados resumidos. TO-DOs técnicos preservados.
+- **Lección:** [8.4 Repos]: Para transacciones cross-repo, endpoint orquesta START TRANSACTION/COMMIT/ROLLBACK; repos ejecutan operaciones individuales.
 
 ### Completado — Refactor ModalProgresoAlumno + Code Sentinel (AG-FIX, 2026-02-22)
 
@@ -52,7 +63,7 @@
 - **F8.18:** FK constraints documentadas en CapSchema.php (8 dependencias mapeadas para futura migración).
 - **F8.19:** N+1 eliminado en Seeder: 1 SELECT + batch INSERT en lotes de 50 (antes ~240 queries individuales).
 - **F8.3:** Split useCalendario.ts: 792→~120 líneas compositor + 7 sub-hooks en hooks/calendario/.
-- **Pendientes:** 8.4 (canalizar BD por repos — esfuerzo alto). Alumno.php y StripeService.php siguen sobre límite de líneas (TO-DO).
+- **Pendientes:** Alumno.php y StripeService.php siguen sobre límite de líneas (TO-DO split por dominio).
 - **Lecciones:** 
   - [pages.php]: Props de página deben ser callbacks, no arrays estáticos (evaluación temprana de `wp_get_current_user()`).
   - [API_BASE]: Centralizar URL base evita divergencia silenciosa entre 5+ hooks.
