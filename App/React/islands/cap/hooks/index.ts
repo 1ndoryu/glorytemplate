@@ -15,6 +15,6 @@ export type {DiaSemana, SlotDisponibilidad, DisponibilidadAlumno} from './useDis
 
 export {useCalendario} from './useCalendario';
 
-export {useHistorial} from './useHistorial';
+/* useHistorial eliminado (8.14): era codigo muerto, useCalendario tiene su propio historial interno */
 
 export {useReportes} from './useReportes';

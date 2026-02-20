@@ -4,6 +4,7 @@
  */
 
 import {useState, useEffect, useCallback} from 'react';
+import {API_BASE} from '../constants/cap-constants';
 
 export interface EstadoStripe {
     configurado: boolean;
@@ -71,7 +72,7 @@ export function useStripe(): UseStripeReturn {
     const cargarEstado = useCallback(async (signal?: AbortSignal) => {
         try {
             setCargando(true);
-            const response = await fetch('/wp-json/cap/v1/stripe/config', {
+            const response = await fetch(`${API_BASE}/stripe/config`, {
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''
                 },
@@ -142,7 +143,7 @@ export function useStripe(): UseStripeReturn {
                 datosEnviar.priceId = formulario.priceId;
             }
 
-            const response = await fetch('/wp-json/cap/v1/stripe/config', {
+            const response = await fetch(`${API_BASE}/stripe/config`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

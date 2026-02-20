@@ -53,7 +53,8 @@ interface UseAlumnosReturn extends EstadoAlumnos {
     limpiarMensajes: () => void;
 }
 
-const API_BASE = '/wp-json/cap/v1';
+import {API_BASE} from '../constants/cap-constants';
+
 const HORAS_TOTALES_CAP = 35;
 
 export function useAlumnos(): UseAlumnosReturn {

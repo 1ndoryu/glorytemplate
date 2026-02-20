@@ -11,7 +11,7 @@
 
 import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion, AvisoGeneracion} from '../types';
-import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA, getAsignatura} from '../constants';
+import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA, getAsignatura, API_BASE} from '../constants';
 import {detectarColision} from '../utils/collisionUtils';
 import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
 
@@ -133,7 +133,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         try {
             const fechaInicio = formatearFechaApi(semanaActual);
 
-            const response = await fetch(`/wp-json/cap/v1/clases?semana=${fechaInicio}`, {
+            const response = await fetch(`${API_BASE}/clases?semana=${fechaInicio}`, {
                 headers: {
                     'X-WP-Nonce': getNonce()
                 },
@@ -224,7 +224,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setClases(prev => prev.map(c => (c.id === claseId ? {...c, bloqueada: !c.bloqueada} : c)));
 
             try {
-                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}/toggle-bloqueo`, {
+                const response = await fetch(`${API_BASE}/clases/${claseId}/toggle-bloqueo`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 body.fechaDesde = fechaDesde;
             }
 
-            const response = await fetch('/wp-json/cap/v1/generar', {
+            const response = await fetch(`${API_BASE}/generar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -352,7 +352,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setError(null);
 
             try {
-                const response = await fetch('/wp-json/cap/v1/generar/con-exclusiones', {
+                const response = await fetch(`${API_BASE}/generar/con-exclusiones`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -461,7 +461,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             );
 
             try {
-                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}`, {
+                const response = await fetch(`${API_BASE}/clases/${claseId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -544,7 +544,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                 if (nuevaHoraInicio) body.hora_inicio = nuevaHoraInicio;
                 if (nuevaHoraFin) body.hora_fin = nuevaHoraFin;
 
-                const response = await fetch(`/wp-json/cap/v1/clases/${claseId}`, {
+                const response = await fetch(`${API_BASE}/clases/${claseId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -615,7 +615,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     };
                     if (cambio.nuevaFecha) body.fecha = cambio.nuevaFecha;
 
-                    return fetch(`/wp-json/cap/v1/clases/${cambio.clase.id}`, {
+                    return fetch(`${API_BASE}/clases/${cambio.clase.id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -657,7 +657,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             setError(null);
 
             try {
-                const url = forzar ? `/wp-json/cap/v1/clases/${claseId}?forzar=true` : `/wp-json/cap/v1/clases/${claseId}`;
+                const url = forzar ? `${API_BASE}/clases/${claseId}?forzar=true` : `${API_BASE}/clases/${claseId}`;
 
                 const response = await fetch(url, {
                     method: 'DELETE',
@@ -701,7 +701,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             try {
                 const fechaLunes = formatearFechaApi(semanaActual);
 
-                const response = await fetch('/wp-json/cap/v1/clases/limpiar-semana', {
+                const response = await fetch(`${API_BASE}/clases/limpiar-semana`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

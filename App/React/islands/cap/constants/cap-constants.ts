@@ -8,6 +8,9 @@
 import type { Asignatura, DiaSemana } from '../types';
 import { CapDisponibilidadEnums } from '../../../types/_generated/schema';
 
+/* Base URL de la API REST CAP — fuente unica para todos los hooks */
+export const API_BASE = '/wp-json/cap/v1';
+
 /* Configuraciones visuales del calendario
  * Zoom +30% aplicado para mejor visualización de tarjetas
  */

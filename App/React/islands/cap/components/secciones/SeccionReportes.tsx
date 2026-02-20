@@ -28,9 +28,7 @@ export function SeccionReportes() {
 
     /* Cargar alumnos al montar */
     useEffect(() => {
-        const controller = new AbortController();
-        cargarAlumnos(controller.signal);
-        return () => controller.abort();
+        cargarAlumnos();
     }, [cargarAlumnos]);
 
     /* Limpiar mensajes después de 4 segundos */

@@ -66,7 +66,7 @@ interface UseConfiguracionReturn extends EstadoConfiguracion {
     limpiarMensajes: () => void;
 }
 
-const API_BASE = '/wp-json/cap/v1';
+import {API_BASE} from '../constants/cap-constants';
 
 export function useConfiguracion(): UseConfiguracionReturn {
     const [estado, setEstado] = useState<EstadoConfiguracion>({

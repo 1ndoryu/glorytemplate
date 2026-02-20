@@ -42,7 +42,7 @@ interface UseDisponibilidadReturn extends EstadoDisponibilidad {
     horasActuales: string[];
 }
 
-const API_BASE = '/wp-json/cap/v1';
+import {API_BASE} from '../constants/cap-constants';
 
 /* Días de la semana para la matriz */
 export const DIAS_SEMANA: DiaSemana[] = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'];
