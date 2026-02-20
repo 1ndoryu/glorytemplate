@@ -116,7 +116,7 @@
 .capCalendarioMini__grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
+    gap: calc(var(--cap-espacio-xs) / 2);
 }
 
 .capCalendarioMini__dia {
@@ -167,6 +167,6 @@
     bottom: 2px;
     width: 4px;
     height: 4px;
-    border-radius: 50%;
+    border-radius: var(--cap-radio-full);
     background: var(--cap-primario-500);
 }

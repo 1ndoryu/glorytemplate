@@ -10,6 +10,14 @@
 
 _(sin tareas activas)_
 
+### Completado — Refactor masivo de UI: Eliminación de Hardcodes y estandarización (AG-CSS, 2026-02-23)
+
+- **Feature:** Eliminación de más de 40 valores hardcodeados (`2px`, `4px`, `50%`, `10px`, códigos HSL estáticos, etc.) en 14 archivos CSS del módulo CAP (`alumnos.css`, `calendario.css`, `configuracion.css`, `disponibilidad.css`, modales y componentes UI).
+- **Fix:** Estandarización completa utilizando las variables del sistema CAP. Se aplicaron transformaciones como `calc(var(--cap-espacio-xs) / 2)` para suplir los valores de `2px`, `var(--cap-radio-full)` para el `50%`, y constantes semánticas para reemplazos de colores (`--cap-exito-700`).
+- **TSConfig:** Corregido `ignoreDeprecations` a `"5.0"` en `tsconfig.json`.
+- **TO-DO Técnico:** `alumnos.css`, `calendario.css`, y `configuracion.css` superan el límite de las 300 líneas. Deben dividirse por componentes/módulos en futuras iteraciones arquitectónicas.
+- **Lección:** `[CSS Tokens Avanzado]`: Utilizar la función `calc()` para derivar valores submúltiplos del design system en lugar de usar valores absolutos, manteniendo intacta la escala rítmica de la aplicación sin crear nuevas variables. `color-mix()` es esencial para variaciones de opacidad (ej: borders transparentes).
+
 ### Completado — Trial configurable + Paywall (AG-PAY, 2026-02-22)
 
 - **Feature:** Toggle en PanelStripe para habilitar/deshabilitar período de prueba gratuito de 14 días (desactivado por defecto).
@@ -17,9 +25,9 @@ _(sin tareas activas)_
 - **Backend:** `StripeService::esTrialHabilitado()`, `CapRegistroEndpoints` condicional `fecha_fin`, `CapService` auto-centros sin trial, `CapConfigEndpoints` expone `stripeConfigurado` + `trialHabilitado`.
 - **Frontend:** `useStripe` + `PanelStripe` (toggle trial), `useConfiguracion` (`haPagado`, `stripeConfigurado`, `trialHabilitado`), `PanelSuscripcion` (botón checkout para no-pagados), `Paywall` component, `CapDashboardIsland` (overlay condicional), `CapRegistroIsland` (opciones post-registro condicionales).
 - **Lecciones:**
-  - `[Trial]`: `stripe_customer_id` vacío = nunca pagó. Condición paywall: `!haPagado && diasRestantes <= 0 && !isAdmin`.
-  - `[useRegistro]`: `diasTrial=0` es falsy en JS — usar `typeof === 'number'` para setear, no `if (data.diasTrial)`.
-  - `[StripeConfig]`: wp_options con `cap_stripe_trial_enabled` default `'0'` (string). Parsear con `=== '1'` no `truthy`.
+    - `[Trial]`: `stripe_customer_id` vacío = nunca pagó. Condición paywall: `!haPagado && diasRestantes <= 0 && !isAdmin`.
+    - `[useRegistro]`: `diasTrial=0` es falsy en JS — usar `typeof === 'number'` para setear, no `if (data.diasTrial)`.
+    - `[StripeConfig]`: wp_options con `cap_stripe_trial_enabled` default `'0'` (string). Parsear con `=== '1'` no `truthy`.
 
 ### Completado — Fix variables CSS en paywall.css (AG-CSS, 2026-02-20)
 

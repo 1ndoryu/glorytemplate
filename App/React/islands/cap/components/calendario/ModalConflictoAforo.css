@@ -100,7 +100,7 @@
 .conflictoAforo__slotInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--cap-espacio-xs) / 2);
 }
 
 .conflictoAforo__fecha {

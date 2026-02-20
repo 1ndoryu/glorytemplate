@@ -124,7 +124,7 @@
 .capAutocompletado__opcion {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--cap-espacio-xs) / 2);
     padding: var(--cap-espacio-sm) var(--cap-espacio-md);
     cursor: pointer;
     transition: background 0.1s ease;

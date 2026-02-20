@@ -67,13 +67,14 @@
     display: grid;
     /* 1 columna para hora + 5 columnas para días */
     grid-template-columns: 50px repeat(5, 1fr);
-    gap: 3px;
+    gap: calc(var(--cap-espacio-xs) * 0.75);
     min-width: 300px;
 }
 
 /* Celda esquina vacía */
 .capMatriz__celdaEsquina {
     /* No hacer nada, solo ocupa espacio */
+    padding: 0;
 }
 
 /* Headers de días (columnas) */
@@ -227,7 +228,7 @@
 
     .capMatriz__grid {
         grid-template-columns: 42px repeat(5, 1fr);
-        gap: 2px;
+        gap: calc(var(--cap-espacio-xs) / 2);
     }
 
     .capMatriz__celda {

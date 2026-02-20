@@ -47,14 +47,14 @@
 
 .conflictoDrag__flecha {
     color: var(--cap-error-500);
-    font-size: 1.5rem;
+    font-size: var(--cap-texto-2xl);
     flex-shrink: 0;
 }
 
 .conflictoDrag__tituloClase {
     font-weight: 600;
     font-size: var(--cap-texto-sm);
-    margin-bottom: 4px;
+    margin-bottom: var(--cap-espacio-xs);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

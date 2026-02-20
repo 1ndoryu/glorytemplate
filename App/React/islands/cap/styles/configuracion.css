@@ -145,7 +145,7 @@
     width: 20px;
     height: 20px;
     background: var(--cap-texto-invertido);
-    border-radius: 50%;
+    border-radius: var(--cap-radio-full);
     box-shadow: var(--cap-sombra-sm);
     transition: transform var(--cap-transicion-rapida);
 }
@@ -441,7 +441,7 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    margin-bottom: 2px;
+    margin-bottom: calc(var(--cap-espacio-xs) / 2);
     border: 1px solid var(--cap-borde);
     border-radius: var(--cap-radio-md);
     background: var(--cap-fondo-tarjeta);

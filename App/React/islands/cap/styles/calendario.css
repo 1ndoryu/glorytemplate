@@ -110,7 +110,7 @@
 .capCalendarioGrid {
     display: grid;
     grid-template-columns: 60px repeat(5, 1fr);
-    gap: 1px;
+    gap: calc(var(--cap-espacio-xs) / 4);
     background: var(--cap-borde-sutil);
     border: 1px solid var(--cap-borde-sutil);
     border-radius: var(--cap-radio-lg);
@@ -241,7 +241,7 @@
 }
 
 .capTarjetaClase--sinHorario .capTarjetaClase__header {
-    margin-bottom: 2px;
+    margin-bottom: calc(var(--cap-espacio-xs) / 2);
 }
 
 .capTarjetaClase--sinHorario .capTarjetaClase__asignatura {
@@ -254,7 +254,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--cap-espacio-xs);
-    padding: 2px var(--cap-espacio-sm);
+    padding: calc(var(--cap-espacio-xs) / 2) var(--cap-espacio-sm);
 }
 
 .capTarjetaClase--compacto .capTarjetaClase__codigo {
@@ -276,12 +276,11 @@
     flex-shrink: 0;
 }
 
-/* Variante: Badges (compacto con 3 badges) */
 .capTarjetaClase--badges {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    gap: 4px;
+    gap: var(--cap-espacio-xs);
     padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
 }
 
@@ -294,15 +293,15 @@
     word-break: break-word;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-/* Contenedor de los 3 badges */
 .capTarjetaClase__badgesContainer {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--cap-espacio-xs);
     flex-wrap: wrap;
 }
 
@@ -412,7 +411,7 @@
     font-weight: var(--cap-peso-bold);
     color: var(--cap-texto-invertido);
     background: var(--cap-primario-500);
-    padding: 2px 6px;
+    padding: calc(var(--cap-espacio-xs) / 2) calc(var(--cap-espacio-xs) * 1.5);
     border-radius: var(--cap-radio-sm);
     flex-shrink: 0;
 }
@@ -729,7 +728,7 @@
     font-size: var(--cap-texto-xs);
     color: var(--cap-texto-secundario);
     background: var(--cap-fondo-tarjeta);
-    padding: 2px 8px;
+    padding: calc(var(--cap-espacio-xs) / 2) var(--cap-espacio-sm);
     border-radius: var(--cap-radio-full);
 }
 
@@ -833,7 +832,7 @@
     z-index: var(--cap-z-tooltip);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: calc(var(--cap-espacio-md) * 0.625);
     max-width: 360px;
     width: 100%;
     pointer-events: none;

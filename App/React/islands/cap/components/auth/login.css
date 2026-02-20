@@ -354,7 +354,7 @@
 .capLoginSpinner {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--cap-gris-300-transparente);
+    border: 2px solid color-mix(in srgb, var(--cap-gris-300) 50%, transparent);
     border-top-color: var(--cap-texto-invertido);
     border-radius: var(--cap-radio-full);
     animation: capSpin 0.8s linear infinite;

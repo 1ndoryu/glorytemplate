@@ -125,7 +125,7 @@
 .capTabla__td--nombre {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--cap-espacio-xs) / 2);
 }
 
 .capTabla__nombreCompleto {
@@ -563,8 +563,8 @@
 /* Separador visual dentro de contenido Tooltip */
 .capTooltip__separador {
     border-top: 1px solid currentColor;
-    padding-top: 2px;
-    margin-top: 2px;
+    padding-top: calc(var(--cap-espacio-xs) / 2);
+    margin-top: calc(var(--cap-espacio-xs) / 2);
 }
 
 /* Celda de progreso clickeable */
@@ -585,7 +585,7 @@
     display: inline-block;
     width: 6px;
     height: 6px;
-    border-radius: 50%;
+    border-radius: var(--cap-radio-full);
 }
 
 .capPunto--planificado {
