@@ -18,7 +18,7 @@ interface SeccionConfiguracionProps {
 }
 
 export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: SeccionConfiguracionProps) {
-    const {centro, config, suscripcion, cargando, guardandoCentro, guardandoHorarios, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
+    const {centro, config, suscripcion, stripeConfigurado, cargando, guardandoCentro, guardandoHorarios, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
 
     /* Limpiar mensajes automaticamente despues de 4 segundos */
     useEffect(() => {
@@ -67,7 +67,7 @@ export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: Sec
                 {/* Columna derecha: Capacidad, Suscripción, Demo y Stripe */}
                 <div className="capFlexCol capGap--lg">
                     <PanelCapacidad config={config} guardando={guardandoHorarios} onGuardar={guardarHorarios} />
-                    <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} />
+                    <PanelSuscripcion suscripcion={suscripcion} userName={userName} userEmail={userEmail} stripeConfigurado={stripeConfigurado} />
                     {/* Panel Demo: solo visible si el modo está permitido (WP_DEBUG o CAP_ALLOW_DEMO_MODE) */}
                     <PanelDemo />
                     {/* Panel Stripe: solo visible para administradores */}

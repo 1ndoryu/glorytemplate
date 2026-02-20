@@ -40,6 +40,7 @@ export function useRegistro({restUrl, restNonce, loginUrl}: UseRegistroParams) {
     /* Estado Stripe post-registro */
     const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
     const [diasTrial, setDiasTrial] = useState(14);
+    const [trialHabilitado, setTrialHabilitado] = useState(true);
     const [redireccionando, setRedireccionando] = useState(false);
 
     /* Validación del formulario antes de enviar */
@@ -115,7 +116,8 @@ export function useRegistro({restUrl, restNonce, loginUrl}: UseRegistroParams) {
             }
 
             if (data.stripeCheckoutUrl) setStripeCheckoutUrl(data.stripeCheckoutUrl);
-            if (data.diasTrial) setDiasTrial(data.diasTrial);
+            if (typeof data.diasTrial === 'number') setDiasTrial(data.diasTrial);
+            if (typeof data.trialHabilitado === 'boolean') setTrialHabilitado(data.trialHabilitado);
 
             setRegistroExitoso(true);
         } catch (err) {
@@ -143,7 +145,7 @@ export function useRegistro({restUrl, restNonce, loginUrl}: UseRegistroParams) {
         /* Estado UI */
         cargando, errores, errorGeneral, registroExitoso,
         /* Estado Stripe */
-        stripeCheckoutUrl, diasTrial, redireccionando,
+        stripeCheckoutUrl, diasTrial, trialHabilitado, redireccionando,
         /* Handlers */
         handleSubmit, irACheckout
     };

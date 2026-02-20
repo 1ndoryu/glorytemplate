@@ -9,7 +9,7 @@
 import {useStripe} from '../../hooks/useStripe';
 import {usePanelStripeUI} from '../../hooks/usePanelStripeUI';
 import {Tarjeta, TarjetaHeader, Boton, Input, Alerta, Spinner, Badge} from '../ui';
-import {CreditCard, Key, Link, AlertTriangle, Check, Eye, EyeOff, Copy} from 'lucide-react';
+import {CreditCard, Key, Link, AlertTriangle, Check, Eye, EyeOff, Copy, Clock} from 'lucide-react';
 
 export function PanelStripe() {
     const {estado, formulario, cargando, guardando, error, exito, setFormulario, guardarConfiguracion, limpiarMensajes} = useStripe();
@@ -164,6 +164,34 @@ export function PanelStripe() {
                 {/* Price ID */}
                 <div className="capPanelStripe__seccion">
                     <Input placeholder="price_..." value={formulario.priceId} onChange={e => setFormulario(prev => ({...prev, priceId: e.target.value}))} etiqueta="ID del Precio de Suscripción" ayuda="Crea un producto y precio en Stripe Dashboard y copia el Price ID aquí" />
+                </div>
+
+                {/* Período de prueba gratuito */}
+                <div className="capPanelStripe__seccion">
+                    <div className="capPanelStripe__seccionHeader">
+                        <Clock size={16} />
+                        <span className="capTexto capTexto--sm capTexto--bold">Período de Prueba</span>
+                        {formulario.trialHabilitado ? (
+                            <Badge variante="exito" tamano="sm">Habilitado</Badge>
+                        ) : (
+                            <Badge variante="advertencia" tamano="sm">Deshabilitado</Badge>
+                        )}
+                    </div>
+                    <div className="capPanelStripe__trialToggle">
+                        <label className="capPanelStripe__toggleLabel">
+                            <input
+                                type="checkbox"
+                                checked={formulario.trialHabilitado}
+                                onChange={e => setFormulario(prev => ({...prev, trialHabilitado: e.target.checked}))}
+                            />
+                            <span>Permitir 14 días de prueba gratuita a nuevos usuarios</span>
+                        </label>
+                        <p className="capTexto capTexto--xs capTexto--terciario capMt--xs">
+                            {formulario.trialHabilitado
+                                ? 'Los nuevos usuarios tendrán 14 días de acceso gratuito antes de necesitar suscribirse.'
+                                : 'Los nuevos usuarios deberán suscribirse inmediatamente para acceder a la plataforma.'}
+                        </p>
+                    </div>
                 </div>
 
                 {/* Nota informativa */}

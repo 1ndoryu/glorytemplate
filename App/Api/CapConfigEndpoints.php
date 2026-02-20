@@ -8,6 +8,7 @@
 namespace Glory\App\Api;
 
 use Glory\App\Services\CapService;
+use Glory\App\Services\StripeService;
 use Glory\App\Models\Configuracion;
 use Glory\App\Database\Repositories\CapSuscripcionesRepository;
 use Glory\App\Api\Traits\ConCallbackSeguro;
@@ -29,10 +30,17 @@ class CapConfigEndpoints
 
         $suscripcion = CapSuscripcionesRepository::buscarUltimaPorCentro($centroId);
 
+        /* Información de configuración Stripe relevante para el frontend */
+        $stripeService = new StripeService();
+        $stripeConfigurado = $stripeService->estaConfigurado();
+        $trialHabilitado = $stripeService->esTrialHabilitado();
+
         return new \WP_REST_Response([
             'config' => $configModel->obtener($centroId),
             'centro' => $configModel->obtenerDatosCentro($centroId),
             'suscripcion' => $suscripcion,
+            'stripeConfigurado' => $stripeConfigurado,
+            'trialHabilitado' => $trialHabilitado,
         ]);
     }
 

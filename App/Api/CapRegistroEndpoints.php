@@ -176,11 +176,23 @@ class CapRegistroEndpoints
             ], 500);
         }
 
+        $stripeService = new StripeService();
+        $trialHabilitado = $stripeService->esTrialHabilitado();
+
+        /*
+         * Fecha de fin de suscripción según configuración de trial:
+         * - Trial habilitado: +14 días de acceso gratuito
+         * - Trial deshabilitado: fecha actual (debe pagar para acceder)
+         */
+        $fechaFinSuscripcion = $trialHabilitado
+            ? date('Y-m-d', strtotime('+14 days'))
+            : current_time('mysql');
+
         $suscripcionId = CapSuscripcionesRepository::insertar([
             CapSuscripcionesCols::CENTRO_ID => $centroId,
             CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
             CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
-            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d', strtotime('+14 days')),
+            CapSuscripcionesCols::FECHA_FIN => $fechaFinSuscripcion,
             CapSuscripcionesCols::CREATED_AT => current_time('mysql'),
             CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
         ]);
@@ -196,12 +208,23 @@ class CapRegistroEndpoints
         $wpdb->query('COMMIT');
 
         $asunto = 'Bienvenido a la plataforma CAP';
-        $mensaje = sprintf(
-            "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\nTienes 14 días de prueba gratuita para explorar todas las funcionalidades.\n\n¡Gracias por registrarte!",
-            $nombreUsuario,
-            $nombreCentro,
-            $nombreUsuario
-        );
+
+        /* Mensaje de bienvenida adaptado según si hay trial disponible */
+        if ($trialHabilitado) {
+            $mensaje = sprintf(
+                "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\nTienes 14 días de prueba gratuita para explorar todas las funcionalidades.\n\n¡Gracias por registrarte!",
+                $nombreUsuario,
+                $nombreCentro,
+                $nombreUsuario
+            );
+        } else {
+            $mensaje = sprintf(
+                "Hola %s,\n\nTu cuenta ha sido creada exitosamente.\n\nCentro: %s\nUsuario: %s\n\nPara acceder a todas las funcionalidades, suscríbete desde tu panel de control.\n\n¡Gracias por registrarte!",
+                $nombreUsuario,
+                $nombreCentro,
+                $nombreUsuario
+            );
+        }
 
         /* Verificar retorno de wp_mail para diagnosticar problemas de envío */
         $mailEnviado = wp_mail($email, $asunto, $mensaje);
@@ -214,10 +237,10 @@ class CapRegistroEndpoints
             'message' => 'Usuario registrado correctamente',
             'userId' => $userId,
             'centroId' => $centroId,
-            'diasTrial' => 14,
+            'diasTrial' => $trialHabilitado ? 14 : 0,
+            'trialHabilitado' => $trialHabilitado,
         ];
 
-        $stripeService = new StripeService();
         if ($stripeService->estaConfigurado()) {
             $urlExito = home_url('/cap-dashboard/?pago=exitoso&registro=nuevo');
             $urlCancelado = home_url('/cap-login/?registro=pendiente');

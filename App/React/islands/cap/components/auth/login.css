@@ -49,7 +49,7 @@
     position: absolute;
     width: 600px;
     height: 600px;
-    border-radius: 50%;
+    border-radius: var(--cap-radio-full);
     background: linear-gradient(135deg, hsla(217, 80%, 60%, 0.08), hsla(190, 75%, 50%, 0.05));
     top: -200px;
     right: -200px;
@@ -70,7 +70,7 @@
 
 /* Tarjeta del formulario con glassmorphism */
 .capLoginTarjeta {
-    background: hsla(0, 0%, 100%, 0.95);
+    background: var(--cap-fondo-tarjeta);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: var(--cap-radio-xl);
@@ -108,7 +108,7 @@
 .capLoginLogo svg {
     width: 40px;
     height: 40px;
-    color: white;
+    color: var(--cap-texto-invertido);
 }
 
 /* Variante de logo para pantalla de registro exitoso */
@@ -153,7 +153,7 @@
 }
 
 .capLoginFormulario .capInput__campo:focus {
-    background: white;
+    background: var(--cap-fondo-tarjeta);
     border-color: var(--cap-primario-500);
     box-shadow:
         0 0 0 3px var(--cap-focus-ring),
@@ -227,7 +227,7 @@
     font-weight: var(--cap-peso-semibold);
     border-radius: var(--cap-radio-md);
     background: linear-gradient(135deg, var(--cap-primario-500), var(--cap-primario-600));
-    color: white;
+    color: var(--cap-texto-invertido);
     border: none;
     cursor: pointer;
     transition: all var(--cap-transicion-rapida);
@@ -354,9 +354,9 @@
 .capLoginSpinner {
     width: 20px;
     height: 20px;
-    border: 2px solid hsla(0, 0%, 100%, 0.3);
-    border-top-color: white;
-    border-radius: 50%;
+    border: 2px solid var(--cap-gris-300-transparente);
+    border-top-color: var(--cap-texto-invertido);
+    border-radius: var(--cap-radio-full);
     animation: capSpin 0.8s linear infinite;
 }
 
@@ -460,8 +460,8 @@
    ======================================== */
 
 [data-theme='dark'] .capLoginTarjeta {
-    background: hsla(220, 18%, 12%, 0.95);
-    border-color: hsla(220, 15%, 25%, 0.5);
+    background: var(--cap-fondo-tarjeta);
+    border-color: var(--cap-borde-medio);
 }
 
 [data-theme='dark'] .capLoginTitulo {

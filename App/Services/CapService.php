@@ -15,6 +15,7 @@ use App\Config\Schema\_generated\CapSuscripcionesEnums;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use Glory\App\Models\Configuracion;
+use Glory\App\Services\StripeService;
 
 class CapService
 {
@@ -65,14 +66,23 @@ class CapService
                 $centroId = $this->configModel->crearCentro($userId, $nombreCentro);
 
                 if ($centroId) {
-                    /* Crear suscripción trial para el nuevo centro, verificar retorno */
+                    /*
+                     * Crear suscripción para el nuevo centro.
+                     * La fecha de fin depende de si el trial está habilitado.
+                     */
+                    $stripeService = new StripeService();
+                    $trialHabilitado = $stripeService->esTrialHabilitado();
+                    $fechaFin = $trialHabilitado
+                        ? date('Y-m-d', strtotime('+14 days'))
+                        : current_time('mysql');
+
                     global $wpdb;
                     $tablaSuscripciones = $wpdb->prefix . CapSuscripcionesCols::TABLA;
                     $insertResult = $wpdb->insert($tablaSuscripciones, [
                         CapSuscripcionesCols::CENTRO_ID => $centroId,
                         CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
                         CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
-                        CapSuscripcionesCols::FECHA_FIN => date('Y-m-d', strtotime('+14 days')),
+                        CapSuscripcionesCols::FECHA_FIN => $fechaFin,
                         CapSuscripcionesCols::CREATED_AT => current_time('mysql'),
                         CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
                     ]);

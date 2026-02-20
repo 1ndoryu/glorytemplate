@@ -18,6 +18,7 @@ export interface EstadoStripe {
     webhookConfigurado: boolean;
     publishableKey: string;
     webhookUrl: string;
+    trialHabilitado: boolean;
 }
 
 interface FormularioStripe {
@@ -28,6 +29,7 @@ interface FormularioStripe {
     webhookSecret: string;
     priceId: string;
     modoTest: boolean;
+    trialHabilitado: boolean;
 }
 
 interface UseStripeReturn {
@@ -50,7 +52,8 @@ const estadoInicial: EstadoStripe = {
     liveKeysConfiguradas: false,
     webhookConfigurado: false,
     publishableKey: '',
-    webhookUrl: ''
+    webhookUrl: '',
+    trialHabilitado: false
 };
 
 const formularioInicial: FormularioStripe = {
@@ -60,7 +63,8 @@ const formularioInicial: FormularioStripe = {
     liveSecretKey: '',
     webhookSecret: '',
     priceId: '',
-    modoTest: true
+    modoTest: true,
+    trialHabilitado: false
 };
 
 export function useStripe(): UseStripeReturn {
@@ -97,7 +101,8 @@ export function useStripe(): UseStripeReturn {
             setFormulario(prev => ({
                 ...prev,
                 priceId: data.priceId || '',
-                modoTest: data.modoTest
+                modoTest: data.modoTest,
+                trialHabilitado: data.trialHabilitado ?? false
             }));
         } catch (err) {
             /* Ignorar cancelaciones por AbortController */
@@ -124,7 +129,8 @@ export function useStripe(): UseStripeReturn {
         try {
             /* Solo enviamos campos que tienen valor */
             const datosEnviar: Partial<FormularioStripe> = {
-                modoTest: formulario.modoTest
+                modoTest: formulario.modoTest,
+                trialHabilitado: formulario.trialHabilitado
             };
 
             if (formulario.testPublishableKey) {

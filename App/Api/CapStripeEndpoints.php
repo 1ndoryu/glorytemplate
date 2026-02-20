@@ -26,7 +26,7 @@ class CapStripeEndpoints
     {
         $raw = $request->get_json_params();
         /* Filtrar solo los campos esperados por StripeService */
-        $camposPermitidos = ['testPublishableKey', 'testSecretKey', 'livePublishableKey', 'liveSecretKey', 'webhookSecret', 'priceId', 'modoTest'];
+        $camposPermitidos = ['testPublishableKey', 'testSecretKey', 'livePublishableKey', 'liveSecretKey', 'webhookSecret', 'priceId', 'modoTest', 'trialHabilitado'];
         $datos = array_intersect_key($raw, array_flip($camposPermitidos));
         $stripeService = new StripeService();
         $resultado = $stripeService->guardarConfiguracion($datos);

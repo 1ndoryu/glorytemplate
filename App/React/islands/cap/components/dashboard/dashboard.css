@@ -29,7 +29,9 @@
     left: 0;
     bottom: 0;
     z-index: var(--cap-z-sticky);
-    transition: transform var(--cap-transicion-normal), width var(--cap-transicion-normal);
+    transition:
+        transform var(--cap-transicion-normal),
+        width var(--cap-transicion-normal);
 }
 
 /* Ajuste: soporte de sidebar colapsable en escritorio. */
@@ -85,7 +87,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--cap-texto-invertido);
     flex-shrink: 0;
     box-shadow: 0 4px 12px hsla(217, 80%, 50%, 0.25);
 }
@@ -200,7 +202,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--cap-texto-invertido);
     font-weight: var(--cap-peso-semibold);
     font-size: var(--cap-texto-sm);
     flex-shrink: 0;
@@ -209,7 +211,7 @@
 .capSidebar__usuarioInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--cap-espacio-xs) / 2);
     min-width: 0;
 }
 
@@ -418,15 +420,15 @@
    ======================================== */
 
 [data-theme='dark'] .capSidebar__item--activo {
-    background: hsla(217, 80%, 50%, 0.15);
+    background: color-mix(in srgb, var(--cap-primario-500) 15%, transparent);
     color: var(--cap-primario-400);
 }
 
 [data-theme='dark'] .capSidebar__item--activo:hover {
-    background: hsla(217, 80%, 50%, 0.2);
+    background: color-mix(in srgb, var(--cap-primario-500) 20%, transparent);
 }
 
 [data-theme='dark'] .capSidebar__cerrarSesion:hover {
-    background: hsla(0, 70%, 50%, 0.15);
+    background: color-mix(in srgb, var(--cap-error-500) 15%, transparent);
     color: var(--cap-error-400);
 }

@@ -21,6 +21,8 @@ class StripeService
     private const OPTION_WEBHOOK_SECRET = 'cap_stripe_webhook_secret';
     private const OPTION_MODO_TEST = 'cap_stripe_test_mode';
     private const OPTION_PRICE_ID = 'cap_stripe_price_id';
+    /* Controla si nuevos registros obtienen 14 días gratuitos o deben pagar inmediatamente */
+    private const OPTION_TRIAL_HABILITADO = 'cap_stripe_trial_enabled';
 
     /* Timeout en segundos para llamadas a la API de Stripe, evita colgar el proceso PHP */
     private const STRIPE_TIMEOUT_SEGUNDOS = 30;
@@ -70,6 +72,7 @@ class StripeService
             /* Para el frontend, la publishable key sí se puede exponer */
             'publishableKey' => $this->publishableKey,
             'webhookUrl' => rest_url('cap/v1/stripe-webhook'),
+            'trialHabilitado' => $this->esTrialHabilitado(),
         ];
     }
 
@@ -143,6 +146,11 @@ class StripeService
         /* Guardar modo (test/live) */
         if (isset($datos['modoTest'])) {
             update_option(self::OPTION_MODO_TEST, (bool) $datos['modoTest'] ? '1' : '0');
+        }
+
+        /* Guardar opción de trial gratuito (deshabilitado por defecto) */
+        if (isset($datos['trialHabilitado'])) {
+            update_option(self::OPTION_TRIAL_HABILITADO, (bool) $datos['trialHabilitado'] ? '1' : '0');
         }
 
         if (!empty($errores)) {
@@ -440,5 +448,14 @@ class StripeService
     public function esModoTest(): bool
     {
         return $this->modoTest;
+    }
+
+    /**
+     * Indica si el período de prueba gratuito está habilitado para nuevos registros.
+     * Deshabilitado por defecto — los nuevos usuarios deben suscribirse para acceder.
+     */
+    public function esTrialHabilitado(): bool
+    {
+        return get_option(self::OPTION_TRIAL_HABILITADO, '0') === '1';
     }
 }

@@ -27,7 +27,7 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
         confirmarPassword, setConfirmarPassword,
         aceptaTerminos, setAceptaTerminos,
         cargando, errores, errorGeneral, registroExitoso,
-        stripeCheckoutUrl, diasTrial, redireccionando,
+        stripeCheckoutUrl, diasTrial, trialHabilitado, redireccionando,
         handleSubmit, irACheckout
     } = useRegistro({restUrl, restNonce, loginUrl});
 
@@ -55,34 +55,44 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                                 <>
                                     {/* Opción premium: Suscribirse ahora */}
                                     <div className="capRegistroOpcion capRegistroOpcion--destacada">
-                                        <h3>🚀 Acceso Completo</h3>
+                                        <h3>Acceso Completo</h3>
                                         <p>Suscríbete ahora y desbloquea todas las funcionalidades sin límites.</p>
                                         <Boton variante="primario" anchoCompleto onClick={irACheckout} cargando={redireccionando} className="capLoginBoton">
                                             {redireccionando ? 'Redirigiendo a pago...' : 'Suscribirme Ahora'}
                                         </Boton>
                                     </div>
 
-                                    <div className="capRegistroSeparador">
-                                        <span>o</span>
-                                    </div>
+                                    {/* Opción trial: solo si trial habilitado y dias > 0 */}
+                                    {trialHabilitado && diasTrial > 0 && (
+                                        <>
+                                            <div className="capRegistroSeparador">
+                                                <span>o</span>
+                                            </div>
 
-                                    {/* Opción trial */}
-                                    <div className="capRegistroOpcion">
-                                        <h3>🎁 Prueba Gratuita</h3>
-                                        <p>
-                                            Explora la plataforma durante <strong>{diasTrial} días</strong> sin compromiso.
-                                        </p>
-                                        <Boton variante="secundario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
-                                            Comenzar Prueba Gratuita
-                                        </Boton>
-                                    </div>
+                                            <div className="capRegistroOpcion">
+                                                <h3>Prueba Gratuita</h3>
+                                                <p>
+                                                    Explora la plataforma durante <strong>{diasTrial} días</strong> sin compromiso.
+                                                </p>
+                                                <Boton variante="secundario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
+                                                    Comenzar Prueba Gratuita
+                                                </Boton>
+                                            </div>
+                                        </>
+                                    )}
                                 </>
                             ) : (
-                                /* Sin Stripe configurado: solo trial */
+                                /* Sin Stripe configurado */
                                 <>
-                                    <Alerta variante="info" className="capMb--md">
-                                        Tienes <strong>{diasTrial} días de prueba gratuita</strong> para explorar todas las funcionalidades.
-                                    </Alerta>
+                                    {trialHabilitado && diasTrial > 0 ? (
+                                        <Alerta variante="info" className="capMb--md">
+                                            Tienes <strong>{diasTrial} días de prueba gratuita</strong> para explorar todas las funcionalidades.
+                                        </Alerta>
+                                    ) : (
+                                        <Alerta variante="advertencia" className="capMb--md">
+                                            Tu cuenta ha sido creada. Contacta con el administrador para activar tu suscripción.
+                                        </Alerta>
+                                    )}
                                     <Boton variante="primario" anchoCompleto onClick={() => (window.location.href = loginUrl)} className="capLoginBoton">
                                         Ir a Iniciar Sesión
                                     </Boton>

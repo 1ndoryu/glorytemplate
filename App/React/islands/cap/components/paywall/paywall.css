@@ -1,0 +1,81 @@
+/* Paywall — overlay de bloqueo para usuarios sin suscripción */
+
+.capPaywall {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cap-fondo-overlay);
+    backdrop-filter: blur(8px);
+    padding: var(--cap-espacio-md);
+}
+
+.capPaywall__contenedor {
+    background: var(--cap-fondo-tarjeta);
+    border-radius: var(--cap-radio-lg);
+    padding: var(--cap-espacio-2xl);
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--cap-sombra-xl);
+    animation: capPaywallEntrar 0.3s ease-out;
+}
+
+@keyframes capPaywallEntrar {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.capPaywall__logo {
+    margin-bottom: var(--cap-espacio-lg);
+    color: var(--cap-primario-500);
+}
+
+.capPaywall__titulo {
+    font-size: var(--cap-texto-2xl);
+    font-weight: 700;
+    color: var(--cap-texto-principal);
+    margin: 0 0 var(--cap-espacio-md);
+    line-height: 1.3;
+}
+
+.capPaywall__descripcion {
+    font-size: var(--cap-texto-base);
+    color: var(--cap-texto-secundario);
+    margin: 0 0 var(--cap-espacio-xl);
+    line-height: 1.5;
+}
+
+.capPaywall__error {
+    margin-bottom: var(--cap-espacio-md);
+}
+
+.capPaywall__acciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cap-espacio-md);
+    align-items: center;
+}
+
+.capPaywall__enlaceSesion {
+    background: none;
+    border: none;
+    color: var(--cap-texto-terciario);
+    font-size: var(--cap-texto-sm);
+    cursor: pointer;
+    padding: var(--cap-espacio-xs) var(--cap-espacio-sm);
+    transition: color 0.2s;
+}
+
+.capPaywall__enlaceSesion:hover {
+    color: var(--cap-texto-principal);
+    text-decoration: underline;
+}

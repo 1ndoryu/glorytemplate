@@ -45,6 +45,8 @@ export interface InfoSuscripcion {
     fechaInicio: string;
     fechaFin: string;
     diasRestantes: number;
+    /* true si el centro tiene stripe_customer_id (ha pagado al menos una vez) */
+    haPagado: boolean;
 }
 
 /*
@@ -55,6 +57,8 @@ interface EstadoConfiguracion {
     centro: DatosCentro | null;
     config: ConfiguracionHorarios | null;
     suscripcion: InfoSuscripcion | null;
+    stripeConfigurado: boolean;
+    trialHabilitado: boolean;
     cargando: boolean;
     guardandoCentro: boolean;
     guardandoHorarios: boolean;
@@ -76,6 +80,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
         centro: null,
         config: null,
         suscripcion: null,
+        stripeConfigurado: false,
+        trialHabilitado: false,
         cargando: true,
         guardandoCentro: false,
         guardandoHorarios: false,
@@ -111,7 +117,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
                     estado: datos.suscripcion.estado,
                     fechaInicio: datos.suscripcion.fecha_inicio,
                     fechaFin: datos.suscripcion.fecha_fin,
-                    diasRestantes: Math.max(0, diasRestantes)
+                    diasRestantes: Math.max(0, diasRestantes),
+                    haPagado: !!(datos.suscripcion.stripe_customer_id)
                 };
             }
 
@@ -123,6 +130,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
                     viernes_especial: Boolean(datos.config?.viernes_especial)
                 },
                 suscripcion,
+                stripeConfigurado: datos.stripeConfigurado ?? false,
+                trialHabilitado: datos.trialHabilitado ?? false,
                 cargando: false
             }));
         } catch (err) {

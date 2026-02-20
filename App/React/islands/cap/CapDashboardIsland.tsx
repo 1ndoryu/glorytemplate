@@ -7,6 +7,8 @@
 
 import {CapLayout} from './components/layout';
 import {SeccionCalendario, SeccionAlumnos, SeccionConfiguracion, SeccionReportes} from './components/secciones';
+import {Paywall} from './components/paywall';
+import {useConfiguracion} from './hooks/useConfiguracion';
 import {useDashboardStore} from './stores/useDashboardStore';
 import './styles/index.css';
 
@@ -87,6 +89,19 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
     initWpApiSettings(restNonce, restUrl);
 
     const seccionActiva = useDashboardStore(state => state.seccionActiva);
+    const {suscripcion, stripeConfigurado, cargando} = useConfiguracion();
+
+    /*
+     * Paywall: bloquear acceso si el usuario no ha pagado y no tiene días de trial.
+     * Solo aplicar si Stripe está configurado (si no, no hay forma de pagar).
+     * Los admins de WordPress no se bloquean — pueden necesitar configurar Stripe primero.
+     */
+    const mostrarPaywall = !cargando
+        && stripeConfigurado
+        && suscripcion
+        && !suscripcion.haPagado
+        && suscripcion.diasRestantes <= 0
+        && !user.isAdmin;
 
     const renderContenido = () => {
         switch (seccionActiva) {
@@ -106,6 +121,13 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
     return (
         <CapLayout userName={user.name} siteUrl={siteUrl} logoutUrl={logoutUrl}>
             {renderContenido()}
+            {mostrarPaywall && suscripcion && (
+                <Paywall
+                    suscripcion={suscripcion}
+                    userName={user.name}
+                    logoutUrl={logoutUrl}
+                />
+            )}
         </CapLayout>
     );
 }
