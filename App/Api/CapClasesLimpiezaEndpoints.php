@@ -99,9 +99,14 @@ class CapClasesLimpiezaEndpoints
             return new \WP_REST_Response(['error' => 'Centro no encontrado'], 404);
         }
 
-        $fecha = $request->get_param('fecha');
+        $fecha = sanitize_text_field($request->get_param('fecha') ?? '');
         if (!$fecha) {
             return new \WP_REST_Response(['error' => 'Se requiere parámetro "fecha" (lunes de la semana)'], 400);
+        }
+
+        /* Validar formato de fecha antes de instanciar DateTime */
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            return new \WP_REST_Response(['error' => 'Formato de fecha inválido. Usar YYYY-MM-DD'], 400);
         }
 
         $inicio = new \DateTime($fecha);

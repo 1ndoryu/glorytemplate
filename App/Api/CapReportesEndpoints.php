@@ -97,7 +97,7 @@ class CapReportesEndpoints
             }
             $this->registrarLog('Error (plan-alumno): ' . $error->getMessage() . ' | Trace: ' . $error->getTraceAsString());
             return new \WP_REST_Response([
-                'error' => 'Error al generar el PDF: ' . $error->getMessage()
+                'error' => 'Error interno al generar el PDF del plan de alumno.'
             ], 500);
         }
     }
@@ -112,7 +112,11 @@ class CapReportesEndpoints
         }
 
         try {
-            $semana = $request->get_param('semana');
+            $semana = sanitize_text_field($request->get_param('semana') ?? '');
+            /* Validar formato fecha si se proporciono */
+            if ($semana && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $semana)) {
+                return new \WP_REST_Response(['error' => 'Formato de fecha inválido. Usar YYYY-MM-DD'], 400);
+            }
             if (!$semana) {
                 $hoy = new \DateTime();
                 $diaSemana = (int) $hoy->format('N');
@@ -139,7 +143,7 @@ class CapReportesEndpoints
             ]);
         } catch (\Throwable $error) {
             $this->registrarLog('Error (control-horas): ' . $error->getMessage());
-            return new \WP_REST_Response(['error' => 'Error al generar el PDF: ' . $error->getMessage()], 500);
+            return new \WP_REST_Response(['error' => 'Error interno al generar el PDF de control de horas.'], 500);
         }
     }
 }

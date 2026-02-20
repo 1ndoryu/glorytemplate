@@ -41,9 +41,9 @@ class CapAlumnosEndpoints
         }
 
         $opciones = [
-            'limite' => $request->get_param('limite') ?? 50,
-            'offset' => $request->get_param('offset') ?? 0,
-            'busqueda' => $request->get_param('busqueda') ?? '',
+            'limite' => absint($request->get_param('limite') ?? 50),
+            'offset' => absint($request->get_param('offset') ?? 0),
+            'busqueda' => sanitize_text_field($request->get_param('busqueda') ?? ''),
         ];
 
         return new \WP_REST_Response([
@@ -82,7 +82,8 @@ class CapAlumnosEndpoints
         }
 
         $alumnoModel = new Alumno();
-        $datos = $request->get_json_params();
+        /* Filtrar solo campos permitidos del payload — prevenir inyección de campos */
+        $datos = $this->filtrarCamposAlumno($request->get_json_params());
         $datos['centro_id'] = $centroId;
 
         $id = $alumnoModel->crear($datos);
@@ -108,7 +109,7 @@ class CapAlumnosEndpoints
             return new \WP_REST_Response(['error' => 'Alumno no encontrado'], 404);
         }
 
-        if (!$alumnoModel->actualizar($id, $request->get_json_params())) {
+        if (!$alumnoModel->actualizar($id, $this->filtrarCamposAlumno($request->get_json_params()))) {
             return new \WP_REST_Response(['error' => 'Error al actualizar'], 400);
         }
 
@@ -134,5 +135,15 @@ class CapAlumnosEndpoints
         }
 
         return new \WP_REST_Response(['exito' => true]);
+    }
+
+    /**
+     * Filtra campos permitidos del payload de alumno.
+     * Previene inyección de campos no esperados (centro_id, rol, etc.).
+     */
+    private function filtrarCamposAlumno(array $datos): array
+    {
+        $permitidos = ['nombre', 'email', 'telefono', 'dni', 'horas_completadas', 'estado'];
+        return array_intersect_key($datos, array_flip($permitidos));
     }
 }

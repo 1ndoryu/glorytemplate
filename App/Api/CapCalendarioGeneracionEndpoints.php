@@ -26,7 +26,7 @@ class CapCalendarioGeneracionEndpoints
         }
 
         $claseModel = new Clase();
-        $semana = $request->get_param('semana') ?? date('Y-m-d');
+        $semana = $this->validarFecha($request->get_param('semana')) ?? date('Y-m-d');
         return new \WP_REST_Response(['clases' => $claseModel->obtenerSemana($centroId, $semana)]);
     }
 
@@ -39,9 +39,9 @@ class CapCalendarioGeneracionEndpoints
         }
 
         $datos = $request->get_json_params();
-        $semana = $datos['semana'] ?? date('Y-m-d');
-        $alumnosIds = $datos['alumnos'] ?? [];
-        $fechaDesde = $datos['fechaDesde'] ?? null;
+        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
+        $fechaDesde = $this->validarFecha($datos['fechaDesde'] ?? null);
 
         $alumnoModel = new Alumno();
 
@@ -82,8 +82,8 @@ class CapCalendarioGeneracionEndpoints
         }
 
         $datos = $request->get_json_params();
-        $semana = $datos['semana'] ?? date('Y-m-d');
-        $alumnosIds = $datos['alumnos'] ?? [];
+        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
 
         if (empty($alumnosIds)) {
             $alumnoModel = new Alumno();
@@ -106,9 +106,9 @@ class CapCalendarioGeneracionEndpoints
         }
 
         $datos = $request->get_json_params();
-        $semana = $datos['semana'] ?? date('Y-m-d');
-        $alumnosIds = $datos['alumnos'] ?? [];
-        $exclusiones = $datos['exclusiones'] ?? [];
+        $semana = $this->validarFecha($datos['semana'] ?? null) ?? date('Y-m-d');
+        $alumnosIds = $this->sanitizarIdsArray($datos['alumnos'] ?? []);
+        $exclusiones = $this->sanitizarExclusiones($datos['exclusiones'] ?? []);
 
         $alumnoModel = new Alumno();
 
@@ -138,5 +138,83 @@ class CapCalendarioGeneracionEndpoints
 
         $statusCode = $resultado['exito'] ? 200 : 409;
         return new \WP_REST_Response($resultado, $statusCode);
+    }
+
+    /**
+     * Valida que una fecha tenga formato YYYY-MM-DD.
+     * Retorna la fecha sanitizada o null si es invalida.
+     */
+    private function validarFecha(?string $fecha): ?string
+    {
+        if ($fecha === null) {
+            return null;
+        }
+        $fecha = sanitize_text_field($fecha);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            return null;
+        }
+        /* Verificar que la fecha sea real (ej: 2024-02-30 no existe) */
+        $partes = explode('-', $fecha);
+        if (!checkdate((int) $partes[1], (int) $partes[2], (int) $partes[0])) {
+            return null;
+        }
+        return $fecha;
+    }
+
+    /**
+     * Sanitiza un array de IDs: verifica que sea array y convierte a enteros positivos.
+     * @param mixed $ids Valor recibido del request (puede no ser array)
+     * @return int[] Array de IDs enteros positivos
+     */
+    private function sanitizarIdsArray($ids): array
+    {
+        if (!is_array($ids)) {
+            return [];
+        }
+        return array_values(array_filter(
+            array_map('absint', $ids),
+            static fn(int $id) => $id > 0
+        ));
+    }
+
+    /**
+     * Sanitiza el array de exclusiones para generarConExclusiones.
+     * Cada exclusion debe tener estructura: { alumnoId: int, dia: string, hora: string }
+     * @param mixed $exclusiones Datos del request
+     * @return array Exclusiones sanitizadas
+     */
+    private function sanitizarExclusiones($exclusiones): array
+    {
+        if (!is_array($exclusiones)) {
+            return [];
+        }
+        $resultado = [];
+        foreach ($exclusiones as $excl) {
+            if (!is_array($excl)) {
+                continue;
+            }
+            $item = [];
+            if (isset($excl['alumnoId'])) {
+                $item['alumnoId'] = absint($excl['alumnoId']);
+            }
+            if (isset($excl['dia'])) {
+                $dia = sanitize_text_field($excl['dia']);
+                /* Solo aceptar dias validos o fechas YYYY-MM-DD */
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dia) || preg_match('/^[a-zA-Z]+$/', $dia)) {
+                    $item['dia'] = $dia;
+                }
+            }
+            if (isset($excl['hora'])) {
+                $hora = sanitize_text_field($excl['hora']);
+                /* Formato HH:MM o HH:MM:SS */
+                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+                    $item['hora'] = $hora;
+                }
+            }
+            if (!empty($item)) {
+                $resultado[] = $item;
+            }
+        }
+        return $resultado;
     }
 }

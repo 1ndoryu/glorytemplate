@@ -52,10 +52,11 @@ class CapConfigEndpoints
         $datos = $request->get_json_params();
         $configModel = new Configuracion();
 
-        if (isset($datos['config'])) {
+        /* Solo pasar sub-objetos si son arrays validos; el modelo valida campos internos */
+        if (isset($datos['config']) && is_array($datos['config'])) {
             $configModel->guardar($centroId, $datos['config']);
         }
-        if (isset($datos['centro'])) {
+        if (isset($datos['centro']) && is_array($datos['centro'])) {
             $configModel->actualizarDatosCentro($centroId, $datos['centro']);
         }
 
