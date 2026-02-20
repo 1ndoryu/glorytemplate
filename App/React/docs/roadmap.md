@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-02-21  
-> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (21/22 items resueltos, 2 pendientes de esfuerzo alto)  
+> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (22/22 front + 20/22 total, 2 backend pendientes de esfuerzo alto)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
@@ -43,7 +43,8 @@
 - **F8.17:** Race condition registro: mensajes específicos por WP error code + try-catch global + HTTP 409.
 - **F8.18:** FK constraints documentadas en CapSchema.php (8 dependencias mapeadas para futura migración).
 - **F8.19:** N+1 eliminado en Seeder: 1 SELECT + batch INSERT en lotes de 50 (antes ~240 queries individuales).
-- **Pendientes:** 8.3 (split archivos grandes — esfuerzo alto), 8.4 (canalizar BD por repos — esfuerzo alto).
+- **F8.3:** Split useCalendario.ts: 792→~120 líneas compositor + 7 sub-hooks en hooks/calendario/.
+- **Pendientes:** 8.4 (canalizar BD por repos — esfuerzo alto). Alumno.php y StripeService.php siguen sobre límite de líneas (TO-DO).
 - **Lecciones:** 
   - [pages.php]: Props de página deben ser callbacks, no arrays estáticos (evaluación temprana de `wp_get_current_user()`).
   - [API_BASE]: Centralizar URL base evita divergencia silenciosa entre 5+ hooks.
