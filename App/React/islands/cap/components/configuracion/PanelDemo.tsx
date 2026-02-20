@@ -9,6 +9,7 @@
 import {useState, useEffect} from 'react';
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge, Spinner} from '../ui';
 import {IconoBaseDatos, IconoAdvertencia, IconoEliminar, IconoUsuarios} from '../icons';
+import {API_BASE} from '../../constants/cap-constants';
 
 /* Declaración de tipo para wpApiSettings de WordPress */
 declare global {
@@ -45,7 +46,7 @@ export function PanelDemo() {
 
     const obtenerEstado = async (signal?: AbortSignal) => {
         try {
-            const response = await fetch('/wp-json/cap/v1/demo/status', {
+            const response = await fetch(`${API_BASE}/demo/status`, {
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''
                 },
@@ -70,7 +71,7 @@ export function PanelDemo() {
         setMensaje(null);
 
         try {
-            const response = await fetch('/wp-json/cap/v1/demo/seed', {
+            const response = await fetch(`${API_BASE}/demo/seed`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ export function PanelDemo() {
         setMensaje(null);
 
         try {
-            const response = await fetch('/wp-json/cap/v1/demo/clean', {
+            const response = await fetch(`${API_BASE}/demo/clean`, {
                 method: 'DELETE',
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''
@@ -172,7 +173,7 @@ export function PanelDemo() {
         setConfirmandoLimpiarTodas(false);
 
         try {
-            const response = await fetch('/wp-json/cap/v1/clases/limpiar-todas?confirmar=ELIMINAR_TODO&incluirBloqueadas=true', {
+            const response = await fetch(`${API_BASE}/clases/limpiar-todas?confirmar=ELIMINAR_TODO&incluirBloqueadas=true`, {
                 method: 'DELETE',
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''

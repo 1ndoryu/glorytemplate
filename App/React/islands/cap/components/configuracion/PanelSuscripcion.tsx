@@ -5,10 +5,12 @@
  * Incluye indicador visual de días restantes.
  */
 
+import {useState} from 'react';
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge} from '../ui';
 import {IconoTarjeta, IconoEnlaceExterno} from '../icons';
 import type {InfoSuscripcion} from '../../hooks/useConfiguracion';
 import {CapSuscripcionesEnums} from '../../../../types/_generated/schema';
+import {API_BASE} from '../../constants/cap-constants';
 
 interface PanelSuscripcionProps {
     suscripcion: InfoSuscripcion | null;
@@ -56,6 +58,7 @@ function obtenerEtiquetaEstado(estado: string): string {
 }
 
 export function PanelSuscripcion({suscripcion, userName, userEmail}: PanelSuscripcionProps) {
+    const [abriendo, setAbriendo] = useState(false);
     const porcentajeRestante = suscripcion ? Math.min(100, (suscripcion.diasRestantes / 14) * 100) : 0;
 
     const esTrial = suscripcion?.diasRestantes && suscripcion.diasRestantes <= 14;
@@ -118,11 +121,35 @@ export function PanelSuscripcion({suscripcion, userName, userEmail}: PanelSuscri
                         <span className="capSuscripcionInfo__valor">{userEmail}</span>
                     </div>
 
-                    {/* Botón de gestión */}
+                    {/* Botón de gestión — redirige al portal de facturación de Stripe */}
                     <div className="capFormConfig__acciones capMt--lg">
-                        <Boton variante="outline" tamano="md" disabled={!suscripcion || suscripcion.estado !== CapSuscripcionesEnums.ESTADO_ACTIVA}>
+                        <Boton
+                            variante="outline"
+                            tamano="md"
+                            disabled={!suscripcion || suscripcion.estado !== CapSuscripcionesEnums.ESTADO_ACTIVA || abriendo}
+                            onClick={async () => {
+                                setAbriendo(true);
+                                try {
+                                    const nonce = (window as any).wpApiSettings?.nonce || '';
+                                    const resp = await fetch(`${API_BASE}/stripe/portal`, {
+                                        method: 'POST',
+                                        headers: {'X-WP-Nonce': nonce, 'Content-Type': 'application/json'}
+                                    });
+                                    const data = await resp.json();
+                                    if (resp.ok && data.url) {
+                                        window.location.href = data.url;
+                                    } else {
+                                        console.error('[PanelSuscripcion] No se obtuvo URL del portal');
+                                    }
+                                } catch (err) {
+                                    console.error('[PanelSuscripcion] Error abriendo portal:', err);
+                                } finally {
+                                    setAbriendo(false);
+                                }
+                            }}
+                        >
                             <IconoEnlaceExterno />
-                            Gestionar Pagos
+                            {abriendo ? 'Abriendo...' : 'Gestionar Pagos'}
                         </Boton>
                         <p className="capTexto capTexto--xs capTexto--terciario capMt--sm">Serás redirigido al portal de pagos de Stripe</p>
                     </div>

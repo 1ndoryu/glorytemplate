@@ -29,9 +29,10 @@ interface CapLayoutProps {
     children: ReactNode;
     userName: string;
     siteUrl: string;
+    logoutUrl: string;
 }
 
-export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
+export function CapLayout({children, userName, siteUrl, logoutUrl}: CapLayoutProps) {
     /* Selectores individuales para evitar re-renders innecesarios (8.13) */
     const seccionActiva = useDashboardStore(s => s.seccionActiva);
     const sidebarAbierto = useDashboardStore(s => s.sidebarAbierto);
@@ -41,9 +42,9 @@ export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
     const cerrarSidebar = useDashboardStore(s => s.cerrarSidebar);
     const toggleSidebarColapsado = useDashboardStore(s => s.toggleSidebarColapsado);
 
+    /* Logout con nonce generado por PHP (wp_logout_url). Fallback si no se recibe */
     const handleCerrarSesion = () => {
-        const logoutUrl = `${siteUrl}/wp-login.php?action=logout`;
-        window.location.href = logoutUrl;
+        window.location.href = logoutUrl || `${siteUrl}/wp-login.php?action=logout`;
     };
 
     const tituloSeccion = itemsNavegacion.find(i => i.id === seccionActiva)?.label || '';

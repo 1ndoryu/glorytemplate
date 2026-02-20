@@ -7,8 +7,8 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Modal, Badge, Spinner, Tooltip} from '../ui';
-import {ASIGNATURAS_CAP, CAP_REGLAS, getAsignatura} from '../../constants';
+import {Modal, Badge, Spinner, Tooltip, Alerta} from '../ui';
+import {ASIGNATURAS_CAP, CAP_REGLAS, getAsignatura, API_BASE} from '../../constants';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
 
@@ -47,6 +47,7 @@ const obtenerAsignaturaId = (valorAsignatura: string): number | null => {
 
 export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {
     const [cargando, setCargando] = useState(false);
+    const [errorCarga, setErrorCarga] = useState<string | null>(null);
     const [progresoAsignado, setProgresoAsignado] = useState<ProgresoAsignatura[]>([]);
     const [progresoCompletado, setProgresoCompletado] = useState<ProgresoAsignatura[]>([]);
     const [horasAsignadas, setHorasAsignadas] = useState(0);
@@ -60,9 +61,10 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
 
         const cargarProgreso = async () => {
             setCargando(true);
+            setErrorCarga(null);
             try {
                 const nonce = (window as any).wpApiSettings?.nonce || '';
-                const response = await fetch(`/wp-json/cap/v1/alumnos/${alumno.id}/progreso`, {
+                const response = await fetch(`${API_BASE}/alumnos/${alumno.id}/progreso`, {
                     headers: {'X-WP-Nonce': nonce},
                     credentials: 'same-origin',
                     signal: abortController.signal
@@ -117,7 +119,8 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                 }
 
                 console.error('[ModalProgresoAlumno] Error cargando progreso', errorCarga);
-                /* En caso de error usar datos del alumno como fallback */
+                setErrorCarga('No se pudo cargar el progreso actualizado. Se muestran datos aproximados.');
+                /* Fallback con datos básicos para que el modal no quede vacío */
                 const fallback = ASIGNATURAS_CAP.map(asig => ({
                     asignaturaId: asig.id,
                     horasCompletadas: 0
@@ -166,6 +169,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                     </div>
                 ) : (
                     <>
+                        {errorCarga && <Alerta variante="advertencia" cerrable>{errorCarga}</Alerta>}
                         {/* Resumen de Estadísticas */}
                         <div className="capGrid capGrid--3cols capGap--md capMb--lg">
                             <div className="capTarjetaEstadistica capTarjetaEstadistica--exito">

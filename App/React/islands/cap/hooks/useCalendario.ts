@@ -11,9 +11,9 @@
 
 import {useState, useCallback, useEffect} from 'react';
 import type {Clase, DiaSemana, ConflictoAforo, ExclusionesConflicto, ResultadoGeneracion, PreviewGeneracion, AvisoGeneracion} from '../types';
-import {getLunesDeSemana, getFechasSemana, DIAS_SEMANA, getAsignatura, API_BASE} from '../constants';
+import {getLunesDeSemana, getFechasSemana, getAsignatura, API_BASE} from '../constants';
 import {detectarColision} from '../utils/collisionUtils';
-import {interpretarErrorHttp, interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
+import {interpretarErrorRed, formatearMensajeError, obtenerMensajeContextual, procesarErrorApi} from '../constants/cap-errores';
 
 /* Interfaz para cambios de una clase */
 interface CambiosClase {
@@ -254,10 +254,15 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     /* Guardar snapshot antes de un cambio (para undo) */
     const guardarSnapshot = useCallback(() => {
         setHistorialClases(prev => {
-            const nuevo = [...prev, JSON.parse(JSON.stringify(clases))];
-            /* Limitar a 20 snapshots máximo */
-            if (nuevo.length > 20) nuevo.shift();
-            return nuevo;
+            try {
+                const nuevo = [...prev, JSON.parse(JSON.stringify(clases))];
+                /* Limitar a 20 snapshots máximo */
+                if (nuevo.length > 20) nuevo.shift();
+                return nuevo;
+            } catch (err) {
+                console.error('[useCalendario] Error al crear snapshot:', err);
+                return prev;
+            }
         });
     }, [clases]);
 
@@ -285,8 +290,13 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce': getNonce()
                 },
-                    body: JSON.stringify(body)
+                body: JSON.stringify(body)
             });
+
+            if (!response.ok) {
+                const mensajeError = await procesarErrorApi(response, 'calendario', 'generar');
+                throw new Error(mensajeError);
+            }
 
             const resultado: ResultadoGeneracion = await response.json();
 
@@ -363,6 +373,11 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
                         exclusiones
                     })
                 });
+
+                if (!response.ok) {
+                    const mensajeError = await procesarErrorApi(response, 'calendario', 'generar');
+                    throw new Error(mensajeError);
+                }
 
                 const resultado: ResultadoGeneracion = await response.json();
 

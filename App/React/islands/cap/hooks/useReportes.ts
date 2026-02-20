@@ -7,6 +7,7 @@
 
 import {useState, useCallback} from 'react';
 import type {Alumno} from '../types';
+import {API_BASE} from '../constants/cap-constants';
 import {obtenerMensajeContextual, interpretarErrorHttp, formatearMensajeError} from '../constants/cap-errores';
 
 interface EstadoReportes {
@@ -48,7 +49,7 @@ export function useReportes(): UseReportesReturn {
 
         try {
             const nonce = (window as any).wpApiSettings?.nonce || '';
-            const response = await fetch(`/wp-json/cap/v1/reportes/plan-alumno/${alumnoId}`, {
+            const response = await fetch(`${API_BASE}/reportes/plan-alumno/${alumnoId}`, {
                 method: 'GET',
                 headers: {
                     'X-WP-Nonce': nonce
@@ -58,8 +59,9 @@ export function useReportes(): UseReportesReturn {
             let data: any = null;
             try {
                 data = await response.json();
-            } catch {
-                data = null;
+            } catch (parseError) {
+                console.error('[useReportes] Error parseando respuesta JSON:', parseError);
+                throw new Error('La respuesta del servidor no tiene un formato válido');
             }
 
             if (!response.ok || data?.error) {
@@ -135,7 +137,7 @@ export function useReportes(): UseReportesReturn {
 
         try {
             const nonce = (window as any).wpApiSettings?.nonce || '';
-            const response = await fetch(`/wp-json/cap/v1/reportes/control-horas?semana=${semana}`, {
+            const response = await fetch(`${API_BASE}/reportes/control-horas?semana=${semana}`, {
                 method: 'GET',
                 headers: {
                     'X-WP-Nonce': nonce

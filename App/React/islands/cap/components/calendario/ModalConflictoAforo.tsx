@@ -11,7 +11,8 @@ import { useState, useEffect } from 'react';
 import { Modal } from '../ui';
 import { Boton } from '../ui';
 import type { ConflictoAforo, ExclusionesConflicto, Alumno } from '../../types';
-import { priorizarPorProximidad, type AlumnoConProgreso } from '../../utils/priorizacionAforo';
+import { priorizarPorProximidad } from '../../utils/priorizacionAforo';
+import { API_BASE } from '../../constants/cap-constants';
 import './ModalConflictoAforo.css';
 
 interface ModalConflictoAforoProps {
@@ -55,6 +56,8 @@ export function ModalConflictoAforo({ abierto, conflictos, onCerrar, onConfirmar
     useEffect(() => {
         if (!abierto || conflictos.length === 0) return;
 
+        const controller = new AbortController();
+
         const cargarAlumnos = async () => {
             setCargandoAlumnos(true);
             try {
@@ -71,12 +74,13 @@ export function ModalConflictoAforo({ abierto, conflictos, onCerrar, onConfirmar
                 }
 
                 const idsQuery = Array.from(alumnosIds).join(',');
-                const url = `/wp-json/cap/v1/alumnos/por-ids?ids=${encodeURIComponent(idsQuery)}`;
+                const url = `${API_BASE}/alumnos/por-ids?ids=${encodeURIComponent(idsQuery)}`;
 
                 const response = await fetch(url, {
                     headers: {
                         'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''
-                    }
+                    },
+                    signal: controller.signal
                 });
 
                 if (response.ok) {
@@ -107,6 +111,7 @@ export function ModalConflictoAforo({ abierto, conflictos, onCerrar, onConfirmar
                     setAlumnosInfo(new Map());
                 }
             } catch (err) {
+                if (err instanceof DOMException && err.name === 'AbortError') return;
                 console.error('[ModalConflictoAforo] Error cargando alumnos:', err);
             } finally {
                 setCargandoAlumnos(false);
@@ -114,6 +119,8 @@ export function ModalConflictoAforo({ abierto, conflictos, onCerrar, onConfirmar
         };
 
         cargarAlumnos();
+
+        return () => controller.abort();
     }, [abierto, conflictos]);
 
     /* Inicializar exclusiones vacías */

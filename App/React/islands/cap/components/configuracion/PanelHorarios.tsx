@@ -106,8 +106,8 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
                     setModificado(false);
                     return;
                 } catch (e) {
-                    console.error('Error al parsear horarios semanales', e);
-                    return;
+                    console.error('Error al parsear horarios semanales, usando fallback:', e);
+                    /* No hacer return: dejar que caiga al fallback de construirHorariosPorDefecto */
                 }
             }
 

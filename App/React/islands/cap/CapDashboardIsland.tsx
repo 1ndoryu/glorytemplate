@@ -20,6 +20,7 @@ interface CapDashboardIslandProps {
     restNonce?: string;
     restUrl?: string;
     siteUrl?: string;
+    logoutUrl?: string;
 }
 
 interface CapDashboardIslandPropsCompletas {
@@ -32,6 +33,7 @@ interface CapDashboardIslandPropsCompletas {
     restNonce: string;
     restUrl: string;
     siteUrl: string;
+    logoutUrl: string;
 }
 
 /*
@@ -69,11 +71,14 @@ function normalizarPropsDashboard(rawProps: Record<string, unknown>): CapDashboa
         siteUrl: typeof props.siteUrl === 'string'
             ? props.siteUrl
             : (typeof gloryContext?.siteUrl === 'string' ? gloryContext.siteUrl : window.location.origin),
+        logoutUrl: typeof props.logoutUrl === 'string'
+            ? props.logoutUrl
+            : '',
     };
 }
 
 export function CapDashboardIsland(rawProps: Record<string, unknown>) {
-    const {user, restNonce, restUrl, siteUrl} = normalizarPropsDashboard(rawProps);
+    const {user, restNonce, restUrl, siteUrl, logoutUrl} = normalizarPropsDashboard(rawProps);
 
     /*
      * Inyección síncrona del nonce ANTES de que se ejecuten los useEffect de los hijos
@@ -99,7 +104,7 @@ export function CapDashboardIsland(rawProps: Record<string, unknown>) {
     };
 
     return (
-        <CapLayout userName={user.name} siteUrl={siteUrl}>
+        <CapLayout userName={user.name} siteUrl={siteUrl} logoutUrl={logoutUrl}>
             {renderContenido()}
         </CapLayout>
     );

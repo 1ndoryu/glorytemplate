@@ -54,19 +54,22 @@ PageManager::reactPage('cap-registro', 'CapRegistroIsland', function ($pageId) {
     ];
 });
 
-/* Dashboard principal */
-$dashboardUser = wp_get_current_user();
-PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', [
-    'user' => [
-        'id' => get_current_user_id(),
-        'name' => $dashboardUser instanceof WP_User ? $dashboardUser->display_name : '',
-        'email' => $dashboardUser instanceof WP_User ? $dashboardUser->user_email : '',
-        'isAdmin' => $dashboardUser instanceof WP_User ? in_array('administrator', $dashboardUser->roles, true) : false,
-    ],
-    'restNonce' => wp_create_nonce('wp_rest'),
-    'restUrl' => rest_url('cap/v1'),
-    'siteUrl' => home_url(),
-]);
+/* Dashboard principal — callback para evaluar props en tiempo de render (no de carga) */
+PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function () {
+    $dashboardUser = wp_get_current_user();
+    return [
+        'user' => [
+            'id' => get_current_user_id(),
+            'name' => $dashboardUser instanceof WP_User ? $dashboardUser->display_name : '',
+            'email' => $dashboardUser instanceof WP_User ? $dashboardUser->user_email : '',
+            'isAdmin' => $dashboardUser instanceof WP_User ? in_array('administrator', $dashboardUser->roles, true) : false,
+        ],
+        'restNonce' => wp_create_nonce('wp_rest'),
+        'restUrl' => rest_url('cap/v1'),
+        'siteUrl' => home_url(),
+        'logoutUrl' => wp_logout_url(home_url('/cap-login/')),
+    ];
+});
 
 /*
  * H.2 Fix: Redirección inteligente en la página de inicio
