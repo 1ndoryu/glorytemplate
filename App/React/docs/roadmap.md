@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
 > **Última actualización:** 2026-02-21  
-> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (18/22 items resueltos, 4 pendientes de bajo riesgo)  
+> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (21/22 items resueltos, 2 pendientes de esfuerzo alto)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
@@ -40,7 +40,10 @@
 - **F8.20:** Logout con nonce: `wp_logout_url()` pasado como prop, pages.php convertido a callback.
 - **F8.21:** Botón "Gestionar Pagos" funcional con endpoint `/stripe/portal`.
 - **F8.22:** Typo `borrarSemanacompleta` → `borrarSemanaCompleta`.
-- **Pendientes:** 8.3 (split archivos grandes), 8.4 (canalizar BD por repos), 8.17 (race condition registro), 8.18 (FK constraints), 8.19 (batch inserts seeder).
+- **F8.17:** Race condition registro: mensajes específicos por WP error code + try-catch global + HTTP 409.
+- **F8.18:** FK constraints documentadas en CapSchema.php (8 dependencias mapeadas para futura migración).
+- **F8.19:** N+1 eliminado en Seeder: 1 SELECT + batch INSERT en lotes de 50 (antes ~240 queries individuales).
+- **Pendientes:** 8.3 (split archivos grandes — esfuerzo alto), 8.4 (canalizar BD por repos — esfuerzo alto).
 - **Lecciones:** 
   - [pages.php]: Props de página deben ser callbacks, no arrays estáticos (evaluación temprana de `wp_get_current_user()`).
   - [API_BASE]: Centralizar URL base evita divergencia silenciosa entre 5+ hooks.

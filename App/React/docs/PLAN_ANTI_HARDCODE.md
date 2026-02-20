@@ -993,9 +993,9 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 | **P3 — Medio** | 8.13 | ✅ Selectores Zustand en CapLayout (commit b24a355) | Bajo |
 | **P3 — Medio** | 8.14 | ✅ API_BASE centralizado, useHistorial eliminado (commits eae10b0 + 3889d29) | Bajo |
 | **P3 — Medio** | 8.15 | ✅ Inmutable updates en PanelHorarios (commit b24a355) | Bajo |
-| **P3 — Medio** | 8.17 | **PENDIENTE** Race condition en registro (wp_create_user) | Bajo |
-| **P3 — Medio** | 8.18 | **PENDIENTE** FK constraints o documentar ausencia | Bajo |
-| **P3 — Medio** | 8.19 | **PENDIENTE** Batch inserts en Seeder | Bajo |
+| **P3 — Medio** | 8.17 | ✅ Race condition: mensajes específicos por WP error code + try-catch global + HTTP 409 (commit e9174e4) | Bajo |
+| **P3 — Medio** | 8.18 | ✅ FK constraints documentadas en CapSchema.php con mapa completo de dependencias (commit e9174e4) | Bajo |
+| **P3 — Medio** | 8.19 | ✅ N+1 eliminado: batch INSERT con lotes de 50 + dedup en memoria (commit e9174e4) | Bajo |
 | **P4 — Bajo** | 8.16 | ✅ Error detail leaks: CapReportesEndpoints $e->getMessage() reemplazado (commit ba23fff) | Bajo |
 | **P4 — Bajo** | 8.20 | ✅ Logout nonce: wp_logout_url() como prop + callback en pages.php (commit 3889d29) | Bajo |
 | **P4 — Bajo** | 8.21 | ✅ Botón portal Stripe funcional con endpoint /stripe/portal (commit 3889d29) | Bajo |
@@ -1021,3 +1021,6 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 | Botones sin handler | 1 | ✅ 0 (portal Stripe funcional) |
 | Zustand sin selectores | 1 | ✅ 0 (7 selectores individuales) |
 | Mutación directa React state | 3 | ✅ 0 (inmutable con map/filter/spread) |
+| Race condition en registro | 1 | ✅ 0 (WP error codes + HTTP 409 + try-catch global) |
+| N+1 queries en Seeder | ~240 queries | ✅ 1 SELECT + batch INSERTs (lotes de 50) |
+| FK constraints documentadas | 0 | ✅ 8 dependencias mapeadas en CapSchema.php |
