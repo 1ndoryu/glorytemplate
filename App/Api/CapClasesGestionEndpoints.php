@@ -12,35 +12,11 @@ use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
 use App\Config\Schema\_generated\CapAsistenciaCols;
 use App\Config\Schema\_generated\CapClasesCols;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapClasesGestionEndpoints
 {
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Clases] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
-
-    public function verificarPermisos(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('cap_admin', $user->roles, true) || in_array('administrator', $user->roles, true);
-    }
+    use ConCallbackSeguro;
 
     private function normalizarAsignaturaParaPersistencia($asignatura): string
     {

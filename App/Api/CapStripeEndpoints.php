@@ -10,45 +10,11 @@ namespace Glory\App\Api;
 use Glory\App\Services\CapService;
 use Glory\App\Services\StripeService;
 use App\Config\Schema\_generated\CapSuscripcionesCols;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapStripeEndpoints
 {
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Stripe] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
-
-    public function verificarPermisos(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('cap_admin', $user->roles, true) || in_array('administrator', $user->roles, true);
-    }
-
-    public function verificarPermisosAdmin(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('administrator', $user->roles, true);
-    }
+    use ConCallbackSeguro;
 
     public function obtenerConfigStripe(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -78,8 +44,9 @@ class CapStripeEndpoints
         $datos = $request->get_json_params();
         $user = wp_get_current_user();
 
-        $urlExito = $datos['urlExito'] ?? home_url('/cap-dashboard/?pago=exitoso');
-        $urlCancelado = $datos['urlCancelado'] ?? home_url('/cap-dashboard/?pago=cancelado');
+        /* Los URLs se validan contra open redirect dentro de StripeService */
+        $urlExito = isset($datos['urlExito']) ? sanitize_text_field($datos['urlExito']) : home_url('/cap-dashboard/?pago=exitoso');
+        $urlCancelado = isset($datos['urlCancelado']) ? sanitize_text_field($datos['urlCancelado']) : home_url('/cap-dashboard/?pago=cancelado');
 
         $stripeService = new StripeService();
 
@@ -115,18 +82,19 @@ class CapStripeEndpoints
         global $wpdb;
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
         $suscripcion = $wpdb->get_row($wpdb->prepare(
-            "SELECT stripe_customer_id FROM {$tabla} WHERE centro_id = %d AND stripe_customer_id IS NOT NULL ORDER BY id DESC LIMIT 1",
+            "SELECT " . CapSuscripcionesCols::STRIPE_CUSTOMER_ID . " FROM {$tabla} WHERE " . CapSuscripcionesCols::CENTRO_ID . " = %d AND " . CapSuscripcionesCols::STRIPE_CUSTOMER_ID . " IS NOT NULL ORDER BY " . CapSuscripcionesCols::ID . " DESC LIMIT 1",
             $centroId
         ), 'ARRAY_A');
 
-        if (!$suscripcion || empty($suscripcion['stripe_customer_id'])) {
+        if (!$suscripcion || empty($suscripcion[CapSuscripcionesCols::STRIPE_CUSTOMER_ID])) {
             return new \WP_REST_Response([
                 'error' => 'No tienes una suscripción activa con Stripe'
             ], 404);
         }
 
         $datos = $request->get_json_params();
-        $urlRetorno = $datos['urlRetorno'] ?? home_url('/cap-dashboard/');
+        /* La URL se valida contra open redirect dentro de StripeService */
+        $urlRetorno = isset($datos['urlRetorno']) ? sanitize_text_field($datos['urlRetorno']) : home_url('/cap-dashboard/');
 
         $stripeService = new StripeService();
         $url = $stripeService->getPortalUrl($suscripcion['stripe_customer_id'], $urlRetorno);

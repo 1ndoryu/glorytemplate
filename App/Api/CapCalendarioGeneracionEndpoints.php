@@ -11,35 +11,11 @@ use Glory\App\Services\CapService;
 use Glory\App\Services\CalendarEngine;
 use Glory\App\Models\Alumno;
 use Glory\App\Models\Clase;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapCalendarioGeneracionEndpoints
 {
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Calendario] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
-
-    public function verificarPermisos(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('cap_admin', $user->roles, true) || in_array('administrator', $user->roles, true);
-    }
+    use ConCallbackSeguro;
 
     public function obtenerClases(\WP_REST_Request $request): \WP_REST_Response
     {

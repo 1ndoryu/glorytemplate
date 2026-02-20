@@ -161,9 +161,17 @@ class Clase
 
         $datosValidados[CapClasesCols::CREATED_AT] = current_time('mysql');
 
-        $insertado = $wpdb->insert($this->tabla, $datosValidados);
-
-        return $insertado ? $wpdb->insert_id : false;
+        try {
+            $insertado = $wpdb->insert($this->tabla, $datosValidados);
+            if ($insertado === false) {
+                error_log("[CAP Clase] ERROR: Fallo al crear clase. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return $wpdb->insert_id;
+        } catch (\Throwable $e) {
+            error_log('[CAP Clase] ERROR en crear(): ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -178,13 +186,22 @@ class Clase
             return false;
         }
 
-        $actualizado = $wpdb->update(
-            $this->tabla,
-            $datosValidados,
-            [CapClasesCols::ID => $id]
-        );
+        try {
+            $actualizado = $wpdb->update(
+                $this->tabla,
+                $datosValidados,
+                [CapClasesCols::ID => $id]
+            );
 
-        return $actualizado !== false;
+            if ($actualizado === false) {
+                error_log("[CAP Clase] ERROR: Fallo al actualizar clase {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Clase] ERROR en actualizar() clase {$id}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -241,21 +258,30 @@ class Clase
     {
         global $wpdb;
 
-        $colBloqueada = CapClasesCols::BLOQUEADA;
-        $estadoActual = $wpdb->get_var($wpdb->prepare(
-            "SELECT {$colBloqueada} FROM {$this->tabla} WHERE id = %d",
-            $id
-        ));
+        try {
+            $colBloqueada = CapClasesCols::BLOQUEADA;
+            $estadoActual = $wpdb->get_var($wpdb->prepare(
+                "SELECT {$colBloqueada} FROM {$this->tabla} WHERE id = %d",
+                $id
+            ));
 
-        $nuevoEstado = $estadoActual ? 0 : 1;
+            $nuevoEstado = $estadoActual ? 0 : 1;
 
-        $actualizado = $wpdb->update(
-            $this->tabla,
-            [CapClasesCols::BLOQUEADA => $nuevoEstado],
-            [CapClasesCols::ID => $id]
-        );
+            $actualizado = $wpdb->update(
+                $this->tabla,
+                [CapClasesCols::BLOQUEADA => $nuevoEstado],
+                [CapClasesCols::ID => $id]
+            );
 
-        return $actualizado !== false;
+            if ($actualizado === false) {
+                error_log("[CAP Clase] ERROR: Fallo en toggleBloqueo clase {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Clase] ERROR en toggleBloqueo clase {$id}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -265,26 +291,35 @@ class Clase
     {
         global $wpdb;
 
-        /* Verificar que no exista ya la asignación */
-        $existe = $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$this->tablaAsistencia} 
-             WHERE clase_id = %d AND alumno_id = %d",
-            $claseId,
-            $alumnoId
-        ));
+        try {
+            /* Verificar que no exista ya la asignación */
+            $existe = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$this->tablaAsistencia} 
+                 WHERE clase_id = %d AND alumno_id = %d",
+                $claseId,
+                $alumnoId
+            ));
 
-        if ($existe) {
+            if ($existe) {
+                return true;
+            }
+
+            $insertado = $wpdb->insert($this->tablaAsistencia, [
+                CapAsistenciaCols::CLASE_ID => $claseId,
+                CapAsistenciaCols::ALUMNO_ID => $alumnoId,
+                CapAsistenciaCols::ASISTIO => 0,
+                CapAsistenciaCols::CREATED_AT => current_time('mysql'),
+            ]);
+
+            if ($insertado === false) {
+                error_log("[CAP Clase] ERROR: Fallo al asignar alumno {$alumnoId} a clase {$claseId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
             return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Clase] ERROR en asignarAlumno clase {$claseId} alumno {$alumnoId}: " . $e->getMessage());
+            return false;
         }
-
-        $insertado = $wpdb->insert($this->tablaAsistencia, [
-            CapAsistenciaCols::CLASE_ID => $claseId,
-            CapAsistenciaCols::ALUMNO_ID => $alumnoId,
-            CapAsistenciaCols::ASISTIO => 0,
-            CapAsistenciaCols::CREATED_AT => current_time('mysql'),
-        ]);
-
-        return $insertado !== false;
     }
 
     /**
@@ -294,16 +329,25 @@ class Clase
     {
         global $wpdb;
 
-        $actualizado = $wpdb->update(
-            $this->tablaAsistencia,
-            [CapAsistenciaCols::ASISTIO => $asistio ? 1 : 0],
-            [
-                CapAsistenciaCols::CLASE_ID => $claseId,
-                CapAsistenciaCols::ALUMNO_ID => $alumnoId,
-            ]
-        );
+        try {
+            $actualizado = $wpdb->update(
+                $this->tablaAsistencia,
+                [CapAsistenciaCols::ASISTIO => $asistio ? 1 : 0],
+                [
+                    CapAsistenciaCols::CLASE_ID => $claseId,
+                    CapAsistenciaCols::ALUMNO_ID => $alumnoId,
+                ]
+            );
 
-        return $actualizado !== false;
+            if ($actualizado === false) {
+                error_log("[CAP Clase] ERROR: Fallo en marcarAsistencia clase {$claseId} alumno {$alumnoId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Clase] ERROR en marcarAsistencia clase {$claseId} alumno {$alumnoId}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

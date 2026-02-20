@@ -25,6 +25,16 @@ class StripeService
     private const OPTION_MODO_TEST = 'cap_stripe_test_mode';
     private const OPTION_PRICE_ID = 'cap_stripe_price_id';
 
+    /* Estados de suscripción en la API de Stripe — nunca hardcodear strings */
+    private const STRIPE_STATUS_ACTIVE = 'active';
+    private const STRIPE_STATUS_PAST_DUE = 'past_due';
+    private const STRIPE_STATUS_CANCELED = 'canceled';
+    private const STRIPE_STATUS_UNPAID = 'unpaid';
+
+    /* Timeout en segundos para llamadas a la API de Stripe, evita colgar el proceso PHP */
+    private const STRIPE_TIMEOUT_SEGUNDOS = 30;
+    private const STRIPE_MAX_REINTENTOS = 2;
+
     private string $secretKey;
     private string $publishableKey;
     private string $webhookSecret;
@@ -152,7 +162,8 @@ class StripeService
     }
 
     /**
-     * Crea una sesión de checkout para nueva suscripción
+     * Crea una sesión de checkout para nueva suscripción.
+     * Incluye idempotency key para evitar cobros duplicados por reintentos del browser.
      */
     public function crearCheckoutSession(
         int $centroId,
@@ -168,6 +179,10 @@ class StripeService
             return ['error' => 'No hay un precio configurado para la suscripción'];
         }
 
+        /* Validar que las URLs pertenezcan al dominio propio — prevenir open redirect */
+        $urlExito = $this->validarUrlRedireccion($urlExito);
+        $urlCancelado = $this->validarUrlRedireccion($urlCancelado);
+
         try {
             $stripeClass = '\\Stripe\\Stripe';
             $checkoutSessionClass = '\\Stripe\\Checkout\\Session';
@@ -175,8 +190,15 @@ class StripeService
                 return ['error' => 'Stripe SDK no está disponible en el servidor'];
             }
 
-            /* Inicializar Stripe SDK */
             $stripeClass::setApiKey($this->secretKey);
+            $this->configurarTimeoutStripe($stripeClass);
+
+            /*
+             * Idempotency key: ventana de 5 minutos por centro.
+             * Si el usuario hace doble clic o recarga, Stripe devuelve la misma sesión.
+             */
+            $ventanaMinutos = floor(time() / 300);
+            $idempotencyKey = hash('sha256', "cap_checkout_{$centroId}_{$email}_{$ventanaMinutos}");
 
             $session = $checkoutSessionClass::create([
                 'payment_method_types' => ['card'],
@@ -196,7 +218,7 @@ class StripeService
                         'centro_id' => $centroId,
                     ],
                 ],
-            ]);
+            ], ['idempotency_key' => $idempotencyKey]);
 
             return [
                 'id' => $session->id,
@@ -204,7 +226,7 @@ class StripeService
             ];
         } catch (\Exception $e) {
             error_log('[CAP Stripe] Error creando checkout: ' . $e->getMessage());
-            return ['error' => $e->getMessage()];
+            return ['error' => 'Error al crear sesión de pago'];
         }
     }
 
@@ -217,6 +239,15 @@ class StripeService
             return null;
         }
 
+        /* Validar que la URL de retorno pertenezca al dominio propio */
+        $urlRetorno = $this->validarUrlRedireccion($urlRetorno);
+
+        /* Validar formato del customer ID contra path traversal */
+        if (!preg_match('/^cus_[a-zA-Z0-9]+$/', $stripeCustomerId)) {
+            error_log('[CAP Stripe] Customer ID con formato inválido: ' . substr($stripeCustomerId, 0, 20));
+            return null;
+        }
+
         try {
             $stripeClass = '\\Stripe\\Stripe';
             $billingPortalSessionClass = '\\Stripe\\BillingPortal\\Session';
@@ -225,6 +256,7 @@ class StripeService
             }
 
             $stripeClass::setApiKey($this->secretKey);
+            $this->configurarTimeoutStripe($stripeClass);
 
             $session = $billingPortalSessionClass::create([
                 'customer' => $stripeCustomerId,
@@ -239,7 +271,8 @@ class StripeService
     }
 
     /**
-     * Procesa un evento de webhook de Stripe
+     * Procesa un evento de webhook de Stripe.
+     * Incluye protección anti-replay: eventos ya procesados se ignoran.
      */
     public function procesarWebhook(string $payload, string $sigHeader): array
     {
@@ -255,12 +288,20 @@ class StripeService
             }
 
             $stripeClass::setApiKey($this->secretKey);
+            $this->configurarTimeoutStripe($stripeClass);
 
+            /* constructEvent valida firma + timestamp (tolerancia de 300s por defecto) */
             $event = $webhookClass::constructEvent(
                 $payload,
                 $sigHeader,
                 $this->webhookSecret
             );
+
+            /* Protección anti-replay: si este evento ya fue procesado, ignorar */
+            $transientKey = 'cap_stripe_evt_' . $event->id;
+            if (get_transient($transientKey)) {
+                return ['exito' => true, 'tipo' => $event->type, 'nota' => 'Evento ya procesado (replay ignorado)'];
+            }
 
             switch ($event->type) {
                 case 'checkout.session.completed':
@@ -287,6 +328,9 @@ class StripeService
                     error_log('[CAP Stripe] Evento no manejado: ' . $event->type);
             }
 
+            /* Marcar evento como procesado — TTL 24h para prevenir replays */
+            set_transient($transientKey, true, DAY_IN_SECONDS);
+
             return ['exito' => true, 'tipo' => $event->type];
         } catch (\Exception $e) {
             if (stripos($e->getMessage(), 'signature') !== false) {
@@ -295,13 +339,14 @@ class StripeService
             }
 
             error_log('[CAP Stripe] Error procesando webhook: ' . $e->getMessage());
-            return ['error' => $e->getMessage(), 'status' => 500];
+            return ['error' => 'Error al procesar evento', 'status' => 500];
         }
     }
 
     /**
-     * Procesa checkout completado - Activa la suscripción
-     * Verifica retorno de $wpdb para detectar fallos silenciosos en operaciones financieras.
+     * Procesa checkout completado - Activa la suscripción.
+     * Usa transacción para atomicidad del SELECT+INSERT/UPDATE.
+     * Verifica que el centro existe antes de crear la suscripción.
      */
     private function procesarCheckoutCompletado(object $session): bool
     {
@@ -314,39 +359,63 @@ class StripeService
             return false;
         }
 
-        /* Verificar si ya existe una suscripción para este centro */
-        $existente = $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$tabla} WHERE centro_id = %d",
+        $centroId = (int) $centroId;
+
+        /* Verificar que el centro existe antes de crear suscripción (previene metadata manipulada) */
+        $tablaCentros = $wpdb->prefix . 'cap_centros';
+        $centroExiste = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$tablaCentros} WHERE id = %d",
             $centroId
         ));
-
-        $datos = [
-            CapSuscripcionesCols::STRIPE_CUSTOMER_ID => $session->customer,
-            CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $session->subscription,
-            CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
-            CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
-            CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+1 month')),
-            CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
-        ];
-
-        if ($existente) {
-            $resultado = $wpdb->update($tabla, $datos, [CapSuscripcionesCols::ID => $existente]);
-            if ($resultado === false) {
-                error_log("[CAP Stripe] ERROR: Fallo al actualizar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
-                return false;
-            }
-        } else {
-            $datos[CapSuscripcionesCols::CENTRO_ID] = $centroId;
-            $datos[CapSuscripcionesCols::CREATED_AT] = current_time('mysql');
-            $resultado = $wpdb->insert($tabla, $datos);
-            if ($resultado === false) {
-                error_log("[CAP Stripe] ERROR: Fallo al insertar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
-                return false;
-            }
+        if (!$centroExiste) {
+            error_log("[CAP Stripe] ERROR: Checkout con centro_id inexistente: {$centroId}");
+            return false;
         }
 
-        error_log("[CAP Stripe] Suscripción activada para centro {$centroId}");
-        return true;
+        try {
+            /* Transacción: el SELECT + INSERT/UPDATE deben ser atómicos contra webhooks concurrentes */
+            $wpdb->query('START TRANSACTION');
+
+            $existente = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$tabla} WHERE centro_id = %d FOR UPDATE",
+                $centroId
+            ));
+
+            $datos = [
+                CapSuscripcionesCols::STRIPE_CUSTOMER_ID => $session->customer,
+                CapSuscripcionesCols::STRIPE_SUBSCRIPTION_ID => $session->subscription,
+                CapSuscripcionesCols::ESTADO => CapSuscripcionesEnums::ESTADO_ACTIVA,
+                CapSuscripcionesCols::FECHA_INICIO => current_time('mysql'),
+                CapSuscripcionesCols::FECHA_FIN => date('Y-m-d H:i:s', strtotime('+1 month')),
+                CapSuscripcionesCols::UPDATED_AT => current_time('mysql'),
+            ];
+
+            if ($existente) {
+                $resultado = $wpdb->update($tabla, $datos, [CapSuscripcionesCols::ID => $existente]);
+                if ($resultado === false) {
+                    $wpdb->query('ROLLBACK');
+                    error_log("[CAP Stripe] ERROR: Fallo al actualizar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
+                    return false;
+                }
+            } else {
+                $datos[CapSuscripcionesCols::CENTRO_ID] = $centroId;
+                $datos[CapSuscripcionesCols::CREATED_AT] = current_time('mysql');
+                $resultado = $wpdb->insert($tabla, $datos);
+                if ($resultado === false) {
+                    $wpdb->query('ROLLBACK');
+                    error_log("[CAP Stripe] ERROR: Fallo al insertar suscripción para centro {$centroId}. DB error: {$wpdb->last_error}");
+                    return false;
+                }
+            }
+
+            $wpdb->query('COMMIT');
+            error_log("[CAP Stripe] Suscripción activada para centro {$centroId}");
+            return true;
+        } catch (\Throwable $e) {
+            $wpdb->query('ROLLBACK');
+            error_log("[CAP Stripe] ERROR: Excepción en checkout completado para centro {$centroId}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -417,9 +486,9 @@ class StripeService
         $tabla = $wpdb->prefix . CapSuscripcionesCols::TABLA;
 
         $estado = CapSuscripcionesEnums::ESTADO_ACTIVA;
-        if ($subscription->status === 'past_due') {
+        if ($subscription->status === self::STRIPE_STATUS_PAST_DUE) {
             $estado = CapSuscripcionesEnums::ESTADO_PAGO_FALLIDO;
-        } elseif ($subscription->status === 'canceled' || $subscription->status === 'unpaid') {
+        } elseif ($subscription->status === self::STRIPE_STATUS_CANCELED || $subscription->status === self::STRIPE_STATUS_UNPAID) {
             $estado = CapSuscripcionesEnums::ESTADO_EXPIRADA;
         }
 
@@ -487,14 +556,21 @@ class StripeService
 
     /**
      * Encripta un valor para almacenarlo de forma segura
-     * Usa la AUTH_KEY de WordPress como clave
+     * Usa la AUTH_KEY de WordPress como clave.
+     * Formato: base64( IV_16_bytes . ciphertext_base64 ) — sin separador para evitar
+     * bug si el IV aleatorio contiene los bytes '::' (0x3A3A).
      */
     private function encriptar(string $valor): string
     {
         if (empty($valor)) return '';
 
         $key = $this->obtenerClaveEncriptacion();
-        $iv = openssl_random_pseudo_bytes(16);
+        $iv = openssl_random_pseudo_bytes(16, $cryptoStrong);
+
+        if (!$cryptoStrong) {
+            error_log('[CAP Stripe] ADVERTENCIA: openssl_random_pseudo_bytes no generó IV criptográficamente seguro');
+        }
+
         $encrypted = openssl_encrypt($valor, 'AES-256-CBC', $key, 0, $iv);
 
         if ($encrypted === false) {
@@ -502,11 +578,14 @@ class StripeService
             return '';
         }
 
-        return base64_encode($iv . '::' . $encrypted);
+        /* IV (16 bytes) concatenado directamente con ciphertext base64 — sin separador */
+        return base64_encode($iv . $encrypted);
     }
 
     /**
-     * Desencripta un valor almacenado
+     * Desencripta un valor almacenado.
+     * Soporta formato nuevo (IV . ciphertext) y viejo (IV :: ciphertext) para
+     * compatibilidad con valores encriptados antes del fix del separador.
      */
     private function desencriptar(string $valor): string
     {
@@ -515,15 +594,33 @@ class StripeService
         $key = $this->obtenerClaveEncriptacion();
         $data = base64_decode($valor, true);
 
-        /* base64_decode puede retornar false con datos corruptos */
-        if ($data === false || strpos($data, '::') === false) {
+        if ($data === false || strlen($data) < 17) {
+            error_log('[CAP Stripe] ERROR: datos encriptados corruptos o demasiado cortos');
             return '';
         }
 
-        list($iv, $encrypted) = explode('::', $data, 2);
+        /*
+         * Detectar formato: en el formato viejo, bytes 16-17 son '::' (0x3A3A).
+         * En el nuevo, byte 16 es un carácter base64 (nunca ':').
+         */
+        if (strlen($data) > 17 && substr($data, 16, 2) === '::') {
+            /* Formato viejo: IV(16) + '::' + ciphertext_base64 */
+            $iv = substr($data, 0, 16);
+            $encrypted = substr($data, 18);
+        } else {
+            /* Formato nuevo: IV(16) + ciphertext_base64 — sin separador */
+            $iv = substr($data, 0, 16);
+            $encrypted = substr($data, 16);
+        }
+
         $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $key, 0, $iv);
 
-        return $decrypted !== false ? $decrypted : '';
+        if ($decrypted === false) {
+            error_log('[CAP Stripe] ERROR: desencriptación falló — posible clave incorrecta o datos corruptos');
+            return '';
+        }
+
+        return $decrypted;
     }
 
     /**
@@ -537,6 +634,56 @@ class StripeService
 
         $key = AUTH_KEY;
         return hash('sha256', $key, true);
+    }
+
+    /**
+     * Valida que una URL de redirección pertenezca al dominio del sitio.
+     * Previene open redirect — un atacante podría redirigir a sitios maliciosos
+     * usando la confianza del dominio legítimo.
+     */
+    private function validarUrlRedireccion(string $url): string
+    {
+        $fallback = home_url('/cap-dashboard/');
+
+        if (empty($url)) {
+            return $fallback;
+        }
+
+        /* wp_validate_redirect retorna el fallback si la URL no pertenece al dominio */
+        return wp_validate_redirect($url, $fallback);
+    }
+
+    /**
+     * Configura timeout y reintentos para el SDK de Stripe.
+     * Sin timeout explícito, un request puede colgar PHP indefinidamente.
+     */
+    private function configurarTimeoutStripe(string $stripeClass): void
+    {
+        try {
+            if (method_exists($stripeClass, 'setMaxNetworkRetries')) {
+                $stripeClass::setMaxNetworkRetries(self::STRIPE_MAX_REINTENTOS);
+            }
+
+            /*
+             * El SDK de Stripe permite configurar timeout via CurlClient.
+             * Si la clase existe, establecer timeout explícito.
+             */
+            $curlClientClass = '\\Stripe\\HttpClient\\CurlClient';
+            if (class_exists($curlClientClass)) {
+                $apiRequestorClass = '\\Stripe\\ApiRequestor';
+                if (class_exists($apiRequestorClass) && method_exists($apiRequestorClass, 'setHttpClient')) {
+                    $httpClient = new $curlClientClass([
+                        CURLOPT_TIMEOUT => self::STRIPE_TIMEOUT_SEGUNDOS,
+                        CURLOPT_SSL_VERIFYPEER => true,
+                        CURLOPT_SSL_VERIFYHOST => 2,
+                    ]);
+                    $apiRequestorClass::setHttpClient($httpClient);
+                }
+            }
+        } catch (\Throwable $e) {
+            /* No bloquear si la configuración de timeout falla */
+            error_log('[CAP Stripe] Advertencia: no se pudo configurar timeout: ' . $e->getMessage());
+        }
     }
 
     /**

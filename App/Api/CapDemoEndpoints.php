@@ -9,35 +9,11 @@ namespace Glory\App\Api;
 
 use Glory\App\Database\CapSeeder;
 use Glory\App\Services\CapService;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapDemoEndpoints
 {
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Demo] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
-
-    public function verificarPermisosAdmin(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('administrator', $user->roles, true);
-    }
+    use ConCallbackSeguro;
 
     public function obtenerEstadoDemo(\WP_REST_Request $request): \WP_REST_Response
     {

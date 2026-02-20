@@ -80,27 +80,36 @@ class Configuracion
     {
         global $wpdb;
 
-        $existe = $wpdb->get_var($wpdb->prepare(
-            "SELECT id FROM {$this->tablaConfig} WHERE centro_id = %d",
-            $centroId
-        ));
+        try {
+            $existe = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$this->tablaConfig} WHERE centro_id = %d",
+                $centroId
+            ));
 
-        $datosValidados = $this->validarDatos($datos);
-        $datosValidados[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
+            $datosValidados = $this->validarDatos($datos);
+            $datosValidados[CapConfiguracionCols::UPDATED_AT] = current_time('mysql');
 
-        if ($existe) {
-            $resultado = $wpdb->update(
-                $this->tablaConfig,
-                $datosValidados,
-                [CapConfiguracionCols::CENTRO_ID => $centroId]
-            );
-        } else {
-            $datosValidados[CapConfiguracionCols::CENTRO_ID] = $centroId;
-            $datosValidados[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
-            $resultado = $wpdb->insert($this->tablaConfig, $datosValidados);
+            if ($existe) {
+                $resultado = $wpdb->update(
+                    $this->tablaConfig,
+                    $datosValidados,
+                    [CapConfiguracionCols::CENTRO_ID => $centroId]
+                );
+            } else {
+                $datosValidados[CapConfiguracionCols::CENTRO_ID] = $centroId;
+                $datosValidados[CapConfiguracionCols::CREATED_AT] = current_time('mysql');
+                $resultado = $wpdb->insert($this->tablaConfig, $datosValidados);
+            }
+
+            if ($resultado === false) {
+                error_log("[CAP Configuracion] ERROR: Fallo al guardar config centro {$centroId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Configuracion] ERROR en guardar() centro {$centroId}: " . $e->getMessage());
+            return false;
         }
-
-        return $resultado !== false;
     }
 
     /**
@@ -156,13 +165,22 @@ class Configuracion
 
         $datosValidados[CapCentrosCols::UPDATED_AT] = current_time('mysql');
 
-        $resultado = $wpdb->update(
-            $this->tablaCentros,
-            $datosValidados,
-            [CapCentrosCols::ID => $centroId]
-        );
+        try {
+            $resultado = $wpdb->update(
+                $this->tablaCentros,
+                $datosValidados,
+                [CapCentrosCols::ID => $centroId]
+            );
 
-        return $resultado !== false;
+            if ($resultado === false) {
+                error_log("[CAP Configuracion] ERROR: Fallo al actualizar datos centro {$centroId}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Configuracion] ERROR en actualizarDatosCentro centro {$centroId}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -337,30 +355,34 @@ class Configuracion
     {
         global $wpdb;
 
-        /* Verificar y crear columna horarios_semanales si no existe */
-        $row = $wpdb->get_results($wpdb->prepare(
-            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
-            $this->tablaConfig,
-            'horarios_semanales'
-        ));
-        if (empty($row)) {
-            $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
-            if ($resultado === false) {
-                error_log("[CAP Configuracion] ERROR: Fallo al crear columna horarios_semanales. DB error: {$wpdb->last_error}");
+        try {
+            /* Verificar y crear columna horarios_semanales si no existe */
+            $row = $wpdb->get_results($wpdb->prepare(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+                $this->tablaConfig,
+                'horarios_semanales'
+            ));
+            if (empty($row)) {
+                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN horarios_semanales LONGTEXT NULL DEFAULT NULL");
+                if ($resultado === false) {
+                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna horarios_semanales. DB error: {$wpdb->last_error}");
+                }
             }
-        }
 
-        /* Verificar y crear columna timezone si no existe */
-        $rowTz = $wpdb->get_results($wpdb->prepare(
-            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
-            $this->tablaConfig,
-            'timezone'
-        ));
-        if (empty($rowTz)) {
-            $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
-            if ($resultado === false) {
-                error_log("[CAP Configuracion] ERROR: Fallo al crear columna timezone. DB error: {$wpdb->last_error}");
+            /* Verificar y crear columna timezone si no existe */
+            $rowTz = $wpdb->get_results($wpdb->prepare(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+                $this->tablaConfig,
+                'timezone'
+            ));
+            if (empty($rowTz)) {
+                $resultado = $wpdb->query("ALTER TABLE {$this->tablaConfig} ADD COLUMN timezone VARCHAR(100) DEFAULT 'Europe/Madrid'");
+                if ($resultado === false) {
+                    error_log("[CAP Configuracion] ERROR: Fallo al crear columna timezone. DB error: {$wpdb->last_error}");
+                }
             }
+        } catch (\Throwable $e) {
+            error_log('[CAP Configuracion] ERROR en asegurarColumnaFlexibilidad: ' . $e->getMessage());
         }
     }
 }

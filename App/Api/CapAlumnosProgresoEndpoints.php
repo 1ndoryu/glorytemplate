@@ -13,9 +13,12 @@ use App\Config\Schema\_generated\CapAlumnosCols;
 use App\Config\Schema\_generated\CapAsistenciaCols;
 use App\Config\Schema\_generated\CapClasesCols;
 use App\Config\Schema\CapAsignaturasConstants;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapAlumnosProgresoEndpoints
 {
+    use ConCallbackSeguro;
+
     private const LOGS_ACTIVOS = false;
 
     private function registrarLog(string $mensaje): void
@@ -25,43 +28,6 @@ class CapAlumnosProgresoEndpoints
         }
 
         error_log($mensaje);
-    }
-
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Progreso] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
-
-    public function verificarPermisos(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('cap_admin', $user->roles, true) || in_array('administrator', $user->roles, true);
-    }
-
-    public function verificarPermisosAdmin(): bool
-    {
-        if (!is_user_logged_in()) {
-            return false;
-        }
-
-        $user = wp_get_current_user();
-        return in_array('administrator', $user->roles, true);
     }
 
     public function obtenerProgresoAlumno(\WP_REST_Request $request): \WP_REST_Response

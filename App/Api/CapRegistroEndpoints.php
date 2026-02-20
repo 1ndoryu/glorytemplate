@@ -12,25 +12,11 @@ use App\Config\Schema\_generated\CapCentrosCols;
 use App\Config\Schema\_generated\CapConfiguracionCols;
 use App\Config\Schema\_generated\CapSuscripcionesCols;
 use App\Config\Schema\_generated\CapSuscripcionesEnums;
+use Glory\App\Api\Traits\ConCallbackSeguro;
 
 class CapRegistroEndpoints
 {
-    public function callbackSeguro(string $metodo): callable
-    {
-        return function (\WP_REST_Request $request) use ($metodo): \WP_REST_Response {
-            try {
-                $respuesta = $this->{$metodo}($request);
-                if ($respuesta instanceof \WP_REST_Response) {
-                    return $respuesta;
-                }
-
-                return new \WP_REST_Response($respuesta);
-            } catch (\Throwable $error) {
-                error_log('[CAP REST Registro] Error en ' . $metodo . ': ' . $error->getMessage());
-                return new \WP_REST_Response(['error' => 'Error interno del servidor'], 500);
-            }
-        };
-    }
+    use ConCallbackSeguro;
 
     private function excedioLimiteRegistro(string $ip): bool
     {

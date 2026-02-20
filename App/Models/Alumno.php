@@ -82,23 +82,27 @@ class Alumno
         $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
         $totalActualizados = 0;
 
-        foreach (CapAsignaturasConstants::ALIAS as $alias => $canonico) {
-            if ($alias === $canonico) {
-                continue;
-            }
+        try {
+            foreach (CapAsignaturasConstants::ALIAS as $alias => $canonico) {
+                if ($alias === $canonico) {
+                    continue;
+                }
 
-            $actualizados = $wpdb->query($wpdb->prepare(
-                "UPDATE {$tablaClases}
-                 SET asignatura = %s
-                 WHERE centro_id = %d AND asignatura = %s",
-                $canonico,
-                $centroId,
-                $alias
-            ));
+                $actualizados = $wpdb->query($wpdb->prepare(
+                    "UPDATE {$tablaClases}
+                     SET asignatura = %s
+                     WHERE centro_id = %d AND asignatura = %s",
+                    $canonico,
+                    $centroId,
+                    $alias
+                ));
 
-            if ($actualizados > 0) {
-                $totalActualizados += $actualizados;
+                if ($actualizados > 0) {
+                    $totalActualizados += $actualizados;
+                }
             }
+        } catch (\Throwable $e) {
+            error_log("[CAP Alumno] ERROR en normalizarAsignaturasEnBD centro {$centroId}: " . $e->getMessage());
         }
 
         return $totalActualizados;
@@ -254,9 +258,17 @@ class Alumno
         $datosValidados[CapAlumnosCols::CREATED_AT] = current_time('mysql');
         $datosValidados[CapAlumnosCols::UPDATED_AT] = current_time('mysql');
 
-        $insertado = $wpdb->insert($this->tabla, $datosValidados);
-
-        return $insertado ? $wpdb->insert_id : false;
+        try {
+            $insertado = $wpdb->insert($this->tabla, $datosValidados);
+            if ($insertado === false) {
+                error_log("[CAP Alumno] ERROR: Fallo al crear alumno. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return $wpdb->insert_id;
+        } catch (\Throwable $e) {
+            error_log('[CAP Alumno] ERROR en crear(): ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -273,13 +285,22 @@ class Alumno
 
         $datosValidados[CapAlumnosCols::UPDATED_AT] = current_time('mysql');
 
-        $actualizado = $wpdb->update(
-            $this->tabla,
-            $datosValidados,
-            [CapAlumnosCols::ID => $id]
-        );
+        try {
+            $actualizado = $wpdb->update(
+                $this->tabla,
+                $datosValidados,
+                [CapAlumnosCols::ID => $id]
+            );
 
-        return $actualizado !== false;
+            if ($actualizado === false) {
+                error_log("[CAP Alumno] ERROR: Fallo al actualizar alumno {$id}. DB error: {$wpdb->last_error}");
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            error_log("[CAP Alumno] ERROR en actualizar() alumno {$id}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -464,26 +485,31 @@ class Alumno
         $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
         $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
 
-        $horas = (float) $wpdb->get_var($wpdb->prepare(
-            "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
-             FROM {$tablaAsistencia} a
-             JOIN {$tablaClases} c ON a.clase_id = c.id
-             WHERE a.alumno_id = %d AND c.fecha <= CURDATE()",
-            $alumnoId
-        ));
+        try {
+            $horas = (float) $wpdb->get_var($wpdb->prepare(
+                "SELECT COALESCE(SUM(c.duracion_minutos) / 60, 0)
+                 FROM {$tablaAsistencia} a
+                 JOIN {$tablaClases} c ON a.clase_id = c.id
+                 WHERE a.alumno_id = %d AND c.fecha <= CURDATE()",
+                $alumnoId
+            ));
 
-        /* Actualizar cache en tabla de alumnos, verificar retorno */
-        $resultado = $wpdb->update(
-            $this->tabla,
-            [CapAlumnosCols::HORAS_COMPLETADAS => $horas, CapAlumnosCols::UPDATED_AT => current_time('mysql')],
-            [CapAlumnosCols::ID => $alumnoId]
-        );
+            /* Actualizar cache en tabla de alumnos, verificar retorno */
+            $resultado = $wpdb->update(
+                $this->tabla,
+                [CapAlumnosCols::HORAS_COMPLETADAS => $horas, CapAlumnosCols::UPDATED_AT => current_time('mysql')],
+                [CapAlumnosCols::ID => $alumnoId]
+            );
 
-        if ($resultado === false) {
-            error_log("[CAP Alumno] ERROR: Fallo al actualizar horas_completadas del alumno {$alumnoId}. DB error: {$wpdb->last_error}");
+            if ($resultado === false) {
+                error_log("[CAP Alumno] ERROR: Fallo al actualizar horas_completadas del alumno {$alumnoId}. DB error: {$wpdb->last_error}");
+            }
+
+            return $horas;
+        } catch (\Throwable $e) {
+            error_log("[CAP Alumno] ERROR en recalcularHorasCompletadas alumno {$alumnoId}: " . $e->getMessage());
+            return 0.0;
         }
-
-        return $horas;
     }
 
     /**
@@ -525,34 +551,39 @@ class Alumno
             return true;
         }
 
-        $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-        $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
-        $placeholdersSubquery = implode(',', array_fill(0, count($ids), '%d'));
-        $placeholdersWhere = implode(',', array_fill(0, count($ids), '%d'));
+        try {
+            $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
+            $tablaClases = $wpdb->prefix . CapClasesCols::TABLA;
+            $placeholdersSubquery = implode(',', array_fill(0, count($ids), '%d'));
+            $placeholdersWhere = implode(',', array_fill(0, count($ids), '%d'));
 
-        $query = "
-            UPDATE {$this->tabla} al
-            LEFT JOIN (
-                SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos) / 60, 0) AS horas
-                FROM {$tablaAsistencia} a
-                JOIN {$tablaClases} c ON a.clase_id = c.id
-                WHERE c.fecha <= CURDATE() AND a.alumno_id IN ({$placeholdersSubquery})
-                GROUP BY a.alumno_id
-            ) calc ON al.id = calc.alumno_id
-            SET al.horas_completadas = COALESCE(calc.horas, 0),
-                al.updated_at = %s
-            WHERE al.id IN ({$placeholdersWhere})
-        ";
+            $query = "
+                UPDATE {$this->tabla} al
+                LEFT JOIN (
+                    SELECT a.alumno_id, COALESCE(SUM(c.duracion_minutos) / 60, 0) AS horas
+                    FROM {$tablaAsistencia} a
+                    JOIN {$tablaClases} c ON a.clase_id = c.id
+                    WHERE c.fecha <= CURDATE() AND a.alumno_id IN ({$placeholdersSubquery})
+                    GROUP BY a.alumno_id
+                ) calc ON al.id = calc.alumno_id
+                SET al.horas_completadas = COALESCE(calc.horas, 0),
+                    al.updated_at = %s
+                WHERE al.id IN ({$placeholdersWhere})
+            ";
 
-        $params = array_merge($ids, [current_time('mysql')], $ids);
-        $resultado = $wpdb->query($wpdb->prepare($query, ...$params));
+            $params = array_merge($ids, [current_time('mysql')], $ids);
+            $resultado = $wpdb->query($wpdb->prepare($query, ...$params));
 
-        if ($resultado === false) {
-            error_log('[CAP Alumno] ERROR: Fallo en recalcularProgresoEnLote para ' . count($ids) . " alumnos. DB error: {$wpdb->last_error}");
+            if ($resultado === false) {
+                error_log('[CAP Alumno] ERROR: Fallo en recalcularProgresoEnLote para ' . count($ids) . " alumnos. DB error: {$wpdb->last_error}");
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[CAP Alumno] ERROR en recalcularProgresoEnLote: ' . $e->getMessage());
             return false;
         }
-
-        return true;
     }
 
     /**
