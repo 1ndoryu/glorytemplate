@@ -489,37 +489,77 @@ class CapSeeder
     {
         global $wpdb;
         $tablaAsistencia = $wpdb->prefix . CapAsistenciaCols::TABLA;
-
-        /* Cantidad de alumnos por clase (entre 4 y 8 para realismo) */
         $alumnosTotal = count($alumnos);
 
-        foreach ($clases as $indexClase => $clase) {
-            /* Determinar cuántos alumnos asignar a esta clase */
-            $cantidadAlumnos = 4 + ($indexClase % 5);
+        if ($alumnosTotal === 0 || count($clases) === 0) {
+            return;
+        }
 
-            /* Rotar el inicio de alumnos para variedad */
+        /*
+         * 8.19 Fix: Batch insert en vez de N+1 (SELECT+INSERT por par clase×alumno).
+         * 1) Cargar asignaciones existentes en un set para deduplicar en memoria.
+         * 2) Construir filas nuevas en memoria.
+         * 3) Insertar en lotes de 50 con query multi-valores.
+         */
+
+        /* Paso 1: Cargar pares ya asignados de una sola vez */
+        $clasesIds = array_column($clases, 'id');
+        $placeholders = implode(',', array_fill(0, count($clasesIds), '%d'));
+        $existentes = $wpdb->get_results($wpdb->prepare(
+            "SELECT clase_id, alumno_id FROM {$tablaAsistencia} WHERE clase_id IN ({$placeholders})",
+            ...$clasesIds
+        ));
+
+        $asignados = [];
+        foreach ($existentes as $fila) {
+            $asignados["{$fila->clase_id}-{$fila->alumno_id}"] = true;
+        }
+
+        /* Paso 2: Preparar filas nuevas */
+        $ahora = current_time('mysql');
+        $filasNuevas = [];
+
+        foreach ($clases as $indexClase => $clase) {
+            $cantidadAlumnos = 4 + ($indexClase % 5);
             $offset = ($indexClase * 3) % $alumnosTotal;
 
             for ($i = 0; $i < $cantidadAlumnos && $i < $alumnosTotal; $i++) {
                 $indexAlumno = ($offset + $i) % $alumnosTotal;
                 $alumno = $alumnos[$indexAlumno];
+                $clave = "{$clase['id']}-{$alumno['id']}";
 
-                /* Verificar si ya está asignado (evitar duplicados) */
-                $yaAsignado = $wpdb->get_var($wpdb->prepare(
-                    "SELECT COUNT(*) FROM {$tablaAsistencia} WHERE clase_id = %d AND alumno_id = %d",
-                    $clase['id'],
-                    $alumno['id']
-                ));
-
-                if (!$yaAsignado) {
-                    $wpdb->insert($tablaAsistencia, [
-                        CapAsistenciaCols::CLASE_ID => $clase['id'],
-                        CapAsistenciaCols::ALUMNO_ID => $alumno['id'],
-                        CapAsistenciaCols::ASISTIO => 1,
-                        CapAsistenciaCols::CREATED_AT => current_time('mysql'),
-                    ]);
+                if (!isset($asignados[$clave])) {
+                    $filasNuevas[] = [
+                        'clase_id' => $clase['id'],
+                        'alumno_id' => $alumno['id'],
+                        'asistio' => 1,
+                        'created_at' => $ahora,
+                    ];
+                    $asignados[$clave] = true;
                 }
             }
+        }
+
+        /* Paso 3: Insert batch en lotes de 50 filas */
+        $tamanoLote = 50;
+        $lotes = array_chunk($filasNuevas, $tamanoLote);
+
+        foreach ($lotes as $lote) {
+            $valores = [];
+            $params = [];
+
+            foreach ($lote as $fila) {
+                $valores[] = '(%d, %d, %d, %s)';
+                $params[] = $fila['clase_id'];
+                $params[] = $fila['alumno_id'];
+                $params[] = $fila['asistio'];
+                $params[] = $fila['created_at'];
+            }
+
+            $sql = "INSERT INTO {$tablaAsistencia} (clase_id, alumno_id, asistio, created_at) VALUES "
+                . implode(', ', $valores);
+
+            $wpdb->query($wpdb->prepare($sql, ...$params));
         }
     }
 

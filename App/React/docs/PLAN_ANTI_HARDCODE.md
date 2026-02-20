@@ -977,29 +977,29 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 
 | Prioridad | ID | Descripción | Esfuerzo |
 |-----------|----|-------------|----------|
-| **P0 — Bloqueante** | 8.0 | Crear `BaseRepository` o eliminar repos muertos | Medio |
-| **P0 — Bloqueante** | 8.1 | Implementar transacciones en TODAS las operaciones multi-tabla | Alto |
-| **P1 — Crítico** | 8.5 | Hardening Stripe (idempotency, webhook replay, crypto bug) | Alto |
-| **P1 — Crítico** | 8.9 | Unificar `EstadoSuscripcion` (3 definiciones incompatibles) | Bajo |
-| **P1 — Crítico** | 8.2 | Try-catch en modelos | Medio |
-| **P2 — Alto** | 8.4 | Canalizar acceso BD por repos/modelos, no directo en endpoints | Alto |
-| **P2 — Alto** | 8.6 | Fix open redirect en Stripe URLs | Bajo |
-| **P2 — Alto** | 8.7 | Input validation en endpoints | Medio |
-| **P2 — Alto** | 8.10 | AbortController en useEffects | Medio |
-| **P2 — Alto** | 8.11 | Eliminar error masking en frontend | Medio |
-| **P2 — Alto** | 8.12 | Rollback correcto en optimistic updates | Medio |
-| **P3 — Medio** | 8.3 | Split archivos que exceden límites | Medio |
-| **P3 — Medio** | 8.8 | Extraer `callbackSeguro` a trait | Bajo |
-| **P3 — Medio** | 8.13 | Selectores Zustand | Bajo |
-| **P3 — Medio** | 8.14 | Eliminar código muerto | Bajo |
-| **P3 — Medio** | 8.15 | Inmutable updates en PanelHorarios | Bajo |
-| **P3 — Medio** | 8.17 | Race condition en registro | Bajo |
-| **P3 — Medio** | 8.18 | FK constraints o documentar ausencia | Bajo |
-| **P3 — Medio** | 8.19 | Batch inserts en Seeder | Bajo |
-| **P4 — Bajo** | 8.16 | Error detail leaks | Bajo |
-| **P4 — Bajo** | 8.20 | Logout nonce | Bajo |
-| **P4 — Bajo** | 8.21 | Botón muerto | Bajo |
-| **P4 — Bajo** | 8.22 | Typo función | Bajo |
+| **P0 — Bloqueante** | 8.0 | ✅ Crear `BaseRepository` (commit 1b4fd7c) | Medio |
+| **P0 — Bloqueante** | 8.1 | ✅ Transacciones en operaciones multi-tabla (commit 1b4fd7c) | Alto |
+| **P1 — Crítico** | 8.5 | ✅ Hardening Stripe (commit f70ec00) | Alto |
+| **P1 — Crítico** | 8.9 | ✅ `EstadoSuscripcion` unificado → `InfoSuscripcion` (commit b24a355) | Bajo |
+| **P1 — Crítico** | 8.2 | ✅ Try-catch en modelos (commit f70ec00) | Medio |
+| **P2 — Alto** | 8.4 | **PENDIENTE** Canalizar acceso BD por repos/modelos | Alto |
+| **P2 — Alto** | 8.6 | ✅ Fix open redirect Stripe (commit f70ec00) | Bajo |
+| **P2 — Alto** | 8.7 | ✅ Input validation en 5 endpoints (commit ba23fff) | Medio |
+| **P2 — Alto** | 8.10 | ✅ AbortController en 8 useEffects + setTimeout→useEffect (commit b24a355) | Medio |
+| **P2 — Alto** | 8.11 | ✅ Error masking eliminado: response.ok checks, fallback con alerta, JSON.parse protegido (commit 3889d29) | Medio |
+| **P2 — Alto** | 8.12 | ✅ Verificado: rollback ya correcto en toggleBloqueo, actualizarClase, moverClase, moverMultiples (ya existente) | Medio |
+| **P3 — Medio** | 8.3 | **PENDIENTE** Split archivos (useCalendario 792 ln, Alumno.php 578 ln) | Medio |
+| **P3 — Medio** | 8.8 | ✅ Trait `ConCallbackSeguro` en 11 clases (commit f70ec00) | Bajo |
+| **P3 — Medio** | 8.13 | ✅ Selectores Zustand en CapLayout (commit b24a355) | Bajo |
+| **P3 — Medio** | 8.14 | ✅ API_BASE centralizado, useHistorial eliminado (commits eae10b0 + 3889d29) | Bajo |
+| **P3 — Medio** | 8.15 | ✅ Inmutable updates en PanelHorarios (commit b24a355) | Bajo |
+| **P3 — Medio** | 8.17 | **PENDIENTE** Race condition en registro (wp_create_user) | Bajo |
+| **P3 — Medio** | 8.18 | **PENDIENTE** FK constraints o documentar ausencia | Bajo |
+| **P3 — Medio** | 8.19 | **PENDIENTE** Batch inserts en Seeder | Bajo |
+| **P4 — Bajo** | 8.16 | ✅ Error detail leaks: CapReportesEndpoints $e->getMessage() reemplazado (commit ba23fff) | Bajo |
+| **P4 — Bajo** | 8.20 | ✅ Logout nonce: wp_logout_url() como prop + callback en pages.php (commit 3889d29) | Bajo |
+| **P4 — Bajo** | 8.21 | ✅ Botón portal Stripe funcional con endpoint /stripe/portal (commit 3889d29) | Bajo |
+| **P4 — Bajo** | 8.22 | ✅ Typo borrarSemanacompleta → borrarSemanaCompleta (commit b24a355) | Bajo |
 
 ---
 
@@ -1007,13 +1007,17 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 
 | Métrica | Antes (solo F1-F7) | Después de F8 |
 |---------|---------------------|---------------|
-| Transacciones BD | 0 | Objetivo: 11 operaciones protegidas |
-| Try-catch en modelos | 0 | Objetivo: cobertura completa |
-| BaseRepository | Inexistente (7 repos muertos) | Objetivo: funcional o eliminado |
-| Definiciones incompatibles EstadoSuscripcion | 3 | Objetivo: 1 fuente única |
-| useEffects sin cleanup | 8 | Objetivo: 0 |
-| Error masking frontend | 7 casos | Objetivo: 0 |
-| Archivos sobre límite de líneas | 6 | Objetivo: 0 |
-| Open redirect vectors | 3 | Objetivo: 0 |
-| Inputs sin sanitizar en endpoints | 10+ | Objetivo: 0 |
-| Código muerto | ~12 archivos/funciones | Objetivo: 0 |
+| Transacciones BD | 0 | ✅ 11 operaciones protegidas |
+| Try-catch en modelos | 0 | ✅ Cobertura completa |
+| BaseRepository | Inexistente (7 repos muertos) | ✅ Funcional con CRUD, transacciones |
+| Definiciones incompatibles EstadoSuscripcion | 3 | ✅ 1 fuente única (schema.ts → InfoSuscripcion) |
+| useEffects sin cleanup | 8 | ✅ 0 (AbortController en 8 hooks+componentes) |
+| Error masking frontend | 7 casos | ✅ 0 (response.ok checks, alertas visuales, JSON.parse protegido) |
+| Archivos sobre límite de líneas | 6 | **Pendiente** (8.3 — esfuerzo alto) |
+| Open redirect vectors | 3 | ✅ 0 |
+| Inputs sin sanitizar en endpoints | 10+ | ✅ 0 |
+| Código muerto | ~12 archivos/funciones | ✅ useHistorial eliminado, API_BASE centralizado |
+| Logout sin nonce | 1 | ✅ 0 (wp_logout_url con nonce) |
+| Botones sin handler | 1 | ✅ 0 (portal Stripe funcional) |
+| Zustand sin selectores | 1 | ✅ 0 (7 selectores individuales) |
+| Mutación directa React state | 3 | ✅ 0 (inmutable con map/filter/spread) |

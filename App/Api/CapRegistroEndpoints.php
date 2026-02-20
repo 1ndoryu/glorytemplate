@@ -47,6 +47,22 @@ class CapRegistroEndpoints
 
     public function registrarUsuario(\WP_REST_Request $request): \WP_REST_Response
     {
+        try {
+            return $this->procesarRegistro($request);
+        } catch (\Throwable $e) {
+            error_log("[CAP Registro] ERROR: {$e->getMessage()} en {$e->getFile()}:{$e->getLine()}");
+            return new \WP_REST_Response([
+                'error' => true,
+                'message' => 'Error interno al procesar el registro. Inténtalo de nuevo.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Lógica interna de registro, extraída para envolver en try-catch global.
+     */
+    private function procesarRegistro(\WP_REST_Request $request): \WP_REST_Response
+    {
         $datos = $request->get_json_params();
         $ip = sanitize_text_field((string) ($_SERVER['REMOTE_ADDR'] ?? 'desconocida'));
 
@@ -96,9 +112,27 @@ class CapRegistroEndpoints
         $userId = wp_create_user($nombreUsuario, $password, $email);
 
         if (is_wp_error($userId)) {
+            /*
+             * 8.17 Fix: wp_create_user hace su propia verificación de duplicados.
+             * Si otro registro concurrente creó el usuario entre nuestros checks
+             * y este punto, WP devuelve error con código específico.
+             */
+            $codigoError = $userId->get_error_code();
+            if ($codigoError === 'existing_user_login') {
+                return new \WP_REST_Response([
+                    'error' => true,
+                    'message' => 'El nombre de usuario ya está en uso'
+                ], 409);
+            }
+            if ($codigoError === 'existing_user_email') {
+                return new \WP_REST_Response([
+                    'error' => true,
+                    'message' => 'El correo electrónico ya está registrado'
+                ], 409);
+            }
             return new \WP_REST_Response([
                 'error' => true,
-                'message' => $userId->get_error_message()
+                'message' => 'No se pudo crear el usuario. Inténtalo de nuevo.'
             ], 500);
         }
 

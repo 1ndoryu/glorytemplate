@@ -22,7 +22,22 @@ class CapSchema
     }
 
     /**
-     * Crea todas las tablas del módulo CAP
+     * Crea todas las tablas del módulo CAP.
+     *
+     * TO-DO [8.18 FK constraints]: dbDelta de WordPress no soporta FOREIGN KEY
+     * de forma fiable. La integridad referencial se garantiza a nivel código:
+     * - Eliminaciones en cascada: CapDemoEndpoints::limpiarDatos() borra en orden
+     *   asistencia → clases → disponibilidad → alumnos → config → suscripciones → centros
+     * - Creación atómica: CapRegistroEndpoints usa transacción para centro+config+suscripción
+     * - Dependencias de FK ideales (para futura migración manual):
+     *   cap_alumnos.centro_id       → cap_centros.id       ON DELETE CASCADE
+     *   cap_disponibilidad.alumno_id → cap_alumnos.id       ON DELETE CASCADE
+     *   cap_clases.centro_id        → cap_centros.id       ON DELETE CASCADE
+     *   cap_asistencia.clase_id     → cap_clases.id        ON DELETE CASCADE
+     *   cap_asistencia.alumno_id    → cap_alumnos.id       ON DELETE CASCADE
+     *   cap_configuracion.centro_id → cap_centros.id       ON DELETE CASCADE
+     *   cap_suscripciones.centro_id → cap_centros.id       ON DELETE CASCADE
+     *   cap_centros.user_id         → wp_users.ID          ON DELETE CASCADE
      */
     public function crearTablas(): void
     {

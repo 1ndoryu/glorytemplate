@@ -1,7 +1,7 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-20  
-> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-7 completadas (plan cerrado)  
+> **Última actualización:** 2026-02-21  
+> **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (18/22 items resueltos, 4 pendientes de bajo riesgo)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
@@ -17,6 +17,35 @@
 - **F5:** 7 archivos TS/TSX migrados. Discrepancia EstadoSuscripcion resuelta (trial/grace eliminados, pago_fallido agregado). CODIGO_A_ID duplicado eliminado de ModalProgresoAlumno. Commit 2f489b0.
 - **F6:** 10 archivos PHP hardened. 5 webhook handlers void→bool con verificación wpdb. 3 modelos void→bool. 5 DELETE IN()→$wpdb->prepare. json_decode/encode checks. try-catch en CapBootstrap. wp_mail verificado. INFORMATION_SCHEMA→$wpdb->prepare. Commit 646d92b.
 - **[Pendiente]:** Fase 8 (Auditoría profunda documentada para futuro — 176 hallazgos adicionales registrados en PLAN).
+
+### Completado — PLAN_ANTI_HARDCODE Fase 8 (AG-SCH, 2026-02-21)
+
+> 18 de 22 sub-items completados. 4 pendientes son de esfuerzo alto o bajo riesgo.
+
+- **F8.0:** BaseRepository con CRUD, named params, `conTransaccion()`. 7 repos funcionales.
+- **F8.1:** 11 operaciones multi-tabla protegidas con transacciones.
+- **F8.2:** Try-catch en todos los modelos (write operations).
+- **F8.5:** Stripe hardening: idempotency keys, webhook replay protection, IV bug fix, timeouts, estados como constantes.
+- **F8.6:** Open redirect fix: `wp_validate_redirect()` en 3 URLs de Stripe.
+- **F8.7:** Input validation en 5 endpoints: sanitize_text_field, absint, regex fecha, is_array guards.
+- **F8.8:** Trait `ConCallbackSeguro` reemplaza 11 implementaciones duplicadas.
+- **F8.9:** `EstadoSuscripcion` unificado: interfaz renombrada a `InfoSuscripcion`, tipo usa schema.
+- **F8.10:** AbortController en 8 useEffects. setTimeout migrado a useEffect con cleanup en 2 componentes.
+- **F8.11:** Error masking eliminado: response.ok checks en generarCalendario/ConExclusiones, JSON.parse con try-catch en guardarSnapshot, alerta visual en ModalProgresoAlumno, fallback corregido en PanelHorarios, JSON parse error propagado en useReportes.
+- **F8.12:** Verificado: rollback optimista ya correcto en toggleBloqueo, actualizarClase, moverClase, moverMultiples.
+- **F8.13:** Selectores Zustand individuales en CapLayout (7 selectores).
+- **F8.14:** API_BASE centralizado en cap-constants.ts (desde 3 declaraciones + 12 hardcodes). useHistorial.ts eliminado (código muerto). Hardcoded URLs reemplazadas en ModalConflictoAforo, PanelDemo, useReportes, ModalProgresoAlumno.
+- **F8.15:** Inmutable updates en PanelHorarios (map/filter/spread reemplazan splice/direct mutation).
+- **F8.16:** `$e->getMessage()` reemplazado por mensajes genéricos en CapReportesEndpoints.
+- **F8.20:** Logout con nonce: `wp_logout_url()` pasado como prop, pages.php convertido a callback.
+- **F8.21:** Botón "Gestionar Pagos" funcional con endpoint `/stripe/portal`.
+- **F8.22:** Typo `borrarSemanacompleta` → `borrarSemanaCompleta`.
+- **Pendientes:** 8.3 (split archivos grandes), 8.4 (canalizar BD por repos), 8.17 (race condition registro), 8.18 (FK constraints), 8.19 (batch inserts seeder).
+- **Lecciones:** 
+  - [pages.php]: Props de página deben ser callbacks, no arrays estáticos (evaluación temprana de `wp_get_current_user()`).
+  - [API_BASE]: Centralizar URL base evita divergencia silenciosa entre 5+ hooks.
+  - [AbortController]: Pattern: `signal?: AbortSignal` param → fetch options → AbortError guard → useEffect cleanup.
+  - [ErrorMasking]: El patrón `catch { return` en JSON.parse impide que se ejecute el fallback posterior.
 - **F7:** Validación final completada. PHP lint 0 errores. Grep: 0 hardcode residual en queries, 0 DELETE IN() sin prepare. Regla de mantenimiento definida: toda referencia BD usa Schema System.
 - **[Regla permanente]:** Toda nueva referencia a columnas, tablas o valores enum de BD DEBE usar constantes del Schema System (`*Cols`, `*Enums`). Si la constante no existe, crearla primero y regenerar.
 
