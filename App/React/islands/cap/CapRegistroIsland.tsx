@@ -3,9 +3,10 @@
  *
  * Isla de registro para el sistema CAP.
  * Formulario de registro que crea un usuario WordPress con rol cap_admin.
+ * Lógica de estado y fetch delegadas a useRegistro (SRP).
  */
 
-import {useState, type FormEvent} from 'react';
+import {useRegistro} from './hooks/useRegistro';
 import {Input, Boton, Alerta} from './components/ui';
 import {IconoUsuario, IconoCorreo, IconoCandado, IconoEdificio, IconoLogoCap, IconoCheck} from './components/icons';
 import './styles/index.css';
@@ -17,137 +18,18 @@ interface CapRegistroIslandProps {
     loginUrl?: string;
 }
 
-interface ErroresFormulario {
-    nombreCentro?: string;
-    nombreUsuario?: string;
-    email?: string;
-    password?: string;
-    confirmarPassword?: string;
-}
-
 export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', loginUrl = '/cap-login/'}: CapRegistroIslandProps) {
-    /* Estado del formulario */
-    const [nombreCentro, setNombreCentro] = useState('');
-    const [nombreUsuario, setNombreUsuario] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmarPassword, setConfirmarPassword] = useState('');
-    const [aceptaTerminos, setAceptaTerminos] = useState(false);
-
-    /* Estado UI */
-    const [cargando, setCargando] = useState(false);
-    const [errores, setErrores] = useState<ErroresFormulario>({});
-    const [errorGeneral, setErrorGeneral] = useState('');
-    const [registroExitoso, setRegistroExitoso] = useState(false);
-
-    /* Estado para checkout de Stripe */
-    const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
-    const [diasTrial, setDiasTrial] = useState(14);
-    const [redireccionando, setRedireccionando] = useState(false);
-
-    /* Validación de formulario */
-    const validarFormulario = (): boolean => {
-        const nuevosErrores: ErroresFormulario = {};
-        let esValido = true;
-
-        if (!nombreCentro.trim()) {
-            nuevosErrores.nombreCentro = 'El nombre del centro es obligatorio';
-            esValido = false;
-        }
-
-        if (!nombreUsuario.trim()) {
-            nuevosErrores.nombreUsuario = 'El nombre de usuario es obligatorio';
-            esValido = false;
-        } else if (nombreUsuario.length < 4) {
-            nuevosErrores.nombreUsuario = 'Mínimo 4 caracteres';
-            esValido = false;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email.trim()) {
-            nuevosErrores.email = 'El correo es obligatorio';
-            esValido = false;
-        } else if (!emailRegex.test(email)) {
-            nuevosErrores.email = 'Correo electrónico inválido';
-            esValido = false;
-        }
-
-        if (!password) {
-            nuevosErrores.password = 'La contraseña es obligatoria';
-            esValido = false;
-        } else if (password.length < 8) {
-            nuevosErrores.password = 'Mínimo 8 caracteres';
-            esValido = false;
-        }
-
-        if (password !== confirmarPassword) {
-            nuevosErrores.confirmarPassword = 'Las contraseñas no coinciden';
-            esValido = false;
-        }
-
-        setErrores(nuevosErrores);
-        return esValido;
-    };
-
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setErrorGeneral('');
-
-        if (!validarFormulario()) {
-            return;
-        }
-
-        if (!aceptaTerminos) {
-            setErrorGeneral('Debes aceptar los términos y condiciones');
-            return;
-        }
-
-        setCargando(true);
-
-        try {
-            const response = await fetch(`${restUrl}/registro`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': restNonce
-                },
-                body: JSON.stringify({
-                    nombreCentro,
-                    nombreUsuario,
-                    email,
-                    password
-                })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Error al registrar');
-            }
-
-            /* Guardar información de Stripe si está disponible */
-            if (data.stripeCheckoutUrl) {
-                setStripeCheckoutUrl(data.stripeCheckoutUrl);
-            }
-            if (data.diasTrial) {
-                setDiasTrial(data.diasTrial);
-            }
-
-            setRegistroExitoso(true);
-        } catch (err) {
-            setErrorGeneral(err instanceof Error ? err.message : 'Error al crear la cuenta');
-        } finally {
-            setCargando(false);
-        }
-    };
-
-    /* Handler para ir al checkout de Stripe */
-    const irACheckout = () => {
-        if (stripeCheckoutUrl) {
-            setRedireccionando(true);
-            window.location.href = stripeCheckoutUrl;
-        }
-    };
+    const {
+        nombreCentro, setNombreCentro,
+        nombreUsuario, setNombreUsuario,
+        email, setEmail,
+        password, setPassword,
+        confirmarPassword, setConfirmarPassword,
+        aceptaTerminos, setAceptaTerminos,
+        cargando, errores, errorGeneral, registroExitoso,
+        stripeCheckoutUrl, diasTrial, redireccionando,
+        handleSubmit, irACheckout
+    } = useRegistro({restUrl, restNonce, loginUrl});
 
     /* Pantalla de éxito */
     if (registroExitoso) {
@@ -156,7 +38,7 @@ export function CapRegistroIsland({restUrl = '/wp-json/cap/v1', restNonce = '', 
                 <div className="capLoginContenedor">
                     <div className="capLoginTarjeta">
                         <div className="capLoginHeader">
-                            <div className="capLoginLogo" style={{background: 'linear-gradient(135deg, var(--cap-exito-500), var(--cap-exito-600))'}}>
+                            <div className="capLoginLogo capLoginLogo--exito">
                                 <IconoCheck size={40} />
                             </div>
                             <h1 className="capLoginTitulo">¡Registro Exitoso!</h1>

@@ -23,6 +23,7 @@ class Alumno
      * Delegación a CapAsignaturasConstants para compatibilidad.
      * La fuente de verdad es CapAsignaturasConstants.
      */
+
     public const ASIGNATURAS_CANONICAS = CapAsignaturasConstants::TODOS;
 
     /**
@@ -173,6 +174,7 @@ class Alumno
         );
 
         return $wpdb->get_results($query, 'ARRAY_A') ?: [];
+
     }
 
     /**
@@ -270,7 +272,7 @@ class Alumno
             return false;
         }
     }
-
+    
     /**
      * Actualiza un alumno existente
      */

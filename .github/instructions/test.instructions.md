@@ -233,6 +233,58 @@ TAREA COMPLETADA:
     - **Única excepción válida para preguntar:** Cuando hay ambiguedad genuina en los requisitos que no puede resolverse con sentido común (ej: "el usuario pidió un botón pero no especificó dónde"). Incluso en este caso, preferir tomar la decisión más razonable y documentarla, en lugar de detener todo.
     - Si la tarea tiene múltiples pasos, ejecutarlos **todos**. Si la tarea implica refactorización + tests + commit, hacer **todo**. No segmentar artificialmente el trabajo para aparentar progreso o "validar" con el usuario.
 
+- **NO REALIZAR OPERACIONES MULTI-TABLA SIN TRANSACCIÓN (CRÍTICO):** Toda secuencia de operaciones de escritura que afecte a más de una tabla (o múltiples filas dependientes) **DEBE** estar envuelta en una transacción (`START TRANSACTION` / `COMMIT` / `ROLLBACK`, o el equivalente del framework). Sin transacciones, un fallo intermedio deja datos en estado inconsistente e irrecuperable. Esto aplica a:
+    - Eliminaciones en cascada manual (borrar hijos → borrar padre).
+    - Creación de entidades compuestas (crear padre → crear hijos/configuración default).
+    - Regeneración de datos (borrar existentes → insertar nuevos).
+    - Seeders y migraciones con múltiples inserts dependientes.
+    - **Patrón recomendado:** Crear un helper reutilizable `conTransaccion(callable $fn)` que envuelva en try-catch, haga rollback si falla, y se use en todas las operaciones multi-tabla. No duplicar la lógica transaccional en cada método.
+    - **Si la BD no soporta transacciones** (ej: MyISAM en MySQL), documentarlo explícitamente y agregar checks de consistencia post-operación.
+
+- **NO CREAR CÓDIGO QUE DEPENDA DE ABSTRACCIONES INEXISTENTES (CRÍTICO):** Antes de crear clases que extiendan una clase base, implementen una interfaz, o importen un módulo — **VERIFICAR** que la dependencia existe y es funcional. Esto aplica especialmente a:
+    - **Generadores de código / scaffolders:** Si un CLI genera archivos que extienden `BaseRepository`, `BaseController`, etc., esa clase base **DEBE** existir antes de ejecutar el generador. Generar código que depende de algo inexistente produce código muerto desde su nacimiento.
+    - **Imports de archivos generados:** Si el código importa de `_generated/`, verificar que los archivos fueron generados antes de commitear.
+    - **Regla general:** Nunca commitear código que lanza `Fatal Error` / `Module not found` al instanciarse o importarse. Si la abstracción no existe, crearla primero (aunque sea un stub mínimo) o no generar el código dependiente.
+
+- **UNA SOLA FUENTE DE VERDAD PARA CADA CONCEPTO (PRINCIPIO DRY ESTRICTO):** Si un conjunto de valores (enum, constantes, tipos, configuración) se necesita en múltiples archivos o capas (backend, frontend, tests), **DEBE** definirse en **un único lugar canónico** y todos los demás puntos deben importar/referenciar desde ahí. Definir el mismo concepto N veces en N archivos garantiza divergencia silenciosa.
+    - **Patrón prohibido:** Definir `ASIGNATURAS = [...]` en un Model, un Service, un Seeder y un archivo TS por separado. Cuando uno cambia, los otros quedan desincronizados sin generar error.
+    - **Patrón prohibido:** Definir el tipo `EstadoSuscripcion` en `types/index.ts`, en `useConfiguracion.ts` inline, y en el schema de BD con valores diferentes. Tres verdades incompatibles = bugs que no lanzan error.
+    - **Patrón correcto:** Una fuente canónica (Schema, constantes centralizada, enum) → generación o importación en todos los consumidores.
+    - **Test mental:** Si para cambiar un valor de enum hay que editar más de 1 archivo, la arquitectura viola esta regla.
+
+- **ENDPOINTS NO DEBEN ACCEDER A BD DIRECTAMENTE (SEPARACIÓN DE CAPAS):** Los controllers/endpoints REST son la capa de transporte — su responsabilidad es: validar input, llamar a un servicio/modelo, formatear la respuesta. **PROHIBIDO** que un endpoint contenga queries `$wpdb` directas, lógica de negocio compleja, o manipulación directa de datos. Toda operación de datos debe canalizarse por la capa correspondiente (modelos, repositorios, servicios).
+    - Un endpoint con `$wpdb->insert()`, `$wpdb->query()`, o SQL inline es una violación de SRP y dificulta testing, reutilización y mantenimiento.
+    - **Excepción:** Queries de lectura trivial (un SELECT simple para verificar existencia) pueden tolerarse si no justifican crear un método de modelo. Pero toda escritura **DEBE** ir por la capa de datos.
+
+- **SANITIZACIÓN OBLIGATORIA EN LA FRONTERA DE ENTRADA (ENDPOINTS):** Todo parámetro recibido de un request HTTP **DEBE** sanitizarse y validarse en el endpoint **ANTES** de pasarlo a modelos/servicios. Las capas internas no deben asumir que los datos ya están limpios, pero la primera línea de defensa es el endpoint.
+    - Strings: `sanitize_text_field()` o equivalente.
+    - Enteros: `intval()` / `absint()`.
+    - Emails: `sanitize_email()` + `is_email()`.
+    - URLs: `esc_url_raw()`.
+    - Arrays/JSON: validar estructura y tipos de cada campo esperado.
+    - **PROHIBIDO** pasar `$request->get_json_params()` completo a un modelo/servicio sin filtrar campos esperados. Un payload arbitrario no debe llegar a la capa de datos.
+    - **Patrón recomendado:** Definir un array de campos esperados con sus tipos y sanitizadores, y filtrar el input contra esa definición antes de procesarlo.
+
+- **VALIDAR URLs DE REDIRECCIÓN CONTRA EL DOMINIO PROPIO (OPEN REDIRECT):** Toda URL que el usuario proporcione como destino de redirección (success_url, return_url, callback_url, etc.) **DEBE** validarse para asegurar que pertenece al dominio del sitio. Sin esta validación, un atacante puede redirigir usuarios a sitios maliciosos usando la confianza del dominio legítimo.
+    - En WordPress: usar `wp_validate_redirect($url, home_url())` o verificar que `parse_url($url, PHP_URL_HOST)` coincide con el dominio propio.
+    - **PROHIBIDO** pasar URLs de input directamente a `header('Location: ')`, `wp_redirect()`, o APIs de checkout de pago sin validar dominio.
+
+- **INTEGRACIONES DE PAGO: IDEMPOTENCY Y PROTECCIÓN CONTRA REPLAY (CRÍTICO):** Toda integración con pasarelas de pago (Stripe, PayPal, etc.) **DEBE** implementar:
+    - **Idempotency keys** en operaciones que crean cobros/sesiones de checkout, para evitar cobros duplicados por reintentos del browser o timeouts.
+    - **Protección contra webhook replay:** Verificar firma del webhook + timestamp. Un webhook reenviado no debe duplicar cambios de estado.
+    - **Atomicidad en procesamiento de webhooks:** Si un webhook crea/actualiza registros en BD, usar transacción + verificar si ya fue procesado (idempotencia del lado receptor).
+    - **Timeouts explícitos** en llamadas a API de pago. Un request sin timeout puede colgar el proceso PHP indefinidamente.
+    - **Esquemas de encriptación robustos:** Si se encriptan API keys, no usar separadores que puedan aparecer en los datos encriptados (ej: `::` como separador cuando el IV puede contener esos bytes). Usar formatos binarios o base64 sin ambiguedad.
+
+- **NO MUTAR ESTADO REACT DIRECTAMENTE (INMUTABILIDAD OBLIGATORIA):** En React, **PROHIBIDO** modificar objetos o arrays del estado in-place. Métodos como `splice()`, asignación directa a propiedades (`obj.prop = valor`), o `push()` sobre arrays del estado **no son detectados por React** y causan bugs de renderizado.
+    - **Patrón prohibido:** `const copia = {...estado}; copia.nested[0].campo = valor;` — la copia superficial no protege objetos anidados.
+    - **Patrón correcto:** Usar `map()` + spread para arrays, spread profundo o librerías de inmutabilidad para objetos anidados.
+    - Esto aplica a: handlers de formularios, updates optimistas, transformaciones de datos antes de `setState`.
+
+- **NO EXPONER DETALLES INTERNOS DE ERROR AL CLIENTE:** Los mensajes de error devueltos al frontend en respuestas HTTP **NUNCA** deben incluir: paths del servidor, stack traces, nombres de tablas/columnas de BD, detalles de configuración interna, o mensajes técnicos de excepciones (`$e->getMessage()` raw).
+    - **Patrón correcto:** Logear el error completo en servidor, retornar mensaje genérico al cliente (`"Error al procesar la solicitud"`), incluir un código de error interno para correlación (`"error_code": "ERR_PROC_001"`).
+    - En frontend: `console.error` con stack traces de APIs de pago puede exponer datos sensibles en herramientas de monitoring del browser. Limitar lo que se logea en consola en producción.
+
 ---
 
 ### Ejemplo de Estilo de Comentario Aceptado

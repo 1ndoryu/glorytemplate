@@ -1,4 +1,5 @@
 <?php
+/* Archivo de configuracion de paginas - editado: 2026-02-20 */
 
 /**
  * App Pages Configuration
@@ -24,9 +25,7 @@ use Glory\Manager\PageManager;
 PageManager::setDefaultContentMode('code');
 
 /*
- * =====================================================
  * PAGINAS DEL MODULO CAP
- * =====================================================
  * 
  * Solo necesitas:
  * 1. Crear el Island en App/React/islands/cap/

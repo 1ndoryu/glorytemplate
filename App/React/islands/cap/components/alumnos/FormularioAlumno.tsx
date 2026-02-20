@@ -6,7 +6,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Modal, Input, Boton, Alerta} from '../ui';
+import {Modal, Input, Boton} from '../ui';
 import type {Alumno} from '../../hooks/useAlumnos';
 
 interface FormularioAlumnoProps {

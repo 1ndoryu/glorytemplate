@@ -560,6 +560,13 @@
     font-style: italic;
 }
 
+/* Separador visual dentro de contenido Tooltip */
+.capTooltip__separador {
+    border-top: 1px solid currentColor;
+    padding-top: 2px;
+    margin-top: 2px;
+}
+
 /* Celda de progreso clickeable */
 .capProgresoCelda--clickeable {
     cursor: pointer;

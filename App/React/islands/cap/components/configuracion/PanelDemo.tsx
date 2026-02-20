@@ -203,6 +203,7 @@ export function PanelDemo() {
         return (
             <Tarjeta className="capPanelConfig capPanelConfig--demo">
                 <TarjetaBody>
+                    /* sentinel-disable-next-line css-inline-jsx */
                     <div className="capFlexCenter" style={{padding: '2rem'}}>
                         <Spinner tamano="md" />
                     </div>

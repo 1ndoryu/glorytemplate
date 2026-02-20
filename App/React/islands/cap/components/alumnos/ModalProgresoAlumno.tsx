@@ -1,33 +1,15 @@
-/**
+﻿/**
  * ModalProgresoAlumno
  *
  * Modal que muestra el desglose de progreso por asignatura de un alumno.
- * Consume el endpoint real /alumnos/{id}/progreso para obtener datos actualizados.
- * El calendario es la fuente de verdad: clases con fecha <= hoy.
+ * Lógica de fetch y estado delegados a useProgresoAlumno (SRP).
  */
 
-import {useState, useEffect} from 'react';
 import {Modal, Badge, Spinner, Tooltip, Alerta} from '../ui';
-import {ASIGNATURAS_CAP, CAP_REGLAS, getAsignatura, API_BASE} from '../../constants';
+import {ASIGNATURAS_CAP, CAP_REGLAS} from '../../constants';
+import {useProgresoAlumno} from '../../hooks/useProgresoAlumno';
 import type {Alumno} from '../../hooks/useAlumnos';
 import {formatearHoras, normalizarNumero} from '../../utils/formateoHoras';
-
-interface ProgresoAsignatura {
-    asignaturaId: number;
-    horasCompletadas: number;
-}
-
-interface ProgresoApiResponse {
-    alumnoId: number;
-    horasCompletadas: number;
-    horasAsignadas?: number;
-    horasTotales: number;
-    porcentajeCompletadas?: number;
-    porcentajeAsignadas?: number;
-    asignaturas: Array<{asignatura: string; horas: string}>;
-    asignaturasCompletadas?: Array<{asignatura: string; horas: string}>;
-    asignaturasAsignadas?: Array<{asignatura: string; horas: string}>;
-}
 
 interface ModalProgresoAlumnoProps {
     visible: boolean;
@@ -35,113 +17,9 @@ interface ModalProgresoAlumnoProps {
     onCerrar: () => void;
 }
 
-/*
- * Obtiene el ID numérico de una asignatura a partir de su código backend.
- * Delega a getAsignatura() centralizada en cap-constants.ts para evitar
- * duplicar el mapeo de alias (CODIGOS_ALIAS).
- */
-const obtenerAsignaturaId = (valorAsignatura: string): number | null => {
-    const asignatura = getAsignatura(valorAsignatura);
-    return asignatura ? asignatura.id : null;
-};
-
 export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAlumnoProps) {
-    const [cargando, setCargando] = useState(false);
-    const [errorCarga, setErrorCarga] = useState<string | null>(null);
-    const [progresoAsignado, setProgresoAsignado] = useState<ProgresoAsignatura[]>([]);
-    const [progresoCompletado, setProgresoCompletado] = useState<ProgresoAsignatura[]>([]);
-    const [horasAsignadas, setHorasAsignadas] = useState(0);
-    const [horasCompletadas, setHorasCompletadas] = useState(0);
-
-    /* Fetch progreso real cuando se abre el modal */
-    useEffect(() => {
-        if (!visible || !alumno) return;
-
-        const abortController = new AbortController();
-
-        const cargarProgreso = async () => {
-            setCargando(true);
-            setErrorCarga(null);
-            try {
-                const nonce = (window as any).wpApiSettings?.nonce || '';
-                const response = await fetch(`${API_BASE}/alumnos/${alumno.id}/progreso`, {
-                    headers: {'X-WP-Nonce': nonce},
-                    credentials: 'same-origin',
-                    signal: abortController.signal
-                });
-
-                if (!response.ok) throw new Error('Error al cargar progreso');
-
-                const data: ProgresoApiResponse = await response.json();
-
-                /* Mapear respuesta del backend a formato del frontend */
-                const baseAsignaturas: ProgresoAsignatura[] = ASIGNATURAS_CAP.map(asig => ({
-                    asignaturaId: asig.id,
-                    horasCompletadas: 0
-                }));
-
-                const mapearAsignaturas = (items: Array<{asignatura: string; horas: string}>) => {
-                    const mapeado = baseAsignaturas.map(item => ({...item}));
-                    (items || []).forEach(item => {
-                        const id = obtenerAsignaturaId(String(item.asignatura));
-                        if (id !== null) {
-                            const idx = mapeado.findIndex(p => p.asignaturaId === id);
-                            if (idx !== -1) {
-                                mapeado[idx].horasCompletadas += parseFloat(item.horas) || 0;
-                            }
-                        }
-                    });
-                    return mapeado;
-                };
-
-                const asignadas = data.asignaturasAsignadas || data.asignaturas || [];
-                const completadas = data.asignaturasCompletadas || data.asignaturas || [];
-
-                const progresoAsignadoMapeado = mapearAsignaturas(asignadas);
-                const progresoCompletadoMapeado = mapearAsignaturas(completadas);
-
-                const totalAsignadoMapeado = progresoAsignadoMapeado.reduce((acc, item) => acc + (parseFloat(String(item.horasCompletadas)) || 0), 0);
-                const totalCompletadoMapeado = progresoCompletadoMapeado.reduce((acc, item) => acc + (parseFloat(String(item.horasCompletadas)) || 0), 0);
-
-                setProgresoAsignado(progresoAsignadoMapeado);
-                setProgresoCompletado(progresoCompletadoMapeado);
-
-                /*
-                 * Usar SIEMPRE la misma fuente de verdad que el desglose visual.
-                 * Así evitamos mostrar un total global que no coincide con la suma
-                 * de las asignaturas renderizadas en el modal.
-                 */
-                setHorasAsignadas(totalAsignadoMapeado);
-                setHorasCompletadas(totalCompletadoMapeado);
-            } catch (errorCarga) {
-                if (abortController.signal.aborted) {
-                    return;
-                }
-
-                console.error('[ModalProgresoAlumno] Error cargando progreso', errorCarga);
-                setErrorCarga('No se pudo cargar el progreso actualizado. Se muestran datos aproximados.');
-                /* Fallback con datos básicos para que el modal no quede vacío */
-                const fallback = ASIGNATURAS_CAP.map(asig => ({
-                    asignaturaId: asig.id,
-                    horasCompletadas: 0
-                }));
-                setProgresoAsignado(fallback);
-                setProgresoCompletado(fallback);
-                setHorasAsignadas(alumno.horas_completadas || 0);
-                setHorasCompletadas(alumno.horas_completadas || 0);
-            } finally {
-                if (!abortController.signal.aborted) {
-                    setCargando(false);
-                }
-            }
-        };
-
-        cargarProgreso();
-
-        return () => {
-            abortController.abort();
-        };
-    }, [visible, alumno]);
+    const {cargando, errorCarga, progresoAsignado, progresoCompletado, horasAsignadas, horasCompletadas} =
+        useProgresoAlumno(visible, alumno);
 
     if (!alumno) return null;
 
@@ -212,7 +90,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                         <div>
                                             Faltantes: <strong>{formatearHoras(horasFaltantesGlobal)}h</strong>
                                         </div>
-                                        <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
+                                        <div className="capTooltip__separador">
                                             Total: <strong>{formatearHoras(horasPlan)}h</strong> / {CAP_REGLAS.HORAS_TOTALES}h
                                         </div>
                                     </div>
@@ -220,7 +98,9 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                 position="top"
                                 className="capWidth100">
                                 <div className="capProgreso capProgreso--multi capProgreso--lg">
+                                    {/* sentinel-disable-next-line css-inline-jsx */}
                                     <div className="capProgreso__barra--completado" style={{width: `${(horasTotales / CAP_REGLAS.HORAS_TOTALES) * 100}%`}} />
+                                    {/* sentinel-disable-next-line css-inline-jsx */}
                                     <div className="capProgreso__barra--planificado" style={{width: `${(Math.max(0, horasPlan - horasTotales) / CAP_REGLAS.HORAS_TOTALES) * 100}%`}} />
                                 </div>
                             </Tooltip>
@@ -249,6 +129,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                         <div key={asignatura.id} className="capProgresoModal__asignatura">
                                             <div className="capProgresoModal__asignaturaHeader">
                                                 <div className="capProgresoModal__asignaturaInfo">
+                                                    {/* sentinel-disable-next-line css-inline-jsx */}
                                                     <span className="capProgresoModal__asignaturaCodigo" style={{backgroundColor: asignatura.color}}>
                                                         {asignatura.codigo}
                                                     </span>
@@ -272,7 +153,7 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                     content={
                                                         <div className="capFlexCol capGap--xs">
                                                             <div>{asignatura.nombre}</div>
-                                                            <div style={{borderTop: '1px solid currentColor', paddingTop: 2, marginTop: 2}}>
+                                                            <div className="capTooltip__separador">
                                                                 Completadas: <strong>{formatearHoras(horasComp)}h</strong>
                                                             </div>
                                                             <div>
@@ -286,7 +167,9 @@ export function ModalProgresoAlumno({visible, alumno, onCerrar}: ModalProgresoAl
                                                     position="top"
                                                     className="capWidth100">
                                                     <div className="capProgreso capProgreso--multi">
+                                                        {/* sentinel-disable-next-line css-inline-jsx */}
                                                         <div className="capProgreso__barra--completado" style={{width: `${pctComp}%`, backgroundColor: completada ? 'var(--cap-exito-500)' : asignatura.color}} />
+                                                        {/* sentinel-disable-next-line css-inline-jsx */}
                                                         <div className="capProgreso__barra--planificado" style={{width: `${pctPlan}%`, opacity: 0.3, backgroundColor: asignatura.color}} />
                                                     </div>
                                                 </Tooltip>

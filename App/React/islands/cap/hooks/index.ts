@@ -18,3 +18,9 @@ export {useCalendario} from './useCalendario';
 /* useHistorial eliminado (8.14): era codigo muerto, useCalendario tiene su propio historial interno */
 
 export {useReportes} from './useReportes';
+
+export {useProgresoAlumno} from './useProgresoAlumno';
+export type {ProgresoAsignatura} from './useProgresoAlumno';
+
+export {useRegistro} from './useRegistro';
+export type {ErroresFormulario} from './useRegistro';

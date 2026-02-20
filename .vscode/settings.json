@@ -65,10 +65,17 @@
         "**/vendor/**",
         "**/dist/**",
         "**/build/**",
-        "**/*.min.css"
+        "**/*.min.css",
+        "**/*code-sentinel/**"
     ],
     "cssVarsValidator.scanAllFiles": true,
     "cssVarsValidator.inlineDetection.enabled": false,
     "cssVarsValidator.duplicateClassDetection.enabled": false,
-    "cssVarsValidator.duplicateClassDetection.crossFile": false
+    "cssVarsValidator.duplicateClassDetection.crossFile": false,
+    "codeSentinel.aiAnalysis.enabled": true,
+    "codeSentinel.ai.modelFamily": "gpt-4o-mini",
+    "codeSentinel.rulesFile": ".agent/code-sentinel/rules.md",
+    "codeSentinel.rulesFiles": [],
+    "codeSentinel.timing.aiDelayOnOpenMs": 5000,
+    "codeSentinel.timing.aiDelayOnEditMs": 5000
 }

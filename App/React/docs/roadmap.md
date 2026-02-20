@@ -1,10 +1,18 @@
 # ROADMAP: Plataforma Gestor CAP (WordPress + React Islands)
 
-> **Última actualización:** 2026-02-21  
+> **Última actualización:** 2026-02-22  
 > **Estado:** ✅ PLAN_ANTI_HARDCODE Fases 1-8 completadas (22/22 front + 20/22 total, 2 backend pendientes de esfuerzo alto)  
 > **Arquitectura:** WordPress Backend + Glory React Islands
 
 **Notas de mantenimiento**
+
+### Completado — Refactor ModalProgresoAlumno + Code Sentinel (AG-FIX, 2026-02-22)
+
+- **SRP aplicado:** 6 `useState` + `useEffect` + helpers extraídos a `hooks/useProgresoAlumno.ts`. `ModalProgresoAlumno.tsx` ahora solo contiene JSX + llamada al hook. 312 líneas → ~190 líneas.
+- **CSS inline estático eliminado:** `style={{borderTop...}}` en separadores Tooltip reemplazado por `.capTooltip__separador` en `alumnos.css`.
+- **CSS inline dinámico documentado:** 5 `style={{width: N%, backgroundColor: color}}` legitimamente inevitables, marcados con `sentinel-disable-next-line css-inline-jsx`.
+- **Code Sentinel extension:** `aiAnalyzer.ts` ahora suprime `catch-vacio`, `fallo-sin-feedback` y `try-catch-faltante-ts` de la IA en TODOS los tipos de archivo (antes sólo PHP). Reglas cubiertas por analizador estático sin falsos positivos.
+- **Lección:** `[aiAnalyzer]`: Crear un Set `REGLAS_CUBIERTAS_POR_ESTATICO` centralizado — más mantenible que `esPHP && regla !== X`.
 
 ### Completado — PLAN_ANTI_HARDCODE (AG-SCH, 2026-02-20)
 
