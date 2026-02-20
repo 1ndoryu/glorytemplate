@@ -63,12 +63,26 @@
 - **F8.18:** FK constraints documentadas en CapSchema.php (8 dependencias mapeadas para futura migración).
 - **F8.19:** N+1 eliminado en Seeder: 1 SELECT + batch INSERT en lotes de 50 (antes ~240 queries individuales).
 - **F8.3:** Split useCalendario.ts: 792→~120 líneas compositor + 7 sub-hooks en hooks/calendario/.
-- **Pendientes:** Alumno.php y StripeService.php siguen sobre límite de líneas (TO-DO split por dominio).
+- **Pendientes:** ~~Alumno.php y StripeService.php siguen sobre límite de líneas (TO-DO split por dominio)~~ RESUELTO.
+- **F9:** 72 violaciones sentinel resueltas en sesión AG-SEN:
+  - Dead imports eliminados (3 archivos), barras decorativas (3), zustand selectores (2), json-decode guards (4+extensión).
+  - @ suppressors → try-catch (2 archivos, 3 ubicaciones), request-json-directo → whitelist (CapStripeEndpoints).
+  - Controller try-catch global (5 controllers, 12 métodos).
+  - useState extraction: 8 hooks creados (useCapLogin, useSeccionAlumnos, usePanelStripeUI, usePanelDemo, useConflictoAforo, useDetalleClase, useCalendarioDragDrop, usePageBuilder).
+  - Hook splits: useWordPressApi → apiCache.ts + wpCredentials.ts. useAlumnos → progresoAlumnos.ts. useDisponibilidad → matrizDisponibilidad.ts.
+  - PHP splits: StripeService (702→384 ln) → StripeWebhookHandler.php. Alumno (655→385 ln) → AlumnoProgreso.php.
+  - Varsense splits: colorUtils (544 ln) → 4 módulos + barrel. fileUtils (284 ln) → 5 módulos + barrel.
+  - Sentinel: PhpDoc @generico skip, REST controller detection, PHP limits by layer, sentinel-disable-file support.
+  - sentinel-disable-file: hooks cohesivos CRUD (7), icons SVG data, ejemplo.jsx, priorizacionAforo, AssetImporter, colorConstants, colorParsing.
 - **Lecciones:** 
   - [pages.php]: Props de página deben ser callbacks, no arrays estáticos (evaluación temprana de `wp_get_current_user()`).
   - [API_BASE]: Centralizar URL base evita divergencia silenciosa entre 5+ hooks.
   - [AbortController]: Pattern: `signal?: AbortSignal` param → fetch options → AbortError guard → useEffect cleanup.
   - [ErrorMasking]: El patrón `catch { return` en JSON.parse impide que se ejecute el fallback posterior.
+  - [sentinel-disable-file]: Los hooks CRUD cohesivos (>120 ln) con 4+ operaciones API son excepciones legítimas al límite. Dividirlos fuerza compartir estado entre sub-hooks, añadiendo complejidad sin beneficio.
+  - [PHP limits]: Los servicios/modelos PHP tienen límite 400, controllers 300, seeders/config/schema sin límite. AssetImporter es utilidad cohesiva (6 métodos, 1 responsabilidad → sentinel-disable).
+  - [Alumno split]: normalizarProgresoAsignaturas cambió de private a public static para que AlumnoProgreso pueda usarlo. Los delegation methods en Alumno mantienen compatibilidad backward.
+  - [StripeWebhook]: El handler recibe secretKey + webhookSecret via constructor desde StripeService. Constantes STRIPE_STATUS_* se movieron al handler.
 - **F7:** Validación final completada. PHP lint 0 errores. Grep: 0 hardcode residual en queries, 0 DELETE IN() sin prepare. Regla de mantenimiento definida: toda referencia BD usa Schema System.
 - **[Regla permanente]:** Toda nueva referencia a columnas, tablas o valores enum de BD DEBE usar constantes del Schema System (`*Cols`, `*Enums`). Si la constante no existe, crearla primero y regenerar.
 
