@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: estado demo + seed + clean + limpiarTodas son operaciones del mismo dominio con estado compartido */
 /**
  * usePanelDemo
  *

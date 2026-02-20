@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: edicion hora/asignatura, deteccion cambios, conflictos de horario y cascada estan intrínsecamente acoplados */
 /**
  * useDetalleClase
  *

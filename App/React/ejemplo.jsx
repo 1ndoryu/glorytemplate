@@ -1,4 +1,5 @@
 /* sentinel-disable-file limite-lineas -- Archivo de ejemplo/demo, no es codigo de produccion (ver AUDITORIA_COMPLETA.md C-B4) */
+/* sentinel-disable-file usestate-excesivo -- Codigo demo intencionalmente monolitico, no es produccion */
 /* TO-DO: Eliminar este archivo muerto cuando se confirme que ya no se necesita como referencia visual */
 import React, { useState } from 'react';
 import { 

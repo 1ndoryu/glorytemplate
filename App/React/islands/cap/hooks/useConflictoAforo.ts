@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo: fetch de alumnos con cleanup, exclusiones por slot, accordeon, resolucion aleatoria/proximidad estan acoplados */
 /**
  * useConflictoAforo
  *

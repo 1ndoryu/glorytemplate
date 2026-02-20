@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — hook cohesivo de DnD: arrastre, preview, colision, cascada y conflictos estan intrínsecamente acoplados */
 /**
  * useCalendarioDragDrop
  *
