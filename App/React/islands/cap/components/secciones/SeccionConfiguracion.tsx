@@ -6,6 +6,7 @@
  * Incluye configuración de Stripe (solo para administradores).
  */
 
+import {useEffect} from 'react';
 import {useConfiguracion} from '../../hooks/useConfiguracion';
 import {PanelCentro, PanelHorarios, PanelCapacidad, PanelSuscripcion, PanelDemo, PanelStripe, PanelTimezone} from '../configuracion';
 import {Alerta, Spinner} from '../ui';
@@ -19,10 +20,13 @@ interface SeccionConfiguracionProps {
 export function SeccionConfiguracion({userName, userEmail, isAdmin = false}: SeccionConfiguracionProps) {
     const {centro, config, suscripcion, cargando, guardandoCentro, guardandoHorarios, error, exito, guardarCentro, guardarHorarios, limpiarMensajes} = useConfiguracion();
 
-    /* Limpiar mensajes después de 4 segundos */
-    if (exito || error) {
-        setTimeout(limpiarMensajes, 4000);
-    }
+    /* Limpiar mensajes automaticamente despues de 4 segundos */
+    useEffect(() => {
+        if (exito || error) {
+            const timer = setTimeout(limpiarMensajes, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [exito, error, limpiarMensajes]);
 
     if (cargando) {
         return (

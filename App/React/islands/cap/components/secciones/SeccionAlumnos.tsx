@@ -8,7 +8,7 @@
  * Las horas de disponibilidad se adaptan al horario configurado de la autoescuela.
  */
 
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useEffect, useRef} from 'react';
 import {Boton, Alerta, Modal} from '../ui';
 import {TablaAlumnos, FormularioAlumno, MatrizDisponibilidad, ModalProgresoAlumno} from '../alumnos';
 import {IconoUsuarioMas} from '../icons';
@@ -40,10 +40,13 @@ export function SeccionAlumnos() {
     /* Estado para descarga individual de plan de formación */
     const [descargandoAlumno, setDescargandoAlumno] = useState<number | null>(null);
 
-    /* Limpiar mensajes después de 4 segundos */
-    if (exito || error) {
-        setTimeout(limpiarMensajes, 4000);
-    }
+    /* Limpiar mensajes automaticamente despues de 4 segundos */
+    useEffect(() => {
+        if (exito || error) {
+            const timer = setTimeout(limpiarMensajes, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [exito, error, limpiarMensajes]);
 
     const handleNuevoAlumno = () => {
         setAlumnoEditar(null);
@@ -55,12 +58,16 @@ export function SeccionAlumnos() {
         setModalVisible(true);
     };
 
+    /* Ref para timer de confirmacion de eliminacion */
+    const timerConfirmacionRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const handleEliminar = async (id: number) => {
         /* Primera llamada: mostrar confirmación */
         if (confirmandoEliminar !== id) {
             setConfirmandoEliminar(id);
             /* Auto-limpiar confirmación después de 3 segundos */
-            setTimeout(() => setConfirmandoEliminar(null), 3000);
+            if (timerConfirmacionRef.current) clearTimeout(timerConfirmacionRef.current);
+            timerConfirmacionRef.current = setTimeout(() => setConfirmandoEliminar(null), 3000);
             return;
         }
         /* Segunda llamada: ejecutar eliminación */

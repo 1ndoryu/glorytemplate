@@ -74,7 +74,7 @@ export function useAlumnos(): UseAlumnosReturn {
         }
     });
 
-    const cargarAlumnos = useCallback(async () => {
+    const cargarAlumnos = useCallback(async (signal?: AbortSignal) => {
         setEstado(prev => ({...prev, cargando: true, error: null}));
 
         try {
@@ -89,7 +89,8 @@ export function useAlumnos(): UseAlumnosReturn {
 
             const respuesta = await fetch(`${API_BASE}/alumnos?${params}`, {
                 credentials: 'same-origin',
-                headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''}
+                headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''},
+                signal
             });
 
             if (!respuesta.ok) {
@@ -106,6 +107,8 @@ export function useAlumnos(): UseAlumnosReturn {
                 cargando: false
             }));
         } catch (err) {
+            /* Ignorar cancelaciones por AbortController */
+            if (err instanceof DOMException && err.name === 'AbortError') return;
             const contextual = obtenerMensajeContextual('alumnos', 'cargar');
             let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
 
@@ -260,7 +263,9 @@ export function useAlumnos(): UseAlumnosReturn {
 
     /* Cargar alumnos cuando cambian los filtros */
     useEffect(() => {
-        cargarAlumnos();
+        const controller = new AbortController();
+        cargarAlumnos(controller.signal);
+        return () => controller.abort();
     }, [estado.filtros.busqueda, estado.filtros.ordenarPor, estado.filtros.orden, estado.filtros.pagina]);
 
     return {

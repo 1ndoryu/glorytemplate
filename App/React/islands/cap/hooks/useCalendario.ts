@@ -68,7 +68,7 @@ interface AccionesCalendario {
     /* Acción para eliminar clase */
     eliminarClase: (claseId: number, forzar: boolean) => Promise<void>;
     /* Acción para borrar semana completa */
-    borrarSemanacompleta: (incluirBloqueadas?: boolean) => Promise<void>;
+    borrarSemanaCompleta: (incluirBloqueadas?: boolean) => Promise<void>;
 }
 
 export function useCalendario(): EstadoCalendario & AccionesCalendario {
@@ -126,7 +126,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
     }, []);
 
     /* Cargar clases de la semana desde API */
-    const cargarClases = useCallback(async () => {
+    const cargarClases = useCallback(async (signal?: AbortSignal) => {
         setCargando(true);
         setError(null);
 
@@ -136,7 +136,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
             const response = await fetch(`/wp-json/cap/v1/clases?semana=${fechaInicio}`, {
                 headers: {
                     'X-WP-Nonce': getNonce()
-                }
+                },
+                signal
             });
 
             if (!response.ok) {
@@ -167,6 +168,8 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
 
             setClases(clasesFormateadas);
         } catch (err) {
+            /* Ignorar errores por cancelacion (AbortController) */
+            if (err instanceof DOMException && err.name === 'AbortError') return;
             console.error('Error cargando clases:', err);
             if (err instanceof Error && err.message.includes('fetch')) {
                 const errorRed = interpretarErrorRed(err);
@@ -181,7 +184,9 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
 
     /* Cargar clases al cambiar de semana */
     useEffect(() => {
-        cargarClases();
+        const controller = new AbortController();
+        cargarClases(controller.signal);
+        return () => controller.abort();
     }, [cargarClases]);
 
     /* Navegación entre semanas */
@@ -685,7 +690,7 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
      * Borrar todas las clases de la semana actual
      * Reversible con undo
      */
-    const borrarSemanacompleta = useCallback(
+    const borrarSemanaCompleta = useCallback(
         async (incluirBloqueadas: boolean = false) => {
             /* Guardar snapshot antes de borrar para poder deshacer */
             guardarSnapshot();
@@ -766,6 +771,6 @@ export function useCalendario(): EstadoCalendario & AccionesCalendario {
         moverMultiplesClases,
         eliminarClase,
         eliminando,
-        borrarSemanacompleta
+        borrarSemanaCompleta
     };
 }

@@ -68,13 +68,14 @@ export function useStripe(): UseStripeReturn {
     const [exito, setExito] = useState<string | null>(null);
 
     /* Cargar estado actual de Stripe */
-    const cargarEstado = useCallback(async () => {
+    const cargarEstado = useCallback(async (signal?: AbortSignal) => {
         try {
             setCargando(true);
             const response = await fetch('/wp-json/cap/v1/stripe/config', {
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                }
+                },
+                signal
             });
 
             if (!response.ok) {
@@ -95,6 +96,8 @@ export function useStripe(): UseStripeReturn {
                 modoTest: data.modoTest
             }));
         } catch (err) {
+            /* Ignorar cancelaciones por AbortController */
+            if (err instanceof DOMException && err.name === 'AbortError') return;
             setError('Error al cargar la configuración de Stripe');
             console.error('[useStripe] Error:', err);
         } finally {
@@ -103,7 +106,9 @@ export function useStripe(): UseStripeReturn {
     }, []);
 
     useEffect(() => {
-        cargarEstado();
+        const controller = new AbortController();
+        cargarEstado(controller.signal);
+        return () => controller.abort();
     }, [cargarEstado]);
 
     /* Guardar configuración */

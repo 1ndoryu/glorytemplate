@@ -18,7 +18,7 @@ const NOMBRES_DIAS: Record<number, string> = {
 };
 
 export function SeccionCalendario() {
-    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, avisosGeneracion, mostrarModalAvisos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, cerrarModalAvisos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanacompleta} = useCalendario();
+    const {clases, semanaActual, fechasSemana, cargando, error, generando, conflictos, mostrarModalConflictos, avisosGeneracion, mostrarModalAvisos, claseSeleccionada, mostrarModalEdicion, guardandoEdicion, puedeDeshacer, eliminando, irSemanaAnterior, irSemanaSiguiente, irASemanaActual, toggleBloqueoClase, generarCalendario, generarConExclusiones, cerrarModalConflictos, cerrarModalAvisos, limpiarError, seleccionarClase, cerrarModalEdicion, actualizarClase, deshacer, moverClase, moverMultiplesClases, eliminarClase, borrarSemanaCompleta} = useCalendario();
 
     /* Estado para modal de generación parcial */
     const [mostrarModalParcial, setMostrarModalParcial] = useState(false);
@@ -175,7 +175,7 @@ export function SeccionCalendario() {
 
             <div className="capMt--lg">
                 <div className="capMt--lg">
-                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={handleGenerar} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onBorrarSemana={borrarSemanacompleta} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
+                    <CalendarioSemanal clases={clases} semanaActual={semanaActual} fechasSemana={fechasSemana} cargando={cargando} generando={generando} onSemanaAnterior={irSemanaAnterior} onSemanaSiguiente={irSemanaSiguiente} onIrHoy={irASemanaActual} onToggleBloqueo={toggleBloqueoClase} onGenerar={handleGenerar} onClaseClick={handleClaseClick} puedeDeshacer={puedeDeshacer} onDeshacer={deshacer} onBorrarSemana={borrarSemanaCompleta} onMoverClase={handleMoverClase} onMoverMultiplesClases={moverMultiplesClases} />
                 </div>
             </div>
 

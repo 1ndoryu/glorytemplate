@@ -32,7 +32,14 @@ interface CapLayoutProps {
 }
 
 export function CapLayout({children, userName, siteUrl}: CapLayoutProps) {
-    const {seccionActiva, sidebarAbierto, sidebarColapsado, setSeccionActiva, abrirSidebar, cerrarSidebar, toggleSidebarColapsado} = useDashboardStore();
+    /* Selectores individuales para evitar re-renders innecesarios (8.13) */
+    const seccionActiva = useDashboardStore(s => s.seccionActiva);
+    const sidebarAbierto = useDashboardStore(s => s.sidebarAbierto);
+    const sidebarColapsado = useDashboardStore(s => s.sidebarColapsado);
+    const setSeccionActiva = useDashboardStore(s => s.setSeccionActiva);
+    const abrirSidebar = useDashboardStore(s => s.abrirSidebar);
+    const cerrarSidebar = useDashboardStore(s => s.cerrarSidebar);
+    const toggleSidebarColapsado = useDashboardStore(s => s.toggleSidebarColapsado);
 
     const handleCerrarSesion = () => {
         const logoutUrl = `${siteUrl}/wp-login.php?action=logout`;

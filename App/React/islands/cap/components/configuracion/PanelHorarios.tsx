@@ -119,29 +119,36 @@ export function PanelHorarios({config, guardando, onGuardar}: PanelHorariosProps
     }, [config]);
 
     const handleRangoChange = (diaId: string, index: number, campo: keyof RangoHorario, valor: string) => {
-        const nuevosHorarios = {...horarios};
-        nuevosHorarios[diaId][index][campo] = valor;
-        setHorarios(nuevosHorarios);
+        /* Inmutable: copia profunda del dia afectado para que React detecte el cambio */
+        setHorarios(prev => ({
+            ...prev,
+            [diaId]: prev[diaId].map((rango, i) =>
+                i === index ? {...rango, [campo]: valor} : rango
+            )
+        }));
         setModificado(true);
     };
 
     const agregarRango = (diaId: string) => {
-        const nuevosHorarios = {...horarios};
-        if (!nuevosHorarios[diaId]) nuevosHorarios[diaId] = [];
-
-        // Sugerir horario basado en el anterior o default
-        const ultimo = nuevosHorarios[diaId][nuevosHorarios[diaId].length - 1];
-        const inicioSugerido = ultimo ? ultimo.fin : '09:00';
-
-        nuevosHorarios[diaId].push({inicio: inicioSugerido, fin: '14:00'});
-        setHorarios(nuevosHorarios);
+        setHorarios(prev => {
+            const rangosActuales = prev[diaId] || [];
+            /* Sugerir horario basado en el anterior o default */
+            const ultimo = rangosActuales[rangosActuales.length - 1];
+            const inicioSugerido = ultimo ? ultimo.fin : '09:00';
+            return {
+                ...prev,
+                [diaId]: [...rangosActuales, {inicio: inicioSugerido, fin: '14:00'}]
+            };
+        });
         setModificado(true);
     };
 
     const eliminarRango = (diaId: string, index: number) => {
-        const nuevosHorarios = {...horarios};
-        nuevosHorarios[diaId].splice(index, 1);
-        setHorarios(nuevosHorarios);
+        /* Inmutable: filter en vez de splice para evitar mutacion directa */
+        setHorarios(prev => ({
+            ...prev,
+            [diaId]: prev[diaId].filter((_, i) => i !== index)
+        }));
         setModificado(true);
     };
 

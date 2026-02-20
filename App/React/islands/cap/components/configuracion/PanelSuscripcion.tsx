@@ -7,11 +7,11 @@
 
 import {Boton, Tarjeta, TarjetaHeader, TarjetaBody, Badge} from '../ui';
 import {IconoTarjeta, IconoEnlaceExterno} from '../icons';
-import type {EstadoSuscripcion} from '../../hooks/useConfiguracion';
+import type {InfoSuscripcion} from '../../hooks/useConfiguracion';
 import {CapSuscripcionesEnums} from '../../../../types/_generated/schema';
 
 interface PanelSuscripcionProps {
-    suscripcion: EstadoSuscripcion | null;
+    suscripcion: InfoSuscripcion | null;
     userName: string;
     userEmail: string;
 }

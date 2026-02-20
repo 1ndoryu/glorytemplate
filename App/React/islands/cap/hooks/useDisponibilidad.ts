@@ -103,14 +103,15 @@ export function useDisponibilidad(opciones: OpcionesDisponibilidad | number = {}
     }, [horasKey, ultimasHoras, horasDisponibles]);
 
     const cargar = useCallback(
-        async (id: number) => {
+        async (id: number, signal?: AbortSignal) => {
             setAlumnoId(id);
             setEstado(prev => ({...prev, cargando: true, error: null, hayCambios: false}));
 
             try {
                 const respuesta = await fetch(`${API_BASE}/disponibilidad/${id}`, {
                     credentials: 'same-origin',
-                    headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''}
+                    headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''},
+                    signal
                 });
 
                 if (!respuesta.ok) {
@@ -146,6 +147,8 @@ export function useDisponibilidad(opciones: OpcionesDisponibilidad | number = {}
                     cargando: false
                 }));
             } catch (err) {
+                /* Ignorar cancelaciones por AbortController */
+                if (err instanceof DOMException && err.name === 'AbortError') return;
                 const contextual = obtenerMensajeContextual('disponibilidad', 'cargar');
                 let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
 
@@ -271,7 +274,9 @@ export function useDisponibilidad(opciones: OpcionesDisponibilidad | number = {}
     /* Cargar al inicializar si hay alumnoId */
     useEffect(() => {
         if (alumnoIdInicial) {
-            cargar(alumnoIdInicial);
+            const controller = new AbortController();
+            cargar(alumnoIdInicial, controller.signal);
+            return () => controller.abort();
         }
     }, [alumnoIdInicial, cargar]);
 

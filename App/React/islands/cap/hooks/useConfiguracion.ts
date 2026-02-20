@@ -36,7 +36,7 @@ export interface ConfiguracionHorarios {
     duracion_descanso: number;
 }
 
-export interface EstadoSuscripcion {
+export interface InfoSuscripcion {
     /* Derivado del schema generado — 'pendiente' eliminado (no existe en BD), 'pago_fallido' incluido */
     estado: ICapSuscripciones['estado'];
     fechaInicio: string;
@@ -51,7 +51,7 @@ export interface EstadoSuscripcion {
 interface EstadoConfiguracion {
     centro: DatosCentro | null;
     config: ConfiguracionHorarios | null;
-    suscripcion: EstadoSuscripcion | null;
+    suscripcion: InfoSuscripcion | null;
     cargando: boolean;
     guardandoCentro: boolean;
     guardandoHorarios: boolean;
@@ -80,13 +80,14 @@ export function useConfiguracion(): UseConfiguracionReturn {
         exito: null
     });
 
-    const cargarConfiguracion = useCallback(async () => {
+    const cargarConfiguracion = useCallback(async (signal?: AbortSignal) => {
         setEstado(prev => ({...prev, cargando: true, error: null}));
 
         try {
             const respuesta = await fetch(`${API_BASE}/config`, {
                 credentials: 'same-origin',
-                headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''}
+                headers: {'X-WP-Nonce': (window as any).wpApiSettings?.nonce || ''},
+                signal
             });
 
             if (!respuesta.ok) {
@@ -97,7 +98,7 @@ export function useConfiguracion(): UseConfiguracionReturn {
             const datos = await respuesta.json();
 
             /* Calcular días restantes de suscripción */
-            let suscripcion: EstadoSuscripcion | null = null;
+            let suscripcion: InfoSuscripcion | null = null;
             if (datos.suscripcion) {
                 const fechaFin = new Date(datos.suscripcion.fecha_fin);
                 const hoy = new Date();
@@ -122,6 +123,8 @@ export function useConfiguracion(): UseConfiguracionReturn {
                 cargando: false
             }));
         } catch (err) {
+            /* Ignorar cancelaciones por AbortController */
+            if (err instanceof DOMException && err.name === 'AbortError') return;
             const contextual = obtenerMensajeContextual('configuracion', 'cargar');
             let mensajeError = err instanceof Error ? err.message : `${contextual.fallback} ${contextual.sugerencia}`;
 
@@ -220,7 +223,9 @@ export function useConfiguracion(): UseConfiguracionReturn {
     }, []);
 
     useEffect(() => {
-        cargarConfiguracion();
+        const controller = new AbortController();
+        cargarConfiguracion(controller.signal);
+        return () => controller.abort();
     }, [cargarConfiguracion]);
 
     return {

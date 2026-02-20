@@ -38,15 +38,18 @@ export function PanelDemo() {
 
     /* Obtener estado inicial */
     useEffect(() => {
-        obtenerEstado();
+        const controller = new AbortController();
+        obtenerEstado(controller.signal);
+        return () => controller.abort();
     }, []);
 
-    const obtenerEstado = async () => {
+    const obtenerEstado = async (signal?: AbortSignal) => {
         try {
             const response = await fetch('/wp-json/cap/v1/demo/status', {
                 headers: {
                     'X-WP-Nonce': window.wpApiSettings?.nonce || ''
-                }
+                },
+                signal
             });
 
             if (response.ok) {
@@ -54,6 +57,8 @@ export function PanelDemo() {
                 setEstado(data);
             }
         } catch (error) {
+            /* Ignorar cancelaciones por AbortController */
+            if (error instanceof DOMException && error.name === 'AbortError') return;
             console.error('Error al obtener estado demo:', error);
         } finally {
             setCargando(false);
@@ -79,7 +84,7 @@ export function PanelDemo() {
                 return;
             }
 
-            /* Intentar parsear JSON, pero si falla y response.ok, asumir éxito */
+            /* Intentar parsear JSON */
             try {
                 const data = await response.json();
                 if (data.exito) {
@@ -91,8 +96,8 @@ export function PanelDemo() {
                     setMensaje({tipo: 'error', texto: data.error || 'Error al poblar datos'});
                 }
             } catch {
-                /* PHP probablemente generó un warning pero la operación funcionó */
-                setMensaje({tipo: 'exito', texto: 'Datos creados (refrescando...)'});
+                /* Respuesta HTTP ok pero JSON invalido: estado incierto, no reportar exito falso */
+                setMensaje({tipo: 'error', texto: 'La respuesta del servidor no es válida. Verifica el estado de los datos.'});
             }
 
             /* Siempre refrescar el estado al final */
