@@ -739,18 +739,28 @@ Los 3 modelos (`Alumno.php`, `Clase.php`, `Configuracion.php`) no tienen **ni un
 
 ---
 
-### 8.3 ARCHIVOS QUE EXCEDEN LÍMITES DE LÍNEAS (MEDIO)
+### 8.3 ARCHIVOS QUE EXCEDEN LÍMITES DE LÍNEAS (MEDIO) ✅ (parcial)
 
-| Archivo | Líneas | Límite | Exceso |
+| Archivo | Líneas | Límite | Estado |
 |---------|--------|--------|--------|
-| `Alumno.php` | 578 | 300 | +278 (93%) |
-| `StripeService.php` | 509 | 300 | +209 (70%) |
-| `Configuracion.php` | 324 | 300 | +24 (8%) |
-| `Clase.php` | 349 | 300 | +49 (16%) |
-| `CalendarEngine.php` | 349 | 300 | +49 (16%) |
-| `useCalendario.ts` | 772 | 120 (hooks) | +652 (543%) |
+| `useCalendario.ts` | 792→~120 | 120 (hooks) | ✅ Split en 7 sub-hooks + compositor |
+| `Alumno.php` | 578 | 300 | TO-DO: split por dominio |
+| `StripeService.php` | ~600 | 300 | TO-DO: split por dominio |
+| `Configuracion.php` | 324 | 300 | Bajo exceso, aceptable |
+| `Clase.php` | 349 | 300 | Bajo exceso, aceptable |
+| `CalendarEngine.php` | 349 | 300 | Bajo exceso, aceptable |
 
-**Acción:** Split obligatorio según protocolo. `useCalendario.ts` es el caso más extremo (6x el límite). Dividir en: `useCalendarioNavegacion.ts`, `useCalendarioClases.ts`, `useCalendarioGeneracion.ts`, `useCalendarioEdicion.ts`, `useCalendarioHistorial.ts`.
+**Resultado del split de useCalendario (792 líneas → compositor ~120 + 7 sub-hooks):**
+- `hooks/calendario/tipos.ts` — interfaces compartidas (EstadoBase, CambiosClase)
+- `hooks/calendario/useCalendarioNavegacion.ts` — navegación semana (~45 ln)
+- `hooks/calendario/useCalendarioClases.ts` — carga + toggle bloqueo (~115 ln)
+- `hooks/calendario/useCalendarioGeneracion.ts` — generación con conflictos (~165 ln)
+- `hooks/calendario/useCalendarioEdicion.ts` — edición inline + undo (~120 ln)
+- `hooks/calendario/useCalendarioMovimiento.ts` — drag & drop batch (~150 ln)
+- `hooks/calendario/useCalendarioEliminacion.ts` — borrar clase/semana (~100 ln)
+- `hooks/calendario/index.ts` — barrel export
+- `hooks/useCalendario.ts` — compositor que orquesta sub-hooks (~120 ln)
+- [Aprendizaje]: Generacion y Movimiento ligeramente sobre 120 ln por ser dominios indivisibles.
 
 ---
 
@@ -988,7 +998,7 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 | **P2 — Alto** | 8.10 | ✅ AbortController en 8 useEffects + setTimeout→useEffect (commit b24a355) | Medio |
 | **P2 — Alto** | 8.11 | ✅ Error masking eliminado: response.ok checks, fallback con alerta, JSON.parse protegido (commit 3889d29) | Medio |
 | **P2 — Alto** | 8.12 | ✅ Verificado: rollback ya correcto en toggleBloqueo, actualizarClase, moverClase, moverMultiples (ya existente) | Medio |
-| **P3 — Medio** | 8.3 | **PENDIENTE** Split archivos (useCalendario 792 ln, Alumno.php 578 ln) | Medio |
+| **P3 — Medio** | 8.3 | ✅ Split useCalendario.ts: 792→~120 ln + 7 sub-hooks en hooks/calendario/ | Medio |
 | **P3 — Medio** | 8.8 | ✅ Trait `ConCallbackSeguro` en 11 clases (commit f70ec00) | Bajo |
 | **P3 — Medio** | 8.13 | ✅ Selectores Zustand en CapLayout (commit b24a355) | Bajo |
 | **P3 — Medio** | 8.14 | ✅ API_BASE centralizado, useHistorial eliminado (commits eae10b0 + 3889d29) | Bajo |
@@ -1013,7 +1023,7 @@ Ninguna tabla define `FOREIGN KEY`. No hay integridad referencial a nivel BD:
 | Definiciones incompatibles EstadoSuscripcion | 3 | ✅ 1 fuente única (schema.ts → InfoSuscripcion) |
 | useEffects sin cleanup | 8 | ✅ 0 (AbortController en 8 hooks+componentes) |
 | Error masking frontend | 7 casos | ✅ 0 (response.ok checks, alertas visuales, JSON.parse protegido) |
-| Archivos sobre límite de líneas | 6 | **Pendiente** (8.3 — esfuerzo alto) |
+| Archivos sobre límite de líneas | 6 | ✅ useCalendario splitteado (792→120). Alumno.php, StripeService TO-DO |
 | Open redirect vectors | 3 | ✅ 0 |
 | Inputs sin sanitizar en endpoints | 10+ | ✅ 0 |
 | Código muerto | ~12 archivos/funciones | ✅ useHistorial eliminado, API_BASE centralizado |
