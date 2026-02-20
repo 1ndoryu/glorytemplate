@@ -15,6 +15,7 @@ class CapAlumnosEndpoints
 {
     use ConCallbackSeguro;
 
+    
     private function obtenerAlumnoDelCentro(int $alumnoId, int $centroId): ?array
     {
         $alumnoModel = new Alumno();
@@ -26,6 +27,7 @@ class CapAlumnosEndpoints
         return $alumno;
     }
 
+    
     public function listarAlumnos(\WP_REST_Request $request): \WP_REST_Response
     {
         $capService = CapService::getInstance();

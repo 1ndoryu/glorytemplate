@@ -75,21 +75,22 @@ PageManager::reactPage('cap-dashboard', 'CapDashboardIsland', function () {
  * Si el usuario está logueado con rol cap_admin -> dashboard
  * Si no está logueado -> login
  */
+
 add_action('template_redirect', function () {
     /* Proteger dashboard CAP: requiere sesión + rol permitido */
+
+    
     if (is_page('cap-dashboard')) {
         if (!is_user_logged_in()) {
             wp_redirect(home_url('/cap-login/'));
             exit;
         }
-
         $dashboardUser = wp_get_current_user();
         $rolesUsuario = $dashboardUser instanceof WP_User ? $dashboardUser->roles : [];
         if (!in_array('cap_admin', $rolesUsuario, true) && !in_array('administrator', $rolesUsuario, true)) {
             wp_redirect(home_url('/cap-login/'));
             exit;
         }
-
         return;
     }
 
