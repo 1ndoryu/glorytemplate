@@ -10,6 +10,20 @@
 
 _(sin tareas activas)_
 
+### Completado — Fix 4 falsos positivos en Code Sentinel (AG-SEN, 2026-02-23)
+
+> Extension glory-sentinel v0.1.0 recompilada e instalada. 4 reglas corregidas.
+
+- **hardcoded-sql-column:** Excluidos archivos `Seeder` y `/seeders/` — sus arrays PHP de datos (`$nombresEjemplo = [['email'=>...]]`) son datos de inicialización, no inserts SQL. Eliminava 30+ falsos positivos en `CapSeeder.php`.
+- **n-plus-1-query:** Añadido `Set<number>` de lineas ya reportadas + avance del índice `i = finBloque` al terminar de analizar un loop. Eliminaba 5 duplicados (línea 374×3, 429×2) causados por re-procesar loops internos como si fueran loops independientes.
+- **open-redirect:** Se detecta ahora si la URL viene de `wp_login_url()`, `home_url()`, `admin_url()`, `get_permalink()`, `site_url()` en la misma línea O en la asignación de la variable en las 8 líneas previas → skip. Eliminaba 1 falso positivo en `PageTemplateInterceptor.php:102` (`$login_url = wp_login_url(...)` → `wp_redirect($login_url)`).
+- **controller-fqn-inline:** La línea `namespace Glory\App\Database;` contenía `\App\` y se marcaba como FQN inline. Fix: tras detectar `namespace`, marcar `pasadoUseStatements = true` pero hacer `continue` para saltar la propia línea de namespace.
+- **Lecciones:**
+    - `[Seeder exclusion]`: Arrays PHP de datos de inicialización (seeders) usan la misma sintaxis `'key' =>` que los arrays de inserts SQL. La heurística de columnas hardcodeadas debe excluir archivos Seeder a nivel de preflight.
+    - `[N+1 dedup]`: Al analizar loops y avanzar `i = finBloque`, se evita que un foreach exterior y sus loops internos generen el mismo reporte. El `Set` es seguro secundario para casos de solapamiento.
+    - `[open-redirect WP]`: `wp_login_url()`, `home_url()` y similares son generadores internos de WP — nunca son open redirect. Rastrear la asignación de la variable hasta 8 líneas atrás cubre el patrón `$url = wp_login_url(); wp_redirect($url);`.
+    - `[namespace fqn]`: La flag `pasadoUseStatements` se setea en la misma iteración que la línea `namespace`, causando que esa línea se evalúe con la flag ya activada. Solución: `continue` después de setar la flag.
+
 ### Completado — Fix Sidebar usuario en modo SPA (AG-FIX, 2026-02-20)
 
 - **Bug:** En modo SPA, `initializeSPA` ignoraba `data-props` del contenedor DOM y usaba solo `window.__GLORY_ROUTES__`, donde los callable props PHP se omiten intencionalmente. El usuario del dashboard llegaba vacío (`name: ''`).
