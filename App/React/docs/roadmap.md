@@ -10,6 +10,42 @@
 
 _(sin tareas activas)_
 
+### Completado — Fix Ronda 7: Glory/ exclusion final (AG-SEN, 2026-02-21)
+
+> 122→~119 violaciones. Últimas 3 reglas que aún flaggeaban Glory/.
+
+- **limite-lineas:** Excluido Glory/ en `staticAnalyzer.ts`. settings-panel.css (576 líneas) es framework → no aplica límite del proyecto.
+- **promise-sin-catch:** Excluido Glory/ en `reactAnalyzer.ts`. main.tsx de Glory usa `.then()` en su init propio.
+- **key-index-lista:** Excluido Glory/ en `reactAnalyzer.ts`. BlockEditorModal.tsx usa `key={index}` en contexto estable del framework.
+- **Estado restante (~119):** 42 barras-decorativas (Info, legítimas en CSS App/), 25 any-type-explicito (Hint), 14 repository-sin-whitelist-columnas (Hint), 6 componente-sin-hook-glory (Warning, all >5 lines logic), 6 hardcoded-sql-column (Warning, real SQL context), 5 limite-lineas (Warning, CSS >300 lines), 3 n-plus-1-query (Warning, real loops), 3 key-index-lista (Hint), 1 return-void-critico (Warning). Todas legítimas.
+- **Lecciones:**
+    - `[Glory/ scope completo]`: Todas las reglas project-specific ya excluyen Glory/: barras-decorativas, nomenclatura-css-ingles, componente-sin-hook-glory, isla-no-registrada, endpoint-accede-bd, return-void-critico, controller-fqn-inline, hardcoded-sql-column, limite-lineas, promise-sin-catch, key-index-lista. Solo reglas universales de seguridad aplican al framework.
+
+### Completado — Fix Ronda 5: hardcoded-sql-column context + Glory/ scope (AG-SEN, 2026-02-21)
+
+> 211→~160 violaciones estimadas. 2 cambios arquitectónicos mayores.
+
+- **hardcoded-sql-column — contexto SQL obligatorio para arrays asociativos:** La regla detectaba cualquier array PHP `['columna' => valor]` con claves que coincidieran con nombres de columna, incluyendo arrays de respuesta API (`$clasesCreadas[] = ['fecha' => ...]`), estructuras de datos internas (slots, conflictos, demanda), metadatos Stripe (`'centro_id' => $centroId`), y valores default (`$centro ?: ['direccion' => '']`). Fix: nuevo set `lineasConContextoWrite` que marca líneas cercanas a `$wpdb->insert/update/delete/replace` (ventana 8 líneas). La sección de arrays asociativos ahora solo flag si la línea está en `lineasConContextoSql || lineasConContextoWrite`. Elimina ~28 falsos positivos en 10 archivos.
+- **Glory/ excluido de 3 reglas:** `return-void-critico`, `controller-fqn-inline`, `componente-sin-hook-glory`. Glory/ es framework externo con arquitectura propia — sus void returns, FQN inlines y componentes sin hooks dedicados son decisiones de diseño propias. Elimina ~35 violaciones en Glory/.
+- **Lecciones:**
+    - `[Array associative context]`: La sintaxis `'key' =>` es idéntica en arrays SQL (`$wpdb->insert($t, ['col' => $val])`) y arrays PHP genéricos (`$result[] = ['fecha' => $x]`). Sin verificación de contexto `$wpdb->`, la tasa de falsos positivos es ~70%. La ventana de 8 líneas cubre arrays multilinea spread de la llamada `$wpdb->insert`.
+    - `[Glory/ framework scope]`: Las reglas deben clasificarse en dos categorías: universales (security, SQL injection) y project-specific (repositories, hook extraction, FQN conventions). Las project-specific deben excluir frameworks externos como Glory/.
+    - `[Stripe metadata]`: Metadata de APIs externas (`'centro_id' =>` en sesiones Stripe) usa las mismas claves que columnas de BD pero NO es contexto SQL.
+
+### Completado — Fix Ronda 4 falsos positivos Code Sentinel (AG-SEN, 2026-02-21)
+
+> 225→~211 violaciones. 3 reglas corregidas, 1 bug de regex.
+
+- **isla-no-registrada:** Excluido `Glory/` — el framework Glory tiene su propio registro de islas (`main.tsx`), no usa `appIslands.tsx`. Eliminaba 1 falso positivo (`ExampleIsland.tsx`).
+- **nomenclatura-css-ingles:** Dos fixes:
+  1. **Bug regex `\b` con guiones:** `\.form\b` matcheaba `.form-field-wrapper` porque `-` es un boundary. Fix: añadido `(?!-)` negative lookahead. Eliminaba 7 falsos positivos en `admin-panel.css` (`.form-field-wrapper` detectado como `.form`).
+  2. **Clases de estado excluidas:** `active`, `disabled`, `hidden`, `visible`, `selected`, `focused`, `checked` removidas del diccionario — son clases de estado toggled por JS/WordPress/frameworks, no nomenclatura que el desarrollador pueda renombrar. Eliminaba 1+ falsos positivos (`.glory-panel-tab.active`).
+- **endpoint-accede-bd:** Excluido `Glory/` — el framework no usa `App/Database/Repositories`. Eliminaba 5 falsos positivos (`FormController`, `NewsletterController`).
+- **Lecciones:**
+    - `[CSS \b bug]`: En regex CSS, `\b` matchea entre word chars y `-`. Las clases CSS usan guiones como separadores (`form-field`), así que `\.form\b` falso-positiva con `.form-field-*`. Siempre usar `\b(?!-)` para clases CSS.
+    - `[State classes]`: Clases como `.active`, `.disabled` son patrones universales de estado toggled por JS — no son nomenclatura del desarrollador. Detectarlas como "inglés" es siempre falso positivo.
+    - `[Glory scope]`: Glory/ es framework externo con arquitectura propia. Reglas que asumen App/ patterns (repositories, appIslands.tsx) deben excluir Glory/.
+
 ### Completado — Fix 4 falsos positivos en Code Sentinel (AG-SEN, 2026-02-23)
 
 > Extension glory-sentinel v0.1.0 recompilada e instalada. 4 reglas corregidas.
