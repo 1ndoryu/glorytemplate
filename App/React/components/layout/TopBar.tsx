@@ -5,7 +5,6 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { useState, useCallback, useEffect } from 'react';
 import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2 } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
@@ -15,83 +14,39 @@ import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { Modal } from '../ui/Modal';
-import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
-import { useAuthStore } from '@app/stores/authStore';
-import { useFiltrosStore } from '@app/stores/filtrosStore';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
-import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
-import { usePlanesModalStore } from '@app/stores/planesModalStore';
-import { usePanelLateralStore } from '@app/stores/panelLateralStore';
-import { useNavigationStore } from '@/core/router';
-import { obtenerLimites } from '@app/services/apiDescargas';
+import { useTopBar } from '@app/hooks/useTopBar';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
-    const tabs = useTabsTopBarStore(s => s.tabs);
-    const activa = useTabsTopBarStore(s => s.activa);
-    const setActiva = useTabsTopBarStore(s => s.setActiva);
-    const usuario = useAuthStore(s => s.usuario);
-    const autenticado = useAuthStore(s => s.autenticado);
-    const busqueda = useFiltrosStore(s => s.busqueda);
-    const setBusqueda = useFiltrosStore(s => s.setBusqueda);
-    const navegar = useNavigationStore(s => s.navegar);
-    const abrirCrear = useCrearModalStore(s => s.abrir);
-    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
-    const abrirPlanes = usePlanesModalStore(s => s.abrir);
-    const modoPanelLateral = usePanelLateralStore(s => s.modo);
-    const abrirMezclador = usePanelLateralStore(s => s.abrirMezclador);
-    const cerrarPanel = usePanelLateralStore(s => s.cerrar);
-
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
-    const [notificacionesAbiertas, setNotificacionesAbiertas] = useState(false);
-    const [mensajesAbiertos, setMensajesAbiertos] = useState(false);
-    const [busquedaModalAbierta, setBusquedaModalAbierta] = useState(false);
-    const [creditosInfo, setCreditosInfo] = useState<{ usadas: number; limite: number; ilimitado: boolean } | null>(null);
-
-    /* Cargar créditos de descarga al montar y cada 60s */
-    useEffect(() => {
-        if (!autenticado) return;
-        const cargar = async () => {
-            try {
-                const resp = await obtenerLimites();
-                if (resp.ok && resp.data) {
-                    setCreditosInfo({
-                        usadas: resp.data.usadas,
-                        limite: resp.data.limite,
-                        ilimitado: resp.data.ilimitado,
-                    });
-                }
-            } catch {
-                /* Error de red cargando créditos — se reintenta en el siguiente intervalo */
-            }
-        };
-        cargar();
-        const intervalo = setInterval(cargar, 60000);
-        return () => clearInterval(intervalo);
-    }, [autenticado]);
-
-    const manejarBusqueda = useCallback((valor: string) => {
-        setBusqueda(valor);
-    }, [setBusqueda]);
-
-    /* C169: Placeholder dinámico según la isla actual */
-    const islaActual = useNavigationStore(s => s.islaActual);
-    const placeholderBusqueda = islaActual === 'LibreriaIsland' ? 'Buscar en librería...' : 'Buscar samples...';
-
-    const manejarClickAvatar = useCallback((e?: React.MouseEvent) => {
-        if (!e) return;
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        /* Alinear borde derecho del menú con borde derecho del avatar */
-        setMenuPos({ x: rect.right, y: rect.bottom + 4 });
-        setMenuAbierto(true);
-    }, []);
-
-    const etiquetaCreditos = creditosInfo
-        ? creditosInfo.ilimitado
-            ? 'Créditos: ∞'
-            : `Créditos: ${creditosInfo.limite - creditosInfo.usadas}/${creditosInfo.limite}`
-        : 'Créditos: ...';
+    const {
+        tabs,
+        activa,
+        setActiva,
+        usuario,
+        autenticado,
+        busqueda,
+        manejarBusqueda,
+        navegar,
+        abrirCrear,
+        abrirConfiguracion,
+        abrirPlanes,
+        modoPanelLateral,
+        alternarMezclador,
+        menuAbierto,
+        setMenuAbierto,
+        menuPos,
+        notificacionesAbiertas,
+        alternarNotificaciones,
+        cerrarNotificaciones,
+        mensajesAbiertos,
+        alternarMensajes,
+        cerrarMensajes,
+        busquedaModalAbierta,
+        setBusquedaModalAbierta,
+        etiquetaCreditos,
+        placeholderBusqueda,
+        manejarClickAvatar,
+    } = useTopBar();
 
     const menuItems: MenuItemDef[] = [
         {
@@ -204,13 +159,7 @@ export const TopBar = (): JSX.Element => {
                         variante="ghost"
                         tamano="md"
                         soloIcono
-                        onClick={() => {
-                            if (modoPanelLateral === 'mezclador') {
-                                cerrarPanel();
-                            } else {
-                                abrirMezclador();
-                            }
-                        }}
+                        onClick={alternarMezclador}
                         aria-label="Mezclador"
                         className={modoPanelLateral === 'mezclador' ? 'topbarBotonActivo' : ''}
                     >
@@ -222,16 +171,13 @@ export const TopBar = (): JSX.Element => {
                             variante="ghost"
                             tamano="md"
                             soloIcono
-                            onClick={() => {
-                                setMensajesAbiertos(false);
-                                setNotificacionesAbiertas((prev) => !prev);
-                            }}
+                            onClick={alternarNotificaciones}
                             aria-label="Notificaciones"
                         >
                             <Bell size={18} />
                         </BotonBase>
                         {notificacionesAbiertas && (
-                            <DropdownNotificaciones onCerrar={() => setNotificacionesAbiertas(false)} />
+                            <DropdownNotificaciones onCerrar={cerrarNotificaciones} />
                         )}
                     </div>
 
@@ -240,16 +186,13 @@ export const TopBar = (): JSX.Element => {
                             variante="ghost"
                             tamano="md"
                             soloIcono
-                            onClick={() => {
-                                setNotificacionesAbiertas(false);
-                                setMensajesAbiertos((prev) => !prev);
-                            }}
+                            onClick={alternarMensajes}
                             aria-label="Mensajes"
                         >
                             <Mail size={18} />
                         </BotonBase>
                         {mensajesAbiertos && (
-                            <DropdownMensajes onCerrar={() => setMensajesAbiertos(false)} />
+                            <DropdownMensajes onCerrar={cerrarMensajes} />
                         )}
                     </div>
 

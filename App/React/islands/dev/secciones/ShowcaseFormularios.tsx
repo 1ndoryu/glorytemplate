@@ -3,7 +3,7 @@
  * Agrupa los componentes de formulario del design system.
  */
 
-import { useState, type ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
 import {
     CampoTexto,
     InputBusqueda,
@@ -11,6 +11,7 @@ import {
     BarraProgreso,
     DropZone,
 } from '@app/components/ui';
+import { useShowcaseFormularios } from '@app/hooks/useShowcaseFormularios';
 import type { TabDefinicion } from '@app/components/ui';
 import {
     Music,
@@ -31,10 +32,16 @@ interface Props {
 }
 
 export const ShowcaseFormularios = ({ onToast }: Props): JSX.Element => {
-    const [busqueda, setBusqueda] = useState('');
-    const [tabActiva, setTabActiva] = useState('samples');
-    const [campoTexto, setCampoTexto] = useState('');
-    const [campoArea, setCampoArea] = useState('');
+    const {
+        busqueda,
+        setBusqueda,
+        tabActiva,
+        setTabActiva,
+        campoTexto,
+        setCampoTexto,
+        campoArea,
+        setCampoArea,
+    } = useShowcaseFormularios();
 
     return (
         <>

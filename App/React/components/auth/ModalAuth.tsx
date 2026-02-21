@@ -4,13 +4,13 @@
  * Reutiliza la estructura visual de PlanesIsland (.planesLayoutEspecial).
  */
 
-import { useState, type FormEvent, useCallback } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useAuth } from '../../hooks/useAuth';
-import { useAuthModalStore } from '../../stores/authModalStore';
+import { useModalAuth } from '../../hooks/useModalAuth';
 import '../../styles/componentes/authModal.css';
 
 const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
@@ -149,13 +149,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 };
 
 export const ModalAuth = (): JSX.Element | null => {
-    const abierto = useAuthModalStore(s => s.abierto);
-    const vista = useAuthModalStore(s => s.vista);
-    const cerrar = useAuthModalStore(s => s.cerrar);
-    const cambiarVista = useAuthModalStore(s => s.cambiarVista);
-
-    const cambiarALogin = useCallback(() => cambiarVista('login'), [cambiarVista]);
-    const cambiarARegistro = useCallback(() => cambiarVista('registro'), [cambiarVista]);
+    const { abierto, vista, cerrar, cambiarALogin, cambiarARegistro } = useModalAuth();
 
     if (!abierto) return null;
 

@@ -3,35 +3,30 @@
  * Formulario de registro con Google OAuth y email/contraseña.
  */
 
-import { useState, type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
-import { useAuth } from '../../hooks/useAuth';
+import { useRegistroIsland } from '../../hooks/useRegistroIsland';
 import '../../styles/componentes/login.css';
 
 export const RegistroIsland = (): JSX.Element => {
-    const [nombre, setNombre] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmarPassword, setConfirmarPassword] = useState('');
-    const { cargando, error, registrar, iniciarSesionGoogle } = useAuth();
-
-    const manejarSubmit = (e: FormEvent) => {
-        e.preventDefault();
-
-        if (password !== confirmarPassword) {
-            return;
-        }
-
-        registrar({ nombreVisible: nombre, username, email, password });
-    };
-
-    const errorPassword =
-        confirmarPassword.length > 0 && password !== confirmarPassword
-            ? 'Las contraseñas no coinciden'
-            : undefined;
+    const {
+        nombre,
+        setNombre,
+        username,
+        setUsername,
+        email,
+        setEmail,
+        password,
+        setPassword,
+        confirmarPassword,
+        setConfirmarPassword,
+        cargando,
+        error,
+        iniciarSesionGoogle,
+        manejarSubmit,
+        errorPassword,
+    } = useRegistroIsland();
 
     return (
         <div className="loginContenedor">
