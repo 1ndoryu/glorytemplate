@@ -304,9 +304,9 @@ export const MinimapaDaw = ({ timelineRef }: MinimapaDawProps): JSX.Element => {
             onClick={alClickMinimapa}
             onWheel={alWheel}
         >
-            {bloquesSimplificados.map((b, i) => (
+            {bloquesSimplificados.map((b) => (
                 <div
-                    key={i}
+                    key={`${b.left}-${b.top}`}
                     className="minimapaBloque"
                     style={{
                         left: `${b.left}%`,

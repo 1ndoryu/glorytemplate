@@ -206,8 +206,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                         <p className="comunidadPostTexto">{post.contenido}</p>
                                         {post.imagenes?.length > 0 && (
                                             <div className={`comunidadPostImagenes comunidadPostImagenes${post.imagenes.length}`}>
-                                                {post.imagenes.map((img, i) => (
-                                                    <img key={i} src={img} alt={`Imagen ${i + 1}`} className="comunidadPostImg" loading="lazy" />
+                                                {post.imagenes.map((img) => (
+                                                    <img key={img} src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
                                                 ))}
                                             </div>
                                         )}

@@ -103,8 +103,8 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                     <div className="inspectorSeccion">
                         <div className="inspectorSeccionTitulo">Tags</div>
                         <div className="inspectorTags">
-                            {sample.tags.map((tag, i) => (
-                                <span key={i} className="inspectorTag">
+                            {sample.tags.map((tag) => (
+                                <span key={tag} className="inspectorTag">
                                     {tag}
                                 </span>
                             ))}

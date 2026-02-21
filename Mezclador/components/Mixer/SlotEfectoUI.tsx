@@ -62,7 +62,7 @@ export const SlotEfectoUI = ({
             </div>
             {slots.map((slot, i) => (
                 <SlotEfectoItem
-                    key={i}
+                    key={slot.id}
                     slot={slot}
                     indice={i}
                     onToggle={onToggleSlot}

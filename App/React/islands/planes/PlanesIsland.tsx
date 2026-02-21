@@ -67,8 +67,8 @@ export const PlanesIsland = (): JSX.Element => {
                                             {periodoAnual && plan.precio > 0 && <span className="planAhorro">Ahorras ${calcularAnual(plan.precio).ahorro}/año</span>}
                                         </div>
                                         <ul className="planCaracteristicas">
-                                            {plan.caracteristicas.filter(c => c.incluido).slice(0, 5).map((c, i) => (
-                                                <li key={i} className={`planCaracteristica ${c.incluido ? 'planCaracteristicaIncluida' : 'planCaracteristicaExcluida'}`}>
+                                            {plan.caracteristicas.filter(c => c.incluido).slice(0, 5).map((c) => (
+                                                <li key={c.texto} className={`planCaracteristica ${c.incluido ? 'planCaracteristicaIncluida' : 'planCaracteristicaExcluida'}`}>
                                                     {c.incluido ? <Check size={14} /> : <X size={14} />}{c.texto}
                                                 </li>
                                             ))}

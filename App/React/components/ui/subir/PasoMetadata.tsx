@@ -81,7 +81,7 @@ export const PasoMetadata = ({
     return (
         <div className="subirFormulario">
             {archivos.map((a, i) => (
-                <div key={i} className="subirPreview">
+                <div key={a.nombre} className="subirPreview">
                     <div className="subirPreviewIcono">
                         <Music size={20} />
                     </div>

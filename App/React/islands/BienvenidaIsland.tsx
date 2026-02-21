@@ -69,9 +69,9 @@ export const BienvenidaIsland = (): JSX.Element => {
                 </div>
 
                 <div className="onboardingIndicadores">
-                    {PASOS.map((_, i) => (
+                    {PASOS.map((paso, i) => (
                         <span
-                            key={i}
+                            key={paso.titulo}
                             className={`onboardingDot ${i === pasoActual ? 'onboardingDotActivo' : ''}`}
                         />
                     ))}

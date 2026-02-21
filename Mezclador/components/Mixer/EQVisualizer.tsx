@@ -169,7 +169,7 @@ export const EQVisualizer = ({
             />
             <div className="eqVisualizerBandas">
                 {bandas.map((banda, i) => (
-                    <div key={i} className="eqVisualizerBanda" style={{ color: COLORES_BANDA[i] }}>
+                    <div key={NOMBRES_BANDA[i]} className="eqVisualizerBanda" style={{ color: COLORES_BANDA[i] }}>
                         <span className="eqVisualizerBandaNombre">{NOMBRES_BANDA[i]}</span>
                         <span className="eqVisualizerBandaValor">{banda.frecuencia}Hz</span>
                         <span className="eqVisualizerBandaValor">{banda.ganancia > 0 ? '+' : ''}{banda.ganancia}dB</span>

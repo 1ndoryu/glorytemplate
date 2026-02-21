@@ -60,7 +60,7 @@ export const BarraCompases = ({ onSeek }: BarraCompasesProps): JSX.Element => {
         >
             {labels.map((label, i) => (
                 <div
-                    key={i}
+                    key={label}
                     className="mezcladorCompasLabel"
                     style={{ left: `${posicionBloquePorc(i, totalCompases)}%`, width: `${100 / totalCompases}%` }}
                 >

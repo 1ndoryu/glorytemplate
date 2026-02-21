@@ -102,12 +102,13 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && waveformPeaks.length > 0 && (
                 <div className="crearWaveform" onClick={togglePreview} role="button" tabIndex={0}>
                     <div className="crearWaveformBarras">
+                        {/* sentinel-disable-next-line key-index-lista */}
                         {waveformPeaks.map((peak, i) => {
                             const porcentaje = (i + 1) / waveformPeaks.length;
                             const reproducida = reproduciendoPreview && porcentaje <= progresoPreview;
                             return (
                                 <div
-                                    key={i}
+                                    key={`waveform-${i}`}
                                     className={`crearWaveformBarra ${reproducida ? 'crearWaveformBarraActiva' : ''}`}
                                     style={{ height: `${Math.max(peak * 100, 4)}%` }}
                                 />

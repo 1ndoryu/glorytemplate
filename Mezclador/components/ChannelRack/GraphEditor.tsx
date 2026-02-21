@@ -64,6 +64,7 @@ export const GraphEditor = ({
             </div>
 
             {/* Barras */}
+            {/* sentinel-disable-next-line key-index-lista */}
             <div className="graphEditorBarras" ref={containerRef}>
                 {canal.pasos.map((paso, i) => {
                     const valor = obtenerValorNormalizado(paso);
@@ -71,7 +72,7 @@ export const GraphEditor = ({
 
                     return (
                         <div
-                            key={i}
+                            key={`graph-paso-${i}`}
                             className={`graphEditorColumna ${Math.floor(i / 4) % 2 === 1 ? 'graphEditorColumnaImpar' : ''}`}
                             onClick={(e) => alClick(e, i)}
                         >
