@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\TransaccionesDTO;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class TransaccionesRepository extends BaseRepository
 {
@@ -180,17 +182,17 @@ class TransaccionesRepository extends BaseRepository
     public static function listarDelCreador(int $creadorId, int $limit = 20, int $offset = 0): array
     {
         $tt = TransaccionesCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $ts = SamplesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultar(
             "SELECT t." . TransaccionesCols::ID . ", t." . TransaccionesCols::CREATED_AT . " as fecha"
             . ", t." . TransaccionesCols::MONTO . ", t." . TransaccionesCols::COMISION_PLATAFORMA . " as comision"
             . ", t." . TransaccionesCols::PAGO_CREADOR . " as neto, t." . TransaccionesCols::ESTADO
-            . ", s." . \App\Config\Schema\_generated\SamplesCols::TITULO . " as sample"
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME . " as comprador"
-            . " FROM {$tt} t LEFT JOIN {$ts} s ON t." . TransaccionesCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " LEFT JOIN {$tu} u ON t." . TransaccionesCols::COMPRADOR_ID . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . ", s." . SamplesCols::TITULO . " as sample"
+            . ", u." . UsuariosExtCols::USERNAME . " as comprador"
+            . " FROM {$tt} t LEFT JOIN {$ts} s ON t." . TransaccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " LEFT JOIN {$tu} u ON t." . TransaccionesCols::COMPRADOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE t." . TransaccionesCols::CREADOR_ID . " = :userId"
             . " ORDER BY t." . TransaccionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['userId' => $creadorId, 'limit' => $limit, 'offset' => $offset]

@@ -35,6 +35,7 @@ use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
+use App\Kamples\KamplesLogger as LogGeneral;
 
 class ComentariosEscrituraController
 {
@@ -110,7 +111,7 @@ class ComentariosEscrituraController
         $mediaMetadata = null;
 
         /* C130: Procesamiento de archivos multimedia — delegado a ComentariosInteraccionController */
-        if ($tipoContenido === 'imagen' || $tipoContenido === 'audio') {
+        if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN || $tipoContenido === ComentariosEnums::TIPO_CONTENIDO_AUDIO) {
             $resultado = ComentariosInteraccionController::procesarMedia($request, $tipoContenido, $userId, $contenido);
             if ($resultado instanceof \WP_REST_Response) return $resultado;
             [$mediaUrl, $mediaMetadata, $contenido] = $resultado;
@@ -196,7 +197,7 @@ class ComentariosEscrituraController
             ],
         ], 201);
         } catch (\Throwable $e) {
-            \App\Kamples\KamplesLogger::error('ComentariosEscrituraController::crear error', ['error' => $e->getMessage()]);
+            LogGeneral::error('ComentariosEscrituraController::crear error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }
@@ -236,7 +237,7 @@ class ComentariosEscrituraController
 
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
-            \App\Kamples\KamplesLogger::error('ComentariosEscrituraController::eliminar error', ['error' => $e->getMessage()]);
+            LogGeneral::error('ComentariosEscrituraController::eliminar error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

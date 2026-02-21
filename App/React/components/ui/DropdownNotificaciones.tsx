@@ -51,7 +51,9 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
             if (!cancelado && resp.ok && resp.data) {
                 setNotificaciones(resp.data);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
+        }).catch(() => {
+            if (!cancelado) setCargando(false);
         });
         return () => { cancelado = true; };
     }, []);

@@ -3,6 +3,9 @@
 /**
  * DashboardController — Estadísticas del creador.
  *
+ * TO-DO: Extraer queries directas de PostgresService a un DashboardRepository
+ * para cumplir con la separación controller/repository (endpoint-accede-bd).
+ *
  * @package Kamples
  */
 

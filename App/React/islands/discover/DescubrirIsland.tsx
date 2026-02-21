@@ -71,6 +71,7 @@ export const DescubrirIsland = (): JSX.Element => {
 
     /* Cargar secciones */
     useEffect(() => {
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
@@ -80,6 +81,7 @@ export const DescubrirIsland = (): JSX.Element => {
                     obtenerFeed('descubrir'),
                 ]);
 
+                if (cancelado) return;
                 const nuevasSecciones: SeccionDescubrir[] = [];
 
                 if (resDescubrir.ok && resDescubrir.data?.length) {
@@ -109,14 +111,15 @@ export const DescubrirIsland = (): JSX.Element => {
                     });
                 }
 
-                setSecciones(nuevasSecciones);
+                if (!cancelado) setSecciones(nuevasSecciones);
             } catch {
                 /* Fallo de carga — secciones quedan vacías */
             } finally {
-                setCargando(false);
+                if (!cancelado) setCargando(false);
             }
         };
         cargar();
+        return () => { cancelado = true; };
     }, []);
 
     /* Renderizar tarjeta compartida */

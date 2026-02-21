@@ -210,7 +210,7 @@ class MensajesController
         if ($banResp) return $banResp;
 
         /* C164: Limite de longitud para mensajes de texto */
-        if ($tipo === 'texto' && !empty($contenido)) {
+        if ($tipo === MensajesEnums::TIPO_TEXTO && !empty($contenido)) {
             $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_MENSAJE, 'El mensaje');
             if ($errorLongitud) return Validador::respuestaError($errorLongitud);
         }
@@ -219,7 +219,7 @@ class MensajesController
         $mediaMetadata = null;
 
         /* Procesamiento según tipo de mensaje */
-        if ($tipo === 'imagen' || $tipo === 'audio') {
+        if ($tipo === MensajesEnums::TIPO_IMAGEN || $tipo === MensajesEnums::TIPO_AUDIO) {
             $archivos = $request->get_file_params();
             $archivo = $archivos['media'] ?? null;
 
@@ -228,7 +228,7 @@ class MensajesController
             }
 
             /* Validar MIME según tipo — incluir variantes x- que mime_content_type() devuelve */
-            $mimesPermitidos = $tipo === 'imagen'
+            $mimesPermitidos = $tipo === MensajesEnums::TIPO_IMAGEN
                 ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
                 : [
                     'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav',
@@ -242,7 +242,7 @@ class MensajesController
             }
 
             /* Límite de tamaño: 10MB imágenes, 25MB audio */
-            $maxBytes = $tipo === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+            $maxBytes = $tipo === MensajesEnums::TIPO_IMAGEN ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
             if ($archivo['size'] > $maxBytes) {
                 $maxMB = $maxBytes / 1024 / 1024;
                 return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el límite de {$maxMB}MB"], 400);
@@ -263,7 +263,7 @@ class MensajesController
             }
 
             \add_filter('upload_dir', $filtroDir);
-            $mimesUpload = $tipo === 'audio'
+            $mimesUpload = $tipo === MensajesEnums::TIPO_AUDIO
                 ? [
                     'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
                     'm4a' => 'audio/mp4', 'aac' => 'audio/aac', 'webm' => 'audio/webm',
@@ -287,7 +287,7 @@ class MensajesController
                 'mimeType' => $mimeReal,
             ]);
 
-        } elseif ($tipo === 'sample') {
+        } elseif ($tipo === MensajesEnums::TIPO_SAMPLE) {
             /* Compartir un sample existente por ID */
             $body = $esFormData ? [] : $request->get_json_params();
             $sampleId = (int) ($body['sampleId'] ?? $request->get_param('sampleId') ?? 0);

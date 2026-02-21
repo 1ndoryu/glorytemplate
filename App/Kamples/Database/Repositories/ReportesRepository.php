@@ -112,7 +112,7 @@ class ReportesRepository extends BaseRepository
         return static::insertar(
             "INSERT INTO {$tabla} (" . ReportesCols::TIPO . ", " . ReportesCols::TARGET_ID
             . ", " . ReportesCols::REPORTADOR_ID . ", " . ReportesCols::RAZON . ", " . ReportesCols::ESTADO . ")"
-            . " VALUES (:tipo, :targetId, :userId, :razon, 'pendiente') RETURNING " . ReportesCols::ID,
+            . " VALUES (:tipo, :targetId, :userId, :razon, '" . ReportesEnums::ESTADO_PENDIENTE . "') RETURNING " . ReportesCols::ID,
             ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, ReportesCols::RAZON => $razon]
         );
     }

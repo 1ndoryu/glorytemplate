@@ -60,6 +60,8 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
                 setConversaciones(resp.data);
             }
             if (!cancelado) setCargandoConversaciones(false);
+        }).catch(() => {
+            if (!cancelado) setCargandoConversaciones(false);
         });
         return () => { cancelado = true; };
     }, []);

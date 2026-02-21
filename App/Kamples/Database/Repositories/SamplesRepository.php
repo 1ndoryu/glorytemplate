@@ -19,6 +19,7 @@ use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\LikesRepository;
@@ -319,16 +320,16 @@ class SamplesRepository extends BaseRepository
     public static function topSamplesCreador(int $creadorId, int $limit = 10): array
     {
         $ts = SamplesCols::TABLA;
-        $tt = \App\Config\Schema\_generated\TransaccionesCols::TABLA;
+        $tt = TransaccionesCols::TABLA;
 
         return static::consultar(
             "SELECT s." . SamplesCols::ID . ", s." . SamplesCols::TITULO . ", s." . SamplesCols::SLUG
             . ", s." . SamplesCols::TOTAL_DESCARGAS . " as descargas"
             . ", s." . SamplesCols::TOTAL_REPRODUCCIONES . " as reproducciones"
             . ", s." . SamplesCols::TOTAL_LIKES . " as likes"
-            . ", COALESCE((SELECT SUM(t." . \App\Config\Schema\_generated\TransaccionesCols::PAGO_CREADOR
-            . ") FROM {$tt} t WHERE t." . \App\Config\Schema\_generated\TransaccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
-            . " AND t." . \App\Config\Schema\_generated\TransaccionesCols::ESTADO . " = 'completed'), 0) as ingresos"
+            . ", COALESCE((SELECT SUM(t." . TransaccionesCols::PAGO_CREADOR
+            . ") FROM {$tt} t WHERE t." . TransaccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " AND t." . TransaccionesCols::ESTADO . " = 'completed'), 0) as ingresos"
             . " FROM {$ts} s WHERE s." . SamplesCols::CREADOR_ID . " = :userId AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
             . " ORDER BY s." . SamplesCols::TOTAL_DESCARGAS . " DESC LIMIT :limit",
             ['userId' => $creadorId, 'limit' => $limit]
@@ -448,12 +449,12 @@ class SamplesRepository extends BaseRepository
     public static function favoritosDeUsuario(int $userId, int $limit, int $offset): array
     {
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " JOIN " . \App\Config\Schema\_generated\LikesCols::TABLA . " l ON l."
-             . \App\Config\Schema\_generated\LikesCols::TARGET_ID . " = s." . SamplesCols::ID
-             . " AND l." . \App\Config\Schema\_generated\LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
-             . " AND l." . \App\Config\Schema\_generated\LikesCols::USUARIO_ID . " = :favUser"
+             . " JOIN " . LikesCols::TABLA . " l ON l."
+             . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
+             . " AND l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+             . " AND l." . LikesCols::USUARIO_ID . " = :favUser"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-             . " ORDER BY l." . \App\Config\Schema\_generated\LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
+             . " ORDER BY l." . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['favUser' => $userId, 'limit' => $limit, 'offset' => $offset]);
     }
@@ -565,7 +566,7 @@ class SamplesRepository extends BaseRepository
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$ts} s"
-            . " LEFT JOIN " . \App\Config\Schema\_generated\UsuariosExtCols::TABLA . " u ON s." . SamplesCols::CREADOR_ID . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . " LEFT JOIN " . UsuariosExtCols::TABLA . " u ON s." . SamplesCols::CREADOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE {$whereSQL}",
             $params
         );

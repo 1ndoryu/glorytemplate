@@ -189,8 +189,8 @@ export const MenuContextualPR = memo(({
             className="pianoRollMenuContextual"
             style={{ left: posX, top: posY }}
         >
-            {opciones.map((op, i) => (
-                <div key={i}>
+            {opciones.map((op) => (
+                <div key={op.label}>
                     <button
                         className="pianoRollMenuContextualItem"
                         onClick={op.onClick}
@@ -212,7 +212,7 @@ export const MenuContextualPR = memo(({
                     <div className="pianoRollMenuContextualColores">
                         {PALETA_NOTAS.map((color, idx) => (
                             <button
-                                key={idx}
+                                key={color}
                                 className="pianoRollMenuContextualColor"
                                 style={{ background: color }}
                                 onClick={() => handleColor(idx)}

@@ -24,6 +24,9 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
+use App\Kamples\Services\GeneradorEmbeddings;
+use App\Kamples\Services\MotorRecomendacion;
+use App\Kamples\Services\DeduplicadorAudio;
 
 class PipelineAudio
 {
@@ -260,7 +263,7 @@ class PipelineAudio
 
         /* Paso 9: Generar embedding para el sistema de recomendación */
         try {
-            \App\Kamples\Services\GeneradorEmbeddings::guardarEmbedding($sampleId);
+            GeneradorEmbeddings::guardarEmbedding($sampleId);
         } catch (\Throwable $e) {
             KamplesLogger::error('Pipeline: Error al generar embedding', [
                 'sampleId' => $sampleId, 'error' => $e->getMessage()
@@ -268,11 +271,11 @@ class PipelineAudio
         }
 
         /* Invalidar cache de feeds globalmente al publicar nuevo sample */
-        \App\Kamples\Services\MotorRecomendacion::invalidarCacheGlobal();
+        MotorRecomendacion::invalidarCacheGlobal();
 
         /* Paso 10: Programar cálculo de hash perceptual para deduplicación (background) */
         try {
-            \App\Kamples\Services\DeduplicadorAudio::programarCalculo($sampleId);
+            DeduplicadorAudio::programarCalculo($sampleId);
             KamplesLogger::info('Pipeline: Hash perceptual programado', ['sampleId' => $sampleId]);
         } catch (\Throwable $e) {
             KamplesLogger::error('Pipeline: Error programando hash', [

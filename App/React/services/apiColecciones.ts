@@ -13,8 +13,7 @@ import type { Coleccion, SampleResumen } from '../types';
  * a la interfaz Coleccion (camelCase).
  * Acepta ambos formatos para robustez.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const normalizarColeccion = (raw: any): Coleccion => ({
+const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
     id: raw.id,
     usuarioId: raw.usuario_id ?? raw.usuarioId ?? 0,
     nombre: raw.nombre ?? '',
@@ -35,9 +34,8 @@ const normalizarColeccion = (raw: any): Coleccion => ({
 });
 
 /* Normalizar array de colecciones */
-const normalizarLista = (data: any[]): Coleccion[] =>
+const normalizarLista = (data: Record<string, unknown>[]): Coleccion[] =>
     Array.isArray(data) ? data.map(normalizarColeccion) : [];
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /* Listar colecciones del usuario (o de otro si se pasa usuarioId) — C169: con búsqueda */
 export const listarColecciones = async (usuarioId?: number, busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {

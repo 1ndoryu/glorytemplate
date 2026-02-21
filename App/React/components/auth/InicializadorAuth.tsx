@@ -40,12 +40,13 @@ export const InicializadorAuth = ({ children }: Props): JSX.Element => {
     const setCargando = useAuthStore(s => s.setCargando);
 
     useEffect(() => {
+        let cancelado = false;
         const inicializar = async () => {
             const ctx = obtenerContexto();
 
             /* Si PHP dice que no hay sesión, marcar como no autenticado */
             if (!ctx?.isLoggedIn || !ctx.userId) {
-                setUsuario(null);
+                if (!cancelado) setUsuario(null);
                 return;
             }
 
@@ -55,14 +56,18 @@ export const InicializadorAuth = ({ children }: Props): JSX.Element => {
              */
             try {
                 const resp = await obtenerUsuarioActual();
+                if (cancelado) return;
                 if (resp.ok && resp.data) {
                     setUsuario(resp.data);
                     log.debug('Sesión Kamples verificada', resp.data);
                     return;
                 }
             } catch (err) {
+                if (cancelado) return;
                 log.debug('API /me no disponible, usando datos de WP');
             }
+
+            if (cancelado) return;
 
             /* Fallback: usar datos inyectados por PHP */
             if (ctx.currentUser) {
@@ -89,6 +94,7 @@ export const InicializadorAuth = ({ children }: Props): JSX.Element => {
         } else {
             setCargando(false);
         }
+        return () => { cancelado = true; };
     }, []);
 
     return <>{children}</>;

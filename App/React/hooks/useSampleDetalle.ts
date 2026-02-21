@@ -68,7 +68,7 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
                 if (respuesta.ok && respuesta.data) {
                     setSample(respuesta.data);
                     setLiked(Boolean(respuesta.data.liked));
-                    setReaccionActual((respuesta.data as any).reaccion ?? null);
+                    setReaccionActual(respuesta.data.reaccion ?? null);
 
                     const tipoSample = respuesta.data.metadata?.tipo;
                     if (tipoSample) {

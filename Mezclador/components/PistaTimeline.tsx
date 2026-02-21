@@ -199,9 +199,9 @@ export const PistaTimeline = ({
                 }}
             >
                 {/* C216: Líneas de cuadrícula según snap */}
-                {lineasCuadricula.map((linea, i) => (
+                {lineasCuadricula.map((linea) => (
                     <div
-                        key={i}
+                        key={linea.posicion}
                         className={`mezcladorDivisionCompas ${linea.esPrincipal ? 'mezcladorDivisionPrincipal' : 'mezcladorDivisionSecundaria'}`}
                         style={{ left: `${(linea.posicion / totalCompases) * 100}%` }}
                     />

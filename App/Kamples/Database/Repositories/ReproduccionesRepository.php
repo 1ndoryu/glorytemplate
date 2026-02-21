@@ -16,6 +16,7 @@ use App\Config\Schema\_generated\ReproduccionesDTO;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 
 class ReproduccionesRepository extends BaseRepository
 {
@@ -78,11 +79,11 @@ class ReproduccionesRepository extends BaseRepository
     public static function contarDelCreadorMes(int $creadorId): int
     {
         $tr = ReproduccionesCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         $row = static::consultarUno(
-            "SELECT COUNT(*) as total FROM {$tr} r JOIN {$ts} s ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " WHERE s." . \App\Config\Schema\_generated\SamplesCols::CREADOR_ID . " = :userId"
+            "SELECT COUNT(*) as total FROM {$tr} r JOIN {$ts} s ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE s." . SamplesCols::CREADOR_ID . " = :userId"
             . " AND r." . ReproduccionesCols::CREATED_AT . " >= date_trunc('month', NOW())",
             ['userId' => $creadorId]
         );
@@ -154,7 +155,7 @@ class ReproduccionesRepository extends BaseRepository
      */
     public static function historialUsuario(int $userId, int $limit = 20, int $offset = 0): array
     {
-        $sql = \App\Kamples\Api\Helpers\NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples()
              . " JOIN " . ReproduccionesCols::TABLA . " r ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . " GROUP BY s." . SamplesCols::ID . ", u." . UsuariosExtCols::ID . ", u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::WP_USER_ID

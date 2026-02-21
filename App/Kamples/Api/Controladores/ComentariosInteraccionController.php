@@ -19,8 +19,10 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
+use App\Kamples\KamplesLogger as LogGeneral;
 
 class ComentariosInteraccionController
 {
@@ -49,7 +51,7 @@ class ComentariosInteraccionController
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => true]], 200);
         } catch (\Throwable $e) {
-            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::darLike error', ['error' => $e->getMessage()]);
+            LogGeneral::error('ComentariosInteraccionController::darLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }
@@ -73,7 +75,7 @@ class ComentariosInteraccionController
 
         return new \WP_REST_Response(['data' => ['totalLikes' => $totalLikes, 'liked' => false]], 200);
         } catch (\Throwable $e) {
-            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::quitarLike error', ['error' => $e->getMessage()]);
+            LogGeneral::error('ComentariosInteraccionController::quitarLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }
@@ -101,7 +103,7 @@ class ComentariosInteraccionController
         }
 
         /* Validar MIME según tipo */
-        $mimesPermitidos = $tipoContenido === 'imagen'
+        $mimesPermitidos = $tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN
             ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
             : [
                 'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav',
@@ -115,7 +117,7 @@ class ComentariosInteraccionController
         }
 
         /* Limite de tamano: 10MB imagenes, 25MB audio */
-        $maxBytes = $tipoContenido === 'imagen' ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+        $maxBytes = $tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
         if ($archivo['size'] > $maxBytes) {
             $maxMB = $maxBytes / 1024 / 1024;
             return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el limite de {$maxMB}MB"], 400);
@@ -135,7 +137,7 @@ class ComentariosInteraccionController
         }
 
         \add_filter('upload_dir', $filtroDir);
-        $mimesUpload = $tipoContenido === 'audio'
+        $mimesUpload = $tipoContenido === ComentariosEnums::TIPO_CONTENIDO_AUDIO
             ? [
                 'mp3' => 'audio/mpeg', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
                 'm4a' => 'audio/mp4', 'aac' => 'audio/aac', 'webm' => 'audio/webm',
@@ -160,7 +162,7 @@ class ComentariosInteraccionController
         ]);
 
         /* C201: Convertir audio a MP3 ligero + generar waveform */
-        if ($tipoContenido === 'audio') {
+        if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_AUDIO) {
             $rutaOriginal = $subido['file'];
             $extension = \strtolower(\pathinfo($rutaOriginal, PATHINFO_EXTENSION));
 
@@ -197,7 +199,7 @@ class ComentariosInteraccionController
 
         return [$mediaUrl, $mediaMetadata, $contenido];
         } catch (\Throwable $e) {
-            \App\Kamples\KamplesLogger::error('ComentariosInteraccionController::procesarMedia error', ['error' => $e->getMessage()]);
+            LogGeneral::error('ComentariosInteraccionController::procesarMedia error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error procesando media'], 500);
         }
     }

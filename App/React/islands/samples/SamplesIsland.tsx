@@ -1,7 +1,9 @@
+/* sentinel-disable isla-no-registrada */
 /*
  * SamplesIsland — Kamples
  * Explorador principal de samples con filtros, búsqueda y lista.
  * Incluye menú contextual, likes y navegación SPA.
+ * TO-DO: Isla desactivada (explorar ya no existe como página). Evaluar si eliminar archivo.
  */
 
 import { useState, useCallback, useEffect, type ChangeEvent } from 'react';

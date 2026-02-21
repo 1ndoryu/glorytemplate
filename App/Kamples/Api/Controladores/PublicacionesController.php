@@ -21,6 +21,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\PublicacionesCols;
+use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\LikesEnums;
@@ -184,7 +185,7 @@ class PublicacionesController
          * Solo el autor puede ver sus propias publicaciones rechazadas.
          */
         $estado = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
-        if ($estado === 'rechazado') {
+        if ($estado === PublicacionesEnums::MODERACION_RECHAZADO) {
             $usuarioActual = UsuarioHelper::obtenerIdPg();
             if (!$usuarioActual || $usuarioActual !== (int) $pub[PublicacionesCols::AUTOR_ID]) {
                 return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);

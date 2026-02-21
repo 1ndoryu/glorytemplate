@@ -16,6 +16,7 @@ use App\Kamples\Services\StripeService;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
@@ -98,7 +99,7 @@ class DescargasZipController
         }
 
         /* Verificar samples premium */
-        if ($plan === 'free') {
+        if ($plan === UsuariosExtEnums::PLAN_FREE) {
             $tienePremium = \array_filter($samplesNuevos, fn($s) => (bool) $s['es_premium']);
             if (!empty($tienePremium)) {
                 return new \WP_REST_Response([
@@ -172,7 +173,7 @@ class DescargasZipController
             SamplesRepository::incrementarDescargas((int) $sample[SamplesCols::ID]);
 
             /* Revenue share por cada sample de otro creador */
-            if ($plan !== 'free' && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
+            if ($plan !== UsuariosExtEnums::PLAN_FREE && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
                 DescargasController::registrarTransaccionRevenueShare(
                     $userId,
                     (int) $sample[SamplesCols::CREADOR_ID],

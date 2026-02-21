@@ -13,6 +13,7 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\LogModeracion as KamplesLogger;
+use App\Config\Schema\_generated\PublicacionesEnums;
 
 class AnalizadoresModeracion
 {
@@ -148,7 +149,7 @@ class AnalizadoresModeracion
      */
     public static function analizarImagenes(string $apiKey, array $imagenes): array
     {
-        $peorNivel = 'aprobado';
+        $peorNivel = PublicacionesEnums::MODERACION_APROBADO;
         $detalles = [];
 
         foreach ($imagenes as $url) {
@@ -185,7 +186,7 @@ class AnalizadoresModeracion
                 $partes = \explode(',', $respuestaLimpia, 2);
                 $categoria = isset($partes[1]) ? \trim($partes[1]) : 'desconocida';
                 $detalles[] = ['url' => $url, 'nivel' => 'rechazado', 'categoria' => $categoria];
-                $peorNivel = 'rechazado';
+                $peorNivel = PublicacionesEnums::MODERACION_RECHAZADO;
             } else {
                 $detalles[] = ['url' => $url, 'nivel' => 'aprobado'];
             }

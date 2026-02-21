@@ -74,20 +74,22 @@ export const NotificacionesIsland = (): JSX.Element => {
     const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
                 const resp = await obtenerNotificaciones();
-                if (resp.ok && resp.data) {
+                if (!cancelado && resp.ok && resp.data) {
                     setNotificaciones(resp.data);
                 }
             } catch {
                 /* Fallo de carga — notificaciones quedan vacías */
             } finally {
-                setCargando(false);
+                if (!cancelado) setCargando(false);
             }
         };
         cargar();
+        return () => { cancelado = true; };
     }, []);
 
     const manejarMarcarLeida = useCallback(async (id: number) => {

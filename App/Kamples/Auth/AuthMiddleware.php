@@ -9,6 +9,8 @@
 namespace App\Kamples\Auth;
 
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\ServicioBan;
 
 class AuthMiddleware
 {
@@ -37,7 +39,7 @@ class AuthMiddleware
             return false;
         }
 
-        $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
+        $usuario = UsuarioHelper::obtenerPorWpId(get_current_user_id());
         if (!$usuario) return false;
 
         $rol = $usuario[UsuariosExtCols::ROL] ?? 'usuario';
@@ -54,7 +56,7 @@ class AuthMiddleware
             return false;
         }
 
-        $usuario = \App\Kamples\Api\Helpers\UsuarioHelper::obtenerPorWpId(get_current_user_id());
+        $usuario = UsuarioHelper::obtenerPorWpId(get_current_user_id());
         if (!$usuario) return false;
 
         $plan = $usuario[UsuariosExtCols::PLAN] ?? 'free';
@@ -108,7 +110,7 @@ class AuthMiddleware
      */
     public static function verificarBanActivo(int $pgUserId): ?\WP_REST_Response
     {
-        $infoBan = \App\Kamples\Services\ServicioBan::verificarBan($pgUserId);
+        $infoBan = ServicioBan::verificarBan($pgUserId);
         if (!$infoBan) {
             return null;
         }

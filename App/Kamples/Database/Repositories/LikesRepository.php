@@ -234,15 +234,15 @@ class LikesRepository extends BaseRepository
     public static function contextoFavoritos(int $userId): array
     {
         $tl = LikesCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         return static::consultar(
-            "SELECT s." . \App\Config\Schema\_generated\SamplesCols::TAGS
-            . ", s." . \App\Config\Schema\_generated\SamplesCols::BPM
-            . ", s." . \App\Config\Schema\_generated\SamplesCols::KEY
-            . " FROM {$ts} s JOIN {$tl} l ON l." . LikesCols::TARGET_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
+            "SELECT s." . SamplesCols::TAGS
+            . ", s." . SamplesCols::BPM
+            . ", s." . SamplesCols::KEY
+            . " FROM {$ts} s JOIN {$tl} l ON l." . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
             . " AND l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
-            . " WHERE l." . LikesCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            . " WHERE l." . LikesCols::USUARIO_ID . " = :uid AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
     }
@@ -269,13 +269,13 @@ class LikesRepository extends BaseRepository
     public static function contarFavoritosSamples(int $userId): int
     {
         $tl = LikesCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$tl} l JOIN {$ts} s ON l." . LikesCols::TARGET_ID . " = s."
-            . \App\Config\Schema\_generated\SamplesCols::ID
+            . SamplesCols::ID
             . " WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND l." . LikesCols::USUARIO_ID . " = :uid"
-            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
         return (int) ($row['total'] ?? 0);

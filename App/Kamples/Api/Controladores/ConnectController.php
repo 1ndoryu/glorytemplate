@@ -18,6 +18,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class ConnectController
@@ -98,8 +99,8 @@ class ConnectController
             }
 
             /* Actualizar rol a creador si aún es 'usuario' */
-            if (($usuario[UsuariosExtCols::ROL] ?? 'usuario') === 'usuario') {
-                UsuariosExtRepository::cambiarRol($userId, 'creador');
+            if (($usuario[UsuariosExtCols::ROL] ?? UsuariosExtEnums::ROL_USUARIO) === UsuariosExtEnums::ROL_USUARIO) {
+                UsuariosExtRepository::cambiarRol($userId, UsuariosExtEnums::ROL_CREADOR);
             }
         }
 

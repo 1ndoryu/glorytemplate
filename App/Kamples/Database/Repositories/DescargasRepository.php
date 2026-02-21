@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\DescargasDTO;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 
 class DescargasRepository extends BaseRepository
@@ -142,11 +143,11 @@ class DescargasRepository extends BaseRepository
     public static function contarDelCreadorMes(int $creadorId): int
     {
         $td = DescargasCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         $row = static::consultarUno(
-            "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " WHERE s." . \App\Config\Schema\_generated\SamplesCols::CREADOR_ID . " = :userId"
+            "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE s." . SamplesCols::CREADOR_ID . " = :userId"
             . " AND d." . DescargasCols::CREATED_AT . " >= date_trunc('month', NOW())",
             ['userId' => $creadorId]
         );
@@ -159,14 +160,14 @@ class DescargasRepository extends BaseRepository
     public static function contextoDescargas(int $userId): array
     {
         $td = DescargasCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         return static::consultar(
-            "SELECT s." . \App\Config\Schema\_generated\SamplesCols::TAGS
-            . ", s." . \App\Config\Schema\_generated\SamplesCols::BPM
-            . ", s." . \App\Config\Schema\_generated\SamplesCols::KEY
-            . " FROM {$ts} s JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . \App\Config\Schema\_generated\SamplesCols::ID
-            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            "SELECT s." . SamplesCols::TAGS
+            . ", s." . SamplesCols::BPM
+            . ", s." . SamplesCols::KEY
+            . " FROM {$ts} s JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
     }
@@ -192,13 +193,13 @@ class DescargasRepository extends BaseRepository
     public static function contarSamplesDescargados(int $userId): int
     {
         $td = DescargasCols::TABLA;
-        $ts = \App\Config\Schema\_generated\SamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s."
-            . \App\Config\Schema\_generated\SamplesCols::ID
+            . SamplesCols::ID
             . " WHERE d." . DescargasCols::USUARIO_ID . " = :uid"
-            . " AND s." . \App\Config\Schema\_generated\SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );
         return (int) ($row['total'] ?? 0);

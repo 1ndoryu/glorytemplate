@@ -27,6 +27,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Services\MotorRecomendacion;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
@@ -240,7 +241,7 @@ class SamplesController
             ], 'algoritmo');
             if ($userId) {
                 try {
-                    $recomendados = \App\Kamples\Services\MotorRecomendacion::feedPersonalizado(
+                    $recomendados = MotorRecomendacion::feedPersonalizado(
                         $userId, $perPage, $offset
                     );
                     KamplesLogger::info('Feed descubrir: MotorRecomendacion retornó', [

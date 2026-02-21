@@ -19,6 +19,7 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class ServicioBan
 {
@@ -33,7 +34,7 @@ class ServicioBan
      * Registra una violación de moderación y aplica ban si corresponde.
      * Retorna true si el usuario fue baneado.
      */
-    public static function registrarViolacion(int $userId, string $razon, string $tipoContenido = 'comentario'): bool
+    public static function registrarViolacion(int $userId, string $razon, string $tipoContenido = LikesEnums::TIPO_COMENTARIO): bool
     {
         /*
          * Incremento atómico + lectura en un solo statement para evitar race condition.

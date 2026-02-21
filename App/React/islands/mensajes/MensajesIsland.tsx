@@ -63,6 +63,8 @@ const MensajesIslandBase = (): JSX.Element => {
                 setConversaciones(resp.data);
             }
             if (!cancelado) setCargandoConversaciones(false);
+        }).catch(() => {
+            if (!cancelado) setCargandoConversaciones(false);
         });
 
         return () => { cancelado = true; };

@@ -4,9 +4,7 @@
  * Nomenclatura en español, camelCase.
  */
 
-/* ============================================================
- * LAYOUT PRINCIPAL
- * ============================================================ */
+/* LAYOUT PRINCIPAL */
 
 .pianoRollContenedor {
     display: flex;
@@ -21,9 +19,7 @@
     overflow: hidden;
 }
 
-/* ============================================================
- * CABECERA / TOOLBAR
- * ============================================================ */
+/* CABECERA / TOOLBAR */
 
 .pianoRollCabecera {
     display: flex;
@@ -126,9 +122,7 @@
     margin-right: 4px;
 }
 
-/* ============================================================
- * AREA PRINCIPAL (teclado + regla + grid)
- * ============================================================ */
+/* AREA PRINCIPAL (teclado + regla + grid) */
 
 .pianoRollAreaPrincipal {
     display: flex;
@@ -137,9 +131,7 @@
     position: relative;
 }
 
-/* ============================================================
- * TECLADO PIANO (lateral izquierdo)
- * ============================================================ */
+/* TECLADO PIANO (lateral izquierdo) */
 
 .pianoRollTeclado {
     flex-shrink: 0;
@@ -196,9 +188,7 @@
     opacity: 0.8;
 }
 
-/* ============================================================
- * ZONA GRID (regla + canvas + notas)
- * ============================================================ */
+/* ZONA GRID (regla + canvas + notas) */
 
 .pianoRollZonaGrid {
     flex: 1;
@@ -208,9 +198,7 @@
     position: relative;
 }
 
-/* ============================================================
- * REGLA TEMPORAL (superior)
- * ============================================================ */
+/* REGLA TEMPORAL (superior) */
 
 .pianoRollRegla {
     height: 22px;
@@ -229,9 +217,7 @@
     height: 100%;
 }
 
-/* ============================================================
- * GRID DE NOTAS
- * ============================================================ */
+/* GRID DE NOTAS */
 
 .pianoRollGrid {
     flex: 1;
@@ -255,9 +241,7 @@
     z-index: 1;
 }
 
-/* ============================================================
- * NOTA INDIVIDUAL
- * ============================================================ */
+/* NOTA INDIVIDUAL */
 
 .pianoRollNota {
     position: absolute;
@@ -327,9 +311,7 @@
     pointer-events: none;
 }
 
-/* ============================================================
- * CURSOR DE REPRODUCCION
- * ============================================================ */
+/* CURSOR DE REPRODUCCION */
 
 .pianoRollCursorReproduccion {
     position: absolute;
@@ -341,9 +323,7 @@
     pointer-events: none;
 }
 
-/* ============================================================
- * MARQUEE DE SELECCION
- * ============================================================ */
+/* MARQUEE DE SELECCION */
 
 .pianoRollMarquee {
     position: absolute;
@@ -353,9 +333,7 @@
     pointer-events: none;
 }
 
-/* ============================================================
- * GHOST NOTES
- * ============================================================ */
+/* GHOST NOTES */
 
 .pianoRollGhostNota {
     position: absolute;
@@ -376,9 +354,7 @@
     overflow: hidden;
 }
 
-/* ============================================================
- * PANEL DE CONTROL INFERIOR
- * ============================================================ */
+/* PANEL DE CONTROL INFERIOR */
 
 .pianoRollPanelControl {
     border-top: 1px solid #333;
@@ -464,9 +440,7 @@
     outline: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* ============================================================
- * MINIMAPA
- * ============================================================ */
+/* MINIMAPA */
 
 .pianoRollMinimapa {
     flex-shrink: 0;
@@ -487,9 +461,7 @@
     height: 100%;
 }
 
-/* ============================================================
- * MENU CONTEXTUAL
- * ============================================================ */
+/* MENU CONTEXTUAL */
 
 .pianoRollMenuContextual {
     position: fixed;

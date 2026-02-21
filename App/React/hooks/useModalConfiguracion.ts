@@ -9,6 +9,7 @@ import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore'
 import { useAuthStore } from '@app/stores/authStore';
 import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
+import type { UsuarioAutenticado } from '@app/types';
 import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
 
 const log = crearLogger('ModalConfiguracion');
@@ -79,7 +80,7 @@ export function useModalConfiguracion() {
                 const respAvatar = await subirAvatar(avatarArchivo);
                 if (respAvatar.ok && respAvatar.data) {
                     const datos = (respAvatar.data as Record<string, unknown>).data ?? respAvatar.data;
-                    setUsuario(datos as any);
+                    setUsuario(datos as UsuarioAutenticado);
                     log.info('Avatar subido correctamente');
                 }
             }
@@ -88,10 +89,10 @@ export function useModalConfiguracion() {
                 nombreVisible,
                 username,
                 bio,
-            } as any);
+            });
 
             if (resp.ok && resp.data) {
-                setUsuario(resp.data as any);
+                setUsuario(resp.data as UsuarioAutenticado);
             }
 
             log.info('Configuración guardada', { nombreVisible, username });

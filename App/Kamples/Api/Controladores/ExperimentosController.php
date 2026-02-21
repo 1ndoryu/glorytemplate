@@ -182,6 +182,8 @@ class ExperimentosController
     private static function generarNotificacion(int $adminPgId, int $testUserId): array
     {
         /* Elegir tipo aleatorio para variedad */
+        /* Tipos de notificacion (no confundir con LikesEnums::REACCION_LIKE) */
+        /* sentinel-disable hardcoded-enum-value */
         $tipos = ['follow', 'like', 'mensaje'];
         $tipo  = $tipos[array_rand($tipos)];
 

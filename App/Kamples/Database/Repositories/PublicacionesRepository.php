@@ -16,6 +16,8 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\PublicacionesDTO;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ComentariosCols;
 
 class PublicacionesRepository extends BaseRepository
 {
@@ -64,7 +66,7 @@ class PublicacionesRepository extends BaseRepository
     public static function listarPendientesModeracion(int $offset, int $limit = 20): array
     {
         $tp = PublicacionesCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultar(
             "SELECT p." . PublicacionesCols::ID
@@ -72,12 +74,12 @@ class PublicacionesRepository extends BaseRepository
             . ", p." . PublicacionesCols::MODERACION_ESTADO
             . ", p." . PublicacionesCols::MODERACION_DETALLE
             . ", p." . PublicacionesCols::CREATED_AT
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::NOMBRE_VISIBLE
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::AVATAR_URL
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::WP_USER_ID
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
             . ", 'publicacion' as tipo_contenido"
-            . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE p." . PublicacionesCols::MODERACION_ESTADO . " IN ('pendiente', 'revision')"
             . " ORDER BY p." . PublicacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['limit' => $limit, 'offset' => $offset]
@@ -110,7 +112,7 @@ class PublicacionesRepository extends BaseRepository
         array $params
     ): array {
         $tp = PublicacionesCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         /* Subquery de reacción del usuario actual */
         $tl = LikesCols::TABLA;
@@ -119,14 +121,14 @@ class PublicacionesRepository extends BaseRepository
             : ", NULL AS reaccion_usuario";
 
         return static::consultar(
-            "SELECT p.*, u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::NOMBRE_VISIBLE
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::AVATAR_URL
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::VERIFICADO
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::WP_USER_ID
+            "SELECT p.*, u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::VERIFICADO
+            . ", u." . UsuariosExtCols::WP_USER_ID
             . " {$likedSubquery}"
             . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID
-            . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . " = u." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde} {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
@@ -138,16 +140,16 @@ class PublicacionesRepository extends BaseRepository
     public static function obtenerConAutor(int $id): ?array
     {
         $tp = PublicacionesCols::TABLA;
-        $tu = \App\Config\Schema\_generated\UsuariosExtCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultarUno(
-            "SELECT p.*, u." . \App\Config\Schema\_generated\UsuariosExtCols::USERNAME
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::NOMBRE_VISIBLE
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::AVATAR_URL
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::VERIFICADO
-            . ", u." . \App\Config\Schema\_generated\UsuariosExtCols::WP_USER_ID
+            "SELECT p.*, u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::VERIFICADO
+            . ", u." . UsuariosExtCols::WP_USER_ID
             . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID
-            . " = u." . \App\Config\Schema\_generated\UsuariosExtCols::ID
+            . " = u." . UsuariosExtCols::ID
             . " WHERE p." . PublicacionesCols::ID . " = :id",
             ['id' => $id]
         );
@@ -250,18 +252,18 @@ class PublicacionesRepository extends BaseRepository
      */
     public static function eliminarConCascada(int $id): void
     {
-        $tl = \App\Config\Schema\_generated\LikesCols::TABLA;
-        $tc = \App\Config\Schema\_generated\ComentariosCols::TABLA;
+        $tl = LikesCols::TABLA;
+        $tc = ComentariosCols::TABLA;
         $tabla = PublicacionesCols::TABLA;
 
         static::ejecutar(
-            "DELETE FROM {$tl} WHERE " . \App\Config\Schema\_generated\LikesCols::TIPO . " = 'publicacion' AND "
-            . \App\Config\Schema\_generated\LikesCols::TARGET_ID . " = :id",
+            "DELETE FROM {$tl} WHERE " . LikesCols::TIPO . " = 'publicacion' AND "
+            . LikesCols::TARGET_ID . " = :id",
             ['id' => $id]
         );
         static::ejecutar(
-            "DELETE FROM {$tc} WHERE " . \App\Config\Schema\_generated\ComentariosCols::TIPO . " = 'publicacion' AND "
-            . \App\Config\Schema\_generated\ComentariosCols::TARGET_ID . " = :id",
+            "DELETE FROM {$tc} WHERE " . ComentariosCols::TIPO . " = 'publicacion' AND "
+            . ComentariosCols::TARGET_ID . " = :id",
             ['id' => $id]
         );
         static::ejecutar(
@@ -276,12 +278,12 @@ class PublicacionesRepository extends BaseRepository
     public static function recalcularComentarios(int $id): void
     {
         $tabla = PublicacionesCols::TABLA;
-        $tc = \App\Config\Schema\_generated\ComentariosCols::TABLA;
+        $tc = ComentariosCols::TABLA;
 
         static::ejecutar(
             "UPDATE {$tabla} SET " . PublicacionesCols::TOTAL_COMENTARIOS
-            . " = (SELECT COUNT(*) FROM {$tc} WHERE " . \App\Config\Schema\_generated\ComentariosCols::TIPO
-            . " = 'publicacion' AND " . \App\Config\Schema\_generated\ComentariosCols::TARGET_ID . " = :id)"
+            . " = (SELECT COUNT(*) FROM {$tc} WHERE " . ComentariosCols::TIPO
+            . " = 'publicacion' AND " . ComentariosCols::TARGET_ID . " = :id)"
             . " WHERE " . PublicacionesCols::ID . " = :id",
             ['id' => $id]
         );

@@ -19,6 +19,7 @@
 namespace App\Kamples\Api;
 
 use App\Config\Schema\_generated\PublicacionesEnums;
+use App\Config\Schema\_generated\ComentariosEnums;
 
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
@@ -104,7 +105,7 @@ class ServicioModeracionIA
      * @param string $tipoContenido 'texto', 'imagen', 'audio'
      * @return array{nivel: string, razon: string, detalles: array}
      */
-    public static function moderarComentario(int $comentarioId, int $autorId, string $texto, ?string $mediaUrl = null, string $tipoContenido = 'texto'): array
+    public static function moderarComentario(int $comentarioId, int $autorId, string $texto, ?string $mediaUrl = null, string $tipoContenido = ComentariosEnums::TIPO_CONTENIDO_TEXTO): array
     {
         $apiKey = GroqHttpClient::obtenerApiKey();
         if (!$apiKey) {
@@ -122,7 +123,7 @@ class ServicioModeracionIA
         }
 
         /* Capa Vision: solo si el comentario tiene imagen */
-        if ($tipoContenido === 'imagen' && !empty($mediaUrl)) {
+        if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN && !empty($mediaUrl)) {
             $resultados['guard_imagen'] = AnalizadoresModeracion::analizarImagenComentario($apiKey, $mediaUrl);
         }
 
@@ -149,7 +150,7 @@ class ServicioModeracionIA
         }
 
         /* C132: Si rechazado, registrar violación y posible ban */
-        if ($veredicto['nivel'] === 'rechazado') {
+        if ($veredicto['nivel'] === PublicacionesEnums::MODERACION_RECHAZADO) {
             ServicioBan::registrarViolacion($autorId, $veredicto['razon'], 'comentario');
         }
 
