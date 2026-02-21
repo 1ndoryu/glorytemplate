@@ -24,18 +24,12 @@ use Glory\Core\GloryFeatures;
 
 PageManager::setDefaultContentMode('code');
 
-/*
- * =====================================================
- * PAGINAS REACT (usando reactPage - simplificado)
- * =====================================================
- * 
+/* Paginas React (usando reactPage - simplificado)
  * Solo necesitas:
  * 1. Crear el Island en App/React/islands/
  * 2. Registrar en App/React/appIslands.tsx
  * 3. Agregar aqui con reactPage()
- * 
- * NO necesitas crear archivo PHP en templates/pages/
- */
+ * NO necesitas crear archivo PHP en templates/pages/ */
 
 // Pagina estatica sin Page Builder (ejemplo de uso simple)
 
@@ -48,11 +42,7 @@ PageManager::reactPage('home-static', 'HomeStaticIsland', [
 // Home — Feed principal de Kamples
 PageManager::reactPage('home', 'InicioIsland');
 
-/*
- * =====================================================
- * PAGINAS KAMPLES — Autenticación y Perfiles (Fase 1)
- * =====================================================
- */
+/* Paginas Kamples — Autenticacion y Perfiles (Fase 1) */
 PageManager::reactPage('auth/login', 'LoginIsland');
 PageManager::reactPage('auth/registro', 'RegistroIsland');
 
@@ -74,11 +64,7 @@ PageManager::registrarRutaDinamica('sample');
 
 PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
 
-/*
- * =====================================================
- * PAGINAS KAMPLES — Core de Samples (Fase 2)
- * =====================================================
- */
+/* Paginas Kamples — Core de Samples (Fase 2) */
 /* Explorar eliminado: la búsqueda se hace desde el feed principal */
 
 PageManager::reactPage('libreria', 'LibreriaIsland');
@@ -107,11 +93,7 @@ PageManager::reactPage('coleccion', 'ColeccionDetalleIsland', function($pageId) 
 /* Ruta dinámica: /coleccion/{slug} */
 PageManager::registrarRutaDinamica('coleccion');
 
-/*
- * =====================================================
- * PAGINAS KAMPLES — Mensajería (Fase 7)
- * =====================================================
- */
+/* Paginas Kamples — Mensajeria (Fase 7) */
 PageManager::reactPage('mensajes', 'MensajesIsland');
 
 /* Chat individual — recibe conversacionId como segmento dinámico */
@@ -123,11 +105,7 @@ PageManager::reactPage('mensajes/chat', 'ChatIsland', function($pageId) {
     return ['conversacionId' => sanitize_text_field($convId)];
 });
 
-/*
- * =====================================================
- * PAGINAS KAMPLES — Admin / Dashboard Creador (Fase 6)
- * =====================================================
- */
+/* Paginas Kamples — Admin / Dashboard Creador (Fase 6) */
 PageManager::reactPage('admin/dashboard', 'DashboardCreadorIsland');
 PageManager::reactPage('admin/panel', 'AdminPanelIsland');
 
@@ -139,24 +117,15 @@ PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
     return ['slug' => sanitize_text_field($slug)];
 });
 
-/*
- * =====================================================
- * DEV — Showcase de componentes (solo desarrollo)
- * =====================================================
- */
+/* DEV — Showcase de componentes (solo desarrollo) */
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
 
-/*
- * =====================================================
- * PAGINAS CON TEMPLATES PHP PERSONALIZADOS
- * =====================================================
- * 
+/* Paginas con templates PHP personalizados
  * Usa define() cuando necesitas:
  * - Logica PHP compleja para obtener props
  * - Acceso a funciones de WordPress que no estan disponibles durante config
- * - Compatibilidad con codigo existente
- */
+ * - Compatibilidad con codigo existente */
 
 // Home con Page Builder (necesita template PHP por los props dinamicos)
 /*
@@ -167,11 +136,7 @@ PageManager::define('editor', 'editor');
 PageManager::define('test', 'test');
 */ 
 
-/*
- * =====================================================
- * PAGINAS CONDICIONALES (solo si feature activa)
- * =====================================================
- */
+/* Paginas condicionales (solo si feature activa) */
 
 /*
 if (GloryFeatures::isActive('task') !== false) {

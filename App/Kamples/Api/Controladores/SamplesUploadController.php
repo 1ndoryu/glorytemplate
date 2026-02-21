@@ -46,7 +46,8 @@ class SamplesUploadController
      */
     public static function subir(\WP_REST_Request $request): \WP_REST_Response
     {
-        $wpUserId = AuthMiddleware::obtenerWpUserId();
+        try {
+            $wpUserId = AuthMiddleware::obtenerWpUserId();
 
         /* C164: Rate limit — 10 uploads por hora */
         $pgId = UsuarioHelper::obtenerIdPg();
@@ -233,6 +234,10 @@ class SamplesUploadController
             'ok' => true, 'sample_id' => $sampleId, 'id_corto' => $idCorto,
             'slug' => $slug, 'url' => $subido['url'], 'estado' => 'procesando',
         ], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[SamplesUploadController::subir] Error no capturado', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al procesar la subida'], 500);
+        }
     }
 
     private static function eliminarArchivoSiExiste(string $ruta, string $contexto): void

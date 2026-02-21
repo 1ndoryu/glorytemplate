@@ -69,16 +69,21 @@ class EmbeddingsController
      */
     public static function generarBatch(\WP_REST_Request $req): \WP_REST_Response
     {
-        $inicio = microtime(true);
-        $actualizados = GeneradorEmbeddings::generarTodos();
-        $tiempo = round((microtime(true) - $inicio) * 1000);
+        try {
+            $inicio = microtime(true);
+            $actualizados = GeneradorEmbeddings::generarTodos();
+            $tiempo = round((microtime(true) - $inicio) * 1000);
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'actualizados' => $actualizados,
-            'tiempoMs' => $tiempo,
-            'mensaje' => "Se generaron {$actualizados} embeddings en {$tiempo}ms",
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'actualizados' => $actualizados,
+                'tiempoMs' => $tiempo,
+                'mensaje' => "Se generaron {$actualizados} embeddings en {$tiempo}ms",
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::generarBatch] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al generar embeddings'], 500);
+        }
     }
 
     /**
@@ -87,21 +92,26 @@ class EmbeddingsController
      */
     public static function regenerarTodos(\WP_REST_Request $req): \WP_REST_Response
     {
-        $inicio = microtime(true);
+        try {
+            $inicio = microtime(true);
 
-        /* Borrar todos los embeddings existentes */
-        SamplesRepository::limpiarEmbeddings();
+            /* Borrar todos los embeddings existentes */
+            SamplesRepository::limpiarEmbeddings();
 
-        /* Regenerar todos */
-        $actualizados = GeneradorEmbeddings::generarTodos();
-        $tiempo = round((microtime(true) - $inicio) * 1000);
+            /* Regenerar todos */
+            $actualizados = GeneradorEmbeddings::generarTodos();
+            $tiempo = round((microtime(true) - $inicio) * 1000);
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'actualizados' => $actualizados,
-            'tiempoMs' => $tiempo,
-            'mensaje' => "Se regeneraron {$actualizados} embeddings en {$tiempo}ms",
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'actualizados' => $actualizados,
+                'tiempoMs' => $tiempo,
+                'mensaje' => "Se regeneraron {$actualizados} embeddings en {$tiempo}ms",
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::regenerarTodos] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al regenerar embeddings'], 500);
+        }
     }
 
     /**
@@ -109,16 +119,21 @@ class EmbeddingsController
      */
     public static function estado(\WP_REST_Request $req): \WP_REST_Response
     {
-        $stats = SamplesRepository::estadisticasEmbeddings();
+        try {
+            $stats = SamplesRepository::estadisticasEmbeddings();
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'totalSamples' => (int) ($stats['total_samples'] ?? 0),
-            'conEmbedding' => (int) ($stats['con_embedding'] ?? 0),
-            'sinEmbedding' => (int) ($stats['sin_embedding'] ?? 0),
-            'porcentaje' => (float) ($stats['porcentaje'] ?? 0),
-            'pgvectorActivo' => true,
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'totalSamples' => (int) ($stats['total_samples'] ?? 0),
+                'conEmbedding' => (int) ($stats['con_embedding'] ?? 0),
+                'sinEmbedding' => (int) ($stats['sin_embedding'] ?? 0),
+                'porcentaje' => (float) ($stats['porcentaje'] ?? 0),
+                'pgvectorActivo' => true,
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::estado] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al obtener estado'], 500);
+        }
     }
 
     /**
@@ -126,21 +141,28 @@ class EmbeddingsController
      */
     public static function estadoAlgoritmo(\WP_REST_Request $req): \WP_REST_Response
     {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
 
-        $estado = PlanificadorAlgoritmo::obtenerEstado($userId);
+            $estado = PlanificadorAlgoritmo::obtenerEstado($userId);
 
-        /* Cargar config de frecuencia para mostrarla junto al estado */
-        $ruta = dirname(__DIR__, 2) . '/Config/algoritmoPesos.php';
-        $config = file_exists($ruta) ? require $ruta : [];
-        $frecuencia = $config['frecuencia'] ?? [];
+            /* Cargar config de frecuencia para mostrarla junto al estado */
+            $ruta = dirname(__DIR__, 2) . '/Config/algoritmoPesos.php';
+            $config = file_exists($ruta) ? require $ruta : [];
+            $frecuencia = $config['frecuencia'] ?? [];
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'estado' => $estado,
-            'configuracion' => $frecuencia,
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'estado' => $estado,
+                'configuracion' => $frecuencia,
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::estadoAlgoritmo] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al obtener estado del algoritmo'], 500);
+        }
     }
 
     /**
@@ -148,15 +170,20 @@ class EmbeddingsController
      */
     public static function forzarRecalculo(\WP_REST_Request $req): \WP_REST_Response
     {
-        $inicio = microtime(true);
-        $procesados = PlanificadorAlgoritmo::forzarRecalculoGlobal();
-        $tiempo = round((microtime(true) - $inicio) * 1000);
+        try {
+            $inicio = microtime(true);
+            $procesados = PlanificadorAlgoritmo::forzarRecalculoGlobal();
+            $tiempo = round((microtime(true) - $inicio) * 1000);
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'usuariosProcesados' => $procesados,
-            'tiempoMs' => $tiempo,
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'usuariosProcesados' => $procesados,
+                'tiempoMs' => $tiempo,
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::forzarRecalculo] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al forzar recalculo'], 500);
+        }
     }
 
     /**
@@ -165,15 +192,20 @@ class EmbeddingsController
      */
     public static function procesarTemporales(\WP_REST_Request $req): \WP_REST_Response
     {
-        $inicio = microtime(true);
-        $resultado = PlanificadorAlgoritmo::procesarTemporales();
-        $tiempo = round((microtime(true) - $inicio) * 1000);
+        try {
+            $inicio = microtime(true);
+            $resultado = PlanificadorAlgoritmo::procesarTemporales();
+            $tiempo = round((microtime(true) - $inicio) * 1000);
 
-        return new \WP_REST_Response([
-            'ok' => true,
-            'rapidos' => $resultado['rapidos'],
-            'precisos' => $resultado['precisos'],
-            'tiempoMs' => $tiempo,
-        ]);
+            return new \WP_REST_Response([
+                'ok' => true,
+                'rapidos' => $resultado['rapidos'],
+                'precisos' => $resultado['precisos'],
+                'tiempoMs' => $tiempo,
+            ]);
+        } catch (\Throwable $e) {
+            error_log('[EmbeddingsController::procesarTemporales] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al procesar temporales'], 500);
+        }
     }
 }
