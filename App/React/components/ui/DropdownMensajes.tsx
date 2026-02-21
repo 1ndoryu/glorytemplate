@@ -2,18 +2,12 @@
  * Componente: DropdownMensajes — Kamples
  * Panel dropdown con la lista de conversaciones recientes.
  * Se muestra al hacer click en el icono de correo del TopBar.
- * C192: Usa mensajesStore como cache (stale-while-revalidate).
- * Primera apertura muestra "Cargando...", aperturas siguientes muestran cache al instante
- * y refrescan en background si el TTL expiro.
+ * C192: Usa mensajesStore como cache (stale-while-revalidate) via useDropdownMensajes hook.
  */
 
-import { useCallback, useEffect } from 'react';
 import { Mail, Loader2 } from 'lucide-react';
 import { Avatar } from './Avatar';
-import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
-import { useMensajesStore } from '@app/stores/mensajesStore';
-import { obtenerConversaciones } from '@app/services/apiMensajes';
-import type { Conversacion } from '@app/types';
+import { useDropdownMensajes } from '../../hooks/useDropdownMensajes';
 import '../../styles/componentes/dropdownPanel.css';
 
 /* Formatea fecha ISO a texto relativo */
@@ -32,52 +26,13 @@ interface DropdownMensajesProps {
 }
 
 export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Element => {
-    const abrirChat = useChatFlotanteStore(s => s.abrirChat);
-    const conversaciones = useMensajesStore(s => s.conversaciones);
-    const cargando = useMensajesStore(s => s.cargandoConversaciones);
-    const conversacionesCargadas = useMensajesStore(s => s.conversacionesCargadas);
-    const setConversaciones = useMensajesStore(s => s.setConversaciones);
-    const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
-    const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
-
-    /*
-     * C192: Stale-while-revalidate.
-     * - Primera vez: muestra Cargando, fetch, guardar en store.
-     * - Siguientes: muestra cache al instante. Si TTL expiro, refresca en background.
-     */
-    useEffect(() => {
-        let cancelado = false;
-        const debeRefrescar = necesitaRefrescar();
-        if (!debeRefrescar) return;
-
-        /* Solo mostrar spinner si no hay datos previos */
-        if (!conversacionesCargadas) {
-            setCargandoConversaciones(true);
-        }
-
-        obtenerConversaciones().then((resp) => {
-            if (!cancelado && resp.ok && resp.data) {
-                setConversaciones(resp.data);
-            }
-            if (!cancelado) setCargandoConversaciones(false);
-        }).catch(() => {
-            if (!cancelado) setCargandoConversaciones(false);
-        });
-        return () => { cancelado = true; };
-    }, []);
-
-    const abrirConversacion = useCallback((conv: Conversacion) => {
-        abrirChat({
-            conversacionId: conv.id,
-            participanteId: conv.participante.id,
-            participanteUsername: conv.participante.username,
-            nombreParticipante: conv.participante.nombreVisible,
-            avatarUrl: conv.participante.avatarUrl,
-        });
-        onCerrar();
-    }, [abrirChat, onCerrar]);
-
-    const sinLeer = conversaciones.filter((c) => c.noLeidos > 0).length;
+    const {
+        conversaciones,
+        cargando,
+        conversacionesCargadas,
+        sinLeer,
+        abrirConversacion,
+    } = useDropdownMensajes({ onCerrar });
 
     return (
         <>

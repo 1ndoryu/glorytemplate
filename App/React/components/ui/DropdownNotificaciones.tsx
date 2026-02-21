@@ -2,13 +2,11 @@
  * Componente: DropdownNotificaciones — Kamples
  * Panel dropdown con la lista de notificaciones recientes.
  * Se muestra al hacer click en el icono de campana del TopBar.
- * Conectado a API real via obtenerNotificaciones.
+ * Conectado a API real via useDropdownNotificaciones hook.
  */
 
-import { useCallback, useEffect, useState } from 'react';
 import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard } from 'lucide-react';
-import { useNavigationStore } from '@/core/router';
-import { obtenerNotificaciones, type Notificacion } from '@app/services/apiNotificaciones';
+import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
 import '../../styles/componentes/dropdownPanel.css';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
@@ -41,39 +39,13 @@ interface DropdownNotificacionesProps {
 }
 
 export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps): JSX.Element => {
-    const navegar = useNavigationStore(s => s.navegar);
-    const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
-    const [cargando, setCargando] = useState(true);
-
-    useEffect(() => {
-        let cancelado = false;
-        obtenerNotificaciones().then((resp) => {
-            if (!cancelado && resp.ok && resp.data) {
-                setNotificaciones(resp.data);
-            }
-            if (!cancelado) setCargando(false);
-        }).catch(() => {
-            if (!cancelado) setCargando(false);
-        });
-        return () => { cancelado = true; };
-    }, []);
-
-    const irANotificaciones = useCallback(() => {
-        navegar('/notificaciones');
-        onCerrar();
-    }, [navegar, onCerrar]);
-
-    const manejarClickNotif = useCallback((noti: Notificacion) => {
-        if (noti.enlace) {
-            navegar(noti.enlace);
-            onCerrar();
-        } else if (noti.datos?.sampleSlug) {
-            navegar(`/sample/${noti.datos.sampleSlug}/`);
-            onCerrar();
-        }
-    }, [navegar, onCerrar]);
-
-    const noLeidas = notificaciones.filter((n) => !n.leida).length;
+    const {
+        notificaciones,
+        cargando,
+        noLeidas,
+        irANotificaciones,
+        manejarClickNotif,
+    } = useDropdownNotificaciones({ onCerrar });
 
     return (
         <>

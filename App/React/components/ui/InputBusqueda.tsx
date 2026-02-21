@@ -1,10 +1,11 @@
 /*
  * Componente: InputBusqueda
  * Input de búsqueda con debounce, ícono y botón de limpiar.
+ * Lógica extraída a useInputBusqueda hook.
  */
 
-import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { Search, X } from 'lucide-react';
+import { useInputBusqueda } from '../../hooks/useInputBusqueda';
 import '../../styles/componentes/inputBusqueda.css';
 
 interface InputBusquedaProps {
@@ -26,51 +27,12 @@ export const InputBusqueda = ({
     className = '',
     autoFocus = false,
 }: InputBusquedaProps): JSX.Element => {
-    const [valorInterno, setValorInterno] = useState(valorExterno ?? '');
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    /* Sincronizar valor externo */
-    useEffect(() => {
-        if (valorExterno !== undefined) {
-            setValorInterno(valorExterno);
-        }
-    }, [valorExterno]);
-
-    /* AutoFocus */
-    useEffect(() => {
-        if (autoFocus && inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, [autoFocus]);
-
-    const manejarCambio = (e: ChangeEvent<HTMLInputElement>) => {
-        const nuevoValor = e.target.value;
-        setValorInterno(nuevoValor);
-
-        if (timerRef.current) {
-            clearTimeout(timerRef.current);
-        }
-
-        timerRef.current = setTimeout(() => {
-            onChange(nuevoValor);
-        }, debounceMs);
-    };
-
-    const limpiar = () => {
-        setValorInterno('');
-        onChange('');
-        inputRef.current?.focus();
-    };
-
-    /* Limpiar timer al desmontar */
-    useEffect(() => {
-        return () => {
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-            }
-        };
-    }, []);
+    const {
+        valorInterno,
+        inputRef,
+        manejarCambio,
+        limpiar,
+    } = useInputBusqueda({ valorExterno, onChange, debounceMs, autoFocus });
 
     const clases = [
         'contenedorInputBusqueda',

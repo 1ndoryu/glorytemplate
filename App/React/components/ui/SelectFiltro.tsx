@@ -3,10 +3,12 @@
  * Dropdown personalizado para filtrar tags por categoría.
  * Estilo minimalista inspirado en MenuContextual.
  * Cada opción puede incluirse (+) o excluirse (-) del filtro.
+ * Lógica extraída a useSelectFiltro hook.
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { ChevronDown, Plus, Minus, X } from 'lucide-react';
+import { Plus, Minus, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { useSelectFiltro } from '../../hooks/useSelectFiltro';
 import '../../styles/componentes/selectFiltro.css';
 
 export interface SelectFiltroProps {
@@ -35,52 +37,14 @@ export const SelectFiltro = ({
     onExcluir,
     onQuitar,
 }: SelectFiltroProps): JSX.Element | null => {
-    const [abierto, setAbierto] = useState(false);
-    const contenedorRef = useRef<HTMLDivElement>(null);
-
-    /* Cantidad de tags activos en esta categoría */
-    const activos = opciones.filter(
-        (o) => tagsIncluidos.includes(o) || tagsExcluidos.includes(o)
-    ).length;
-
-    /* Cerrar al hacer click fuera */
-    useEffect(() => {
-        if (!abierto) return;
-        const cerrar = (e: MouseEvent) => {
-            if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
-                setAbierto(false);
-            }
-        };
-        document.addEventListener('mousedown', cerrar);
-        return () => document.removeEventListener('mousedown', cerrar);
-    }, [abierto]);
-
-    /* Cerrar con Escape */
-    useEffect(() => {
-        if (!abierto) return;
-        const manejarEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setAbierto(false);
-        };
-        document.addEventListener('keydown', manejarEscape);
-        return () => document.removeEventListener('keydown', manejarEscape);
-    }, [abierto]);
-
-    const manejarClickOpcion = useCallback((tag: string) => {
-        if (tagsIncluidos.includes(tag)) {
-            onQuitar(tag);
-        } else {
-            onIncluir(tag);
-        }
-    }, [tagsIncluidos, onIncluir, onQuitar]);
-
-    const manejarExcluir = useCallback((e: React.MouseEvent, tag: string) => {
-        e.stopPropagation();
-        if (tagsExcluidos.includes(tag)) {
-            onQuitar(tag);
-        } else {
-            onExcluir(tag);
-        }
-    }, [tagsExcluidos, onExcluir, onQuitar]);
+    const {
+        abierto,
+        activos,
+        contenedorRef,
+        toggleAbierto,
+        manejarClickOpcion,
+        manejarExcluir,
+    } = useSelectFiltro({ opciones, tagsIncluidos, tagsExcluidos, onIncluir, onExcluir, onQuitar });
 
     if (opciones.length === 0) return null;
 
@@ -89,7 +53,7 @@ export const SelectFiltro = ({
             <button
                 type="button"
                 className={`selectFiltroBoton ${activos > 0 ? 'selectFiltroBotonActivo' : ''}`}
-                onClick={() => setAbierto(!abierto)}
+                onClick={toggleAbierto}
                 aria-expanded={abierto}
                 aria-haspopup="listbox"
             >

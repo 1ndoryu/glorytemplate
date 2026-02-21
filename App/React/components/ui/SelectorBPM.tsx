@@ -2,10 +2,11 @@
  * SelectorBPM — Kamples (C116)
  * Selector de rango BPM con inputs min/max.
  * Estilo consistente con SelectFiltro (menu contextual style).
+ * Lógica extraída a useSelectorBPM hook.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, X } from 'lucide-react';
+import { useSelectorBPM } from '../../hooks/useSelectorBPM';
 import '../../styles/componentes/selectFiltro.css';
 
 export interface SelectorBPMProps {
@@ -19,68 +20,27 @@ export const SelectorBPM = ({
     bpmMax,
     onCambiar,
 }: SelectorBPMProps): JSX.Element => {
-    const [abierto, setAbierto] = useState(false);
-    const [minLocal, setMinLocal] = useState(bpmMin?.toString() ?? '');
-    const [maxLocal, setMaxLocal] = useState(bpmMax?.toString() ?? '');
-    const contenedorRef = useRef<HTMLDivElement>(null);
-
-    /* Sync cuando el store cambie externamente */
-    useEffect(() => {
-        setMinLocal(bpmMin?.toString() ?? '');
-        setMaxLocal(bpmMax?.toString() ?? '');
-    }, [bpmMin, bpmMax]);
-
-    /* Cerrar al hacer click fuera */
-    useEffect(() => {
-        if (!abierto) return;
-        const cerrar = (e: MouseEvent) => {
-            if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
-                setAbierto(false);
-            }
-        };
-        document.addEventListener('mousedown', cerrar);
-        return () => document.removeEventListener('mousedown', cerrar);
-    }, [abierto]);
-
-    const activo = bpmMin !== null || bpmMax !== null;
-
-    const aplicar = useCallback(() => {
-        const min = minLocal.trim() ? parseInt(minLocal, 10) : null;
-        const max = maxLocal.trim() ? parseInt(maxLocal, 10) : null;
-        onCambiar(
-            min !== null && !isNaN(min) ? min : null,
-            max !== null && !isNaN(max) ? max : null
-        );
-    }, [minLocal, maxLocal, onCambiar]);
-
-    const limpiar = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setMinLocal('');
-        setMaxLocal('');
-        onCambiar(null, null);
-    }, [onCambiar]);
-
-    /* Aplicar al presionar Enter */
-    const manejarKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            aplicar();
-            setAbierto(false);
-        } else if (e.key === 'Escape') {
-            setAbierto(false);
-        }
-    }, [aplicar]);
-
-    /* Etiqueta dinámica */
-    const etiquetaTexto = activo
-        ? `BPM: ${bpmMin ?? '–'}–${bpmMax ?? '–'}`
-        : 'BPM';
+    const {
+        abierto,
+        minLocal,
+        maxLocal,
+        activo,
+        etiquetaTexto,
+        contenedorRef,
+        setMinLocal,
+        setMaxLocal,
+        toggleAbierto,
+        limpiar,
+        manejarKeyDown,
+        aplicarYCerrar,
+    } = useSelectorBPM({ bpmMin, bpmMax, onCambiar });
 
     return (
         <div className="selectFiltro" ref={contenedorRef}>
             <button
                 type="button"
                 className={`selectFiltroBoton ${activo ? 'selectFiltroBotonActivo' : ''}`}
-                onClick={() => setAbierto(!abierto)}
+                onClick={toggleAbierto}
                 aria-expanded={abierto}
             >
                 <span className="selectFiltroEtiqueta">{etiquetaTexto}</span>
@@ -124,7 +84,7 @@ export const SelectorBPM = ({
                     <button
                         type="button"
                         className="selectorBPMAplicar"
-                        onClick={() => { aplicar(); setAbierto(false); }}
+                        onClick={aplicarYCerrar}
                     >
                         Aplicar
                     </button>
