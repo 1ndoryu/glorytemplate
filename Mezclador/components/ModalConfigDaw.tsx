@@ -4,11 +4,9 @@
  * Contiene opciones de snap y ajustes globales del proyecto.
  */
 
-import { useEffect, useRef } from 'react';
-import { useMezcladorStore } from '../stores/mezcladorStore';
-import { useVentanasStore } from '../stores/ventanasStore';
 import { VentanaFlotante } from './VentanaFlotante';
 import type { SnapResolucion } from '../types/mezclador';
+import { useModalConfigDaw } from '../hooks/useModalConfigDaw';
 
 interface ModalConfigDawProps {
     abierto: boolean;
@@ -25,50 +23,13 @@ const OPCIONES_SNAP: { valor: SnapResolucion; label: string; desc: string }[] = 
     { valor: 'off', label: 'Off', desc: 'Sin snap (movimiento libre)' },
 ];
 
-const VENTANA_ID = 'config-daw';
-
 export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.Element | null => {
-    const snapResolucion = useMezcladorStore(s => s.snapResolucion);
-    const setSnapResolucion = useMezcladorStore(s => s.setSnapResolucion);
-    const abrirVentana = useVentanasStore(s => s.abrirVentana);
-    const cerrarVentana = useVentanasStore(s => s.cerrarVentana);
-    const ventana = useVentanasStore(s => s.ventanas.find(v => v.id === VENTANA_ID));
-
-    /* Registrar/cerrar ventana según prop abierto */
-    useEffect(() => {
-        if (abierto) {
-            abrirVentana({
-                id: VENTANA_ID,
-                tipo: 'configDaw',
-                titulo: 'Configuración DAW',
-                posicion: {
-                    x: Math.max(20, Math.round(window.innerWidth / 2 - 175)),
-                    y: Math.max(20, Math.round(window.innerHeight / 2 - 120)),
-                },
-            });
-        } else {
-            cerrarVentana(VENTANA_ID);
-        }
-    }, [abierto]);
-
-    /*
-     * C324: Detectar cierre externo — solo cerrar si la ventana fue vista
-     * al menos una vez y luego desaparece. Evita parpadeo inicial.
-     */
-    const ventanaVista = useRef(false);
-    useEffect(() => {
-        if (!abierto) { ventanaVista.current = false; return; }
-        if (ventana !== undefined) {
-            ventanaVista.current = true;
-        } else if (ventanaVista.current) {
-            onCerrar();
-        }
-    }, [ventana, abierto, onCerrar]);
+    const { snapResolucion, setSnapResolucion, ventanaId } = useModalConfigDaw({ abierto, onCerrar });
 
     if (!abierto) return null;
 
     return (
-        <VentanaFlotante id={VENTANA_ID} titulo="Configuración DAW" ancho={360}>
+        <VentanaFlotante id={ventanaId} titulo="Configuración DAW" ancho={360}>
             <div className="configBloqueContenido">
                 <div className="configBloqueSeccion">
                     <h4 className="configBloqueSeccionTitulo">Snap / Cuadrícula</h4>
