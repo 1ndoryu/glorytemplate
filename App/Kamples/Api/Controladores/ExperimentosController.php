@@ -183,7 +183,6 @@ class ExperimentosController
     {
         /* Elegir tipo aleatorio para variedad */
         /* Tipos de notificacion (no confundir con LikesEnums::REACCION_LIKE) */
-        /* sentinel-disable hardcoded-enum-value */
         $tipos = ['follow', 'like', 'mensaje'];
         $tipo  = $tipos[array_rand($tipos)];
 
@@ -192,6 +191,7 @@ class ExperimentosController
                 $datos = json_encode(['seguidor_id' => $testUserId]);
                 break;
 
+            /* sentinel-disable-next-line hardcoded-enum-value */
             case 'like':
                 /* Buscar un sample del admin para simular like */
                 $sample = SamplesRepository::obtenerUltimoDelCreador($adminPgId);

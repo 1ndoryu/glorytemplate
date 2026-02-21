@@ -3,9 +3,6 @@
 /**
  * DashboardController — Estadísticas del creador.
  *
- * TO-DO: Extraer queries directas de PostgresService a un DashboardRepository
- * para cumplir con la separación controller/repository (endpoint-accede-bd).
- *
  * @package Kamples
  */
 
@@ -14,11 +11,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Config\Schema\_generated\UsuariosExtCols;
-use App\Config\Schema\_generated\DescargasCols;
-use App\Config\Schema\_generated\ReproduccionesCols;
-use App\Config\Schema\_generated\SamplesCols;
-use App\Config\Schema\_generated\FollowsCols;
-use App\Kamples\Database\PostgresService;
+use App\Kamples\Database\Repositories\DashboardRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\TransaccionesRepository;
 use App\Kamples\KamplesLogger;
@@ -59,30 +52,9 @@ class DashboardController
         $usuario = UsuarioHelper::obtenerPorId($userId);
 
         /*
-         * OPT01: 4 queries de metricas mensuales combinadas en 1 con subqueries escalares.
-         * PDO con ATTR_EMULATE_PREPARES=false prohibe reusar placeholders,
-         * asi que se usan uid1-uid4 con el mismo valor.
+         * OPT01: 4 queries de métricas mensuales combinadas en 1 (ver DashboardRepository::statsMesCreador).
          */
-        $td = DescargasCols::TABLA;
-        $tr = ReproduccionesCols::TABLA;
-        $ts = SamplesCols::TABLA;
-        $tf = FollowsCols::TABLA;
-
-        $statsMes = PostgresService::consultarUno(
-            "SELECT"
-            . " (SELECT COUNT(*) FROM {$td} d JOIN {$ts} s ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
-            . "  WHERE s." . SamplesCols::CREADOR_ID . " = :uid1"
-            . "  AND d." . DescargasCols::CREATED_AT . " >= date_trunc('month', NOW())) as descargas_mes,"
-            . " (SELECT COUNT(*) FROM {$tr} r JOIN {$ts} s ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
-            . "  WHERE s." . SamplesCols::CREADOR_ID . " = :uid2"
-            . "  AND r." . ReproduccionesCols::CREATED_AT . " >= date_trunc('month', NOW())) as reproducciones_mes,"
-            . " (SELECT COALESCE(SUM(" . SamplesCols::TOTAL_REPRODUCCIONES . "), 0) FROM {$ts}"
-            . "  WHERE " . SamplesCols::CREADOR_ID . " = :uid3) as reproducciones_totales,"
-            . " (SELECT COUNT(*) FROM {$tf}"
-            . "  WHERE " . FollowsCols::SEGUIDO_ID . " = :uid4"
-            . "  AND " . FollowsCols::CREATED_AT . " >= date_trunc('month', NOW())) as seguidores_nuevos",
-            ['uid1' => $userId, 'uid2' => $userId, 'uid3' => $userId, 'uid4' => $userId]
-        );
+        $statsMes = DashboardRepository::statsMesCreador($userId);
 
         $descargasMes = (int) ($statsMes['descargas_mes'] ?? 0);
         $reproduccionesMes = (int) ($statsMes['reproducciones_mes'] ?? 0);

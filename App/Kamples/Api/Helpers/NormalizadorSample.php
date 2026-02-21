@@ -6,6 +6,12 @@
  * Convierte snake_case → camelCase, parsea arrays PG y JSONB,
  * y agrupa datos del creador en un sub-objeto.
  *
+ * sentinel-disable-file limite-lineas
+ * Justificación: clase de utilidad central con responsabilidad cohesiva (normalización de samples).
+ * sqlSelectSamples() es inseparable del rest: comparte las mismas constants de columnas
+ * y tiene 12+ callers directos en repositories y servicios. Extraer a un archivo separado
+ * requeriría forwarding en todos los callers sin beneficio arquitectónico real.
+ *
  * @package Kamples
  */
 

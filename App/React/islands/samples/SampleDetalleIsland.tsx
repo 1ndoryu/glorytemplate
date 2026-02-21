@@ -5,15 +5,11 @@
  * Logica extraida a useSampleDetalle + useSampleAudio (SRP).
  */
 
+import { useCallback } from 'react';
 import {
     Pause,
-    Heart,
-    MessageCircle,
-    Download,
     AlertCircle,
     Crown,
-    Lock,
-    MoreHorizontal,
     Sparkles,
     BadgeCheck,
 } from 'lucide-react';
@@ -23,10 +19,9 @@ import {
 } from '@app/components/ui';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
-import { ListaComentarios } from '@app/components/social/ListaComentarios';
+import { SampleDetalleAcciones } from '@app/components/samples/SampleDetalleAcciones';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { descargarSample } from '@app/services/apiDescargas';
@@ -65,6 +60,35 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         targetId: sample?.id ?? 0,
         cargarAlAbrir: true,
     });
+
+    const manejarDescargar = useCallback(async () => {
+        if (!sample) return;
+        const resp = await descargarSample(sample.id);
+        if (resp.ok && resp.data?.url) {
+            setDescargado(true);
+            const a = document.createElement('a');
+            a.href = resp.data.url;
+            a.download = resp.data.nombre || sample.titulo || 'sample';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else if (resp.status === 429) {
+            toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
+            abrirPlanes();
+        } else if (resp.status === 403) {
+            toast.error(resp.error ?? 'Se requiere plan Pro o Premium');
+            abrirPlanes();
+        } else if (!resp.ok) {
+            toast.error(resp.error ?? 'Error al descargar');
+        }
+    }, [sample, setDescargado, abrirPlanes]);
+
+    const manejarToggleComentarios = useCallback(() => {
+        setComentariosVisibles(prev => !prev);
+        if (!comentariosVisibles && seccionComentarios.comentarios.length === 0) {
+            seccionComentarios.cargar(1);
+        }
+    }, [comentariosVisibles, seccionComentarios, setComentariosVisibles]);
 
     useTabsIsla('SampleDetalleIsland', TABS_SAMPLE_DETALLE, 'sample');
 
@@ -188,114 +212,24 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         </div>
                     )}
 
-                    <div className="detalleAcciones">
-                        <TooltipReacciones
-                            reaccionActual={reaccionActual}
-                            onReaccionar={manejarReaccionDetalle}
-                            onQuitar={manejarQuitarReaccionDetalle}
-                        >
-                            <button
-                                className={`detalleAccionPlano ${liked ? 'detalleAccionPlanoActivo' : ''} ${
-                                    reaccionActual === 'encanta' ? 'reaccionPrincipalEncanta' :
-                                    reaccionActual === 'dislike' ? 'reaccionPrincipalDislike' : ''
-                                }`}
-                                onClick={manejarLike}
-                                type="button"
-                                aria-label={liked ? 'Quitar like' : 'Dar like'}
-                            >
-                                <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
-                            </button>
-                        </TooltipReacciones>
-                        <button
-                            className="detalleAccionPlano"
-                            onClick={() => {
-                                setComentariosVisibles(prev => !prev);
-                                if (!comentariosVisibles && seccionComentarios.comentarios.length === 0) {
-                                    seccionComentarios.cargar(1);
-                                }
-                            }}
-                            type="button"
-                            aria-label="Comentarios"
-                        >
-                            <MessageCircle size={18} />
-                        </button>
-                        <button
-                            className={`detalleAccionPlano ${descargado ? 'detalleAccionPlanoDescargado' : ''}`}
-                            onClick={async () => {
-                                const resp = await descargarSample(sample.id);
-                                if (resp.ok && resp.data?.url) {
-                                    setDescargado(true);
-                                    const a = document.createElement('a');
-                                    a.href = resp.data.url;
-                                    a.download = resp.data.nombre || sample.titulo || 'sample';
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                } else if (resp.status === 429) {
-                                    /* C199: Sin créditos — abrir modal de suscripción */
-                                    toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
-                                    abrirPlanes();
-                                } else if (resp.status === 403) {
-                                    toast.error(resp.error ?? 'Se requiere plan Pro o Premium');
-                                    abrirPlanes();
-                                } else if (!resp.ok) {
-                                    toast.error(resp.error ?? 'Error al descargar');
-                                }
-                            }}
-                            type="button"
-                            aria-label="Descargar sample"
-                        >
-                            <Download size={18} />
-                        </button>
-
-                        {sample.esPremium && usuarioAuth?.plan === 'free' && !esPropietario && (
-                            <button
-                                className="detalleAccionPlano detalleAccionPlanoActivo"
-                                onClick={abrirPlanes}
-                                type="button"
-                                aria-label="Requiere plan Pro"
-                            >
-                                <Lock size={18} />
-                            </button>
-                        )}
-
-                        {/* C127: Menú de 3 puntos para el sample principal */}
-                        <button
-                            className="detalleAccionPlano"
-                            onClick={(e) => menu.abrirMenu(e as React.MouseEvent, sample as unknown as SampleResumen)}
-                            type="button"
-                            aria-label="Más opciones"
-                        >
-                            <MoreHorizontal size={18} />
-                        </button>
-                    </div>
-
+                    <SampleDetalleAcciones
+                        liked={liked}
+                        reaccionActual={reaccionActual}
+                        onLike={manejarLike}
+                        onReaccionar={manejarReaccionDetalle}
+                        onQuitarReaccion={manejarQuitarReaccionDetalle}
+                        comentariosVisibles={comentariosVisibles}
+                        onToggleComentarios={manejarToggleComentarios}
+                        descargado={descargado}
+                        onDescargar={manejarDescargar}
+                        esPremiumBloqueado={!!(sample.esPremium && usuarioAuth?.plan === 'free' && !esPropietario)}
+                        onAbrirPlanes={abrirPlanes}
+                        onAbrirMenu={menu.abrirMenu}
+                        sample={sample as unknown as SampleResumen}
+                        seccionComentarios={seccionComentarios}
+                        onClickAutorComentario={(u) => navegar(`/perfil/${u}/`)}
+                    />
                 </div>
-
-                {/* Sección de comentarios — expandidos por defecto (C128) */}
-                {comentariosVisibles && (
-                    <div className="detalleSeccion detalleComentariosSeccion">
-                        <ListaComentarios
-                            comentarios={seccionComentarios.comentarios}
-                            cargando={seccionComentarios.cargando}
-                            onEnviar={seccionComentarios.enviar}
-                            onEnviarMultimedia={seccionComentarios.enviarMultimedia}
-                            onClickAutor={(u) => navegar(`/perfil/${u}/`)}
-                            maxVisibles={5}
-                            onCargarMas={seccionComentarios.cargarMas}
-                            hayMasPaginas={seccionComentarios.hayMas}
-                            onEditar={seccionComentarios.editar}
-                            onEliminar={seccionComentarios.eliminar}
-                            onReportar={seccionComentarios.reportar}
-                            onToggleLike={seccionComentarios.toggleLike}
-                            onCargarRespuestas={seccionComentarios.cargarRespuestas}
-                            editandoId={seccionComentarios.editandoId}
-                            setEditandoId={seccionComentarios.setEditandoId}
-                            respondendoAId={seccionComentarios.respondendoAId}
-                            setRespondendoAId={seccionComentarios.setRespondendoAId}
-                        />
-                    </div>
-                )}
 
             </article>
 

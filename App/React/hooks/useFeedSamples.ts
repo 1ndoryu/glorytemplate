@@ -1,10 +1,11 @@
 /*
  * Hook: useFeedSamples
- * Lógica completa del feed de samples: carga paginada, infinite scroll,
- * virtualización, filtros por tags/BPM/precio, likes optimistas, arrastre de tags,
- * eventos de CRUD de samples, cache por clave.
+ * Lógica principal del feed: carga paginada, infinite scroll, virtualización,
+ * likes optimistas, eventos CRUD y cache por clave.
  *
- * Extraído de FeedSamples.tsx para cumplir SRP (separar lógica de vista).
+ * Filtros/tags delegados a useFeedFiltros.
+ * Arrastre horizontal de tags delegado a useFeedArrastreTags.
+ * Extraído de FeedSamples.tsx para cumplir SRP.
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -17,13 +18,10 @@ import {
     EVENTO_SAMPLE_CREADO,
 } from '@app/hooks/useMenuContextualSample';
 import { darLike, quitarLike } from '@app/services/apiSocial';
-import {
-    extraerTagsMetadata,
-    extraerTagsAgrupadosMetadata,
-    type CategoriaTag,
-} from '@app/services/tagUtils';
+import type { CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
-import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
+import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
 
@@ -40,7 +38,6 @@ export interface UseFeedSamplesOpciones {
     idsExcluidos?: Set<number>;
     idsCreadoresIncluidos?: Set<number>;
     onConteoChange?: (total: number) => void;
-    filtroPrecio?: string | null;
 }
 
 export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
@@ -52,7 +49,6 @@ export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
 };
 
 export const CATEGORIAS_SELECT: CategoriaTag[] = ['genero', 'instrumento', 'sentimiento', 'tipo'];
-const MAX_TAGS_SUELTOS = 30;
 
 export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     const {
@@ -75,22 +71,15 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     const [paginaActual, setPaginaActual] = useState(1);
     const [hayMasPaginas, setHayMasPaginas] = useState(true);
 
-    /* Filtros del store global (sincronizados con búsqueda TopBar) */
-    const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
-    const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
-    const bpmMin = useFiltrosStore(s => s.bpmMin);
-    const bpmMax = useFiltrosStore(s => s.bpmMax);
-    const filtroPrecio = useFiltrosStore(s => s.filtroPrecio);
-    const incluirTag = useFiltrosStore(s => s.incluirTag);
-    const excluirTag = useFiltrosStore(s => s.excluirTag);
-    const quitarTag = useFiltrosStore(s => s.quitarTag);
-    const setBpmRango = useFiltrosStore(s => s.setBpmRango);
+    /* Filtros client-side y agrupación de tags */
+    const {
+        tagsAgrupados, tagsSueltos, tagsIncluidos, tagsExcluidos,
+        bpmMin, bpmMax, filtroPrecio, incluirTag, excluirTag, quitarTag, setBpmRango,
+        samplesFiltrados, manejarIncluirTag, manejarExcluirTag,
+    } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos });
 
     /* Arrastre horizontal de tags */
-    const [arrastrandoTags, setArrastrandoTags] = useState(false);
-    const inicioXRef = useRef(0);
-    const scrollInicialRef = useRef(0);
-    const listaTagsRef = useRef<HTMLDivElement | null>(null);
+    const { listaTagsRef, arrastrandoTags, iniciarArrastre, moverArrastre, finalizarArrastre } = useFeedArrastreTags();
 
     /* Virtualización */
     const [indiceInicio, setIndiceInicio] = useState(0);
@@ -269,82 +258,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         };
     }, []);
 
-    /* Tags agrupados por categoría */
-    const tagsAgrupados = useMemo(() => {
-        return extraerTagsAgrupadosMetadata(samples);
-    }, [samples]);
-
-    const tagsSueltos = useMemo(() => {
-        return (tagsAgrupados.otro ?? []).slice(0, MAX_TAGS_SUELTOS);
-    }, [tagsAgrupados]);
-
-    /* Filtrado client-side */
-    const samplesFiltrados = useMemo(() => {
-        let resultado = samples;
-
-        if (idsExcluidos && idsExcluidos.size > 0) {
-            resultado = resultado.filter(s => !idsExcluidos.has(s.id));
-        }
-
-        if (idsCreadoresIncluidos && idsCreadoresIncluidos.size > 0) {
-            resultado = resultado.filter(s => {
-                const creadorId = s.creador?.id ?? (s as unknown as Record<string, unknown>).creadorId;
-                return typeof creadorId === 'number' && idsCreadoresIncluidos.has(creadorId);
-            });
-        }
-
-        if (bpmMin !== null || bpmMax !== null) {
-            resultado = resultado.filter(s => {
-                const bpm = (s as unknown as Record<string, unknown>).bpm as number | undefined;
-                if (bpm === undefined || bpm === null) return true;
-                if (bpmMin !== null && bpm < bpmMin) return false;
-                if (bpmMax !== null && bpm > bpmMax) return false;
-                return true;
-            });
-        }
-
-        if (filtroPrecio === 'gratis') {
-            resultado = resultado.filter(s => !s.esPremium);
-        } else if (filtroPrecio === 'premium') {
-            resultado = resultado.filter(s => s.esPremium);
-        }
-
-        if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
-        return resultado.filter(s => {
-            const tagsSample = extraerTagsMetadata(s);
-            return tagsIncluidos.every(t => tagsSample.includes(t))
-                && tagsExcluidos.every(t => !tagsSample.includes(t));
-        });
-    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
-
     /* Notificar conteo al padre */
     useEffect(() => {
         onConteoChange?.(samplesFiltrados.length);
     }, [samplesFiltrados.length, onConteoChange]);
-
-    /* Handlers de tags */
-    const manejarIncluirTag = useCallback((tag: string) => {
-        incluirTag(tag);
-    }, [incluirTag]);
-
-    const manejarExcluirTag = useCallback((tag: string) => {
-        excluirTag(tag);
-    }, [excluirTag]);
-
-    /* Arrastre horizontal de tags */
-    const iniciarArrastre = useCallback((clientX: number) => {
-        if (!listaTagsRef.current) return;
-        setArrastrandoTags(true);
-        inicioXRef.current = clientX;
-        scrollInicialRef.current = listaTagsRef.current.scrollLeft;
-    }, []);
-
-    const moverArrastre = useCallback((clientX: number) => {
-        if (!arrastrandoTags || !listaTagsRef.current) return;
-        listaTagsRef.current.scrollLeft = scrollInicialRef.current - (clientX - inicioXRef.current);
-    }, [arrastrandoTags]);
-
-    const finalizarArrastre = useCallback(() => setArrastrandoTags(false), []);
 
     const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
 
