@@ -1,0 +1,194 @@
+/*
+ * Hook: usePlanesIsland — Kamples
+ * Lógica de planes: toggle periodo, checkout Stripe, portal facturación.
+ * Datos estáticos PLANES exportados para renderizado.
+ */
+
+import { useState, useEffect } from 'react';
+import { Zap, Crown, Sparkles } from 'lucide-react';
+import { useAuthStore } from '@app/stores/authStore';
+import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { useAuthModalStore } from '@app/stores/authModalStore';
+import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
+import type { PeriodoPlan } from '@app/services/apiPagos';
+
+export type PlanId = 'free' | 'pro' | 'premium';
+
+export interface PlanInfo {
+    id: PlanId;
+    nombre: string;
+    precio: number;
+    periodo: string;
+    descripcion: string;
+    icono: JSX.Element;
+    destacado: boolean;
+    caracteristicas: { texto: string; incluido: boolean }[];
+}
+
+export const PLANES: PlanInfo[] = [
+    {
+        id: 'free',
+        nombre: 'Free',
+        precio: 0,
+        periodo: '',
+        descripcion: 'Perfecto para empezar a explorar',
+        icono: <Sparkles size={24} />,
+        destacado: false,
+        caracteristicas: [
+            { texto: '5 descargas por día', incluido: true },
+            { texto: 'Calidad WAV original', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '1 GB transferencia/mes', incluido: true },
+            { texto: 'Explorar y descubrir', incluido: true },
+            { texto: 'Perfil público', incluido: true },
+            { texto: 'Prueba gratuita 30 días', incluido: true },
+            { texto: 'Monetizar samples', incluido: false },
+            { texto: 'Analytics avanzados', incluido: false },
+            { texto: 'Revenue share', incluido: false },
+        ],
+    },
+    {
+        id: 'pro',
+        nombre: 'Pro',
+        precio: 5,
+        periodo: '/mes',
+        descripcion: 'Para productores serios',
+        icono: <Zap size={24} />,
+        destacado: true,
+        caracteristicas: [
+            { texto: '50 descargas por día', incluido: true },
+            { texto: 'Calidad WAV original', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '10 GB transferencia/mes', incluido: true },
+            { texto: 'Perfil verificado', incluido: true },
+            { texto: 'Monetizar samples', incluido: true },
+            { texto: 'Analytics avanzados', incluido: true },
+            { texto: 'Revenue share 70/30', incluido: true },
+            { texto: 'Soporte prioritario', incluido: false },
+            { texto: 'Revenue share 80/20', incluido: false },
+        ],
+    },
+    {
+        id: 'premium',
+        nombre: 'Premium',
+        precio: 19.99,
+        periodo: '/mes',
+        descripcion: 'Sin límites, máximo control',
+        icono: <Crown size={24} />,
+        destacado: false,
+        caracteristicas: [
+            { texto: 'Descargas ilimitadas', incluido: true },
+            { texto: 'Calidad WAV original', incluido: true },
+            { texto: 'Subidas ilimitadas', incluido: true },
+            { texto: '50 GB transferencia/mes', incluido: true },
+            { texto: 'Perfil verificado', incluido: true },
+            { texto: 'Monetizar samples', incluido: true },
+            { texto: 'Analytics avanzados', incluido: true },
+            { texto: 'Revenue share 80/20', incluido: true },
+            { texto: 'Soporte dedicado 24/7', incluido: true },
+            { texto: 'Acceso anticipado', incluido: true },
+        ],
+    },
+];
+
+interface PrecioAnual {
+    mensual: number;
+    anual: number;
+    ahorro: number;
+}
+
+const calcularAnual = (mensual: number): PrecioAnual => ({
+    mensual,
+    anual: Math.round(mensual * 10 * 100) / 100,
+    ahorro: Math.round(mensual * 2 * 100) / 100,
+});
+
+export const usePlanesIsland = () => {
+    const [periodoAnual, setPeriodoAnual] = useState(false);
+    const [cargando, setCargando] = useState<PlanId | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [checkoutExito, setCheckoutExito] = useState(false);
+
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const abierto = usePlanesModalStore(s => s.abierto);
+    const cerrarPlanes = usePlanesModalStore(s => s.cerrar);
+    const abrirAuth = useAuthModalStore(s => s.abrir);
+
+    const planActual: PlanId = (usuario as { plan?: PlanId } | null)?.plan ?? 'free';
+    const imagenPlanes = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
+    const planVisible = PLANES.find(plan => plan.id === 'pro');
+    const esActualVisible = Boolean(autenticado && planVisible && planVisible.id === planActual);
+
+    /* Detectar retorno de Stripe Checkout */
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('checkout') === 'exito') {
+            setCheckoutExito(true);
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, []);
+
+    const obtenerPrecio = (plan: PlanInfo): string => {
+        if (plan.precio === 0) return 'Gratis';
+        if (periodoAnual) {
+            const anual = calcularAnual(plan.precio);
+            return `$${(anual.anual / 12).toFixed(2)}`;
+        }
+        return `$${plan.precio}`;
+    };
+
+    const obtenerEtiquetaBoton = (planId: PlanId): string => {
+        if (!autenticado) return 'Empezar';
+        if (planId === planActual) return 'Plan actual';
+        if (planId === 'free') return 'Cambiar plan';
+        const orden: PlanId[] = ['free', 'pro', 'premium'];
+        return orden.indexOf(planId) > orden.indexOf(planActual) ? 'Mejorar plan' : 'Cambiar plan';
+    };
+
+    const manejarSeleccion = async (planId: PlanId) => {
+        if (!autenticado) { abrirAuth('registro'); return; }
+        if (planId === planActual || planId === 'free') return;
+
+        setError(null);
+        setCargando(planId);
+        try {
+            const periodo: PeriodoPlan = periodoAnual ? 'anual' : 'mensual';
+            const resultado = await crearSesionCheckout(planId as 'pro' | 'premium', periodo);
+            if (resultado.ok && resultado.url) {
+                window.location.href = resultado.url;
+            } else {
+                setError(resultado.error ?? 'Error al crear sesión de pago');
+            }
+        } catch {
+            setError('Error de conexión. Intenta de nuevo.');
+        } finally {
+            setCargando(null);
+        }
+    };
+
+    const manejarPortal = async () => {
+        setCargando('free');
+        try {
+            const resultado = await abrirPortalFacturacion();
+            if (resultado.ok && resultado.url) {
+                window.location.href = resultado.url;
+            } else {
+                setError(resultado.error ?? 'Error al abrir portal');
+            }
+        } catch {
+            setError('Error de conexión');
+        } finally {
+            setCargando(null);
+        }
+    };
+
+    const cerrarModalPlanes = () => cerrarPlanes();
+
+    return {
+        periodoAnual, setPeriodoAnual, cargando, error, setError, checkoutExito,
+        autenticado, planActual, abierto, imagenPlanes, planVisible, esActualVisible,
+        obtenerPrecio, obtenerEtiquetaBoton, manejarSeleccion, manejarPortal,
+        cerrarModalPlanes, calcularAnual,
+    };
+};

@@ -34,15 +34,17 @@ export const LandingPublica = (): JSX.Element => {
     const abrirAuth = useAuthModalStore((s) => s.abrir);
 
     useEffect(() => {
+        let activo = true;
         const cargar = async () => {
             try {
                 const resp = await obtenerFeed('trending');
-                if (resp.ok && resp.data) setTrending(resp.data.slice(0, 6));
+                if (activo && resp.ok && resp.data) setTrending(resp.data.slice(0, 6));
             } catch {
                 /* Error cargando trending para landing — se muestra landing sin samples */
             }
         };
         cargar();
+        return () => { activo = false; };
     }, []);
 
     return (

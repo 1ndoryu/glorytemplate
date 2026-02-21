@@ -18,10 +18,11 @@ export const FilaColecciones = (): JSX.Element | null => {
     const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
+        let activo = true;
         const cargar = async () => {
             try {
                 const resp = await listarColeccionesPublicas();
-                if (resp.ok && resp.data) {
+                if (activo && resp.ok && resp.data) {
                     setColecciones(resp.data.slice(0, MAX_COLECCIONES));
                 }
             } catch {
@@ -29,6 +30,7 @@ export const FilaColecciones = (): JSX.Element | null => {
             }
         };
         cargar();
+        return () => { activo = false; };
     }, []);
 
     if (!colecciones.length) return null;
