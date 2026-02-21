@@ -23,7 +23,7 @@ const TABS_ADMIN: TabDefinicion[] = [
 ];
 
 const AdminPanelBase = (): JSX.Element => {
-    const { usuario } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
     const admin = useAdminPanel();
 
     /* Guard: solo admins pueden ver este panel */

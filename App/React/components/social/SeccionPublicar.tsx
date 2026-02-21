@@ -15,7 +15,7 @@ interface SeccionPublicarProps {
 }
 
 export const SeccionPublicar = ({ alPublicar, placeholder }: SeccionPublicarProps): JSX.Element | null => {
-    const { autenticado } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
 
     if (!autenticado) return null;
 

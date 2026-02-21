@@ -15,6 +15,12 @@ import { crearLogger } from '../services/logger';
 const log = crearLogger('useFiltros');
 
 export const useFiltros = () => {
+    /* TO-DO: Este hook es un bridge que expone todo el store + datos extra.
+     * Usar useShallow cuando se migre a zustand v5 para evitar re-renders innecesarios.
+     * Por ahora se extraen selectores individuales para las dependencias del callback. */
+    const busqueda = useFiltrosStore(s => s.busqueda);
+    const pagina = useFiltrosStore(s => s.pagina);
+    const ordenamiento = useFiltrosStore(s => s.ordenamiento);
     const filtros = useFiltrosStore();
     const [resultados, setResultados] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(false);
@@ -24,8 +30,8 @@ export const useFiltros = () => {
         setCargando(true);
         try {
             const resp = await listarSamples({
-                busqueda: filtros.busqueda || undefined,
-                page: filtros.pagina,
+                busqueda: busqueda || undefined,
+                page: pagina,
                 /* TO-DO: enviar filtros toggle al backend cuando los endpoints los soporten */
             });
 
@@ -39,7 +45,7 @@ export const useFiltros = () => {
         } finally {
             setCargando(false);
         }
-    }, [filtros.busqueda, filtros.pagina, filtros.ordenamiento]);
+    }, [busqueda, pagina, ordenamiento]);
 
     return {
         ...filtros,

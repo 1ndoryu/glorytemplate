@@ -16,8 +16,12 @@ import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/modalSugerenciasLike.css';
 
 export const ModalSugerenciasLike = (): JSX.Element | null => {
-    const { abierto, sampleOrigen, sugerencias, cargando, cerrar } = useSugerenciasLikeStore();
-    const { navegar } = useNavigationStore();
+    const abierto = useSugerenciasLikeStore(s => s.abierto);
+    const sampleOrigen = useSugerenciasLikeStore(s => s.sampleOrigen);
+    const sugerencias = useSugerenciasLikeStore(s => s.sugerencias);
+    const cargando = useSugerenciasLikeStore(s => s.cargando);
+    const cerrar = useSugerenciasLikeStore(s => s.cerrar);
+    const navegar = useNavigationStore(s => s.navegar);
 
     const manejarLikeSugerencia = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
         await darLike('sample', sampleId, reaccion ?? 'like');

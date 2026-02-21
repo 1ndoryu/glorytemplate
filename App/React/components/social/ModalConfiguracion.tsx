@@ -25,7 +25,8 @@ const log = crearLogger('ModalConfiguracion');
  * Separado para evitar re-renders del modal completo al togglear.
  */
 const PanelLateralPreferencia = (): JSX.Element => {
-    const { sugerenciasAlDarLike, setSugerenciasAlDarLike } = usePanelLateralStore();
+    const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
+    const setSugerenciasAlDarLike = usePanelLateralStore(s => s.setSugerenciasAlDarLike);
     return (
         <div className="configSeccion">
             <label className="configLabel">
@@ -73,8 +74,11 @@ const SECCIONES_NAV: NavItemConfig[] = [
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
-    const { abierto, cerrar } = useConfiguracionModalStore();
-    const { usuario, autenticado, setUsuario } = useAuthStore();
+    const abierto = useConfiguracionModalStore(s => s.abierto);
+    const cerrar = useConfiguracionModalStore(s => s.cerrar);
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const setUsuario = useAuthStore(s => s.setUsuario);
 
     const [seccionActiva, setSeccionActiva] = useState<SeccionConfig>('perfil');
     const [nombreVisible, setNombreVisible] = useState(usuario?.nombreVisible ?? '');

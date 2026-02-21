@@ -17,8 +17,11 @@ import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/modalPublicar.css';
 
 export const ModalPublicar = (): JSX.Element | null => {
-    const { abierto, modo, cerrar } = usePublicarModalStore();
-    const { usuario, autenticado } = useAuthStore();
+    const abierto = usePublicarModalStore(s => s.abierto);
+    const modo = usePublicarModalStore(s => s.modo);
+    const cerrar = usePublicarModalStore(s => s.cerrar);
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
 
     const {
         contenido,

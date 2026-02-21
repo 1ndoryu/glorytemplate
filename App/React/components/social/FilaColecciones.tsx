@@ -15,7 +15,7 @@ const MAX_COLECCIONES = 8;
 
 export const FilaColecciones = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
         const cargar = async () => {

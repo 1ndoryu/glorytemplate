@@ -35,7 +35,9 @@ interface Props {
 }
 
 export const InicializadorAuth = ({ children }: Props): JSX.Element => {
-    const { autenticado, setUsuario, setCargando } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
+    const setUsuario = useAuthStore(s => s.setUsuario);
+    const setCargando = useAuthStore(s => s.setCargando);
 
     useEffect(() => {
         const inicializar = async () => {

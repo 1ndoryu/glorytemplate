@@ -13,7 +13,7 @@ import '../../styles/componentes/experimentos.css';
 type EstadoBoton = 'idle' | 'cargando' | 'exito' | 'error';
 
 export const BotonExperimentos = (): JSX.Element | null => {
-    const { usuario } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
     const [estado, setEstado] = useState<EstadoBoton>('idle');
     const [panelVisible, setPanelVisible] = useState(false);
     const [ultimoResultado, setUltimoResultado] = useState<string | null>(null);

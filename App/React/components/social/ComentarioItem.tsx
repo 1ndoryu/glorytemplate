@@ -54,7 +54,7 @@ export const ComentarioItem = ({
     renderMediaComentario,
     nivel = 0,
 }: ComentarioItemProps): JSX.Element => {
-    const { usuario } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
     const [menuPos, setMenuPos] = useState({ abierto: false, x: 0, y: 0 });
     const [textoEdicion, setTextoEdicion] = useState('');
     const [textoRespuesta, setTextoRespuesta] = useState('');

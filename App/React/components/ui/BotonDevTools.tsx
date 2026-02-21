@@ -28,8 +28,12 @@ const modos: OpcionModo[] = [
 ];
 
 export const BotonDevTools = (): JSX.Element | null => {
-    const { usuario } = useAuthStore();
-    const { panelVisible, override, togglePanel, aplicarOverride, limpiarOverride } = useDevToolsStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const panelVisible = useDevToolsStore(s => s.panelVisible);
+    const override = useDevToolsStore(s => s.override);
+    const togglePanel = useDevToolsStore(s => s.togglePanel);
+    const aplicarOverride = useDevToolsStore(s => s.aplicarOverride);
+    const limpiarOverride = useDevToolsStore(s => s.limpiarOverride);
 
     const seleccionarModo = useCallback((modo: OpcionModo) => {
         if (modo.deslogueado) {

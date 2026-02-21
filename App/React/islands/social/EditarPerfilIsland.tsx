@@ -27,7 +27,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
     const [avatarArchivo, setAvatarArchivo] = useState<File | null>(null);
     const [cargando, setCargando] = useState(false);
     const [cargandoInicial, setCargandoInicial] = useState(true);
-    const { setUsuario } = useAuthStore();
+    const setUsuario = useAuthStore(s => s.setUsuario);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const portadaInputRef = useRef<HTMLInputElement>(null);

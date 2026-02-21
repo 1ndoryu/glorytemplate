@@ -37,8 +37,8 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     const [totalLikes, setTotalLikes] = useState(sample.totalLikes);
     const [similares, setSimilares] = useState<SampleResumen[]>([]);
     const [comentariosVisibles, setComentariosVisibles] = useState(false);
-    const { navegar } = useNavigationStore();
-    const { cerrar } = usePanelLateralStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const cerrar = usePanelLateralStore(s => s.cerrar);
 
     /* C151: Audio local para reproduccion en panel lateral */
     const [picosAudio, setPicosAudio] = useState<number[] | null>(null);

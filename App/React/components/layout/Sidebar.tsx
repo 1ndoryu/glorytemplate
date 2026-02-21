@@ -49,9 +49,9 @@ export const Sidebar = ({
     items = itemsDefault,
     onNavegar,
 }: SidebarProps): JSX.Element => {
-    const { navegar } = useNavigationStore();
-    const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
-    const { usuario } = useAuthStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
+    const usuario = useAuthStore(s => s.usuario);
     const esAdmin = usuario?.rol === 'admin';
 
     /* Agregar enlace admin condicionalmente */

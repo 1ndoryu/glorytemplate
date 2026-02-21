@@ -33,7 +33,10 @@ const leerAnchoGuardado = (): number => {
 };
 
 export const PanelLateral = (): JSX.Element | null => {
-    const { modo, sample, habilitado, expandido } = usePanelLateralStore();
+    const modo = usePanelLateralStore(s => s.modo);
+    const sample = usePanelLateralStore(s => s.sample);
+    const habilitado = usePanelLateralStore(s => s.habilitado);
+    const expandido = usePanelLateralStore(s => s.expandido);
     const [ancho, setAncho] = useState(leerAnchoGuardado);
     const resizingRef = useRef(false);
     const panelRef = useRef<HTMLElement>(null);

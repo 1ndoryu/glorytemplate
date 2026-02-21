@@ -22,9 +22,28 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorIsland = (): JSX.Element => {
-    const {sampleActual, cola, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, togglePlay, setVolumen, toggleMute, setProgreso, toggleRepetir, toggleAleatorio, siguiente, anterior, setSample, quitarDeCola, limpiarCola} = useReproductorStore();
+    const sampleActual = useReproductorStore(s => s.sampleActual);
+    const cola = useReproductorStore(s => s.cola);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const volumen = useReproductorStore(s => s.volumen);
+    const progreso = useReproductorStore(s => s.progreso);
+    const duracion = useReproductorStore(s => s.duracion);
+    const muted = useReproductorStore(s => s.muted);
+    const repetir = useReproductorStore(s => s.repetir);
+    const aleatorio = useReproductorStore(s => s.aleatorio);
+    const togglePlay = useReproductorStore(s => s.togglePlay);
+    const setVolumen = useReproductorStore(s => s.setVolumen);
+    const toggleMute = useReproductorStore(s => s.toggleMute);
+    const setProgreso = useReproductorStore(s => s.setProgreso);
+    const toggleRepetir = useReproductorStore(s => s.toggleRepetir);
+    const toggleAleatorio = useReproductorStore(s => s.toggleAleatorio);
+    const siguiente = useReproductorStore(s => s.siguiente);
+    const anterior = useReproductorStore(s => s.anterior);
+    const setSample = useReproductorStore(s => s.setSample);
+    const quitarDeCola = useReproductorStore(s => s.quitarDeCola);
+    const limpiarCola = useReproductorStore(s => s.limpiarCola);
 
-    const {navegar} = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     /* Seek desde waveform */
     const manejarSeek = useCallback(

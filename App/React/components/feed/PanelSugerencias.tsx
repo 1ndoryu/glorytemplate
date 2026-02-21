@@ -19,8 +19,8 @@ interface PanelSugerenciasProps {
 export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element => {
     const [sugerencias, setSugerencias] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
-    const { navegar } = useNavigationStore();
-    const { cerrar } = usePanelLateralStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const cerrar = usePanelLateralStore(s => s.cerrar);
 
     useEffect(() => {
         let activo = true;

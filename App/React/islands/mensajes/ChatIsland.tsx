@@ -62,17 +62,15 @@ interface ChatIslandProps {
 }
 
 const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Element => {
-    const {
-        mensajes,
-        conversaciones,
-        setMensajes,
-        agregarMensaje,
-        setConversaciones,
-        actualizarUltimoMensaje,
-    } = useMensajesStore();
+    const mensajes = useMensajesStore(s => s.mensajes);
+    const conversaciones = useMensajesStore(s => s.conversaciones);
+    const setMensajes = useMensajesStore(s => s.setMensajes);
+    const agregarMensaje = useMensajesStore(s => s.agregarMensaje);
+    const setConversaciones = useMensajesStore(s => s.setConversaciones);
+    const actualizarUltimoMensaje = useMensajesStore(s => s.actualizarUltimoMensaje);
 
-    const { usuario } = useAuthStore();
-    const { navegar } = useNavigationStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const navegar = useNavigationStore(s => s.navegar);
 
     const [textoMensaje, setTextoMensaje] = useState('');
     const [enviando, setEnviando] = useState(false);

@@ -41,8 +41,8 @@ export const SamplesIsland = (): JSX.Element => {
     const [paginacion, setPaginacion] = useState({ page: 1, pages: 1, total: 0 });
     const [tabActiva, setTabActiva] = useState('todos');
 
-    const { navegar } = useNavigationStore();
-    const { setTabs } = useTabsTopBarStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const setTabs = useTabsTopBarStore(s => s.setTabs);
     const menu = useMenuContextualSample();
 
     /* Registrar tab "Explorar" en TopBar */

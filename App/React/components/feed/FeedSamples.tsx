@@ -124,7 +124,7 @@ export const FeedSamples = ({
     const cacheFeedRef = useRef<Record<string, SampleResumen[]>>({});
     const claveCacheAnteriorRef = useRef(claveCache);
 
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
     const menu = useMenuContextualSample();
 
     /* Panel lateral: si está habilitado, interceptar clicks de título y comentar (C86+C95) */
@@ -389,7 +389,7 @@ export const FeedSamples = ({
 
     const finalizarArrastre = useCallback(() => setArrastrandoTags(false), []);
 
-    const { abrirSugerencias } = usePanelLateralStore();
+    const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
 
     /* Like optimistic UI con soporte de reacciones */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {

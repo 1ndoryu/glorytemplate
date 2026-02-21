@@ -180,7 +180,8 @@ export const ListaComentarios = ({
     respondendoAId,
     setRespondendoAId,
 }: ListaComentariosProps): JSX.Element => {
-    const { usuario, autenticado } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
     const [textoNuevo, setTextoNuevo] = useState('');
     const [mostrarTodos, setMostrarTodos] = useState(false);
     const [archivoAdjunto, setArchivoAdjunto] = useState<File | null>(null);

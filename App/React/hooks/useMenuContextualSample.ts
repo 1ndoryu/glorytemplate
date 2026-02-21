@@ -49,11 +49,11 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     });
     const [sampleInspeccion, setSampleInspeccion] = useState<SampleResumen | null>(null);
 
-    const { navegar } = useNavigationStore();
-    const { setSample } = useReproductorStore();
-    const { abrir: abrirColeccionPicker } = useColeccionPickerStore();
-    const { usuario } = useAuthStore();
-    const { abrirSample: abrirEditarSample } = useEditarModalStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const setSample = useReproductorStore(s => s.setSample);
+    const abrirColeccionPicker = useColeccionPickerStore(s => s.abrir);
+    const usuario = useAuthStore(s => s.usuario);
+    const abrirEditarSample = useEditarModalStore(s => s.abrirSample);
 
     /* El usuario puede editar/eliminar si es propietario del sample o admin */
     const puedeEditar = useMemo(() => {

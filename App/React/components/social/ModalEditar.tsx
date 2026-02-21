@@ -51,7 +51,12 @@ const MetadataChips = ({ sample }: { sample: SampleResumen }): JSX.Element | nul
 };
 
 export const ModalEditar = (): JSX.Element | null => {
-    const { abierto, tipo, sample, publicacion, coleccion, cerrar } = useEditarModalStore();
+    const abierto = useEditarModalStore(s => s.abierto);
+    const tipo = useEditarModalStore(s => s.tipo);
+    const sample = useEditarModalStore(s => s.sample);
+    const publicacion = useEditarModalStore(s => s.publicacion);
+    const coleccion = useEditarModalStore(s => s.coleccion);
+    const cerrar = useEditarModalStore(s => s.cerrar);
 
     const manejarExito = () => {
         /* Emitir evento global para que las listas actualicen sus datos */

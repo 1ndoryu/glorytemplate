@@ -20,7 +20,8 @@ export const useWebSocket = (config: ConfigWSHook = {}) => {
     const [estadoConexion, setEstadoConexion] = useState<EstadoConexion>(
         wsService.obtenerEstado()
     );
-    const { autenticado, usuario } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
+    const usuario = useAuthStore(s => s.usuario);
 
     /* Suscribir handler de tipo específico, se limpia al desmontar */
     const on = useCallback((tipo: string, handler: HandlerMensaje) => {

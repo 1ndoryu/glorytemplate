@@ -32,15 +32,13 @@ interface DropdownMensajesProps {
 }
 
 export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Element => {
-    const { abrirChat } = useChatFlotanteStore();
-    const {
-        conversaciones,
-        cargandoConversaciones: cargando,
-        conversacionesCargadas,
-        setConversaciones,
-        setCargandoConversaciones,
-        necesitaRefrescar,
-    } = useMensajesStore();
+    const abrirChat = useChatFlotanteStore(s => s.abrirChat);
+    const conversaciones = useMensajesStore(s => s.conversaciones);
+    const cargando = useMensajesStore(s => s.cargandoConversaciones);
+    const conversacionesCargadas = useMensajesStore(s => s.conversacionesCargadas);
+    const setConversaciones = useMensajesStore(s => s.setConversaciones);
+    const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
+    const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
 
     /*
      * C192: Stale-while-revalidate.

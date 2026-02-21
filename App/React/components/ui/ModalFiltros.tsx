@@ -26,19 +26,17 @@ interface ModalFiltrosProps {
 }
 
 export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Element | null => {
-    const {
-        yaReproducidos,
-        likeados,
-        deSeguidos,
-        descargados,
-        filtroPrecio,
-        toggleYaReproducidos,
-        toggleLikeados,
-        toggleDeSeguidos,
-        toggleDescargados,
-        setFiltroPrecio,
-        resetearFiltros,
-    } = useFiltrosStore();
+    const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
+    const likeados = useFiltrosStore(s => s.likeados);
+    const deSeguidos = useFiltrosStore(s => s.deSeguidos);
+    const descargados = useFiltrosStore(s => s.descargados);
+    const filtroPrecio = useFiltrosStore(s => s.filtroPrecio);
+    const toggleYaReproducidos = useFiltrosStore(s => s.toggleYaReproducidos);
+    const toggleLikeados = useFiltrosStore(s => s.toggleLikeados);
+    const toggleDeSeguidos = useFiltrosStore(s => s.toggleDeSeguidos);
+    const toggleDescargados = useFiltrosStore(s => s.toggleDescargados);
+    const setFiltroPrecio = useFiltrosStore(s => s.setFiltroPrecio);
+    const resetearFiltros = useFiltrosStore(s => s.resetearFiltros);
 
     const filtros: FiltroToggleDef[] = [
         { id: 'yaReproducidos', etiqueta: 'Ocultar ya reproducidos', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },

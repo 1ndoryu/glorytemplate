@@ -27,7 +27,7 @@ export const DescubrirIsland = (): JSX.Element => {
     const [secciones, setSecciones] = useState<SeccionDescubrir[]>([]);
     const [cargando, setCargando] = useState(true);
 
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
     const menu = useMenuContextualSample();
 
     /* Like con optimistic UI sobre todas las secciones */

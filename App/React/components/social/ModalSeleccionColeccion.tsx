@@ -22,7 +22,10 @@ import '../../styles/componentes/modalSeleccionColeccion.css';
 const log = crearLogger('ModalSeleccionColeccion');
 
 export const ModalSeleccionColeccion = (): JSX.Element | null => {
-    const { abierto, sample, posicion, cerrar } = useColeccionPickerStore();
+    const abierto = useColeccionPickerStore(s => s.abierto);
+    const sample = useColeccionPickerStore(s => s.sample);
+    const posicion = useColeccionPickerStore(s => s.posicion);
+    const cerrar = useColeccionPickerStore(s => s.cerrar);
 
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(false);

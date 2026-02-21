@@ -40,8 +40,9 @@ const nombrePaso = (n: number): string => {
 };
 
 export const SubirModal = (): JSX.Element | null => {
-    const { abierto, cerrar } = useSubirModalStore();
-    const { autenticado } = useAuthStore();
+    const abierto = useSubirModalStore(s => s.abierto);
+    const cerrar = useSubirModalStore(s => s.cerrar);
+    const autenticado = useAuthStore(s => s.autenticado);
 
     const [paso, setPaso] = useState<1 | 2 | 3>(1);
     const [archivos, setArchivos] = useState<ArchivoSubida[]>([]);

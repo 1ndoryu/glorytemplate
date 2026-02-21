@@ -36,9 +36,10 @@ export const PanelLibreria = (): JSX.Element => {
     const [modalColeccion, setModalColeccion] = useState(false);
     const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
 
-    const { navegar } = useNavigationStore();
-    const { abrir: abrirSubirModal } = useSubirModalStore();
-    const { cerrar: cerrarPanel, abrirDetalle } = usePanelLateralStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const abrirSubirModal = useSubirModalStore(s => s.abrir);
+    const cerrarPanel = usePanelLateralStore(s => s.cerrar);
+    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
 
     /* Cargar datos al cambiar tab */
     useEffect(() => {

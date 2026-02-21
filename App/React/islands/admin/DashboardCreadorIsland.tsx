@@ -268,7 +268,7 @@ const DashboardIslandBase = (): JSX.Element => {
     const [transacciones, setTransacciones] = useState<TransaccionCreador[]>([]);
     const [ingresos, setIngresos] = useState<IngresosPorPeriodo[]>([]);
     const [cargando, setCargando] = useState(true);
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     /* Estado Connect */
     const [estadoConnect, setEstadoConnect] = useState<DatosConnect | null>(null);

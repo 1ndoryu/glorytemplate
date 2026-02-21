@@ -112,8 +112,10 @@ export const PlanesIsland = (): JSX.Element => {
     const [cargando, setCargando] = useState<PlanId | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [checkoutExito, setCheckoutExito] = useState(false);
-    const {usuario, autenticado} = useAuthStore();
-    const { abierto, cerrar: cerrarPlanes } = usePlanesModalStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const abierto = usePlanesModalStore(s => s.abierto);
+    const cerrarPlanes = usePlanesModalStore(s => s.cerrar);
 
     const planActual: PlanId = (usuario as {plan?: PlanId} | null)?.plan ?? 'free';
     const imagenPlanes = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';

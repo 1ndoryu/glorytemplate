@@ -33,7 +33,7 @@ export default function EnlaceCreador({
     meta,
     className = '',
 }: EnlaceCreadorProps) {
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     const tieneMeta = mostrarUsername || meta || verificado;
 

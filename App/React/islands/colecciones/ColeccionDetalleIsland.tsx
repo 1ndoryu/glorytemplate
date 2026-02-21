@@ -38,10 +38,11 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const [coleccion, setColeccion] = useState<Coleccion | null>(null);
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
-    const { navegar } = useNavigationStore();
-    const { activa: tabActiva } = useTabsTopBarStore();
-    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
-    const { usuario } = useAuthStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
+    const usuario = useAuthStore(s => s.usuario);
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('ColeccionDetalleIsland', TABS_COLECCION_DETALLE, 'samples');

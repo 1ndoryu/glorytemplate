@@ -82,13 +82,14 @@ export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.E
         };
     }, []);
 
-    const {usuario: usuarioAuth, cargando: authCargando} = useAuthStore();
-    const {activa: tabActiva} = useTabsTopBarStore();
+    const usuarioAuth = useAuthStore(s => s.usuario);
+    const authCargando = useAuthStore(s => s.cargando);
+    const tabActiva = useTabsTopBarStore(s => s.activa);
     useTabsIsla('PerfilIsland', TABS_PERFIL, 'samples');
-    const {navegar} = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
     const rutaActual = useNavigationStore(s => s.rutaActual);
-    const {abrir: abrirConfiguracion} = useConfiguracionModalStore();
-    const {abrirChat} = useChatFlotanteStore();
+    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
+    const abrirChat = useChatFlotanteStore(s => s.abrirChat);
     const menu = useMenuContextualSample();
 
     /*

@@ -41,7 +41,7 @@ interface DropdownNotificacionesProps {
 }
 
 export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps): JSX.Element => {
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
     const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
     const [cargando, setCargando] = useState(true);
 

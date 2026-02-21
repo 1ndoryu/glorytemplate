@@ -87,8 +87,8 @@ const ComunidadBase = (): JSX.Element => {
     const [filtro, setFiltro] = useState<FiltroComunidad>('todos');
     const [cargando, setCargando] = useState(true);
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
-    const { navegar } = useNavigationStore();
-    const { usuario } = useAuthStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const usuario = useAuthStore(s => s.usuario);
 
     /* C127: Menú contextual de samples adjuntos */
     const menuSample = useMenuContextualSample();

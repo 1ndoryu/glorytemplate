@@ -10,8 +10,9 @@ import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 
 export const ModalCrear = (): JSX.Element | null => {
-    const { abierto, cerrar } = useCrearModalStore();
-    const { autenticado } = useAuthStore();
+    const abierto = useCrearModalStore(s => s.abierto);
+    const cerrar = useCrearModalStore(s => s.cerrar);
+    const autenticado = useAuthStore(s => s.autenticado);
 
     if (!abierto || !autenticado) return null;
 

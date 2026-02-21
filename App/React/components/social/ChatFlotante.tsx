@@ -20,9 +20,11 @@ import '../../styles/componentes/chatFlotante.css';
 
 /* Ventana individual de chat */
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
-    const { cerrarChat, minimizarChat, restaurarChat } = useChatFlotanteStore();
-    const { usuario } = useAuthStore();
-    const { navegar } = useNavigationStore();
+    const cerrarChat = useChatFlotanteStore(s => s.cerrarChat);
+    const minimizarChat = useChatFlotanteStore(s => s.minimizarChat);
+    const restaurarChat = useChatFlotanteStore(s => s.restaurarChat);
+    const usuario = useAuthStore(s => s.usuario);
+    const navegar = useNavigationStore(s => s.navegar);
     const [mensajes, setMensajes] = useState<Mensaje[]>([]);
     const [texto, setTexto] = useState('');
     const [enviando, setEnviando] = useState(false);
@@ -317,7 +319,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
 
 /* Contenedor principal: renderiza todos los chats flotantes */
 export const ChatFlotante = (): JSX.Element | null => {
-    const { chatsAbiertos } = useChatFlotanteStore();
+    const chatsAbiertos = useChatFlotanteStore(s => s.chatsAbiertos);
 
     if (chatsAbiertos.length === 0) return null;
 

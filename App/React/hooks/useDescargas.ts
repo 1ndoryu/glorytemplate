@@ -28,7 +28,7 @@ interface RetornoDescargas {
 export const useDescargas = (): RetornoDescargas => {
     const [limites, setLimites] = useState<LimitesDescarga | null>(null);
     const [descargando, setDescargando] = useState(false);
-    const { autenticado } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
 
     const recargarLimites = useCallback(async () => {
         if (!autenticado) return;

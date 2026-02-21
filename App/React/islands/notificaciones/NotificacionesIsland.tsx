@@ -71,7 +71,7 @@ export const NotificacionesIsland = (): JSX.Element => {
     const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
     const [filtro, setFiltro] = useState<TipoNotificacion | 'todas'>('todas');
     const [cargando, setCargando] = useState(true);
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
         const cargar = async () => {

@@ -87,7 +87,7 @@ export const TarjetaSample = ({sample, activa = false, reproduciendo = false, pr
     const [descargado, setDescargado] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef(sample.rutaPreview);
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
         let activo = true;

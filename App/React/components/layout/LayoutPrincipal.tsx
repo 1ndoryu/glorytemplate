@@ -79,7 +79,7 @@ export const LayoutPrincipal = ({
 
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
-    const { autenticado } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
     const override = useDevToolsStore((s) => s.override);
 
     /* Modo de autenticación efectivo: real o simulado */

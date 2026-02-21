@@ -34,16 +34,14 @@ const formatearTiempo = (fecha: string): string => {
 };
 
 const MensajesIslandBase = (): JSX.Element => {
-    const {
-        conversaciones,
-        cargandoConversaciones,
-        conversacionesCargadas,
-        setConversaciones,
-        setCargandoConversaciones,
-        necesitaRefrescar,
-    } = useMensajesStore();
+    const conversaciones = useMensajesStore(s => s.conversaciones);
+    const cargandoConversaciones = useMensajesStore(s => s.cargandoConversaciones);
+    const conversacionesCargadas = useMensajesStore(s => s.conversacionesCargadas);
+    const setConversaciones = useMensajesStore(s => s.setConversaciones);
+    const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
+    const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
 
-    const { navegar } = useNavigationStore();
+    const navegar = useNavigationStore(s => s.navegar);
     const [busqueda, setBusqueda] = useState('');
 
     /*

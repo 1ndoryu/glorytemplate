@@ -66,7 +66,7 @@ export const TarjetaPublicacion = ({
     const clases = ['tarjetaPublicacion', className].filter(Boolean).join(' ');
 
     /* Moderación: visible solo para el autor o admin */
-    const { usuario } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
     const esAutor = usuario?.id === publicacion.autorId || String(usuario?.id) === String(publicacion.autorId);
     const esAdmin = usuario?.rol === 'admin';
     const mostrarModeracion = (esAutor || esAdmin) && publicacion.moderacionEstado;

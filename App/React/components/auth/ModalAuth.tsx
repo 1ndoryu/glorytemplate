@@ -149,7 +149,10 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 };
 
 export const ModalAuth = (): JSX.Element | null => {
-    const { abierto, vista, cerrar, cambiarVista } = useAuthModalStore();
+    const abierto = useAuthModalStore(s => s.abierto);
+    const vista = useAuthModalStore(s => s.vista);
+    const cerrar = useAuthModalStore(s => s.cerrar);
+    const cambiarVista = useAuthModalStore(s => s.cambiarVista);
 
     const cambiarALogin = useCallback(() => cambiarVista('login'), [cambiarVista]);
     const cambiarARegistro = useCallback(() => cambiarVista('registro'), [cambiarVista]);

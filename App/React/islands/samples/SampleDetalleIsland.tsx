@@ -68,11 +68,11 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     const [descargado, setDescargado] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rutaPreviewRef = useRef('');
-    const { navegar } = useNavigationStore();
-    const { usuario: usuarioAuth } = useAuthStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const usuarioAuth = useAuthStore(s => s.usuario);
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const menu = useMenuContextualSample();
-    const { abrir: abrirPlanes } = usePlanesModalStore();
+    const abrirPlanes = usePlanesModalStore(s => s.abrir);
     const [comentariosVisibles, setComentariosVisibles] = useState(true);
     const seccionComentarios = useComentarios({
         tipo: 'sample',
@@ -107,7 +107,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     );
 
     /* Like con llamada a API */
-    const { sugerenciasAlDarLike } = usePanelLateralStore();
+    const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
 
     const manejarLike = useCallback(async () => {
         if (!sample) return;

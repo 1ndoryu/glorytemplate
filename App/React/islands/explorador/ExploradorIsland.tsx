@@ -28,8 +28,11 @@ const ExploradorBase = (): JSX.Element => {
         seleccionarCarpeta,
         manejarLike,
     } = useExploradorPagina();
-    const { navegar } = useNavigationStore();
-    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
+    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
+    const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
     /* C291: Vista lista/cuadricula */

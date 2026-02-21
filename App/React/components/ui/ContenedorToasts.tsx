@@ -17,7 +17,7 @@ const ICONOS_TIPO = {
 } as const;
 
 const ItemToast = ({ toast: t }: { toast: Toast }): JSX.Element => {
-    const { quitar } = useToastStore();
+    const quitar = useToastStore(s => s.quitar);
     const Icono = ICONOS_TIPO[t.tipo];
 
     const manejarAccion = (onClick: () => void) => {
@@ -64,7 +64,7 @@ const ItemToast = ({ toast: t }: { toast: Toast }): JSX.Element => {
 };
 
 export const ContenedorToasts = (): JSX.Element | null => {
-    const { toasts } = useToastStore();
+    const toasts = useToastStore(s => s.toasts);
 
     if (toasts.length === 0) return null;
 

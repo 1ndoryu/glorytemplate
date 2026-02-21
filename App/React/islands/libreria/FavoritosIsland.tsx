@@ -26,9 +26,12 @@ const TABS_FAVORITOS = [
 
 const FavoritosBase = (): JSX.Element => {
     const { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike } = useFavoritosPagina();
-    const { navegar } = useNavigationStore();
-    const { activa: tabActiva } = useTabsTopBarStore();
-    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
+    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
+    const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */

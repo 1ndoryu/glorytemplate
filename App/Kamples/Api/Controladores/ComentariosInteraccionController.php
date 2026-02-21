@@ -183,7 +183,7 @@ class ComentariosInteraccionController
             $picos = self::generarWaveformComentario($rutaAudioFinal, $rutaWaveform);
 
             if ($picos) {
-                $meta = \json_decode($mediaMetadata, true);
+                $meta = \json_decode($mediaMetadata, true) ?? [];
                 $meta['waveformUrl'] = \preg_replace('/\.[^.]+$/', '_waveform.json', $mediaUrl);
                 $meta['picos'] = $picos;
                 $mediaMetadata = \json_encode($meta);

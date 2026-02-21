@@ -20,7 +20,11 @@ interface DatosRegistro {
 }
 
 export const useAuth = () => {
-    const { usuario, cargando: cargandoStore, autenticado, setUsuario, cerrarSesion } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const cargandoStore = useAuthStore(s => s.cargando);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const setUsuario = useAuthStore(s => s.setUsuario);
+    const cerrarSesion = useAuthStore(s => s.cerrarSesion);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

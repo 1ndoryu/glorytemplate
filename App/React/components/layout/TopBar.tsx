@@ -27,14 +27,20 @@ import { obtenerLimites } from '@app/services/apiDescargas';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
-    const { tabs, activa, setActiva } = useTabsTopBarStore();
-    const { usuario, autenticado } = useAuthStore();
-    const { busqueda, setBusqueda } = useFiltrosStore();
-    const { navegar } = useNavigationStore();
-    const { abrir: abrirCrear } = useCrearModalStore();
-    const { abrir: abrirConfiguracion } = useConfiguracionModalStore();
-    const { abrir: abrirPlanes } = usePlanesModalStore();
-    const { modo: modoPanelLateral, abrirMezclador, cerrar: cerrarPanel } = usePanelLateralStore();
+    const tabs = useTabsTopBarStore(s => s.tabs);
+    const activa = useTabsTopBarStore(s => s.activa);
+    const setActiva = useTabsTopBarStore(s => s.setActiva);
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const busqueda = useFiltrosStore(s => s.busqueda);
+    const setBusqueda = useFiltrosStore(s => s.setBusqueda);
+    const navegar = useNavigationStore(s => s.navegar);
+    const abrirCrear = useCrearModalStore(s => s.abrir);
+    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
+    const abrirPlanes = usePlanesModalStore(s => s.abrir);
+    const modoPanelLateral = usePanelLateralStore(s => s.modo);
+    const abrirMezclador = usePanelLateralStore(s => s.abrirMezclador);
+    const cerrarPanel = usePanelLateralStore(s => s.cerrar);
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -187,7 +193,7 @@ export const TopBar = (): JSX.Element => {
                         variante="ghost"
                         tamano="md"
                         soloIcono
-                        onClick={abrirCrear}
+                        onClick={() => abrirCrear()}
                         aria-label="Crear"
                     >
                         <Plus size={20} />

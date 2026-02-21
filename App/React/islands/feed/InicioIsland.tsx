@@ -27,7 +27,8 @@ import '../../styles/componentes/inicio.css';
 const TABS_INICIO = [{ id: 'inicio', etiqueta: 'Inicio' }];
 
 export const InicioIsland = (): JSX.Element => {
-    const { autenticado, cargando } = useAuthStore();
+    const autenticado = useAuthStore(s => s.autenticado);
+    const cargando = useAuthStore(s => s.cargando);
 
     if (cargando) {
         return (
@@ -53,9 +54,17 @@ const FeedUnificado = (): JSX.Element => {
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [totalSamples, setTotalSamples] = useState(0);
 
-    const { abrir: abrirCrear } = useCrearModalStore();
-    const { ordenamiento, periodoDestacados, yaReproducidos, likeados, deSeguidos, descargados, setOrdenamiento, setPeriodoDestacados } = useFiltrosStore();
-    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel } = usePanelLateralStore();
+    const abrirCrear = useCrearModalStore(s => s.abrir);
+    const ordenamiento = useFiltrosStore(s => s.ordenamiento);
+    const periodoDestacados = useFiltrosStore(s => s.periodoDestacados);
+    const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
+    const likeados = useFiltrosStore(s => s.likeados);
+    const deSeguidos = useFiltrosStore(s => s.deSeguidos);
+    const descargados = useFiltrosStore(s => s.descargados);
+    const setOrdenamiento = useFiltrosStore(s => s.setOrdenamiento);
+    const setPeriodoDestacados = useFiltrosStore(s => s.setPeriodoDestacados);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
 
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);

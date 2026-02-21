@@ -20,7 +20,7 @@ interface ContenidoCrearProps {
 }
 
 export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion }: ContenidoCrearProps): JSX.Element => {
-    const { usuario } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,

@@ -25,7 +25,8 @@ export function conAutenticacion<P extends Record<string, unknown>>(
     } = opciones;
 
     const ComponenteProtegido = (props: P): JSX.Element | null => {
-        const { autenticado, cargando } = useAuthStore();
+        const autenticado = useAuthStore(s => s.autenticado);
+        const cargando = useAuthStore(s => s.cargando);
         const abrirAuth = useAuthModalStore((s) => s.abrir);
 
         useEffect(() => {

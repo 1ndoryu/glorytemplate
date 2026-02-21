@@ -26,9 +26,11 @@ import '../../styles/componentes/landingPublica.css';
 
 export const LandingPublica = (): JSX.Element => {
     const [trending, setTrending] = useState<SampleResumen[]>([]);
-    const { navegar } = useNavigationStore();
-    const { setSample, sampleActual, reproduciendo, progreso } =
-        useReproductorStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const setSample = useReproductorStore(s => s.setSample);
+    const sampleActual = useReproductorStore(s => s.sampleActual);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const progreso = useReproductorStore(s => s.progreso);
     const abrirAuth = useAuthModalStore((s) => s.abrir);
 
     useEffect(() => {

@@ -17,7 +17,9 @@ interface UsuarioEfectivoResult {
 }
 
 export const useUsuarioEfectivo = (): UsuarioEfectivoResult => {
-    const { usuario, autenticado, cargando } = useAuthStore();
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const cargando = useAuthStore(s => s.cargando);
     const override = useDevToolsStore((s) => s.override);
 
     /* Sin override activo: devolver datos reales */

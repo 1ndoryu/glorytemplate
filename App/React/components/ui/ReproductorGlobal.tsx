@@ -19,7 +19,25 @@ const formatearTiempo = (segundos: number): string => {
 };
 
 export const ReproductorGlobal = (): JSX.Element | null => {
-    const {sampleActual, reproduciendo, volumen, progreso, duracion, muted, repetir, aleatorio, pause, togglePlay, setVolumen, toggleMute, setProgreso, setDuracion, toggleRepetir, toggleAleatorio, siguiente, anterior, cerrar} = useReproductorStore();
+    const sampleActual = useReproductorStore(s => s.sampleActual);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const volumen = useReproductorStore(s => s.volumen);
+    const progreso = useReproductorStore(s => s.progreso);
+    const duracion = useReproductorStore(s => s.duracion);
+    const muted = useReproductorStore(s => s.muted);
+    const repetir = useReproductorStore(s => s.repetir);
+    const aleatorio = useReproductorStore(s => s.aleatorio);
+    const pause = useReproductorStore(s => s.pause);
+    const togglePlay = useReproductorStore(s => s.togglePlay);
+    const setVolumen = useReproductorStore(s => s.setVolumen);
+    const toggleMute = useReproductorStore(s => s.toggleMute);
+    const setProgreso = useReproductorStore(s => s.setProgreso);
+    const setDuracion = useReproductorStore(s => s.setDuracion);
+    const toggleRepetir = useReproductorStore(s => s.toggleRepetir);
+    const toggleAleatorio = useReproductorStore(s => s.toggleAleatorio);
+    const siguiente = useReproductorStore(s => s.siguiente);
+    const anterior = useReproductorStore(s => s.anterior);
+    const cerrar = useReproductorStore(s => s.cerrar);
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const progresoBarraRef = useRef<HTMLDivElement>(null);

@@ -49,13 +49,16 @@ export const LibreriaIsland = (): JSX.Element => {
     const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
     const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
 
-    const { navegar } = useNavigationStore();
-    const { abrir: abrirSubirModal } = useSubirModalStore();
-    const { activa: tabActiva } = useTabsTopBarStore();
+    const navegar = useNavigationStore(s => s.navegar);
+    const abrirSubirModal = useSubirModalStore(s => s.abrir);
+    const tabActiva = useTabsTopBarStore(s => s.activa);
     const menu = useMenuContextualSample();
 
     /* Panel lateral: habilitar para esta island */
-    const { habilitar: habilitarPanel, deshabilitar: deshabilitarPanel, abrirDetalle, abrirComentarios } = usePanelLateralStore();
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
+    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
+    const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
