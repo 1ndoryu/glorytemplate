@@ -1,71 +1,34 @@
 /*
  * Componente: ModalConfiguracion — Kamples
  * Modal de configuración tipo panel lateral con navegación por secciones.
- * Secciones: Perfil, Cuenta, Notificaciones, Apariencia (futuro: más secciones).
- * Se abre desde TopBar menu contextual o desde el botón "Editar perfil" en PerfilIsland.
+ * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
 import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X, PanelRight } from 'lucide-react';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
-import { useAuthStore } from '@app/stores/authStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
-import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
-import { crearLogger } from '@app/services/logger';
-import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
+import { useModalConfiguracion, type SeccionConfig } from '@app/hooks/useModalConfiguracion';
 import '../../styles/componentes/modalConfiguracion.css';
 
-const log = crearLogger('ModalConfiguracion');
-
-/*
- * C155: Sub-componente para la preferencia de panel lateral al dar like.
- * Separado para evitar re-renders del modal completo al togglear.
- */
+/* Sub-componente: preferencia panel lateral al dar like (evita re-renders) */
 const PanelLateralPreferencia = (): JSX.Element => {
     const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
     const setSugerenciasAlDarLike = usePanelLateralStore(s => s.setSugerenciasAlDarLike);
     return (
         <div className="configSeccion">
-            <label className="configLabel">
-                <PanelRight size={16} />
-                Panel lateral
-            </label>
-            <span className="configSubtexto">
-                Mostrar sugerencias en el panel lateral al dar like a un sample.
-            </span>
+            <label className="configLabel"><PanelRight size={16} /> Panel lateral</label>
+            <span className="configSubtexto">Mostrar sugerencias en el panel lateral al dar like a un sample.</span>
             <div className="configTemaOpciones" role="group" aria-label="Panel lateral al dar like">
-                <BotonBase
-                    variante={sugerenciasAlDarLike ? 'primario' : 'secundario'}
-                    tamano="sm"
-                    onClick={() => setSugerenciasAlDarLike(true)}
-                    type="button"
-                >
-                    Activado
-                </BotonBase>
-                <BotonBase
-                    variante={!sugerenciasAlDarLike ? 'primario' : 'secundario'}
-                    tamano="sm"
-                    onClick={() => setSugerenciasAlDarLike(false)}
-                    type="button"
-                >
-                    Desactivado
-                </BotonBase>
+                <BotonBase variante={sugerenciasAlDarLike ? 'primario' : 'secundario'} tamano="sm" onClick={() => setSugerenciasAlDarLike(true)} type="button">Activado</BotonBase>
+                <BotonBase variante={!sugerenciasAlDarLike ? 'primario' : 'secundario'} tamano="sm" onClick={() => setSugerenciasAlDarLike(false)} type="button">Desactivado</BotonBase>
             </div>
         </div>
     );
 };
 
-type SeccionConfig = 'perfil' | 'cuenta' | 'notificaciones' | 'apariencia';
-
-interface NavItemConfig {
-    id: SeccionConfig;
-    etiqueta: string;
-    icono: JSX.Element;
-}
-
+interface NavItemConfig { id: SeccionConfig; etiqueta: string; icono: JSX.Element; }
 const SECCIONES_NAV: NavItemConfig[] = [
     { id: 'perfil', etiqueta: 'Perfil', icono: <User size={16} /> },
     { id: 'cuenta', etiqueta: 'Cuenta', icono: <Shield size={16} /> },
@@ -74,113 +37,22 @@ const SECCIONES_NAV: NavItemConfig[] = [
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
-    const abierto = useConfiguracionModalStore(s => s.abierto);
-    const cerrar = useConfiguracionModalStore(s => s.cerrar);
-    const usuario = useAuthStore(s => s.usuario);
-    const autenticado = useAuthStore(s => s.autenticado);
-    const setUsuario = useAuthStore(s => s.setUsuario);
-
-    const [seccionActiva, setSeccionActiva] = useState<SeccionConfig>('perfil');
-    const [nombreVisible, setNombreVisible] = useState(usuario?.nombreVisible ?? '');
-    const [username, setUsername] = useState(usuario?.username ?? '');
-    const [bio, setBio] = useState('');
-    const [notificaciones, setNotificaciones] = useState(true);
-    const [temaSeleccionado, setTemaSeleccionado] = useState<TemaApp>('dark');
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-    const [avatarArchivo, setAvatarArchivo] = useState<File | null>(null);
-    const [portadaPreview, setPortadaPreview] = useState<string | null>(null);
-    const [guardando, setGuardando] = useState(false);
-    const inputFotoRef = useRef<HTMLInputElement>(null);
-    const inputPortadaRef = useRef<HTMLInputElement>(null);
-
-    /* Sincronizar campos cuando el modal se abre o los datos del usuario cambian */
-    useEffect(() => {
-        if (abierto && usuario) {
-            setNombreVisible(usuario.nombreVisible ?? '');
-            setUsername(usuario.username ?? '');
-            setTemaSeleccionado(obtenerTemaAppActual());
-            setAvatarPreview(null);
-            setAvatarArchivo(null);
-            setPortadaPreview(null);
-            setSeccionActiva('perfil');
-        }
-    }, [abierto, usuario]);
-
-    const manejarCambioTema = useCallback((tema: TemaApp) => {
-        setTemaSeleccionado(tema);
-        aplicarTemaApp(tema);
-        guardarTemaApp(tema);
-        log.info('Tema actualizado', { tema });
-    }, []);
-
-    /* Preview de foto de perfil nueva — guarda también la referencia al archivo */
-    const manejarCambioFoto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const archivo = e.target.files?.[0];
-        if (!archivo) return;
-        const url = URL.createObjectURL(archivo);
-        setAvatarPreview(url);
-        setAvatarArchivo(archivo);
-    }, []);
-
-    /* Preview de portada nueva */
-    const manejarCambioPortada = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const archivo = e.target.files?.[0];
-        if (!archivo) return;
-        const url = URL.createObjectURL(archivo);
-        setPortadaPreview(url);
-    }, []);
-
-    /* Guardar cambios — sube avatar si hay y envía datos de texto al backend */
-    const manejarGuardar = useCallback(async () => {
-        if (guardando || !usuario) return;
-        setGuardando(true);
-
-        try {
-            /* 1. Subir avatar si el usuario seleccionó uno nuevo */
-            if (avatarArchivo) {
-                const respAvatar = await subirAvatar(avatarArchivo);
-                if (respAvatar.ok && respAvatar.data) {
-                    /* El endpoint devuelve perfil completo actualizado */
-                    const datos = (respAvatar.data as Record<string, unknown>).data ?? respAvatar.data;
-                    setUsuario(datos as any);
-                    log.info('Avatar subido correctamente');
-                }
-            }
-
-            /* 2. Enviar campos de texto al backend */
-            const resp = await actualizarPerfil({
-                nombreVisible: nombreVisible,
-                username: username,
-                bio: bio,
-            } as any);
-
-            /* Usar datos del servidor si la respuesta es exitosa */
-            if (resp.ok && resp.data) {
-                setUsuario(resp.data as any);
-            }
-
-            log.info('Configuración guardada', { nombreVisible, username });
-        } catch (err) {
-            log.error('Error al guardar configuración', err);
-        }
-
-        setGuardando(false);
-        cerrar();
-    }, [guardando, usuario, nombreVisible, username, bio, avatarArchivo, setUsuario, cerrar]);
-
-    /* Cerrar sin guardar */
-    const manejarCerrar = useCallback(() => {
-        if (guardando) return;
-        cerrar();
-        setAvatarPreview(null);
-        setPortadaPreview(null);
-    }, [cerrar, guardando]);
+    const {
+        abierto, autenticado, usuario,
+        seccionActiva, setSeccionActiva,
+        nombreVisible, setNombreVisible,
+        username, setUsername,
+        bio, setBio,
+        notificaciones, setNotificaciones,
+        temaSeleccionado,
+        avatarActual, portadaPreview, guardando,
+        inputFotoRef, inputPortadaRef,
+        manejarCambioTema, manejarCambioFoto, manejarCambioPortada,
+        manejarGuardar, manejarCerrar,
+    } = useModalConfiguracion();
 
     if (!abierto || !autenticado) return null;
 
-    const avatarActual = avatarPreview || usuario?.avatarUrl || null;
-
-    /* Renderizar contenido según sección activa */
     const renderizarSeccion = () => {
         switch (seccionActiva) {
             case 'perfil':

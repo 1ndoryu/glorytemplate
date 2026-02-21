@@ -1,10 +1,10 @@
 /*
  * SampleDetalleIsland — Kamples
- * Página de detalle de un sample individual.
+ * Pagina de detalle de un sample individual.
  * Muestra waveform grande, metadata, acciones y samples similares.
+ * Logica extraida a useSampleDetalle + useSampleAudio (SRP).
  */
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
     Pause,
     Heart,
@@ -29,25 +29,18 @@ import { BotonFollow } from '@app/components/social/BotonFollow';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
-import { obtenerSample, listarSamples } from '@app/services/apiSamples';
-import { darLike, quitarLike } from '@app/services/apiSocial';
-import type { TipoReaccion } from '@app/types';
 import { descargarSample } from '@app/services/apiDescargas';
-import { registrarReproduccion } from '@app/services/apiReproduciones';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
-import { etiquetaBpm } from '@app/services/bpmUtils';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
-import { useAuthStore } from '@app/stores/authStore';
-import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useComentarios } from '@app/hooks/useComentarios';
+import { useSampleDetalle } from '@app/hooks/useSampleDetalle';
+import { useSampleAudio } from '@app/hooks/useSampleAudio';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
-import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { toast } from '@app/stores/toastStore';
-import type { Sample, SampleResumen } from '@app/types';
+import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
-/* Props inyectadas desde PHP (pages.php) */
 const TABS_SAMPLE_DETALLE = [{ id: 'sample', etiqueta: 'Sample' }];
 
 interface SampleDetalleProps {
@@ -55,354 +48,26 @@ interface SampleDetalleProps {
 }
 
 export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
-    const [sample, setSample] = useState<Sample | null>(null);
-    const [similares, setSimilares] = useState<SampleResumen[]>([]);
-    const [mostrarSimilares, setMostrarSimilares] = useState(false);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
-    const [liked, setLiked] = useState(false);
-    const [reaccionActual, setReaccionActual] = useState<TipoReaccion | null>(null);
-    const [reproduciendo, setReproduciendo] = useState(false);
-    const [progreso, setProgreso] = useState(0);
-    const [picosWaveform, setPicosWaveform] = useState<number[] | null>(null);
-    const [descargado, setDescargado] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    const rutaPreviewRef = useRef('');
-    const navegar = useNavigationStore(s => s.navegar);
-    const usuarioAuth = useAuthStore(s => s.usuario);
-    const rutaActual = useNavigationStore((s) => s.rutaActual);
+    const {
+        sample, similares, mostrarSimilares, setMostrarSimilares,
+        cargando, error, liked, reaccionActual, descargado, setDescargado,
+        comentariosVisibles, setComentariosVisibles, esPropietario,
+        tagsHome, navegar, usuarioAuth, manejarLike,
+        manejarReaccionDetalle, manejarQuitarReaccionDetalle, manejarLikeSimilar,
+    } = useSampleDetalle({ slugProp });
+    const {
+        reproduciendo, progreso, picosWaveform, manejarPlay, buscarPosicion, audioRef,
+    } = useSampleAudio(sample);
     const menu = useMenuContextualSample();
     const abrirPlanes = usePlanesModalStore(s => s.abrir);
-    const [comentariosVisibles, setComentariosVisibles] = useState(true);
     const seccionComentarios = useComentarios({
         tipo: 'sample',
         targetId: sample?.id ?? 0,
         cargarAlAbrir: true,
     });
 
-    /*
-     * Resolver slug: priorizar la URL actual (SPA) sobre el prop de PHP.
-     * En navegación SPA, el prop de PHP queda stale tras el primer render.
-     */
-    const slug = useMemo(() => {
-        /* Intentar extraer slug de la ruta SPA actual */
-        const segmentos = rutaActual.replace(/\/$/, '').split('/');
-        const idxSample = segmentos.indexOf('sample');
-        if (idxSample !== -1 && segmentos[idxSample + 1] && segmentos[idxSample + 1] !== 'sample') {
-            return segmentos[idxSample + 1];
-        }
-        /* Fallback: usar prop de PHP si la ruta no contiene /sample/{slug} */
-        return slugProp && slugProp !== 'sample' ? slugProp : null;
-    }, [rutaActual, slugProp]);
-
-    /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('SampleDetalleIsland', TABS_SAMPLE_DETALLE, 'sample');
 
-    /* Verificar propiedad: comparar con == para evitar mismatch string/number */
-    const esPropietario = Boolean(
-        usuarioAuth && sample && (
-            String(sample.creadorId) === String(usuarioAuth.id) ||
-            String(sample.creador?.id) === String(usuarioAuth.id)
-        )
-    );
-
-    /* Like con llamada a API */
-    const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
-
-    const manejarLike = useCallback(async () => {
-        if (!sample) return;
-        const prevLiked = liked;
-        const prevReaccion = reaccionActual;
-
-        try {
-            if (liked || reaccionActual) {
-                setLiked(false);
-                setReaccionActual(null);
-                await quitarLike('sample', sample.id);
-            } else {
-                setLiked(true);
-                setReaccionActual('like');
-                /* C156: mostrar similares al dar like si preferencia activa */
-                if (sugerenciasAlDarLike) setMostrarSimilares(true);
-                await darLike('sample', sample.id, 'like');
-            }
-        } catch {
-            setLiked(prevLiked);
-            setReaccionActual(prevReaccion);
-        }
-    }, [liked, reaccionActual, sample, sugerenciasAlDarLike]);
-
-    /* Reaccion especifica desde tooltip */
-    const manejarReaccionDetalle = useCallback(async (reaccion: TipoReaccion) => {
-        if (!sample) return;
-        const prevLiked = liked;
-        const prevReaccion = reaccionActual;
-
-        try {
-            setLiked(reaccion !== 'dislike');
-            setReaccionActual(reaccion);
-            /* C156: mostrar similares en reaccion positiva si preferencia activa */
-            if (reaccion !== 'dislike' && sugerenciasAlDarLike) setMostrarSimilares(true);
-            await darLike('sample', sample.id, reaccion);
-        } catch {
-            setLiked(prevLiked);
-            setReaccionActual(prevReaccion);
-        }
-    }, [sample, sugerenciasAlDarLike]);
-
-    const manejarQuitarReaccionDetalle = useCallback(async () => {
-        if (!sample) return;
-        const prevLiked = liked;
-        const prevReaccion = reaccionActual;
-
-        try {
-            setLiked(false);
-            setReaccionActual(null);
-            await quitarLike('sample', sample.id);
-        } catch {
-            setLiked(prevLiked);
-            setReaccionActual(prevReaccion);
-        }
-    }, [sample]);
-
-    /* Like en samples similares (optimistic UI con reacciones) */
-    const manejarLikeSimilar = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sim = similares.find((s) => s.id === sampleId);
-        const snapshot = similares;
-
-        try {
-            if (reaccion) {
-                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-                const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                            : s
-                    )
-                );
-                await darLike('sample', sampleId, reaccion);
-            } else if (sim?.liked || sim?.reaccion) {
-                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                            : s
-                    )
-                );
-                await quitarLike('sample', sampleId);
-            } else {
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                            : s
-                    )
-                );
-                await darLike('sample', sampleId, 'like');
-            }
-        } catch {
-            setSimilares(snapshot);
-        }
-    }, [similares]);
-
-    /* Cargar sample al montar */
-    useEffect(() => {
-        if (!slug) {
-            setError('No se encontró el sample.');
-            setCargando(false);
-            return;
-        }
-
-        const cargar = async () => {
-            setCargando(true);
-            setError('');
-            try {
-                const respuesta = await obtenerSample(slug);
-                if (respuesta.ok && respuesta.data) {
-                    setSample(respuesta.data);
-                    setLiked(Boolean(respuesta.data.liked));
-                    setReaccionActual((respuesta.data as any).reaccion ?? null);
-
-                    /* Cargar samples similares por tags/tipo */
-                    const tipoSample = respuesta.data.metadata?.tipo;
-                    if (tipoSample) {
-                        const resSimilares = await listarSamples({
-                            tipo: tipoSample,
-                            perPage: 5,
-                        });
-                        if (resSimilares.ok && resSimilares.data) {
-                            /* data puede ser {data: [...]} o un array directo */
-                            const listaSimilares = Array.isArray(resSimilares.data)
-                                ? resSimilares.data
-                                : (resSimilares.data.data ?? []);
-                            setSimilares(
-                                listaSimilares.filter((s) => s.id !== respuesta.data!.id)
-                            );
-                        }
-                    }
-                } else {
-                    setError(respuesta.error ?? 'Error al cargar el sample.');
-                }
-            } catch (err) {
-                setError('Error al cargar el sample.');
-            }
-            setCargando(false);
-        };
-
-        cargar();
-    }, [slug]);
-
-    /* Cargar picos de waveform del servidor (C68) */
-    useEffect(() => {
-        if (!sample?.rutaWaveform) {
-            setPicosWaveform(null);
-            return;
-        }
-
-        let activo = true;
-        const cargar = async () => {
-            try {
-                const resp = await fetch(sample.rutaWaveform);
-                if (!resp.ok || !activo) return;
-                const json = await resp.json();
-                if (!activo) return;
-                const datos = Array.isArray(json) ? json : (json.peaks ?? json.picos ?? json.data ?? null);
-                if (Array.isArray(datos) && datos.length > 0) {
-                    const maximo = Math.max(...datos, 0.001);
-                    setPicosWaveform(maximo > 1 ? datos.map((p: number) => Math.max(0.03, p / maximo)) : datos);
-                }
-            } catch {
-                /* Fallo silencioso, WaveformPlayer usará placeholder */
-            }
-        };
-        cargar();
-        return () => { activo = false; };
-    }, [sample?.rutaWaveform]);
-
-    /* Inicializar/actualizar audio local */
-    useEffect(() => {
-        if (!sample) return;
-
-        if (!audioRef.current) {
-            audioRef.current = new Audio(sample.rutaPreview);
-            rutaPreviewRef.current = sample.rutaPreview;
-        }
-
-        const audio = audioRef.current;
-        if (rutaPreviewRef.current !== sample.rutaPreview) {
-            rutaPreviewRef.current = sample.rutaPreview;
-            audio.src = sample.rutaPreview;
-            audio.load();
-            setProgreso(0);
-            setReproduciendo(false);
-        }
-
-        const actualizarProgreso = () => {
-            if (!audio.duration) return;
-            setProgreso(audio.currentTime / audio.duration);
-        };
-
-        const manejarPlay = () => setReproduciendo(true);
-        const manejarPause = () => setReproduciendo(false);
-        const manejarFin = () => {
-            setReproduciendo(false);
-            setProgreso(0);
-            audio.currentTime = 0;
-        };
-
-        audio.addEventListener('timeupdate', actualizarProgreso);
-        audio.addEventListener('play', manejarPlay);
-        audio.addEventListener('pause', manejarPause);
-        audio.addEventListener('ended', manejarFin);
-
-        return () => {
-            audio.removeEventListener('timeupdate', actualizarProgreso);
-            audio.removeEventListener('play', manejarPlay);
-            audio.removeEventListener('pause', manejarPause);
-            audio.removeEventListener('ended', manejarFin);
-        };
-    }, [sample]);
-
-    useEffect(() => {
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
-    }, []);
-
-    /* Manejar play/pause */
-    const manejarPlay = useCallback(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        if (audio.paused) {
-            audio.play().catch(() => {
-                setReproduciendo(false);
-            });
-            /* C73: Registrar reproducción en backend */
-            if (sample) {
-                registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
-            }
-            return;
-        }
-
-        audio.pause();
-    }, []);
-
-    const tagsHome = useMemo(() => {
-        if (!sample) return [] as Array<{ texto: string; clave: string }>;
-
-        const badges: Array<{ texto: string; clave: string }> = [];
-        const meta = sample.metadata;
-
-        const instrumentos = meta?.instrumentos ?? meta?.['instrumentos'];
-        if (instrumentos) {
-            const primerInst = Array.isArray(instrumentos) ? instrumentos[0] : instrumentos;
-            if (primerInst) badges.push({ texto: primerInst, clave: 'inst' });
-        }
-
-        const genero = meta?.genero ?? meta?.['genero'];
-        if (genero) {
-            const primerGenero = Array.isArray(genero) ? genero[0] : genero;
-            if (primerGenero) badges.push({ texto: primerGenero, clave: 'gen' });
-        }
-
-        /* C162: emocion puede venir concatenada sin separador. Splitear por comas/espacios/pipes */
-        const emocion = meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion;
-        if (emocion) {
-            const emociones = Array.isArray(emocion)
-                ? emocion
-                : String(emocion).split(/[,|;]\s*|\s+/).filter(Boolean);
-            const primeraEmocion = emociones.find(e => e.length <= 30);
-            if (primeraEmocion) badges.push({ texto: primeraEmocion, clave: 'emo' });
-        }
-
-        if (sample.bpm) {
-            badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'vel' });
-        }
-
-        const tagsMeta = meta?.tags_es ?? meta?.tagsEs ?? meta?.tags ?? sample.tags;
-        if (Array.isArray(tagsMeta) && tagsMeta.length > 0) {
-            badges.push({ texto: tagsMeta[0], clave: 'tag' });
-        }
-
-        if (badges.length === 0) {
-            if (sample.bpm) badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'bpm' });
-            if (sample.key) {
-                badges.push({ texto: `${sample.key}${sample.escala === 'menor' ? 'm' : ''}`, clave: 'key' });
-            }
-            badges.push({ texto: sample.tipo, clave: 'tipo' });
-        }
-
-        return badges;
-    }, [sample]);
-
-    /* Cargando */
     if (cargando) {
         return (
             <div className="detalleContenedor" id="seccionSampleDetalle">
@@ -505,13 +170,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                 anchoBarra={2}
                                 espacioBarra={1}
                                 simetrico
-                                onSeek={(pct) => {
-                                    const audio = audioRef.current;
-                                    if (audio?.duration) {
-                                        audio.currentTime = pct * audio.duration;
-                                        setProgreso(pct);
-                                    }
-                                }}
+                                onSeek={buscarPosicion}
                                 onClick={manejarPlay}
                             />
                         </div>

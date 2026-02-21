@@ -1,271 +1,38 @@
 /*
  * Isla: PerfilIsland
  * Vista pública de perfil: avatar, bio, nombre, stats, tabs con samples.
- * Condicional: si es el propio perfil muestra "Editar", si no muestra "Seguir".
- * Tabs: Samples | Publicaciones | Likes con contenido dinámico.
+ * Logica extraida a usePerfilIsland (SRP).
  */
 
-import {useState, useEffect, useCallback, useMemo} from 'react';
-import {Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon} from 'lucide-react';
-import {Avatar} from '../../components/ui/Avatar';
-import {Badge} from '../../components/ui/Badge';
-import {BotonBase} from '../../components/ui/BotonBase';
-import {TarjetaSample} from '../../components/ui/TarjetaSample';
-import {MenuContextual} from '../../components/ui/MenuContextual';
-import {BotonFollow} from '../../components/social/BotonFollow';
+import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
+import { Avatar } from '@app/components/ui/Avatar';
+import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { BotonFollow } from '@app/components/social/BotonFollow';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
-import {SeccionPublicar} from '../../components/social/SeccionPublicar';
-import {obtenerPerfil} from '../../services/apiAuth';
-import {listarSamples} from '../../services/apiSamples';
-import {darLike, quitarLike, listarPublicacionesUsuario} from '../../services/apiSocial';
-import type {TipoReaccion} from '../../types';
-import {iniciarConversacion} from '../../services/apiMensajes';
-import {useAuthStore} from '../../stores/authStore';
-import {useTabsTopBarStore} from '../../stores/tabsTopBarStore';
-import {useTabsIsla} from '../../hooks/useTabsIsla';
-import {useConfiguracionModalStore} from '../../stores/configuracionModalStore';
-import {useChatFlotanteStore} from '../../stores/chatFlotanteStore';
-import {useNavigationStore} from '@/core/router';
-import {useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO} from '../../hooks/useMenuContextualSample';
-import {obtenerImagenColor} from '../../services/imagenesColor';
-import type {Usuario} from '../../types/usuario';
-import type {SampleResumen} from '../../types/sample';
-import type {Publicacion} from '../../types/publicacion';
-import {crearLogger} from '../../services/logger';
+import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
+import { iniciarConversacion } from '@app/services/apiMensajes';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
+import { usePerfilIsland } from '@app/hooks/usePerfilIsland';
+import { crearLogger } from '@app/services/logger';
+import type { SampleResumen } from '@app/types/sample';
 import '../../styles/componentes/perfil.css';
 
 const log = crearLogger('PerfilIsland');
-
-const TABS_PERFIL = [
-    {id: 'samples', etiqueta: 'Samples'},
-    {id: 'publicaciones', etiqueta: 'Publicaciones'},
-    {id: 'likes', etiqueta: 'Likes'}
-];
 
 interface PerfilIslandProps {
     username?: string;
 }
 
-export const PerfilIsland = ({username: usernameProp}: PerfilIslandProps): JSX.Element => {
-    const [usuario, setUsuario] = useState<Usuario | null>(null);
-    const [cargando, setCargando] = useState(true);
-
-    /* Contenido de tabs */
-    const [samplesPerfil, setSamplesPerfil] = useState<SampleResumen[]>([]);
-    const [likesPerfil, setLikesPerfil] = useState<SampleResumen[]>([]);
-    const [publicacionesPerfil, setPublicacionesPerfil] = useState<Publicacion[]>([]);
-    const [cargandoTab, setCargandoTab] = useState(false);
-
-    /* Listener para eliminación optimista de samples */
-    useEffect(() => {
-        const manejarEliminacion = (event: Event) => {
-            const detalle = (event as CustomEvent<{sampleId?: number}>).detail;
-            if (detalle?.sampleId) {
-                setSamplesPerfil(prev => prev.filter(s => s.id !== detalle.sampleId));
-                setLikesPerfil(prev => prev.filter(s => s.id !== detalle.sampleId));
-            }
-        };
-        const manejarRestauracion = (event: Event) => {
-            const detalle = (event as CustomEvent<{sample?: SampleResumen}>).detail;
-            if (detalle?.sample) {
-                setSamplesPerfil(prev => {
-                    if (prev.some(s => s.id === detalle.sample!.id)) return prev;
-                    return [detalle.sample!, ...prev];
-                });
-            }
-        };
-        window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
-        window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
-        return () => {
-            window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
-            window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
-        };
-    }, []);
-
-    const usuarioAuth = useAuthStore(s => s.usuario);
-    const authCargando = useAuthStore(s => s.cargando);
-    const tabActiva = useTabsTopBarStore(s => s.activa);
-    useTabsIsla('PerfilIsland', TABS_PERFIL, 'samples');
-    const navegar = useNavigationStore(s => s.navegar);
-    const rutaActual = useNavigationStore(s => s.rutaActual);
-    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
-    const abrirChat = useChatFlotanteStore(s => s.abrirChat);
-    const menu = useMenuContextualSample();
-
-    /*
-     * Extraer username de la URL SPA (rutaActual) o del prop.
-     * SPA: /perfil/john/ → john
-     * Fallback a authStore si no hay username (perfil propio).
-     */
-    const username = useMemo(() => {
-        /* Primero intentar de la ruta SPA */
-        const segmentos = (rutaActual ?? '').replace(/\/$/, '').split('/');
-        const idxPerfil = segmentos.indexOf('perfil');
-        if (idxPerfil !== -1 && segmentos[idxPerfil + 1] && segmentos[idxPerfil + 1] !== 'perfil' && segmentos[idxPerfil + 1] !== 'editar') {
-            return segmentos[idxPerfil + 1];
-        }
-
-        /* Luego intentar del prop */
-        const val = usernameProp?.trim();
-        if (val && val !== 'perfil' && val !== 'editar') {
-            return val;
-        }
-
-        return usuarioAuth?.username ?? null;
-    }, [rutaActual, usernameProp, usuarioAuth?.username]);
-
-    const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
-
-    useEffect(() => {
-        /* Si authStore sigue cargando y no tenemos username explícito, esperar */
-        if (!username && authCargando) return;
-        if (!username) return;
-
-        const cargar = async () => {
-            setCargando(true);
-            try {
-                const respuesta = await obtenerPerfil(username);
-                if (respuesta.ok && respuesta.data) {
-                    setUsuario(respuesta.data as unknown as Usuario);
-                    setCargando(false);
-                    return;
-                }
-            } catch (err) {
-                log.debug('API perfil no disponible, intentando fallback', err);
-            }
-
-            /*
-             * Fallback: si la API falla (ej. usuario sin registro PG aún)
-             * y es perfil propio, usar datos del authStore como fuente.
-             */
-            if (usuarioAuth && (username === usuarioAuth.username || username === '')) {
-                setUsuario({
-                    id: usuarioAuth.id,
-                    username: usuarioAuth.username,
-                    nombreVisible: usuarioAuth.nombreVisible ?? usuarioAuth.username,
-                    avatarUrl: usuarioAuth.avatarUrl ?? null,
-                    bio: '',
-                    portadaUrl: null,
-                    plan: (usuarioAuth as unknown as {plan?: string}).plan ?? 'free',
-                    verificado: false,
-                    totalSamples: 0,
-                    totalSeguidores: 0,
-                    totalSeguidos: 0
-                } as Usuario);
-            }
-            setCargando(false);
-        };
-
-        cargar();
-    }, [username, authCargando, usuarioAuth]);
-
-    /* Cargar contenido de tabs */
-    useEffect(() => {
-        if (!usuario) return;
-
-        const cargarTab = async () => {
-            setCargandoTab(true);
-            try {
-                if (tabActiva === 'samples') {
-                    const resp = await listarSamples({page: 1, perPage: 20, creador: usuario.username});
-                    if (resp.ok && resp.data) {
-                        setSamplesPerfil(resp.data.data ?? []);
-                    }
-                } else if (tabActiva === 'publicaciones') {
-                    const resp = await listarPublicacionesUsuario(usuario.username, 1);
-                    if (resp.ok && resp.data) {
-                        const lista = resp.data.data ?? resp.data ?? [];
-                        setPublicacionesPerfil(Array.isArray(lista) ? lista : []);
-                    }
-                } else if (tabActiva === 'likes') {
-                    /* TO-DO: endpoint GET /usuarios/{id}/likes para obtener samples likeados */
-                    const resp = await listarSamples({page: 1, perPage: 10});
-                    if (resp.ok && resp.data) {
-                        setLikesPerfil(resp.data.data ?? []);
-                    }
-                }
-            } catch (err) {
-                log.error('Error cargando tab', err);
-            } finally {
-                setCargandoTab(false);
-            }
-        };
-
-        cargarTab();
-    }, [usuario, tabActiva]);
-
-    /* Recargar publicaciones tras publicar inline (C89) */
-    const recargarPublicaciones = useCallback(async () => {
-        if (!usuario) return;
-        try {
-            const resp = await listarPublicacionesUsuario(usuario.username, 1);
-            if (resp.ok && resp.data) {
-                const lista = resp.data.data ?? resp.data ?? [];
-                setPublicacionesPerfil(Array.isArray(lista) ? lista : []);
-            }
-        } catch { /* sin-op */ }
-    }, [usuario]);
-
-    /* Like con optimistic UI y soporte de reacciones */
-    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        let estabaLiked = false;
-        let reaccionAnterior: string | null = null;
-
-        const encontrar = (lista: SampleResumen[]) => lista.find(s => s.id === sampleId);
-        const sampleEncontrado = encontrar(samplesPerfil) || encontrar(likesPerfil);
-        estabaLiked = sampleEncontrado?.liked ?? false;
-        reaccionAnterior = sampleEncontrado?.reaccion ?? null;
-
-        /* Snapshots para rollback */
-        const snapSamples = samplesPerfil;
-        const snapLikes = likesPerfil;
-
-        try {
-            if (reaccion) {
-                const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
-                const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
-                        ? {...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta)}
-                        : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
-                await darLike('sample', sampleId, reaccion);
-            } else if (estabaLiked || reaccionAnterior) {
-                const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
-                        ? {...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0))}
-                        : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
-                await quitarLike('sample', sampleId);
-            } else {
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
-                        ? {...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1}
-                        : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
-                await darLike('sample', sampleId, 'like');
-            }
-        } catch {
-            setSamplesPerfil(snapSamples);
-            setLikesPerfil(snapLikes);
-        }
-    }, [samplesPerfil, likesPerfil]);
-
-    /* Navegación al creador */
-    const manejarClickCreador = useCallback(
-        (usr: string) => {
-            navegar(`/perfil/${usr}/`);
-        },
-        [navegar]
-    );
+export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
+    const {
+        usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
+        cargandoTab, usuarioAuth, authCargando, tabActiva, navegar,
+        abrirConfiguracion, abrirChat, menu, username, esPropietario,
+        recargarPublicaciones, manejarLike, manejarClickCreador,
+    } = usePerfilIsland({ usernameProp });
 
     if (cargando || (authCargando && !username)) {
         return (
