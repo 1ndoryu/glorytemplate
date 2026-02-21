@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { VolumeX } from 'lucide-react';
 import type { InsertMixer } from '../../types/mezclador';
 import { KnobControl } from '../KnobControl';
 import { FaderControl } from './FaderControl';

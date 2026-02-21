@@ -5,7 +5,7 @@
  */
 
 import {useCallback, useEffect, useRef, useState, type MouseEvent} from 'react';
-import {Play, Pause, Heart, MessageCircle, Plus, Download, MoreHorizontal, BadgeCheck, Bookmark} from 'lucide-react';
+import {Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark} from 'lucide-react';
 import type {SampleResumen, TipoReaccion} from '../../types';
 import {WaveformPlayer} from './WaveformPlayer';
 import {Badge} from './Badge';

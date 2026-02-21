@@ -117,7 +117,7 @@ export const solicitarPayout = async (): Promise<RespuestaApi<{ monto: number; e
     }
 };
 
-/* ===================== STRIPE CONNECT ===================== */
+/* STRIPE CONNECT */
 
 export type EstadoConnect = 'no_configurado' | 'pendiente' | 'activo' | 'restringido' | 'error';
 
@@ -217,7 +217,7 @@ export const obtenerBalanceConnect = async (): Promise<RespuestaApi<BalanceConne
     }
 };
 
-/* ===================== CHECKOUT STRIPE ===================== */
+/* CHECKOUT STRIPE */
 
 export type PeriodoPlan = 'mensual' | 'anual';
 

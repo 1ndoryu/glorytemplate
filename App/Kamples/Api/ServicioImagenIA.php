@@ -215,7 +215,7 @@ PROMPT;
         ];
     }
 
-    /* ===================== UTILIDADES ===================== */
+    /* UTILIDADES */
 
     private static function sanitizarTexto(mixed $texto, int $maxLen): string
     {

@@ -431,9 +431,7 @@ class MotorAudio {
         this.limpiarCache();
     }
 
-    /* ============================================================
-     * MIXER — Routing por inserts con EQ y AnalyserNode
-     * ============================================================ */
+    /* MIXER — Routing por inserts con EQ y AnalyserNode */
 
     /* Crear BiquadFilterNode para una banda de EQ */
     private crearBandaEQNodo(
@@ -678,9 +676,7 @@ class MotorAudio {
         return fuente;
     }
 
-    /* ============================================================
-     * STEP SEQUENCER — Reproducción de patrones
-     * ============================================================ */
+    /* STEP SEQUENCER — Reproducción de patrones */
 
     /*
      * Programar un patrón completo para reproducción.

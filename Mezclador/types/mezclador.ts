@@ -79,9 +79,7 @@ export interface ConfigBloque {
     intercambiarEstereo?: boolean;
 }
 
-/* ============================================================
- * PATTERN SYSTEM — Step sequencer + patrones reutilizables
- * ============================================================ */
+/* PATTERN SYSTEM — Step sequencer + patrones reutilizables */
 
 /* Un paso individual en el secuenciador */
 export interface Paso {
@@ -134,9 +132,7 @@ export interface ClipPatron {
     color: string;
 }
 
-/* ============================================================
- * MIXER — Consola de mezcla con inserts, EQ, y FX
- * ============================================================ */
+/* MIXER — Consola de mezcla con inserts, EQ, y FX */
 
 /* Un slot de efecto en un insert del mixer */
 export interface SlotEfecto {

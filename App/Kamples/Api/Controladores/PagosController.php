@@ -234,7 +234,7 @@ class PagosController
         ], 200);
     }
 
-    /* ===================== PROCESADORES WEBHOOK ===================== */
+    /* PROCESADORES WEBHOOK */
 
     private static function procesarCheckoutCompletado(array $sesion): void
     {

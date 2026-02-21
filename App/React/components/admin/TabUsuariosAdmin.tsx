@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight, Crown } from 'lucide-react';
+import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import type { UsuarioAdmin } from '../../services/apiAdmin';
 
