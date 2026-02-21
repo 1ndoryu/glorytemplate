@@ -231,7 +231,7 @@ class ColeccionesRepository extends BaseRepository
         return static::insertar(
             "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
              VALUES (:userId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
-            ['userId' => $userId, 'nombre' => $nombre, 'desc' => $descripcion, 'publica' => $publica ? 'true' : 'false']
+            ['userId' => $userId, 'nombre' => $nombre, 'desc' => $descripcion, ColeccionesCols::PUBLICA => $publica ? 'true' : 'false']
         );
     }
 
@@ -303,7 +303,7 @@ class ColeccionesRepository extends BaseRepository
              FROM {$t} c
              WHERE c." . ColeccionesCols::USUARIO_ID . " = :userId
              ORDER BY tags_match DESC, c." . ColeccionesCols::UPDATED_AT . " DESC",
-            ['userId' => $userId, 'tags' => '{' . implode(',', $sampleTags) . '}']
+            ['userId' => $userId, SamplesCols::TAGS => '{' . implode(',', $sampleTags) . '}']
         );
     }
 

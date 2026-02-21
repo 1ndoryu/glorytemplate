@@ -112,7 +112,7 @@ class MensajesRepository extends BaseRepository
             "INSERT INTO {$tabla} (" . MensajesCols::CONVERSACION_ID . ", " . MensajesCols::AUTOR_ID . ", " . MensajesCols::CONTENIDO . ", " . MensajesCols::TIPO . ", " . MensajesCols::MEDIA_URL . ", " . MensajesCols::MEDIA_METADATA . ")
              VALUES (:convId, :autorId, :contenido, :tipo, :mediaUrl, :mediaMetadata)
              RETURNING " . MensajesCols::ID,
-            ['convId' => $convId, 'autorId' => $autorId, 'contenido' => $contenido, 'tipo' => $tipo, 'mediaUrl' => $mediaUrl, 'mediaMetadata' => $mediaMetadata]
+            ['convId' => $convId, 'autorId' => $autorId, MensajesCols::CONTENIDO => $contenido, 'tipo' => $tipo, 'mediaUrl' => $mediaUrl, 'mediaMetadata' => $mediaMetadata]
         );
     }
 

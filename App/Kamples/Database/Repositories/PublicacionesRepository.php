@@ -178,8 +178,8 @@ class PublicacionesRepository extends BaseRepository
         return static::insertar(
             "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
             . ", " . PublicacionesCols::IMAGENES . ", " . PublicacionesCols::SAMPLES_ADJUNTOS
-            . ") VALUES (:autor, :contenido, :imagenes, :samples) RETURNING " . PublicacionesCols::ID,
-            ['autor' => $autorId, 'contenido' => $contenido, 'imagenes' => $imagenes, 'samples' => $samplesAdjuntos]
+            . ") VALUES (:autor, :" . PublicacionesCols::CONTENIDO . ", :" . PublicacionesCols::IMAGENES . ", :samples) RETURNING " . PublicacionesCols::ID,
+            ['autor' => $autorId, PublicacionesCols::CONTENIDO => $contenido, PublicacionesCols::IMAGENES => $imagenes, 'samples' => $samplesAdjuntos]
         );
     }
 

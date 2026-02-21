@@ -128,9 +128,9 @@ class NotificacionesRepository extends BaseRepository
         $tabla = NotificacionesCols::TABLA;
 
         static::ejecutar(
-            "INSERT INTO {$tabla} (" . NotificacionesCols::USUARIO_ID . ", " . NotificacionesCols::TIPO . ", datos)"
-            . " VALUES (:userId, :tipo, :datos::jsonb)",
-            ['userId' => $userId, 'tipo' => $tipo, 'datos' => $datosJson]
+            "INSERT INTO {$tabla} (" . NotificacionesCols::USUARIO_ID . ", " . NotificacionesCols::TIPO . ", " . NotificacionesCols::DATOS . ")"
+            . " VALUES (:userId, :tipo, :" . NotificacionesCols::DATOS . "::jsonb)",
+            ['userId' => $userId, 'tipo' => $tipo, NotificacionesCols::DATOS => $datosJson]
         );
     }
 

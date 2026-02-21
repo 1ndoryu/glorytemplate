@@ -19,6 +19,7 @@ use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
@@ -662,13 +663,13 @@ class SamplesRepository extends BaseRepository
         $ts = SamplesCols::TABLA;
 
         $row = static::consultarUno(
-            "SELECT COUNT(*) as total_samples, COUNT(" . SamplesCols::EMBEDDING . ") as con_embedding,"
+            "SELECT COUNT(*) as " . UsuariosExtCols::TOTAL_SAMPLES . ", COUNT(" . SamplesCols::EMBEDDING . ") as con_embedding,"
             . " COUNT(*) - COUNT(" . SamplesCols::EMBEDDING . ") as sin_embedding,"
             . " CASE WHEN COUNT(*) > 0 THEN ROUND(COUNT(" . SamplesCols::EMBEDDING . ")::numeric / COUNT(*)::numeric * 100, 1) ELSE 0 END as porcentaje"
             . " FROM {$ts} WHERE " . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
         );
 
-        return $row ?: ['total_samples' => 0, 'con_embedding' => 0, 'sin_embedding' => 0, 'porcentaje' => 0];
+        return $row ?: [UsuariosExtCols::TOTAL_SAMPLES => 0, 'con_embedding' => 0, 'sin_embedding' => 0, 'porcentaje' => 0];
     }
 
     /*
@@ -724,8 +725,8 @@ class SamplesRepository extends BaseRepository
         $ts = SamplesCols::TABLA;
 
         return static::ejecutar(
-            "UPDATE {$ts} SET " . SamplesCols::EMBEDDING . " = :embedding::vector WHERE " . SamplesCols::ID . " = :id",
-            ['embedding' => $vectorStr, 'id' => $id]
+            "UPDATE {$ts} SET " . SamplesCols::EMBEDDING . " = :" . SamplesCols::EMBEDDING . "::vector WHERE " . SamplesCols::ID . " = :id",
+            [SamplesCols::EMBEDDING => $vectorStr, 'id' => $id]
         ) >= 0;
     }
 

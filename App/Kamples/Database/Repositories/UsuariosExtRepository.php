@@ -131,8 +131,8 @@ class UsuariosExtRepository extends BaseRepository
             . UsuariosExtCols::VERIFICADO . ", " . UsuariosExtCols::TOTAL_SEGUIDORES . ", "
             . UsuariosExtCols::TOTAL_SEGUIDOS . ", " . UsuariosExtCols::TOTAL_SAMPLES . ", "
             . UsuariosExtCols::TOTAL_DESCARGAS . ", " . UsuariosExtCols::CREATED_AT
-            . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :username",
-            ['username' => $username]
+            . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
+            [UsuariosExtCols::USERNAME => $username]
         );
     }
 
@@ -253,15 +253,15 @@ class UsuariosExtRepository extends BaseRepository
 
         if ($subscriptionId !== null) {
             return static::ejecutar(
-                "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = :plan, "
+                "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = :" . UsuariosExtCols::PLAN . ", "
                 . UsuariosExtCols::STRIPE_SUBSCRIPTION_ID . " = :subId WHERE " . UsuariosExtCols::ID . " = :id",
-                ['plan' => $plan, 'subId' => $subscriptionId, 'id' => $id]
+                [UsuariosExtCols::PLAN => $plan, 'subId' => $subscriptionId, 'id' => $id]
             );
         }
 
         return static::ejecutar(
-            "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = :plan WHERE " . UsuariosExtCols::ID . " = :id",
-            ['plan' => $plan, 'id' => $id]
+            "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = :" . UsuariosExtCols::PLAN . " WHERE " . UsuariosExtCols::ID . " = :id",
+            [UsuariosExtCols::PLAN => $plan, 'id' => $id]
         );
     }
 
@@ -287,8 +287,8 @@ class UsuariosExtRepository extends BaseRepository
         $tabla = UsuariosExtCols::TABLA;
 
         static::ejecutar(
-            "UPDATE {$tabla} SET " . UsuariosExtCols::ROL . " = :rol WHERE " . UsuariosExtCols::ID . " = :id",
-            ['rol' => $rol, 'id' => $id]
+            "UPDATE {$tabla} SET " . UsuariosExtCols::ROL . " = :" . UsuariosExtCols::ROL . " WHERE " . UsuariosExtCols::ID . " = :id",
+            [UsuariosExtCols::ROL => $rol, 'id' => $id]
         );
     }
 
@@ -314,8 +314,8 @@ class UsuariosExtRepository extends BaseRepository
         $tabla = UsuariosExtCols::TABLA;
 
         return static::consultarUno(
-            "SELECT " . UsuariosExtCols::ID . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :username",
-            ['username' => $username]
+            "SELECT " . UsuariosExtCols::ID . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
+            [UsuariosExtCols::USERNAME => $username]
         );
     }
 
@@ -494,9 +494,9 @@ class UsuariosExtRepository extends BaseRepository
     {
         $tabla = UsuariosExtCols::TABLA;
         static::ejecutar(
-            "UPDATE {$tabla} SET " . UsuariosExtCols::BANEADO_HASTA . " = :hasta, " . UsuariosExtCols::BAN_RAZON . " = :razon
+            "UPDATE {$tabla} SET " . UsuariosExtCols::BANEADO_HASTA . " = :hasta, " . UsuariosExtCols::BAN_RAZON . " = :" . UsuariosExtCols::BAN_RAZON . "
              WHERE " . UsuariosExtCols::ID . " = :id",
-            ['hasta' => $banHasta, 'razon' => $banRazon, 'id' => $userId]
+            ['hasta' => $banHasta, UsuariosExtCols::BAN_RAZON => $banRazon, 'id' => $userId]
         );
     }
 

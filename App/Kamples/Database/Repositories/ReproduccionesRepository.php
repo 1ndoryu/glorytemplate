@@ -129,8 +129,8 @@ class ReproduccionesRepository extends BaseRepository
         static::ejecutar(
             "INSERT INTO {$tabla} (" . ReproduccionesCols::USUARIO_ID . ", " . ReproduccionesCols::SAMPLE_ID
             . ", " . ReproduccionesCols::DURACION_ESCUCHADA . ", " . ReproduccionesCols::COMPLETADA
-            . ") VALUES (:userId, :sampleId, :duracion, :completada)",
-            ['userId' => $userId, 'sampleId' => $sampleId, 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
+            . ") VALUES (:userId, :sampleId, :" . ReproduccionesCols::DURACION_ESCUCHADA . ", :" . ReproduccionesCols::COMPLETADA . ")",
+            ['userId' => $userId, 'sampleId' => $sampleId, ReproduccionesCols::DURACION_ESCUCHADA => $duracion, ReproduccionesCols::COMPLETADA => $completada ? 'true' : 'false']
         );
     }
 
@@ -142,9 +142,9 @@ class ReproduccionesRepository extends BaseRepository
         $tabla = ReproduccionesCols::TABLA;
 
         static::ejecutar(
-            "UPDATE {$tabla} SET " . ReproduccionesCols::DURACION_ESCUCHADA . " = :duracion, "
-            . ReproduccionesCols::COMPLETADA . " = :completada WHERE " . ReproduccionesCols::ID . " = :id",
-            ['id' => $id, 'duracion' => $duracion, 'completada' => $completada ? 'true' : 'false']
+            "UPDATE {$tabla} SET " . ReproduccionesCols::DURACION_ESCUCHADA . " = :" . ReproduccionesCols::DURACION_ESCUCHADA . ", "
+            . ReproduccionesCols::COMPLETADA . " = :" . ReproduccionesCols::COMPLETADA . " WHERE " . ReproduccionesCols::ID . " = :id",
+            ['id' => $id, ReproduccionesCols::DURACION_ESCUCHADA => $duracion, ReproduccionesCols::COMPLETADA => $completada ? 'true' : 'false']
         );
     }
 

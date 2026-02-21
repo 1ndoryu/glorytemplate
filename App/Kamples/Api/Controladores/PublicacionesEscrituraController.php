@@ -85,12 +85,12 @@ class PublicacionesEscrituraController
                 try {
                     $resultado = ServicioModeracionIA::moderarPublicacion($pubId, $textoMod, $imgsMod);
 
-                    if ($adminFlag && ($resultado['nivel'] ?? '') !== 'aprobado') {
+                    if ($adminFlag && ($resultado['nivel'] ?? '') !== PublicacionesEnums::MODERACION_APROBADO) {
                         KamplesLogger::info('ModeracionIA: Post admin forzado a aprobado', [
                             'publicacionId' => $pubId,
                             'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
                         ], 'moderacion');
-                        PublicacionesRepository::forzarModeracion($pubId, 'aprobado', 'admin_auto');
+                        PublicacionesRepository::forzarModeracion($pubId, PublicacionesEnums::MODERACION_APROBADO, 'admin_auto');
                     }
                 } catch (\Throwable $e) {
                     KamplesLogger::error('Error en moderación de publicación', [
@@ -167,8 +167,8 @@ class PublicacionesEscrituraController
             $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_PUBLICACION, 'La publicación');
             if ($errorLongitud) return Validador::respuestaError($errorLongitud);
 
-            $campos[] = 'contenido = :contenido';
-            $params['contenido'] = $contenido;
+            $campos[] = PublicacionesCols::CONTENIDO . ' = :' . PublicacionesCols::CONTENIDO;
+            $params[PublicacionesCols::CONTENIDO] = $contenido;
         }
 
         if (isset($body['imagenes'])) {
@@ -179,8 +179,8 @@ class PublicacionesEscrituraController
             $imagenes = !empty($imagenesArr)
                 ? '{' . \implode(',', \array_map(fn($v) => '"' . addslashes(\esc_url_raw($v)) . '"', $imagenesArr)) . '}'
                 : '{}';
-            $campos[] = 'imagenes = :imagenes';
-            $params['imagenes'] = $imagenes;
+            $campos[] = PublicacionesCols::IMAGENES . ' = :' . PublicacionesCols::IMAGENES;
+            $params[PublicacionesCols::IMAGENES] = $imagenes;
         }
 
         /* Solo admin puede cambiar estado de moderación */

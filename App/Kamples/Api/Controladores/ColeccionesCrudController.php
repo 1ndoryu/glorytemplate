@@ -82,15 +82,15 @@ class ColeccionesCrudController
             $campos[] = ColeccionesCols::NOMBRE . ' = :nombre';
             $params['nombre'] = sanitize_text_field($body['nombre']);
         }
-        if (isset($body['descripcion'])) {
-            $errorDesc = Validador::validarLongitud($body['descripcion'], Validador::MAX_DESCRIPCION_COLECCION, 'La descripción');
+        if (isset($body[ColeccionesCols::DESCRIPCION])) {
+            $errorDesc = Validador::validarLongitud($body[ColeccionesCols::DESCRIPCION], Validador::MAX_DESCRIPCION_COLECCION, 'La descripción');
             if ($errorDesc) return Validador::respuestaError($errorDesc);
             $campos[] = ColeccionesCols::DESCRIPCION . ' = :desc';
-            $params['desc'] = sanitize_textarea_field($body['descripcion']);
+            $params['desc'] = sanitize_textarea_field($body[ColeccionesCols::DESCRIPCION]);
         }
         if (isset($body['publica'])) {
             $campos[] = ColeccionesCols::PUBLICA . ' = :publica';
-            $params['publica'] = ((bool) $body['publica']) ? 'true' : 'false';
+            $params[ColeccionesCols::PUBLICA] = ((bool) $body['publica']) ? 'true' : 'false';
         }
         if (isset($body['portadaUrl'])) {
             $campos[] = ColeccionesCols::PORTADA_URL . ' = :portada';

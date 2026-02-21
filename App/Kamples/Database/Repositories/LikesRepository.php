@@ -88,7 +88,7 @@ class LikesRepository extends BaseRepository
             "INSERT INTO {$tabla} (" . LikesCols::USUARIO_ID . ", " . LikesCols::TIPO . ", " . LikesCols::TARGET_ID . ", " . LikesCols::REACCION . ")
              VALUES (:usuario, :tipo, :target, :reaccion)
              ON CONFLICT (" . LikesCols::USUARIO_ID . ", " . LikesCols::TIPO . ", " . LikesCols::TARGET_ID . ") DO UPDATE SET " . LikesCols::REACCION . " = :reaccion2, " . LikesCols::CREATED_AT . " = NOW()",
-            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId, 'reaccion' => $reaccion, 'reaccion2' => $reaccion]
+            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId, LikesCols::REACCION => $reaccion, 'reaccion2' => $reaccion]
         );
     }
 

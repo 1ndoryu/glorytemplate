@@ -227,23 +227,23 @@ class PerfilController
 
         /* Acepta nombreVisible o nombreDisplay (compatibilidad) */
         if ($nombre !== null) {
-            $campos[] = 'nombre_visible = :nombre';
+            $campos[] = UsuariosExtCols::NOMBRE_VISIBLE . ' = :nombre';
             $params['nombre'] = sanitize_text_field($nombre);
         }
         if (isset($body['username'])) {
-            $campos[] = 'username = :username';
-            $params['username'] = sanitize_user($body['username']);
+            $campos[] = UsuariosExtCols::USERNAME . ' = :' . UsuariosExtCols::USERNAME;
+            $params[UsuariosExtCols::USERNAME] = sanitize_user($body['username']);
         }
         if (isset($body['bio'])) {
-            $campos[] = 'bio = :bio';
-            $params['bio'] = sanitize_textarea_field($body['bio']);
+            $campos[] = UsuariosExtCols::BIO . ' = :' . UsuariosExtCols::BIO;
+            $params[UsuariosExtCols::BIO] = sanitize_textarea_field($body['bio']);
         }
         if (isset($body['portadaUrl'])) {
-            $campos[] = 'portada_url = :portada';
+            $campos[] = UsuariosExtCols::PORTADA_URL . ' = :portada';
             $params['portada'] = esc_url_raw($body['portadaUrl']);
         }
         if (isset($body['avatarUrl'])) {
-            $campos[] = 'avatar_url = :avatar';
+            $campos[] = UsuariosExtCols::AVATAR_URL . ' = :avatar';
             $params['avatar'] = esc_url_raw($body['avatarUrl']);
         }
 

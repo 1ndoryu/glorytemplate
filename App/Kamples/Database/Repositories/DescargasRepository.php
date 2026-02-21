@@ -117,8 +117,8 @@ class DescargasRepository extends BaseRepository
         static::ejecutar(
             "INSERT INTO {$tabla} (" . DescargasCols::USUARIO_ID . ", " . DescargasCols::SAMPLE_ID
             . ", " . DescargasCols::CALIDAD . ", " . DescargasCols::TAMANO_BYTES
-            . ") VALUES (:userId, :sampleId, :calidad, :tamano)",
-            ['userId' => $userId, 'sampleId' => $sampleId, 'calidad' => $calidad, 'tamano' => $tamanoBytes]
+            . ") VALUES (:userId, :sampleId, :" . DescargasCols::CALIDAD . ", :" . DescargasCols::TAMANO_BYTES . ")",
+            ['userId' => $userId, 'sampleId' => $sampleId, DescargasCols::CALIDAD => $calidad, DescargasCols::TAMANO_BYTES => $tamanoBytes]
         );
     }
 

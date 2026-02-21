@@ -113,7 +113,7 @@ class ReportesRepository extends BaseRepository
             "INSERT INTO {$tabla} (" . ReportesCols::TIPO . ", " . ReportesCols::TARGET_ID
             . ", " . ReportesCols::REPORTADOR_ID . ", " . ReportesCols::RAZON . ", " . ReportesCols::ESTADO . ")"
             . " VALUES (:tipo, :targetId, :userId, :razon, 'pendiente') RETURNING " . ReportesCols::ID,
-            ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, 'razon' => $razon]
+            ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, ReportesCols::RAZON => $razon]
         );
     }
 }

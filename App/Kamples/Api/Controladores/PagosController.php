@@ -239,7 +239,7 @@ class PagosController
     private static function procesarCheckoutCompletado(array $sesion): void
     {
         $userId = (int) ($sesion['metadata']['user_id'] ?? 0);
-        $plan = $sesion['metadata']['plan'] ?? '';
+        $plan = $sesion['metadata'][UsuariosExtCols::PLAN] ?? '';
         $subscriptionId = $sesion['subscription'] ?? '';
 
         if (!$userId || !$plan) {
@@ -252,14 +252,14 @@ class PagosController
         /* O07: Verificar que el UPDATE afectó al menos 1 fila */
         if ($affected === 0) {
             KamplesLogger::error('Webhook checkout: UPDATE no afectó ninguna fila (userId inexistente?)', [
-                'userId' => $userId, 'plan' => $plan, 'subscriptionId' => $subscriptionId,
+                'userId' => $userId, UsuariosExtCols::PLAN => $plan, 'subscriptionId' => $subscriptionId,
             ]);
             return;
         }
 
         KamplesLogger::info('Suscripción activada vía checkout', [
             'userId' => $userId,
-            'plan'   => $plan,
+            UsuariosExtCols::PLAN   => $plan,
             'subscriptionId' => $subscriptionId,
         ]);
 

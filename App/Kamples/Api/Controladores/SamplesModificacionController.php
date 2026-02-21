@@ -86,13 +86,13 @@ class SamplesModificacionController
             if (\strlen($titulo) < 1 || \strlen($titulo) > 200) {
                 return new \WP_REST_Response(['code' => 'titulo_invalido', 'message' => 'El título debe tener entre 1 y 200 caracteres'], 400);
             }
-            $campos[] = 'titulo = :titulo';
-            $params['titulo'] = $titulo;
+            $campos[] = SamplesCols::TITULO . ' = :' . SamplesCols::TITULO;
+            $params[SamplesCols::TITULO] = $titulo;
         }
 
         if (isset($body['descripcion'])) {
-            $campos[] = SamplesCols::DESCRIPCION . ' = :descripcion';
-            $params['descripcion'] = \sanitize_textarea_field($body['descripcion']);
+            $campos[] = SamplesCols::DESCRIPCION . ' = :' . SamplesCols::DESCRIPCION;
+            $params[SamplesCols::DESCRIPCION] = \sanitize_textarea_field($body['descripcion']);
         }
 
         if (isset($body['tags'])) {
@@ -101,8 +101,8 @@ class SamplesModificacionController
             if (\count($tags) < 2) {
                 return new \WP_REST_Response(['code' => 'tags_insuficientes', 'message' => 'Se requieren al menos 2 tags'], 400);
             }
-            $campos[] = SamplesCols::TAGS . ' = :tags';
-            $params['tags'] = NormalizadorSample::phpArrayToPg($tags);
+            $campos[] = SamplesCols::TAGS . ' = :' . SamplesCols::TAGS;
+            $params[SamplesCols::TAGS] = NormalizadorSample::phpArrayToPg($tags);
         }
 
         if (isset($body['tipo'])) {
@@ -127,8 +127,8 @@ class SamplesModificacionController
         }
 
         if (isset($body['precio'])) {
-            $campos[] = SamplesCols::PRECIO . ' = :precio';
-            $params['precio'] = $body['precio'] !== null ? (float) $body['precio'] : null;
+            $campos[] = SamplesCols::PRECIO . ' = :' . SamplesCols::PRECIO;
+            $params[SamplesCols::PRECIO] = $body['precio'] !== null ? (float) $body['precio'] : null;
         }
 
         if (isset($body['permitirDescarga'])) {
@@ -154,8 +154,8 @@ class SamplesModificacionController
 
         /* Solo admin puede verificar/desverificar */
         if (isset($body['verificado']) && $esAdmin) {
-            $campos[] = SamplesCols::VERIFICADO . ' = :verificado';
-            $params['verificado'] = ((bool) $body['verificado']) ? 'true' : 'false';
+            $campos[] = SamplesCols::VERIFICADO . ' = :' . SamplesCols::VERIFICADO;
+            $params[SamplesCols::VERIFICADO] = ((bool) $body['verificado']) ? 'true' : 'false';
 
             /* C266: Notificar al creador si se verifica el sample */
             if ((bool) $body['verificado']) {
