@@ -198,7 +198,7 @@ const FeedUnificado = (): JSX.Element => {
                 idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
                 onConteoChange={setTotalSamples}
                 accionVacia={
-                    <BotonBase variante="primario" onClick={abrirCrear}>
+                    <BotonBase variante="primario" onClick={() => abrirCrear()}>
                         Sube el primero
                     </BotonBase>
                 }

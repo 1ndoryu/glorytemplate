@@ -20,7 +20,7 @@ import { useTopBar } from '@app/hooks/useTopBar';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
-    const esDesktop = !!(window as Record<string, unknown>).__KAMPLES_DESKTOP__;
+    const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
     const alternarPanelSync = useSyncStore(s => s.alternarPanel);
     const syncPanelAbierto = useSyncStore(s => s.panelAbierto);
     const {

@@ -4,7 +4,7 @@
  * y la estructura de carpetas del usuario para la página Explorador.
  */
 
-import { apiGet } from './apiCliente';
+import { apiGet, apiPut } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen } from '../types';
 import { crearLogger } from './logger';
@@ -66,6 +66,35 @@ export const obtenerCarpetas = async (): Promise<RespuestaApi<CarpetaInfo[]>> =>
         return await apiGet<CarpetaInfo[]>('/me/coleccionados/carpetas');
     } catch (err) {
         log.error('Error obteniendo carpetas', err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
+    }
+};
+
+/* Respuesta del endpoint PUT /me/coleccionados/{id}/carpeta */
+export interface RespuestaMoverSample {
+    movido: boolean;
+    sampleId: number;
+    carpetaPrimaria: string;
+    carpetaSecundaria: string;
+}
+
+/*
+ * Mover un sample a otra carpeta (cambiar metadata carpeta_primaria/secundaria).
+ * Endpoint: PUT /me/coleccionados/{id}/carpeta
+ * C338: Explorador como file-manager real.
+ */
+export const moverSampleACarpeta = async (
+    sampleId: number,
+    carpetaPrimaria: string,
+    carpetaSecundaria = ''
+): Promise<RespuestaApi<RespuestaMoverSample>> => {
+    try {
+        return await apiPut<RespuestaMoverSample>(
+            `/me/coleccionados/${sampleId}/carpeta`,
+            { carpeta_primaria: carpetaPrimaria, carpeta_secundaria: carpetaSecundaria }
+        );
+    } catch (err) {
+        log.error('Error moviendo sample a carpeta', err);
         return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };

@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Coleccion, SampleResumen } from '../types';
+import type { Coleccion, SampleResumen, UsuarioResumen } from '../types';
 
 /*
  * Normalizador: convierte respuesta raw de PostgreSQL (snake_case)
@@ -14,28 +14,28 @@ import type { Coleccion, SampleResumen } from '../types';
  * Acepta ambos formatos para robustez.
  */
 const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
-    id: raw.id,
-    usuarioId: raw.usuario_id ?? raw.usuarioId ?? 0,
-    nombre: raw.nombre ?? '',
-    descripcion: raw.descripcion ?? '',
-    esPublica: raw.publica ?? raw.esPublica ?? true,
-    imagenUrl: raw.imagen_url ?? raw.imagenUrl ?? null,
-    totalSamples: raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0,
-    creadoAt: raw.created_at ?? raw.creadoAt ?? '',
-    actualizadoAt: raw.updated_at ?? raw.actualizadoAt ?? '',
+    id: (raw.id ?? 0) as number,
+    usuarioId: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
+    nombre: (raw.nombre ?? '') as string,
+    descripcion: (raw.descripcion ?? '') as string,
+    esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
+    imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
+    totalSamples: (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number,
+    creadoAt: (raw.created_at ?? raw.creadoAt ?? '') as string,
+    actualizadoAt: (raw.updated_at ?? raw.actualizadoAt ?? '') as string,
     usuario: raw.username ? {
-        id: raw.usuario_id ?? raw.usuarioId ?? 0,
-        username: raw.username,
-        nombreVisible: raw.nombre_visible ?? raw.nombreVisible ?? raw.username,
-        avatarUrl: raw.avatar_url ?? raw.avatarUrl ?? null,
-    } : raw.usuario,
-    samples: raw.samples,
-    contieneElSample: raw.contieneElSample ?? raw.contiene_el_sample,
+        id: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
+        username: raw.username as string,
+        nombreVisible: (raw.nombre_visible ?? raw.nombreVisible ?? raw.username) as string,
+        avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+    } as UsuarioResumen : raw.usuario as Coleccion['usuario'],
+    samples: raw.samples as Coleccion['samples'],
+    contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
 });
 
 /* Normalizar array de colecciones */
-const normalizarLista = (data: Record<string, unknown>[]): Coleccion[] =>
-    Array.isArray(data) ? data.map(normalizarColeccion) : [];
+const normalizarLista = (data: unknown[]): Coleccion[] =>
+    Array.isArray(data) ? data.map(d => normalizarColeccion(d as Record<string, unknown>)) : [];
 
 /* Listar colecciones del usuario (o de otro si se pasa usuarioId) — C169: con búsqueda */
 export const listarColecciones = async (usuarioId?: number, busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {
@@ -59,7 +59,7 @@ export const listarColeccionesPublicas = async (busqueda?: string): Promise<Resp
 /* Detalle de una colección */
 export const obtenerColeccion = async (id: number): Promise<RespuestaApi<Coleccion>> => {
     const resp = await apiGet<Coleccion>(`/colecciones/${id}`);
-    if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data);
+    if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
     return resp;
 };
 

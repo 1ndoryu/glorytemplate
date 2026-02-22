@@ -4,7 +4,7 @@
  */
 
 import type { SampleResumen } from '@app/types';
-import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion, ClipPatron } from '../types/mezclador';
+import type { BloqueMezclador, PistaMezclador, Compas, ConfigBloque, SnapResolucion } from '../types/mezclador';
 
 /* Snapshot para historial de undo/redo */
 export interface SnapshotMezclador {

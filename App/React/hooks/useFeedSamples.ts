@@ -74,7 +74,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Filtros client-side y agrupación de tags */
     const {
         tagsAgrupados, tagsSueltos, tagsIncluidos, tagsExcluidos,
-        bpmMin, bpmMax, filtroPrecio, incluirTag, excluirTag, quitarTag, setBpmRango,
+        bpmMin, bpmMax, incluirTag, excluirTag, quitarTag, setBpmRango,
         samplesFiltrados, manejarIncluirTag, manejarExcluirTag,
     } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos });
 

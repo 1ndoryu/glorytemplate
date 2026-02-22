@@ -891,4 +891,51 @@ class SamplesRepository extends BaseRepository
         );
         return $resultado !== null;
     }
+
+    /*
+     * Mover un sample a otra carpeta actualizando metadata JSONB.
+     * Usa jsonb_set para actualizar carpeta_primaria y carpeta_secundaria
+     * atómicamente sin sobreescribir el resto del metadata.
+     */
+    public static function moverACarpeta(int $sampleId, string $carpetaPrimaria, string $carpetaSecundaria = ''): bool
+    {
+        $ts = SamplesCols::TABLA;
+        $meta = SamplesCols::METADATA;
+
+        /* Construir metadata actualizada con jsonb_set encadenado */
+        $sql = "UPDATE {$ts} SET "
+             . "{$meta} = jsonb_set("
+             . "  jsonb_set(COALESCE({$meta}, '{}'), '{carpeta_primaria}', :primaria::jsonb),"
+             . "  '{carpeta_secundaria}', :secundaria::jsonb"
+             . "), " . SamplesCols::UPDATED_AT . " = NOW()"
+             . " WHERE " . SamplesCols::ID . " = :id";
+
+        $filas = static::ejecutar($sql, [
+            'id'         => $sampleId,
+            'primaria'   => json_encode($carpetaPrimaria),
+            'secundaria' => json_encode($carpetaSecundaria),
+        ]);
+
+        return $filas > 0;
+    }
+
+    /*
+     * Verificar que un sample pertenece al usuario (es creador o lo descargó).
+     */
+    public static function esColeccionadoPorUsuario(int $sampleId, int $userId): bool
+    {
+        $ts = SamplesCols::TABLA;
+        $td = DescargasCols::TABLA;
+
+        $sql = "SELECT 1 FROM {$ts} s"
+             . " LEFT JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
+             . " WHERE s." . SamplesCols::ID . " = :sid"
+             . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)"
+             . " LIMIT 1";
+
+        $row = static::consultarUno($sql, ['sid' => $sampleId, 'uid' => $userId, 'uid2' => $userId]);
+        return $row !== null;
+    }
 }

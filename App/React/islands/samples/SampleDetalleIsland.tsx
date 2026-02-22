@@ -49,7 +49,7 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         manejarReaccionDetalle, manejarQuitarReaccionDetalle, manejarLikeSimilar,
     } = useSampleDetalle({ slugProp });
     const {
-        reproduciendo, progreso, picosWaveform, manejarPlay, buscarPosicion, audioRef,
+        reproduciendo, progreso, picosWaveform, manejarPlay, buscarPosicion,
     } = useSampleAudio(sample);
     const menu = useMenuContextualSample();
     const abrirPlanes = usePlanesModalStore(s => s.abrir);

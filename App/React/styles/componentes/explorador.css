@@ -517,3 +517,227 @@
     color: var(--textoTerciario);
     font-size: var(--fuenteXs);
 }
+
+/* C338: Cabecera de carpetas con boton crear */
+.exploradorCarpetaCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: var(--espacioXs);
+}
+
+.exploradorCrearCarpetaBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: color var(--transicionRapida), background-color var(--transicionRapida);
+}
+
+.exploradorCrearCarpetaBtn:hover {
+    color: var(--acento);
+    background-color: var(--fondoElevado1);
+}
+
+/* Dialogo inline para crear carpeta */
+.exploradorCrearCarpetaDialog {
+    display: flex;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+}
+
+.exploradorCrearCarpetaInput {
+    flex: 1;
+    min-width: 0;
+    padding: var(--espacioXs) var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoBase);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteXs);
+    font-family: var(--fuentePrincipal);
+    outline: none;
+    transition: border-color var(--transicionRapida);
+}
+
+.exploradorCrearCarpetaInput:focus {
+    border-color: var(--acento);
+}
+
+.exploradorCrearCarpetaConfirmar {
+    padding: var(--espacioXs) var(--espacioSm);
+    border: none;
+    border-radius: var(--radioSm);
+    background: var(--acento);
+    color: var(--acentoTexto);
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity var(--transicionRapida);
+}
+
+.exploradorCrearCarpetaConfirmar:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.exploradorCrearCarpetaConfirmar:not(:disabled):hover {
+    opacity: 0.85;
+}
+
+/* C338: Feedback visual al arrastrar sobre una carpeta */
+.exploradorCarpetaDragOver {
+    background-color: var(--acentoMuted);
+    outline: 1px dashed var(--acento);
+    outline-offset: -1px;
+    border-radius: var(--radioSm);
+}
+
+/* C338: Wrapper draggable para samples */
+.exploradorSampleDraggable {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    transition: opacity var(--transicionRapida);
+}
+
+.exploradorSampleDraggable > *:last-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.exploradorSampleArrastrado {
+    opacity: 0.35;
+}
+
+.exploradorDragHandle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+    cursor: grab;
+    flex-shrink: 0;
+    padding: var(--espacioXs) 2px;
+    border-radius: var(--radioSm);
+    transition: color var(--transicionRapida);
+}
+
+.exploradorDragHandle:hover {
+    color: var(--textoSecundario);
+}
+
+.exploradorDragHandle:active {
+    cursor: grabbing;
+}
+
+/* C338: Modal overlay "Mover a carpeta" */
+.exploradorModalOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlayOscuro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--zModal);
+    animation: exploradorModalFadeIn 0.15s ease;
+}
+
+@keyframes exploradorModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.exploradorModalContenido {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioLg);
+    min-width: 260px;
+    max-width: 360px;
+    width: 90%;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    animation: exploradorModalSlideIn 0.15s ease;
+}
+
+@keyframes exploradorModalSlideIn {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.exploradorModalTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.exploradorModalLista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+.exploradorModalItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border: none;
+    background: none;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    text-align: left;
+    width: 100%;
+    transition: background-color var(--transicionRapida);
+}
+
+.exploradorModalItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.exploradorModalSubItem {
+    padding-left: calc(var(--espacioMd) + var(--espacioLg));
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+}
+
+.exploradorModalCerrar {
+    padding: var(--espacioSm) var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: none;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    align-self: flex-end;
+    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.exploradorModalCerrar:hover {
+    color: var(--textoPrimario);
+    border-color: var(--textoSecundario);
+}
+
+/* C338: En cuadricula, el wrapper draggable no necesita grip handle */
+.cuadriculaDeSamples .exploradorSampleDraggable {
+    flex-direction: column;
+    gap: 0;
+}
+
+.cuadriculaDeSamples .exploradorDragHandle {
+    display: none;
+}

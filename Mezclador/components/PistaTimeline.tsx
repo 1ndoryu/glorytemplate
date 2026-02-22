@@ -5,7 +5,7 @@
  */
 
 import { Volume2, VolumeX, Trash2 } from 'lucide-react';
-import type { PistaMezclador, ClipPatron } from '../types/mezclador';
+import type { PistaMezclador } from '../types/mezclador';
 import { BloqueSample } from './BloqueSample';
 import { usePatronesStore } from '../stores/patronesStore';
 import { posicionBloquePorc, anchoBloquePorc } from '../utils/compasUtils';

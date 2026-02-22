@@ -65,6 +65,18 @@ class BibliotecaSamplesController
             'callback'            => [self::class, 'carpetasColeccionados'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* C338: Mover sample a otra carpeta (explorador file-manager) */
+        \register_rest_route($namespace, '/me/coleccionados/(?P<id>\\d+)/carpeta', [
+            'methods'             => 'PUT',
+            'callback'            => [self::class, 'moverSampleACarpeta'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args'                => [
+                'id'                  => ['required' => true, 'type' => 'integer'],
+                'carpeta_primaria'    => ['required' => true, 'type' => 'string'],
+                'carpeta_secundaria'  => ['required' => false, 'type' => 'string', 'default' => ''],
+            ],
+        ]);
     }
 
     /**
@@ -233,6 +245,74 @@ class BibliotecaSamplesController
             ]);
             return new \WP_REST_Response([
                 'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    /**
+     * PUT /me/coleccionados/{id}/carpeta — Mover sample a otra carpeta.
+     * C338: Explorador como file-manager real (crear carpetas, mover audios).
+     */
+    public static function moverSampleACarpeta(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
+
+            $sampleId = (int) $request->get_param('id');
+            $primaria = \trim((string) $request->get_param('carpeta_primaria'));
+            $secundaria = \trim((string) $request->get_param('carpeta_secundaria'));
+
+            /* Validar que el nombre de carpeta no sea vacío ni peligroso */
+            if (empty($primaria) || \mb_strlen($primaria) > 100) {
+                return new \WP_REST_Response([
+                    'code'    => 'carpeta_invalida',
+                    'message' => 'El nombre de carpeta primaria es inválido.',
+                ], 400);
+            }
+
+            if (\mb_strlen($secundaria) > 100) {
+                return new \WP_REST_Response([
+                    'code'    => 'carpeta_invalida',
+                    'message' => 'El nombre de subcarpeta es inválido.',
+                ], 400);
+            }
+
+            /* Verificar que el sample pertenece al usuario (coleccionado) */
+            if (!SamplesRepository::esColeccionadoPorUsuario($sampleId, $userId)) {
+                return new \WP_REST_Response([
+                    'code'    => 'no_autorizado',
+                    'message' => 'No tienes acceso a este sample.',
+                ], 403);
+            }
+
+            $movido = SamplesRepository::moverACarpeta($sampleId, $primaria, $secundaria);
+
+            if (!$movido) {
+                return new \WP_REST_Response([
+                    'code'    => 'error_mover',
+                    'message' => 'No se pudo mover el sample.',
+                ], 500);
+            }
+
+            return new \WP_REST_Response([
+                'data' => [
+                    'movido'            => true,
+                    'sampleId'          => $sampleId,
+                    'carpetaPrimaria'   => $primaria,
+                    'carpetaSecundaria' => $secundaria,
+                ],
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en BibliotecaSamplesController::moverSampleACarpeta', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code'    => 'error_interno',
                 'message' => 'Error interno del servidor',
             ], 500);
         }

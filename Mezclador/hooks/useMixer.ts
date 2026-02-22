@@ -56,7 +56,7 @@ export const useMixer = () => {
         if (!motorAudio.esMixerInicializado()) return;
         const ins = useMixerStore.getState().inserts.find(i => i.id === insertId);
         if (!ins) return;
-        motorAudio.actualizarInsertMixer(ins);
+        motorAudio.actualizarInsertMixer(ins.id, ins.volumen, ins.pan, ins.silenciado);
     }, []);
 
     /* Sincronizar EQ con Web Audio */
@@ -64,7 +64,9 @@ export const useMixer = () => {
         if (!motorAudio.esMixerInicializado()) return;
         const ins = useMixerStore.getState().inserts.find(i => i.id === insertId);
         if (!ins) return;
-        motorAudio.actualizarEQInsert(insertId, ins.eq, ins.eqActivo);
+        ins.eq.forEach((banda, idx) => {
+            motorAudio.actualizarEQInsert(insertId, idx, banda.frecuencia, banda.ganancia, banda.q);
+        });
     }, []);
 
     return {

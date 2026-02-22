@@ -24,6 +24,12 @@ interface CarpetaInfo {
 interface SampleBasico {
     id: number;
     titulo: string;
+    /* C338: metadata incluye carpeta_secundaria para estructura de subcarpetas */
+    metadata?: {
+        carpeta_primaria?: string;
+        carpeta_secundaria?: string;
+        [key: string]: unknown;
+    };
 }
 
 interface ResultadoDescargaApi {
@@ -201,7 +207,11 @@ export async function sincronizarConServidor(
         if (!respCarpetas.ok) {
             throw new Error(`Error al obtener carpetas: ${respCarpetas.status}`);
         }
-        const carpetas: CarpetaInfo[] = await respCarpetas.json();
+        const jsonCarpetas = await respCarpetas.json();
+        /* PHP retorna { data: CarpetaInfo[] } — extraer array */
+        const carpetas: CarpetaInfo[] = Array.isArray(jsonCarpetas)
+            ? jsonCarpetas
+            : (jsonCarpetas?.data ?? []);
 
         const total = carpetas.reduce((acc, c) => acc + c.total, 0);
         let procesados = 0;
@@ -212,6 +222,17 @@ export async function sincronizarConServidor(
             try {
                 await mkdir(rutaCarpeta, { recursive: true });
             } catch { /* La carpeta puede existir ya — ignorar */ }
+
+            /*
+             * C338: Crear subcarpetas en disco para que aparezcan en el explorador local.
+             * Incluye "General" y cualquier nueva subcarpeta creada por el usuario.
+             */
+            for (const sub of carpeta.subcarpetas) {
+                try {
+                    const rutaSub = await join(rutaCarpeta, sub.nombre);
+                    await mkdir(rutaSub, { recursive: true });
+                } catch { /* subcarpeta puede existir ya */ }
+            }
 
             /* Paginar todos los samples de esta carpeta primaria */
             let page = 1;
@@ -226,9 +247,18 @@ export async function sincronizarConServidor(
                 if (!respSamples.ok) break;
 
                 const json = await respSamples.json();
-                /* La API puede retornar { data, pagination } o array directo */
-                const samples = (json.data ?? json) as SampleBasico[];
-                const pagination = json.pagination ?? { page, pages: 1 };
+                /*
+                 * PHP retorna doble envoltura:
+                 * WP_REST_Response({ data: { data: SampleResumen[], pagination: {} } })
+                 * Por eso hay que perforar json.data.data para llegar al array.
+                 */
+                const inner = json?.data ?? json;
+                const samples: SampleBasico[] = Array.isArray(inner)
+                    ? inner
+                    : Array.isArray(inner?.data)
+                        ? inner.data
+                        : [];
+                const pagination = inner?.pagination ?? { page, pages: 1 };
 
                 for (const sample of samples) {
                     procesados++;
@@ -272,9 +302,27 @@ export async function sincronizarConServidor(
                         }
                         const buffer = await audioResp.arrayBuffer();
 
-                        /* Escribir en disco: carpetaLocal/primaria/nombre.formato */
-                        const nombreArchivo = `${nombre}.${formato}`;
-                        const rutaArchivo = await join(rutaCarpeta, nombreArchivo);
+                        /*
+                         * PHP retorna nombre ya con extensión: "titulo.wav"
+                         * No añadir formato de nuevo para evitar "titulo.wav.wav".
+                         * Solo usar formato como fallback si nombre no tiene punto.
+                         */
+                        const nombreArchivo = nombre.includes('.') ? nombre : `${nombre}.${formato}`;
+
+                        /*
+                         * C338: Colocar archivo en subcarpeta si el sample tiene carpeta_secundaria.
+                         * Estructura: carpetaBase/primaria/subcarpeta/nombre.formato
+                         * Si no tiene subcarpeta, va directo en la carpeta primaria.
+                         */
+                        const subcarpeta = sample.metadata?.carpeta_secundaria || '';
+                        let rutaDestino = rutaCarpeta;
+                        if (subcarpeta) {
+                            rutaDestino = await join(rutaCarpeta, subcarpeta);
+                            try {
+                                await mkdir(rutaDestino, { recursive: true });
+                            } catch { /* puede existir */ }
+                        }
+                        const rutaArchivo = await join(rutaDestino, nombreArchivo);
                         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
                         /* Registrar en índice local para no re-descargar */

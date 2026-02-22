@@ -177,13 +177,13 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         </div>
                         <div className="configSeccion">
                             <label className="configLabel">Contraseña</label>
-                            <BotonBase variante="secundario" tamano="sm" onClick={() => log.info('Cambiar contraseña')}>
+                            <BotonBase variante="secundario" tamano="sm" onClick={() => console.info('TO-DO: Cambiar contraseña')}>
                                 Cambiar contraseña
                             </BotonBase>
                         </div>
                         <div className="configSeccion">
                             <label className="configLabel configLabelPeligro">Zona de peligro</label>
-                            <BotonBase variante="ghost" tamano="sm" onClick={() => log.info('Eliminar cuenta')}>
+                            <BotonBase variante="ghost" tamano="sm" onClick={() => console.info('TO-DO: Eliminar cuenta')}>
                                 Eliminar cuenta
                             </BotonBase>
                         </div>

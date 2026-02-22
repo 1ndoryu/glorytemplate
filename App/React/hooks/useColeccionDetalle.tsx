@@ -16,7 +16,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
-import type { Coleccion, SampleResumen } from '@app/types';
+import type { Coleccion } from '@app/types';
 
 const TABS_COLECCION_DETALLE = [
     { id: 'samples', etiqueta: 'Samples' },

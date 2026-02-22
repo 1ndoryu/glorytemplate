@@ -46,7 +46,6 @@ export const useTimeline = () => {
     const snapResolucion = useMezcladorStore(s => s.snapResolucion);
     const moverBloque = useMezcladorStore(s => s.moverBloque);
     const moverBloquesSeleccionados = useMezcladorStore(s => s.moverBloquesSeleccionados);
-    const bloquesSeleccionados = useMezcladorStore(s => s.bloquesSeleccionados);
 
     /* Convertir posición X del mouse a compás */
     const xACompas = useCallback((clientX: number): number => {

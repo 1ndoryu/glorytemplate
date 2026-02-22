@@ -139,6 +139,7 @@ export interface SlotEfecto {
     id: string;
     indice: number;
     tipo: string | null;
+    nombre: string;
     activo: boolean;
     parametros: Record<string, number>;
 }
@@ -358,6 +359,7 @@ export const crearInsertDefault = (id: number): InsertMixer => ({
         id: `slot-${id}-${i}`,
         indice: i,
         tipo: null,
+        nombre: '',
         activo: true,
         parametros: {},
     })),

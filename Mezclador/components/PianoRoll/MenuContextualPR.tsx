@@ -6,7 +6,6 @@
 import { memo } from 'react';
 import { Palette } from 'lucide-react';
 import { useMenuContextualPR } from '../../hooks/useMenuContextualPR';
-import type { OpcionMenu } from '../../hooks/useMenuContextualPR';
 import { PALETA_NOTAS } from '../../types/pianoRoll';
 
 interface MenuContextualPRProps {

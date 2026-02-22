@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { obtenerColeccionados, obtenerCarpetas } from '@app/services/apiExplorador';
+import { obtenerColeccionados, obtenerCarpetas, moverSampleACarpeta } from '@app/services/apiExplorador';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { CarpetaInfo } from '@app/services/apiExplorador';
 import type { SampleResumen, TipoReaccion } from '@app/types';
@@ -40,10 +40,19 @@ export interface UseExploradorPaginaResultado {
     subcarpetaActiva: string;
     totalSamples: number;
     carpetasDesplegadas: Set<string>;
+    /* C338: Carpetas creadas localmente (aun sin samples) */
+    carpetasLocales: CarpetaInfo[];
     seleccionarCarpeta: (carpeta: string) => void;
     seleccionarSubcarpeta: (primaria: string, subcarpeta: string) => void;
     toggleDesplegada: (carpeta: string) => void;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
+    /* C338: Mover sample a otra carpeta */
+    moverSample: (sampleId: number, carpetaPrimaria: string, carpetaSecundaria?: string) => Promise<boolean>;
+    /* C338: Crear carpeta nueva (local hasta que se mueva un sample) */
+    crearCarpeta: (nombre: string, parent?: string) => void;
+    /* C338: Drag state */
+    sampleArrastrado: number | null;
+    setSampleArrastrado: (id: number | null) => void;
 }
 
 export function useExploradorPagina(): UseExploradorPaginaResultado {
@@ -55,6 +64,10 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
     const [subcarpetaActiva, setSubcarpetaActiva] = useState('');
     /* Todas las carpetas desplegadas por defecto */
     const [carpetasDesplegadas, setCarpetasDesplegadas] = useState<Set<string>>(new Set());
+    /* C338: Carpetas creadas localmente sin samples aún */
+    const [carpetasLocales, setCarpetasLocales] = useState<CarpetaInfo[]>([]);
+    /* C338: Drag state */
+    const [sampleArrastrado, setSampleArrastrado] = useState<number | null>(null);
 
     /* Carga inicial unica: carpetas + todos los samples (sin filtro de carpeta) */
     useEffect(() => {
@@ -201,6 +214,141 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         }
     }, [todosSamples]);
 
+    /*
+     * C338: Mover sample a otra carpeta.
+     * Actualiza metadata via API y refresca lista local de forma optimista.
+     */
+    const moverSample = useCallback(async (
+        sampleId: number,
+        carpetaPrimaria: string,
+        carpetaSecundaria = ''
+    ): Promise<boolean> => {
+        const prevSamples = todosSamples;
+        const prevCarpetas = carpetas;
+
+        /* Update optimista: cambiar metadata local */
+        setTodosSamples(prev =>
+            prev.map(s =>
+                s.id === sampleId
+                    ? {
+                        ...s,
+                        metadata: {
+                            ...s.metadata,
+                            carpeta_primaria: carpetaPrimaria,
+                            carpetaPrimaria,
+                            carpeta_secundaria: carpetaSecundaria,
+                            carpetaSecundaria,
+                        },
+                    }
+                    : s
+            )
+        );
+
+        /* Recalcular carpetas localmente */
+        const recalcularCarpetas = (samples: SampleResumen[]): CarpetaInfo[] => {
+            const mapa = new Map<string, Map<string, number>>();
+            for (const s of samples) {
+                const pri = obtenerCarpetaPrimaria(s);
+                const sec = obtenerCarpetaSecundaria(s);
+                if (!mapa.has(pri)) mapa.set(pri, new Map());
+                const subMapa = mapa.get(pri)!;
+                subMapa.set(sec, (subMapa.get(sec) ?? 0) + 1);
+            }
+            const resultado: CarpetaInfo[] = [];
+            for (const [primaria, subMapa] of mapa) {
+                let total = 0;
+                const subcarpetas: { nombre: string; total: number }[] = [];
+                for (const [nombre, cnt] of subMapa) {
+                    total += cnt;
+                    if (nombre) subcarpetas.push({ nombre, total: cnt });
+                }
+                resultado.push({ primaria, total, subcarpetas });
+            }
+            resultado.sort((a, b) => a.primaria.localeCompare(b.primaria));
+            return resultado;
+        };
+
+        /* Aplicar a samples modificados optimisticamente */
+        const samplesModificados = prevSamples.map(s =>
+            s.id === sampleId
+                ? {
+                    ...s,
+                    metadata: {
+                        ...s.metadata,
+                        carpeta_primaria: carpetaPrimaria,
+                        carpeta_secundaria: carpetaSecundaria,
+                    },
+                }
+                : s
+        );
+        setCarpetas(recalcularCarpetas(samplesModificados));
+
+        /* Eliminar carpeta local vacía si el sample fue el primero en usarla */
+        setCarpetasLocales(prev => prev.filter(c =>
+            samplesModificados.some(s => obtenerCarpetaPrimaria(s) === c.primaria)
+                ? false
+                : c.primaria !== carpetaPrimaria
+        ));
+
+        try {
+            const resp = await moverSampleACarpeta(sampleId, carpetaPrimaria, carpetaSecundaria);
+            if (!resp.ok) {
+                setTodosSamples(prevSamples);
+                setCarpetas(prevCarpetas);
+                toast.error('Error al mover el sample');
+                return false;
+            }
+            toast.exito(`Sample movido a ${carpetaPrimaria}${carpetaSecundaria ? '/' + carpetaSecundaria : ''}`);
+            return true;
+        } catch (err) {
+            setTodosSamples(prevSamples);
+            setCarpetas(prevCarpetas);
+            log.error('Error al mover sample', err);
+            toast.error('Error al mover el sample');
+            return false;
+        }
+    }, [todosSamples, carpetas]);
+
+    /*
+     * C338: Crear carpeta nueva (aparece en el árbol localmente).
+     * Se persiste cuando un sample se mueve ahí.
+     */
+    const crearCarpeta = useCallback((nombre: string, parent?: string) => {
+        if (!nombre.trim()) return;
+
+        if (parent) {
+            /* Crear subcarpeta bajo una carpeta primaria existente */
+            const existeEnCarpetas = carpetas.some(c =>
+                c.primaria === parent && c.subcarpetas.some(s => s.nombre === nombre)
+            );
+            if (existeEnCarpetas) {
+                toast.error(`La subcarpeta "${nombre}" ya existe en "${parent}".`);
+                return;
+            }
+            /* Agregar subcarpeta al árbol */
+            setCarpetas(prev =>
+                prev.map(c =>
+                    c.primaria === parent
+                        ? { ...c, subcarpetas: [...c.subcarpetas, { nombre, total: 0 }] }
+                        : c
+                )
+            );
+        } else {
+            /* Crear carpeta primaria */
+            const existeEnCarpetas = carpetas.some(c => c.primaria === nombre);
+            const existeLocal = carpetasLocales.some(c => c.primaria === nombre);
+            if (existeEnCarpetas || existeLocal) {
+                toast.error(`La carpeta "${nombre}" ya existe.`);
+                return;
+            }
+            setCarpetasLocales(prev => [
+                ...prev,
+                { primaria: nombre, total: 0, subcarpetas: [] },
+            ]);
+        }
+        toast.exito(`Carpeta "${nombre}" creada.`);
+    }, [carpetas, carpetasLocales]);
+
     return {
         carpetas,
         samples,
@@ -209,9 +357,14 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         subcarpetaActiva,
         totalSamples,
         carpetasDesplegadas,
+        carpetasLocales,
         seleccionarCarpeta,
         seleccionarSubcarpeta,
         toggleDesplegada,
         manejarLike,
+        moverSample,
+        crearCarpeta,
+        sampleArrastrado,
+        setSampleArrastrado,
     };
 }

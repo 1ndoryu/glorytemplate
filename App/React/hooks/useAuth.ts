@@ -81,7 +81,7 @@ export const useAuth = () => {
                  * El await es crítico: sin él, window.location.href recarga la página
                  * antes de que el token quede persistido en el Tauri Store,
                  * y configurarApiDesktop() lo lee como null en la siguiente carga. */
-                if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
@@ -119,7 +119,7 @@ export const useAuth = () => {
                 setUsuario(usuarioResp);
 
                 /* En desktop (Tauri): guardar JWT ANTES de navegar */
-                if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 

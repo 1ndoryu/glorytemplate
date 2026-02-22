@@ -30,7 +30,7 @@ interface PerfilIslandProps {
 export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
     const {
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
-        cargandoTab, usuarioAuth, authCargando, tabActiva, navegar,
+        cargandoTab, authCargando, tabActiva,
         abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
         recargarPublicaciones, manejarLike, manejarClickCreador,
     } = usePerfilIsland({ usernameProp });

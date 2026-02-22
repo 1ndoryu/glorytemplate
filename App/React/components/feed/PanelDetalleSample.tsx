@@ -23,7 +23,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
     const {
         detalle, liked, totalLikes, similares,
         comentariosVisibles, setComentariosVisibles, navegar, cerrar,
-        picosAudio, reproduciendo, progresoAudio,
+        picosAudio, progresoAudio,
         manejarClickWaveform, manejarSeek, manejarLike, badges,
     } = usePanelDetalleSample(sample);
 
