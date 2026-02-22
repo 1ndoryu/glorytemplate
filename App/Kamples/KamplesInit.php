@@ -33,6 +33,9 @@ class KamplesInit
 
         self::$iniciado = true;
 
+        /* CORS para app desktop Tauri — dev y producción */
+        self::registrarCors();
+
         /* Registrar API REST */
         KamplesController::registrar();
 
@@ -41,6 +44,60 @@ class KamplesInit
 
         /* Cron para recálculos temporales del algoritmo (C45) */
         self::registrarCronAlgoritmo();
+    }
+
+    /*
+     * Permite requests cross-origin desde la app desktop Tauri.
+     * - http://localhost:1420 es el Vite dev server (tauri dev)
+     * - tauri://localhost es el origen del webview en produccion
+     * - http://localhost:* cubre otros puertos locales en desarrollo
+     *
+     * Solo inyecta headers si el request viene de uno de estos origenes.
+     * Para produccion web (kamples.com) WordPress ya maneja CORS por defecto.
+     */
+    private static function registrarCors(): void
+    {
+        $origenesPermitidos = [
+            'http://localhost:1420',
+            'tauri://localhost',
+            'https://localhost:1420',
+        ];
+
+        /* Manejar preflight OPTIONS antes de que WP responda */
+        add_action('init', function () use ($origenesPermitidos): void {
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+            if (!in_array($origin, $origenesPermitidos, true)) {
+                return;
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                header('Access-Control-Allow-Origin: ' . $origin);
+                header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+                header('Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce, X-Requested-With');
+                header('Access-Control-Allow-Credentials: true');
+                header('Access-Control-Max-Age: 86400');
+                status_header(204);
+                exit;
+            }
+        }, 1);
+
+        /* Inyectar headers CORS en todas las respuestas REST para origenes permitidos */
+        add_filter(
+            'rest_pre_serve_request',
+            function (bool $served, \WP_REST_Response $resultado, \WP_REST_Request $peticion) use ($origenesPermitidos): bool {
+                $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+                if (in_array($origin, $origenesPermitidos, true)) {
+                    header('Access-Control-Allow-Origin: ' . $origin);
+                    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+                    header('Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce, X-Requested-With');
+                    header('Access-Control-Allow-Credentials: true');
+                    header('Vary: Origin');
+                }
+                return $served;
+            },
+            10,
+            3
+        );
     }
     /*
      * Registra el cron de WP para recalculos temporales del algoritmo (C45).
