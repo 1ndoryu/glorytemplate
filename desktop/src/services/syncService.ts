@@ -198,7 +198,7 @@ export async function sincronizarConServidor(
     let nuevos = 0;
 
     try {
-        const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
+        const { mkdir, writeFile, rename } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
         const baseUrl = obtenerBaseUrl();
 
@@ -263,8 +263,33 @@ export async function sincronizarConServidor(
                 for (const sample of samples) {
                     procesados++;
 
-                    /* Si ya está en el índice local, saltear */
-                    if (indiceArchivos.some(a => a.sampleId === sample.id)) {
+                    /*
+                     * C338-fix: Si ya está en el índice local, verificar si necesita
+                     * reubicarse a la subcarpeta correcta. Samples descargados antes de
+                     * C338 están en la carpeta primaria plana — hay que moverlos.
+                     */
+                    const archivoExistente = indiceArchivos.find(a => a.sampleId === sample.id);
+                    if (archivoExistente) {
+                        const subcarpetaEsperada = sample.metadata?.carpeta_secundaria || '';
+                        if (subcarpetaEsperada) {
+                            const rutaEsperada = await join(rutaCarpeta, subcarpetaEsperada);
+                            /* Si el archivo NO está ya en la subcarpeta correcta, moverlo */
+                            const rutaNormalizada = archivoExistente.ruta.replace(/\\/g, '/');
+                            const subNormalizada = subcarpetaEsperada.replace(/\\/g, '/');
+                            if (!rutaNormalizada.includes(`/${subNormalizada}/`)) {
+                                try {
+                                    await mkdir(rutaEsperada, { recursive: true });
+                                    const nombreArch = archivoExistente.ruta.replace(/\\/g, '/').split('/').pop() ?? '';
+                                    const nuevaRuta = await join(rutaEsperada, nombreArch);
+                                    await rename(archivoExistente.ruta, nuevaRuta);
+                                    /* Actualizar índice con la nueva ruta */
+                                    archivoExistente.ruta = nuevaRuta;
+                                    await guardarIndice();
+                                } catch (err) {
+                                    console.error(`[Sync] Error reubicando sample ${sample.id} a subcarpeta:`, err);
+                                }
+                            }
+                        }
                         onProgreso?.({
                             actual: procesados,
                             total,
