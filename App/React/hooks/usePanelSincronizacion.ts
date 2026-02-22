@@ -14,8 +14,9 @@ import { useSyncStore } from '@app/stores/syncStore';
  */
 async function cargarSyncService() {
     try {
-        /* Ruta opaca para que Rollup web no intente resolverla */
-        const ruta = '../../../desktop' + '/src/services/syncService';
+        /* Ruta opaca via alias @desktop — mismo patron que useAuth.ts.
+         * Rollup web no resuelve strings concatenados en runtime. */
+        const ruta = '@desktop' + '/services/syncService';
         const modulo = await import(/* @vite-ignore */ ruta);
         return modulo;
     } catch {
