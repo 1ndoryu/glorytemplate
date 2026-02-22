@@ -30,7 +30,8 @@ export function obtenerToken(): string | null {
 
 /*
  * Inicializa la auth al arrancar la app.
- * Lee el token guardado del store de Tauri y lo carga en memoria.
+ * Lee token Y usuario del store de Tauri, configura el interceptor
+ * y sincroniza authStore para evitar el flash de "no autenticado".
  */
 export async function inicializarAuthDesktop(): Promise<void> {
     if (!esDesktop()) return;
@@ -43,6 +44,25 @@ export async function inicializarAuthDesktop(): Promise<void> {
         if (token) {
             tokenEnMemoria = token;
             actualizarTokenApi(token);
+
+            /* Leer usuario cacheado y poblar authStore ANTES de que React monte.
+             * Esto elimina el flash de "no autenticado" (el roundtrip a /me tardaba ~300ms+). */
+            const usuario = await store.get<Record<string, unknown>>(STORE_KEY_USUARIO);
+            if (usuario) {
+                /* Importar authStore dinámicamente para evitar dependencia circular */
+                const { useAuthStore } = await import(/* @vite-ignore */ '@app/stores/authStore');
+                useAuthStore.getState().setUsuario(usuario as never);
+            }
+
+            /* Marcar isLoggedIn en GLORY_CONTEXT para que useInicializadorAuth
+             * no sobreescriba el usuario con null al detectar ctx.isLoggedIn = undefined */
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            const ctx = (window as any).GLORY_CONTEXT as Record<string, unknown> | undefined;
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+            if (ctx) {
+                ctx.isLoggedIn = true;
+                ctx.userId = (usuario as Record<string, unknown>)?.wpUserId ?? (usuario as Record<string, unknown>)?.id ?? 1;
+            }
         }
     } catch (err) {
         console.warn('[AuthDesktop] No se pudo restaurar sesión:', err);

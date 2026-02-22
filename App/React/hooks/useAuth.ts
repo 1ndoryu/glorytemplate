@@ -13,6 +13,23 @@ import type { UsuarioAutenticado } from '../types/usuario';
 
 const log = crearLogger('useAuth');
 
+/*
+ * Persiste token y usuario en el Tauri Store (solo en desktop).
+ * El import usa una variable opaca para que Rollup del build web
+ * no intente resolver @desktop/ (alias que solo existe en desktop/vite.config.ts).
+ */
+async function persistirTokenDesktop(token: string, usuario: UsuarioAutenticado | null): Promise<void> {
+    try {
+        /* Variable intermedia: Rollup no puede analizar imports dinamicos con expresiones */
+        const modPath = '@desktop' + '/services/authDesktopService';
+        const m = await import(/* @vite-ignore */ modPath);
+        await m.guardarToken(token);
+        if (usuario) await m.guardarUsuario(usuario);
+    } catch {
+        /* En web este modulo no existe — ignorar silenciosamente */
+    }
+}
+
 interface DatosRegistro {
     nombreVisible: string;
     username: string;
@@ -65,13 +82,7 @@ export const useAuth = () => {
                  * antes de que el token quede persistido en el Tauri Store,
                  * y configurarApiDesktop() lo lee como null en la siguiente carga. */
                 if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
-                    try {
-                        const m = await import('@desktop/services/authDesktopService');
-                        await m.guardarToken(datos.token as string);
-                        if (datos.usuario) await m.guardarUsuario(datos.usuario);
-                    } catch {
-                        /* Solo falla en web — ignorar */
-                    }
+                    await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
                 /* Navegar via router SPA (sin recarga completa).
@@ -109,13 +120,7 @@ export const useAuth = () => {
 
                 /* En desktop (Tauri): guardar JWT ANTES de navegar */
                 if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
-                    try {
-                        const m = await import('@desktop/services/authDesktopService');
-                        await m.guardarToken(datos.token as string);
-                        if (datos.usuario) await m.guardarUsuario(datos.usuario);
-                    } catch {
-                        /* Solo falla en web — ignorar */
-                    }
+                    await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
                 useNavigationStore.getState().navegar('/');
