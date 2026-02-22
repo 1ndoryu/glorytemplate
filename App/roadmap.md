@@ -328,7 +328,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### Sentinel / Análisis Estático
 
 - `sentinel-disable-file limite-lineas` (en docblock del archivo) suprime el límite de líneas cuando extraer crearía 12+ forwarding stubs — más daño que beneficio. Diferente a `sentinel-disable-next-line`.
-- `sentinel-disable-next-line reglaNombre` DEBE estar en la línea INMEDIATAMENTE anterior a la flagged. El analizador solo lee la línea previa — un bloque sentinel más arriba NO funciona.
+- `sentinel-disable-next-line reglaNombre` DEBE estar en la línea INMEDIATAMENTE anterior a la flagged. El analizador solo lee la línea previa — un bloque sentinel más arriba NO funciona. Para `SELECT *` dentro de un `consultarUno("SELECT *..."), el sentinel va DENTRO de los args, en la línea antes del string: `static::consultarUno(/* sentinel-disable-next-line ... */ "SELECT *...`)
 - PowerShell WriteAllLines corrompe template literals: backtick es carácter de escape en PS. Si usas WriteAllLines para reemplazar líneas con template literals JS/TS, siempre arreglar con replace_string_in_file después.
 - CTEs SQL (alias lowercase sin underscore, ej: `c`, `ranked`, `user_tags`) quedan excluídos del check `repository-sin-whitelist` — no son tablas reales.
 - BaseRepository.php queda excluido globalmente de `repository-sin-whitelist` — todos sus SELECT * son intencionales (métodos genéricos por PK).
