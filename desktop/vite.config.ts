@@ -31,6 +31,23 @@ export default defineConfig({
         strictPort: true,
         host: 'localhost',
         /*
+         * Proxy: redirige peticiones a glory.local en dev.
+         * Elimina CORS porque las peticiones salen de Vite (mismo origen).
+         * En produccion, las URLs apuntan directamente a kamples.com.
+         */
+        proxy: {
+            '/wp-json': {
+                target: 'http://glory.local',
+                changeOrigin: true,
+                secure: false,
+            },
+            '/wp-content': {
+                target: 'http://glory.local',
+                changeOrigin: true,
+                secure: false,
+            },
+        },
+        /*
          * Permitir servir archivos del proyecto principal
          * (App/React, Glory/assets/react/src, Mezclador)
          */
