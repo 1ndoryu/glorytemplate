@@ -81,7 +81,8 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        /* TO-DO: Habilitar updater cuando se genere pubkey con tauri signer */
+        /* .plugin(tauri_plugin_updater::Builder::new().build()) */
         .plugin(tauri_plugin_window_state::Builder::default().build())
         /* TO-DO: Agregar plugin drag cuando el crate esté disponible */
         /* .plugin(tauri_plugin_drag::init()) */

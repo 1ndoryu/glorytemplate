@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { obtenerUsuarioActual, login, registrar as apiRegistrar } from '../services/apiAuth';
 import { crearLogger } from '../services/logger';
+import { useNavigationStore } from '@/core/router/navigationStore';
 import type { UsuarioAutenticado } from '../types/usuario';
 
 const log = crearLogger('useAuth');
@@ -73,8 +74,10 @@ export const useAuth = () => {
                     }
                 }
 
-                /* Redirigir a inicio después del login (token ya guardado) */
-                window.location.href = '/';
+                /* Navegar via router SPA (sin recarga completa).
+                 * En desktop (Tauri), window.location.href causa re-init
+                 * y pierde el estado de auth antes de persistirlo. */
+                useNavigationStore.getState().navegar('/');
             } else {
                 setError(resp.error ?? 'Credenciales incorrectas');
             }
@@ -104,17 +107,18 @@ export const useAuth = () => {
                 const usuarioResp = datos.usuario ?? (resp.data as unknown as UsuarioAutenticado);
                 setUsuario(usuarioResp);
 
-                /* En desktop (Tauri): guardar JWT para auth cross-origin */
+                /* En desktop (Tauri): guardar JWT ANTES de navegar */
                 if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
-                    import('@desktop/services/authDesktopService').then(m => {
-                        m.guardarToken(datos.token as string);
-                        if (datos.usuario) m.guardarUsuario(datos.usuario);
-                    }).catch(() => {
+                    try {
+                        const m = await import('@desktop/services/authDesktopService');
+                        await m.guardarToken(datos.token as string);
+                        if (datos.usuario) await m.guardarUsuario(datos.usuario);
+                    } catch {
                         /* Solo falla en web — ignorar */
-                    });
+                    }
                 }
 
-                window.location.href = '/';
+                useNavigationStore.getState().navegar('/');
             } else {
                 setError(resp.error ?? 'Error al crear la cuenta');
             }
@@ -134,7 +138,7 @@ export const useAuth = () => {
 
     const logout = useCallback(() => {
         cerrarSesion();
-        window.location.href = '/';
+        useNavigationStore.getState().navegar('/');
     }, [cerrarSesion]);
 
     return {

@@ -51,13 +51,5 @@
       "timestampUrl": ""
     }
   },
-  "plugins": {
-    "updater": {
-      "pubkey": "",
-      "endpoints": [
-        "https://kamples.app/api/desktop/update/{{target}}/{{arch}}/{{current_version}}"
-      ],
-      "dialog": true
-    }
-  }
+  "plugins": {}
 }
