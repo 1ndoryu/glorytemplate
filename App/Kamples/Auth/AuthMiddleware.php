@@ -77,10 +77,23 @@ class AuthMiddleware
 
     /**
      * Obtiene el ID de WordPress del usuario autenticado actual.
+     * Si no hay sesión WP (ej: desktop Tauri), intenta validar JWT del header
+     * Authorization para establecer el contexto del usuario.
+     * Esto es necesario en endpoints públicos donde requerirAuth() no se invoca.
      */
     public static function obtenerWpUserId(): int
     {
-        return get_current_user_id();
+        $userId = get_current_user_id();
+
+        /* En desktop/Tauri no hay cookies WP; el JWT viene en Authorization header.
+         * Para endpoints públicos (permission_callback => __return_true) como /feed,
+         * requerirAuth() nunca se llama, así que autenticarConJwt() nunca establece
+         * wp_set_current_user(). Lo hacemos aquí para que obtenerIdPg() funcione. */
+        if (!$userId) {
+            $userId = self::autenticarConJwt();
+        }
+
+        return $userId;
     }
 
     /**

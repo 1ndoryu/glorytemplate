@@ -425,6 +425,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Login Desktop]: `window.location.href = '/'` recarga el WebView → pierde estado SPA. Usar `navegar('/')` del navigationStore. Siempre `await guardarToken()` antes de navegar.
 - [Tauri Store]: Plugin store NO acepta config en plugins.store de tauri.conf.json (`invalid type: map, expected unit`). Dejar `"store": {}` o sin entry.
 - [Updater]: Si publicKey esta vacia, el plugin updater crashea al iniciar. Deshabilitar en lib.rs hasta tener pubkey real.
+- [Auth Endpoints Publicos]: `obtenerWpUserId()` debe intentar JWT si `get_current_user_id()==0`. Sin esto, endpoints publicos como `/feed` no procesan JWT → likes no aparecen marcados en desktop.
 
 ### Sentinel / Análisis Estático
 
