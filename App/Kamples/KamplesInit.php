@@ -59,8 +59,9 @@ class KamplesInit
     {
         $origenesPermitidos = [
             'http://localhost:1420',
-            'tauri://localhost',
             'https://localhost:1420',
+            'tauri://localhost',
+            'http://localhost',
         ];
 
         /* Manejar preflight OPTIONS antes de que WP responda */

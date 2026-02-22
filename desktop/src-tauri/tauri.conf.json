@@ -26,7 +26,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://glory.local https://kamples.com https://*.stripe.com; img-src 'self' http://glory.local https://kamples.com asset: http://asset.localhost data:; media-src 'self' http://glory.local https://kamples.com asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'unsafe-inline'",
+      "csp": "default-src 'self'; connect-src 'self' http://glory.local https://glory.local https://kamples.com https://*.stripe.com; img-src 'self' http://glory.local https://glory.local https://kamples.com asset: http://asset.localhost data: blob:; media-src 'self' http://glory.local https://glory.local https://kamples.com asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'unsafe-inline'",
       "dangerousDisableAssetCspModification": false
     },
     "trayIcon": {
