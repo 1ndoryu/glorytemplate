@@ -3,10 +3,11 @@
  * Página /explorador: vista tipo file-explorer para samples coleccionados.
  * Muestra un árbol de carpetas (basado en metadata IA C282) a la izquierda
  * y la lista de samples a la derecha. Descargados + subidos = "coleccionados".
+ * Navegación 100% client-side sin recargas (filtrado local).
  */
 
-import { useEffect, useCallback, useState } from 'react';
-import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List, ChevronDown, ChevronRight } from 'lucide-react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
+import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -39,7 +40,6 @@ const ExploradorBase = (): JSX.Element => {
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
-    /* C291: Vista lista/cuadricula */
     const [vistaActiva, setVistaActiva] = useState<'lista' | 'cuadricula'>('lista');
 
     const islaActual = useNavigationStore(s => s.islaActual);
@@ -59,6 +59,15 @@ const ExploradorBase = (): JSX.Element => {
         if (sample) abrirComentarios(sample);
     }, [samples, abrirComentarios]);
 
+    /* Carpeta activa con su info completa (para subcarpetas en el area principal) */
+    const carpetaActivaInfo = useMemo(() => {
+        if (!carpetaActiva) return null;
+        return carpetas.find(c => c.primaria === carpetaActiva) ?? null;
+    }, [carpetas, carpetaActiva]);
+
+    /* Subcarpetas visibles en el area principal (cuando hay carpeta activa sin subcarpeta seleccionada) */
+    const mostrarSubcarpetasEnArea = carpetaActiva && !subcarpetaActiva && carpetaActivaInfo && carpetaActivaInfo.subcarpetas.length > 0;
+
     if (cargando && samples.length === 0) {
         return (
             <div className="explorador" id="seccionExplorador">
@@ -67,12 +76,11 @@ const ExploradorBase = (): JSX.Element => {
         );
     }
 
-    /* Cuenta total sumando todas las carpetas */
     const totalGeneral = carpetas.reduce((acc, c) => acc + c.total, 0);
 
     return (
         <div className="explorador" id="seccionExplorador">
-            {/* Botón volver */}
+            {/* Boton volver a libreria */}
             <button className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
@@ -92,7 +100,6 @@ const ExploradorBase = (): JSX.Element => {
                     </div>
                 </div>
 
-                {/* C291: Toggle vista lista/cuadricula */}
                 <div className="exploradorVistaToggle">
                     <button
                         className={`exploradorVistaBoton ${vistaActiva === 'lista' ? 'exploradorVistaActiva' : ''}`}
@@ -113,13 +120,43 @@ const ExploradorBase = (): JSX.Element => {
                 </div>
             </div>
 
+            {/* Breadcrumbs de navegacion: Todas > Carpeta > Subcarpeta */}
+            {carpetaActiva && (
+                <div className="exploradorBreadcrumbs">
+                    <button
+                        className="exploradorBreadcrumbItem"
+                        onClick={() => seleccionarCarpeta('')}
+                        type="button"
+                    >
+                        <ChevronLeft size={14} />
+                        <span>Todas</span>
+                    </button>
+                    <span className="exploradorBreadcrumbSeparador">/</span>
+                    <button
+                        className={`exploradorBreadcrumbItem ${!subcarpetaActiva ? 'exploradorBreadcrumbActivo' : ''}`}
+                        onClick={() => seleccionarCarpeta(carpetaActiva)}
+                        type="button"
+                    >
+                        <span>{carpetaActiva}</span>
+                    </button>
+                    {subcarpetaActiva && (
+                        <>
+                            <span className="exploradorBreadcrumbSeparador">/</span>
+                            <span className="exploradorBreadcrumbItem exploradorBreadcrumbActivo">
+                                {subcarpetaActiva}
+                            </span>
+                        </>
+                    )}
+                </div>
+            )}
+
             {/* Contenido: carpetas + samples */}
             <div className="exploradorContenido">
-                {/* Panel de carpetas */}
+                {/* Panel lateral de carpetas (arbol) */}
                 <div className="exploradorCarpetas">
                     <h3 className="exploradorCarpetaTitulo">Carpetas</h3>
 
-                    {/* Botón "Todas" */}
+                    {/* Boton "Todas" */}
                     <button
                         className={`exploradorCarpetaItem exploradorCarpetaTodas ${carpetaActiva === '' ? 'carpetaActiva' : ''}`}
                         onClick={() => seleccionarCarpeta('')}
@@ -140,7 +177,6 @@ const ExploradorBase = (): JSX.Element => {
                         return (
                             <div key={carpeta.primaria}>
                                 <div className="exploradorCarpetaFila">
-                                    {/* Flecha de despliegue */}
                                     {tieneSubcarpetas ? (
                                         <button
                                             className="exploradorCarpetaChevron"
@@ -170,7 +206,7 @@ const ExploradorBase = (): JSX.Element => {
                                     </button>
                                 </div>
 
-                                {/* Subcarpetas visibles cuando está desplegada */}
+                                {/* Subcarpetas visibles cuando esta desplegada */}
                                 {estaDesplegada && tieneSubcarpetas && (
                                     <div className="exploradorSubcarpetas">
                                         {carpeta.subcarpetas.map((sub) => (
@@ -193,7 +229,7 @@ const ExploradorBase = (): JSX.Element => {
                     })}
 
                     {carpetas.length === 0 && !cargando && (
-                        <div style={{ padding: 'var(--espacioSm)', color: 'var(--textoBajo)', fontSize: 'var(--textoXs)' }}>
+                        <div className="exploradorCarpetaVacia">
                             Sin carpetas aún. Descarga o sube samples para empezar.
                         </div>
                     )}
@@ -201,18 +237,37 @@ const ExploradorBase = (): JSX.Element => {
 
                 {/* Panel de samples */}
                 <div className="exploradorSamples">
-                    {samples.length === 0 ? (
+                    {/* Subcarpetas como tarjetas navegables en el area principal */}
+                    {mostrarSubcarpetasEnArea && (
+                        <div className="exploradorSubcarpetasArea">
+                            {carpetaActivaInfo.subcarpetas.map((sub) => (
+                                <button
+                                    key={sub.nombre}
+                                    className="exploradorSubcarpetaTarjeta"
+                                    onClick={() => seleccionarSubcarpeta(carpetaActiva, sub.nombre)}
+                                    type="button"
+                                >
+                                    <Folder size={20} />
+                                    <span className="exploradorSubcarpetaTarjetaNombre">{sub.nombre}</span>
+                                    <span className="exploradorSubcarpetaTarjetaConteo">
+                                        {sub.total} sample{sub.total !== 1 ? 's' : ''}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {samples.length === 0 && !mostrarSubcarpetasEnArea ? (
                         <div className="exploradorVacio">
                             <FolderOpen size={32} />
                             <p>
                                 {carpetaActiva
-                                    ? `No hay samples en "${carpetaActiva}".`
+                                    ? `No hay samples en "${subcarpetaActiva || carpetaActiva}".`
                                     : 'Descarga o sube samples para verlos aquí. Se organizarán automáticamente por carpetas.'
                                 }
                             </p>
                         </div>
                     ) : vistaActiva === 'cuadricula' ? (
-                        /* C291: Vista cuadrícula — solo portada y nombre */
                         <div className="cuadriculaDeSamples">
                             {samples.map((sample) => (
                                 <TarjetaSampleCuadricula
@@ -224,7 +279,6 @@ const ExploradorBase = (): JSX.Element => {
                             ))}
                         </div>
                     ) : (
-                        /* Vista lista — tarjeta completa */
                         <div className="listaDeSamples">
                             {samples.map((sample) => (
                                 <TarjetaSample
@@ -242,7 +296,7 @@ const ExploradorBase = (): JSX.Element => {
                 </div>
             </div>
 
-            {/* Menú contextual global */}
+            {/* Menu contextual global */}
             <MenuContextual
                 abierto={menu.estado.abierto}
                 onCerrar={menu.cerrarMenu}

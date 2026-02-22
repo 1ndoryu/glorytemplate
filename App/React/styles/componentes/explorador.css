@@ -406,4 +406,114 @@
     .exploradorCarpetaSeparador {
         display: none;
     }
+
+    .exploradorBreadcrumbs {
+        flex-wrap: wrap;
+    }
+}
+
+/* Breadcrumbs de navegacion */
+.exploradorBreadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.exploradorBreadcrumbItem {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    padding: calc(var(--espacioXs) / 2) var(--espacioXs);
+    border-radius: var(--radioSm);
+    font-size: var(--fuenteSm);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.exploradorBreadcrumbItem:hover {
+    background-color: var(--fondoElevado1);
+    color: var(--textoPrimario);
+}
+
+.exploradorBreadcrumbActivo {
+    color: var(--textoPrimario);
+    font-weight: 600;
+    cursor: default;
+}
+
+.exploradorBreadcrumbActivo:hover {
+    background: none;
+}
+
+.exploradorBreadcrumbSeparador {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    user-select: none;
+}
+
+/* Subcarpetas como tarjetas navegables en el area principal */
+.exploradorSubcarpetasArea {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--espacioSm);
+    padding-bottom: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    margin-bottom: var(--espacioSm);
+}
+
+.exploradorSubcarpetaTarjeta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioMd) var(--espacioSm);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+    background: var(--fondoBase);
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+.exploradorSubcarpetaTarjeta:hover {
+    background-color: var(--fondoElevado1);
+    border-color: var(--acento);
+    transform: translateY(-1px);
+}
+
+.exploradorSubcarpetaTarjeta svg {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+.exploradorSubcarpetaTarjetaNombre {
+    font-size: var(--fuenteSm);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.exploradorSubcarpetaTarjetaConteo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Texto de carpetas vacias en sidebar */
+.exploradorCarpetaVacia {
+    padding: var(--espacioSm);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
 }

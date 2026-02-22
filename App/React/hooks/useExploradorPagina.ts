@@ -1,11 +1,11 @@
 /*
  * Hook: useExploradorPagina — Kamples (C281)
  * Lógica de la página /explorador: carga carpetas y samples coleccionados.
- * Soporta navegación por carpetas y filtrado por carpeta_primaria.
+ * Filtrado 100% client-side para navegación fluida (sin recargas por cambio de carpeta).
  * Separado del componente para cumplir SRP.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { obtenerColeccionados, obtenerCarpetas } from '@app/services/apiExplorador';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { CarpetaInfo } from '@app/services/apiExplorador';
@@ -14,6 +14,23 @@ import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 
 const log = crearLogger('useExploradorPagina');
+
+/* Carpeta por defecto cuando el sample no tiene carpeta_primaria en metadata */
+const CARPETA_DEFAULT = 'Samples';
+
+/* Extrae carpeta_primaria del metadata de un sample (soporta snake_case y camelCase) */
+function obtenerCarpetaPrimaria(sample: SampleResumen): string {
+    return sample.metadata?.carpeta_primaria
+        ?? sample.metadata?.carpetaPrimaria
+        ?? CARPETA_DEFAULT;
+}
+
+/* Extrae carpeta_secundaria del metadata de un sample */
+function obtenerCarpetaSecundaria(sample: SampleResumen): string {
+    return sample.metadata?.carpeta_secundaria
+        ?? sample.metadata?.carpetaSecundaria
+        ?? '';
+}
 
 export interface UseExploradorPaginaResultado {
     carpetas: CarpetaInfo[];
@@ -31,23 +48,25 @@ export interface UseExploradorPaginaResultado {
 
 export function useExploradorPagina(): UseExploradorPaginaResultado {
     const [carpetas, setCarpetas] = useState<CarpetaInfo[]>([]);
-    const [samples, setSamples] = useState<SampleResumen[]>([]);
+    /* todosSamples: todos los samples del usuario, se cargan una sola vez */
+    const [todosSamples, setTodosSamples] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
     const [carpetaActiva, setCarpetaActiva] = useState('');
     const [subcarpetaActiva, setSubcarpetaActiva] = useState('');
-    const [totalSamples, setTotalSamples] = useState(0);
     /* Todas las carpetas desplegadas por defecto */
     const [carpetasDesplegadas, setCarpetasDesplegadas] = useState<Set<string>>(new Set());
 
-    /* Carga inicial: carpetas + todos los samples */
+    /* Carga inicial unica: carpetas + todos los samples (sin filtro de carpeta) */
     useEffect(() => {
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
                 const [respCarpetas, respSamples] = await Promise.all([
                     obtenerCarpetas(),
-                    obtenerColeccionados(1, 100),
+                    obtenerColeccionados(1, 500),
                 ]);
+                if (cancelado) return;
                 if (respCarpetas.ok && respCarpetas.data) {
                     setCarpetas(respCarpetas.data);
                     /* Desplegar todas las carpetas que tienen subcarpetas por defecto */
@@ -60,53 +79,51 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                     setCarpetasDesplegadas(todasDesplegadas);
                 }
                 if (respSamples.ok && respSamples.data) {
-                    setSamples(respSamples.data.data ?? []);
-                    setTotalSamples(respSamples.data.pagination?.total ?? 0);
+                    setTodosSamples(respSamples.data.data ?? []);
                 }
             } catch (err) {
                 log.error('Error cargando explorador', err);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
         cargar();
+        return () => { cancelado = true; };
     }, []);
 
-    /* Cambiar de carpeta: recarga samples filtrados */
-    const seleccionarCarpeta = useCallback(async (carpeta: string) => {
+    /*
+     * Filtrado client-side: samples visibles segun carpeta y subcarpeta activas.
+     * Sin API calls al navegar = transiciones instantaneas.
+     */
+    const samples = useMemo(() => {
+        if (!carpetaActiva) return todosSamples;
+
+        return todosSamples.filter((s) => {
+            const primaria = obtenerCarpetaPrimaria(s);
+            if (primaria !== carpetaActiva) return false;
+            if (subcarpetaActiva) {
+                const secundaria = obtenerCarpetaSecundaria(s);
+                return secundaria === subcarpetaActiva;
+            }
+            return true;
+        });
+    }, [todosSamples, carpetaActiva, subcarpetaActiva]);
+
+    /* Total de samples real (todos los coleccionados) */
+    const totalSamples = todosSamples.length;
+
+    /* Cambiar de carpeta: solo cambia estado local, sin API call */
+    const seleccionarCarpeta = useCallback((carpeta: string) => {
         setCarpetaActiva(carpeta);
         setSubcarpetaActiva('');
-        setCargando(true);
-        try {
-            const resp = await obtenerColeccionados(1, 100, carpeta);
-            if (resp.ok && resp.data) {
-                setSamples(resp.data.data ?? []);
-                setTotalSamples(resp.data.pagination?.total ?? 0);
-            }
-        } catch (err) {
-            log.error('Error filtrando por carpeta', err);
-        }
-        setCargando(false);
     }, []);
 
-    /* Seleccionar subcarpeta: filtra por "primaria/subcarpeta" */
-    const seleccionarSubcarpeta = useCallback(async (primaria: string, subcarpeta: string) => {
+    /* Seleccionar subcarpeta: solo cambia estado local */
+    const seleccionarSubcarpeta = useCallback((primaria: string, subcarpeta: string) => {
         setCarpetaActiva(primaria);
         setSubcarpetaActiva(subcarpeta);
-        setCargando(true);
-        try {
-            const filtro = `${primaria}/${subcarpeta}`;
-            const resp = await obtenerColeccionados(1, 100, filtro);
-            if (resp.ok && resp.data) {
-                setSamples(resp.data.data ?? []);
-                setTotalSamples(resp.data.pagination?.total ?? 0);
-            }
-        } catch (err) {
-            log.error('Error filtrando por subcarpeta', err);
-        }
-        setCargando(false);
     }, []);
 
-    /* Toggle despliegue de carpeta (mostrar/ocultar subcarpetas) */
+    /* Toggle despliegue de carpeta (mostrar/ocultar subcarpetas en el arbol) */
     const toggleDesplegada = useCallback((carpeta: string) => {
         setCarpetasDesplegadas(prev => {
             const next = new Set(prev);
@@ -119,15 +136,15 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         });
     }, []);
 
-    /* Like optimista sincronizado con la lista local */
+    /* Like optimista sincronizado con la lista completa */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sample = samples.find((s) => s.id === sampleId);
-        const prevSamples = samples;
+        const sample = todosSamples.find((s) => s.id === sampleId);
+        const prevSamples = todosSamples;
         if (reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
             const esPositivo = reaccion !== 'dislike';
             const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSamples((prev) =>
+            setTodosSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
                         ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
@@ -136,18 +153,17 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
             );
             try {
                 const resp = await darLike('sample', sampleId, reaccion);
-                /* FE02: Rollback si la API rechaza */
                 if (!resp.ok) {
-                    setSamples(prevSamples);
+                    setTodosSamples(prevSamples);
                     toast.error('Error al procesar la reacción');
                 }
             } catch (err) {
-                setSamples(prevSamples);
+                setTodosSamples(prevSamples);
                 log.error('Error al dar like', err);
             }
         } else if (sample?.liked || sample?.reaccion) {
             const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            setSamples((prev) =>
+            setTodosSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
                         ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
@@ -157,15 +173,15 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
             try {
                 const resp = await quitarLike('sample', sampleId);
                 if (!resp.ok) {
-                    setSamples(prevSamples);
+                    setTodosSamples(prevSamples);
                     toast.error('Error al quitar la reacción');
                 }
             } catch (err) {
-                setSamples(prevSamples);
+                setTodosSamples(prevSamples);
                 log.error('Error al quitar like', err);
             }
         } else {
-            setSamples((prev) =>
+            setTodosSamples((prev) =>
                 prev.map((s) =>
                     s.id === sampleId
                         ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
@@ -175,15 +191,15 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
             try {
                 const resp = await darLike('sample', sampleId, 'like');
                 if (!resp.ok) {
-                    setSamples(prevSamples);
+                    setTodosSamples(prevSamples);
                     toast.error('Error al procesar la reacción');
                 }
             } catch (err) {
-                setSamples(prevSamples);
+                setTodosSamples(prevSamples);
                 log.error('Error al dar like', err);
             }
         }
-    }, [samples]);
+    }, [todosSamples]);
 
     return {
         carpetas,

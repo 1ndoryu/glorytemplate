@@ -483,8 +483,17 @@ class SamplesRepository extends BaseRepository
         $carpetaClause = '';
         if ($carpeta !== '') {
             /* C288: COALESCE para que samples sin carpeta_primaria se traten como carpeta por defecto */
-            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
-            $params['carpeta'] = $carpeta;
+            /* Soporta formato "primaria/subcarpeta" para filtrar ambos niveles */
+            if (\str_contains($carpeta, '/')) {
+                [$primaria, $secundaria] = \explode('/', $carpeta, 2);
+                $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta_primaria"
+                               . " AND s." . SamplesCols::METADATA . "->>'carpeta_secundaria' = :carpeta_secundaria";
+                $params['carpeta_primaria'] = $primaria;
+                $params['carpeta_secundaria'] = $secundaria;
+            } else {
+                $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
+                $params['carpeta'] = $carpeta;
+            }
         }
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
@@ -513,9 +522,17 @@ class SamplesRepository extends BaseRepository
         $params = ['uid' => $userId, 'uid2' => $userId];
         $carpetaClause = '';
         if ($carpeta !== '') {
-            /* C288: COALESCE para consistencia con carpetasColeccionados() */
-            $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
-            $params['carpeta'] = $carpeta;
+            /* Soporta formato "primaria/subcarpeta" consistente con coleccionadosDeUsuario() */
+            if (\str_contains($carpeta, '/')) {
+                [$primaria, $secundaria] = \explode('/', $carpeta, 2);
+                $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta_primaria"
+                               . " AND s." . SamplesCols::METADATA . "->>'carpeta_secundaria' = :carpeta_secundaria";
+                $params['carpeta_primaria'] = $primaria;
+                $params['carpeta_secundaria'] = $secundaria;
+            } else {
+                $carpetaClause = " AND COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') = :carpeta";
+                $params['carpeta'] = $carpeta;
+            }
         }
 
         $sql = "SELECT COUNT(DISTINCT s." . SamplesCols::ID . ") AS total"
