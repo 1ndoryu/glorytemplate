@@ -63,7 +63,7 @@ const ComunidadBase = (): JSX.Element => {
     const {
         publicaciones, filtro, setFiltro, cargando,
         comentariosAbiertos, navegar, usuario,
-        menuSample, menuPost, abrirMenuPost, cerrarMenuPost, itemsMenuPost,
+        menuSample, menuPublicacion,
         recargarFeed, manejarLikePost, manejarRepost, alternarComentarios,
     } = useComunidadIsland();
 
@@ -99,7 +99,7 @@ const ComunidadBase = (): JSX.Element => {
                                 {(String(post.autor.id) === String(usuario?.id) || usuario?.rol === 'admin') && post.moderacionEstado && (
                                     <BadgeModeracion moderacionEstado={post.moderacionEstado} />
                                 )}
-                                <button className="comunidadPostMenuBtn" onClick={(e) => abrirMenuPost(e, post)} type="button" aria-label="Más opciones">
+                                <button className="comunidadPostMenuBtn" onClick={(e) => menuPublicacion.abrirMenu(e, post)} type="button" aria-label="Más opciones">
                                     <MoreHorizontal size={18} />
                                 </button>
                             </div>
@@ -137,7 +137,8 @@ const ComunidadBase = (): JSX.Element => {
                 )}
             </div>
 
-            <MenuContextual abierto={menuPost.abierto} onCerrar={cerrarMenuPost} items={itemsMenuPost} x={menuPost.x} y={menuPost.y} />
+            <MenuContextual abierto={menuPublicacion.estado.abierto} onCerrar={menuPublicacion.cerrarMenu} items={menuPublicacion.items}
+                x={menuPublicacion.estado.x} y={menuPublicacion.estado.y} />
             <MenuContextual abierto={menuSample.estado.abierto} onCerrar={menuSample.cerrarMenu} items={menuSample.items}
                 x={menuSample.estado.x} y={menuSample.estado.y} />
         </div>

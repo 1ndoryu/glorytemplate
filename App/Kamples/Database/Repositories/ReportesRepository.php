@@ -116,4 +116,31 @@ class ReportesRepository extends BaseRepository
             ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, ReportesCols::RAZON => $razon]
         );
     }
+
+    /*
+     * Resolver un reporte: cambiar estado a 'resuelto' o 'descartado'.
+     * Registra quién lo resolvió y cuándo.
+     * Retorna true si el reporte existía y fue actualizado.
+     */
+    public static function resolverReporte(int $reporteId, string $estado, int $resueltoPor): bool
+    {
+        $tabla = ReportesCols::TABLA;
+
+        $filasAfectadas = static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . ReportesCols::ESTADO . " = :estado, "
+            . ReportesCols::RESUELTO_POR . " = :resueltoPor, "
+            . ReportesCols::RESUELTO_AT . " = NOW()"
+            . " WHERE " . ReportesCols::ID . " = :id"
+            . " AND " . ReportesCols::ESTADO . " = :estadoPendiente",
+            [
+                'estado' => $estado,
+                'resueltoPor' => $resueltoPor,
+                'id' => $reporteId,
+                'estadoPendiente' => ReportesEnums::ESTADO_PENDIENTE,
+            ]
+        );
+
+        return $filasAfectadas > 0;
+    }
 }

@@ -13,10 +13,13 @@ import {
     actualizarUsuarioAdmin,
     listarModeracion,
     moderarContenido,
+    resolverReporte,
+    obtenerHistorialModeracion,
     type KpisAdmin,
     type DatosActividad,
     type UsuarioAdmin,
     type DatosModeracion,
+    type PublicacionModeracion,
 } from '../services/apiAdmin';
 import { crearLogger } from '../services/logger';
 
@@ -31,6 +34,7 @@ export function useAdminPanel() {
     const [busquedaUsuarios, setBusquedaUsuarios] = useState('');
     const [filtroPlannUsuarios, setFiltroPlannUsuarios] = useState('');
     const [moderacion, setModeracion] = useState<DatosModeracion | null>(null);
+    const [historialModeracion, setHistorialModeracion] = useState<PublicacionModeracion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [tabActiva, setTabActiva] = useState('resumen');
 
@@ -81,9 +85,15 @@ export function useAdminPanel() {
     /* Cargar moderación cuando cambia la pestaña */
     const cargarModeracion = useCallback(async () => {
         try {
-            const res = await listarModeracion();
+            const [res, resHistorial] = await Promise.all([
+                listarModeracion(),
+                obtenerHistorialModeracion(2),
+            ]);
             if (res.ok && res.data) {
                 setModeracion(res.data);
+            }
+            if (resHistorial.ok && resHistorial.data) {
+                setHistorialModeracion(resHistorial.data.publicaciones ?? []);
             }
         } catch (err) {
             log.error('Error cargando moderación', err);
@@ -134,6 +144,25 @@ export function useAdminPanel() {
         }
     }, [cargarModeracion]);
 
+    /* Resolver o descartar un reporte */
+    const manejarResolverReporte = useCallback(async (
+        id: number,
+        accion: 'resolver' | 'descartar'
+    ) => {
+        try {
+            const res = await resolverReporte(id, accion);
+            if (res.ok) {
+                await cargarModeracion();
+                const resKpis = await obtenerResumenAdmin();
+                if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
+            }
+            return res.ok;
+        } catch (err) {
+            log.error('Error resolviendo reporte', err);
+            return false;
+        }
+    }, [cargarModeracion]);
+
     return {
         /* Datos */
         kpis,
@@ -144,6 +173,7 @@ export function useAdminPanel() {
         busquedaUsuarios,
         filtroPlannUsuarios,
         moderacion,
+        historialModeracion,
         cargando,
         tabActiva,
 
@@ -156,6 +186,7 @@ export function useAdminPanel() {
         /* Acciones */
         actualizarUsuario,
         moderar,
+        manejarResolverReporte,
         cargarUsuarios,
     };
 }

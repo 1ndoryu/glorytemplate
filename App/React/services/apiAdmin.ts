@@ -75,6 +75,11 @@ export interface ReporteAdmin {
 export interface DatosModeracion {
     publicaciones: PublicacionModeracion[];
     reportes: ReporteAdmin[];
+    reportesTotal?: number;
+}
+
+export interface DatosHistorialModeracion {
+    publicaciones: PublicacionModeracion[];
 }
 
 /* Endpoints */
@@ -121,4 +126,15 @@ export const moderarContenido = async (
     accion: 'aprobar' | 'rechazar'
 ): Promise<RespuestaApi<{ ok: boolean }>> => {
     return apiPost<{ ok: boolean }>('/admin/moderar', { tipo, id, accion });
+};
+
+export const resolverReporte = async (
+    id: number,
+    accion: 'resolver' | 'descartar'
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>('/admin/reportes/resolver', { id, accion });
+};
+
+export const obtenerHistorialModeracion = async (dias = 2): Promise<RespuestaApi<DatosHistorialModeracion>> => {
+    return apiGet<DatosHistorialModeracion>('/admin/moderacion/historial', { dias });
 };

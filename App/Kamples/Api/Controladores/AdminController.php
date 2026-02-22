@@ -21,6 +21,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Config\Schema\_generated\ReportesEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
@@ -72,6 +73,20 @@ class AdminController
         register_rest_route($namespace, '/admin/moderar', [
             'methods' => 'POST',
             'callback' => [self::class, 'moderar'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* Resolver reportes */
+        register_rest_route($namespace, '/admin/reportes/resolver', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'resolverReporte'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* Historial moderación reciente (contenido auto-moderado por IA) */
+        register_rest_route($namespace, '/admin/moderacion/historial', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'historialModeracion'],
             'permission_callback' => $admin,
         ]);
     }
@@ -305,6 +320,71 @@ class AdminController
             return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::moderar fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/reportes/resolver — Resolver o descartar un reporte
+     * Body: { id: number, accion: 'resolver'|'descartar' }
+     */
+    public static function resolverReporte(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $body = $request->get_json_params();
+            $id = (int) ($body['id'] ?? 0);
+            $accion = \sanitize_text_field($body['accion'] ?? '');
+
+            if (!$id || !in_array($accion, ['resolver', 'descartar'])) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
+            }
+
+            $estado = $accion === 'resolver' ? ReportesEnums::ESTADO_RESUELTO : ReportesEnums::ESTADO_DESCARTADO;
+            $adminId = UsuarioHelper::obtenerIdPg();
+
+            if (!$adminId) {
+                return new \WP_REST_Response(['code' => 'sin_autenticacion', 'message' => 'No autenticado'], 401);
+            }
+
+            $actualizado = ReportesRepository::resolverReporte($id, $estado, $adminId);
+
+            if (!$actualizado) {
+                return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Reporte no encontrado o ya resuelto'], 404);
+            }
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::resolverReporte fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * GET /admin/moderacion/historial?dias=2 — Contenido auto-moderado por IA recientemente
+     * Permite a admins revisar decisiones de la IA (aprobadas, revisadas, rechazadas).
+     */
+    public static function historialModeracion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $dias = min(30, max(1, (int) ($request->get_param('dias') ?? 2)));
+
+            $publicaciones = PublicacionesRepository::listarModeradasRecientes($dias);
+
+            /* Fallback avatar */
+            foreach ($publicaciones as &$pub) {
+                $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+                    $pub[UsuariosExtCols::AVATAR_URL] ?? null,
+                    isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
+                );
+                unset($pub[UsuariosExtCols::WP_USER_ID]);
+            }
+            unset($pub);
+
+            return new \WP_REST_Response([
+                'data' => ['publicaciones' => $publicaciones],
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::historialModeracion fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

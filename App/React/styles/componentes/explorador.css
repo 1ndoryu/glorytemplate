@@ -40,9 +40,9 @@
 }
 
 .exploradorNombre {
-    font-size: var(--textoXl);
+    font-size: var(--fuenteXl);
     font-weight: 700;
-    color: var(--textoAlto);
+    color: var(--textoPrimario);
     margin: 0;
 }
 
@@ -50,8 +50,8 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    font-size: var(--textoSm);
-    color: var(--textoMedio);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
 }
 
 /* Layout de dos columnas: carpetas | samples — z-index 1 para estar sobre header (C290) */
@@ -76,9 +76,9 @@
 }
 
 .exploradorCarpetaTitulo {
-    font-size: var(--textoXs);
+    font-size: var(--fuenteXs);
     font-weight: 600;
-    color: var(--textoMedio);
+    color: var(--textoSecundario);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: var(--espacioXs) var(--espacioSm);
@@ -93,9 +93,11 @@
     padding: var(--espacioXs) var(--espacioSm);
     border-radius: var(--radioSm);
     cursor: pointer;
-    font-size: var(--textoSm);
-    color: var(--textoMedio);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
     border: none;
     background: none;
     width: 100%;
@@ -104,7 +106,7 @@
 
 .exploradorCarpetaItem:hover {
     background-color: var(--fondoElevado1);
-    color: var(--textoAlto);
+    color: var(--textoPrimario);
 }
 
 .exploradorCarpetaItem.carpetaActiva {
@@ -121,7 +123,7 @@
 }
 
 .exploradorCarpetaConteo {
-    font-size: var(--textoXs);
+    font-size: var(--fuenteXs);
     opacity: 0.7;
     flex-shrink: 0;
 }
@@ -130,7 +132,7 @@
 .exploradorSubcarpetas {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: calc(var(--espacioXs) / 4);
     padding-left: var(--espacioMd);
 }
 
@@ -141,9 +143,11 @@
     padding: 2px var(--espacioSm);
     border-radius: var(--radioSm);
     cursor: pointer;
-    font-size: var(--textoXs);
-    color: var(--textoBajo);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
     border: none;
     background: none;
     width: 100%;
@@ -152,13 +156,54 @@
 
 .exploradorSubcarpetaItem:hover {
     background-color: var(--fondoElevado1);
-    color: var(--textoMedio);
+    color: var(--textoSecundario);
+}
+
+.exploradorSubcarpetaItem.subcarpetaActiva {
+    background-color: var(--fondoElevado1);
+    color: var(--acento);
+    font-weight: 500;
+}
+
+/* Fila de carpeta con chevron */
+.exploradorCarpetaFila {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.exploradorCarpetaFila .exploradorCarpetaItem {
+    flex: 1;
+}
+
+.exploradorCarpetaChevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+
+.exploradorCarpetaChevron:hover {
+    color: var(--textoSecundario);
+}
+
+.exploradorCarpetaChevronPlaceholder {
+    width: 20px;
+    flex-shrink: 0;
 }
 
 /* Boton "Todas" para ver todos los samples */
 .exploradorCarpetaTodas {
     font-weight: 600;
-    color: var(--textoAlto);
+    color: var(--textoPrimario);
     margin-bottom: var(--espacioXs);
 }
 
@@ -186,7 +231,7 @@
     justify-content: center;
     gap: var(--espacioMd);
     padding: var(--espacioXl);
-    color: var(--textoMedio);
+    color: var(--textoSecundario);
     text-align: center;
     flex: 1;
 }
@@ -203,18 +248,18 @@
     align-items: center;
     justify-content: center;
     padding: var(--espacioXl);
-    color: var(--textoMedio);
+    color: var(--textoSecundario);
     flex: 1;
 }
 
 /* C291: Toggle de vista lista/cuadricula */
 .exploradorVistaToggle {
     display: flex;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
     margin-left: auto;
     background-color: var(--fondoElevado1);
     border-radius: var(--radioSm);
-    padding: 2px;
+    padding: calc(var(--espacioXs) / 2);
 }
 
 .exploradorVistaBoton {
@@ -224,19 +269,21 @@
     padding: var(--espacioXs);
     border: none;
     background: none;
-    color: var(--textoMedio);
+    color: var(--textoSecundario);
     cursor: pointer;
-    border-radius: var(--radioXs);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    border-radius: var(--radioSm);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
 }
 
 .exploradorVistaBoton:hover {
-    color: var(--textoAlto);
+    color: var(--textoPrimario);
     background-color: var(--fondoElevado2);
 }
 
 .exploradorVistaActiva {
-    color: var(--textoAlto);
+    color: var(--textoPrimario);
     background-color: var(--fondoElevado2);
 }
 
@@ -276,8 +323,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.45);
-    color: #fff;
+    background: var(--overlaySuave);
+    color: var(--blanco);
     opacity: 0;
     transition: opacity 0.15s ease;
     border-radius: var(--radioSm);
@@ -295,7 +342,7 @@
 
 /* Borde sutil durante reproducción */
 .tarjetaCuadriculaReproduciendo {
-    outline: 2px solid var(--acento, #4fc3f7);
+    outline: 2px solid var(--acento);
     outline-offset: -2px;
     border-radius: var(--radioMd);
 }
@@ -308,13 +355,14 @@
 
 /* C326: Nombre en 2 líneas con line-clamp */
 .tarjetaCuadriculaNombre {
-    font-size: var(--textoSm);
-    color: var(--textoAlto);
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     line-height: 1.3;
     cursor: pointer;

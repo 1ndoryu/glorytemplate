@@ -103,6 +103,41 @@ class PublicacionesRepository extends BaseRepository
     }
 
     /*
+     * Listar publicaciones moderadas recientemente (historial IA).
+     * Incluye TODAS las publicaciones de los últimos N días con cualquier estado de moderación.
+     * Permite a admins revisar decisiones de la IA.
+     */
+    public static function listarModeradasRecientes(int $dias = 2, int $limit = 50): array
+    {
+        $tp = PublicacionesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        $validosIntervalo = ['1 day', '2 days', '3 days', '7 days', '14 days', '30 days'];
+        $intervalo = $dias . ($dias === 1 ? ' day' : ' days');
+        if (!in_array($intervalo, $validosIntervalo, true)) {
+            $intervalo = '2 days';
+        }
+
+        return static::consultar(
+            "SELECT p." . PublicacionesCols::ID
+            . ", p." . PublicacionesCols::CONTENIDO
+            . ", p." . PublicacionesCols::MODERACION_ESTADO
+            . ", p." . PublicacionesCols::MODERACION_DETALLE
+            . ", p." . PublicacionesCols::CREATED_AT
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . ", 'publicacion' as tipo_contenido"
+            . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE p." . PublicacionesCols::CREATED_AT . " >= NOW() - INTERVAL '{$intervalo}'"
+            . " AND p." . PublicacionesCols::MODERACION_ESTADO . " IS NOT NULL"
+            . " ORDER BY p." . PublicacionesCols::CREATED_AT . " DESC LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
+
+    /*
      * Feed de publicaciones con autor, moderación y likes.
      * Construye WHERE dinámico y subquery de reacción del usuario.
      */

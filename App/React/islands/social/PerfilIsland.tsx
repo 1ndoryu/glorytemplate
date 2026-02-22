@@ -4,7 +4,7 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
-import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
+import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -12,6 +12,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
+import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -30,7 +31,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     const {
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
         cargandoTab, usuarioAuth, authCargando, tabActiva, navegar,
-        abrirConfiguracion, abrirChat, menu, username, esPropietario,
+        abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
         recargarPublicaciones, manejarLike, manejarClickCreador,
     } = usePerfilIsland({ usernameProp });
 
@@ -170,19 +171,21 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                     </div>
                 </div>
             </div>
+            {/* SeccionPublicar siempre visible debajo del header para propietario (C232) */}
+            {esPropietario && (
+                <div className="perfilSeccionPublicar">
+                    <SeccionPublicar
+                        alPublicar={recargarPublicaciones}
+                        placeholder="Comparte algo con tu comunidad..."
+                    />
+                </div>
+            )}
             {/* Tabs se renderizan en el TopBar */}
 
             <div className="perfilContenidoTab">
                 {tabActiva === 'samples' && renderizarListaSamples(samplesPerfil, 'No ha subido samples aún', <Music size={40} />)}
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilPublicaciones">
-                        {/* Sección inline para publicar en perfil propio (C89) */}
-                        {esPropietario && (
-                            <SeccionPublicar
-                                alPublicar={recargarPublicaciones}
-                                placeholder="Comparte algo con tu comunidad..."
-                            />
-                        )}
                         {cargandoTab ? (
                             <div className="perfilVacio">
                                 <p>Cargando...</p>
@@ -196,12 +199,22 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                 {publicacionesPerfil.map(post => (
                                     <article key={post.id} className="comunidadPost">
                                         <div className="comunidadPostHeader">
-                                            <div className="comunidadPostAutorInfo">
-                                                <span className="comunidadPostNombre">{post.autor?.nombreVisible}</span>
-                                                <span className="comunidadPostTiempo">
-                                                    @{post.autor?.username} · {post.creadoAt}
-                                                </span>
-                                            </div>
+                                            <EnlaceCreador
+                                                username={post.autor?.username ?? ''}
+                                                nombreVisible={post.autor?.nombreVisible}
+                                                avatarUrl={post.autor?.avatarUrl}
+                                                tamanoAvatar="sm"
+                                                mostrarUsername
+                                                meta={post.creadoAt}
+                                            />
+                                            <button
+                                                className="comunidadPostMenuBtn"
+                                                onClick={(e) => menuPublicacion.abrirMenu(e, post)}
+                                                type="button"
+                                                aria-label="Más opciones"
+                                            >
+                                                <MoreHorizontal size={18} />
+                                            </button>
                                         </div>
                                         <p className="comunidadPostTexto">{post.contenido}</p>
                                         {post.imagenes?.length > 0 && (
@@ -221,8 +234,11 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                 {tabActiva === 'likes' && renderizarListaSamples(likesPerfil, 'No ha dado likes aún', <Heart size={40} />)}
             </div>
 
-            {/* Menú contextual */}
+            {/* Menú contextual samples */}
             <MenuContextual abierto={menu.estado.abierto} x={menu.estado.x} y={menu.estado.y} items={menu.items} onCerrar={menu.cerrarMenu} />
+            {/* Menú contextual publicaciones (C322) */}
+            <MenuContextual abierto={menuPublicacion.estado.abierto} x={menuPublicacion.estado.x} y={menuPublicacion.estado.y}
+                items={menuPublicacion.items} onCerrar={menuPublicacion.cerrarMenu} />
         </div>
     );
 };

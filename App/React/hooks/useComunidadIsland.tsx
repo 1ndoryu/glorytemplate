@@ -4,15 +4,13 @@
  * Extraído de ComunidadIsland (SRP).
  */
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { User, Link2, Trash2, Flag, CheckCircle } from 'lucide-react';
-import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
-import { apiGet, apiDelete } from '@app/services/apiCliente';
-import { darLike, quitarLike, actualizarPublicacion } from '@app/services/apiSocial';
-import { toast } from '@app/stores/toastStore';
+import { useMenuContextualPublicacion } from '@app/hooks/useMenuContextualPublicacion';
+import { apiGet } from '@app/services/apiCliente';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion, Publicacion } from '@app/types';
 
 export type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
@@ -28,90 +26,8 @@ export function useComunidadIsland() {
     /* Menú contextual de samples adjuntos */
     const menuSample = useMenuContextualSample();
 
-    /* Menú contextual de publicaciones */
-    const [menuPost, setMenuPost] = useState<{ abierto: boolean; x: number; y: number; post: Publicacion | null }>({
-        abierto: false, x: 0, y: 0, post: null,
-    });
-
-    const abrirMenuPost = useCallback((e: React.MouseEvent, post: Publicacion) => {
-        e.stopPropagation();
-        e.preventDefault();
-        setMenuPost({ abierto: true, x: e.clientX, y: e.clientY, post });
-    }, []);
-
-    const cerrarMenuPost = useCallback(() => {
-        setMenuPost(prev => ({ ...prev, abierto: false }));
-    }, []);
-
-    const itemsMenuPost = useMemo(() => {
-        const post = menuPost.post;
-        if (!post) return [];
-
-        const esPropietario = usuario?.id !== undefined && String(post.autor.id) === String(usuario.id);
-        const esAdmin = usuario?.rol === 'admin';
-        const items: { id: string; etiqueta: string; icono: JSX.Element; onClick: () => void; peligro?: boolean; separadorDespues?: boolean; href?: string }[] = [];
-
-        items.push({
-            id: 'ver-perfil',
-            etiqueta: `Ir a @${post.autor.username}`,
-            icono: <User size={16} />,
-            href: `/perfil/${post.autor.username}/`,
-            onClick: () => { navegar(`/perfil/${post.autor.username}/`); cerrarMenuPost(); },
-        });
-
-        items.push({
-            id: 'copiar-enlace',
-            etiqueta: 'Copiar enlace',
-            icono: <Link2 size={16} />,
-            separadorDespues: true,
-            onClick: () => { copiarAlPortapapeles(`${window.location.origin}/post/${post.id}/`); cerrarMenuPost(); },
-        });
-
-        if (esPropietario || esAdmin) {
-            if (esAdmin && post.moderacionEstado && post.moderacionEstado !== 'aprobado') {
-                items.push({
-                    id: 'aprobar',
-                    etiqueta: 'Aprobar publicación',
-                    icono: <CheckCircle size={16} />,
-                    onClick: async () => {
-                        const resp = await actualizarPublicacion(post.id, { moderacionEstado: 'aprobado' });
-                        if (resp.ok) {
-                            setPublicaciones(prev => prev.map(p =>
-                                p.id === post.id ? { ...p, moderacionEstado: 'aprobado' } : p
-                            ));
-                            toast.exito('Publicación aprobada');
-                        }
-                        cerrarMenuPost();
-                    },
-                });
-            }
-            items.push({
-                id: 'eliminar',
-                etiqueta: 'Eliminar publicación',
-                icono: <Trash2 size={16} />,
-                peligro: true,
-                onClick: () => {
-                    toast.confirmar('¿Eliminar esta publicación?', async () => {
-                        const resp = await apiDelete(`/publicaciones/${post.id}`);
-                        if (resp.ok) {
-                            setPublicaciones(prev => prev.filter(p => p.id !== post.id));
-                            toast.exito('Publicación eliminada');
-                        }
-                    });
-                    cerrarMenuPost();
-                },
-            });
-        }
-
-        items.push({
-            id: 'reportar',
-            etiqueta: 'Reportar',
-            icono: <Flag size={16} />,
-            onClick: () => { cerrarMenuPost(); },
-        });
-
-        return items;
-    }, [menuPost.post, usuario, navegar, cerrarMenuPost]);
+    /* Menú contextual de publicaciones (C322 — hook reutilizable) */
+    const menuPublicacion = useMenuContextualPublicacion({ setPublicaciones });
 
     /* Cargar publicaciones con cleanup */
     useEffect(() => {
@@ -192,7 +108,7 @@ export function useComunidadIsland() {
     return {
         publicaciones, filtro, setFiltro, cargando,
         comentariosAbiertos, navegar, usuario,
-        menuSample, menuPost, abrirMenuPost, cerrarMenuPost, itemsMenuPost,
+        menuSample, menuPublicacion,
         recargarFeed, manejarLikePost, manejarRepost, alternarComentarios,
     };
 }

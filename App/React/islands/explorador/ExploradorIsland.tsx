@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useCallback, useState } from 'react';
-import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List } from 'lucide-react';
+import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List, ChevronDown, ChevronRight } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -24,8 +24,12 @@ const ExploradorBase = (): JSX.Element => {
         samples,
         cargando,
         carpetaActiva,
+        subcarpetaActiva,
         totalSamples,
+        carpetasDesplegadas,
         seleccionarCarpeta,
+        seleccionarSubcarpeta,
+        toggleDesplegada,
         manejarLike,
     } = useExploradorPagina();
     const navegar = useNavigationStore(s => s.navegar);
@@ -129,40 +133,64 @@ const ExploradorBase = (): JSX.Element => {
                     <div className="exploradorCarpetaSeparador" />
 
                     {/* Carpetas primarias con subcarpetas */}
-                    {carpetas.map((carpeta) => (
-                        <div key={carpeta.primaria}>
-                            <button
-                                className={`exploradorCarpetaItem ${carpetaActiva === carpeta.primaria ? 'carpetaActiva' : ''}`}
-                                onClick={() => seleccionarCarpeta(carpeta.primaria)}
-                                type="button"
-                            >
-                                {carpetaActiva === carpeta.primaria
-                                    ? <FolderOpen size={16} />
-                                    : <FolderClosed size={16} />
-                                }
-                                <span className="exploradorCarpetaNombre">{carpeta.primaria}</span>
-                                <span className="exploradorCarpetaConteo">{carpeta.total}</span>
-                            </button>
+                    {carpetas.map((carpeta) => {
+                        const estaDesplegada = carpetasDesplegadas.has(carpeta.primaria);
+                        const tieneSubcarpetas = carpeta.subcarpetas.length > 0;
 
-                            {/* Subcarpetas visibles cuando la primaria está activa */}
-                            {carpetaActiva === carpeta.primaria && carpeta.subcarpetas.length > 0 && (
-                                <div className="exploradorSubcarpetas">
-                                    {carpeta.subcarpetas.map((sub) => (
+                        return (
+                            <div key={carpeta.primaria}>
+                                <div className="exploradorCarpetaFila">
+                                    {/* Flecha de despliegue */}
+                                    {tieneSubcarpetas ? (
                                         <button
-                                            key={sub.nombre}
-                                            className="exploradorSubcarpetaItem"
+                                            className="exploradorCarpetaChevron"
+                                            onClick={() => toggleDesplegada(carpeta.primaria)}
                                             type="button"
-                                            title={sub.nombre}
+                                            title={estaDesplegada ? 'Colapsar' : 'Expandir'}
                                         >
-                                            <Folder size={12} />
-                                            <span>{sub.nombre}</span>
-                                            <span className="exploradorCarpetaConteo">{sub.total}</span>
+                                            {estaDesplegada
+                                                ? <ChevronDown size={14} />
+                                                : <ChevronRight size={14} />
+                                            }
                                         </button>
-                                    ))}
+                                    ) : (
+                                        <span className="exploradorCarpetaChevronPlaceholder" />
+                                    )}
+                                    <button
+                                        className={`exploradorCarpetaItem ${carpetaActiva === carpeta.primaria && !subcarpetaActiva ? 'carpetaActiva' : ''}`}
+                                        onClick={() => seleccionarCarpeta(carpeta.primaria)}
+                                        type="button"
+                                    >
+                                        {estaDesplegada
+                                            ? <FolderOpen size={16} />
+                                            : <FolderClosed size={16} />
+                                        }
+                                        <span className="exploradorCarpetaNombre">{carpeta.primaria}</span>
+                                        <span className="exploradorCarpetaConteo">{carpeta.total}</span>
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    ))}
+
+                                {/* Subcarpetas visibles cuando está desplegada */}
+                                {estaDesplegada && tieneSubcarpetas && (
+                                    <div className="exploradorSubcarpetas">
+                                        {carpeta.subcarpetas.map((sub) => (
+                                            <button
+                                                key={sub.nombre}
+                                                className={`exploradorSubcarpetaItem ${carpetaActiva === carpeta.primaria && subcarpetaActiva === sub.nombre ? 'subcarpetaActiva' : ''}`}
+                                                onClick={() => seleccionarSubcarpeta(carpeta.primaria, sub.nombre)}
+                                                type="button"
+                                                title={sub.nombre}
+                                            >
+                                                <Folder size={12} />
+                                                <span>{sub.nombre}</span>
+                                                <span className="exploradorCarpetaConteo">{sub.total}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                     {carpetas.length === 0 && !cargando && (
                         <div style={{ padding: 'var(--espacioSm)', color: 'var(--textoBajo)', fontSize: 'var(--textoXs)' }}>

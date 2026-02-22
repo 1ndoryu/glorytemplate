@@ -86,7 +86,9 @@ const AdminPanelBase = (): JSX.Element => {
             {admin.tabActiva === 'moderacion' && (
                 <TabModeracionAdmin
                     moderacion={admin.moderacion}
+                    historialModeracion={admin.historialModeracion}
                     onModerar={admin.moderar}
+                    onResolverReporte={admin.manejarResolverReporte}
                 />
             )}
         </div>

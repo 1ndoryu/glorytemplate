@@ -120,7 +120,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R69 [AG-SEC] Corrección Try-Catch completa (~73/73):** Todos los hallazgos resueltos. PHP: 9 archivos (ProcesadorFFmpeg 4 métodos, DetectorBpm/Tonalidad try-catch-finally+cleanup, DeduplicadorAudio 2 fix, PipelineAudio exec+@unlink, ComentariosInteraccionController 3 métodos, StripeService try-finally+SSL, GroqHttpClient 2 curl, FFmpegDetector shell_exec). TS hooks: 8 archivos (useAdminPanel 5, useFiltroIds 3, useHistorialIds, useDescargas, useDescargasPagina 2, useFavoritosPagina 2, useExploradorPagina, useMenuContextualSample). TS componentes/stores: 7 archivos (BotonLike 3, BotonFollow, ChatFlotante 3, TopBar, LandingPublica, FilaColecciones, sugerenciasLikeStore). Services: motorAudioService, tema.ts. Islands: 12 archivos (SamplesIsland, DescubrirIsland, LibreriaIsland, PerfilIsland, SampleDetalleIsland 4, ComunidadIsland, NotificacionesIsland 3, ColeccionDetalleIsland, DashboardCreadorIsland 3, ChatIsland 3, MensajesIsland). Patrón: snapshot→try{mutate+await}catch{rollback+toast}finally{setCargando(false)}.
 **R70 [EN CURSO — AG-TR2] Re-auditoría try-catch profunda:** Barrido completo TS/PHP para detectar archivos faltantes y corregir excepciones no capturadas, cleanup garantizado y feedback de error visible.
 **R71 [AG-OPT] Sprint 5 Resolución completa:** P0 4/4, P1 TC 26/26 controllers, P2 OPT 8/10 resueltos (2 PLANIFICADO splits), P2 FE 8/8 resueltos, P3 3/4 resueltos. Cambios: useReproductor selectores Zustand (FE07), sugerenciasLikeStore version counter (FE08), ServicioNotificaciones cache N+1 (TC16), PostgresService insertar() RETURNING+fallback (OPT03), AdminController+ReportesRepository paginacion+enums (OPT05), PostgresService .env parser quotes (OPT06), DashboardController 6→3 queries subqueries escalares (OPT01), obtenerSimilares ok:true→false bug (Q03). AdminRepository ya usaba enums (Q01). DIR01-14 PLANIFICADO, OPT09-10 PLANIFICADO, Q02 PLANIFICADO.
-**R72 [AG-SNT] Auditoría Code Sentinel (245 violaciones):** Triaje completo del reporte sentinel. **Falsos positivos corregidos en extensión:** exec-sin-escapeshellarg (17→0, +3 exclusiones: PDO::exec, literal cmds, sprintf+escapeshellarg), json-decode-inseguro (10→0, reescrita con reconocimiento de guards), controller-sin-trycatch (2 FP eliminados: try anywhere + esRetornoConstante), barras-decorativas (regex solo en comentarios + `.css` añadido). **Código real corregido:** EmbeddingsController.php (6 métodos try-catch), SamplesUploadController.php (subir() try-catch externo), pages.php (8 barras decorativas limpiadas). **Nuevas detecciones implementadas:** error-enmascarado (ok:true en catch, P0), sanitizacion-faltante ($_GET/$_POST sin sanitizar). **Pendiente real:** ~80 zustand-sin-selector (performance, refactor grande), ~20 usestate-excesivo, ~15 useeffect-sin-cleanup, ~12 limite-lineas. Plan completo: `.agent/code-sentinel/PLAN_DETECCIONES.md`.
+**R72 [AG-SNT] Auditoría Code Sentinel (245 violaciones):** Triaje completo del reporte sentinel. **Falsos positivos corregidos en extensión:** exec-sin-escapeshellarg (17→0, +3 exclusiones: PDO::exec, literal cmds, sprintf+escapeshellarg), json-decode-inseguro (10→0, reescrita con reconocimiento de guards), controller-sin-trycatch (2 FP eliminados: try anywhere + esRetornoConstante), barras-decorativas (regex solo en comentarios + `.css` añadido). **Código real corregido:** EmbeddingsController.php (6 métodos try-catch), SamplesUploadController.php (subir() try-catch externo), pages.php (8 barras decorativas limpiadas). **Nuevas detecciones implementadas:** error-enmascarado (ok:true en catch, P0), sanitizacion-faltante ($_GET/$\_POST sin sanitizar). **Pendiente real:** ~80 zustand-sin-selector (performance, refactor grande), ~20 usestate-excesivo, ~15 useeffect-sin-cleanup, ~12 limite-lineas. Plan completo: `.agent/code-sentinel/PLAN_DETECCIONES.md`.
 **R73 [AG-SNT] Zustand selectores + json-decode fix + extensión reinstalada:** Refactoring masivo de rendimiento: 42 archivos React/TS convertidos de `const {x,y} = useStore()` a selectores individuales `const x = useStore(s => s.x)` (~90 llamadas). **Críticos 60fps:** ReproductorGlobal (19), ReproductorIsland (20+1), LandingPublica (5) — eliminan re-renders por `progreso` a 60fps. **PHP fix:** ComentariosInteraccionController L186 `json_decode` sin `?? []` (deprecated auto-vivification PHP 8.1+). **TS fix:** TopBar.tsx onClick type mismatch (`abrirCrear` → arrow wrapper). Extensión Code Sentinel recompilada+reinstalada con mejoras R72 (FPs exec/json/controller/barras eliminados). **Pendiente:** ~20 usestate-excesivo, ~15 useeffect-sin-cleanup, ~15 limite-lineas (code quality, no bugs).
 **R74 [AG-REF] React SRP masivo — 10 componentes refactorizados (~2,600 lín extraídas):** Extension FP mejorada (exec literal commands, json-decode null check, sanitizacion isset/empty). **Componentes refactorizados (líneas componente→resultado):** SampleDetalleIsland 682→339 (useSampleAudio+useSampleDetalle), DashboardCreadorIsland 510→268 (useDashboardCreador+SeccionConnect), FeedSamples 602→232 (useFeedSamples), TarjetaSample 559→188 (useTarjetaSample), PerfilIsland 464→230 (usePerfilIsland), ListaComentarios 456→168 (useListaComentarios+ComentarioAudio), ModalConfiguracion 455→326 (useModalConfiguracion), ComunidadIsland 419→148 (useComunidadIsland), PanelDetalleSample 399→155 (usePanelDetalleSample), ColeccionDetalleIsland 391→175 (useColeccionDetalle). **Patrón:** lógica (state+effects+callbacks) → hook dedicado con AbortController cleanup. Componente solo destructura hook + JSX. **13 archivos nuevos** (10 hooks + 3 subcomponentes). Extension recompilada+reinstalada.
 **R75 [AG-REF] React SRP fase 2 — 8 componentes + extensión FP fix:** Extension mejorada: hooks excluidos de usestate-excesivo (`/^use[A-Z]/`), reconocimiento cleanup `activo=false`/`cancelled=true`/`cancelado=true`, hook limit 120→200. **Componentes refactorizados (líneas→resultado):** ComentarioItem 248→160 (useComentarioItem), ChatFlotante 336→130 (useVentanaChat), ChatIsland 337→95 (useChatIsland), PlanesIsland 327→105 (usePlanesIsland), LibreriaIsland 351→120 (useLibreriaIsland), EditarPerfilIsland 229→100 (useEditarPerfil), PanelLibreria 238→115 (usePanelLibreria), ModalSeleccionColeccion 269→100 (useModalSeleccionColeccion), BotonLike 163→60 (useBotonLike). **Cleanup fixes:** LandingPublica+FilaColecciones — activo=false en useEffect. **9 hooks nuevos.** Extension recompilada+reinstalada.
@@ -132,6 +132,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 **R81 [AG-SRP] Mezclador SRP — 7 componentes + 7 hooks:** MinimapaDaw 354→55 (useMinimapaDaw, DOM+rAF drag preservado), MenuContextualPR 214→87 (useMenuContextualPR, Escape/click-fuera, copiar/cortar/pegar/eliminar/color/velocity), MinimapaPianoRoll 160→34 (useMinimapaPianoRoll, canvas+ResizeObserver+drag), InputTempo 142→53 (useInputTempo, drag vertical+doble click edición+wheel), MedidorPicos 98→21 (useMedidorPicos, rAF stereo peak meter), EQVisualizer 174→58 (useEQVisualizer, canvas curva+drag bandas), ReglaTemporal 109→36 (useReglaTemporal, canvas compases+subdivisiones). **7 hooks nuevos**, 0 errores TS.
 **R82 [AG-SRP] Mezclador SRP fase 2 — 8 componentes + 8 hooks:** BloqueSample 304→158 (useBloqueSample, resize drag+corte+waveform path), PistaTimeline 283→222 (usePistaTimeline.tsx, menú contextual+ghosts+rename JSX icons), MonitorOnda 82→27 (useMonitorOnda, canvas+rAF waveform), ModalConfigDaw 101→55 (useModalConfigDaw, ventana flotante+snap), VentanaFlotante 133→86 (useVentanaFlotante, drag titlebar+Escape+z-index), PanelControl 158→73 (usePanelControl.tsx, velocity/pan/pitch barras JSX), GridNotas 170→75 (useGridNotas.tsx, canvas grid+NotaRect JSX+ResizeObserver), GhostNotas 93→44 (useGhostNotas.tsx, store selectors+culling JSX). **8 hooks nuevos**, 0 errores TS.
 **R83 [AG-FIX] Sentinel FP fix + splits SRP reales (56 violaciones triadas):** **Falsos positivos corregidos en extensión:** isla-no-registrada (función recibía solo path, no texto → añadido parámetro `texto: string`, soporte sentinel-disable en archivo), usestate-excesivo (contaba todos los useState del archivo incluyendo sub-componentes → ahora proporcional: 3×numComponents), repository-sin-whitelist-columnas (35 FPs: auto-gen sections `SECCION AUTO-GENERADA` + BaseRepository excluidos, CTEs lowercase-no-underscore excluidos), hardcoded-enum-value ExperimentosController (sentinel-disable block era 9 líneas arriba → movido a sentinel-disable-next-line en la línea correcta), hook limit 300→300. **Código real corregido:** useFeedSamples 359→289 lín (filtros→useFeedFiltros.ts, arrastre→useFeedArrastreTags.ts), MensajesController 433→248 (enviarMensaje→MensajesEnvioController.php con procesarArchivoMedia privado), DashboardController (query directo PostgresService→DashboardRepository::statsMesCreador), SampleDetalleIsland 341→275 (acciones+comentarios→SampleDetalleAcciones.tsx), NormalizadorSample sentinel-disable-file con justificación (12 callers de sqlSelectSamples hacen extracción inviable). **5 archivos nuevos**, extension recompilada+instalada.
+**R84 [AG-FIX] C320-C336 Sprint completo:** Panel moderación fix (publicaciones NULL+historial IA+BadgeEstado+resolverReporte), explorador subcarpetas (desplegadas+chevrons+selección), admin gráfico overflow, menú contextual publicaciones (useMenuContextualPublicacion.tsx reutilizable+endpoint reportar+integrado ComunidadIsland+PerfilIsland), Tooltip global (Tooltip.tsx+tooltip.css), SeccionPublicar perfiles. **4 MDs documentación:** algoritmo.md (6 señales+sub-factores reales), moderacion.md (4 capas+flujos+sanciones), monetizacion.md (planes+revenue share+Stripe Connect+flujo completo), analisis-daw-recursos.md (100% client-side+plan offline+repo separado). **Planificación:** Fase 9 desglosada (9.1-9.11 requisitos desktop), Fase 11 detallada (11.1-11.7 algoritmo v2), Fase 12 detallada (12.1-12.9 SEO/perf/hardening).
 
 ---
 
@@ -170,7 +171,21 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### FASE 9 — Desktop (Tauri 2.0)
 
-- [ ] Setup monorepo, auth OAuth, sync librería, drag-to-DAW, piano virtual, offline, tray icon
+> Estado: sin iniciar. Tauri no configurado aún.
+
+**Requisitos del usuario (C335):**
+
+- [ ] **9.1** Setup Tauri 2.0 — monorepo, reutilizar componentes React existentes
+- [ ] **9.2** Carpeta local sincronizable — ubicación elegida por usuario, sincronización opcional/configurable
+- [ ] **9.3** Drag-to-DAW / Drag-to-Desktop — archivos de audio arrastrables a apps externas
+- [ ] **9.4** Modo offline — navegar samples descargados + mezclador sin conexión
+- [ ] **9.5** Reproducción local inteligente — si el audio ya está descargado, reproducir desde local (registrar reproducción al reconectar)
+- [ ] **9.6** Auto-descripción por ruta — al subir/sincronizar, analizar nombre de archivo + 3 carpetas padre para generar metadata IA (aplica también en web)
+- [ ] **9.7** Nombres de archivo — mantener nombre local original. Si se borra y re-descarga, usar nombre generado por servidor
+- [ ] **9.8** Auth OAuth — login persistente con tokens seguros Tauri
+- [ ] **9.9** Tray icon + auto-update
+- [ ] **9.10** Optimización extrema — ventanas múltiples futuras, plugins, DAW propio al 100%
+- [ ] **9.11** Testing local — dev server con hot reload sobre app Tauri
 
 ### FASE 10 — Móvil (Capacitor)
 
@@ -178,21 +193,76 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### FASE 11 — Algoritmo v2
 
-- [ ] Contexto DAW, collaborative filtering, user embeddings, A/B testing, spectrograma mel
+> Estado actual: 6 señales con embeddings 128d (pgvector HNSW coseno). Perfil usuario = promedio ponderado de interacciones. Sin A/B testing ni collaborative filtering.
+
+**Subfases planificadas:**
+
+- [ ] **11.1** Contexto DAW — incorporar datos de uso del mezclador en señales de recomendación (qué samples usa juntos → afinidad cruzada). Nuevo sub-factor en señal de comportamiento.
+- [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa vía Python worker o WASM) reemplazando tags hasheados en posiciones [22-127]. Sube calidad de similitud de contenido de "metadata similares" a "audio realmente similar".
+- [ ] **11.3** User embeddings dedicados — vector separado por usuario (no solo promedio de samples interactuados). Actualización incremental con decay temporal. Permite modelar gustos que evolucionan.
+- [ ] **11.4** Collaborative filtering — señal adicional "usuarios similares a ti descargaron X". Matrix factorization ligera o item-based CF. Complementa las 6 señales existentes como señal 7.
+- [ ] **11.5** A/B testing framework — ExperimentosController ya existe parcialmente. Completar: asignación de cohortes, tracking de métricas (CTR, descarga/impresión, tiempo escucha), dashboard de resultados. Poder probar pesos alternativos del algoritmo.
+- [ ] **11.6** Diversidad mejorada — penalización por creador repetido más granular, boost por géneros sub-representados en historial del usuario, serendipity score.
+- [ ] **11.7** Feedback signals — "no me interesa" / "ver menos así", señal negativa explícita para afinar perfil.
+
+**Dependencias técnicas:**
+- 11.2 requiere pipeline Python/WASM para generar espectrogramas mel → migración embeddings (128d → 256d+)
+- 11.4 requiere volumen mínimo de usuarios (~100+) para que CF sea útil
+- 11.5 se puede empezar independiente (infraestructura A/B)
 
 ### FASE 12 — SEO/Performance/Hardening
 
-- [ ] Meta/OG/JSON-LD, code splitting, brotli, rate limiting, CSP, tests
+> Estado actual: Glory ya tiene MetaTagRenderer + OpenGraphRenderer + JsonLdRenderer + SeoMetabox. RateLimiter implementado (5 endpoints). Sin CSP, sin tests, sin code splitting.
+
+**Subfases planificadas:**
+
+- [ ] **12.1** SEO dinámico para islands — meta tags para samples (`/sample/{slug}`), perfiles (`/perfil/{username}`), colecciones. OG images dinámicas. Canonical URLs correctas.
+- [ ] **12.2** JSON-LD estructurado — Product schema para samples, Person para creadores, MusicRecording para audio, BreadcrumbList para navegación. Verificar con Rich Results Test.
+- [ ] **12.3** Code splitting — lazy loading de islands pesadas (Mezclador, PianoRoll). Dynamic import con React.lazy + Suspense. Reducir bundle inicial.
+- [ ] **12.4** Compresión — configurar Brotli/Gzip a nivel servidor (Nginx/Apache). Precomprimir assets estáticos. Cache headers agresivos para waveform JSON y audio.
+- [ ] **12.5** CSP (Content-Security-Policy) — header restrictivo: script-src self + nonces, style-src self, connect-src api + stripe + groq, media-src blob + self, frame-src stripe. Eliminar inline scripts/styles.
+- [ ] **12.6** Security hardening — validación de headers CORS más estricta, HSTS, X-Frame-Options, Referrer-Policy. Auditoría de endpoints públicos.
+- [ ] **12.7** Tests unitarios — PHPUnit para repositorios y servicios críticos (StripeService, MotorRecomendacion, ModeracionIA). Vitest para hooks React (useMenuContextual*, useTarjetaSample).
+- [ ] **12.8** Tests E2E — Playwright para flujos críticos: login → upload → descarga → revenue share. Checkout Stripe en modo test.
+- [ ] **12.9** Performance monitoring — Core Web Vitals (LCP, FID, CLS). Lighthouse CI en pipeline. Budget de bundle (<200KB inicial).
 
 ### FASE 13 — Panel de Administración ✔ (parcial)
 
 > Implementado R47: AdminController.php (6 endpoints), 3 tabs funcionales (Resumen+Usuarios+Moderación).
 
-**Pendiente:**
+# **Pendiente y comentarios del usuario:**
 
-- Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes`
-- Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
-- Menú contextual publicaciones (eliminar/reportar/copiar/ver post/editar (los admin puede editar cualquier post y los usuarios sus propos post))
+320. Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes`
+321. - Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
+322. ✅ [AG-FIX] Menú contextual publicaciones — useMenuContextualPublicacion.tsx reutilizable, endpoint reportar, integrado en ComunidadIsland + PerfilIsland
+323. ✅ [AG-FIX] Tooltip global — Tooltip.tsx + tooltip.css + CSS import
+324. ✅ [AG-FIX] Explorador subcarpetas — desplegadas por defecto, flechas chevron, selección activa
+325. ✅ [AG-FIX] adminGraficaDia barras overflow — overflow:hidden + padding-bottom + min-height:0
+326. ✅ [AG-FIX] Panel moderación publicaciones no aparecían — listarModeradasRecientes() incluye estado NULL/pendiente, badge estado funcional
+327. ✅ [AG-FIX] MD algoritmo — `App/docs/algoritmo.md` reescrito con datos reales del código (6 señales + sub-factores + multiplicadores)
+328. ✅ [AG-FIX] MD moderación — `App/docs/moderacion.md` (4 capas, flujos pub/comentarios, estados, sanciones, fail-open)
+329. ✅ [AG-FIX] Sample comunidad en moderación — corregido con C326 (query incluye estado NULL)
+330. ✅ [AG-FIX] Panel moderación completado — historial IA, acciones resolver reporte, BadgeEstado
+331. ✅ [AG-FIX] MD monetización — `App/docs/monetizacion.md` (planes, revenue share, Stripe Connect, flujo completo, tracking)
+332. ✅ [AG-FIX] SeccionPublicar en perfiles — debajo de perfilContenedorInterno + CSS
+333. ✅ [AG-FIX] Fases 11-12 planificadas — subfases detalladas en roadmap (11.1-11.7 algoritmo, 12.1-12.9 SEO/perf)
+334. (en planificación), para no complicarnos la vida, vamos a hacer la versión.
+335. ✅ [AG-FIX] Requisitos desktop planificados — Fase 9 desglosada en 11 subfases (9.1-9.11) en roadmap.
+
+
+    - Tiene que sincronizar los audios locales del usuario de la forma mas inteligente posible.
+    - Se crea una carpeta local donde el usuario elija y alli se sincronizarán los audios.
+    - La sincronización tiene que ser opcional, al principio elige si quiere que se sincronicen o no, y lo puedo configurar las configuraciones.
+    - Para ahorrar trabajo se puede usar los mismos compoentes y la misma web sin tener que reinventar nada, la web se adaptaría un poco.
+    - Tiene que estar extremadamente optimizada porque el futuro correra muchas cosas plugins en varias ventanas e incluso con 100% haremos un daw propio.
+    - Los audios en la aplicación al arrastrarse tienen que poder aparecer por ejemplo en el escritorio, en el daw, etc.
+    - Debe poder funcionar sin conexión al menos para navegar entre los samples y mezclar en el mini daw.
+    - Optimizar la reproducción, cuand osea local entonces si un audio ya esta descargado, se reproduce desde local (que la reproducción se siga registrando en el servidor)
+    - Debemos poder testearla localmente.
+    - Al subir los audios la descripcion y todo se genera automaticamente basandose en la ubicación del archivo (analiza las 3 carpetas donde esta el archivo porque es info clave, tambien el nombre del archivo lo toma en cuenta, el nombre de el archivo tambien debe tomarse en cuenta cuando se sube en la web no solo cuando se sincroniza).
+    - Los archivos al subirse mantienen sus nombres locales pero si se borran y se vuelven a descargar se descargaran con el nombre se genero en el server.
+
+336. ✅ [AG-FIX] MD análisis DAW recursos — `App/docs/analisis-daw-recursos.md` (100% client-side, plan offline, estructura repo separado, consumo RAM/CPU, optimizaciones futuras)
 
 ---
 
@@ -221,6 +291,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 **C1-C183:** FFmpeg, IA Groq, pipeline audio, moderación, pgvector, algoritmo, UI completa (TopBar/Sidebar/feeds/colecciones/SPA/chat/planes/admin), JSON repair, Stripe, reproductor, waveforms, reacciones, búsqueda, filtros, créditos, naming IA, deduplicación, verificación samples. SeccionPublicar refactor, modal edición, menú 3 puntos, similares+comentarios expandidos, paginación infinita, multimedia, automod IA, bans, keep-alive tabs, tags metadata IA, búsqueda colecciones, algoritmo colecciones CTE, Bookmark contextual.
 **C184-C327:** Mezclador DAW completo (R48-R68), avatares fix, AdminPanel, Explorador page, metadata carpetas IA, cache SWR, seguridad audio, toggle comunidad, publicar mezcla, mezcladorStore SOLID, VPS plan, SoundTouchJS, Schema System+Enums, SOLID Sprint 5, Repository Pattern, auditoría hardcode, VentanaFlotante, MinimapaDaw, KnobControl, Channel Rack+Patterns+Mixer (AG-TWO), Piano Roll (AG-THRE), cuadrícula explorador, BPM sync, CSS vars DAW.
+**C320-C336:** Panel moderación fix (publicaciones NULL, historial IA, badge estado), explorador subcarpetas fix, admin gráfico overflow, menú contextual publicaciones (useMenuContextualPublicacion reutilizable + endpoint reportar), tooltip global, SeccionPublicar perfiles, MDs documentación (algoritmo, moderación, monetización, análisis DAW), planificación fases 9/11/12 detallada.
 
 ---
 
@@ -276,6 +347,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - Gráficas CSS: barras agrupadas > apiladas. Colores lejanos en espectro.
 - SVG icons en flex: `flex-shrink:0`. z-index: header imagen z:0, contenido scrollable z:1.
 - Colors DAW mapeados: loop→`--acento`, mute→`--error`, solo→`--advertencia`, steps→`--fondoBoton`.
+- CSS vars: Múltiples variaciones rem/px pueden mapearse a vars `--espacioX` y `--fuenteX` calculando proporciones. No dejar `rem` o `px` hardcodeado en paneles de UI complejos.
 
 ### Mezclador DAW
 
@@ -328,9 +400,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### Sentinel / Análisis Estático
 
 - `sentinel-disable-file limite-lineas` (en docblock del archivo) suprime el límite de líneas cuando extraer crearía 12+ forwarding stubs — más daño que beneficio. Diferente a `sentinel-disable-next-line`.
-- `sentinel-disable-next-line reglaNombre` DEBE estar en la línea INMEDIATAMENTE anterior a la flagged. El analizador solo lee la línea previa — un bloque sentinel más arriba NO funciona. Para `SELECT *` dentro de un `consultarUno("SELECT *..."), el sentinel va DENTRO de los args, en la línea antes del string: `static::consultarUno(/* sentinel-disable-next-line ... */ "SELECT *...`)
+- `sentinel-disable-next-line reglaNombre` DEBE estar en la línea INMEDIATAMENTE anterior a la flagged. El analizador solo lee la línea previa — un bloque sentinel más arriba NO funciona. Para `SELECT *` dentro de un `consultarUno("SELECT *..."), el sentinel va DENTRO de los args, en la línea antes del string: `static::consultarUno(/_ sentinel-disable-next-line ... _/ "SELECT \*...`)
 - PowerShell WriteAllLines corrompe template literals: backtick es carácter de escape en PS. Si usas WriteAllLines para reemplazar líneas con template literals JS/TS, siempre arreglar con replace_string_in_file después.
 - CTEs SQL (alias lowercase sin underscore, ej: `c`, `ranked`, `user_tags`) quedan excluídos del check `repository-sin-whitelist` — no son tablas reales.
-- BaseRepository.php queda excluido globalmente de `repository-sin-whitelist` — todos sus SELECT * son intencionales (métodos genéricos por PK).
+- BaseRepository.php queda excluido globalmente de `repository-sin-whitelist` — todos sus SELECT \* son intencionales (métodos genéricos por PK).
 - `usestate-excesivo`: el umbral es `3 × numComponentes` en el archivo. Un archivo con 2 componentes puede tener hasta 6 useState sin alarma.
 - limit hooks en lineCounter: 300 líneas (no 200). Si un hook se acerca a 300, evaluar split en sub-hooks de dominio (ej: useFeedFiltros, useFeedArrastre extraídos de useFeedSamples).

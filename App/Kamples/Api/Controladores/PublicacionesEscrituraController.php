@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\ReportesRepository;
 
 class PublicacionesEscrituraController
 {
@@ -310,6 +311,42 @@ class PublicacionesEscrituraController
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
         } catch (\Throwable $e) {
             KamplesLogger::error('PublicacionesEscrituraController::repostear error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * POST /publicaciones/{id}/reportar — Reportar publicación.
+     * Cualquier usuario autenticado puede reportar.
+     */
+    public static function reportar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $id = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $razon = \sanitize_textarea_field($body['razon'] ?? 'contenido inapropiado');
+
+            $errorRazon = Validador::validarLongitud($razon, 500, 'La razón del reporte');
+            if ($errorRazon) return Validador::respuestaError($errorRazon);
+
+            /* Verificar que la publicación existe */
+            if (!PublicacionesRepository::existe([PublicacionesCols::ID => $id])) {
+                return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+            }
+
+            /* Evitar reportes duplicados */
+            if (ReportesRepository::yaReportado('publicacion', $id, $userId)) {
+                return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste esta publicación'], 200);
+            }
+
+            ReportesRepository::crearReporte('publicacion', $id, $userId, $razon);
+
+            return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::reportar error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

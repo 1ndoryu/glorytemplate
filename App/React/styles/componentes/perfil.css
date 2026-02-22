@@ -111,6 +111,12 @@
     margin-bottom: var(--espacioXl);
 }
 
+/* SeccionPublicar fija debajo del header (C232) */
+.perfilSeccionPublicar {
+    margin-top: var(--espacioMd);
+    margin-bottom: var(--espacioMd);
+}
+
 /* Contenido tabs */
 .perfilContenidoTab {
     min-height: 200px;

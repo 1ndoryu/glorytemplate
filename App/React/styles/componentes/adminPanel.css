@@ -5,45 +5,45 @@
 
 /* Contenedor principal */
 .adminPanel {
-    padding: 1.5rem;
+    padding: var(--espacioXl);
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .adminPanelTitulo {
-    font-size: 1.5rem;
+    font-size: var(--fuenteXl);
     font-weight: 700;
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--espacioXs);
     color: var(--textoPrimario);
 }
 
 .adminPanelSubtitulo {
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--espacioXl);
 }
 
 /* Tabs */
 .adminPanelTabs {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--espacioXl);
 }
 
 /* Grid de KPIs */
 .adminKpisGrid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: var(--espacioLg);
+    margin-bottom: var(--espacioXl);
 }
 
 .adminKpiTarjeta {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
-    border-radius: 12px;
-    padding: 1.25rem;
+    border-radius: var(--espacioMd);
+    padding: var(--espacioXl);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 .adminKpiCabecera {
@@ -53,7 +53,7 @@
 }
 
 .adminKpiEtiqueta {
-    font-size: 0.75rem;
+    font-size: var(--fuenteXs);
     font-weight: 500;
     color: var(--textoSecundario);
     text-transform: uppercase;
@@ -66,14 +66,14 @@
 }
 
 .adminKpiValor {
-    font-size: 1.75rem;
+    font-size: var(--fuente2xl);
     font-weight: 700;
     color: var(--textoPrimario);
     line-height: 1;
 }
 
 .adminKpiDetalle {
-    font-size: 0.75rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
 }
 
@@ -82,25 +82,25 @@
 .adminGraficaContenedor {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
+    border-radius: var(--espacioMd);
+    padding: var(--espacioXl);
+    margin-bottom: var(--espacioXl);
 }
 
 .adminGraficaTitulo {
-    font-size: 0.9rem;
+    font-size: var(--fuenteMd);
     font-weight: 600;
     color: var(--textoPrimario);
-    margin-bottom: 1rem;
+    margin-bottom: var(--espacioLg);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 /* Contenedor principal: eje Y + área de barras */
 .adminGraficaArea {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 /* Eje Y — números de referencia */
@@ -110,12 +110,12 @@
     justify-content: space-between;
     align-items: flex-end;
     height: 180px;
-    padding-bottom: 20px;
+    padding-bottom: var(--espacioXl);
     min-width: 28px;
 }
 
 .adminGraficaEjeYLabel {
-    font-size: 0.6rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     line-height: 1;
 }
@@ -125,6 +125,7 @@
     flex: 1;
     position: relative;
     height: 200px;
+    overflow: hidden;
 }
 
 /* Grid lines horizontales sutiles */
@@ -148,8 +149,9 @@
 .adminGraficaBarras {
     display: flex;
     align-items: flex-end;
-    gap: 4px;
+    gap: var(--espacioXs);
     height: 180px;
+    padding-bottom: var(--espacioXl);
 }
 
 /* Grupo de un día: barras + etiqueta fecha */
@@ -159,15 +161,18 @@
     flex-direction: column;
     align-items: center;
     height: 100%;
+    min-width: 0;
 }
 
 /* 3 barras lado a lado dentro del día */
 .adminGraficaDiaBarras {
     display: flex;
     align-items: flex-end;
-    gap: 1px;
+    gap: 1px; /* Gap mÃ­nimo, difÃ­cil de mapear a variable standard */
     flex: 1;
     width: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* Barra individual */
@@ -198,50 +203,50 @@
 
 /* Etiqueta de fecha (eje X) */
 .adminGraficaFecha {
-    font-size: 0.55rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    margin-top: 4px;
+    margin-top: var(--espacioXs);
     white-space: nowrap;
 }
 
 /* Leyenda con totales */
 .adminGraficaLeyenda {
     display: flex;
-    gap: 1rem;
-    margin-top: 0.75rem;
+    gap: var(--espacioLg);
+    margin-top: var(--espacioMd);
 }
 
 .adminGraficaLeyendaItem {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.7rem;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
     color: var(--textoSecundario);
 }
 
 .adminGraficaLeyendaPunto {
     width: 8px;
     height: 8px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
 }
 
 /* Tabla de usuarios */
 .adminUsuariosControles {
     display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioLg);
     flex-wrap: wrap;
 }
 
 .adminUsuariosBusqueda {
     flex: 1;
     min-width: 200px;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
     border: 1px solid var(--bordeSutil);
     background: var(--fondoBase);
     color: var(--textoPrimario);
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
 }
 
 .adminUsuariosBusqueda:focus {
@@ -250,33 +255,33 @@
 }
 
 .adminUsuariosFiltro {
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
     border: 1px solid var(--bordeSutil);
     background: var(--fondoBase);
     color: var(--textoPrimario);
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
 }
 
 .adminTablaUsuarios {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
 }
 
 .adminTablaUsuarios th {
     text-align: left;
-    padding: 0.75rem;
+    padding: var(--espacioMd);
     font-weight: 600;
     color: var(--textoSecundario);
-    font-size: 0.7rem;
+    font-size: var(--fuenteXs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--bordeSutil);
 }
 
 .adminTablaUsuarios td {
-    padding: 0.75rem;
+    padding: var(--espacioMd);
     border-bottom: 1px solid var(--bordeSutil);
     color: var(--textoPrimario);
 }
@@ -288,13 +293,13 @@
 .adminUsuarioFila {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 .adminUsuarioAvatar {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
     object-fit: cover;
     background: var(--fondoElevado1);
 }
@@ -310,24 +315,26 @@
 }
 
 .adminUsuarioUsername {
-    font-size: 0.7rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
 }
 
 .adminUsuarioAcciones {
     display: flex;
-    gap: 0.35rem;
+    gap: var(--espacioXs);
 }
 
 .adminBotonAccion {
     padding: 0.3rem 0.5rem;
-    border-radius: 6px;
+    border-radius: var(--radioMd);
     border: 1px solid var(--bordeSutil);
     background: transparent;
     color: var(--textoSecundario);
     cursor: pointer;
-    font-size: 0.7rem;
-    transition: background-color 0.15s, color 0.15s;
+    font-size: var(--fuenteXs);
+    transition:
+        background-color 0.15s,
+        color 0.15s;
 }
 
 .adminBotonAccion:hover {
@@ -344,13 +351,15 @@
 /* C257: Select de plan en acciones */
 .adminSelectPlan {
     padding: 0.25rem 0.4rem;
-    border-radius: 6px;
+    border-radius: var(--radioMd);
     border: 1px solid var(--bordeSutil);
     background: var(--fondoElevado1);
     color: var(--textoSecundario);
     cursor: pointer;
-    font-size: 0.7rem;
-    transition: border-color 0.15s, color 0.15s;
+    font-size: var(--fuenteXs);
+    transition:
+        border-color 0.15s,
+        color 0.15s;
 }
 
 .adminSelectPlan:hover,
@@ -364,18 +373,18 @@
 .adminPaginacion {
     display: flex;
     justify-content: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioLg);
 }
 
 .adminPaginacionBoton {
     padding: 0.4rem 0.75rem;
-    border-radius: 6px;
+    border-radius: var(--radioMd);
     border: 1px solid var(--bordeSutil);
     background: var(--fondoBase);
     color: var(--textoPrimario);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--fuenteSm);
 }
 
 .adminPaginacionBoton:disabled {
@@ -387,46 +396,46 @@
 .adminModeracionLista {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--espacioMd);
 }
 
 .adminModeracionTarjeta {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
-    border-radius: 12px;
-    padding: 1rem;
+    border-radius: var(--espacioMd);
+    padding: var(--espacioLg);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--espacioMd);
 }
 
 .adminModeracionCabecera {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 .adminModeracionAvatar {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
     object-fit: cover;
 }
 
 .adminModeracionAutor {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
     color: var(--textoPrimario);
 }
 
 .adminModeracionFecha {
-    font-size: 0.7rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     margin-left: auto;
 }
 
 .adminModeracionContenido {
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
     color: var(--textoSecundario);
     line-height: 1.5;
     max-height: 100px;
@@ -435,55 +444,126 @@
 
 .adminModeracionAcciones {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 .adminModeracionBotonAprobar {
     padding: 0.4rem 0.75rem;
-    border-radius: 6px;
+    border-radius: var(--radioMd);
     border: none;
     background: var(--exito);
     color: var(--blanco);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--fuenteSm);
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--espacioXs);
 }
 
 .adminModeracionBotonRechazar {
     padding: 0.4rem 0.75rem;
-    border-radius: 6px;
+    border-radius: var(--radioMd);
     border: none;
     background: var(--error);
     color: var(--blanco);
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: var(--fuenteSm);
     font-weight: 500;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--espacioXs);
+}
+
+.adminModeracionBotonDescartar {
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+    background: transparent;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    font-size: var(--fuenteSm);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    transition:
+        background-color 0.15s,
+        color 0.15s;
+}
+
+.adminModeracionBotonDescartar:hover {
+    background: var(--fondoElevado2);
+    color: var(--textoPrimario);
+}
+
+/* Detalle de decisión IA */
+.adminModeracionDetalle {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    padding: 0.25rem 0.5rem;
+    background: var(--fondoElevado2);
+    border-radius: var(--radioSm);
+    width: fit-content;
+}
+
+/* Historial IA: estilo más sutil */
+.adminModeracionHistorial {
+    opacity: 0.85;
+    border-left: 3px solid var(--bordeSutil);
+}
+
+/* Badges de estado */
+.adminBadge {
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radioSm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.adminBadgeExito {
+    background: color-mix(in srgb, var(--exito) 15%, transparent);
+    color: var(--exito);
+}
+
+.adminBadgeAdvertencia {
+    background: color-mix(in srgb, var(--advertencia) 15%, transparent);
+    color: var(--advertencia);
+}
+
+.adminBadgeError {
+    background: color-mix(in srgb, var(--error) 15%, transparent);
+    color: var(--error);
+}
+
+.adminBadgeNeutro {
+    background: var(--fondoElevado2);
+    color: var(--textoSecundario);
 }
 
 /* SecciÃ³n de reportes */
 .adminSeccionTitulo {
-    font-size: 1rem;
+    font-size: var(--fuenteLg);
     font-weight: 600;
     color: var(--textoPrimario);
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin-top: var(--espacioXl);
+    margin-bottom: var(--espacioMd);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--espacioSm);
 }
 
 /* Estado vacÃ­o */
 .adminVacio {
     text-align: center;
-    padding: 2rem;
+    padding: var(--espacio3xl);
     color: var(--textoTerciario);
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
 }
 
 /* Cargando */
@@ -491,7 +571,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 3rem;
+    padding: var(--espacio4xl);
     color: var(--textoTerciario);
 }
 
@@ -500,14 +580,18 @@
 }
 
 @keyframes adminGiro {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .adminPanel {
-        padding: 1rem;
+        padding: var(--espacioLg);
     }
 
     .adminKpisGrid {
@@ -515,11 +599,11 @@
     }
 
     .adminTablaUsuarios {
-        font-size: 0.75rem;
+        font-size: var(--fuenteXs);
     }
 
-    .adminTablaUsuarios th:nth-child(n+4),
-    .adminTablaUsuarios td:nth-child(n+4) {
+    .adminTablaUsuarios th:nth-child(n + 4),
+    .adminTablaUsuarios td:nth-child(n + 4) {
         display: none;
     }
 }

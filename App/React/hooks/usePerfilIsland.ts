@@ -17,6 +17,7 @@ import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore'
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
+import { useMenuContextualPublicacion, EVENTO_PUBLICACION_ELIMINADA } from '@app/hooks/useMenuContextualPublicacion';
 import type { Usuario } from '@app/types/usuario';
 import type { SampleResumen } from '@app/types/sample';
 import type { Publicacion } from '@app/types/publicacion';
@@ -77,6 +78,21 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirChat = useChatFlotanteStore(s => s.abrirChat);
     const menu = useMenuContextualSample();
+    const menuPublicacion = useMenuContextualPublicacion({ setPublicaciones: setPublicacionesPerfil });
+
+    /* Listener para eliminación de publicaciones (C322) */
+    useEffect(() => {
+        const manejarEliminacionPost = (event: Event) => {
+            const detalle = (event as CustomEvent<{ publicacionId?: number }>).detail;
+            if (detalle?.publicacionId) {
+                setPublicacionesPerfil(prev => prev.filter(p => p.id !== detalle.publicacionId));
+            }
+        };
+        window.addEventListener(EVENTO_PUBLICACION_ELIMINADA, manejarEliminacionPost as EventListener);
+        return () => {
+            window.removeEventListener(EVENTO_PUBLICACION_ELIMINADA, manejarEliminacionPost as EventListener);
+        };
+    }, []);
 
     /* Resolver username desde ruta SPA o prop */
     const username = useMemo(() => {
@@ -253,6 +269,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         abrirConfiguracion,
         abrirChat,
         menu,
+        menuPublicacion,
         username,
         esPropietario,
         recargarPublicaciones,

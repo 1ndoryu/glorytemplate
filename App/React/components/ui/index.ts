@@ -21,3 +21,4 @@ export { WaveformPlayer } from './WaveformPlayer';
 export { TarjetaSample } from './TarjetaSample';
 export { ReproductorGlobal } from './ReproductorGlobal';
 export { BadgeModeracion } from './BadgeModeracion';
+export { Tooltip } from './Tooltip';

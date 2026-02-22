@@ -164,6 +164,14 @@ export const subirImagenPublicacion = async (archivo: File): Promise<RespuestaAp
     return apiPostFormData<{ url: string }>('/publicaciones/imagenes', formData);
 };
 
+/* C322: Reportar publicación */
+export const reportarPublicacion = async (
+    publicacionId: number,
+    razon: string = 'contenido inapropiado'
+): Promise<RespuestaApi<{ ok: boolean; message: string }>> => {
+    return apiPost<{ ok: boolean; message: string }>(`/publicaciones/${publicacionId}/reportar`, { razon });
+};
+
 /* C126: Datos editables de una publicación */
 export interface DatosActualizarPublicacion {
     contenido?: string;

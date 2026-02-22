@@ -20,8 +20,12 @@ export interface UseExploradorPaginaResultado {
     samples: SampleResumen[];
     cargando: boolean;
     carpetaActiva: string;
+    subcarpetaActiva: string;
     totalSamples: number;
+    carpetasDesplegadas: Set<string>;
     seleccionarCarpeta: (carpeta: string) => void;
+    seleccionarSubcarpeta: (primaria: string, subcarpeta: string) => void;
+    toggleDesplegada: (carpeta: string) => void;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
@@ -30,7 +34,10 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [cargando, setCargando] = useState(true);
     const [carpetaActiva, setCarpetaActiva] = useState('');
+    const [subcarpetaActiva, setSubcarpetaActiva] = useState('');
     const [totalSamples, setTotalSamples] = useState(0);
+    /* Todas las carpetas desplegadas por defecto */
+    const [carpetasDesplegadas, setCarpetasDesplegadas] = useState<Set<string>>(new Set());
 
     /* Carga inicial: carpetas + todos los samples */
     useEffect(() => {
@@ -43,6 +50,14 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                 ]);
                 if (respCarpetas.ok && respCarpetas.data) {
                     setCarpetas(respCarpetas.data);
+                    /* Desplegar todas las carpetas que tienen subcarpetas por defecto */
+                    const todasDesplegadas = new Set<string>();
+                    for (const c of respCarpetas.data) {
+                        if (c.subcarpetas.length > 0) {
+                            todasDesplegadas.add(c.primaria);
+                        }
+                    }
+                    setCarpetasDesplegadas(todasDesplegadas);
                 }
                 if (respSamples.ok && respSamples.data) {
                     setSamples(respSamples.data.data ?? []);
@@ -59,6 +74,7 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
     /* Cambiar de carpeta: recarga samples filtrados */
     const seleccionarCarpeta = useCallback(async (carpeta: string) => {
         setCarpetaActiva(carpeta);
+        setSubcarpetaActiva('');
         setCargando(true);
         try {
             const resp = await obtenerColeccionados(1, 100, carpeta);
@@ -70,6 +86,37 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
             log.error('Error filtrando por carpeta', err);
         }
         setCargando(false);
+    }, []);
+
+    /* Seleccionar subcarpeta: filtra por "primaria/subcarpeta" */
+    const seleccionarSubcarpeta = useCallback(async (primaria: string, subcarpeta: string) => {
+        setCarpetaActiva(primaria);
+        setSubcarpetaActiva(subcarpeta);
+        setCargando(true);
+        try {
+            const filtro = `${primaria}/${subcarpeta}`;
+            const resp = await obtenerColeccionados(1, 100, filtro);
+            if (resp.ok && resp.data) {
+                setSamples(resp.data.data ?? []);
+                setTotalSamples(resp.data.pagination?.total ?? 0);
+            }
+        } catch (err) {
+            log.error('Error filtrando por subcarpeta', err);
+        }
+        setCargando(false);
+    }, []);
+
+    /* Toggle despliegue de carpeta (mostrar/ocultar subcarpetas) */
+    const toggleDesplegada = useCallback((carpeta: string) => {
+        setCarpetasDesplegadas(prev => {
+            const next = new Set(prev);
+            if (next.has(carpeta)) {
+                next.delete(carpeta);
+            } else {
+                next.add(carpeta);
+            }
+            return next;
+        });
     }, []);
 
     /* Like optimista sincronizado con la lista local */
@@ -143,8 +190,12 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         samples,
         cargando,
         carpetaActiva,
+        subcarpetaActiva,
         totalSamples,
+        carpetasDesplegadas,
         seleccionarCarpeta,
+        seleccionarSubcarpeta,
+        toggleDesplegada,
         manejarLike,
     };
 }

@@ -77,6 +77,11 @@ class PublicacionesController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
+        register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/reportar', [
+            'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'reportar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         register_rest_route($namespace, '/publicaciones/imagenes', [
             'methods' => 'POST', 'callback' => [self::class, 'subirImagen'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
