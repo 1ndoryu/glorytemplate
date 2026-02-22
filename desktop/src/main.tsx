@@ -19,6 +19,14 @@ import appIslands, { AppProvider } from '@app/appIslands';
 /* Servicios desktop: configuración API, auth, storage */
 import { inicializarDesktop } from '@desktop/services/desktopService';
 
+/* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
+import {
+    elegirCarpetaSync,
+    toggleSincronizacion,
+    obtenerConfigSync,
+    sincronizarConServidor,
+} from '@desktop/services/syncService';
+
 /* Registrar todas las islas */
 islandRegistry.registerAll(appIslands);
 
@@ -71,6 +79,13 @@ function marcarEntornoDesktop(): void {
     /* eslint-disable @typescript-eslint/no-explicit-any */
     (window as any).__KAMPLES_DESKTOP__ = true;
     (window as any).__KAMPLES_VERSION__ = '0.1.0';
+    /* Exponer syncService para que hooks en App/React no necesiten dynamic imports */
+    (window as any).__KAMPLES_SYNC__ = {
+        elegirCarpetaSync,
+        toggleSincronizacion,
+        obtenerConfigSync,
+        sincronizarConServidor,
+    };
     /* eslint-enable @typescript-eslint/no-explicit-any */
 }
 
