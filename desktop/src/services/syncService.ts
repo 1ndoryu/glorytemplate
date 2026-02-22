@@ -14,6 +14,44 @@ import { esDesktop, estaOnline } from './desktopService';
 
 const STORE_FILE = 'sync-config.json';
 
+/* Tipos mínimos locales para evitar importar desde App/React */
+interface CarpetaInfo {
+    primaria: string;
+    total: number;
+    subcarpetas: Array<{ nombre: string; total: number }>;
+}
+
+interface SampleBasico {
+    id: number;
+    titulo: string;
+}
+
+interface ResultadoDescargaApi {
+    url: string;
+    nombre: string;
+    formato: string;
+    tamano: number;
+}
+
+export interface ProgresoSync {
+    actual: number;
+    total: number;
+    sampleId: number;
+    nombre: string;
+    estado: 'descargando' | 'descargado' | 'error';
+    tamano?: number;
+    ruta?: string;
+}
+
+export type ProgressCallback = (progreso: ProgresoSync) => void;
+
+function obtenerBaseUrl(): string {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const ctx = (window as any).GLORY_CONTEXT as { apiUrl?: string } | undefined;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    return ctx?.apiUrl ?? '/wp-json';
+}
+
 interface SyncConfig {
     carpetaLocal: string | null;
     sincronizacionActiva: boolean;
@@ -138,19 +176,145 @@ export function obtenerConfigSync(): SyncConfig {
 
 /*
  * Sincroniza la carpeta local con el servidor.
- * Compara el índice local con las descargas del servidor.
+ * 1. Obtiene estructura de carpetas del explorador del usuario.
+ * 2. Por cada carpeta, descarga samples nuevos (no están en el índice local).
+ * 3. Llama onProgreso para actualizar la UI en tiempo real.
+ * - [sync]: mirroring explorador structure: carpetaLocal/primaria/nombre.formato
  */
-export async function sincronizarConServidor(): Promise<{ nuevos: number; eliminados: number }> {
+export async function sincronizarConServidor(
+    onProgreso?: ProgressCallback,
+): Promise<{ nuevos: number; eliminados: number }> {
     if (!config.carpetaLocal || !config.sincronizacionActiva || !estaOnline()) {
         return { nuevos: 0, eliminados: 0 };
     }
 
-    /* TO-DO: Implementar comparación con API /descargas del servidor */
-    /* Por ahora, marcar timestamp de última sync */
-    config.ultimaSync = Date.now();
-    await guardarConfig();
+    const carpetaBase = config.carpetaLocal;
+    let nuevos = 0;
 
-    return { nuevos: 0, eliminados: 0 };
+    try {
+        const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const baseUrl = obtenerBaseUrl();
+
+        /* Obtener estructura de carpetas del explorador del usuario */
+        const respCarpetas = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/carpetas`);
+        if (!respCarpetas.ok) {
+            throw new Error(`Error al obtener carpetas: ${respCarpetas.status}`);
+        }
+        const carpetas: CarpetaInfo[] = await respCarpetas.json();
+
+        const total = carpetas.reduce((acc, c) => acc + c.total, 0);
+        let procesados = 0;
+
+        for (const carpeta of carpetas) {
+            /* Crear carpeta primaria en disco */
+            const rutaCarpeta = await join(carpetaBase, carpeta.primaria);
+            try {
+                await mkdir(rutaCarpeta, { recursive: true });
+            } catch { /* La carpeta puede existir ya — ignorar */ }
+
+            /* Paginar todos los samples de esta carpeta primaria */
+            let page = 1;
+            let hayMas = true;
+
+            while (hayMas) {
+                const urlSamples =
+                    `${baseUrl}/kamples/v1/me/coleccionados` +
+                    `?carpeta=${encodeURIComponent(carpeta.primaria)}&per_page=100&page=${page}`;
+
+                const respSamples = await fetch(urlSamples);
+                if (!respSamples.ok) break;
+
+                const json = await respSamples.json();
+                /* La API puede retornar { data, pagination } o array directo */
+                const samples = (json.data ?? json) as SampleBasico[];
+                const pagination = json.pagination ?? { page, pages: 1 };
+
+                for (const sample of samples) {
+                    procesados++;
+
+                    /* Si ya está en el índice local, saltear */
+                    if (indiceArchivos.some(a => a.sampleId === sample.id)) {
+                        onProgreso?.({
+                            actual: procesados,
+                            total,
+                            sampleId: sample.id,
+                            nombre: sample.titulo,
+                            estado: 'descargado',
+                        });
+                        continue;
+                    }
+
+                    try {
+                        onProgreso?.({
+                            actual: procesados,
+                            total,
+                            sampleId: sample.id,
+                            nombre: sample.titulo,
+                            estado: 'descargando',
+                        });
+
+                        /* Obtener URL firmada de descarga del servidor */
+                        const respDescarga = await fetch(
+                            `${baseUrl}/kamples/v1/samples/${sample.id}/descargar`,
+                            { method: 'POST' },
+                        );
+                        if (!respDescarga.ok) {
+                            throw new Error(`No se pudo obtener URL de descarga: ${respDescarga.status}`);
+                        }
+                        const { url: audioUrl, nombre, formato, tamano }: ResultadoDescargaApi =
+                            await respDescarga.json();
+
+                        /* Descargar el archivo de audio */
+                        const audioResp = await fetch(audioUrl);
+                        if (!audioResp.ok) {
+                            throw new Error(`Error al descargar audio: ${audioResp.status}`);
+                        }
+                        const buffer = await audioResp.arrayBuffer();
+
+                        /* Escribir en disco: carpetaLocal/primaria/nombre.formato */
+                        const nombreArchivo = `${nombre}.${formato}`;
+                        const rutaArchivo = await join(rutaCarpeta, nombreArchivo);
+                        await writeFile(rutaArchivo, new Uint8Array(buffer));
+
+                        /* Registrar en índice local para no re-descargar */
+                        await registrarDescarga(sample.id, rutaArchivo, nombre, nombreArchivo);
+                        nuevos++;
+
+                        onProgreso?.({
+                            actual: procesados,
+                            total,
+                            sampleId: sample.id,
+                            nombre,
+                            estado: 'descargado',
+                            tamano,
+                            ruta: rutaArchivo,
+                        });
+                    } catch (err) {
+                        console.error(`[Sync] Error descargando sample ${sample.id}:`, err);
+                        onProgreso?.({
+                            actual: procesados,
+                            total,
+                            sampleId: sample.id,
+                            nombre: sample.titulo,
+                            estado: 'error',
+                        });
+                    }
+                }
+
+                hayMas = pagination.page < pagination.pages;
+                page++;
+            }
+        }
+
+        config.ultimaSync = Date.now();
+        await guardarConfig();
+
+        return { nuevos, eliminados: 0 };
+    } catch (err) {
+        console.error('[Sync] Error global en sincronización:', err);
+        throw err;
+    }
 }
 
 /*

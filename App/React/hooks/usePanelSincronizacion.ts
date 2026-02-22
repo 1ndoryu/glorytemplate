@@ -8,12 +8,23 @@
 import { useCallback, useEffect } from 'react';
 import { useSyncStore } from '@app/stores/syncStore';
 
+/* Progreso reportado por sincronizarConServidor() en cada archivo */
+interface ProgresoSync {
+    actual: number;
+    total: number;
+    sampleId: number;
+    nombre: string;
+    estado: 'descargando' | 'descargado' | 'error';
+    tamano?: number;
+    ruta?: string;
+}
+
 /* Tipo del objeto expuesto por desktop/main.tsx en window.__KAMPLES_SYNC__ */
 interface KamplesSync {
     elegirCarpetaSync: () => Promise<string | null>;
     toggleSincronizacion: (activa: boolean) => Promise<void>;
     obtenerConfigSync: () => { carpetaLocal: string | null; sincronizacionActiva: boolean; ultimaSync: number };
-    sincronizarConServidor: () => Promise<{ nuevos: number; eliminados: number }>;
+    sincronizarConServidor: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
 }
 
 function obtenerSync(): KamplesSync | null {
@@ -38,6 +49,9 @@ export const usePanelSincronizacion = () => {
     const setActiva = useSyncStore(s => s.setActiva);
     const setEstado = useSyncStore(s => s.setEstado);
     const setUltimaSync = useSyncStore(s => s.setUltimaSync);
+    const setProgreso = useSyncStore(s => s.setProgreso);
+    const agregarArchivo = useSyncStore(s => s.agregarArchivo);
+    const actualizarArchivoEstado = useSyncStore(s => s.actualizarArchivoEstado);
 
     /* Cargar config guardada al abrir el panel */
     useEffect(() => {
@@ -83,14 +97,46 @@ export const usePanelSincronizacion = () => {
         }
     }, [sincronizacionActiva, setActiva, setEstado]);
 
-    /* Sincronización manual inmediata */
+    /* Sincronización manual inmediata con progreso en tiempo real */
     const sincronizarAhora = useCallback(async () => {
         if (!carpetaLocal || !sincronizacionActiva) return;
         const srv = obtenerSync();
         if (!srv) return;
         try {
             setEstado('sincronizando', 'Sincronizando...');
-            const resultado = await srv.sincronizarConServidor();
+            setProgreso(0);
+
+            const resultado = await srv.sincronizarConServidor((p: ProgresoSync) => {
+                /* Actualizar barra de progreso (0-100) */
+                const porcentaje = p.total > 0 ? Math.round((p.actual / p.total) * 100) : 0;
+                setProgreso(porcentaje);
+
+                if (p.estado === 'descargando') {
+                    /* Agregar al listado como pendiente si no existe aún */
+                    agregarArchivo({
+                        sampleId: p.sampleId,
+                        nombre: p.nombre,
+                        ruta: '',
+                        estado: 'descargando',
+                        tamano: 0,
+                        descargadoEn: 0,
+                    });
+                } else if (p.estado === 'descargado') {
+                    /* Actualizar o agregar con datos definitivos */
+                    agregarArchivo({
+                        sampleId: p.sampleId,
+                        nombre: p.nombre,
+                        ruta: p.ruta ?? '',
+                        estado: 'descargado',
+                        tamano: p.tamano ?? 0,
+                        descargadoEn: Date.now(),
+                    });
+                } else if (p.estado === 'error') {
+                    actualizarArchivoEstado(p.sampleId, 'error');
+                }
+            });
+
+            setProgreso(100);
             setUltimaSync(Date.now());
             setEstado(
                 'completado',
@@ -99,7 +145,7 @@ export const usePanelSincronizacion = () => {
         } catch {
             setEstado('error', 'Error al sincronizar');
         }
-    }, [carpetaLocal, sincronizacionActiva, setEstado, setUltimaSync]);
+    }, [carpetaLocal, sincronizacionActiva, setEstado, setUltimaSync, setProgreso, agregarArchivo, actualizarArchivoEstado]);
 
     const espacioFormateado = formatearTamano(espacioUsado);
     const ultimaSyncFormateada = ultimaSync > 0 ? formatearTiempoRelativo(ultimaSync) : 'Nunca';
