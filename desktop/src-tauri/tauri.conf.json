@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicdelhi/tauri2-schema/main/tauri.conf.json",
+  "productName": "Kamples",
+  "version": "0.1.0",
+  "identifier": "app.kamples.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "Kamples",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
+        "center": true,
+        "decorations": true,
+        "resizable": true,
+        "fullscreen": false,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://glory.local https://kamples.com https://*.stripe.com; img-src 'self' https://glory.local https://kamples.com asset: http://asset.localhost data:; media-src 'self' https://glory.local https://kamples.com asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'unsafe-inline'",
+      "dangerousDisableAssetCspModification": false
+    },
+    "trayIcon": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "tooltip": "Kamples"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://kamples.app/api/desktop/update/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "dialog": true
+    },
+    "store": {
+      "pretty": true
+    }
+  }
+}

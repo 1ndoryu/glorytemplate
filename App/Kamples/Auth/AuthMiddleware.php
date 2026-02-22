@@ -3,7 +3,9 @@
  * AuthMiddleware — Kamples
  *
  * Verifica autenticación en endpoints protegidos de la API Kamples.
- * Funciona con el nonce de WordPress y el sistema de usuarios WP.
+ * Soporta dos métodos:
+ * 1. Nonce de WordPress (web, same-origin)
+ * 2. JWT Bearer token (desktop Tauri, cross-origin)
  */
 
 namespace App\Kamples\Auth;
@@ -16,17 +18,19 @@ class AuthMiddleware
 {
     /**
      * Permission callback para endpoints que requieren autenticación.
-     * Se usa en register_rest_route como 'permission_callback'.
+     * Acepta tanto nonce WP como JWT Bearer token.
      */
     public static function requerirAuth(): bool
     {
+        /* Primero intentar con sesión WP clásica (nonce) */
         $userId = get_current_user_id();
 
+        /* Si no hay sesión WP, intentar JWT en header Authorization */
         if (!$userId) {
-            return false;
+            $userId = self::autenticarConJwt();
         }
 
-        return true;
+        return $userId > 0;
     }
 
     /**
@@ -121,5 +125,64 @@ class AuthMiddleware
             'baneadoHasta' => $infoBan['baneadoHasta'],
             'razon' => $infoBan['razon'],
         ], 403);
+    }
+
+    /**
+     * Intenta autenticar usando JWT Bearer token del header Authorization.
+     * Si es válido, establece el usuario WP para que get_current_user_id() funcione.
+     * Retorna el WP user ID o 0 si falla.
+     */
+    private static function autenticarConJwt(): int
+    {
+        $header = self::obtenerBearerToken();
+        if (!$header) {
+            return 0;
+        }
+
+        $wpUserId = JwtService::validar($header);
+        if (!$wpUserId) {
+            return 0;
+        }
+
+        /* Verificar que el usuario WP existe */
+        $wpUser = get_userdata($wpUserId);
+        if (!$wpUser) {
+            return 0;
+        }
+
+        /* Establecer contexto WP para que el resto del request funcione igual */
+        wp_set_current_user($wpUserId);
+
+        return $wpUserId;
+    }
+
+    /**
+     * Extrae el token del header Authorization: Bearer {token}.
+     */
+    private static function obtenerBearerToken(): ?string
+    {
+        /* WordPress REST API: leer del header directamente */
+        $authHeader = '';
+
+        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
+            $authHeader = sanitize_text_field($_SERVER['HTTP_AUTHORIZATION']);
+        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            /* Apache con mod_rewrite a veces mueve el header aquí */
+            $authHeader = sanitize_text_field($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+        } elseif (function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+
+        if (empty($authHeader)) {
+            return null;
+        }
+
+        /* Formato esperado: "Bearer {token}" */
+        if (preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return null;
     }
 }

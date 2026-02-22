@@ -54,7 +54,21 @@ export const useAuth = () => {
             const resp = await login(email, password);
 
             if (resp.ok && resp.data) {
-                setUsuario(resp.data as unknown as UsuarioAutenticado);
+                /* El backend retorna { token, usuario } dentro de data */
+                const datos = resp.data as unknown as { token?: string; usuario?: UsuarioAutenticado };
+                const usuarioResp = datos.usuario ?? (resp.data as unknown as UsuarioAutenticado);
+                setUsuario(usuarioResp);
+
+                /* En desktop (Tauri): guardar JWT para auth cross-origin */
+                if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    import('@desktop/services/authDesktopService').then(m => {
+                        m.guardarToken(datos.token as string);
+                        if (datos.usuario) m.guardarUsuario(datos.usuario);
+                    }).catch(() => {
+                        /* Solo falla en web — ignorar */
+                    });
+                }
+
                 /* Redirigir a inicio después del login */
                 window.location.href = '/';
             } else {
@@ -81,7 +95,21 @@ export const useAuth = () => {
             });
 
             if (resp.ok && resp.data) {
-                setUsuario(resp.data as unknown as UsuarioAutenticado);
+                /* El backend retorna { token, usuario } dentro de data */
+                const datos = resp.data as unknown as { token?: string; usuario?: UsuarioAutenticado };
+                const usuarioResp = datos.usuario ?? (resp.data as unknown as UsuarioAutenticado);
+                setUsuario(usuarioResp);
+
+                /* En desktop (Tauri): guardar JWT para auth cross-origin */
+                if (datos.token && (window as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    import('@desktop/services/authDesktopService').then(m => {
+                        m.guardarToken(datos.token as string);
+                        if (datos.usuario) m.guardarUsuario(datos.usuario);
+                    }).catch(() => {
+                        /* Solo falla en web — ignorar */
+                    });
+                }
+
                 window.location.href = '/';
             } else {
                 setError(resp.error ?? 'Error al crear la cuenta');

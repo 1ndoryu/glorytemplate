@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kamples</title>
+    <!-- Deshabilitar context menu del navegador en producción -->
+    <style>
+        /* Reset mínimo — el CSS de la app se carga via imports en main.tsx */
+        html, body, #app {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a0a;
+            color: #e5e5e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <!-- Contenedor principal donde se monta la app React -->
+    <div id="app" data-island="InicioIsland" data-props="{}"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

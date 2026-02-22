@@ -17,6 +17,7 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Auth\JwtService;
 use App\Kamples\KamplesLogger;
 
 class AuthController
@@ -75,9 +76,15 @@ class AuthController
             /* Obtener o crear usuario extendido en PostgreSQL */
             $pgUser = self::obtenerOCrearUsuarioPg($user);
 
+            /* Generar JWT para clientes desktop (Tauri) */
+            $token = JwtService::generar($user->ID, $user->user_login);
+
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $pgUser,
+                'data' => [
+                    'token'   => $token,
+                    'usuario' => $pgUser,
+                ],
             ]);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en AuthController::login', [
@@ -173,9 +180,15 @@ class AuthController
             /* Crear usuario extendido en PostgreSQL */
             $pgUser = self::obtenerOCrearUsuarioPg($wpUser ?: (object)['ID' => $wpUserId]);
 
+            /* Generar JWT para clientes desktop (Tauri) */
+            $token = JwtService::generar($wpUserId, $username);
+
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $pgUser,
+                'data' => [
+                    'token'   => $token,
+                    'usuario' => $pgUser,
+                ],
             ], 201);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en AuthController::registro', [
