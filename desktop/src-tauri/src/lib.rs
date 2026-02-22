@@ -46,7 +46,14 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     let menu = Menu::with_items(app, &[&mostrar, &ocultar, &salir])?;
 
+    /* Usar el icono de la app (definido en bundle.icon de tauri.conf.json) */
+    let icon = app
+        .default_window_icon()
+        .cloned()
+        .expect("No se encontro icono de la app");
+
     let _tray = TrayIconBuilder::new()
+        .icon(icon)
         .menu(&menu)
         .tooltip("Kamples")
         .on_menu_event(|app, event| match event.id.as_ref() {

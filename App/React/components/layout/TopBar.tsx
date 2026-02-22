@@ -5,7 +5,7 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2 } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, FolderSync } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -14,10 +14,15 @@ import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { Modal } from '../ui/Modal';
+import { PanelSincronizacion } from '../desktop/PanelSincronizacion';
+import { useSyncStore } from '@app/stores/syncStore';
 import { useTopBar } from '@app/hooks/useTopBar';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
+    const esDesktop = !!(window as Record<string, unknown>).__KAMPLES_DESKTOP__;
+    const alternarPanelSync = useSyncStore(s => s.alternarPanel);
+    const syncPanelAbierto = useSyncStore(s => s.panelAbierto);
     const {
         tabs,
         activa,
@@ -165,6 +170,23 @@ export const TopBar = (): JSX.Element => {
                     >
                         <Music2 size={18} />
                     </BotonBase>
+
+                    {/* Botón de sincronización — solo visible en desktop (Tauri) */}
+                    {esDesktop && (
+                        <div className="topbarIconoWrapper">
+                            <BotonBase
+                                variante="ghost"
+                                tamano="md"
+                                soloIcono
+                                onClick={alternarPanelSync}
+                                aria-label="Sincronización"
+                                className={syncPanelAbierto ? 'topbarBotonActivo' : ''}
+                            >
+                                <FolderSync size={18} />
+                            </BotonBase>
+                            <PanelSincronizacion />
+                        </div>
+                    )}
 
                     <div className="topbarIconoWrapper">
                         <BotonBase

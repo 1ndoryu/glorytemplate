@@ -1,0 +1,288 @@
+/*
+ * sincronizacion.css — Kamples
+ * Estilos del panel de sincronización estilo Google Drive.
+ * Reutiliza variables del sistema de diseño y patrón dropdownPanel.
+ */
+
+.sincPanel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 340px;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    box-shadow: var(--sombraElevada);
+    z-index: var(--zModal);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dropdownEntrar 0.15s ease-out;
+}
+
+/* Cabecera */
+.sincPanelCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioMd) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.sincPanelTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.sincPanelCerrar {
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transicionRapida);
+}
+
+.sincPanelCerrar:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado2);
+}
+
+/* Estado actual */
+.sincPanelEstado {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+    padding: var(--espacioSm) var(--espacioLg);
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    color: var(--textoSecundario);
+}
+
+.sincPanelIndicador--completado { color: var(--verde); }
+.sincPanelIndicador--error { color: var(--rojo); }
+.sincPanelIndicador--sincronizando { color: var(--acento); }
+.sincPanelIndicador--pausado { color: var(--textoTerciario); }
+.sincPanelIndicador--inactivo { color: var(--textoSecundario); }
+
+.sincPanelUltimaSync {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Secciones */
+.sincPanelSeccion {
+    padding: var(--espacioSm) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.sincPanelSeccionTitulo {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--espacioXs);
+}
+
+/* Carpeta seleccionada */
+.sincPanelCarpeta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs) var(--espacioSm);
+}
+
+.sincPanelCarpetaIcono {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+.sincPanelCarpetaRuta {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sincPanelCarpetaCambiar {
+    background: none;
+    border: none;
+    font-size: var(--fuenteXs);
+    color: var(--acento);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.sincPanelCarpetaCambiar:hover {
+    text-decoration: underline;
+}
+
+.sincPanelElegirCarpeta {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Toggle switch */
+.sincPanelToggleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sincPanelToggleLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+}
+
+.sincPanelToggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: var(--radioFull);
+    border: none;
+    background-color: var(--fondoElevado3);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+    padding: 0;
+}
+
+.sincPanelToggle--activo {
+    background-color: var(--acento);
+}
+
+.sincPanelToggleDot {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radioFull);
+    background-color: var(--textoPrimario);
+    transition: transform var(--transicionRapida);
+}
+
+.sincPanelToggle--activo .sincPanelToggleDot {
+    transform: translateX(16px);
+    background-color: white;
+}
+
+/* Sincronizar ahora */
+.sincPanelSincAhora {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Spinner para iconos de carga */
+.sincPanelSpinner {
+    animation: sincSpin 1s linear infinite;
+}
+
+@keyframes sincSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Lista de archivos */
+.sincPanelArchivos {
+    padding: var(--espacioSm) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.sincPanelArchivoLista {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sincPanelArchivoItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: calc(var(--espacioXs) / 2) var(--espacioXs);
+    border-radius: var(--radioSm);
+    transition: background-color var(--transicionRapida);
+}
+
+.sincPanelArchivoItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelArchivoIcono {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--verde);
+    flex-shrink: 0;
+}
+
+.sincPanelArchivoInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.sincPanelArchivoNombre {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.sincPanelArchivoMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.sincPanelArchivoMas {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-align: center;
+    padding: var(--espacioXs);
+}
+
+/* Footer: almacenamiento */
+.sincPanelFooter {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioLg);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.sincPanelFooterSep {
+    color: var(--bordeSutil);
+}
