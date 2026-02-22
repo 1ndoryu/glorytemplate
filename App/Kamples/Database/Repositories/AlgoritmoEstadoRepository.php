@@ -79,9 +79,8 @@ class AlgoritmoEstadoRepository extends BaseRepository
     public static function obtenerEstado(int $userId): ?array
     {
         $tabla = AlgoritmoEstadoCols::TABLA;
-        /* sentinel-disable-next-line repository-sin-whitelist-columnas */
-        /* Intencionado: obtenerEstado retorna el estado completo del algoritmo */
         return static::consultarUno(
+            /* sentinel-disable-next-line repository-sin-whitelist-columnas — intencionado: obtenerEstado retorna entidad completa */
             "SELECT * FROM {$tabla} WHERE " . AlgoritmoEstadoCols::USUARIO_ID . " = :userId",
             ['userId' => $userId]
         );
