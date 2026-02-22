@@ -58,9 +58,6 @@
         "https://kamples.app/api/desktop/update/{{target}}/{{arch}}/{{current_version}}"
       ],
       "dialog": true
-    },
-    "store": {
-      "pretty": true
     }
   }
 }
