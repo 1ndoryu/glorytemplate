@@ -24,7 +24,6 @@ import { BotonFollow } from '@app/components/social/BotonFollow';
 import { SampleDetalleAcciones } from '@app/components/samples/SampleDetalleAcciones';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
-import { descargarSample } from '@app/services/apiDescargas';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -32,7 +31,6 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useSampleDetalle } from '@app/hooks/useSampleDetalle';
 import { useSampleAudio } from '@app/hooks/useSampleAudio';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
-import { toast } from '@app/stores/toastStore';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/sampleDetalle.css';
 
@@ -45,9 +43,9 @@ interface SampleDetalleProps {
 export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
     const {
         sample, similares, mostrarSimilares, setMostrarSimilares,
-        cargando, error, liked, reaccionActual, descargado, setDescargado,
+        cargando, error, liked, reaccionActual, descargado,
         comentariosVisibles, setComentariosVisibles, esPropietario,
-        tagsHome, navegar, usuarioAuth, manejarLike,
+        tagsHome, navegar, usuarioAuth, manejarLike, manejarDescargar,
         manejarReaccionDetalle, manejarQuitarReaccionDetalle, manejarLikeSimilar,
     } = useSampleDetalle({ slugProp });
     const {
@@ -60,28 +58,6 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         targetId: sample?.id ?? 0,
         cargarAlAbrir: true,
     });
-
-    const manejarDescargar = useCallback(async () => {
-        if (!sample) return;
-        const resp = await descargarSample(sample.id);
-        if (resp.ok && resp.data?.url) {
-            setDescargado(true);
-            const a = document.createElement('a');
-            a.href = resp.data.url;
-            a.download = resp.data.nombre || sample.titulo || 'sample';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } else if (resp.status === 429) {
-            toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
-            abrirPlanes();
-        } else if (resp.status === 403) {
-            toast.error(resp.error ?? 'Se requiere plan Pro o Premium');
-            abrirPlanes();
-        } else if (!resp.ok) {
-            toast.error(resp.error ?? 'Error al descargar');
-        }
-    }, [sample, setDescargado, abrirPlanes]);
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => !prev);

@@ -143,6 +143,8 @@ class UsuariosExtRepository extends BaseRepository
     {
         $tabla = UsuariosExtCols::TABLA;
 
+        /* sentinel-disable-next-line repository-sin-whitelist-columnas */
+        /* Intencionado: buscarPorWpId retorna la entidad completa para evitar re-fetches */
         return static::consultarUno(
             "SELECT * FROM {$tabla} WHERE " . UsuariosExtCols::WP_USER_ID . " = :wpId",
             ['wpId' => $wpId]

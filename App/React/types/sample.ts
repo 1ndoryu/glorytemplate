@@ -70,6 +70,7 @@ export interface Sample {
     esPremium: boolean;
     precio: number | null;
     liked?: boolean;
+    reaccion?: TipoReaccion | null;
     /* C202: Rutas originales ya no se envian en la API publica por seguridad */
     rutaOriginal?: string;
     rutaOptimizada?: string;

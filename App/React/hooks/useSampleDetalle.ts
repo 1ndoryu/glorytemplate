@@ -6,10 +6,13 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { obtenerSample, listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import { descargarSample } from '@app/services/apiDescargas';
 import { etiquetaBpm } from '@app/services/bpmUtils';
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { toast } from '@app/stores/toastStore';
 import type { Sample, SampleResumen, TipoReaccion } from '@app/types';
 
 interface SampleDetalleParams {
@@ -31,6 +34,7 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
     const navegar = useNavigationStore(s => s.navegar);
     const usuarioAuth = useAuthStore(s => s.usuario);
     const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
+    const abrirPlanes = usePlanesModalStore(s => s.abrir);
 
     /* Resolver slug: priorizar URL SPA sobre prop PHP (stale tras primer render) */
     const slug = useMemo(() => {
@@ -95,6 +99,29 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
     }, [slug]);
 
     /* ---- Callbacks de reacciones ---- */
+
+    /* Descarga con validacion de plan y feedback de error */
+    const manejarDescargar = useCallback(async () => {
+        if (!sample) return;
+        const resp = await descargarSample(sample.id);
+        if (resp.ok && resp.data?.url) {
+            setDescargado(true);
+            const a = document.createElement('a');
+            a.href = resp.data.url;
+            a.download = resp.data.nombre || sample.titulo || 'sample';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else if (resp.status === 429) {
+            toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
+            abrirPlanes();
+        } else if (resp.status === 403) {
+            toast.error(resp.error ?? 'Se requiere plan Pro o Premium');
+            abrirPlanes();
+        } else if (!resp.ok) {
+            toast.error(resp.error ?? 'Error al descargar');
+        }
+    }, [sample, setDescargado, abrirPlanes]);
 
     const manejarLike = useCallback(async () => {
         if (!sample) return;
@@ -241,6 +268,7 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
         tagsHome,
         navegar,
         usuarioAuth,
+        manejarDescargar,
         manejarLike,
         manejarReaccionDetalle,
         manejarQuitarReaccionDetalle,
