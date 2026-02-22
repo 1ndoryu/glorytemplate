@@ -28,7 +28,7 @@
     "security": {
       "csp": "default-src 'self'; connect-src 'self' http://localhost:1420 https://kamples.com https://*.stripe.com ipc: http://ipc.localhost; img-src 'self' https://kamples.com asset: http://asset.localhost data: blob:; media-src 'self' https://kamples.com asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' 'unsafe-inline'",
       "dangerousDisableAssetCspModification": false
-    },
+    }
   },
   "bundle": {
     "active": true,
