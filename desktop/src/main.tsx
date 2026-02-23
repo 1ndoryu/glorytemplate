@@ -26,6 +26,7 @@ import {
     obtenerConfigSync,
     sincronizarConServidor,
     sincronizarSampleIndividual,
+    obtenerRutaLocal,
 } from '@desktop/services/syncService';
 
 /* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
@@ -90,6 +91,8 @@ function marcarEntornoDesktop(): void {
         obtenerConfigSync,
         sincronizarConServidor,
         sincronizarSampleIndividual,
+        /* Síncrono: verifica si un sample tiene copia local en el índice */
+        obtenerRutaLocal,
     };
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
     (window as any).__KAMPLES_DRAG__ = {

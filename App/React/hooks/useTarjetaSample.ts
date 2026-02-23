@@ -43,7 +43,10 @@ const obtenerDragService = (): { iniciarDragNativo: (sampleId: number, urlRemota
  * Accede al servicio de sync expuesto en window por desktop/main.tsx.
  * Retorna null si no estamos en desktop.
  */
-const obtenerSyncService = (): { sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null> } | null => {
+const obtenerSyncService = (): {
+    sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null>;
+    obtenerRutaLocal: (sampleId: number) => string | null;
+} | null => {
     const sync = (window as any).__KAMPLES_SYNC__;
     return sync?.sincronizarSampleIndividual ? sync : null;
 };
@@ -280,7 +283,15 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         const resp = await descargarSample(sample.id);
         if (resp.ok) {
             setDescargado(true);
-            toast.exito('Sample coleccionado');
+
+            /*
+             * Solo mostrar "Sample coleccionado" si es la primera vez.
+             * Si yaExistia = true, el backend indica que ya lo tenía (propietario
+             * o descarga previa). No consumió crédito ni debe aparecer el toast.
+             */
+            if (!resp.data?.yaExistia) {
+                toast.exito('Sample coleccionado');
+            }
 
             /*
              * Auto-sync: si estamos en desktop con sync activa,
@@ -346,19 +357,11 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     }, [inicializarAudio, onSeek, sample.id]);
 
     /*
-     * Drag para mezclador (in-app) y drag nativo (desktop → DAW/escritorio).
-     *
-     * En web: solo setea dataTransfer con datos del sample para el mezclador.
-     * En desktop: además lanza drag nativo via Tauri plugin para que el
-     * archivo se pueda soltar en DAWs, escritorio o cualquier app externa.
-     *
-     * Si el sample no está coleccionado en desktop:
-     * 1. Lo colecciona automáticamente (consume crédito).
-     * 2. Luego lanza el drag nativo (descarga a temp si no hay copia local).
-     * 3. Sincroniza a la carpeta local en background.
+     * Drag para mezclador in-app (web y desktop).
+     * Setea los datos del sample en dataTransfer para que los tracks del
+     * mezclador puedan recibir el drop. No inicia drag OS-level.
      */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
-        /* Datos in-app para el mezclador — siempre se setean */
         e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
         e.dataTransfer.effectAllowed = 'copy';
 
@@ -379,62 +382,49 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         preview.style.left = '-200px';
         e.dataTransfer.setDragImage(preview, 20, 16);
         requestAnimationFrame(() => document.body.removeChild(preview));
+    }, [sample]);
 
-        /*
-         * Drag nativo en desktop: lanza la operación OS-level de forma async.
-         * Si el sample no está coleccionado, primero lo colecciona.
-         * El drag nativo descarga a temp si no hay copia local ya sincronizada.
-         */
-        if (!esDesktop()) return;
+    /*
+     * Inicia drag nativo OS-level (desktop → DAW, carpetas, escritorio).
+     * DEBE llamarse desde onMouseDown para que Tauri registre el drag
+     * ANTES de que el browser inicie su propio drag. El drag nativo solo
+     * se activa si el usuario mueve el ratón (no interfiere con clicks normales).
+     *
+     * Solo se lanza si el sample ya tiene copia local en el índice de sync.
+     * Si no hay copia local: el usuario debe sincronizar primero.
+     */
+    const manejarMouseDown = useCallback((e: React.MouseEvent) => {
+        /* Solo botón izquierdo y en desktop */
+        if (e.button !== 0 || !esDesktop()) return;
 
         const dragService = obtenerDragService();
-        if (!dragService) return;
+        const syncService = obtenerSyncService();
+        if (!dragService || !syncService) return;
 
-        const urlAudio = sample.rutaPreview || '';
-        const nombreArchivo = `${sample.titulo}.wav`;
-
-        const ejecutarDragNativo = async () => {
+        /* Verificar si el sample tiene archivo local — comprobación síncrona */
+        const rutaLocal = syncService.obtenerRutaLocal(sample.id);
+        if (!rutaLocal) {
             /*
-             * Si no está coleccionado, coleccionar primero.
-             * Esto consume un crédito y lo marca como propio en el backend.
+             * Sin archivo local: no hay nada que arrastrar todavía.
+             * El usuario puede coleccionar y sincronizar primero.
+             * No interferir con clicks normales.
              */
-            if (!descargado) {
-                const resp = await descargarSample(sample.id);
-                if (resp.ok) {
-                    setDescargado(true);
-                    toast.exito('Sample coleccionado');
+            return;
+        }
 
-                    /* Auto-sync en background */
-                    const syncService = obtenerSyncService();
-                    if (syncService) {
-                        syncService.sincronizarSampleIndividual(
-                            sample.id,
-                            sample.metadata?.carpeta_primaria as string | undefined,
-                            sample.metadata?.carpeta_secundaria as string | undefined,
-                        ).catch((err: unknown) => {
-                            console.error('[DragAutoSync] Error sincronizando:', err);
-                        });
-                    }
-                } else if (resp.status === 429 || resp.status === 403) {
-                    toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
-                    usePlanesModalStore.getState().abrir();
-                    return;
-                } else {
-                    toast.error('No se pudo coleccionar el sample');
-                    return;
-                }
-            }
-
-            /* Lanzar drag nativo — usa archivo local si existe, temp si no */
-            try {
-                await dragService.iniciarDragNativo(sample.id, urlAudio, nombreArchivo);
-            } catch (err) {
-                console.error('[DragNativo] Error iniciando drag:', err);
-            }
-        };
-
-        ejecutarDragNativo();
-    }, [sample, descargado]);
+        /*
+         * Hay copia local → iniciar drag nativo.
+         * iniciarDragNativo verifica que el archivo existe y llama startDrag().
+         * Se llama async pero Tauri captura el movimiento de ratón desde mousedown.
+         */
+        dragService.iniciarDragNativo(
+            sample.id,
+            sample.rutaPreview || '',
+            `${sample.titulo}.wav`,
+        ).catch((err: unknown) => {
+            console.error('[DragNativo] Error iniciando drag desde mousedown:', err);
+        });
+    }, [sample]);
 
     /* Valores computados */
     const estaActiva = activa || reproduciendoLocal;
@@ -465,6 +455,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         manejarGuardar,
         manejarSeek,
         manejarDragStart,
+        manejarMouseDown,
 
         /* Navegación */
         navegar,

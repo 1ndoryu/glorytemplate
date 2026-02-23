@@ -34,6 +34,8 @@ export interface ResultadoDescarga {
     nombre: string;
     formato: string;
     tamano: number;
+    /** true si el sample ya estaba coleccionado (propietario o descarga previa) — no consume crédito */
+    yaExistia?: boolean;
 }
 
 /* Obtener límites actuales del usuario */

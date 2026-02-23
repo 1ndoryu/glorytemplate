@@ -183,11 +183,13 @@ class DescargasController
         $tokenDescarga = \base64_encode("{$sampleId}:{$userId}:{$expira}:{$firma}");
 
         return new \WP_REST_Response([
-            'ok'      => true,
-            'url'     => rest_url("kamples/v1/descargas/stream?token=" . \urlencode($tokenDescarga)),
-            'nombre'  => ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . $calidad,
-            'formato' => $calidad,
-            'tamano'  => $tamanoBytes,
+            'ok'        => true,
+            'url'       => rest_url('kamples/v1/descargas/stream?token=' . \urlencode($tokenDescarga)),
+            'nombre'    => ($sample[SamplesCols::TITULO] ?? 'sample') . '.' . $calidad,
+            'formato'   => $calidad,
+            'tamano'    => $tamanoBytes,
+            /* true si ya estaba coleccionado (propietario o descarga previa) — no consume crédito */
+            'yaExistia' => !$consumeCredito,
         ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en DescargasController::descargar', [
