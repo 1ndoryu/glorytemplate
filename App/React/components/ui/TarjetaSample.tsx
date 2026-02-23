@@ -38,11 +38,11 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         picosAudio, descargado, estaReproduciendo, progresoActual, clases, imagenPortada,
         manejarPlayPause, manejarLike, manejarReaccion, manejarQuitarReaccion,
         manejarColeccionar, manejarMenu, manejarGuardar, manejarSeek,
-        manejarDragStart, manejarMouseDown, navegar, onClickTitulo, onComentar,
+        manejarDragStart, navegar, onClickTitulo, onComentar,
     } = useTarjetaSample(props);
 
     return (
-        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} onMouseDown={manejarMouseDown} role="button" tabIndex={0} draggable onDragStart={manejarDragStart}>
+        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} role="button" tabIndex={0} draggable onDragStart={manejarDragStart}>
             {/* Portada con overlay play/pause */}
             <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
                 <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />

@@ -357,11 +357,66 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     }, [inicializarAudio, onSeek, sample.id]);
 
     /*
-     * Drag para mezclador in-app (web y desktop).
-     * Setea los datos del sample en dataTransfer para que los tracks del
-     * mezclador puedan recibir el drop. No inicia drag OS-level.
+     * Drag handler unificado: bifurca entre drag nativo OS-level y drag
+     * in-app para el mezclador.
+     *
+     * Desktop con archivo local: cancela el drag del browser (preventDefault)
+     * y lanza startDrag() nativo de Tauri → el OS captura el mouse y
+     * el usuario puede soltar en DAW, escritorio o cualquier carpeta.
+     *
+     * Desktop sin archivo local / Web: dataTransfer in-app para mezclador.
      */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
+        /*
+         * En desktop, si hay archivo local sincronizado: cancelar drag del
+         * browser y delegar al drag nativo OS-level de Tauri.
+         * El browser suelta el mouse → startDrag() lo captura para el OS.
+         */
+        if (esDesktop()) {
+            const dragService = obtenerDragService();
+            const syncService = obtenerSyncService();
+
+            if (dragService) {
+                /* Verificacion sincrona: hay copia local? */
+                const rutaLocal = syncService?.obtenerRutaLocal(sample.id);
+
+                if (rutaLocal) {
+                    /* Cancelar drag browser para que no compita con el nativo */
+                    e.preventDefault();
+
+                    dragService.iniciarDragNativo(
+                        sample.id,
+                        sample.rutaPreview || '',
+                        `${sample.titulo}.wav`,
+                    ).catch((err: unknown) => {
+                        console.error('[DragNativo] Error:', err);
+                    });
+                    return;
+                }
+
+                /*
+                 * Sin archivo local pero en desktop: descargar a temp y drag.
+                 * Cancelamos el drag del browser y usamos el fallback de temp.
+                 */
+                if (sample.rutaPreview) {
+                    e.preventDefault();
+
+                    dragService.iniciarDragNativo(
+                        sample.id,
+                        sample.rutaPreview,
+                        `${sample.titulo}.wav`,
+                    ).catch((err: unknown) => {
+                        console.error('[DragNativo] Error (temp):', err);
+                    });
+                    return;
+                }
+            }
+        }
+
+        /*
+         * Fallback: drag in-app para mezclador (web y desktop sin drag nativo).
+         * Setea dataTransfer para que las pistas del mezclador reciban el drop.
+         */
         e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
         e.dataTransfer.effectAllowed = 'copy';
 
@@ -382,48 +437,6 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         preview.style.left = '-200px';
         e.dataTransfer.setDragImage(preview, 20, 16);
         requestAnimationFrame(() => document.body.removeChild(preview));
-    }, [sample]);
-
-    /*
-     * Inicia drag nativo OS-level (desktop → DAW, carpetas, escritorio).
-     * DEBE llamarse desde onMouseDown para que Tauri registre el drag
-     * ANTES de que el browser inicie su propio drag. El drag nativo solo
-     * se activa si el usuario mueve el ratón (no interfiere con clicks normales).
-     *
-     * Solo se lanza si el sample ya tiene copia local en el índice de sync.
-     * Si no hay copia local: el usuario debe sincronizar primero.
-     */
-    const manejarMouseDown = useCallback((e: React.MouseEvent) => {
-        /* Solo botón izquierdo y en desktop */
-        if (e.button !== 0 || !esDesktop()) return;
-
-        const dragService = obtenerDragService();
-        const syncService = obtenerSyncService();
-        if (!dragService || !syncService) return;
-
-        /* Verificar si el sample tiene archivo local — comprobación síncrona */
-        const rutaLocal = syncService.obtenerRutaLocal(sample.id);
-        if (!rutaLocal) {
-            /*
-             * Sin archivo local: no hay nada que arrastrar todavía.
-             * El usuario puede coleccionar y sincronizar primero.
-             * No interferir con clicks normales.
-             */
-            return;
-        }
-
-        /*
-         * Hay copia local → iniciar drag nativo.
-         * iniciarDragNativo verifica que el archivo existe y llama startDrag().
-         * Se llama async pero Tauri captura el movimiento de ratón desde mousedown.
-         */
-        dragService.iniciarDragNativo(
-            sample.id,
-            sample.rutaPreview || '',
-            `${sample.titulo}.wav`,
-        ).catch((err: unknown) => {
-            console.error('[DragNativo] Error iniciando drag desde mousedown:', err);
-        });
     }, [sample]);
 
     /* Valores computados */
@@ -455,7 +468,6 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         manejarGuardar,
         manejarSeek,
         manejarDragStart,
-        manejarMouseDown,
 
         /* Navegación */
         navegar,

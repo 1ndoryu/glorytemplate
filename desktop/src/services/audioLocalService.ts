@@ -65,13 +65,64 @@ export async function registrarReproduccionDesktop(
  *
  * Usa @crabnebula/tauri-plugin-drag para drag nativo de archivos.
  * (Tauri 2.0 no incluye DnD nativo en @tauri-apps/api — requiere plugin externo.)
+ *
+ * IMPORTANTE: startDrag({ item, icon }) requiere `icon` obligatorio:
+ * ruta a imagen de preview del drag. Se resuelve la primera vez y se cachea.
  */
+
+/* Cache de la ruta del icono de drag para no resolver en cada llamada */
+let iconoDragCache: string | null = null;
+
+/*
+ * Resuelve la ruta absoluta del icono para el drag nativo.
+ * Usa resolveResource para obtener el icono bundled del app (32x32.png).
+ */
+async function obtenerIconoDrag(): Promise<string> {
+    if (iconoDragCache) return iconoDragCache;
+
+    try {
+        const { resolveResource } = await import('@tauri-apps/api/path');
+        iconoDragCache = await resolveResource('icons/32x32.png');
+    } catch {
+        /*
+         * Fallback: crear un PNG mínimo (1x1 transparente) en temp.
+         * Esto cubre el caso donde resolveResource falle (ej: dev mode).
+         */
+        const { tempDir } = await import('@tauri-apps/api/path');
+        const { writeFile, exists } = await import('@tauri-apps/plugin-fs');
+        const tmpPath = `${await tempDir()}kamples_drag_icon.png`;
+
+        if (!(await exists(tmpPath))) {
+            /* PNG 1x1 transparente mínimo (67 bytes) */
+            const pngMinimo = new Uint8Array([
+                0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+                0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+                0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
+                0x54, 0x78, 0x9C, 0x62, 0x00, 0x00, 0x00, 0x02,
+                0x00, 0x01, 0xE5, 0x27, 0xDE, 0xFC, 0x00, 0x00,
+                0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42,
+                0x60, 0x82,
+            ]);
+            await writeFile(tmpPath, pngMinimo);
+        }
+
+        iconoDragCache = tmpPath;
+    }
+
+    return iconoDragCache;
+}
+
 export async function iniciarDragNativo(
     sampleId: number,
     urlRemota: string,
     nombreArchivo: string,
 ): Promise<boolean> {
     if (!esDesktop()) return false;
+
+    /* Resolver icono de drag (se cachea tras la primera llamada) */
+    const iconoDrag = await obtenerIconoDrag();
 
     /* Primero verificar si hay copia local */
     const rutaLocal = obtenerRutaLocal(sampleId);
@@ -81,7 +132,7 @@ export async function iniciarDragNativo(
             const { exists } = await import('@tauri-apps/plugin-fs');
             if (await exists(rutaLocal)) {
                 const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
-                await startDrag({ item: [rutaLocal] });
+                await startDrag({ item: [rutaLocal], icon: iconoDrag });
                 return true;
             }
         } catch (err) {
@@ -100,7 +151,7 @@ export async function iniciarDragNativo(
         const arrayBuffer = await response.arrayBuffer();
         await writeFile(tempPath, new Uint8Array(arrayBuffer));
 
-        await startDrag({ item: [tempPath] });
+        await startDrag({ item: [tempPath], icon: iconoDrag });
         return true;
     } catch (err) {
         console.error('[DragNativo] Error descargando para drag:', err);
