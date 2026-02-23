@@ -97,6 +97,19 @@ let config: SyncConfig = {
 
 let indiceArchivos: ArchivoLocal[] = [];
 
+/* Intervalo para polling de estructura de carpetas del servidor */
+let pollingCarpetasInterval: ReturnType<typeof setInterval> | null = null;
+const POLLING_CARPETAS_MS = 60_000; /* Cada 60s sincronizar estructura de carpetas */
+
+/*
+ * Guard contra auto-trigger del watcher.
+ * Cuando syncService descarga archivos a la carpeta local, el watcher lo detecta
+ * como "archivo nuevo" e intenta re-subirlo. Este Set guarda las rutas que estamos
+ * escribiendo nosotros mismos para que el callback onArchivoNuevo las ignore.
+ */
+const descargasEnCurso = new Set<string>();
+const GRACIA_DESCARGA_MS = 10_000; /* Ignorar creates propios por 10s post-descarga */
+
 /*
  * Inicializa el servicio de sync: carga config e índice.
  * C341: También inicializa fileWatcher y uploadQueue para sync bidireccional.
@@ -310,6 +323,15 @@ export async function sincronizarConServidor(
                                     await mkdir(rutaEsperada, { recursive: true });
                                     const nombreArch = archivoExistente.ruta.replace(/\\/g, '/').split('/').pop() ?? '';
                                     const nuevaRuta = await join(rutaEsperada, nombreArch);
+
+                                    /* Marcar ambas rutas para que el watcher no reaccione al rename */
+                                    descargasEnCurso.add(nuevaRuta.replace(/\\/g, '/'));
+                                    descargasEnCurso.add(archivoExistente.ruta.replace(/\\/g, '/'));
+                                    setTimeout(() => {
+                                        descargasEnCurso.delete(nuevaRuta.replace(/\\/g, '/'));
+                                        descargasEnCurso.delete(archivoExistente.ruta.replace(/\\/g, '/'));
+                                    }, GRACIA_DESCARGA_MS);
+
                                     await rename(archivoExistente.ruta, nuevaRuta);
                                     /* Actualizar índice con la nueva ruta */
                                     archivoExistente.ruta = nuevaRuta;
@@ -377,6 +399,13 @@ export async function sincronizarConServidor(
                             } catch { /* puede existir */ }
                         }
                         const rutaArchivo = await join(rutaDestino, nombreArchivo);
+
+                        /* Marcar como descarga propia para que el watcher no lo re-suba */
+                        descargasEnCurso.add(rutaArchivo.replace(/\\/g, '/'));
+                        setTimeout(() => {
+                            descargasEnCurso.delete(rutaArchivo.replace(/\\/g, '/'));
+                        }, GRACIA_DESCARGA_MS);
+
                         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
                         /* Registrar en índice local para no re-descargar */
@@ -513,6 +542,13 @@ export async function sincronizarSampleIndividual(
         }
 
         const rutaArchivo = await join(rutaDestino, nombreArchivo);
+
+        /* Marcar como descarga propia para que el watcher no lo re-suba */
+        descargasEnCurso.add(rutaArchivo.replace(/\\/g, '/'));
+        setTimeout(() => {
+            descargasEnCurso.delete(rutaArchivo.replace(/\\/g, '/'));
+        }, GRACIA_DESCARGA_MS);
+
         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
         /* Registrar en índice local */
@@ -565,20 +601,53 @@ async function inicializarSyncBidireccional(): Promise<void> {
 
         /* Registrar callbacks del watcher */
         registrarCallbacks(
-            /* Archivo nuevo: verificar no está en el índice → encolar upload */
+            /*
+             * Archivo nuevo: verificar no está en el índice por ruta NI por nombre.
+             * Buscar por nombre evita re-subir un archivo que ya se descargó del server
+             * y el usuario simplemente copió/movió dentro de la carpeta sync.
+             */
             (ruta: string, nombreArchivo: string, carpetas: string[]) => {
-                const yaEnIndice = indiceArchivos.some(
-                    a => a.ruta.replace(/\\/g, '/') === ruta.replace(/\\/g, '/'),
-                );
-                if (!yaEnIndice) {
-                    encolarArchivo(ruta, nombreArchivo, carpetas);
-                } else {
-                    console.info('[Sync] Archivo ya en índice, ignorando:', nombreArchivo);
+                const rutaNorm = ruta.replace(/\\/g, '/');
+
+                /* Guard: Ignorar archivos que nosotros mismos acabamos de descargar */
+                if (descargasEnCurso.has(rutaNorm)) {
+                    console.info('[Sync] Ignorando create propio (descarga en curso):', nombreArchivo);
+                    return;
                 }
+
+                /* Buscar por ruta exacta */
+                const porRuta = indiceArchivos.find(
+                    a => a.ruta.replace(/\\/g, '/') === rutaNorm,
+                );
+                if (porRuta) {
+                    console.info('[Sync] Archivo ya en índice (por ruta), ignorando:', nombreArchivo);
+                    return;
+                }
+
+                /*
+                 * Buscar por nombre de archivo — un sample descargado del server
+                 * que fue movido/copiado dentro de la carpeta sync no debe re-subirse.
+                 * Comparamos el nombre completo (con extensión) para evitar false matches.
+                 */
+                const porNombre = indiceArchivos.find(
+                    a => a.nombreServidor === nombreArchivo || a.nombreOriginal === nombreArchivo,
+                );
+                if (porNombre) {
+                    /* Actualizar la ruta en el índice y las carpetas en el servidor */
+                    console.info('[Sync] Archivo conocido detectado en nueva ubicación:', nombreArchivo);
+                    actualizarRutaYCarpeta(porNombre, ruta, carpetas);
+                    return;
+                }
+
+                encolarArchivo(ruta, nombreArchivo, carpetas);
             },
             /* Archivo eliminado: marcar como no_sincronizar */
             (ruta: string) => {
                 marcarNoSincronizar(ruta);
+            },
+            /* Archivo movido: actualizar ruta en índice + mover carpeta en servidor */
+            (rutaAnterior: string, rutaNueva: string, nombreArchivo: string, carpetas: string[]) => {
+                manejarMoveLocal(rutaAnterior, rutaNueva, nombreArchivo, carpetas);
             },
         );
 
@@ -590,6 +659,12 @@ async function inicializarSyncBidireccional(): Promise<void> {
         if (iniciado) {
             console.info('[Sync] Sync bidireccional activado');
         }
+
+        /* Polling periódico de carpetas del servidor → crear localmente */
+        await sincronizarEstructuraCarpetas();
+        pollingCarpetasInterval = setInterval(() => {
+            sincronizarEstructuraCarpetas();
+        }, POLLING_CARPETAS_MS);
     } catch (err) {
         console.error('[Sync] Error inicializando sync bidireccional:', err);
     }
@@ -676,10 +751,168 @@ export function obtenerSamplesNoSincronizados(): Array<{ sampleId: number; nombr
  * Detiene el watcher si está activo (para cleanup al cerrar).
  */
 export async function detenerSyncBidireccional(): Promise<void> {
+    if (pollingCarpetasInterval) {
+        clearInterval(pollingCarpetasInterval);
+        pollingCarpetasInterval = null;
+    }
     try {
         const { detenerObservacion } = await import('./fileWatcherService');
         await detenerObservacion();
     } catch {
         /* Ignorar si no se importó */
     }
+}
+
+/*
+ * Sincroniza la estructura de carpetas del servidor a disco local.
+ * Crea carpetas que existen en la web pero no localmente.
+ * Se ejecuta periódicamente y al iniciar sync bidireccional.
+ *
+ * Las carpetas locales vacías no se sincronizan al servidor porque
+ * el backend genera carpetas implícitamente basado en los samples.
+ */
+async function sincronizarEstructuraCarpetas(): Promise<void> {
+    if (!config.carpetaLocal || !estaOnline()) return;
+
+    try {
+        const { mkdir } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const baseUrl = obtenerBaseUrl();
+
+        const resp = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/carpetas`);
+        if (!resp.ok) return;
+
+        const json = await resp.json();
+        const carpetas: CarpetaInfo[] = Array.isArray(json) ? json : (json?.data ?? []);
+
+        for (const carpeta of carpetas) {
+            const rutaPrimaria = await join(config.carpetaLocal, carpeta.primaria);
+            try {
+                await mkdir(rutaPrimaria, { recursive: true });
+            } catch { /* existe */ }
+
+            for (const sub of carpeta.subcarpetas) {
+                try {
+                    const rutaSub = await join(rutaPrimaria, sub.nombre);
+                    await mkdir(rutaSub, { recursive: true });
+                } catch { /* existe */ }
+            }
+        }
+    } catch (err) {
+        console.error('[Sync] Error sincronizando estructura de carpetas:', err);
+    }
+}
+
+/*
+ * Maneja un MOVE local (archivo movido de una carpeta a otra dentro de sync).
+ * 1. Actualiza la ruta en el índice local
+ * 2. Calcula nuevas carpeta_primaria/secundaria desde la ruta
+ * 3. Llama PUT /me/coleccionados/{id}/carpeta para sincronizar con el server
+ */
+async function manejarMoveLocal(
+    rutaAnterior: string,
+    rutaNueva: string,
+    _nombreArchivo: string,
+    carpetas: string[],
+): Promise<void> {
+    const rutaAntNorm = rutaAnterior.replace(/\\/g, '/');
+    const archivo = indiceArchivos.find(
+        a => a.ruta.replace(/\\/g, '/') === rutaAntNorm,
+    );
+
+    if (!archivo) {
+        console.warn('[Sync] Move: archivo no encontrado en índice por ruta anterior:', rutaAnterior);
+        return;
+    }
+
+    /* Actualizar ruta local en el índice */
+    archivo.ruta = rutaNueva;
+    /* Si estaba marcado como no_sincronizar por un delete previo, reactivar */
+    if (archivo.syncDeshabilitado) {
+        archivo.syncDeshabilitado = false;
+        archivo.rutaEliminada = undefined;
+    }
+    await guardarIndice();
+
+    /* Mover en el servidor: carpetas[0] = primaria, carpetas[1] = secundaria */
+    const primaria = carpetas[0] || 'General';
+    const secundaria = carpetas[1] || '';
+    await moverSampleEnServidor(archivo.sampleId, primaria, secundaria);
+
+    console.info('[Sync] Move procesado: sample', archivo.sampleId, '→', primaria, secundaria || '(raíz)');
+}
+
+/*
+ * Actualiza la ruta de un archivo conocido detectado en nueva ubicación.
+ * Sucede cuando un archivo del índice aparece con nombre igual pero ruta distinta
+ * (ej: copiado entre subcarpetas). No encola upload — solo actualiza ubicación.
+ */
+async function actualizarRutaYCarpeta(
+    archivo: ArchivoLocal,
+    rutaNueva: string,
+    carpetas: string[],
+): Promise<void> {
+    archivo.ruta = rutaNueva;
+    if (archivo.syncDeshabilitado) {
+        archivo.syncDeshabilitado = false;
+        archivo.rutaEliminada = undefined;
+    }
+    await guardarIndice();
+
+    /* Sincronizar ubicación con el servidor */
+    const primaria = carpetas[0] || 'General';
+    const secundaria = carpetas[1] || '';
+    await moverSampleEnServidor(archivo.sampleId, primaria, secundaria);
+}
+
+/*
+ * Llama al endpoint PUT /me/coleccionados/{id}/carpeta para mover
+ * un sample a otra carpeta en el servidor.
+ * Las carpetas se crean implícitamente en el backend si no existen.
+ */
+async function moverSampleEnServidor(
+    sampleId: number,
+    carpetaPrimaria: string,
+    carpetaSecundaria: string,
+): Promise<boolean> {
+    if (!estaOnline()) {
+        console.warn('[Sync] Sin conexión, move en servidor pospuesto para sample:', sampleId);
+        return false;
+    }
+
+    try {
+        const baseUrl = obtenerBaseUrl();
+        const resp = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/${sampleId}/carpeta`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                carpeta_primaria: carpetaPrimaria,
+                carpeta_secundaria: carpetaSecundaria,
+            }),
+        });
+
+        if (!resp.ok) {
+            const body = await resp.json().catch(() => ({}));
+            console.error('[Sync] Error moviendo sample en servidor:', sampleId, body);
+            return false;
+        }
+
+        console.info('[Sync] Sample movido en servidor:', sampleId, '→', carpetaPrimaria, carpetaSecundaria || '(raíz)');
+        return true;
+    } catch (err) {
+        console.error('[Sync] Error en request de mover sample:', sampleId, err);
+        return false;
+    }
+}
+
+/*
+ * Versión pública de moverSampleEnServidor.
+ * Usada por uploadQueueService para asignar carpeta tras subir un archivo.
+ */
+export async function moverSampleEnServidorPublico(
+    sampleId: number,
+    carpetaPrimaria: string,
+    carpetaSecundaria: string,
+): Promise<boolean> {
+    return moverSampleEnServidor(sampleId, carpetaPrimaria, carpetaSecundaria);
 }

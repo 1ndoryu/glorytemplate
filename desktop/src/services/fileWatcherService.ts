@@ -33,28 +33,48 @@ const PATRONES_TEMPORALES = [
 const archivosRecientes = new Map<string, number>();
 const DEBOUNCE_ARCHIVO_MS = 3000;
 
+/*
+ * Gracia para detección de MOVEs.
+ * Un MOVE genera DELETE + CREATE. Bufferamos el DELETE por GRACIA_MOVE_MS
+ * y si aparece un CREATE con el mismo nombre, se trata como move.
+ */
+const GRACIA_MOVE_MS = 5000;
+
+interface EliminacionPendiente {
+    ruta: string;
+    nombreArchivo: string;
+    timeout: ReturnType<typeof setTimeout>;
+}
+
+/* Mapa: nombreArchivo normalizado → EliminacionPendiente */
+const eliminacionesPendientes = new Map<string, EliminacionPendiente>();
+
 type UnwatchFn = () => void;
 
 let unwatchFn: UnwatchFn | null = null;
 let observando = false;
 
-/* Callback externo que fileWatcherService llama cuando detecta un archivo nuevo */
+/* Callbacks externos que fileWatcherService llama según el evento detectado */
 type OnArchivoNuevoFn = (ruta: string, nombreArchivo: string, carpetas: string[]) => void;
 type OnArchivoEliminadoFn = (ruta: string) => void;
+type OnArchivoMovidoFn = (rutaAnterior: string, rutaNueva: string, nombreArchivo: string, carpetas: string[]) => void;
 
 let onArchivoNuevo: OnArchivoNuevoFn | null = null;
 let onArchivoEliminado: OnArchivoEliminadoFn | null = null;
+let onArchivoMovido: OnArchivoMovidoFn | null = null;
 
 /*
- * Registra los callbacks externos para archivos nuevos/eliminados.
+ * Registra los callbacks externos para archivos nuevos/eliminados/movidos.
  * Se llama desde syncService al inicializar.
  */
 export function registrarCallbacks(
     cbNuevo: OnArchivoNuevoFn,
     cbEliminado: OnArchivoEliminadoFn,
+    cbMovido?: OnArchivoMovidoFn,
 ): void {
     onArchivoNuevo = cbNuevo;
     onArchivoEliminado = cbEliminado;
+    onArchivoMovido = cbMovido ?? null;
 }
 
 /*
@@ -95,6 +115,13 @@ export async function detenerObservacion(): Promise<void> {
     }
     observando = false;
     archivosRecientes.clear();
+
+    /* Limpiar eliminaciones pendientes para evitar callbacks sueltos */
+    for (const [, pendiente] of eliminacionesPendientes) {
+        clearTimeout(pendiente.timeout);
+    }
+    eliminacionesPendientes.clear();
+
     console.info('[FileWatcher] Observación detenida');
 }
 
@@ -142,6 +169,11 @@ function procesarEvento(
         if (esEventoCreacion(tipo)) {
             manejarArchivoNuevo(ruta, normalizada, carpetaBase);
         } else if (esEventoEliminacion(tipo)) {
+            /*
+             * Para eliminaciones, limpiar del debounce cache: si luego llega un
+             * create (move), no debe ser bloqueado por el debounce del delete previo.
+             */
+            archivosRecientes.delete(normalizada);
             manejarArchivoEliminado(ruta);
         }
     }
@@ -172,12 +204,10 @@ function esEventoEliminacion(tipo: unknown): boolean {
 
 /*
  * Maneja la detección de un archivo de audio nuevo en la carpeta sync.
- * Extrae contexto de carpetas padre (hasta 3 niveles) para la IA.
+ * Antes de emitir onArchivoNuevo, verifica si hay una eliminación pendiente
+ * con el mismo nombre → en ese caso es un MOVE, no un archivo nuevo.
  */
 function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carpetaBase: string): void {
-    /* Verificar que no está ya en el índice local (ya sincronizado) */
-    /* TO-DO: Comparación por hash además de ruta para detectar renames */
-
     /* Extraer las 3 carpetas padre relativas a la carpeta base de sync */
     const baseNormalizada = carpetaBase.replace(/\\/g, '/');
     const relativa = rutaNormalizada.startsWith(baseNormalizada)
@@ -189,6 +219,23 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
     /* Carpetas entre la base de sync y el archivo (max 3 niveles) */
     const carpetas = partes.slice(0, 3);
 
+    /* Verificar si hay una eliminación pendiente con el mismo nombre */
+    const clave = nombreArchivo.toLowerCase();
+    const pendiente = eliminacionesPendientes.get(clave);
+
+    if (pendiente) {
+        /* Es un MOVE: cancelar la eliminación pendiente y emitir move */
+        clearTimeout(pendiente.timeout);
+        eliminacionesPendientes.delete(clave);
+
+        console.info('[FileWatcher] Move detectado:', pendiente.ruta, '→', rutaOriginal);
+
+        if (onArchivoMovido) {
+            onArchivoMovido(pendiente.ruta, rutaOriginal, nombreArchivo, carpetas);
+        }
+        return;
+    }
+
     console.info('[FileWatcher] Archivo nuevo detectado:', nombreArchivo, 'carpetas:', carpetas);
 
     if (onArchivoNuevo) {
@@ -198,12 +245,33 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
 
 /*
  * Maneja la eliminación de un archivo de audio de la carpeta sync.
- * NO borra del servidor — solo marca como no_sincronizar en el índice local.
+ * NO ejecuta inmediatamente — buferea por GRACIA_MOVE_MS para detectar MOVEs.
+ * Si pasada la gracia no apareció un CREATE con el mismo nombre, se confirma.
  */
 function manejarArchivoEliminado(rutaOriginal: string): void {
-    console.info('[FileWatcher] Archivo eliminado detectado:', rutaOriginal);
+    const normalizada = rutaOriginal.replace(/\\/g, '/');
+    const nombreArchivo = normalizada.split('/').pop() ?? '';
+    const clave = nombreArchivo.toLowerCase();
 
-    if (onArchivoEliminado) {
-        onArchivoEliminado(rutaOriginal);
+    /* Si ya hay una eliminación pendiente para este nombre, cancelar la anterior */
+    const existente = eliminacionesPendientes.get(clave);
+    if (existente) {
+        clearTimeout(existente.timeout);
     }
+
+    console.info('[FileWatcher] Eliminación detectada (esperando', GRACIA_MOVE_MS, 'ms por posible move):', rutaOriginal);
+
+    const timeout = setTimeout(() => {
+        eliminacionesPendientes.delete(clave);
+        console.info('[FileWatcher] Eliminación confirmada (no fue move):', rutaOriginal);
+        if (onArchivoEliminado) {
+            onArchivoEliminado(rutaOriginal);
+        }
+    }, GRACIA_MOVE_MS);
+
+    eliminacionesPendientes.set(clave, {
+        ruta: rutaOriginal,
+        nombreArchivo,
+        timeout,
+    });
 }

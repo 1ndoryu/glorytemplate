@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarDescarga } from './syncService';
+import { extraerMetadataDeRuta, registrarDescarga, moverSampleEnServidorPublico } from './syncService';
 
 const STORE_FILE = 'upload-queue.json';
 const STORE_KEY_COLA = 'upload_cola';
@@ -288,6 +288,17 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             item.nombreArchivo,
             item.nombreArchivo,
         );
+
+        /*
+         * Asignar carpeta en el servidor basada en la ubicación local.
+         * PipelineAudio del backend asigna carpeta vía IA, pero la estructura
+         * local del usuario tiene prioridad. carpetas[0] = primaria, [1] = secundaria.
+         */
+        if (item.carpetas.length > 0) {
+            const primaria = item.carpetas[0] || 'General';
+            const secundaria = item.carpetas[1] || '';
+            await moverSampleEnServidorPublico(resultado.sample_id, primaria, secundaria);
+        }
 
         console.info(
             '[UploadQueue] Subido exitosamente:',
