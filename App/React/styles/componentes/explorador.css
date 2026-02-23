@@ -741,3 +741,48 @@
 .cuadriculaDeSamples .exploradorDragHandle {
     display: none;
 }
+
+/* C341: Indicadores de estado de sincronización (solo desktop) */
+.exploradorSyncBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--fuenteXs);
+    padding: 2px 6px;
+    border-radius: var(--radioXs);
+    flex-shrink: 0;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.exploradorSyncSincronizado {
+    color: var(--exito);
+    background: color-mix(in srgb, var(--exito) 12%, transparent);
+}
+
+.exploradorSyncNoSincronizar {
+    color: var(--advertencia);
+    background: color-mix(in srgb, var(--advertencia) 12%, transparent);
+}
+
+.exploradorSyncSubiendo {
+    color: var(--acento);
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+}
+
+/* Posición del badge en vista cuadrícula: esquina superior derecha */
+.cuadriculaDeSamples .exploradorSyncBadge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+}
+
+.cuadriculaDeSamples .exploradorSampleDraggable {
+    position: relative;
+}
+
+/* Estilo del badge en vista lista: al lado del drag handle */
+.listaDeSamples .exploradorSyncBadge {
+    margin-right: var(--espacioXs);
+}

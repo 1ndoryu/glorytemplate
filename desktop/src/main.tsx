@@ -27,7 +27,20 @@ import {
     sincronizarConServidor,
     sincronizarSampleIndividual,
     obtenerRutaLocal,
+    /* C341: Sync bidireccional — estado de sincronización */
+    obtenerEstadoSync,
+    marcarNoSincronizarPorId,
+    reactivarSync,
+    obtenerSamplesNoSincronizados,
 } from '@desktop/services/syncService';
+
+/* C341: Upload queue — estado de subidas automáticas */
+import {
+    obtenerEstadoCola,
+    onProgresoUpload,
+    reintentarItem,
+    eliminarItemCola,
+} from '@desktop/services/uploadQueueService';
 
 /* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
 import { iniciarDragNativo } from '@desktop/services/audioLocalService';
@@ -93,6 +106,18 @@ function marcarEntornoDesktop(): void {
         sincronizarSampleIndividual,
         /* Síncrono: verifica si un sample tiene copia local en el índice */
         obtenerRutaLocal,
+        /* C341: Sync bidireccional — estado por sample */
+        obtenerEstadoSync,
+        marcarNoSincronizarPorId,
+        reactivarSync,
+        obtenerSamplesNoSincronizados,
+    };
+    /* C341: Upload queue — control de subidas automáticas */
+    (window as any).__KAMPLES_UPLOAD__ = {
+        obtenerEstadoCola,
+        onProgresoUpload,
+        reintentarItem,
+        eliminarItemCola,
     };
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
     (window as any).__KAMPLES_DRAG__ = {

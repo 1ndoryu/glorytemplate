@@ -4,6 +4,9 @@
  * Muestra un árbol de carpetas (basado en metadata IA C282) a la izquierda
  * y la lista de samples a la derecha. Descargados + subidos = "coleccionados".
  * Navegación 100% client-side sin recargas (filtrado local).
+ *
+ * TO-DO: Archivo excede 300 lineas (504 efectivas). Extraer ArbolCarpetas
+ * y PanelSamples a componentes separados para cumplir SRP.
  */
 
 import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
@@ -11,12 +14,15 @@ import { FolderOpen, ArrowLeft, Folder, FolderClosed, LayoutGrid, List, ChevronD
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { SyncBadge } from '@app/components/ui/SyncBadge';
 import { useExploradorPagina } from '@app/hooks/useExploradorPagina';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
+import { toast } from '@app/stores/toastStore';
+import { obtenerEstadoSyncSample, toggleSyncSample, estaEnDesktop } from '@app/hooks/useEstadoSync';
 import '../../styles/componentes/explorador.css';
 
 const ExploradorBase = (): JSX.Element => {
@@ -156,8 +162,11 @@ const ExploradorBase = (): JSX.Element => {
     const mostrarSubcarpetasEnArea = carpetaActiva && !subcarpetaActiva && carpetaActivaInfo && carpetaActivaInfo.subcarpetas.length > 0;
 
     /* C338: Items extendidos del menu contextual con opcion "Mover a carpeta" */
+    /* C341: Agrega toggle de sincronización si estamos en desktop */
     const menuItemsExtendidos = useMemo(() => {
         if (!menu.estado.sample) return menu.items;
+        const sampleId = menu.estado.sample.id;
+
         const itemMover = {
             id: 'moverACarpeta',
             etiqueta: 'Mover a carpeta...',
@@ -168,14 +177,42 @@ const ExploradorBase = (): JSX.Element => {
                 }
             },
         };
-        /* Insertar despues de "coleccion" si existe, si no al final */
-        const idx = menu.items.findIndex(i => i.id === 'coleccion');
+
+        let items = [...menu.items];
+        const idx = items.findIndex(i => i.id === 'coleccion');
         if (idx >= 0) {
-            const copia = [...menu.items];
-            copia.splice(idx + 1, 0, itemMover);
-            return copia;
+            items.splice(idx + 1, 0, itemMover);
+        } else {
+            items.push(itemMover);
         }
-        return [...menu.items, itemMover];
+
+        /* C341: Toggle sync solo en desktop */
+        if (estaEnDesktop()) {
+            const estadoSync = obtenerEstadoSyncSample(sampleId);
+            if (estadoSync === 'sincronizado') {
+                items.push({
+                    id: 'desactivarSync',
+                    etiqueta: 'Dejar de sincronizar',
+                    onClick: async () => {
+                        const ok = await toggleSyncSample(sampleId, 'sincronizado');
+                        if (ok) toast.exito('Sync desactivada para este sample');
+                        menu.cerrarMenu();
+                    },
+                });
+            } else if (estadoSync === 'no_sincronizar') {
+                items.push({
+                    id: 'reactivarSync',
+                    etiqueta: 'Reactivar sincronización',
+                    onClick: async () => {
+                        const ok = await toggleSyncSample(sampleId, 'no_sincronizar');
+                        if (ok) toast.exito('Se descargará en la próxima sync');
+                        menu.cerrarMenu();
+                    },
+                });
+            }
+        }
+
+        return items;
     }, [menu.items, menu.estado.sample, menu.cerrarMenu, abrirMoverModal]);
 
     if (cargando && samples.length === 0) {
@@ -439,6 +476,7 @@ const ExploradorBase = (): JSX.Element => {
                                     }}
                                     onDragEnd={manejarDragEnd}
                                 >
+                                    <SyncBadge sampleId={sample.id} />
                                     <TarjetaSampleCuadricula
                                         sample={sample}
                                         onClickTitulo={manejarClickTitulo}
@@ -460,6 +498,7 @@ const ExploradorBase = (): JSX.Element => {
                                     }}
                                     onDragEnd={manejarDragEnd}
                                 >
+                                    <SyncBadge sampleId={sample.id} />
                                     <span className="exploradorDragHandle" title="Arrastrar a carpeta">
                                         <GripVertical size={14} />
                                     </span>

@@ -8,6 +8,11 @@
  * 3. Al conectar, compara con el servidor y descarga/elimina diferencias
  * 4. Archivos se nombran con su nombre local original
  * 5. Re-descargas usan el nombre generado por el servidor
+ *
+ * TO-DO: Archivo excede 300 lineas (681). Dividir en:
+ * - syncConfigService.ts (config, índice, guardar/cargar store)
+ * - syncDownloadService.ts (sincronizarConServidor, sincronizarSampleIndividual)
+ * - syncStateService.ts (estado no_sincronizar, reactivar, bidireccional)
  */
 
 import { esDesktop, estaOnline } from './desktopService';
@@ -72,6 +77,13 @@ interface ArchivoLocal {
     descargadoEn: number;
     nombreOriginal: string;
     nombreServidor: string;
+    /*
+     * C341: Si true, el archivo se eliminó localmente pero no del server.
+     * No se re-descarga en la próxima sync. Visible en el explorador.
+     */
+    syncDeshabilitado?: boolean;
+    /* Ruta original antes de que se eliminara (para UI) */
+    rutaEliminada?: string;
 }
 
 const STORE_KEY_CONFIG = 'sync_config';
@@ -87,6 +99,7 @@ let indiceArchivos: ArchivoLocal[] = [];
 
 /*
  * Inicializa el servicio de sync: carga config e índice.
+ * C341: También inicializa fileWatcher y uploadQueue para sync bidireccional.
  */
 export async function inicializarSyncService(): Promise<void> {
     if (!esDesktop()) return;
@@ -103,6 +116,9 @@ export async function inicializarSyncService(): Promise<void> {
     } catch {
         /* Config no disponible — usar defaults */
     }
+
+    /* C341: Inicializar sync bidireccional (watcher + upload queue) */
+    await inicializarSyncBidireccional();
 }
 
 /*
@@ -267,9 +283,22 @@ export async function sincronizarConServidor(
                      * C338-fix: Si ya está en el índice local, verificar si necesita
                      * reubicarse a la subcarpeta correcta. Samples descargados antes de
                      * C338 están en la carpeta primaria plana — hay que moverlos.
+                     *
+                     * C341: Si el sample tiene syncDeshabilitado, no re-descargar.
                      */
                     const archivoExistente = indiceArchivos.find(a => a.sampleId === sample.id);
                     if (archivoExistente) {
+                        /* C341: Skip samples marcados como no_sincronizar */
+                        if (archivoExistente.syncDeshabilitado) {
+                            onProgreso?.({
+                                actual: procesados,
+                                total,
+                                sampleId: sample.id,
+                                nombre: sample.titulo,
+                                estado: 'descargado',
+                            });
+                            continue;
+                        }
                         const subcarpetaEsperada = sample.metadata?.carpeta_secundaria || '';
                         if (subcarpetaEsperada) {
                             const rutaEsperada = await join(rutaCarpeta, subcarpetaEsperada);
@@ -515,4 +544,142 @@ async function guardarIndice(): Promise<void> {
         await store.set(STORE_KEY_INDICE, indiceArchivos);
         await store.save();
     } catch { /* silencioso */ }
+}
+
+/* ============================================================
+ * C341: SYNC BIDIRECCIONAL — Watcher + Upload Queue + Estado
+ * ============================================================ */
+
+/*
+ * Inicializa el sistema de sync bidireccional:
+ * 1. Conecta fileWatcherService para detectar archivos nuevos/eliminados
+ * 2. Inicializa uploadQueueService para subida automática
+ * 3. Inicia observación de la carpeta de sync
+ */
+async function inicializarSyncBidireccional(): Promise<void> {
+    if (!config.carpetaLocal || !config.sincronizacionActiva) return;
+
+    try {
+        const { registrarCallbacks, iniciarObservacion } = await import('./fileWatcherService');
+        const { inicializarUploadQueue, encolarArchivo } = await import('./uploadQueueService');
+
+        /* Registrar callbacks del watcher */
+        registrarCallbacks(
+            /* Archivo nuevo: verificar no está en el índice → encolar upload */
+            (ruta: string, nombreArchivo: string, carpetas: string[]) => {
+                const yaEnIndice = indiceArchivos.some(
+                    a => a.ruta.replace(/\\/g, '/') === ruta.replace(/\\/g, '/'),
+                );
+                if (!yaEnIndice) {
+                    encolarArchivo(ruta, nombreArchivo, carpetas);
+                } else {
+                    console.info('[Sync] Archivo ya en índice, ignorando:', nombreArchivo);
+                }
+            },
+            /* Archivo eliminado: marcar como no_sincronizar */
+            (ruta: string) => {
+                marcarNoSincronizar(ruta);
+            },
+        );
+
+        /* Inicializar upload queue (carga items pendientes del store) */
+        await inicializarUploadQueue();
+
+        /* Iniciar observación de la carpeta */
+        const iniciado = await iniciarObservacion();
+        if (iniciado) {
+            console.info('[Sync] Sync bidireccional activado');
+        }
+    } catch (err) {
+        console.error('[Sync] Error inicializando sync bidireccional:', err);
+    }
+}
+
+/*
+ * Marca un sample como "no sincronizar" por ruta local.
+ * Se llama cuando el usuario elimina un archivo de la carpeta sync.
+ * El sample NO se borra del servidor — solo deja de sincronizarse.
+ */
+export async function marcarNoSincronizar(ruta: string): Promise<boolean> {
+    const rutaNormalizada = ruta.replace(/\\/g, '/');
+    const archivo = indiceArchivos.find(
+        a => a.ruta.replace(/\\/g, '/') === rutaNormalizada,
+    );
+
+    if (!archivo) {
+        console.warn('[Sync] No se encontró archivo en índice para marcar no_sincronizar:', ruta);
+        return false;
+    }
+
+    archivo.syncDeshabilitado = true;
+    archivo.rutaEliminada = archivo.ruta;
+    await guardarIndice();
+
+    console.info('[Sync] Sample marcado como no_sincronizar:', archivo.nombre, '(sampleId:', archivo.sampleId, ')');
+    return true;
+}
+
+/*
+ * Marca un sample como "no sincronizar" por su ID de sample.
+ * Versión para usar desde la UI del explorador.
+ */
+export async function marcarNoSincronizarPorId(sampleId: number): Promise<boolean> {
+    const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
+    if (!archivo) return false;
+
+    archivo.syncDeshabilitado = true;
+    archivo.rutaEliminada = archivo.ruta;
+    await guardarIndice();
+
+    console.info('[Sync] Sample marcado como no_sincronizar por ID:', sampleId);
+    return true;
+}
+
+/*
+ * Reactiva la sincronización de un sample.
+ * El archivo se re-descargará en la próxima sincronización.
+ */
+export async function reactivarSync(sampleId: number): Promise<boolean> {
+    const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
+    if (!archivo) return false;
+
+    /* Quitar del índice completamente para que se re-descargue */
+    indiceArchivos = indiceArchivos.filter(a => a.sampleId !== sampleId);
+    await guardarIndice();
+
+    console.info('[Sync] Sync reactivada para sample:', sampleId, '— se descargará en próxima sync');
+    return true;
+}
+
+/*
+ * Obtiene el estado de sincronización de un sample.
+ * Retorna: 'sincronizado' | 'no_sincronizar' | 'no_descargado'
+ */
+export function obtenerEstadoSync(sampleId: number): 'sincronizado' | 'no_sincronizar' | 'no_descargado' {
+    const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
+    if (!archivo) return 'no_descargado';
+    if (archivo.syncDeshabilitado) return 'no_sincronizar';
+    return 'sincronizado';
+}
+
+/*
+ * Obtiene todos los samples con sync deshabilitado.
+ * Para mostrar en la UI del explorador.
+ */
+export function obtenerSamplesNoSincronizados(): Array<{ sampleId: number; nombre: string }> {
+    return indiceArchivos
+        .filter(a => a.syncDeshabilitado)
+        .map(a => ({ sampleId: a.sampleId, nombre: a.nombre }));
+}
+
+/*
+ * Detiene el watcher si está activo (para cleanup al cerrar).
+ */
+export async function detenerSyncBidireccional(): Promise<void> {
+    try {
+        const { detenerObservacion } = await import('./fileWatcherService');
+        await detenerObservacion();
+    } catch {
+        /* Ignorar si no se importó */
+    }
 }

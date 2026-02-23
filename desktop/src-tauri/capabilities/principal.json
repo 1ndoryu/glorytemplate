@@ -21,6 +21,8 @@
     "fs:allow-copy-file",
     "fs:allow-mkdir",
     "fs:allow-rename",
+    "fs:allow-watch",
+    "fs:allow-stat",
     "fs:scope-home-recursive",
     "fs:scope-download-recursive",
     "os:default",
