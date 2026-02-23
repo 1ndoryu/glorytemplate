@@ -112,3 +112,8 @@ App1/
 .vitepress/
 temp_dl/
 colors/
+
+# Desktop Tauri
+desktop/dist/
+desktop/src-tauri/gen/
+desktop/src-tauri/target/
