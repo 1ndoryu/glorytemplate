@@ -25,7 +25,7 @@
 .authPanelImagen {
     position: relative;
     overflow: hidden;
-    background: var(--fondoSecundario);
+    background: var(--fondoElevado2);
 }
 
 .authImagen {
@@ -90,10 +90,10 @@
 /* Error */
 .authError {
     padding: var(--espacioSm) var(--espacioMd);
-    background: rgba(239, 68, 68, 0.1);
+    background: var(--errorMuted);
     border: 1px solid rgba(239, 68, 68, 0.3);
     border-radius: var(--radioSm);
-    color: #ef4444;
+    color: var(--error);
     font-size: var(--fuenteSm);
 }
 

@@ -9,7 +9,7 @@
     justify-content: center;
     width: 22px;
     height: 22px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
     opacity: 0.85;
     transition: opacity 0.15s ease;
     cursor: default;
@@ -44,6 +44,10 @@
 }
 
 @keyframes girar {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }

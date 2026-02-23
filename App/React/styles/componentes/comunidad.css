@@ -92,7 +92,9 @@
     padding: var(--espacioXs);
     border-radius: var(--radioSm);
     opacity: 0;
-    transition: opacity 0.15s, color 0.15s;
+    transition:
+        opacity 0.15s,
+        color 0.15s;
 }
 
 .comunidadPost:hover .comunidadPostMenuBtn {
@@ -100,8 +102,8 @@
 }
 
 .comunidadPostMenuBtn:hover {
-    color: var(--textoBase);
-    background: var(--fondoHover);
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
 }
 
 .comunidadPostAutor {
