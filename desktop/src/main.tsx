@@ -25,7 +25,11 @@ import {
     toggleSincronizacion,
     obtenerConfigSync,
     sincronizarConServidor,
+    sincronizarSampleIndividual,
 } from '@desktop/services/syncService';
+
+/* Drag service — expuesto en window para drag-to-DAW/desktop nativo */
+import { iniciarDragNativo } from '@desktop/services/audioLocalService';
 
 /* Registrar todas las islas */
 islandRegistry.registerAll(appIslands);
@@ -85,6 +89,11 @@ function marcarEntornoDesktop(): void {
         toggleSincronizacion,
         obtenerConfigSync,
         sincronizarConServidor,
+        sincronizarSampleIndividual,
+    };
+    /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
+    (window as any).__KAMPLES_DRAG__ = {
+        iniciarDragNativo,
     };
     /* eslint-enable @typescript-eslint/no-explicit-any */
 }

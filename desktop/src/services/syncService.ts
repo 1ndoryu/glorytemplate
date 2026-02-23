@@ -416,6 +416,87 @@ export function extraerMetadataDeRuta(rutaCompleta: string): {
     return { carpetas, nombreArchivo, extension };
 }
 
+/*
+ * Sincroniza un sample individual a la carpeta local.
+ * Se usa al coleccionar un sample: descarga inmediatamente al disco
+ * sin esperar a una sync completa. Si sync no está configurada, no-op.
+ *
+ * Flujo:
+ * 1. Verifica que hay carpeta local configurada y sync activa.
+ * 2. POST /samples/{id}/descargar para obtener URL firmada.
+ * 3. Descarga el archivo a carpetaLocal/carpetaPrimaria/[subcarpeta/]nombre.formato
+ * 4. Registra en el índice local.
+ *
+ * Retorna la ruta local del archivo descargado, o null si falla.
+ */
+export async function sincronizarSampleIndividual(
+    sampleId: number,
+    carpetaPrimaria?: string,
+    carpetaSecundaria?: string,
+): Promise<string | null> {
+    if (!esDesktop() || !estaOnline()) return null;
+    if (!config.carpetaLocal || !config.sincronizacionActiva) return null;
+
+    /* Si ya está en el índice, no re-descargar */
+    const existente = obtenerRutaLocal(sampleId);
+    if (existente) return existente;
+
+    try {
+        const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const baseUrl = obtenerBaseUrl();
+
+        /* Obtener URL firmada de descarga */
+        const respDescarga = await fetch(
+            `${baseUrl}/kamples/v1/samples/${sampleId}/descargar`,
+            { method: 'POST' },
+        );
+        if (!respDescarga.ok) {
+            console.error(`[SyncIndividual] No se pudo obtener URL de descarga: ${respDescarga.status}`);
+            return null;
+        }
+        const { url: audioUrl, nombre, formato }: ResultadoDescargaApi =
+            await respDescarga.json();
+
+        /* Descargar el archivo de audio */
+        const audioResp = await fetch(audioUrl);
+        if (!audioResp.ok) {
+            console.error(`[SyncIndividual] Error al descargar audio: ${audioResp.status}`);
+            return null;
+        }
+        const buffer = await audioResp.arrayBuffer();
+
+        /* Construir ruta destino: carpetaLocal / primaria / [subcarpeta /] nombre */
+        const nombreArchivo = nombre.includes('.') ? nombre : `${nombre}.${formato}`;
+        const carpetaBase = config.carpetaLocal;
+        const primaria = carpetaPrimaria || 'General';
+
+        let rutaDestino = await join(carpetaBase, primaria);
+        try {
+            await mkdir(rutaDestino, { recursive: true });
+        } catch { /* puede existir */ }
+
+        if (carpetaSecundaria) {
+            rutaDestino = await join(rutaDestino, carpetaSecundaria);
+            try {
+                await mkdir(rutaDestino, { recursive: true });
+            } catch { /* puede existir */ }
+        }
+
+        const rutaArchivo = await join(rutaDestino, nombreArchivo);
+        await writeFile(rutaArchivo, new Uint8Array(buffer));
+
+        /* Registrar en índice local */
+        await registrarDescarga(sampleId, rutaArchivo, nombre, nombreArchivo);
+
+        console.info(`[SyncIndividual] Sample ${sampleId} descargado a: ${rutaArchivo}`);
+        return rutaArchivo;
+    } catch (err) {
+        console.error(`[SyncIndividual] Error sincronizando sample ${sampleId}:`, err);
+        return null;
+    }
+}
+
 async function guardarConfig(): Promise<void> {
     if (!esDesktop()) return;
     try {

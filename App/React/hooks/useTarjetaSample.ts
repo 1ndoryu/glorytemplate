@@ -23,6 +23,32 @@ import { toast } from '@app/stores/toastStore';
 
 const EVENTO_REPRODUCCION_SAMPLE = 'kamples:reproduccion-sample';
 
+/*
+ * Detecta si estamos en el entorno desktop Tauri.
+ * Lee el flag global que inyecta desktop/main.tsx.
+ */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const esDesktop = (): boolean => !!(window as any).__KAMPLES_DESKTOP__;
+
+/*
+ * Accede al servicio de drag nativo expuesto en window por desktop/main.tsx.
+ * Retorna null si no estamos en desktop.
+ */
+const obtenerDragService = (): { iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean> } | null => {
+    const drag = (window as any).__KAMPLES_DRAG__;
+    return drag ?? null;
+};
+
+/*
+ * Accede al servicio de sync expuesto en window por desktop/main.tsx.
+ * Retorna null si no estamos en desktop.
+ */
+const obtenerSyncService = (): { sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null> } | null => {
+    const sync = (window as any).__KAMPLES_SYNC__;
+    return sync?.sincronizarSampleIndividual ? sync : null;
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 /* Extraer picos de audio desde un AudioBuffer para mini-waveform */
 const extraerPicosAudio = (buffer: AudioBuffer, totalBarras = 96): number[] => {
     const datos = buffer.getChannelData(0);
@@ -242,7 +268,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onLike?.(sample.id);
     }, [onLike, sample.id]);
 
-    /* Coleccionar (consume crédito, no descarga archivo) */
+    /* Coleccionar (consume crédito, no descarga archivo) + auto-sync en desktop */
     const manejarColeccionar = useCallback(async (e: MouseEvent) => {
         e.stopPropagation();
         if (descargado) return;
@@ -255,11 +281,27 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         if (resp.ok) {
             setDescargado(true);
             toast.exito('Sample coleccionado');
+
+            /*
+             * Auto-sync: si estamos en desktop con sync activa,
+             * descarga el archivo a la carpeta local inmediatamente.
+             * Se ejecuta en background sin bloquear la UI.
+             */
+            const syncService = obtenerSyncService();
+            if (syncService) {
+                syncService.sincronizarSampleIndividual(
+                    sample.id,
+                    sample.metadata?.carpeta_primaria as string | undefined,
+                    sample.metadata?.carpeta_secundaria as string | undefined,
+                ).catch((err: unknown) => {
+                    console.error('[AutoSync] Error sincronizando sample recién coleccionado:', err);
+                });
+            }
         } else if (resp.status === 429 || resp.status === 403) {
             toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
             usePlanesModalStore.getState().abrir();
         }
-    }, [onDescargar, sample.id, descargado]);
+    }, [onDescargar, sample.id, sample.metadata, descargado]);
 
     /* Menú contextual */
     const manejarMenu = useCallback((e: MouseEvent) => {
@@ -303,11 +345,24 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onSeek?.(posicion);
     }, [inicializarAudio, onSeek, sample.id]);
 
-    /* Drag para mezclador con preview personalizado */
+    /*
+     * Drag para mezclador (in-app) y drag nativo (desktop → DAW/escritorio).
+     *
+     * En web: solo setea dataTransfer con datos del sample para el mezclador.
+     * En desktop: además lanza drag nativo via Tauri plugin para que el
+     * archivo se pueda soltar en DAWs, escritorio o cualquier app externa.
+     *
+     * Si el sample no está coleccionado en desktop:
+     * 1. Lo colecciona automáticamente (consume crédito).
+     * 2. Luego lanza el drag nativo (descarga a temp si no hay copia local).
+     * 3. Sincroniza a la carpeta local en background.
+     */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
+        /* Datos in-app para el mezclador — siempre se setean */
         e.dataTransfer.setData('application/kamples-sample', JSON.stringify(sample));
         e.dataTransfer.effectAllowed = 'copy';
 
+        /* Preview visual personalizado */
         const preview = document.createElement('div');
         preview.className = 'dragPreviewSample';
         preview.innerHTML = `
@@ -324,7 +379,62 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         preview.style.left = '-200px';
         e.dataTransfer.setDragImage(preview, 20, 16);
         requestAnimationFrame(() => document.body.removeChild(preview));
-    }, [sample]);
+
+        /*
+         * Drag nativo en desktop: lanza la operación OS-level de forma async.
+         * Si el sample no está coleccionado, primero lo colecciona.
+         * El drag nativo descarga a temp si no hay copia local ya sincronizada.
+         */
+        if (!esDesktop()) return;
+
+        const dragService = obtenerDragService();
+        if (!dragService) return;
+
+        const urlAudio = sample.rutaPreview || '';
+        const nombreArchivo = `${sample.titulo}.wav`;
+
+        const ejecutarDragNativo = async () => {
+            /*
+             * Si no está coleccionado, coleccionar primero.
+             * Esto consume un crédito y lo marca como propio en el backend.
+             */
+            if (!descargado) {
+                const resp = await descargarSample(sample.id);
+                if (resp.ok) {
+                    setDescargado(true);
+                    toast.exito('Sample coleccionado');
+
+                    /* Auto-sync en background */
+                    const syncService = obtenerSyncService();
+                    if (syncService) {
+                        syncService.sincronizarSampleIndividual(
+                            sample.id,
+                            sample.metadata?.carpeta_primaria as string | undefined,
+                            sample.metadata?.carpeta_secundaria as string | undefined,
+                        ).catch((err: unknown) => {
+                            console.error('[DragAutoSync] Error sincronizando:', err);
+                        });
+                    }
+                } else if (resp.status === 429 || resp.status === 403) {
+                    toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                    usePlanesModalStore.getState().abrir();
+                    return;
+                } else {
+                    toast.error('No se pudo coleccionar el sample');
+                    return;
+                }
+            }
+
+            /* Lanzar drag nativo — usa archivo local si existe, temp si no */
+            try {
+                await dragService.iniciarDragNativo(sample.id, urlAudio, nombreArchivo);
+            } catch (err) {
+                console.error('[DragNativo] Error iniciando drag:', err);
+            }
+        };
+
+        ejecutarDragNativo();
+    }, [sample, descargado]);
 
     /* Valores computados */
     const estaActiva = activa || reproduciendoLocal;

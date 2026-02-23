@@ -21,6 +21,8 @@
     "fs:allow-copy-file",
     "fs:allow-mkdir",
     "fs:allow-rename",
+    "fs:scope-home-recursive",
+    "fs:scope-download-recursive",
     "os:default",
     "os:allow-locale",
     "os:allow-platform",
@@ -48,6 +50,8 @@
     "updater:allow-download-and-install",
     "window-state:default",
     "window-state:allow-restore-state",
-    "window-state:allow-save-window-state"
+    "window-state:allow-save-window-state",
+    "drag:default",
+    "drag:allow-start-drag"
   ]
 }
