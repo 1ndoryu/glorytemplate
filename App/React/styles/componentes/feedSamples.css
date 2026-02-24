@@ -116,7 +116,6 @@
 }
 
 .feedTagBoton {
-    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,6 +129,16 @@
     overflow: hidden;
     transition: all 0.2s ease;
     padding: 0;
+}
+
+/* Override BotonBase: fuerza tamaño y sin padding para los botones +/- del feedTag.
+ * Especificidad 3 clases > .botonBase.tamanoMd (2 clases). */
+.feedTagItem .botonBase.feedTagBoton {
+    height: 24px;
+    padding: 0;
+    min-width: unset;
+    border-radius: var(--radioSm);
+    font-size: inherit;
 }
 
 .feedTagItem:hover .feedTagBoton {

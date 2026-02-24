@@ -37,6 +37,12 @@
     font-family: var(--fuentePrincipal);
     text-align: left;
     text-decoration: none;
+    justify-content: flex-start;
+}
+
+/* Asegura alineación izquierda cuando BotonBase sobreescribe justify-content:center */
+.menuContextual .menuContextualItem {
+    justify-content: flex-start;
 }
 
 .menuContextualItem:hover {
