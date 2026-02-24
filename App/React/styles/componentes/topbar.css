@@ -28,10 +28,10 @@
     min-width: 220px;
 }
 
-/* Input de búsqueda en el header: sin borde ni padding vertical */
+/* Input de búsqueda en el header: sin borde inferior ni padding vertical */
 .topbarBusqueda .inputBusqueda,
 .topbarBusqueda .inputBusqueda:focus {
-    border: none;
+    border-bottom: none;
     padding-top: 0;
     padding-bottom: 0;
     background: transparent;
