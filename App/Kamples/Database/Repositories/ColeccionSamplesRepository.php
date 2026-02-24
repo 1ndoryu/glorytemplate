@@ -36,12 +36,12 @@ class ColeccionSamplesRepository extends BaseRepository
     /*
      * Obtener samples de una colección con datos normalizados (JOIN samples + usuarios_ext).
      */
-    public static function samplesDeColeccion(int $colId): array
+    public static function samplesDeColeccion(int $colId, ?int $userId = null): array
     {
         $t = ColeccionSamplesCols::TABLA;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN {$t} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = :colId AND s." . SamplesCols::ESTADO . " = '{$estadoActivo}'"
              . " ORDER BY cs." . ColeccionSamplesCols::POSICION . " ASC, cs." . ColeccionSamplesCols::ADDED_AT . " DESC";

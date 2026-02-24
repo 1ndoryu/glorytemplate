@@ -155,7 +155,7 @@ class ReproduccionesRepository extends BaseRepository
      */
     public static function historialUsuario(int $userId, int $limit = 20, int $offset = 0): array
     {
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . ReproduccionesCols::TABLA . " r ON r." . ReproduccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " WHERE r." . ReproduccionesCols::USUARIO_ID . " = :userId AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . " GROUP BY s." . SamplesCols::ID . ", u." . UsuariosExtCols::ID . ", u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::WP_USER_ID

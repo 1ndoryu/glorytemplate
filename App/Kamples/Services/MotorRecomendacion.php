@@ -24,6 +24,11 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\ReproduccionesCols;
+use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\PerfilUsuario;
@@ -223,6 +228,29 @@ class MotorRecomendacion
         $lReacc = LikesCols::REACCION;
         $ltSample = LikesEnums::TIPO_SAMPLE;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        /*
+         * Tablas para flags de estado del usuario en el CTE.
+         * TERMINOLOGIA:
+         * - ya_coleccionado: tabla descargas (boton +, coleccionar/descargar)
+         * - ya_guardado_en_coleccion: coleccion_samples (boton Bookmark, guardar en coleccion)
+         * - ya_comentado: comentarios del usuario en este sample
+         * - es_mio: sample creado por el usuario (se muestra como coleccionado)
+         */
+        $td = DescargasCols::TABLA;
+        $dUid = DescargasCols::USUARIO_ID;
+        $dSid = DescargasCols::SAMPLE_ID;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $csSid = ColeccionSamplesCols::SAMPLE_ID;
+        $tcCol = ColeccionesCols::TABLA;
+        $colId = ColeccionesCols::ID;
+        $colUid = ColeccionesCols::USUARIO_ID;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $tcom = ComentariosCols::TABLA;
+        $comAutor = ComentariosCols::AUTOR_ID;
+        $comTipo = ComentariosCols::TIPO;
+        $comTarget = ComentariosCols::TARGET_ID;
+        $comTipoSample = ComentariosEnums::TIPO_SAMPLE;
+        $userId_int = (int) $userId;
 
         $sql = "WITH scored AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
@@ -230,6 +258,10 @@ class MotorRecomendacion
                            u.{$uWpId} AS creador_wp_user_id,
                            u.{$uId} as creador_id,
                            (SELECT {$lReacc} FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} LIMIT 1) AS reaccion_usuario,
+                           (SELECT 1 FROM {$td} WHERE {$dUid} = {$userId_int} AND {$dSid} = s.{$sId} LIMIT 1) AS ya_coleccionado,
+                           (SELECT 1 FROM {$tcs} cs_f JOIN {$tcCol} c_f ON cs_f.{$csColId} = c_f.{$colId} WHERE c_f.{$colUid} = {$userId_int} AND cs_f.{$csSid} = s.{$sId} LIMIT 1) AS ya_guardado_en_coleccion,
+                           (SELECT 1 FROM {$tcom} WHERE {$comAutor} = {$userId_int} AND {$comTipo} = '{$comTipoSample}' AND {$comTarget} = s.{$sId} LIMIT 1) AS ya_comentado,
+                           (s.{$sCreadorId} = {$userId_int}) AS es_mio,
                            ({$scoreTotal}) as score,
                            ROW_NUMBER() OVER (PARTITION BY s.{$sCreadorId} ORDER BY ({$scoreTotal}) DESC) as rn
                     FROM {$ts} s
@@ -320,7 +352,7 @@ class MotorRecomendacion
         if (self::pgvectorActivo()) {
             if (SamplesRepository::verificarTieneEmbedding($sampleId)) {
                 $similares = SamplesRepository::consultar(
-                    NormalizadorSample::sqlSelectSamples()
+                    NormalizadorSample::sqlSelectSamples($userId)
                     . " WHERE s.{$sEstado} = '{$eActivo}' AND s.{$sId} != :sampleId AND s.{$sEmbed} IS NOT NULL"
                     . " ORDER BY s.{$sEmbed} <=> (SELECT {$sEmbed} FROM {$ts} WHERE {$sId} = :sampleId)"
                     . " LIMIT :limit",
@@ -368,7 +400,7 @@ class MotorRecomendacion
         $tipoScore = "CASE WHEN s.{$sTipo} = :simTipo THEN 3 ELSE 0 END";
         $params['simTipo'] = $tipo;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s.{$sEstado} = '{$eActivo}' AND s.{$sId} != :sampleId"
              . " ORDER BY ({$tagScore} + {$bpmScore} + {$keyScore} + {$tipoScore}) DESC,"
              . " s.{$sTotLk} DESC LIMIT :limit";

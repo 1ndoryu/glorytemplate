@@ -119,7 +119,8 @@ class SamplesRepository extends BaseRepository
         ?string $dominantKey,
         array $idsExcluir,
         int $limit,
-        int $offset
+        int $offset,
+        ?int $userId = null
     ): array {
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
         $params = ['limit' => $limit, 'offset' => $offset, 'avgBpm' => $avgBpm];
@@ -151,7 +152,7 @@ class SamplesRepository extends BaseRepository
             $params['domKey'] = $dominantKey;
         }
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '{$estadoActivo}' {$excludeClause}"
              . " ORDER BY ({$tagScore} + {$keyScore} + CASE WHEN s." . SamplesCols::BPM . " IS NOT NULL THEN GREATEST(0, 5 - ABS(s." . SamplesCols::BPM . " - :avgBpm) / 10) ELSE 0 END) DESC,"
              . " s." . SamplesCols::TOTAL_LIKES . " DESC, s." . SamplesCols::PUBLICADO_AT . " DESC"
@@ -369,7 +370,7 @@ class SamplesRepository extends BaseRepository
      * Buscar samples similares por scoring de tags, key, tipo y proximidad BPM.
      * Se usa en el endpoint de similares y "También te podría gustar".
      */
-    public static function buscarSimilares(int $sampleId, array $tags, int $bpm, ?string $key, string $tipo, int $limite = 5): array
+    public static function buscarSimilares(int $sampleId, array $tags, int $bpm, ?string $key, string $tipo, int $limite = 5, ?int $userId = null): array
     {
         $params = ['sampleId' => $sampleId, 'limit' => $limite, 'bpm' => $bpm];
 
@@ -387,7 +388,7 @@ class SamplesRepository extends BaseRepository
         $tipoScore = "CASE WHEN s." . SamplesCols::TIPO . " = :stipo THEN 3 ELSE 0 END";
         $params['stipo'] = $tipo;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "' AND s." . SamplesCols::ID . " != :sampleId"
              . " ORDER BY ({$tagScore} + {$keyScore} + {$tipoScore}"
              . " + CASE WHEN s." . SamplesCols::BPM . " IS NOT NULL THEN GREATEST(0, 5 - ABS(s." . SamplesCols::BPM . " - :bpm) / 10) ELSE 0 END) DESC,"
@@ -406,7 +407,8 @@ class SamplesRepository extends BaseRepository
         ?string $dominantKey,
         array $idsExcluir,
         int $limite,
-        int $offset
+        int $offset,
+        ?int $userId = null
     ): array {
         $params = ['limit' => $limite, 'offset' => $offset, 'avgBpm' => $avgBpm];
 
@@ -433,7 +435,7 @@ class SamplesRepository extends BaseRepository
         $keyScore = $dominantKey ? "CASE WHEN s." . SamplesCols::KEY . " = :domKey THEN 3 ELSE 0 END" : "0";
         if ($dominantKey) $params['domKey'] = $dominantKey;
 
-        $sql = NormalizadorSample::sqlSelectSamples()
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "' {$excludeClause}"
              . " ORDER BY ({$tagScore} + {$keyScore}"
              . " + CASE WHEN s." . SamplesCols::BPM . " IS NOT NULL THEN GREATEST(0, 5 - ABS(s." . SamplesCols::BPM . " - :avgBpm) / 10) ELSE 0 END) DESC,"
