@@ -265,6 +265,14 @@
     transition: color var(--transicionRapida);
 }
 
+/* Override BotonBase height/padding */
+.botonBase.mezcladorAgregarPista {
+    height: auto;
+    padding: var(--espacioSm);
+    min-width: unset;
+    font-size: 11px;
+}
+
 .mezcladorAgregarPista:hover {
     color: var(--acento);
 }

@@ -132,6 +132,15 @@
     transition: background var(--transicionRapida);
 }
 
+/* Override BotonBase padding/height */
+.botonBase.mezcladorBotonPlay {
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    min-width: unset;
+    border-radius: var(--radiusMezclador);
+}
+
 .mezcladorBotonPlay:hover {
     background: var(--acentoHover);
 }
