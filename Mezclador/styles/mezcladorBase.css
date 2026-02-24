@@ -40,6 +40,15 @@
     transition: all var(--transicionRapida);
 }
 
+/* Override BotonBase padding/height — especificidad 2 clases > 1 clase */
+.botonBase.mezcladorBotonCabecera {
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    min-width: unset;
+    border-radius: var(--radiusMezclador);
+}
+
 .mezcladorBotonCabecera:hover {
     color: var(--textoPrimario);
     border-color: var(--bordeActivo);
@@ -69,6 +78,15 @@
     cursor: pointer;
     border-radius: var(--radiusMezclador);
     transition: all var(--transicionRapida);
+}
+
+/* Override BotonBase padding/height */
+.botonBase.mezcladorCerrar {
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    min-width: unset;
+    border-radius: var(--radiusMezclador);
 }
 
 .mezcladorCerrar:hover {
@@ -223,6 +241,16 @@
     cursor: pointer;
     border-radius: var(--radiusMezclador);
     transition: all var(--transicionRapida);
+}
+
+/* Override BotonBase padding/height en botones de accón del mezclador */
+.botonBase.mezcladorBotonAccion,
+.botonBase.mezcladorBotonCompas {
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    min-width: unset;
+    border-radius: var(--radiusMezclador);
 }
 
 .mezcladorBotonCompas:hover,

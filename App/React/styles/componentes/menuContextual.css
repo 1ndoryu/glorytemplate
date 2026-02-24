@@ -40,9 +40,13 @@
     justify-content: flex-start;
 }
 
-/* Asegura alineación izquierda cuando BotonBase sobreescribe justify-content:center */
+/* Override BotonBase: iguala padding y alineación en todos los items (botones y enlaces) */
 .menuContextual .menuContextualItem {
     justify-content: flex-start;
+    padding: var(--espacioSm) var(--espacioMd);
+    height: auto;
+    min-height: unset;
+    font-size: var(--fuenteSm);
 }
 
 .menuContextualItem:hover {
