@@ -40,13 +40,14 @@
     justify-content: flex-start;
 }
 
-/* Override BotonBase: iguala padding y alineación en todos los items (botones y enlaces) */
-.menuContextual .menuContextualItem {
+/* Override BotonBase (0,2,0) — usar 3 clases para ganar en especificidad (0,3,0) */
+.menuContextual .botonBase.menuContextualItem {
     justify-content: flex-start;
     padding: var(--espacioSm) var(--espacioMd);
     height: auto;
-    min-height: unset;
+    min-width: unset;
     font-size: var(--fuenteSm);
+    line-height: normal;
 }
 
 .menuContextualItem:hover {
