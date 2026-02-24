@@ -320,6 +320,8 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - SVG icons en flex: `flex-shrink:0`. z-index: header imagen z:0, contenido scrollable z:1.
 - Colors DAW mapeados: loop→`--acento`, mute→`--error`, solo→`--advertencia`, steps→`--fondoBoton`.
 - CSS vars: Múltiples variaciones rem/px pueden mapearse a vars `--espacioX` y `--fuenteX` calculando proporciones. No dejar `rem` o `px` hardcodeado en paneles de UI complejos.
+- [BotonBase conflictos]: Al envolver elementos existentes con BotonBase, `.botonBase.tamanoMd` (especificidad 2) sobreescribe reglas de 1 clase. Fix: usar `.contenedor .claseEspecifica.botonBase` (3 clases) en el CSS hijo. Patrón recurrente: feedTagBoton, tooltipReaccionBtn, menuContextualItem, botonLike → siempre añadir override de alta especificidad en el CSS del componente padre.
+- [Input header]: Para variantes de InputBusqueda en contextos sin borde (topbar), usar override contextual `.topbarBusqueda .inputBusqueda { border:none; padding-top:0; padding-bottom:0; }` en lugar de prop extra al componente.
 
 ### Mezclador DAW
 
