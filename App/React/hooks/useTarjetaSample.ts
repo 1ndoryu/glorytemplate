@@ -3,9 +3,21 @@
  * Orquestacion de una tarjeta de sample: likes, coleccionar, drag, menu.
  * Audio (play/pause/seek/waveform) delegado a useAudioPlayback.
  * Utilidades desktop delegadas a utils/tarjetaSampleUtils.
+ *
+ * TERMINOLOGIA IMPORTANTE (no confundir):
+ * - "Coleccionar" (boton +): consume credito, registra descarga en tabla descargas.
+ *   Si el usuario tiene app desktop, sincroniza archivo. Si no, descarga.
+ *   Estado: descargado/yaColeccionado. Tambien true si esMio (sample propio).
+ * - "Guardar en coleccion" (boton Bookmark): agrega sample a una coleccion/playlist.
+ *   Tabla: coleccion_samples. Accion DISTINTA de coleccionar. Estado: guardado/yaGuardadoEnColeccion.
+ * - "Comentar" (boton MessageCircle): el usuario dejo al menos 1 comentario. Estado: comentado/yaComentado.
+ *
+ * Los estados yaColeccionado, yaGuardadoEnColeccion, yaComentado y esMio vienen PRE-CARGADOS
+ * del backend via subqueries en NormalizadorSample (igual que liked/reaccion).
+ * NO se necesitan API calls adicionales por cada tarjeta.
  */
 
-import { useCallback, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { descargarSample } from '@app/services/apiDescargas';
@@ -15,6 +27,8 @@ import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
 import { useAudioPlayback } from './useAudioPlayback';
 import { esDesktop, obtenerDragService, obtenerSyncService } from './utils/tarjetaSampleUtils';
+import { EVENTO_SAMPLE_GUARDADO_EN_COLECCION } from './useModalSeleccionColeccion';
+import { EVENTO_SAMPLE_COMENTADO } from './useComentarios';
 
 export { formatearKey } from './utils/tarjetaSampleUtils';
 
@@ -41,8 +55,40 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onComentar, onClickTitulo, className = '',
     } = opciones;
 
-    const [descargado, setDescargado] = useState(false);
+    /*
+     * Estados pre-cargados del backend (subqueries en NormalizadorSample).
+     * - descargado = yaColeccionado (boton +, tabla descargas) || esMio (sample propio)
+     * - guardado = yaGuardadoEnColeccion (boton Bookmark, tabla coleccion_samples)
+     * - comentado = yaComentado (al menos 1 comentario del usuario)
+     * Se actualizan en tiempo real via eventos cuando el usuario realiza acciones.
+     */
+    const [descargado, setDescargado] = useState(() => !!sample.yaColeccionado || !!sample.esMio);
+    const [guardado, setGuardado] = useState(() => !!sample.yaGuardadoEnColeccion);
+    const [comentado, setComentado] = useState(() => !!sample.yaComentado);
     const navegar = useNavigationStore(s => s.navegar);
+
+    /*
+     * Escucha evento global cuando este sample es guardado en una coleccion (boton Bookmark).
+     * NO confundir con "coleccionar" (boton +) que es descargar.
+     */
+    useEffect(() => {
+        const manejar = (e: Event) => {
+            const { sampleId } = (e as CustomEvent<{ sampleId: number }>).detail;
+            if (sampleId === sample.id) setGuardado(true);
+        };
+        window.addEventListener(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, manejar);
+        return () => window.removeEventListener(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, manejar);
+    }, [sample.id]);
+
+    /* Escucha evento global cuando el usuario comenta en este sample */
+    useEffect(() => {
+        const manejar = (e: Event) => {
+            const { sampleId } = (e as CustomEvent<{ sampleId: number }>).detail;
+            if (sampleId === sample.id) setComentado(true);
+        };
+        window.addEventListener(EVENTO_SAMPLE_COMENTADO, manejar);
+        return () => window.removeEventListener(EVENTO_SAMPLE_COMENTADO, manejar);
+    }, [sample.id]);
 
     /* Audio: play/pause/seek/waveform delegado a hook dedicado */
     const {
@@ -68,7 +114,12 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onLike?.(sample.id);
     }, [onLike, sample.id]);
 
-    /* Coleccionar (consume crédito, no descarga archivo) + auto-sync en desktop */
+    /*
+     * Coleccionar (boton +): consume credito y registra descarga.
+     * NO confundir con "Guardar en coleccion" (boton Bookmark, ver manejarGuardar).
+     * En desktop con app: sincroniza el archivo a carpeta local.
+     * Sin app: descarga directa del archivo.
+     */
     const manejarColeccionar = useCallback(async (e: MouseEvent) => {
         e.stopPropagation();
         if (descargado) return;
@@ -83,8 +134,8 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
 
             /*
              * Solo mostrar "Sample coleccionado" si es la primera vez.
-             * Si yaExistia = true, el backend indica que ya lo tenía (propietario
-             * o descarga previa). No consumió crédito ni debe aparecer el toast.
+             * Si yaExistia = true, el backend indica que ya lo tenia (propietario
+             * o descarga previa). No consumio credito ni debe aparecer el toast.
              */
             if (!resp.data?.yaExistia) {
                 toast.exito('Sample coleccionado');
@@ -118,11 +169,17 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onMenu?.(e, sample);
     }, [onMenu, sample]);
 
-    /* Guardar en colección (picker modal) */
+    /*
+     * Guardar en coleccion (boton Bookmark): abre el picker modal para elegir coleccion.
+     * NO confundir con "Coleccionar" (boton +, ver manejarColeccionar).
+     * El estado guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION
+     * cuando el picker confirma la accion.
+     */
     const abrirPicker = useColeccionPickerStore(s => s.abrir);
     const manejarGuardar = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         abrirPicker(sample, { x: e.clientX, y: e.clientY });
+        /* guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION cuando el picker confirma */
     }, [abrirPicker, sample]);
 
     /*
@@ -202,6 +259,12 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         requestAnimationFrame(() => document.body.removeChild(preview));
     }, [sample]);
 
+    /* Comentar: wrapper para marcar como comentado al disparar la accion */
+    const manejarComentar = useCallback((sampleId: number) => {
+        setComentado(true);
+        onComentar?.(sampleId);
+    }, [onComentar]);
+
     /* Valores computados */
     const clases = ['tarjetaSample', estaActiva ? 'tarjetaSampleActiva' : '', className].filter(Boolean).join(' ');
     const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
@@ -209,6 +272,8 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     return {
         picosAudio,
         descargado,
+        guardado,
+        comentado,
         estaActiva,
         estaReproduciendo,
         progresoActual,
@@ -225,6 +290,6 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         manejarDragStart,
         navegar,
         onClickTitulo,
-        onComentar,
+        manejarComentar,
     };
 }

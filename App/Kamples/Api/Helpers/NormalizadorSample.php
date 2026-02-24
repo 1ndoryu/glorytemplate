@@ -22,6 +22,11 @@ use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 
 class NormalizadorSample
 {
@@ -100,6 +105,24 @@ class NormalizadorSample
     public const ALIAS_REACCION_USUARIO = 'reaccion_usuario';
     public const ALIAS_VERIFICADO_SAMPLE = 'verificado_sample';
     public const ALIAS_CREADOR_WP_USER_ID = 'creador_wp_user_id';
+    /*
+     * Flags de estado del usuario autenticado respecto a cada sample.
+     * Se calculan con subqueries correlacionadas en sqlSelectSamples().
+     *
+     * TERMINOLOGIA:
+     * - "Coleccionar" = accion del boton Plus (+). Consume credito. Equivale a descargar.
+     *   Si el usuario tiene la app desktop, sincroniza el archivo. Si no, descarga.
+     *   Se registra en tabla 'descargas'. yaColeccionado = existe fila en descargas.
+     * - "Guardar en coleccion" = accion del boton Bookmark. Agrega el sample a una
+     *   coleccion/playlist del usuario (tabla coleccion_samples). NO es lo mismo que coleccionar.
+     *   yaGuardadoEnColeccion = existe al menos 1 coleccion del usuario que contiene este sample.
+     * - "esMio" = el usuario autenticado es el creador del sample. Se muestra como
+     *   coleccionado automaticamente (ya lo "tiene").
+     */
+    public const ALIAS_YA_COLECCIONADO = 'ya_coleccionado';
+    public const ALIAS_YA_GUARDADO_EN_COLECCION = 'ya_guardado_en_coleccion';
+    public const ALIAS_YA_COMENTADO = 'ya_comentado';
+    public const ALIAS_ES_MIO = 'es_mio';
 
     public static function normalizar(array $row): array
     {
@@ -172,6 +195,17 @@ class NormalizadorSample
             'verificado'       => (bool) ($row[self::ALIAS_VERIFICADO_SAMPLE] ?? false),
             /* C220: Visibilidad en comunidad */
             'mostrarEnComunidad' => (bool) ($row[SamplesCols::MOSTRAR_EN_COMUNIDAD] ?? true),
+            /*
+             * Flags de estado del usuario autenticado.
+             * - yaColeccionado: el usuario ya colecciono/descargo este sample (o es su propio sample)
+             * - yaGuardadoEnColeccion: el sample esta en al menos 1 coleccion del usuario
+             * - yaComentado: el usuario dejo al menos 1 comentario en este sample
+             * - esMio: el usuario es el creador del sample
+             */
+            'yaColeccionado'     => (bool) ($row[self::ALIAS_ES_MIO] ?? false) || (bool) ($row[self::ALIAS_YA_COLECCIONADO] ?? false),
+            'yaGuardadoEnColeccion' => (bool) ($row[self::ALIAS_YA_GUARDADO_EN_COLECCION] ?? false),
+            'yaComentado'        => (bool) ($row[self::ALIAS_YA_COMENTADO] ?? false),
+            'esMio'              => (bool) ($row[self::ALIAS_ES_MIO] ?? false),
         ];
     }
 
@@ -202,6 +236,33 @@ class NormalizadorSample
         $reaccionExpr = $userId !== null
             ? "(SELECT " . LikesCols::REACCION . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = " . (int) $userId . " AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::TARGET_ID . " = s." . SamplesCols::ID . " LIMIT 1)"
             : "NULL";
+
+        /*
+         * Subqueries correlacionadas para flags de estado del usuario.
+         * Misma tecnica que reaccion_usuario: se inyectan en el SELECT principal.
+         *
+         * TERMINOLOGIA en el codigo:
+         * - "Coleccionar" (boton +) = descargar. Se guarda en tabla 'descargas'.
+         * - "Guardar en coleccion" (boton Bookmark) = agregar a coleccion/playlist.
+         *   Se guarda en tabla 'coleccion_samples' vinculada a 'colecciones' del usuario.
+         *   NO confundir con "coleccionar".
+         */
+        $yaColeccionadoExpr = $userId !== null
+            ? "(SELECT 1 FROM " . DescargasCols::TABLA . " WHERE " . DescargasCols::USUARIO_ID . " = " . (int) $userId . " AND " . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID . " LIMIT 1)"
+            : "NULL";
+
+        $yaGuardadoEnColeccionExpr = $userId !== null
+            ? "(SELECT 1 FROM " . ColeccionSamplesCols::TABLA . " cs_flag JOIN " . ColeccionesCols::TABLA . " c_flag ON cs_flag." . ColeccionSamplesCols::COLECCION_ID . " = c_flag." . ColeccionesCols::ID . " WHERE c_flag." . ColeccionesCols::USUARIO_ID . " = " . (int) $userId . " AND cs_flag." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID . " LIMIT 1)"
+            : "NULL";
+
+        $yaComentadoExpr = $userId !== null
+            ? "(SELECT 1 FROM " . ComentariosCols::TABLA . " WHERE " . ComentariosCols::AUTOR_ID . " = " . (int) $userId . " AND " . ComentariosCols::TIPO . " = '" . ComentariosEnums::TIPO_SAMPLE . "' AND " . ComentariosCols::TARGET_ID . " = s." . SamplesCols::ID . " LIMIT 1)"
+            : "NULL";
+
+        /* esMio: true si el creador_id del sample es el usuario autenticado */
+        $esMioExpr = $userId !== null
+            ? "(s." . SamplesCols::CREADOR_ID . " = " . (int) $userId . ")"
+            : "FALSE";
 
         /*
          * C202: No incluir ruta_original / ruta_optimizada en queries publicos.
@@ -251,7 +312,11 @@ class NormalizadorSample
                        s.{$sHash}, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                        u.{$uId} as creador_id, u.{$uUser}, u.{$uNombre},
                        u.{$uAvatar}, u.{$uVerif}, u.{$uWpId} AS creador_wp_user_id,
-                       {$reaccionExpr} AS reaccion_usuario
+                       {$reaccionExpr} AS reaccion_usuario,
+                       {$yaColeccionadoExpr} AS ya_coleccionado,
+                       {$yaGuardadoEnColeccionExpr} AS ya_guardado_en_coleccion,
+                       {$yaComentadoExpr} AS ya_comentado,
+                       {$esMioExpr} AS es_mio
                 FROM {$ts} s
                 LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
     }

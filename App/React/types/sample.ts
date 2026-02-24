@@ -122,6 +122,22 @@ export interface SampleResumen {
     verificado?: boolean;
     /* C220: Toggle visibilidad en comunidad */
     mostrarEnComunidad?: boolean;
+    /*
+     * Flags de estado del usuario autenticado respecto a este sample.
+     * Pre-cargados por el backend via subqueries (igual que liked/reaccion).
+     *
+     * TERMINOLOGIA IMPORTANTE (no confundir):
+     * - yaColeccionado: el usuario ya "colecciono" (boton +). Equivale a descargar.
+     *   Tambien true si esMio (el usuario subio el sample). Tabla: descargas.
+     * - yaGuardadoEnColeccion: el sample esta en al menos 1 coleccion/playlist
+     *   del usuario (boton Bookmark). Tabla: coleccion_samples. Accion distinta.
+     * - yaComentado: el usuario dejo al menos 1 comentario en este sample.
+     * - esMio: el usuario es el creador/uploader del sample.
+     */
+    yaColeccionado?: boolean;
+    yaGuardadoEnColeccion?: boolean;
+    yaComentado?: boolean;
+    esMio?: boolean;
 }
 
 /* Importamos referencia para evitar circular */
