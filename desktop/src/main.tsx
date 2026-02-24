@@ -80,11 +80,7 @@ const RUTAS_DESKTOP: Record<string, { island: string; props?: Record<string, unk
  * Convierte las rutas al formato que espera Glory (GloryRoutesMap).
  * El formato es: { '/ruta/': { island: 'NombreIsla', props: {...} } }
  */
-function inyectarRutas(): void {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    (window as any).__GLORY_ROUTES__ = RUTAS_DESKTOP;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-}
+function inyectarRutas(): void {    window.__GLORY_ROUTES__ = RUTAS_DESKTOP;}
 
 /*
  * Marca el entorno como desktop para que los services puedan bifurcar lógica.
@@ -93,12 +89,10 @@ function inyectarRutas(): void {
  * - Almacenar tokens en el store seguro de Tauri
  * - Registrar reproducciones offline en queue local
  */
-function marcarEntornoDesktop(): void {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    (window as any).__KAMPLES_DESKTOP__ = true;
-    (window as any).__KAMPLES_VERSION__ = '0.1.0';
+function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
+    window.__KAMPLES_VERSION__ = '0.1.0';
     /* Exponer syncService para que hooks en App/React no necesiten dynamic imports */
-    (window as any).__KAMPLES_SYNC__ = {
+    window.__KAMPLES_SYNC__ = {
         elegirCarpetaSync,
         toggleSincronizacion,
         obtenerConfigSync,
@@ -113,18 +107,16 @@ function marcarEntornoDesktop(): void {
         obtenerSamplesNoSincronizados,
     };
     /* C341: Upload queue — control de subidas automáticas */
-    (window as any).__KAMPLES_UPLOAD__ = {
+    window.__KAMPLES_UPLOAD__ = {
         obtenerEstadoCola,
         onProgresoUpload,
         reintentarItem,
         eliminarItemCola,
     };
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
-    (window as any).__KAMPLES_DRAG__ = {
+    window.__KAMPLES_DRAG__ = {
         iniciarDragNativo,
-    };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-}
+    };}
 
 async function init(): Promise<void> {
     marcarEntornoDesktop();

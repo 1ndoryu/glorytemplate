@@ -14,6 +14,7 @@ import { etiquetaBpm } from '../../services/bpmUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
 import '../../styles/componentes/tarjetaSample.css';
+import { BotonBase } from './BotonBase';
 
 interface TarjetaSampleProps {
     sample: SampleResumen;
@@ -102,7 +103,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     onReaccionar={manejarReaccion}
                     onQuitar={manejarQuitarReaccion}
                 >
-                    <button
+                    <BotonBase variante="ghost"
                         className={`tarjetaAccionBtn ${sample.liked ? 'tarjetaAccionLiked' : ''} ${
                             sample.reaccion === 'encanta' ? 'reaccionPrincipalEncanta' :
                             sample.reaccion === 'dislike' ? 'reaccionPrincipalDislike' :
@@ -113,24 +114,24 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                         aria-label={sample.liked ? 'Quitar like' : 'Dar like'}
                     >
                         <Heart size={18} fill={sample.liked ? 'currentColor' : 'none'} />
-                    </button>
+                    </BotonBase>
                 </TooltipReacciones>
 
-                <button className="tarjetaAccionBtn" onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
+                <BotonBase variante="ghost" className="tarjetaAccionBtn" onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
                     <Bookmark size={18} />
-                </button>
+                </BotonBase>
 
-                <button className="tarjetaAccionBtn" onClick={(e) => { e.stopPropagation(); onComentar?.(sample.id); }} type="button" aria-label="Comentar">
+                <BotonBase variante="ghost" className="tarjetaAccionBtn" onClick={(e) => { e.stopPropagation(); onComentar?.(sample.id); }} type="button" aria-label="Comentar">
                     <MessageCircle size={18} />
-                </button>
+                </BotonBase>
 
-                <button className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
                     <Plus size={18} />
-                </button>
+                </BotonBase>
 
-                <button className="tarjetaAccionBtn paddingExtraAccion" onClick={manejarMenu} type="button" aria-label="Más opciones">
+                <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion" onClick={manejarMenu} type="button" aria-label="Más opciones">
                     <MoreHorizontal size={18} />
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

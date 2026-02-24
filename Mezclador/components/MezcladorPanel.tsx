@@ -21,6 +21,7 @@ import {useBrowserDaw} from '../hooks/useBrowserDaw';
 import {FEATURE_FLAGS} from '../featureFlags';
 /* C293: CSS refactorizado en módulos */
 import '../styles/index.css';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 export const MezcladorPanel = (): JSX.Element => {
     /*
@@ -93,35 +94,36 @@ const MezcladorContenido = (): JSX.Element => {
                 <div className="mezcladorCabeceraAcciones">
                     {estaCargando && <span className="mezcladorCargando">Cargando...</span>}
                     {/* C307: Toggle browser */}
-                    <button className={`mezcladorBotonCabecera ${browser.abierto ? 'mezcladorBotonActivo' : ''}`} onClick={browser.toggle} title={browser.abierto ? 'Cerrar browser' : 'Abrir browser'}>
+                    <BotonBase variante="ghost" className={`mezcladorBotonCabecera ${browser.abierto ? 'mezcladorBotonActivo' : ''}`} onClick={browser.toggle} title={browser.abierto ? 'Cerrar browser' : 'Abrir browser'}>
                         {browser.abierto ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
-                    </button>
-                    <button className="mezcladorBotonCabecera" onClick={() => inputArchivoRef.current?.click()} title="Subir audio desde PC">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera" onClick={() => inputArchivoRef.current?.click()} title="Subir audio desde PC">
                         <FolderUp size={14} />
-                    </button>
+                    </BotonBase>
+                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                     <input ref={inputArchivoRef} type="file" accept="audio/*" multiple onChange={alSeleccionarArchivo} style={{display: 'none'}} />
                     {exportando && <Loader size={14} className="mezcladorSpinner" />}
-                    <button className="mezcladorBotonCabecera" onClick={descargarMezcla} disabled={!puedeExportar || exportando} title="Descargar mezcla (1 crédito)">
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera" onClick={descargarMezcla} disabled={!puedeExportar || exportando} title="Descargar mezcla (1 crédito)">
                         <Download size={14} />
-                    </button>
-                    <button className="mezcladorBotonCabecera" onClick={alPublicar} disabled={!puedeExportar || exportando} title="Publicar mezcla">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera" onClick={alPublicar} disabled={!puedeExportar || exportando} title="Publicar mezcla">
                         <Upload size={14} />
-                    </button>
-                    <button className="mezcladorBotonCabecera mezcladorBotonLimpiar" onClick={limpiarProyecto} title="Limpiar proyecto">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera mezcladorBotonLimpiar" onClick={limpiarProyecto} title="Limpiar proyecto">
                         <Trash2 size={14} />
-                    </button>
+                    </BotonBase>
                 </div>
                 {/* C241+C253: Botón config + expandir/contraer + cerrar */}
                 <div className="mezcladorCabeceraAcciones">
-                    <button className="mezcladorBotonCabecera" onClick={() => setModalConfigDawAbierto(true)} title="Configuración del DAW">
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera" onClick={() => setModalConfigDawAbierto(true)} title="Configuración del DAW">
                         <Settings size={14} />
-                    </button>
-                    <button className="mezcladorBotonCabecera" onClick={toggleExpandido} title={expandido ? 'Contraer panel' : 'Expandir panel'}>
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="mezcladorBotonCabecera" onClick={toggleExpandido} title={expandido ? 'Contraer panel' : 'Expandir panel'}>
                         {expandido ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                    </button>
-                    <button className="mezcladorCerrar" onClick={cerrar}>
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="mezcladorCerrar" onClick={cerrar}>
                         <PanelRightClose size={16} />
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
 

@@ -10,6 +10,7 @@ import { useNavigationStore } from '@/core/router';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import type { Coleccion } from '@app/types';
 import '../../styles/componentes/filaColecciones.css';
+import { BotonBase } from '../ui/BotonBase';
 
 const MAX_COLECCIONES = 8;
 
@@ -38,7 +39,7 @@ export const FilaColecciones = (): JSX.Element | null => {
     return (
         <div className="filaColecciones">
             {colecciones.map((col) => (
-                <button
+                <BotonBase variante="ghost"
                     key={col.id}
                     className="filaColeccionChip"
                     onClick={() => navegar(`/coleccion/${col.id}/`)}
@@ -55,7 +56,7 @@ export const FilaColecciones = (): JSX.Element | null => {
                     <span className="filaColeccionMeta">
                         {col.totalSamples ?? 0}
                     </span>
-                </button>
+                </BotonBase>
             ))}
         </div>
     );

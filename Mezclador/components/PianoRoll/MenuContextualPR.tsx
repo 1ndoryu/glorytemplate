@@ -7,6 +7,7 @@ import { memo } from 'react';
 import { Palette } from 'lucide-react';
 import { useMenuContextualPR } from '../../hooks/useMenuContextualPR';
 import { PALETA_NOTAS } from '../../types/pianoRoll';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface MenuContextualPRProps {
     x: number;
@@ -34,13 +35,13 @@ export const MenuContextualPR = memo(({
         >
             {opciones.map((op) => (
                 <div key={op.label}>
-                    <button
+                    <BotonBase variante="ghost"
                         className="pianoRollMenuContextualItem"
                         onClick={op.onClick}
                     >
                         {op.icono && <op.icono size={12} />}
                         <span>{op.label}</span>
-                    </button>
+                    </BotonBase>
                     {op.separadorDespues && <div className="pianoRollMenuContextualSeparador" />}
                 </div>
             ))}
@@ -54,7 +55,7 @@ export const MenuContextualPR = memo(({
                     </div>
                     <div className="pianoRollMenuContextualColores">
                         {PALETA_NOTAS.map((color, idx) => (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={color}
                                 className="pianoRollMenuContextualColor"
                                 style={{ background: color }}
@@ -75,13 +76,13 @@ export const MenuContextualPR = memo(({
                     </div>
                     <div className="pianoRollMenuContextualVelocity">
                         {[0.25, 0.5, 0.75, 1.0].map(v => (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={v}
                                 className="pianoRollMenuContextualVelBtn"
                                 onClick={() => handleVelocity(v)}
                             >
                                 {Math.round(v * 100)}%
-                            </button>
+                            </BotonBase>
                         ))}
                     </div>
                 </>

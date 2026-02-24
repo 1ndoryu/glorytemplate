@@ -7,6 +7,7 @@
 import { VentanaFlotante } from './VentanaFlotante';
 import type { SnapResolucion } from '../types/mezclador';
 import { useModalConfigDaw } from '../hooks/useModalConfigDaw';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface ModalConfigDawProps {
     abierto: boolean;
@@ -37,14 +38,14 @@ export const ModalConfigDaw = ({ abierto, onCerrar }: ModalConfigDawProps): JSX.
                         <label className="configBloqueLabel">Snap</label>
                         <div className="configBloqueModoTonal">
                             {OPCIONES_SNAP.map(op => (
-                                <button
+                                <BotonBase variante="ghost"
                                     key={op.valor}
                                     className={`configBloqueModoBtn ${snapResolucion === op.valor ? 'activo' : ''}`}
                                     onClick={() => setSnapResolucion(op.valor)}
                                     title={op.desc}
                                 >
                                     {op.label}
-                                </button>
+                                </BotonBase>
                             ))}
                         </div>
                     </div>

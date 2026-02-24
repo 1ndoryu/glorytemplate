@@ -9,6 +9,7 @@ import { useCallback, type MouseEvent, type ReactNode } from 'react';
 import { Heart, Sparkles, ThumbsDown } from 'lucide-react';
 import type { TipoReaccion } from '@app/types';
 import '@app/styles/componentes/tooltipReacciones.css';
+import { BotonBase } from './BotonBase';
 
 interface TooltipReaccionesProps {
     reaccionActual?: TipoReaccion | null;
@@ -49,7 +50,7 @@ export const TooltipReacciones = ({
             {children}
             <div className="tooltipReacciones" role="toolbar" aria-label="Reacciones">
                 {OPCIONES.map(({ tipo, icono: Icono, etiqueta }) => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={tipo}
                         className={`tooltipReaccionBtn ${reaccionActual === tipo ? 'tooltipReaccionActiva' : ''}`}
                         data-reaccion={tipo}
@@ -62,7 +63,7 @@ export const TooltipReacciones = ({
                             size={18}
                             fill={reaccionActual === tipo ? 'currentColor' : 'none'}
                         />
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
         </div>

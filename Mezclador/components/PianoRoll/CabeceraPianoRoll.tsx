@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { usePianoRollStore } from '../../stores/pianoRollStore';
 import type { HerramientaPianoRoll, SnapPianoRoll } from '../../types/pianoRoll';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { SelectorBase } from '@app/components/ui/SelectorBase';
 
 const HERRAMIENTAS: { id: HerramientaPianoRoll; icono: typeof Pencil; titulo: string }[] = [
     { id: 'dibujar', icono: Pencil, titulo: 'Dibujar (P)' },
@@ -52,7 +54,7 @@ export const CabeceraPianoRoll = memo((): JSX.Element => {
             {/* Grupo de herramientas */}
             <div className="pianoRollGrupoHerramientas">
                 {HERRAMIENTAS.map(({ id, icono: Icono, titulo }) => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={id}
                         className={`pianoRollBotonHerramienta ${
                             herramienta === id ? 'pianoRollBotonHerramientaActiva' : ''
@@ -61,7 +63,7 @@ export const CabeceraPianoRoll = memo((): JSX.Element => {
                         title={titulo}
                     >
                         <Icono size={14} />
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 
@@ -69,7 +71,7 @@ export const CabeceraPianoRoll = memo((): JSX.Element => {
 
             {/* Snap */}
             <span className="pianoRollEtiquetaSnap">Snap</span>
-            <select
+            <SelectorBase
                 className="pianoRollSelectSnap"
                 value={snap}
                 onChange={handleSnapChange}
@@ -77,29 +79,29 @@ export const CabeceraPianoRoll = memo((): JSX.Element => {
                 {OPCIONES_SNAP.map(({ valor, label }) => (
                     <option key={valor} value={valor}>{label}</option>
                 ))}
-            </select>
+            </SelectorBase>
 
             <div className="pianoRollSeparador" />
 
             {/* Toggle ghost notes */}
-            <button
+            <BotonBase variante="ghost"
                 className={`pianoRollToggle ${ghostHabilitado ? 'pianoRollToggleActivo' : ''}`}
                 onClick={toggleGhost}
                 title="Ghost Notes"
             >
                 <Ghost size={13} />
                 <span>Ghost</span>
-            </button>
+            </BotonBase>
 
             {/* Toggle preview audio */}
-            <button
+            <BotonBase variante="ghost"
                 className={`pianoRollToggle ${previewActivo ? 'pianoRollToggleActivo' : ''}`}
                 onClick={togglePreview}
                 title="Preview Audio"
             >
                 <Volume2 size={13} />
                 <span>Preview</span>
-            </button>
+            </BotonBase>
         </div>
     );
 });

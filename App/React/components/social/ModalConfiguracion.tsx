@@ -11,6 +11,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useModalConfiguracion, type SeccionConfig } from '@app/hooks/useModalConfiguracion';
 import '../../styles/componentes/modalConfiguracion.css';
+import { CampoTexto } from '../ui/CampoTexto';
 
 /* Sub-componente: preferencia panel lateral al dar like (evita re-renders) */
 const PanelLateralPreferencia = (): JSX.Element => {
@@ -69,7 +70,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                     alt="Portada"
                                     className="configPortadaImg"
                                 />
-                                <button
+                                <BotonBase variante="ghost"
                                     className="configPortadaBtn"
                                     onClick={() => inputPortadaRef.current?.click()}
                                     type="button"
@@ -77,7 +78,8 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                 >
                                     <ImagePlus size={16} />
                                     Cambiar portada
-                                </button>
+                                </BotonBase>
+                                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                                 <input
                                     ref={inputPortadaRef}
                                     type="file"
@@ -97,14 +99,15 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                     nombre={nombreVisible || 'U'}
                                     tamano="lg"
                                 />
-                                <button
+                                <BotonBase variante="ghost"
                                     className="configFotoBtn"
                                     onClick={() => inputFotoRef.current?.click()}
                                     type="button"
                                     aria-label="Cambiar foto"
                                 >
                                     <Camera size={16} />
-                                </button>
+                                </BotonBase>
+                                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                                 <input
                                     ref={inputFotoRef}
                                     type="file"
@@ -118,9 +121,8 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         {/* Nombre visible */}
                         <div className="configSeccion">
                             <label className="configLabel">Nombre visible</label>
-                            <input
+                            <CampoTexto
                                 className="configInput"
-                                type="text"
                                 value={nombreVisible}
                                 onChange={(e) => setNombreVisible(e.target.value)}
                                 placeholder="Tu nombre"
@@ -133,9 +135,8 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                             <label className="configLabel">Username</label>
                             <div className="configInputConPrefijo">
                                 <span className="configPrefijo">@</span>
-                                <input
+                                <CampoTexto
                                     className="configInput"
-                                    type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                                     placeholder="username"
@@ -147,7 +148,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         {/* Bio */}
                         <div className="configSeccion">
                             <label className="configLabel">Descripción / Bio</label>
-                            <textarea
+                            <CampoTexto multilínea
                                 className="configTextarea"
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
@@ -166,13 +167,13 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         <h2 className="configSeccionTitulo">Cuenta</h2>
                         <div className="configSeccion">
                             <label className="configLabel">Email</label>
-                            <input
-                                className="configInput"
+                            <CampoTexto
                                 type="email"
+                                className="configInput"
                                 value={usuario?.email ?? ''}
                                 disabled
                                 placeholder="tu@email.com"
-                            />
+                             />
                             <span className="configSubtexto">El email no se puede cambiar desde aquí.</span>
                         </div>
                         <div className="configSeccion">
@@ -199,37 +200,37 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                 <span className="configLabel">Likes y comentarios</span>
                                 <span className="configSubtexto">Recibir alertas cuando alguien interactúa con tu contenido</span>
                             </div>
-                            <button
+                            <BotonBase variante="ghost"
                                 className={`configToggle ${notificaciones ? 'configToggleActivo' : ''}`}
                                 onClick={() => setNotificaciones(!notificaciones)}
                                 type="button"
                             >
                                 {notificaciones ? <Bell size={14} /> : <BellOff size={14} />}
-                            </button>
+                            </BotonBase>
                         </div>
                         <div className="configSeccion configSeccionHorizontal">
                             <div className="configSeccionInfo">
                                 <span className="configLabel">Nuevos seguidores</span>
                                 <span className="configSubtexto">Notificar cuando alguien te sigue</span>
                             </div>
-                            <button
+                            <BotonBase variante="ghost"
                                 className={`configToggle configToggleActivo`}
                                 type="button"
                             >
                                 <Bell size={14} />
-                            </button>
+                            </BotonBase>
                         </div>
                         <div className="configSeccion configSeccionHorizontal">
                             <div className="configSeccionInfo">
                                 <span className="configLabel">Mensajes</span>
                                 <span className="configSubtexto">Alertas de mensajes directos</span>
                             </div>
-                            <button
+                            <BotonBase variante="ghost"
                                 className={`configToggle configToggleActivo`}
                                 type="button"
                             >
                                 <Bell size={14} />
-                            </button>
+                            </BotonBase>
                         </div>
                     </>
                 );
@@ -279,7 +280,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                     <h3 className="configNavTitulo">Configuración</h3>
                     <nav className="configNavLista">
                         {SECCIONES_NAV.map((item) => (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={item.id}
                                 className={`configNavItem ${seccionActiva === item.id ? 'configNavItemActivo' : ''}`}
                                 onClick={() => setSeccionActiva(item.id)}
@@ -287,21 +288,21 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                             >
                                 {item.icono}
                                 {item.etiqueta}
-                            </button>
+                            </BotonBase>
                         ))}
                     </nav>
                 </div>
 
                 {/* Contenido de la sección */}
                 <div className="configContenido">
-                    <button
+                    <BotonBase variante="ghost"
                         className="configCerrarBtn"
                         onClick={manejarCerrar}
                         type="button"
                         aria-label="Cerrar"
                     >
                         <X size={18} />
-                    </button>
+                    </BotonBase>
 
                     <div className="configSeccionContenido">
                         {renderizarSeccion()}

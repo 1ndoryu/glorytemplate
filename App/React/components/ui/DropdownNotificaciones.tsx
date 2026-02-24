@@ -8,6 +8,7 @@
 import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard } from 'lucide-react';
 import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
 import '../../styles/componentes/dropdownPanel.css';
+import { BotonBase } from './BotonBase';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
     like: <Heart size={16} />,
@@ -55,9 +56,9 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                     <span className="dropdownPanelTitulo">
                         Notificaciones {noLeidas > 0 && `(${noLeidas})`}
                     </span>
-                    <button className="dropdownPanelEnlace" onClick={irANotificaciones} type="button">
+                    <BotonBase variante="ghost" className="dropdownPanelEnlace" onClick={irANotificaciones} type="button">
                         Ver todas
-                    </button>
+                    </BotonBase>
                 </div>
 
                 <div className="dropdownPanelLista">
@@ -73,7 +74,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                         </div>
                     ) : (
                         notificaciones.map((noti) => (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={noti.id}
                                 className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
                                 onClick={() => manejarClickNotif(noti)}
@@ -89,7 +90,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                                     </span>
                                 </div>
                                 {!noti.leida && <div className="dropdownItemPunto" />}
-                            </button>
+                            </BotonBase>
                         ))
                     )}
                 </div>

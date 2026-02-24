@@ -20,6 +20,7 @@ import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
+import { BotonBase } from '../ui/BotonBase';
 
 export interface SidebarItemDef {
     id: string;
@@ -82,7 +83,7 @@ export const Sidebar = ({
                     /* Crear como modal o panel: usar button */
                     if (item.accion) {
                         return (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={item.id}
                                 className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
                                 data-tooltip={item.etiqueta}
@@ -91,7 +92,7 @@ export const Sidebar = ({
                                 aria-label={item.etiqueta}
                             >
                                 {item.icono}
-                            </button>
+                            </BotonBase>
                         );
                     }
 
@@ -118,7 +119,7 @@ export const Sidebar = ({
 
             <div className="sidebarFooter">
                 <div className="sidebarSeparador" />
-                <button
+                <BotonBase variante="ghost"
                     className="sidebarItem"
                     data-tooltip="Configuración"
                     onClick={() => abrirConfiguracion()}
@@ -126,7 +127,7 @@ export const Sidebar = ({
                     aria-label="Configuración"
                 >
                     <Settings size={20} />
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

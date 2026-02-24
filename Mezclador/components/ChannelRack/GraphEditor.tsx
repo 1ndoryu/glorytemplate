@@ -5,6 +5,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import type { CanalRack, Paso } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 type ModoEditor = 'velocity' | 'pan' | 'pitch';
 
@@ -53,13 +54,13 @@ export const GraphEditor = ({
             {/* Selector de modo */}
             <div className="graphEditorModos">
                 {(['velocity', 'pan', 'pitch'] as ModoEditor[]).map(m => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={m}
                         className={`graphEditorModoBoton ${modo === m ? 'graphEditorModoActivo' : ''}`}
                         onClick={() => setModo(m)}
                     >
                         {m === 'velocity' ? 'Vel' : m === 'pan' ? 'Pan' : 'Pitch'}
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 

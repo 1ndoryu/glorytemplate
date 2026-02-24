@@ -51,9 +51,9 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     avatarUrl={sample.creador.avatarUrl}
                     className="panelDetalleAutor"
                 />
-                <button className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar panel">
+                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar panel">
                     <PanelRightClose size={16} />
-                </button>
+                </BotonBase>
             </div>
 
             {/* Titulo */}

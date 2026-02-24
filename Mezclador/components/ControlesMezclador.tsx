@@ -13,6 +13,7 @@ import {InputTempo} from './InputTempo';
 import {SongPosition} from './SongPosition';
 import {MonitorOnda} from './MonitorOnda';
 import {MedidorPicos} from './MedidorPicos';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface ControlesMezcladorProps {
     onToggleReproduccion: () => void;
@@ -47,17 +48,17 @@ export const ControlesMezclador = ({onToggleReproduccion, reproduciendo}: Contro
         <div className="mezcladorControles">
             {/* Grupo izquierdo: play + undo/redo + BPM */}
             <div className="mezcladorControlesGrupo">
-                <button className={`mezcladorBotonPlay ${reproduciendo ? 'activo' : ''}`} onClick={onToggleReproduccion} title={reproduciendo ? 'Detener' : 'Reproducir'}>
+                <BotonBase variante="ghost" className={`mezcladorBotonPlay ${reproduciendo ? 'activo' : ''}`} onClick={onToggleReproduccion} title={reproduciendo ? 'Detener' : 'Reproducir'}>
                     {reproduciendo ? <Square size={14} /> : <Play size={14} />}
-                </button>
+                </BotonBase>
 
                 {/* C224: Undo/Redo */}
-                <button className="mezcladorBotonAccion" onClick={deshacer} disabled={!puedeDeshacer()} title="Deshacer (Ctrl+Z)">
+                <BotonBase variante="ghost" className="mezcladorBotonAccion" onClick={deshacer} disabled={!puedeDeshacer()} title="Deshacer (Ctrl+Z)">
                     <Undo2 size={13} />
-                </button>
-                <button className="mezcladorBotonAccion" onClick={rehacer} disabled={!puedeRehacer()} title="Rehacer (Ctrl+Y)">
+                </BotonBase>
+                <BotonBase variante="ghost" className="mezcladorBotonAccion" onClick={rehacer} disabled={!puedeRehacer()} title="Rehacer (Ctrl+Y)">
                     <Redo2 size={13} />
-                </button>
+                </BotonBase>
 
                 <div className="mezcladorBpmControl">
                     <InputTempo valor={bpmProyecto} onChange={setBpm} min={40} max={300} etiqueta="BPM" />
@@ -79,37 +80,37 @@ export const ControlesMezclador = ({onToggleReproduccion, reproduciendo}: Contro
             <div className="mezcladorControlesGrupo">
                 {FEATURE_FLAGS.modoPatronCancion && (
                     <>
-                        <button className={`mezcladorBotonAccion ${modoReproduccion === 'pat' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoReproduccion('pat')} title="Modo patrón: reproduce el patrón activo en loop">
+                        <BotonBase variante="ghost" className={`mezcladorBotonAccion ${modoReproduccion === 'pat' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoReproduccion('pat')} title="Modo patrón: reproduce el patrón activo en loop">
                             <Grid2x2 size={13} />
-                        </button>
-                        <button className={`mezcladorBotonAccion ${modoReproduccion === 'song' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoReproduccion('song')} title="Modo canción: reproduce la playlist completa">
+                        </BotonBase>
+                        <BotonBase variante="ghost" className={`mezcladorBotonAccion ${modoReproduccion === 'song' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoReproduccion('song')} title="Modo canción: reproduce la playlist completa">
                             <ListMusic size={13} />
-                        </button>
+                        </BotonBase>
                     </>
                 )}
                 {FEATURE_FLAGS.channelRack && (
-                    <button className="mezcladorBotonAccion" onClick={abrirChannelRack} title="Abrir Channel Rack">
+                    <BotonBase variante="ghost" className="mezcladorBotonAccion" onClick={abrirChannelRack} title="Abrir Channel Rack">
                         <LayoutGrid size={13} />
-                    </button>
+                    </BotonBase>
                 )}
                 {FEATURE_FLAGS.mixer && (
-                    <button className="mezcladorBotonAccion" onClick={abrirMixer} title="Abrir Mixer">
+                    <BotonBase variante="ghost" className="mezcladorBotonAccion" onClick={abrirMixer} title="Abrir Mixer">
                         <Sliders size={13} />
-                    </button>
+                    </BotonBase>
                 )}
             </div>
 
             {/* Grupo derecho: herramienta de corte + modo resize */}
             <div className="mezcladorControlesGrupo">
                 {/* C214: Botón herramienta de corte */}
-                <button className={`mezcladorBotonAccion ${modoCortarActivo ? 'mezcladorBotonActivo' : ''}`} onClick={toggleModoCortar} title={modoCortarActivo ? 'Desactivar corte' : 'Activar herramienta de corte'}>
+                <BotonBase variante="ghost" className={`mezcladorBotonAccion ${modoCortarActivo ? 'mezcladorBotonActivo' : ''}`} onClick={toggleModoCortar} title={modoCortarActivo ? 'Desactivar corte' : 'Activar herramienta de corte'}>
                     <Scissors size={13} />
-                </button>
+                </BotonBase>
 
                 {/* C259(2): Toggle stretch/clip al lado del corte */}
-                <button className={`mezcladorBotonAccion ${modoResizeGlobal === 'stretch' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoResizeGlobal(modoResizeGlobal === 'stretch' ? 'clip' : 'stretch')} title={modoResizeGlobal === 'stretch' ? 'Modo: Stretch (cambia velocidad al redimensionar) — Click para cambiar a Clip' : 'Modo: Clip (recorta al redimensionar) — Click para cambiar a Stretch'}>
+                <BotonBase variante="ghost" className={`mezcladorBotonAccion ${modoResizeGlobal === 'stretch' ? 'mezcladorBotonActivo' : ''}`} onClick={() => setModoResizeGlobal(modoResizeGlobal === 'stretch' ? 'clip' : 'stretch')} title={modoResizeGlobal === 'stretch' ? 'Modo: Stretch (cambia velocidad al redimensionar) — Click para cambiar a Clip' : 'Modo: Clip (recorta al redimensionar) — Click para cambiar a Stretch'}>
                     {modoResizeGlobal === 'stretch' ? <MoveHorizontal size={13} /> : <Crop size={13} />}
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

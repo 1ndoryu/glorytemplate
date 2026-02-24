@@ -10,6 +10,7 @@ import { useMezcladorStore } from '../stores/mezcladorStore';
 import { VentanaFlotante } from './VentanaFlotante';
 import { KnobControl } from './KnobControl';
 import { useConfigBloque } from '../hooks/useConfigBloque';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface ModalConfigBloqueProps {
     bloque: BloqueMezclador;
@@ -38,7 +39,7 @@ export const ModalConfigBloque = ({
             titulo={bloque.sample.titulo}
             ancho={700}
             botonesExtra={
-                <button
+                <BotonBase variante="ghost"
                     className={`ventanaFlotanteBoton configBloqueHeaderLed ${!silenciado ? 'configBloqueHeaderLedActivo' : ''}`}
                     onClick={(e) => { e.stopPropagation(); toggleSilenciado(); }}
                     onDoubleClick={(e) => {
@@ -58,7 +59,7 @@ export const ModalConfigBloque = ({
                     title={silenciado ? 'Activar bloque' : 'Desactivar bloque'}
                 >
                     <Power size={12} />
-                </button>
+                </BotonBase>
             }
         >
             <div className="configBloqueContenido">
@@ -147,7 +148,7 @@ export const ModalConfigBloque = ({
                             <div className="configBloqueFila">
                                 <label className="configBloqueLabel">Modo</label>
                                 <div className="configBloqueModoTonal">
-                                    <button
+                                    <BotonBase variante="ghost"
                                         className={`configBloqueModoBtn ${modoTonalidad === 'resample' ? 'activo' : ''}`}
                                         onClick={() => alCambiarModoTonalidad('resample')}
                                         onDoubleClick={(e) => { e.stopPropagation(); alCambiarModoTonalidad('resample'); }}
@@ -155,8 +156,8 @@ export const ModalConfigBloque = ({
                                         type="button"
                                     >
                                         Resample
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         className={`configBloqueModoBtn ${modoTonalidad === 'stretch' ? 'activo' : ''}`}
                                         onClick={() => alCambiarModoTonalidad('stretch')}
                                         onDoubleClick={(e) => { e.stopPropagation(); alCambiarModoTonalidad('resample'); }}
@@ -164,7 +165,7 @@ export const ModalConfigBloque = ({
                                         type="button"
                                     >
                                         Stretch
-                                    </button>
+                                    </BotonBase>
                                 </div>
                             </div>
 
@@ -207,7 +208,7 @@ export const ModalConfigBloque = ({
                                 <label className="configBloqueLabel">Declicking</label>
                                 <div className="configBloqueModoTonal">
                                     {(['none', 'corto', 'medio', 'largo'] as const).map(modo => (
-                                        <button
+                                        <BotonBase variante="ghost"
                                             key={modo}
                                             className={`configBloqueModoBtn ${modoDeclic === modo ? 'activo' : ''}`}
                                             onClick={() => alCambiarDeclic(modo)}
@@ -215,7 +216,7 @@ export const ModalConfigBloque = ({
                                             type="button"
                                         >
                                             {modo === 'none' ? 'Off' : modo.charAt(0).toUpperCase() + modo.slice(1)}
-                                        </button>
+                                        </BotonBase>
                                     ))}
                                 </div>
                             </div>
@@ -242,7 +243,7 @@ export const ModalConfigBloque = ({
                             <h4 className="configBloqueSeccionTitulo">Efectos</h4>
 
                             <div className="configBloqueTogglesGrid">
-                                <button
+                                <BotonBase variante="ghost"
                                     className={`configBloqueToggle ${invertido ? 'activo' : ''}`}
                                     onClick={toggleInvertido}
                                     onDoubleClick={(e) => { e.stopPropagation(); if (invertido) toggleInvertido(); }}
@@ -250,34 +251,34 @@ export const ModalConfigBloque = ({
                                 >
                                     <RotateCcw size={12} />
                                     <span>Reverse</span>
-                                </button>
+                                </BotonBase>
 
-                                <button
+                                <BotonBase variante="ghost"
                                     className={`configBloqueToggle ${normalizado ? 'activo' : ''}`}
                                     onClick={toggleNormalizado}
                                     onDoubleClick={(e) => { e.stopPropagation(); if (normalizado) toggleNormalizado(); }}
                                     title="Normalize (doble-click para restablecer)"
                                 >
                                     <span>Normalize</span>
-                                </button>
+                                </BotonBase>
 
-                                <button
+                                <BotonBase variante="ghost"
                                     className={`configBloqueToggle ${invertirPolaridad ? 'activo' : ''}`}
                                     onClick={toggleInvertirPolaridad}
                                     onDoubleClick={(e) => { e.stopPropagation(); if (invertirPolaridad) toggleInvertirPolaridad(); }}
                                     title="Inv. Polaridad (doble-click para restablecer)"
                                 >
                                     <span>Inv. Polaridad</span>
-                                </button>
+                                </BotonBase>
 
-                                <button
+                                <BotonBase variante="ghost"
                                     className={`configBloqueToggle ${intercambiarEstereo ? 'activo' : ''}`}
                                     onClick={toggleIntercambiarEstereo}
                                     onDoubleClick={(e) => { e.stopPropagation(); if (intercambiarEstereo) toggleIntercambiarEstereo(); }}
                                     title="Swap L/R (doble-click para restablecer)"
                                 >
                                     <span>Swap L/R</span>
-                                </button>
+                                </BotonBase>
                             </div>
 
                             <div className="configBloquePendientes">

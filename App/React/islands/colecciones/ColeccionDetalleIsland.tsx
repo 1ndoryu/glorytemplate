@@ -63,10 +63,10 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">
             {/* Botón volver */}
-            <button className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
+            <BotonBase variante="ghost" className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
-            </button>
+            </BotonBase>
 
             {/* Header de la colección */}
             <div className="coleccionHeader">
@@ -107,7 +107,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                     <div className="coleccionAcciones">
                         {/* C137: Ocultar guardar en colecciones propias */}
                         {coleccion.usuarioId !== usuario?.id && (
-                            <button
+                            <BotonBase variante="ghost"
                                 className={`coleccionAccionBtn ${guardada ? 'coleccionAccionActivo' : ''}`}
                                 onClick={manejarGuardar}
                                 type="button"
@@ -115,9 +115,9 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                             >
                                 {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
                                 <span>{guardada ? 'Guardada' : 'Guardar'}</span>
-                            </button>
+                            </BotonBase>
                         )}
-                        <button
+                        <BotonBase variante="ghost"
                             className="coleccionAccionBtn"
                             type="button"
                             title="Descargar colección"
@@ -126,8 +126,8 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                         >
                             <Download size={16} />
                             <span>{descargando ? 'Descargando...' : 'Descargar'}</span>
-                        </button>
-                        <button
+                        </BotonBase>
+                        <BotonBase variante="ghost"
                             className="coleccionAccionBtn"
                             type="button"
                             title="Preview"
@@ -135,16 +135,16 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                         >
                             <Play size={16} />
                             <span>Preview</span>
-                        </button>
+                        </BotonBase>
                         {/* C127: Menú 3 puntos */}
-                        <button
+                        <BotonBase variante="ghost"
                             className="coleccionAccionBtn"
                             type="button"
                             title="Más opciones"
                             onClick={abrirMenuColeccion}
                         >
                             <MoreHorizontal size={16} />
-                        </button>
+                        </BotonBase>
                     </div>
                 </div>
             </div>

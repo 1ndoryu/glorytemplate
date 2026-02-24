@@ -11,6 +11,7 @@ import { usePatronesStore } from '../stores/patronesStore';
 import { posicionBloquePorc, anchoBloquePorc } from '../utils/compasUtils';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { usePistaTimeline } from '../hooks/usePistaTimeline';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface PistaTimelineProps {
     pista: PistaMezclador;
@@ -85,17 +86,20 @@ export const PistaTimeline = ({
             >
                 {/* Nombre editable inline */}
                 {editandoNombre ? (
-                    <input
-                        ref={inputRef}
-                        className="mezcladorPistaNombreInput"
-                        defaultValue={pista.nombre}
-                        onBlur={confirmarRename}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') confirmarRename();
-                            if (e.key === 'Escape') setEditandoNombre(false);
-                        }}
-                        autoFocus
-                    />
+                    <>
+                        {/* sentinel-disable-next-line html-nativo: input inline de renombrado, CampoTexto romperia layout */}
+                        <input
+                            ref={inputRef}
+                            className="mezcladorPistaNombreInput"
+                            defaultValue={pista.nombre}
+                            onBlur={confirmarRename}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') confirmarRename();
+                                if (e.key === 'Escape') setEditandoNombre(false);
+                            }}
+                            autoFocus
+                        />
+                    </>
                 ) : (
                     <span
                         className="mezcladorPistaNombre"
@@ -106,21 +110,21 @@ export const PistaTimeline = ({
                 )}
 
                 <div className="mezcladorPistaBotones">
-                    <button
+                    <BotonBase variante="ghost"
                         className={`mezcladorPistaBoton ${pista.silenciada ? 'activo' : ''}`}
                         onClick={() => toggleSilenciarPista(pista.id)}
                         title={pista.silenciada ? 'Activar' : 'Silenciar'}
                     >
                         {pista.silenciada ? <VolumeX size={12} /> : <Volume2 size={12} />}
-                    </button>
+                    </BotonBase>
                     {puedeBorrar && (
-                        <button
+                        <BotonBase variante="ghost"
                             className="mezcladorPistaBoton"
                             onClick={() => eliminarPista(pista.id)}
                             title="Eliminar pista"
                         >
                             <Trash2 size={12} />
-                        </button>
+                        </BotonBase>
                     )}
                 </div>
             </div>

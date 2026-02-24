@@ -6,6 +6,7 @@
 
 import { memo, useCallback } from 'react';
 import type { Paso } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface PasoBotonProps {
     paso: Paso;
@@ -33,7 +34,7 @@ export const PasoBoton = memo(({
     const esGrupoImpar = Math.floor(indice / 4) % 2 === 1;
 
     return (
-        <button
+        <BotonBase variante="ghost"
             className={`pasoBoton ${paso.activo ? 'pasoBotonActivo' : ''} ${esGrupoImpar ? 'pasoBotonGrupoImpar' : ''}`}
             style={paso.activo ? {
                 backgroundColor: colorCanal,

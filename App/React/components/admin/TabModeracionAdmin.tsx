@@ -7,6 +7,7 @@
 
 import { CheckCircle, XCircle, AlertTriangle, Flag, History, Eye, Trash2 } from 'lucide-react';
 import type { DatosModeracion, PublicacionModeracion } from '../../services/apiAdmin';
+import { BotonBase } from '../ui/BotonBase';
 
 interface TabModeracionAdminProps {
     moderacion: DatosModeracion | null;
@@ -99,22 +100,22 @@ export const TabModeracionAdmin = ({
                                     </div>
                                 )}
                                 <div className="adminModeracionAcciones">
-                                    <button
+                                    <BotonBase variante="ghost"
                                         className="adminModeracionBotonAprobar"
                                         onClick={() => onModerar('publicacion', pub.id, 'aprobar')}
                                         type="button"
                                     >
                                         <CheckCircle size={14} />
                                         Aprobar
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         className="adminModeracionBotonRechazar"
                                         onClick={() => onModerar('publicacion', pub.id, 'rechazar')}
                                         type="button"
                                     >
                                         <XCircle size={14} />
                                         Rechazar
-                                    </button>
+                                    </BotonBase>
                                 </div>
                             </div>
                         ))}
@@ -144,22 +145,22 @@ export const TabModeracionAdmin = ({
                                     <strong>{rep.tipo}</strong> #{rep.target_id} — {rep.motivo}
                                 </div>
                                 <div className="adminModeracionAcciones">
-                                    <button
+                                    <BotonBase variante="ghost"
                                         className="adminModeracionBotonAprobar"
                                         onClick={() => onResolverReporte(rep.id, 'resolver')}
                                         type="button"
                                     >
                                         <CheckCircle size={14} />
                                         Resolver
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         className="adminModeracionBotonDescartar"
                                         onClick={() => onResolverReporte(rep.id, 'descartar')}
                                         type="button"
                                     >
                                         <Trash2 size={14} />
                                         Descartar
-                                    </button>
+                                    </BotonBase>
                                 </div>
                             </div>
                         ))}
@@ -201,26 +202,26 @@ export const TabModeracionAdmin = ({
                                 {/* Permitir override manual si fue auto-aprobada */}
                                 {pub.moderacion_estado === 'aprobado' && (
                                     <div className="adminModeracionAcciones">
-                                        <button
+                                        <BotonBase variante="ghost"
                                             className="adminModeracionBotonRechazar"
                                             onClick={() => onModerar('publicacion', pub.id, 'rechazar')}
                                             type="button"
                                         >
                                             <XCircle size={14} />
                                             Rechazar
-                                        </button>
+                                        </BotonBase>
                                     </div>
                                 )}
                                 {(pub.moderacion_estado === 'revision' || pub.moderacion_estado === 'rechazado') && (
                                     <div className="adminModeracionAcciones">
-                                        <button
+                                        <BotonBase variante="ghost"
                                             className="adminModeracionBotonAprobar"
                                             onClick={() => onModerar('publicacion', pub.id, 'aprobar')}
                                             type="button"
                                         >
                                             <CheckCircle size={14} />
                                             Aprobar
-                                        </button>
+                                        </BotonBase>
                                     </div>
                                 )}
                             </div>

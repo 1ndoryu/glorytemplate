@@ -69,9 +69,9 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
 
             <p className="authFooter">
                 No tienes cuenta?{' '}
-                <button type="button" className="authEnlace" onClick={onCambiar}>
+                <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
                     Registrate gratis
-                </button>
+                </BotonBase>
             </p>
         </div>
     );
@@ -140,9 +140,9 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 
             <p className="authFooter">
                 Ya tienes cuenta?{' '}
-                <button type="button" className="authEnlace" onClick={onCambiar}>
+                <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
                     Inicia sesion
-                </button>
+                </BotonBase>
             </p>
         </div>
     );

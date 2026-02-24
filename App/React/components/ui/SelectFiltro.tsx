@@ -10,6 +10,7 @@ import { Plus, Minus, X } from 'lucide-react';
 import { ChevronDown } from 'lucide-react';
 import { useSelectFiltro } from '../../hooks/useSelectFiltro';
 import '../../styles/componentes/selectFiltro.css';
+import { BotonBase } from './BotonBase';
 
 export interface SelectFiltroProps {
     /* Etiqueta visible del select (ej: "Género", "Instrumento") */
@@ -50,7 +51,7 @@ export const SelectFiltro = ({
 
     return (
         <div className="selectFiltro" ref={contenedorRef}>
-            <button
+            <BotonBase variante="ghost"
                 type="button"
                 className={`selectFiltroBoton ${activos > 0 ? 'selectFiltroBotonActivo' : ''}`}
                 onClick={toggleAbierto}
@@ -60,7 +61,7 @@ export const SelectFiltro = ({
                 <span className="selectFiltroEtiqueta">{etiqueta}</span>
                 {activos > 0 && <span className="selectFiltroContador">{activos}</span>}
                 <ChevronDown size={12} className={`selectFiltroFlecha ${abierto ? 'selectFiltroFlechaAbierta' : ''}`} />
-            </button>
+            </BotonBase>
 
             {abierto && (
                 <div className="selectFiltroMenu" role="listbox">
@@ -77,22 +78,22 @@ export const SelectFiltro = ({
                             >
                                 <span className="selectFiltroOpcionTexto">{opcion}</span>
                                 <div className="selectFiltroOpcionAcciones">
-                                    <button
+                                    <BotonBase variante="ghost"
                                         type="button"
                                         className="selectFiltroOpcionBtn selectFiltroOpcionBtnExcluir"
                                         title={excluido ? 'Quitar exclusión' : 'Excluir'}
                                         onClick={(e) => manejarExcluir(e, opcion)}
                                     >
                                         {excluido ? <X size={10} /> : <Minus size={10} />}
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         type="button"
                                         className="selectFiltroOpcionBtn selectFiltroOpcionBtnIncluir"
                                         title={incluido ? 'Quitar inclusión' : 'Incluir'}
                                         onClick={(e) => { e.stopPropagation(); manejarClickOpcion(opcion); }}
                                     >
                                         {incluido ? <X size={10} /> : <Plus size={10} />}
-                                    </button>
+                                    </BotonBase>
                                 </div>
                             </div>
                         );

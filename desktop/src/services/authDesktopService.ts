@@ -55,11 +55,7 @@ export async function inicializarAuthDesktop(): Promise<void> {
             }
 
             /* Marcar isLoggedIn en GLORY_CONTEXT para que useInicializadorAuth
-             * no sobreescriba el usuario con null al detectar ctx.isLoggedIn = undefined */
-            /* eslint-disable @typescript-eslint/no-explicit-any */
-            const ctx = (window as any).GLORY_CONTEXT as Record<string, unknown> | undefined;
-            /* eslint-enable @typescript-eslint/no-explicit-any */
-            if (ctx) {
+             * no sobreescriba el usuario con null al detectar ctx.isLoggedIn = undefined */            const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;            if (ctx) {
                 ctx.isLoggedIn = true;
                 ctx.userId = (usuario as Record<string, unknown>)?.wpUserId ?? (usuario as Record<string, unknown>)?.id ?? 1;
             }

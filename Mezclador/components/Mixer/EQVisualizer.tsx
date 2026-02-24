@@ -5,6 +5,7 @@
 
 import { useEQVisualizer, COLORES_BANDA, NOMBRES_BANDA } from '../../hooks/useEQVisualizer';
 import type { BandaEQ } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface EQVisualizerProps {
     bandas: BandaEQ[];
@@ -31,12 +32,12 @@ export const EQVisualizer = ({
         <div className="eqVisualizer">
             <div className="eqVisualizerCabecera">
                 <span>EQ</span>
-                <button
+                <BotonBase variante="ghost"
                     className={`eqVisualizerToggle ${activo ? 'eqVisualizerToggleActivo' : ''}`}
                     onClick={onToggle}
                 >
                     {activo ? 'ON' : 'OFF'}
-                </button>
+                </BotonBase>
             </div>
             <canvas
                 ref={canvasRef}

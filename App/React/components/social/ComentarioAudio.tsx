@@ -7,6 +7,7 @@
 import { Play, Pause } from 'lucide-react';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { useComentarioAudio } from '@app/hooks/useComentarioAudio';
+import { BotonBase } from '../ui/BotonBase';
 
 interface ComentarioAudioProps {
     src: string;
@@ -37,14 +38,14 @@ export const ComentarioAudio = ({ src, picos }: ComentarioAudioProps): JSX.Eleme
                 onEnded={manejarEnded}
                 preload="metadata"
             />
-            <button
+            <BotonBase variante="ghost"
                 className="comentarioAudioBtn"
                 onClick={alternarPlay}
                 type="button"
                 aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
             >
                 {reproduciendo ? <Pause size={12} /> : <Play size={12} />}
-            </button>
+            </BotonBase>
             <div className="comentarioAudioWaveform">
                 <WaveformPlayer
                     picos={picosGenerados}

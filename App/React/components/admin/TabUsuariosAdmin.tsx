@@ -8,6 +8,9 @@ import { useState, useCallback } from 'react';
 import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import type { UsuarioAdmin } from '../../services/apiAdmin';
+import { BotonBase } from '../ui/BotonBase';
+import { SelectorBase } from '../ui/SelectorBase';
+import { CampoTexto } from '../ui/CampoTexto';
 
 interface TabUsuariosAdminProps {
     usuarios: UsuarioAdmin[];
@@ -69,16 +72,15 @@ export const TabUsuariosAdmin = ({
             <div className="adminUsuariosControles">
                 <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
                     <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--textoTerciario)' }} />
-                    <input
+                    <CampoTexto
                         className="adminUsuariosBusqueda"
-                        type="text"
                         placeholder="Buscar por nombre, username o email..."
                         value={busqueda}
                         onChange={(e) => onCambiarBusqueda(e.target.value)}
                         style={{ paddingLeft: '2rem' }}
                     />
                 </div>
-                <select
+                <SelectorBase
                     className="adminUsuariosFiltro"
                     value={filtroPlan}
                     onChange={(e) => onCambiarFiltroPlan(e.target.value)}
@@ -87,7 +89,7 @@ export const TabUsuariosAdmin = ({
                     <option value="free">Free</option>
                     <option value="pro">Pro</option>
                     <option value="premium">Premium</option>
-                </select>
+                </SelectorBase>
             </div>
 
             {/* Tabla */}
@@ -142,7 +144,7 @@ export const TabUsuariosAdmin = ({
                             <td>{formatearFecha(u.created_at)}</td>
                             <td>
                                 <div className="adminUsuarioAcciones">
-                                    <button
+                                    <BotonBase variante="ghost"
                                         className="adminBotonAccion"
                                         title={u.verificado ? 'Quitar verificación' : 'Verificar'}
                                         onClick={() => manejarAccion(u.id, { verificado: !u.verificado })}
@@ -150,8 +152,8 @@ export const TabUsuariosAdmin = ({
                                         type="button"
                                     >
                                         <BadgeCheck size={14} />
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         className="adminBotonAccion"
                                         title="Cambiar a admin"
                                         onClick={() => manejarAccion(u.id, { rol: u.rol === 'admin' ? 'usuario' : 'admin' })}
@@ -159,8 +161,8 @@ export const TabUsuariosAdmin = ({
                                         type="button"
                                     >
                                         <Shield size={14} />
-                                    </button>
-                                    <button
+                                    </BotonBase>
+                                    <BotonBase variante="ghost"
                                         className={`adminBotonAccion ${u.ban_hasta ? '' : 'adminBotonAccionPeligro'}`}
                                         title={u.ban_hasta ? 'Desbanear' : 'Banear 7 días'}
                                         onClick={() => toggleBan(u)}
@@ -168,9 +170,9 @@ export const TabUsuariosAdmin = ({
                                         type="button"
                                     >
                                         <Ban size={14} />
-                                    </button>
+                                    </BotonBase>
                                     {/* C257: Selector de plan */}
-                                    <select
+                                    <SelectorBase
                                         className="adminSelectPlan"
                                         value={u.plan}
                                         onChange={(e) => manejarAccion(u.id, { plan: e.target.value })}
@@ -180,7 +182,7 @@ export const TabUsuariosAdmin = ({
                                         <option value="free">Free</option>
                                         <option value="pro">Pro</option>
                                         <option value="premium">Premium</option>
-                                    </select>
+                                    </SelectorBase>
                                 </div>
                             </td>
                         </tr>
@@ -191,25 +193,25 @@ export const TabUsuariosAdmin = ({
             {/* Paginación */}
             {totalPaginas > 1 && (
                 <div className="adminPaginacion">
-                    <button
+                    <BotonBase variante="ghost"
                         className="adminPaginacionBoton"
                         onClick={() => onCambiarPagina(pagina - 1)}
                         disabled={pagina <= 1}
                         type="button"
                     >
                         <ChevronLeft size={14} />
-                    </button>
+                    </BotonBase>
                     <span style={{ fontSize: '0.8rem', color: 'var(--textoSecundario)', padding: '0.4rem' }}>
                         {pagina} / {totalPaginas} ({totalUsuarios} total)
                     </span>
-                    <button
+                    <BotonBase variante="ghost"
                         className="adminPaginacionBoton"
                         onClick={() => onCambiarPagina(pagina + 1)}
                         disabled={pagina >= totalPaginas}
                         type="button"
                     >
                         <ChevronRight size={14} />
-                    </button>
+                    </BotonBase>
                 </div>
             )}
         </div>

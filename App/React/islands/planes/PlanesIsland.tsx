@@ -39,18 +39,18 @@ export const PlanesIsland = (): JSX.Element => {
                         {error && (
                             <div className="planesAlertaError">
                                 <X size={16} /><span>{error}</span>
-                                <button onClick={() => setError(null)} className="planesAlertaCerrar">×</button>
+                                <BotonBase variante="ghost" onClick={() => setError(null)} className="planesAlertaCerrar">×</BotonBase>
                             </div>
                         )}
 
                         <div className="planesToggleWrap">
                             <div className="planesToggle">
-                                <button className={`planesToggleBtn ${!periodoAnual ? 'planesToggleBtnActivo' : ''}`}
-                                    onClick={() => setPeriodoAnual(false)}>Mensual</button>
-                                <button className={`planesToggleBtn ${periodoAnual ? 'planesToggleBtnActivo' : ''}`}
+                                <BotonBase variante="ghost" className={`planesToggleBtn ${!periodoAnual ? 'planesToggleBtnActivo' : ''}`}
+                                    onClick={() => setPeriodoAnual(false)}>Mensual</BotonBase>
+                                <BotonBase variante="ghost" className={`planesToggleBtn ${periodoAnual ? 'planesToggleBtnActivo' : ''}`}
                                     onClick={() => setPeriodoAnual(true)}>
                                     Anual<Badge>-17%</Badge>
-                                </button>
+                                </BotonBase>
                             </div>
                         </div>
 

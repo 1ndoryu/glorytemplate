@@ -13,6 +13,7 @@ import {Avatar} from './Avatar';
 import {Badge} from './Badge';
 import type {Sample, SampleResumen} from '@app/types';
 import '../../styles/componentes/modalInspector.css';
+import { BotonBase } from './BotonBase';
 
 /* Acepta tanto Sample completo como SampleResumen */
 type SampleInspectable = Sample | SampleResumen;
@@ -199,23 +200,23 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
 
                 {/* Sección: JSON Crudo del Sample (toggle) */}
                 <div className="inspectorSeccion">
-                    <button className="inspectorSeccionTitulo" onClick={() => setJsonVisible(!jsonVisible)} type="button">
+                    <BotonBase variante="ghost" className="inspectorSeccionTitulo" onClick={() => setJsonVisible(!jsonVisible)} type="button">
                         <Code size={14} /> JSON Crudo (Sample)
                         {jsonVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    </button>
+                    </BotonBase>
                     {jsonVisible && <pre className="inspectorJsonCrudo">{JSON.stringify(sample, null, 2)}</pre>}
                 </div>
 
                 {/* Sección: JSON Crudo de la IA (toggle separado) */}
                 <div className="inspectorSeccion">
-                    <button
+                    <BotonBase variante="ghost"
                         className="inspectorSeccionTitulo"
                         onClick={() => setJsonIaVisible(!jsonIaVisible)}
                         type="button"
                     >
                         <Code size={14} /> JSON Crudo (Metadata IA)
                         {jsonIaVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    </button>
+                    </BotonBase>
                     {jsonIaVisible && (
                         <pre className="inspectorJsonCrudo">
                             {metadata

@@ -9,6 +9,7 @@ import type { InsertMixer } from '../../types/mezclador';
 import { KnobControl } from '../KnobControl';
 import { FaderControl } from './FaderControl';
 import { PeakMeter } from './PeakMeter';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface InsertStripProps {
     insert: InsertMixer;
@@ -41,13 +42,13 @@ export const InsertStrip = ({
             style={{ borderTopColor: insert.color }}
         >
             {/* Nombre del insert */}
-            <button
+            <BotonBase variante="ghost"
                 className="insertStripNombre"
                 onClick={alClickNombre}
                 title={insert.nombre}
             >
                 {insert.id === 0 ? 'Mst' : insert.id}
-            </button>
+            </BotonBase>
 
             {/* Peak meter */}
             <PeakMeter
@@ -83,20 +84,20 @@ export const InsertStrip = ({
 
             {/* Mute / Solo */}
             <div className="insertStripBotones">
-                <button
+                <BotonBase variante="ghost"
                     className={`insertStripBoton ${insert.silenciado ? 'insertStripBotonActivo' : ''}`}
                     onClick={alMute}
                     title={insert.silenciado ? 'Unmute' : 'Mute'}
                 >
                     {insert.silenciado ? <VolumeX size={10} /> : 'M'}
-                </button>
-                <button
+                </BotonBase>
+                <BotonBase variante="ghost"
                     className={`insertStripBoton ${insert.solo ? 'insertStripBotonSolo' : ''}`}
                     onClick={alSolo}
                     title={insert.solo ? 'Unsolo' : 'Solo'}
                 >
                     S
-                </button>
+                </BotonBase>
             </div>
 
             {/* Label del nombre completo */}

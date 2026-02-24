@@ -5,6 +5,7 @@
 
 import { Settings, Music } from 'lucide-react';
 import { useVentanasStore } from '../stores/ventanasStore';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 export const BarraVentanasMinimizadas = (): JSX.Element | null => {
     const ventanas = useVentanasStore(s => s.ventanas);
@@ -16,7 +17,7 @@ export const BarraVentanasMinimizadas = (): JSX.Element | null => {
     return (
         <div className="barraVentanasMinimizadas">
             {minimizadas.map(v => (
-                <button
+                <BotonBase variante="ghost"
                     key={v.id}
                     className="ventanaMinimizadaIcono"
                     onClick={() => restaurar(v.id)}
@@ -24,7 +25,7 @@ export const BarraVentanasMinimizadas = (): JSX.Element | null => {
                 >
                     {v.tipo === 'configDaw' ? <Settings size={12} /> : <Music size={12} />}
                     <span className="ventanaMinimizadaLabel">{v.titulo}</span>
-                </button>
+                </BotonBase>
             ))}
         </div>
     );

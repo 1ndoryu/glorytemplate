@@ -8,6 +8,7 @@ import { useCallback, type ChangeEvent } from 'react';
 import { Music, X, Upload } from 'lucide-react';
 import { CampoTexto, BotonBase, Badge } from '@app/components/ui';
 import type { TipoSample } from '@app/types';
+import { SelectorBase } from '../SelectorBase';
 
 interface ArchivoSubida {
     archivo: File;
@@ -91,14 +92,14 @@ export const PasoMetadata = ({
                             {a.formato.toUpperCase()} — {a.tamano}
                         </div>
                     </div>
-                    <button
+                    <BotonBase variante="ghost"
                         className="subirPreviewEliminar"
                         onClick={() => onEliminarArchivo(i)}
                         type="button"
                         aria-label="Eliminar archivo"
                     >
                         <X size={16} />
-                    </button>
+                    </BotonBase>
                 </div>
             ))}
 
@@ -121,7 +122,7 @@ export const PasoMetadata = ({
             <div className="subirFilaTriple">
                 <div>
                     <span className="subirSelectLabel">Tipo</span>
-                    <select
+                    <SelectorBase
                         className="subirSelect"
                         value={metadata.tipo}
                         onChange={actualizarCampo('tipo')}
@@ -129,7 +130,7 @@ export const PasoMetadata = ({
                         {TIPOS.map((t) => (
                             <option key={t} value={t}>{t}</option>
                         ))}
-                    </select>
+                    </SelectorBase>
                 </div>
                 <CampoTexto
                     etiqueta="BPM"
@@ -140,7 +141,7 @@ export const PasoMetadata = ({
                 />
                 <div>
                     <span className="subirSelectLabel">Key</span>
-                    <select
+                    <SelectorBase
                         className="subirSelect"
                         value={metadata.key}
                         onChange={actualizarCampo('key')}
@@ -149,7 +150,7 @@ export const PasoMetadata = ({
                         {NOTAS.map((n) => (
                             <option key={n} value={n}>{n}</option>
                         ))}
-                    </select>
+                    </SelectorBase>
                 </div>
             </div>
 

@@ -118,7 +118,7 @@ export const useMenuContextualPublicacion = (
                             } else {
                                 toast.error(resp.error ?? 'Error al actualizar');
                             }
-                        });
+                        }).catch(() => toast.error('Error de red al actualizar'));
                     }
                 },
             });
@@ -145,7 +145,7 @@ export const useMenuContextualPublicacion = (
                         } else {
                             toast.error('Error al aprobar');
                         }
-                    });
+                    }).catch(() => toast.error('Error de red al aprobar'));
                 },
             });
         }
@@ -193,7 +193,7 @@ export const useMenuContextualPublicacion = (
                             } else {
                                 toast.error(resp.error ?? 'Error al reportar');
                             }
-                        });
+                        }).catch(() => toast.error('Error de red al reportar'));
                     }
                 },
             });

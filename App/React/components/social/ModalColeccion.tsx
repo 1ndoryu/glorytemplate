@@ -63,6 +63,7 @@ export const ModalColeccion = ({
                 />
 
                 <label className="modalColeccionPublica">
+                    {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
                     <input
                         type="checkbox"
                         checked={esPublica}

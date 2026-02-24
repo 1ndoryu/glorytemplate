@@ -6,6 +6,7 @@
 import { KnobControl } from '../KnobControl';
 import { SelectorPatron } from './SelectorPatron';
 import type { Patron } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface CabeceraChannelRackProps {
     patrones: Patron[];
@@ -63,13 +64,13 @@ export const CabeceraChannelRack = ({
 
                 {/* Loop toggle LED */}
                 {patronActual && (
-                    <button
+                    <BotonBase variante="ghost"
                         className={`channelRackLoopLed ${patronActual.loop ? 'channelRackLoopLedActivo' : ''}`}
                         onClick={() => onToggleLoop(patronActual.id)}
                         title={patronActual.loop ? 'Loop: ON' : 'Loop: OFF'}
                     >
                         Loop
-                    </button>
+                    </BotonBase>
                 )}
 
                 {/* Info de pasos */}

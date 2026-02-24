@@ -8,11 +8,9 @@
  * Se usa en ExploradorIsland para badges y menú contextual.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 export type EstadoSync = 'sincronizado' | 'no_sincronizar' | 'no_descargado';
 
-const esDesktop = (): boolean => !!(window as any).__KAMPLES_DESKTOP__;
+const esDesktop = (): boolean => !!window.__KAMPLES_DESKTOP__;
 
 /*
  * Obtiene el estado de sync de un sample por su ID.
@@ -20,7 +18,7 @@ const esDesktop = (): boolean => !!(window as any).__KAMPLES_DESKTOP__;
  */
 export function obtenerEstadoSyncSample(sampleId: number): EstadoSync | null {
     if (!esDesktop()) return null;
-    const sync = (window as any).__KAMPLES_SYNC__;
+    const sync = window.__KAMPLES_SYNC__;
     if (!sync?.obtenerEstadoSync) return null;
     return sync.obtenerEstadoSync(sampleId) as EstadoSync;
 }
@@ -31,7 +29,7 @@ export function obtenerEstadoSyncSample(sampleId: number): EstadoSync | null {
  * - no_sincronizar → reactivar (se descargará en la próxima sync)
  */
 export async function toggleSyncSample(sampleId: number, estadoActual: EstadoSync): Promise<boolean> {
-    const sync = (window as any).__KAMPLES_SYNC__;
+    const sync = window.__KAMPLES_SYNC__;
     if (!sync) return false;
 
     if (estadoActual === 'no_sincronizar') {
@@ -49,5 +47,3 @@ export async function toggleSyncSample(sampleId: number, estadoActual: EstadoSyn
 export function estaEnDesktop(): boolean {
     return esDesktop();
 }
-
-/* eslint-enable @typescript-eslint/no-explicit-any */

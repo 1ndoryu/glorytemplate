@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../stores';
 import '../styles/variables.css';
 import '../styles/bienvenida.css';
+import { BotonBase } from '../components/ui/BotonBase';
 
 interface PasoOnboarding {
     icono: string;
@@ -78,20 +79,20 @@ export const BienvenidaIsland = (): JSX.Element => {
                 </div>
 
                 <div className="onboardingAcciones">
-                    <button
+                    <BotonBase variante="ghost"
                         className="onboardingBotonSaltar"
                         onClick={saltar}
                         type="button"
                     >
                         Saltar
-                    </button>
-                    <button
+                    </BotonBase>
+                    <BotonBase variante="ghost"
                         className="onboardingBotonSiguiente"
                         onClick={avanzar}
                         type="button"
                     >
                         {esUltimoPaso ? 'Empezar' : 'Siguiente'}
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
         </div>

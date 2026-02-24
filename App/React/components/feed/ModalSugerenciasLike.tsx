@@ -14,6 +14,7 @@ import { useNavigationStore } from '@/core/router';
 import { darLike } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/modalSugerenciasLike.css';
+import { BotonBase } from '../ui/BotonBase';
 
 export const ModalSugerenciasLike = (): JSX.Element | null => {
     const abierto = useSugerenciasLikeStore(s => s.abierto);
@@ -42,14 +43,14 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
                             Basado en tu like a &ldquo;{sampleOrigen.titulo}&rdquo;
                         </p>
                     )}
-                    <button
+                    <BotonBase variante="ghost"
                         className="sugerenciasLikeCerrar"
                         onClick={cerrar}
                         type="button"
                         aria-label="Cerrar sugerencias"
                     >
                         <X size={16} />
-                    </button>
+                    </BotonBase>
                 </div>
 
                 <div className="sugerenciasLikeLista">

@@ -5,6 +5,7 @@
 
 import { type ReactNode } from 'react';
 import '../../styles/componentes/tabBar.css';
+import { BotonBase } from './BotonBase';
 
 export interface TabDefinicion {
     id: string;
@@ -29,7 +30,7 @@ export const TabBar = ({
     return (
         <div className={`contenedorTabBar ${className}`} role="tablist">
             {tabs.map((tab) => (
-                <button
+                <BotonBase variante="ghost"
                     key={tab.id}
                     className={`tabItem ${activa === tab.id ? 'tabActivo' : ''}`}
                     onClick={() => onChange(tab.id)}
@@ -42,7 +43,7 @@ export const TabBar = ({
                     {tab.contador !== undefined && (
                         <span className="tabContador">{tab.contador}</span>
                     )}
-                </button>
+                </BotonBase>
             ))}
         </div>
     );

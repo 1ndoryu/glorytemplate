@@ -10,6 +10,7 @@ import { X, MoreHorizontal, Copy } from 'lucide-react';
 import type { BloqueMezclador } from '../types/mezclador';
 import { ModalConfigBloque } from './ModalConfigBloque';
 import { useBloqueSample } from '../hooks/useBloqueSample';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface BloqueSampleProps {
     bloque: BloqueMezclador;
@@ -73,7 +74,7 @@ export const BloqueSample = ({
                 </span>
                 <div className="mezcladorBloqueBotones">
                     {/* C215: Botón de duplicar */}
-                    <button
+                    <BotonBase variante="ghost"
                         className="mezcladorBloqueBoton"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -82,9 +83,9 @@ export const BloqueSample = ({
                         title="Duplicar bloque"
                     >
                         <Copy size={11} />
-                    </button>
+                    </BotonBase>
                     {/* C215: Botón de 3 puntos — abre modal config */}
-                    <button
+                    <BotonBase variante="ghost"
                         className="mezcladorBloqueBoton"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -93,9 +94,9 @@ export const BloqueSample = ({
                         title="Configuración de audio"
                     >
                         <MoreHorizontal size={12} />
-                    </button>
+                    </BotonBase>
                     {/* Botón eliminar */}
-                    <button
+                    <BotonBase variante="ghost"
                         className="mezcladorBloqueBoton mezcladorBloqueEliminar"
                         onClick={(e) => {
                             e.stopPropagation();
@@ -104,7 +105,7 @@ export const BloqueSample = ({
                         title="Eliminar"
                     >
                         <X size={11} />
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
 

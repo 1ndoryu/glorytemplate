@@ -10,6 +10,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useDevToolsStore } from '@app/stores/devToolsStore';
 import type { TipoPlan, RolUsuario } from '@app/types';
 import '../../styles/componentes/devTools.css';
+import { BotonBase } from './BotonBase';
 
 interface OpcionModo {
     etiqueta: string;
@@ -56,7 +57,7 @@ export const BotonDevTools = (): JSX.Element | null => {
     return (
         <>
             {/* Botón flotante pequeño */}
-            <button
+            <BotonBase variante="ghost"
                 className="devToolsBoton"
                 onClick={togglePanel}
                 type="button"
@@ -65,16 +66,16 @@ export const BotonDevTools = (): JSX.Element | null => {
             >
                 {override ? <span className="devToolsPulso" /> : null}
                 <Settings size={14} />
-            </button>
+            </BotonBase>
 
             {/* Panel de opciones */}
             {panelVisible && (
                 <div className="devToolsPanel">
                     <div className="devToolsHeader">
                         <span>Cambiar Modo</span>
-                        <button onClick={togglePanel} type="button" className="devToolsCerrar">
+                        <BotonBase variante="ghost" onClick={togglePanel} type="button" className="devToolsCerrar">
                             <X size={12} />
-                        </button>
+                        </BotonBase>
                     </div>
 
                     <div className="devToolsOpciones">
@@ -86,7 +87,7 @@ export const BotonDevTools = (): JSX.Element | null => {
                                 : false;
 
                             return (
-                                <button
+                                <BotonBase variante="ghost"
                                     key={modo.etiqueta}
                                     className={`devToolsOpcion ${activo ? 'devToolsOpcionActiva' : ''}`}
                                     onClick={() => seleccionarModo(modo)}
@@ -94,19 +95,19 @@ export const BotonDevTools = (): JSX.Element | null => {
                                 >
                                     {modo.icono}
                                     <span>{modo.etiqueta}</span>
-                                </button>
+                                </BotonBase>
                             );
                         })}
                     </div>
 
                     {override && (
-                        <button
+                        <BotonBase variante="ghost"
                             className="devToolsReset"
                             onClick={limpiarOverride}
                             type="button"
                         >
                             Restaurar modo real
-                        </button>
+                        </BotonBase>
                     )}
 
                     <div className="devToolsInfo">

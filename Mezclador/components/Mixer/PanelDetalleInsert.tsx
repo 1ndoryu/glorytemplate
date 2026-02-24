@@ -7,6 +7,8 @@ import { useCallback } from 'react';
 import type { InsertMixer, BandaEQ } from '../../types/mezclador';
 import { EQVisualizer } from './EQVisualizer';
 import { SlotEfectoUI } from './SlotEfectoUI';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
 
 interface PanelDetalleInsertProps {
     insert: InsertMixer | null;
@@ -60,8 +62,7 @@ export const PanelDetalleInsert = ({
         <div className="panelDetalleInsert">
             {/* Cabecera con nombre editable y color */}
             <div className="panelDetalleInsertCabecera">
-                <input
-                    type="text"
+                <CampoTexto
                     className="panelDetalleInsertNombre"
                     value={insert.nombre}
                     onChange={(e) => onCambioNombre(insert.id, e.target.value)}
@@ -69,7 +70,7 @@ export const PanelDetalleInsert = ({
                 />
                 <div className="panelDetalleInsertColores">
                     {COLORES_INSERT.map((color) => (
-                        <button
+                        <BotonBase variante="ghost"
                             key={color}
                             className={`panelDetalleInsertColor ${insert.color === color ? 'panelDetalleInsertColorActivo' : ''}`}
                             style={{ backgroundColor: color }}

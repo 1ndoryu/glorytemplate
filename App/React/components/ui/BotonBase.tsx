@@ -17,7 +17,7 @@ interface BotonBaseProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     cargando?: boolean;
     soloIcono?: boolean;
     anchoCompleto?: boolean;
-    children: ReactNode;
+    children?: ReactNode;
 }
 
 const mapaVariante: Record<VarianteBoton, string> = {
@@ -56,6 +56,7 @@ export const BotonBase = ({
         .join(' ');
 
     return (
+        /* sentinel-disable-next-line html-nativo-en-vez-de-componente — Este ES el componente base */
         <button
             className={clases}
             disabled={disabled || cargando}

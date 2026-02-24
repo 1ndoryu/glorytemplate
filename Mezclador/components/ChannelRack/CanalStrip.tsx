@@ -8,6 +8,8 @@ import { Volume2, VolumeX } from 'lucide-react';
 import type { CanalRack } from '../../types/mezclador';
 import { KnobControl } from '../KnobControl';
 import { StepGrid } from './StepGrid';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
 
 interface CanalStripProps {
     canal: CanalRack;
@@ -49,7 +51,7 @@ export const CanalStrip = ({
     return (
         <div className={`canalStrip ${canal.silenciado ? 'canalStripSilenciado' : ''} ${canal.solo ? 'canalStripSolo' : ''}`}>
             {/* LED mute/solo: click izq = mute, click der = solo */}
-            <button
+            <BotonBase variante="ghost"
                 className={`canalLed ${canal.silenciado ? 'canalLedMute' : ''} ${canal.solo ? 'canalLedSolo' : ''}`}
                 onClick={toggleMute}
                 onContextMenu={toggleSolo}
@@ -57,7 +59,7 @@ export const CanalStrip = ({
                 style={{ borderColor: canal.color }}
             >
                 {canal.silenciado ? <VolumeX size={10} /> : <Volume2 size={10} />}
-            </button>
+            </BotonBase>
 
             {/* Knob pan */}
             <KnobControl
@@ -87,7 +89,7 @@ export const CanalStrip = ({
             />
 
             {/* Routing al mixer insert */}
-            <input
+            <CampoTexto
                 type="number"
                 className="canalRouting"
                 value={canal.mixerInsertId}
@@ -95,7 +97,7 @@ export const CanalStrip = ({
                 min={0}
                 max={16}
                 title={`Enviar al Insert ${canal.mixerInsertId}`}
-            />
+             />
 
             {/* Nombre del canal */}
             <div
@@ -107,13 +109,13 @@ export const CanalStrip = ({
             </div>
 
             {/* Botón eliminar canal */}
-            <button
+            <BotonBase variante="ghost"
                 className="canalStripEliminar"
                 onClick={() => onEliminarCanal(patronId, canal.id)}
                 title="Eliminar canal"
             >
                 ×
-            </button>
+            </BotonBase>
 
             {/* Step grid */}
             <StepGrid

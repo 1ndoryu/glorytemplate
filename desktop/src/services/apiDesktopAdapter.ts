@@ -22,11 +22,7 @@ import { obtenerToken } from './authDesktopService';
 const SERVIDOR_DEV = '/wp-json';
 const SERVIDOR_PROD = 'https://kamples.com/wp-json';
 
-function obtenerServidorUrl(): string {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const config = (window as any).__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-    if (config?.serverUrl) return config.serverUrl;
+function obtenerServidorUrl(): string {    const config = window.__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;    if (config?.serverUrl) return config.serverUrl;
 
     /* En dev, Vite proxy redirige /wp-json a glory.local */
     if (import.meta.env.DEV) return SERVIDOR_DEV;
@@ -41,18 +37,12 @@ export function configurarApiDesktop(): void {
     if (!esDesktop()) return;
 
     const token = obtenerToken();
-    const serverUrl = obtenerServidorUrl();
-
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    (window as any).GLORY_CONTEXT = {
+    const serverUrl = obtenerServidorUrl();    window.GLORY_CONTEXT = {
         apiUrl: serverUrl,
         restUrl: serverUrl,
         /* Nonce vacio: en desktop usamos JWT via Authorization header */
         nonce: '',
-    };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-
-    /* Configurar interceptor: si hay token, inyecta auth + proxy.
+    };    /* Configurar interceptor: si hay token, inyecta auth + proxy.
      * Si no hay token (primer uso), solo proxy de URLs. */
     if (token) {
         inyectarAuthHeader(token);

@@ -12,6 +12,8 @@ import { ComentarioAudio } from '@app/components/social/ComentarioAudio';
 import { useListaComentarios } from '@app/hooks/useListaComentarios';
 import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
+import { BotonBase } from '../ui/BotonBase';
+import { CampoTexto } from '../ui/CampoTexto';
 
 interface ListaComentariosProps {
     comentarios: Comentario[];
@@ -101,9 +103,9 @@ export const ListaComentarios = ({
             )}
 
             {hayMasLocales && (
-                <button className="comentariosVerMas" onClick={() => setMostrarTodos(true)} type="button">
+                <BotonBase variante="ghost" className="comentariosVerMas" onClick={() => setMostrarTodos(true)} type="button">
                     Ver {comentarios.length - maxVisibles} comentarios más
-                </button>
+                </BotonBase>
             )}
 
             {mostrarTodos && hayMasPaginas && (
@@ -124,9 +126,9 @@ export const ListaComentarios = ({
                                     <Mic size={12} /> {archivoAdjunto.name}
                                 </span>
                             )}
-                            <button className="comentarioPreviewCerrar" onClick={limpiarAdjunto} type="button" aria-label="Quitar archivo">
+                            <BotonBase variante="ghost" className="comentarioPreviewCerrar" onClick={limpiarAdjunto} type="button" aria-label="Quitar archivo">
                                 <X size={12} />
-                            </button>
+                            </BotonBase>
                         </div>
                     )}
                     <div className="comentarioNuevo">
@@ -134,25 +136,27 @@ export const ListaComentarios = ({
                         <div className="comentarioNuevoInput">
                             {onEnviarMultimedia && (
                                 <>
-                                    <button className="comentarioAdjuntarBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" title="Adjuntar imagen">
+                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" title="Adjuntar imagen">
                                         <Image size={14} />
-                                    </button>
-                                    <button className="comentarioAdjuntarBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" title="Adjuntar audio">
+                                    </BotonBase>
+                                    <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" title="Adjuntar audio">
                                         <Mic size={14} />
-                                    </button>
+                                    </BotonBase>
+                                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                                     <input ref={inputImagenRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="comentarioInputOculto"
                                         onChange={e => { const f = e.target.files?.[0]; if (f) manejarArchivoSeleccionado(f, 'imagen'); e.target.value = ''; }} />
+                                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                                     <input ref={inputAudioRef} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/webm,audio/flac,.mp3,.wav,.ogg,.m4a,.aac,.webm,.flac" className="comentarioInputOculto"
                                         onChange={e => { const f = e.target.files?.[0]; if (f) manejarArchivoSeleccionado(f, 'audio'); e.target.value = ''; }} />
                                 </>
                             )}
-                            <input ref={inputRef} type="text"
+                            <CampoTexto ref={inputRef} 
                                 placeholder={archivoAdjunto ? 'Escribe un caption (opcional)...' : 'Escribe un comentario...'}
                                 value={textoNuevo} onChange={e => setTextoNuevo(e.target.value)}
                                 onKeyDown={manejarKeyDown} maxLength={300} />
-                            <button className="comentarioEnviarBtn" onClick={manejarEnviar} type="button" disabled={!puedeEnviar} aria-label="Enviar comentario">
+                            <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={manejarEnviar} type="button" disabled={!puedeEnviar} aria-label="Enviar comentario">
                                 <Send size={14} />
-                            </button>
+                            </BotonBase>
                         </div>
                     </div>
                 </div>

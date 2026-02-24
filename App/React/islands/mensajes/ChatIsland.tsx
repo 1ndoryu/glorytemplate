@@ -10,6 +10,8 @@ import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatIsland } from '@app/hooks/useChatIsland';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import '../../styles/componentes/chat.css';
+import { BotonBase } from '../../components/ui/BotonBase';
+import { CampoTexto } from '../../components/ui/CampoTexto';
 
 interface ChatIslandProps {
     conversacionId?: string;
@@ -26,10 +28,10 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
     return (
         <div className="chatIsland" id="chatIsland">
             <div className="chatHeader">
-                <button className="chatVolver" onClick={() => navegar('/mensajes/')}
+                <BotonBase variante="ghost" className="chatVolver" onClick={() => navegar('/mensajes/')}
                     type="button" aria-label="Volver a mensajes">
                     <ArrowLeft size={20} />
-                </button>
+                </BotonBase>
                 {conversacion && (
                     <div className="chatHeaderInfo">
                         <Avatar nombre={conversacion.participante.nombreVisible}
@@ -64,21 +66,22 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
             </div>
 
             <div className="chatInputArea">
+                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                 <input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />
-                <button className="chatAdjuntarBtn" onClick={() => archivoRef.current?.click()}
+                <BotonBase variante="ghost" className="chatAdjuntarBtn" onClick={() => archivoRef.current?.click()}
                     type="button" aria-label="Adjuntar archivo" disabled={enviando}>
                     <Paperclip size={18} />
-                </button>
-                <textarea ref={inputRef} className="chatInput" placeholder="Escribe un mensaje..."
+                </BotonBase>
+                <CampoTexto multilínea ref={inputRef} className="chatInput" placeholder="Escribe un mensaje..."
                     value={textoMensaje} onChange={e => setTextoMensaje(e.target.value)}
                     onKeyDown={manejarKeyDown} rows={1} disabled={enviando} />
-                <button className={`chatEnviarBtn ${textoMensaje.trim() ? 'chatEnviarBtnActivo' : ''}`}
+                <BotonBase variante="ghost" className={`chatEnviarBtn ${textoMensaje.trim() ? 'chatEnviarBtnActivo' : ''}`}
                     onClick={manejarEnviar} disabled={!textoMensaje.trim() || enviando}
                     type="button" aria-label="Enviar mensaje">
                     <Send size={18} />
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

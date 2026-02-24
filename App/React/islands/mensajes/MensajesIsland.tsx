@@ -12,6 +12,7 @@ import { InputBusqueda } from '@app/components/ui/InputBusqueda';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useMensajesIsland } from '@app/hooks/useMensajesIsland';
 import '../../styles/componentes/mensajes.css';
+import { BotonBase } from '../../components/ui/BotonBase';
 
 /* Formatear tiempo relativo */
 const formatearTiempo = (fecha: string): string => {
@@ -67,7 +68,7 @@ const MensajesIslandBase = (): JSX.Element => {
             ) : (
                 <div className="mensajesLista">
                     {filtradas.map((conv) => (
-                        <button
+                        <BotonBase variante="ghost"
                             key={conv.id}
                             className={`mensajesItem ${conv.noLeidos > 0 ? 'mensajesItemNoLeido' : ''}`}
                             onClick={() => abrirConversacion(conv)}
@@ -104,7 +105,7 @@ const MensajesIslandBase = (): JSX.Element => {
                                     )}
                                 </div>
                             </div>
-                        </button>
+                        </BotonBase>
                     ))}
                 </div>
             )}

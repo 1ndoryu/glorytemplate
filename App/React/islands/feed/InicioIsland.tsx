@@ -131,7 +131,7 @@ const FeedUnificado = (): JSX.Element => {
 
                 <div className="inicioControlesDerecha">
                     <div className="inicioOrdenWrapper">
-                        <button
+                        <BotonBase variante="ghost"
                             className="inicioOrdenBtn inicioOrdenBtnActivo"
                             onClick={() => setMenuOrdenamiento((prev) => !prev)}
                             type="button"
@@ -139,50 +139,50 @@ const FeedUnificado = (): JSX.Element => {
                             <ArrowDownWideNarrow size={14} />
                             {obtenerEtiquetaOrden()}
                             <ChevronDown size={12} />
-                        </button>
+                        </BotonBase>
 
                         {menuOrdenamiento && (
                             <div className="inicioOrdenamientoMenu">
-                                <button
+                                <BotonBase variante="ghost"
                                     className={ordenamiento === 'inteligente' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('inteligente'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
                                     Inteligente
-                                </button>
-                                <button
+                                </BotonBase>
+                                <BotonBase variante="ghost"
                                     className={ordenamiento === 'recientes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('recientes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
                                     Recientes
-                                </button>
-                                <button
+                                </BotonBase>
+                                <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'semana' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('semana'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
                                     Top Semanal
-                                </button>
-                                <button
+                                </BotonBase>
+                                <BotonBase variante="ghost"
                                     className={ordenamiento === 'destacados' && periodoDestacados === 'mes' ? 'inicioOrdenamientoActivo' : ''}
                                     onClick={() => { setOrdenamiento('destacados'); setPeriodoDestacados('mes'); setMenuOrdenamiento(false); }}
                                     type="button"
                                 >
                                     Top Mensual
-                                </button>
+                                </BotonBase>
                             </div>
                         )}
                     </div>
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="inicioFiltrosBtn"
                         onClick={() => setFiltrosAbierto(true)}
                         type="button"
                         aria-label="Filtros"
                     >
                         <SlidersHorizontal size={16} />
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
 

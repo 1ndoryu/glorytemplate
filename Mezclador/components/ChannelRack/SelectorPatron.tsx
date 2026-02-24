@@ -6,6 +6,7 @@
 import { useCallback, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import type { Patron } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface SelectorPatronProps {
     patrones: Patron[];
@@ -57,25 +58,28 @@ export const SelectorPatron = ({
 
     return (
         <div className="selectorPatron">
-            <button
+            <BotonBase variante="ghost"
                 className="selectorPatronFlecha"
                 onClick={irAnterior}
                 disabled={indiceActual <= 0}
                 title="Patrón anterior"
             >
                 <ChevronLeft size={14} />
-            </button>
+            </BotonBase>
 
             {editando ? (
-                <input
-                    className="selectorPatronInput"
-                    defaultValue={patronActual?.nombre ?? ''}
-                    autoFocus
-                    onKeyDown={finalizarEdicion}
-                    onBlur={() => setEditando(false)}
-                />
+                <>
+                    {/* sentinel-disable-next-line html-nativo: input inline de renombrado, CampoTexto romperia layout */}
+                    <input
+                        className="selectorPatronInput"
+                        defaultValue={patronActual?.nombre ?? ''}
+                        autoFocus
+                        onKeyDown={finalizarEdicion}
+                        onBlur={() => setEditando(false)}
+                    />
+                </>
             ) : (
-                <button
+                <BotonBase variante="ghost"
                     className="selectorPatronNombre"
                     onClick={() => setListaAbierta(!listaAbierta)}
                     onDoubleClick={() => setEditando(true)}
@@ -83,25 +87,25 @@ export const SelectorPatron = ({
                     title="Click: lista | Doble-click: renombrar"
                 >
                     {patronActual?.nombre ?? 'Sin patrón'}
-                </button>
+                </BotonBase>
             )}
 
-            <button
+            <BotonBase variante="ghost"
                 className="selectorPatronFlecha"
                 onClick={irSiguiente}
                 disabled={indiceActual >= patrones.length - 1}
                 title="Patrón siguiente"
             >
                 <ChevronRight size={14} />
-            </button>
+            </BotonBase>
 
-            <button
+            <BotonBase variante="ghost"
                 className="selectorPatronBoton"
                 onClick={onCrear}
                 title="Crear nuevo patrón"
             >
                 <Plus size={12} />
-            </button>
+            </BotonBase>
 
             {/* Lista desplegable */}
             {listaAbierta && (
@@ -111,29 +115,29 @@ export const SelectorPatron = ({
                             key={p.id}
                             className={`selectorPatronItem ${p.id === patronActivo ? 'selectorPatronItemActivo' : ''}`}
                         >
-                            <button
+                            <BotonBase variante="ghost"
                                 className="selectorPatronItemNombre"
                                 onClick={() => { onSeleccionar(p.id); setListaAbierta(false); }}
                                 style={{ color: p.color }}
                             >
                                 {p.nombre}
-                            </button>
+                            </BotonBase>
                             {patrones.length > 1 && (
-                                <button
+                                <BotonBase variante="ghost"
                                     className="selectorPatronItemEliminar"
                                     onClick={() => onEliminar(p.id)}
                                     title="Eliminar patrón"
                                 >
                                     <Trash2 size={10} />
-                                </button>
+                                </BotonBase>
                             )}
-                            <button
+                            <BotonBase variante="ghost"
                                 className="selectorPatronItemDuplicar"
                                 onClick={() => { onDuplicar(p.id); setListaAbierta(false); }}
                                 title="Duplicar patrón"
                             >
                                 ⧉
-                            </button>
+                            </BotonBase>
                         </div>
                     ))}
                 </div>

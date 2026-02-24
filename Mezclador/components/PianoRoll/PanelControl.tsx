@@ -7,6 +7,7 @@ import { memo } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { TipoControl } from '../../types/pianoRoll';
 import { usePanelControl } from '../../hooks/usePanelControl';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 const TABS_CONTROL: { tipo: TipoControl; label: string }[] = [
     { tipo: 'velocity', label: 'Velocity' },
@@ -32,7 +33,7 @@ export const PanelControl = memo((): JSX.Element | null => {
         >
             {/* Cabecera: toggle + tabs */}
             <div className="pianoRollPanelControlCabecera">
-                <button
+                <BotonBase variante="ghost"
                     className="pianoRollPanelControlToggle"
                     onClick={toggleControlAbierto}
                     title={controlAbierto ? 'Ocultar' : 'Mostrar'}
@@ -41,10 +42,10 @@ export const PanelControl = memo((): JSX.Element | null => {
                         ? <ChevronDown size={12} />
                         : <ChevronRight size={12} />
                     }
-                </button>
+                </BotonBase>
 
                 {TABS_CONTROL.map(({ tipo, label }) => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={tipo}
                         className={`pianoRollPanelControlTab ${
                             controlActivo === tipo ? 'pianoRollPanelControlTabActivo' : ''
@@ -52,7 +53,7 @@ export const PanelControl = memo((): JSX.Element | null => {
                         onClick={() => setControlActivo(tipo)}
                     >
                         {label}
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 

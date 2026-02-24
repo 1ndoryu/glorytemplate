@@ -8,6 +8,7 @@
 import {Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Shuffle, Heart, Music} from 'lucide-react';
 import {useReproductorGlobal} from '../../hooks/useReproductorGlobal';
 import '../../styles/componentes/reproductorGlobal.css';
+import { BotonBase } from './BotonBase';
 
 export const ReproductorGlobal = (): JSX.Element | null => {
     const {
@@ -45,29 +46,29 @@ export const ReproductorGlobal = (): JSX.Element | null => {
                     <span className="reproductorTitulo">{sampleActual.titulo}</span>
                     <span className="reproductorArtista">{sampleActual.creador.nombreVisible || sampleActual.creador.username}</span>
                 </div>
-                <button className={`reproductorControlBtn ${sampleActual.liked ? 'reproductorControlBtnActivo' : ''}`} type="button" aria-label="Like">
+                <BotonBase variante="ghost" className={`reproductorControlBtn ${sampleActual.liked ? 'reproductorControlBtnActivo' : ''}`} type="button" aria-label="Like">
                     <Heart size={16} fill={sampleActual.liked ? 'currentColor' : 'none'} />
-                </button>
+                </BotonBase>
             </div>
 
             {/* Centro: controles + progreso */}
             <div className="reproductorCentro">
                 <div className="reproductorControles">
-                    <button className={`reproductorControlBtn ${aleatorio ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
+                    <BotonBase variante="ghost" className={`reproductorControlBtn ${aleatorio ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
                         <Shuffle size={14} />
-                    </button>
-                    <button className="reproductorControlBtn" onClick={anterior} type="button" aria-label="Anterior">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={anterior} type="button" aria-label="Anterior">
                         <SkipBack size={16} />
-                    </button>
-                    <button className="reproductorPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="reproductorPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
                         {reproduciendo ? <Pause size={18} /> : <Play size={18} />}
-                    </button>
-                    <button className="reproductorControlBtn" onClick={siguiente} type="button" aria-label="Siguiente">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={siguiente} type="button" aria-label="Siguiente">
                         <SkipForward size={16} />
-                    </button>
-                    <button className={`reproductorControlBtn ${repetir ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
+                    </BotonBase>
+                    <BotonBase variante="ghost" className={`reproductorControlBtn ${repetir ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
                         <Repeat size={14} />
-                    </button>
+                    </BotonBase>
                 </div>
 
                 <div className="reproductorProgreso">
@@ -82,9 +83,9 @@ export const ReproductorGlobal = (): JSX.Element | null => {
             {/* Derecha: volumen */}
             <div className="reproductorDerecha">
                 <div className="reproductorVolumen">
-                    <button className="reproductorControlBtn" onClick={toggleMute} type="button" aria-label={muted ? 'Activar sonido' : 'Silenciar'}>
+                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={toggleMute} type="button" aria-label={muted ? 'Activar sonido' : 'Silenciar'}>
                         {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </button>
+                    </BotonBase>
                     <div ref={volumenBarraRef} className="reproductorVolumenBarra" onClick={manejarSeekVolumen} role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volumen * 100)} aria-label="Volumen">
                         <div className="reproductorVolumenRelleno" style={{width: `${(muted ? 0 : volumen) * 100}%`}} />
                     </div>

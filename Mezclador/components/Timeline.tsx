@@ -11,6 +11,7 @@ import { CursorReproduccion } from './CursorReproduccion';
 import { MinimapaDaw } from './MinimapaDaw';
 import { PistaTimeline } from './PistaTimeline';
 import { useMezcladorStore } from '../stores/mezcladorStore';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface TimelineProps {
     timelineRef: React.RefObject<HTMLDivElement>;
@@ -95,10 +96,10 @@ export const Timeline = ({
                         ))}
 
                         {/* Botón añadir pista */}
-                        <button className="mezcladorAgregarPista" onClick={agregarPista}>
+                        <BotonBase variante="ghost" className="mezcladorAgregarPista" onClick={agregarPista}>
                             <Plus size={14} />
                             <span>Añadir pista</span>
-                        </button>
+                        </BotonBase>
                     </div>
 
                     {/* Cursor de reproducción (se superpone a todas las pistas) */}

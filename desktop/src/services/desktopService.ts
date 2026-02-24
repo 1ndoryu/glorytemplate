@@ -34,11 +34,7 @@ export async function inicializarDesktop(): Promise<void> {
 /*
  * Detecta si estamos corriendo en Tauri (desktop) o en el navegador (web).
  */
-export function esDesktop(): boolean {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    return !!(window as any).__TAURI_INTERNALS__;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-}
+export function esDesktop(): boolean {    return !!window.__TAURI_INTERNALS__;}
 
 /*
  * Detecta si estamos online (conectados al servidor).

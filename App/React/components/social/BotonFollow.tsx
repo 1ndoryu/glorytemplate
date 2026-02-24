@@ -6,6 +6,7 @@
 import { UserPlus, UserCheck } from 'lucide-react';
 import { useBotonFollow } from '@app/hooks/useBotonFollow';
 import '../../styles/componentes/botonFollow.css';
+import { BotonBase } from '../ui/BotonBase';
 
 interface BotonFollowProps {
     usuarioId: number;
@@ -25,7 +26,7 @@ export const BotonFollow = ({
     });
 
     return (
-        <button
+        <BotonBase variante="ghost"
             className={clases}
             onClick={manejarClick}
             disabled={cargando}
@@ -34,7 +35,7 @@ export const BotonFollow = ({
         >
             {siguiendo ? <UserCheck size={tamano === 'sm' ? 12 : 14} /> : <UserPlus size={tamano === 'sm' ? 12 : 14} />}
             <span>{siguiendo ? 'Siguiendo' : 'Seguir'}</span>
-        </button>
+        </BotonBase>
     );
 };
 

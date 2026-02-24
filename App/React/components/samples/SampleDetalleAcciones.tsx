@@ -8,6 +8,7 @@ import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useComentarios } from '@app/hooks/useComentarios';
 import type { TipoReaccion, SampleResumen } from '@app/types';
+import { BotonBase } from '../ui/BotonBase';
 
 type RetornoComentarios = ReturnType<typeof useComentarios>;
 
@@ -45,7 +46,7 @@ export function SampleDetalleAcciones({
                     onReaccionar={onReaccionar}
                     onQuitar={onQuitarReaccion}
                 >
-                    <button
+                    <BotonBase variante="ghost"
                         className={`detalleAccionPlano ${liked ? 'detalleAccionPlanoActivo' : ''} ${
                             reaccionActual === 'encanta' ? 'reaccionPrincipalEncanta' :
                             reaccionActual === 'dislike' ? 'reaccionPrincipalDislike' : ''
@@ -55,47 +56,47 @@ export function SampleDetalleAcciones({
                         aria-label={liked ? 'Quitar like' : 'Dar like'}
                     >
                         <Heart size={18} fill={liked ? 'currentColor' : 'none'} />
-                    </button>
+                    </BotonBase>
                 </TooltipReacciones>
 
-                <button
+                <BotonBase variante="ghost"
                     className="detalleAccionPlano"
                     onClick={onToggleComentarios}
                     type="button"
                     aria-label="Comentarios"
                 >
                     <MessageCircle size={18} />
-                </button>
+                </BotonBase>
 
-                <button
+                <BotonBase variante="ghost"
                     className={`detalleAccionPlano ${descargado ? 'detalleAccionPlanoDescargado' : ''}`}
                     onClick={onDescargar}
                     type="button"
                     aria-label="Descargar sample"
                 >
                     <Download size={18} />
-                </button>
+                </BotonBase>
 
                 {esPremiumBloqueado && (
-                    <button
+                    <BotonBase variante="ghost"
                         className="detalleAccionPlano detalleAccionPlanoActivo"
                         onClick={onAbrirPlanes}
                         type="button"
                         aria-label="Requiere plan Pro"
                     >
                         <Lock size={18} />
-                    </button>
+                    </BotonBase>
                 )}
 
                 {/* C127: Menú de 3 puntos para el sample principal */}
-                <button
+                <BotonBase variante="ghost"
                     className="detalleAccionPlano"
                     onClick={(e) => onAbrirMenu(e as React.MouseEvent, sample)}
                     type="button"
                     aria-label="Más opciones"
                 >
                     <MoreHorizontal size={18} />
-                </button>
+                </BotonBase>
             </div>
 
             {/* Sección de comentarios — expandidos por defecto (C128) */}

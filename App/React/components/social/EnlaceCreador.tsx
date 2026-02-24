@@ -2,6 +2,7 @@ import Avatar from '@app/components/ui/Avatar';
 import Badge from '@app/components/ui/Badge';
 import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/enlaceCreador.css';
+import { BotonBase } from '../ui/BotonBase';
 
 /*
  * EnlaceCreador — Boton clickeable de avatar + nombre que navega al perfil.
@@ -38,7 +39,7 @@ export default function EnlaceCreador({
     const tieneMeta = mostrarUsername || meta || verificado;
 
     return (
-        <button
+        <BotonBase variante="ghost"
             className={`enlaceCreador ${className}`}
             onClick={() => navegar(`/perfil/${username}/`)}
             type="button"
@@ -65,6 +66,6 @@ export default function EnlaceCreador({
             ) : (
                 <span className="enlaceCreadorNombre">{nombreVisible}</span>
             )}
-        </button>
+        </BotonBase>
     );
 }

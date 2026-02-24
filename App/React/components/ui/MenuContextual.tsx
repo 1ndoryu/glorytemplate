@@ -7,6 +7,7 @@
 import { type ReactNode, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import '../../styles/componentes/menuContextual.css';
+import { BotonBase } from './BotonBase';
 
 export interface MenuItemDef {
     id: string;
@@ -93,7 +94,7 @@ export const MenuContextual = ({
                                 {item.etiqueta}
                             </a>
                         ) : (
-                            <button
+                            <BotonBase variante="ghost"
                                 className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
                                 onClick={() => {
                                     item.onClick();
@@ -106,7 +107,7 @@ export const MenuContextual = ({
                                     <span className="menuContextualItemIcono">{item.icono}</span>
                                 )}
                                 {item.etiqueta}
-                            </button>
+                            </BotonBase>
                         )}
                         {/* Separador eliminado por C102 */}
                     </div>

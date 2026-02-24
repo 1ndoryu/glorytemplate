@@ -7,30 +7,14 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { obtenerColeccionados, obtenerCarpetas, moverSampleACarpeta } from '@app/services/apiExplorador';
-import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { CarpetaInfo } from '@app/services/apiExplorador';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { obtenerCarpetaPrimaria, obtenerCarpetaSecundaria, recalcularCarpetas } from './utils/exploradorPaginaUtils';
+import { useLikeExplorador } from './useLikeExplorador';
 
 const log = crearLogger('useExploradorPagina');
-
-/* Carpeta por defecto cuando el sample no tiene carpeta_primaria en metadata */
-const CARPETA_DEFAULT = 'Samples';
-
-/* Extrae carpeta_primaria del metadata de un sample (soporta snake_case y camelCase) */
-function obtenerCarpetaPrimaria(sample: SampleResumen): string {
-    return sample.metadata?.carpeta_primaria
-        ?? sample.metadata?.carpetaPrimaria
-        ?? CARPETA_DEFAULT;
-}
-
-/* Extrae carpeta_secundaria del metadata de un sample */
-function obtenerCarpetaSecundaria(sample: SampleResumen): string {
-    return sample.metadata?.carpeta_secundaria
-        ?? sample.metadata?.carpetaSecundaria
-        ?? '';
-}
 
 export interface UseExploradorPaginaResultado {
     carpetas: CarpetaInfo[];
@@ -149,70 +133,8 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         });
     }, []);
 
-    /* Like optimista sincronizado con la lista completa */
-    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sample = todosSamples.find((s) => s.id === sampleId);
-        const prevSamples = todosSamples;
-        if (reaccion) {
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setTodosSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s
-                )
-            );
-            try {
-                const resp = await darLike('sample', sampleId, reaccion);
-                if (!resp.ok) {
-                    setTodosSamples(prevSamples);
-                    toast.error('Error al procesar la reacción');
-                }
-            } catch (err) {
-                setTodosSamples(prevSamples);
-                log.error('Error al dar like', err);
-            }
-        } else if (sample?.liked || sample?.reaccion) {
-            const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-            setTodosSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : s
-                )
-            );
-            try {
-                const resp = await quitarLike('sample', sampleId);
-                if (!resp.ok) {
-                    setTodosSamples(prevSamples);
-                    toast.error('Error al quitar la reacción');
-                }
-            } catch (err) {
-                setTodosSamples(prevSamples);
-                log.error('Error al quitar like', err);
-            }
-        } else {
-            setTodosSamples((prev) =>
-                prev.map((s) =>
-                    s.id === sampleId
-                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                        : s
-                )
-            );
-            try {
-                const resp = await darLike('sample', sampleId, 'like');
-                if (!resp.ok) {
-                    setTodosSamples(prevSamples);
-                    toast.error('Error al procesar la reacción');
-                }
-            } catch (err) {
-                setTodosSamples(prevSamples);
-                log.error('Error al dar like', err);
-            }
-        }
-    }, [todosSamples]);
+    /* Like optimista — lógica delegada a useLikeExplorador */
+    const manejarLike = useLikeExplorador(todosSamples, setTodosSamples);
 
     /*
      * C338: Mover sample a otra carpeta.
@@ -243,30 +165,6 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                     : s
             )
         );
-
-        /* Recalcular carpetas localmente */
-        const recalcularCarpetas = (samples: SampleResumen[]): CarpetaInfo[] => {
-            const mapa = new Map<string, Map<string, number>>();
-            for (const s of samples) {
-                const pri = obtenerCarpetaPrimaria(s);
-                const sec = obtenerCarpetaSecundaria(s);
-                if (!mapa.has(pri)) mapa.set(pri, new Map());
-                const subMapa = mapa.get(pri)!;
-                subMapa.set(sec, (subMapa.get(sec) ?? 0) + 1);
-            }
-            const resultado: CarpetaInfo[] = [];
-            for (const [primaria, subMapa] of mapa) {
-                let total = 0;
-                const subcarpetas: { nombre: string; total: number }[] = [];
-                for (const [nombre, cnt] of subMapa) {
-                    total += cnt;
-                    if (nombre) subcarpetas.push({ nombre, total: cnt });
-                }
-                resultado.push({ primaria, total, subcarpetas });
-            }
-            resultado.sort((a, b) => a.primaria.localeCompare(b.primaria));
-            return resultado;
-        };
 
         /* Aplicar a samples modificados optimisticamente */
         const samplesModificados = prevSamples.map(s =>

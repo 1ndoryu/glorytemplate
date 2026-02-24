@@ -8,6 +8,8 @@ import { Check, Loader, Plus, Search, X } from 'lucide-react';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useModalSeleccionColeccion } from '@app/hooks/useModalSeleccionColeccion';
 import '../../styles/componentes/modalSeleccionColeccion.css';
+import { BotonBase } from '../ui/BotonBase';
+import { CampoTexto } from '../ui/CampoTexto';
 
 export const ModalSeleccionColeccion = (): JSX.Element | null => {
     const {
@@ -34,7 +36,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
             <div className="seleccionColeccionPanel" style={estiloPanel} onClick={e => e.stopPropagation()}>
                 <div className="seleccionColeccionBuscador">
                     <Search size={14} className="seleccionColeccionBuscadorIcono" />
-                    <input type="text" value={busqueda} onChange={e => setBusqueda(e.target.value)}
+                    <CampoTexto  value={busqueda} onChange={e => setBusqueda(e.target.value)}
                         placeholder="Buscar o crear colección..." className="seleccionColeccionInput"
                         maxLength={100} autoFocus
                         onKeyDown={e => {
@@ -42,9 +44,9 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                             if (e.key === 'Escape') cerrar();
                         }} />
                     {busqueda && (
-                        <button className="seleccionColeccionLimpiar" onClick={() => setBusqueda('')} type="button">
+                        <BotonBase variante="ghost" className="seleccionColeccionLimpiar" onClick={() => setBusqueda('')} type="button">
                             <X size={12} />
-                        </button>
+                        </BotonBase>
                     )}
                 </div>
 
@@ -58,7 +60,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                             const yaGuardado = yaGuardadoEn.has(col.id) || agregados.has(col.id);
                             const agregandoEste = agregando === col.id;
                             return (
-                                <button key={col.id}
+                                <BotonBase variante="ghost" key={col.id}
                                     className={`seleccionColeccionItem ${yaGuardado ? 'seleccionColeccionItemGuardado' : ''}`}
                                     onClick={() => !yaGuardado && manejarAgregar(col.id)}
                                     disabled={yaGuardado || agregandoEste} type="button">
@@ -67,7 +69,7 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                                     <span className="seleccionColeccionItemNombre">{col.nombre}</span>
                                     {yaGuardado && <span className="seleccionColeccionYaGuardado"><Check size={12} /></span>}
                                     {agregandoEste && <Loader size={14} className="seleccionColeccionSpinner" />}
-                                </button>
+                                </BotonBase>
                             );
                         })}
                         {colecciones.length === 0 && !cargando && (
@@ -79,11 +81,11 @@ export const ModalSeleccionColeccion = (): JSX.Element | null => {
                 )}
 
                 {busqueda.trim() && !existeConNombre && (
-                    <button className="seleccionColeccionCrearBtn" onClick={manejarCrear}
+                    <BotonBase variante="ghost" className="seleccionColeccionCrearBtn" onClick={manejarCrear}
                         disabled={agregando === -1} type="button">
                         <Plus size={14} /><span>Crear "{busqueda.trim()}"</span>
                         {agregando === -1 && <Loader size={12} className="seleccionColeccionSpinner" />}
-                    </button>
+                    </BotonBase>
                 )}
 
                 {busqueda.trim() && existeConNombre && (

@@ -5,6 +5,7 @@
 
 import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface Props {
     children: ReactNode;
@@ -38,9 +39,9 @@ export class ErrorBoundaryMezclador extends Component<Props, State> {
                     <p className="mezcladorErrorDetalle">
                         {this.state.error?.message ?? 'Error desconocido'}
                     </p>
-                    <button className="mezcladorErrorBoton" onClick={this.reiniciar}>
+                    <BotonBase variante="ghost" className="mezcladorErrorBoton" onClick={this.reiniciar}>
                         Reiniciar mezclador
-                    </button>
+                    </BotonBase>
                 </div>
             );
         }

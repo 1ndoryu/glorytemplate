@@ -10,6 +10,7 @@ import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import '../../styles/componentes/tarjetaColeccion.css';
+import { BotonBase } from '../ui/BotonBase';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
@@ -70,31 +71,31 @@ export const TarjetaColeccion = ({
                 <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
                 {/* C161: Botón 3 puntos siempre visible — copiar enlace + acciones propietario */}
                 <div className="tarjetaColeccionMenuContenedor" ref={menuRef}>
-                    <button
+                    <BotonBase variante="ghost"
                         className="tarjetaColeccionMenuBtn"
                         onClick={toggleMenu}
                         type="button"
                         aria-label="Opciones de colección"
                     >
                         <MoreVertical size={16} />
-                    </button>
+                    </BotonBase>
                     {menuAbierto && (
                         <div className="tarjetaColeccionMenu">
-                            <button className="tarjetaColeccionMenuItem" onClick={manejarCopiarEnlace} type="button">
+                            <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarCopiarEnlace} type="button">
                                 <Link2 size={14} />
                                 <span>Copiar enlace</span>
-                            </button>
+                            </BotonBase>
                             {onEditar && (
-                                <button className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
+                                <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
                                     <Edit3 size={14} />
                                     <span>Editar</span>
-                                </button>
+                                </BotonBase>
                             )}
                             {onEliminar && (
-                                <button className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
+                                <BotonBase variante="ghost" className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
                                     <Trash2 size={14} />
                                     <span>Eliminar</span>
-                                </button>
+                                </BotonBase>
                             )}
                         </div>
                     )}

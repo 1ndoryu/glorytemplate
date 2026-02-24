@@ -8,6 +8,7 @@
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { useToastStore, type Toast } from '@app/stores/toastStore';
 import '../../styles/componentes/toast.css';
+import { BotonBase } from './BotonBase';
 
 const ICONOS_TIPO = {
     info: Info,
@@ -34,28 +35,28 @@ const ItemToast = ({ toast: t }: { toast: Toast }): JSX.Element => {
                 <Icono size={18} className="toastIcono" />
                 <span className="toastMensaje">{t.mensaje}</span>
                 {t.tipo !== 'confirmacion' && (
-                    <button
+                    <BotonBase variante="ghost"
                         className="toastCerrar"
                         onClick={() => quitar(t.id)}
                         type="button"
                         aria-label="Cerrar notificación"
                     >
                         <X size={14} />
-                    </button>
+                    </BotonBase>
                 )}
             </div>
 
             {t.acciones && t.acciones.length > 0 && (
                 <div className="toastAcciones">
                     {t.acciones.map((accion) => (
-                        <button
+                        <BotonBase variante="ghost"
                             key={accion.etiqueta}
                             className={`toastAccionBtn toastAccionBtn${(accion.variante ?? 'neutro').charAt(0).toUpperCase() + (accion.variante ?? 'neutro').slice(1)}`}
                             onClick={() => manejarAccion(accion.onClick)}
                             type="button"
                         >
                             {accion.etiqueta}
-                        </button>
+                        </BotonBase>
                     ))}
                 </div>
             )}

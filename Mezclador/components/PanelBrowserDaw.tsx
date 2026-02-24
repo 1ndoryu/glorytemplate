@@ -7,6 +7,7 @@
 import { ChevronRight, ChevronDown, FolderOpen, FolderClosed, Music } from 'lucide-react';
 import type { SampleResumen } from '@app/types';
 import type { CarpetaInfo } from '@app/services/apiExplorador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface PanelBrowserDawProps {
     carpetas: CarpetaInfo[];
@@ -51,7 +52,7 @@ export const PanelBrowserDaw = ({
 
                     return (
                         <div key={carpeta.primaria} className="browserDawCarpeta">
-                            <button
+                            <BotonBase variante="ghost"
                                 className="browserDawCarpetaItem"
                                 onClick={() => onToggleCarpeta(carpeta.primaria)}
                                 type="button"
@@ -66,7 +67,7 @@ export const PanelBrowserDaw = ({
                                 }
                                 <span className="browserDawCarpetaNombre">{carpeta.primaria}</span>
                                 <span className="browserDawCarpetaConteo">{carpeta.total}</span>
-                            </button>
+                            </BotonBase>
 
                             {/* C307.1: Samples dentro de la carpeta (arrastrables) */}
                             {expandida && (

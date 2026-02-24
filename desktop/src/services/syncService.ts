@@ -56,11 +56,7 @@ export interface ProgresoSync {
 
 export type ProgressCallback = (progreso: ProgresoSync) => void;
 
-function obtenerBaseUrl(): string {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const ctx = (window as any).GLORY_CONTEXT as { apiUrl?: string } | undefined;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-    return ctx?.apiUrl ?? '/wp-json';
+function obtenerBaseUrl(): string {    const ctx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;    return ctx?.apiUrl ?? '/wp-json';
 }
 
 interface SyncConfig {
@@ -582,9 +578,7 @@ async function guardarIndice(): Promise<void> {
     } catch { /* silencioso */ }
 }
 
-/* ============================================================
- * C341: SYNC BIDIRECCIONAL — Watcher + Upload Queue + Estado
- * ============================================================ */
+/* C341: SYNC BIDIRECCIONAL — Watcher + Upload Queue + Estado */
 
 /*
  * Inicializa el sistema de sync bidireccional:

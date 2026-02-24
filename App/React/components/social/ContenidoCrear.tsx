@@ -12,6 +12,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
 import '@app/styles/componentes/modalCrear.css';
+import { CampoTexto } from '../ui/CampoTexto';
 
 interface ContenidoCrearProps {
     autoFocus?: boolean;
@@ -55,7 +56,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             </div>
 
             {/* Textarea con soporte de # tags */}
-            <textarea
+            <CampoTexto multilínea
                 ref={textareaRef}
                 className="crearTextarea"
                 placeholder={placeholder ?? '¿Qué estás creando? Usa # para agregar tags'}
@@ -92,9 +93,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                         <span className="crearAdjuntoNombre">{audioAdjunto.nombre}</span>
                         <span className="crearAdjuntoMeta">{audioAdjunto.formato} — {audioAdjunto.tamano}</span>
                     </div>
-                    <button className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label="Quitar audio">
+                    <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label="Quitar audio">
                         <X size={14} />
-                    </button>
+                    </BotonBase>
                 </div>
             )}
 
@@ -135,9 +136,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     {imagenes.map((img, i) => (
                         <div className="crearImagenItem" key={img.url}>
                             <img src={img.url} alt={`Imagen ${i + 1}`} />
-                            <button className="crearImagenQuitar" onClick={() => quitarImagen(i)} type="button" aria-label="Quitar imagen">
+                            <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => quitarImagen(i)} type="button" aria-label="Quitar imagen">
                                 <X size={12} />
-                            </button>
+                            </BotonBase>
                         </div>
                     ))}
                 </div>
@@ -154,7 +155,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {/* Condiciones del sample (descarga/licencia/premium) */}
             {audioAdjunto && (
                 <div className="crearCondiciones">
-                    <button
+                    <BotonBase variante="ghost"
                         className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
                         onClick={() => setPermitirDescarga(!permitirDescarga)}
                         type="button"
@@ -162,8 +163,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     >
                         <Download size={14} />
                         <span>{permitirDescarga ? 'Descarga sí' : 'Descarga no'}</span>
-                    </button>
-                    <button
+                    </BotonBase>
+                    <BotonBase variante="ghost"
                         className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}
                         onClick={() => setEsPremium(!esPremium)}
                         type="button"
@@ -171,9 +172,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     >
                         <Crown size={14} />
                         <span>{esPremium ? 'Premium' : 'Gratis'}</span>
-                    </button>
+                    </BotonBase>
                     {/* C220: Toggle visibilidad en comunidad */}
-                    <button
+                    <BotonBase variante="ghost"
                         className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
                         onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
                         type="button"
@@ -181,7 +182,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     >
                         <Users size={14} />
                         <span>{mostrarEnComunidad ? 'Comunidad sí' : 'Comunidad no'}</span>
-                    </button>
+                    </BotonBase>
                 </div>
             )}
 
@@ -189,10 +190,10 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {audioAdjunto && esPremium && (
                 <div className="crearPrecioContenedor">
                     <label className="crearPrecioLabel" htmlFor="crearPrecioInput">Precio (USD)</label>
-                    <input
+                    <CampoTexto
                         id="crearPrecioInput"
-                        className="crearPrecioInput"
                         type="number"
+                        className="crearPrecioInput"
                         min="0.50"
                         max="99.99"
                         step="0.01"
@@ -208,7 +209,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 <div className="crearMensajeError">
                     <AlertCircle size={16} />
                     <span>{errorSubida}</span>
-                    <button type="button" onClick={() => setErrorSubida(null)} className="crearMensajeCerrar"><X size={12} /></button>
+                    <BotonBase variante="ghost" type="button" onClick={() => setErrorSubida(null)} className="crearMensajeCerrar"><X size={12} /></BotonBase>
                 </div>
             )}
 
@@ -239,7 +240,9 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             </div>
 
             {/* Inputs ocultos */}
+            {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
             <input ref={inputAudioRef} type="file" accept={formatosAudio.join(',')} hidden onChange={manejarInputAudio} />
+            {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
             <input ref={inputImagenRef} type="file" accept="image/*" multiple hidden onChange={manejarInputImagen} />
         </div>
     );

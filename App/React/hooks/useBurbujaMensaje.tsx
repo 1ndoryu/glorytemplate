@@ -8,6 +8,7 @@
 import { useState, useRef } from 'react';
 import { Play, Pause, Music, ExternalLink } from 'lucide-react';
 import type { Mensaje, MediaMetadataSample } from '@app/types';
+import { BotonBase } from '../components/ui/BotonBase';
 
 /* Formatear tamaño de archivo (reservada para uso futuro con metadatos de archivos) */
 const _formatearTamano = (bytes: number): string => {
@@ -73,14 +74,14 @@ const BurbujaAudio = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
                 onEnded={manejarFin}
                 preload="metadata"
             />
-            <button
+            <BotonBase variante="ghost"
                 className="burbujaAudioBtn"
                 onClick={alternarReproduccion}
                 type="button"
                 aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
             >
                 {reproduciendo ? <Pause size={16} /> : <Play size={16} />}
-            </button>
+            </BotonBase>
             <div className="burbujaAudioProgreso">
                 <div
                     className="burbujaAudioBarra"

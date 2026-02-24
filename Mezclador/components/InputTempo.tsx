@@ -4,6 +4,7 @@
  */
 
 import { useInputTempo } from '../hooks/useInputTempo';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
 
 interface InputTempoProps {
     valor: number;
@@ -32,9 +33,9 @@ export const InputTempo = ({
     return (
         <div className="inputTempo" onWheel={alScroll}>
             {editando ? (
-                <input
+                <CampoTexto
                     ref={inputRef}
-                    type="text"
+                    type="number"
                     className="inputTempoEdicion"
                     value={valorTexto}
                     onChange={(e) => setValorTexto(e.target.value)}

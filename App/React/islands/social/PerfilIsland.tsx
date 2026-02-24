@@ -207,14 +207,14 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                                 mostrarUsername
                                                 meta={post.creadoAt}
                                             />
-                                            <button
+                                            <BotonBase variante="ghost"
                                                 className="comunidadPostMenuBtn"
                                                 onClick={(e) => menuPublicacion.abrirMenu(e, post)}
                                                 type="button"
                                                 aria-label="Más opciones"
                                             >
                                                 <MoreHorizontal size={18} />
-                                            </button>
+                                            </BotonBase>
                                         </div>
                                         <p className="comunidadPostTexto">{post.contenido}</p>
                                         {post.imagenes?.length > 0 && (

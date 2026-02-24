@@ -13,6 +13,8 @@ interface Window {
         apiUrl?: string;
         restUrl?: string;
         nonce?: string;
+        isLoggedIn?: boolean;
+        userId?: unknown;
     };
     /* C341: Sync bidireccional — funciones expuestas en window */
     __KAMPLES_SYNC__?: {

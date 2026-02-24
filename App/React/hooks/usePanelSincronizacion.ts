@@ -28,9 +28,7 @@ interface KamplesSync {
 }
 
 function obtenerSync(): KamplesSync | null {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    return (window as any).__KAMPLES_SYNC__ ?? null;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+    return window.__KAMPLES_SYNC__ ?? null;
 }
 
 export const usePanelSincronizacion = () => {

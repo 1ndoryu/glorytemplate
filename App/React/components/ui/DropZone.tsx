@@ -114,6 +114,7 @@ export const DropZone = ({
             <p className="dropZoneFormatos">
                 Formatos: {formatosAceptados.join(', ')} — Máximo {tamanoMaximoMB}MB
             </p>
+            {/* sentinel-disable-next-line html-nativo: input type="file" no tiene equivalente UI */}
             <input
                 ref={inputRef}
                 type="file"

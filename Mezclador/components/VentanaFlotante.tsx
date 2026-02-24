@@ -7,6 +7,7 @@
 
 import { X, Minus } from 'lucide-react';
 import { useVentanaFlotante } from '../hooks/useVentanaFlotante';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface VentanaFlotanteProps {
     id: string;
@@ -60,20 +61,20 @@ export const VentanaFlotante = ({
                 <span className="ventanaFlotanteTituloTexto">{titulo}</span>
                 <div className="ventanaFlotanteBotones">
                     {botonesExtra}
-                    <button
+                    <BotonBase variante="ghost"
                         className="ventanaFlotanteBoton"
                         onClick={(e) => { e.stopPropagation(); minimizar(id); }}
                         title="Minimizar"
                     >
                         <Minus size={12} />
-                    </button>
-                    <button
+                    </BotonBase>
+                    <BotonBase variante="ghost"
                         className="ventanaFlotanteBoton ventanaFlotanteBotonCerrar"
                         onClick={(e) => { e.stopPropagation(); cerrar(id); }}
                         title="Cerrar"
                     >
                         <X size={12} />
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
 

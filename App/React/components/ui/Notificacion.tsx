@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CheckCircle, AlertTriangle, XCircle, Info, X } from 'lucide-react';
 import '../../styles/componentes/notificacion.css';
+import { BotonBase } from './BotonBase';
 
 export type TipoToast = 'exito' | 'error' | 'advertencia' | 'info';
 
@@ -77,14 +78,14 @@ const NotificacionItem = ({ toast, onCerrar }: NotificacionItemProps): JSX.Eleme
                 <div className="notificacionTitulo">{toast.titulo}</div>
                 {toast.mensaje && <div className="notificacionMensaje">{toast.mensaje}</div>}
             </div>
-            <button
+            <BotonBase variante="ghost"
                 className="notificacionCerrar"
                 onClick={manejarCerrar}
                 aria-label="Cerrar notificación"
                 type="button"
             >
                 <X size={14} />
-            </button>
+            </BotonBase>
         </div>
     );
 };

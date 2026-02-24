@@ -11,6 +11,7 @@ import { obtenerSimilares } from '@app/services/apiReproduciones';
 import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import type { SampleResumen } from '@app/types';
+import { BotonBase } from '../ui/BotonBase';
 
 interface PanelSugerenciasProps {
     sample: SampleResumen;
@@ -44,9 +45,9 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
                     <Sparkles size={16} />
                     <span>También te podría gustar</span>
                 </div>
-                <button className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar">
+                <BotonBase variante="ghost" className="panelDetalleCerrar" onClick={cerrar} type="button" aria-label="Cerrar">
                     <X size={16} />
-                </button>
+                </BotonBase>
             </div>
 
             {cargando ? (

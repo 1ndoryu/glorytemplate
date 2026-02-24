@@ -43,6 +43,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
                         <Camera size={20} />
                         <span style={{ marginLeft: 8 }}>Cambiar portada</span>
                     </div>
+                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                     <input
                         ref={portadaInputRef}
                         type="file"
@@ -63,6 +64,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
                             nombre={nombre}
                             tamano="xl"
                         />
+                        {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                         <input
                             ref={avatarInputRef}
                             type="file"

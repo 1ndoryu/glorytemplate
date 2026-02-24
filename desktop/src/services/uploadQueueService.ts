@@ -59,11 +59,7 @@ let hashesConocidos = new Set<string>();
 let procesando = false;
 let callbackProgreso: OnProgresoUploadFn | null = null;
 
-function obtenerBaseUrl(): string {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const ctx = (window as any).GLORY_CONTEXT as { apiUrl?: string } | undefined;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-    return ctx?.apiUrl ?? '/wp-json';
+function obtenerBaseUrl(): string {    const ctx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;    return ctx?.apiUrl ?? '/wp-json';
 }
 
 /*

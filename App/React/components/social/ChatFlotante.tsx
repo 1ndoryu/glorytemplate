@@ -10,6 +10,8 @@ import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
 import { useVentanaChat } from '@app/hooks/useVentanaChat';
 import '../../styles/componentes/chatFlotante.css';
+import { BotonBase } from '../ui/BotonBase';
+import { CampoTexto } from '../ui/CampoTexto';
 
 /* Ventana individual de chat */
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
@@ -29,14 +31,14 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                     <Avatar nombre={chat.nombreParticipante} src={chat.avatarUrl ?? undefined} tamano="xs" />
                     <span className="chatFlotanteNombre">{chat.nombreParticipante}</span>
                     <div className="chatFlotanteHeaderAcciones">
-                        <button onClick={e => { e.stopPropagation(); restaurarChat(chat.conversacionId); }}
+                        <BotonBase variante="ghost" onClick={e => { e.stopPropagation(); restaurarChat(chat.conversacionId); }}
                             type="button" className="chatFlotanteHeaderBtn" aria-label="Restaurar">
                             <Maximize2 size={12} />
-                        </button>
-                        <button onClick={e => { e.stopPropagation(); cerrarChat(chat.conversacionId); }}
+                        </BotonBase>
+                        <BotonBase variante="ghost" onClick={e => { e.stopPropagation(); cerrarChat(chat.conversacionId); }}
                             type="button" className="chatFlotanteHeaderBtn" aria-label="Cerrar">
                             <X size={12} />
-                        </button>
+                        </BotonBase>
                     </div>
                 </div>
             </div>
@@ -50,32 +52,32 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                 <span className="chatFlotanteNombre">{chat.nombreParticipante}</span>
                 <div className="chatFlotanteHeaderAcciones">
                     <div className="chatFlotanteMenuContenedor">
-                        <button onClick={toggleMenu} type="button" className="chatFlotanteHeaderBtn" aria-label="Opciones">
+                        <BotonBase variante="ghost" onClick={toggleMenu} type="button" className="chatFlotanteHeaderBtn" aria-label="Opciones">
                             <MoreVertical size={12} />
-                        </button>
+                        </BotonBase>
                         {menuAbierto && (
                             <div className="chatFlotanteMenu">
-                                <button className="chatFlotanteMenuItem" onClick={verPerfil} type="button">
+                                <BotonBase variante="ghost" className="chatFlotanteMenuItem" onClick={verPerfil} type="button">
                                     <User size={14} /><span>Ver perfil</span>
-                                </button>
-                                <button className="chatFlotanteMenuItem" onClick={reportar} type="button">
+                                </BotonBase>
+                                <BotonBase variante="ghost" className="chatFlotanteMenuItem" onClick={reportar} type="button">
                                     <Flag size={14} /><span>Reportar</span>
-                                </button>
-                                <button className="chatFlotanteMenuItem chatFlotanteMenuItemPeligro"
+                                </BotonBase>
+                                <BotonBase variante="ghost" className="chatFlotanteMenuItem chatFlotanteMenuItemPeligro"
                                     onClick={bloquear} type="button">
                                     <ShieldAlert size={14} /><span>Bloquear</span>
-                                </button>
+                                </BotonBase>
                             </div>
                         )}
                     </div>
-                    <button onClick={() => minimizarChat(chat.conversacionId)} type="button"
+                    <BotonBase variante="ghost" onClick={() => minimizarChat(chat.conversacionId)} type="button"
                         className="chatFlotanteHeaderBtn" aria-label="Minimizar">
                         <Minus size={12} />
-                    </button>
-                    <button onClick={() => cerrarChat(chat.conversacionId)} type="button"
+                    </BotonBase>
+                    <BotonBase variante="ghost" onClick={() => cerrarChat(chat.conversacionId)} type="button"
                         className="chatFlotanteHeaderBtn" aria-label="Cerrar">
                         <X size={12} />
-                    </button>
+                    </BotonBase>
                 </div>
             </div>
 
@@ -88,19 +90,20 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
             </div>
 
             <div className="chatFlotanteInput">
+                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                 <input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />
-                <button className="chatFlotanteAdjuntarBtn" onClick={() => archivoRef.current?.click()}
+                <BotonBase variante="ghost" className="chatFlotanteAdjuntarBtn" onClick={() => archivoRef.current?.click()}
                     type="button" aria-label="Adjuntar archivo" disabled={enviando}>
                     <Paperclip size={14} />
-                </button>
-                <input ref={inputRef} type="text" placeholder="Escribe..." value={texto}
+                </BotonBase>
+                <CampoTexto ref={inputRef}  placeholder="Escribe..." value={texto}
                     onChange={e => setTexto(e.target.value)} onKeyDown={manejarKeyDown} disabled={enviando} />
-                <button className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
+                <BotonBase variante="ghost" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
                     onClick={manejarEnviar} disabled={!texto.trim() || enviando} type="button" aria-label="Enviar">
                     <Send size={14} />
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

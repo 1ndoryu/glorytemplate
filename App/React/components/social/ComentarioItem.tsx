@@ -10,6 +10,8 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useComentarioItem } from '@app/hooks/useComentarioItem';
 import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
+import { BotonBase } from '../ui/BotonBase';
+import { CampoTexto } from '../ui/CampoTexto';
 
 /* Formatear fecha relativa */
 const formatearTiempoComentario = (fecha: string): string => {
@@ -83,9 +85,9 @@ export const ComentarioItem = ({
                         </span>
                     )}
                     {menuItems.length > 0 && (
-                        <button className="comentarioMenuBtn" onClick={abrirMenu} type="button" aria-label="Más opciones">
+                        <BotonBase variante="ghost" className="comentarioMenuBtn" onClick={abrirMenu} type="button" aria-label="Más opciones">
                             <MoreHorizontal size={14} />
-                        </button>
+                        </BotonBase>
                     )}
                 </div>
 
@@ -93,12 +95,12 @@ export const ComentarioItem = ({
 
                 {editando ? (
                     <div className="comentarioEdicion">
-                        <input ref={inputEdicionRef} type="text" value={textoEdicion}
+                        <CampoTexto ref={inputEdicionRef}  value={textoEdicion}
                             onChange={e => setTextoEdicion(e.target.value)} onKeyDown={manejarKeyEdicion}
                             maxLength={300} autoFocus />
                         <div className="comentarioEdicionBotones">
-                            <button type="button" onClick={() => acciones?.setEditandoId?.(null)}>Cancelar</button>
-                            <button type="button" onClick={confirmarEdicion} className="comentarioEdicionGuardar">Guardar</button>
+                            <BotonBase variante="ghost" type="button" onClick={() => acciones?.setEditandoId?.(null)}>Cancelar</BotonBase>
+                            <BotonBase variante="ghost" type="button" onClick={confirmarEdicion} className="comentarioEdicionGuardar">Guardar</BotonBase>
                         </div>
                     </div>
                 ) : (
@@ -108,43 +110,43 @@ export const ComentarioItem = ({
                 {acciones && (
                     <div className="comentarioAcciones">
                         {acciones.onToggleLike && (
-                            <button className={`comentarioAccionBtn ${comentario.liked ? 'comentarioLiked' : ''}`}
+                            <BotonBase variante="ghost" className={`comentarioAccionBtn ${comentario.liked ? 'comentarioLiked' : ''}`}
                                 onClick={() => acciones.onToggleLike!(comentario.id, !!comentario.liked)}
                                 type="button" aria-label={comentario.liked ? 'Quitar like' : 'Dar like'}>
                                 <Heart size={13} fill={comentario.liked ? 'currentColor' : 'none'} />
                                 {(comentario.totalLikes ?? 0) > 0 && (
                                     <span className="comentarioAccionConteo">{comentario.totalLikes}</span>
                                 )}
-                            </button>
+                            </BotonBase>
                         )}
                         {acciones.onResponder && nivel < MAX_NIVEL && (
-                            <button className="comentarioAccionBtn" onClick={iniciarRespuesta}
+                            <BotonBase variante="ghost" className="comentarioAccionBtn" onClick={iniciarRespuesta}
                                 type="button" aria-label="Responder">
                                 <MessageCircle size={13} /><span>Responder</span>
-                            </button>
+                            </BotonBase>
                         )}
                     </div>
                 )}
 
                 {respondiendo && (
                     <div className="comentarioRespuestaInput">
-                        <input ref={inputRespuestaRef} type="text"
+                        <CampoTexto ref={inputRespuestaRef} 
                             placeholder={`Responder a ${comentario.autor.nombreVisible}...`}
                             value={textoRespuesta} onChange={e => setTextoRespuesta(e.target.value)}
                             onKeyDown={manejarKeyRespuesta} maxLength={300} disabled={enviandoRespuesta} />
-                        <button className="comentarioEnviarBtn" onClick={enviarRespuesta} type="button"
+                        <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={enviarRespuesta} type="button"
                             disabled={!textoRespuesta.trim() || enviandoRespuesta} aria-label="Enviar respuesta">
                             <Send size={13} />
-                        </button>
+                        </BotonBase>
                     </div>
                 )}
 
                 {tieneRespuestas && (
-                    <button className="comentarioVerRespuestas" onClick={toggleRespuestas} type="button">
+                    <BotonBase variante="ghost" className="comentarioVerRespuestas" onClick={toggleRespuestas} type="button">
                         {respuestasVisibles
                             ? 'Ocultar respuestas'
                             : `Ver ${comentario.totalRespuestas} respuesta${(comentario.totalRespuestas ?? 0) > 1 ? 's' : ''}`}
-                    </button>
+                    </BotonBase>
                 )}
 
                 {respuestasVisibles && comentario.respuestas && comentario.respuestas.length > 0 && (

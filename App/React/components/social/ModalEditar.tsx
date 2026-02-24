@@ -12,6 +12,7 @@ import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
 import type { TipoSample, SampleResumen } from '@app/types';
 import '../../styles/componentes/modalEditar.css';
+import { SelectorBase } from '../ui/SelectorBase';
 
 const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
     { valor: 'loop', etiqueta: 'Loop' },
@@ -148,7 +149,7 @@ export const ModalEditar = (): JSX.Element | null => {
                             <div className="editarGrupo">
                                 <span className="editarGrupoLabel">Tipo</span>
                                 <div className="editarSelectContenedor">
-                                    <select
+                                    <SelectorBase
                                         className="editarSelect"
                                         value={formularioSample.tipo}
                                         onChange={(e) =>
@@ -163,7 +164,7 @@ export const ModalEditar = (): JSX.Element | null => {
                                                 {t.etiqueta}
                                             </option>
                                         ))}
-                                    </select>
+                                    </SelectorBase>
                                 </div>
                             </div>
 
@@ -184,6 +185,7 @@ export const ModalEditar = (): JSX.Element | null => {
 
                         <div className="editarFilaDoble">
                             <label className="editarCheckbox">
+                                {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
                                 <input
                                     type="checkbox"
                                     checked={formularioSample.esPremium}
@@ -198,6 +200,7 @@ export const ModalEditar = (): JSX.Element | null => {
                             </label>
 
                             <label className="editarCheckbox">
+                                {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
                                 <input
                                     type="checkbox"
                                     checked={formularioSample.permitirDescarga}
@@ -263,6 +266,7 @@ export const ModalEditar = (): JSX.Element | null => {
                         />
 
                         <label className="editarCheckbox">
+                            {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
                             <input
                                 type="checkbox"
                                 checked={formularioColeccion.esPublica}

@@ -8,6 +8,8 @@
 import { ChevronDown, X } from 'lucide-react';
 import { useSelectorBPM } from '../../hooks/useSelectorBPM';
 import '../../styles/componentes/selectFiltro.css';
+import { BotonBase } from './BotonBase';
+import { CampoTexto } from './CampoTexto';
 
 export interface SelectorBPMProps {
     bpmMin: number | null;
@@ -37,7 +39,7 @@ export const SelectorBPM = ({
 
     return (
         <div className="selectFiltro" ref={contenedorRef}>
-            <button
+            <BotonBase variante="ghost"
                 type="button"
                 className={`selectFiltroBoton ${activo ? 'selectFiltroBotonActivo' : ''}`}
                 onClick={toggleAbierto}
@@ -48,18 +50,18 @@ export const SelectorBPM = ({
                     ? <X size={12} className="selectFiltroFlecha" onClick={limpiar} />
                     : <ChevronDown size={12} className={`selectFiltroFlecha ${abierto ? 'selectFiltroFlechaAbierta' : ''}`} />
                 }
-            </button>
+            </BotonBase>
 
             {abierto && (
                 <div className="selectFiltroMenu selectorBPMMenu">
                     <div className="selectorBPMCampos">
                         <label className="selectorBPMLabel">
                             <span>Min</span>
-                            <input
+                            <CampoTexto
                                 type="number"
                                 className="selectorBPMInput"
                                 value={minLocal}
-                                onChange={(e) => setMinLocal(e.target.value)}
+                                onChange={(e) => setMinLocal((e.target as HTMLInputElement).value)}
                                 onKeyDown={manejarKeyDown}
                                 placeholder="60"
                                 min={0}
@@ -69,11 +71,11 @@ export const SelectorBPM = ({
                         <span className="selectorBPMSeparador">—</span>
                         <label className="selectorBPMLabel">
                             <span>Max</span>
-                            <input
+                            <CampoTexto
                                 type="number"
                                 className="selectorBPMInput"
                                 value={maxLocal}
-                                onChange={(e) => setMaxLocal(e.target.value)}
+                                onChange={(e) => setMaxLocal((e.target as HTMLInputElement).value)}
                                 onKeyDown={manejarKeyDown}
                                 placeholder="200"
                                 min={0}
@@ -81,13 +83,13 @@ export const SelectorBPM = ({
                             />
                         </label>
                     </div>
-                    <button
+                    <BotonBase variante="ghost"
                         type="button"
                         className="selectorBPMAplicar"
                         onClick={aplicarYCerrar}
                     >
                         Aplicar
-                    </button>
+                    </BotonBase>
                 </div>
             )}
         </div>

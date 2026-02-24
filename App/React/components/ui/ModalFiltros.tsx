@@ -65,7 +65,7 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
 
                 <div className="filtrosToggles">
                     {filtros.map((f) => (
-                        <button
+                        <BotonBase variante="ghost"
                             key={f.id}
                             className={`filtroToggle ${f.activo ? 'filtroToggleActivo' : ''}`}
                             onClick={f.onToggle}
@@ -76,7 +76,7 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
                             <span className={`filtroToggleSwitch ${f.activo ? 'filtroToggleSwitchOn' : ''}`}>
                                 <span className="filtroToggleSwitchDot" />
                             </span>
-                        </button>
+                        </BotonBase>
                     ))}
                 </div>
 
@@ -88,14 +88,14 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
                     </div>
                     <div className="filtroPrecioOpciones">
                         {opcionesPrecio.map((op) => (
-                            <button
+                            <BotonBase variante="ghost"
                                 key={op.valor}
                                 className={`filtroPrecioBoton ${filtroPrecio === op.valor ? 'filtroPrecioBotonActivo' : ''}`}
                                 onClick={() => setFiltroPrecio(op.valor)}
                                 type="button"
                             >
                                 {op.etiqueta}
-                            </button>
+                            </BotonBase>
                         ))}
                     </div>
                 </div>

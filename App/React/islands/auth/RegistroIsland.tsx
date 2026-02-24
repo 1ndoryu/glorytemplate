@@ -6,6 +6,7 @@
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
+import { GloryLink } from '@/core/router';
 import { useRegistroIsland } from '../../hooks/useRegistroIsland';
 import '../../styles/componentes/login.css';
 
@@ -41,7 +42,7 @@ export const RegistroIsland = (): JSX.Element => {
                     Empieza a descubrir y compartir samples
                 </p>
 
-                <button
+                <BotonBase variante="ghost"
                     className="loginGoogleBtn"
                     onClick={iniciarSesionGoogle}
                     disabled={cargando}
@@ -54,7 +55,7 @@ export const RegistroIsland = (): JSX.Element => {
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
                     Registrarse con Google
-                </button>
+                </BotonBase>
 
                 <div className="loginSeparador">o</div>
 
@@ -117,7 +118,7 @@ export const RegistroIsland = (): JSX.Element => {
 
                 <p className="loginFooter">
                     ¿Ya tienes cuenta?{' '}
-                    <a href="/auth/login">Inicia sesión</a>
+                    <GloryLink href="/auth/login">Inicia sesión</GloryLink>
                 </p>
             </div>
         </div>

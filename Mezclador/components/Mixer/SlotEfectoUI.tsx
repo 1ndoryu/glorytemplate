@@ -5,6 +5,7 @@
 
 import { useCallback, memo } from 'react';
 import type { SlotEfecto } from '../../types/mezclador';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 interface SlotEfectoItemProps {
     slot: SlotEfecto;
@@ -31,7 +32,7 @@ const SlotEfectoItem = memo(({
             className={`slotEfecto ${slot.nombre ? 'slotEfectoOcupado' : ''}`}
             onClick={alClick}
         >
-            <button
+            <BotonBase variante="ghost"
                 className={`slotEfectoLed ${slot.activo ? 'slotEfectoLedActivo' : ''}`}
                 onClick={alToggle}
                 title={slot.activo ? 'Bypass' : 'Activar'}

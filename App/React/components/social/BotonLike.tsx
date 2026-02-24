@@ -9,6 +9,7 @@ import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { useBotonLike } from '@app/hooks/useBotonLike';
 import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/botonLike.css';
+import { BotonBase } from '../ui/BotonBase';
 
 interface BotonLikeProps {
     tipo: 'sample' | 'publicacion';
@@ -49,11 +50,11 @@ export const BotonLike = ({
 
     return (
         <TooltipReacciones reaccionActual={reaccion} onReaccionar={manejarReaccion} onQuitar={manejarQuitar}>
-            <button className={clases} onClick={manejarClickDirecto} disabled={cargando}
+            <BotonBase variante="ghost" className={clases} onClick={manejarClickDirecto} disabled={cargando}
                 type="button" aria-label={liked ? 'Quitar like' : 'Dar like'}>
                 <Heart size={iconSize} fill={liked ? 'currentColor' : 'none'} />
                 {mostrarContador && total > 0 && <span className="botonLikeContador">{total}</span>}
-            </button>
+            </BotonBase>
         </TooltipReacciones>
     );
 };

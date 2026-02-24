@@ -2,6 +2,7 @@ import { Heart, MessageCircle, Repeat2 } from 'lucide-react';
 import TooltipReacciones from '@app/components/ui/TooltipReacciones';
 import type { TipoReaccion } from '@app/types';
 import '../../styles/componentes/accionesPost.css';
+import { BotonBase } from '../ui/BotonBase';
 
 /*
  * BarraAccionesPost — Barra unificada de acciones para publicaciones.
@@ -67,7 +68,7 @@ export default function BarraAccionesPost({
     };
 
     const botonLike = (
-        <button
+        <BotonBase variante="ghost"
             className={`accionesPostBtn ${claseliked} ${claseReaccion}`}
             onClick={manejarLikeDirecto}
             type="button"
@@ -77,7 +78,7 @@ export default function BarraAccionesPost({
             {(mostrarCeroConteo || p.totalLikes > 0) && (
                 <span>{formatearConteo(p.totalLikes)}</span>
             )}
-        </button>
+        </BotonBase>
     );
 
     return (
@@ -94,7 +95,7 @@ export default function BarraAccionesPost({
                 botonLike
             )}
 
-            <button
+            <BotonBase variante="ghost"
                 className="accionesPostBtn"
                 onClick={onComentar ? () => onComentar(p.id) : undefined}
                 type="button"
@@ -104,9 +105,9 @@ export default function BarraAccionesPost({
                 {(mostrarCeroConteo || p.totalComentarios > 0) && (
                     <span>{formatearConteo(p.totalComentarios)}</span>
                 )}
-            </button>
+            </BotonBase>
 
-            <button
+            <BotonBase variante="ghost"
                 className={`accionesPostBtn ${claseRepost}`}
                 onClick={onRepost ? () => onRepost(p.id) : undefined}
                 type="button"
@@ -116,7 +117,7 @@ export default function BarraAccionesPost({
                 {(mostrarCeroConteo || p.totalReposts > 0) && (
                     <span>{formatearConteo(p.totalReposts)}</span>
                 )}
-            </button>
+            </BotonBase>
         </div>
     );
 }

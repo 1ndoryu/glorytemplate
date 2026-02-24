@@ -16,6 +16,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
 import '../../styles/componentes/comunidad.css';
+import { BotonBase } from '../../components/ui/BotonBase';
 
 const TABS_COMUNIDAD = [{ id: 'comunidad', etiqueta: 'Comunidad' }];
 
@@ -76,10 +77,10 @@ const ComunidadBase = (): JSX.Element => {
             <div className="comunidadBarraSuperior">
                 <div className="comunidadFiltros">
                     {filtros.map(({ valor, icono: Icono, label }) => (
-                        <button key={valor} className={`comunidadFiltroBtn ${filtro === valor ? 'comunidadFiltroBtnActivo' : ''}`}
+                        <BotonBase variante="ghost" key={valor} className={`comunidadFiltroBtn ${filtro === valor ? 'comunidadFiltroBtnActivo' : ''}`}
                             onClick={() => setFiltro(valor)} type="button">
                             <Icono size={14} /> {label}
-                        </button>
+                        </BotonBase>
                     ))}
                 </div>
             </div>
@@ -99,9 +100,9 @@ const ComunidadBase = (): JSX.Element => {
                                 {(String(post.autor.id) === String(usuario?.id) || usuario?.rol === 'admin') && post.moderacionEstado && (
                                     <BadgeModeracion moderacionEstado={post.moderacionEstado} />
                                 )}
-                                <button className="comunidadPostMenuBtn" onClick={(e) => menuPublicacion.abrirMenu(e, post)} type="button" aria-label="Más opciones">
+                                <BotonBase variante="ghost" className="comunidadPostMenuBtn" onClick={(e) => menuPublicacion.abrirMenu(e, post)} type="button" aria-label="Más opciones">
                                     <MoreHorizontal size={18} />
-                                </button>
+                                </BotonBase>
                             </div>
 
                             <p className="comunidadPostTexto">{post.contenido}</p>

@@ -8,6 +8,7 @@
 import { FlaskConical, Check, Loader2, AlertTriangle } from 'lucide-react';
 import { useBotonExperimentos } from '../../hooks/useBotonExperimentos';
 import '../../styles/componentes/experimentos.css';
+import { BotonBase } from './BotonBase';
 
 export const BotonExperimentos = (): JSX.Element | null => {
     const {
@@ -38,7 +39,7 @@ export const BotonExperimentos = (): JSX.Element | null => {
 
     return (
         <div className="experimentosContenedor">
-            <button
+            <BotonBase variante="ghost"
                 className={`experimentosBtn experimentosBtn--${estado}`}
                 onClick={togglePanel}
                 aria-label="Experimentos de test"
@@ -46,13 +47,13 @@ export const BotonExperimentos = (): JSX.Element | null => {
                 title="Generar contenido de test"
             >
                 {iconoEstado()}
-            </button>
+            </BotonBase>
 
             {panelVisible && (
                 <div className="experimentosPanel">
                     <div className="experimentosTitulo">Experimentos</div>
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="experimentosAccion"
                         onClick={() => ejecutar()}
                         disabled={estado === 'cargando'}
@@ -60,45 +61,45 @@ export const BotonExperimentos = (): JSX.Element | null => {
                     >
                         <FlaskConical size={13} />
                         Generar todo
-                    </button>
+                    </BotonBase>
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="experimentosAccion"
                         onClick={() => ejecutar(['notificacion'])}
                         disabled={estado === 'cargando'}
                         type="button"
                     >
                         Notificación
-                    </button>
+                    </BotonBase>
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="experimentosAccion"
                         onClick={() => ejecutar(['mensaje'])}
                         disabled={estado === 'cargando'}
                         type="button"
                     >
                         Mensaje
-                    </button>
+                    </BotonBase>
 
                     <div className="experimentosSeparador" />
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="experimentosAccion"
                         onClick={() => ejecutarEmbeddings(false)}
                         disabled={estado === 'cargando'}
                         type="button"
                     >
                         Generar embeddings
-                    </button>
+                    </BotonBase>
 
-                    <button
+                    <BotonBase variante="ghost"
                         className="experimentosAccion"
                         onClick={() => ejecutarEmbeddings(true)}
                         disabled={estado === 'cargando'}
                         type="button"
                     >
                         Regenerar todos
-                    </button>
+                    </BotonBase>
 
                     {ultimoResultado && (
                         <div className={`experimentosResultado experimentosResultado--${estado}`}>

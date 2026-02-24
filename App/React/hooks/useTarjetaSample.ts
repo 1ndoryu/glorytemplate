@@ -1,98 +1,22 @@
 /*
  * Hook: useTarjetaSample
- * Lógica de audio (play/pause/seek), waveform, likes, coleccionar, drag,
- * menú contextual — para una tarjeta de sample individual.
- *
- * Extraído de TarjetaSample.tsx para cumplir SRP.
- *
- * TO-DO: Este hook excede 120 líneas. Dividir en:
- *   - utils/audioWaveform.ts (extraerPicosAudio ~30 líneas)
- *   - hooks/useAudioPlayback.ts (inicializarAudio, play/pause, seek)
- *   - hooks/useTarjetaSample.ts (orquestación: likes, coleccionar, drag, menú)
+ * Orquestacion de una tarjeta de sample: likes, coleccionar, drag, menu.
+ * Audio (play/pause/seek/waveform) delegado a useAudioPlayback.
+ * Utilidades desktop delegadas a utils/tarjetaSampleUtils.
  */
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useState, type MouseEvent } from 'react';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { descargarSample } from '@app/services/apiDescargas';
-import { registrarReproduccion } from '@app/services/apiReproduciones';
 import { useNavigationStore } from '@/core/router';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
+import { useAudioPlayback } from './useAudioPlayback';
+import { esDesktop, obtenerDragService, obtenerSyncService } from './utils/tarjetaSampleUtils';
 
-const EVENTO_REPRODUCCION_SAMPLE = 'kamples:reproduccion-sample';
-
-/*
- * Detecta si estamos en el entorno desktop Tauri.
- * Lee el flag global que inyecta desktop/main.tsx.
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const esDesktop = (): boolean => !!(window as any).__KAMPLES_DESKTOP__;
-
-/*
- * Accede al servicio de drag nativo expuesto en window por desktop/main.tsx.
- * Retorna null si no estamos en desktop.
- */
-const obtenerDragService = (): { iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean> } | null => {
-    const drag = (window as any).__KAMPLES_DRAG__;
-    return drag ?? null;
-};
-
-/*
- * Accede al servicio de sync expuesto en window por desktop/main.tsx.
- * Retorna null si no estamos en desktop.
- */
-const obtenerSyncService = (): {
-    sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null>;
-    obtenerRutaLocal: (sampleId: number) => string | null;
-} | null => {
-    const sync = (window as any).__KAMPLES_SYNC__;
-    return sync?.sincronizarSampleIndividual ? sync : null;
-};
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-/* Extraer picos de audio desde un AudioBuffer para mini-waveform */
-const extraerPicosAudio = (buffer: AudioBuffer, totalBarras = 96): number[] => {
-    const datos = buffer.getChannelData(0);
-    const tamanoBloque = Math.max(1, Math.floor(datos.length / totalBarras));
-    const picos: number[] = [];
-
-    for (let i = 0; i < totalBarras; i++) {
-        const inicio = i * tamanoBloque;
-        const fin = Math.min(datos.length, inicio + tamanoBloque);
-        let maximo = 0;
-        let energia = 0;
-        let muestras = 0;
-
-        for (let indice = inicio; indice < fin; indice++) {
-            const valor = Math.abs(datos[indice]);
-            if (valor > maximo) maximo = valor;
-            energia += valor * valor;
-            muestras++;
-        }
-
-        const rms = muestras > 0 ? Math.sqrt(energia / muestras) : 0;
-        picos.push((maximo * 0.65) + (rms * 0.35));
-    }
-
-    const suavizados = picos.map((_, indice) => {
-        const anterior = picos[indice - 1] ?? picos[indice];
-        const actual = picos[indice];
-        const siguiente = picos[indice + 1] ?? picos[indice];
-        return (anterior * 0.25) + (actual * 0.5) + (siguiente * 0.25);
-    });
-
-    const picoGlobal = Math.max(...suavizados, 0.001);
-    return suavizados.map(pico => Math.max(0.03, Math.min(1, pico / picoGlobal)));
-};
-
-/* Formatear nota musical con escala */
-export const formatearKey = (key: string | null, escala: string | null): string => {
-    if (!key) return '';
-    const esc = escala === 'menor' ? 'm' : '';
-    return `${key}${esc}`;
-};
+export { formatearKey } from './utils/tarjetaSampleUtils';
 
 interface UseTarjetaSampleOpciones {
     sample: SampleResumen;
@@ -117,147 +41,20 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         onComentar, onClickTitulo, className = '',
     } = opciones;
 
-    const [reproduciendoLocal, setReproduciendoLocal] = useState(false);
-    const [progresoLocal, setProgresoLocal] = useState(0);
-    const [picosAudio, setPicosAudio] = useState<number[] | null>(null);
     const [descargado, setDescargado] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    const rutaPreviewRef = useRef(sample.rutaPreview);
     const navegar = useNavigationStore(s => s.navegar);
 
-    /* Cargar waveform: servidor (JSON) o fallback AudioContext */
-    useEffect(() => {
-        let activo = true;
+    /* Audio: play/pause/seek/waveform delegado a hook dedicado */
+    const {
+        picosAudio,
+        estaActiva,
+        estaReproduciendo,
+        progresoActual,
+        manejarPlayPause,
+        manejarSeek,
+    } = useAudioPlayback({ sample, activa, reproduciendo, progreso, onPlay, onPause, onSeek });
 
-        const cargarWaveform = async () => {
-            if (sample.rutaWaveform) {
-                try {
-                    const respWf = await fetch(sample.rutaWaveform);
-                    if (respWf.ok) {
-                        const json = await respWf.json();
-                        if (!activo) return;
-                        const picosServidor = Array.isArray(json)
-                            ? json
-                            : (json.peaks ?? json.picos ?? json.data ?? null);
-                        if (Array.isArray(picosServidor) && picosServidor.length > 0) {
-                            const maximo = Math.max(...picosServidor, 0.001);
-                            const normalizados = maximo > 1
-                                ? picosServidor.map((p: number) => Math.max(0.03, p / maximo))
-                                : picosServidor;
-                            setPicosAudio(normalizados);
-                            return;
-                        }
-                    }
-                } catch {
-                    /* Fallo silencioso, se usa fallback AudioContext */
-                }
-            }
-
-            if (!sample.rutaPreview) {
-                if (activo) setPicosAudio(null);
-                return;
-            }
-
-            if (typeof window === 'undefined' || !window.AudioContext) {
-                if (activo) setPicosAudio(null);
-                return;
-            }
-
-            const contexto = new window.AudioContext();
-            try {
-                const respuesta = await fetch(sample.rutaPreview);
-                if (!respuesta.ok) throw new Error('No se pudo cargar el audio de preview');
-
-                const bufferAudio = await respuesta.arrayBuffer();
-                const audioDecodificado = await contexto.decodeAudioData(bufferAudio.slice(0));
-                if (!activo) return;
-                setPicosAudio(extraerPicosAudio(audioDecodificado));
-            } catch {
-                if (activo) setPicosAudio(null);
-            } finally {
-                contexto.close().catch(() => undefined);
-            }
-        };
-
-        cargarWaveform();
-        return () => { activo = false; };
-    }, [sample.rutaWaveform, sample.rutaPreview]);
-
-    /* Inicializar elemento de audio con event listeners */
-    const inicializarAudio = useCallback((): HTMLAudioElement => {
-        if (audioRef.current) return audioRef.current;
-
-        const audio = new Audio(sample.rutaPreview);
-        audio.preload = 'metadata';
-
-        audio.addEventListener('timeupdate', () => {
-            if (!audio.duration) return;
-            setProgresoLocal(audio.currentTime / audio.duration);
-        });
-        audio.addEventListener('play', () => setReproduciendoLocal(true));
-        audio.addEventListener('pause', () => setReproduciendoLocal(false));
-        audio.addEventListener('ended', () => {
-            setReproduciendoLocal(false);
-            setProgresoLocal(0);
-            audio.currentTime = 0;
-        });
-
-        audioRef.current = audio;
-        return audio;
-    }, [sample.rutaPreview]);
-
-    /* Actualizar src si cambia rutaPreview */
-    useEffect(() => {
-        if (rutaPreviewRef.current === sample.rutaPreview) return;
-        rutaPreviewRef.current = sample.rutaPreview;
-        if (!audioRef.current) return;
-
-        audioRef.current.pause();
-        audioRef.current.src = sample.rutaPreview;
-        audioRef.current.load();
-        setProgresoLocal(0);
-        setReproduciendoLocal(false);
-    }, [sample.rutaPreview]);
-
-    /* Pausar si otro sample inicia reproducción */
-    useEffect(() => {
-        const pausarSiEsOtro = (event: Event) => {
-            const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
-            if (detalle?.sampleId === sample.id) return;
-            if (audioRef.current && !audioRef.current.paused) {
-                audioRef.current.pause();
-            }
-        };
-
-        window.addEventListener(EVENTO_REPRODUCCION_SAMPLE, pausarSiEsOtro as EventListener);
-        return () => {
-            window.removeEventListener(EVENTO_REPRODUCCION_SAMPLE, pausarSiEsOtro as EventListener);
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
-    }, [sample.id]);
-
-    /* Play/Pause */
-    const manejarPlayPause = useCallback((e: MouseEvent) => {
-        e.stopPropagation();
-        const audio = inicializarAudio();
-        if (!audio.paused) {
-            audio.pause();
-            onPause?.();
-            return;
-        }
-
-        window.dispatchEvent(
-            new CustomEvent(EVENTO_REPRODUCCION_SAMPLE, { detail: { sampleId: sample.id } }),
-        );
-        audio.play().catch(() => setReproduciendoLocal(false));
-        onPlay?.(sample);
-        registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
-    }, [inicializarAudio, onPlay, onPause, sample]);
-
-    /* Like / Reacción */
+    /* Like / Reaccion */
     const manejarLike = useCallback((e: MouseEvent) => {
         e.stopPropagation();
         onLike?.(sample.id);
@@ -328,43 +125,9 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         abrirPicker(sample, { x: e.clientX, y: e.clientY });
     }, [abrirPicker, sample]);
 
-    /* Seek en waveform */
-    const manejarSeek = useCallback((posicion: number) => {
-        const audio = inicializarAudio();
-
-        const aplicarSeekYReproducir = () => {
-            if (!audio.duration) return;
-            audio.currentTime = posicion * audio.duration;
-            setProgresoLocal(posicion);
-            window.dispatchEvent(
-                new CustomEvent(EVENTO_REPRODUCCION_SAMPLE, { detail: { sampleId: sample.id } }),
-            );
-            audio.play().catch(() => setReproduciendoLocal(false));
-        };
-
-        if (audio.duration && Number.isFinite(audio.duration)) {
-            aplicarSeekYReproducir();
-        } else {
-            const manejarMetadata = () => {
-                aplicarSeekYReproducir();
-                audio.removeEventListener('loadedmetadata', manejarMetadata);
-            };
-            audio.addEventListener('loadedmetadata', manejarMetadata);
-            audio.load();
-        }
-
-        onSeek?.(posicion);
-    }, [inicializarAudio, onSeek, sample.id]);
-
     /*
      * Drag handler unificado: bifurca entre drag nativo OS-level y drag
      * in-app para el mezclador.
-     *
-     * Desktop con archivo local: cancela el drag del browser (preventDefault)
-     * y lanza startDrag() nativo de Tauri → el OS captura el mouse y
-     * el usuario puede soltar en DAW, escritorio o cualquier carpeta.
-     *
-     * Desktop sin archivo local / Web: dataTransfer in-app para mezclador.
      */
     const manejarDragStart = useCallback((e: React.DragEvent) => {
         /*
@@ -440,16 +203,10 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     }, [sample]);
 
     /* Valores computados */
-    const estaActiva = activa || reproduciendoLocal;
-    const estaReproduciendo = reproduciendoLocal || (activa && reproduciendo);
-    const progresoActual = estaActiva
-        ? reproduciendoLocal ? progresoLocal : progreso
-        : 0;
     const clases = ['tarjetaSample', estaActiva ? 'tarjetaSampleActiva' : '', className].filter(Boolean).join(' ');
     const imagenPortada = sample.imagenUrl || obtenerImagenColor(sample.id);
 
     return {
-        /* Estado */
         picosAudio,
         descargado,
         estaActiva,
@@ -457,8 +214,6 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         progresoActual,
         clases,
         imagenPortada,
-
-        /* Handlers */
         manejarPlayPause,
         manejarLike,
         manejarReaccion,
@@ -468,11 +223,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         manejarGuardar,
         manejarSeek,
         manejarDragStart,
-
-        /* Navegación */
         navegar,
-
-        /* Props passthrough para JSX */
         onClickTitulo,
         onComentar,
     };

@@ -7,6 +7,8 @@
 import { Search, X } from 'lucide-react';
 import { useInputBusqueda } from '../../hooks/useInputBusqueda';
 import '../../styles/componentes/inputBusqueda.css';
+import { BotonBase } from './BotonBase';
+import { CampoTexto } from './CampoTexto';
 
 interface InputBusquedaProps {
     placeholder?: string;
@@ -47,23 +49,22 @@ export const InputBusqueda = ({
             <span className="iconoBusqueda">
                 <Search size={16} />
             </span>
-            <input
+            <CampoTexto
                 ref={inputRef}
-                type="text"
                 className="inputBusqueda"
                 placeholder={placeholder}
                 value={valorInterno}
                 onChange={manejarCambio}
-            />
+             />
             {valorInterno && (
-                <button
+                <BotonBase variante="ghost"
                     className="botonLimpiar"
                     onClick={limpiar}
                     aria-label="Limpiar búsqueda"
                     type="button"
                 >
                     <X size={14} />
-                </button>
+                </BotonBase>
             )}
         </div>
     );

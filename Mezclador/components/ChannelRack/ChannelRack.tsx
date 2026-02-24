@@ -14,6 +14,7 @@ import { VentanaFlotante } from '../VentanaFlotante';
 import { CabeceraChannelRack } from './CabeceraChannelRack';
 import { CanalStrip } from './CanalStrip';
 import { GraphEditor } from './GraphEditor';
+import { BotonBase } from '@app/components/ui/BotonBase';
 
 export const ChannelRack = (): JSX.Element | null => {
     const patrones = usePatronesStore(s => s.patrones);
@@ -95,14 +96,14 @@ export const ChannelRack = (): JSX.Element | null => {
                     ))}
 
                     {/* Botón agregar canal */}
-                    <button
+                    <BotonBase variante="ghost"
                         className="channelRackAgregarCanal"
                         onClick={alAgregarCanal}
                         title="Agregar canal"
                     >
                         <Plus size={14} />
                         <span>Agregar canal</span>
-                    </button>
+                    </BotonBase>
                 </div>
 
                 {/* Info cuando no hay canales */}

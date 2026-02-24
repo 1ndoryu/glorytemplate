@@ -21,6 +21,7 @@ import {
     CATEGORIAS_SELECT,
 } from '@app/hooks/useFeedSamples';
 import type { SampleResumen } from '@app/types';
+import { BotonBase } from '../ui/BotonBase';
 
 /* Tipo del proveedor de datos: recibe página, devuelve samples */
 export type ProveedorSamples = (pagina: number) => Promise<SampleResumen[]>;
@@ -83,13 +84,13 @@ export const FeedSamples = ({
             key={tag}
             className={`feedTagItem ${feed.tagsIncluidos.includes(tag) ? 'feedTagItemIncluido' : ''} ${feed.tagsExcluidos.includes(tag) ? 'feedTagItemExcluido' : ''}`}
         >
-            <button type="button" className="feedTagBoton feedTagBotonRestar"
+            <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonRestar"
                 aria-label={`Excluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => { e.stopPropagation(); feed.manejarExcluirTag(tag); }}
             >
                 <Minus size={10} />
-            </button>
+            </BotonBase>
             <span className="feedTagTexto" role="button" tabIndex={0}
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
@@ -98,13 +99,13 @@ export const FeedSamples = ({
             >
                 {tag}
             </span>
-            <button type="button" className="feedTagBoton feedTagBotonSumar"
+            <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonSumar"
                 aria-label={`Incluir tag ${tag}`}
                 onMouseDown={e => e.stopPropagation()}
                 onClick={e => { e.stopPropagation(); feed.manejarIncluirTag(tag); }}
             >
                 <Plus size={10} />
-            </button>
+            </BotonBase>
         </div>
     ), [feed.tagsIncluidos, feed.tagsExcluidos, feed.manejarIncluirTag, feed.manejarExcluirTag]);
 

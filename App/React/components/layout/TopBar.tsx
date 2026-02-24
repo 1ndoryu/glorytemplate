@@ -101,14 +101,14 @@ export const TopBar = (): JSX.Element => {
             {/* Tabs dinámicas (definidas por cada isla) */}
             <div className="topbarTabs">
                 {tabs.map((tab) => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={tab.id}
                         className={`topbarTab ${activa === tab.id ? 'topbarTabActiva' : ''}`}
                         onClick={() => setActiva(tab.id)}
                         type="button"
                     >
                         {tab.etiqueta}
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 

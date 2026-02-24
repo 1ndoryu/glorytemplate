@@ -7,6 +7,7 @@
 import { type ReactNode, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import '../../styles/componentes/modal.css';
+import { BotonBase } from './BotonBase';
 
 type TamanoModal = 'pequeno' | 'normal' | 'grande';
 
@@ -90,14 +91,14 @@ export const Modal = ({
                 {titulo && (
                     <div className="modalCabecera">
                         <h2 className="modalTitulo">{titulo}</h2>
-                        <button
+                        <BotonBase variante="ghost"
                             className="modalCerrar"
                             onClick={onCerrar}
                             aria-label="Cerrar modal"
                             type="button"
                         >
                             ×
-                        </button>
+                        </BotonBase>
                     </div>
                 )}
                 <div className="modalCuerpo">{children}</div>

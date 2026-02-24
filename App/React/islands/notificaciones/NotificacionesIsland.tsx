@@ -89,14 +89,14 @@ export const NotificacionesIsland = (): JSX.Element => {
             {/* Filtros */}
             <div className="notificacionesFiltros">
                 {FILTROS.map((f) => (
-                    <button
+                    <BotonBase variante="ghost"
                         key={f.id}
                         className={`notificacionesFiltro ${filtro === f.id ? 'notificacionesFiltroActivo' : ''}`}
                         onClick={() => setFiltro(f.id)}
                         type="button"
                     >
                         {f.etiqueta}
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 
@@ -111,7 +111,7 @@ export const NotificacionesIsland = (): JSX.Element => {
             ) : (
                 <div className="notificacionesLista">
                     {filtradas.map((notif) => (
-                        <button
+                        <BotonBase variante="ghost"
                             key={notif.id}
                             className={`notificacionItem ${!notif.leida ? 'notificacionItemNoLeida' : ''}`}
                             onClick={() => manejarClick(notif)}
@@ -142,7 +142,7 @@ export const NotificacionesIsland = (): JSX.Element => {
                                 {ICONOS_TIPO[notif.tipo] ?? <Bell size={14} />}
                             </div>
                             {!notif.leida && <div className="notificacionItemPunto" />}
-                        </button>
+                        </BotonBase>
                     ))}
                 </div>
             )}

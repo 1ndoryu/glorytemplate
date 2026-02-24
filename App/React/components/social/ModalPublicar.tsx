@@ -15,6 +15,7 @@ import { usePublicar, MAX_IMAGENES } from '@app/hooks/usePublicar';
 import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/modalPublicar.css';
+import { CampoTexto } from '../ui/CampoTexto';
 
 export const ModalPublicar = (): JSX.Element | null => {
     const abierto = usePublicarModalStore(s => s.abierto);
@@ -66,7 +67,7 @@ export const ModalPublicar = (): JSX.Element | null => {
                         </div>
 
                         {/* Textarea */}
-                        <textarea
+                        <CampoTexto multilínea
                             ref={textareaRef}
                             className="publicarTextarea"
                             placeholder={
@@ -87,14 +88,14 @@ export const ModalPublicar = (): JSX.Element | null => {
                                 {imagenes.map((img, i) => (
                                     <div className="publicarImagenItem" key={img.url}>
                                         <img src={img.url} alt={`Imagen ${i + 1}`} />
-                                        <button
+                                        <BotonBase variante="ghost"
                                             className="publicarImagenQuitar"
                                             onClick={() => quitarImagen(i)}
                                             type="button"
                                             aria-label="Quitar imagen"
                                         >
                                             <X size={14} />
-                                        </button>
+                                        </BotonBase>
                                     </div>
                                 ))}
                             </div>
@@ -151,6 +152,7 @@ export const ModalPublicar = (): JSX.Element | null => {
                         </div>
 
                         {/* Input oculto para imágenes */}
+                        {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
                         <input
                             ref={inputImagenRef}
                             type="file"

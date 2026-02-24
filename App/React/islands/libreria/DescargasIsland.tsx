@@ -18,6 +18,7 @@ import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import '../../styles/componentes/coleccionDetalle.css';
+import { BotonBase } from '../../components/ui/BotonBase';
 
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Coleccionados' },
@@ -65,10 +66,10 @@ const DescargasBase = (): JSX.Element => {
     return (
         <div className="coleccionDetalle" id="seccionDescargas">
             {/* Botón volver — misma clase que ColeccionDetalle */}
-            <button className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
+            <BotonBase variante="ghost" className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
-            </button>
+            </BotonBase>
 
             {/* Header idéntico a ColeccionDetalle */}
             <div className="coleccionHeader">

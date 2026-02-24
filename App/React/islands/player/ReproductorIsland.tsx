@@ -12,6 +12,7 @@ import {Badge} from '@app/components/ui/Badge';
 import {useNavigationStore} from '@/core/router';
 import type {SampleResumen} from '@app/types';
 import '../../styles/componentes/reproductorIsland.css';
+import { BotonBase } from '../../components/ui/BotonBase';
 
 /* Formatear segundos a mm:ss */
 const formatearTiempo = (segundos: number): string => {
@@ -106,9 +107,9 @@ export const ReproductorIsland = (): JSX.Element => {
                     {/* Info del sample */}
                     <div className="reproductorIslandInfo">
                         <h1 className="reproductorIslandTitulo">{sampleActual.titulo}</h1>
-                        <button className="reproductorIslandCreador" type="button" onClick={() => irAlCreador(sampleActual.creador.username)}>
+                        <BotonBase variante="ghost" className="reproductorIslandCreador" type="button" onClick={() => irAlCreador(sampleActual.creador.username)}>
                             {sampleActual.creador.nombreVisible || sampleActual.creador.username}
-                        </button>
+                        </BotonBase>
 
                         <div className="reproductorIslandBadges">
                             {sampleActual.bpm && <Badge>{sampleActual.bpm} BPM</Badge>}
@@ -138,28 +139,29 @@ export const ReproductorIsland = (): JSX.Element => {
 
                     {/* Controles */}
                     <div className="reproductorIslandControles">
-                        <button className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
+                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${aleatorio ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
                             <Shuffle size={18} />
-                        </button>
-                        <button className="reproductorIslandBtn" onClick={anterior} type="button" aria-label="Anterior">
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={anterior} type="button" aria-label="Anterior">
                             <SkipBack size={22} />
-                        </button>
-                        <button className="reproductorIslandPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="reproductorIslandPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
                             {reproduciendo ? <Pause size={28} /> : <Play size={28} />}
-                        </button>
-                        <button className="reproductorIslandBtn" onClick={siguiente} type="button" aria-label="Siguiente">
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="reproductorIslandBtn" onClick={siguiente} type="button" aria-label="Siguiente">
                             <SkipForward size={22} />
-                        </button>
-                        <button className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
+                        </BotonBase>
+                        <BotonBase variante="ghost" className={`reproductorIslandBtn ${repetir ? 'reproductorIslandBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
                             <Repeat size={18} />
-                        </button>
+                        </BotonBase>
                     </div>
 
                     {/* Volumen */}
                     <div className="reproductorIslandVolumen">
-                        <button className="reproductorIslandBtn reproductorIslandBtnSm" onClick={toggleMute} type="button">
+                        <BotonBase variante="ghost" className="reproductorIslandBtn reproductorIslandBtnSm" onClick={toggleMute} type="button">
                             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                        </button>
+                        </BotonBase>
+                        {/* sentinel-disable-next-line html-nativo: input type="range" sin equivalente UI */}
                         <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label="Volumen" />
                     </div>
                 </div>
@@ -188,9 +190,9 @@ const PanelCola = ({cola, sampleActualId, onSeleccionar, onQuitar, onMover, onLi
             <h3>Cola de reproducción</h3>
             <span className="reproductorIslandColaCount">{cola.length}</span>
             {cola.length > 0 && (
-                <button className="reproductorIslandBtn reproductorIslandBtnSm" onClick={onLimpiar} type="button" aria-label="Limpiar cola">
+                <BotonBase variante="ghost" className="reproductorIslandBtn reproductorIslandBtnSm" onClick={onLimpiar} type="button" aria-label="Limpiar cola">
                     <Trash2 size={14} />
-                </button>
+                </BotonBase>
             )}
         </div>
 
@@ -203,24 +205,24 @@ const PanelCola = ({cola, sampleActualId, onSeleccionar, onQuitar, onMover, onLi
             <div className="reproductorIslandColaLista">
                 {cola.map((sample, indice) => (
                     <div key={sample.id} className={`reproductorIslandColaItem ${sample.id === sampleActualId ? 'reproductorIslandColaItemActivo' : ''}`}>
-                        <button className="reproductorIslandColaPlay" onClick={() => onSeleccionar(sample)} type="button">
+                        <BotonBase variante="ghost" className="reproductorIslandColaPlay" onClick={() => onSeleccionar(sample)} type="button">
                             <div className="reproductorIslandColaImagen">{sample.imagenUrl ? <img src={sample.imagenUrl} alt="" /> : <Music size={14} />}</div>
                             <div className="reproductorIslandColaInfo">
                                 <span className="reproductorIslandColaTitulo">{sample.titulo}</span>
                                 <span className="reproductorIslandColaArtista">{sample.creador.nombreVisible || sample.creador.username}</span>
                             </div>
-                        </button>
+                        </BotonBase>
 
                         <div className="reproductorIslandColaAcciones">
-                            <button className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'arriba')} disabled={indice === 0} type="button" aria-label="Mover arriba">
+                            <BotonBase variante="ghost" className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'arriba')} disabled={indice === 0} type="button" aria-label="Mover arriba">
                                 <ChevronUp size={12} />
-                            </button>
-                            <button className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'abajo')} disabled={indice === cola.length - 1} type="button" aria-label="Mover abajo">
+                            </BotonBase>
+                            <BotonBase variante="ghost" className="reproductorIslandColaBtnMini" onClick={() => onMover(indice, 'abajo')} disabled={indice === cola.length - 1} type="button" aria-label="Mover abajo">
                                 <ChevronDown size={12} />
-                            </button>
-                            <button className="reproductorIslandColaBtnMini" onClick={() => onQuitar(sample.id)} type="button" aria-label="Quitar de cola">
+                            </BotonBase>
+                            <BotonBase variante="ghost" className="reproductorIslandColaBtnMini" onClick={() => onQuitar(sample.id)} type="button" aria-label="Quitar de cola">
                                 <X size={12} />
-                            </button>
+                            </BotonBase>
                         </div>
                     </div>
                 ))}

@@ -39,14 +39,14 @@ export const PanelSincronizacion = (): JSX.Element | null => {
                         <FolderSync size={18} />
                         <span>Sincronización</span>
                     </div>
-                    <button
+                    <BotonBase variante="ghost"
                         className="sincPanelCerrar"
                         onClick={cerrarPanel}
                         type="button"
                         aria-label="Cerrar panel"
                     >
                         <X size={16} />
-                    </button>
+                    </BotonBase>
                 </div>
 
                 {/* Estado actual */}
@@ -71,13 +71,13 @@ export const PanelSincronizacion = (): JSX.Element | null => {
                             <span className="sincPanelCarpetaRuta" title={carpetaLocal}>
                                 {acortarRuta(carpetaLocal)}
                             </span>
-                            <button
+                            <BotonBase variante="ghost"
                                 className="sincPanelCarpetaCambiar"
                                 onClick={elegirCarpeta}
                                 type="button"
                             >
                                 Cambiar
-                            </button>
+                            </BotonBase>
                         </div>
                     ) : (
                         <BotonBase
@@ -96,7 +96,7 @@ export const PanelSincronizacion = (): JSX.Element | null => {
                 <div className="sincPanelSeccion">
                     <div className="sincPanelToggleRow">
                         <span className="sincPanelToggleLabel">Sincronización automática</span>
-                        <button
+                        <BotonBase variante="ghost"
                             className={`sincPanelToggle ${sincronizacionActiva ? 'sincPanelToggle--activo' : ''}`}
                             onClick={alternarSincronizacion}
                             type="button"
@@ -104,7 +104,7 @@ export const PanelSincronizacion = (): JSX.Element | null => {
                             aria-checked={sincronizacionActiva}
                         >
                             <span className="sincPanelToggleDot" />
-                        </button>
+                        </BotonBase>
                     </div>
                 </div>
 

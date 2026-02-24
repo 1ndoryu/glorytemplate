@@ -208,7 +208,7 @@ const DashboardIslandBase = (): JSX.Element => {
                                     <span>Ingresos</span>
                                 </div>
                                 {topSamples.map((s, i) => (
-                                    <button
+                                    <BotonBase variante="ghost"
                                         key={s.id}
                                         className="dashboardTablaFila"
                                         onClick={() => navegar(`/sample/${s.slug}/`)}
@@ -225,7 +225,7 @@ const DashboardIslandBase = (): JSX.Element => {
                                         <span className="dashboardTablaIngresos">
                                             {formatearMoneda(s.ingresos)}
                                         </span>
-                                    </button>
+                                    </BotonBase>
                                 ))}
                             </div>
                         </div>

@@ -31,17 +31,17 @@ export const PanelLibreria = (): JSX.Element => {
         <div className="panelLibreria">
             <div className="panelLibreriaCabecera">
                 <h3 className="panelLibreriaTitulo"><FolderOpen size={16} /> Libreria</h3>
-                <button className="panelLibreriaCerrar" onClick={cerrarPanel} type="button" aria-label="Cerrar">
+                <BotonBase variante="ghost" className="panelLibreriaCerrar" onClick={cerrarPanel} type="button" aria-label="Cerrar">
                     <X size={16} />
-                </button>
+                </BotonBase>
             </div>
 
             <div className="panelLibreriaTabs">
                 {TABS.map(t => (
-                    <button key={t.id} className={`panelLibreriaTab ${tab === t.id ? 'panelLibreriaTabActiva' : ''}`}
+                    <BotonBase variante="ghost" key={t.id} className={`panelLibreriaTab ${tab === t.id ? 'panelLibreriaTabActiva' : ''}`}
                         onClick={() => setTab(t.id)} type="button">
                         {t.icono} {t.etiqueta}
-                    </button>
+                    </BotonBase>
                 ))}
             </div>
 
