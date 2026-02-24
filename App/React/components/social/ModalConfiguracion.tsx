@@ -12,6 +12,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useModalConfiguracion, type SeccionConfig } from '@app/hooks/useModalConfiguracion';
 import '../../styles/componentes/modalConfiguracion.css';
 import { CampoTexto } from '../ui/CampoTexto';
+import { Input } from '../ui/Input';
 
 /* Sub-componente: preferencia panel lateral al dar like (evita re-renders) */
 const PanelLateralPreferencia = (): JSX.Element => {
@@ -79,8 +80,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                     <ImagePlus size={16} />
                                     Cambiar portada
                                 </BotonBase>
-                                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                                <input
+                                <Input
                                     ref={inputPortadaRef}
                                     type="file"
                                     accept="image/*"
@@ -107,8 +107,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                                 >
                                     <Camera size={16} />
                                 </BotonBase>
-                                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                                <input
+                                <Input
                                     ref={inputFotoRef}
                                     type="file"
                                     accept="image/*"

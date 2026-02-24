@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import type { Patron } from '../../types/mezclador';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Input } from '@app/components/ui/Input';
 
 interface SelectorPatronProps {
     patrones: Patron[];
@@ -69,8 +70,7 @@ export const SelectorPatron = ({
 
             {editando ? (
                 <>
-                    {/* sentinel-disable-next-line html-nativo: input inline de renombrado, CampoTexto romperia layout */}
-                    <input
+                    <Input
                         className="selectorPatronInput"
                         defaultValue={patronActual?.nombre ?? ''}
                         autoFocus

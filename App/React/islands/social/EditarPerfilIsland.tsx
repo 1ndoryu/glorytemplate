@@ -8,6 +8,7 @@ import { Camera } from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
+import { Input } from '../../components/ui/Input';
 import { conAutenticacion } from '../../components/auth/ConAutenticacion';
 import { useEditarPerfil } from '@app/hooks/useEditarPerfil';
 import '../../styles/componentes/editarPerfil.css';
@@ -43,8 +44,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
                         <Camera size={20} />
                         <span style={{ marginLeft: 8 }}>Cambiar portada</span>
                     </div>
-                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                    <input
+                    <Input
                         ref={portadaInputRef}
                         type="file"
                         accept="image/*"
@@ -64,8 +64,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
                             nombre={nombre}
                             tamano="xl"
                         />
-                        {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                        <input
+                        <Input
                             ref={avatarInputRef}
                             type="file"
                             accept="image/*"

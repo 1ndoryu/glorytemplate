@@ -13,6 +13,7 @@ import {useNavigationStore} from '@/core/router';
 import type {SampleResumen} from '@app/types';
 import '../../styles/componentes/reproductorIsland.css';
 import { BotonBase } from '../../components/ui/BotonBase';
+import { Input } from '../../components/ui/Input';
 
 /* Formatear segundos a mm:ss */
 const formatearTiempo = (segundos: number): string => {
@@ -161,8 +162,7 @@ export const ReproductorIsland = (): JSX.Element => {
                         <BotonBase variante="ghost" className="reproductorIslandBtn reproductorIslandBtnSm" onClick={toggleMute} type="button">
                             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                         </BotonBase>
-                        {/* sentinel-disable-next-line html-nativo: input type="range" sin equivalente UI */}
-                        <input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label="Volumen" />
+                        <Input type="range" min={0} max={1} step={0.01} value={muted ? 0 : volumen} onChange={e => setVolumen(Number(e.target.value))} className="reproductorIslandSlider" aria-label="Volumen" />
                     </div>
                 </div>
 

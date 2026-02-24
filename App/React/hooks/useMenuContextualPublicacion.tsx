@@ -100,11 +100,12 @@ export const useMenuContextualPublicacion = (
                 id: 'editar',
                 etiqueta: 'Editar publicación',
                 icono: <Pencil size={16} />,
-                onClick: () => {
+                onClick: async () => {
                     /* Prompt inline para editar contenido */
                     const nuevoContenido = window.prompt('Editar publicación:', post.contenido);
                     if (nuevoContenido !== null && nuevoContenido.trim() !== '' && nuevoContenido !== post.contenido) {
-                        actualizarPublicacion(post.id, { contenido: nuevoContenido.trim() }).then(resp => {
+                        try {
+                            const resp = await actualizarPublicacion(post.id, { contenido: nuevoContenido.trim() });
                             if (resp.ok) {
                                 toast.exito('Publicación actualizada');
                                 if (setPublicaciones) {
@@ -118,7 +119,9 @@ export const useMenuContextualPublicacion = (
                             } else {
                                 toast.error(resp.error ?? 'Error al actualizar');
                             }
-                        }).catch(() => toast.error('Error de red al actualizar'));
+                        } catch (err) {
+                            toast.error('Error de red al actualizar');
+                        }
                     }
                 },
             });
@@ -130,8 +133,9 @@ export const useMenuContextualPublicacion = (
                 id: 'aprobar',
                 etiqueta: 'Aprobar publicación',
                 icono: <CheckCircle size={16} />,
-                onClick: () => {
-                    actualizarPublicacion(post.id, { moderacionEstado: 'aprobado' }).then(resp => {
+                onClick: async () => {
+                    try {
+                        const resp = await actualizarPublicacion(post.id, { moderacionEstado: 'aprobado' });
                         if (resp.ok) {
                             toast.exito('Publicación aprobada');
                             if (setPublicaciones) {
@@ -145,7 +149,9 @@ export const useMenuContextualPublicacion = (
                         } else {
                             toast.error('Error al aprobar');
                         }
-                    }).catch(() => toast.error('Error de red al aprobar'));
+                    } catch (err) {
+                        toast.error('Error de red al aprobar');
+                    }
                 },
             });
         }
@@ -184,16 +190,19 @@ export const useMenuContextualPublicacion = (
                 etiqueta: 'Reportar',
                 icono: <Flag size={16} />,
                 peligro: true,
-                onClick: () => {
+                onClick: async () => {
                     const razon = window.prompt('¿Por qué quieres reportar esta publicación?', 'contenido inapropiado');
                     if (razon !== null && razon.trim() !== '') {
-                        reportarPublicacion(post.id, razon.trim()).then(resp => {
+                        try {
+                            const resp = await reportarPublicacion(post.id, razon.trim());
                             if (resp.ok) {
                                 toast.exito(resp.data?.message ?? 'Reporte enviado');
                             } else {
                                 toast.error(resp.error ?? 'Error al reportar');
                             }
-                        }).catch(() => toast.error('Error de red al reportar'));
+                        } catch (err) {
+                            toast.error('Error de red al reportar');
+                        }
                     }
                 },
             });

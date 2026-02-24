@@ -16,6 +16,7 @@ import { usePublicarModalStore } from '@app/stores/publicarModalStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/modalPublicar.css';
 import { CampoTexto } from '../ui/CampoTexto';
+import { Input } from '../ui/Input';
 
 export const ModalPublicar = (): JSX.Element | null => {
     const abierto = usePublicarModalStore(s => s.abierto);
@@ -152,8 +153,7 @@ export const ModalPublicar = (): JSX.Element | null => {
                         </div>
 
                         {/* Input oculto para imágenes */}
-                        {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                        <input
+                        <Input
                             ref={inputImagenRef}
                             type="file"
                             accept="image/*"

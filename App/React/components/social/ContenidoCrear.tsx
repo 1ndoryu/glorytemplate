@@ -13,6 +13,7 @@ import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
 import '@app/styles/componentes/modalCrear.css';
 import { CampoTexto } from '../ui/CampoTexto';
+import { Input } from '../ui/Input';
 
 interface ContenidoCrearProps {
     autoFocus?: boolean;
@@ -240,10 +241,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             </div>
 
             {/* Inputs ocultos */}
-            {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-            <input ref={inputAudioRef} type="file" accept={formatosAudio.join(',')} hidden onChange={manejarInputAudio} />
-            {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-            <input ref={inputImagenRef} type="file" accept="image/*" multiple hidden onChange={manejarInputImagen} />
+            <Input ref={inputAudioRef} type="file" accept={formatosAudio.join(',')} hidden onChange={manejarInputAudio} />
+            <Input ref={inputImagenRef} type="file" accept="image/*" multiple hidden onChange={manejarInputImagen} />
         </div>
     );
 };

@@ -12,6 +12,7 @@ import { posicionBloquePorc, anchoBloquePorc } from '../utils/compasUtils';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { usePistaTimeline } from '../hooks/usePistaTimeline';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Input } from '@app/components/ui/Input';
 
 interface PistaTimelineProps {
     pista: PistaMezclador;
@@ -87,8 +88,7 @@ export const PistaTimeline = ({
                 {/* Nombre editable inline */}
                 {editandoNombre ? (
                     <>
-                        {/* sentinel-disable-next-line html-nativo: input inline de renombrado, CampoTexto romperia layout */}
-                        <input
+                        <Input
                             ref={inputRef}
                             className="mezcladorPistaNombreInput"
                             defaultValue={pista.nombre}

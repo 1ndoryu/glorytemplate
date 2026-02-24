@@ -6,6 +6,7 @@
 import { useState, useRef, useCallback, type DragEvent, type ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
 import '../../styles/componentes/dropZone.css';
+import { Input } from './Input';
 
 interface DropZoneProps {
     onArchivos: (archivos: File[]) => void;
@@ -114,8 +115,7 @@ export const DropZone = ({
             <p className="dropZoneFormatos">
                 Formatos: {formatosAceptados.join(', ')} — Máximo {tamanoMaximoMB}MB
             </p>
-            {/* sentinel-disable-next-line html-nativo: input type="file" no tiene equivalente UI */}
-            <input
+            <Input
                 ref={inputRef}
                 type="file"
                 className="dropZoneInput"

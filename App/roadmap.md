@@ -100,6 +100,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - **React SRP (R74-R82):** ~50 componentes refactorizados a patrón componente+hook dedicado. ~50 hooks nuevos. Todas las islands, modales, y componentes DAW separados en vista+lógica. AbortController cleanup generalizado.
 - **Sentinel (R72-R73):** Code Sentinel mejorado (FPs eliminados: exec/json/controller/barras). 42 archivos Zustand migrados a selectores individuales (~90 llamadas). Detecciones: error-enmascarado, sanitizacion-faltante.
 - **Hardcode SQL fix (R76):** 16 archivos, ~35 violaciones → Cols constants. key={index} fix (R77): 15 archivos → keys estables.
+- **Sentinel Fixes (AG-FIX):** Corregidas 23 violaciones de Sentinel. Creados componentes `Input`, `Checkbox` y `Radio` en `components/ui` para reemplazar inputs nativos. Agregados bloques try-catch a promesas sin catch en `useMenuContextualPublicacion.tsx`.
 
 ### Mezclador DAW
 
@@ -129,6 +130,9 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ## Pendientes por Fase
 
 ### Fases 0-4 ✔ (completadas)
+
+### TAREAS EN CURSO
+- ✅ [AG-FIX] Corregir violaciones de Sentinel reportadas en `.sentinel-report.md` (promise-sin-catch, html-nativo-en-vez-de-componente).
 
 ### FASE 5 — Chat Flotante (parcial)
 

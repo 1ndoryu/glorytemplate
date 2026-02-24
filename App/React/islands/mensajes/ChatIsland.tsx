@@ -12,6 +12,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import '../../styles/componentes/chat.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
+import { Input } from '../../components/ui/Input';
 
 interface ChatIslandProps {
     conversacionId?: string;
@@ -66,8 +67,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
             </div>
 
             <div className="chatInputArea">
-                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                <input ref={archivoRef} type="file"
+                <Input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />
                 <BotonBase variante="ghost" className="chatAdjuntarBtn" onClick={() => archivoRef.current?.click()}

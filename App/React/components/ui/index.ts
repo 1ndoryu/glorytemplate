@@ -23,3 +23,6 @@ export { ReproductorGlobal } from './ReproductorGlobal';
 export { BadgeModeracion } from './BadgeModeracion';
 export { Tooltip } from './Tooltip';
 export { SelectorBase } from './SelectorBase';
+export { Input } from './Input';
+export { Checkbox } from './Checkbox';
+export { Radio } from './Radio';

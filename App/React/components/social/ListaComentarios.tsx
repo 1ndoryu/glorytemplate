@@ -14,6 +14,7 @@ import type { Comentario } from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
+import { Input } from '../ui/Input';
 
 interface ListaComentariosProps {
     comentarios: Comentario[];
@@ -142,11 +143,9 @@ export const ListaComentarios = ({
                                     <BotonBase variante="ghost" className="comentarioAdjuntarBtn" onClick={() => inputAudioRef.current?.click()} type="button" aria-label="Adjuntar audio" title="Adjuntar audio">
                                         <Mic size={14} />
                                     </BotonBase>
-                                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                                    <input ref={inputImagenRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="comentarioInputOculto"
+                                    <Input ref={inputImagenRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="comentarioInputOculto"
                                         onChange={e => { const f = e.target.files?.[0]; if (f) manejarArchivoSeleccionado(f, 'imagen'); e.target.value = ''; }} />
-                                    {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                                    <input ref={inputAudioRef} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/webm,audio/flac,.mp3,.wav,.ogg,.m4a,.aac,.webm,.flac" className="comentarioInputOculto"
+                                    <Input ref={inputAudioRef} type="file" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/aac,audio/webm,audio/flac,.mp3,.wav,.ogg,.m4a,.aac,.webm,.flac" className="comentarioInputOculto"
                                         onChange={e => { const f = e.target.files?.[0]; if (f) manejarArchivoSeleccionado(f, 'audio'); e.target.value = ''; }} />
                                 </>
                             )}

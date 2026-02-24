@@ -12,6 +12,7 @@ import { useVentanaChat } from '@app/hooks/useVentanaChat';
 import '../../styles/componentes/chatFlotante.css';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
+import { Input } from '../ui/Input';
 
 /* Ventana individual de chat */
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
@@ -90,8 +91,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
             </div>
 
             <div className="chatFlotanteInput">
-                {/* sentinel-disable-next-line html-nativo: input type="file" sin equivalente UI */}
-                <input ref={archivoRef} type="file"
+                <Input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />
                 <BotonBase variante="ghost" className="chatFlotanteAdjuntarBtn" onClick={() => archivoRef.current?.click()}

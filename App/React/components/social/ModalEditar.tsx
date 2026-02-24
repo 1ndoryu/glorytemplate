@@ -8,6 +8,7 @@ import { Modal } from '@app/components/ui/Modal';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
+import { Checkbox } from '@app/components/ui/Checkbox';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
 import type { TipoSample, SampleResumen } from '@app/types';
@@ -184,35 +185,27 @@ export const ModalEditar = (): JSX.Element | null => {
                         </div>
 
                         <div className="editarFilaDoble">
-                            <label className="editarCheckbox">
-                                {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
-                                <input
-                                    type="checkbox"
-                                    checked={formularioSample.esPremium}
-                                    onChange={(e) =>
-                                        setFormularioSample((prev) => ({
-                                            ...prev,
-                                            esPremium: e.target.checked,
-                                        }))
-                                    }
-                                />
-                                <span>Premium</span>
-                            </label>
+                            <Checkbox
+                                label="Premium"
+                                checked={formularioSample.esPremium}
+                                onChange={(e) =>
+                                    setFormularioSample((prev) => ({
+                                        ...prev,
+                                        esPremium: e.target.checked,
+                                    }))
+                                }
+                            />
 
-                            <label className="editarCheckbox">
-                                {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
-                                <input
-                                    type="checkbox"
-                                    checked={formularioSample.permitirDescarga}
-                                    onChange={(e) =>
-                                        setFormularioSample((prev) => ({
-                                            ...prev,
-                                            permitirDescarga: e.target.checked,
-                                        }))
-                                    }
-                                />
-                                <span>Permitir descarga</span>
-                            </label>
+                            <Checkbox
+                                label="Permitir descarga"
+                                checked={formularioSample.permitirDescarga}
+                                onChange={(e) =>
+                                    setFormularioSample((prev) => ({
+                                        ...prev,
+                                        permitirDescarga: e.target.checked,
+                                    }))
+                                }
+                            />
                         </div>
 
 
@@ -265,20 +258,16 @@ export const ModalEditar = (): JSX.Element | null => {
                             maxLength={300}
                         />
 
-                        <label className="editarCheckbox">
-                            {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
-                            <input
-                                type="checkbox"
-                                checked={formularioColeccion.esPublica}
-                                onChange={(e) =>
-                                    setFormularioColeccion((prev) => ({
-                                        ...prev,
-                                        esPublica: e.target.checked,
-                                    }))
-                                }
-                            />
-                            <span>Colección pública</span>
-                        </label>
+                        <Checkbox
+                            label="Colección pública"
+                            checked={formularioColeccion.esPublica}
+                            onChange={(e) =>
+                                setFormularioColeccion((prev) => ({
+                                    ...prev,
+                                    esPublica: e.target.checked,
+                                }))
+                            }
+                        />
                     </>
                 )}
 

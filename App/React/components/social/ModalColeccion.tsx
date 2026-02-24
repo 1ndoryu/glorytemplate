@@ -7,6 +7,7 @@ import { FolderPlus } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Checkbox } from '@app/components/ui/Checkbox';
 import { useModalColeccion } from '@app/hooks/useModalColeccion';
 import type { Coleccion } from '@app/types';
 import '../../styles/componentes/modalColeccion.css';
@@ -63,9 +64,7 @@ export const ModalColeccion = ({
                 />
 
                 <label className="modalColeccionPublica">
-                    {/* sentinel-disable-next-line html-nativo: input type="checkbox" sin equivalente UI */}
-                    <input
-                        type="checkbox"
+                    <Checkbox
                         checked={esPublica}
                         onChange={(e) => setEsPublica(e.target.checked)}
                     />
