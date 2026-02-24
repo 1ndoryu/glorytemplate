@@ -18,6 +18,9 @@ import type { Coleccion } from '@app/types';
 
 const log = crearLogger('useModalSeleccionColeccion');
 
+/* Evento global para notificar que un sample fue guardado en una coleccion */
+export const EVENTO_SAMPLE_GUARDADO_EN_COLECCION = 'kamples:sample-guardado-en-coleccion';
+
 export const useModalSeleccionColeccion = () => {
     const abierto = useColeccionPickerStore(s => s.abierto);
     const sample = useColeccionPickerStore(s => s.sample);
@@ -102,6 +105,7 @@ export const useModalSeleccionColeccion = () => {
             if (resp.ok) {
                 setAgregados(prev => new Set(prev).add(coleccionId));
                 log.info('Sample anadido a coleccion', { coleccionId, sampleId: sample.id });
+                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: sample.id } }));
             }
         } catch (err) {
             log.error('Error anadiendo a coleccion', err);
@@ -125,6 +129,7 @@ export const useModalSeleccionColeccion = () => {
                 setAgregados(prev => new Set(prev).add(resp.data!.id));
                 setBusqueda('');
                 log.info('Coleccion creada y sample anadido', { id: resp.data.id });
+                window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_GUARDADO_EN_COLECCION, { detail: { sampleId: sample.id } }));
             }
         } catch (err) {
             log.error('Error creando coleccion', err);

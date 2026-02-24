@@ -72,6 +72,14 @@
     transition: border-color var(--transicionRapida);
 }
 
+.comunidadPostHeader button {
+    padding: unset !important;
+}
+
+.comunidadPostHeader .badgeModeracion {
+    margin-left: auto;
+}
+
 .comunidadPost:hover {
     border-color: var(--bordeActivo);
 }
@@ -79,8 +87,9 @@
 /* Header del post: avatar + nombre + tiempo + menú */
 .comunidadPostHeader {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
+    gap: var(--espacioXs);
 }
 
 /* C127: Botón menú 3 puntos en post */

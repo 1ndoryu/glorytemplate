@@ -10,6 +10,11 @@
     position: relative;
 }
 
+.crearContenido textarea.campoTextoArea {
+    border: unset;
+    /* padding: unset; */
+}
+
 .crearCabecera {
     display: flex;
     align-items: center;

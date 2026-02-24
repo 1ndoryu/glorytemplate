@@ -23,7 +23,6 @@
 
 .inputBusqueda {
     width: 100%;
-    height: 32px;
     padding: var(--espacioSm) var(--espacioLg);
     padding-left: calc(var(--espacioXs) * 10);
     padding-right: calc(var(--espacioXs) * 10);

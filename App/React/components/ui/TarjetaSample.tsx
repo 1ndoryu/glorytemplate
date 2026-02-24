@@ -36,10 +36,10 @@ interface TarjetaSampleProps {
 export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
     const { sample } = props;
     const {
-        picosAudio, descargado, estaReproduciendo, progresoActual, clases, imagenPortada,
+        picosAudio, descargado, guardado, comentado, estaReproduciendo, progresoActual, clases, imagenPortada,
         manejarPlayPause, manejarLike, manejarReaccion, manejarQuitarReaccion,
         manejarColeccionar, manejarMenu, manejarGuardar, manejarSeek,
-        manejarDragStart, navegar, onClickTitulo, onComentar,
+        manejarDragStart, navegar, onClickTitulo, manejarComentar,
     } = useTarjetaSample(props);
 
     return (
@@ -117,15 +117,15 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     </BotonBase>
                 </TooltipReacciones>
 
-                <BotonBase variante="ghost" className="tarjetaAccionBtn" onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
-                    <Bookmark size={18} />
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
+                    <Bookmark size={18} fill={guardado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className="tarjetaAccionBtn" onClick={(e) => { e.stopPropagation(); onComentar?.(sample.id); }} type="button" aria-label="Comentar">
-                    <MessageCircle size={18} />
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${comentado ? 'tarjetaAccionLiked' : ''}`} onClick={(e) => { e.stopPropagation(); manejarComentar(sample.id); }} type="button" aria-label="Comentar">
+                    <MessageCircle size={18} fill={comentado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionDescargado' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
                     <Plus size={18} />
                 </BotonBase>
 

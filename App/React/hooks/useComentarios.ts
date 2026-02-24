@@ -15,6 +15,7 @@ import { crearLogger } from '@app/services/logger';
 import type { Comentario } from '@app/types';
 
 const log = crearLogger('useComentarios');
+export const EVENTO_SAMPLE_COMENTADO = 'kamples:sample-comentado';
 
 interface UseComentariosOpciones {
     tipo: 'sample' | 'publicacion';
@@ -85,6 +86,9 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
                 } else {
                     setComentarios(prev => [...prev, nuevo]);
                 }
+                if (tipo === 'sample') {
+                    window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_COMENTADO, { detail: { sampleId: targetId } }));
+                }
                 setRespondendoAId(null);
                 return true;
             }
@@ -116,6 +120,9 @@ export const useComentarios = ({ tipo, targetId, cargarAlAbrir = false }: UseCom
                     })));
                 } else {
                     setComentarios(prev => [...prev, nuevo]);
+                }
+                if (tipo === 'sample') {
+                    window.dispatchEvent(new CustomEvent(EVENTO_SAMPLE_COMENTADO, { detail: { sampleId: targetId } }));
                 }
                 return true;
             }

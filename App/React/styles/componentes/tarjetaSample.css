@@ -189,17 +189,38 @@
     background-color: var(--fondoElevado3);
 }
 
-.tarjetaAccionLiked {
+
+.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionLiked {
     color: var(--error);
 }
 
-.tarjetaAccionLiked:hover {
+.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionLiked:hover {
     color: var(--blanco);
 }
 
-/* C157: Boton descarga con color acento cuando ya se descargo */
+/* C157: Botones de accion completada en rojo para indicar estado previo */
 .tarjetaAccionDescargado {
-    color: var(--acento);
+    color: var(--error);
+}
+
+.tarjetaAccionDescargado:hover {
+    color: var(--blanco);
+}
+
+.tarjetaAccionGuardado {
+    color: var(--error);
+}
+
+.tarjetaAccionGuardado:hover {
+    color: var(--blanco);
+}
+
+.tarjetaAccionComentado {
+    color: var(--error);
+}
+
+.tarjetaAccionComentado:hover {
+    color: var(--blanco);
 }
 
 /* Duración y stats */
@@ -247,15 +268,15 @@
 .dragPreviewSample {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: var(--acento, #7c3aed);
-    color: var(--acentoTexto, #fff);
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 6px;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--acento);
+    color: var(--acentoTexto);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    border-radius: var(--radioMd);
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--sombraElevada);
     pointer-events: none;
     z-index: 99999;
 }

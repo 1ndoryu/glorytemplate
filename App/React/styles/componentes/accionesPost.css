@@ -11,6 +11,10 @@
     border-top: 1px solid var(--bordeSutil);
 }
 
+.accionesPostBarra button {
+    padding: unset !important;
+}
+
 .accionesPostBtn {
     display: inline-flex;
     align-items: center;
