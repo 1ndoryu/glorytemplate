@@ -169,6 +169,13 @@
     font-size: var(--fuenteXs);
 }
 
+/* Override BotonBase padding en botones de acciones de tarjeta */
+.tarjetaAcciones .botonBase.tarjetaAccionBtn {
+    padding: 0;
+    height: 28px;
+    min-width: unset;
+}
+
 .tarjetaAccionContador {
     display: inline-block;
     width: 24px;
