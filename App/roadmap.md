@@ -335,6 +335,8 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - [EVENTO_ENTIDAD_ACTUALIZADA]: Exportado como constante desde ModalEditar.tsx (`'kamples:entidad-actualizada'`). Para actualizar un post individual sin recargar el feed: escuchar el evento, llamar `obtenerPublicacion(id)` y `setPublicaciones(prev => prev.map(...))`.
 - [Repost optimista con rollback]: Capturar estado antes (`const snapshot = publicaciones`), mutar estado optimistamente, llamar API, si `!resp.ok` → `setPublicaciones(snapshot)`.
 - [TarjetaPublicacion unificada]: Si dos vistas deben verse idénticas, DEBEN usar el MISMO componente. Nunca dos CSS separados para el mismo elemento visual. Extras de isla (botón seguir, comentarios) → props `avatarExtra` + `children`. `tarjetaPublicacion.css` es la única fuente de verdad; `comunidad.css` solo contiene layout de isla.
+- [EnlaceNavegacion + menú]: NUNCA anidar `<button>` dentro de `<a>` — HTML inválido; `stopPropagation` no es suficiente, el navegador igualmente activa el enlace. Patrón correcto: outer `<div className="tarjeta" style="position:relative">` → `<EnlaceNavegacion>` cubre portada+info con `overflow:hidden; border-radius` → `<div className="menuContenedor">` absolutamente posicionado FUERA del `<a>`. Cerrar menú con `useEffect` + `document.addEventListener('mousedown', ...)` (no `onBlur`).
+- [ColeccionDetalle editar]: Propietario detectado con `String(coleccion.usuarioId) === String(usuario.id)`. `itemsMenuColeccion` (useMemo con deps) genera el item "Editar" condicionalmente. `manejarGuardarEdicion` actualiza `coleccion` local tras editar sin refetch. `ModalColeccion` con prop `coleccion` entra en modo edición.
 
 ### CSS / UI
 
