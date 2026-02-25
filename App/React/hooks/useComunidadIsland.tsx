@@ -38,7 +38,9 @@ export function useComunidadIsland() {
             try {
                 const resp = await obtenerPublicacion(id);
                 if (!resp.data) return;
-                setPublicaciones(prev => prev.map(p => p.id === id ? resp.data! : p));
+                /* Merge en vez de reemplazar: preserva campos que el endpoint individual
+                 * puede no devolver (moderacionEstado, contadores optimistas, etc.) */
+                setPublicaciones(prev => prev.map(p => p.id === id ? { ...p, ...resp.data! } : p));
             } catch { /* sin-op: fallo silencioso no critico en refresh de post */ }
         };
         window.addEventListener(EVENTO_ENTIDAD_ACTUALIZADA, manejarActualizacion);
@@ -152,7 +154,7 @@ export function useComunidadIsland() {
         const estabaReposteado = post.reposteado;
         setPublicaciones(prev => prev.map(p =>
             p.id === postId
-                ? { ...p, reposteado: !estabaReposteado, totalReposts: estabaReposteado ? p.totalReposts - 1 : p.totalReposts + 1 }
+                ? { ...p, reposteado: !estabaReposteado, totalReposts: estabaReposteado ? Math.max(0, (p.totalReposts ?? 0) - 1) : (p.totalReposts ?? 0) + 1 }
                 : p
         ));
         try {
