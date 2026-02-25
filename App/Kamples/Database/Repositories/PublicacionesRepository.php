@@ -244,7 +244,7 @@ class PublicacionesRepository extends BaseRepository
         $params['id'] = $id;
 
         static::ejecutar(
-            "UPDATE {$tabla} SET {$set}, " . PublicacionesCols::UPDATED_AT . " = NOW() WHERE " . PublicacionesCols::ID . " = :id",
+            "UPDATE {$tabla} SET {$set} WHERE " . PublicacionesCols::ID . " = :id",
             $params
         );
     }
