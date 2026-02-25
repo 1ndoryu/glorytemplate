@@ -32,6 +32,8 @@ interface TarjetaPublicacionProps {
     sampleActualId?: number;
     reproduciendo?: boolean;
     mostrarCeroConteo?: boolean;
+    /* Slot para extras de isla sobre el avatar (ej: botón seguir en ComunidadIsland) */
+    avatarExtra?: React.ReactNode;
     children?: React.ReactNode;
     className?: string;
 }
@@ -51,6 +53,7 @@ export const TarjetaPublicacion = ({
     sampleActualId,
     reproduciendo = false,
     mostrarCeroConteo,
+    avatarExtra,
     children,
     className = '',
 }: TarjetaPublicacionProps): JSX.Element => {
@@ -103,11 +106,14 @@ export const TarjetaPublicacion = ({
             {/* Cabecera: @username · tiempo en la misma línea */}
             <div className="tarjetaPubCabecera">
                 <div className="tarjetaPubAutorBloque">
-                    <Avatar
-                        src={publicacion.autor.avatarUrl}
-                        nombre={publicacion.autor.nombreVisible}
-                        tamano="sm"
-                    />
+                    <div className="tarjetaPubAvatarContenedor">
+                        <Avatar
+                            src={publicacion.autor.avatarUrl}
+                            nombre={publicacion.autor.nombreVisible}
+                            tamano="sm"
+                        />
+                        {avatarExtra}
+                    </div>
                     <BotonBase
                         variante="ghost"
                         className="tarjetaPubAutorTextos"

@@ -50,8 +50,8 @@
 }
 
 .tarjetaPubNombre {
-    font-size: var(--fuenteMd);
-    font-weight: var(--pesoBold);
+    font-size: calc(var(--fuenteSm) + 1px);
+    font-weight: var(--pesoMedio);
     color: var(--textoPrimario);
     display: flex;
     align-items: center;
@@ -61,9 +61,9 @@
     text-overflow: ellipsis;
 }
 
-/* @username · tiempo en la misma línea (igual que comunidadPostTiempo) */
+/* @username · tiempo en la misma línea */
 .tarjetaPubMeta {
-    font-size: var(--fuenteXs);
+    font-size: calc(var(--fuenteXs) + 1px);
     color: var(--textoTerciario);
     white-space: nowrap;
     overflow: hidden;
@@ -78,13 +78,22 @@
     flex-shrink: 0;
 }
 
+/* Menú 3 puntos: oculto hasta hacer hover en la tarjeta (igual que comunidad) */
 .tarjetaPubMenuBtn {
     color: var(--textoTerciario);
     padding: var(--espacioXs);
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    background: none;
+}
+
+.tarjetaPublicacion:hover .tarjetaPubMenuBtn {
+    opacity: 1;
 }
 
 .tarjetaPubMenuBtn:hover {
-    color: var(--textoSecundario);
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
 }
 
 /* Contenido textual */
@@ -227,15 +236,36 @@
     padding: 0;
 }
 
+/* Contenedor del avatar: permite superponer el botón extra (ej: seguir) */
+.tarjetaPubAvatarContenedor {
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Avatar sm en tarjeta de publicación: 34px para consistencia con feed */
+.tarjetaPubAvatarContenedor .avatar.avatarSm {
+    width: 34px;
+    height: 34px;
+}
+
 .tarjetaPubAutorBloque button {
     padding: 0 !important;
+}
+
+/* Grid de imágenes: botones sin padding + altura máxima definida */
+.tarjetaPubImagenes button.imagenClickable {
+    padding: unset !important;
+    max-height: 700px !important;
+    height: 100% !important;
 }
 
 /* Imagen dentro del wrapper clickable */
 .imagenClickable .tarjetaPubImg {
     width: 100%;
     height: 100%;
+    max-height: 700px;
     object-fit: cover;
+    border-radius: var(--radioSm);
     display: block;
     transition: transform var(--transicionNormal);
 }

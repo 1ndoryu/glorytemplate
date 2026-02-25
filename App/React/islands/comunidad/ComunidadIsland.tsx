@@ -1,27 +1,24 @@
 /*
  * Isla: ComunidadIsland — Kamples
  * Feed de posts sociales. Lógica extraída a useComunidadIsland (SRP).
+ * Los posts se renderizan con TarjetaPublicacion — mismo componente que PerfilIsland.
+ * Extras de isla: botón seguir (+) sobre el avatar, CardPerfil, sección comentarios.
  */
 
-import { useRef, useState } from 'react';
-import { Users, TrendingUp, Clock, MoreHorizontal, X, Plus, Repeat2 } from 'lucide-react';
-import Avatar from '@app/components/ui/Avatar';
-import Badge from '@app/components/ui/Badge';
-import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
+import { useState } from 'react';
+import { Users, TrendingUp, Clock, Plus } from 'lucide-react';
+import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { CardPerfil } from '@app/components/social/CardPerfil';
-import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
-import { formatearTiempoRelativo } from '@app/utils/tiempo';
 import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
-import { BotonBase } from '../../components/ui/BotonBase';
 
 const TABS_COMUNIDAD = [{ id: 'comunidad', etiqueta: 'Comunidad' }];
 
@@ -61,32 +58,12 @@ const ComunidadBase = (): JSX.Element => {
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
 
-    /* Lightbox: abrir imagen / doble-click = like */
-    const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
-    const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    /* Card de perfil estilo Threads */
+    /* Card de perfil estilo Threads — específica de ComunidadIsland */
     const [cardPerfilUsername, setCardPerfilUsername] = useState<string | null>(null);
 
     const abrirCardPerfil = (e: React.MouseEvent, autor: UsuarioResumen) => {
         e.stopPropagation();
         setCardPerfilUsername(autor.username);
-    };
-
-    const manejarClickImagen = (url: string) => {
-        if (timerClickImagen.current) return; /* ya hay doble-click pendiente */
-        timerClickImagen.current = setTimeout(() => {
-            timerClickImagen.current = null;
-            setImagenAbierta(url);
-        }, 220);
-    };
-
-    const manejarDobleClickImagen = (postId: number) => {
-        if (timerClickImagen.current) {
-            clearTimeout(timerClickImagen.current);
-            timerClickImagen.current = null;
-        }
-        void manejarLikePost(postId);
     };
 
     return (
@@ -96,8 +73,13 @@ const ComunidadBase = (): JSX.Element => {
             <div className="comunidadBarraSuperior">
                 <div className="comunidadFiltros">
                     {filtros.map(({ valor, icono: Icono, label }) => (
-                        <BotonBase variante="ghost" key={valor} className={`comunidadFiltroBtn ${filtro === valor ? 'comunidadFiltroBtnActivo' : ''}`}
-                            onClick={() => setFiltro(valor)} type="button">
+                        <BotonBase
+                            variante="ghost"
+                            key={valor}
+                            className={`comunidadFiltroBtn ${filtro === valor ? 'comunidadFiltroBtnActivo' : ''}`}
+                            onClick={() => setFiltro(valor)}
+                            type="button"
+                        >
                             <Icono size={14} /> {label}
                         </BotonBase>
                     ))}
@@ -111,139 +93,53 @@ const ComunidadBase = (): JSX.Element => {
                     <div className="comunidadVacio">No hay publicaciones aún</div>
                 ) : (
                     publicaciones.map((post) => (
-                        <article key={post.id} className="comunidadPost">
-                            {post.repostOriginal && (
-                                <div className="comunidadRepostIndicador">
-                                    <Repeat2 size={12} />
-                                    <span>{post.autor.nombreVisible} reposteó</span>
-                                </div>
-                            )}
-                            <div className="comunidadPostHeader">
-                                <div className="comunidadAutorBloque">
-                                    <div className="comunidadAvatarContenedor">
-                                        <Avatar
-                                            src={post.autor.avatarUrl}
-                                            nombre={post.autor.nombreVisible}
-                                            tamano="sm"
-                                        />
-                                        {String(post.autor.id) !== String(usuario?.id) && (
-                                            <BotonBase
-                                                variante="ghost"
-                                                className="comunidadBtnSeguirIcono"
-                                                onClick={(e) => abrirCardPerfil(e, post.autor)}
-                                                aria-label="Ver perfil y seguir"
-                                            >
-                                                <Plus size={11} strokeWidth={2.5} />
-                                            </BotonBase>
-                                        )}
-                                    </div>
+                        <TarjetaPublicacion
+                            key={post.id}
+                            publicacion={post}
+                            onLike={(id, reaccion) => manejarLikePost(id, reaccion)}
+                            onComentar={(id) => alternarComentarios(id)}
+                            onRepost={(id) => manejarRepost(id)}
+                            onClickAutor={(username) => navegar(`/perfil/${username}/`)}
+                            onMenu={(e, pub) => menuPublicacion.abrirMenu(e, pub)}
+                            onLikeSample={manejarLikeSample}
+                            onMenuSample={menuSample.abrirMenu}
+                            onClickCreadorSample={(u) => navegar(`/perfil/${u}/`)}
+                            mostrarCeroConteo
+                            avatarExtra={
+                                String(post.autor.id) !== String(usuario?.id) ? (
                                     <BotonBase
                                         variante="ghost"
-                                        className="comunidadAutorTextos"
-                                        onClick={() => navegar(`/perfil/${post.autor.username}/`)}
-                                        aria-label={`Ir al perfil de ${post.autor.nombreVisible}`}
+                                        className="comunidadBtnSeguirIcono"
+                                        onClick={(e) => abrirCardPerfil(e, post.autor)}
+                                        aria-label="Ver perfil y seguir"
                                     >
-                                        <span className="comunidadPostNombre">
-                                            {post.autor.nombreVisible}
-                                            {post.autor.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
-                                        </span>
-                                        <span className="comunidadPostTiempo">
-                                            @{post.autor.username} · {formatearTiempoRelativo(post.creadoAt)}
-                                        </span>
+                                        <Plus size={11} strokeWidth={2.5} />
                                     </BotonBase>
-                                </div>
-                                {(String(post.autor.id) === String(usuario?.id) || usuario?.rol === 'admin') && post.moderacionEstado && (
-                                    <BadgeModeracion moderacionEstado={post.moderacionEstado} />
-                                )}
-                                <BotonBase variante="ghost" className="comunidadPostMenuBtn" onClick={(e) => menuPublicacion.abrirMenu(e, post)} type="button" aria-label="Más opciones">
-                                    <MoreHorizontal size={18} />
-                                </BotonBase>
-                            </div>
-
-                            {/* Contenido propio del post (no aplica en reposts puros) */}
-                            {!post.repostOriginal && post.contenido && (
-                                <p className="comunidadPostTexto">{post.contenido}</p>
-                            )}
-
-                            {!post.repostOriginal && post.imagenes.length > 0 && (
-                                <div className={`comunidadPostImagenes comunidadPostImagenes${post.imagenes.length}`}>
-                                    {post.imagenes.map((img) => (
-                                        <BotonBase
-                                            key={img}
-                                            variante="ghost"
-                                            className="imagenClickable"
-                                            onClick={() => manejarClickImagen(img)}
-                                            onDoubleClick={() => manejarDobleClickImagen(post.id)}
-                                            aria-label="Ver imagen"
-                                        >
-                                            <img src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
-                                        </BotonBase>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Bloque original embebido cuando es un repost */}
-                            {post.repostOriginal && (
-                                <div className="comunidadPostRepostOriginal">
-                                    <div className="comunidadRepostOriginalAutor">
-                                        <Avatar
-                                            src={post.repostOriginal.autor.avatarUrl}
-                                            nombre={post.repostOriginal.autor.nombreVisible}
-                                            tamano="xs"
-                                        />
-                                        <span className="comunidadRepostOriginalNombre">{post.repostOriginal.autor.nombreVisible}</span>
-                                        <span className="comunidadRepostOriginalUsername">@{post.repostOriginal.autor.username}</span>
-                                    </div>
-                                    {post.repostOriginal.contenido && (
-                                        <p className="comunidadPostTexto">{post.repostOriginal.contenido}</p>
-                                    )}
-                                    {post.repostOriginal.imagenes.length > 0 && (
-                                        <div className={`comunidadPostImagenes comunidadPostImagenes${post.repostOriginal.imagenes.length}`}>
-                                            {post.repostOriginal.imagenes.map((img) => (
-                                                <BotonBase
-                                                    key={img}
-                                                    variante="ghost"
-                                                    className="imagenClickable"
-                                                    onClick={() => manejarClickImagen(img)}
-                                                    aria-label="Ver imagen"
-                                                >
-                                                    <img src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
-                                                </BotonBase>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {post.samplesAdjuntos.length > 0 && (
-                                <div className="comunidadPostSamples">
-                                    {post.samplesAdjuntos.map((sample) => (
-                                        <TarjetaSample key={sample.id} sample={sample}
-                                            onClickCreador={(u) => navegar(`/perfil/${u}/`)}
-                                            onMenu={menuSample.abrirMenu}
-                                            onLike={manejarLikeSample} />
-                                    ))}
-                                </div>
-                            )}
-
-                            <BarraAccionesPost publicacion={post}
-                                onLike={(id, reaccion) => manejarLikePost(id, reaccion)}
-                                onQuitarLike={(id) => manejarLikePost(id)}
-                                onComentar={(id) => alternarComentarios(id)}
-                                onRepost={(id) => manejarRepost(id)} mostrarCeroConteo />
-
+                                ) : undefined
+                            }
+                        >
                             {comentariosAbiertos.has(post.id) && (
                                 <SeccionComentariosPost postId={post.id} navegar={navegar} />
                             )}
-                        </article>
+                        </TarjetaPublicacion>
                     ))
                 )}
             </div>
 
-            <MenuContextual abierto={menuPublicacion.estado.abierto} onCerrar={menuPublicacion.cerrarMenu} items={menuPublicacion.items}
-                x={menuPublicacion.estado.x} y={menuPublicacion.estado.y} />
-            <MenuContextual abierto={menuSample.estado.abierto} onCerrar={menuSample.cerrarMenu} items={menuSample.items}
-                x={menuSample.estado.x} y={menuSample.estado.y} />
+            <MenuContextual
+                abierto={menuPublicacion.estado.abierto}
+                onCerrar={menuPublicacion.cerrarMenu}
+                items={menuPublicacion.items}
+                x={menuPublicacion.estado.x}
+                y={menuPublicacion.estado.y}
+            />
+            <MenuContextual
+                abierto={menuSample.estado.abierto}
+                onCerrar={menuSample.cerrarMenu}
+                items={menuSample.items}
+                x={menuSample.estado.x}
+                y={menuSample.estado.y}
+            />
 
             {/* Card de perfil estilo Threads */}
             {cardPerfilUsername && (
@@ -252,21 +148,6 @@ const ComunidadBase = (): JSX.Element => {
                     onCerrar={() => setCardPerfilUsername(null)}
                     onNavegar={navegar}
                 />
-            )}
-
-            {/* Lightbox de imagen completa */}
-            {imagenAbierta && (
-                <div className="imagenLightbox" onClick={() => setImagenAbierta(null)} role="dialog" aria-modal="true" aria-label="Vista ampliada">
-                    <BotonBase variante="ghost" className="imagenLightboxCerrar" onClick={() => setImagenAbierta(null)} aria-label="Cerrar">
-                        <X size={24} />
-                    </BotonBase>
-                    <img
-                        src={imagenAbierta}
-                        alt="Imagen ampliada"
-                        className="imagenLightboxImg"
-                        onClick={e => e.stopPropagation()}
-                    />
-                </div>
             )}
         </div>
     );

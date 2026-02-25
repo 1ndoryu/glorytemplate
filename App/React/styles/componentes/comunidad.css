@@ -1,8 +1,11 @@
-/*
- * comunidad.css — Kamples
- * Feed de comunidad: posts sociales con diseño diferenciado.
+﻿/*
+ * comunidad.css  Kamples
+ * Layout de la isla de comunidad: contenedor, filtros, feed.
+ * Los estilos de la tarjeta de post estan en tarjetaPublicacion.css (fuente unica).
+ * Solo se definen aqui los extras propios de ComunidadIsland: boton seguir (+).
  */
 
+/* -- Contenedor de la isla -- */
 .comunidadIsland {
     display: flex;
     flex-direction: column;
@@ -12,7 +15,12 @@
     margin: auto;
 }
 
-/* Filtros: Todos, Siguiendo, Populares */
+/* -- Barra superior con filtros -- */
+.comunidadBarraSuperior {
+    display: flex;
+    align-items: center;
+}
+
 .comunidadFiltros {
     display: flex;
     gap: var(--espacioSm);
@@ -43,7 +51,7 @@
     color: var(--acento-blanco);
 }
 
-/* Feed de posts */
+/* -- Feed -- */
 .comunidadFeed {
     display: flex;
     flex-direction: column;
@@ -60,269 +68,11 @@
     font-size: var(--fuenteSm);
 }
 
-/* Post individual */
-.comunidadPost {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioMd);
-    padding: var(--espacioLg);
-    background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    transition: border-color var(--transicionRapida);
-}
-
-.comunidadPostHeader button {
-    padding: unset !important;
-}
-
-.comunidadPostHeader .badgeModeracion {
-    margin-left: auto;
-}
-
-.comunidadPost:hover {
-    border-color: var(--bordeActivo);
-}
-
-/* Header del post: avatar + nombre + tiempo + menú */
-.comunidadPostHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--espacioXs);
-}
-
-/* C127: Botón menú 3 puntos en post */
-.comunidadPostMenuBtn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--textoSecundario);
-    padding: var(--espacioXs);
-    border-radius: var(--radioSm);
-    opacity: 0;
-    transition:
-        opacity 0.15s,
-        color 0.15s;
-}
-
-.comunidadPost:hover .comunidadPostMenuBtn {
-    opacity: 1;
-}
-
-.comunidadPostMenuBtn:hover {
-    color: var(--textoPrimario);
-    background: var(--fondoElevado2);
-}
-
-.comunidadPostAutor {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    color: inherit;
-}
-
-.comunidadPostAutorInfo {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-}
-
-.comunidadPostNombre {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-}
-
-.comunidadPostTiempo {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-/* Texto del post */
-.comunidadPostTexto {
-    font-size: var(--fuenteMd);
-    color: var(--textoPrimario);
-    line-height: 1.6;
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* Imágenes del post */
-.comunidadPostImagenes {
-    display: grid;
-    gap: var(--espacioXs);
-    border-radius: var(--radioMd);
-    overflow: hidden;
-}
-
-.comunidadPostImagenes button {
-    padding: unset !important;
-    max-height: 700px !important;
-    height: 100% !important;
-}
-
-.comunidadPostImagenes1 {
-    grid-template-columns: 1fr;
-}
-
-.comunidadPostImagenes2 {
-    grid-template-columns: 1fr 1fr;
-}
-
-.comunidadPostImg, .comunidadPostImg button, .tarjetaPubImagenItem img, .tarjetaPubImagenItem button {
-    width: 100%;
-    max-height: 700px;
-    object-fit: cover;
-    border-radius: var(--radioSm);
-    height: 100%;
-}
-
-/* Samples adjuntos al post */
-.comunidadPostSamples {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioSm);
-    padding: 0;
-    background-color: var(--fondoElevado2);
-    border-radius: var(--radioMd);
-}
-
-.comunidadPostSamples .tarjetaSample {
-    padding: var(--espacioMd) 0;
-}
-
-/* Acciones del post */
-.comunidadPostAcciones {
-    display: flex;
-    gap: var(--espacioLg);
-    padding-top: var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
-}
-
-.comunidadPostAccionBtn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    background: none;
-    border: none;
-    color: var(--textoTerciario);
-    font-size: var(--fuenteSm);
-    cursor: pointer;
-    padding: var(--espacioXs);
-    border-radius: var(--radioSm);
-    transition: all var(--transicionRapida);
-}
-
-.comunidadPostAccionBtn:hover {
-    color: var(--textoSecundario);
-    background-color: var(--fondoElevado2);
-}
-
-.comunidadPostAccionActiva {
-    color: var(--acento-blanco);
-}
-
-/* Wrapper clickable de imagen en post (single = lightbox, double = like) */
-.imagenClickable {
-    display: block;
-    padding: 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-radius: var(--radioSm);
-    overflow: hidden;
-    position: relative;
-}
-
-.imagenClickable:hover::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: var(--radioSm);
-    pointer-events: none;
-}
-
-/* Lightbox overlay */
-.imagenLightbox {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.88);
-    backdrop-filter: blur(6px);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: zoom-out;
-    animation: lightboxFadeIn 0.18s ease;
-}
-
-@keyframes lightboxFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.imagenLightboxImg {
-    max-width: 90vw;
-    max-height: 90vh;
-    object-fit: contain;
-    border-radius: var(--radioMd);
-    cursor: default;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
-}
-
-.imagenLightboxCerrar {
-    position: absolute;
-    top: var(--espacioMd);
-    right: var(--espacioMd);
-    background: var(--fondoElevado2);
-    border: 1px solid var(--bordeSutil);
-    color: var(--textoPrimario);
-    border-radius: var(--radioSm);
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background var(--transicionRapida);
-    z-index: 1;
-}
-
-.imagenLightboxCerrar:hover {
-    background: var(--fondoElevado3, var(--fondoElevado2));
-}
-
-/* ── Header de post: avatar + icono seguir + textos ──────────────────── */
-
-/* Bloque autor: flex row (avatar | textos) */
-.comunidadAutorBloque {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-    min-width: 0;
-    flex: 1;
-}
-
-/* Avatar con botón "+" en esquina inferior derecha */
-.comunidadAvatarContenedor {
-    position: relative;
-    flex-shrink: 0;
-}
-
-/* Icono "+" siempre visible — círculo blanco */
+/* -- Boton seguir (+) sobre el avatar -- exclusivo de ComunidadIsland
+   Se posiciona sobre .tarjetaPubAvatarContenedor que tiene position:relative */
 .comunidadBtnSeguirIcono.botonBase {
     position: absolute;
-    bottom: -0px;
+    bottom: 0;
     right: -2px;
     width: 16px;
     height: 16px;
@@ -337,95 +87,10 @@
     justify-content: center;
     transition: transform 0.12s, box-shadow 0.12s;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+    z-index: 1;
 }
 
 .comunidadBtnSeguirIcono.botonBase:hover {
     transform: scale(1.12);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-}
-
-/* Tamaño del avatar en el header de comunidad: +4px sobre sm (28→32px) */
-.comunidadAvatarContenedor .avatar.avatarSm {
-    width: 34px;
-    height: 34px;
-}
-
-/* Bloque de textos: columna (nombre + tiempo) */
-.comunidadAutorTextos.botonBase {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0;
-    background: none;
-    min-height: unset;
-    height: auto;
-    gap: 4px;
-    min-width: 0;
-    text-align: left;
-    margin-top: -4px;
-}
-
-/* Nombre del autor: +1px sobre fuenteSm */
-.comunidadAutorTextos .comunidadPostNombre {
-    font-size: calc(var(--fuenteSm) + 1px);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Username · tiempo: +1px sobre fuenteXs */
-.comunidadAutorTextos .comunidadPostTiempo {
-    font-size: calc(var(--fuenteXs) + 1px);
-    color: var(--textoTerciario);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ── Indicador de repost ──────────────────────────────────────────────── */
-.comunidadRepostIndicador {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-    padding: 0 0 6px var(--espacioSm);
-}
-
-.comunidadRepostIndicador svg {
-    flex-shrink: 0;
-}
-
-/* ── Bloque embebido del post original en un repost ───────────────────── */
-.comunidadPostRepostOriginal {
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    padding: var(--espacioSm);
-    margin-top: var(--espacioXs);
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-    background: var(--fondoElevado2);
-}
-
-.comunidadRepostOriginalAutor {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-}
-
-.comunidadRepostOriginalNombre {
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-}
-
-.comunidadRepostOriginalUsername {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
 }
