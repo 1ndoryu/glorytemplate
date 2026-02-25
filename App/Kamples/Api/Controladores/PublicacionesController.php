@@ -157,8 +157,16 @@ class PublicacionesController
         /* Recopilar IDs de samples adjuntos para hacer una sola query */
         $todosSamplesIds = [];
         foreach ($publicaciones as $pub) {
+            /* Samples del post principal */
             $ids = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
             foreach ($ids as $id) {
+                if ($id > 0) {
+                    $todosSamplesIds[$id] = true;
+                }
+            }
+            /* Samples del post original (cuando es repost) */
+            $idsOrig = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
+            foreach ($idsOrig as $id) {
                 if ($id > 0) {
                     $todosSamplesIds[$id] = true;
                 }
@@ -205,19 +213,27 @@ class PublicacionesController
             /* Repost: si la publicación es un repost, incluir datos del original para el feed */
             $pub['repostOriginal'] = null;
             if (!empty($pub[PublicacionesCols::REPOST_ID])) {
+                $origSamplesIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
+                $origSamples = [];
+                foreach ($origSamplesIds as $sid) {
+                    if (isset($samplesMap[$sid])) {
+                        $origSamples[] = $samplesMap[$sid];
+                    }
+                }
                 $pub['repostOriginal'] = [
-                    'id' => (int) ($pub['orig_id'] ?? 0),
-                    'contenido' => $pub['orig_contenido'] ?? '',
-                    'imagenes' => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
-                    'autor' => [
-                        'id' => (int) ($pub['orig_autor_id'] ?? 0),
-                        'username' => $pub['orig_username'] ?? '',
+                    'id'              => (int) ($pub['orig_id'] ?? 0),
+                    'contenido'       => $pub['orig_contenido'] ?? '',
+                    'imagenes'        => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
+                    'samplesAdjuntos' => $origSamples,
+                    'autor'           => [
+                        'id'            => (int) ($pub['orig_autor_id'] ?? 0),
+                        'username'      => $pub['orig_username'] ?? '',
                         'nombreVisible' => $pub['orig_nombre_visible'] ?? '',
-                        'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                        'avatarUrl'     => UsuarioHelper::resolverAvatarUrl(
                             $pub['orig_avatar_url'] ?? null,
                             (int) ($pub['orig_wp_user_id'] ?? 0)
                         ),
-                        'verificado' => (bool) ($pub['orig_verificado'] ?? false),
+                        'verificado'    => (bool) ($pub['orig_verificado'] ?? false),
                     ],
                 ];
             }

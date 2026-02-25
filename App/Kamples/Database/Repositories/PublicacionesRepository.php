@@ -166,6 +166,7 @@ class PublicacionesRepository extends BaseRepository
             . ", orig." . PublicacionesCols::ID . " AS orig_id"
             . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
             . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
+            . ", orig." . PublicacionesCols::SAMPLES_ADJUNTOS . " AS orig_samples_adjuntos"
             . ", u_orig." . UsuariosExtCols::ID . " AS orig_autor_id"
             . ", u_orig." . UsuariosExtCols::USERNAME . " AS orig_username"
             . ", u_orig." . UsuariosExtCols::NOMBRE_VISIBLE . " AS orig_nombre_visible"
