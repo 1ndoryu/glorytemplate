@@ -285,22 +285,26 @@ export const ModalEditar = (): JSX.Element | null => {
 
                         {/* Botones para adjuntar */}
                         <div className="crearAcciones">
-                            <div className="crearBotonesAdjunto">
+                            <div className="crearAccionesIzquierda">
                                 <BotonBase
                                     variante="ghost"
-                                    className="crearAdjuntoBtn"
+                                    tamano="sm"
+                                    soloIcono
                                     onClick={() => document.getElementById('editar-input-audio')?.click()}
                                     disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
                                     type="button"
+                                    aria-label="Adjuntar audio"
                                 >
                                     <Music size={18} />
                                 </BotonBase>
                                 <BotonBase
                                     variante="ghost"
-                                    className="crearAdjuntoBtn"
+                                    tamano="sm"
+                                    soloIcono
                                     onClick={() => document.getElementById('editar-input-imagen')?.click()}
                                     disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
                                     type="button"
+                                    aria-label="Adjuntar imagen"
                                 >
                                     <ImageIcon size={18} />
                                 </BotonBase>
