@@ -327,6 +327,7 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - [Lightbox single/double click]: Patrón timer 220ms en `useRef<ReturnType<typeof setTimeout>>`: click inicia timer → si doble-click llega antes limpia timer y ejecuta like. `e.stopPropagation()` en `<img>` del lightbox para evitar cerrar al clickear la imagen.
 - [EVENTO_ENTIDAD_ACTUALIZADA]: Exportado como constante desde ModalEditar.tsx (`'kamples:entidad-actualizada'`). Para actualizar un post individual sin recargar el feed: escuchar el evento, llamar `obtenerPublicacion(id)` y `setPublicaciones(prev => prev.map(...))`.
 - [Repost optimista con rollback]: Capturar estado antes (`const snapshot = publicaciones`), mutar estado optimistamente, llamar API, si `!resp.ok` → `setPublicaciones(snapshot)`.
+- [TarjetaPublicacion unificada]: Si dos vistas deben verse idénticas, DEBEN usar el MISMO componente. Nunca dos CSS separados para el mismo elemento visual. Extras de isla (botón seguir, comentarios) → props `avatarExtra` + `children`. `tarjetaPublicacion.css` es la única fuente de verdad; `comunidad.css` solo contiene layout de isla.
 
 ### CSS / UI
 
