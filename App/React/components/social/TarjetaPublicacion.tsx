@@ -197,6 +197,24 @@ export const TarjetaPublicacion = ({
                             ))}
                         </div>
                     )}
+                    {/* Samples del repost original */}
+                    {publicacion.repostOriginal.samplesAdjuntos && publicacion.repostOriginal.samplesAdjuntos.length > 0 && (
+                        <div className="tarjetaPubSamples">
+                            {publicacion.repostOriginal.samplesAdjuntos.map((sample) => (
+                                <TarjetaSample
+                                    key={sample.id}
+                                    sample={sample}
+                                    activa={sampleActualId === sample.id}
+                                    reproduciendo={sampleActualId === sample.id && reproduciendo}
+                                    onPlay={onPlaySample}
+                                    onPause={onPauseSample}
+                                    onLike={onLikeSample}
+                                    onMenu={onMenuSample}
+                                    onClickCreador={onClickCreadorSample}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 

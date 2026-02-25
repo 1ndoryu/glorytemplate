@@ -39,6 +39,7 @@ export interface RepostOriginal {
     contenido: string;
     imagenes: string[];
     autor: UsuarioResumen;
+    samplesAdjuntos?: SampleResumen[];
 }
 
 export interface Comentario {
