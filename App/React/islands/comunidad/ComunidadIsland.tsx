@@ -3,7 +3,8 @@
  * Feed de posts sociales. Lógica extraída a useComunidadIsland (SRP).
  */
 
-import { Users, TrendingUp, Clock, MoreHorizontal } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Users, TrendingUp, Clock, MoreHorizontal, X } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -70,6 +71,26 @@ const ComunidadBase = (): JSX.Element => {
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
 
+    /* Lightbox: abrir imagen / doble-click = like */
+    const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
+    const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const manejarClickImagen = (url: string) => {
+        if (timerClickImagen.current) return; /* ya hay doble-click pendiente */
+        timerClickImagen.current = setTimeout(() => {
+            timerClickImagen.current = null;
+            setImagenAbierta(url);
+        }, 220);
+    };
+
+    const manejarDobleClickImagen = (postId: number) => {
+        if (timerClickImagen.current) {
+            clearTimeout(timerClickImagen.current);
+            timerClickImagen.current = null;
+        }
+        void manejarLikePost(postId);
+    };
+
     return (
         <div className="comunidadIsland" id="comunidadIsland">
             <SeccionPublicar alPublicar={recargarFeed} placeholder="¿Qué estás creando?" />
@@ -110,7 +131,16 @@ const ComunidadBase = (): JSX.Element => {
                             {post.imagenes.length > 0 && (
                                 <div className={`comunidadPostImagenes comunidadPostImagenes${post.imagenes.length}`}>
                                     {post.imagenes.map((img) => (
-                                        <img key={img} src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
+                                        <BotonBase
+                                            key={img}
+                                            variante="ghost"
+                                            className="imagenClickable"
+                                            onClick={() => manejarClickImagen(img)}
+                                            onDoubleClick={() => manejarDobleClickImagen(post.id)}
+                                            aria-label="Ver imagen"
+                                        >
+                                            <img src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
+                                        </BotonBase>
                                     ))}
                                 </div>
                             )}
@@ -144,6 +174,21 @@ const ComunidadBase = (): JSX.Element => {
                 x={menuPublicacion.estado.x} y={menuPublicacion.estado.y} />
             <MenuContextual abierto={menuSample.estado.abierto} onCerrar={menuSample.cerrarMenu} items={menuSample.items}
                 x={menuSample.estado.x} y={menuSample.estado.y} />
+
+            {/* Lightbox de imagen completa */}
+            {imagenAbierta && (
+                <div className="imagenLightbox" onClick={() => setImagenAbierta(null)} role="dialog" aria-modal="true" aria-label="Vista ampliada">
+                    <BotonBase variante="ghost" className="imagenLightboxCerrar" onClick={() => setImagenAbierta(null)} aria-label="Cerrar">
+                        <X size={24} />
+                    </BotonBase>
+                    <img
+                        src={imagenAbierta}
+                        alt="Imagen ampliada"
+                        className="imagenLightboxImg"
+                        onClick={e => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     );
 };

@@ -10,7 +10,8 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion } from '@app/hooks/useMenuContextualPublicacion';
 import { apiGet } from '@app/services/apiCliente';
-import { darLike, quitarLike } from '@app/services/apiSocial';
+import { darLike, quitarLike, repostear, quitarRepost, obtenerPublicacion } from '@app/services/apiSocial';
+import { EVENTO_ENTIDAD_ACTUALIZADA } from '@app/components/social/ModalEditar';
 import type { TipoReaccion, Publicacion } from '@app/types';
 
 export type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
@@ -28,6 +29,21 @@ export function useComunidadIsland() {
 
     /* Menú contextual de publicaciones (C322 — hook reutilizable) */
     const menuPublicacion = useMenuContextualPublicacion({ setPublicaciones });
+
+    /* Escuchar edicion desde ModalEditar y actualizar el post en tiempo real sin recargar */
+    useEffect(() => {
+        const manejarActualizacion = async (e: Event) => {
+            const { tipo, id } = (e as CustomEvent<{ tipo: string; id: number }>).detail;
+            if (tipo !== 'publicacion' || !id) return;
+            try {
+                const resp = await obtenerPublicacion(id);
+                if (!resp.data) return;
+                setPublicaciones(prev => prev.map(p => p.id === id ? resp.data! : p));
+            } catch { /* sin-op: fallo silencioso no critico en refresh de post */ }
+        };
+        window.addEventListener(EVENTO_ENTIDAD_ACTUALIZADA, manejarActualizacion);
+        return () => window.removeEventListener(EVENTO_ENTIDAD_ACTUALIZADA, manejarActualizacion);
+    }, []);
 
     /* Cargar publicaciones con cleanup */
     useEffect(() => {
@@ -128,11 +144,24 @@ export function useComunidadIsland() {
         }
     }, [publicaciones]);
 
-    const manejarRepost = useCallback((postId: number) => {
+    const manejarRepost = useCallback(async (postId: number) => {
+        const post = publicaciones.find(p => p.id === postId);
+        if (!post) return;
+        const snapshot = publicaciones;
+        /* Optimismo: alternar estado antes de la llamada */
+        const estabaReposteado = post.reposteado;
         setPublicaciones(prev => prev.map(p =>
-            p.id === postId ? { ...p, reposteado: !p.reposteado, totalReposts: p.reposteado ? p.totalReposts - 1 : p.totalReposts + 1 } : p
+            p.id === postId
+                ? { ...p, reposteado: !estabaReposteado, totalReposts: estabaReposteado ? p.totalReposts - 1 : p.totalReposts + 1 }
+                : p
         ));
-    }, []);
+        try {
+            const resp = estabaReposteado ? await quitarRepost(postId) : await repostear(postId);
+            if (!resp.ok) setPublicaciones(snapshot);
+        } catch {
+            setPublicaciones(snapshot);
+        }
+    }, [publicaciones]);
 
     const alternarComentarios = useCallback((postId: number) => {
         setComentariosAbiertos(prev => {

@@ -150,11 +150,16 @@ export const obtenerRespuestas = async (
 /* Reposts */
 
 export const repostear = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {
-    return apiPost<{ reposteado: boolean }>(`/repost/${publicacionId}`);
+    return apiPost<{ reposteado: boolean }>(`/publicaciones/${publicacionId}/repost`);
 };
 
 export const quitarRepost = async (publicacionId: number): Promise<RespuestaApi<{ reposteado: boolean }>> => {
-    return apiDelete<{ reposteado: boolean }>(`/repost/${publicacionId}`);
+    return apiDelete<{ reposteado: boolean }>(`/publicaciones/${publicacionId}/repost`);
+};
+
+/* Obtener una publicación individual (para actualizar en tiempo real tras edición) */
+export const obtenerPublicacion = async (id: number): Promise<RespuestaApi<Publicacion>> => {
+    return apiGet<Publicacion>(`/publicaciones/${id}`);
 };
 
 /* Subir imagen para publicación al servidor (evita blob:// URLs) */
