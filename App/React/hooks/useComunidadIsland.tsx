@@ -90,6 +90,44 @@ export function useComunidadIsland() {
         }
     }, [publicaciones]);
 
+    /* Like al sample embebido dentro de una publicacion (entidad independiente) */
+    const manejarLikeSample = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
+        /* Actualizar optimisticamente el sample dentro de cada publicacion que lo contenga */
+        const actualizarSample = (prev: Publicacion[]) => prev.map(pub => ({
+            ...pub,
+            samplesAdjuntos: pub.samplesAdjuntos.map(s => {
+                if (s.id !== sampleId) return s;
+                if (reaccion) {
+                    const eraPositivo = s.reaccion === 'like' || s.reaccion === 'encanta';
+                    const esPositivo = reaccion !== 'dislike';
+                    const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                    return { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) };
+                } else if (s.liked || s.reaccion) {
+                    const eraPositivo = s.reaccion === 'like' || s.reaccion === 'encanta';
+                    return { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) };
+                } else {
+                    return { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 };
+                }
+            }),
+        }));
+
+        const snapshot = publicaciones;
+        setPublicaciones(actualizarSample);
+        try {
+            /* Determinar si el sample estaba liked antes de la actualización optimista */
+            const sampleRef = publicaciones.flatMap(p => p.samplesAdjuntos).find(s => s.id === sampleId);
+            if (reaccion) {
+                await darLike('sample', sampleId, reaccion);
+            } else if (sampleRef?.liked || sampleRef?.reaccion) {
+                await quitarLike('sample', sampleId);
+            } else {
+                await darLike('sample', sampleId, 'like');
+            }
+        } catch {
+            setPublicaciones(snapshot);
+        }
+    }, [publicaciones]);
+
     const manejarRepost = useCallback((postId: number) => {
         setPublicaciones(prev => prev.map(p =>
             p.id === postId ? { ...p, reposteado: !p.reposteado, totalReposts: p.reposteado ? p.totalReposts - 1 : p.totalReposts + 1 } : p
@@ -109,6 +147,6 @@ export function useComunidadIsland() {
         publicaciones, filtro, setFiltro, cargando,
         comentariosAbiertos, navegar, usuario,
         menuSample, menuPublicacion,
-        recargarFeed, manejarLikePost, manejarRepost, alternarComentarios,
+        recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
     };
 }

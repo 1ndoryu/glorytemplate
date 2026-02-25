@@ -65,7 +65,7 @@ const ComunidadBase = (): JSX.Element => {
         publicaciones, filtro, setFiltro, cargando,
         comentariosAbiertos, navegar, usuario,
         menuSample, menuPublicacion,
-        recargarFeed, manejarLikePost, manejarRepost, alternarComentarios,
+        recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
     } = useComunidadIsland();
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
@@ -119,7 +119,9 @@ const ComunidadBase = (): JSX.Element => {
                                 <div className="comunidadPostSamples">
                                     {post.samplesAdjuntos.map((sample) => (
                                         <TarjetaSample key={sample.id} sample={sample}
-                                            onClickCreador={(u) => navegar(`/perfil/${u}/`)} onMenu={menuSample.abrirMenu} />
+                                            onClickCreador={(u) => navegar(`/perfil/${u}/`)}
+                                            onMenu={menuSample.abrirMenu}
+                                            onLike={manejarLikeSample} />
                                     ))}
                                 </div>
                             )}
