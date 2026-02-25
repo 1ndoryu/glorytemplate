@@ -87,53 +87,6 @@
     background: rgba(0, 0, 0, 0.7);
 }
 
-/* Menú contextual dropdown */
-.tarjetaColeccionMenu {
-    position: absolute;
-    top: calc(100% + var(--espacioXs));
-    right: 0;
-    min-width: 140px;
-    background-color: var(--fondoElevado2);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    box-shadow: var(--sombraElevada);
-    padding: var(--espacioXs) 0;
-    z-index: 20;
-}
-
-.tarjetaColeccionMenuItem {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--espacioSm);
-    width: 100%;
-    padding: var(--espacioXs) var(--espacioMd);
-    border: none;
-    background: none;
-    color: var(--textoSecundario);
-    font-size: var(--fuenteSm);
-    cursor: pointer;
-    transition: background var(--transicionRapida), color var(--transicionRapida);
-}
-
-/* Override BotonBase justify-content:center — misma estrategia que menuContextual.css */
-.tarjetaColeccionMenu .botonBase.tarjetaColeccionMenuItem {
-    justify-content: flex-start;
-    padding: var(--espacioXs) var(--espacioMd);
-    height: auto;
-    min-width: unset;
-    font-size: var(--fuenteSm);
-}
-
-.tarjetaColeccionMenuItem:hover {
-    background-color: var(--fondoElevado3);
-    color: var(--textoPrimario);
-}
-
-.tarjetaColeccionMenuItemPeligro:hover {
-    color: var(--error);
-}
-
 /* Info debajo de la imagen */
 .tarjetaColeccionInfo {
     padding: var(--espacioMd);

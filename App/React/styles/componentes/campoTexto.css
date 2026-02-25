@@ -18,14 +18,14 @@
 
 .campTextoInput, .campoTextoArea {
     width: 100%;
-    /* padding: var(--espacioMd) 0; */
+    padding: var(--espacioMd) 0; 
     color: var(--textoPrimario);
     font-size: var(--fuenteMd);
     font-family: var(--fuentePrincipal);
     transition: border-color var(--transicionRapida);
     /* background: unset; */
     border: unset;
-    /* border-bottom: 1px solid var(--bordeActivo); */
+    border-bottom: 1px solid var(--bordeSutil);
     border-radius: unset;
 }
 
