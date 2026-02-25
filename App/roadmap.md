@@ -137,6 +137,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### TAREAS EN CURSO
 - ✅ [AG-FIX] Corregir violaciones de Sentinel reportadas en `.sentinel-report.md` (promise-sin-catch, html-nativo-en-vez-de-componente).
+- ✅ [AG-FIX] Centralizar render de posts en PerfilIsland: `TarjetaPublicacion` reemplaza inline render; `utils/tiempo.ts` centraliza `formatearTiempoRelativo` (eliminado duplicado de ComunidadIsland y TarjetaPublicacion); `usePerfilIsland` añade `manejarRepost`; CSS `.tarjetaPubRepostIndicador/.tarjetaPubRepostOriginal` añadido. Posts de /perfil/ ahora idénticos a /comunidad/ (fechas relativas, repost embebido, badge moderación, samples adjuntos).
 
 ### FASE 5 — Chat Flotante (parcial)
 
@@ -438,3 +439,7 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - [Repo userId propagation]: Todos los repos que llaman `sqlSelectSamples()` deben aceptar `?int $userId = null` y pasarlo. Repos fijos en esta sesion: SamplesRepository (buscarSimilares, buscarPorScoring, sugerenciasPorContexto), ColeccionSamplesRepository (samplesDeColeccion), ReproduccionesRepository (historialUsuario). MotorRecomendacion::feedPersonalizado usa CTE propia (no llama sqlSelectSamples) — sus subqueries se agregan directamente al SQL. Al agregar un nuevo flag, hay que agregarlo en AMBOS lugares.
 - [Cache Transients]: WP-CLI no disponible en PATH del sistema (LocalWP). Para limpiar manualmente: modificar/publicar cualquier sample → triggerea invalidarCacheGlobal(). O esperar 5min (TTL). invalidarCacheGlobal() usa SQL LIKE `_transient_kamples_feed_%` — borrado completo.
 - [BotonBase conflictos especificidad]: `.botonBase.varianteGhost` (2 clases) sobreescribe color de estados activos (1 clase). Fix: `.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionLiked` (4 clases) gana por especificidad.
+- [DRY render posts]: PerfilIsland tenía inline render de posts sin TarjetaPublicacion → faltaban repostOriginal, samples, badge moderación. Regla: SIEMPRE usar TarjetaPublicacion para renderizar posts. Islands que necesiten extras (lightbox, CardPerfil) pueden wrappearla pero no replicar lógica interna.
+- [utils/tiempo.ts]: `formatearTiempoRelativo` centralizado. Antes duplicado en TarjetaPublicacion y ComunidadIsland. Toda fecha de post debe pasar por este util.
+- [TarjetaPublicacion lightbox]: El lightbox está integrado DENTRO del componente (position: fixed funciona aunque esté dentro de un article). Imágenes usan BotonBase con click (220ms delay → lightbox) y doble-click (llama onLike). Patrón timer igual al de ComunidadIsland.
+- [VarSense variables inexistentes]: --bordeSubtle→--bordeSutil, --fondoSecundario→--fondoElevado2, --textoBase→--textoPrimario, --textoTenue→--textoTerciario, --textoAlto→--blanco (tooltip), --verde→--exito, --rojo→--error, --sombraMd→--sombraElevada, --radioCirculo→--radioFull, --radioXs→--radioSm. Añadidas --espacio2xs:2px y --espacio3xs:3px a variables.css.
