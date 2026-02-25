@@ -29,7 +29,7 @@ interface PerfilIslandProps {
 export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
     const {
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
-        cargandoTab, authCargando, tabActiva,
+        cargandoTab, authCargando, tabActiva, navegar,
         abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
         recargarPublicaciones, manejarLike, manejarClickCreador, manejarRepost,
     } = usePerfilIsland({ usernameProp });
@@ -200,6 +200,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                         key={post.id}
                                         publicacion={post}
                                         onClickAutor={manejarClickCreador}
+                                        onClickFecha={(pubId) => navegar(`/publicacion/${pubId}/`)}
                                         onRepost={manejarRepost}
                                         onMenu={(e) => menuPublicacion.abrirMenu(e, post)}
                                     />

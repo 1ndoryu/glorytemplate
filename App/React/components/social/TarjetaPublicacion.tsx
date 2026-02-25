@@ -23,6 +23,7 @@ interface TarjetaPublicacionProps {
     onComentar?: (pubId: number) => void;
     onRepost?: (pubId: number) => void;
     onClickAutor?: (username: string) => void;
+    onClickFecha?: (pubId: number) => void;
     onMenu?: (e: MouseEvent<HTMLButtonElement>, post: Publicacion) => void;
     onLikeSample?: (id: number) => void;
     onMenuSample?: (e: MouseEvent, sample: SampleResumen) => void;
@@ -44,6 +45,7 @@ export const TarjetaPublicacion = ({
     onComentar,
     onRepost,
     onClickAutor,
+    onClickFecha,
     onMenu,
     onLikeSample,
     onMenuSample,
@@ -83,6 +85,14 @@ export const TarjetaPublicacion = ({
             onClickAutor?.(publicacion.autor.username);
         },
         [onClickAutor, publicacion.autor.username]
+    );
+
+    const manejarClickFecha = useCallback(
+        (e: MouseEvent) => {
+            e.stopPropagation();
+            onClickFecha?.(publicacion.id);
+        },
+        [onClickFecha, publicacion.id]
     );
 
     const clases = ['tarjetaPublicacion', className].filter(Boolean).join(' ');
@@ -127,7 +137,20 @@ export const TarjetaPublicacion = ({
                             )}
                         </span>
                         <span className="tarjetaPubMeta">
-                            @{publicacion.autor.username} · {formatearTiempoRelativo(publicacion.creadoAt)}
+                            @{publicacion.autor.username}
+                            {' · '}
+                            {onClickFecha ? (
+                                <BotonBase
+                                    variante="ghost"
+                                    className="tarjetaPubFechaEnlace"
+                                    onClick={manejarClickFecha}
+                                    aria-label={`Ver publicación del ${formatearTiempoRelativo(publicacion.creadoAt)}`}
+                                >
+                                    {formatearTiempoRelativo(publicacion.creadoAt)}
+                                </BotonBase>
+                            ) : (
+                                formatearTiempoRelativo(publicacion.creadoAt)
+                            )}
                         </span>
                     </BotonBase>
                 </div>

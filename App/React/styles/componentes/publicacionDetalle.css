@@ -1,0 +1,57 @@
+/*
+ * Estilos: publicacionDetalle — Kamples
+ * Layout de la página de detalle de publicación individual.
+ * Solo contiene layout y estados (cargando, error, cabecera).
+ * El estilo del post viene de tarjetaPublicacion.css.
+ */
+
+.publicacionDetalleContenedor {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: var(--espaciadoMd) var(--espaciadoSm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciadoMd);
+}
+
+.publicacionDetalleCabecera {
+    display: flex;
+    align-items: center;
+}
+
+.publicacionDetalleVolver {
+    display: flex;
+    align-items: center;
+    gap: var(--espaciadoXs);
+    color: var(--colorTextoSecundario);
+    font-size: var(--fuenteSm);
+    padding: var(--espaciadoXs) var(--espaciadoSm);
+    border-radius: var(--borderRadiusSm);
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.publicacionDetalleVolver:hover {
+    color: var(--colorTexto);
+    background: var(--colorSuperficieHover);
+}
+
+.publicacionDetalleCargando {
+    text-align: center;
+    padding: var(--espaciadoXl) 0;
+    color: var(--colorTextoSecundario);
+    font-size: var(--fuenteSm);
+}
+
+.publicacionDetalleError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espaciadoMd);
+    padding: var(--espaciadoXl) 0;
+    color: var(--colorTextoSecundario);
+    text-align: center;
+}
+
+.publicacionDetalleError p {
+    font-size: var(--fuenteBase);
+}

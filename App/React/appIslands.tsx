@@ -30,6 +30,7 @@ import {AdminPanelIsland} from './islands/admin/AdminPanelIsland';
 import {PlanesIsland} from './islands/planes/PlanesIsland';
 import {ColeccionDetalleIsland} from './islands/colecciones/ColeccionDetalleIsland';
 import {ComunidadIsland} from './islands/comunidad/ComunidadIsland';
+import {PublicacionIsland} from './islands/social/PublicacionIsland';
 import {ExploradorIsland} from './islands/explorador/ExploradorIsland';
 import {LayoutPrincipal} from '@app/components/layout/LayoutPrincipal';
 import {InicializadorAuth} from '@app/components/auth/InicializadorAuth';
@@ -75,6 +76,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     PlanesIsland: PlanesIsland as React.ComponentType<Record<string, unknown>>,
     ColeccionDetalleIsland: ColeccionDetalleIsland as React.ComponentType<Record<string, unknown>>,
     ComunidadIsland: ComunidadIsland as React.ComponentType<Record<string, unknown>>,
+    PublicacionIsland: PublicacionIsland as React.ComponentType<Record<string, unknown>>,
     AdminPanelIsland: AdminPanelIsland as React.ComponentType<Record<string, unknown>>,
     ExploradorIsland: ExploradorIsland as React.ComponentType<Record<string, unknown>>,
 };

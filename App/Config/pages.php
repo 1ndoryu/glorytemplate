@@ -76,6 +76,16 @@ PageManager::reactPage('notificaciones', 'NotificacionesIsland');
 PageManager::reactPage('planes', 'PlanesIsland');
 PageManager::reactPage('comunidad', 'ComunidadIsland');
 
+PageManager::reactPage('publicacion', 'PublicacionIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $idx = array_search('publicacion', $partes);
+    $pubId = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['publicacionId' => sanitize_text_field($pubId)];
+});
+
+PageManager::registrarRutaDinamica('publicacion');
+
 /* C281: Explorador — vista de carpetas para samples coleccionados */
 PageManager::reactPage('explorador', 'ExploradorIsland');
 

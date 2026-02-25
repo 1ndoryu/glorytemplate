@@ -40,9 +40,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--espacio2xs);
+    gap: var(--espacioXs);
     min-width: 0;
     padding: 0;
+    margin-bottom: 4px;
 }
 
 .tarjetaPubAutorTextos:hover .tarjetaPubNombre {
@@ -70,6 +71,19 @@
     text-overflow: ellipsis;
 }
 
+/* Fecha clickeable -> navega a detalle de publicación */
+.tarjetaPubFechaEnlace {
+    all: unset;
+    cursor: pointer;
+    color: inherit;
+    transition: color 0.15s ease;
+}
+
+.tarjetaPubFechaEnlace:hover {
+    color: var(--colorTexto);
+    text-decoration: underline;
+}
+
 /* Grupo derecho: badge + menú */
 .tarjetaPubAccionesHeader {
     display: flex;
@@ -78,11 +92,15 @@
     flex-shrink: 0;
 }
 
+.tarjetaPubAccionesHeader button {
+    padding: 0 !important;
+}
+
 /* Menú 3 puntos: oculto hasta hacer hover en la tarjeta (igual que comunidad) */
 .tarjetaPubMenuBtn {
     color: var(--textoTerciario);
     padding: var(--espacioXs);
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.15s, color 0.15s;
     background: none;
 }
@@ -197,7 +215,6 @@
     gap: var(--espacioXs);
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    padding: 0 0 6px var(--espacioSm);
 }
 
 .tarjetaPubRepostIndicador svg {
@@ -207,7 +224,7 @@
 .tarjetaPubRepostOriginal {
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    padding: var(--espacioSm);
+    padding: var(--espacioLg);
     margin-top: var(--espacioXs);
     display: flex;
     flex-direction: column;

@@ -100,6 +100,7 @@ const ComunidadBase = (): JSX.Element => {
                             onComentar={(id) => alternarComentarios(id)}
                             onRepost={(id) => manejarRepost(id)}
                             onClickAutor={(username) => navegar(`/perfil/${username}/`)}
+                            onClickFecha={(pubId) => navegar(`/publicacion/${pubId}/`)}
                             onMenu={(e, pub) => menuPublicacion.abrirMenu(e, pub)}
                             onLikeSample={manejarLikeSample}
                             onMenuSample={menuSample.abrirMenu}
