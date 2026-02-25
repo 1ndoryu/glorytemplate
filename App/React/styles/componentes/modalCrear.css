@@ -291,6 +291,25 @@
     object-fit: cover;
 }
 
+/* Overlay de edición: aparece al hacer hover, click = reemplazar imagen */
+.crearImagenOverlayEditar {
+    position: absolute;
+    inset: 0;
+    background-color: var(--overlayOscuro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    color: var(--textoPrimario);
+}
+
+.crearImagenItem:hover .crearImagenOverlayEditar {
+    opacity: 1;
+}
+
 .crearImagenQuitar {
     position: absolute;
     top: 4px;

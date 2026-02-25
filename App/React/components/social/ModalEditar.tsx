@@ -4,6 +4,7 @@
  * La lógica vive en useEditar.ts (SRP).
  */
 
+import { useRef } from 'react';
 import { Modal } from '@app/components/ui/Modal';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -11,7 +12,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { Checkbox } from '@app/components/ui/Checkbox';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
-import { Music, Image as ImageIcon, X } from 'lucide-react';
+import { Music, Image as ImageIcon, X, Camera } from 'lucide-react';
 import type { TipoSample, SampleResumen } from '@app/types';
 import '../../styles/componentes/modalEditar.css';
 import '../../styles/componentes/modalCrear.css';
@@ -85,14 +86,18 @@ export const ModalEditar = (): JSX.Element | null => {
         archivos,
     } = useEditar(tipo, sample, publicacion, coleccion, manejarExito);
 
+    /* Slot a reemplazar al seleccionar imagen (no dispara re-render) */
+    const slotReemplazar = useRef<{ tipo: 'existente' | 'nueva'; indice: number } | null>(null);
+
     if (!abierto || !tipo) return null;
 
+    /* publicacion no muestra cabecera — los controles van en editarAcciones */
     const titulo =
         tipo === 'sample'
             ? 'Editar sample'
-            : tipo === 'publicacion'
-                ? 'Editar publicación'
-                : 'Editar colección';
+            : tipo === 'coleccion'
+                ? 'Editar colección'
+                : undefined;
 
     const manejarGuardar = async () => {
         await guardar();
@@ -267,7 +272,19 @@ export const ModalEditar = (): JSX.Element | null => {
                                 {formularioPublicacion.imagenesExistentes.map((url, i) => (
                                     <div className="crearImagenItem" key={`existente-${i}`}>
                                         <img src={url} alt={`Imagen existente ${i + 1}`} />
-                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => setFormularioPublicacion(prev => ({ ...prev, imagenesExistentes: prev.imagenesExistentes.filter((_, index) => index !== i) }))} type="button" aria-label="Quitar imagen">
+                                        {/* Overlay clicable para reemplazar la imagen */}
+                                        <div
+                                            className="crearImagenOverlayEditar"
+                                            onClick={() => {
+                                                slotReemplazar.current = { tipo: 'existente', indice: i };
+                                                document.getElementById('editar-input-reemplazar')?.click();
+                                            }}
+                                            role="button"
+                                            aria-label="Cambiar imagen"
+                                        >
+                                            <Camera size={20} />
+                                        </div>
+                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={(e) => { e.stopPropagation(); setFormularioPublicacion(prev => ({ ...prev, imagenesExistentes: prev.imagenesExistentes.filter((_, index) => index !== i) })); }} type="button" aria-label="Quitar imagen">
                                             <X size={12} />
                                         </BotonBase>
                                     </div>
@@ -275,7 +292,19 @@ export const ModalEditar = (): JSX.Element | null => {
                                 {archivos.imagenes.map((img, i) => (
                                     <div className="crearImagenItem" key={`nueva-${i}`}>
                                         <img src={img.url} alt={`Imagen nueva ${i + 1}`} />
-                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => archivos.quitarImagen(i)} type="button" aria-label="Quitar imagen">
+                                        {/* Overlay clicable para reemplazar la imagen */}
+                                        <div
+                                            className="crearImagenOverlayEditar"
+                                            onClick={() => {
+                                                slotReemplazar.current = { tipo: 'nueva', indice: i };
+                                                document.getElementById('editar-input-reemplazar')?.click();
+                                            }}
+                                            role="button"
+                                            aria-label="Cambiar imagen"
+                                        >
+                                            <Camera size={20} />
+                                        </div>
+                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={(e) => { e.stopPropagation(); archivos.quitarImagen(i); }} type="button" aria-label="Quitar imagen">
                                             <X size={12} />
                                         </BotonBase>
                                     </div>
@@ -286,6 +315,28 @@ export const ModalEditar = (): JSX.Element | null => {
                         {/* Inputs ocultos para adjuntar archivos */}
                         <Input id="editar-input-audio" type="file" accept=".wav,.mp3,.flac,.aiff,.aif" style={{ display: 'none' }} onChange={archivos.manejarInputAudio} />
                         <Input id="editar-input-imagen" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple style={{ display: 'none' }} onChange={archivos.manejarInputImagen} />
+                        {/* Input para reemplazar una imagen existente al hacer click sobre ella */}
+                        <Input
+                            id="editar-input-reemplazar"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                                const slot = slotReemplazar.current;
+                                if (!slot || !e.target.files?.length) return;
+                                if (slot.tipo === 'existente') {
+                                    setFormularioPublicacion(prev => ({
+                                        ...prev,
+                                        imagenesExistentes: prev.imagenesExistentes.filter((_, idx) => idx !== slot.indice),
+                                    }));
+                                } else {
+                                    archivos.quitarImagen(slot.indice);
+                                }
+                                archivos.manejarInputImagen(e);
+                                slotReemplazar.current = null;
+                                e.target.value = '';
+                            }}
+                        />
                     </>
                 )}
 
