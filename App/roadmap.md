@@ -240,6 +240,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 321. - Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
 
 **Resueltos (C322-C342):** Menú contextual publicaciones (useMenuContextualPublicacion reutilizable), Tooltip global, explorador subcarpetas+file manager+drag-to-DAW nativo+sync bidireccional, panel moderación completo, 4 MDs documentación, SeccionPublicar perfiles, fases 9/11/12 planificadas, desktop Tauri 2.0 MVP+runtime fixes+auth+sync+drag+tray+auto-sync.
+
+**Resueltos (sesión AG-FIX post-342):** Like embebido sample en comunidad, crearAcciones visible, botones adjuntar en barra editarAcciones, quitar modalCabecera en editar publicacion, click imagen para reemplazar en ModalEditar, updated_at SQL fix, repost con API real (URL corregida + optimismo + rollback), actualización post en tiempo real tras edición (EVENTO_ENTIDAD_ACTUALIZADA listener), lightbox imagen (click=abrir, doble-click=like).
 ---
 
 ## Notas y Decisiones
@@ -315,6 +317,11 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - [Sentinel]: Hooks excluidos de `usestate-excesivo` por nombre (`/^use[A-Z]/`). Cleanup patterns reconocidos: `return () =>`, AbortController, `activo = false`, `cancelled = true`, `cancelado = true`.
 - [Explorador]: Backend filtraba subcarpetas comparando `primaria/sub` contra `carpeta_primaria` (solo nivel 1). Formato con `/` requiere split+filtro dual. Para listas <500 items, filtrado client-side con useMemo es superior a API calls por carpeta (navegación instantánea vs recarga).
 - [Explorador/Sync]: `metadata.carpeta_secundaria` ya viene en la respuesta API normalizada. Sync debe leerla para colocar archivos en subcarpetas. `jsonb_set()` es atómico para mover samples sin sobreescribir otros campos metadata.
+
+- [apiSocial repost]: URLs correctas: `/publicaciones/${id}/repost` (POST=repostear, DELETE=quitarRepost). Antes estaban como `/repost/${id}` (incorrectas).
+- [Lightbox single/double click]: Patrón timer 220ms en `useRef<ReturnType<typeof setTimeout>>`: click inicia timer → si doble-click llega antes limpia timer y ejecuta like. `e.stopPropagation()` en `<img>` del lightbox para evitar cerrar al clickear la imagen.
+- [EVENTO_ENTIDAD_ACTUALIZADA]: Exportado como constante desde ModalEditar.tsx (`'kamples:entidad-actualizada'`). Para actualizar un post individual sin recargar el feed: escuchar el evento, llamar `obtenerPublicacion(id)` y `setPublicaciones(prev => prev.map(...))`.
+- [Repost optimista con rollback]: Capturar estado antes (`const snapshot = publicaciones`), mutar estado optimistamente, llamar API, si `!resp.ok` → `setPublicaciones(snapshot)`.
 
 ### CSS / UI
 
