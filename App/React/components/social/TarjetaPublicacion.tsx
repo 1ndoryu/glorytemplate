@@ -4,11 +4,12 @@
  * Incluye: lightbox propio, imágenes clickeables (doble-click = like), samples adjuntos y acciones.
  */
 
-import { useCallback, useRef, useState, type MouseEvent } from 'react';
+import { useRef, useState, type MouseEvent } from 'react';
 import { Repeat2, MoreHorizontal, X } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
@@ -79,22 +80,6 @@ export const TarjetaPublicacion = ({
         onLike?.(postId);
     };
 
-    const manejarClickAutor = useCallback(
-        (e: MouseEvent) => {
-            e.stopPropagation();
-            onClickAutor?.(publicacion.autor.username);
-        },
-        [onClickAutor, publicacion.autor.username]
-    );
-
-    const manejarClickFecha = useCallback(
-        (e: MouseEvent) => {
-            e.stopPropagation();
-            onClickFecha?.(publicacion.id);
-        },
-        [onClickFecha, publicacion.id]
-    );
-
     const clases = ['tarjetaPublicacion', className].filter(Boolean).join(' ');
 
     /* Moderación: visible solo para el autor o admin */
@@ -124,11 +109,13 @@ export const TarjetaPublicacion = ({
                         />
                         {avatarExtra}
                     </div>
-                    <BotonBase
-                        variante="ghost"
+                    <EnlaceNavegacion
+                        href={`/perfil/${publicacion.autor.username}/`}
                         className="tarjetaPubAutorTextos"
-                        onClick={manejarClickAutor}
                         aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
+                        onClick={() => {
+                            onClickAutor?.(publicacion.autor.username);
+                        }}
                     >
                         <span className="tarjetaPubNombre">
                             {publicacion.autor.nombreVisible}
@@ -140,19 +127,22 @@ export const TarjetaPublicacion = ({
                             @{publicacion.autor.username}
                             {' · '}
                             {onClickFecha ? (
-                                <BotonBase
-                                    variante="ghost"
+                                <EnlaceNavegacion
+                                    href={`/publicacion/${publicacion.id}/`}
                                     className="tarjetaPubFechaEnlace"
-                                    onClick={manejarClickFecha}
                                     aria-label={`Ver publicación del ${formatearTiempoRelativo(publicacion.creadoAt)}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onClickFecha?.(publicacion.id);
+                                    }}
                                 >
                                     {formatearTiempoRelativo(publicacion.creadoAt)}
-                                </BotonBase>
+                                </EnlaceNavegacion>
                             ) : (
                                 formatearTiempoRelativo(publicacion.creadoAt)
                             )}
                         </span>
-                    </BotonBase>
+                    </EnlaceNavegacion>
                 </div>
                 <div className="tarjetaPubAccionesHeader">
                     {mostrarModeracion && (
@@ -176,16 +166,27 @@ export const TarjetaPublicacion = ({
             {!publicacion.repostOriginal && publicacion.imagenes.length > 0 && (
                 <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.imagenes.length, 4)}`}>
                     {publicacion.imagenes.slice(0, 4).map((url) => (
-                        <BotonBase
+                        <a
                             key={url}
-                            variante="ghost"
-                            className="imagenClickable"
-                            onClick={() => manejarClickImagen(url)}
-                            onDoubleClick={() => manejarDobleClickImagen(publicacion.id)}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="imagenClickable enlaceNavegacion"
+                            onClick={(e) => {
+                                /* Left-click sin modificadores: lightbox. Middle-click: abre imagen en nueva pestaña */
+                                if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                    e.preventDefault();
+                                    manejarClickImagen(url);
+                                }
+                            }}
+                            onDoubleClick={(e) => {
+                                e.preventDefault();
+                                manejarDobleClickImagen(publicacion.id);
+                            }}
                             aria-label="Ver imagen"
                         >
                             <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
-                        </BotonBase>
+                        </a>
                     ))}
                 </div>
             )}
@@ -208,15 +209,22 @@ export const TarjetaPublicacion = ({
                     {publicacion.repostOriginal.imagenes.length > 0 && (
                         <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.repostOriginal.imagenes.length, 4)}`}>
                             {publicacion.repostOriginal.imagenes.slice(0, 4).map((url) => (
-                                <BotonBase
+                                <a
                                     key={url}
-                                    variante="ghost"
-                                    className="imagenClickable"
-                                    onClick={() => manejarClickImagen(url)}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="imagenClickable enlaceNavegacion"
+                                    onClick={(e) => {
+                                        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                            e.preventDefault();
+                                            manejarClickImagen(url);
+                                        }
+                                    }}
                                     aria-label="Ver imagen"
                                 >
                                     <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
-                                </BotonBase>
+                                </a>
                             ))}
                         </div>
                     )}

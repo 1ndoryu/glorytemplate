@@ -9,12 +9,12 @@ import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/tarjetaColeccion.css';
 import { BotonBase } from '../ui/BotonBase';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
-    onClick?: (coleccion: Coleccion) => void;
     onEditar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
     className?: string;
@@ -22,17 +22,12 @@ interface TarjetaColeccionProps {
 
 export const TarjetaColeccion = ({
     coleccion,
-    onClick,
     onEditar,
     onEliminar,
     className = '',
 }: TarjetaColeccionProps): JSX.Element => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-
-    const manejarClick = useCallback(() => {
-        onClick?.(coleccion);
-    }, [onClick, coleccion]);
 
     const manejarEditar = useCallback((e: MouseEvent) => {
         e.stopPropagation();
@@ -66,7 +61,7 @@ export const TarjetaColeccion = ({
     const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
 
     return (
-        <div className={clases} onClick={manejarClick} role="button" tabIndex={0} onBlur={cerrarMenu}>
+        <EnlaceNavegacion href={`/coleccion/${coleccion.id}/`} className={clases} onBlur={cerrarMenu}>
             <div className="tarjetaColeccionPortada">
                 <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
                 {/* C161: Botón 3 puntos siempre visible — copiar enlace + acciones propietario */}
@@ -114,7 +109,7 @@ export const TarjetaColeccion = ({
                     {coleccion.usuario && ` · @${coleccion.usuario.username}`}
                 </span>
             </div>
-        </div>
+        </EnlaceNavegacion>
     );
 };
 

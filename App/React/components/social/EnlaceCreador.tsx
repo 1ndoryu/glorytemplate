@@ -1,11 +1,11 @@
 import Avatar from '@app/components/ui/Avatar';
 import Badge from '@app/components/ui/Badge';
-import { useNavigationStore } from '@/core/router';
+import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/enlaceCreador.css';
-import { BotonBase } from '../ui/BotonBase';
 
 /*
- * EnlaceCreador — Boton clickeable de avatar + nombre que navega al perfil.
+ * EnlaceCreador — Enlace clickeable de avatar + nombre que navega al perfil.
+ * Usa EnlaceNavegacion para soportar apertura en nueva pestaña (middle-click).
  *
  * Centraliza el patron repetido en SampleDetalleIsland, ComunidadIsland,
  * ColeccionDetalleIsland, y PanelDetalleSample.
@@ -34,15 +34,12 @@ export default function EnlaceCreador({
     meta,
     className = '',
 }: EnlaceCreadorProps) {
-    const navegar = useNavigationStore(s => s.navegar);
-
     const tieneMeta = mostrarUsername || meta || verificado;
 
     return (
-        <BotonBase variante="ghost"
+        <EnlaceNavegacion
+            href={`/perfil/${username}/`}
             className={`enlaceCreador ${className}`}
-            onClick={() => navegar(`/perfil/${username}/`)}
-            type="button"
         >
             <Avatar
                 src={avatarUrl ?? undefined}
@@ -66,6 +63,6 @@ export default function EnlaceCreador({
             ) : (
                 <span className="enlaceCreadorNombre">{nombreVisible}</span>
             )}
-        </BotonBase>
+        </EnlaceNavegacion>
     );
 }

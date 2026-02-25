@@ -1,0 +1,10 @@
+/*
+ * enlaceNavegacion.css — Reset de estilos por defecto de enlaces.
+ * Hace que los <a> se comporten visualmente como contenedores neutros,
+ * delegando la apariencia al className del consumidor.
+ */
+
+.enlaceNavegacion {
+    text-decoration: none;
+    color: inherit;
+}

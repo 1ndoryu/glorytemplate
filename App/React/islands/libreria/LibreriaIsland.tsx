@@ -45,20 +45,6 @@ export const LibreriaIsland = (): JSX.Element => {
 
     return (
         <div className="libreriaContenedor" id="seccionLibreria">
-            <div className="libreriaBarraAcciones">
-                <div className="libreriaAcciones">
-                    {tabActiva === 'colecciones' && (
-                        <BotonBase variante="ghost" tamano="sm" onClick={abrirNuevaColeccion}>
-                            <Plus size={14} /> Nueva colección
-                        </BotonBase>
-                    )}
-                    {tabActiva === 'subidos' && (
-                        <BotonBase variante="primario" tamano="sm" onClick={abrirSubirModal}>
-                            <Upload size={14} /> Subir sample
-                        </BotonBase>
-                    )}
-                </div>
-            </div>
 
             {cargando ? (
                 <div className="libreriaVacio">
@@ -75,7 +61,7 @@ export const LibreriaIsland = (): JSX.Element => {
                 ) : (
                     <div className="libreriaGridColecciones">
                         {coleccionesPublicas.map(col => (
-                            <TarjetaColeccion key={col.id} coleccion={col} onClick={c => navegar(`/coleccion/${c.id}/`)} />
+                            <TarjetaColeccion key={col.id} coleccion={col} />
                         ))}
                     </div>
                 )
@@ -92,7 +78,7 @@ export const LibreriaIsland = (): JSX.Element => {
                 ) : (
                     <div className="libreriaGridColecciones">
                         {colecciones.map(col => (
-                            <TarjetaColeccion key={col.id} coleccion={col} onClick={c => navegar(`/coleccion/${c.id}/`)}
+                            <TarjetaColeccion key={col.id} coleccion={col}
                                 onEditar={manejarEditarColeccion} onEliminar={manejarEliminarColeccion} />
                         ))}
                     </div>

@@ -67,7 +67,7 @@ export const PanelLibreria = (): JSX.Element => {
                     ) : (
                         <div className="panelLibreriaGrid">
                             {coleccionesPublicas.map(col => (
-                                <TarjetaColeccion key={col.id} coleccion={col} onClick={c => navegar(`/coleccion/${c.id}/`)} />
+                                <TarjetaColeccion key={col.id} coleccion={col} />
                             ))}
                         </div>
                     )
@@ -82,7 +82,7 @@ export const PanelLibreria = (): JSX.Element => {
                     ) : (
                         <div className="panelLibreriaGrid">
                             {colecciones.map(col => (
-                                <TarjetaColeccion key={col.id} coleccion={col} onClick={c => navegar(`/coleccion/${c.id}/`)}
+                                <TarjetaColeccion key={col.id} coleccion={col}
                                     onEditar={manejarEditarColeccion} onEliminar={manejarEliminarColeccion} />
                             ))}
                         </div>

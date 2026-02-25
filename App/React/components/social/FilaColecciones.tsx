@@ -6,17 +6,15 @@
 
 import { useEffect, useState } from 'react';
 import { listarColeccionesPublicas } from '@app/services/apiColecciones';
-import { useNavigationStore } from '@/core/router';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import type { Coleccion } from '@app/types';
+import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/filaColecciones.css';
-import { BotonBase } from '../ui/BotonBase';
 
 const MAX_COLECCIONES = 8;
 
 export const FilaColecciones = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
-    const navegar = useNavigationStore(s => s.navegar);
 
     useEffect(() => {
         let activo = true;
@@ -39,11 +37,10 @@ export const FilaColecciones = (): JSX.Element | null => {
     return (
         <div className="filaColecciones">
             {colecciones.map((col) => (
-                <BotonBase variante="ghost"
+                <EnlaceNavegacion
                     key={col.id}
+                    href={`/coleccion/${col.id}/`}
                     className="filaColeccionChip"
-                    onClick={() => navegar(`/coleccion/${col.id}/`)}
-                    type="button"
                     title={col.nombre}
                 >
                     <img
@@ -56,7 +53,7 @@ export const FilaColecciones = (): JSX.Element | null => {
                     <span className="filaColeccionMeta">
                         {col.totalSamples ?? 0}
                     </span>
-                </BotonBase>
+                </EnlaceNavegacion>
             ))}
         </div>
     );
