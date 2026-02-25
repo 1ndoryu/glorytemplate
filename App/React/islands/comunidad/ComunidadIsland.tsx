@@ -4,7 +4,7 @@
  */
 
 import { useRef, useState } from 'react';
-import { Users, TrendingUp, Clock, MoreHorizontal, X, UserPlus } from 'lucide-react';
+import { Users, TrendingUp, Clock, MoreHorizontal, X, Plus } from 'lucide-react';
 import Avatar from '@app/components/ui/Avatar';
 import Badge from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
@@ -140,7 +140,7 @@ const ComunidadBase = (): JSX.Element => {
                                                 onClick={(e) => abrirCardPerfil(e, post.autor)}
                                                 aria-label="Ver perfil y seguir"
                                             >
-                                                <UserPlus size={9} />
+                                                <Plus size={11} strokeWidth={2.5} />
                                             </BotonBase>
                                         )}
                                     </div>
