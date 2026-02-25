@@ -145,6 +145,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - ✅ [AG-FIX] Página detalle publicación `/publicacion/{id}/`: PublicacionIsland + usePublicacionDetalle + CSS + ruta PHP + registro isla + MAPA_RUTAS + fecha clickeable en TarjetaPublicacion. Fix crítico: SPA callable props no se serializan → el hook extrae ID de `rutaActual` (URL), misma patrón que useSampleDetalle.
 - ✅ [AG-COL] TarjetaColeccion: refactor a MenuContextual (elimina dropdown artesanal), limpieza CSS. ColeccionDetalleIsland + useColeccionDetalle: editar colección desde 3-puntos. ModalColeccion: modo edición sin header, widget imagen con preview. LibreriaIsland: editar colecciones propias desde tab Explorar. Endpoint POST /colecciones/{id}/imagen implementado en ColeccionesCrudController.
 - ✅ [AG-COL] Fix nested `<a>` en TarjetaPublicacion: wrapper autor cambiado de EnlaceNavegacion a div, nombre con su propio enlace independiente (tarjetaPubNombreEnlace).
+- ✅ [AG-COL] Fix imagen colección: `subirImagen` y `actualizar` ahora escriben en `imagen_url` (campo canónico leído por `normalizarColeccion`). `actualizar` acepta `$body['imagenUrl']` (antes solo `portadaUrl` → ignorado). `ColeccionDetalleIsland` placeholder unificado a `obtenerImagenColorPorTexto(nombre)` (mismo que TarjetaColeccion/FilaColecciones).
 
 **Aprendizaje clave [SPA + callable props]:** `PageDefinition::getReactPageRoutes()` omite los props de rutas con callbacks PHP porque no son serializables a JSON. El cliente SPA resuelve la ruta por prefijo y pasa `props: {}` vacío. **Solución:** el hook siempre debe extraer su parámetro dinámico de `rutaActual` (useNavigationStore), usando la prop PHP solo como fallback. Ver `useSampleDetalle` como referencia del patrón.
 
@@ -297,6 +298,7 @@ Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA G
 - PDO `ATTR_EMULATE_PREPARES=false`: excepción si params tiene keys sin placeholder (`array_diff_key`). Prohibe reusar placeholder (`:uid` x2 → `:uid2`).
 - Columnas PG: verificar nombres exactos (tabla samples usa `creador_id` NO `usuario_id`).
 - `(int) $request->get_param('page')` devuelve 0 si ausente → siempre `max(1, ...)`.
+- [Colecciones imagen]: tabla `colecciones` tiene DOS columnas imagen: `imagen_url` (canónica, leída por normalizarColeccion) y `portada_url` (legacy/alias). Todo write (uploady PUT) DEBE apuntar a `imagen_url`. El body camelCase del frontend es `imagenUrl`, NO `portadaUrl`.
 - PG credenciales: PostgresService EXIGE `KAMPLES_PG_USER` y `KAMPLES_PG_PASSWORD` en .env (sin defaults).
 - LogModeracion: solo 2 args (mensaje, contexto). ServicioBan/AntiSpam/Comentarios usan como alias.
 - Cache Feed: transients guardan filas crudas. Al cambiar estado → `invalidarCacheGlobal()`.
