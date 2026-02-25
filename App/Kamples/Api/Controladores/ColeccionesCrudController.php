@@ -92,9 +92,10 @@ class ColeccionesCrudController
             $campos[] = ColeccionesCols::PUBLICA . ' = :publica';
             $params[ColeccionesCols::PUBLICA] = ((bool) $body['publica']) ? 'true' : 'false';
         }
-        if (isset($body['portadaUrl'])) {
-            $campos[] = ColeccionesCols::PORTADA_URL . ' = :portada';
-            $params['portada'] = esc_url_raw($body['portadaUrl']);
+        /* imagenUrl es el campo canónico del frontend (normalizarColeccion → imagen_url) */
+        if (isset($body['imagenUrl'])) {
+            $campos[] = ColeccionesCols::IMAGEN_URL . ' = :imagen';
+            $params['imagen'] = esc_url_raw($body['imagenUrl']);
         }
 
         if (empty($campos)) {
@@ -133,7 +134,7 @@ class ColeccionesCrudController
     }
 
     /**
-     * POST /colecciones/{id}/imagen — Sube imagen de portada y actualiza portada_url.
+     * POST /colecciones/{id}/imagen — Sube imagen de portada y actualiza imagen_url.
      * Acepta multipart/form-data con campo 'imagen'. Retorna { imagenUrl }.
      */
     public static function subirImagen(\WP_REST_Request $request): \WP_REST_Response
@@ -179,11 +180,11 @@ class ColeccionesCrudController
 
             $url = esc_url_raw($resultado['url']);
 
-            /* Persistir la URL de portada en la BD */
+            /* Persistir la URL en imagen_url — campo canónico leído por el frontend */
             ColeccionesRepository::actualizarCampos(
                 $id,
-                [ColeccionesCols::PORTADA_URL . ' = :portada'],
-                ['portada' => $url]
+                [ColeccionesCols::IMAGEN_URL . ' = :imagen'],
+                ['imagen' => $url]
             );
 
             return new \WP_REST_Response(['imagenUrl' => $url], 200);

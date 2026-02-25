@@ -14,7 +14,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { obtenerSugerencias } from '@app/services/apiColecciones';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import { obtenerImagenColor } from '@app/services/imagenesColor';
+import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
@@ -60,7 +60,8 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         );
     }
 
-    const imagenHeader = coleccion.imagenUrl || obtenerImagenColor(coleccion.id);
+    /* Mismo fallback que TarjetaColeccion/FilaColecciones para consistencia visual */
+    const imagenHeader = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
 
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">
