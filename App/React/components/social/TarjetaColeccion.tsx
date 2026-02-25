@@ -2,9 +2,10 @@
  * Componente: TarjetaColeccion — Kamples (C141)
  * Tarjeta visual tipo card para mostrar una colección.
  * Botón 3 puntos en esquina superior derecha con menú contextual.
+ * El menú está FUERA del <a> para evitar navegación accidental al hacer click.
  */
 
-import { useCallback, useState, useRef, type MouseEvent } from 'react';
+import { useCallback, useEffect, useState, useRef, type MouseEvent } from 'react';
 import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
@@ -54,62 +55,77 @@ export const TarjetaColeccion = ({
         setMenuAbierto(prev => !prev);
     }, []);
 
-    /* Cerrar menú al hacer click fuera */
+    /* Cerrar menú al hacer click fuera del contenedor */
     const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+
+    useEffect(() => {
+        if (!menuAbierto) return;
+        const manejarClickFuera = (e: Event) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                cerrarMenu();
+            }
+        };
+        document.addEventListener('mousedown', manejarClickFuera);
+        return () => document.removeEventListener('mousedown', manejarClickFuera);
+    }, [menuAbierto, cerrarMenu]);
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
 
     return (
-        <EnlaceNavegacion href={`/coleccion/${coleccion.id}/`} className={clases} onBlur={cerrarMenu}>
-            <div className="tarjetaColeccionPortada">
-                <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
-                {/* C161: Botón 3 puntos siempre visible — copiar enlace + acciones propietario */}
-                <div className="tarjetaColeccionMenuContenedor" ref={menuRef}>
-                    <BotonBase variante="ghost"
-                        className="tarjetaColeccionMenuBtn"
-                        onClick={toggleMenu}
-                        type="button"
-                        aria-label="Opciones de colección"
-                    >
-                        <MoreVertical size={16} />
-                    </BotonBase>
-                    {menuAbierto && (
-                        <div className="tarjetaColeccionMenu">
-                            <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarCopiarEnlace} type="button">
-                                <Link2 size={14} />
-                                <span>Copiar enlace</span>
-                            </BotonBase>
-                            {onEditar && (
-                                <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
-                                    <Edit3 size={14} />
-                                    <span>Editar</span>
-                                </BotonBase>
-                            )}
-                            {onEliminar && (
-                                <BotonBase variante="ghost" className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
-                                    <Trash2 size={14} />
-                                    <span>Eliminar</span>
-                                </BotonBase>
-                            )}
-                        </div>
-                    )}
+        /* div exterior: contexto de posicionamiento para el menú absoluto */
+        <div className={clases} ref={menuRef}>
+            <EnlaceNavegacion href={`/coleccion/${coleccion.id}/`} className="tarjetaColeccionEnlace">
+                <div className="tarjetaColeccionPortada">
+                    <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
                 </div>
-            </div>
 
-            <div className="tarjetaColeccionInfo">
-                <div className="tarjetaColeccionCabecera">
-                    <span className="tarjetaColeccionNombre">{coleccion.nombre}</span>
-                    <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? 'Pública' : 'Privada'}>
-                        {coleccion.esPublica ? <Globe size={12} /> : <Lock size={12} />}
+                <div className="tarjetaColeccionInfo">
+                    <div className="tarjetaColeccionCabecera">
+                        <span className="tarjetaColeccionNombre">{coleccion.nombre}</span>
+                        <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? 'Pública' : 'Privada'}>
+                            {coleccion.esPublica ? <Globe size={12} /> : <Lock size={12} />}
+                        </span>
+                    </div>
+                    <span className="tarjetaColeccionMeta">
+                        {coleccion.totalSamples} sample{coleccion.totalSamples !== 1 ? 's' : ''}
+                        {coleccion.usuario && ` · @${coleccion.usuario.username}`}
                     </span>
                 </div>
-                <span className="tarjetaColeccionMeta">
-                    {coleccion.totalSamples} sample{coleccion.totalSamples !== 1 ? 's' : ''}
-                    {coleccion.usuario && ` · @${coleccion.usuario.username}`}
-                </span>
+            </EnlaceNavegacion>
+
+            {/* C161: Botón 3 puntos — FUERA del <a> para evitar navegación al hacer click */}
+            <div className="tarjetaColeccionMenuContenedor">
+                <BotonBase variante="ghost"
+                    className="tarjetaColeccionMenuBtn"
+                    onClick={toggleMenu}
+                    type="button"
+                    aria-label="Opciones de colección"
+                >
+                    <MoreVertical size={16} />
+                </BotonBase>
+                {menuAbierto && (
+                    <div className="tarjetaColeccionMenu">
+                        <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarCopiarEnlace} type="button">
+                            <Link2 size={14} />
+                            <span>Copiar enlace</span>
+                        </BotonBase>
+                        {onEditar && (
+                            <BotonBase variante="ghost" className="tarjetaColeccionMenuItem" onClick={manejarEditar} type="button">
+                                <Edit3 size={14} />
+                                <span>Editar</span>
+                            </BotonBase>
+                        )}
+                        {onEliminar && (
+                            <BotonBase variante="ghost" className="tarjetaColeccionMenuItem tarjetaColeccionMenuItemPeligro" onClick={manejarEliminar} type="button">
+                                <Trash2 size={14} />
+                                <span>Eliminar</span>
+                            </BotonBase>
+                        )}
+                    </div>
+                )}
             </div>
-        </EnlaceNavegacion>
+        </div>
     );
 };
 

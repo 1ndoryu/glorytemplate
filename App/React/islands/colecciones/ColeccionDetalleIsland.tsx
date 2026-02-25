@@ -11,6 +11,7 @@ import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { obtenerSugerencias } from '@app/services/apiColecciones';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -27,6 +28,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         coleccion, cargando, guardada, descargando, navegar,
         tabActiva, usuario, id, samples, metasComunes,
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
+        modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
     } = useColeccionDetalle({ propId });
 
@@ -182,6 +184,16 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 x={menuColeccion.x}
                 y={menuColeccion.y}
             />
+
+            {/* Modal para editar la colección (solo propietario/admin via menu) */}
+            {coleccion && (
+                <ModalColeccion
+                    abierto={modalEditarAbierto}
+                    onCerrar={() => setModalEditarAbierto(false)}
+                    onGuardar={manejarGuardarEdicion}
+                    coleccion={coleccion}
+                />
+            )}
         </div>
     );
 };

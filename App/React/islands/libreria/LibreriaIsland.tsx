@@ -13,6 +13,7 @@ import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
+import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/libreria.css';
 
 const TABS_LIBRERIA = [
@@ -40,6 +41,8 @@ export const LibreriaIsland = (): JSX.Element => {
         manejarClickTitulo, manejarComentar, manejarLike,
         abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     } = useLibreriaIsland();
+    /* Necesario para mostrar opciones de editar/eliminar en colecciones propias del tab Explorar */
+    const usuario = useAuthStore(s => s.usuario);
 
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
 
@@ -60,9 +63,16 @@ export const LibreriaIsland = (): JSX.Element => {
                     </div>
                 ) : (
                     <div className="libreriaGridColecciones">
-                        {coleccionesPublicas.map(col => (
-                            <TarjetaColeccion key={col.id} coleccion={col} />
-                        ))}
+                        {coleccionesPublicas.map(col => {
+                            /* Mostrar editar/eliminar solo para colecciones propias del usuario */
+                            const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
+                            return (
+                                <TarjetaColeccion key={col.id} coleccion={col}
+                                    onEditar={esPropia ? manejarEditarColeccion : undefined}
+                                    onEliminar={esPropia ? manejarEliminarColeccion : undefined}
+                                />
+                            );
+                        })}
                     </div>
                 )
             ) : tabActiva === 'colecciones' ? (

@@ -2,6 +2,7 @@
  * tarjetaColeccion.css — Kamples (C141)
  * Tarjeta visual tipo card para colecciones.
  * Botón 3 puntos en esquina superior derecha con menú contextual.
+ * El menuContenedor está FUERA del <a> interno pero dentro del div exterior.
  */
 
 .tarjetaColeccion {
@@ -12,12 +13,26 @@
     border-radius: var(--radioLg);
     cursor: pointer;
     transition: all var(--transicionRapida);
-    overflow: hidden;
+    /* overflow: visible para que el dropdown del menú no sea recortado */
+    overflow: visible;
+    /* Contexto de posicionamiento para el menuContenedor absoluto */
+    position: relative;
 }
 
 .tarjetaColeccion:hover {
     border-color: var(--bordeActivo);
     background-color: var(--fondoElevado2);
+}
+
+/* Enlace interior — ocupa todo el espacio de la tarjeta con clip correcto */
+.tarjetaColeccionEnlace {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    border-radius: var(--radioLg);
 }
 
 /* Portada — imagen full-width arriba */

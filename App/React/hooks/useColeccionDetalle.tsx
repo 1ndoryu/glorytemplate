@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Link2, Trash2, Flag } from 'lucide-react';
+import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
 import { obtenerColeccion, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -32,6 +32,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
     const [descargando, setDescargando] = useState(false);
+    const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
     const navegar = useNavigationStore(s => s.navegar);
     const tabActiva = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -193,6 +194,19 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
 
         if (esPropietario || esAdmin) {
             items.push({
+                id: 'editar',
+                etiqueta: 'Editar colección',
+                icono: <Edit3 size={16} />,
+                separadorDespues: true,
+                onClick: () => {
+                    cerrarMenuColeccion();
+                    setModalEditarAbierto(true);
+                }
+            });
+        }
+
+        if (esPropietario || esAdmin) {
+            items.push({
                 id: 'eliminar',
                 etiqueta: 'Eliminar colección',
                 icono: <Trash2 size={16} />,
@@ -221,6 +235,12 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         return items;
     }, [coleccion, usuario, navegar, cerrarMenuColeccion]);
 
+    /* Actualiza el estado local de la coleccion tras una edicion en el modal */
+    const manejarGuardarEdicion = useCallback((coleccionActualizada: Coleccion) => {
+        setColeccion(coleccionActualizada);
+        setModalEditarAbierto(false);
+    }, []);
+
     return {
         coleccion,
         cargando,
@@ -236,6 +256,9 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         abrirMenuColeccion,
         cerrarMenuColeccion,
         itemsMenuColeccion,
+        modalEditarAbierto,
+        setModalEditarAbierto,
+        manejarGuardarEdicion,
         manejarGuardar,
         manejarDescargarZip,
         manejarLikeSamples,
