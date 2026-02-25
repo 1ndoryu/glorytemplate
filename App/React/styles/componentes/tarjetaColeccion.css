@@ -104,6 +104,7 @@
 .tarjetaColeccionMenuItem {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: var(--espacioSm);
     width: 100%;
     padding: var(--espacioXs) var(--espacioMd);
@@ -113,6 +114,15 @@
     font-size: var(--fuenteSm);
     cursor: pointer;
     transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+/* Override BotonBase justify-content:center — misma estrategia que menuContextual.css */
+.tarjetaColeccionMenu .botonBase.tarjetaColeccionMenuItem {
+    justify-content: flex-start;
+    padding: var(--espacioXs) var(--espacioMd);
+    height: auto;
+    min-width: unset;
+    font-size: var(--fuenteSm);
 }
 
 .tarjetaColeccionMenuItem:hover {

@@ -4,7 +4,7 @@
  * Incluye normalizador snake_case → camelCase para datos de PostgreSQL.
  */
 
-import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
+import { apiGet, apiPost, apiPut, apiDelete, apiPostFormData } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { Coleccion, SampleResumen, UsuarioResumen } from '../types';
 
@@ -75,9 +75,19 @@ export const crearColeccion = async (datos: {
 /* Actualizar colección */
 export const actualizarColeccion = async (
     id: number,
-    datos: Partial<{ nombre: string; descripcion: string; esPublica: boolean }>
+    datos: Partial<{ nombre: string; descripcion: string; esPublica: boolean; imagenUrl: string | null }>
 ): Promise<RespuestaApi<Coleccion>> => {
     return apiPut<Coleccion>(`/colecciones/${id}`, datos);
+};
+
+/* Subir/reemplazar imagen de portada de la colección */
+export const subirImagenColeccion = async (
+    id: number,
+    archivo: File
+): Promise<RespuestaApi<{ imagenUrl: string }>> => {
+    const fd = new FormData();
+    fd.append('imagen', archivo);
+    return apiPostFormData<{ imagenUrl: string }>(`/colecciones/${id}/imagen`, fd);
 };
 
 /* Eliminar colección */
