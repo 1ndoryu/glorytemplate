@@ -131,6 +131,10 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### Fases 0-4 ✔ (completadas)
 
+- ✅ [AG-FIX] Fix repost (3 bugs): post vacío + DELETE no funcionaba + sin toast. `listarFeed` ahora LEFT JOIN con original; `eliminarRepost`+`recalcularReposts` en repo; DELETE route registrado; `ComunidadIsland` muestra bloque embebido del original con indicador "X reposteó"; toast de éxito/error en `manejarRepost`.
+- [Repost]: crearRepost inserta fila vacía con repost_id. El feed LEFT JOINea `publicaciones AS orig` + `usuarios_ext AS u_orig` para traer contenido original. Frontend usa `post.repostOriginal` para renderizar el bloque embebido. Si repostOriginal es null, se comporta como post normal.
+- [DELETE route WP]: Para soportar múltiples métodos en el mismo path, pasar array de arrays a `register_rest_route`: `[['methods'=>'POST',...], ['methods'=>'DELETE',...]]`.
+
 ### TAREAS EN CURSO
 - ✅ [AG-FIX] Corregir violaciones de Sentinel reportadas en `.sentinel-report.md` (promise-sin-catch, html-nativo-en-vez-de-componente).
 
