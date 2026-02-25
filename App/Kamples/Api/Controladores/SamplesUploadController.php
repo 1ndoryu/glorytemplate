@@ -22,6 +22,7 @@ use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class SamplesUploadController
@@ -172,6 +173,28 @@ class SamplesUploadController
             /* S22 fix: limpiar archivo huérfano y retornar error real */
             self::eliminarArchivoSiExiste($subido['file'], 'archivo huerfano de subida tras error de insercion');
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al registrar el sample'], 500);
+        }
+
+        /* Crear publicación automática en el feed si mostrarEnComunidad está activo */
+        if ($sampleId && $mostrarEnComunidad) {
+            try {
+                $samplesAdjuntosPg = '{' . $sampleId . '}';
+                PublicacionesRepository::crearPublicacion(
+                    $userId,
+                    $contenido,
+                    '{}',
+                    $samplesAdjuntosPg
+                );
+                KamplesLogger::info('Publicación de comunidad creada para sample', [
+                    'sampleId' => $sampleId,
+                    'userId' => $userId,
+                ]);
+            } catch (\Throwable $e) {
+                KamplesLogger::error('No se pudo crear publicación de comunidad para sample', [
+                    'sampleId' => $sampleId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         /* C198: Sumar 1 crédito bonus por publicar sample */

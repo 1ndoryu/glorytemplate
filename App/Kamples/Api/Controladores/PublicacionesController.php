@@ -17,6 +17,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
@@ -25,6 +26,7 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\KamplesLogger;
 
 class PublicacionesController
@@ -146,6 +148,25 @@ class PublicacionesController
 
         $publicaciones = PublicacionesRepository::listarFeed($donde, $orderBy, $params);
 
+        /* Recopilar IDs de samples adjuntos para hacer una sola query */
+        $todosSamplesIds = [];
+        foreach ($publicaciones as $pub) {
+            $ids = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+            foreach ($ids as $id) {
+                if ($id > 0) {
+                    $todosSamplesIds[$id] = true;
+                }
+            }
+        }
+
+        $samplesMap = [];
+        if (!empty($todosSamplesIds)) {
+            $samplesData = SamplesRepository::buscarPorIds(\array_keys($todosSamplesIds), $currentUserId);
+            foreach ($samplesData as $s) {
+                $samplesMap[$s['id']] = NormalizadorSample::normalizar($s);
+            }
+        }
+
         /* Enriquecer con contadores y parsear arrays PostgreSQL */
         foreach ($publicaciones as &$pub) {
             $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
@@ -157,7 +178,16 @@ class PublicacionesController
             unset($pub['reaccion_usuario']);
             $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
             $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
-            $pub['samplesAdjuntos'] = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+            
+            $adjuntosIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+            $adjuntos = [];
+            foreach ($adjuntosIds as $id) {
+                if (isset($samplesMap[$id])) {
+                    $adjuntos[] = $samplesMap[$id];
+                }
+            }
+            $pub['samplesAdjuntos'] = $adjuntos;
+
             $pub['autor'] = [
                 'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
                 'username' => $pub[UsuariosExtCols::USERNAME],
@@ -208,7 +238,17 @@ class PublicacionesController
             'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
         ];
         $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
-        $pub['samplesAdjuntos'] = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+        
+        $adjuntosIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
+        $adjuntos = [];
+        if (!empty($adjuntosIds)) {
+            $samplesData = SamplesRepository::buscarPorIds($adjuntosIds, UsuarioHelper::obtenerIdPg());
+            foreach ($samplesData as $s) {
+                $adjuntos[] = NormalizadorSample::normalizar($s);
+            }
+        }
+        $pub['samplesAdjuntos'] = $adjuntos;
+
         $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
         $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
 

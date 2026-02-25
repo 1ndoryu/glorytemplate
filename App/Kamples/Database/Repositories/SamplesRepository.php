@@ -87,6 +87,30 @@ class SamplesRepository extends BaseRepository
         );
     }
 
+    /*
+     * Buscar samples por un array de IDs.
+     */
+    public static function buscarPorIds(array $ids, ?int $userId = null): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $params = [];
+        $inParts = [];
+        foreach ($ids as $idx => $id) {
+            $key = "id{$idx}";
+            $inParts[] = ":{$key}";
+            $params[$key] = (int) $id;
+        }
+
+        $inClause = implode(',', $inParts);
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+             . " WHERE s." . SamplesCols::ID . " IN ({$inClause})";
+
+        return static::consultar($sql, $params);
+    }
+
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
     /*

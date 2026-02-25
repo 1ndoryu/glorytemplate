@@ -176,6 +176,7 @@ export const reportarPublicacion = async (
 export interface DatosActualizarPublicacion {
     contenido?: string;
     imagenes?: string[];
+    samplesAdjuntos?: number[];
     moderacionEstado?: string; /* solo admin */
 }
 

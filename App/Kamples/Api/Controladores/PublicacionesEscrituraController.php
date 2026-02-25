@@ -184,6 +184,15 @@ class PublicacionesEscrituraController
             $params[PublicacionesCols::IMAGENES] = $imagenes;
         }
 
+        if (isset($body['samples_adjuntos']) || isset($body['samplesAdjuntos'])) {
+            $adjuntosRaw = $body['samples_adjuntos'] ?? $body['samplesAdjuntos'] ?? [];
+            $samplesAdjuntos = !empty($adjuntosRaw)
+                ? '{' . \implode(',', \array_map('intval', $adjuntosRaw)) . '}'
+                : '{}';
+            $campos[] = PublicacionesCols::SAMPLES_ADJUNTOS . ' = :' . PublicacionesCols::SAMPLES_ADJUNTOS;
+            $params[PublicacionesCols::SAMPLES_ADJUNTOS] = $samplesAdjuntos;
+        }
+
         /* Solo admin puede cambiar estado de moderación */
         if (isset($body['moderacionEstado']) && $esAdmin) {
             $estadosValidos = [

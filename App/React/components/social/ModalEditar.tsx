@@ -11,8 +11,11 @@ import { Badge } from '@app/components/ui/Badge';
 import { Checkbox } from '@app/components/ui/Checkbox';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
+import { Music, Image as ImageIcon, X } from 'lucide-react';
 import type { TipoSample, SampleResumen } from '@app/types';
 import '../../styles/componentes/modalEditar.css';
+import '../../styles/componentes/modalCrear.css';
+import { Input } from '../ui/Input';
 import { SelectorBase } from '../ui/SelectorBase';
 
 const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
@@ -79,6 +82,7 @@ export const ModalEditar = (): JSX.Element | null => {
         setFormularioColeccion,
         guardando,
         guardar,
+        archivos,
     } = useEditar(tipo, sample, publicacion, coleccion, manejarExito);
 
     if (!abierto || !tipo) return null;
@@ -213,20 +217,111 @@ export const ModalEditar = (): JSX.Element | null => {
                 )}
 
                 {tipo === 'publicacion' && (
-                    <CampoTexto
-                        etiqueta="Contenido"
-                        value={formularioPublicacion.contenido}
-                        onChange={(e) =>
-                            setFormularioPublicacion((prev) => ({
-                                ...prev,
-                                contenido: (e.target as HTMLTextAreaElement).value,
-                            }))
-                        }
-                        placeholder="Escribe tu publicación..."
-                        maxLength={5000}
-                        multilínea
-                        autoFocus
-                    />
+                    <>
+                        <CampoTexto
+                            etiqueta="Contenido"
+                            value={formularioPublicacion.contenido}
+                            onChange={(e) =>
+                                setFormularioPublicacion((prev) => ({
+                                    ...prev,
+                                    contenido: (e.target as HTMLTextAreaElement).value,
+                                }))
+                            }
+                            placeholder="Escribe tu publicación..."
+                            maxLength={5000}
+                            multilínea
+                            autoFocus
+                        />
+
+                        {/* Audio existente */}
+                        {formularioPublicacion.audioExistente && (
+                            <div className="crearAdjunto">
+                                <div className="crearAdjuntoIcono"><Music size={18} /></div>
+                                <div className="crearAdjuntoInfo">
+                                    <span className="crearAdjuntoNombre">{formularioPublicacion.audioExistente.titulo}</span>
+                                    <span className="crearAdjuntoMeta">Audio existente</span>
+                                </div>
+                                <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={() => setFormularioPublicacion(prev => ({ ...prev, audioExistente: null }))} type="button" aria-label="Quitar audio">
+                                    <X size={14} />
+                                </BotonBase>
+                            </div>
+                        )}
+
+                        {/* Audio nuevo */}
+                        {archivos.audioAdjunto && (
+                            <div className="crearAdjunto">
+                                <div className="crearAdjuntoIcono"><Music size={18} /></div>
+                                <div className="crearAdjuntoInfo">
+                                    <span className="crearAdjuntoNombre">{archivos.audioAdjunto.nombre}</span>
+                                    <span className="crearAdjuntoMeta">{archivos.audioAdjunto.formato} — {archivos.audioAdjunto.tamano}</span>
+                                </div>
+                                <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={archivos.quitarAudio} type="button" aria-label="Quitar audio">
+                                    <X size={14} />
+                                </BotonBase>
+                            </div>
+                        )}
+
+                        {/* Imágenes existentes y nuevas */}
+                        {(formularioPublicacion.imagenesExistentes.length > 0 || archivos.imagenes.length > 0) && (
+                            <div className={`crearImagenes crearImagenes${formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length}`}>
+                                {formularioPublicacion.imagenesExistentes.map((url, i) => (
+                                    <div className="crearImagenItem" key={`existente-${i}`}>
+                                        <img src={url} alt={`Imagen existente ${i + 1}`} />
+                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => setFormularioPublicacion(prev => ({ ...prev, imagenesExistentes: prev.imagenesExistentes.filter((_, index) => index !== i) }))} type="button" aria-label="Quitar imagen">
+                                            <X size={12} />
+                                        </BotonBase>
+                                    </div>
+                                ))}
+                                {archivos.imagenes.map((img, i) => (
+                                    <div className="crearImagenItem" key={`nueva-${i}`}>
+                                        <img src={img.url} alt={`Imagen nueva ${i + 1}`} />
+                                        <BotonBase variante="ghost" className="crearImagenQuitar" onClick={() => archivos.quitarImagen(i)} type="button" aria-label="Quitar imagen">
+                                            <X size={12} />
+                                        </BotonBase>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Botones para adjuntar */}
+                        <div className="crearAcciones">
+                            <div className="crearBotonesAdjunto">
+                                <BotonBase
+                                    variante="ghost"
+                                    className="crearAdjuntoBtn"
+                                    onClick={() => document.getElementById('editar-input-audio')?.click()}
+                                    disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
+                                    type="button"
+                                >
+                                    <Music size={18} />
+                                </BotonBase>
+                                <BotonBase
+                                    variante="ghost"
+                                    className="crearAdjuntoBtn"
+                                    onClick={() => document.getElementById('editar-input-imagen')?.click()}
+                                    disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
+                                    type="button"
+                                >
+                                    <ImageIcon size={18} />
+                                </BotonBase>
+                            </div>
+                            <Input
+                                id="editar-input-audio"
+                                type="file"
+                                accept=".wav,.mp3,.flac,.aiff,.aif"
+                                style={{ display: 'none' }}
+                                onChange={archivos.manejarInputAudio}
+                            />
+                            <Input
+                                id="editar-input-imagen"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                multiple
+                                style={{ display: 'none' }}
+                                onChange={archivos.manejarInputImagen}
+                            />
+                        </div>
+                    </>
                 )}
 
                 {tipo === 'coleccion' && (

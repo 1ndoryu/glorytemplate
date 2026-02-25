@@ -5,11 +5,13 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { actualizarSample } from '@app/services/apiSamples';
-import { actualizarPublicacion } from '@app/services/apiSocial';
+import { actualizarSample, subirSample } from '@app/services/apiSamples';
+import { actualizarPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { actualizarColeccion } from '@app/services/apiColecciones';
 import { toast } from '@app/stores/toastStore';
 import { crearLogger } from '@app/services/logger';
+import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
+import { extraerTags } from '@app/hooks/useCrearContenido';
 import type { SampleResumen, Publicacion, Coleccion, TipoSample } from '@app/types';
 import type { TipoEntidadEditable } from '@app/stores/editarModalStore';
 
@@ -29,6 +31,8 @@ export interface FormularioSample {
 /* Estado interno del formulario de publicación */
 export interface FormularioPublicacion {
     contenido: string;
+    imagenesExistentes: string[];
+    audioExistente: SampleResumen | null;
 }
 
 /* Estado interno del formulario de colección */
@@ -47,6 +51,7 @@ interface RetornoEditar {
     setFormularioColeccion: React.Dispatch<React.SetStateAction<FormularioColeccion>>;
     guardando: boolean;
     guardar: () => Promise<boolean>;
+    archivos: ReturnType<typeof useArchivosDragDrop>;
 }
 
 const sampleInicial: FormularioSample = {
@@ -61,6 +66,8 @@ const sampleInicial: FormularioSample = {
 
 const publicacionInicial: FormularioPublicacion = {
     contenido: '',
+    imagenesExistentes: [],
+    audioExistente: null,
 };
 
 const coleccionInicial: FormularioColeccion = {
@@ -80,6 +87,7 @@ export const useEditar = (
     const [formularioPublicacion, setFormularioPublicacion] = useState<FormularioPublicacion>(publicacionInicial);
     const [formularioColeccion, setFormularioColeccion] = useState<FormularioColeccion>(coleccionInicial);
     const [guardando, setGuardando] = useState(false);
+    const archivos = useArchivosDragDrop();
 
     /* Pre-rellenar formularios con datos actuales — C170: cargar descripcion real */
     useEffect(() => {
@@ -103,7 +111,10 @@ export const useEditar = (
         } else if (tipo === 'publicacion' && publicacion) {
             setFormularioPublicacion({
                 contenido: publicacion.contenido || '',
+                imagenesExistentes: publicacion.imagenes || [],
+                audioExistente: publicacion.samplesAdjuntos?.[0] || null,
             });
+            archivos.resetear();
         } else if (tipo === 'coleccion' && coleccion) {
             setFormularioColeccion({
                 nombre: coleccion.nombre || '',
@@ -147,8 +158,42 @@ export const useEditar = (
             }
 
             if (tipo === 'publicacion' && publicacion) {
+                const urlsReales: string[] = [...formularioPublicacion.imagenesExistentes];
+                for (const img of archivos.imagenes) {
+                    const respImg = await subirImagenPublicacion(img.archivo);
+                    if (respImg.ok && respImg.data?.url) {
+                        urlsReales.push(respImg.data.url);
+                    } else {
+                        log.error('Error subiendo imagen', respImg);
+                        toast.error(respImg.error ?? 'Error al subir imagen');
+                    }
+                }
+
+                let sampleId = formularioPublicacion.audioExistente?.id;
+                if (archivos.audioAdjunto?.archivo) {
+                    const tags = extraerTags(formularioPublicacion.contenido);
+                    const respSample = await subirSample({
+                        audio: archivos.audioAdjunto.archivo,
+                        titulo: archivos.audioAdjunto.nombre.replace(/\.[^/.]+$/, ''),
+                        contenido: formularioPublicacion.contenido.trim(),
+                        tags: tags.length >= 2 ? tags : ['kamples', 'audio'],
+                        permitirDescarga: true,
+                        licenciaLibre: true,
+                        esPremium: false,
+                        mostrarEnComunidad: false,
+                    });
+                    if (respSample.ok && respSample.data?.sample_id) {
+                        sampleId = respSample.data.sample_id;
+                    } else {
+                        log.error('Error subiendo audio', respSample);
+                        toast.error(respSample.error ?? 'Error al subir audio');
+                    }
+                }
+
                 const resp = await actualizarPublicacion(publicacion.id, {
                     contenido: formularioPublicacion.contenido.trim(),
+                    imagenes: urlsReales,
+                    samplesAdjuntos: sampleId ? [sampleId] : [],
                 });
 
                 if (resp.ok) {
@@ -199,5 +244,6 @@ export const useEditar = (
         setFormularioColeccion,
         guardando,
         guardar,
+        archivos,
     };
 };

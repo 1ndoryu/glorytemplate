@@ -15,6 +15,8 @@ import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { actualizarPublicacion, eliminarPublicacion, reportarPublicacion } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
 
+import { useEditarModalStore } from '@app/stores/editarModalStore';
+
 /* Eventos globales para notificar cambios de publicaciones sin recargar */
 export const EVENTO_PUBLICACION_ELIMINADA = 'kamples:publicacion-eliminada';
 export const EVENTO_PUBLICACION_ACTUALIZADA = 'kamples:publicacion-actualizada';
@@ -98,30 +100,13 @@ export const useMenuContextualPublicacion = (
         if (puedeEditar) {
             result.push({
                 id: 'editar',
-                etiqueta: 'Editar publicación',
+                etiqueta: post.tipo === 'sample' ? 'Editar sample' : 'Editar publicación',
                 icono: <Pencil size={16} />,
-                onClick: async () => {
-                    /* Prompt inline para editar contenido */
-                    const nuevoContenido = window.prompt('Editar publicación:', post.contenido);
-                    if (nuevoContenido !== null && nuevoContenido.trim() !== '' && nuevoContenido !== post.contenido) {
-                        try {
-                            const resp = await actualizarPublicacion(post.id, { contenido: nuevoContenido.trim() });
-                            if (resp.ok) {
-                                toast.exito('Publicación actualizada');
-                                if (setPublicaciones) {
-                                    setPublicaciones(prev => prev.map(p =>
-                                        p.id === post.id ? { ...p, contenido: nuevoContenido.trim() } : p
-                                    ));
-                                }
-                                window.dispatchEvent(new CustomEvent(EVENTO_PUBLICACION_ACTUALIZADA, {
-                                    detail: { publicacionId: post.id, cambios: { contenido: nuevoContenido.trim() } },
-                                }));
-                            } else {
-                                toast.error(resp.error ?? 'Error al actualizar');
-                            }
-                        } catch (err) {
-                            toast.error('Error de red al actualizar');
-                        }
+                onClick: () => {
+                    if (post.tipo === 'sample' && post.samplesAdjuntos?.[0]) {
+                        useEditarModalStore.getState().abrirSample(post.samplesAdjuntos[0]);
+                    } else {
+                        useEditarModalStore.getState().abrirPublicacion(post);
                     }
                 },
             });
