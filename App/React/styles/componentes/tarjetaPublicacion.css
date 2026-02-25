@@ -171,3 +171,45 @@
 .tarjetaPubAccionReposteado:hover {
     color: var(--exito);
 }
+
+/* Bloque de repost: indicador superior y contenido embebido del original */
+.tarjetaPubRepostIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    padding: 0 0 6px 0;
+}
+
+.tarjetaPubRepostIndicador svg {
+    flex-shrink: 0;
+}
+
+.tarjetaPubRepostOriginal {
+    border: 1px solid var(--bordeSubtle, var(--borde));
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm);
+    margin-top: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    background: var(--fondoSecundario);
+}
+
+.tarjetaPubRepostOriginalAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.tarjetaPubRepostOriginalNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+}
+
+.tarjetaPubRepostOriginalUsername {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}

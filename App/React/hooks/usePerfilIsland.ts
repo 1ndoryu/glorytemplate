@@ -8,7 +8,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { obtenerPerfil } from '@app/services/apiAuth';
 import { listarSamples } from '@app/services/apiSamples';
-import { darLike, quitarLike, listarPublicacionesUsuario } from '@app/services/apiSocial';
+import { darLike, quitarLike, listarPublicacionesUsuario, repostear, quitarRepost } from '@app/services/apiSocial';
+import { toast } from '@app/stores/toastStore';
 import type { TipoReaccion } from '@app/types';
 import { useAuthStore } from '@app/stores/authStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
@@ -255,6 +256,31 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         [navegar]
     );
 
+    /* Repost optimista con toast */
+    const manejarRepost = useCallback(async (postId: number) => {
+        const post = publicacionesPerfil.find(p => p.id === postId);
+        if (!post) return;
+        const snapshot = publicacionesPerfil;
+        const estabaReposteado = post.reposteado;
+        setPublicacionesPerfil(prev => prev.map(p =>
+            p.id === postId
+                ? { ...p, reposteado: !estabaReposteado, totalReposts: estabaReposteado ? Math.max(0, (p.totalReposts ?? 0) - 1) : (p.totalReposts ?? 0) + 1 }
+                : p
+        ));
+        try {
+            const resp = estabaReposteado ? await quitarRepost(postId) : await repostear(postId);
+            if (!resp.ok) {
+                setPublicacionesPerfil(snapshot);
+                toast.error('No se pudo realizar el repost');
+            } else {
+                toast.exito(estabaReposteado ? 'Repost eliminado' : 'Repost compartido');
+            }
+        } catch {
+            setPublicacionesPerfil(snapshot);
+            toast.error('No se pudo realizar el repost');
+        }
+    }, [publicacionesPerfil]);
+
     return {
         usuario,
         cargando,
@@ -275,5 +301,6 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         recargarPublicaciones,
         manejarLike,
         manejarClickCreador,
+        manejarRepost,
     };
 }

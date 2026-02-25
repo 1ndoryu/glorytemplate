@@ -4,15 +4,14 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
-import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
+import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
-import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
-import EnlaceCreador from '@app/components/social/EnlaceCreador';
+import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -32,7 +31,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
         cargandoTab, authCargando, tabActiva,
         abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
-        recargarPublicaciones, manejarLike, manejarClickCreador,
+        recargarPublicaciones, manejarLike, manejarClickCreador, manejarRepost,
     } = usePerfilIsland({ usernameProp });
 
     if (cargando || (authCargando && !username)) {
@@ -197,35 +196,13 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                         ) : (
                             <div className="comunidadFeed">
                                 {publicacionesPerfil.map(post => (
-                                    <article key={post.id} className="comunidadPost">
-                                        <div className="comunidadPostHeader">
-                                            <EnlaceCreador
-                                                username={post.autor?.username ?? ''}
-                                                nombreVisible={post.autor?.nombreVisible}
-                                                avatarUrl={post.autor?.avatarUrl}
-                                                tamanoAvatar="sm"
-                                                mostrarUsername
-                                                meta={post.creadoAt}
-                                            />
-                                            <BotonBase variante="ghost"
-                                                className="comunidadPostMenuBtn"
-                                                onClick={(e) => menuPublicacion.abrirMenu(e, post)}
-                                                type="button"
-                                                aria-label="Más opciones"
-                                            >
-                                                <MoreHorizontal size={18} />
-                                            </BotonBase>
-                                        </div>
-                                        <p className="comunidadPostTexto">{post.contenido}</p>
-                                        {post.imagenes?.length > 0 && (
-                                            <div className={`comunidadPostImagenes comunidadPostImagenes${post.imagenes.length}`}>
-                                                {post.imagenes.map((img) => (
-                                                    <img key={img} src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
-                                                ))}
-                                            </div>
-                                        )}
-                                        <BarraAccionesPost publicacion={post} mostrarCeroConteo />
-                                    </article>
+                                    <TarjetaPublicacion
+                                        key={post.id}
+                                        publicacion={post}
+                                        onClickAutor={manejarClickCreador}
+                                        onRepost={manejarRepost}
+                                        onMenu={(e) => menuPublicacion.abrirMenu(e, post)}
+                                    />
                                 ))}
                             </div>
                         )}

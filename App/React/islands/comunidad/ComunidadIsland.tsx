@@ -18,6 +18,7 @@ import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
+import { formatearTiempoRelativo } from '@app/utils/tiempo';
 import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
 import { BotonBase } from '../../components/ui/BotonBase';
@@ -42,20 +43,6 @@ const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: 
             respondendoAId={respondendoAId} setRespondendoAId={setRespondendoAId}
         />
     );
-};
-
-const formatearTiempoRelativo = (fecha: string): string => {
-    if (!fecha) return '';
-    const timestamp = new Date(fecha).getTime();
-    if (isNaN(timestamp)) return '';
-    const diff = Date.now() - timestamp;
-    const minutos = Math.floor(diff / 60000);
-    if (minutos < 60) return `${minutos}m`;
-    const horas = Math.floor(minutos / 60);
-    if (horas < 24) return `${horas}h`;
-    const dias = Math.floor(horas / 24);
-    if (dias < 7) return `${dias}d`;
-    return new Date(fecha).toLocaleDateString('es', { day: 'numeric', month: 'short' });
 };
 
 const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] = [

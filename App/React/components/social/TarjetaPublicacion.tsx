@@ -5,11 +5,13 @@
  */
 
 import { useCallback, type MouseEvent } from 'react';
+import { Repeat2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
+import { formatearTiempoRelativo } from '@app/utils/tiempo';
 import type { Publicacion, SampleResumen, TipoReaccion } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
 
@@ -25,23 +27,6 @@ interface TarjetaPublicacionProps {
     reproduciendo?: boolean;
     className?: string;
 }
-
-/* Formatear fecha relativa */
-const formatearTiempo = (fecha: string): string => {
-    const ahora = Date.now();
-    const ts = new Date(fecha).getTime();
-    const diff = ahora - ts;
-    const min = Math.floor(diff / 60000);
-    if (min < 1) return 'ahora';
-    if (min < 60) return `${min}m`;
-    const hrs = Math.floor(min / 60);
-    if (hrs < 24) return `${hrs}h`;
-    const dias = Math.floor(hrs / 24);
-    if (dias < 7) return `${dias}d`;
-    const semanas = Math.floor(dias / 7);
-    if (semanas < 4) return `${semanas}sem`;
-    return new Date(fecha).toLocaleDateString('es', { day: 'numeric', month: 'short' });
-};
 
 export const TarjetaPublicacion = ({
     publicacion,
@@ -96,19 +81,54 @@ export const TarjetaPublicacion = ({
                         <span className="tarjetaPubUsername">@{publicacion.autor.username}</span>
                     </div>
                 </div>
-                <span className="tarjetaPubTiempo">{formatearTiempo(publicacion.creadoAt)}</span>
+                <span className="tarjetaPubTiempo">{formatearTiempoRelativo(publicacion.creadoAt)}</span>
                 {mostrarModeracion && (
                     <BadgeModeracion moderacionEstado={publicacion.moderacionEstado} />
                 )}
             </div>
 
-            {/* Contenido textual */}
-            {publicacion.contenido && (
+            {/* Indicador de repost */}
+            {publicacion.repostOriginal && (
+                <div className="tarjetaPubRepostIndicador">
+                    <Repeat2 size={12} />
+                    <span>{publicacion.autor.nombreVisible} reposteó</span>
+                </div>
+            )}
+
+            {/* Contenido propio (no aplica en reposts puros) */}
+            {!publicacion.repostOriginal && publicacion.contenido && (
                 <p className="tarjetaPubContenido">{publicacion.contenido}</p>
             )}
 
-            {/* Imágenes adjuntas */}
-            {publicacion.imagenes.length > 0 && (
+            {/* Bloque embebido del post original */}
+            {publicacion.repostOriginal && (
+                <div className="tarjetaPubRepostOriginal">
+                    <div className="tarjetaPubRepostOriginalAutor">
+                        <Avatar
+                            src={publicacion.repostOriginal.autor.avatarUrl}
+                            nombre={publicacion.repostOriginal.autor.nombreVisible}
+                            tamano="xs"
+                        />
+                        <span className="tarjetaPubRepostOriginalNombre">{publicacion.repostOriginal.autor.nombreVisible}</span>
+                        <span className="tarjetaPubRepostOriginalUsername">@{publicacion.repostOriginal.autor.username}</span>
+                    </div>
+                    {publicacion.repostOriginal.contenido && (
+                        <p className="tarjetaPubContenido">{publicacion.repostOriginal.contenido}</p>
+                    )}
+                    {publicacion.repostOriginal.imagenes.length > 0 && (
+                        <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.repostOriginal.imagenes.length, 4)}`}>
+                            {publicacion.repostOriginal.imagenes.slice(0, 4).map((url, i) => (
+                                <div className="tarjetaPubImagenItem" key={url}>
+                                    <img src={url} alt={`Imagen ${i + 1}`} loading="lazy" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Imágenes propias (solo si no es repost) */}
+            {!publicacion.repostOriginal && publicacion.imagenes.length > 0 && (
                 <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.imagenes.length, 4)}`}>
                     {publicacion.imagenes.slice(0, 4).map((url, i) => (
                         <div className="tarjetaPubImagenItem" key={url}>
