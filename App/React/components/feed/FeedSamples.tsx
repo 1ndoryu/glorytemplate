@@ -7,21 +7,14 @@
  * Lógica extraída a useFeedSamples (SRP).
  */
 
-import { useCallback } from 'react';
-import { Music, Plus, Minus } from 'lucide-react';
+import { Music } from 'lucide-react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
-import { SelectFiltro } from '@app/components/ui/SelectFiltro';
-import { SelectorBPM } from '@app/components/ui/SelectorBPM';
-import {
-    useFeedSamples,
-    ETIQUETAS_CATEGORIA,
-    CATEGORIAS_SELECT,
-} from '@app/hooks/useFeedSamples';
+import { FiltroTags } from '@app/components/feed/FiltroTags';
+import { useFeedSamples } from '@app/hooks/useFeedSamples';
 import type { SampleResumen } from '@app/types';
-import { BotonBase } from '../ui/BotonBase';
 
 /* Tipo del proveedor de datos: recibe página, devuelve samples */
 export type ProveedorSamples = (pagina: number) => Promise<SampleResumen[]>;
@@ -78,37 +71,6 @@ export const FeedSamples = ({
         onConteoChange,
     });
 
-    /* Renderizar un tag con botones +/- */
-    const renderizarTag = useCallback((tag: string) => (
-        <div
-            key={tag}
-            className={`feedTagItem ${feed.tagsIncluidos.includes(tag) ? 'feedTagItemIncluido' : ''} ${feed.tagsExcluidos.includes(tag) ? 'feedTagItemExcluido' : ''}`}
-        >
-            <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonRestar"
-                aria-label={`Excluir tag ${tag}`}
-                onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); feed.manejarExcluirTag(tag); }}
-            >
-                <Minus size={10} />
-            </BotonBase>
-            <span className="feedTagTexto" role="button" tabIndex={0}
-                aria-label={`Incluir tag ${tag}`}
-                onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); feed.manejarIncluirTag(tag); }}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); feed.manejarIncluirTag(tag); } }}
-            >
-                {tag}
-            </span>
-            <BotonBase variante="ghost" type="button" className="feedTagBoton feedTagBotonSumar"
-                aria-label={`Incluir tag ${tag}`}
-                onMouseDown={e => e.stopPropagation()}
-                onClick={e => { e.stopPropagation(); feed.manejarIncluirTag(tag); }}
-            >
-                <Plus size={10} />
-            </BotonBase>
-        </div>
-    ), [feed.tagsIncluidos, feed.tagsExcluidos, feed.manejarIncluirTag, feed.manejarExcluirTag]);
-
     /* Loading state */
     if (feed.cargando) {
         return (
@@ -123,51 +85,20 @@ export const FeedSamples = ({
 
     return (
         <div className={`feedSamplesContenedor ${className}`} id={id}>
-            {/* Fila de selects por categoría + tags sueltos draggable */}
+            {/* Filtros de tags y BPM — componente reutilizable */}
             {mostrarTags && (
-                <div className="feedTags">
-                    {/* Fila 1: Selects de categorías + BPM */}
-                    <div className="feedFiltrosSelects">
-                        {CATEGORIAS_SELECT.map(cat => {
-                            const opciones = feed.tagsAgrupados[cat] ?? [];
-                            if (opciones.length === 0) return null;
-                            return (
-                                <SelectFiltro
-                                    key={cat}
-                                    etiqueta={ETIQUETAS_CATEGORIA[cat]}
-                                    opciones={opciones}
-                                    tagsIncluidos={feed.tagsIncluidos}
-                                    tagsExcluidos={feed.tagsExcluidos}
-                                    onIncluir={feed.incluirTag}
-                                    onExcluir={feed.excluirTag}
-                                    onQuitar={feed.quitarTag}
-                                />
-                            );
-                        })}
-                        <SelectorBPM
-                            bpmMin={feed.bpmMin}
-                            bpmMax={feed.bpmMax}
-                            onCambiar={feed.setBpmRango}
-                        />
-                    </div>
-
-                    {/* Fila 2: Tags sueltos ("otro") — draggable horizontal */}
-                    {feed.tagsSueltos.length > 0 && (
-                        <div
-                            ref={feed.listaTagsRef}
-                            className={`feedTagsLista ${feed.arrastrandoTags ? 'feedTagsListaArrastrando' : ''}`}
-                            onMouseDown={e => feed.iniciarArrastre(e.clientX)}
-                            onMouseMove={e => feed.moverArrastre(e.clientX)}
-                            onMouseUp={feed.finalizarArrastre}
-                            onMouseLeave={feed.finalizarArrastre}
-                            onTouchStart={e => feed.iniciarArrastre(e.touches[0].clientX)}
-                            onTouchMove={e => feed.moverArrastre(e.touches[0].clientX)}
-                            onTouchEnd={feed.finalizarArrastre}
-                        >
-                            {feed.tagsSueltos.map(renderizarTag)}
-                        </div>
-                    )}
-                </div>
+                <FiltroTags
+                    tagsAgrupados={feed.tagsAgrupados}
+                    tagsSueltos={feed.tagsSueltos}
+                    tagsIncluidos={feed.tagsIncluidos}
+                    tagsExcluidos={feed.tagsExcluidos}
+                    bpmMin={feed.bpmMin}
+                    bpmMax={feed.bpmMax}
+                    onIncluirTag={feed.manejarIncluirTag}
+                    onExcluirTag={feed.manejarExcluirTag}
+                    onQuitarTag={feed.quitarTag}
+                    onCambiarBpm={feed.setBpmRango}
+                />
             )}
 
             {/* Lista de samples con virtualización */}

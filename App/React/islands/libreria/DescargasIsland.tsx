@@ -7,9 +7,11 @@
 import { useEffect, useCallback } from 'react';
 import { Download, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
+import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
+import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -34,6 +36,9 @@ const DescargasBase = (): JSX.Element => {
     const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
+
+    /* Filtrado client-side por tags/BPM para la lista principal */
+    const filtros = useFeedFiltros({ samples });
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('DescargasIsland', TABS_DESCARGAS, 'descargas');
@@ -96,19 +101,33 @@ const DescargasBase = (): JSX.Element => {
                         <p>Los samples que colecciones aparecerán aquí.</p>
                     </div>
                 ) : (
-                    <div className="listaDeSamples">
-                        {samples.map((sample) => (
-                            <TarjetaSample
-                                key={sample.id}
-                                sample={sample}
-                                onLike={manejarLike}
-                                onMenu={menu.abrirMenu}
-                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
-                                onClickTitulo={manejarClickTitulo}
-                                onComentar={manejarComentar}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <FiltroTags
+                            tagsAgrupados={filtros.tagsAgrupados}
+                            tagsSueltos={filtros.tagsSueltos}
+                            tagsIncluidos={filtros.tagsIncluidos}
+                            tagsExcluidos={filtros.tagsExcluidos}
+                            bpmMin={filtros.bpmMin}
+                            bpmMax={filtros.bpmMax}
+                            onIncluirTag={filtros.manejarIncluirTag}
+                            onExcluirTag={filtros.manejarExcluirTag}
+                            onQuitarTag={filtros.quitarTag}
+                            onCambiarBpm={filtros.setBpmRango}
+                        />
+                        <div className="listaDeSamples">
+                            {filtros.samplesFiltrados.map((sample) => (
+                                <TarjetaSample
+                                    key={sample.id}
+                                    sample={sample}
+                                    onLike={manejarLike}
+                                    onMenu={menu.abrirMenu}
+                                    onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                                    onClickTitulo={manejarClickTitulo}
+                                    onComentar={manejarComentar}
+                                />
+                            ))}
+                        </div>
+                    </>
                 )
             ) : (
                 <FeedSamples

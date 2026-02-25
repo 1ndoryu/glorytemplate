@@ -8,9 +8,11 @@ import { FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
 import { useAuthStore } from '@app/stores/authStore';
@@ -43,6 +45,9 @@ export const LibreriaIsland = (): JSX.Element => {
     } = useLibreriaIsland();
     /* Necesario para mostrar opciones de editar/eliminar en colecciones propias del tab Explorar */
     const usuario = useAuthStore(s => s.usuario);
+
+    /* Filtrado client-side por tags/BPM para el tab de subidos */
+    const filtros = useFeedFiltros({ samples });
 
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
 
@@ -103,12 +108,26 @@ export const LibreriaIsland = (): JSX.Element => {
                     )}
                 </div>
             ) : (
-                <div className="listaDeSamples">
-                    {samples.map(sample => (
-                        <TarjetaSample key={sample.id} sample={sample} onLike={manejarLike} onMenu={menu.abrirMenu}
-                            onClickCreador={u => navegar(`/perfil/${u}`)} onClickTitulo={manejarClickTitulo} onComentar={manejarComentar} />
-                    ))}
-                </div>
+                <>
+                    <FiltroTags
+                        tagsAgrupados={filtros.tagsAgrupados}
+                        tagsSueltos={filtros.tagsSueltos}
+                        tagsIncluidos={filtros.tagsIncluidos}
+                        tagsExcluidos={filtros.tagsExcluidos}
+                        bpmMin={filtros.bpmMin}
+                        bpmMax={filtros.bpmMax}
+                        onIncluirTag={filtros.manejarIncluirTag}
+                        onExcluirTag={filtros.manejarExcluirTag}
+                        onQuitarTag={filtros.quitarTag}
+                        onCambiarBpm={filtros.setBpmRango}
+                    />
+                    <div className="listaDeSamples">
+                        {filtros.samplesFiltrados.map(sample => (
+                            <TarjetaSample key={sample.id} sample={sample} onLike={manejarLike} onMenu={menu.abrirMenu}
+                                onClickCreador={u => navegar(`/perfil/${u}`)} onClickTitulo={manejarClickTitulo} onComentar={manejarComentar} />
+                        ))}
+                    </div>
+                </>
             )}
 
             <MenuContextual abierto={menu.estado.abierto} onCerrar={menu.cerrarMenu} items={menu.items} x={menu.estado.x} y={menu.estado.y} />
