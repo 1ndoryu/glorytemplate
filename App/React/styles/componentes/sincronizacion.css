@@ -74,8 +74,8 @@
     color: var(--textoSecundario);
 }
 
-.sincPanelIndicador--completado { color: var(--verde); }
-.sincPanelIndicador--error { color: var(--rojo); }
+.sincPanelIndicador--completado { color: var(--exito); }
+.sincPanelIndicador--error { color: var(--error); }
 .sincPanelIndicador--sincronizando { color: var(--acento); }
 .sincPanelIndicador--pausado { color: var(--textoTerciario); }
 .sincPanelIndicador--inactivo { color: var(--textoSecundario); }
@@ -238,7 +238,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--verde);
+    color: var(--exito);
     flex-shrink: 0;
 }
 

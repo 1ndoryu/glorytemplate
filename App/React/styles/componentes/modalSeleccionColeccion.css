@@ -59,6 +59,11 @@
     color: var(--textoTerciario);
 }
 
+.contenedorCampoTexto.seleccionColeccionInput input {
+    padding: 0;
+    border: unset;
+}
+
 .seleccionColeccionLimpiar {
     display: flex;
     align-items: center;
@@ -67,7 +72,7 @@
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    padding: 2px;
+    padding: var(--espacio2xs);
     border-radius: var(--radioSm);
 }
 
@@ -99,7 +104,8 @@
     flex-direction: column;
     overflow-y: auto;
     max-height: 300px;
-    padding: var(--espacioXs) 0;
+    padding: var(--espacioMd) 0;
+    gap: var(--espacioSm);
 }
 
 /* Item colección: imagen + nombre (sin icono, sin contador — C106) */

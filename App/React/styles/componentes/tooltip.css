@@ -12,8 +12,8 @@
     position: fixed;
     z-index: 9999;
     padding: 0.35rem 0.6rem;
-    background: var(--fondoElevado3, #1a1a2e);
-    color: var(--textoAlto, #fff);
+    background: var(--fondoElevado3);
+    color: var(--blanco);
     font-size: 0.7rem;
     font-weight: 500;
     border-radius: 6px;

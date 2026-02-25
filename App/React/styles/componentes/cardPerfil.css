@@ -21,7 +21,7 @@
 }
 
 .cardPerfil {
-    width: 290px;
+    width: 340px;
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
@@ -56,9 +56,14 @@
 .cardPerfilTextos {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
     flex: 1;
     min-width: 0;
+}
+
+.cardPerfilTextos button {
+    align-items: flex-start;
+    justify-content: start;
 }
 
 .cardPerfilNombreBtn.botonBase {
@@ -72,7 +77,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    font-size: var(--fuenteMd);
+    font-size: var(--fuenteLg);
     font-weight: 700;
     color: var(--textoPrimario);
     white-space: nowrap;
@@ -90,7 +95,7 @@
     background: none;
     min-height: unset;
     height: auto;
-    border-radius: var(--radioCirculo);
+    border-radius: var(--radioFull);
     flex-shrink: 0;
 }
 

@@ -119,7 +119,7 @@
     gap: var(--espacioXs);
     background: var(--fondoElevado2);
     border-radius: var(--radioMd);
-    padding: 3px;
+    padding: var(--espacio3xs);
 }
 
 .filtroPrecioBoton {

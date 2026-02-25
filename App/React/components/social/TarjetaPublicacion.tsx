@@ -1,11 +1,11 @@
 /*
  * Componente: TarjetaPublicacion — Kamples
  * Tarjeta de publicación social en el feed.
- * Muestra autor, contenido, imágenes, samples adjuntos y acciones.
+ * Incluye: lightbox propio, imágenes clickeables (doble-click = like), samples adjuntos y acciones.
  */
 
-import { useCallback, type MouseEvent } from 'react';
-import { Repeat2, MoreHorizontal } from 'lucide-react';
+import { useCallback, useRef, useState, type MouseEvent } from 'react';
+import { Repeat2, MoreHorizontal, X } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -23,11 +23,16 @@ interface TarjetaPublicacionProps {
     onComentar?: (pubId: number) => void;
     onRepost?: (pubId: number) => void;
     onClickAutor?: (username: string) => void;
-    onMenu?: (e: MouseEvent, post: Publicacion) => void;
+    onMenu?: (e: MouseEvent<HTMLButtonElement>, post: Publicacion) => void;
+    onLikeSample?: (id: number) => void;
+    onMenuSample?: (e: MouseEvent, sample: SampleResumen) => void;
+    onClickCreadorSample?: (username: string) => void;
     onPlaySample?: (sample: SampleResumen) => void;
     onPauseSample?: () => void;
     sampleActualId?: number;
     reproduciendo?: boolean;
+    mostrarCeroConteo?: boolean;
+    children?: React.ReactNode;
     className?: string;
 }
 
@@ -38,12 +43,37 @@ export const TarjetaPublicacion = ({
     onRepost,
     onClickAutor,
     onMenu,
+    onLikeSample,
+    onMenuSample,
+    onClickCreadorSample,
     onPlaySample,
     onPauseSample,
     sampleActualId,
     reproduciendo = false,
+    mostrarCeroConteo,
+    children,
     className = '',
 }: TarjetaPublicacionProps): JSX.Element => {
+    /* Lightbox interno — igual que ComunidadIsland */
+    const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
+    const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const manejarClickImagen = (url: string) => {
+        if (timerClickImagen.current) return;
+        timerClickImagen.current = setTimeout(() => {
+            timerClickImagen.current = null;
+            setImagenAbierta(url);
+        }, 220);
+    };
+
+    const manejarDobleClickImagen = (postId: number) => {
+        if (timerClickImagen.current) {
+            clearTimeout(timerClickImagen.current);
+            timerClickImagen.current = null;
+        }
+        onLike?.(postId);
+    };
+
     const manejarClickAutor = useCallback(
         (e: MouseEvent) => {
             e.stopPropagation();
@@ -62,7 +92,7 @@ export const TarjetaPublicacion = ({
 
     return (
         <article className={clases}>
-            {/* Indicador de repost — va encima de la cabecera, igual que en ComunidadIsland */}
+            {/* Indicador de repost — encima de la cabecera */}
             {publicacion.repostOriginal && (
                 <div className="tarjetaPubRepostIndicador">
                     <Repeat2 size={12} />
@@ -70,7 +100,7 @@ export const TarjetaPublicacion = ({
                 </div>
             )}
 
-            {/* Cabecera: @username · tiempo en la misma línea, igual que en Comunidad */}
+            {/* Cabecera: @username · tiempo en la misma línea */}
             <div className="tarjetaPubCabecera">
                 <div className="tarjetaPubAutorBloque">
                     <Avatar
@@ -113,6 +143,24 @@ export const TarjetaPublicacion = ({
                 <p className="tarjetaPubContenido">{publicacion.contenido}</p>
             )}
 
+            {/* Imágenes propias clickeables (solo si no es repost) */}
+            {!publicacion.repostOriginal && publicacion.imagenes.length > 0 && (
+                <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.imagenes.length, 4)}`}>
+                    {publicacion.imagenes.slice(0, 4).map((url) => (
+                        <BotonBase
+                            key={url}
+                            variante="ghost"
+                            className="imagenClickable"
+                            onClick={() => manejarClickImagen(url)}
+                            onDoubleClick={() => manejarDobleClickImagen(publicacion.id)}
+                            aria-label="Ver imagen"
+                        >
+                            <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
+                        </BotonBase>
+                    ))}
+                </div>
+            )}
+
             {/* Bloque embebido del post original */}
             {publicacion.repostOriginal && (
                 <div className="tarjetaPubRepostOriginal">
@@ -130,24 +178,19 @@ export const TarjetaPublicacion = ({
                     )}
                     {publicacion.repostOriginal.imagenes.length > 0 && (
                         <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.repostOriginal.imagenes.length, 4)}`}>
-                            {publicacion.repostOriginal.imagenes.slice(0, 4).map((url, i) => (
-                                <div className="tarjetaPubImagenItem" key={url}>
-                                    <img src={url} alt={`Imagen ${i + 1}`} loading="lazy" />
-                                </div>
+                            {publicacion.repostOriginal.imagenes.slice(0, 4).map((url) => (
+                                <BotonBase
+                                    key={url}
+                                    variante="ghost"
+                                    className="imagenClickable"
+                                    onClick={() => manejarClickImagen(url)}
+                                    aria-label="Ver imagen"
+                                >
+                                    <img src={url} alt="Imagen adjunta" className="tarjetaPubImg" loading="lazy" />
+                                </BotonBase>
                             ))}
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* Imágenes propias (solo si no es repost) */}
-            {!publicacion.repostOriginal && publicacion.imagenes.length > 0 && (
-                <div className={`tarjetaPubImagenes tarjetaPubImagenes${Math.min(publicacion.imagenes.length, 4)}`}>
-                    {publicacion.imagenes.slice(0, 4).map((url, i) => (
-                        <div className="tarjetaPubImagenItem" key={url}>
-                            <img src={url} alt={`Imagen ${i + 1}`} loading="lazy" />
-                        </div>
-                    ))}
                 </div>
             )}
 
@@ -162,19 +205,41 @@ export const TarjetaPublicacion = ({
                             reproduciendo={sampleActualId === sample.id && reproduciendo}
                             onPlay={onPlaySample}
                             onPause={onPauseSample}
+                            onLike={onLikeSample}
+                            onMenu={onMenuSample}
+                            onClickCreador={onClickCreadorSample}
                         />
                     ))}
                 </div>
             )}
 
-            {/* C85: Acciones centralizadas */}
+            {/* Acciones */}
             <BarraAccionesPost
                 publicacion={publicacion}
                 onLike={onLike ? (id, reaccion) => onLike(id, reaccion) : undefined}
                 onQuitarLike={onLike ? (id) => onLike(id) : undefined}
                 onComentar={onComentar}
                 onRepost={onRepost}
+                mostrarCeroConteo={mostrarCeroConteo}
             />
+
+            {/* Slot para comentarios u otros extras por isla */}
+            {children}
+
+            {/* Lightbox interno */}
+            {imagenAbierta && (
+                <div className="imagenLightbox" onClick={() => setImagenAbierta(null)} role="dialog" aria-modal="true" aria-label="Vista ampliada">
+                    <BotonBase variante="ghost" className="imagenLightboxCerrar" onClick={() => setImagenAbierta(null)} aria-label="Cerrar">
+                        <X size={24} />
+                    </BotonBase>
+                    <img
+                        src={imagenAbierta}
+                        alt="Imagen ampliada"
+                        className="imagenLightboxImg"
+                        onClick={e => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </article>
     );
 };

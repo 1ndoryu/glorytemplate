@@ -242,7 +242,7 @@
     gap: var(--espacioXs);
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     margin: 0;
 }
 
@@ -258,13 +258,13 @@
 }
 
 .panelLibreriaCerrar:hover {
-    color: var(--textoBase);
+    color: var(--textoPrimario);
     background: var(--fondoElevado2);
 }
 
 .panelLibreriaTabs {
     display: flex;
-    gap: 2px;
+    gap: var(--espacio2xs);
     padding: var(--espacioXs) var(--espacioSm);
     border-bottom: 1px solid var(--bordeSutil);
     flex-shrink: 0;
@@ -287,7 +287,7 @@
 
 .panelLibreriaTab:hover {
     background: var(--fondoElevado2);
-    color: var(--textoBase);
+    color: var(--textoPrimario);
 }
 
 .panelLibreriaTabActiva {

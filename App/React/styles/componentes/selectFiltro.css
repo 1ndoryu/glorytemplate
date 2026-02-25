@@ -11,6 +11,10 @@
     display: inline-flex;
 }
 
+.selectFiltro button {
+    height: unset !important;
+}
+
 /* Botón trigger */
 .selectFiltroBoton {
     display: flex;
@@ -132,7 +136,7 @@
 .selectFiltroOpcionAcciones {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: var(--espacio2xs);
     opacity: 0;
     transition: opacity var(--transicionRapida);
 }
@@ -184,7 +188,7 @@
 .selectorBPMLabel {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     flex: 1;

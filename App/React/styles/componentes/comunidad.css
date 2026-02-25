@@ -178,7 +178,7 @@
     grid-template-columns: 1fr 1fr;
 }
 
-.comunidadPostImg {
+.comunidadPostImg, .comunidadPostImg button, .tarjetaPubImagenItem img, .tarjetaPubImagenItem button {
     width: 100%;
     max-height: 700px;
     object-fit: cover;
@@ -403,14 +403,14 @@
 
 /* ── Bloque embebido del post original en un repost ───────────────────── */
 .comunidadPostRepostOriginal {
-    border: 1px solid var(--bordeSubtle, var(--borde));
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
     padding: var(--espacioSm);
     margin-top: var(--espacioXs);
     display: flex;
     flex-direction: column;
     gap: var(--espacioXs);
-    background: var(--fondoSecundario);
+    background: var(--fondoElevado2);
 }
 
 .comunidadRepostOriginalAutor {

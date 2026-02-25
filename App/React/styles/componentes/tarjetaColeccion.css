@@ -57,8 +57,8 @@
     height: 28px;
     border-radius: var(--radioFull);
     border: none;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
+    background: var(--overlaySuave);
+    color: var(--blanco);
     cursor: pointer;
     backdrop-filter: blur(4px);
     opacity: 0;
@@ -82,7 +82,7 @@
     background-color: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    box-shadow: var(--sombraMd);
+    box-shadow: var(--sombraElevada);
     padding: var(--espacioXs) 0;
     z-index: 20;
 }

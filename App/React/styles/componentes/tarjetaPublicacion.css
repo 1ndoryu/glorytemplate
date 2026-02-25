@@ -40,7 +40,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
+    gap: var(--espacio2xs);
     min-width: 0;
     padding: 0;
 }
@@ -126,18 +126,6 @@
     grid-template-rows: 1fr 1fr;
 }
 
-.tarjetaPubImagenItem {
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-}
-
-.tarjetaPubImagenItem img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transicionNormal);
-}
-
 .tarjetaPubImagenItem:hover img {
     transform: scale(1.02);
 }
@@ -208,14 +196,14 @@
 }
 
 .tarjetaPubRepostOriginal {
-    border: 1px solid var(--bordeSubtle, var(--borde));
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
     padding: var(--espacioSm);
     margin-top: var(--espacioXs);
     display: flex;
     flex-direction: column;
     gap: var(--espacioXs);
-    background: var(--fondoSecundario);
+    background: var(--fondoElevado2);
 }
 
 .tarjetaPubRepostOriginalAutor {
@@ -233,4 +221,39 @@
 .tarjetaPubRepostOriginalUsername {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
+}
+
+.tarjetaPubSamples .tarjetaSample {
+    padding: 0;
+}
+
+.tarjetaPubAutorBloque button {
+    padding: 0 !important;
+}
+
+/* Imagen dentro del wrapper clickable */
+.imagenClickable .tarjetaPubImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--transicionNormal);
+}
+
+.imagenClickable:hover .tarjetaPubImg {
+    transform: scale(1.02);
+}
+
+/* Lightbox interno del componente (position: fixed cubre viewport) */
+.tarjetaPublicacion .imagenLightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(6px);
+    z-index: var(--zModal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    animation: lightboxFadeIn 0.18s ease;
 }
