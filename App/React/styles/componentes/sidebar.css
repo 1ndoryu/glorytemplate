@@ -49,6 +49,7 @@
     transition: all var(--transicionRapida);
     background: none;
     border: none;
+    padding: 0 !important;
 }
 
 .sidebarItem svg {

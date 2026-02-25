@@ -35,12 +35,11 @@
     object-fit: cover;
     display: block;
     transition: transform var(--transicionNormal);
+    aspect-ratio: 1 / 1;
+    padding: var(--espacioLg);
+    border-radius: var(--radioMd);
+    overflow: hidden;
 }
-
-.tarjetaColeccion:hover .tarjetaColeccionPortada img {
-    transform: scale(1.05);
-}
-
 /* C141: Botón 3 puntos — esquina superior derecha sobre la imagen */
 .tarjetaColeccionMenuContenedor {
     position: absolute;
@@ -112,9 +111,10 @@
 
 /* Info debajo de la imagen */
 .tarjetaColeccionInfo {
-    padding: var(--espacioSm) var(--espacioMd);
+    padding: var(--espacioMd);
     flex: 1;
     min-width: 0;
+    padding-top: unset;
 }
 
 .tarjetaColeccionCabecera {

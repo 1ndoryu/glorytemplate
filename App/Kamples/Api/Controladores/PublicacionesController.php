@@ -250,8 +250,9 @@ class PublicacionesController
     {
         try {
         $id = (int) $request->get_param('id');
+        $currentUserId = UsuarioHelper::obtenerIdPg();
 
-        $pub = PublicacionesRepository::obtenerConAutor($id);
+        $pub = PublicacionesRepository::obtenerConAutorCompleto($id, $currentUserId);
 
         if (!$pub) {
             return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
@@ -263,11 +264,21 @@ class PublicacionesController
          */
         $estado = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
         if ($estado === PublicacionesEnums::MODERACION_RECHAZADO) {
-            $usuarioActual = UsuarioHelper::obtenerIdPg();
-            if (!$usuarioActual || $usuarioActual !== (int) $pub[PublicacionesCols::AUTOR_ID]) {
+            if (!$currentUserId || $currentUserId !== (int) $pub[PublicacionesCols::AUTOR_ID]) {
                 return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
             }
         }
+
+        /* Enriquecer — misma estructura que listarFeed para consistencia */
+        $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
+        $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
+        $pub['totalReposts'] = (int) ($pub[PublicacionesCols::TOTAL_REPOSTS] ?? 0);
+        $pub['creadoAt'] = $pub[PublicacionesCols::CREATED_AT] ?? '';
+        $pub['liked'] = \in_array($pub['reaccion_usuario'] ?? null, [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true);
+        $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
+        unset($pub['reaccion_usuario']);
+        $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
+        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
 
         $pub['autor'] = [
             'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
@@ -279,20 +290,64 @@ class PublicacionesController
             ),
             'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
         ];
-        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
-        
+
+        /* Samples adjuntos — recolectar IDs del post + repost original en una sola query */
+        $todosSamplesIds = [];
         $adjuntosIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
-        $adjuntos = [];
-        if (!empty($adjuntosIds)) {
-            $samplesData = SamplesRepository::buscarPorIds($adjuntosIds, UsuarioHelper::obtenerIdPg());
+        foreach ($adjuntosIds as $sid) {
+            if ($sid > 0) {
+                $todosSamplesIds[$sid] = true;
+            }
+        }
+        $origSamplesIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
+        foreach ($origSamplesIds as $sid) {
+            if ($sid > 0) {
+                $todosSamplesIds[$sid] = true;
+            }
+        }
+
+        $samplesMap = [];
+        if (!empty($todosSamplesIds)) {
+            $samplesData = SamplesRepository::buscarPorIds(\array_keys($todosSamplesIds), $currentUserId);
             foreach ($samplesData as $s) {
-                $adjuntos[] = NormalizadorSample::normalizar($s);
+                $samplesMap[$s['id']] = NormalizadorSample::normalizar($s);
+            }
+        }
+
+        $adjuntos = [];
+        foreach ($adjuntosIds as $sid) {
+            if (isset($samplesMap[$sid])) {
+                $adjuntos[] = $samplesMap[$sid];
             }
         }
         $pub['samplesAdjuntos'] = $adjuntos;
 
-        $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
-        $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
+        /* Repost: datos del post original */
+        $pub['repostOriginal'] = null;
+        if (!empty($pub[PublicacionesCols::REPOST_ID])) {
+            $origSamples = [];
+            foreach ($origSamplesIds as $sid) {
+                if (isset($samplesMap[$sid])) {
+                    $origSamples[] = $samplesMap[$sid];
+                }
+            }
+            $pub['repostOriginal'] = [
+                'id'              => (int) ($pub['orig_id'] ?? 0),
+                'contenido'       => $pub['orig_contenido'] ?? '',
+                'imagenes'        => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
+                'samplesAdjuntos' => $origSamples,
+                'autor'           => [
+                    'id'            => (int) ($pub['orig_autor_id'] ?? 0),
+                    'username'      => $pub['orig_username'] ?? '',
+                    'nombreVisible' => $pub['orig_nombre_visible'] ?? '',
+                    'avatarUrl'     => UsuarioHelper::resolverAvatarUrl(
+                        $pub['orig_avatar_url'] ?? null,
+                        (int) ($pub['orig_wp_user_id'] ?? 0)
+                    ),
+                    'verificado'    => (bool) ($pub['orig_verificado'] ?? false),
+                ],
+            ];
+        }
 
         return new \WP_REST_Response(['data' => $pub], 200);
         } catch (\Throwable $e) {

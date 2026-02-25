@@ -97,6 +97,14 @@
     transition: border-color var(--transicionRapida);
 }
 
+.comentarioNuevoInput button {
+    padding: unset !important;
+}
+
+.comentarioEnviarBtn {
+    width: 60px;
+}
+
 .comentarioNuevoInput:focus-within {
     border-color: var(--bordeActivo);
 }

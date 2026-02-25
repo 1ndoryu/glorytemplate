@@ -131,3 +131,9 @@
         transform: rotate(360deg);
     }
 }
+
+
+.botonBase svg {
+    min-width: 12px;
+    min-height: 12px;
+}

@@ -204,6 +204,52 @@ class PublicacionesRepository extends BaseRepository
     }
 
     /*
+     * Obtener publicación completa (autor + repost original + liked del usuario actual).
+     * Misma estructura que listarFeed pero para 1 registro.
+     */
+    public static function obtenerConAutorCompleto(int $id, ?int $currentUserId = null): ?array
+    {
+        $tp = PublicacionesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+        $tl = LikesCols::TABLA;
+
+        $params = ['id' => $id];
+
+        $likedSubquery = $currentUserId
+            ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
+            : ", NULL AS reaccion_usuario";
+
+        if ($currentUserId) {
+            $params['current_user'] = $currentUserId;
+        }
+
+        return static::consultarUno(
+            "SELECT p.*, u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::VERIFICADO
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . " {$likedSubquery}"
+            . ", orig." . PublicacionesCols::ID . " AS orig_id"
+            . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
+            . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
+            . ", orig." . PublicacionesCols::SAMPLES_ADJUNTOS . " AS orig_samples_adjuntos"
+            . ", u_orig." . UsuariosExtCols::ID . " AS orig_autor_id"
+            . ", u_orig." . UsuariosExtCols::USERNAME . " AS orig_username"
+            . ", u_orig." . UsuariosExtCols::NOMBRE_VISIBLE . " AS orig_nombre_visible"
+            . ", u_orig." . UsuariosExtCols::AVATAR_URL . " AS orig_avatar_url"
+            . ", u_orig." . UsuariosExtCols::VERIFICADO . " AS orig_verificado"
+            . ", u_orig." . UsuariosExtCols::WP_USER_ID . " AS orig_wp_user_id"
+            . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID
+            . " = u." . UsuariosExtCols::ID
+            . " LEFT JOIN {$tp} orig ON p." . PublicacionesCols::REPOST_ID . " = orig." . PublicacionesCols::ID
+            . " LEFT JOIN {$tu} u_orig ON orig." . PublicacionesCols::AUTOR_ID . " = u_orig." . UsuariosExtCols::ID
+            . " WHERE p." . PublicacionesCols::ID . " = :id",
+            $params
+        );
+    }
+
+    /*
      * Buscar solo el autor_id de una publicación.
      */
     public static function buscarAutorId(int $id): ?int

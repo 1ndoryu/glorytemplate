@@ -28,9 +28,15 @@
     padding: 12px calc(var(--espacioXs) * 3.5);
     box-shadow: var(--sombraElevada);
     animation: toastEntrar 0.3s ease-out;
-    transition: opacity 0.3s, transform 0.3s;
+    transition:
+        opacity 0.3s,
+        transform 0.3s;
+    min-width: 300px;
 }
 
+.toastItem svg {
+    display: none;
+}
 .toastItemSaliendo {
     opacity: 0;
     transform: translateX(100%);
@@ -47,8 +53,6 @@
 .toastItemInfo {
     border-left: 3px solid var(--info);
 }
-
-
 
 .toastContenido {
     display: flex;
@@ -78,7 +82,7 @@
 
 .toastMensaje {
     flex: 1;
-    font-size: var(--fuenteXs);
+    font-size: var(--fuenteMd);
     color: var(--textoPrimario);
     line-height: 1.4;
 }
@@ -117,7 +121,9 @@
     color: var(--textoPrimario);
     font-size: var(--fuenteXs);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition:
+        background 0.15s,
+        color 0.15s;
 }
 
 .toastAccionBtn:hover {

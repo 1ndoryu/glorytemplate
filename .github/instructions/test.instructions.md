@@ -2,7 +2,20 @@
 applyTo: '**'
 ---
 
-# Protocolo de Desarrollo y Conducta (v3.7)
+# Protocolo de Desarrollo y Conducta (v3.8)
+
+## -4. CERO PARCHES — SOLUCIONES ARQUITECTÓNICAS OBLIGATORIAS (SIN EXCEPCIÓN)
+
+> **PROHIBIDO aplicar parches, hotfixes, soluciones rápidas o atajos de implementación. Toda solución DEBE estar diseñada pensando en mantenibilidad y escalabilidad a largo plazo. No importa lo sencilla que parezca la tarea.**
+
+- **Pregunta obligatoria antes de implementar:** Antes de escribir cualquier solución, el agente **DEBE** preguntarse internamente: *"¿Esta es la mejor opción arquitectónica para escalabilidad y mantenimiento? ¿O estoy eligiendo el camino fácil?"* Si la respuesta es el camino fácil, **parar y rediseñar.**
+- **Principio fundamental:** La solución correcta es la que sigue funcionando sin modificaciones cuando el proyecto crece 10x. Un parche es algo que habrá que reescribir cuando cambien los requisitos.
+- **Ejemplo concreto — Permisos:** Si necesitas mostrar un panel a admins y moderadores, la solución **incorrecta** es `if (esAdmin || esModerador)`. La solución **correcta** es crear un sistema de permisos/roles y verificar `if (tienePermiso('moderacion'))`. Cuando mañana se agregue un nuevo rol, el sistema ya lo soporta sin tocar código existente.
+- **Ejemplo concreto — Configuración:** Si un valor cambia según el entorno, la solución **incorrecta** es un `if (esProduccion)` hardcodeado. La solución **correcta** es un sistema de configuración por entorno que escale sin modificar lógica.
+- **Ejemplo concreto — Validación:** Si necesitas validar un campo, la solución **incorrecta** es inline validation con regex en el componente. La solución **correcta** es un esquema de validación reutilizable (Zod, Yup, o esquema propio) que aplique a cualquier campo del mismo tipo.
+- **Test mental de escalabilidad:** Imaginar que la feature actual se usará en 5 contextos diferentes por 3 tipos de usuario distintos. ¿La implementación propuesta requiere copiar código o modificar el original? Si sí, es un parche.
+- **PROHIBIDO** justificar parches con "es temporal", "lo refactorizamos después" o "por ahora funciona". Lo temporal se vuelve permanente. La deuda técnica intencional es una violación de este protocolo.
+- **Si la solución correcta es significativamente más compleja:** Implementarla igualmente. La complejidad inicial se paga una vez; el mantenimiento de parches se paga para siempre. Si es demasiado grande para la tarea actual, implementar la abstracción/infraestructura mínima viable y dejar TO-DO detallado de la extensión completa.
 
 ## -3. AUTOAPLICACIÓN ABSOLUTA DE REGLAS (SIN EXCEPCIÓN)
 
@@ -12,6 +25,8 @@ applyTo: '**'
 - Esto **NO significa cambiar de tarea** ni desviarte del objetivo. Significa que tienes la **responsabilidad pasiva** de hacer cumplir estas reglas en todo código que pase por tus manos. Si añades código nuevo a un archivo que tiene violaciones preexistentes, corregirlas es parte de tu entrega.
 - **PROHIBIDO** ignorar una violación conocida con la excusa de "no es parte de la tarea". Si la ves y puedes arreglarla sin riesgo, la arreglas. Si es compleja, dejas un **TO-DO** explícito en el código.
 - **PROHIBIDO racionalizar inacción.** Pensamientos como "este problema ya existía antes de mi solicitud", "no fui yo quien lo introdujo" o "no me pidieron arreglar esto" son **exactamente la mentalidad que esta regla prohíbe**. El origen del problema es irrelevante — lo que importa es que lo viste, puedes corregirlo y estás tocando ese archivo. No hacerlo es negligencia, no prudencia.
+- **REFUERZO ABSOLUTO — No existe "no es mi problema":** Esta regla se viola reiteradamente y es inaceptable. El agente **DEBE** corregir TODO problema que encuentre en su camino, siempre que represente una mejora positiva en: mantenibilidad, escalabilidad, optimización, seguridad, calidad del código, legibilidad, o flujo de desarrollo. No se trata de agregar features no solicitadas, sino de que el código quede **mejor** de como lo encontraste. Si tocas un archivo y ves una mejora necesaria — la haces, punto. No hay excusa válida. El agente que deja problemas conocidos sin resolver está fallando en su responsabilidad fundamental.
+- **Alcance de "mejora positiva":** Includes (no limitado a): eliminar código muerto, corregir nombres confusos, parametrizar valores hardcodeados, agregar manejo de errores faltante, reemplazar patrones inseguros, optimizar queries redundantes, separar responsabilidades mezcladas, y cualquier otra acción que deje el código en mejor estado sin romper funcionalidad.
 - **Única excepción:** Si el archivo o la sección está marcada `[EN CURSO — AG-XXXX]` por otro agente, no modificar esa sección para evitar conflictos. Pero si el resto del archivo tiene violaciones fuera de la zona en curso, corregirlas igualmente.
 - Ejemplos concretos: CSS hardcodeado → reemplazar con variable. SQL interpolado → parametrizar. Archivo >300 líneas → marcar TO-DO split. Import muerto → eliminar. Try-catch faltante → agregar. Error masking → corregir.
 
@@ -149,6 +164,25 @@ TAREA COMPLETADA:
 1. **Ejecución:**
 
 - **Validación Post-Edición (OBLIGATORIO):** Después de editar cualquier archivo, **SIEMPRE** ejecutar la herramienta de diagnóstico de errores (get_errors) sobre ese archivo para verificar que no hay errores de compilación, tipos o lint. **PROHIBIDO** dar una tarea por terminada si hay errores sin resolver en los archivos editados. Secuencia: editar archivo -> verificar errores -> corregir si existen -> confirmar limpio -> continuar.
+
+- **Validación con Herramientas del Proyecto (OBLIGATORIO — REGLA REFORZADA):**
+    > Esta regla se olvida constantemente y es inaceptable. Las herramientas de validación del proyecto **EXISTEN** para usarse. No ejecutarlas es equivalente a entregar código sin compilar.
+
+    - **TypeScript — `npm run type-check`:** Ejecutar **SIEMPRE** después de editar archivos `.ts`/`.tsx`. Valida tipos en todo el proyecto React (Glory/assets/react). Si hay errores de tipos, corregirlos antes de continuar. **PROHIBIDO** dar por terminada una tarea si `type-check` falla.
+    - **CSS — VarSense (`cssVarsValidator.exportReport` o `cssVarsValidator.scanAllDiagnostics`):** Ejecutar después de editar archivos `.css` o cuando se crean/modifican variables CSS. Detecta variables CSS indefinidas, huérfanas y errores de referencia. Comandos disponibles:
+        - `cssVarsValidator.scanAllDiagnostics` — Escaneo completo del proyecto CSS.
+        - `cssVarsValidator.exportReport` — Genera reporte exportable de errores CSS.
+        - `cssVarsValidator.scanOrphanClasses` — Detecta clases CSS sin uso.
+    - **Code Sentinel (`codeSentinel.analyzeWorkspace` o `codeSentinel.runExternalTools`):** Ejecutar cuando se genera o modifica una cantidad significativa de código (>3 archivos o >100 líneas). Analiza el workspace completo en busca de violaciones de reglas. Comandos disponibles:
+        - `codeSentinel.analyzeFile` — Analiza el archivo actual.
+        - `codeSentinel.analyzeWorkspace` — Análisis completo del workspace.
+        - `codeSentinel.runExternalTools` — Ejecuta lint + type-check integrados.
+    - **Cuándo ejecutar cada herramienta:**
+        - Edición de `.ts`/`.tsx` → `npm run type-check` + `get_errors`.
+        - Edición de `.css` → VarSense scan + `get_errors`.
+        - Generación masiva de código (>3 archivos) → Code Sentinel `analyzeWorkspace`.
+        - Antes de cada commit → `npm run type-check` como mínimo.
+    - **PROHIBIDO** ignorar errores reportados por estas herramientas. Si una herramienta reporta errores, corregirlos es parte de la tarea, no una tarea separada.
 
 2. **Commit:** Al finalizar una tarea, realizar **commit** de los cambios automáticamente (sin pedir permiso).
 3. **Documentación:** Actualizar siempre los `.md` de documentación y contexto al terminar.

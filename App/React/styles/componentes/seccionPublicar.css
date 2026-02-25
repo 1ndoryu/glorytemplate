@@ -8,6 +8,5 @@
     background-color: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
-    padding: var(--espacioMd);
-    margin-bottom: var(--espacioMd);
+    padding: var(--espacioLg);
 }
