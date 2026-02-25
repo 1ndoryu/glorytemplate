@@ -51,6 +51,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 | `/sample/{slug}`     | `SampleDetalleIsland`    | Tarjeta grande + waveform + metadata + similares   |
 | `/coleccion/{slug}`  | `ColeccionDetalleIsland` | Info colección + grid de samples                   |
 | `/comunidad`         | `ComunidadIsland`        | Feed posts sociales con diseño diferenciado        |
+| `/publicacion/{id}`  | `PublicacionIsland`      | Detalle de publicación individual + comentarios    |
 | `/descubrir`         | `DescubrirIsland`        | Algoritmo personalizado                            |
 | `/perfil/{username}` | `PerfilIsland`           | Perfil público                                     |
 | `/libreria`          | `LibreriaIsland`         | Explorar colecciones, mis colecciones, subidos     |
@@ -138,6 +139,12 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 ### TAREAS EN CURSO
 - ✅ [AG-FIX] Corregir violaciones de Sentinel reportadas en `.sentinel-report.md` (promise-sin-catch, html-nativo-en-vez-de-componente).
 - ✅ [AG-FIX] Centralizar render de posts en PerfilIsland: `TarjetaPublicacion` reemplaza inline render; `utils/tiempo.ts` centraliza `formatearTiempoRelativo` (eliminado duplicado de ComunidadIsland y TarjetaPublicacion); `usePerfilIsland` añade `manejarRepost`; CSS `.tarjetaPubRepostIndicador/.tarjetaPubRepostOriginal` añadido. Posts de /perfil/ ahora idénticos a /comunidad/ (fechas relativas, repost embebido, badge moderación, samples adjuntos).
+- ✅ [AG-FIX] ComunidadIsland migrada a TarjetaPublicacion (unificación visual). comunidad.css reducido de ~530 a 86 líneas.
+- ✅ [AG-FIX] Samples en reposts: fix frontend (TarjetaPublicacion), backend (SQL orig_samples_adjuntos + controlador), tipo TS (RepostOriginal.samplesAdjuntos).
+- ✅ [AG-FIX] Endpoint `obtener` enriquecido: nuevo método `obtenerConAutorCompleto` en repo con LEFT JOINs; mismo nivel de datos que `listarFeed` (totalReposts, creadoAt, liked, reaccion, moderacionEstado, samplesAdjuntos, repostOriginal con samples).
+- ✅ [AG-FIX] Página detalle publicación `/publicacion/{id}/`: PublicacionIsland + usePublicacionDetalle + CSS + ruta PHP + registro isla + MAPA_RUTAS + fecha clickeable en TarjetaPublicacion. Fix crítico: SPA callable props no se serializan → el hook extrae ID de `rutaActual` (URL), misma patrón que useSampleDetalle.
+
+**Aprendizaje clave [SPA + callable props]:** `PageDefinition::getReactPageRoutes()` omite los props de rutas con callbacks PHP porque no son serializables a JSON. El cliente SPA resuelve la ruta por prefijo y pasa `props: {}` vacío. **Solución:** el hook siempre debe extraer su parámetro dinámico de `rutaActual` (useNavigationStore), usando la prop PHP solo como fallback. Ver `useSampleDetalle` como referencia del patrón.
 
 ### FASE 5 — Chat Flotante (parcial)
 
