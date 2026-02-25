@@ -5,8 +5,10 @@
  */
 
 import { useCallback, type MouseEvent } from 'react';
-import { Repeat2 } from 'lucide-react';
+import { Repeat2, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
+import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
@@ -21,6 +23,7 @@ interface TarjetaPublicacionProps {
     onComentar?: (pubId: number) => void;
     onRepost?: (pubId: number) => void;
     onClickAutor?: (username: string) => void;
+    onMenu?: (e: MouseEvent, post: Publicacion) => void;
     onPlaySample?: (sample: SampleResumen) => void;
     onPauseSample?: () => void;
     sampleActualId?: number;
@@ -34,6 +37,7 @@ export const TarjetaPublicacion = ({
     onComentar,
     onRepost,
     onClickAutor,
+    onMenu,
     onPlaySample,
     onPauseSample,
     sampleActualId,
@@ -58,42 +62,51 @@ export const TarjetaPublicacion = ({
 
     return (
         <article className={clases}>
-            {/* Cabecera: avatar + nombre + tiempo */}
-            <div className="tarjetaPubCabecera">
-                <div
-                    className="tarjetaPubAutor"
-                    onClick={manejarClickAutor}
-                    role="link"
-                    tabIndex={0}
-                >
-                    <Avatar
-                        src={publicacion.autor.avatarUrl}
-                        nombre={publicacion.autor.nombreVisible}
-                        tamano="sm"
-                    />
-                    <div className="tarjetaPubAutorInfo">
-                        <span className="tarjetaPubNombre">
-                            {publicacion.autor.nombreVisible}
-                            {publicacion.autor.verificado && (
-                                <span className="tarjetaPubVerificado" title="Verificado">✓</span>
-                            )}
-                        </span>
-                        <span className="tarjetaPubUsername">@{publicacion.autor.username}</span>
-                    </div>
-                </div>
-                <span className="tarjetaPubTiempo">{formatearTiempoRelativo(publicacion.creadoAt)}</span>
-                {mostrarModeracion && (
-                    <BadgeModeracion moderacionEstado={publicacion.moderacionEstado} />
-                )}
-            </div>
-
-            {/* Indicador de repost */}
+            {/* Indicador de repost — va encima de la cabecera, igual que en ComunidadIsland */}
             {publicacion.repostOriginal && (
                 <div className="tarjetaPubRepostIndicador">
                     <Repeat2 size={12} />
                     <span>{publicacion.autor.nombreVisible} reposteó</span>
                 </div>
             )}
+
+            {/* Cabecera: @username · tiempo en la misma línea, igual que en Comunidad */}
+            <div className="tarjetaPubCabecera">
+                <div className="tarjetaPubAutorBloque">
+                    <Avatar
+                        src={publicacion.autor.avatarUrl}
+                        nombre={publicacion.autor.nombreVisible}
+                        tamano="sm"
+                    />
+                    <BotonBase
+                        variante="ghost"
+                        className="tarjetaPubAutorTextos"
+                        onClick={manejarClickAutor}
+                        aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
+                    >
+                        <span className="tarjetaPubNombre">
+                            {publicacion.autor.nombreVisible}
+                            {publicacion.autor.verificado && (
+                                <Badge variante="acento" tamano="xs">✓</Badge>
+                            )}
+                        </span>
+                        <span className="tarjetaPubMeta">
+                            @{publicacion.autor.username} · {formatearTiempoRelativo(publicacion.creadoAt)}
+                        </span>
+                    </BotonBase>
+                </div>
+                <div className="tarjetaPubAccionesHeader">
+                    {mostrarModeracion && (
+                        <BadgeModeracion moderacionEstado={publicacion.moderacionEstado} />
+                    )}
+                    {onMenu && (
+                        <BotonBase variante="ghost" className="tarjetaPubMenuBtn"
+                            onClick={(e) => onMenu(e, publicacion)} type="button" aria-label="Más opciones">
+                            <MoreHorizontal size={18} />
+                        </BotonBase>
+                    )}
+                </div>
+            </div>
 
             {/* Contenido propio (no aplica en reposts puros) */}
             {!publicacion.repostOriginal && publicacion.contenido && (

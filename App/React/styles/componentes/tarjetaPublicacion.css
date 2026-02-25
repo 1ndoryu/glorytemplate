@@ -23,22 +23,30 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--espacioSm);
 }
 
-.tarjetaPubAutor {
+/* Bloque autor: avatar + textos (igual que comunidadAutorBloque) */
+.tarjetaPubAutorBloque {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    cursor: pointer;
+    flex: 1;
+    min-width: 0;
 }
 
-.tarjetaPubAutor:hover .tarjetaPubNombre {
-    text-decoration: underline;
-}
-
-.tarjetaPubAutorInfo {
+/* Botón de texto que envuelve nombre + meta (igual que comunidadAutorTextos) */
+.tarjetaPubAutorTextos {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    padding: 0;
+}
+
+.tarjetaPubAutorTextos:hover .tarjetaPubNombre {
+    text-decoration: underline;
 }
 
 .tarjetaPubNombre {
@@ -48,22 +56,35 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.tarjetaPubVerificado {
-    color: var(--acento);
-    font-size: var(--fuenteXs);
-}
-
-.tarjetaPubUsername {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-.tarjetaPubTiempo {
+/* @username · tiempo en la misma línea (igual que comunidadPostTiempo) */
+.tarjetaPubMeta {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Grupo derecho: badge + menú */
+.tarjetaPubAccionesHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
     flex-shrink: 0;
+}
+
+.tarjetaPubMenuBtn {
+    color: var(--textoTerciario);
+    padding: var(--espacioXs);
+}
+
+.tarjetaPubMenuBtn:hover {
+    color: var(--textoSecundario);
 }
 
 /* Contenido textual */
@@ -179,7 +200,7 @@
     gap: var(--espacioXs);
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    padding: 0 0 6px 0;
+    padding: 0 0 6px var(--espacioSm);
 }
 
 .tarjetaPubRepostIndicador svg {
