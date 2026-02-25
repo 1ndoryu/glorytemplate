@@ -1,0 +1,111 @@
+/*
+ * cardPerfil.css — Mini card de perfil estilo Threads.
+ * Posicionamiento fixed, aparece al hacer clic en el icono de seguir del avatar.
+ */
+
+.cardPerfil {
+    position: fixed;
+    z-index: 1200;
+    width: 270px;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    animation: cardPerfilEntrar 0.15s ease;
+}
+
+@keyframes cardPerfilEntrar {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.cardPerfilCargando {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    text-align: center;
+    padding: var(--espacioSm) 0;
+}
+
+/* Fila superior: textos izquierda, avatar derecha */
+.cardPerfilCabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--espacioSm);
+}
+
+.cardPerfilTextos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.cardPerfilNombreBtn.botonBase {
+    padding: 0;
+    background: none;
+    min-height: unset;
+    height: auto;
+}
+
+.cardPerfilNombre {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteMd);
+    font-weight: 700;
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cardPerfilUsername {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+.cardPerfilAvatarBtn.botonBase {
+    padding: 0;
+    background: none;
+    min-height: unset;
+    height: auto;
+    border-radius: var(--radioCirculo);
+    flex-shrink: 0;
+}
+
+.cardPerfilAvatarBtn.botonBase:hover {
+    background: none;
+}
+
+/* Bio */
+.cardPerfilBio {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Seguidores */
+.cardPerfilSeguidores {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+/* Botón seguir */
+.cardPerfilSeguirBtn.botonBase {
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--espacioXs);
+}

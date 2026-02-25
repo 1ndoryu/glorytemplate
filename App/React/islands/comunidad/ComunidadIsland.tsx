@@ -4,18 +4,21 @@
  */
 
 import { useRef, useState } from 'react';
-import { Users, TrendingUp, Clock, MoreHorizontal, X } from 'lucide-react';
+import { Users, TrendingUp, Clock, MoreHorizontal, X, UserPlus } from 'lucide-react';
+import Avatar from '@app/components/ui/Avatar';
+import Badge from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
+import { CardPerfil } from '@app/components/social/CardPerfil';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
-import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
+import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 
@@ -75,6 +78,15 @@ const ComunidadBase = (): JSX.Element => {
     const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
     const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    /* Card de perfil estilo Threads */
+    const [cardPerfil, setCardPerfil] = useState<{ username: string; x: number; y: number } | null>(null);
+
+    const abrirCardPerfil = (e: React.MouseEvent, autor: UsuarioResumen) => {
+        e.stopPropagation();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setCardPerfil({ username: autor.username, x: rect.left, y: rect.bottom });
+    };
+
     const manejarClickImagen = (url: string) => {
         if (timerClickImagen.current) return; /* ya hay doble-click pendiente */
         timerClickImagen.current = setTimeout(() => {
@@ -115,9 +127,39 @@ const ComunidadBase = (): JSX.Element => {
                     publicaciones.map((post) => (
                         <article key={post.id} className="comunidadPost">
                             <div className="comunidadPostHeader">
-                                <EnlaceCreador username={post.autor.username} nombreVisible={post.autor.nombreVisible}
-                                    avatarUrl={post.autor.avatarUrl} tamanoAvatar="sm" mostrarUsername
-                                    verificado={post.autor.verificado} meta={formatearTiempoRelativo(post.creadoAt)} />
+                                <div className="comunidadAutorBloque">
+                                    <div className="comunidadAvatarContenedor">
+                                        <Avatar
+                                            src={post.autor.avatarUrl}
+                                            nombre={post.autor.nombreVisible}
+                                            tamano="sm"
+                                        />
+                                        {String(post.autor.id) !== String(usuario?.id) && (
+                                            <BotonBase
+                                                variante="ghost"
+                                                className="comunidadBtnSeguirIcono"
+                                                onClick={(e) => abrirCardPerfil(e, post.autor)}
+                                                aria-label="Ver perfil y seguir"
+                                            >
+                                                <UserPlus size={9} />
+                                            </BotonBase>
+                                        )}
+                                    </div>
+                                    <BotonBase
+                                        variante="ghost"
+                                        className="comunidadAutorTextos"
+                                        onClick={() => navegar(`/perfil/${post.autor.username}/`)}
+                                        aria-label={`Ir al perfil de ${post.autor.nombreVisible}`}
+                                    >
+                                        <span className="comunidadPostNombre">
+                                            {post.autor.nombreVisible}
+                                            {post.autor.verificado && <Badge variante="acento" tamano="xs">✓</Badge>}
+                                        </span>
+                                        <span className="comunidadPostTiempo">
+                                            @{post.autor.username} · {formatearTiempoRelativo(post.creadoAt)}
+                                        </span>
+                                    </BotonBase>
+                                </div>
                                 {(String(post.autor.id) === String(usuario?.id) || usuario?.rol === 'admin') && post.moderacionEstado && (
                                     <BadgeModeracion moderacionEstado={post.moderacionEstado} />
                                 )}
@@ -174,6 +216,16 @@ const ComunidadBase = (): JSX.Element => {
                 x={menuPublicacion.estado.x} y={menuPublicacion.estado.y} />
             <MenuContextual abierto={menuSample.estado.abierto} onCerrar={menuSample.cerrarMenu} items={menuSample.items}
                 x={menuSample.estado.x} y={menuSample.estado.y} />
+
+            {/* Card de perfil estilo Threads */}
+            {cardPerfil && (
+                <CardPerfil
+                    username={cardPerfil.username}
+                    posicion={{ x: cardPerfil.x, y: cardPerfil.y }}
+                    onCerrar={() => setCardPerfil(null)}
+                    onNavegar={navegar}
+                />
+            )}
 
             {/* Lightbox de imagen completa */}
             {imagenAbierta && (
