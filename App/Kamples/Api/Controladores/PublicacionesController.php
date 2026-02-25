@@ -75,8 +75,14 @@ class PublicacionesController
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/repost', [
-            'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'repostear'],
-            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            [
+                'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'repostear'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            ],
+            [
+                'methods' => 'DELETE', 'callback' => [PublicacionesEscrituraController::class, 'quitarRepost'],
+                'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            ],
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/reportar', [
@@ -195,6 +201,26 @@ class PublicacionesController
                 'avatarUrl' => UsuarioHelper::resolverAvatarUrl($pub[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($pub[UsuariosExtCols::WP_USER_ID] ?? 0)),
                 'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
             ];
+
+            /* Repost: si la publicación es un repost, incluir datos del original para el feed */
+            $pub['repostOriginal'] = null;
+            if (!empty($pub[PublicacionesCols::REPOST_ID])) {
+                $pub['repostOriginal'] = [
+                    'id' => (int) ($pub['orig_id'] ?? 0),
+                    'contenido' => $pub['orig_contenido'] ?? '',
+                    'imagenes' => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
+                    'autor' => [
+                        'id' => (int) ($pub['orig_autor_id'] ?? 0),
+                        'username' => $pub['orig_username'] ?? '',
+                        'nombreVisible' => $pub['orig_nombre_visible'] ?? '',
+                        'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
+                            $pub['orig_avatar_url'] ?? null,
+                            (int) ($pub['orig_wp_user_id'] ?? 0)
+                        ),
+                        'verificado' => (bool) ($pub['orig_verificado'] ?? false),
+                    ],
+                ];
+            }
         }
 
         return new \WP_REST_Response(['data' => $publicaciones, 'page' => $page], 200);

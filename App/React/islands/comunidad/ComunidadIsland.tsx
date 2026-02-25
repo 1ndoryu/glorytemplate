@@ -4,7 +4,7 @@
  */
 
 import { useRef, useState } from 'react';
-import { Users, TrendingUp, Clock, MoreHorizontal, X, Plus } from 'lucide-react';
+import { Users, TrendingUp, Clock, MoreHorizontal, X, Plus, Repeat2 } from 'lucide-react';
 import Avatar from '@app/components/ui/Avatar';
 import Badge from '@app/components/ui/Badge';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
@@ -125,6 +125,12 @@ const ComunidadBase = (): JSX.Element => {
                 ) : (
                     publicaciones.map((post) => (
                         <article key={post.id} className="comunidadPost">
+                            {post.repostOriginal && (
+                                <div className="comunidadRepostIndicador">
+                                    <Repeat2 size={12} />
+                                    <span>{post.autor.nombreVisible} reposteó</span>
+                                </div>
+                            )}
                             <div className="comunidadPostHeader">
                                 <div className="comunidadAutorBloque">
                                     <div className="comunidadAvatarContenedor">
@@ -167,9 +173,12 @@ const ComunidadBase = (): JSX.Element => {
                                 </BotonBase>
                             </div>
 
-                            <p className="comunidadPostTexto">{post.contenido}</p>
+                            {/* Contenido propio del post (no aplica en reposts puros) */}
+                            {!post.repostOriginal && post.contenido && (
+                                <p className="comunidadPostTexto">{post.contenido}</p>
+                            )}
 
-                            {post.imagenes.length > 0 && (
+                            {!post.repostOriginal && post.imagenes.length > 0 && (
                                 <div className={`comunidadPostImagenes comunidadPostImagenes${post.imagenes.length}`}>
                                     {post.imagenes.map((img) => (
                                         <BotonBase
@@ -183,6 +192,39 @@ const ComunidadBase = (): JSX.Element => {
                                             <img src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
                                         </BotonBase>
                                     ))}
+                                </div>
+                            )}
+
+                            {/* Bloque original embebido cuando es un repost */}
+                            {post.repostOriginal && (
+                                <div className="comunidadPostRepostOriginal">
+                                    <div className="comunidadRepostOriginalAutor">
+                                        <Avatar
+                                            src={post.repostOriginal.autor.avatarUrl}
+                                            nombre={post.repostOriginal.autor.nombreVisible}
+                                            tamano="xs"
+                                        />
+                                        <span className="comunidadRepostOriginalNombre">{post.repostOriginal.autor.nombreVisible}</span>
+                                        <span className="comunidadRepostOriginalUsername">@{post.repostOriginal.autor.username}</span>
+                                    </div>
+                                    {post.repostOriginal.contenido && (
+                                        <p className="comunidadPostTexto">{post.repostOriginal.contenido}</p>
+                                    )}
+                                    {post.repostOriginal.imagenes.length > 0 && (
+                                        <div className={`comunidadPostImagenes comunidadPostImagenes${post.repostOriginal.imagenes.length}`}>
+                                            {post.repostOriginal.imagenes.map((img) => (
+                                                <BotonBase
+                                                    key={img}
+                                                    variante="ghost"
+                                                    className="imagenClickable"
+                                                    onClick={() => manejarClickImagen(img)}
+                                                    aria-label="Ver imagen"
+                                                >
+                                                    <img src={img} alt="Imagen adjunta" className="comunidadPostImg" loading="lazy" />
+                                                </BotonBase>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

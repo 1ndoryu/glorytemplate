@@ -29,6 +29,16 @@ export interface Publicacion {
 
     /* Relacion */
     autor: UsuarioResumen;
+
+    /* Repost: datos del post original cuando esta publicacion es un repost */
+    repostOriginal?: RepostOriginal | null;
+}
+
+export interface RepostOriginal {
+    id: number;
+    contenido: string;
+    imagenes: string[];
+    autor: UsuarioResumen;
 }
 
 export interface Comentario {

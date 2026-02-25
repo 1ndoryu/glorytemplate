@@ -155,6 +155,7 @@ class PublicacionesRepository extends BaseRepository
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
+        /* JOIN con publicación original y su autor para reposts — expone datos del original en el feed */
         return static::consultar(
             "SELECT p.*, u." . UsuariosExtCols::USERNAME
             . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
@@ -162,8 +163,19 @@ class PublicacionesRepository extends BaseRepository
             . ", u." . UsuariosExtCols::VERIFICADO
             . ", u." . UsuariosExtCols::WP_USER_ID
             . " {$likedSubquery}"
+            . ", orig." . PublicacionesCols::ID . " AS orig_id"
+            . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
+            . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
+            . ", u_orig." . UsuariosExtCols::ID . " AS orig_autor_id"
+            . ", u_orig." . UsuariosExtCols::USERNAME . " AS orig_username"
+            . ", u_orig." . UsuariosExtCols::NOMBRE_VISIBLE . " AS orig_nombre_visible"
+            . ", u_orig." . UsuariosExtCols::AVATAR_URL . " AS orig_avatar_url"
+            . ", u_orig." . UsuariosExtCols::VERIFICADO . " AS orig_verificado"
+            . ", u_orig." . UsuariosExtCols::WP_USER_ID . " AS orig_wp_user_id"
             . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID
             . " = u." . UsuariosExtCols::ID
+            . " LEFT JOIN {$tp} orig ON p." . PublicacionesCols::REPOST_ID . " = orig." . PublicacionesCols::ID
+            . " LEFT JOIN {$tu} u_orig ON orig." . PublicacionesCols::AUTOR_ID . " = u_orig." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde} {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
@@ -326,15 +338,53 @@ class PublicacionesRepository extends BaseRepository
 
     /*
      * Crear repost de una publicación.
+     * Inserta una fila vacía con repost_id apuntando al original.
+     * El feed hace JOIN para devolver el contenido del original.
      */
     public static function crearRepost(int $autorId, int $repostId): int
     {
         $tabla = PublicacionesCols::TABLA;
 
-        return static::insertar(
+        $id = static::insertar(
             "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
             . ", " . PublicacionesCols::REPOST_ID . ") VALUES (:autor, '', :repostId) RETURNING " . PublicacionesCols::ID,
             ['autor' => $autorId, 'repostId' => $repostId]
+        );
+
+        static::recalcularReposts($repostId);
+
+        return $id;
+    }
+
+    /*
+     * Eliminar repost de una publicación (quien reposteó lo quita).
+     * Borra la fila "fantasma" con repost_id = $repostId y autor_id = $autorId.
+     */
+    public static function eliminarRepost(int $autorId, int $repostId): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        static::ejecutar(
+            "DELETE FROM {$tabla} WHERE " . PublicacionesCols::AUTOR_ID . " = :autor AND "
+            . PublicacionesCols::REPOST_ID . " = :repostId",
+            ['autor' => $autorId, 'repostId' => $repostId]
+        );
+
+        static::recalcularReposts($repostId);
+    }
+
+    /*
+     * Recalcular total_reposts de una publicación contando filas hijas.
+     */
+    public static function recalcularReposts(int $id): void
+    {
+        $tabla = PublicacionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . PublicacionesCols::TOTAL_REPOSTS
+            . " = (SELECT COUNT(*) FROM {$tabla} WHERE " . PublicacionesCols::REPOST_ID . " = :id)"
+            . " WHERE " . PublicacionesCols::ID . " = :id",
+            ['id' => $id]
         );
     }
 

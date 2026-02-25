@@ -8,6 +8,7 @@
  * DELETE /publicaciones/{id}                — Eliminar
  * POST   /publicaciones/{id}/comentarios    — Comentar
  * POST   /publicaciones/{id}/repost         — Repostear
+ * DELETE /publicaciones/{id}/repost         — Quitar repost
  *
  * @package Kamples
  */
@@ -320,6 +321,29 @@ class PublicacionesEscrituraController
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
         } catch (\Throwable $e) {
             KamplesLogger::error('PublicacionesEscrituraController::repostear error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * DELETE /publicaciones/{id}/repost — Quitar repost.
+     * Elimina la fila de repost creada por el usuario autenticado sobre la publicación dada.
+     */
+    public static function quitarRepost(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $pubId = (int) $request->get_param('id');
+
+            PublicacionesRepository::eliminarRepost($userId, $pubId);
+
+            KamplesLogger::info('Repost eliminado', ['publicacionId' => $pubId, 'por' => $userId]);
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PublicacionesEscrituraController::quitarRepost error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

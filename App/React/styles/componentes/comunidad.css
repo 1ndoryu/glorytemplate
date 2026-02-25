@@ -322,13 +322,13 @@
 /* Icono "+" siempre visible — círculo blanco */
 .comunidadBtnSeguirIcono.botonBase {
     position: absolute;
-    bottom: -4px;
-    right: -4px;
-    width: 18px;
-    height: 18px;
+    bottom: -0px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
     min-height: unset;
     padding: 0;
-    border-radius: var(--radioCirculo);
+    border-radius: var(--radioFull);
     background: #fff;
     border: 1.5px solid rgba(0, 0, 0, 0.12);
     color: #111;
@@ -346,8 +346,8 @@
 
 /* Tamaño del avatar en el header de comunidad: +4px sobre sm (28→32px) */
 .comunidadAvatarContenedor .avatar.avatarSm {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
 }
 
 /* Bloque de textos: columna (nombre + tiempo) */
@@ -359,9 +359,10 @@
     background: none;
     min-height: unset;
     height: auto;
-    gap: 2px;
+    gap: 4px;
     min-width: 0;
     text-align: left;
+    margin-top: -4px;
 }
 
 /* Nombre del autor: +1px sobre fuenteSm */
@@ -384,4 +385,47 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ── Indicador de repost ──────────────────────────────────────────────── */
+.comunidadRepostIndicador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    padding: 0 0 6px var(--espacioSm);
+}
+
+.comunidadRepostIndicador svg {
+    flex-shrink: 0;
+}
+
+/* ── Bloque embebido del post original en un repost ───────────────────── */
+.comunidadPostRepostOriginal {
+    border: 1px solid var(--bordeSubtle, var(--borde));
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm);
+    margin-top: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    background: var(--fondoSecundario);
+}
+
+.comunidadRepostOriginalAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.comunidadRepostOriginalNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+}
+
+.comunidadRepostOriginalUsername {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
 }
