@@ -132,6 +132,67 @@ class ColeccionesCrudController
         }
     }
 
+    /**
+     * POST /colecciones/{id}/imagen — Sube imagen de portada y actualiza portada_url.
+     * Acepta multipart/form-data con campo 'imagen'. Retorna { imagenUrl }.
+     */
+    public static function subirImagen(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $id = (int) $request->get_param('id');
+
+            $coleccion = ColeccionesRepository::verificarPropiedad($id, $userId);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            }
+
+            $files = $request->get_file_params();
+            if (empty($files['imagen']) || $files['imagen']['error'] !== UPLOAD_ERR_OK) {
+                return new \WP_REST_Response(['code' => 'imagen_requerida', 'message' => 'Se requiere un archivo de imagen'], 400);
+            }
+
+            $archivo = $files['imagen'];
+
+            /* Validar tipo MIME — solo imágenes */
+            $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!in_array($archivo['type'], $tiposPermitidos, true)) {
+                return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => 'Solo se permiten imágenes JPG, PNG, WebP o GIF'], 400);
+            }
+
+            /* Validar tamaño: máx 5 MB */
+            if ($archivo['size'] > 5 * 1024 * 1024) {
+                return new \WP_REST_Response(['code' => 'archivo_muy_grande', 'message' => 'La imagen no puede superar 5MB'], 400);
+            }
+
+            if (!function_exists('wp_handle_upload')) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+
+            $resultado = wp_handle_upload($archivo, ['test_form' => false]);
+            if (isset($resultado['error'])) {
+                KamplesLogger::error('Error al subir imagen de colección', ['error' => $resultado['error'], 'coleccionId' => $id]);
+                return new \WP_REST_Response(['code' => 'error_subida', 'message' => $resultado['error']], 500);
+            }
+
+            $url = esc_url_raw($resultado['url']);
+
+            /* Persistir la URL de portada en la BD */
+            ColeccionesRepository::actualizarCampos(
+                $id,
+                [ColeccionesCols::PORTADA_URL . ' = :portada'],
+                ['portada' => $url]
+            );
+
+            return new \WP_REST_Response(['imagenUrl' => $url], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesCrudController::subirImagen', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
     public static function agregarSample(\WP_REST_Request $request): \WP_REST_Response
     {
         try {

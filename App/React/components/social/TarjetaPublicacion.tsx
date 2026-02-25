@@ -109,20 +109,23 @@ export const TarjetaPublicacion = ({
                         />
                         {avatarExtra}
                     </div>
-                    <EnlaceNavegacion
-                        href={`/perfil/${publicacion.autor.username}/`}
-                        className="tarjetaPubAutorTextos"
-                        aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
-                        onClick={() => {
-                            onClickAutor?.(publicacion.autor.username);
-                        }}
-                    >
-                        <span className="tarjetaPubNombre">
-                            {publicacion.autor.nombreVisible}
-                            {publicacion.autor.verificado && (
-                                <Badge variante="acento" tamano="xs">✓</Badge>
-                            )}
-                        </span>
+                    {/* Separamos nombre y meta en enlaces independientes para evitar <a> anidado */}
+                    <div className="tarjetaPubAutorTextos">
+                        <EnlaceNavegacion
+                            href={`/perfil/${publicacion.autor.username}/`}
+                            className="tarjetaPubNombreEnlace"
+                            aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
+                            onClick={() => {
+                                onClickAutor?.(publicacion.autor.username);
+                            }}
+                        >
+                            <span className="tarjetaPubNombre">
+                                {publicacion.autor.nombreVisible}
+                                {publicacion.autor.verificado && (
+                                    <Badge variante="acento" tamano="xs">✓</Badge>
+                                )}
+                            </span>
+                        </EnlaceNavegacion>
                         <span className="tarjetaPubMeta">
                             @{publicacion.autor.username}
                             {' · '}
@@ -142,7 +145,7 @@ export const TarjetaPublicacion = ({
                                 formatearTiempoRelativo(publicacion.creadoAt)
                             )}
                         </span>
-                    </EnlaceNavegacion>
+                    </div>
                 </div>
                 <div className="tarjetaPubAccionesHeader">
                     {mostrarModeracion && (

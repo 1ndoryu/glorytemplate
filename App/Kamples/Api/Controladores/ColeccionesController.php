@@ -65,6 +65,12 @@ class ColeccionesController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/imagen', [
+            'methods'             => 'POST',
+            'callback'            => [ColeccionesCrudController::class, 'subirImagen'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)/samples', [
             'methods' => 'POST', 'callback' => [ColeccionesCrudController::class, 'agregarSample'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
