@@ -283,48 +283,9 @@ export const ModalEditar = (): JSX.Element | null => {
                             </div>
                         )}
 
-                        {/* Botones para adjuntar */}
-                        <div className="crearAcciones">
-                            <div className="crearAccionesIzquierda">
-                                <BotonBase
-                                    variante="ghost"
-                                    tamano="sm"
-                                    soloIcono
-                                    onClick={() => document.getElementById('editar-input-audio')?.click()}
-                                    disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
-                                    type="button"
-                                    aria-label="Adjuntar audio"
-                                >
-                                    <Music size={18} />
-                                </BotonBase>
-                                <BotonBase
-                                    variante="ghost"
-                                    tamano="sm"
-                                    soloIcono
-                                    onClick={() => document.getElementById('editar-input-imagen')?.click()}
-                                    disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
-                                    type="button"
-                                    aria-label="Adjuntar imagen"
-                                >
-                                    <ImageIcon size={18} />
-                                </BotonBase>
-                            </div>
-                            <Input
-                                id="editar-input-audio"
-                                type="file"
-                                accept=".wav,.mp3,.flac,.aiff,.aif"
-                                style={{ display: 'none' }}
-                                onChange={archivos.manejarInputAudio}
-                            />
-                            <Input
-                                id="editar-input-imagen"
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                multiple
-                                style={{ display: 'none' }}
-                                onChange={archivos.manejarInputImagen}
-                            />
-                        </div>
+                        {/* Inputs ocultos para adjuntar archivos */}
+                        <Input id="editar-input-audio" type="file" accept=".wav,.mp3,.flac,.aiff,.aif" style={{ display: 'none' }} onChange={archivos.manejarInputAudio} />
+                        <Input id="editar-input-imagen" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple style={{ display: 'none' }} onChange={archivos.manejarInputImagen} />
                     </>
                 )}
 
@@ -371,17 +332,47 @@ export const ModalEditar = (): JSX.Element | null => {
                 )}
 
                 <div className="editarAcciones">
-                    <BotonBase variante="ghost" onClick={cerrar}>
-                        Cancelar
-                    </BotonBase>
-                    <BotonBase
-                        variante="primario"
-                        onClick={manejarGuardar}
-                        disabled={guardando}
-                        cargando={guardando}
-                    >
-                        {guardando ? 'Guardando...' : 'Guardar cambios'}
-                    </BotonBase>
+                    <div className="editarAccionesIzquierda">
+                        {tipo === 'publicacion' && (
+                            <>
+                                <BotonBase
+                                    variante="ghost"
+                                    tamano="sm"
+                                    soloIcono
+                                    onClick={() => document.getElementById('editar-input-audio')?.click()}
+                                    disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
+                                    type="button"
+                                    aria-label="Adjuntar audio"
+                                >
+                                    <Music size={18} />
+                                </BotonBase>
+                                <BotonBase
+                                    variante="ghost"
+                                    tamano="sm"
+                                    soloIcono
+                                    onClick={() => document.getElementById('editar-input-imagen')?.click()}
+                                    disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
+                                    type="button"
+                                    aria-label="Adjuntar imagen"
+                                >
+                                    <ImageIcon size={18} />
+                                </BotonBase>
+                            </>
+                        )}
+                    </div>
+                    <div className="editarAccionesDerecha">
+                        <BotonBase variante="ghost" onClick={cerrar}>
+                            Cancelar
+                        </BotonBase>
+                        <BotonBase
+                            variante="primario"
+                            onClick={manejarGuardar}
+                            disabled={guardando}
+                            cargando={guardando}
+                        >
+                            {guardando ? 'Guardando...' : 'Guardar cambios'}
+                        </BotonBase>
+                    </div>
                 </div>
             </div>
         </Modal>

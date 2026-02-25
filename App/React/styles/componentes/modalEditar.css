@@ -67,10 +67,21 @@
 
 .editarAcciones {
     display: flex;
-    justify-content: flex-end;
-    gap: var(--espacioSm);
+    justify-content: space-between;
+    align-items: center;
     padding-top: var(--espacioSm);
     border-top: 1px solid var(--bordeSutil);
+}
+
+.editarAccionesIzquierda {
+    display: flex;
+    gap: var(--espacioXs);
+}
+
+.editarAccionesDerecha {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
 }
 
 .editarTagsHint {
