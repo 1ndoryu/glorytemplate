@@ -17,12 +17,11 @@ import '../../styles/componentes/cardPerfil.css';
 
 interface CardPerfilProps {
     username: string;
-    posicion: { x: number; y: number };
     onCerrar: () => void;
     onNavegar: (ruta: string) => void;
 }
 
-export function CardPerfil({ username, posicion, onCerrar, onNavegar }: CardPerfilProps) {
+export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
     const [perfil, setPerfil] = useState<Usuario | null>(null);
     const [cargando, setCargando] = useState(true);
     const [siguiendo, setSiguiendo] = useState(false);
@@ -82,24 +81,19 @@ export function CardPerfil({ username, posicion, onCerrar, onNavegar }: CardPerf
         onCerrar();
     };
 
-    /* Ajustar posición para no salir del viewport */
-    const ANCHO = 270;
-    const estiloCard = {
-        top: posicion.y + 8,
-        left: Math.min(posicion.x, window.innerWidth - ANCHO - 16),
-    };
-
     const esPropio = perfil && (
         String(perfil.wpUserId) === String(usuarioActual?.wpUserId) ||
         String(perfil.id) === String(usuarioActual?.id)
     );
 
     return (
+        <div className="cardPerfilOverlay" onClick={onCerrar} aria-hidden="true">
         <div
             ref={cardRef}
             className="cardPerfil"
-            style={estiloCard}
+            onClick={e => e.stopPropagation()}
             role="dialog"
+            aria-modal="true"
             aria-label={`Perfil de ${username}`}
         >
             {cargando ? (
@@ -142,6 +136,7 @@ export function CardPerfil({ username, posicion, onCerrar, onNavegar }: CardPerf
                     )}
                 </>
             )}
+        </div>
         </div>
     );
 }

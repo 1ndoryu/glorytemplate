@@ -319,34 +319,29 @@
     flex-shrink: 0;
 }
 
-/* Icono "seguir" en la esquina del avatar */
+/* Icono "+" siempre visible — círculo blanco */
 .comunidadBtnSeguirIcono.botonBase {
     position: absolute;
-    bottom: -3px;
-    right: -3px;
-    width: 16px;
-    height: 16px;
+    bottom: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
     min-height: unset;
     padding: 0;
     border-radius: var(--radioCirculo);
-    background: var(--fondoElevado1);
-    border: 1.5px solid var(--bordeSutil);
-    color: var(--textoSecundario);
+    background: #fff;
+    border: 1.5px solid rgba(0, 0, 0, 0.12);
+    color: #111;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.15s, color 0.15s, background 0.15s;
-}
-
-/* Mostrar icono solo al hacer hover sobre el post */
-.comunidadPost:hover .comunidadBtnSeguirIcono.botonBase {
-    opacity: 1;
+    transition: transform 0.12s, box-shadow 0.12s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
 .comunidadBtnSeguirIcono.botonBase:hover {
-    color: var(--textoPrimario);
-    background: var(--fondoElevado2);
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 /* Tamaño del avatar en el header de comunidad: +4px sobre sm (28→32px) */

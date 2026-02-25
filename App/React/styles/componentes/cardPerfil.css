@@ -3,10 +3,25 @@
  * Posicionamiento fixed, aparece al hacer clic en el icono de seguir del avatar.
  */
 
-.cardPerfil {
+/* Capa oscura de fondo — cubre toda la pantalla */
+.cardPerfilOverlay {
     position: fixed;
+    inset: 0;
     z-index: 1200;
-    width: 270px;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: cardPerfilFadeIn 0.15s ease;
+}
+
+@keyframes cardPerfilFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.cardPerfil {
+    width: 290px;
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
@@ -14,13 +29,13 @@
     display: flex;
     flex-direction: column;
     gap: var(--espacioSm);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-    animation: cardPerfilEntrar 0.15s ease;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    animation: cardPerfilEntrar 0.18s ease;
 }
 
 @keyframes cardPerfilEntrar {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
 }
 
 .cardPerfilCargando {

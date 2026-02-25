@@ -79,12 +79,11 @@ const ComunidadBase = (): JSX.Element => {
     const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /* Card de perfil estilo Threads */
-    const [cardPerfil, setCardPerfil] = useState<{ username: string; x: number; y: number } | null>(null);
+    const [cardPerfilUsername, setCardPerfilUsername] = useState<string | null>(null);
 
     const abrirCardPerfil = (e: React.MouseEvent, autor: UsuarioResumen) => {
         e.stopPropagation();
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setCardPerfil({ username: autor.username, x: rect.left, y: rect.bottom });
+        setCardPerfilUsername(autor.username);
     };
 
     const manejarClickImagen = (url: string) => {
@@ -218,11 +217,10 @@ const ComunidadBase = (): JSX.Element => {
                 x={menuSample.estado.x} y={menuSample.estado.y} />
 
             {/* Card de perfil estilo Threads */}
-            {cardPerfil && (
+            {cardPerfilUsername && (
                 <CardPerfil
-                    username={cardPerfil.username}
-                    posicion={{ x: cardPerfil.x, y: cardPerfil.y }}
-                    onCerrar={() => setCardPerfil(null)}
+                    username={cardPerfilUsername}
+                    onCerrar={() => setCardPerfilUsername(null)}
                     onNavegar={navegar}
                 />
             )}
