@@ -17,6 +17,8 @@ import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import '../../styles/componentes/coleccionDetalle.css';
@@ -30,12 +32,16 @@ const TABS_DESCARGAS = [
 const DescargasBase = (): JSX.Element => {
     const { samples, cargando, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const navegar = useNavigationStore(s => s.navegar);
-    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
     const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
+
+    /* Keep-alive: congelar tabActiva cuando la isla está oculta */
+    const activa = useIslaActiva('DescargasIsland');
+    const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
     /* Filtrado client-side por tags/BPM para la lista principal */
     const filtros = useFeedFiltros({ samples });

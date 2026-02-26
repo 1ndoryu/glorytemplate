@@ -9,6 +9,8 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
 import { obtenerColeccion, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -34,10 +36,16 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
     const [descargando, setDescargando] = useState(false);
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
     const navegar = useNavigationStore(s => s.navegar);
-    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
     const usuario = useAuthStore(s => s.usuario);
+    const rutaActualRaw = useNavigationStore(s => s.rutaActual);
+
+    /* Keep-alive: congelar valores globales cuando la isla está oculta */
+    const activa = useIslaActiva('ColeccionDetalleIsland');
+    const rutaActual = useValorCongelado(rutaActualRaw, !activa);
+    const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
     useTabsIsla('ColeccionDetalleIsland', TABS_COLECCION_DETALLE, 'samples');
 
@@ -50,13 +58,13 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
 
-    /* Obtener ID de la URL si no viene por props */
-    const id = propId ? parseInt(propId, 10) : (() => {
-        const path = window.location.pathname;
-        const partes = path.split('/').filter(Boolean);
+    /* Obtener ID: priorizar prop, luego ruta SPA (congelada para keep-alive) */
+    const id = useMemo(() => {
+        if (propId) return parseInt(propId, 10);
+        const partes = rutaActual.split('/').filter(Boolean);
         const idx = partes.indexOf('coleccion');
         return idx >= 0 && partes[idx + 1] ? parseInt(partes[idx + 1], 10) : null;
-    })();
+    }, [propId, rutaActual]);
 
     /* Cargar coleccion con AbortController */
     useEffect(() => {

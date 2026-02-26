@@ -13,6 +13,8 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import type { Sample, SampleResumen, TipoReaccion } from '@app/types';
 
 interface SampleDetalleParams {
@@ -36,15 +38,21 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
     const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
     const abrirPlanes = usePlanesModalStore(s => s.abrir);
 
+    /* Keep-alive: congelar rutaActual cuando la isla está oculta (display:none).
+     * Sin esto, navegar a /comunidad/ cambia rutaActual → slug se hace null →
+     * useEffect setea error y al volver re-fetcha innecesariamente. */
+    const activa = useIslaActiva('SampleDetalleIsland');
+    const rutaCongelada = useValorCongelado(rutaActual, !activa);
+
     /* Resolver slug: priorizar URL SPA sobre prop PHP (stale tras primer render) */
     const slug = useMemo(() => {
-        const segmentos = rutaActual.replace(/\/$/, '').split('/');
+        const segmentos = rutaCongelada.replace(/\/$/, '').split('/');
         const idxSample = segmentos.indexOf('sample');
         if (idxSample !== -1 && segmentos[idxSample + 1] && segmentos[idxSample + 1] !== 'sample') {
             return segmentos[idxSample + 1];
         }
         return slugProp && slugProp !== 'sample' ? slugProp : null;
-    }, [rutaActual, slugProp]);
+    }, [rutaCongelada, slugProp]);
 
     /* Propiedad: comparar con String() para evitar mismatch string/number */
     const esPropietario = Boolean(

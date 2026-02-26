@@ -6,6 +6,8 @@
 
 import { useState, useEffect, useCallback, useMemo, type SetStateAction } from 'react';
 import { useNavigationStore } from '@/core/router';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { useAuthStore } from '@app/stores/authStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion } from '@app/hooks/useMenuContextualPublicacion';
@@ -29,8 +31,13 @@ export function usePublicacionDetalle({ publicacionIdProp }: UsePublicacionDetal
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navegar = useNavigationStore(s => s.navegar);
-    const rutaActual = useNavigationStore(s => s.rutaActual);
+    const rutaActualRaw = useNavigationStore(s => s.rutaActual);
     const usuario = useAuthStore(s => s.usuario);
+
+    /* Keep-alive: congelar rutaActual cuando la isla está oculta.
+     * Sin esto, navegar a otra página cambia publicacionId a 0 → estado error. */
+    const activa = useIslaActiva('PublicacionIsland');
+    const rutaActual = useValorCongelado(rutaActualRaw, !activa);
 
     /*
      * Resolver ID: priorizar URL SPA sobre prop PHP.

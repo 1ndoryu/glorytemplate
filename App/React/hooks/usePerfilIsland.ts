@@ -17,6 +17,8 @@ import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
 import { useNavigationStore } from '@/core/router';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion, EVENTO_PUBLICACION_ELIMINADA } from '@app/hooks/useMenuContextualPublicacion';
 import type { Usuario } from '@app/types/usuario';
@@ -72,10 +74,17 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
 
     const usuarioAuth = useAuthStore(s => s.usuario);
     const authCargando = useAuthStore(s => s.cargando);
-    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     useTabsIsla('PerfilIsland', TABS_PERFIL, 'samples');
     const navegar = useNavigationStore(s => s.navegar);
-    const rutaActual = useNavigationStore(s => s.rutaActual);
+    const rutaActualRaw = useNavigationStore(s => s.rutaActual);
+
+    /* Keep-alive: congelar valores derivados de stores globales cuando la isla
+     * está oculta. Sin esto, navegar a otra isla cambia rutaActual → username
+     * se hace null → re-fetch. tabActiva global cambia por tabs de otra isla. */
+    const activa = useIslaActiva('PerfilIsland');
+    const rutaActual = useValorCongelado(rutaActualRaw, !activa);
+    const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirChat = useChatFlotanteStore(s => s.abrirChat);
     const menu = useMenuContextualSample();

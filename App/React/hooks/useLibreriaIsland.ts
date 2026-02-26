@@ -12,6 +12,8 @@ import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
+import { useIslaActiva } from '@app/hooks/useIslaActiva';
+import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { crearLogger } from '@app/services/logger';
@@ -29,14 +31,21 @@ export function useLibreriaIsland() {
 
     const navegar = useNavigationStore(s => s.navegar);
     const abrirSubirModal = useSubirModalStore(s => s.abrir);
-    const tabActiva = useTabsTopBarStore(s => s.activa);
+    const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const menu = useMenuContextualSample();
 
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
     const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
-    const busqueda = useFiltrosStore(s => s.busqueda);
+    const busquedaGlobal = useFiltrosStore(s => s.busqueda);
+
+    /* Keep-alive: congelar tabActiva y busqueda cuando la isla está oculta.
+     * Sin esto, otra isla cambiando tabs o el usuario escribiendo en TopBar
+     * provoca re-fetch de datos en esta isla oculta. */
+    const activa = useIslaActiva('LibreriaIsland');
+    const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
+    const busqueda = useValorCongelado(busquedaGlobal, !activa);
 
     const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
