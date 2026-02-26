@@ -17,11 +17,13 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\AdminRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Config\Schema\_generated\ReportesEnums;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
@@ -88,6 +90,13 @@ class AdminController
         register_rest_route($namespace, '/admin/moderacion/historial', [
             'methods' => 'GET',
             'callback' => [self::class, 'historialModeracion'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* Herramienta de dev: eliminar todos los samples (solo admin) */
+        register_rest_route($namespace, '/admin/samples/todos', [
+            'methods' => 'DELETE',
+            'callback' => [self::class, 'eliminarTodosLosSamples'],
             'permission_callback' => $admin,
         ]);
     }
@@ -389,6 +398,59 @@ class AdminController
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::historialModeracion fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * DELETE /admin/samples/todos — Elimina TODOS los samples (archivos físicos + BD en cascada).
+     * Herramienta exclusiva para administradores en modo de desarrollo/testing.
+     * Itera sample por sample para respetar la lógica de archivos de cada uno.
+     */
+    public static function eliminarTodosLosSamples(): \WP_REST_Response
+    {
+        try {
+            $samples = SamplesRepository::obtenerTodosParaEliminar();
+
+            if (empty($samples)) {
+                return new \WP_REST_Response(['ok' => true, 'eliminados' => 0], 200);
+            }
+
+            $eliminados = 0;
+            $errores    = 0;
+
+            foreach ($samples as $sample) {
+                $sampleId = (int) ($sample[SamplesCols::ID] ?? 0);
+                if (!$sampleId) {
+                    continue;
+                }
+
+                try {
+                    SamplesModificacionController::eliminarArchivosFisicos($sample);
+                    SamplesRepository::eliminarConCascada($sampleId);
+                    $eliminados++;
+                } catch (\Throwable $err) {
+                    $errores++;
+                    KamplesLogger::warning('Error eliminando sample en borrado masivo', [
+                        'sampleId' => $sampleId,
+                        'error'    => $err->getMessage(),
+                    ]);
+                }
+            }
+
+            KamplesLogger::info('Borrado masivo de samples completado', [
+                'total'      => count($samples),
+                'eliminados' => $eliminados,
+                'errores'    => $errores,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'         => true,
+                'eliminados' => $eliminados,
+                'errores'    => $errores,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::eliminarTodosLosSamples fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }
 }

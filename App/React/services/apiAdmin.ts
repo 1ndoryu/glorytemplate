@@ -4,7 +4,7 @@
  * Todos requieren rol admin (protección backend via AuthMiddleware::requerirAdmin).
  */
 
-import { apiGet, apiPost, apiPut } from './apiCliente';
+import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 
 /* Tipos de respuesta */
@@ -139,4 +139,20 @@ export const resolverReporte = async (
 
 export const obtenerHistorialModeracion = async (dias = 2): Promise<RespuestaApi<DatosHistorialModeracion>> => {
     return apiGet<DatosHistorialModeracion>('/admin/moderacion/historial', { dias });
+};
+
+/* Herramienta de dev: eliminación masiva de samples */
+
+export interface ResultadoBorradoMasivo {
+    ok: boolean;
+    eliminados: number;
+    errores: number;
+}
+
+/*
+ * DELETE /admin/samples/todos — Elimina todos los samples de la BD y disco.
+ * Solo disponible para admin en modo dev. No hay marcha atrás.
+ */
+export const eliminarTodosSamples = async (): Promise<RespuestaApi<ResultadoBorradoMasivo>> => {
+    return apiDelete<ResultadoBorradoMasivo>('/admin/samples/todos');
 };

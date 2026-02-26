@@ -1,7 +1,29 @@
 /*
- * Extensiones de Window para globals inyectados por desktop/main.tsx.
- * Necesario para hooks que acceden a window.__KAMPLES_* sin (window as any).
+ * Extensiones de Window para globals inyectados por el tema (Glory) y desktop/main.tsx.
+ * Necesario para hooks que acceden a window.__KAMPLES_* y GLORY_CONTEXT sin (window as any).
+ *
+ * IMPORTANTE: GloryContext está definido en Glory/assets/react/src/types/glory.ts.
+ * Aquí se extiende (declaration merging) para agregar los campos específicos de Kamples
+ * que PHP inyecta vía el filtro glory_react_context en config.php.
+ * No redeclarar Window.GLORY_CONTEXT — ya está declarado en glory.ts como Partial<GloryContext>.
  */
+
+/*
+ * Extensión del GloryContext de Glory con campos inyectados por Kamples (config.php).
+ * Declaration merging: los campos se fusionan con la interfaz base de Glory.
+ */
+interface GloryContext {
+    isLoggedIn?: boolean;
+    /* userId omitido — ya declarado como number | undefined en glory.ts */
+    devMode?: boolean;
+    currentUser?: {
+        id: number;
+        username: string;
+        email: string;
+        nombreVisible: string;
+        avatarUrl: string | null;
+    };
+}
 
 /* Progreso reportado por sincronizarConServidor() en cada archivo */
 interface ProgresoSyncGlobal {
@@ -15,6 +37,7 @@ interface ProgresoSyncGlobal {
 }
 
 interface Window {
+    /* GLORY_CONTEXT ya está declarado en Glory/assets/react/src/types/glory.ts */
     __KAMPLES_DESKTOP__?: boolean;
     __KAMPLES_VERSION__?: string;
     __KAMPLES_SYNC__?: {

@@ -266,6 +266,24 @@ class SamplesRepository extends BaseRepository
     }
 
     /*
+     * Obtener todos los samples con sus rutas para eliminación masiva (admin).
+     * Solo devuelve los campos necesarios para borrar archivos y cascada.
+     */
+    public static function obtenerTodosParaEliminar(): array
+    {
+        $tabla = SamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID
+            . ", " . SamplesCols::RUTA_ORIGINAL . ", " . SamplesCols::RUTA_OPTIMIZADA
+            . ", " . SamplesCols::RUTA_PREVIEW . ", " . SamplesCols::RUTA_WAVEFORM
+            . ", " . SamplesCols::TITULO
+            . " FROM {$tabla}",
+            []
+        );
+    }
+
+    /*
      * Eliminar un sample y sus registros relacionados en cascada.
      * Delega las eliminaciones dependientes a cada repositorio.
      */

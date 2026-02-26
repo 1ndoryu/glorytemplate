@@ -5,7 +5,7 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, FolderSync } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, FolderSync, Trash2, Trash } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -17,12 +17,18 @@ import { Modal } from '../ui/Modal';
 import { PanelSincronizacion } from '../desktop/PanelSincronizacion';
 import { useSyncStore } from '@app/stores/syncStore';
 import { useTopBar } from '@app/hooks/useTopBar';
+import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
     const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
     const alternarPanelSync = useSyncStore(s => s.alternarPanel);
     const syncPanelAbierto = useSyncStore(s => s.panelAbierto);
+
+    /* Leer devMode inyectado por PHP en GLORY_CONTEXT (Partial<GloryContext> del framework Glory) */
+    const gloryCtx = (window as unknown as Record<string, Partial<GloryContext> | undefined>).GLORY_CONTEXT;
+    const devModeActivo = gloryCtx?.devMode === true;
+
     const {
         tabs,
         activa,
@@ -53,6 +59,15 @@ export const TopBar = (): JSX.Element => {
         manejarClickAvatar,
     } = useTopBar();
 
+    const {
+        eliminarSampleActual,
+        pedirConfirmacionBorrarTodos,
+        cargando: cargandoEliminar,
+    } = useEliminarSamples();
+
+    const esAdmin = usuario?.rol === 'admin';
+    const mostrarHerramientasDev = esAdmin && devModeActivo;
+
     const menuItems: MenuItemDef[] = [
         {
             id: 'creditos',
@@ -79,12 +94,36 @@ export const TopBar = (): JSX.Element => {
             id: 'configuracion',
             etiqueta: 'Configuración',
             icono: <Settings size={14} />,
-            separadorDespues: true,
+            separadorDespues: !mostrarHerramientasDev,
             onClick: () => {
                 abrirConfiguracion();
                 setMenuAbierto(false);
             },
         },
+        /* Herramientas de desarrollo — solo admin con devMode activo */
+        ...(mostrarHerramientasDev ? [
+            {
+                id: 'devEliminarSample',
+                etiqueta: cargandoEliminar ? 'Eliminando...' : '[DEV] Eliminar sample actual',
+                icono: <Trash2 size={14} />,
+                peligro: true,
+                onClick: () => {
+                    setMenuAbierto(false);
+                    void eliminarSampleActual();
+                },
+            } as MenuItemDef,
+            {
+                id: 'devEliminarTodos',
+                etiqueta: '[DEV] Borrar todos los samples',
+                icono: <Trash size={14} />,
+                peligro: true,
+                separadorDespues: true,
+                onClick: () => {
+                    setMenuAbierto(false);
+                    pedirConfirmacionBorrarTodos();
+                },
+            } as MenuItemDef,
+        ] : []),
         {
             id: 'cerrarSesion',
             etiqueta: 'Cerrar sesión',

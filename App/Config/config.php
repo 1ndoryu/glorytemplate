@@ -11,11 +11,16 @@ add_filter('show_admin_bar', '__return_false');
 /*
  * Inyectar datos de usuario en GLORY_CONTEXT para que React
  * detecte la sesión de WordPress sin necesidad de una llamada AJAX.
+ * devMode expuesto para herramientas de admin restringidas en frontend.
  */
 add_filter('glory_react_context', function (array $context): array {
     $userId = get_current_user_id();
     $context['isLoggedIn'] = $userId > 0;
     $context['userId'] = $userId ?: null;
+
+    /* Exponer devMode para controlar herramientas de admin en React */
+    $modoGlobalDev = method_exists(AssetManager::class, 'isGlobalDevMode') && AssetManager::isGlobalDevMode();
+    $context['devMode'] = $modoGlobalDev || (defined('WP_DEBUG') && WP_DEBUG);
 
     if ($userId > 0) {
         $user = get_userdata($userId);

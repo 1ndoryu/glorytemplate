@@ -240,6 +240,31 @@ class SamplesModificacionController
         }
 
         /* Eliminar archivos físicos del disco */
+        self::eliminarArchivosFisicos($sample);
+
+        /* Eliminar registros relacionados en cascada + sample */
+        SamplesRepository::eliminarConCascada($sampleId);
+
+        KamplesLogger::info('Sample eliminado', [
+            'sampleId' => $sampleId,
+            'titulo'   => $sample[SamplesCols::TITULO] ?? '',
+            'por'      => $esAdmin && (int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId ? 'admin' : 'propietario',
+        ]);
+
+        return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesModificacionController::eliminar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * Elimina los archivos físicos (audio, waveform, preview) de un sample.
+     * Expuesto como public para permitir reutilización en operaciones masivas de admin.
+     * $sample debe provenir de SamplesRepository::buscarParaEliminar().
+     */
+    public static function eliminarArchivosFisicos(array $sample): void
+    {
         $uploadDir = \wp_upload_dir();
         $baseDir = $uploadDir['basedir'];
         $rutasAEliminar = [SamplesCols::RUTA_ORIGINAL, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW, SamplesCols::RUTA_WAVEFORM];
@@ -263,25 +288,10 @@ class SamplesModificacionController
             if ($rutaWaveform && \file_exists($rutaWaveform)) {
                 self::eliminarArchivoSiExiste($rutaWaveform, 'waveform derivado');
             }
-            $rutaAbsWaveform = $baseDir . '/' . \ltrim($rutaWaveform, '/');
+            $rutaAbsWaveform = $baseDir . '/' . \ltrim((string) $rutaWaveform, '/');
             if (\file_exists($rutaAbsWaveform)) {
                 self::eliminarArchivoSiExiste($rutaAbsWaveform, 'waveform absoluto derivado');
             }
-        }
-
-        /* Eliminar registros relacionados en cascada + sample */
-        SamplesRepository::eliminarConCascada($sampleId);
-
-        KamplesLogger::info('Sample eliminado', [
-            'sampleId' => $sampleId,
-            'titulo'   => $sample[SamplesCols::TITULO] ?? '',
-            'por'      => $esAdmin && (int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId ? 'admin' : 'propietario',
-        ]);
-
-        return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('SamplesModificacionController::eliminar error', ['error' => $e->getMessage()]);
-            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }
 
