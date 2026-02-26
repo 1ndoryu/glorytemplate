@@ -236,9 +236,15 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ---
 
-## Sprint UI/UX — C343-C352 (26/02/2026)
+## Sprint UI/UX — C343-C354 (26/02/2026)
 
-### TAREAS EN CURSO
+### COMPLETADAS EN ESTE SPRINT
+
+- ✅ [AG-EXP] C343-C352: Tags no-compress, badges clickable, filtros rediseño, librería keep-alive, botones volver, subcarpetas, explorador file-manager completo, admin chart, moderación, créditos ilimitados.
+- ✅ [AG-EXP] C353: Fix Sentinel SQL/key, explorador carpetas 100% width, neutralizar BotonBase, drag cuadricula, botón restaurar ubicación IA.
+- ✅ [AG-EXP] C354: Botones eliminar sample (actual + todos) en menú avatar del TopBar, solo admin+devMode. Backend: `DELETE /admin/samples/todos`. Frontend: `useEliminarSamples.ts` + toast confirmación + cierre reproductor.
+
+### TAREAS PENDIENTES
 
 343. Tags feed no-compress: feedTagsLista debe tener scroll horizontal sin comprimir tags. Max 32 tags más comunes. Los tags NO se comprimen cuando la ventana se reduce, sino que se arrastran horizontalmente sin scrollbar visible.
     - Archivos: `FiltroTags.tsx`, `feedSamples.css`
@@ -374,6 +380,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [TarjetaPublicacion unificada]: Si dos vistas deben verse idénticas, DEBEN usar el MISMO componente. Nunca dos CSS separados para el mismo elemento visual. Extras de isla (botón seguir, comentarios) → props `avatarExtra` + `children`. `tarjetaPublicacion.css` es la única fuente de verdad; `comunidad.css` solo contiene layout de isla.
 - [EnlaceNavegacion + menú]: NUNCA anidar `<button>` dentro de `<a>` — HTML inválido; `stopPropagation` no es suficiente, el navegador igualmente activa el enlace. Patrón correcto: outer `<div className="tarjeta" style="position:relative">` → `<EnlaceNavegacion>` cubre portada+info con `overflow:hidden; border-radius` → `<div className="menuContenedor">` absolutamente posicionado FUERA del `<a>`. Cerrar menú con `useEffect` + `document.addEventListener('mousedown', ...)` (no `onBlur`).
 - [ColeccionDetalle editar]: Propietario detectado con `String(coleccion.usuarioId) === String(usuario.id)`. `itemsMenuColeccion` (useMemo con deps) genera el item "Editar" condicionalmente. `manejarGuardarEdicion` actualiza `coleccion` local tras editar sin refetch. `ModalColeccion` con prop `coleccion` entra en modo edición.
+- [GloryContext declaration merging]: `Glory/assets/react/tsconfig.json` incluye `App/React/` en su `include[]` — ambos proyectos compilan juntos vía `npm run type-check`. Para extender `GloryContext` (base en glory.ts del framework), usar declaration merging en `App/React/global.d.ts` añadiendo SOLO campos nuevos opcionales. PROHIBIDO re-declarar `userId` (cambia tipo `number` → `number | null`, rompe glory.ts). PROHIBIDO re-declarar `GLORY_CONTEXT` en Window (clash entre `GloryContext` y `Partial<GloryContext>`). Acceso seguro sin conflicto: `(window as unknown as Record<string, Partial<GloryContext> | undefined>).GLORY_CONTEXT?.devMode`.
+- [devMode en GLORY_CONTEXT]: PHP lee `AssetManager::isGlobalDevMode() || (defined('WP_DEBUG') && WP_DEBUG)` en `config.php` → expuesto en `glory_react_context` filter bajo key `devMode`. En React: `const devModeActivo = (window as unknown as Record<string, Partial<GloryContext> | undefined>).GLORY_CONTEXT?.devMode === true`. Comparar con `=== true` (no truthy) — el valor puede ser undefined si PHP no lo inyecta.
 
 ### CSS / UI
 
