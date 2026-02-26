@@ -45,8 +45,9 @@ const TarjetaKpi = ({
 );
 
 /*
- * C236: Gráfica de barras agrupadas — registros, uploads, descargas por día.
- * Barras lado a lado (no apiladas). Eje X con fechas. Colores distinguibles.
+ * C236+C350: Gráfica de barras rediseñada — registros, uploads, descargas por día.
+ * Barras agrupadas con tooltip CSS personalizado al hacer hover sobre cada día.
+ * Eje X con fechas, eje Y con escalones, grid lines de referencia.
  */
 const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => {
     const registros = datos?.registros ?? [];
@@ -79,10 +80,11 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
     const totalUpl = uploads.reduce((s, d) => s + d.total, 0);
     const totalDesc = descargas.reduce((s, d) => s + d.total, 0);
 
-    /* Formatear fecha corta: "17/02" */
+    /* Formatear fecha corta: "17 feb" */
     const formatearFecha = (f: string) => {
+        const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
         const partes = f.split('-');
-        return `${partes[2]}/${partes[1]}`;
+        return `${parseInt(partes[2], 10)} ${meses[parseInt(partes[1], 10) - 1]}`;
     };
 
     /* Calcular escalones del eje Y (4 líneas) */
@@ -90,9 +92,26 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
 
     return (
         <div className="adminGraficaContenedor">
-            <div className="adminGraficaTitulo">
-                <BarChart3 size={16} />
-                Actividad últimos 14 días
+            <div className="adminGraficaCabecera">
+                <div className="adminGraficaTitulo">
+                    <BarChart3 size={16} />
+                    Actividad últimos 14 días
+                </div>
+                {/* Leyenda compacta en cabecera */}
+                <div className="adminGraficaLeyenda">
+                    <span className="adminGraficaLeyendaItem">
+                        <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoRegistros" />
+                        Registros ({totalReg})
+                    </span>
+                    <span className="adminGraficaLeyendaItem">
+                        <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoUploads" />
+                        Uploads ({totalUpl})
+                    </span>
+                    <span className="adminGraficaLeyendaItem">
+                        <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoDescargas" />
+                        Descargas ({totalDesc})
+                    </span>
+                </div>
             </div>
 
             {/* Área de la gráfica con eje Y */}
@@ -125,21 +144,35 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
 
                             return (
                                 <div key={fecha} className="adminGraficaDia">
+                                    {/* Tooltip CSS — visible al hover del día */}
+                                    <div className="adminGraficaTooltip">
+                                        <span className="adminGraficaTooltipFecha">{formatearFecha(fecha)}</span>
+                                        <span className="adminGraficaTooltipLinea">
+                                            <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoRegistros" />
+                                            {reg}
+                                        </span>
+                                        <span className="adminGraficaTooltipLinea">
+                                            <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoUploads" />
+                                            {upl}
+                                        </span>
+                                        <span className="adminGraficaTooltipLinea">
+                                            <span className="adminGraficaLeyendaPunto adminGraficaLeyendaPuntoDescargas" />
+                                            {desc}
+                                        </span>
+                                    </div>
+
                                     <div className="adminGraficaDiaBarras">
                                         <div
                                             className="adminGraficaBarra adminGraficaBarraRegistros"
                                             style={{ height: `${(reg / maximo) * 100}%` }}
-                                            title={`Registros: ${reg}`}
                                         />
                                         <div
                                             className="adminGraficaBarra adminGraficaBarraUploads"
                                             style={{ height: `${(upl / maximo) * 100}%` }}
-                                            title={`Uploads: ${upl}`}
                                         />
                                         <div
                                             className="adminGraficaBarra adminGraficaBarraDescargas"
                                             style={{ height: `${(desc / maximo) * 100}%` }}
-                                            title={`Descargas: ${desc}`}
                                         />
                                     </div>
                                     {/* Mostrar fecha cada 2 días o si es el último */}
@@ -153,22 +186,6 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
                         })}
                     </div>
                 </div>
-            </div>
-
-            {/* Leyenda con totales del periodo */}
-            <div className="adminGraficaLeyenda">
-                <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--acento)' }} />
-                    Registros ({totalReg})
-                </span>
-                <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--info)' }} />
-                    Uploads ({totalUpl})
-                </span>
-                <span className="adminGraficaLeyendaItem">
-                    <span className="adminGraficaLeyendaPunto" style={{ background: 'var(--advertencia)' }} />
-                    Descargas ({totalDesc})
-                </span>
             </div>
         </div>
     );

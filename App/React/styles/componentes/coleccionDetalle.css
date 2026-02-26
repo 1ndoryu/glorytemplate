@@ -8,6 +8,7 @@
     flex-direction: column;
     gap: var(--espacioLg);
     padding: var(--espacioXl);
+    align-items: flex-start;
 }
 
 .coleccionVolver {
@@ -19,12 +20,13 @@
     color: var(--textoSecundario);
     font-size: var(--fuenteSm);
     cursor: pointer;
-    padding: 0;
+    padding: 0 !important;
     transition: color var(--transicionRapida);
 }
 
 .coleccionVolver:hover {
     color: var(--textoPrimario);
+    background: unset !important;
 }
 
 /* Header: imagen + info lado a lado */

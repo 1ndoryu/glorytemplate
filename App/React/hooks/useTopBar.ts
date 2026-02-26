@@ -81,10 +81,11 @@ export const useTopBar = () => {
         setMenuAbierto(true);
     }, []);
 
+    /* C352: Mostrar solo créditos disponibles, sin el límite total */
     const etiquetaCreditos = creditosInfo
         ? creditosInfo.ilimitado
             ? 'Créditos: ∞'
-            : `Créditos: ${creditosInfo.limite - creditosInfo.usadas}/${creditosInfo.limite}`
+            : `Créditos: ${creditosInfo.limite - creditosInfo.usadas}`
         : 'Créditos: ...';
 
     const alternarNotificaciones = useCallback(() => {

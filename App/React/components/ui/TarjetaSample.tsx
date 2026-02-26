@@ -30,6 +30,8 @@ interface TarjetaSampleProps {
     onClickCreador?: (username: string) => void;
     onComentar?: (sampleId: number) => void;
     onClickTitulo?: (sample: SampleResumen) => void;
+    /* C344: Callback al hacer click en un badge de metadata para filtrar */
+    onFiltrarMeta?: (texto: string) => void;
     className?: string;
 }
 
@@ -77,7 +79,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                 </div>
 
                 <div className="tarjetaMeta">
-                    <BadgesMetadata sample={sample} />
+                    <BadgesMetadata sample={sample} onFiltrar={props.onFiltrarMeta} />
                 </div>
             </div>
 
@@ -140,8 +142,14 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
 /*
  * Subcomponente: BadgesMetadata
  * Renderiza badges de metadata inteligente del sample (instrumento, género, emoción, BPM, tags).
+ * C344: Si onFiltrar está presente, los badges son clickables para filtrar la vista.
  */
-const BadgesMetadata = ({ sample }: { sample: SampleResumen }): JSX.Element => {
+interface BadgesMetadataProps {
+    sample: SampleResumen;
+    onFiltrar?: (texto: string) => void;
+}
+
+const BadgesMetadata = ({ sample, onFiltrar }: BadgesMetadataProps): JSX.Element => {
     const meta = sample.metadata;
     const badges: { texto: string; clave: string }[] = [];
     const usados = new Set<string>();
@@ -180,7 +188,17 @@ const BadgesMetadata = ({ sample }: { sample: SampleResumen }): JSX.Element => {
     return (
         <>
             {badges.map(({ texto, clave }) => (
-                <Badge key={clave} variante="neutro">{texto}</Badge>
+                <Badge
+                    key={clave}
+                    variante="neutro"
+                    className={onFiltrar ? 'tarjetaMetaBadgeClickable' : undefined}
+                    onClick={onFiltrar ? (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        onFiltrar(texto);
+                    } : undefined}
+                >
+                    {texto}
+                </Badge>
             ))}
         </>
     );

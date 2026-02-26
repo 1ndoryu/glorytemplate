@@ -15,7 +15,7 @@ interface BadgeProps {
     estilo?: EstiloBadge;
     tamano?: TamanoBadge;
     interactivo?: boolean;
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent) => void;
     children: ReactNode;
     className?: string;
 }

@@ -1,6 +1,7 @@
 /*
- * ArbolCarpetas — Panel lateral de carpetas para el explorador.
- * Muestra el arbol de carpetas con drag-drop y creacion inline.
+ * ArbolCarpetas — Panel lateral de carpetas para el explorador (C349).
+ * Muestra el árbol completo de carpetas con drag-drop y creación inline.
+ * Se muestra solo cuando el usuario activa el sidebar (oculto por defecto).
  */
 
 import { type RefObject } from 'react';
@@ -46,7 +47,6 @@ export const ArbolCarpetas = ({
     crearCarpetaAbierto,
     nuevaCarpetaNombre,
     inputCrearRef,
-    totalGeneral,
     seleccionarCarpeta,
     seleccionarSubcarpeta,
     toggleDesplegada,
@@ -100,19 +100,6 @@ export const ArbolCarpetas = ({
                 </BotonBase>
             </div>
         )}
-
-        <BotonBase
-            variante="ghost"
-            className={`exploradorCarpetaItem exploradorCarpetaTodas ${carpetaActiva === '' ? 'carpetaActiva' : ''}`}
-            onClick={() => seleccionarCarpeta('')}
-            type="button"
-        >
-            <FolderOpen size={16} />
-            <span className="exploradorCarpetaNombre">Todas</span>
-            <span className="exploradorCarpetaConteo">{totalGeneral}</span>
-        </BotonBase>
-
-        <div className="exploradorCarpetaSeparador" />
 
         {todasCarpetas.map((carpeta) => {
             const estaDesplegada = carpetasDesplegadas.has(carpeta.primaria);

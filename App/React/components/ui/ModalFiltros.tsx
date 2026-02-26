@@ -61,7 +61,7 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     return (
         <Modal abierto={abierto} onCerrar={onCerrar} tamano="pequeno">
             <div className="filtrosContenido">
-                <h3 className="filtrosTitulo">Filtros</h3>
+                {/* C345: Título eliminado — el Modal ya tiene su propio contexto visual */}
 
                 <div className="filtrosToggles">
                     {filtros.map((f) => (

@@ -17,6 +17,7 @@
     flex-direction: column;
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);
+    width: 100%;
 }
 
 .feedSamplesVacio {
@@ -84,6 +85,7 @@
 
 /* feedTagsAgrupados eliminado en C116 — ahora se usan SelectFiltro dropdowns */
 
+/* C343: flex-shrink: 0 evita que los tags se compriman al desbordarse */
 .feedTagItem {
     display: flex;
     padding: calc(var(--espacioXs) / 4) var(--espacioMd);
@@ -95,6 +97,7 @@
     font-size: var(--fuenteXs);
     transition: all 0.15s ease;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .feedTagItem:hover {

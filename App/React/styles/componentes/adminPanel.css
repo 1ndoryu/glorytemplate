@@ -77,21 +77,30 @@
     color: var(--textoTerciario);
 }
 
-/* GrÃ¡fica de actividad */
-/* C236: Gráfica de actividad reescrita — barras agrupadas, eje X/Y, colores distinguibles */
+/* Gráfica de actividad */
+/* C236+C350: Gráfica de barras rediseñada — tooltip CSS, cabecera con leyenda, hover por día */
 .adminGraficaContenedor {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--espacioMd);
+    border-radius: var(--radioMd);
     padding: var(--espacioXl);
     margin-bottom: var(--espacioXl);
+}
+
+/* Cabecera: título a la izquierda + leyenda a la derecha */
+.adminGraficaCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--espacioLg);
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
 }
 
 .adminGraficaTitulo {
     font-size: var(--fuenteMd);
     font-weight: 600;
     color: var(--textoPrimario);
-    margin-bottom: var(--espacioLg);
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
@@ -154,7 +163,7 @@
     padding-bottom: var(--espacioXl);
 }
 
-/* Grupo de un día: barras + etiqueta fecha */
+/* Grupo de un día: barras + etiqueta fecha + tooltip */
 .adminGraficaDia {
     flex: 1;
     display: flex;
@@ -162,30 +171,39 @@
     align-items: center;
     height: 100%;
     min-width: 0;
+    position: relative;
 }
 
-/* 3 barras lado a lado dentro del día */
+/* Highlight sutil al hover del día completo */
+.adminGraficaDia:hover .adminGraficaDiaBarras {
+    background: var(--fondoElevado1);
+}
+
+/* 3 barras lado a lado dentro del día — gap/padding mínimo para separación visual entre barras */
 .adminGraficaDiaBarras {
     display: flex;
     align-items: flex-end;
-    gap: 1px; /* Gap mÃ­nimo, difÃ­cil de mapear a variable standard */
+    gap: calc(var(--espacioXs) / 4);
     flex: 1;
     width: 100%;
     min-height: 0;
     overflow: hidden;
+    border-radius: var(--radioSm) var(--radioSm) 0 0;
+    padding: 0 calc(var(--espacioXs) / 4);
+    transition: background-color var(--transicionRapida);
 }
 
 /* Barra individual */
 .adminGraficaBarra {
     flex: 1;
-    border-radius: 2px 2px 0 0;
-    min-height: 2px;
-    transition: opacity 0.15s;
+    border-radius: var(--radioSm) var(--radioSm) 0 0;
+    min-height: calc(var(--espacioXs) / 4);
+    transition: filter 0.15s ease;
     cursor: pointer;
 }
 
-.adminGraficaBarra:hover {
-    opacity: 0.75;
+.adminGraficaDia:hover .adminGraficaBarra {
+    filter: brightness(1.15);
 }
 
 /* Colores distinguibles: verde, azul, naranja */
@@ -213,7 +231,7 @@
 .adminGraficaLeyenda {
     display: flex;
     gap: var(--espacioLg);
-    margin-top: var(--espacioMd);
+    flex-wrap: wrap;
 }
 
 .adminGraficaLeyendaItem {
@@ -228,6 +246,60 @@
     width: 8px;
     height: 8px;
     border-radius: var(--radioFull);
+}
+
+/* Colores de leyenda por clase — elimina inline styles */
+.adminGraficaLeyendaPuntoRegistros {
+    background: var(--acento);
+}
+
+.adminGraficaLeyendaPuntoUploads {
+    background: var(--info);
+}
+
+.adminGraficaLeyendaPuntoDescargas {
+    background: var(--advertencia);
+}
+
+/* Tooltip CSS — aparece al hover del día, sin JS */
+.adminGraficaTooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs) var(--espacioSm);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 4);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin-bottom: var(--espacioXs);
+}
+
+.adminGraficaDia:hover .adminGraficaTooltip {
+    opacity: 1;
+}
+
+.adminGraficaTooltipFecha {
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    margin-bottom: calc(var(--espacioXs) / 4);
+}
+
+.adminGraficaTooltipLinea {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
 }
 
 /* Tabla de usuarios */
@@ -504,10 +576,50 @@
     gap: var(--espacioXs);
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-    padding: 0.25rem 0.5rem;
+    padding: var(--espacioXs) var(--espacioSm);
     background: var(--fondoElevado2);
     border-radius: var(--radioSm);
     width: fit-content;
+}
+
+/*
+ * C351: Galería de imágenes en tarjeta de moderación.
+ * Muestra thumbnails con click para abrir en nueva pestaña.
+ */
+.adminModeracionImagenes {
+    display: flex;
+    gap: var(--espacioXs);
+    flex-wrap: wrap;
+    margin-top: var(--espacioXs);
+}
+
+.adminModeracionImagenLink {
+    display: block;
+    border-radius: var(--radioSm);
+    overflow: hidden;
+    border: 1px solid var(--bordeSutil);
+    transition: border-color var(--transicionRapida);
+}
+
+.adminModeracionImagenLink:hover {
+    border-color: var(--acento);
+}
+
+.adminModeracionImagen {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+}
+
+/* C351: Badge de razón de moderación */
+.adminModeracionRazon {
+    font-size: var(--fuenteXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background: var(--fondoElevado2);
+    color: var(--textoTerciario);
+    border-radius: var(--radioSm);
+    font-style: italic;
 }
 
 /* Historial IA: estilo más sutil */
@@ -520,7 +632,7 @@
 .adminBadge {
     font-size: var(--fuenteXs);
     font-weight: 600;
-    padding: 0.15rem 0.45rem;
+    padding: calc(var(--espacioXs) / 2) var(--espacioSm);
     border-radius: var(--radioSm);
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -558,12 +670,17 @@
     gap: var(--espacioSm);
 }
 
-/* Estado vacÃ­o */
+/* Estado vacío */
 .adminVacio {
     text-align: center;
     padding: var(--espacio3xl);
     color: var(--textoTerciario);
     font-size: var(--fuenteSm);
+}
+
+.adminVacioIcono {
+    margin-bottom: var(--espacioSm);
+    opacity: 0.5;
 }
 
 /* Cargando */

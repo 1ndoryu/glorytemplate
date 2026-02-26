@@ -67,6 +67,18 @@ class ServicioModeracionIA
             $resultados['contextual'] = AnalizadoresModeracion::analizarContextual($apiKey, $texto, $imagenes);
         }
 
+        /*
+         * C351: Si no hay texto ni imágenes (post audio-only), registrar razón explícita.
+         * Audio no puede analizarse con modelos de texto/visión, se aprueba con nota.
+         */
+        if (empty($resultados)) {
+            $resultados['sin_contenido_analizable'] = [
+                'nivel' => PublicacionesEnums::MODERACION_APROBADO,
+                'razon' => 'audio_sin_analisis',
+                'nota' => 'Post sin texto ni imágenes — contenido de audio no analizable por IA',
+            ];
+        }
+
         /* Determinar veredicto final (el más restrictivo gana) */
         $veredicto = self::determinarVeredicto($resultados);
 

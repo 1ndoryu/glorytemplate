@@ -9,12 +9,7 @@
     gap: var(--espacioLg);
 }
 
-.filtrosTitulo {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    margin: 0;
-}
+/* C345: filtrosTitulo eliminado — el modal ya provee contexto */
 
 .filtrosToggles {
     display: flex;
@@ -99,11 +94,13 @@
     padding-top: var(--espacioMd);
 }
 
-/* C274: Selector de precio free/premium */
+/* C274 + C345: Selector de precio free/premium con separación visual */
 .filtroPrecioSeccion {
     display: flex;
     flex-direction: column;
     gap: var(--espacioSm);
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
 }
 
 .filtroPrecioEtiqueta {
@@ -122,17 +119,18 @@
     padding: var(--espacio3xs);
 }
 
+/* C345: Borde sutil en cada opción para mayor claridad visual */
 .filtroPrecioBoton {
     flex: 1;
     padding: var(--espacioXs) var(--espacioMd);
-    border: none;
+    border: 1px solid var(--bordeSutil);
     background: none;
     color: var(--textoSecundario);
     font-size: var(--fuenteSm);
     font-weight: 500;
     border-radius: var(--radioSm);
     cursor: pointer;
-    transition: background var(--transicionRapida), color var(--transicionRapida);
+    transition: background var(--transicionRapida), color var(--transicionRapida), border-color var(--transicionRapida);
 }
 
 .filtroPrecioBoton:hover {

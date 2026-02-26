@@ -52,8 +52,10 @@ export interface UsuarioAdmin {
 export interface PublicacionModeracion {
     id: number;
     contenido: string;
+    imagenes: string[];
     moderacion_estado: string;
     moderacion_detalle: string | null;
+    moderacion_razon: string | null;
     created_at: string;
     username: string;
     nombre_visible: string;

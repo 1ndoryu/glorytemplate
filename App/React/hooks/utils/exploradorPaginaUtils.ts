@@ -6,13 +6,13 @@
 import type { CarpetaInfo } from '@app/services/apiExplorador';
 import type { SampleResumen } from '@app/types';
 
-/* Carpeta por defecto cuando el sample no tiene carpeta_primaria en metadata */
-export const CARPETA_DEFAULT = 'Samples';
+/* Carpeta vacía: el sample está suelto en raíz (sin carpeta asignada) */
+export const SIN_CARPETA = '';
 
 /* Extrae carpeta_primaria del metadata de un sample (soporta snake_case y camelCase) */
 export function obtenerCarpetaPrimaria(s: SampleResumen): string {
     const meta = s.metadata as Record<string, unknown> | undefined;
-    return (meta?.carpeta_primaria ?? meta?.carpetaPrimaria ?? CARPETA_DEFAULT) as string;
+    return (meta?.carpeta_primaria ?? meta?.carpetaPrimaria ?? SIN_CARPETA) as string;
 }
 
 /* Extrae carpeta_secundaria del metadata */

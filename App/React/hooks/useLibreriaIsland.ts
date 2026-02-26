@@ -4,7 +4,7 @@
  * Extraído de LibreriaIsland (SRP).
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { listarSamples } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
@@ -80,8 +80,22 @@ export function useLibreriaIsland() {
         };
     }, []);
 
-    /* Cargar datos según tab activa con cleanup */
+    /* Cargar datos según tab activa con cleanup.
+     * C346: Skip de re-fetch si los parámetros no cambiaron realmente
+     * (evita recarga al volver a la isla si el store global cambió
+     *  mientras estaba oculta pero el valor congelado resultante es el mismo). */
+    const ultimoFetchRef = useRef<{ tab: string; busqueda: string } | null>(null);
+
     useEffect(() => {
+        /* Si los parámetros son los mismos que el último fetch exitoso, no recargar */
+        if (
+            ultimoFetchRef.current &&
+            ultimoFetchRef.current.tab === tabActiva &&
+            ultimoFetchRef.current.busqueda === busqueda
+        ) {
+            return;
+        }
+
         let activo = true;
         setCargando(true);
 
@@ -106,6 +120,9 @@ export function useLibreriaIsland() {
                     });
                     if (!activo) return;
                     setSamples(resp.ok && resp.data ? (resp.data.data ?? []) : []);
+                }
+                if (activo) {
+                    ultimoFetchRef.current = { tab: tabActiva, busqueda };
                 }
             } catch {
                 if (activo) {

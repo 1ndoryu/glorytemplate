@@ -28,6 +28,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\KamplesLogger;
 
 class AdminController
@@ -265,13 +266,14 @@ class AdminController
             $reportes = ReportesRepository::listarPendientes($reportesLimit, $reportesOffset);
             $reportesTotal = ReportesRepository::contarPendientes();
 
-            /* C193: Fallback avatar moderación */
+            /* C193: Fallback avatar + C351: Parsear imagenes PG array para el frontend */
             foreach ($publicaciones as &$pub) {
                 $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
                     $pub[UsuariosExtCols::AVATAR_URL] ?? null,
                     isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
                 );
                 unset($pub[UsuariosExtCols::WP_USER_ID]);
+                $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
             }
             unset($pub);
 
@@ -370,13 +372,14 @@ class AdminController
 
             $publicaciones = PublicacionesRepository::listarModeradasRecientes($dias);
 
-            /* Fallback avatar */
+            /* Fallback avatar + C351: Parsear imagenes PG array */
             foreach ($publicaciones as &$pub) {
                 $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
                     $pub[UsuariosExtCols::AVATAR_URL] ?? null,
                     isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
                 );
                 unset($pub[UsuariosExtCols::WP_USER_ID]);
+                $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
             }
             unset($pub);
 
