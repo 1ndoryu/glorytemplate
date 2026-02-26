@@ -295,6 +295,13 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
     - Archivos: `useTopBar.ts` (formato de `etiquetaCreditos`)
     - Detalle: Cambiar formato de `${usados}/${limite}` a solo `${disponibles}`.
 
+353. ✅ [AG-EXP] Fix Sentinel + mejoras explorador:
+    - **Sentinel fixes:** `PublicacionesRepository.php` param key `'razon'` → `PublicacionesCols::MODERACION_RAZON`; `TabModeracionAdmin.tsx` `key={i}` → `key={url}`.
+    - **explorador.css:** `.exploradorCarpetas` ahora tiene `width: 100%` para que el borde llegue hasta abajo.
+    - **TarjetaCarpeta BotonBase override:** Especificidad `.exploradorCarpetasGrilla .tarjetaCarpeta.botonBase` neutraliza height/padding/justify sin `!important`.
+    - **Grid view drag fix:** `<img draggable={false}>` en TarjetaSampleCuadricula evita que el browser robe el drag nativo de la imagen. Agregado handle visual semi-transparente (GripVertical) en hover superior derecho.
+    - **Botón restaurar ubicación IA:** PipelineAudio ahora escribe `ia_carpeta_primaria`/`ia_carpeta_secundaria` inmutables. Botón RotateCcw en BarraHerramientasExplorador llama `restaurarTodosAOriginal()`. Lógica en `useRestaurarUbicacion.ts` (hook extraído de useExploradorPagina para cumplir límite 300 líneas).
+
 ---
 
 ## Notas y Decisiones (compactadas)
@@ -357,6 +364,8 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - [Sentinel]: Hooks excluidos de `usestate-excesivo` por nombre (`/^use[A-Z]/`). Cleanup patterns reconocidos: `return () =>`, AbortController, `activo = false`, `cancelled = true`, `cancelado = true`.
 - [Explorador]: Backend filtraba subcarpetas comparando `primaria/sub` contra `carpeta_primaria` (solo nivel 1). Formato con `/` requiere split+filtro dual. Para listas <500 items, filtrado client-side con useMemo es superior a API calls por carpeta (navegación instantánea vs recarga).
 - [Explorador/Sync]: `metadata.carpeta_secundaria` ya viene en la respuesta API normalizada. Sync debe leerla para colocar archivos en subcarpetas. `jsonb_set()` es atómico para mover samples sin sobreescribir otros campos metadata.
+- [Explorador/IA restore]: PipelineAudio escribe `ia_carpeta_primaria` e `ia_carpeta_secundaria` como campos inmutables en metadata JSONB. `moverACarpeta` solo toca `carpeta_primaria`/`carpeta_secundaria`, dejando los `ia_*` intactos. Para samples procesados antes de C353, los campos `ia_*` no existen — el botón restaurar queda inactivo para esos samples. Un SQL de backfill opcional: `UPDATE samples SET metadata = jsonb_set(jsonb_set(metadata, '{ia_carpeta_primaria}', metadata->'carpeta_primaria'), '{ia_carpeta_secundaria}', metadata->'carpeta_secundaria') WHERE metadata->>'ia_carpeta_primaria' IS NULL`.
+- [Explorador/Drag cuadricula]: Los `<img>` nativos son draggable por defecto. Si un `<img>` está dentro de un `<div draggable>`, el browser inicia drag de la imagen en vez del div padre. Fix: `<img draggable={false}>` en el hijo.
 
 - [apiSocial repost]: URLs correctas: `/publicaciones/${id}/repost` (POST=repostear, DELETE=quitarRepost). Antes estaban como `/repost/${id}` (incorrectas).
 - [Lightbox single/double click]: Patrón timer 220ms en `useRef<ReturnType<typeof setTimeout>>`: click inicia timer → si doble-click llega antes limpia timer y ejecuta like. `e.stopPropagation()` en `<img>` del lightbox para evitar cerrar al clickear la imagen.
