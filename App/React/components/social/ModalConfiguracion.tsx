@@ -8,6 +8,7 @@ import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X, Panel
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Modal } from '@app/components/ui/Modal';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useModalConfiguracion, type SeccionConfig } from '@app/hooks/useModalConfiguracion';
 import '../../styles/componentes/modalConfiguracion.css';
@@ -272,8 +273,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     };
 
     return (
-        <div className="configOverlay" onClick={(e) => e.target === e.currentTarget && manejarCerrar()} role="dialog" aria-modal="true">
-            <div className="configModal">
+        <Modal abierto={abierto && autenticado} onCerrar={manejarCerrar} className="configModalLayout">
                 {/* Panel de navegación lateral */}
                 <div className="configNavLateral">
                     <h3 className="configNavTitulo">Configuración</h3>
@@ -318,8 +318,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         </BotonBase>
                     </div>
                 </div>
-            </div>
-        </div>
+        </Modal>
     );
 };
 

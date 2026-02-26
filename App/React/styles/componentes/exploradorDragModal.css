@@ -124,7 +124,10 @@
     cursor: grabbing;
 }
 
-/* C338: Modal overlay "Mover a carpeta" */
+/* C338: Modal "Mover a carpeta" — migrado a componente Modal base.
+ * Las clases .exploradorModalOverlay, .exploradorModalContenido, .exploradorModalTitulo
+ * ya no se usan en el JSX. Se conservan temporalmente por si hay referencias externas.
+ * TO-DO: Eliminar estas reglas dead CSS en limpieza futura. */
 .exploradorModalOverlay {
     position: fixed;
     inset: 0;

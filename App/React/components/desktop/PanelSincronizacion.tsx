@@ -31,6 +31,7 @@ export const PanelSincronizacion = (): JSX.Element | null => {
 
     return (
         <>
+            {/* sentinel-disable-next-line componente-artesanal — panel dropdown posicionado, no un modal centrado */}
             <div className="dropdownOverlay" onClick={cerrarPanel} />
             <div className="sincPanel">
                 {/* Cabecera */}

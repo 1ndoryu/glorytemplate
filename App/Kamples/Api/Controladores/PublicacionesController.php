@@ -1,16 +1,8 @@
 <?php
 
 /**
- * PublicacionesController — Feed social de la comunidad (lectura + media).
- *
- * GET  /publicaciones                   — Feed de publicaciones
- * GET  /publicaciones/{id}              — Detalle
- * GET  /publicaciones/{id}/comentarios  — Listar comentarios
- * POST /publicaciones/imagenes          — Subir imagen
- *
- * Escritura delegada a PublicacionesEscrituraController.
- *
- * @package Kamples
+ * PublicacionesController — Feed social (lectura + media). Escritura en PublicacionesEscrituraController.
+ * Rutas: GET /publicaciones, GET /publicaciones/{id}, GET .../comentarios, POST .../imagenes.
  */
 
 namespace App\Kamples\Api\Controladores;
@@ -21,12 +13,11 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\NormalizadorPublicacion;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\FollowsCols;
-use App\Config\Schema\_generated\LikesEnums;
-use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\KamplesLogger;
 
 class PublicacionesController
@@ -117,21 +108,21 @@ class PublicacionesController
         $pTotLikes = PublicacionesCols::TOTAL_LIKES;
         $pCreAt = PublicacionesCols::CREATED_AT;
 
-        $userId = UsuarioHelper::obtenerIdPg();
-        if ($userId) {
+        $currentUserId = UsuarioHelper::obtenerIdPg();
+        if ($currentUserId) {
             $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado' OR ((p.{$pModEstado} = 'revision' OR p.{$pModEstado} = 'pendiente') AND p.{$pAutorId} = :currentUser))";
-            $params['currentUser'] = $userId;
+            $params['currentUser'] = $currentUserId;
         } else {
             $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado')";
         }
 
         if ($filtro === 'siguiendo') {
-            if ($userId) {
+            if ($currentUserId) {
                 $tf = FollowsCols::TABLA;
                 $fSeguidoId = FollowsCols::SEGUIDO_ID;
                 $fSeguidorId = FollowsCols::SEGUIDOR_ID;
                 $donde .= " AND p.{$pAutorId} IN (SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :userId)";
-                $params['userId'] = $userId;
+                $params['userId'] = $currentUserId;
             }
         }
 
@@ -145,98 +136,26 @@ class PublicacionesController
             ? "ORDER BY p.{$pTotLikes} DESC, p.{$pCreAt} DESC"
             : "ORDER BY p.{$pCreAt} DESC";
 
-        /* Obtener userId actual para campo liked */
-        $currentUserId = UsuarioHelper::obtenerIdPg();
-
         if ($currentUserId) {
             $params['current_user'] = $currentUserId;
         }
 
         $publicaciones = PublicacionesRepository::listarFeed($donde, $orderBy, $params);
 
-        /* Recopilar IDs de samples adjuntos para hacer una sola query */
-        $todosSamplesIds = [];
-        foreach ($publicaciones as $pub) {
-            /* Samples del post principal */
-            $ids = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
-            foreach ($ids as $id) {
-                if ($id > 0) {
-                    $todosSamplesIds[$id] = true;
-                }
-            }
-            /* Samples del post original (cuando es repost) */
-            $idsOrig = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
-            foreach ($idsOrig as $id) {
-                if ($id > 0) {
-                    $todosSamplesIds[$id] = true;
-                }
-            }
-        }
+        /* Recolectar todos los IDs de samples en una pasada (DRY via NormalizadorPublicacion) */
+        $samplesIds = NormalizadorPublicacion::extraerSamplesIds($publicaciones);
 
         $samplesMap = [];
-        if (!empty($todosSamplesIds)) {
-            $samplesData = SamplesRepository::buscarPorIds(\array_keys($todosSamplesIds), $currentUserId);
+        if (!empty($samplesIds)) {
+            $samplesData = SamplesRepository::buscarPorIds($samplesIds, $currentUserId);
             foreach ($samplesData as $s) {
                 $samplesMap[$s['id']] = NormalizadorSample::normalizar($s);
             }
         }
 
-        /* Enriquecer con contadores y parsear arrays PostgreSQL */
+        /* Enriquecer cada publicación con campos normalizados */
         foreach ($publicaciones as &$pub) {
-            $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
-            $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
-            $pub['totalReposts'] = (int) ($pub[PublicacionesCols::TOTAL_REPOSTS] ?? 0);
-            $pub['creadoAt'] = $pub[PublicacionesCols::CREATED_AT] ?? '';
-            $pub['liked'] = \in_array($pub['reaccion_usuario'] ?? null, [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true);
-            $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
-            unset($pub['reaccion_usuario']);
-            $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
-            $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
-            
-            $adjuntosIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
-            $adjuntos = [];
-            foreach ($adjuntosIds as $id) {
-                if (isset($samplesMap[$id])) {
-                    $adjuntos[] = $samplesMap[$id];
-                }
-            }
-            $pub['samplesAdjuntos'] = $adjuntos;
-
-            $pub['autor'] = [
-                'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
-                'username' => $pub[UsuariosExtCols::USERNAME],
-                'nombreVisible' => $pub[UsuariosExtCols::NOMBRE_VISIBLE],
-                'avatarUrl' => UsuarioHelper::resolverAvatarUrl($pub[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($pub[UsuariosExtCols::WP_USER_ID] ?? 0)),
-                'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
-            ];
-
-            /* Repost: si la publicación es un repost, incluir datos del original para el feed */
-            $pub['repostOriginal'] = null;
-            if (!empty($pub[PublicacionesCols::REPOST_ID])) {
-                $origSamplesIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
-                $origSamples = [];
-                foreach ($origSamplesIds as $sid) {
-                    if (isset($samplesMap[$sid])) {
-                        $origSamples[] = $samplesMap[$sid];
-                    }
-                }
-                $pub['repostOriginal'] = [
-                    'id'              => (int) ($pub['orig_id'] ?? 0),
-                    'contenido'       => $pub['orig_contenido'] ?? '',
-                    'imagenes'        => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
-                    'samplesAdjuntos' => $origSamples,
-                    'autor'           => [
-                        'id'            => (int) ($pub['orig_autor_id'] ?? 0),
-                        'username'      => $pub['orig_username'] ?? '',
-                        'nombreVisible' => $pub['orig_nombre_visible'] ?? '',
-                        'avatarUrl'     => UsuarioHelper::resolverAvatarUrl(
-                            $pub['orig_avatar_url'] ?? null,
-                            (int) ($pub['orig_wp_user_id'] ?? 0)
-                        ),
-                        'verificado'    => (bool) ($pub['orig_verificado'] ?? false),
-                    ],
-                ];
-            }
+            $pub = NormalizadorPublicacion::enriquecer($pub, $samplesMap);
         }
 
         return new \WP_REST_Response(['data' => $publicaciones, 'page' => $page], 200);
@@ -269,85 +188,18 @@ class PublicacionesController
             }
         }
 
-        /* Enriquecer — misma estructura que listarFeed para consistencia */
-        $pub['totalComentarios'] = (int) ($pub[PublicacionesCols::TOTAL_COMENTARIOS] ?? 0);
-        $pub['totalLikes'] = (int) ($pub[PublicacionesCols::TOTAL_LIKES] ?? 0);
-        $pub['totalReposts'] = (int) ($pub[PublicacionesCols::TOTAL_REPOSTS] ?? 0);
-        $pub['creadoAt'] = $pub[PublicacionesCols::CREATED_AT] ?? '';
-        $pub['liked'] = \in_array($pub['reaccion_usuario'] ?? null, [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true);
-        $pub['reaccion'] = $pub['reaccion_usuario'] ?? null;
-        unset($pub['reaccion_usuario']);
-        $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
-        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
-
-        $pub['autor'] = [
-            'id' => (int) $pub[PublicacionesCols::AUTOR_ID],
-            'username' => $pub[UsuariosExtCols::USERNAME],
-            'nombreVisible' => $pub[UsuariosExtCols::NOMBRE_VISIBLE],
-            'avatarUrl' => UsuarioHelper::resolverAvatarUrl(
-                $pub[UsuariosExtCols::AVATAR_URL] ?? null,
-                isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
-            ),
-            'verificado' => (bool) $pub[UsuariosExtCols::VERIFICADO],
-        ];
-
-        /* Samples adjuntos — recolectar IDs del post + repost original en una sola query */
-        $todosSamplesIds = [];
-        $adjuntosIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::SAMPLES_ADJUNTOS] ?? null));
-        foreach ($adjuntosIds as $sid) {
-            if ($sid > 0) {
-                $todosSamplesIds[$sid] = true;
-            }
-        }
-        $origSamplesIds = \array_map('intval', NormalizadorSample::pgArrayToPhp($pub['orig_samples_adjuntos'] ?? null));
-        foreach ($origSamplesIds as $sid) {
-            if ($sid > 0) {
-                $todosSamplesIds[$sid] = true;
-            }
-        }
+        /* Enriquecer usando NormalizadorPublicacion (DRY) */
+        $samplesIds = NormalizadorPublicacion::extraerSamplesIds([$pub]);
 
         $samplesMap = [];
-        if (!empty($todosSamplesIds)) {
-            $samplesData = SamplesRepository::buscarPorIds(\array_keys($todosSamplesIds), $currentUserId);
+        if (!empty($samplesIds)) {
+            $samplesData = SamplesRepository::buscarPorIds($samplesIds, $currentUserId);
             foreach ($samplesData as $s) {
                 $samplesMap[$s['id']] = NormalizadorSample::normalizar($s);
             }
         }
 
-        $adjuntos = [];
-        foreach ($adjuntosIds as $sid) {
-            if (isset($samplesMap[$sid])) {
-                $adjuntos[] = $samplesMap[$sid];
-            }
-        }
-        $pub['samplesAdjuntos'] = $adjuntos;
-
-        /* Repost: datos del post original */
-        $pub['repostOriginal'] = null;
-        if (!empty($pub[PublicacionesCols::REPOST_ID])) {
-            $origSamples = [];
-            foreach ($origSamplesIds as $sid) {
-                if (isset($samplesMap[$sid])) {
-                    $origSamples[] = $samplesMap[$sid];
-                }
-            }
-            $pub['repostOriginal'] = [
-                'id'              => (int) ($pub['orig_id'] ?? 0),
-                'contenido'       => $pub['orig_contenido'] ?? '',
-                'imagenes'        => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
-                'samplesAdjuntos' => $origSamples,
-                'autor'           => [
-                    'id'            => (int) ($pub['orig_autor_id'] ?? 0),
-                    'username'      => $pub['orig_username'] ?? '',
-                    'nombreVisible' => $pub['orig_nombre_visible'] ?? '',
-                    'avatarUrl'     => UsuarioHelper::resolverAvatarUrl(
-                        $pub['orig_avatar_url'] ?? null,
-                        (int) ($pub['orig_wp_user_id'] ?? 0)
-                    ),
-                    'verificado'    => (bool) ($pub['orig_verificado'] ?? false),
-                ],
-            ];
-        }
+        $pub = NormalizadorPublicacion::enriquecer($pub, $samplesMap);
 
         return new \WP_REST_Response(['data' => $pub], 200);
         } catch (\Throwable $e) {

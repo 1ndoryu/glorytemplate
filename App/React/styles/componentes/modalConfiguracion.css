@@ -1,32 +1,25 @@
 /*
  * modalConfiguracion.css — Kamples
  * Modal de configuración con panel lateral de navegación.
+ * Usa componente Modal base — overrides de layout para nav lateral.
  */
 
-/* Overlay fullscreen */
-.configOverlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--overlayOscuro);
-    backdrop-filter: blur(4px);
-}
-
-/* Modal principal — layout horizontal con nav lateral */
-.configModal {
-    display: flex;
+/* Override del contenedor Modal para tamaño y fondo del config */
+.modalContenedor.configModalLayout {
     background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
     width: 90vw;
     max-width: 720px;
     height: 80vh;
     max-height: 560px;
-    overflow: hidden;
     box-shadow: 0 var(--espacioXl) calc(var(--espacioXs) * 15) rgba(0, 0, 0, 0.4);
+}
+
+/* El cuerpo del Modal actua como flex row para nav + contenido */
+.configModalLayout .modalCuerpo {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    overflow: hidden;
 }
 
 /* Panel lateral de navegación */

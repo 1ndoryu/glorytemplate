@@ -3,16 +3,13 @@
  * Mini card de perfil estilo Threads.
  * Aparece al hacer clic en el icono de seguir sobre el avatar de un post.
  * Muestra: avatar grande, nombre, username, bio, seguidores, botón seguir.
+ * Logica en useCardPerfil (SRP).
  */
 
-import { useState, useEffect, useRef } from 'react';
 import Avatar from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import Badge from '@app/components/ui/Badge';
-import { obtenerPerfil } from '@app/services/apiAuth';
-import { seguirUsuario, dejarDeSeguir } from '@app/services/apiSocial';
-import { useAuthStore } from '@app/stores/authStore';
-import type { Usuario } from '@app/types/usuario';
+import { useCardPerfil } from '@app/hooks/useCardPerfil';
 import '../../styles/componentes/cardPerfil.css';
 
 interface CardPerfilProps {
@@ -22,71 +19,11 @@ interface CardPerfilProps {
 }
 
 export function CardPerfil({ username, onCerrar, onNavegar }: CardPerfilProps) {
-    const [perfil, setPerfil] = useState<Usuario | null>(null);
-    const [cargando, setCargando] = useState(true);
-    const [siguiendo, setSiguiendo] = useState(false);
-    const cardRef = useRef<HTMLDivElement>(null);
-    const usuarioActual = useAuthStore(s => s.usuario);
-
-    /* Cargar perfil al montar */
-    useEffect(() => {
-        let activo = true;
-        setCargando(true);
-        obtenerPerfil(username)
-            .then(resp => {
-                if (!activo) return;
-                setPerfil(resp.data ?? null);
-                setSiguiendo(resp.data?.siguiendo ?? false);
-            })
-            .catch(() => { /* sin-op */ })
-            .finally(() => { if (activo) setCargando(false); });
-        return () => { activo = false; };
-    }, [username]);
-
-    /* Cerrar al click fuera o Escape —
-     * setTimeout 50ms para no capturar el mismo click que abrió la card */
-    useEffect(() => {
-        const manejarClick = (e: MouseEvent) => {
-            if (cardRef.current && !cardRef.current.contains(e.target as Node)) onCerrar();
-        };
-        const manejarEscape = (e: KeyboardEvent) => { if (e.key === 'Escape') onCerrar(); };
-        const id = setTimeout(() => {
-            document.addEventListener('mousedown', manejarClick);
-            document.addEventListener('keydown', manejarEscape);
-        }, 50);
-        return () => {
-            clearTimeout(id);
-            document.removeEventListener('mousedown', manejarClick);
-            document.removeEventListener('keydown', manejarEscape);
-        };
-    }, [onCerrar]);
-
-    const manejarSeguir = async () => {
-        if (!perfil) return;
-        const estabaS = siguiendo;
-        setSiguiendo(!estabaS);
-        try {
-            const resp = estabaS
-                ? await dejarDeSeguir(perfil.id)
-                : await seguirUsuario(perfil.id);
-            if (!resp.ok) setSiguiendo(estabaS);
-        } catch {
-            setSiguiendo(estabaS);
-        }
-    };
-
-    const irAPerfil = () => {
-        if (!perfil) return;
-        onNavegar(`/perfil/${perfil.username}/`);
-        onCerrar();
-    };
-
-    const esPropio = perfil && (
-        String(perfil.wpUserId) === String(usuarioActual?.wpUserId) ||
-        String(perfil.id) === String(usuarioActual?.id)
-    );
+    const { perfil, cargando, siguiendo, cardRef, esPropio, manejarSeguir, irAPerfil } =
+        useCardPerfil({ username, onCerrar, onNavegar });
 
     return (
+        /* sentinel-disable-next-line componente-artesanal — popover posicionado, no un modal centrado. Modal lo centraria incorrectamente. */
         <div className="cardPerfilOverlay" onClick={onCerrar} aria-hidden="true">
         <div
             ref={cardRef}
