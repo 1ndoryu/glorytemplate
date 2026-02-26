@@ -13,6 +13,7 @@ import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 import { obtenerCarpetaPrimaria, obtenerCarpetaSecundaria, recalcularCarpetas } from './utils/exploradorPaginaUtils';
 import { useLikeExplorador } from './useLikeExplorador';
+import { useRestaurarUbicacion } from './useRestaurarUbicacion';
 
 const log = crearLogger('useExploradorPagina');
 
@@ -37,6 +38,10 @@ export interface UseExploradorPaginaResultado {
     /* C338: Drag state */
     sampleArrastrado: number | null;
     setSampleArrastrado: (id: number | null) => void;
+    /* Restaurar sample a su carpeta original asignada por IA */
+    restaurarUbicacionOriginal: (sampleId: number) => Promise<boolean>;
+    /* Restaurar TODOS los samples visibles a su carpeta IA original */
+    restaurarTodosAOriginal: () => Promise<void>;
 }
 
 export function useExploradorPagina(): UseExploradorPaginaResultado {
@@ -88,11 +93,19 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
     }, []);
 
     /*
-     * Filtrado client-side: samples visibles segun carpeta y subcarpeta activas.
-     * Sin API calls al navegar = transiciones instantaneas.
+     * Filtrado client-side tipo file manager:
+     * - Raiz (sin carpeta activa): solo samples sueltos (sin carpeta asignada)
+     * - Dentro de carpeta: samples de ese nivel (sin subcarpeta)
+     * - Dentro de subcarpeta: samples con carpeta+subcarpeta exacta
      */
     const samples = useMemo(() => {
-        if (!carpetaActiva) return todosSamples;
+        if (!carpetaActiva) {
+            /* Raiz: solo archivos sueltos (sin carpeta) */
+            return todosSamples.filter((s) => {
+                const primaria = obtenerCarpetaPrimaria(s);
+                return !primaria;
+            });
+        }
 
         return todosSamples.filter((s) => {
             const primaria = obtenerCarpetaPrimaria(s);
@@ -101,7 +114,9 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
                 const secundaria = obtenerCarpetaSecundaria(s);
                 return secundaria === subcarpetaActiva;
             }
-            return true;
+            /* Dentro de carpeta: solo samples sin subcarpeta */
+            const secundaria = obtenerCarpetaSecundaria(s);
+            return !secundaria;
         });
     }, [todosSamples, carpetaActiva, subcarpetaActiva]);
 
@@ -247,6 +262,12 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         toast.exito(`Carpeta "${nombre}" creada.`);
     }, [carpetas, carpetasLocales]);
 
+    /* Restaurar ubicación IA — lógica delegada a useRestaurarUbicacion */
+    const { restaurarUbicacionOriginal, restaurarTodosAOriginal } = useRestaurarUbicacion({
+        todosSamples,
+        moverSample,
+    });
+
     return {
         carpetas,
         samples,
@@ -264,5 +285,7 @@ export function useExploradorPagina(): UseExploradorPaginaResultado {
         crearCarpeta,
         sampleArrastrado,
         setSampleArrastrado,
+        restaurarUbicacionOriginal,
+        restaurarTodosAOriginal,
     };
 }

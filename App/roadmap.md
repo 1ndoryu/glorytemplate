@@ -1,7 +1,7 @@
 # Kamples — Roadmap Integral de Producto
 
-> **Versión:** 3.0  
-> **Última actualización:** 24/02/2026 (iteración v3.0 — compactación profunda)  
+> **Versión:** 4.0  
+> **Última actualización:** 26/02/2026 (iteración v4.0 — compactación + sprint UI/UX)  
 > **Stack base:** Glory Framework (WordPress + React Islands + TypeScript)  
 > **Competencia directa:** Splice
 
@@ -97,36 +97,29 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 - **SOLID PHP:** KamplesController 1713→60 lín (12 sub-controllers + 2 helpers + 3 servicios + 1 config). 5 migraciones SQL.
 - **Repository Pattern:** 27 controllers migrados, ~340 queries → 18 repos tipados. 0 PostgresService fuera de infraestructura.
 - **Schema System:** 18 schemas + 36 generados (Cols+DTO) + schema.ts, CLI, SchemaRegistry. 29 PHP migrados (~270 accesos). Enums 8 tablas.
-- **Sprint 5 SOLID:** 11 splits (A01-A12), 15 archivos nuevos, 11 <300 lín. GroqHttpClient, JsonRepairer, DetectorBpm/Tonalidad, FFmpegDetector, ProcesadorFFmpeg, DescargasStream/ZipController.
-- **React SRP (R74-R82):** ~50 componentes refactorizados a patrón componente+hook dedicado. ~50 hooks nuevos. Todas las islands, modales, y componentes DAW separados en vista+lógica. AbortController cleanup generalizado.
-- **Sentinel (R72-R73):** Code Sentinel mejorado (FPs eliminados: exec/json/controller/barras). 42 archivos Zustand migrados a selectores individuales (~90 llamadas). Detecciones: error-enmascarado, sanitizacion-faltante.
-- **Sentinel Sprint 5:** 5 nuevas reglas: `componente-artesanal` (detecta menus/modales artesanales vs MenuContextual/Modal), `fallo-sin-feedback` (catch sin toast), `update-optimista-sin-rollback` (set() sin rollback en catch), `fetch-sin-timeout` (fetch sin AbortController), `non-null-assertion-excesivo` (5+ `!` en archivo). Total: 48 reglas activas. 54 tests unitarios (Sprint 5). Fix brace counting en fallo-sin-feedback y update-optimista.
-- **Sentinel Scan Fixes (AG-TST):** 7 violaciones corregidas: CardPerfil→useCardPerfil hook (SRP+mousedown redundante), ModalEditar split 434→140 lín (3 sub-componentes FormularioEditar*), ModalConfiguracion+ModalMoverCarpeta migrados a `<Modal>`, PublicacionesController 448→299 lín (NormalizadorPublicacion helper DRY), PanelSincronizacion FP suppress.
-- **Hardcode SQL fix (R76):** 16 archivos, ~35 violaciones → Cols constants. key={index} fix (R77): 15 archivos → keys estables.
-- **Sentinel Fixes (AG-FIX):** Corregidas 23 violaciones de Sentinel. Creados componentes `Input`, `Checkbox` y `Radio` en `components/ui` para reemplazar inputs nativos. Agregados bloques try-catch a promesas sin catch en `useMenuContextualPublicacion.tsx`.
+- **Sprint 5 SOLID:** 11 splits, 15 archivos nuevos, 11 <300 lín.
+- **React SRP:** ~50 componentes + ~50 hooks nuevos. AbortController cleanup generalizado. 15 componentes DAW refactorizados.
+- **Sentinel:** 48 reglas activas, 54 tests. 42 Zustand→selectores (~90 llamadas). 325+ violaciones corregidas (86+ archivos). Componentes Input/Checkbox/Radio/SelectorBase creados en ui/.
+- **SQL fixes:** 16 archivos Cols constants, 15 archivos keys estables, 58/58 hallazgos SQL, Enums 4 tablas, 14 índices.
 
 ### Mezclador DAW
 
-- Aislado `/Mezclador/` (50+ archivos). Features: stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/detune/selección múltiple/20 pistas. SoundTouchJS pitch-independent. VentanaFlotante+ventanasStore. MinimapaDaw DOM+rAF. InputTempo FL-style. MonitorOnda canvas. MedidorPicos estéreo. PanelBrowserDaw.
-- **Channel Rack + Patterns + Mixer** (AG-TWO): patronesStore, mixerStore, motor audio mixer nodes+step playback. 14 componentes (7 CR + 7 Mixer). ClipPatron en PistaTimeline.
-- **Piano Roll** (AG-THRE): pianoRollStore+accionesNotas (~530 lín), 11 componentes (GridNotas canvas+DOM hybrid, TecladoPiano C0-B8, etc.), pianoRollAudioService. Pendiente: integración Channel Rack (sync steps↔notas).
-- **SRP DAW (R81-R82):** 15 componentes DAW refactorizados a hook dedicado.
+- Aislado `/Mezclador/` (50+ archivos). Features completas: stretch/drag/snap/zoom/undo/redo/corte/ghost/drift/clip/detune/selección múltiple/20 pistas. SoundTouchJS. VentanaFlotante.
+- **Channel Rack + Patterns + Mixer + Piano Roll:** patronesStore, mixerStore, pianoRollStore, motor audio. 25+ componentes. Pendiente: integración CR↔Piano Roll.
 
-### Auditorías y correcciones
+### Auditorías
 
-- **SQL (AG-SQL):** 58/58 hallazgos resueltos. Enums creados (Mensajes, Reportes, Publicaciones, Comentarios). Migración v021: 14 índices + 2 JSONB expression indexes.
-- **Seguridad PHP (AG-SEC):** 86 archivos auditados, 23 hallazgos. Command injection, INTERVAL whitelist. Doc: `auditoria-seguridad-php.md`.
-- **Profunda (AG-AUD):** 10 archivos deep audit, 39 hallazgos. Doc: `auditoria-profunda-10archivos.md`.
-- **React Frontend (AG-RFE):** 60 archivos auditados, 42 hallazgos. Error masking, rollback, AbortController. Doc: `auditoria-react-frontend.md`.
-- **Try-Catch (AG-TRY + R69):** 91 hallazgos detectados, ~73 corregidos. PHP 9 archivos, TS hooks 8, componentes/stores 7, islands 12. Patrón: snapshot→try{mutate+await}catch{rollback+toast}finally.
-- **Sprint 5 (R71):** P0 4/4, P1 26/26, P2 16/18, P3 3/4 resueltos. N+1 cache, Zustand selectores, RETURNING fallback, 6→3 queries dashboard.
+- **SQL/Seguridad/Profunda/React/Try-Catch:** 5 auditorías completadas, ~275 hallazgos totales, ~95% resueltos. Docs en `App/docs/`.
+- **Sprint 5:** P0 4/4, P1 26/26, P2 16/18, P3 3/4.
 
-### Explorador y Desktop features (R84-R92)
+### Social, Explorador y Desktop (R84-R93+AG-FIX+AG-COL)
 
-- Panel moderación fix, Tooltip global, SeccionPublicar perfiles, 4 MDs documentación (algoritmo, moderación, monetización, análisis DAW).
-- Explorador: filtrado client-side (useMemo, 0 API calls), subcarpetas, breadcrumbs, drag-drop HTML5, crear carpetas inline, modal "Mover a carpeta", `PUT /me/coleccionados/{id}/carpeta` (jsonb_set atómico).
-- Desktop: proxy Vite, URL rewriting, auth instantáneo, tray icon fix, panel sync (syncStore+usePanelSincronizacion), sync real bidireccional (`sincronizarConServidor`), drag-to-DAW nativo, auto-sync al coleccionar, `sincronizarSampleIndividual`.
-- Sync bidireccional completo: fileWatcherService (watch+debounce), uploadQueueService (FIFO+retries+hash dedup), move detection (grace period 5s), self-trigger guard, carpetas server → disco.
+- Repost completo (crear/eliminar/embebido/samples), TarjetaPublicacion unificada, PublicacionIsland, lightbox, actualización post en tiempo real, ModalEditar.
+- ColeccionDetalleIsland edición, ModalColeccion modo edición, endpoint POST imagen colección, fix nested `<a>`.
+- Explorador: filtrado client-side (useMemo), subcarpetas, breadcrumbs, drag-drop, crear carpetas, "Mover a carpeta", jsonb_set atómico.
+- Desktop Tauri 2.0: proxy Vite, URL rewriting, auth JWT, sync bidireccional, drag-to-DAW nativo, fileWatcher, uploadQueue.
+- Keep-alive SPA: MAX_CACHE_PAGES=20, useIslaActiva, useValorCongelado, tabsTopBarStore.tabsPorIsla.
+- Panel moderación, Tooltip global, SeccionPublicar perfiles, 4 MDs documentación.
 
 ---
 
@@ -134,24 +127,7 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 
 ### Fases 0-4 ✔ (completadas)
 
-- ✅ [AG-FIX] Fix repost (3 bugs): post vacío + DELETE no funcionaba + sin toast. `listarFeed` ahora LEFT JOIN con original; `eliminarRepost`+`recalcularReposts` en repo; DELETE route registrado; `ComunidadIsland` muestra bloque embebido del original con indicador "X reposteó"; toast de éxito/error en `manejarRepost`.
-- [Repost]: crearRepost inserta fila vacía con repost_id. El feed LEFT JOINea `publicaciones AS orig` + `usuarios_ext AS u_orig` para traer contenido original. Frontend usa `post.repostOriginal` para renderizar el bloque embebido. Si repostOriginal es null, se comporta como post normal.
-- [DELETE route WP]: Para soportar múltiples métodos en el mismo path, pasar array de arrays a `register_rest_route`: `[['methods'=>'POST',...], ['methods'=>'DELETE',...]]`.
-
-### TAREAS EN CURSO
-- ✅ [AG-FIX] Corregir violaciones de Sentinel reportadas en `.sentinel-report.md` (promise-sin-catch, html-nativo-en-vez-de-componente).
-- ✅ [AG-FIX] Centralizar render de posts en PerfilIsland: `TarjetaPublicacion` reemplaza inline render; `utils/tiempo.ts` centraliza `formatearTiempoRelativo` (eliminado duplicado de ComunidadIsland y TarjetaPublicacion); `usePerfilIsland` añade `manejarRepost`; CSS `.tarjetaPubRepostIndicador/.tarjetaPubRepostOriginal` añadido. Posts de /perfil/ ahora idénticos a /comunidad/ (fechas relativas, repost embebido, badge moderación, samples adjuntos).
-- ✅ [AG-FIX] ComunidadIsland migrada a TarjetaPublicacion (unificación visual). comunidad.css reducido de ~530 a 86 líneas.
-- ✅ [AG-FIX] Samples en reposts: fix frontend (TarjetaPublicacion), backend (SQL orig_samples_adjuntos + controlador), tipo TS (RepostOriginal.samplesAdjuntos).
-- ✅ [AG-FIX] Endpoint `obtener` enriquecido: nuevo método `obtenerConAutorCompleto` en repo con LEFT JOINs; mismo nivel de datos que `listarFeed` (totalReposts, creadoAt, liked, reaccion, moderacionEstado, samplesAdjuntos, repostOriginal con samples).
-- ✅ [AG-FIX] Página detalle publicación `/publicacion/{id}/`: PublicacionIsland + usePublicacionDetalle + CSS + ruta PHP + registro isla + MAPA_RUTAS + fecha clickeable en TarjetaPublicacion. Fix crítico: SPA callable props no se serializan → el hook extrae ID de `rutaActual` (URL), misma patrón que useSampleDetalle.
-- ✅ [AG-COL] TarjetaColeccion: refactor a MenuContextual (elimina dropdown artesanal), limpieza CSS. ColeccionDetalleIsland + useColeccionDetalle: editar colección desde 3-puntos. ModalColeccion: modo edición sin header, widget imagen con preview. LibreriaIsland: editar colecciones propias desde tab Explorar. Endpoint POST /colecciones/{id}/imagen implementado en ColeccionesCrudController.
-- ✅ [AG-COL] Fix nested `<a>` en TarjetaPublicacion: wrapper autor cambiado de EnlaceNavegacion a div, nombre con su propio enlace independiente (tarjetaPubNombreEnlace).
-- ✅ [AG-COL] Fix imagen colección: `subirImagen` y `actualizar` ahora escriben en `imagen_url` (campo canónico leído por `normalizarColeccion`). `actualizar` acepta `$body['imagenUrl']` (antes solo `portadaUrl` → ignorado). `ColeccionDetalleIsland` placeholder unificado a `obtenerImagenColorPorTexto(nombre)` (mismo que TarjetaColeccion/FilaColecciones).
-
-**Aprendizaje clave [SPA + callable props]:** `PageDefinition::getReactPageRoutes()` omite los props de rutas con callbacks PHP porque no son serializables a JSON. El cliente SPA resuelve la ruta por prefijo y pasa `props: {}` vacío. **Solución:** el hook siempre debe extraer su parámetro dinámico de `rutaActual` (useNavigationStore), usando la prop PHP solo como fallback. Ver `useSampleDetalle` como referencia del patrón.
-
-### FASE 5 — Chat Flotante (parcial)
+**TO-DOs de fases completadas:**
 
 - [x] ChatFlotante + multimedia (imágenes, audio, samples)
 - [ ] **5.3** WebSocket local (canales chat/notif, typing, online, read receipts)
@@ -256,35 +232,81 @@ Kamples es una plataforma de samples de audio con alma de red social, impulsada 
 320. Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes`
 321. - Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
 
-**Resueltos (C322-C342):** Menú contextual publicaciones (useMenuContextualPublicacion reutilizable), Tooltip global, explorador subcarpetas+file manager+drag-to-DAW nativo+sync bidireccional, panel moderación completo, 4 MDs documentación, SeccionPublicar perfiles, fases 9/11/12 planificadas, desktop Tauri 2.0 MVP+runtime fixes+auth+sync+drag+tray+auto-sync.
-
-**Resueltos (sesión AG-FIX post-342):** Like embebido sample en comunidad, crearAcciones visible, botones adjuntar en barra editarAcciones, quitar modalCabecera en editar publicacion, click imagen para reemplazar en ModalEditar, updated_at SQL fix, repost con API real (URL corregida + optimismo + rollback), actualización post en tiempo real tras edición (EVENTO_ENTIDAD_ACTUALIZADA listener), lightbox imagen (click=abrir, doble-click=like).
----
-
-## Notas y Decisiones
-
-1. **Almacenamiento:** WordPress uploads para local y VPS. Sin Nginx por ahora, servir con PHP.
-2. **IA:** Cadena 100% Groq. Audio Whisper (`whisper-large-v3` → turbo), metadata JSON con LLM Groq, imágenes Groq.
-3. **Stripe:** Keys live en .env (PRECAUCIÓN — usar test keys para desarrollo).
-4. **Google OAuth:** Keys vacías, integración lista para activar.
-5. **WebSocket:** Servidor local primero, migrar a Bun en VPS después.
-6. **FFmpeg:** Instalado via winget (v8.0.1). PHP/Apache usa `FFMPEG_PATH`/`FFPROBE_PATH` en `.env`.
-7. **VS Build Tools 2026:** v18, cl.exe 19.50.35724 x64 + CMake 4.1.2. Necesario para pgvector.
-8. **Chat:** Flotante tipo Messenger + /mensajes vista completa. Soporta: texto, imágenes, audio, samples.
-9. **Filtros:** Toggle on/off. Ordenamientos: Inteligente, Recientes, Top Semanal, Top Mensual (dropdown plano).
-10. **BPM:** Crudo en BD + normalizado (muy lento/lento/normal/rápido/muy rápido).
-11. **ModalCrear:** Sin BPM/Key/Tipo manuales — IA autogenera. Waveform + reproducción + iconos condiciones.
-12. **Colors/:** Lectura dinámica del directorio, no hardcodeado.
-13. **Naming IA:** `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs cortos alfanuméricos, urls soportan ID o slug.
-14. **Explorar eliminado:** Búsqueda/descubrimiento desde InicioIsland. Página `/explorar` removida.
-15. **Deduplicación:** Hash perceptual (primeros+últimos 4s) diferido. Mismo usuario permitido, entre usuarios → supervisión. Tabla `reportes_duplicados`.
-16. **JSON bilingüe:** tags/tags_es, emocion/emocion_es, descripcion/descripcion_es. NO impacta algoritmo ni embeddings (solo usan EN). Costo: ~200 tokens/req + ~40% más JSONB. Decisión: mantener.
+**Resueltos (C1-C342+AG-FIX+AG-COL):** Todos los comentarios anteriores resueltos. Incluye: repost completo, TarjetaPublicacion unificada, PublicacionIsland, ColeccionDetalle edición, like embebido, lightbox, explorador/desktop/Sentinel fixes, 4 MDs, etc.
 
 ---
 
-## Comentarios del usuario (resueltos — C1-C342)
+## Sprint UI/UX — C343-C352 (26/02/2026)
 
-Todos los comentarios C1-C342 han sido resueltos. Áreas cubiertas: FFmpeg, IA Groq, pipeline audio, moderación, pgvector, algoritmo, UI completa (TopBar/Sidebar/feeds/colecciones/SPA/chat/planes/admin), JSON repair, Stripe, reproductor, waveforms, reacciones, búsqueda, filtros, créditos, naming IA, deduplicación, verificación samples, Mezclador DAW completo (Channel Rack+Patterns+Mixer+Piano Roll), Schema System+Enums, Repository Pattern, 5 auditorías (SQL/seguridad/profunda/react/try-catch), React SRP (50+ componentes), Sentinel, desktop Tauri 2.0 (auth+sync+drag+explorador file-manager), documentación (4 MDs). Pendientes activos: C320 (Tab Reportes), C321 (Tab Monetización).
+### TAREAS EN CURSO
+
+343. Tags feed no-compress: feedTagsLista debe tener scroll horizontal sin comprimir tags. Max 32 tags más comunes. Los tags NO se comprimen cuando la ventana se reduce, sino que se arrastran horizontalmente sin scrollbar visible.
+    - Archivos: `FiltroTags.tsx`, `feedSamples.css`
+    - Detalle: `feedTagsLista` → `overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none`. Tags individuales → `flex-shrink: 0; white-space: nowrap`.
+
+344. tarjetaMeta clickable + filtro vista actual: Las metas de TarjetaSample (BPM, key, tipo, género) deben ser clickables para filtrar la vista actual (no el feed global). Hover: texto se pone blanco.
+    - Archivos: `TarjetaSample.tsx`, `MetasSample.tsx` (nuevo?), `tarjetaSample.css`, hooks de filtrado
+    - Detalle: Cada metaItem es clickable → aplica filtro en la vista/isla donde está (si estoy en Favoritos, filtra favoritos; si en Inicio, filtra inicio). Hover: `color: var(--blanco)`. Integrar con useFeedFiltros o crear callback genérico `onFiltrarMeta(tipo, valor)`.
+
+345. Rediseño filtroPrecio + borrar filtrosTitulo: Rediseñar filtroPrecioOpciones con bordes y efectos activos visibles. filtroPrecioSeccion dentro de borde con padding. Eliminar `filtrosTitulo` ("Filtros" h3).
+    - Archivos: `ModalFiltros.tsx`, `modalFiltros.css`
+    - Detalle: Quitar `<h3 className="filtrosTitulo">`. `filtroPrecioSeccion` → `border: 1px solid var(--bordeSutil); padding: var(--espacioMd); border-radius: var(--radioMd)`. `filtroPrecioBoton` → borde visible + efecto activo claro (no solo background). Diseño minimalista tipo segmented control.
+
+346. Fix librería recarga constante: La página de librería (LibreriaIsland) se recarga cada vez que se entra. Debería usar keep-alive y no refetchar.
+    - Archivos: `useLibreriaIsland.ts`, `LibreriaIsland.tsx`
+    - Detalle: Investigar si el hook usa useIslaActiva/useValorCongelado correctamente. Verificar que el effect de carga tiene guards de `activa` y no re-triggerea al navegar de vuelta. Patrón de referencia: useSampleDetalle con freeze.
+
+347. Botones volver consistentes: `botonBase varianteGhost tamanoMd coleccionVolver` inconsistente entre páginas (descarga vs explorador). Unificar el estilo del botón volver en todas las páginas.
+    - Archivos: `coleccionDetalle.css`, `explorador.css`, `DescargasIsland.tsx`, `ExploradorIsland.tsx`, `ColeccionDetalleIsland.tsx`
+    - Detalle: Crear clase compartida (ej: `botonVolver` en componentes/ui o clases globales) que no dependa del contexto CSS de colección. Verificar especificidad de `.botonBase.varianteGhost` no sobreescriba estilos needed.
+
+348. Subcarpetas alinear derecha: Los botones de `exploradorSubcarpetas` deben estar alineados a la derecha, no centrados.
+    - Archivos: `explorador.css` (`.exploradorSubcarpetasArea` o `.exploradorSubcarpetas`)
+    - Detalle: `justify-content: flex-end` en el contenedor de subcarpetas.
+
+349. **[CRÍTICA] Rediseño completo explorador tipo file manager:** El explorador actual NO emula un explorador real. Debe funcionar como Google Drive / Windows Explorer.
+    - Archivos: `ExploradorIsland.tsx`, `useExploradorIsland.ts`, `useExploradorPagina.ts`, `ArbolCarpetas.tsx`, `explorador.css` + nuevos componentes
+    - **Concepto core:**
+      - Al entrar al explorador: vista "raíz" muestra carpetas + samples sin carpeta (como "Escritorio" con archivos sueltos y carpetas juntos).
+      - Click en carpeta → entra a esa carpeta. Dentro: subcarpetas arriba + samples del nivel abajo (exactamente como explorador real).
+      - Navegación por click en carpeta en la lista principal, NO desde sidebar.
+      - ArbolCarpetas (sidebar) → colapsable, oculto por defecto. Se activa opcionalmente como referencia rápida.
+      - Eliminar concepto "carpeta Todas" — no tiene sentido en un explorador real.
+      - Breadcrumbs funcionales para navegar hacia atrás.
+    - **Componentes a crear/refactorizar:**
+      - `TarjetaCarpeta.tsx` — tarjeta visual de carpeta (icono folder + nombre + count items)
+      - `VistaExplorador.tsx` — layout principal (carpetas arriba en grid, samples abajo en lista)
+      - `BarraHerramientasExplorador.tsx` — breadcrumbs + vista toggle (grid/lista) + buscar + crear carpeta
+      - `useNavegacionCarpetas.ts` — hook con stack de navegación, carpetaActual, entrar/salir
+    - **Estado:** carpetaActual (null = raíz), historial[], vista (grid/lista)
+    - **Datos:** Filtrado client-side con useMemo (ya existe patrón), no API calls por carpeta
+
+350. Rediseño gráfica admin "Actividad últimos 14 días": Reemplazar vista actual por gráfica de barras rediseñada con diseño limpio, tooltips, labels claros.
+    - Archivos: `TabResumenAdmin.tsx`, `useAdminPanel.ts`, CSS admin
+    - Detalle: Gráfica de barras CSS-only (div con heights proporcionales) o canvas simple. Colores del theme. Tooltips en hover mostrando valor exacto. Eje X con fechas cortas. Eje Y implícito (escala automática). Responsive.
+
+351. Moderación: manejo de posts con audio + imágenes en panel:
+    - **Log sin razón:** El log `ModeracionIA: Veredicto` no muestra la razón. Verificar que el servicio pasa el campo `razon` correctamente.
+    - **Posts con audio quedan en revisión:** El flujo de moderación no maneja posts que tienen audio adjunto. Si un post tiene audio, debe procesarse (ej: aprobar texto+imagen, audio pasa sin revisión de contenido IA por ahora, pero el post no debe quedarse "en revisión" indefinidamente).
+    - **Imágenes no salen en panel moderación:** Los posts aprobados o en moderación no muestran sus imágenes adjuntas en la vista de moderación del admin panel.
+    - Archivos: `ServicioModeracionIA.php`, `AnalizadoresModeracion.php`, `LogModeracion.php`, `TabResumenAdmin.tsx` o componente de moderación.
+
+352. Créditos sin mostrar límite: En el menú contextual de usuario, en vez de "Créditos: 5/5", mostrar solo "Créditos: 5". Cuando llegue al límite, "Créditos: 0". No es necesario mostrar el tope.
+    - Archivos: `useTopBar.ts` (formato de `etiquetaCreditos`)
+    - Detalle: Cambiar formato de `${usados}/${limite}` a solo `${disponibles}`.
+
+---
+
+## Notas y Decisiones (compactadas)
+
+- **Almacenamiento:** WP uploads local+VPS. **IA:** Groq 100% (Whisper+LLM). **Stripe:** keys live en .env.
+- **WebSocket:** Local primero → Bun VPS después. **FFmpeg:** winget v8.0.1, paths en .env.
+- **Chat:** Flotante Messenger + /mensajes. Soporta texto/imágenes/audio/samples.
+- **Filtros:** Toggle on/off. Ordenamientos: Inteligente/Recientes/Top Semanal/Top Mensual.
+- **ModalCrear:** Sin BPM/Key/Tipo manuales (IA autogenera). **Colors/:** dinámico.
+- **Naming IA:** `kamples_{tipo}_{genero}_{usuario}_{idCorto}.wav`. IDs cortos, urls ID o slug.
+- **Deduplicación:** Hash perceptual diferido. Mismo usuario OK, entre usuarios → supervisión.
+- **JSON bilingüe:** tags/emocion/descripcion en EN+ES. No impacta algoritmo.
 
 ---
 

@@ -98,3 +98,16 @@ export const moverSampleACarpeta = async (
         return { ok: false, data: null, error: 'Error de red', status: 500 };
     }
 };
+
+/*
+ * Restaurar un sample a su carpeta original asignada por la IA.
+ * Lee ia_carpeta_primaria/ia_carpeta_secundaria del metadata y llama al endpoint de mover.
+ * Retorna null si el sample no tiene datos de carpeta IA (samples antiguos sin el campo).
+ */
+export const restaurarCarpetaOriginal = async (
+    sampleId: number,
+    iaCarpetaPrimaria: string,
+    iaCarpetaSecundaria: string
+): Promise<RespuestaApi<RespuestaMoverSample>> => {
+    return moverSampleACarpeta(sampleId, iaCarpetaPrimaria, iaCarpetaSecundaria);
+};

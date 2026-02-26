@@ -1,68 +1,66 @@
 /*
- * Estilos: explorador.css — Kamples (C281)
- * Página Explorador: vista de carpetas + samples coleccionados.
- * Diseño tipo file-explorer con árbol de carpetas a la izquierda.
+ * Estilos: explorador.css — Kamples (C281 + C349)
+ * Página Explorador: vista file-manager real con carpetas navegables.
+ * Sidebar colapsable oculto por defecto, barra de herramientas con breadcrumbs.
  */
 
 /* Contenedor principal del explorador */
 .explorador {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioMd);
+    gap: var(--espacioSm);
     padding: var(--espacioLg);
     height: 100%;
     overflow-y: auto;
 }
 
-/* Header con título y stats — z-index bajo para no tapar botones de samples (C290) */
-.exploradorHeader {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioLg);
-    padding-bottom: var(--espacioMd);
-    border-bottom: 1px solid var(--bordeSutil);
-    position: relative;
-    z-index: 0;
-}
-
-.exploradorHeaderImg {
-    width: 80px;
-    height: 80px;
-    border-radius: var(--radioMd);
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.exploradorHeaderInfo {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.exploradorNombre {
-    font-size: var(--fuenteXl);
-    font-weight: 700;
-    color: var(--textoPrimario);
-    margin: 0;
-}
-
-.exploradorMeta {
+/*
+ * C349: Barra de herramientas — sidebar toggle + breadcrumbs + controles.
+ * Reemplaza el header viejo con imagen.
+ */
+.exploradorBarra {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    font-size: var(--fuenteSm);
-    color: var(--textoSecundario);
+    padding: var(--espacioXs) 0;
+    border-bottom: 1px solid var(--bordeSutil);
+    min-height: 40px;
+    flex-shrink: 0;
 }
 
-/* Layout de dos columnas: carpetas | samples — z-index 1 para estar sobre header (C290) */
+.exploradorBarraControles {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    margin-left: auto;
+}
+
+.exploradorBarraBoton {
+    color: var(--textoSecundario);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.exploradorBarraBoton:hover {
+    color: var(--textoPrimario);
+}
+
+.exploradorBarraBotonActivo {
+    color: var(--acento);
+}
+
+/* C349: Layout — sin sidebar por defecto, con sidebar si tiene clase */
 .exploradorContenido {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 1fr;
     gap: var(--espacioLg);
     flex: 1;
     min-height: 0;
     position: relative;
     z-index: 1;
+}
+
+.exploradorContenido.exploradorConSidebar {
+    grid-template-columns: 220px 1fr;
 }
 
 /* Panel de carpetas (izquierda) */
@@ -73,6 +71,7 @@
     overflow-y: auto;
     padding-right: var(--espacioSm);
     border-right: 1px solid var(--bordeSutil);
+    width: 100%;
 }
 
 .exploradorCarpetaTitulo {
@@ -200,18 +199,15 @@
     flex-shrink: 0;
 }
 
-/* Boton "Todas" para ver todos los samples */
-.exploradorCarpetaTodas {
-    font-weight: 600;
-    color: var(--textoPrimario);
-    margin-bottom: var(--espacioXs);
-}
+/* Boton "Todas" eliminado en C349 — ahora raíz muestra carpetas */
 
-/* Separador entre "Todas" y las carpetas */
-.exploradorCarpetaSeparador {
-    height: 1px;
-    background-color: var(--bordeSutil);
-    margin: var(--espacioXs) 0;
+/* Separador de cabecera del panel lateral */
+.exploradorCarpetaCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--espacioXs);
+    margin-bottom: var(--espacioXs);
 }
 
 /* Panel de samples (derecha) */
@@ -295,6 +291,31 @@
     padding: var(--espacioXs);
 }
 
+/* Indicador visual de drag en cuadricula */
+.exploradorCuadriculaDraggable {
+    position: relative;
+    cursor: grab;
+}
+
+.exploradorCuadriculaDraggable:active {
+    cursor: grabbing;
+}
+
+.exploradorDragHandleCuadricula {
+    position: absolute;
+    top: var(--espacioXs);
+    right: var(--espacioXs);
+    color: var(--textoTerciario);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.exploradorCuadriculaDraggable:hover .exploradorDragHandleCuadricula {
+    opacity: 1;
+}
+
 .tarjetaCuadricula {
     display: flex;
     flex-direction: column;
@@ -372,9 +393,35 @@
     text-decoration: underline;
 }
 
-/* Responsive: en móvil, carpetas arriba */
+
+/*
+ * Override completo de BotonBase para tarjetas de carpeta.
+ * Especificidad alta (.exploradorCarpetasGrilla .tarjetaCarpeta.botonBase)
+ * neutraliza height/padding/justify de BotonBase sin usar !important.
+ */
+.exploradorCarpetasGrilla .tarjetaCarpeta.botonBase {
+    height: auto;
+    min-height: auto;
+    padding: var(--espacioLg);
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--bordeSutil);
+    background: var(--fondoBase);
+    color: var(--textoPrimario);
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    gap: var(--espacioXs);
+}
+
+.exploradorCarpetasGrilla .tarjetaCarpeta.botonBase:hover {
+    background-color: var(--fondoElevado1);
+    border-color: var(--acento);
+}
+
+/* Responsive: en móvil, sidebar se oculta totalmente, carpetas como chips */
 @media (max-width: 768px) {
-    .exploradorContenido {
+    .exploradorContenido.exploradorConSidebar {
         grid-template-columns: 1fr;
     }
 
@@ -403,12 +450,16 @@
         white-space: nowrap;
     }
 
-    .exploradorCarpetaSeparador {
-        display: none;
-    }
-
     .exploradorBreadcrumbs {
         flex-wrap: wrap;
+    }
+
+    .exploradorCarpetasGrilla {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+
+    .exploradorCarpetaCabecera {
+        display: none;
     }
 }
 
@@ -458,17 +509,26 @@
     user-select: none;
 }
 
-/* Subcarpetas como tarjetas navegables en el area principal */
-.exploradorSubcarpetasArea {
+/*
+ * C349: Grid de carpetas en el área principal (reemplaza exploradorSubcarpetasArea).
+ * Se usa para mostrar carpetas del nivel actual como tarjetas navegables.
+ */
+.exploradorCarpetasGrilla {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: var(--espacioSm);
     padding-bottom: var(--espacioMd);
     border-bottom: 1px solid var(--bordeSutil);
     margin-bottom: var(--espacioSm);
 }
 
-.exploradorSubcarpetaTarjeta {
+.exploradorSubcarpetasAlineadas .tarjetaCarpeta {
+    width: 140px;
+    flex-shrink: 0;
+}
+
+/* TarjetaCarpeta — tarjeta visual de carpeta tipo file manager */
+.tarjetaCarpeta {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -484,18 +544,25 @@
         transform 0.1s ease;
 }
 
-.exploradorSubcarpetaTarjeta:hover {
+.tarjetaCarpeta:hover {
     background-color: var(--fondoElevado1);
     border-color: var(--acento);
-    transform: translateY(-1px);
 }
 
-.exploradorSubcarpetaTarjeta svg {
+.tarjetaCarpetaDragOver {
+    border-color: var(--acento);
+    background-color: var(--fondoElevado2);
+    box-shadow: 0 0 0 2px var(--acento);
+}
+
+.tarjetaCarpetaIcono {
     color: var(--acento);
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.exploradorSubcarpetaTarjetaNombre {
+.tarjetaCarpetaNombre {
     font-size: var(--fuenteSm);
     font-weight: 600;
     color: var(--textoPrimario);
@@ -506,9 +573,16 @@
     max-width: 100%;
 }
 
-.exploradorSubcarpetaTarjetaConteo {
+.tarjetaCarpetaConteo {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
+}
+
+/* Breadcrumbs — ahora dentro de la barra de herramientas */
+.exploradorBreadcrumbFragmento {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 /* Texto de carpetas vacias en sidebar */
@@ -516,4 +590,19 @@
     padding: var(--espacioSm);
     color: var(--textoTerciario);
     font-size: var(--fuenteXs);
+}
+
+/* C349: Formulario crear carpeta inline en area principal (cuando sidebar está oculto) */
+.exploradorCrearCarpetaDialog {
+    display: flex;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm);
+    background: var(--fondoElevado1);
+    border-radius: var(--radioSm);
+    margin-bottom: var(--espacioSm);
+}
+
+.exploradorCrearCarpetaInput {
+    flex: 1;
+    min-width: 0;
 }

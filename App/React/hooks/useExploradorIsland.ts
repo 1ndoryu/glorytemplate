@@ -12,6 +12,11 @@ import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { toast } from '@app/stores/toastStore';
 import { obtenerEstadoSyncSample, toggleSyncSample, estaEnDesktop } from '@app/hooks/useEstadoSync';
 
+export interface BreadcrumbSegmento {
+    label: string;
+    onClick: () => void;
+}
+
 export const useExploradorIsland = () => {
     const pagina = useExploradorPagina();
     const navegar = useNavigationStore(s => s.navegar);
@@ -27,6 +32,8 @@ export const useExploradorIsland = () => {
     const [moverModalAbierto, setMoverModalAbierto] = useState(false);
     const [sampleParaMover, setSampleParaMover] = useState<number | null>(null);
     const [carpetaDragOver, setCarpetaDragOver] = useState<string | null>(null);
+    /* C349: Sidebar oculto por defecto, toggle manual */
+    const [sidebarAbierto, setSidebarAbierto] = useState(false);
     const inputCrearRef = useRef<HTMLInputElement>(null);
 
     const islaActual = useNavigationStore(s => s.islaActual);
@@ -114,6 +121,58 @@ export const useExploradorIsland = () => {
         return todasCarpetas.find(c => c.primaria === pagina.carpetaActiva) ?? null;
     }, [todasCarpetas, pagina.carpetaActiva]);
 
+    /*
+     * C349: Carpetas visibles en el nivel actual de navegación.
+     * Raíz → todas las carpetas primarias.
+     * Dentro de carpeta → subcarpetas de esa carpeta.
+     */
+    const carpetasVisibles = useMemo(() => {
+        if (!pagina.carpetaActiva) {
+            return todasCarpetas.map(c => ({
+                nombre: c.primaria,
+                total: c.total,
+                esSubcarpeta: false,
+            }));
+        }
+        if (!pagina.subcarpetaActiva && carpetaActivaInfo) {
+            return carpetaActivaInfo.subcarpetas.map(s => ({
+                nombre: s.nombre,
+                total: s.total,
+                esSubcarpeta: true,
+            }));
+        }
+        return [];
+    }, [pagina.carpetaActiva, pagina.subcarpetaActiva, todasCarpetas, carpetaActivaInfo]);
+
+    /*
+     * C349: Breadcrumb segments para BarraHerramientasExplorador.
+     * Raíz: ["Explorador"]
+     * Carpeta: ["Explorador", "NombreCarpeta"]
+     * Subcarpeta: ["Explorador", "NombreCarpeta", "NombreSubcarpeta"]
+     */
+    const breadcrumbSegmentos = useMemo((): BreadcrumbSegmento[] => {
+        const segmentos: BreadcrumbSegmento[] = [
+            { label: 'Explorador', onClick: () => pagina.seleccionarCarpeta('') },
+        ];
+        if (pagina.carpetaActiva) {
+            segmentos.push({
+                label: pagina.carpetaActiva,
+                onClick: () => pagina.seleccionarCarpeta(pagina.carpetaActiva),
+            });
+        }
+        if (pagina.subcarpetaActiva) {
+            segmentos.push({
+                label: pagina.subcarpetaActiva,
+                onClick: () => { /* ultimo segmento: no navega */ },
+            });
+        }
+        return segmentos;
+    }, [pagina.carpetaActiva, pagina.subcarpetaActiva, pagina.seleccionarCarpeta]);
+
+    const toggleSidebar = useCallback(() => {
+        setSidebarAbierto(prev => !prev);
+    }, []);
+
     const mostrarSubcarpetasEnArea = pagina.carpetaActiva && !pagina.subcarpetaActiva
         && carpetaActivaInfo && carpetaActivaInfo.subcarpetas.length > 0;
 
@@ -171,6 +230,10 @@ export const useExploradorIsland = () => {
 
     const totalGeneral = todasCarpetas.reduce((acc, c) => acc + c.total, 0);
 
+    const manejarRestaurarTodos = useCallback(async () => {
+        await pagina.restaurarTodosAOriginal();
+    }, [pagina.restaurarTodosAOriginal]);
+
     return {
         ...pagina,
         navegar,
@@ -184,6 +247,8 @@ export const useExploradorIsland = () => {
         moverModalAbierto,
         setMoverModalAbierto,
         carpetaDragOver,
+        sidebarAbierto,
+        toggleSidebar,
         inputCrearRef,
         manejarClickTitulo,
         manejarComentar,
@@ -195,8 +260,11 @@ export const useExploradorIsland = () => {
         manejarCrearCarpeta,
         abrirMoverModal,
         manejarMoverDesdeModal,
+        manejarRestaurarTodos,
         todasCarpetas,
         carpetaActivaInfo,
+        carpetasVisibles,
+        breadcrumbSegmentos,
         mostrarSubcarpetasEnArea,
         menuItemsExtendidos,
         totalGeneral,

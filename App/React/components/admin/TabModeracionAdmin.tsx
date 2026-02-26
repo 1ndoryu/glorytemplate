@@ -43,6 +43,36 @@ const BadgeEstado = ({ estado }: { estado: string }): JSX.Element => {
     );
 };
 
+/* C351: Galería de imágenes adjuntas en tarjeta de moderación */
+const GaleriaImagenes = ({ imagenes }: { imagenes: string[] }): JSX.Element | null => {
+    if (!imagenes || imagenes.length === 0) return null;
+    return (
+        <div className="adminModeracionImagenes">
+            {imagenes.map((url) => (
+                <a
+                    key={url}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="adminModeracionImagenLink"
+                >
+                    <img src={url} alt="Imagen adjunta" className="adminModeracionImagen" loading="lazy" />
+                </a>
+            ))}
+        </div>
+    );
+};
+
+/* C351: Badge de razón de moderación (si existe) */
+const BadgeRazon = ({ razon }: { razon: string | null }): JSX.Element | null => {
+    if (!razon) return null;
+    return (
+        <span className="adminModeracionRazon">
+            {razon}
+        </span>
+    );
+};
+
 export const TabModeracionAdmin = ({
     moderacion,
     historialModeracion,
@@ -60,7 +90,7 @@ export const TabModeracionAdmin = ({
     if (sinContenido) {
         return (
             <div className="adminVacio">
-                <CheckCircle size={24} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
+                <CheckCircle size={24} className="adminVacioIcono" />
                 <div>Todo en orden. No hay contenido pendiente de moderación.</div>
             </div>
         );
@@ -86,6 +116,7 @@ export const TabModeracionAdmin = ({
                                         {pub.nombre_visible || pub.username}
                                     </span>
                                     <BadgeEstado estado={pub.moderacion_estado} />
+                                    <BadgeRazon razon={pub.moderacion_razon} />
                                     <span className="adminModeracionFecha">
                                         {formatearFechaRelativa(pub.created_at)}
                                     </span>
@@ -93,6 +124,7 @@ export const TabModeracionAdmin = ({
                                 <div className="adminModeracionContenido">
                                     {pub.contenido}
                                 </div>
+                                <GaleriaImagenes imagenes={pub.imagenes} />
                                 {pub.moderacion_detalle && (
                                     <div className="adminModeracionDetalle">
                                         <Eye size={12} />
@@ -186,6 +218,7 @@ export const TabModeracionAdmin = ({
                                         {pub.nombre_visible || pub.username}
                                     </span>
                                     <BadgeEstado estado={pub.moderacion_estado} />
+                                    <BadgeRazon razon={pub.moderacion_razon} />
                                     <span className="adminModeracionFecha">
                                         {formatearFechaRelativa(pub.created_at)}
                                     </span>
@@ -193,6 +226,7 @@ export const TabModeracionAdmin = ({
                                 <div className="adminModeracionContenido">
                                     {pub.contenido}
                                 </div>
+                                <GaleriaImagenes imagenes={pub.imagenes} />
                                 {pub.moderacion_detalle && (
                                     <div className="adminModeracionDetalle">
                                         <Eye size={12} />

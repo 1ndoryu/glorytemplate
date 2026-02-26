@@ -52,6 +52,7 @@ export const TarjetaSampleCuadricula = ({ sample, onClickTitulo, onMenu }: Props
                     src={imagenPortada}
                     alt={sample.titulo}
                     loading="lazy"
+                    draggable={false}
                 />
                 {/* Overlay play/pause visible en hover y durante reproducción */}
                 <div className={`tarjetaCuadriculaOverlay ${reproduciendo ? 'tarjetaCuadriculaOverlayActivo' : ''}`}>

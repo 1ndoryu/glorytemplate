@@ -1,19 +1,22 @@
 /*
- * ExploradorIsland — Kamples (C281)
- * Página /explorador: vista tipo file-explorer para samples coleccionados.
+ * ExploradorIsland — Kamples (C281 + C349)
+ * Página /explorador: vista tipo file-manager real para samples coleccionados.
+ * Raíz muestra carpetas + archivos sueltos. Click en carpeta entra al nivel inferior.
+ * Sidebar colapsable oculto por defecto. Barra de herramientas con breadcrumbs.
  * Lógica en useExploradorIsland, carpetas en ArbolCarpetas, modal en ModalMoverCarpeta.
  */
 
-import { FolderOpen, ArrowLeft, Folder, LayoutGrid, List, ChevronLeft, GripVertical } from 'lucide-react';
-import { BotonBase } from '@app/components/ui/BotonBase';
+import { FolderOpen, GripVertical } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadricula';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { SyncBadge } from '@app/components/ui/SyncBadge';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
-import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useExploradorIsland } from '@app/hooks/useExploradorIsland';
 import { ArbolCarpetas } from '@app/components/explorador/ArbolCarpetas';
+import { TarjetaCarpeta } from '@app/components/explorador/TarjetaCarpeta';
+import { BarraHerramientasExplorador } from '@app/components/explorador/BarraHerramientasExplorador';
 import { ModalMoverCarpeta } from '@app/components/explorador/ModalMoverCarpeta';
 import '../../styles/componentes/explorador.css';
 import '../../styles/componentes/exploradorDragModal.css';
@@ -24,7 +27,6 @@ const ExploradorBase = (): JSX.Element => {
         cargando,
         carpetaActiva,
         subcarpetaActiva,
-        totalSamples,
         carpetasDesplegadas,
         carpetaDragOver,
         sampleArrastrado,
@@ -38,6 +40,8 @@ const ExploradorBase = (): JSX.Element => {
         setNuevaCarpetaNombre,
         moverModalAbierto,
         setMoverModalAbierto,
+        sidebarAbierto,
+        toggleSidebar,
         inputCrearRef,
         manejarClickTitulo,
         manejarComentar,
@@ -49,9 +53,10 @@ const ExploradorBase = (): JSX.Element => {
         manejarCrearCarpeta,
         manejarMoverDesdeModal,
         manejarLike,
+        manejarRestaurarTodos,
         todasCarpetas,
-        carpetaActivaInfo,
-        mostrarSubcarpetasEnArea,
+        carpetasVisibles,
+        breadcrumbSegmentos,
         menuItemsExtendidos,
         totalGeneral,
         seleccionarCarpeta,
@@ -67,117 +72,101 @@ const ExploradorBase = (): JSX.Element => {
         );
     }
 
+    const tieneCarpetas = carpetasVisibles.length > 0;
+    const tieneArchivos = samples.length > 0;
+
     return (
         <div className="explorador" id="seccionExplorador">
-            <BotonBase variante="ghost" className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
-                <ArrowLeft size={18} />
-                <span>Librería</span>
-            </BotonBase>
+            {/* Barra de herramientas: sidebar toggle + breadcrumbs + controles */}
+            <BarraHerramientasExplorador
+                segmentos={breadcrumbSegmentos}
+                vistaActiva={vistaActiva}
+                onCambiarVista={setVistaActiva}
+                onCrearCarpeta={() => setCrearCarpetaAbierto(prev => !prev)}
+                onToggleSidebar={toggleSidebar}
+                onRestaurarTodos={manejarRestaurarTodos}
+                sidebarAbierto={sidebarAbierto}
+            />
 
-            <div className="exploradorHeader">
-                <img className="exploradorHeaderImg" src={obtenerImagenColor(2001)} alt="Explorador" />
-                <div className="exploradorHeaderInfo">
-                    <h1 className="exploradorNombre">Explorador</h1>
-                    <div className="exploradorMeta">
-                        <span>{totalSamples} sample{totalSamples !== 1 ? 's' : ''} coleccionados</span>
-                    </div>
-                </div>
-                <div className="exploradorVistaToggle">
-                    <BotonBase
-                        variante="ghost"
-                        soloIcono
-                        className={`exploradorVistaBoton ${vistaActiva === 'lista' ? 'exploradorVistaActiva' : ''}`}
-                        onClick={() => setVistaActiva('lista')}
-                        type="button"
-                        title="Vista lista"
-                    >
-                        <List size={18} />
-                    </BotonBase>
-                    <BotonBase
-                        variante="ghost"
-                        soloIcono
-                        className={`exploradorVistaBoton ${vistaActiva === 'cuadricula' ? 'exploradorVistaActiva' : ''}`}
-                        onClick={() => setVistaActiva('cuadricula')}
-                        type="button"
-                        title="Vista cuadrícula"
-                    >
-                        <LayoutGrid size={18} />
-                    </BotonBase>
-                </div>
-            </div>
+            <div className={`exploradorContenido ${sidebarAbierto ? 'exploradorConSidebar' : ''}`}>
+                {/* Sidebar: árbol de carpetas, visible solo cuando sidebarAbierto es true */}
+                {sidebarAbierto && (
+                    <ArbolCarpetas
+                        todasCarpetas={todasCarpetas}
+                        carpetaActiva={carpetaActiva}
+                        subcarpetaActiva={subcarpetaActiva}
+                        carpetasDesplegadas={carpetasDesplegadas}
+                        carpetaDragOver={carpetaDragOver}
+                        cargando={cargando}
+                        crearCarpetaAbierto={crearCarpetaAbierto}
+                        nuevaCarpetaNombre={nuevaCarpetaNombre}
+                        inputCrearRef={inputCrearRef}
+                        totalGeneral={totalGeneral}
+                        seleccionarCarpeta={seleccionarCarpeta}
+                        seleccionarSubcarpeta={seleccionarSubcarpeta}
+                        toggleDesplegada={toggleDesplegada}
+                        setCrearCarpetaAbierto={setCrearCarpetaAbierto}
+                        setNuevaCarpetaNombre={setNuevaCarpetaNombre}
+                        manejarCrearCarpeta={manejarCrearCarpeta}
+                        manejarDragOver={manejarDragOver}
+                        manejarDragLeave={manejarDragLeave}
+                        manejarDropEnCarpeta={manejarDropEnCarpeta}
+                    />
+                )}
 
-            {carpetaActiva && (
-                <div className="exploradorBreadcrumbs">
-                    <BotonBase variante="ghost" tamano="sm" className="exploradorBreadcrumbItem" onClick={() => seleccionarCarpeta('')} type="button">
-                        <ChevronLeft size={14} />
-                        <span>Todas</span>
-                    </BotonBase>
-                    <span className="exploradorBreadcrumbSeparador">/</span>
-                    <BotonBase
-                        variante="ghost"
-                        tamano="sm"
-                        className={`exploradorBreadcrumbItem ${!subcarpetaActiva ? 'exploradorBreadcrumbActivo' : ''}`}
-                        onClick={() => seleccionarCarpeta(carpetaActiva)}
-                        type="button"
-                    >
-                        <span>{carpetaActiva}</span>
-                    </BotonBase>
-                    {subcarpetaActiva && (
-                        <>
-                            <span className="exploradorBreadcrumbSeparador">/</span>
-                            <span className="exploradorBreadcrumbItem exploradorBreadcrumbActivo">
-                                {subcarpetaActiva}
-                            </span>
-                        </>
-                    )}
-                </div>
-            )}
-
-            <div className="exploradorContenido">
-                <ArbolCarpetas
-                    todasCarpetas={todasCarpetas}
-                    carpetaActiva={carpetaActiva}
-                    subcarpetaActiva={subcarpetaActiva}
-                    carpetasDesplegadas={carpetasDesplegadas}
-                    carpetaDragOver={carpetaDragOver}
-                    cargando={cargando}
-                    crearCarpetaAbierto={crearCarpetaAbierto}
-                    nuevaCarpetaNombre={nuevaCarpetaNombre}
-                    inputCrearRef={inputCrearRef}
-                    totalGeneral={totalGeneral}
-                    seleccionarCarpeta={seleccionarCarpeta}
-                    seleccionarSubcarpeta={seleccionarSubcarpeta}
-                    toggleDesplegada={toggleDesplegada}
-                    setCrearCarpetaAbierto={setCrearCarpetaAbierto}
-                    setNuevaCarpetaNombre={setNuevaCarpetaNombre}
-                    manejarCrearCarpeta={manejarCrearCarpeta}
-                    manejarDragOver={manejarDragOver}
-                    manejarDragLeave={manejarDragLeave}
-                    manejarDropEnCarpeta={manejarDropEnCarpeta}
-                />
-
+                {/* Área principal: carpetas del nivel actual + samples */}
                 <div className="exploradorSamples">
-                    {mostrarSubcarpetasEnArea && carpetaActivaInfo && (
-                        <div className="exploradorSubcarpetasArea">
-                            {carpetaActivaInfo.subcarpetas.map((sub) => (
-                                <BotonBase
-                                    key={sub.nombre}
-                                    variante="ghost"
-                                    className="exploradorSubcarpetaTarjeta"
-                                    onClick={() => seleccionarSubcarpeta(carpetaActiva, sub.nombre)}
-                                    type="button"
-                                >
-                                    <Folder size={20} />
-                                    <span className="exploradorSubcarpetaTarjetaNombre">{sub.nombre}</span>
-                                    <span className="exploradorSubcarpetaTarjetaConteo">
-                                        {sub.total} sample{sub.total !== 1 ? 's' : ''}
-                                    </span>
-                                </BotonBase>
+                    {/* Formulario crear carpeta inline (se muestra al pulsar FolderPlus en barra) */}
+                    {crearCarpetaAbierto && !sidebarAbierto && (
+                        <div className="exploradorCrearCarpetaDialog">
+                            <CampoTexto
+                                ref={inputCrearRef}
+                                className="exploradorCrearCarpetaInput"
+                                type="text"
+                                placeholder={carpetaActiva ? 'Nombre subcarpeta...' : 'Nombre carpeta...'}
+                                value={nuevaCarpetaNombre}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNuevaCarpetaNombre(e.target.value)}
+                                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                                    if (e.key === 'Enter') manejarCrearCarpeta();
+                                    if (e.key === 'Escape') setCrearCarpetaAbierto(false);
+                                }}
+                                maxLength={100}
+                            />
+                        </div>
+                    )}
+
+                    {/* Grid de carpetas del nivel actual */}
+                    {tieneCarpetas && (
+                        <div className={`exploradorCarpetasGrilla ${carpetaActiva ? 'exploradorSubcarpetasAlineadas' : ''}`}>
+                            {carpetasVisibles.map((c) => (
+                                <TarjetaCarpeta
+                                    key={c.nombre}
+                                    nombre={c.nombre}
+                                    totalItems={c.total}
+                                    esDragOver={carpetaDragOver === (c.esSubcarpeta ? `${carpetaActiva}/${c.nombre}` : c.nombre)}
+                                    onClick={() => {
+                                        if (c.esSubcarpeta) {
+                                            seleccionarSubcarpeta(carpetaActiva, c.nombre);
+                                        } else {
+                                            seleccionarCarpeta(c.nombre);
+                                        }
+                                    }}
+                                    onDragOver={(e) => manejarDragOver(e, c.esSubcarpeta ? `${carpetaActiva}/${c.nombre}` : c.nombre)}
+                                    onDragLeave={manejarDragLeave}
+                                    onDrop={(e) => {
+                                        if (c.esSubcarpeta) {
+                                            manejarDropEnCarpeta(e, carpetaActiva, c.nombre);
+                                        } else {
+                                            manejarDropEnCarpeta(e, c.nombre);
+                                        }
+                                    }}
+                                />
                             ))}
                         </div>
                     )}
 
-                    {samples.length === 0 && !mostrarSubcarpetasEnArea ? (
+                    {/* Lista/cuadrícula de samples del nivel actual */}
+                    {!tieneArchivos && !tieneCarpetas ? (
                         <div className="exploradorVacio">
                             <FolderOpen size={32} />
                             <p>
@@ -192,7 +181,7 @@ const ExploradorBase = (): JSX.Element => {
                             {samples.map((sample) => (
                                 <div
                                     key={sample.id}
-                                    className="exploradorSampleDraggable"
+                                    className={`exploradorSampleDraggable exploradorCuadriculaDraggable ${sampleArrastrado === sample.id ? 'exploradorSampleArrastrado' : ''}`}
                                     draggable
                                     onDragStart={(e) => {
                                         e.dataTransfer.setData('sampleId', String(sample.id));
@@ -200,6 +189,9 @@ const ExploradorBase = (): JSX.Element => {
                                     }}
                                     onDragEnd={manejarDragEnd}
                                 >
+                                    <span className="exploradorDragHandleCuadricula" title="Arrastrar a carpeta">
+                                        <GripVertical size={12} />
+                                    </span>
                                     <SyncBadge sampleId={sample.id} />
                                     <TarjetaSampleCuadricula
                                         sample={sample}
@@ -209,7 +201,7 @@ const ExploradorBase = (): JSX.Element => {
                                 </div>
                             ))}
                         </div>
-                    ) : (
+                    ) : tieneArchivos ? (
                         <div className="listaDeSamples">
                             {samples.map((sample) => (
                                 <div
@@ -237,7 +229,7 @@ const ExploradorBase = (): JSX.Element => {
                                 </div>
                             ))}
                         </div>
-                    )}
+                    ) : null}
                 </div>
             </div>
 

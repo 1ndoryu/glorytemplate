@@ -189,6 +189,9 @@ class PipelineAudio
                 'carpeta_primaria'     => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
                 /* C289: Fallback 'General' si la IA devuelve null/vacio para carpeta_secundaria */
                 'carpeta_secundaria'   => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
+                /* Copia inmutable de la clasificacion IA — no se modifica al mover manualmente */
+                'ia_carpeta_primaria'  => $metadataIA['carpeta_primaria'] ?? SamplesRepository::CARPETA_DEFAULT,
+                'ia_carpeta_secundaria' => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
                 'key_confianza'        => $analisisTecnico['key_confianza'],
             ]);

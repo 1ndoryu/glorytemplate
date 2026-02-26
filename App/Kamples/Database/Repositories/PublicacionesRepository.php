@@ -71,8 +71,10 @@ class PublicacionesRepository extends BaseRepository
         return static::consultar(
             "SELECT p." . PublicacionesCols::ID
             . ", p." . PublicacionesCols::CONTENIDO
+            . ", p." . PublicacionesCols::IMAGENES
             . ", p." . PublicacionesCols::MODERACION_ESTADO
             . ", p." . PublicacionesCols::MODERACION_DETALLE
+            . ", p." . PublicacionesCols::MODERACION_RAZON
             . ", p." . PublicacionesCols::CREATED_AT
             . ", u." . UsuariosExtCols::USERNAME
             . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
@@ -121,8 +123,10 @@ class PublicacionesRepository extends BaseRepository
         return static::consultar(
             "SELECT p." . PublicacionesCols::ID
             . ", p." . PublicacionesCols::CONTENIDO
+            . ", p." . PublicacionesCols::IMAGENES
             . ", p." . PublicacionesCols::MODERACION_ESTADO
             . ", p." . PublicacionesCols::MODERACION_DETALLE
+            . ", p." . PublicacionesCols::MODERACION_RAZON
             . ", p." . PublicacionesCols::CREATED_AT
             . ", u." . UsuariosExtCols::USERNAME
             . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
@@ -438,16 +442,26 @@ class PublicacionesRepository extends BaseRepository
     /*
      * Actualizar estado y detalle JSON del veredicto de moderación IA.
      * Usado por ServicioModeracionIA tras analizar publicación.
+     * C351: Ahora también guarda moderacion_razon extraída del veredicto.
      */
     public static function actualizarVeredictoModeracion(int $id, string $estado, string $detalle): void
     {
         $tabla = PublicacionesCols::TABLA;
+
+        /* Extraer razón del JSON de detalle para guardarla en columna dedicada */
+        $razon = '';
+        $detalleDecoded = \json_decode($detalle, true);
+        if (\json_last_error() === JSON_ERROR_NONE && isset($detalleDecoded['razon'])) {
+            $razon = \mb_substr((string) $detalleDecoded['razon'], 0, 255);
+        }
+
         static::ejecutar(
             "UPDATE {$tabla} SET "
                 . PublicacionesCols::MODERACION_ESTADO . " = :estado, "
-                . PublicacionesCols::MODERACION_DETALLE . " = :detalle"
+                . PublicacionesCols::MODERACION_DETALLE . " = :detalle, "
+                . PublicacionesCols::MODERACION_RAZON . " = :" . PublicacionesCols::MODERACION_RAZON
                 . " WHERE " . PublicacionesCols::ID . " = :id",
-            ['estado' => $estado, 'detalle' => $detalle, 'id' => $id]
+            ['estado' => $estado, 'detalle' => $detalle, PublicacionesCols::MODERACION_RAZON => $razon, 'id' => $id]
         );
     }
 }
