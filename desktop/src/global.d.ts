@@ -21,8 +21,8 @@ interface Window {
         elegirCarpetaSync: () => Promise<string | null>;
         toggleSincronizacion: (activa: boolean) => Promise<void>;
         obtenerConfigSync: () => { carpetaLocal: string | null; sincronizacionActiva: boolean; ultimaSync: number };
-        sincronizarConServidor: (onProgreso?: unknown) => Promise<{ nuevos: number; eliminados: number }>;
-        sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null>;
+        sincronizarConServidor: (onProgreso?: (progreso: { actual: number; total: number; sampleId: number; nombre: string; estado: 'descargando' | 'descargado' | 'error'; tamano?: number; ruta?: string }) => void) => Promise<{ nuevos: number; eliminados: number }>;
+        sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string, coleccionId?: number) => Promise<string | null>;
         obtenerRutaLocal: (sampleId: number) => string | null;
         obtenerEstadoSync: (sampleId: number) => 'sincronizado' | 'no_sincronizar' | 'no_descargado';
         marcarNoSincronizarPorId: (sampleId: number) => Promise<boolean>;
@@ -36,7 +36,11 @@ interface Window {
         eliminarItemCola: (itemId: string) => Promise<void>;
     };
     __KAMPLES_DRAG__?: {
-        iniciarDragNativo: (rutaArchivo: string, iconoUrl: string) => Promise<void>;
+        iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean>;
+    };
+    /* Configuración del servidor para apiDesktopAdapter */
+    __KAMPLES_CONFIG__?: {
+        serverUrl?: string;
     };
 }
 

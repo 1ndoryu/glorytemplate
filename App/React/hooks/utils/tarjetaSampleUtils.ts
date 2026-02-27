@@ -25,7 +25,7 @@ export const obtenerDragService = (): {
  * Retorna null si no estamos en desktop.
  */
 export const obtenerSyncService = (): {
-    sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null>;
+    sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string, coleccionId?: number) => Promise<string | null>;
     obtenerRutaLocal: (sampleId: number) => string | null;
 } | null => {
     const sync = window.__KAMPLES_SYNC__;

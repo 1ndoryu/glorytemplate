@@ -1,18 +1,17 @@
 /*
- * Servicio de sincronización de archivos de audio.
+ * Servicio de sincronización de archivos de audio (v2).
  * Gestiona la carpeta local donde se sincroniza la librería del usuario.
+ *
+ * v2: Basado en colecciones del servidor. Cada colección = carpeta local.
+ * Usa syncTrackingService para persistencia tipada y syncCollectionService
+ * para la lógica de mapeo colecciones ↔ carpetas.
  *
  * Flujo:
  * 1. Usuario elige carpeta de sincronización (dialog de Tauri)
- * 2. Se crea un índice local de archivos descargados
- * 3. Al conectar, compara con el servidor y descarga/elimina diferencias
- * 4. Archivos se nombran con su nombre local original
- * 5. Re-descargas usan el nombre generado por el servidor
- *
- * TO-DO: Archivo excede 300 lineas (681). Dividir en:
- * - syncConfigService.ts (config, índice, guardar/cargar store)
- * - syncDownloadService.ts (sincronizarConServidor, sincronizarSampleIndividual)
- * - syncStateService.ts (estado no_sincronizar, reactivar, bidireccional)
+ * 2. GET /me/sync/colecciones obtiene colecciones + samples
+ * 3. Crea carpetas locales por colección, descarga samples nuevos
+ * 4. Archivos se nombran con el nombre del servidor
+ * 5. El tracking basado en sampleId+coleccionId evita duplicados
  */
 
 import { esDesktop, estaOnline } from './desktopService';
@@ -97,6 +96,10 @@ let indiceArchivos: ArchivoLocal[] = [];
 let pollingCarpetasInterval: ReturnType<typeof setInterval> | null = null;
 const POLLING_CARPETAS_MS = 60_000; /* Cada 60s sincronizar estructura de carpetas */
 
+/* C355: Referencia al módulo de tracking v2, cargado en init */
+let trackingModule: typeof import('./syncTrackingService') | null = null;
+let collectionModule: typeof import('./syncCollectionService') | null = null;
+
 /*
  * Guard contra auto-trigger del watcher.
  * Cuando syncService descarga archivos a la carpeta local, el watcher lo detecta
@@ -107,8 +110,8 @@ const descargasEnCurso = new Set<string>();
 const GRACIA_DESCARGA_MS = 10_000; /* Ignorar creates propios por 10s post-descarga */
 
 /*
- * Inicializa el servicio de sync: carga config e índice.
- * C341: También inicializa fileWatcher y uploadQueue para sync bidireccional.
+ * Inicializa el servicio de sync: carga config, tracking v2 y migra si necesario.
+ * C355: Ahora usa syncTrackingService para persistencia tipada.
  */
 export async function inicializarSyncService(): Promise<void> {
     if (!esDesktop()) return;
@@ -120,10 +123,28 @@ export async function inicializarSyncService(): Promise<void> {
         const configGuardada = await store.get<SyncConfig>(STORE_KEY_CONFIG);
         if (configGuardada) config = configGuardada;
 
+        /* Cargar índice v1 legacy por compatibilidad con funciones internas */
         const indiceGuardado = await store.get<ArchivoLocal[]>(STORE_KEY_INDICE);
         if (indiceGuardado) indiceArchivos = indiceGuardado;
     } catch {
         /* Config no disponible — usar defaults */
+    }
+
+    /* C355: Inicializar tracking v2 y migrar datos v1 si es primera vez */
+    try {
+        trackingModule = await import('./syncTrackingService');
+        collectionModule = await import('./syncCollectionService');
+        await trackingModule.inicializarTracking();
+
+        /* Si no hay datos v2 pero sí v1, migrar automáticamente */
+        if (trackingModule.totalArchivos() === 0 && indiceArchivos.length > 0) {
+            const migrado = await trackingModule.migrarDesdeV1();
+            if (migrado) {
+                console.info('[Sync] Migración v1→v2 completada automáticamente');
+            }
+        }
+    } catch (err) {
+        console.error('[Sync] Error inicializando tracking v2:', err);
     }
 
     /* C341: Inicializar sync bidireccional (watcher + upload queue) */
@@ -166,23 +187,47 @@ export async function toggleSincronizacion(activa: boolean): Promise<void> {
 
 /*
  * Verifica si un sample ya está descargado localmente.
+ * C355: Busca primero en tracking v2, fallback a índice v1.
  * Retorna la ruta local si existe, null si no.
  */
 export function obtenerRutaLocal(sampleId: number): string | null {
+    /* v2: buscar en tracking tipado */
+    if (trackingModule) {
+        const archivo = trackingModule.buscarArchivoPorSampleId(sampleId);
+        if (archivo && !archivo.syncDeshabilitado) return archivo.rutaLocal;
+    }
+
+    /* v1 fallback */
     const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
     return archivo?.ruta ?? null;
 }
 
 /*
  * Registra un archivo descargado en el índice local.
+ * C355: Registra también en tracking v2 si está disponible.
  */
 export async function registrarDescarga(
     sampleId: number,
     ruta: string,
     nombreOriginal: string,
     nombreServidor: string,
+    coleccionId?: number | null,
 ): Promise<void> {
-    /* Evitar duplicados */
+    /* v2: registrar en tracking tipado */
+    if (trackingModule) {
+        await trackingModule.registrarArchivo({
+            sampleId,
+            coleccionId: coleccionId ?? null,
+            rutaLocal: ruta,
+            nombreLocal: nombreServidor,
+            nombreServidor,
+            descargadoEn: Date.now(),
+            tamano: 0,
+            syncDeshabilitado: false,
+        });
+    }
+
+    /* v1: mantener índice legacy por compatibilidad */
     indiceArchivos = indiceArchivos.filter(a => a.sampleId !== sampleId);
 
     indiceArchivos.push({
@@ -206,13 +251,54 @@ export function obtenerConfigSync(): SyncConfig {
 }
 
 /*
- * Sincroniza la carpeta local con el servidor.
- * 1. Obtiene estructura de carpetas del explorador del usuario.
- * 2. Por cada carpeta, descarga samples nuevos (no están en el índice local).
- * 3. Llama onProgreso para actualizar la UI en tiempo real.
- * - [sync]: mirroring explorador structure: carpetaLocal/primaria/nombre.formato
+ * Sincroniza la carpeta local con el servidor (v2: basado en colecciones).
+ * C355: Delega a syncCollectionService que usa el nuevo endpoint /me/sync/colecciones.
+ * Mantiene la firma original para compatibilidad con la API pública.
+ * El callback onProgreso se adapta del formato v2 al formato v1 esperado por la UI.
  */
 export async function sincronizarConServidor(
+    onProgreso?: ProgressCallback,
+): Promise<{ nuevos: number; eliminados: number }> {
+    if (!config.carpetaLocal || !config.sincronizacionActiva || !estaOnline()) {
+        return { nuevos: 0, eliminados: 0 };
+    }
+
+    /* C355: Si hay módulo de colecciones disponible, usar sync v2 */
+    if (collectionModule) {
+        try {
+            const resultado = await collectionModule.sincronizarColecciones(
+                config.carpetaLocal,
+                onProgreso ? (progreso) => {
+                    /* Adaptar formato de progreso v2 → v1 */
+                    onProgreso({
+                        actual: progreso.actual,
+                        total: progreso.total,
+                        sampleId: progreso.sampleId ?? 0,
+                        nombre: progreso.nombre ?? '',
+                        estado: progreso.estado === 'omitido' ? 'descargado' : (progreso.estado ?? 'descargando'),
+                    });
+                } : undefined,
+            );
+
+            config.ultimaSync = Date.now();
+            await guardarConfig();
+
+            return { nuevos: resultado.nuevos, eliminados: 0 };
+        } catch (err) {
+            console.error('[Sync] Error en sync v2 (colecciones):', err);
+            throw err;
+        }
+    }
+
+    /* Fallback: sync v1 legacy (basado en carpetas de metadata IA) */
+    return sincronizarConServidorV1(onProgreso);
+}
+
+/*
+ * Sync v1 legacy — mantiene el código original por si el módulo v2 no está disponible.
+ * Se eliminará cuando la migración esté completa en todas las instancias.
+ */
+async function sincronizarConServidorV1(
     onProgreso?: ProgressCallback,
 ): Promise<{ nuevos: number; eliminados: number }> {
     if (!config.carpetaLocal || !config.sincronizacionActiva || !estaOnline()) {
@@ -475,11 +561,15 @@ export function extraerMetadataDeRuta(rutaCompleta: string): {
  * Se usa al coleccionar un sample: descarga inmediatamente al disco
  * sin esperar a una sync completa. Si sync no está configurada, no-op.
  *
+ * C355: Acepta coleccionId opcional para destino basado en colecciones (v2).
+ * Si se pasa coleccionId y hay una colección registrada en tracking, usa
+ * la carpeta de esa colección como destino.
+ *
  * Flujo:
  * 1. Verifica que hay carpeta local configurada y sync activa.
  * 2. POST /samples/{id}/descargar para obtener URL firmada.
- * 3. Descarga el archivo a carpetaLocal/carpetaPrimaria/[subcarpeta/]nombre.formato
- * 4. Registra en el índice local.
+ * 3. Descarga el archivo a carpeta destino (colección o primaria/subcarpeta).
+ * 4. Registra en el índice local + tracking v2.
  *
  * Retorna la ruta local del archivo descargado, o null si falla.
  */
@@ -487,6 +577,7 @@ export async function sincronizarSampleIndividual(
     sampleId: number,
     carpetaPrimaria?: string,
     carpetaSecundaria?: string,
+    coleccionId?: number,
 ): Promise<string | null> {
     if (!esDesktop() || !estaOnline()) return null;
     if (!config.carpetaLocal || !config.sincronizacionActiva) return null;
@@ -520,21 +611,37 @@ export async function sincronizarSampleIndividual(
         }
         const buffer = await audioResp.arrayBuffer();
 
-        /* Construir ruta destino: carpetaLocal / primaria / [subcarpeta /] nombre */
         const nombreArchivo = nombre.includes('.') ? nombre : `${nombre}.${formato}`;
         const carpetaBase = config.carpetaLocal;
-        const primaria = carpetaPrimaria || 'General';
 
-        let rutaDestino = await join(carpetaBase, primaria);
-        try {
-            await mkdir(rutaDestino, { recursive: true });
-        } catch { /* puede existir */ }
+        /*
+         * C355: Determinar carpeta destino.
+         * Si hay coleccionId y existe la colección en tracking → usar carpeta de colección.
+         * Si no, fallback a lógica v1 (primaria/subcarpeta).
+         */
+        let rutaDestino: string;
+        const coleccionLocal = coleccionId && trackingModule
+            ? trackingModule.obtenerColeccion(coleccionId)
+            : null;
 
-        if (carpetaSecundaria) {
-            rutaDestino = await join(rutaDestino, carpetaSecundaria);
+        if (coleccionLocal) {
+            rutaDestino = await join(carpetaBase, coleccionLocal.carpetaLocal);
             try {
                 await mkdir(rutaDestino, { recursive: true });
             } catch { /* puede existir */ }
+        } else {
+            const primaria = carpetaPrimaria || 'General';
+            rutaDestino = await join(carpetaBase, primaria);
+            try {
+                await mkdir(rutaDestino, { recursive: true });
+            } catch { /* puede existir */ }
+
+            if (carpetaSecundaria) {
+                rutaDestino = await join(rutaDestino, carpetaSecundaria);
+                try {
+                    await mkdir(rutaDestino, { recursive: true });
+                } catch { /* puede existir */ }
+            }
         }
 
         const rutaArchivo = await join(rutaDestino, nombreArchivo);
@@ -547,8 +654,8 @@ export async function sincronizarSampleIndividual(
 
         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
-        /* Registrar en índice local */
-        await registrarDescarga(sampleId, rutaArchivo, nombre, nombreArchivo);
+        /* Registrar en índice local + tracking v2 */
+        await registrarDescarga(sampleId, rutaArchivo, nombre, nombreArchivo, coleccionId ?? null);
 
         console.info(`[SyncIndividual] Sample ${sampleId} descargado a: ${rutaArchivo}`);
         return rutaArchivo;
@@ -668,14 +775,31 @@ async function inicializarSyncBidireccional(): Promise<void> {
  * Marca un sample como "no sincronizar" por ruta local.
  * Se llama cuando el usuario elimina un archivo de la carpeta sync.
  * El sample NO se borra del servidor — solo deja de sincronizarse.
+ * C355: También actualiza tracking v2.
  */
 export async function marcarNoSincronizar(ruta: string): Promise<boolean> {
+    /* v2: buscar en tracking por ruta y deshabilitar */
+    if (trackingModule) {
+        const archivoV2 = trackingModule.buscarArchivoPorRuta(ruta);
+        if (archivoV2) {
+            await trackingModule.marcarSyncDeshabilitado(archivoV2.sampleId, archivoV2.coleccionId);
+            await trackingModule.registrarAccion({
+                tipo: 'eliminado_local',
+                descripcion: `Eliminado localmente: ${archivoV2.nombreLocal}`,
+                sampleId: archivoV2.sampleId,
+                coleccionId: archivoV2.coleccionId ?? undefined,
+            });
+        }
+    }
+
     const rutaNormalizada = ruta.replace(/\\/g, '/');
     const archivo = indiceArchivos.find(
         a => a.ruta.replace(/\\/g, '/') === rutaNormalizada,
     );
 
     if (!archivo) {
+        /* Si v2 lo encontró, la operación fue exitosa */
+        if (trackingModule?.buscarArchivoPorRuta(ruta)) return true;
         console.warn('[Sync] No se encontró archivo en índice para marcar no_sincronizar:', ruta);
         return false;
     }
@@ -691,10 +815,23 @@ export async function marcarNoSincronizar(ruta: string): Promise<boolean> {
 /*
  * Marca un sample como "no sincronizar" por su ID de sample.
  * Versión para usar desde la UI del explorador.
+ * C355: También actualiza tracking v2.
  */
 export async function marcarNoSincronizarPorId(sampleId: number): Promise<boolean> {
+    /* v2: buscar por sampleId y deshabilitar */
+    if (trackingModule) {
+        const archivoV2 = trackingModule.buscarArchivoPorSampleId(sampleId);
+        if (archivoV2) {
+            await trackingModule.marcarSyncDeshabilitado(sampleId, archivoV2.coleccionId);
+        }
+    }
+
     const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
-    if (!archivo) return false;
+    if (!archivo) {
+        /* Si v2 lo encontró, la operación fue exitosa */
+        if (trackingModule?.buscarArchivoPorSampleId(sampleId)) return true;
+        return false;
+    }
 
     archivo.syncDeshabilitado = true;
     archivo.rutaEliminada = archivo.ruta;
@@ -707,12 +844,19 @@ export async function marcarNoSincronizarPorId(sampleId: number): Promise<boolea
 /*
  * Reactiva la sincronización de un sample.
  * El archivo se re-descargará en la próxima sincronización.
+ * C355: También elimina del tracking v2 para forzar re-descarga.
  */
 export async function reactivarSync(sampleId: number): Promise<boolean> {
-    const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
-    if (!archivo) return false;
+    let encontradoV2 = false;
+    /* v2: eliminar de tracking para que se re-descargue */
+    if (trackingModule) {
+        encontradoV2 = await trackingModule.reactivarSync(sampleId);
+    }
 
-    /* Quitar del índice completamente para que se re-descargue */
+    const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
+    if (!archivo && !encontradoV2) return false;
+
+    /* Quitar del índice v1 completamente para que se re-descargue */
     indiceArchivos = indiceArchivos.filter(a => a.sampleId !== sampleId);
     await guardarIndice();
 
@@ -722,9 +866,19 @@ export async function reactivarSync(sampleId: number): Promise<boolean> {
 
 /*
  * Obtiene el estado de sincronización de un sample.
+ * C355: Consulta tracking v2 primero, fallback a v1.
  * Retorna: 'sincronizado' | 'no_sincronizar' | 'no_descargado'
  */
 export function obtenerEstadoSync(sampleId: number): 'sincronizado' | 'no_sincronizar' | 'no_descargado' {
+    /* v2: buscar en tracking tipado primero */
+    if (trackingModule) {
+        const archivoV2 = trackingModule.buscarArchivoPorSampleId(sampleId);
+        if (archivoV2) {
+            return archivoV2.syncDeshabilitado ? 'no_sincronizar' : 'sincronizado';
+        }
+    }
+
+    /* v1 fallback */
     const archivo = indiceArchivos.find(a => a.sampleId === sampleId);
     if (!archivo) return 'no_descargado';
     if (archivo.syncDeshabilitado) return 'no_sincronizar';
@@ -733,9 +887,27 @@ export function obtenerEstadoSync(sampleId: number): 'sincronizado' | 'no_sincro
 
 /*
  * Obtiene todos los samples con sync deshabilitado.
+ * C355: Incluye datos de tracking v2 para completitud.
  * Para mostrar en la UI del explorador.
  */
 export function obtenerSamplesNoSincronizados(): Array<{ sampleId: number; nombre: string }> {
+    /* v2: obtener del tracking tipado */
+    if (trackingModule) {
+        const todos = trackingModule.todosLosArchivos();
+        const noSyncV2 = todos
+            .filter(a => a.syncDeshabilitado)
+            .map(a => ({ sampleId: a.sampleId, nombre: a.nombreLocal }));
+
+        /* Agregar samples de v1 que no estén en v2 */
+        const idsV2 = new Set(noSyncV2.map(a => a.sampleId));
+        const noSyncV1 = indiceArchivos
+            .filter(a => a.syncDeshabilitado && !idsV2.has(a.sampleId))
+            .map(a => ({ sampleId: a.sampleId, nombre: a.nombre }));
+
+        return [...noSyncV2, ...noSyncV1];
+    }
+
+    /* v1 fallback */
     return indiceArchivos
         .filter(a => a.syncDeshabilitado)
         .map(a => ({ sampleId: a.sampleId, nombre: a.nombre }));

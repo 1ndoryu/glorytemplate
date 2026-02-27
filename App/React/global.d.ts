@@ -45,7 +45,7 @@ interface Window {
         toggleSincronizacion: (activa: boolean) => Promise<void>;
         obtenerConfigSync: () => { carpetaLocal: string | null; sincronizacionActiva: boolean; ultimaSync: number };
         sincronizarConServidor: (onProgreso?: (p: ProgresoSyncGlobal) => void) => Promise<{ nuevos: number; eliminados: number }>;
-        sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string) => Promise<string | null>;
+        sincronizarSampleIndividual: (sampleId: number, carpetaPrimaria?: string, carpetaSecundaria?: string, coleccionId?: number) => Promise<string | null>;
         obtenerRutaLocal: (sampleId: number) => string | null;
         obtenerEstadoSync: (sampleId: number) => 'sincronizado' | 'no_sincronizar' | 'no_descargado';
         marcarNoSincronizarPorId: (sampleId: number) => Promise<boolean>;
