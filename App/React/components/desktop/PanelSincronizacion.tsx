@@ -312,11 +312,16 @@ function IconoHistorial({ tipo }: { tipo: string }): JSX.Element {
         case 'descarga':
             return <Download size={12} />;
         case 'eliminacion':
+        case 'eliminado_local':
             return <Trash2 size={12} />;
-        case 'mover':
+        case 'movido':
             return <ArrowRightLeft size={12} />;
         case 'sync':
+        case 'renombrado':
             return <RefreshCw size={12} />;
+        case 'subida':
+        case 'creado':
+            return <FolderSync size={12} />;
         default:
             return <Clock size={12} />;
     }
@@ -336,18 +341,22 @@ function TabColecciones({ colecciones }: { colecciones: ColeccionSyncInfo[] }): 
 
     return (
         <div className="sincPanelColecciones">
-            {colecciones.map((col) => (
-                <div key={col.id} className="sincPanelColeccionItem">
-                    <FolderSync size={16} className="sincPanelColeccionIcono" />
-                    <div className="sincPanelColeccionInfo">
-                        <span className="sincPanelColeccionNombre">{col.nombre}</span>
-                        <span className="sincPanelColeccionMeta">
-                            {col.archivos} {col.archivos === 1 ? 'archivo' : 'archivos'}
-                            {col.carpetaLocal && ` · ${acortarRuta(col.carpetaLocal)}`}
-                        </span>
+            {colecciones.map((col) => {
+                const esSuelta = col.id === 0;
+                const Icono = esSuelta ? FolderOpen : FolderSync;
+                return (
+                    <div key={col.id} className={`sincPanelColeccionItem ${esSuelta ? 'sincPanelColeccionItem--suelto' : ''}`}>
+                        <Icono size={16} className="sincPanelColeccionIcono" />
+                        <div className="sincPanelColeccionInfo">
+                            <span className="sincPanelColeccionNombre">{col.nombre}</span>
+                            <span className="sincPanelColeccionMeta">
+                                {col.archivos} {col.archivos === 1 ? 'archivo' : 'archivos'}
+                                {!esSuelta && col.carpetaLocal && ` · ${acortarRuta(col.carpetaLocal)}`}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 }

@@ -233,6 +233,10 @@ export async function quitarSinColeccion(sampleId: number): Promise<void> {
     await persistir();
 }
 
+export function totalSinColeccion(): number {
+    return datos.sinColeccion.length;
+}
+
 /* ==================== Historial ==================== */
 
 export async function registrarAccion(accion: Omit<AccionHistorial, 'timestamp'>): Promise<void> {

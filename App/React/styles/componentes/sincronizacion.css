@@ -464,3 +464,12 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
 }
+
+/* Entrada "Sin colección" con estilo diferenciado */
+.sincPanelColeccionItem--suelto .sincPanelColeccionIcono {
+    color: var(--textoTerciario);
+}
+
+.sincPanelColeccionItem--suelto .sincPanelColeccionNombre {
+    font-style: italic;
+}

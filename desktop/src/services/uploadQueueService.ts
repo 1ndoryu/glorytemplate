@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarDescarga, moverSampleEnServidorPublico } from './syncService';
+import { extraerMetadataDeRuta, registrarDescarga, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
 
 const STORE_FILE = 'upload-queue.json';
 const STORE_KEY_COLA = 'upload_cola';
@@ -294,6 +294,19 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             const primaria = item.carpetas[0] || 'General';
             const secundaria = item.carpetas[1] || '';
             await moverSampleEnServidorPublico(resultado.sample_id, primaria, secundaria);
+        } else {
+            /*
+             * Archivo estaba en la raíz de sync (sin subcarpeta).
+             * Después de subirlo, moverlo a "Sin colección" para organización.
+             */
+            const nuevaRuta = await moverArchivoASinColeccion(
+                item.rutaArchivo,
+                item.nombreArchivo,
+                resultado.sample_id,
+            );
+            if (nuevaRuta) {
+                item.rutaArchivo = nuevaRuta;
+            }
         }
 
         console.info(

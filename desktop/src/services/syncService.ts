@@ -203,6 +203,64 @@ export function obtenerRutaLocal(sampleId: number): string | null {
 }
 
 /*
+ * Mueve un archivo de la raíz de sync a la carpeta "Sin colección" y actualiza tracking.
+ * Llamado por uploadQueueService después de subir un sample que estaba en la raíz.
+ * Retorna la nueva ruta o null si no se pudo mover.
+ */
+export async function moverArchivoASinColeccion(
+    rutaActual: string,
+    nombreArchivo: string,
+    sampleId: number,
+): Promise<string | null> {
+    if (!config.carpetaLocal) return null;
+
+    try {
+        const { mkdir, rename } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+
+        const carpetaSinCol = await join(config.carpetaLocal, 'Sin colección');
+        await mkdir(carpetaSinCol, { recursive: true }).catch(() => { /* ya existe */ });
+
+        const nuevaRuta = await join(carpetaSinCol, nombreArchivo);
+
+        /* Mover el archivo físicamente */
+        await rename(rutaActual, nuevaRuta);
+
+        /* Actualizar tracking v2 con nueva ruta */
+        if (trackingModule) {
+            const archivo = trackingModule.buscarArchivoPorSampleId(sampleId);
+            if (archivo) {
+                /* Re-registrar con la ruta corregida y coleccionId null */
+                await trackingModule.registrarArchivo({
+                    ...archivo,
+                    rutaLocal: nuevaRuta,
+                    coleccionId: null,
+                });
+            }
+            await trackingModule.agregarSinColeccion(sampleId);
+            await trackingModule.registrarAccion({
+                tipo: 'movido',
+                descripcion: `${nombreArchivo} → Sin colección`,
+                sampleId,
+            });
+        }
+
+        /* Actualizar índice v1 también */
+        const archivoV1 = indiceArchivos.find(a => a.sampleId === sampleId);
+        if (archivoV1) {
+            archivoV1.ruta = nuevaRuta;
+            await guardarIndice();
+        }
+
+        console.info('[Sync] Archivo movido a Sin colección:', nombreArchivo);
+        return nuevaRuta;
+    } catch (err) {
+        console.error('[Sync] Error moviendo archivo a Sin colección:', err);
+        return null;
+    }
+}
+
+/*
  * Registra un archivo descargado en el índice local.
  * C355: Registra también en tracking v2 si está disponible.
  */
@@ -988,12 +1046,25 @@ export function obtenerColeccionesSync(): Array<{
 }> {
     if (!trackingModule) return [];
     const colecciones = trackingModule.todasLasColecciones();
-    return colecciones.map(col => ({
+    const resultado = colecciones.map(col => ({
         id: col.id,
         nombre: col.nombre,
         carpetaLocal: col.carpetaLocal,
         archivos: trackingModule!.listarArchivosPorColeccion(col.id).length,
     }));
+
+    /* Incluir "Sin colección" como entrada virtual (id=0) si hay samples sueltos */
+    const totalSinCol = trackingModule.totalSinColeccion();
+    if (totalSinCol > 0) {
+        resultado.push({
+            id: 0,
+            nombre: 'Sin colección',
+            carpetaLocal: 'Sin colección',
+            archivos: totalSinCol,
+        });
+    }
+
+    return resultado;
 }
 
 /*
