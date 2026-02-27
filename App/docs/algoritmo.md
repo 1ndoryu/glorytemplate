@@ -1,14 +1,14 @@
 ﻿# Algoritmo de Recomendacion Kamples
 
 > Documentacion tecnica del sistema de descubrimiento.
-> Ultima actualizacion: sesion AG-ALG S2 — comunidad, busqueda, tags, config.
+> Ultima actualizacion: sesion AG-ALG S3 — penalizaciones progresivas, serendipia, saturacion popularidad, tendencias sin sesgo edad.
 > Revision completa: sesion AG-ALG S1 (auditoría 20 puntos).
 
 ---
 
 ## Resumen
 
-El algoritmo combina **6 senales ponderadas** para generar un score por sample candidato. Cada senal produce un valor **estrictamente** entre 0 y 1 (bounded con `LEAST(1.0, ...)` y `GREATEST(0, ...)`), que se multiplica por su peso y se suma. El score total se ajusta con multiplicadores de penalizacion por repeticion, boost verificado, y diversidad por creador. Todo es configurable desde `algoritmoPesos.php`.
+El algoritmo combina **6 senales ponderadas** para generar un score por sample candidato. Cada senal produce un valor **estrictamente** entre 0 y 1 (bounded con `LEAST(1.0, ...)` y `GREATEST(0, ...)`), que se multiplica por su peso y se suma. El score total se ajusta con multiplicadores de penalizacion por reproducciones (progresiva), penalizacion pasiva, saturacion de popularidad, boost verificado, y diversidad por creador. Todo es configurable desde `algoritmoPesos.php`.
 
 ## Arquitectura (archivos)
 
@@ -46,18 +46,18 @@ MotorRecomendacion (orquestador)
 ## Las 6 Senales
 
 ```
-score_total = SUM(peso_i * senal_i) * penalizacion_repeticion * boost_verificado
+score_total = SUM(peso_i * senal_i) * pen_reproduccion * pen_pasiva * saturacion_popularidad * boost_verificado
 score_final = score_total * penalizacion_diversidad_creador
 ```
 
 | #   | Senal               | Peso     | Descripcion                                                                            |
 | --- | ------------------- | -------- | -------------------------------------------------------------------------------------- |
-| 1   | Similitud Contenido | **0.25** | Distancia coseno pgvector entre embedding del sample y el perfil del usuario           |
-| 2   | Comportamiento      | **0.25** | Tags enriquecidos vs interacciones (5 sub-factores + penalizacion dislike)             |
-| 3   | Contexto            | **0.15** | Match de BPM, key, escala, genero, tipo y creador afin (6 sub-factores, suman 1.0)    |
-| 4   | Tendencias          | **0.15** | Velocidad de engagement reciente normalizada por edad (4 sub-factores, bounded [0,1])  |
+| 1   | Similitud Contenido | **0.28** | Distancia coseno pgvector entre embedding del sample y el perfil del usuario           |
+| 2   | Comportamiento      | **0.27** | Tags enriquecidos vs interacciones (5 sub-factores + penalizacion dislike)             |
+| 3   | Contexto            | **0.15** | Afinidad tematica (genero 0.30 + creador 0.45) + datos tecnicos (BPM+key+escala+tipo 0.25) |
+| 4   | Tendencias          | **0.12** | Engagement absoluto en ventana temporal (sin sesgo por edad del sample)                |
 | 5   | Grafo Social        | **0.10** | Contenido de creadores seguidos y likeado por seguidos (2 sub-factores)                |
-| 6   | Novedad             | **0.10** | Boost logaritmico decreciente para samples nuevos (14 dias)                            |
+| 6   | Novedad             | **0.08** | Boost logaritmico decreciente minimo; samples no pierden valor con el tiempo           |
 
 > Los pesos son configurables desde `algoritmoPesos.php['senales']` y **DEBEN sumar 1.0**. Los sub-pesos dentro de cada senal tambien deben sumar 1.0. MotorRecomendacion los lee dinamicamente al construir la query.
 
@@ -150,12 +150,14 @@ Los 6 sub-pesos estan definidos en `algoritmoPesos.php['contexto_detalle']` y **
 
 | Sub-factor     | Peso   | Calculo                                                                          |
 | -------------- | ------ | -------------------------------------------------------------------------------- |
-| Creador afin   | 0.35   | `1 si creador_id IN top_5_creadores_favoritos, 0 si no`                          |
-| Genero match   | 0.20   | Tags enriquecidos candidato vs top 8 tags likeados del usuario (excluye dislikes)|
-| BPM proximidad | 0.15   | `GREATEST(0, (tolerancia - ABS(bpm_sample - bpm_prom)) / tolerancia)`. Sin BPM → 0.5 |
-| Key match      | 0.12   | `1 si key = keyFavorita, 0 si no`. Sin keyFav → 0.5                              |
-| Tipo match     | 0.10   | `1 si tipo = tipoFavorito, 0 si no`. Sin tipoFav → 0.5                           |
-| Escala match   | 0.08   | `1 si escala = escalaFavorita, 0 si no`. Sin escalaFav → 0.5                     |
+| Creador afin   | **0.45** | `1 si creador_id IN top_5_creadores_favoritos, 0 si no`                        |
+| Genero match   | **0.30** | Tags enriquecidos candidato vs top 8 tags likeados del usuario (excluye dislikes)|
+| BPM proximidad | 0.08   | `GREATEST(0, (tolerancia - ABS(bpm_sample - bpm_prom)) / tolerancia)`. Sin BPM → 0.5 |
+| Tipo match     | 0.07   | `1 si tipo = tipoFavorito, 0 si no`. Sin tipoFav → 0.5                           |
+| Key match      | 0.06   | `1 si key = keyFavorita, 0 si no`. Sin keyFav → 0.5                              |
+| Escala match   | 0.04   | `1 si escala = escalaFavorita, 0 si no`. Sin escalaFav → 0.5                     |
+
+> **Filosofía S3:** Afinidad temática (género+creador = 0.75) domina sobre datos técnicos (BPM+key+escala+tipo = 0.25). Tags y género determinan si un sample encaja creativamente; BPM y key son ajustes finos.
 
 **Escala favorita** (nuevo): `UsuariosExtRepository::escalaFavorita($userId)` calcula la escala mas frecuente (major/minor) entre los samples likeados y reproducidos por el usuario. Usa `LOWER()` para normalizar variaciones (Major/major/Mayor). Se agrega al perfil via `PerfilUsuario::construir()`.
 
@@ -182,16 +184,18 @@ Se calculan sumando puntaje de afinidad por creador:
 - `creadoresFav`: array de IDs de los top 5 creadores.
 - `interacciones`: total de likes + reproducciones + descargas. Si < 5, se usa feed de tendencias.
 
-### 4. Tendencias (0.15) — Engagement velocity
+### 4. Tendencias (0.12) — Engagement absoluto en ventana
 
-Mide la velocidad de engagement reciente, normalizada por el tiempo desde la publicacion del sample (penaliza samples viejos con engagement absoluto alto pero velocity baja). **Todos los sub-factores estan bounded a [0,1] con `LEAST(1.0, ...)`.**
+Mide el engagement reciente usando **normalizadores absolutos por ventana** en vez de dividir por edad del sample. Así, un sample de hace 2 años con 10 likes en 24h puntúa igual que uno nuevo con 10 likes. **Los samples no pierden valor con el tiempo.** Todos bounded a [0,1] con `LEAST(1.0, ...)`.
 
-| Sub-factor         | Peso | Ventana            | Formula SQL                                                                  |
-| ------------------ | ---- | ------------------ | ---------------------------------------------------------------------------- |
-| Likes 24h          | 0.40 | `INTERVAL '24 hours'` | `LEAST(1.0, SUM(ponderado) / GREATEST(1, horas_desde_publicacion))`       |
-| Reproducciones 24h | 0.30 | `INTERVAL '24 hours'` | `LEAST(1.0, COUNT(*) / GREATEST(1, horas_desde_publicacion))`             |
-| Descargas 7d       | 0.20 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / GREATEST(1, dias_desde_publicacion))`              |
-| Follows creador 7d | 0.10 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / GREATEST(1, dias_desde_publicacion))`              |
+| Sub-factor         | Peso | Ventana            | Formula SQL                                                               |
+| ------------------ | ---- | ------------------ | ------------------------------------------------------------------------- |
+| Likes 24h          | 0.40 | `INTERVAL '24 hours'` | `LEAST(1.0, SUM(ponderado) / max_likes_ventana_corta)` (default: 15)  |
+| Reproducciones 24h | 0.30 | `INTERVAL '24 hours'` | `LEAST(1.0, COUNT(*) / max_repro_ventana_corta)` (default: 30)        |
+| Descargas 7d       | 0.20 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / max_descargas_ventana_media)` (default: 20)    |
+| Follows creador 7d | 0.10 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / max_follows_ventana_media)` (default: 10)      |
+
+> **Cambio S3:** La normalización anterior dividía por `horas_desde_publicacion`, lo que creaba sesgo contra samples antiguos. Ahora se divide por valores máximos configurables en `algoritmoPesos.php['tendencias_normalizadores']`.
 
 **Reacciones ponderadas en el sub-factor Likes 24h:**
 - `encanta` = 2
@@ -213,11 +217,13 @@ Las ventanas temporales son configurables via `algoritmoPesos.php['parametros'][
 - Se divide por 4 y se limita a LEAST(1, ...) → 4+ puntos de reacciones saturan a 1.0.
 - COALESCE a 0 si no hay reacciones.
 
-### 6. Novedad (0.10)
+### 6. Novedad (0.08)
 
 ```sql
 GREATEST(0, 1 - LN(GREATEST(1, dias_desde_publicacion)) / LN(dias_boost))
 ```
+
+> **Peso reducido (S3):** Los samples no pierden valor con el tiempo. Este boost solo prioriza ligeramente lo nuevo sin penalizar lo antiguo.
 
 Donde `dias_desde_publicacion = EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 86400`
 
@@ -233,18 +239,59 @@ Donde `dias_desde_publicacion = EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 864
 
 ## Multiplicadores Post-Score
 
-### Penalizacion por repeticion
+### Penalizacion progresiva por reproducciones (S3)
 
-Si el usuario ya reprodujo un sample >= N veces, el score se reduce drasticamente:
+Reemplaza la penalizacion binaria anterior (umbral 3 → 0.3). Ahora cada reproduccion reduce progresivamente el score con decaimiento hiperbolico:
 
 ```sql
-CASE WHEN (SELECT COUNT(*) FROM reproducciones WHERE usuario_id = :userId AND sample_id = s.id) >= 3 THEN 0.3 ELSE 1 END
+GREATEST(minimo, 1.0 / (1.0 + COUNT(reproducciones) * tasa_decaimiento))
 ```
 
-- **Umbral:** `parametros.penalizacion_ya_escuchado.umbral_reproducciones` = 3 (configurable).
-- **Factor:** `parametros.penalizacion_ya_escuchado.factor_penalizacion` = 0.3 (configurable).
-- Efecto: samples escuchados 3+ veces bajan al 30% de su score original.
-- Favorece descubrimiento de contenido nuevo.
+| Reproducciones | Multiplicador (tasa=0.15, min=0.20) |
+| -------------- | ----------------------------------- |
+| 0              | 1.00 (maximo — nunca escuchado)     |
+| 1              | 0.87                                |
+| 2              | 0.77                                |
+| 3              | 0.69                                |
+| 5              | 0.57                                |
+| 10             | 0.40                                |
+| 15+            | 0.20 (piso)                         |
+
+- Config: `parametros.penalizacion_reproduccion.tasa_decaimiento` = 0.15, `.minimo` = 0.20.
+- **Filosofia:** Samples nunca escuchados tienen maxima prioridad (mult=1.0), favoreciendo descubrimiento. Nunca llega a 0 — el sample sigue apareciendo pero muy abajo.
+
+### Penalizacion pasiva (S3)
+
+Si el usuario reprodujo un sample >= N veces pero NO dio like, NI lo descargo, NI lo guardo en coleccion → "dislike implicito". Penalizacion = mitad de un dislike.
+
+```sql
+CASE WHEN (plays >= min_reproducciones) AND NOT EXISTS(like) AND NOT EXISTS(descarga) AND NOT EXISTS(coleccion)
+  THEN factor ELSE 1 END
+```
+
+- Config: `parametros.penalizacion_pasiva.factor` = 0.85, `.min_reproducciones` = 2.
+- Deshabitable: `.habilitado` = false devuelve multiplicador 1 siempre.
+- **Logica:** Si escuchaste algo 2+ veces y no hiciste NADA positivo, probablemente no te gusto.
+
+### Saturacion de popularidad (S3)
+
+Samples muy descargados pierden valor. Los usuarios buscan samples buenos que no esten sobreusados.
+
+```sql
+GREATEST(minimo, 1.0 / (1.0 + LN(1.0 + GREATEST(0, total_descargas - umbral) / escala)))
+```
+
+| Total descargas | Multiplicador (umbral=50, escala=100, min=0.30) |
+| --------------- | ------------------------------------------------ |
+| 0-50            | 1.00 (sin penalizacion)                          |
+| 100             | 0.71                                             |
+| 200             | 0.52                                             |
+| 500             | 0.37                                             |
+| 1000+           | 0.30 (piso)                                      |
+
+- Config: `parametros.saturacion_popularidad.umbral_descargas` = 50, `.escala` = 100, `.minimo` = 0.30.
+- Deshabitable: `.habilitado` = false.
+- **Filosofia:** 1000 samples top en 5 generos — los mismos 10 no deben dominar.
 
 ### Boost verificado
 
@@ -280,6 +327,39 @@ ORDER BY (score * CASE WHEN rn <= 3 THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - 3) * 0
 - `max_por_creador` = 3 (configurable en `algoritmoPesos.php['parametros']`).
 - Samples del mismo creador NO se excluyen, solo bajan en ranking.
 - El PARTITION se calcula dentro de un CTE (`scored`) antes del ORDER BY final.
+
+### Serendipia / Descubrimiento (S3)
+
+Post-procesamiento PHP que inyecta samples de descubrimiento fuera de la burbuja de preferencias del usuario. Se ejecuta DESPUES de la query principal.
+
+**Funcionamiento:**
+1. Feed principal se calcula normalmente (SQL scoring).
+2. Se determinan N posiciones de insercion (cada `frecuencia` posiciones).
+3. Se buscan candidatos de descubrimiento con query separada.
+4. Se insertan en las posiciones calculadas.
+
+**Candidatos de descubrimiento (con pgvector):**
+- Distancia coseno entre perfil usuario y candidato BETWEEN `distancia_min` y `distancia_max` (0.3 a 1.0).
+- Engagement minimo (likes+repro+descargas >= `min_engagement`).
+- No incluidos en el feed principal.
+- Ordenados por `RANDOM()` para variedad.
+
+**Fallback (sin pgvector):**
+- Samples aleatorios con buen engagement que el usuario ha reproducido < 2 veces.
+
+**Configuracion** (`algoritmoPesos.php['serendipidad']`):
+
+| Parametro           | Default | Descripcion                                      |
+| ------------------- | ------- | ------------------------------------------------ |
+| `habilitado`        | true    | Activar/desactivar serendipia                    |
+| `frecuencia`        | 6       | Cada N samples, inyectar uno de descubrimiento   |
+| `distancia_min`     | 0.3     | Distancia coseno minima (no muy similar)         |
+| `distancia_max`     | 1.0     | Distancia coseno maxima (no demasiado lejano)    |
+| `min_engagement`    | 5       | Engagement minimo para filtrar ruido             |
+| `limite_candidatos` | 10      | Max candidatos por query                         |
+
+- **Filosofia:** "Algo diferente pero no tan alejado". Un productor de trap puede descubrir un sample de jazz que inspiraria una produccion hibrida.
+- Si la query de descubrimiento falla, el feed se devuelve sin modificar (fail-safe).
 
 ---
 
@@ -679,6 +759,21 @@ Tags se almacenaban con casing original del usuario (ej: "HipHop", "TRAP"). Pero
 ---
 
 ## Changelog de Auditoría (sesion AG-ALG)
+
+### Sesion 3: Refinamiento de filosofia del algoritmo (AG-ALG)
+
+> Los samples no pierden valor con el tiempo. Tags/genero > datos tecnicos. Penalizaciones progresivas. Serendipia. Saturacion popularidad.
+
+| # | Fix | Archivos |
+|---|-----|----------|
+| 23 | **Pesos principales rebalanceados:** similitud 0.25→0.28, comportamiento 0.25→0.27, tendencias 0.15→0.12, novedad 0.10→0.08. Contenido y comportamiento suben, recencia baja. | algoritmoPesos.php |
+| 24 | **Contexto sub-pesos reestructurado:** Afinidad tematica (genero 0.20→0.30, creador 0.35→0.45 = 0.75 total) domina sobre datos tecnicos (BPM+key+escala+tipo = 0.25 total). | algoritmoPesos.php |
+| 25 | **Penalizacion reproducciones progresiva:** Reemplaza binaria (umbral 3→factor 0.3) con decaimiento hiperbolico `1/(1+count*0.15)`. 0 plays=1.0, 3=0.69, 10=0.40, piso 0.20. | algoritmoPesos.php, ConstructorSenales.php, MotorRecomendacion.php |
+| 26 | **Penalizacion pasiva (NEW):** Reproduccion sin like/descarga/guardar = "dislike implicito". Factor 0.85 (15% penalty, mitad de dislike maximo). Min 2 reproducciones para activar. | algoritmoPesos.php, ConstructorSenales.php, MotorRecomendacion.php |
+| 27 | **Saturacion popularidad (NEW):** Samples muy descargados pierden valor logaritmicamente. Umbral 50 descargas, 100→0.71, 500→0.37, piso 0.30. | algoritmoPesos.php, ConstructorSenales.php, MotorRecomendacion.php |
+| 28 | **Serendipia (NEW):** Inyeccion post-query de samples fuera de la burbuja cada 6 posiciones. pgvector distancia 0.3-1.0 + engagement minimo. Fallback random de calidad. | algoritmoPesos.php, MotorRecomendacion.php |
+| 29 | **Tendencias sin sesgo edad:** Normalizacion cambiada de `conteo/horas_publicado` a `conteo/max_absoluto_ventana`. Sample de 2 anos con 10 likes/24h puntua igual que uno nuevo. | algoritmoPesos.php, ConstructorSenales.php |
+| 30 | **samples_similares rebalanceado:** similitud 0.45→0.55, contexto 0.25→0.10. Sub-pesos contexto: tipo 0.50, BPM/key 0.25 cada uno. Tags/genero dominan, tecnico secundario. | algoritmoPesos.php, MotorRecomendacion.php |
 
 ### Sesion 2: Comunidad + Busqueda + Tags (AG-ALG)
 

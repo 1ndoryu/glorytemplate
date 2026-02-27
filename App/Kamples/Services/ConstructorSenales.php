@@ -22,6 +22,8 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\GeneradorEmbeddings;
 
@@ -349,8 +351,10 @@ class ConstructorSenales
     }
 
     /**
-     * Señal de Tendencias — engagement velocity multi-ventana.
-     * Pondera interacciones recientes con ventanas temporales: 24h, 7d.
+     * Señal de Tendencias — engagement velocity absoluto en ventana temporal.
+     * Mide interacciones recientes sin sesgo por edad del sample.
+     * Los samples no pierden valor con el tiempo — usa normalizadores
+     * absolutos por ventana en vez de dividir por horas desde publicación.
      */
     public static function sqlTendencias(float $peso, array $ventanas, array $config): string
     {
@@ -368,6 +372,17 @@ class ConstructorSenales
         if (!\in_array($ventanaCorta, $ventanasValidas, true)) $ventanaCorta = '24 hours';
         if (!\in_array($ventanaMedia, $ventanasValidas, true)) $ventanaMedia = '7 days';
 
+        /*
+         * Normalizadores absolutos por ventana.
+         * Reemplazan la división por horasPublicado que penalizaba samples antiguos.
+         * Así un sample de hace 2 años con 10 likes en 24h puntúa igual que uno nuevo.
+         */
+        $norm = $config['tendencias_normalizadores'] ?? [];
+        $maxLikes = (int) ($norm['max_likes_ventana_corta'] ?? 15);
+        $maxRepro = (int) ($norm['max_repro_ventana_corta'] ?? 30);
+        $maxDescargas = (int) ($norm['max_descargas_ventana_media'] ?? 20);
+        $maxFollows = (int) ($norm['max_follows_ventana_media'] ?? 10);
+
         $tl = LikesCols::TABLA;
         $lReacc = LikesCols::REACCION;
         $lTipo = LikesCols::TIPO;
@@ -379,7 +394,6 @@ class ConstructorSenales
         $lrDislike = LikesEnums::REACCION_DISLIKE;
         $sId = SamplesCols::ID;
         $sCreadorId = SamplesCols::CREADOR_ID;
-        $sPubAt = SamplesCols::PUBLICADO_AT;
         $trep = ReproduccionesCols::TABLA;
         $trSid = ReproduccionesCols::SAMPLE_ID;
         $trCreAt = ReproduccionesCols::CREATED_AT;
@@ -390,7 +404,8 @@ class ConstructorSenales
         $fSeguidoId = FollowsCols::SEGUIDO_ID;
         $fCreAt = FollowsCols::CREATED_AT;
 
-        /* Reacciones en ultimas 24h: encanta=2, like=1, dislike=-1 */
+        /* Reacciones en ventana corta: encanta=2, like=1, dislike=-1 */
+        /* @codeSentinel-ignore INTERVAL — $ventanaCorta y $ventanaMedia validadas con whitelist líneas 370-373 */
         $likes24h = "COALESCE((SELECT SUM(CASE WHEN {$lReacc} = '{$lrEncanta}' THEN 2 WHEN {$lReacc} = '{$lrLike}' THEN 1 WHEN {$lReacc} = '{$lrDislike}' THEN -1 ELSE 0 END) FROM {$tl} WHERE {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} AND {$lCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
         $repro24h = "COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trSid} = s.{$sId} AND {$trCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
@@ -399,19 +414,15 @@ class ConstructorSenales
 
         $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
-        /* Normalizar por horas desde publicación para medir velocity */
-        $horasPublicado = "GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 3600)";
-        $diasPublicado = "GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 86400)";
-
         /*
-         * Cada sub-factor se acota a [0,1] con LEAST para evitar que samples
-         * con engagement muy alto en poco tiempo dominen el score.
+         * Normalización por valores máximos absolutos en vez de por edad.
+         * Cada sub-factor acotado a [0,1] con LEAST.
          */
         return "({$peso} * (
-            {$pesoLikes24h} * LEAST(1.0, GREATEST(0, {$likes24h}::float) / {$horasPublicado}) +
-            {$pesoRepro24h} * LEAST(1.0, {$repro24h}::float / {$horasPublicado}) +
-            {$pesoDescargas7d} * LEAST(1.0, {$descargas7d}::float / {$diasPublicado}) +
-            {$pesoFollows7d} * LEAST(1.0, {$follows7d}::float / {$diasPublicado})
+            {$pesoLikes24h} * LEAST(1.0, GREATEST(0, {$likes24h}::float) / {$maxLikes}) +
+            {$pesoRepro24h} * LEAST(1.0, {$repro24h}::float / {$maxRepro}) +
+            {$pesoDescargas7d} * LEAST(1.0, {$descargas7d}::float / {$maxDescargas}) +
+            {$pesoFollows7d} * LEAST(1.0, {$follows7d}::float / {$maxFollows})
         ))";
     }
 
@@ -448,5 +459,103 @@ class ConstructorSenales
         ), 0) / 4)";
 
         return "({$peso} * (0.6 * {$seguidoDirecto} + 0.4 * {$likeadoPorSeguidos}))";
+    }
+
+    /**
+     * Penalización progresiva por reproducciones.
+     * Decaimiento hiperbólico: cada reproducción reduce el multiplicador.
+     * Formula: max(minimo, 1 / (1 + count * tasa))
+     * 0 plays=1.0, 1=0.87, 3=0.69, 5=0.57, 10=0.40
+     *
+     * Reemplaza la penalización binaria anterior (umbral 3 → 0.3).
+     * Samples nunca escuchados tienen máxima prioridad (mult=1.0).
+     */
+    public static function sqlPenalizacionReproduccion(int $userId, array $config): string
+    {
+        $penConfig = $config['parametros']['penalizacion_reproduccion'] ?? [];
+        $tasa = (float) ($penConfig['tasa_decaimiento'] ?? 0.15);
+        $minimo = (float) ($penConfig['minimo'] ?? 0.20);
+
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $sId = SamplesCols::ID;
+
+        return "GREATEST({$minimo}, 1.0 / (1.0 + COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}), 0) * {$tasa}))";
+    }
+
+    /**
+     * Penalización pasiva: reproducción sin acción positiva.
+     * Si el usuario reprodujo un sample >= N veces pero NO dio like,
+     * NI lo descargó, NI lo guardó en colección → "dislike implícito".
+     * Penalización = mitad de un dislike explícito.
+     *
+     * @param int $userId ID del usuario
+     * @param array $config Configuración completa del algoritmo
+     * @return string Fragmento SQL multiplicativo (1 = sin penalty, factor < 1 = penalizado)
+     */
+    public static function sqlPenalizacionPasiva(int $userId, array $config): string
+    {
+        $penConfig = $config['parametros']['penalizacion_pasiva'] ?? [];
+        if (!($penConfig['habilitado'] ?? true)) return '1';
+
+        $factor = (float) ($penConfig['factor'] ?? 0.85);
+        $minRepro = (int) ($penConfig['min_reproducciones'] ?? 2);
+        $userId_int = (int) $userId;
+
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $tl = LikesCols::TABLA;
+        $lUid = LikesCols::USUARIO_ID;
+        $lTarget = LikesCols::TARGET_ID;
+        $lTipo = LikesCols::TIPO;
+        $td = DescargasCols::TABLA;
+        $dUid = DescargasCols::USUARIO_ID;
+        $dSid = DescargasCols::SAMPLE_ID;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $csSid = ColeccionSamplesCols::SAMPLE_ID;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $tcCol = ColeccionesCols::TABLA;
+        $colId = ColeccionesCols::ID;
+        $colUid = ColeccionesCols::USUARIO_ID;
+        $sId = SamplesCols::ID;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+
+        /* Ha reproducido >= N veces */
+        $hasPlayed = "(SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$minRepro}";
+
+        /* NO tiene like/reacción */
+        $noLike = "NOT EXISTS (SELECT 1 FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId})";
+
+        /* NO lo descargó */
+        $noDownload = "NOT EXISTS (SELECT 1 FROM {$td} WHERE {$dUid} = {$userId_int} AND {$dSid} = s.{$sId})";
+
+        /* NO lo guardó en colección */
+        $noSaved = "NOT EXISTS (SELECT 1 FROM {$tcs} cs_p JOIN {$tcCol} c_p ON cs_p.{$csColId} = c_p.{$colId} WHERE c_p.{$colUid} = {$userId_int} AND cs_p.{$csSid} = s.{$sId})";
+
+        return "(CASE WHEN {$hasPlayed} AND {$noLike} AND {$noDownload} AND {$noSaved} THEN {$factor} ELSE 1 END)";
+    }
+
+    /**
+     * Saturación de popularidad: samples muy descargados pierden valor.
+     * Los usuarios buscan samples buenos que no estén sobreusados.
+     * Formula: max(minimo, 1 / (1 + LN(1 + max(0, descargas - umbral) / escala)))
+     *
+     * @param array $config Configuración completa del algoritmo
+     * @return string Fragmento SQL multiplicativo
+     */
+    public static function sqlSaturacionPopularidad(array $config): string
+    {
+        $satConfig = $config['parametros']['saturacion_popularidad'] ?? [];
+        if (!($satConfig['habilitado'] ?? true)) return '1';
+
+        $umbral = (int) ($satConfig['umbral_descargas'] ?? 50);
+        $escala = (int) ($satConfig['escala'] ?? 100);
+        $minimo = (float) ($satConfig['minimo'] ?? 0.30);
+
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+
+        return "GREATEST({$minimo}, 1.0 / (1.0 + LN(1.0 + GREATEST(0, s.{$sTotDesc} - {$umbral})::float / {$escala})))";
     }
 }

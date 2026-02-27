@@ -9,7 +9,7 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 ## Arquitectura
 
 - **BD:** PostgreSQL + pgvector (JSONB metadata, embeddings 128d HNSW coseno) | **Storage:** WP uploads (WAV→MP3→waveform→preview) | **WS:** Node/Bun local (→VPS) | **IA:** Groq Whisper (large-v3-turbo) + LLM (qwen3-32b) | **Desktop:** Tauri 2.0 | **Móvil:** Capacitor | **Pagos:** Stripe Connect+Billing (keys live)
-- **Algoritmo:** Similitud Audio (0.25, pgvector) | Comportamiento (0.25) | Contexto (0.15) | Tendencias (0.15) | Grafo Social (0.10) | Novedad (0.10)
+- **Algoritmo:** Similitud Audio (0.28, pgvector) | Comportamiento (0.27) | Contexto (0.15) | Tendencias (0.12) | Grafo Social (0.10) | Novedad (0.08) + penalizaciones progresivas + serendipia + saturación popularidad
 
 ## Páginas
 
@@ -94,7 +94,7 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 
 ### FASE 11 — Algoritmo v2
 
-> Estado: 6 señales con embeddings 128d. Perfil usuario = promedio ponderado con **decay temporal** y **cache transient**. Sub-factores bounded [0,1]. Dislike como señal negativa. Escala musical en contexto. CTE 2 niveles. Batching + GC en cron. Sin A/B testing ni collaborative filtering.
+> Estado: 6 señales con embeddings 128d. Perfil usuario = promedio ponderado con **decay temporal** y **cache transient**. Sub-factores bounded [0,1]. Dislike como señal negativa. Escala musical en contexto. CTE 2 niveles. Batching + GC en cron. **S3:** Penalización progresiva reproducciones, penalización pasiva, saturación popularidad, serendipia, tendencias sin sesgo edad, pesos rebalanceados (contenido > técnico). Sin A/B testing ni collaborative filtering.
 
 #### Auditoría AG-ALG (17 fixes implementados)
 > P0 (4): sub-pesos contexto rebalanceados (6 factores, suman 1.0), tendencias/comportamiento bounded [0,1], perfil vectorial cacheado.
@@ -110,14 +110,31 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 > - **Búsqueda con ranking:** ts_rank reemplaza ORDER BY cronológico. 3 factores: full-text, tag match, título boost.
 > - **PublicacionesEnums:** Constantes MODERACION_* (faltaban, causaban error de compilación).
 
+#### Sesión AG-ALG S3: Filosofía del algoritmo (8 cambios)
+> - **Pesos rebalanceados:** similitud 0.28, comportamiento 0.27, tendencias 0.12, novedad 0.08. Contenido/comportamiento suben, recencia baja.
+> - **Contexto tech vs contenido:** Afinidad temática (genero+creador=0.75) domina sobre datos técnicos (BPM+key+escala+tipo=0.25).
+> - **Penalización reproducciones progresiva:** Decaimiento hiperbólico 1/(1+count*0.15). Reemplaza binaria (umbral 3→0.3).
+> - **Penalización pasiva (NEW):** Play sin acción positiva = dislike implícito (factor 0.85, min 2 plays).
+> - **Saturación popularidad (NEW):** Samples sobreusados bajan logarítmicamente (umbral 50 descargas, piso 0.30).
+> - **Serendipia (NEW):** Inyección post-query de descubrimiento cada 6 posiciones (pgvector distancia 0.3-1.0).
+> - **Tendencias sin sesgo edad:** Normalización por máximos absolutos de ventana en vez de horas_desde_publicación.
+> - **samples_similares:** Tags/género dominan (0.55), técnico reducido (0.10).
+
 - [ ] **11.1** Contexto DAW — datos mezclador en señales (afinidad cruzada)
 - [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa) reemplazando tags hasheados (106 slots CRC32)
 - [x] **11.3** ~~User embeddings dedicados — vector separado, decay temporal~~ **PARCIAL:** Decay temporal implementado (EXP(-dias/30)) en interacciones para perfil. Vector separado pendiente.
 - [ ] **11.4** Collaborative filtering — "usuarios similares descargaron X" (requiere ~100+ usuarios)
 - [ ] **11.5** A/B testing framework — cohortes, métricas (CTR, descarga/impresión), dashboard
 - [x] **11.6** ~~Diversidad mejorada~~ **PARCIAL:** feedNuevoUsuario con diversidad creador + boost verificado + decay exponencial. Feed principal ya tenía diversidad (ROW_NUMBER PARTITION).
-- [x] **11.7** ~~Feedback signals — "no me interesa", señal negativa explícita~~ **PARCIAL:** Dislike ahora penaliza en Comportamiento (max -0.15 por overlap tags). Falta botón UI "no me interesa" (diferente de dislike).
+- [x] **11.7** ~~Feedback signals — "no me interesa", señal negativa explícita~~ **COMPLETADO S3:** Dislike penaliza en Comportamiento (max -0.15). Penalización pasiva: play sin acción = dislike implícito (0.85). Falta solo botón UI "no me interesa" (diferente de dislike).
 - **Deps:** 11.2 requiere pipeline Python/WASM (128d→256d+). 11.4 requiere volumen mínimo. 11.5 independiente.
+
+**Aprendizajes S3:**
+- [Tendencias]: La normalización por `horas_desde_publicación` creaba sesgo anti-antigüedad. Corregido a normalizadores absolutos.
+- [Contexto]: El split 75/25 (contenido/técnico) en sub-pesos es más efectivo que separar en 2 señales — mantiene la señal unificada configurable.
+- [Serendipia]: pgvector BETWEEN en distancia coseno funciona nativo. Fallback random con filtro de engagement es suficiente.
+- [Penalizaciones]: Multiplicativas (post-score) > aditivas para penalties que modifican el scoring sin romper la suma=1.0.
+- [samples_similares]: El path pgvector ya es correcto (tags dominan 106/128 dims). Solo el fallback necesitaba rebalanceo.
 
 ### FASE 12 — SEO/Performance/Hardening
 

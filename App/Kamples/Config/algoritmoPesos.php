@@ -18,23 +18,23 @@ return [
      * Cada señal tiene un peso entre 0.0 y 1.0.
      */
     'senales' => [
-        /* Similitud de contenido — tags, género, BPM, key */
-        'similitud_contenido' => 0.25,
+        /* Similitud de contenido — pgvector coseno (tags dominan 106/128 dims del embedding) */
+        'similitud_contenido' => 0.28,
 
-        /* Comportamiento del usuario — likes, escucha, descargas, tiempo */
-        'comportamiento' => 0.25,
+        /* Comportamiento del usuario — afinidad por tags de samples interactuados */
+        'comportamiento' => 0.27,
 
-        /* Contexto del sample — BPM proximity, key match, tipo */
+        /* Contexto del sample — afinidad temática (genero+creador 75%) + datos técnicos (25%) */
         'contexto' => 0.15,
 
-        /* Tendencias — engagement velocity (ventana temporal) */
-        'tendencias' => 0.15,
+        /* Tendencias — engagement velocity absoluto en ventana (sin sesgo por edad del sample) */
+        'tendencias' => 0.12,
 
         /* Grafo social — samples de seguidos, likes de seguidos */
         'grafo_social' => 0.10,
 
-        /* Novedad — boost logarítmico por fecha de publicación */
-        'novedad' => 0.10,
+        /* Novedad — boost mínimo; los samples no pierden valor con el tiempo */
+        'novedad' => 0.08,
     ],
 
     /*
@@ -50,12 +50,14 @@ return [
     ],
 
     'contexto_detalle' => [
-        'bpm_proximidad'       => 0.15,  /* Cercanía de BPM al promedio del usuario */
-        'key_match'            => 0.12,  /* Coincidencia de tonalidad */
-        'escala_match'         => 0.08,  /* Coincidencia de escala (major/minor) */
-        'genero_match'         => 0.20,  /* Coincidencia de género vía tags enriquecidos */
-        'tipo_match'           => 0.10,  /* Mismo tipo (loop/oneshot) */
-        'creador_afin'         => 0.35,  /* Boost si el creador es uno de los favoritos */
+        /* Datos técnicos — peso reducido (0.25 total del contexto) */
+        'bpm_proximidad'       => 0.08,  /* Cercanía de BPM al promedio del usuario */
+        'key_match'            => 0.06,  /* Coincidencia de tonalidad */
+        'escala_match'         => 0.04,  /* Coincidencia de escala (major/minor) */
+        'tipo_match'           => 0.07,  /* Mismo tipo (loop/oneshot) */
+        /* Afinidad temática — peso dominante (0.75 total del contexto) */
+        'genero_match'         => 0.30,  /* Coincidencia de género vía tags enriquecidos */
+        'creador_afin'         => 0.45,  /* Boost si el creador es uno de los favoritos */
     ],
 
     'tendencias_detalle' => [
@@ -63,6 +65,18 @@ return [
         'reproducciones_24h'   => 0.30,  /* Reproducciones en 24h */
         'descargas_7d'         => 0.20,  /* Descargas en 7 días */
         'follows_creador_7d'   => 0.10,  /* Nuevos seguidores del creador en 7d */
+    ],
+
+    /*
+     * Normalizadores de tendencias: valores máximos esperados por ventana.
+     * Reemplazan la normalización por edad del sample (que penalizaba content antiguo).
+     * Cada sub-factor usa: LEAST(1.0, conteo_ventana / max_normalizador).
+     */
+    'tendencias_normalizadores' => [
+        'max_likes_ventana_corta'      => 15,  /* 15 likes en ventana corta = score 1.0 */
+        'max_repro_ventana_corta'      => 30,  /* 30 reproducciones en ventana corta */
+        'max_descargas_ventana_media'  => 20,  /* 20 descargas en ventana media */
+        'max_follows_ventana_media'    => 10,  /* 10 nuevos followers en ventana media */
     ],
 
     /*
@@ -75,10 +89,41 @@ return [
         /* Novedad: días de boost logarítmico (después decae) */
         'novedad_dias_boost'   => 14,
 
-        /* Penalización por samples ya escuchados muchas veces */
-        'penalizacion_ya_escuchado' => [
-            'umbral_reproducciones' => 3,   /* A partir de 3 plays, penalizar */
-            'factor_penalizacion'   => 0.3, /* Multiplicador (1 = sin penalización) */
+        /*
+         * Penalización progresiva por reproducciones.
+         * Cada reproducción reduce el score con decaimiento hiperbólico:
+         * multiplicador = max(minimo, 1 / (1 + count * tasa_decaimiento))
+         * 0 plays=1.0, 1=0.87, 3=0.69, 5=0.57, 10=0.40
+         * El sample no desaparece pero baja progresivamente para priorizar lo no escuchado.
+         */
+        'penalizacion_reproduccion' => [
+            'tasa_decaimiento'      => 0.15, /* Factor de decaimiento por reproducción */
+            'minimo'                => 0.20, /* Piso — nunca se oculta completamente */
+        ],
+
+        /*
+         * Penalización pasiva: reproducción sin acción positiva.
+         * Si el usuario reprodujo un sample >= N veces pero NO dio like,
+         * NI lo descargó, NI lo guardó en colección → se considera
+         * "dislike implícito" y se aplica penalización (mitad de un dislike).
+         */
+        'penalizacion_pasiva' => [
+            'habilitado'            => true,
+            'factor'                => 0.85, /* 15% penalty = mitad de dislike máximo */
+            'min_reproducciones'    => 2,    /* Mínimo de plays para activar */
+        ],
+
+        /*
+         * Saturación de popularidad: samples muy descargados pierden valor.
+         * Los usuarios buscan samples buenos que no estén sobreusados.
+         * Formula: max(minimo, 1 / (1 + LN(1 + max(0, descargas - umbral) / escala)))
+         * 50 descargas=1.0, 100=0.71, 200=0.52, 500=0.37, 1000=0.30(piso)
+         */
+        'saturacion_popularidad' => [
+            'habilitado'            => true,
+            'umbral_descargas'      => 50,   /* Debajo de esto, sin penalización */
+            'escala'                => 100,  /* Controla la pendiente del decaimiento */
+            'minimo'                => 0.30, /* Piso — samples populares siguen apareciendo */
         ],
 
         /* C178: Boost multiplicativo para samples verificados por humano */
@@ -126,12 +171,23 @@ return [
 
     /*
      * Pesos para samples similares en la página individual.
+     * Tags/género/instrumentos dominan; datos técnicos (BPM, key) son secundarios.
      */
     'samples_similares' => [
-        'similitud_contenido' => 0.45,
-        'contexto'            => 0.25,
-        'tendencias'          => 0.15,
+        'similitud_contenido' => 0.55,
+        'contexto'            => 0.10,
+        'tendencias'          => 0.20,
         'novedad'             => 0.15,
+    ],
+
+    /*
+     * Sub-pesos de contexto para samples_similares (fallback sin pgvector).
+     * BPM y key importan menos; tipo del sample (loop/oneshot) más relevante.
+     */
+    'samples_similares_contexto' => [
+        'bpm_proximidad' => 0.25,
+        'key_match'      => 0.25,
+        'tipo_match'     => 0.50,
     ],
 
     /*
@@ -159,7 +215,7 @@ return [
                 'comentarios'            => 3,   /* Cada 3 comentarios */
             ],
             /* Recálculo temporal: minutos entre recálculos automáticos */
-            'intervalo_activo_min'   => 30,  /* Mientras el usuario está conectado */
+            'intervalo_activo_min'   => 5,  /* Mientras el usuario está conectado */
             'intervalo_inactivo_min' => 480, /* 8 horas sin actividad */
         ],
 
@@ -258,5 +314,22 @@ return [
         'deduplicar'           => true,  /* Eliminar tags duplicados */
         'max_por_sample'       => 15,    /* Máximo de tags por sample */
         'max_longitud_tag'     => 50,    /* Máximo de caracteres por tag */
+    ],
+
+    /*
+     * Serendipia: inyección de samples fuera de la burbuja de preferencias.
+     *
+     * Cada N posiciones en el feed se reemplaza con un sample "descubrimiento"
+     * que no coincide mucho con las preferencias del usuario pero tiene
+     * engagement suficiente para no ser ruido. "No tan alejado" — distancia
+     * coseno moderada, no máxima.
+     */
+    'serendipidad' => [
+        'habilitado'            => true,
+        'frecuencia'            => 8,    /* Cada N samples, inyectar uno de descubrimiento */
+        'distancia_min'         => 0.3,  /* Distancia coseno mínima (0=idéntico, 2=opuesto) */
+        'distancia_max'         => 1.0,  /* Distancia coseno máxima (no demasiado lejano) */
+        'min_engagement'        => 5,    /* Engagement mínimo (likes+repro+descargas) */
+        'limite_candidatos'     => 10,   /* Máximo candidatos de descubrimiento por query */
     ],
 ];

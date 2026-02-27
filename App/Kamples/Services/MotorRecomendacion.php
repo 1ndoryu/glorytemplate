@@ -23,7 +23,6 @@ use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
-use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ColeccionesCols;
@@ -187,22 +186,21 @@ class MotorRecomendacion
             'tipoFav' => $perfilUsuario['tipoFav'] ?? null,
         ]);
 
-        /* Multiplicador de penalización por ya escuchado */
-        $penConfig = $params['penalizacion_ya_escuchado'] ?? [];
-        $umbralRepro = (int) ($penConfig['umbral_reproducciones'] ?? 3);
-        $factorPen = (float) ($penConfig['factor_penalizacion'] ?? 0.3);
-        $trep = ReproduccionesCols::TABLA;
-        $trUid = ReproduccionesCols::USUARIO_ID;
-        $trSid = ReproduccionesCols::SAMPLE_ID;
-        $sId = SamplesCols::ID;
-        $penalizacion = "(CASE WHEN (SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$umbralRepro} THEN {$factorPen} ELSE 1 END)";
+        /* Multiplicador: penalización progresiva por reproducciones (reemplaza binaria) */
+        $penalizacion = ConstructorSenales::sqlPenalizacionReproduccion($userId, $config);
+
+        /* Multiplicador: penalización pasiva (reproducción sin like/descarga/guardar) */
+        $penalizacionPasiva = ConstructorSenales::sqlPenalizacionPasiva($userId, $config);
+
+        /* Multiplicador: saturación de popularidad (samples sobreusados pierden valor) */
+        $saturacionPop = ConstructorSenales::sqlSaturacionPopularidad($config);
 
         /* C178: Boost para samples verificados por humano */
         $boostVerificado = (float) ($params['verificado_boost'] ?? 1.15);
         $sVerif = SamplesCols::VERIFICADO;
         $multiplicadorVerificado = "(CASE WHEN s.{$sVerif} = true THEN {$boostVerificado} ELSE 1 END)";
 
-        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$multiplicadorVerificado}";
+        $scoreTotal = "{$scoreAditivo} * {$penalizacion} * {$penalizacionPasiva} * {$saturacionPop} * {$multiplicadorVerificado}";
 
         /* Diversidad por creador como penalización suave */
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
@@ -219,6 +217,7 @@ class MotorRecomendacion
          */
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
+        $sId = SamplesCols::ID;
         $sCreadorId = SamplesCols::CREADOR_ID;
         $sEstado = SamplesCols::ESTADO;
         $sMostrar = SamplesCols::MOSTRAR_EN_COMUNIDAD;
@@ -294,6 +293,9 @@ class MotorRecomendacion
             'userId' => $userId, 'totalResultados' => \count($resultado),
             'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
         ]);
+
+        /* Serendipia: inyectar samples de descubrimiento cada N posiciones */
+        $resultado = self::inyectarSerendipia($resultado, $userId, $config);
 
         /* Guardar en cache */
         if (!empty($resultado)) {
@@ -416,9 +418,9 @@ class MotorRecomendacion
 
         if (!$sample) return [];
 
-        $pesoSimilitud = $pesosSimil['similitud_contenido'] ?? 0.45;
-        $pesoContexto = $pesosSimil['contexto'] ?? 0.25;
-        $pesoTendencias = $pesosSimil['tendencias'] ?? 0.15;
+        $pesoSimilitud = $pesosSimil['similitud_contenido'] ?? 0.55;
+        $pesoContexto = $pesosSimil['contexto'] ?? 0.10;
+        $pesoTendencias = $pesosSimil['tendencias'] ?? 0.20;
         $pesoNovedad = $pesosSimil['novedad'] ?? 0.15;
 
         $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
@@ -439,7 +441,10 @@ class MotorRecomendacion
         $numTags = \max(1, \count($tagParts));
         $tagScore = !empty($tagParts) ? '((' . \implode(' + ', $tagParts) . ')::float / ' . $numTags . ')' : '0';
 
-        /* Contexto: BPM + key + tipo — cada sub-factor [0,1] */
+        /*
+         * Contexto técnico: BPM + key + tipo — sub-pesos configurables.
+         * En samples_similares, datos técnicos importan menos que tags/género.
+         */
         $sBpm = SamplesCols::BPM;
         $sKey = SamplesCols::KEY;
         $sTipo = SamplesCols::TIPO;
@@ -447,6 +452,11 @@ class MotorRecomendacion
         $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
         $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
         $sPubAt = SamplesCols::PUBLICADO_AT;
+
+        $ctxSimil = $config['samples_similares_contexto'] ?? [];
+        $pesoBpmCtx = $ctxSimil['bpm_proximidad'] ?? 0.25;
+        $pesoKeyCtx = $ctxSimil['key_match'] ?? 0.25;
+        $pesoTipoCtx = $ctxSimil['tipo_match'] ?? 0.50;
 
         $bpmScore = $bpm
             ? "GREATEST(0, ({$toleranciaBpm} - ABS(COALESCE(s.{$sBpm}, 0) - {$bpm}))::float / {$toleranciaBpm})"
@@ -458,7 +468,7 @@ class MotorRecomendacion
         $tipoScore = "CASE WHEN s.{$sTipo} = :simTipo THEN 1 ELSE 0 END";
         $params['simTipo'] = $tipo;
 
-        $contextoScore = "(0.4 * {$bpmScore} + 0.35 * {$keyScore} + 0.25 * {$tipoScore})";
+        $contextoScore = "({$pesoBpmCtx} * {$bpmScore} + {$pesoKeyCtx} * {$keyScore} + {$pesoTipoCtx} * {$tipoScore})";
 
         /* Tendencias: engagement total normalizado (aprox, sin ventana temporal) */
         $tendenciasScore = "(LEAST(1.0, (s.{$sTotLk} * 2 + s.{$sTotRepro} + s.{$sTotDesc} * 3)::float / GREATEST(1, (SELECT AVG({$sTotLk} * 2 + {$sTotRepro} + {$sTotDesc} * 3) FROM {$ts} WHERE {$sEstado} = '{$eActivo}')::float)))";
@@ -476,4 +486,143 @@ class MotorRecomendacion
 
         return SamplesRepository::consultar($sql, $params);
     }
+
+    /**
+     * Inyecta samples de descubrimiento en el feed cada N posiciones.
+     *
+     * Usa pgvector para encontrar samples a distancia moderada del perfil
+     * del usuario (no muy similar ni demasiado diferente) con engagement
+     * mínimo para garantizar calidad. Fallback: random de calidad.
+     *
+     * @param array $resultados Feed principal ya calculado
+     * @param int $userId ID del usuario
+     * @param array $config Configuración del algoritmo
+     * @return array Feed con descubrimientos inyectados
+     */
+    private static function inyectarSerendipia(array $resultados, int $userId, array $config): array
+    {
+        $serendipConfig = $config['serendipidad'] ?? [];
+        if (!($serendipConfig['habilitado'] ?? true)) return $resultados;
+        if (\count($resultados) < 4) return $resultados;
+
+        $frecuencia = (int) ($serendipConfig['frecuencia'] ?? 6);
+        $numDescubrimientos = (int) \floor(\count($resultados) / $frecuencia);
+        if ($numDescubrimientos < 1) return $resultados;
+
+        $idsExcluir = \array_column($resultados, SamplesCols::ID);
+
+        try {
+            $descubrimientos = self::obtenerSamplesDescubrimiento(
+                $userId,
+                $numDescubrimientos,
+                $idsExcluir,
+                $serendipConfig
+            );
+        } catch (\Throwable $e) {
+            KamplesLogger::debug('Algoritmo: Serendipia falló, feed sin modificar', [
+                'error' => $e->getMessage(),
+            ]);
+            return $resultados;
+        }
+
+        if (empty($descubrimientos)) return $resultados;
+
+        /* Inyectar en posiciones múltiplo de frecuencia (0-indexed: pos 5, 11, 17...) */
+        $posInsercion = $frecuencia - 1;
+        foreach ($descubrimientos as $descubrimiento) {
+            if ($posInsercion >= \count($resultados)) break;
+            \array_splice($resultados, $posInsercion, 0, [$descubrimiento]);
+            $posInsercion += $frecuencia + 1; /* +1 porque el array creció */
+        }
+
+        KamplesLogger::debug('Algoritmo: Serendipia inyectada', [
+            'inyectados' => \min(\count($descubrimientos), $numDescubrimientos),
+            'feedSize' => \count($resultados),
+        ]);
+
+        return $resultados;
+    }
+
+    /**
+     * Obtiene samples candidatos para descubrimiento (fuera de la burbuja).
+     *
+     * Con pgvector: samples a distancia coseno moderada (ni muy similar ni opuesto).
+     * Sin pgvector: samples aleatorios con buen engagement que el usuario no ha oído.
+     */
+    private static function obtenerSamplesDescubrimiento(
+        int $userId,
+        int $limite,
+        array $idsExcluir,
+        array $serendipConfig
+    ): array {
+        $distMin = (float) ($serendipConfig['distancia_min'] ?? 0.3);
+        $distMax = (float) ($serendipConfig['distancia_max'] ?? 1.0);
+        $minEngagement = (int) ($serendipConfig['min_engagement'] ?? 5);
+        $limiteCandidatos = (int) ($serendipConfig['limite_candidatos'] ?? 10);
+
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $sId = SamplesCols::ID;
+        $sEmbed = SamplesCols::EMBEDDING;
+        $sTotLk = SamplesCols::TOTAL_LIKES;
+        $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+
+        $params = ['userId' => $userId, 'limit' => \min($limite, $limiteCandidatos)];
+
+        /* Construir exclusión de IDs ya en el feed */
+        $excludeParts = [];
+        foreach (\array_slice($idsExcluir, 0, 100) as $i => $id) {
+            $key = "excl{$i}";
+            $params[$key] = (int) $id;
+            $excludeParts[] = ":{$key}";
+        }
+        $excludeIn = !empty($excludeParts) ? "AND s.{$sId} NOT IN (" . \implode(',', $excludeParts) . ")" : '';
+
+        /* Engagement mínimo para filtrar ruido */
+        $engagementFilter = "AND (s.{$sTotLk} + s.{$sTotRepro} + s.{$sTotDesc}) >= {$minEngagement}";
+
+        if (self::pgvectorActivo()) {
+            $perfil = GeneradorEmbeddings::perfilUsuario($userId);
+            if ($perfil !== null) {
+                $params['discoveryVector'] = GeneradorEmbeddings::vectorAString($perfil);
+
+                /*
+                 * Distancia coseno entre perfil y candidato BETWEEN min y max.
+                 * Así encontramos samples "algo diferentes" pero no completamente ajenos.
+                 */
+                $sql = NormalizadorSample::sqlSelectSamples($userId)
+                    . " WHERE s.{$sEstado} = '{$eActivo}'"
+                    . " AND s.{$sEmbed} IS NOT NULL"
+                    . " AND (s.{$sEmbed} <=> :discoveryVector::vector) BETWEEN {$distMin} AND {$distMax}"
+                    . " {$excludeIn} {$engagementFilter}"
+                    . " ORDER BY RANDOM()"
+                    . " LIMIT :limit";
+
+                $candidatos = SamplesRepository::consultar($sql, $params);
+                if (!empty($candidatos)) return $candidatos;
+            }
+        }
+
+        /* Fallback sin pgvector: random de calidad que el usuario no ha reproducido mucho */
+        $trep = \App\Config\Schema\_generated\ReproduccionesCols::TABLA;
+        $trUid = \App\Config\Schema\_generated\ReproduccionesCols::USUARIO_ID;
+        $trSid = \App\Config\Schema\_generated\ReproduccionesCols::SAMPLE_ID;
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+            . " WHERE s.{$sEstado} = '{$eActivo}'"
+            . " {$excludeIn} {$engagementFilter}"
+            . " AND COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}), 0) < 2"
+            . " ORDER BY RANDOM()"
+            . " LIMIT :limit";
+
+        return SamplesRepository::consultar($sql, $params);
+    }
+
+    /*
+     * TO-DO: Este archivo tiene ~550 líneas. Candidato a split:
+     * - MotorRecomendacion: feed orchestration + cache
+     * - RecomendadorSimilares: samplesSimilares + fallback
+     * - ServicioSerendipia: inyección de descubrimiento
+     */
 }
