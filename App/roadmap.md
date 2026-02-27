@@ -283,19 +283,23 @@ Nuevo comentario/publicación → ServicioModeracionIA intenta moderar
 6. **ARCH — obtenerBaseUrl duplicado 3x:** Misma función en syncService, syncCollectionService y uploadQueueService. → Centralizado en `syncGuards.ts` como `obtenerBaseUrlSync()`.
 7. **ARCH — descargasEnCurso/GRACIA_DESCARGA_MS duplicado:** Set + timeout en syncService. → Centralizado en `syncGuards.ts`.
 
-**Pendientes (TO-DO futuro):**
-- **ARCH — syncService.ts 1273 líneas:** Excede límite de 300. Requiere split en módulos (v1Legacy, download, watcher setup). Complejo por estado compartido.
-- **ARCH — Código v1 muerto (~200 líneas):** Funciones de fallback v1 que ya no se ejecutan con tracking v2 activo. Eliminar cuando v2 sea estable.
-- **PERF — sinColeccion.includes() O(n):** Array pequeño actualmente, no es crítico. Convertir a Set si crece.
-- **FEATURE — Cola offline:** Encolar operaciones move/rename cuando no hay conexión y ejecutar al reconectar.
-- **FEATURE — Detección disco lleno:** Verificar espacio antes de descargas masivas.
-- **FEATURE — Lock de sync concurrente:** Prevenir dos syncs simultáneos por race conditions en UI.
+**Pendientes resueltos (commit a14f09e0):**
+- ✅ **ARCH — syncService.ts 1273 → 448 líneas:** Split en 4 módulos: syncState (tipos+estado), syncDownloadV1 (legacy), syncWatcherSetup (watcher+ops), syncService (facade). Commit `4e51b73c`.
+- ✅ **ARCH — Código v1 muerto:** V1 aislado en syncDownloadV1.ts. Paths v1 en otros módulos son fallback defensivo, se mantienen.
+- ✅ **PERF — sinColeccion.includes() O(1):** Set sombra (`sinColeccionSet`) para lookups O(1). Array interno mantenido para serialización al store.
+- ✅ **FEATURE — Cola offline:** offlineQueueService extendido con: tipo `mover_carpeta`, deduplicación por `claveDuplicacion`, max intentos, store cacheado. syncWatcherSetup encola moves cuando offline.
+- ✅ **FEATURE — Detección disco lleno:** Comando Rust `obtener_espacio_disponible` (fs2 crate). syncCollectionService verifica espacio antes de descargas masivas (500MB margen).
+- ✅ **FEATURE — Lock de sync concurrente:** syncGuards expone lock con Promise sharing (callers duplicados reciben misma Promise). sincronizarConServidor usa adquirirLockSync/liberarLockSync.
 
 **Lecciones aprendidas:**
 - [syncGuards]: Archivo zero-imports para evitar circular deps (syncService ↔ syncCollectionService ambos necesitan descargasEnCurso).
 - [tracking]: `registrarArchivo()` funciona como upsert — si la clave existe, actualiza entry + reindexar.
 - [polling]: El polling de 60s SOLO debe crear estructura de carpetas, nunca descargar samples automáticamente.
 - [indices]: Map secondary indexes deben reconstruirse después de `cargarDatos()` y `migrarDesdeV1()`.
+- [sinColeccionSet]: Patrón shadow Set — mantener array para serialización + Set para O(1) lookup. Reconstruir en reconstruirIndices().
+- [offlineQueue]: Deduplicación por claveDuplicacion evita encolar N moves para el mismo sample. Solo el último destino importa.
+- [lock]: Patrón Promise sharing — adquirirLockSync retorna promesa existente si hay sync en curso. Evita trabajo duplicado y IO concurrente.
+- [disco]: fs2 crate da espacio disponible cross-platform. El guard es fail-open (si no puede verificar, permite descarga).
 
 ---
 
