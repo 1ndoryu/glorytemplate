@@ -270,6 +270,35 @@ Nuevo comentario/publicación → ServicioModeracionIA intenta moderar
 
 ---
 
+### Auditoría Sync v2 — Hallazgos y Correcciones
+> **Estado:** ✅ PARCIAL [AG-IA] | **Commit:** `129de63f`
+> Se auditaron los 12 archivos del sistema Sync v2. 13 hallazgos identificados, 7 corregidos.
+
+**Corregidos (commit `129de63f`):**
+1. **BUG — descargasEnCurso no aplicado en v2:** syncCollectionService descargaba sin marcar en `descargasEnCurso`, causando que el watcher re-subiera archivos recién descargados. → Creado `syncGuards.ts` con `marcarDescargaEnCurso()` centralizado, aplicado en syncCollectionService + syncService.
+2. **BUG — Polling ejecutaba sync completo cada 60s:** `sincronizarEstructuraCarpetas()` llamaba `sincronizarColecciones()` sin restricción, descargando todos los samples cada minuto. → Añadido parámetro `soloEstructura=true` que solo crea carpetas sin descargar.
+3. **BUG — manejarMoveLocal no actualiza tracking v2:** Solo actualizaba `indiceArchivos` (v1), dejando tracking v2 desincronizado. → Ahora actualiza `registrarArchivo()` + `registrarAccion('movido')` en tracking v2. También arreglado `actualizarRutaYCarpeta()`.
+4. **PERF — Lookups O(n) en tracking:** `buscarArchivoPorRuta()` y `buscarArchivoPorNombre()` iteraban todos los archivos. → Índices secundarios `indiceRuta: Map` y `indiceNombre: Map` con O(1) lookup.
+5. **PERF — persistir() en cada operación:** 100 descargas = 100 escrituras a disco. → Batch mode con `iniciarLote()/finalizarLote()` que acumula cambios y persiste una vez.
+6. **ARCH — obtenerBaseUrl duplicado 3x:** Misma función en syncService, syncCollectionService y uploadQueueService. → Centralizado en `syncGuards.ts` como `obtenerBaseUrlSync()`.
+7. **ARCH — descargasEnCurso/GRACIA_DESCARGA_MS duplicado:** Set + timeout en syncService. → Centralizado en `syncGuards.ts`.
+
+**Pendientes (TO-DO futuro):**
+- **ARCH — syncService.ts 1273 líneas:** Excede límite de 300. Requiere split en módulos (v1Legacy, download, watcher setup). Complejo por estado compartido.
+- **ARCH — Código v1 muerto (~200 líneas):** Funciones de fallback v1 que ya no se ejecutan con tracking v2 activo. Eliminar cuando v2 sea estable.
+- **PERF — sinColeccion.includes() O(n):** Array pequeño actualmente, no es crítico. Convertir a Set si crece.
+- **FEATURE — Cola offline:** Encolar operaciones move/rename cuando no hay conexión y ejecutar al reconectar.
+- **FEATURE — Detección disco lleno:** Verificar espacio antes de descargas masivas.
+- **FEATURE — Lock de sync concurrente:** Prevenir dos syncs simultáneos por race conditions en UI.
+
+**Lecciones aprendidas:**
+- [syncGuards]: Archivo zero-imports para evitar circular deps (syncService ↔ syncCollectionService ambos necesitan descargasEnCurso).
+- [tracking]: `registrarArchivo()` funciona como upsert — si la clave existe, actualiza entry + reindexar.
+- [polling]: El polling de 60s SOLO debe crear estructura de carpetas, nunca descargar samples automáticamente.
+- [indices]: Map secondary indexes deben reconstruirse después de `cargarDatos()` y `migrarDesdeV1()`.
+
+---
+
 ### C355+C357 — Sync v2: Sincronización basada en Colecciones
 > **Complejidad:** Muy alta | **Dependencias:** C353 (explorador oculto) | **Estado:** Arquitectura definida
 
