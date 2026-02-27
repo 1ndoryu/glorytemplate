@@ -1,0 +1,5 @@
+## Redirigir target fuera de OneDrive para evitar bloqueo WDAC (os error 4551).
+## Los build-scripts compilados en rutas sincronizadas por OneDrive son bloqueados
+## por la directiva de Control de Aplicaciones de Windows.
+[build]
+target-dir = "C:\\cargo-target\\kamples"
