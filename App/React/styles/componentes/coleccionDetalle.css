@@ -148,6 +148,7 @@
     min-height: 200px;
     color: var(--textoTerciario);
     font-size: var(--fuenteSm);
+    width: 100%;
 }
 
 .coleccionCargando,

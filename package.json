@@ -18,8 +18,10 @@
         "docs:dev": "npm run docs:dev --prefix Glory/docs",
         "docs:build": "npm run docs:build --prefix Glory/docs",
         "docs:preview": "npm run docs:preview --prefix Glory/docs",
-        "install:all": "npm install && npm install --prefix Glory/assets/react && npm install --prefix App/React",
-        "install:subdeps": "npm install --prefix Glory/assets/react --ignore-scripts && npm install --prefix App/React --ignore-scripts",
+        "tauri:dev": "npm run tauri:dev --prefix desktop",
+        "desktop:dev": "npm run tauri:dev --prefix desktop",
+        "install:all": "npm install && npm install --prefix Glory/assets/react && npm install --prefix App/React && npm install --prefix desktop",
+        "install:subdeps": "npm install --prefix Glory/assets/react --ignore-scripts && npm install --prefix App/React --ignore-scripts && npm install --prefix desktop --ignore-scripts",
         "postinstall": "npm run install:subdeps",
         "types:add": "npm install --prefix App/React"
     },
