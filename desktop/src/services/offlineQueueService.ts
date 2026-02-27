@@ -1,26 +1,40 @@
 /*
  * Queue de operaciones offline.
- * Cuando no hay conexión, las operaciones que normalmente
- * se envían al servidor (reproducciones, likes, follows)
+ * Cuando no hay conexion, las operaciones que normalmente
+ * se envian al servidor (reproducciones, likes, follows, moves de sync)
  * se almacenan localmente y se sincronizan al reconectar.
+ *
+ * Soporta deduplicacion por claveDuplicacion: si se encola una operacion
+ * con la misma clave que una existente, se reemplaza en lugar de duplicar.
+ * Util para moves de carpeta — solo el ultimo destino importa.
  */
 
 import { esDesktop, estaOnline } from './desktopService';
 
-interface OperacionPendiente {
+/* Tipos extensibles de operacion. Agregar aqui nuevos tipos sin modificar logica base. */
+type TipoOperacion = 'reproduccion' | 'like' | 'follow' | 'descarga' | 'mover_carpeta';
+
+export interface OperacionPendiente {
     id: string;
-    tipo: 'reproduccion' | 'like' | 'follow' | 'descarga';
+    tipo: TipoOperacion;
     endpoint: string;
     method: 'POST' | 'PUT' | 'DELETE';
     body?: unknown;
     timestamp: number;
+    /* Clave opcional para deduplicacion. Si dos operaciones comparten clave, la mas reciente reemplaza. */
+    claveDuplicacion?: string;
+    intentos: number;
 }
 
 const STORE_FILE = 'offline-queue.json';
 const STORE_KEY = 'operaciones_pendientes';
+const MAX_INTENTOS = 5;
 
 let cola: OperacionPendiente[] = [];
 let sincronizando = false;
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- Tauri Store typing flexible */
+let storeCache: { get: <T>(key: string) => Promise<T | null>; set: (key: string, val: unknown) => Promise<void>; save: () => Promise<void> } | null = null;
 
 /*
  * Inicializa la queue: carga operaciones pendientes del store
@@ -32,12 +46,15 @@ export async function inicializarOfflineQueue(): Promise<void> {
     try {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
-        const guardadas = await store.get<OperacionPendiente[]>(STORE_KEY);
+        storeCache = store as typeof storeCache;
+
+        const guardadas = await storeCache!.get<OperacionPendiente[]>(STORE_KEY);
         if (guardadas) {
-            cola = guardadas;
+            /* Migrar operaciones antiguas sin campo intentos */
+            cola = guardadas.map(op => ({ ...op, intentos: op.intentos ?? 0 }));
         }
-    } catch {
-        /* Store no disponible — usar queue en memoria */
+    } catch (err) {
+        console.warn('[OfflineQueue] Store no disponible, usando queue en memoria:', err);
     }
 
     /* Escuchar cambios de conectividad para sincronizar */
@@ -50,13 +67,34 @@ export async function inicializarOfflineQueue(): Promise<void> {
 }
 
 /*
- * Encola una operación para sincronizar cuando haya conexión.
+ * Encola una operacion para sincronizar cuando haya conexion.
+ * Si se proporciona claveDuplicacion y ya existe una operacion con la misma clave,
+ * se reemplaza el payload en lugar de encolar una nueva (solo importa el ultimo estado).
  */
-export async function encolarOperacion(op: Omit<OperacionPendiente, 'id' | 'timestamp'>): Promise<void> {
+export async function encolarOperacion(
+    op: Omit<OperacionPendiente, 'id' | 'timestamp' | 'intentos'>,
+): Promise<void> {
+    /* Deduplicacion por clave */
+    if (op.claveDuplicacion) {
+        const idx = cola.findIndex(o => o.claveDuplicacion === op.claveDuplicacion);
+        if (idx !== -1) {
+            cola[idx] = {
+                ...cola[idx],
+                endpoint: op.endpoint,
+                body: op.body,
+                timestamp: Date.now(),
+                intentos: 0,
+            };
+            await guardarCola();
+            return;
+        }
+    }
+
     const operacion: OperacionPendiente = {
         ...op,
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         timestamp: Date.now(),
+        intentos: 0,
     };
 
     cola.push(operacion);
@@ -70,54 +108,68 @@ export async function encolarOperacion(op: Omit<OperacionPendiente, 'id' | 'time
 
 /*
  * Sincroniza todas las operaciones pendientes con el servidor.
- * Ejecuta en orden FIFO. Si una falla, la deja en la cola.
+ * Ejecuta en orden FIFO. Si una falla por red, se detiene.
+ * Si falla por respuesta (4xx/5xx), incrementa intentos y continua.
  */
 async function sincronizarCola(): Promise<void> {
     if (sincronizando || cola.length === 0) return;
     sincronizando = true;
 
-    const exitosas: string[] = [];
+    const exitosas = new Set<string>();
+    const descartadas = new Set<string>();
 
-    for (const op of cola) {
-        try {
-            const response = await fetch(op.endpoint, {
-                method: op.method,
-                headers: { 'Content-Type': 'application/json' },
-                body: op.body ? JSON.stringify(op.body) : undefined,
-            });
-
-            if (response.ok || response.status === 409) {
-                /* 409 = conflicto (ya existe) — considerar exitoso */
-                exitosas.push(op.id);
+    try {
+        for (const op of cola) {
+            /* Descartar operaciones que excedieron reintentos */
+            if (op.intentos >= MAX_INTENTOS) {
+                console.warn('[OfflineQueue] Descartando operacion tras', MAX_INTENTOS, 'intentos:', op.tipo, op.id);
+                descartadas.add(op.id);
+                continue;
             }
-        } catch {
-            /* Sin conexión o error de red — dejar en cola */
-            break;
-        }
-    }
 
-    /* Remover operaciones exitosas */
-    if (exitosas.length > 0) {
-        cola = cola.filter(op => !exitosas.includes(op.id));
+            try {
+                const response = await fetch(op.endpoint, {
+                    method: op.method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: op.body ? JSON.stringify(op.body) : undefined,
+                });
+
+                if (response.ok || response.status === 409) {
+                    /* 409 = conflicto (ya existe) — considerar exitoso */
+                    exitosas.add(op.id);
+                } else {
+                    /* Error de servidor — incrementar intentos y continuar con la siguiente */
+                    op.intentos++;
+                    console.warn('[OfflineQueue] Error', response.status, 'en operacion:', op.tipo, op.id, '- intento', op.intentos);
+                }
+            } catch (err) {
+                /* Sin conexion o error de red — detener procesamiento */
+                console.warn('[OfflineQueue] Error de red, deteniendo procesamiento:', err);
+                break;
+            }
+        }
+    } finally {
+        /* Remover operaciones exitosas y descartadas */
+        const aRemover = new Set([...exitosas, ...descartadas]);
+        if (aRemover.size > 0) {
+            cola = cola.filter(op => !aRemover.has(op.id));
+        }
+        sincronizando = false;
         await guardarCola();
     }
-
-    sincronizando = false;
 }
 
 /*
  * Persiste la cola en el store de Tauri.
  */
 async function guardarCola(): Promise<void> {
-    if (!esDesktop()) return;
+    if (!storeCache) return;
 
     try {
-        const { load } = await import('@tauri-apps/plugin-store');
-        const store = await load(STORE_FILE);
-        await store.set(STORE_KEY, cola);
-        await store.save();
-    } catch {
-        /* Fallo silencioso — la cola en memoria sigue disponible */
+        await storeCache.set(STORE_KEY, cola);
+        await storeCache.save();
+    } catch (err) {
+        console.error('[OfflineQueue] Error persistiendo cola:', err);
     }
 }
 
@@ -126,4 +178,11 @@ async function guardarCola(): Promise<void> {
  */
 export function obtenerPendientes(): number {
     return cola.length;
+}
+
+/*
+ * Retorna snapshot inmutable de la cola para debug/UI.
+ */
+export function obtenerCola(): Readonly<OperacionPendiente[]> {
+    return cola;
 }

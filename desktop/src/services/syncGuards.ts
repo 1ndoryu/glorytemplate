@@ -1,12 +1,16 @@
 /*
  * Servicio: syncGuards — Estado compartido para coordinación entre servicios de sync.
  *
- * Centraliza el Set de rutas de descarga activas para evitar que fileWatcher
- * re-encole archivos recién descargados por syncCollectionService o syncService.
+ * Centraliza:
+ * - Set de rutas de descarga activas (evita que fileWatcher re-encole archivos recién descargados)
+ * - Lock de sync concurrente (evita dos syncs simultáneos)
+ * - URL base de la API para servicios de sync
  *
  * Separado en su propio módulo para evitar dependencias circulares:
- * syncService y syncCollectionService ambos necesitan marcar/verificar descargas.
+ * syncService y syncCollectionService ambos necesitan estas utilidades.
  */
+
+/* ==================== Descargas en curso ==================== */
 
 const descargasEnCurso = new Set<string>();
 const GRACIA_DESCARGA_MS = 10_000;
@@ -30,6 +34,55 @@ export function marcarDescargaEnCurso(ruta: string): void {
 export function esDescargaEnCurso(ruta: string): boolean {
     return descargasEnCurso.has(ruta.replace(/\\/g, '/'));
 }
+
+/* ==================== Lock de sync concurrente ==================== */
+
+/*
+ * Previene que dos sincronizaciones masivas corran simultáneamente.
+ * Si un caller intenta adquirir el lock mientras otro lo tiene,
+ * recibe la misma Promise (evita trabajo duplicado).
+ *
+ * Patrón: el primer caller ejecuta la sync y todos los demás
+ * await-ean la misma Promise. Al finalizar, el lock se libera.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let syncPromesaActiva: Promise<any> | null = null;
+
+/**
+ * Verifica si hay una sync en curso.
+ */
+export function esSyncEnCurso(): boolean {
+    return syncPromesaActiva !== null;
+}
+
+/**
+ * Adquiere el lock de sync concurrente.
+ * Si ya hay una sync en curso, retorna { adquirido: false, promesaExistente }.
+ * Si no, marca el lock y retorna { adquirido: true }.
+ * El caller que adquiere el lock DEBE llamar liberarLockSync() al finalizar.
+ */
+export function adquirirLockSync(): { adquirido: true } | { adquirido: false; promesaExistente: Promise<unknown> } {
+    if (syncPromesaActiva) {
+        return { adquirido: false, promesaExistente: syncPromesaActiva };
+    }
+    return { adquirido: true };
+}
+
+/**
+ * Registra la Promise de sync activa para que otros callers puedan await-earla.
+ */
+export function registrarSyncActiva(promesa: Promise<unknown>): void {
+    syncPromesaActiva = promesa;
+}
+
+/**
+ * Libera el lock de sync concurrente.
+ */
+export function liberarLockSync(): void {
+    syncPromesaActiva = null;
+}
+
+/* ==================== URL base API ==================== */
 
 /**
  * URL base de la API para servicios de sync.

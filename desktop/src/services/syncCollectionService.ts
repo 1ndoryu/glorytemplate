@@ -209,9 +209,16 @@ export async function sincronizarColecciones(
         await mkdir(rutaSinCol, { recursive: true });
     } catch { /* puede existir */ }
 
-    /* Modo soloEstructura: no descargar archivos (usado por polling periÃ³dico) */
+    /* Modo soloEstructura: no descargar archivos (usado por polling periodico) */
     if (soloEstructura) {
         return { nuevos: 0, errores: 0 };
+    }
+
+    /* Verificar espacio en disco antes de descargas masivas */
+    const espacioSuficiente = await verificarEspacioDisco(carpetaBase, datosServidor);
+    if (!espacioSuficiente) {
+        console.error('[SyncColecciones] Espacio insuficiente en disco. Abortando descargas.');
+        return { nuevos: 0, errores: totalSamples };
     }
 
     /* Fase 2: Descargar samples (modo lote para evitar 100+ escrituras individuales) */
@@ -537,5 +544,63 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
     } catch (err) {
         console.error('[SyncCollection] Error renombrando colecciÃ³n en servidor:', err);
         return false;
+    }
+}
+
+/* ==================== Verificacion de espacio en disco ==================== */
+
+/* Margen minimo de seguridad: 500 MB libres despues de la descarga */
+const MARGEN_DISCO_BYTES = 500 * 1024 * 1024;
+
+/*
+ * Estima el tamano total de descarga y verifica que haya espacio suficiente.
+ * Solo cuenta samples que NO estan ya descargados (no existentes en tracking).
+ * Retorna true si hay espacio suficiente o si no se puede determinar (fail open).
+ */
+async function verificarEspacioDisco(
+    carpetaBase: string,
+    datos: RespuestaSyncColecciones,
+): Promise<boolean> {
+    try {
+        const { invoke } = await import('@tauri-apps/api/core');
+
+        /* Calcular tamano total de samples pendientes de descarga */
+        let bytesNecesarios = 0;
+
+        for (const col of datos.colecciones) {
+            for (const sample of col.samples) {
+                const existente = obtenerArchivo(sample.id, col.id);
+                if (!existente || existente.syncDeshabilitado) {
+                    bytesNecesarios += sample.tamano || 0;
+                }
+            }
+        }
+        for (const sample of datos.sinColeccion) {
+            const existente = obtenerArchivo(sample.id, null);
+            if (!existente || existente.syncDeshabilitado) {
+                bytesNecesarios += sample.tamano || 0;
+            }
+        }
+
+        /* Si no hay nada que descargar, no verificar */
+        if (bytesNecesarios === 0) return true;
+
+        const espacioDisponible = await invoke<number>('obtener_espacio_disponible', { ruta: carpetaBase });
+
+        if (espacioDisponible < bytesNecesarios + MARGEN_DISCO_BYTES) {
+            const disponibleMB = (espacioDisponible / (1024 * 1024)).toFixed(0);
+            const necesarioMB = (bytesNecesarios / (1024 * 1024)).toFixed(0);
+            console.error(
+                `[SyncColecciones] Espacio insuficiente: ${disponibleMB} MB disponibles, ` +
+                `${necesarioMB} MB necesarios + ${(MARGEN_DISCO_BYTES / (1024 * 1024)).toFixed(0)} MB margen`,
+            );
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        /* Si no se puede verificar (ej: comando Rust no disponible), permitir descarga igualmente */
+        console.warn('[SyncColecciones] No se pudo verificar espacio en disco:', err);
+        return true;
     }
 }

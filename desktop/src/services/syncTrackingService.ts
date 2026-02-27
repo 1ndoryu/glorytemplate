@@ -75,6 +75,9 @@ let datos: BaseSyncLocal = {
 const indiceRuta = new Map<string, string>();
 const indiceNombre = new Map<string, string[]>();
 
+/* Set sombra para O(1) en sinColeccion. El array en datos se mantiene para serialización al store. */
+const sinColeccionSet = new Set<number>();
+
 /* Modo lote: suspende persistencia hasta finalizarLote(). Evita 100+ escrituras en sync masiva. */
 let enLote = false;
 
@@ -111,10 +114,12 @@ async function persistir(): Promise<void> {
     }
 }
 
-/* Reconstruye índices secundarios desde datos.archivos. Llamado al cargar o migrar. */
+/* Reconstruye índices secundarios desde datos.archivos y sinColeccion. Llamado al cargar o migrar. */
 function reconstruirIndices(): void {
     indiceRuta.clear();
     indiceNombre.clear();
+    sinColeccionSet.clear();
+
     for (const [clave, archivo] of Object.entries(datos.archivos)) {
         const rutaNorm = archivo.rutaLocal.replace(/\\/g, '/');
         indiceRuta.set(rutaNorm, clave);
@@ -124,6 +129,10 @@ function reconstruirIndices(): void {
             if (!existentes.includes(clave)) existentes.push(clave);
             indiceNombre.set(nombre, existentes);
         }
+    }
+
+    for (const id of datos.sinColeccion) {
+        sinColeccionSet.add(id);
     }
 }
 
@@ -289,17 +298,19 @@ export function buscarColeccionPorCarpeta(carpetaLocal: string): ColeccionLocal 
 /* ==================== Sin colección ==================== */
 
 export function esSinColeccion(sampleId: number): boolean {
-    return datos.sinColeccion.includes(sampleId);
+    return sinColeccionSet.has(sampleId);
 }
 
 export async function agregarSinColeccion(sampleId: number): Promise<void> {
-    if (!datos.sinColeccion.includes(sampleId)) {
+    if (!sinColeccionSet.has(sampleId)) {
+        sinColeccionSet.add(sampleId);
         datos.sinColeccion.push(sampleId);
         await persistir();
     }
 }
 
 export async function quitarSinColeccion(sampleId: number): Promise<void> {
+    sinColeccionSet.delete(sampleId);
     datos.sinColeccion = datos.sinColeccion.filter(id => id !== sampleId);
     await persistir();
 }
@@ -378,6 +389,7 @@ export async function migrarDesdeV1(): Promise<boolean> {
             const clave = generarClaveTracking(v1.sampleId, null);
             datos.archivos[clave] = tracking;
             datos.sinColeccion.push(v1.sampleId);
+            sinColeccionSet.add(v1.sampleId);
         }
 
         reconstruirIndices();
@@ -408,6 +420,7 @@ export async function resetearTracking(): Promise<void> {
     };
     indiceRuta.clear();
     indiceNombre.clear();
+    sinColeccionSet.clear();
     await persistir();
 }
 

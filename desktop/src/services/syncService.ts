@@ -18,7 +18,13 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import {
+    marcarDescargaEnCurso,
+    obtenerBaseUrlSync,
+    adquirirLockSync,
+    registrarSyncActiva,
+    liberarLockSync,
+} from './syncGuards';
 import {
     estado,
     guardarConfig,
@@ -247,6 +253,9 @@ export async function moverArchivoASinColeccion(
 /*
  * Sincroniza la carpeta local con el servidor.
  * v2: delega a syncCollectionService. v1: fallback a syncDownloadV1.
+ *
+ * Lock concurrente: si ya hay una sync activa, retorna su resultado
+ * en vez de ejecutar una segunda en paralelo (evita race conditions + IO duplicado).
  */
 export async function sincronizarConServidor(
     onProgreso?: ProgressCallback,
@@ -256,10 +265,37 @@ export async function sincronizarConServidor(
         return { nuevos: 0, eliminados: 0 };
     }
 
+    /* Lock concurrente: si ya hay sync en curso, retornar misma Promise */
+    const lock = adquirirLockSync();
+    if (!lock.adquirido) {
+        console.info('[Sync] Sync ya en curso, esperando resultado existente...');
+        return lock.promesaExistente as Promise<{ nuevos: number; eliminados: number }>;
+    }
+
+    const promesaSync = ejecutarSync(collectionModule, onProgreso);
+    registrarSyncActiva(promesaSync);
+
+    try {
+        return await promesaSync;
+    } finally {
+        liberarLockSync();
+    }
+}
+
+/*
+ * Lógica interna de sync, separada del lock para claridad.
+ */
+async function ejecutarSync(
+    collectionModule: typeof estado.collectionModule,
+    onProgreso?: ProgressCallback,
+): Promise<{ nuevos: number; eliminados: number }> {
+    const carpetaLocal = estado.config.carpetaLocal;
+    if (!carpetaLocal) return { nuevos: 0, eliminados: 0 };
+
     if (collectionModule) {
         try {
             const resultado = await collectionModule.sincronizarColecciones(
-                config.carpetaLocal,
+                carpetaLocal,
                 onProgreso ? (progreso) => {
                     onProgreso({
                         actual: progreso.actual,

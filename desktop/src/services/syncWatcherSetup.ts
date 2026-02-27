@@ -14,6 +14,7 @@
 
 import { estaOnline } from './desktopService';
 import { esDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { encolarOperacion } from './offlineQueueService';
 import {
     estado,
     guardarIndice,
@@ -173,8 +174,16 @@ async function moverSampleEnServidor(
     carpetaSecundaria: string,
 ): Promise<boolean> {
     if (!estaOnline()) {
-        console.warn('[Sync] Sin conexión, move en servidor pospuesto para sample:', sampleId);
-        return false;
+        /* Encolar operacion para ejecutar al reconectar. Deduplicar por sampleId. */
+        encolarOperacion({
+            tipo: 'mover_carpeta',
+            endpoint: `${obtenerBaseUrlSync()}/kamples/v1/me/coleccionados/${sampleId}/carpeta`,
+            method: 'PUT',
+            body: { carpeta_primaria: carpetaPrimaria, carpeta_secundaria: carpetaSecundaria },
+            claveDuplicacion: `mover_carpeta_${sampleId}`,
+        });
+        console.info('[Sync] Move encolado para cuando haya conexion, sample:', sampleId);
+        return true;
     }
 
     try {

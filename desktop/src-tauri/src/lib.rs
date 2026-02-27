@@ -35,6 +35,13 @@ fn obtener_tamano_archivo(ruta: String) -> Result<u64, String> {
         .map_err(|e| format!("Error al leer metadata de {}: {}", ruta, e))
 }
 
+/* Comando: obtener espacio disponible en disco para una ruta dada (bytes) */
+#[tauri::command]
+fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
+    fs2::available_space(&ruta)
+        .map_err(|e| format!("Error obteniendo espacio disponible en {}: {}", ruta, e))
+}
+
 /*
  * Configura el tray icon con menu contextual.
  * Acciones: mostrar ventana, ocultar, y salir.
@@ -98,6 +105,7 @@ pub fn run() {
             obtener_plataforma,
             archivo_existe,
             obtener_tamano_archivo,
+            obtener_espacio_disponible,
         ])
         /* Setup: tray icon */
         .setup(|app| {
