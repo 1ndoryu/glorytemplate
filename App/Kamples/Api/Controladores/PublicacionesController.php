@@ -140,7 +140,23 @@ class PublicacionesController
             $params['current_user'] = $currentUserId;
         }
 
-        $publicaciones = PublicacionesRepository::listarFeed($donde, $orderBy, $params);
+        /*
+         * Feed 'todos' (default): scoring multi-señal con frescura + engagement velocity + boost social.
+         * Feed 'populares'/'siguiendo'/con filtro de autor: ORDER BY simple (sin scoring).
+         * algoritmoPesos['comunidad'] controla todos los parámetros.
+         */
+        if ($filtro === 'todos' && empty($autor)) {
+            $config = require __DIR__ . '/../../Config/algoritmoPesos.php';
+            $configComunidad = $config['comunidad'] ?? [];
+            $publicaciones = PublicacionesRepository::listarFeedPuntuado(
+                $donde,
+                $params,
+                $currentUserId,
+                $configComunidad
+            );
+        } else {
+            $publicaciones = PublicacionesRepository::listarFeed($donde, $orderBy, $params);
+        }
 
         /* Recolectar todos los IDs de samples en una pasada (DRY via NormalizadorPublicacion) */
         $samplesIds = NormalizadorPublicacion::extraerSamplesIds($publicaciones);

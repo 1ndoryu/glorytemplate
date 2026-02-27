@@ -1,8 +1,8 @@
 ﻿# Algoritmo de Recomendacion Kamples
 
 > Documentacion tecnica del sistema de descubrimiento.
-> Ultima actualizacion: sesion AG-ALG (27/02/2026) — verificado contra codigo fuente.
-> Revision completa: sesion AG-ALG (auditoría 20 puntos, mismo dia).
+> Ultima actualizacion: sesion AG-ALG S2 — comunidad, busqueda, tags, config.
+> Revision completa: sesion AG-ALG S1 (auditoría 20 puntos).
 
 ---
 
@@ -22,6 +22,9 @@ El algoritmo combina **6 senales ponderadas** para generar un score por sample c
 | Config         | `App/Kamples/Config/algoritmoPesos.php`                      | Todos los pesos, parametros, frecuencias, variantes          |
 | Repo Algoritmo | `App/Kamples/Database/Repositories/AlgoritmoEstadoRepository.php` | CRUD tabla `algoritmo_estado` (contadores recalculo)    |
 | Repo Usuarios  | `App/Kamples/Database/Repositories/UsuariosExtRepository.php` | Queries perfil: BPM promedio, key fav, escala fav, creadores fav |
+| Comunidad      | `App/Kamples/Api/Controladores/PublicacionesController.php`   | Feed social: scoring o ORDER BY segun filtro                     |
+| Comunidad Repo | `App/Kamples/Database/Repositories/PublicacionesRepository.php` | `listarFeedPuntuado()`: CTE 2 niveles con scoring               |
+| Busqueda       | `App/Kamples/Api/Controladores/SamplesController.php`         | `listar()` con ranking ts_rank + ILIKE fallback                  |
 | Repo Samples   | `App/Kamples/Database/Repositories/SamplesRepository.php`    | Interacciones para perfil (con decay temporal), pgvector, embeddings |
 
 ### Dependencia entre capas
@@ -65,16 +68,20 @@ score_final = score_total * penalizacion_diversidad_creador
 Multiples senales usan **tags enriquecidos** en vez de `s.tags` directamente. Definidos en `ConstructorSenales::sqlTagsEnriquecidos()`:
 
 ```sql
-COALESCE(s.tags, ARRAY[]::text[])
-|| /* metadata.genero: array o string → array */
-|| /* metadata.instrumentos: array o string → array */
-|| /* metadata.emocion: array o string → array */
+/* Normalización case-insensitive: LOWER() aplicado a cada tag via ARRAY_AGG + UNNEST */
+(SELECT COALESCE(ARRAY_AGG(LOWER(t)), ARRAY[]::text[]) FROM UNNEST(
+    COALESCE(s.tags, ARRAY[]::text[])
+    || /* metadata.genero: array o string → array */
+    || /* metadata.instrumentos: array o string → array */
+    || /* metadata.emocion: array o string → array */
+) AS t WHERE t IS NOT NULL AND t != '')
 ```
 
 - Maneja `jsonb_typeof` para soportar tanto arrays como strings en cada campo JSONB.
 - Se usa con alias parametrico (`s`, `s2`, `s7`, etc.) para diferentes contextos en la query.
 - El alias se valida con regex `^[a-z_][a-z0-9_]*$` para prevenir SQL injection.
-- **Resultado:** Un array de texto que combina tags manuales + metadata IA, usado para comparar afinidad.
+- **Resultado:** Un array de texto normalizado a lowercase que combina tags manuales + metadata IA, usado para comparar afinidad.
+- **Normalizacion:** `LOWER()` aplicado a cada elemento individual para garantizar comparaciones case-insensitive. Filtra NULLs y strings vacios.
 
 ---
 
@@ -590,7 +597,100 @@ Generados por `NormalizadorSample::sqlSelectSamples(?int $userId)` en feeds, y d
 
 ---
 
+## Algoritmo de Comunidad (Feed Social)
+
+> Fuente: `PublicacionesRepository::listarFeedPuntuado()`, pesos en `algoritmoPesos['comunidad']`.
+
+El feed de publicaciones sociales (`filtro=todos`) usa scoring multi-señal con CTE 2 niveles y diversidad por autor.
+
+### Señales del Feed de Comunidad
+
+| # | Señal | Peso | Descripcion |
+|---|-------|------|------------|
+| 1 | Frescura | **0.40** | Decay exponencial `EXP(-horas/vida_media)`. Vida media: 24h |
+| 2 | Engagement velocity | **0.35** | `(likes*1 + comentarios*2 + reposts*1.5) / horas`. Acotado [0,1] |
+| 3 | Boost social | **0.15** | 1.0 si autor es seguido, 0.0 si no |
+| 4 | Diversidad autor | **0.10** | `ROW_NUMBER PARTITION BY autor_id` cap 3 por pagina |
+
+```
+score = 0.40 * EXP(-horas_edad / 24)
+      + 0.35 * LEAST(1.0, engagement_ponderado / horas_edad)
+      + 0.15 * es_seguido
+→ diversidad: ROW_NUMBER PARTITION BY autor_id <= 3
+→ ORDER BY score DESC
+```
+
+### Modos del endpoint `GET /publicaciones`
+
+| Filtro | Comportamiento |
+|--------|---------------|
+| `todos` (default) | Feed puntuado multi-señal (nuevo) |
+| `populares` | `ORDER BY total_likes DESC, created_at DESC` |
+| `siguiendo` | Filtra por seguidos + `ORDER BY created_at DESC` |
+| `?autor=username` | Filtra por autor + `ORDER BY created_at DESC` |
+
+---
+
+## Busqueda con Ranking de Relevancia
+
+> Fuente: `SamplesController::listar()`, pesos en `algoritmoPesos['busqueda']`.
+
+La busqueda de samples usa scoring multi-factor basado en `ts_rank` (full-text search nativo PostgreSQL) en vez del `ILIKE` simple anterior.
+
+### Factores de ranking
+
+| Factor | Boost | Descripcion |
+|--------|-------|------------|
+| ts_rank (titulo+descripcion) | 1.0 | Relevancia full-text con stemming (`spanish`) |
+| Tag match | 0.8 | Boost si algun tag contiene el termino de busqueda (LOWER + LIKE) |
+| ts_rank titulo solo | 0.5 | Boost extra por coincidencia solo en titulo (mas especifico) |
+
+```
+score = 1.0 * ts_rank(titulo || descripcion, query)
+      + 0.8 * (1 si tag LIKE '%termino%', 0 si no)
+      + 0.5 * ts_rank(titulo, query)
+→ ORDER BY score DESC, publicado_at DESC
+```
+
+- `plainto_tsquery('spanish', ...)` para stemming automatico (ej: "melodia" matchea "melodias").
+- Fallback a ILIKE original si termino < 2 caracteres.
+- Todos los pesos configurables desde `algoritmoPesos['busqueda']`.
+
+---
+
+## Normalizacion de Tags
+
+> Fuente: `NormalizadorSample::normalizarTags()`, config en `algoritmoPesos['tags']`.
+
+### Pipeline de normalización (3 capas de defensa)
+
+1. **Upload/Edicion (PHP):** `sanitize_text_field()` → `normalizarTags()` (lowercase + trim + dedup) → `phpArrayToPg()` → BD.
+2. **SQL Scoring (PostgreSQL):** `sqlTagsEnriquecidos()` aplica `LOWER()` via `ARRAY_AGG(LOWER(t))` — defensa contra datos legacy con casing mixto.
+3. **Embeddings (PHP):** `GeneradorEmbeddings::generar()` aplica `strtolower(trim($tag))` al hashear tags.
+
+### Bug critico corregido
+
+Tags se almacenaban con casing original del usuario (ej: "HipHop", "TRAP"). Pero embeddings los normalzaban a lowercase ("hiphop", "trap") y comparaciones SQL eran case-sensitive (`= ANY(s.tags)`). Esto causaba:
+- Mismatch entre embedding hash y tag real en BD.
+- Comparaciones fallidas en ConstructorSenales para tags con casing diferente.
+
+**Fix:** Normalizacion forzada en entrada + LOWER() en queries + defensa en profundidad.
+
+---
+
 ## Changelog de Auditoría (sesion AG-ALG)
+
+### Sesion 2: Comunidad + Busqueda + Tags (AG-ALG)
+
+| # | Fix | Archivos |
+|---|-----|----------|
+| 18 | **Tag normalization (BUG CRITICO):** Tags ahora se normalizan a lowercase+trim+dedup en upload y edicion. `sqlTagsEnriquecidos()` aplica `LOWER()` via `ARRAY_AGG(LOWER(t))` como defensa en profundidad. | NormalizadorSample.php, SamplesUploadController.php, SamplesModificacionController.php, ConstructorSenales.php |
+| 19 | **algoritmoPesos expandido:** 3 nuevas secciones: `comunidad` (4 señales feed social), `busqueda` (ranking ts_rank), `tags` (config normalizacion). | algoritmoPesos.php |
+| 20 | **Algoritmo feed comunidad:** Scoring multi-señal para `filtro=todos`: frescura(0.40) + engagement velocity(0.35) + boost social(0.15) + diversidad ROW_NUMBER. CTE 2 niveles. | PublicacionesRepository.php, PublicacionesController.php |
+| 21 | **Busqueda con ranking:** `ts_rank` reemplaza `ORDER BY publicado_at` cuando hay termino de busqueda. 3 factores: full-text, tag match, titulo boost. Pesos configurables. | SamplesController.php |
+| 22 | **PublicacionesEnums:** Agregados MODERACION_PENDIENTE/REVISION/APROBADO/RECHAZADO (faltaban en schema generado). | PublicacionesSchema.php, PublicacionesEnums.php |
+
+### Sesion 1: 17 fixes (AG-ALG)
 
 > Resumen de los 17 cambios implementados (de los 20 identificados en auditoría):
 

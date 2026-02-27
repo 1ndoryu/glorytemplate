@@ -97,6 +97,7 @@ class SamplesController
         $uUser = UsuariosExtCols::USERNAME;
         $sTitulo = SamplesCols::TITULO;
         $sDesc = SamplesCols::DESCRIPCION;
+        $sTags = SamplesCols::TAGS;
         $sMeta = SamplesCols::METADATA;
         $sBpm = SamplesCols::BPM;
         $sKey = SamplesCols::KEY;
@@ -160,7 +161,46 @@ class SamplesController
         /* Obtener userId para subquery liked — null si no autenticado */
         $userId = UsuarioHelper::obtenerIdPg();
 
-        $samples = SamplesRepository::listarConFiltros($userId, $whereSQL, $params, 'ORDER BY s.' . SamplesCols::PUBLICADO_AT . ' DESC NULLS LAST', $perPage, $offset);
+        /*
+         * Búsqueda con ranking de relevancia (algoritmoPesos['busqueda']).
+         * Cuando hay término de búsqueda: scoring multi-factor via ts_rank + tag match + título boost.
+         * Sin búsqueda: orden cronológico estándar (publicado_at DESC).
+         *
+         * ts_rank: relevancia full-text nativa de PostgreSQL (stemming, stop words).
+         * Tag match: boost si el término coincide con algún tag del sample.
+         * Título boost: ranking extra solo sobre título (mayor especificidad).
+         */
+        if (!empty($busqueda) && mb_strlen($busqueda) >= 2) {
+            $config = require __DIR__ . '/../../Config/algoritmoPesos.php';
+            $busquedaConfig = $config['busqueda'] ?? [];
+
+            $tsWeight = (float) ($busquedaConfig['ts_rank_weight'] ?? 1.0);
+            $tagBoost = (float) ($busquedaConfig['tag_match_boost'] ?? 0.8);
+            $tituloBoost = (float) ($busquedaConfig['titulo_boost'] ?? 0.5);
+            $idioma = $busquedaConfig['idioma_ts'] ?? 'spanish';
+
+            /* Whitelist de configuraciones de idioma PG para prevenir inyección */
+            $idiomasValidos = ['simple', 'english', 'spanish', 'french', 'german', 'portuguese', 'italian'];
+            if (!\in_array($idioma, $idiomasValidos, true)) $idioma = 'spanish';
+
+            /* ts_rank sobre título+descripción combinados */
+            $sqlTsRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')), plainto_tsquery('{$idioma}', :busquedaRank))";
+            /* ts_rank solo sobre título (mayor peso para matches en título) */
+            $sqlTituloRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '')), plainto_tsquery('{$idioma}', :busquedaTituloRank))";
+            /* Boost por coincidencia en tags: 1.0 si algún tag contiene el término, 0.0 si no */
+            $sqlTagMatch = "CASE WHEN EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE LOWER(tag) LIKE :busquedaTagLike) THEN 1.0 ELSE 0.0 END";
+
+            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
+
+            /* Params separados — PDO EMULATE_PREPARES=false exige nombres únicos */
+            $params['busquedaRank'] = $busqueda;
+            $params['busquedaTituloRank'] = $busqueda;
+            $params['busquedaTagLike'] = '%' . strtolower($busqueda) . '%';
+        } else {
+            $orderBy = 'ORDER BY s.' . $sPubAt . ' DESC NULLS LAST';
+        }
+
+        $samples = SamplesRepository::listarConFiltros($userId, $whereSQL, $params, $orderBy, $perPage, $offset);
 
         /*
          * Envolver data + pagination bajo una clave 'data' para que

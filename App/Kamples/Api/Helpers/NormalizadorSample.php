@@ -43,6 +43,24 @@ class NormalizadorSample
     }
 
     /**
+     * Normaliza un array de tags: lowercase + trim + deduplicación + filtrado vacíos.
+     * DEBE usarse antes de almacenar tags en BD para consistencia con embeddings
+     * (GeneradorEmbeddings usa strtolower) y comparaciones SQL en ConstructorSenales.
+     */
+    public static function normalizarTags(array $tags): array
+    {
+        $normalizados = [];
+        $vistos = [];
+        foreach ($tags as $tag) {
+            $tag = strtolower(trim((string) $tag));
+            if ($tag === '' || isset($vistos[$tag])) continue;
+            $vistos[$tag] = true;
+            $normalizados[] = $tag;
+        }
+        return $normalizados;
+    }
+
+    /**
      * Convierte un array PHP a formato PostgreSQL text[] seguro.
      * Escapa correctamente comillas, comas y llaves dentro de cada elemento.
      */

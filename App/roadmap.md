@@ -103,6 +103,13 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 > P4 (2): docblock + invalidarCache consistencia.
 > Detalle completo: `App/docs/algoritmo.md` (sección Changelog de Auditoría).
 
+#### Sesión AG-ALG S2: Comunidad + Búsqueda + Tags (5 fixes)
+> - **Tag normalization (BUG CRÍTICO):** Tags se almacenaban con casing mixto pero embeddings y SQL comparaban lowercase. Fix: normalización forzada en upload+edición + LOWER() en SQL.
+> - **algoritmoPesos expandido:** 3 nuevas secciones (comunidad, búsqueda, tags) en config centralizada.
+> - **Feed comunidad con scoring:** filtro 'todos' ahora usa frescura(0.40) + engagement velocity(0.35) + boost social(0.15) + diversidad ROW_NUMBER. CTE 2 niveles.
+> - **Búsqueda con ranking:** ts_rank reemplaza ORDER BY cronológico. 3 factores: full-text, tag match, título boost.
+> - **PublicacionesEnums:** Constantes MODERACION_* (faltaban, causaban error de compilación).
+
 - [ ] **11.1** Contexto DAW — datos mezclador en señales (afinidad cruzada)
 - [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa) reemplazando tags hasheados (106 slots CRC32)
 - [x] **11.3** ~~User embeddings dedicados — vector separado, decay temporal~~ **PARCIAL:** Decay temporal implementado (EXP(-dias/30)) en interacciones para perfil. Vector separado pendiente.
@@ -563,6 +570,10 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - Badge variantes: neutro|acento|exito|error|advertencia|info|premium. Hooks JSX → `.tsx`.
 - Sentinel hooks excluidos de `usestate-excesivo` por nombre. Cleanup: `return () =>`, AbortController, `activo = false`.
 - [Explorador]: Filtrado client-side useMemo <500 items. `metadata.carpeta_secundaria` en API. `jsonb_set()` atómico. PipelineAudio `ia_carpeta_*` inmutables. `<img draggable={false}>` para drag cuadricula.
+- [Tags]: Normalizar SIEMPRE a lowercase antes de almacenar. `normalizarTags()` en NormalizadorSample. `sqlTagsEnriquecidos()` aplica LOWER() como defensa en profundidad. 2 puntos de entrada: SamplesUploadController + SamplesModificacionController.
+- [Comunidad]: Feed 'todos' usa scoring CTE 2 niveles (listarFeedPuntuado). 'populares'/'siguiendo'/autor siguen con ORDER BY simple. Config en algoritmoPesos['comunidad'].
+- [Búsqueda]: ts_rank con plainto_tsquery('spanish', ...) para stemming. ILIKE se mantiene en WHERE para filtrado, ts_rank se usa solo para ORDER BY. PDO EMULATE_PREPARES=false exige nombres únicos (:busquedaRank, :busquedaTituloRank, :busquedaTagLike).
+- [PublicacionesEnums]: Schema no tenía check constraint para moderacion_estado → enums no se autogeneraban. Fix: agregar check en schema + constantes manuales en Enums.
 - [Social]: URLs repost: `/publicaciones/${id}/repost`. Lightbox timer 220ms. EVENTO_ENTIDAD_ACTUALIZADA constante. Rollback: snapshot previo. SIEMPRE TarjetaPublicacion para posts. `utils/tiempo.ts` centralizado.
 - [HTML]: NUNCA anidar `<a>` en `<a>` ni `<button>` en `<a>`. Patrón: div wrapper + enlace subzona + menú fuera del `<a>`.
 - [GloryContext]: declaration merging `global.d.ts` SOLO campos nuevos opcionales. PROHIBIDO re-declarar existentes. devMode: `=== true`.

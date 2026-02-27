@@ -101,6 +101,8 @@ class SamplesModificacionController
             if (\count($tags) < 2) {
                 return new \WP_REST_Response(['code' => 'tags_insuficientes', 'message' => 'Se requieren al menos 2 tags'], 400);
             }
+            /* Normalizar tags: lowercase + trim + dedup — consistencia con upload y ConstructorSenales */
+            $tags = NormalizadorSample::normalizarTags($tags);
             $campos[] = SamplesCols::TAGS . ' = :' . SamplesCols::TAGS;
             $params[SamplesCols::TAGS] = NormalizadorSample::phpArrayToPg($tags);
         }
@@ -265,33 +267,40 @@ class SamplesModificacionController
      */
     public static function eliminarArchivosFisicos(array $sample): void
     {
-        $uploadDir = \wp_upload_dir();
-        $baseDir = $uploadDir['basedir'];
-        $rutasAEliminar = [SamplesCols::RUTA_ORIGINAL, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW, SamplesCols::RUTA_WAVEFORM];
+        try {
+            $uploadDir = \wp_upload_dir();
+            $baseDir = $uploadDir['basedir'];
+            $rutasAEliminar = [SamplesCols::RUTA_ORIGINAL, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW, SamplesCols::RUTA_WAVEFORM];
 
-        foreach ($rutasAEliminar as $campo) {
-            if (!empty($sample[$campo])) {
-                $rutaCompleta = $sample[$campo];
-                if (!\file_exists($rutaCompleta)) {
-                    $rutaCompleta = $baseDir . '/' . \ltrim($sample[$campo], '/');
-                }
-                if (\file_exists($rutaCompleta)) {
-                    self::eliminarArchivoSiExiste($rutaCompleta, 'archivo principal de sample');
+            foreach ($rutasAEliminar as $campo) {
+                if (!empty($sample[$campo])) {
+                    $rutaCompleta = $sample[$campo];
+                    if (!\file_exists($rutaCompleta)) {
+                        $rutaCompleta = $baseDir . '/' . \ltrim($sample[$campo], '/');
+                    }
+                    if (\file_exists($rutaCompleta)) {
+                        self::eliminarArchivoSiExiste($rutaCompleta, 'archivo principal de sample');
+                    }
                 }
             }
-        }
 
-        /* Eliminar waveform JSON derivado */
-        $rutaBase = $sample[SamplesCols::RUTA_ORIGINAL] ?? '';
-        if ($rutaBase) {
-            $rutaWaveform = \preg_replace('/\.[^.]+$/', '.json', $rutaBase);
-            if ($rutaWaveform && \file_exists($rutaWaveform)) {
-                self::eliminarArchivoSiExiste($rutaWaveform, 'waveform derivado');
+            /* Eliminar waveform JSON derivado */
+            $rutaBase = $sample[SamplesCols::RUTA_ORIGINAL] ?? '';
+            if ($rutaBase) {
+                $rutaWaveform = \preg_replace('/\.[^.]+$/', '.json', $rutaBase);
+                if ($rutaWaveform && \file_exists($rutaWaveform)) {
+                    self::eliminarArchivoSiExiste($rutaWaveform, 'waveform derivado');
+                }
+                $rutaAbsWaveform = $baseDir . '/' . \ltrim((string) $rutaWaveform, '/');
+                if (\file_exists($rutaAbsWaveform)) {
+                    self::eliminarArchivoSiExiste($rutaAbsWaveform, 'waveform absoluto derivado');
+                }
             }
-            $rutaAbsWaveform = $baseDir . '/' . \ltrim((string) $rutaWaveform, '/');
-            if (\file_exists($rutaAbsWaveform)) {
-                self::eliminarArchivoSiExiste($rutaAbsWaveform, 'waveform absoluto derivado');
-            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('eliminarArchivosFisicos error inesperado', [
+                'sampleId' => $sample[SamplesCols::ID] ?? 'desconocido',
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

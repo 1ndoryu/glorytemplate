@@ -41,7 +41,14 @@ class ConstructorSenales
             throw new \InvalidArgumentException("Alias SQL inválido: {$alias}");
         }
 
-        return "(
+        /*
+         * LOWER() obligatorio: tags se almacenan normalizados desde upload,
+         * pero datos legacy pueden tener casing mixto. LOWER() garantiza
+         * comparaciones case-insensitive sin depender del estado de la BD.
+         * ARRAY_AGG + UNNEST para aplicar LOWER a cada elemento individual.
+         * Filtra NULLs y strings vacíos para evitar ruido en comparaciones.
+         */
+        return "(SELECT COALESCE(ARRAY_AGG(LOWER(t)), ARRAY[]::text[]) FROM UNNEST(
             COALESCE({$alias}.tags, ARRAY[]::text[])
             || COALESCE(
                 CASE
@@ -70,7 +77,7 @@ class ConstructorSenales
                     ELSE ARRAY[]::text[]
                 END, ARRAY[]::text[]
             )
-        )";
+        ) AS t WHERE t IS NOT NULL AND t != '')";
     }
 
     /**

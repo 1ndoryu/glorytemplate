@@ -18,6 +18,7 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\FollowsCols;
 
 class PublicacionesRepository extends BaseRepository
 {
@@ -184,6 +185,115 @@ class PublicacionesRepository extends BaseRepository
             . " WHERE 1=1 {$donde} {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
+    }
+
+    /**
+     * Feed puntuado con scoring multi-señal para el filtro 'todos'.
+     *
+     * Fórmula: score = frescura(decay exp) + engagement_velocity + boost_social
+     * Diversidad por autor: ROW_NUMBER PARTITION BY autor_id cap max_por_autor.
+     *
+     * CTE 2 niveles: base (score) → diversified (ROW_NUMBER) → SELECT final.
+     * Pesos y parámetros vienen de algoritmoPesos['comunidad'].
+     */
+    public static function listarFeedPuntuado(
+        string $donde,
+        array $params,
+        ?int $currentUserId,
+        array $configComunidad
+    ): array {
+        $tp = PublicacionesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        /* Extraer pesos de config */
+        $senales = $configComunidad['senales'] ?? [];
+        $pesoF = (float) ($senales['frescura'] ?? 0.45);
+        $pesoE = (float) ($senales['engagement_velocity'] ?? 0.35);
+        $pesoS = (float) ($senales['boost_social'] ?? 0.20);
+
+        $parametros = $configComunidad['parametros'] ?? [];
+        $vidaMedia = (float) ($parametros['frescura_vida_media_horas'] ?? 24);
+        $factorL = (float) ($parametros['engagement_factor_likes'] ?? 1.0);
+        $factorC = (float) ($parametros['engagement_factor_comentarios'] ?? 2.0);
+        $factorR = (float) ($parametros['engagement_factor_reposts'] ?? 1.5);
+        $maxAutor = (int) ($parametros['max_por_autor'] ?? 3);
+        $velMin = (float) ($parametros['velocity_min_horas'] ?? 1);
+
+        /* Refs de columnas */
+        $pId = PublicacionesCols::ID;
+        $pCreAt = PublicacionesCols::CREATED_AT;
+        $pTotLik = PublicacionesCols::TOTAL_LIKES;
+        $pTotCom = PublicacionesCols::TOTAL_COMENTARIOS;
+        $pTotRep = PublicacionesCols::TOTAL_REPOSTS;
+        $pAutorId = PublicacionesCols::AUTOR_ID;
+        $pRepostId = PublicacionesCols::REPOST_ID;
+
+        /* Frescura: decay exponencial — EXP(-horas/vida_media) */
+        $sqlFrescura = "EXP(-1.0 * EXTRACT(EPOCH FROM NOW() - p.{$pCreAt}) / 3600.0 / {$vidaMedia})";
+
+        /* Engagement velocity: interacciones ponderadas / horas — acotado [0,1] */
+        $sqlHoras = "GREATEST({$velMin}, EXTRACT(EPOCH FROM NOW() - p.{$pCreAt}) / 3600.0)";
+        $sqlEngagement = "LEAST(1.0, (
+            COALESCE(p.{$pTotLik}, 0) * {$factorL}
+            + COALESCE(p.{$pTotCom}, 0) * {$factorC}
+            + COALESCE(p.{$pTotRep}, 0) * {$factorR}
+        ) / {$sqlHoras})";
+
+        /* Social boost: 1 si el autor es seguido por el usuario, 0 si no */
+        if ($currentUserId) {
+            $tf = FollowsCols::TABLA;
+            $fSeguidoId = FollowsCols::SEGUIDO_ID;
+            $fSeguidorId = FollowsCols::SEGUIDOR_ID;
+            $sqlSocial = "CASE WHEN p.{$pAutorId} IN (SELECT {$fSeguidoId} FROM {$tf} WHERE {$fSeguidorId} = :feedUserId) THEN 1.0 ELSE 0.0 END";
+            $params['feedUserId'] = $currentUserId;
+        } else {
+            $sqlSocial = "0.0";
+        }
+
+        /* Score compuesto: 3 señales ponderadas */
+        $sqlScore = "({$pesoF} * {$sqlFrescura} + {$pesoE} * {$sqlEngagement} + {$pesoS} * {$sqlSocial})";
+
+        /* Subquery liked (reacción del usuario actual) */
+        $tl = LikesCols::TABLA;
+        $likedSubquery = isset($params['current_user'])
+            ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . $pId . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
+            : ", NULL AS reaccion_usuario";
+
+        /*
+         * CTE 2 niveles:
+         * 1. base: calcula _score para cada publicación
+         * 2. diversified: aplica ROW_NUMBER para cap por autor
+         * 3. SELECT final: ordena por _score y pagina
+         */
+        $sql = "WITH base AS (
+            SELECT p.*, u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::VERIFICADO
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . " {$likedSubquery}"
+            . ", orig.{$pId} AS orig_id"
+            . ", orig." . PublicacionesCols::CONTENIDO . " AS orig_contenido"
+            . ", orig." . PublicacionesCols::IMAGENES . " AS orig_imagenes"
+            . ", orig." . PublicacionesCols::SAMPLES_ADJUNTOS . " AS orig_samples_adjuntos"
+            . ", u_orig." . UsuariosExtCols::ID . " AS orig_autor_id"
+            . ", u_orig." . UsuariosExtCols::USERNAME . " AS orig_username"
+            . ", u_orig." . UsuariosExtCols::NOMBRE_VISIBLE . " AS orig_nombre_visible"
+            . ", u_orig." . UsuariosExtCols::AVATAR_URL . " AS orig_avatar_url"
+            . ", u_orig." . UsuariosExtCols::VERIFICADO . " AS orig_verificado"
+            . ", u_orig." . UsuariosExtCols::WP_USER_ID . " AS orig_wp_user_id"
+            . ", {$sqlScore} AS _score"
+            . " FROM {$tp} p JOIN {$tu} u ON p.{$pAutorId} = u." . UsuariosExtCols::ID
+            . " LEFT JOIN {$tp} orig ON p.{$pRepostId} = orig.{$pId}"
+            . " LEFT JOIN {$tu} u_orig ON orig.{$pAutorId} = u_orig." . UsuariosExtCols::ID
+            . " WHERE 1=1 {$donde}"
+            . "), diversified AS ("
+            . " SELECT *, ROW_NUMBER() OVER (PARTITION BY {$pAutorId} ORDER BY _score DESC) AS _rn_autor"
+            . " FROM base"
+            . ") SELECT * FROM diversified WHERE _rn_autor <= {$maxAutor}"
+            . " ORDER BY _score DESC LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, $params);
     }
 
     /*

@@ -153,7 +153,11 @@ class SamplesUploadController
         }
 
         $sampleId = null;
-        $tagsPostgres = NormalizadorSample::phpArrayToPg(\array_map('\sanitize_text_field', $tags));
+        /* Normalizar tags: sanitize → lowercase + trim + dedup → PG array.
+         * Consistencia obligatoria con GeneradorEmbeddings (strtolower) y ConstructorSenales (LOWER SQL). */
+        $tagsSanitizados = \array_map('\sanitize_text_field', $tags);
+        $tagsNormalizados = NormalizadorSample::normalizarTags($tagsSanitizados);
+        $tagsPostgres = NormalizadorSample::phpArrayToPg($tagsNormalizados);
 
         try {
             $sampleId = SamplesRepository::insertarSample([

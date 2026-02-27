@@ -182,4 +182,81 @@ return [
         /* Tiempo (segundos) sin actividad para considerar al usuario "inactivo" */
         'umbral_inactividad_seg'    => 600, /* 10 minutos */
     ],
+
+    /*
+     * Algoritmo del feed de Comunidad (publicaciones sociales).
+     *
+     * Scoring multi-señal para el feed 'todos' (default).
+     * 'populares' y 'siguiendo' siguen usando ORDER BY simple.
+     *
+     * Fórmula: score = freshness * w_f + engagement_velocity * w_e + social_boost * w_s
+     * Normalizada con LEAST(1.0, ...) para mantener [0,1].
+     */
+    'comunidad' => [
+        /* Pesos principales — DEBEN sumar 1.0 */
+        'senales' => [
+            'frescura'               => 0.40,  /* Decay exponencial por antigüedad */
+            'engagement_velocity'    => 0.35,  /* Likes+comentarios+reposts / hora */
+            'boost_social'           => 0.15,  /* Publicación de usuario seguido */
+            'diversidad_autor'       => 0.10,  /* Penalización por repetición de autor */
+        ],
+
+        'parametros' => [
+            /* Horas de vida media para decay exponencial de frescura */
+            'frescura_vida_media_horas' => 24,
+
+            /* Factor de amplificación para engagement velocity */
+            'engagement_factor_likes'      => 1.0,
+            'engagement_factor_comentarios' => 2.0,  /* Comentarios valen más (mayor esfuerzo) */
+            'engagement_factor_reposts'    => 1.5,
+
+            /* Máximo de publicaciones del mismo autor en un feed page */
+            'max_por_autor'                => 3,
+
+            /* Umbral mínimo de horas para normalizar velocity (evita division-by-near-zero) */
+            'velocity_min_horas'           => 1,
+        ],
+    ],
+
+    /*
+     * Configuración de búsqueda de samples con ranking de relevancia.
+     *
+     * Reemplaza ILIKE simple por scoring multi-factor:
+     * - ts_rank: relevancia full-text de PostgreSQL
+     * - Tag match: boost si el término de búsqueda coincide con tags
+     * - Título match: boost si el término coincide con el título (más específico que descripción)
+     *
+     * Fórmula: score = ts_rank_weight * ts_rank + tag_match_boost * tag_score + titulo_boost * titulo_score
+     */
+    'busqueda' => [
+        /* Pesos de ranking — NO necesitan sumar 1.0 (son multiplicadores de boost) */
+        'ts_rank_weight'       => 1.0,   /* Peso del ranking full-text de PostgreSQL */
+        'tag_match_boost'      => 0.8,   /* Boost por coincidencia en tags del sample */
+        'titulo_boost'         => 0.5,   /* Boost extra por match en título (más relevante que descripción) */
+
+        /* Idioma para ts_vector/ts_query (PostgreSQL text search config) */
+        'idioma_ts'            => 'spanish',
+
+        /* Mínimo de caracteres para activar búsqueda (evita queries costosas de 1-2 chars) */
+        'min_caracteres'       => 2,
+
+        /* Máximo de resultados por página de búsqueda */
+        'max_resultados'       => 50,
+    ],
+
+    /*
+     * Configuración de normalización de tags.
+     *
+     * Política de normalización aplicada al almacenar tags en BD:
+     * - NormalizadorSample::normalizarTags() aplica estas reglas
+     * - ConstructorSenales::sqlTagsEnriquecidos() usa LOWER() como defensa en profundidad
+     * - GeneradorEmbeddings ya normaliza con strtolower/trim al generar vectores
+     */
+    'tags' => [
+        'lowercase'            => true,  /* Convertir a minúsculas */
+        'trim'                 => true,  /* Eliminar espacios antes/después */
+        'deduplicar'           => true,  /* Eliminar tags duplicados */
+        'max_por_sample'       => 15,    /* Máximo de tags por sample */
+        'max_longitud_tag'     => 50,    /* Máximo de caracteres por tag */
+    ],
 ];
