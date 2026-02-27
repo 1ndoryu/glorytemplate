@@ -23,6 +23,22 @@
         "resizable": true,
         "fullscreen": false,
         "transparent": false
+      },
+      {
+        "label": "sync-panel",
+        "title": "Kamples Sync",
+        "url": "sync.html",
+        "width": 380,
+        "height": 520,
+        "minWidth": 320,
+        "minHeight": 400,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "center": false,
+        "transparent": false
       }
     ],
     "security": {

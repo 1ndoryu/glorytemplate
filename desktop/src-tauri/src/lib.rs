@@ -44,7 +44,8 @@ fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
 
 /*
  * Configura el tray icon con menu contextual.
- * Acciones: mostrar ventana, ocultar, y salir.
+ * Left-click y "Sincronización" abren la ventana sync-panel (popup).
+ * "Mostrar Kamples" abre la ventana principal.
  */
 fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let sincronizacion = MenuItem::with_id(app, "sincronizacion", "Sincronización", true, None::<&str>)?;
@@ -54,7 +55,6 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     let menu = Menu::with_items(app, &[&sincronizacion, &mostrar, &ocultar, &salir])?;
 
-    /* Usar el icono de la app (definido en bundle.icon de tauri.conf.json) */
     let icon = app
         .default_window_icon()
         .cloned()
@@ -66,11 +66,7 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .tooltip("Kamples")
         .on_menu_event(|app, event| match event.id.as_ref() {
             "sincronizacion" => {
-                let _ = app.emit("abrir-panel-sync", ());
-                if let Some(ventana) = app.get_webview_window("main") {
-                    let _ = ventana.show();
-                    let _ = ventana.set_focus();
-                }
+                mostrar_ventana_sync(app);
             }
             "mostrar" => {
                 if let Some(ventana) = app.get_webview_window("main") {
@@ -88,7 +84,7 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             }
             _ => {}
         })
-        /* Left-click en el icono de tray abre el panel de sincronización */
+        /* Left-click en tray: toggle ventana sync-panel */
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -96,17 +92,43 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 ..
             } = event
             {
-                let app = tray.app_handle();
-                let _ = app.emit("abrir-panel-sync", ());
-                if let Some(ventana) = app.get_webview_window("main") {
-                    let _ = ventana.show();
-                    let _ = ventana.set_focus();
-                }
+                mostrar_ventana_sync(tray.app_handle());
             }
         })
         .build(app)?;
 
     Ok(())
+}
+
+/*
+ * Muestra/oculta la ventana sync-panel.
+ * Si ya esta visible, la oculta (toggle).
+ * Si no, la posiciona cerca del area de tray y la muestra.
+ */
+fn mostrar_ventana_sync(app: &tauri::AppHandle) {
+    let _ = app.emit("abrir-panel-sync", ());
+    if let Some(ventana) = app.get_webview_window("sync-panel") {
+        if ventana.is_visible().unwrap_or(false) {
+            let _ = ventana.hide();
+        } else {
+            /* Posicionar en esquina inferior derecha (zona del tray) */
+            if let Ok(monitor) = ventana.current_monitor() {
+                if let Some(monitor) = monitor {
+                    let tamano_pantalla = monitor.size();
+                    let posicion_monitor = monitor.position();
+                    let escala = monitor.scale_factor();
+                    let ancho_ventana = 380.0;
+                    let alto_ventana = 520.0;
+                    let margen = 12.0;
+                    let x = (tamano_pantalla.width as f64 / escala) - ancho_ventana - margen + (posicion_monitor.x as f64 / escala);
+                    let y = (tamano_pantalla.height as f64 / escala) - alto_ventana - margen - 48.0 + (posicion_monitor.y as f64 / escala);
+                    let _ = ventana.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(x, y)));
+                }
+            }
+            let _ = ventana.show();
+            let _ = ventana.set_focus();
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

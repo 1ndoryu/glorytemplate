@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/nicdelhi/tauri2-schema/main/capability.json",
   "identifier": "principal",
   "description": "Permisos principales de la app Kamples Desktop",
-  "windows": ["main"],
+  "windows": ["main", "sync-panel"],
   "permissions": [
     "core:default",
     "dialog:default",

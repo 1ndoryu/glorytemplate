@@ -469,3 +469,40 @@
 .sincPanelColeccionItem--suelto .sincPanelColeccionNombre {
     font-style: italic;
 }
+
+/* Ventana standalone de sincronizacion (popup Tauri sin decoraciones) */
+.ventanaSincPanel {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--fondoBase);
+    overflow: hidden;
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+/* Barra superior draggable (reemplaza titlebar del OS) */
+.ventanaSincPanelBarra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+    user-select: none;
+    -webkit-app-region: drag;
+    cursor: grab;
+}
+
+/* Boton cerrar NO debe ser draggable */
+.ventanaSincPanelBarra .sincPanelCerrar {
+    -webkit-app-region: no-drag;
+    cursor: pointer;
+}
+
+/* Contenido scrollable del panel standalone */
+.ventanaSincPanelContenido {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}

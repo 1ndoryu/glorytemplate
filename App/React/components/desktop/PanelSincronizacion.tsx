@@ -1,13 +1,11 @@
 /*
  * Componente: PanelSincronizacion
- * Modal centrado sin header para gestionar sincronizacion de archivos.
- * En web: modal centrado via componente Modal.
- * En desktop (Tauri): se abre tambien desde el tray icon via evento.
+ * Modal sin header para gestionar sincronizacion de archivos (uso in-app).
+ * En desktop (Tauri): la ventana standalone VentanaSincPanel se abre desde tray.
  * C358: Tabs estado/historial/colecciones, forzar re-sync.
  * Tabs extraidos a SincPanelTabs.tsx para cumplir limite 300 lineas.
  */
 
-import { FolderSync, X } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { Modal } from '../ui/Modal';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
@@ -52,22 +50,6 @@ export const PanelSincronizacion = (): JSX.Element | null => {
             className="sincPanelModal"
         >
             <div className="sincPanel">
-                {/* Cabecera interna con titulo e icono cerrar */}
-                <div className="sincPanelCabecera">
-                    <div className="sincPanelTitulo">
-                        <FolderSync size={18} />
-                        <span>Sincronización</span>
-                    </div>
-                    <BotonBase variante="ghost"
-                        className="sincPanelCerrar"
-                        onClick={cerrarPanel}
-                        type="button"
-                        aria-label="Cerrar panel"
-                    >
-                        <X size={16} />
-                    </BotonBase>
-                </div>
-
                 {/* Tabs */}
                 <div className="sincPanelTabs" role="tablist">
                     {TABS.map((tab) => (

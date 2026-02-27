@@ -22,6 +22,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: resolve(__dirname, 'index.html'),
+                sync: resolve(__dirname, 'sync.html'),
             },
         },
     },
