@@ -533,6 +533,25 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 
 ---
 
+### Sentinel + VarSense — Fix completo
+> **Estado:** ✅ COMPLETADO [AG-SNC] | **Commit:** `66067b87`
+
+**VarSense (62/62 errores corregidos):** 15 archivos CSS — sincronizacion, colaIaAdmin, publicacionDetalle, panelLateral, tarjetaPublicacion, comunidad, tooltip, planes, adminPanel, bienvenida, cardPerfil, tarjetaColeccion, sidebar, selectFiltro, modalColeccion. Mappings principales: `--superficie`→`--fondoElevado2`, `--borde`→`--bordeSutil`, `--textoTenue`→`--textoTerciario`, `--colorTexto`→`--textoPrimario`, `--espaciado*`→`--espacio*`, hardcoded colors→variables.
+
+**Sentinel (27/27 violaciones resueltas):**
+- Info 21/21: Barras decorativas eliminadas en syncTrackingService.ts(9), syncCollectionService.ts(9), syncGuards.ts(3).
+- Warning 4/4: PanelSincronizacion.tsx split (438→115 lín + SincPanelTabs.tsx 270 lín), AdminController.php split (457→300 lín + AdminModeracionController.php 190 lín), PipelineAudio.php split (463→350 lín + PipelineAudioHelpers.php 115 lín), SamplesModificacionController try-catch.
+- Hint 2/2: ColaProcesamientoIaRepository `SELECT *` → columnas explícitas con `ColaProcesamientoIaCols::TODAS`.
+
+### Tray Icon → SincPanel
+> **Estado:** ✅ COMPLETADO [AG-SNC] | **Commit:** `66067b87`
+
+- Rust (lib.rs): Left-click en tray icon emite `abrir-panel-sync` + show/focus ventana. Menú tray: +item "Sincronización" con mismo comportamiento.
+- Frontend (main.tsx): Listener `@tauri-apps/api/event` abre panel via `useSyncStore.getState().abrirPanel()`.
+- En web: modal centrado (componente Modal existente, sin header).
+
+---
+
 ## Notas Compactas
 
 - **Storage:** WP uploads local+VPS. **IA:** Groq 100%. **Stripe:** keys live .env. **WS:** Local→Bun VPS. **FFmpeg:** winget v8.0.1 .env.
@@ -602,6 +621,9 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - Tray: solo uno (conf o Rust builder). `inicializarAuthDesktop()` token+usuario ANTES de montar React.
 - tauri-plugin-fs watch: `features = ["watch"]` en Cargo.toml. Sync: hash parcial 8KB+tamaño. MOVE=DELETE+CREATE (grace 5s). Self-trigger: `descargasEnCurso` Set. Carpetas server implícitas. Post-upload PUT carpeta prioridad local.
 - [Sync v2]: Tracking key format `"{sampleId}_{coleccionId}"` (coleccionId=0 si null). Tauri Store type assertion: `{ get, set, save }` interfaz explícita (no ReturnType). syncService expone todo via `window.__KAMPLES_SYNC__` — nunca import directo desde web.
+- [Tray→Panel]: `Emitter` trait necesario en import Rust para `app.emit()`. `TrayIconEvent::Click` requiere `MouseButton::Left` + `MouseButtonState::Up`. Listener frontend: `useSyncStore.getState().abrirPanel()` accede al store Zustand fuera de React.
+- [VarSense mappings extra]: `--superficie`→`--fondoElevado2`, `--colorAlerta`→`--advertencia`, `--colorExito`→`--exito`, `--colorError`→`--error`, `--colorTextoSecundario`→`--textoSecundario`, `--colorSuperficieHover`→`--fondoElevado2`, `--borderRadiusSm`→`--radioSm`, `--fuenteBase`→`--fuenteMd`. `rgba(0,0,0,0.7)`→`var(--overlayOscuro)`, `rgba(0,0,0,0.4-0.55)`→`var(--overlaySuave)`.
+- [Sentinel splits]: AdminController → AdminModeracionController (moderación routes delegadas via `AdminModeracionController::registrarRutas($namespace)` desde registrarRutas del padre). PipelineAudio helpers → PipelineAudioHelpers (construirNombreArchivo + actualizarSample). ColaProcesamientoIaCols::TODAS para `SELECT` explícito.
 - [fileWatcher carpetas]: RENAME directorio = DELETE+CREATE secuencial. Grace 3s con Map. Solo first-level dirs (sin extensión audio + hijos directos de carpetaBase). `procesarEventoCarpeta` antes de `procesarEvento` audio.
 
 ### Sentinel / Análisis Estático
