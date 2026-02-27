@@ -67,6 +67,17 @@ let datos: BaseSyncLocal = {
     historial: [],
 };
 
+/*
+ * Índices secundarios para O(1) lookup por ruta y nombre.
+ * Se reconstruyen al cargar datos y se mantienen en cada registrar/eliminar.
+ * Clave del mapa → clave de tracking para acceso directo a datos.archivos[clave].
+ */
+const indiceRuta = new Map<string, string>();
+const indiceNombre = new Map<string, string[]>();
+
+/* Modo lote: suspende persistencia hasta finalizarLote(). Evita 100+ escrituras en sync masiva. */
+let enLote = false;
+
 /* eslint-disable @typescript-eslint/no-explicit-any -- Tauri Store typing requires flexible interface */
 let storeCache: { get: <T>(key: string) => Promise<T | null>; set: (key: string, val: unknown) => Promise<void>; save: () => Promise<void> } | null = null;
 
@@ -83,6 +94,7 @@ export async function inicializarTracking(): Promise<void> {
         const guardado = await storeCache!.get<BaseSyncLocal>(STORE_KEY_TRACKING);
         if (guardado) {
             datos = guardado;
+            reconstruirIndices();
         }
     } catch {
         /* Store no disponible — usar defaults */
@@ -90,13 +102,40 @@ export async function inicializarTracking(): Promise<void> {
 }
 
 async function persistir(): Promise<void> {
-    if (!storeCache) return;
+    if (enLote || !storeCache) return;
     try {
         await storeCache.set(STORE_KEY_TRACKING, datos);
         await storeCache.save();
     } catch (err) {
         console.error('[SyncTracking] Error persistiendo datos:', err);
     }
+}
+
+/* Reconstruye índices secundarios desde datos.archivos. Llamado al cargar o migrar. */
+function reconstruirIndices(): void {
+    indiceRuta.clear();
+    indiceNombre.clear();
+    for (const [clave, archivo] of Object.entries(datos.archivos)) {
+        const rutaNorm = archivo.rutaLocal.replace(/\\/g, '/');
+        indiceRuta.set(rutaNorm, clave);
+
+        for (const nombre of [archivo.nombreServidor, archivo.nombreLocal]) {
+            const existentes = indiceNombre.get(nombre) ?? [];
+            if (!existentes.includes(clave)) existentes.push(clave);
+            indiceNombre.set(nombre, existentes);
+        }
+    }
+}
+
+/* ==================== Lote (batch) ==================== */
+
+/** Inicia modo lote: las operaciones no persisten individualmente. */
+export function iniciarLote(): void { enLote = true; }
+
+/** Finaliza modo lote y persiste todos los cambios acumulados. */
+export async function finalizarLote(): Promise<void> {
+    enLote = false;
+    await persistir();
 }
 
 /* ==================== Archivos ==================== */
@@ -114,29 +153,61 @@ export function buscarArchivoPorSampleId(sampleId: number): ArchivoTracking | nu
     return null;
 }
 
+/** O(1) lookup por ruta normalizada usando índice secundario. */
 export function buscarArchivoPorRuta(ruta: string): ArchivoTracking | null {
     const rutaNorm = ruta.replace(/\\/g, '/');
-    for (const archivo of Object.values(datos.archivos)) {
-        if (archivo.rutaLocal.replace(/\\/g, '/') === rutaNorm) return archivo;
-    }
+    const clave = indiceRuta.get(rutaNorm);
+    if (clave) return datos.archivos[clave] ?? null;
     return null;
 }
 
+/** O(1) lookup por nombre de archivo usando índice secundario. */
 export function buscarArchivoPorNombre(nombre: string): ArchivoTracking | null {
-    for (const archivo of Object.values(datos.archivos)) {
-        if (archivo.nombreServidor === nombre || archivo.nombreLocal === nombre) return archivo;
-    }
+    const claves = indiceNombre.get(nombre);
+    if (claves && claves.length > 0) return datos.archivos[claves[0]] ?? null;
     return null;
 }
 
 export async function registrarArchivo(archivo: ArchivoTracking): Promise<void> {
     const clave = generarClaveTracking(archivo.sampleId, archivo.coleccionId);
+
+    /* Limpiar índice de entrada anterior si existía con otra ruta/nombre */
+    const anterior = datos.archivos[clave];
+    if (anterior) {
+        indiceRuta.delete(anterior.rutaLocal.replace(/\\/g, '/'));
+    }
+
     datos.archivos[clave] = archivo;
+
+    /* Actualizar índices secundarios */
+    const rutaNorm = archivo.rutaLocal.replace(/\\/g, '/');
+    indiceRuta.set(rutaNorm, clave);
+    for (const nombre of [archivo.nombreServidor, archivo.nombreLocal]) {
+        const existentes = indiceNombre.get(nombre) ?? [];
+        if (!existentes.includes(clave)) existentes.push(clave);
+        indiceNombre.set(nombre, existentes);
+    }
+
     await persistir();
 }
 
 export async function eliminarArchivo(sampleId: number, coleccionId: number | null): Promise<void> {
     const clave = generarClaveTracking(sampleId, coleccionId);
+    const archivo = datos.archivos[clave];
+
+    if (archivo) {
+        /* Limpiar índices secundarios */
+        indiceRuta.delete(archivo.rutaLocal.replace(/\\/g, '/'));
+        for (const nombre of [archivo.nombreServidor, archivo.nombreLocal]) {
+            const existentes = indiceNombre.get(nombre);
+            if (existentes) {
+                const filtrado = existentes.filter(c => c !== clave);
+                if (filtrado.length === 0) indiceNombre.delete(nombre);
+                else indiceNombre.set(nombre, filtrado);
+            }
+        }
+    }
+
     delete datos.archivos[clave];
     await persistir();
 }
@@ -309,6 +380,7 @@ export async function migrarDesdeV1(): Promise<boolean> {
             datos.sinColeccion.push(v1.sampleId);
         }
 
+        reconstruirIndices();
         await persistir();
 
         /* Registrar migración en historial */
@@ -334,6 +406,8 @@ export async function resetearTracking(): Promise<void> {
         sinColeccion: [],
         historial: [],
     };
+    indiceRuta.clear();
+    indiceNombre.clear();
     await persistir();
 }
 

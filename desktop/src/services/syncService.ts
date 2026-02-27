@@ -15,6 +15,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
+import { marcarDescargaEnCurso, esDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
 
 const STORE_FILE = 'sync-config.json';
 
@@ -54,9 +55,6 @@ export interface ProgresoSync {
 }
 
 export type ProgressCallback = (progreso: ProgresoSync) => void;
-
-function obtenerBaseUrl(): string {    const ctx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;    return ctx?.apiUrl ?? '/wp-json';
-}
 
 interface SyncConfig {
     carpetaLocal: string | null;
@@ -99,15 +97,6 @@ const POLLING_CARPETAS_MS = 60_000; /* Cada 60s sincronizar estructura de carpet
 /* C355: Referencia al módulo de tracking v2, cargado en init */
 let trackingModule: typeof import('./syncTrackingService') | null = null;
 let collectionModule: typeof import('./syncCollectionService') | null = null;
-
-/*
- * Guard contra auto-trigger del watcher.
- * Cuando syncService descarga archivos a la carpeta local, el watcher lo detecta
- * como "archivo nuevo" e intenta re-subirlo. Este Set guarda las rutas que estamos
- * escribiendo nosotros mismos para que el callback onArchivoNuevo las ignore.
- */
-const descargasEnCurso = new Set<string>();
-const GRACIA_DESCARGA_MS = 10_000; /* Ignorar creates propios por 10s post-descarga */
 
 /*
  * Inicializa el servicio de sync: carga config, tracking v2 y migra si necesario.
@@ -369,7 +358,7 @@ async function sincronizarConServidorV1(
     try {
         const { mkdir, writeFile, rename } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
-        const baseUrl = obtenerBaseUrl();
+        const baseUrl = obtenerBaseUrlSync();
 
         /* Obtener estructura de carpetas del explorador del usuario */
         const respCarpetas = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/carpetas`);
@@ -465,12 +454,8 @@ async function sincronizarConServidorV1(
                                     const nuevaRuta = await join(rutaEsperada, nombreArch);
 
                                     /* Marcar ambas rutas para que el watcher no reaccione al rename */
-                                    descargasEnCurso.add(nuevaRuta.replace(/\\/g, '/'));
-                                    descargasEnCurso.add(archivoExistente.ruta.replace(/\\/g, '/'));
-                                    setTimeout(() => {
-                                        descargasEnCurso.delete(nuevaRuta.replace(/\\/g, '/'));
-                                        descargasEnCurso.delete(archivoExistente.ruta.replace(/\\/g, '/'));
-                                    }, GRACIA_DESCARGA_MS);
+                                    marcarDescargaEnCurso(nuevaRuta);
+                                    marcarDescargaEnCurso(archivoExistente.ruta);
 
                                     await rename(archivoExistente.ruta, nuevaRuta);
                                     /* Actualizar índice con la nueva ruta */
@@ -541,10 +526,7 @@ async function sincronizarConServidorV1(
                         const rutaArchivo = await join(rutaDestino, nombreArchivo);
 
                         /* Marcar como descarga propia para que el watcher no lo re-suba */
-                        descargasEnCurso.add(rutaArchivo.replace(/\\/g, '/'));
-                        setTimeout(() => {
-                            descargasEnCurso.delete(rutaArchivo.replace(/\\/g, '/'));
-                        }, GRACIA_DESCARGA_MS);
+                        marcarDescargaEnCurso(rutaArchivo);
 
                         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
@@ -647,7 +629,7 @@ export async function sincronizarSampleIndividual(
     try {
         const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
-        const baseUrl = obtenerBaseUrl();
+        const baseUrl = obtenerBaseUrlSync();
 
         /* Obtener URL firmada de descarga */
         const respDescarga = await fetch(
@@ -705,10 +687,7 @@ export async function sincronizarSampleIndividual(
         const rutaArchivo = await join(rutaDestino, nombreArchivo);
 
         /* Marcar como descarga propia para que el watcher no lo re-suba */
-        descargasEnCurso.add(rutaArchivo.replace(/\\/g, '/'));
-        setTimeout(() => {
-            descargasEnCurso.delete(rutaArchivo.replace(/\\/g, '/'));
-        }, GRACIA_DESCARGA_MS);
+        marcarDescargaEnCurso(rutaArchivo);
 
         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
@@ -769,7 +748,7 @@ async function inicializarSyncBidireccional(): Promise<void> {
                 const rutaNorm = ruta.replace(/\\/g, '/');
 
                 /* Guard: Ignorar archivos que nosotros mismos acabamos de descargar */
-                if (descargasEnCurso.has(rutaNorm)) {
+                if (esDescargaEnCurso(rutaNorm)) {
                     console.info('[Sync] Ignorando create propio (descarga en curso):', nombreArchivo);
                     return;
                 }
@@ -1117,10 +1096,10 @@ export async function detenerSyncBidireccional(): Promise<void> {
 async function sincronizarEstructuraCarpetas(): Promise<void> {
     if (!config.carpetaLocal || !estaOnline()) return;
 
-    /* C357: v2 — sincronizar colecciones silenciosamente (sin progreso) */
+    /* C357: v2 — polling solo crea carpetas nuevas, no descarga samples completos */
     if (collectionModule) {
         try {
-            await collectionModule.sincronizarColecciones(config.carpetaLocal);
+            await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, true);
         } catch (err) {
             console.error('[Sync] Error en polling de colecciones v2:', err);
         }
@@ -1131,7 +1110,7 @@ async function sincronizarEstructuraCarpetas(): Promise<void> {
     try {
         const { mkdir } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
-        const baseUrl = obtenerBaseUrl();
+        const baseUrl = obtenerBaseUrlSync();
 
         const resp = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/carpetas`);
         if (!resp.ok) return;
@@ -1188,6 +1167,21 @@ async function manejarMoveLocal(
     }
     await guardarIndice();
 
+    /* v2: actualizar tracking si existe */
+    if (trackingModule) {
+        const archivoTracking = trackingModule.buscarArchivoPorSampleId(archivo.sampleId);
+        if (archivoTracking) {
+            archivoTracking.rutaLocal = rutaNueva;
+            if (archivoTracking.syncDeshabilitado) archivoTracking.syncDeshabilitado = false;
+            await trackingModule.registrarArchivo(archivoTracking);
+            await trackingModule.registrarAccion({
+                tipo: 'movido',
+                descripcion: `Movido a ${carpetas[0] || 'General'}${carpetas[1] ? '/' + carpetas[1] : ''}`,
+                sampleId: archivo.sampleId,
+            });
+        }
+    }
+
     /* Mover en el servidor: carpetas[0] = primaria, carpetas[1] = secundaria */
     const primaria = carpetas[0] || 'General';
     const secundaria = carpetas[1] || '';
@@ -1213,6 +1207,16 @@ async function actualizarRutaYCarpeta(
     }
     await guardarIndice();
 
+    /* v2: actualizar tracking si existe */
+    if (trackingModule) {
+        const archivoTracking = trackingModule.buscarArchivoPorSampleId(archivo.sampleId);
+        if (archivoTracking) {
+            archivoTracking.rutaLocal = rutaNueva;
+            if (archivoTracking.syncDeshabilitado) archivoTracking.syncDeshabilitado = false;
+            await trackingModule.registrarArchivo(archivoTracking);
+        }
+    }
+
     /* Sincronizar ubicación con el servidor */
     const primaria = carpetas[0] || 'General';
     const secundaria = carpetas[1] || '';
@@ -1235,7 +1239,7 @@ async function moverSampleEnServidor(
     }
 
     try {
-        const baseUrl = obtenerBaseUrl();
+        const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/me/coleccionados/${sampleId}/carpeta`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

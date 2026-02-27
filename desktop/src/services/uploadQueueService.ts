@@ -21,6 +21,7 @@
 
 import { esDesktop, estaOnline } from './desktopService';
 import { extraerMetadataDeRuta, registrarDescarga, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
+import { obtenerBaseUrlSync } from './syncGuards';
 
 const STORE_FILE = 'upload-queue.json';
 const STORE_KEY_COLA = 'upload_cola';
@@ -58,9 +59,6 @@ let cola: ItemUploadCola[] = [];
 let hashesConocidos = new Set<string>();
 let procesando = false;
 let callbackProgreso: OnProgresoUploadFn | null = null;
-
-function obtenerBaseUrl(): string {    const ctx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;    return ctx?.apiUrl ?? '/wp-json';
-}
 
 /*
  * Inicializa la cola: carga items pendientes y hashes del store.
@@ -220,7 +218,7 @@ async function procesarCola(): Promise<void> {
 async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
     try {
         const { readFile } = await import('@tauri-apps/plugin-fs');
-        const baseUrl = obtenerBaseUrl();
+        const baseUrl = obtenerBaseUrlSync();
 
         /* Leer el archivo de audio del disco */
         const contenidoArchivo = await readFile(item.rutaArchivo);
