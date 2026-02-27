@@ -156,38 +156,37 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 
 ## SPRINT ACTUAL — Tareas 353-358 (Sync v2 + Cola IA + UI)
 
-> **Estado:** PLANIFICACIÓN ARQUITECTÓNICA. No implementar hasta revisión del usuario.
-> **Orden de implementación:** 353 (simple) → 356 (Cola IA, independiente) → 355+357 (Sync v2, combinadas) → 354 (se resuelve con Sync v2) → 358 (UI final)
+> **Estado:** COMPLETADO. Todas las tareas implementadas y commiteadas.
 
 ---
 
 ### C353 — Ocultar Explorador temporalmente
-> **Complejidad:** Baja | **Dependencias:** Ninguna | **Estado:** Listo para implementar
-
-**Acción:** Comentar la línea `PageManager::reactPage('explorador', 'ExploradorIsland')` en `App/Config/pages.php` (~línea 89). Dejar comentario explicativo: desactivado hasta rediseño del sistema de carpetas basado en colecciones (C355).
-
-**Archivos:** `App/Config/pages.php` (1 línea)
-
----
+> **Complejidad:** Baja | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `3c2b570b`
 
 ### C354 — Fix subida duplicada de audio
-> **Complejidad:** Media | **Dependencias:** Se resuelve mayoritariamente con C355 (Sync v2) | **Estado:** Análisis completado
+> **Complejidad:** Media | **Estado:** ✅ RESUELTO [AG-IA] — Solucionado por Sync v2
 
-**Causa raíz identificada:** El `descargasEnCurso` Set en `syncService.ts` tiene una ventana de gracia de 10s (`GRACIA_DESCARGA_MS`). Si el watcher detecta el archivo DESPUÉS de que expire la gracia (filesystem lento, disco externo, antivirus bloqueando), el archivo se encola para subida porque ya no está en el Set. Además, `uploadQueueService` verifica duplicados por hash parcial, pero si el archivo no está completamente escrito aún, el hash difiere.
+**Resolución:** El nuevo tracking v2 (`syncTrackingService`) usa `sampleId_coleccionId` como clave. En `inicializarSyncBidireccional()` el callback `onArchivoNuevo` ahora verifica primero contra tracking v2 (busca por ruta y por nombre) antes de encolar upload. Si el sample ya está trackeado, se ignora.
 
-**Solución inmediata (pre-Sync v2):**
-1. En `fileWatcherService.ts` callback `onArchivoNuevo`: antes de encolar, verificar contra el `indiceArchivos` por nombre normalizado + tamaño aproximado.
-2. En `uploadQueueService.ts`: agregar verificación contra el índice de sync por `sampleId` antes de hacer POST.
-3. Ampliar `GRACIA_DESCARGA_MS` a 30s como medida preventiva.
+### C355 — Sync v2: Backend + Desktop Services + Refactor
+> **Complejidad:** Muy alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `2aaafa0b`
 
-**Solución definitiva (con Sync v2):** El nuevo tracking por Tauri Store con `sampleId` como clave única elimina este problema: si el archivo ya tiene `sampleId` en la base de tracking, nunca se re-sube.
-
-**Archivos:** `desktop/src/services/syncService.ts`, `desktop/src/services/fileWatcherService.ts`, `desktop/src/services/uploadQueueService.ts`
-
----
+Archivos nuevos: SyncController.php, SyncRepository.php, syncTrackingService.ts (~338 lín), syncCollectionService.ts (~528 lín). Refactor: syncService.ts (v2+v1 fallback en todos los métodos). Migración automática v1→v2. Tipos actualizados en ambos global.d.ts.
 
 ### C356 — Sistema de Cola IA con detección de rate limit
-> **Complejidad:** Alta | **Dependencias:** Ninguna (independiente del sync) | **Estado:** Arquitectura definida
+> **Complejidad:** Alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `3c2b570b`
+
+19 archivos, +2119 líneas. Schema+generados, ColaProcesamientoIaRepository, ProcesadorColaIA (cron 15min), GroqHttpClient reescrito, PipelineAudio/ServicioIA/ServicioModeracionIA con encolado 429, ColaIaController (5 endpoints), TabColaIaAdmin.tsx+hook+api+CSS.
+
+### C357 — FileWatcher: Handlers de carpetas/colecciones
+> **Complejidad:** Alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `d6c8b8d8`
+
+fileWatcherService.ts: callbacks OnCarpetaNuevaFn/OnCarpetaRenombradaFn, detección rename (delete→create grace 3s), procesarEventoCarpeta(). syncService.ts: wiring callbacks carpeta, v2 check en onArchivoNuevo, sincronizarEstructuraCarpetas con collectionModule.
+
+### C358 — SyncPanel: Tabs + Historial + Colecciones + Re-sync
+> **Complejidad:** Media | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `d6c8b8d8`
+
+syncService.ts: +3 funciones (obtenerHistorialSync, obtenerColeccionesSync, forzarResync). syncStore.ts: TabSync, EntradaHistorial, ColeccionSyncInfo types + state + actions. usePanelSincronizacion.ts: tabs, carga datos por tab, ejecutarSyncConProgreso compartido, forzarResyncAhora. PanelSincronizacion.tsx: 3 tabs (Estado/Historial/Colecciones), TabEstado con botón re-sync, TabHistorial con iconos por tipo + tiempo relativo, TabColecciones con info carpetas. sincronizacion.css: +180 líneas (tabs, historial, colecciones, estado vacío).
 
 #### Problema
 Groq free tier tiene cuotas. Si se alcanza el límite (HTTP 429), los samples se quedan en `procesando` eternamente. Los comentarios/publicaciones pierden moderación IA y se aprueban sin filtro (fallback actual).
@@ -544,6 +543,8 @@ Fase D — UI polish (1 sesión):
 - `obtenerWpUserId()` intentar JWT si `get_current_user_id()==0` (endpoints públicos /feed).
 - Tray: solo uno (conf o Rust builder). `inicializarAuthDesktop()` token+usuario ANTES de montar React.
 - tauri-plugin-fs watch: `features = ["watch"]` en Cargo.toml. Sync: hash parcial 8KB+tamaño. MOVE=DELETE+CREATE (grace 5s). Self-trigger: `descargasEnCurso` Set. Carpetas server implícitas. Post-upload PUT carpeta prioridad local.
+- [Sync v2]: Tracking key format `"{sampleId}_{coleccionId}"` (coleccionId=0 si null). Tauri Store type assertion: `{ get, set, save }` interfaz explícita (no ReturnType). syncService expone todo via `window.__KAMPLES_SYNC__` — nunca import directo desde web.
+- [fileWatcher carpetas]: RENAME directorio = DELETE+CREATE secuencial. Grace 3s con Map. Solo first-level dirs (sin extensión audio + hijos directos de carpetaBase). `procesarEventoCarpeta` antes de `procesarEvento` audio.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
