@@ -62,7 +62,7 @@
     border-radius: var(--radioFull);
     background: var(--textoPrimarioInverso);
     color: var(--acento);
-    font-size: 9px;
+    font-size: var(--fuenteXs);
     font-weight: var(--pesoSemibold);
     line-height: 1;
     padding: 0 3px;

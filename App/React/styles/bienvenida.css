@@ -46,7 +46,7 @@
 }
 
 .onboardingIcono {
-    font-size: 3rem;
+    font-size: var(--fuente3xl);
     line-height: 1;
 }
 

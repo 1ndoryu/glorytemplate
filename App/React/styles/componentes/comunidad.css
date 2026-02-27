@@ -79,9 +79,9 @@
     min-height: unset;
     padding: 0;
     border-radius: var(--radioFull);
-    background: #fff;
+    background: var(--blanco);
     border: 1.5px solid rgba(0, 0, 0, 0.12);
-    color: #111;
+    color: var(--negro);
     display: flex;
     align-items: center;
     justify-content: center;

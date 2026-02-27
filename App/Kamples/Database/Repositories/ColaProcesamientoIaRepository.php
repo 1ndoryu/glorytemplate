@@ -88,9 +88,10 @@ class ColaProcesamientoIaRepository extends BaseRepository
         $colEstado = ColaProcesamientoIaCols::ESTADO;
         $colProximo = ColaProcesamientoIaCols::PROXIMO_INTENTO;
         $colCreated = ColaProcesamientoIaCols::CREATED_AT;
+        $columnas = \implode(', ', ColaProcesamientoIaCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla}
+            "SELECT {$columnas} FROM {$tabla}
              WHERE (
                  {$colEstado} = :estado_pendiente
                  OR ({$colEstado} = :estado_reintento AND {$colProximo} <= NOW())
@@ -292,8 +293,10 @@ class ColaProcesamientoIaRepository extends BaseRepository
         );
         $total = (int) ($totalRow['total'] ?? 0);
 
+        $columnas = \implode(', ', ColaProcesamientoIaCols::TODAS);
+
         $items = static::consultar(
-            "SELECT * FROM {$tabla} {$whereSql} ORDER BY {$colCreated} DESC LIMIT :limite OFFSET :offset",
+            "SELECT {$columnas} FROM {$tabla} {$whereSql} ORDER BY {$colCreated} DESC LIMIT :limite OFFSET :offset",
             $params
         );
 

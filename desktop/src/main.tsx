@@ -19,6 +19,9 @@ import appIslands, { AppProvider } from '@app/appIslands';
 /* Servicios desktop: configuración API, auth, storage */
 import { inicializarDesktop } from '@desktop/services/desktopService';
 
+/* Store de sincronización — accesible fuera de React para eventos Tauri */
+import { useSyncStore } from '@app/stores/syncStore';
+
 /* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
 import {
     elegirCarpetaSync,
@@ -132,6 +135,16 @@ async function init(): Promise<void> {
 
     /* Inicializar servicios desktop (auth store, sync, offline queue) */
     await inicializarDesktop();
+
+    /* Escuchar evento del tray icon para abrir el panel de sincronización */
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        await listen('abrir-panel-sync', () => {
+            useSyncStore.getState().abrirPanel();
+        });
+    } catch {
+        /* No estamos en entorno Tauri — ignorar */
+    }
 
     /* Inicializar el sistema de islas de Glory (hydration + SPA router) */
     initializeIslands({ appProvider: AppProvider });

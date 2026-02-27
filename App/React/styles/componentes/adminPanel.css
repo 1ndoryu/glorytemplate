@@ -383,7 +383,7 @@
 
 .adminUsuarioNombre {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
 }
 
 .adminUsuarioUsername {

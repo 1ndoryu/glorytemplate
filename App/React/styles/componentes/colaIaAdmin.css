@@ -19,9 +19,9 @@
 }
 
 .colaIaStat {
-    background: var(--superficie);
-    border: 1px solid var(--borde);
-    border-radius: var(--radio);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
     padding: var(--espacioMd);
     text-align: center;
 }
@@ -45,15 +45,15 @@
 }
 
 .colaIaStatProcesando .colaIaStatNumero {
-    color: var(--colorAlerta);
+    color: var(--advertencia);
 }
 
 .colaIaStatExito .colaIaStatNumero {
-    color: var(--colorExito);
+    color: var(--exito);
 }
 
 .colaIaStatError .colaIaStatNumero {
-    color: var(--colorError);
+    color: var(--error);
 }
 
 /* Barra de acciones: filtros + botones */
@@ -83,9 +83,9 @@
     padding: var(--espacioSm) var(--espacioMd);
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     font-size: var(--fuenteSm);
-    color: var(--colorExito);
+    color: var(--exito);
 }
 
 /* Cargando */
@@ -109,8 +109,8 @@
 /* Tabla */
 .colaIaTabla {
     overflow-x: auto;
-    border: 1px solid var(--borde);
-    border-radius: var(--radio);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
 }
 
 .colaIaTabla table {
@@ -122,19 +122,19 @@
 .colaIaTabla th {
     text-align: left;
     padding: var(--espacioSm) var(--espacioMd);
-    background: var(--superficie);
+    background: var(--fondoElevado2);
     color: var(--textoSecundario);
     font-weight: 600;
     font-size: var(--fuenteXs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--borde);
+    border-bottom: 1px solid var(--bordeSutil);
     white-space: nowrap;
 }
 
 .colaIaTabla td {
     padding: var(--espacioSm) var(--espacioMd);
-    border-bottom: 1px solid var(--borde);
+    border-bottom: 1px solid var(--bordeSutil);
     color: var(--textoPrimario);
     vertical-align: middle;
 }
@@ -144,7 +144,7 @@
 }
 
 .colaIaTabla tr:hover td {
-    background: var(--superficie);
+    background: var(--fondoElevado2);
 }
 
 /* Celdas especiales */
@@ -161,7 +161,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    color: var(--colorError);
+    color: var(--error);
     font-size: var(--fuenteXs);
 }
 

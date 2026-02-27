@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Servicio: syncCollectionService â€” C355
  * LÃ³gica de mapeo colecciones del servidor â†” carpetas locales en disco.
  *
@@ -33,7 +33,7 @@ import {
     type ColeccionLocal,
 } from './syncTrackingService';
 
-/* ==================== Tipos del endpoint ==================== */
+/* Tipos del endpoint */
 
 export interface SampleSync {
     id: number;
@@ -53,14 +53,14 @@ export interface RespuestaSyncColecciones {
     sinColeccion: SampleSync[];
 }
 
-/* ==================== Config ==================== */
+/* Config */
 
 const CARPETA_SIN_COLECCION = 'Sin colecciÃ³n';
 
 /* Caracteres no vÃ¡lidos en nombres de carpeta Windows/macOS/Linux */
 const REGEX_CARACTERES_INVALIDOS = /[/\\:*?"<>|]/g;
 
-/* ==================== Utilidades ==================== */
+/* Utilidades */
 
 /**
  * Sanitiza un nombre de colecciÃ³n para usarlo como nombre de carpeta.
@@ -88,7 +88,7 @@ function resolverConflictoNombre(nombreBase: string, nombresExistentes: Set<stri
     return `${nombreBase} (${sufijo})`;
 }
 
-/* ==================== Fetch de colecciones ==================== */
+/* Fetch de colecciones */
 
 /**
  * Obtiene las colecciones con samples del servidor para sync.
@@ -120,7 +120,7 @@ export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncCole
     }
 }
 
-/* ==================== Sync completo ==================== */
+/* Sync completo */
 
 export interface ProgresoSyncColecciones {
     fase: 'estructura' | 'descarga' | 'completado';
@@ -263,7 +263,7 @@ export async function sincronizarColecciones(
     return { nuevos, errores };
 }
 
-/* ==================== Descarga individual ==================== */
+/* Descarga individual */
 
 /**
  * Descarga un sample si no existe en el tracking.
@@ -370,7 +370,7 @@ async function descargarSiNecesario(
     }
 }
 
-/* ==================== Renombre de colecciÃ³n ==================== */
+/* Renombre de colecciÃ³n */
 
 async function manejarRenombreColeccion(
     carpetaBase: string,
@@ -405,7 +405,7 @@ async function manejarRenombreColeccion(
     }
 }
 
-/* ==================== Acciones locales â†’ servidor ==================== */
+/* Acciones locales â†’ servidor */
 
 /**
  * Mover un sample entre colecciones en el servidor.
@@ -547,7 +547,7 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
     }
 }
 
-/* ==================== Verificacion de espacio en disco ==================== */
+/* Verificacion de espacio en disco */
 
 /* Margen minimo de seguridad: 500 MB libres despues de la descarga */
 const MARGEN_DISCO_BYTES = 500 * 1024 * 1024;

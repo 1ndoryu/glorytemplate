@@ -249,7 +249,7 @@
 .panelLibreriaCerrar {
     background: none;
     border: none;
-    color: var(--textoTenue);
+    color: var(--textoTerciario);
     cursor: pointer;
     padding: 4px;
     border-radius: var(--radioSm);
@@ -279,7 +279,7 @@
     background: none;
     border: none;
     border-radius: var(--radioSm);
-    color: var(--textoTenue);
+    color: var(--textoTerciario);
     cursor: pointer;
     white-space: nowrap;
     transition: background 0.15s, color 0.15s;
@@ -329,7 +329,7 @@
     justify-content: center;
     gap: var(--espacioSm);
     padding: var(--espacioXl);
-    color: var(--textoTenue);
+    color: var(--textoTerciario);
     text-align: center;
     font-size: 0.8125rem;
 }

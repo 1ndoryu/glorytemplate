@@ -5,8 +5,8 @@
 
 use tauri::{
     menu::{Menu, MenuItem},
-    tray::TrayIconBuilder,
-    Manager,
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Emitter, Manager,
 };
 
 /* Comando: obtener version de la app */
@@ -47,11 +47,12 @@ fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
  * Acciones: mostrar ventana, ocultar, y salir.
  */
 fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    let sincronizacion = MenuItem::with_id(app, "sincronizacion", "Sincronización", true, None::<&str>)?;
     let mostrar = MenuItem::with_id(app, "mostrar", "Mostrar Kamples", true, None::<&str>)?;
     let ocultar = MenuItem::with_id(app, "ocultar", "Minimizar a bandeja", true, None::<&str>)?;
     let salir = MenuItem::with_id(app, "salir", "Salir", true, None::<&str>)?;
 
-    let menu = Menu::with_items(app, &[&mostrar, &ocultar, &salir])?;
+    let menu = Menu::with_items(app, &[&sincronizacion, &mostrar, &ocultar, &salir])?;
 
     /* Usar el icono de la app (definido en bundle.icon de tauri.conf.json) */
     let icon = app
@@ -64,6 +65,13 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .menu(&menu)
         .tooltip("Kamples")
         .on_menu_event(|app, event| match event.id.as_ref() {
+            "sincronizacion" => {
+                let _ = app.emit("abrir-panel-sync", ());
+                if let Some(ventana) = app.get_webview_window("main") {
+                    let _ = ventana.show();
+                    let _ = ventana.set_focus();
+                }
+            }
             "mostrar" => {
                 if let Some(ventana) = app.get_webview_window("main") {
                     let _ = ventana.show();
@@ -79,6 +87,22 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 app.exit(0);
             }
             _ => {}
+        })
+        /* Left-click en el icono de tray abre el panel de sincronización */
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                let app = tray.app_handle();
+                let _ = app.emit("abrir-panel-sync", ());
+                if let Some(ventana) = app.get_webview_window("main") {
+                    let _ = ventana.show();
+                    let _ = ventana.set_focus();
+                }
+            }
         })
         .build(app)?;
 

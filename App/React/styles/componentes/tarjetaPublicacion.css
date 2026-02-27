@@ -43,7 +43,7 @@
     gap: var(--espacioXs);
     min-width: 0;
     padding: 0;
-    margin-bottom: 4px;
+    margin-bottom: var(--espacioXs);
 }
 
 /* Solo subrayar el nombre al hacer hover encima del enlace del autor */
@@ -81,7 +81,7 @@
 }
 
 .tarjetaPubFechaEnlace:hover {
-    color: var(--colorTexto);
+    color: var(--textoPrimario);
     text-decoration: underline;
 }
 
@@ -299,7 +299,7 @@
 .tarjetaPublicacion .imagenLightbox {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.88);
+    background: var(--overlayOscuro);
     backdrop-filter: blur(6px);
     z-index: var(--zModal);
     display: flex;

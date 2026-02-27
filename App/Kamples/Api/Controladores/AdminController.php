@@ -4,12 +4,13 @@
  * AdminController — Panel de Administración (C179 — FASE 13)
  *
  * Endpoints admin-only para gestionar la plataforma:
- *   GET /admin/resumen     — KPIs y estadísticas generales
- *   GET /admin/usuarios    — Lista de usuarios con filtros
+ *   GET /admin/resumen       — KPIs y estadísticas generales
+ *   GET /admin/actividad     — Actividad reciente (gráfico)
+ *   GET /admin/usuarios      — Lista de usuarios con filtros
  *   PUT /admin/usuarios/{id} — Actualizar usuario (plan, rol, ban)
- *   GET /admin/moderacion  — Contenido pendiente de moderación
- *   POST /admin/moderar    — Aprobar/Rechazar contenido
- *   GET /admin/actividad   — Actividad reciente (gráfico)
+ *   DELETE /admin/samples/todos — Eliminar todos los samples (dev)
+ *
+ * Moderación delegada a AdminModeracionController.
  *
  * @package Kamples
  */
@@ -19,18 +20,11 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\Repositories\AdminRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
-use App\Kamples\Database\Repositories\PublicacionesRepository;
-use App\Kamples\Database\Repositories\ReportesRepository;
-use App\Kamples\Database\Repositories\ComentariosRepository;
-use App\Config\Schema\_generated\ReportesEnums;
 use App\Config\Schema\_generated\SamplesCols;
-use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
-use App\Config\Schema\_generated\PublicacionesEnums;
-use App\Config\Schema\_generated\ComentariosEnums;
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
-use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\KamplesLogger;
 
 class AdminController
@@ -66,39 +60,15 @@ class AdminController
             'permission_callback' => $admin,
         ]);
 
-        /* Moderación */
-        register_rest_route($namespace, '/admin/moderacion', [
-            'methods' => 'GET',
-            'callback' => [self::class, 'listarModeracion'],
-            'permission_callback' => $admin,
-        ]);
-
-        register_rest_route($namespace, '/admin/moderar', [
-            'methods' => 'POST',
-            'callback' => [self::class, 'moderar'],
-            'permission_callback' => $admin,
-        ]);
-
-        /* Resolver reportes */
-        register_rest_route($namespace, '/admin/reportes/resolver', [
-            'methods' => 'POST',
-            'callback' => [self::class, 'resolverReporte'],
-            'permission_callback' => $admin,
-        ]);
-
-        /* Historial moderación reciente (contenido auto-moderado por IA) */
-        register_rest_route($namespace, '/admin/moderacion/historial', [
-            'methods' => 'GET',
-            'callback' => [self::class, 'historialModeracion'],
-            'permission_callback' => $admin,
-        ]);
-
         /* Herramienta de dev: eliminar todos los samples (solo admin) */
         register_rest_route($namespace, '/admin/samples/todos', [
             'methods' => 'DELETE',
             'callback' => [self::class, 'eliminarTodosLosSamples'],
             'permission_callback' => $admin,
         ]);
+
+        /* Moderación delegada a su propio controlador */
+        AdminModeracionController::registrarRutas($namespace);
     }
 
     /*
@@ -251,152 +221,6 @@ class AdminController
             return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::actualizarUsuario fallo', ['error' => $e->getMessage()]);
-            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
-        }
-    }
-
-    /*
-     * GET /admin/moderacion?page=1&reportes_page=1 — Publicaciones pendientes + reportes
-     * OPT05: Reportes ahora soportan paginacion independiente.
-     */
-    public static function listarModeracion(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $page = max(1, (int) ($request->get_param('page') ?? 1));
-            $offset = ($page - 1) * 20;
-
-            /* Publicaciones pendientes de moderacion */
-            $publicaciones = PublicacionesRepository::listarPendientesModeracion($offset);
-
-            /* Reportes pendientes con paginacion */
-            $reportesPage = max(1, (int) ($request->get_param('reportes_page') ?? 1));
-            $reportesLimit = min(50, max(1, (int) ($request->get_param('reportes_limit') ?? 10)));
-            $reportesOffset = ($reportesPage - 1) * $reportesLimit;
-            $reportes = ReportesRepository::listarPendientes($reportesLimit, $reportesOffset);
-            $reportesTotal = ReportesRepository::contarPendientes();
-
-            /* C193: Fallback avatar + C351: Parsear imagenes PG array para el frontend */
-            foreach ($publicaciones as &$pub) {
-                $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
-                    $pub[UsuariosExtCols::AVATAR_URL] ?? null,
-                    isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
-                );
-                unset($pub[UsuariosExtCols::WP_USER_ID]);
-                $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
-            }
-            unset($pub);
-
-            return new \WP_REST_Response([
-                'data' => [
-                    'publicaciones' => $publicaciones,
-                    'reportes' => $reportes,
-                    'reportesTotal' => $reportesTotal,
-                ]
-            ], 200);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('AdminController::listarModeracion fallo', ['error' => $e->getMessage()]);
-            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
-        }
-    }
-
-    /*
-     * POST /admin/moderar — Aprobar/Rechazar contenido
-     * Body: { tipo: 'publicacion'|'comentario', id: number, accion: 'aprobar'|'rechazar' }
-     */
-    public static function moderar(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $body = $request->get_json_params();
-            $tipo = \sanitize_text_field($body['tipo'] ?? '');
-            $id = (int) ($body['id'] ?? 0);
-            $accion = \sanitize_text_field($body['accion'] ?? '');
-
-            if (!in_array($tipo, [ComentariosEnums::TIPO_PUBLICACION, 'comentario']) || !$id || !in_array($accion, ['aprobar', 'rechazar'])) {
-                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
-            }
-
-            $estado = $accion === 'aprobar' ? PublicacionesEnums::MODERACION_APROBADO : PublicacionesEnums::MODERACION_RECHAZADO;
-
-            /* Delegar al repository según tipo de contenido */
-            $existe = match ($tipo) {
-                ComentariosEnums::TIPO_PUBLICACION => PublicacionesRepository::actualizarEstadoModeracion($id, $estado),
-                'comentario'  => ComentariosRepository::actualizarEstadoModeracion($id, $estado),
-                default       => false,
-            };
-
-            if (!$existe) {
-                return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Contenido no encontrado'], 404);
-            }
-
-            return new \WP_REST_Response(['ok' => true], 200);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('AdminController::moderar fallo', ['error' => $e->getMessage()]);
-            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
-        }
-    }
-
-    /*
-     * POST /admin/reportes/resolver — Resolver o descartar un reporte
-     * Body: { id: number, accion: 'resolver'|'descartar' }
-     */
-    public static function resolverReporte(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $body = $request->get_json_params();
-            $id = (int) ($body['id'] ?? 0);
-            $accion = \sanitize_text_field($body['accion'] ?? '');
-
-            if (!$id || !in_array($accion, ['resolver', 'descartar'])) {
-                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
-            }
-
-            $estado = $accion === 'resolver' ? ReportesEnums::ESTADO_RESUELTO : ReportesEnums::ESTADO_DESCARTADO;
-            $adminId = UsuarioHelper::obtenerIdPg();
-
-            if (!$adminId) {
-                return new \WP_REST_Response(['code' => 'sin_autenticacion', 'message' => 'No autenticado'], 401);
-            }
-
-            $actualizado = ReportesRepository::resolverReporte($id, $estado, $adminId);
-
-            if (!$actualizado) {
-                return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Reporte no encontrado o ya resuelto'], 404);
-            }
-
-            return new \WP_REST_Response(['ok' => true], 200);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('AdminController::resolverReporte fallo', ['error' => $e->getMessage()]);
-            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
-        }
-    }
-
-    /*
-     * GET /admin/moderacion/historial?dias=2 — Contenido auto-moderado por IA recientemente
-     * Permite a admins revisar decisiones de la IA (aprobadas, revisadas, rechazadas).
-     */
-    public static function historialModeracion(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $dias = min(30, max(1, (int) ($request->get_param('dias') ?? 2)));
-
-            $publicaciones = PublicacionesRepository::listarModeradasRecientes($dias);
-
-            /* Fallback avatar + C351: Parsear imagenes PG array */
-            foreach ($publicaciones as &$pub) {
-                $pub[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
-                    $pub[UsuariosExtCols::AVATAR_URL] ?? null,
-                    isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : null
-                );
-                unset($pub[UsuariosExtCols::WP_USER_ID]);
-                $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub['imagenes'] ?? null);
-            }
-            unset($pub);
-
-            return new \WP_REST_Response([
-                'data' => ['publicaciones' => $publicaciones],
-            ], 200);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('AdminController::historialModeracion fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

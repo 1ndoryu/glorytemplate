@@ -1,24 +1,20 @@
 /*
- * sincronizacion.css — Kamples
- * Estilos del panel de sincronización estilo Google Drive.
+ * sincronizacion.css
+ * Estilos del panel de sincronizacion estilo Google Drive.
  * C358: Tabs estado/historial/colecciones.
- * Reutiliza variables del sistema de diseño y patrón dropdownPanel.
+ * Se renderiza dentro de Modal (centrado, sin header del modal).
  */
 
+/* Override del contenedor Modal para quitar padding del cuerpo */
+.sincPanelModal .modalCuerpo {
+    padding: 0;
+}
+
 .sincPanel {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    width: 340px;
-    background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
-    box-shadow: var(--sombraElevada);
-    z-index: var(--zModal);
+    width: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    animation: dropdownEntrar 0.15s ease-out;
 }
 
 /* Cabecera */
@@ -207,8 +203,8 @@
 
 .sincPanelToggleDot {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: var(--espacio2xs);
+    left: var(--espacio2xs);
     width: 16px;
     height: 16px;
     border-radius: var(--radioFull);
@@ -218,7 +214,7 @@
 
 .sincPanelToggle--activo .sincPanelToggleDot {
     transform: translateX(16px);
-    background-color: white;
+    background-color: var(--acentoTexto);
 }
 
 /* Acciones de sync (botones apilados) */
@@ -268,7 +264,7 @@
     scrollbar-width: thin;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
 }
 
 .sincPanelArchivoItem {
@@ -387,7 +383,7 @@
     background-color: var(--fondoElevado3);
     color: var(--textoSecundario);
     flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: calc(var(--espacio2xs) / 2);
 }
 
 .sincPanelHistorialInfo {
@@ -395,7 +391,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
 }
 
 .sincPanelHistorialDesc {
@@ -448,7 +444,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
 }
 
 .sincPanelColeccionNombre {

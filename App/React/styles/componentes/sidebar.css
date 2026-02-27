@@ -61,7 +61,7 @@
 }
 
 .sidebarItem.sidebarItemActivo {
-    color: #ffffff;
+    color: var(--blanco);
 }
 
 /* Tooltip al hacer hover */

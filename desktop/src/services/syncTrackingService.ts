@@ -18,7 +18,7 @@ export function generarClaveTracking(sampleId: number, coleccionId: number | nul
     return `${sampleId}_${coleccionId ?? 0}`;
 }
 
-/* ==================== Tipos ==================== */
+/* Tipos */
 
 export interface ArchivoTracking {
     sampleId: number;
@@ -84,7 +84,7 @@ let enLote = false;
 /* eslint-disable @typescript-eslint/no-explicit-any -- Tauri Store typing requires flexible interface */
 let storeCache: { get: <T>(key: string) => Promise<T | null>; set: (key: string, val: unknown) => Promise<void>; save: () => Promise<void> } | null = null;
 
-/* ==================== Inicialización ==================== */
+/* Inicialización */
 
 export async function inicializarTracking(): Promise<void> {
     if (!esDesktop()) return;
@@ -136,7 +136,7 @@ function reconstruirIndices(): void {
     }
 }
 
-/* ==================== Lote (batch) ==================== */
+/* Lote (batch) */
 
 /** Inicia modo lote: las operaciones no persisten individualmente. */
 export function iniciarLote(): void { enLote = true; }
@@ -147,7 +147,7 @@ export async function finalizarLote(): Promise<void> {
     await persistir();
 }
 
-/* ==================== Archivos ==================== */
+/* Archivos */
 
 export function obtenerArchivo(sampleId: number, coleccionId: number | null): ArchivoTracking | null {
     const clave = generarClaveTracking(sampleId, coleccionId);
@@ -260,7 +260,7 @@ export function espacioTotalBytes(): number {
     return Object.values(datos.archivos).reduce((sum, a) => sum + a.tamano, 0);
 }
 
-/* ==================== Colecciones ==================== */
+/* Colecciones */
 
 export function obtenerColeccion(id: number): ColeccionLocal | null {
     return datos.colecciones[id] ?? null;
@@ -295,7 +295,7 @@ export function buscarColeccionPorCarpeta(carpetaLocal: string): ColeccionLocal 
     return null;
 }
 
-/* ==================== Sin colección ==================== */
+/* Sin colección */
 
 export function esSinColeccion(sampleId: number): boolean {
     return sinColeccionSet.has(sampleId);
@@ -319,7 +319,7 @@ export function totalSinColeccion(): number {
     return datos.sinColeccion.length;
 }
 
-/* ==================== Historial ==================== */
+/* Historial */
 
 export async function registrarAccion(accion: Omit<AccionHistorial, 'timestamp'>): Promise<void> {
     datos.historial.unshift({ ...accion, timestamp: Date.now() });
@@ -341,7 +341,7 @@ export async function limpiarHistorial(): Promise<void> {
     await persistir();
 }
 
-/* ==================== Migración v1 → v2 ==================== */
+/* Migración v1 → v2 */
 
 /**
  * Migra el índice plano ArchivoLocal[] (v1) al nuevo formato BaseSyncLocal (v2).
@@ -409,7 +409,7 @@ export async function migrarDesdeV1(): Promise<boolean> {
     }
 }
 
-/* ==================== Reset completo ==================== */
+/* Reset completo */
 
 export async function resetearTracking(): Promise<void> {
     datos = {

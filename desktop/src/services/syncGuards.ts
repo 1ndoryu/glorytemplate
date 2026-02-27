@@ -10,7 +10,7 @@
  * syncService y syncCollectionService ambos necesitan estas utilidades.
  */
 
-/* ==================== Descargas en curso ==================== */
+/* Descargas en curso */
 
 const descargasEnCurso = new Set<string>();
 const GRACIA_DESCARGA_MS = 10_000;
@@ -35,7 +35,7 @@ export function esDescargaEnCurso(ruta: string): boolean {
     return descargasEnCurso.has(ruta.replace(/\\/g, '/'));
 }
 
-/* ==================== Lock de sync concurrente ==================== */
+/* Lock de sync concurrente */
 
 /*
  * Previene que dos sincronizaciones masivas corran simultáneamente.
@@ -82,7 +82,7 @@ export function liberarLockSync(): void {
     syncPromesaActiva = null;
 }
 
-/* ==================== URL base API ==================== */
+/* URL base API */
 
 /**
  * URL base de la API para servicios de sync.
