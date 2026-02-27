@@ -471,6 +471,13 @@ Fase D — UI polish (1 sesión):
     D3. Stats persistentes
 ```
 
+### Samples en raíz de sync → Sin colección
+> **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `50750a65`
+
+Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colección), al subirlos se mueven automáticamente a `Sin colección/`. syncTrackingService: `totalSinColeccion()`. syncService: `moverArchivoASinColeccion()` (mkdir+rename+tracking+historial). uploadQueueService: else branch cuando `carpetas.length === 0`. PanelSincronizacion: entrada virtual id=0 con icono FolderOpen e itálica. IconoHistorial: alineado con TipoAccionHistorial completo (`eliminado_local`, `renombrado`, `creado`, `subida`, `movido`).
+
+---
+
 359. que todos los estados vacíos, de carga, etc como div className="coleccionVacia", sean un componente y este centralizado para que haya coherencia visual entre todos los estados vacíos. 
 
 360. Cuando un usuario elimina su sample que subio, debe restarse un credito.
