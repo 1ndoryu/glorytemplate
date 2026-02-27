@@ -30,6 +30,7 @@ use App\Kamples\Api\Controladores\EmbeddingsController;
 use App\Kamples\Api\Controladores\ComentariosController;
 use App\Kamples\Api\Controladores\AuthController;
 use App\Kamples\Api\Controladores\AdminController;
+use App\Kamples\Api\Controladores\ColaIaController;
 
 class KamplesController
 {
@@ -71,5 +72,6 @@ class KamplesController
         ComentariosController::registrarRutas($ns);
         AuthController::registrarRutas($ns);
         AdminController::registrarRutas($ns);
+        ColaIaController::registrarRutas($ns);
     }
 }

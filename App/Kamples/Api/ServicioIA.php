@@ -113,6 +113,12 @@ class ServicioIA
         $mimeType = self::detectarMime($rutaArchivo);
 
         foreach (self::MODELOS_WHISPER as $modelo) {
+            /* C356: Cortar cadena de fallback si Groq esta rate-limited (429 es cuenta completa, no por modelo) */
+            if (GroqHttpClient::fueRateLimited()) {
+                KamplesLogger::warning('ServicioIA: Rate limit Groq detectado, cancelando STT restante');
+                return null;
+            }
+
             KamplesLogger::info('ServicioIA: Transcribiendo audio con Groq/' . $modelo);
 
             $campos = [
@@ -172,6 +178,12 @@ class ServicioIA
         }
 
         foreach (self::MODELOS_GROQ as $modelo) {
+            /* C356: Cortar cadena de fallback si Groq esta rate-limited */
+            if (GroqHttpClient::fueRateLimited()) {
+                KamplesLogger::warning('ServicioIA: Rate limit Groq detectado, cancelando LLM restante');
+                return null;
+            }
+
             KamplesLogger::info('ServicioIA: Intentando Groq/' . $modelo);
             $resultado = self::llamarGroq($modelo, $apiKey, $prompt);
             if ($resultado !== null) {

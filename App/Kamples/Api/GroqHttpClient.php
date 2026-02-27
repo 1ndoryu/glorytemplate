@@ -7,6 +7,9 @@
  * ServicioIA, ServicioImagenIA y ServicioModeracionIA.
  * Elimina duplicación de código HTTP entre los 3 servicios (A10).
  *
+ * C356: Agregados metodos tipados (*Tipada) que retornan ResultadoGroq
+ * con deteccion explicita de rate limit (HTTP 429) para encolar en cola IA.
+ *
  * @package Kamples
  */
 
@@ -18,6 +21,78 @@ class GroqHttpClient
 {
     private const TIMEOUT = 30;
     private const CONNECT_TIMEOUT = 8;
+
+    /* C356: Codigo HTTP que indica rate limit de Groq */
+    private const HTTP_RATE_LIMIT = 429;
+
+    /*
+     * C356: Estado de rate limit a nivel de request PHP.
+     * Se setea automaticamente al recibir 429 en cualquier peticion.
+     * Los callers de alto nivel (PipelineAudio, ServicioModeracionIA) consultan
+     * fueRateLimited() despues de sus llamadas IA para decidir si encolar.
+     * En el ciclo de vida PHP (single-request), esto es seguro y predecible.
+     */
+    private static bool $rateLimitDetectado = false;
+    private static float $retryAfterSegundos = 0.0;
+
+    /**
+     * C356: Indica si se detecto rate limit (429) durante el request actual.
+     */
+    public static function fueRateLimited(): bool
+    {
+        return self::$rateLimitDetectado;
+    }
+
+    /**
+     * C356: Tiempo de espera sugerido por Groq antes de reintentar.
+     */
+    public static function obtenerRetryAfterSegundos(): float
+    {
+        return self::$retryAfterSegundos;
+    }
+
+    /**
+     * C356: Resetea el estado de rate limit.
+     * Llamar al inicio de cada operacion de alto nivel para no arrastrar estado previo.
+     */
+    public static function resetearEstadoRateLimit(): void
+    {
+        self::$rateLimitDetectado = false;
+        self::$retryAfterSegundos = 0.0;
+    }
+
+    /**
+     * C356: Resultado tipado para peticiones Groq.
+     * Permite a los callers distinguir entre exito, error generico y rate limit.
+     *
+     * @return array{ok: bool, body: string|null, esRateLimit: bool, retryAfter: float, httpCode: int, error: string|null}
+     */
+    private static function resultadoOk(string $body, int $httpCode = 200): array
+    {
+        return [
+            'ok' => true,
+            'body' => $body,
+            'esRateLimit' => false,
+            'retryAfter' => 0.0,
+            'httpCode' => $httpCode,
+            'error' => null,
+        ];
+    }
+
+    /**
+     * @return array{ok: bool, body: string|null, esRateLimit: bool, retryAfter: float, httpCode: int, error: string|null}
+     */
+    private static function resultadoError(string $error, int $httpCode = 0, bool $esRateLimit = false, float $retryAfter = 0.0): array
+    {
+        return [
+            'ok' => false,
+            'body' => null,
+            'esRateLimit' => $esRateLimit,
+            'retryAfter' => $retryAfter,
+            'httpCode' => $httpCode,
+            'error' => $error,
+        ];
+    }
 
     /**
      * POST JSON genérica a la API de Groq.
@@ -43,6 +118,28 @@ class GroqHttpClient
         ?float &$retryAfterOut = null,
         ?string &$curlErrorOut = null
     ): ?string {
+        $resultado = self::peticionCurlTipada($url, $payload, $headers, $etiqueta, $timeout);
+
+        $httpCodeOut = $resultado['httpCode'];
+        $retryAfterOut = $resultado['retryAfter'];
+        $curlErrorOut = $resultado['error'];
+
+        return $resultado['body'];
+    }
+
+    /**
+     * C356: POST JSON tipada — retorna ResultadoGroq en vez de string|null.
+     * Permite a los callers detectar rate limit (429) para encolar en cola IA.
+     *
+     * @return array{ok: bool, body: string|null, esRateLimit: bool, retryAfter: float, httpCode: int, error: string|null}
+     */
+    public static function peticionCurlTipada(
+        string $url,
+        array $payload,
+        array $headers,
+        string $etiqueta,
+        int $timeout = 0
+    ): array {
         $json = \json_encode($payload);
         $ch = null;
 
@@ -51,8 +148,7 @@ class GroqHttpClient
 
             if ($ch === false) {
                 KamplesLogger::error("GroqHttpClient: curl_init() falló ({$etiqueta})");
-                $curlErrorOut = 'curl_init failed';
-                return null;
+                return self::resultadoError('curl_init failed');
             }
 
             \curl_setopt_array($ch, [
@@ -63,6 +159,7 @@ class GroqHttpClient
                 CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
                 CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
                 CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
             ]);
 
             $respuesta = \curl_exec($ch);
@@ -71,31 +168,42 @@ class GroqHttpClient
             \curl_close($ch);
             $ch = null;
 
-            $httpCodeOut = $httpCode;
-            $retryAfterOut = 0.0;
-            $curlErrorOut = $curlError;
-
             if ($curlError) {
                 KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
-                return null;
+                return self::resultadoError($curlError);
             }
 
             if ($httpCode !== 200) {
                 $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
-                $retryAfterOut = self::extraerRetryAfter($respuestaTexto);
-                KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
+                $retryAfter = self::extraerRetryAfter($respuestaTexto);
+                $esRateLimit = ($httpCode === self::HTTP_RATE_LIMIT);
+
+                /* C356: Propagar rate limit al estado estatico del request */
+                if ($esRateLimit) {
+                    self::$rateLimitDetectado = true;
+                    self::$retryAfterSegundos = \max(self::$retryAfterSegundos, $retryAfter);
+                }
+
+                $nivelLog = $esRateLimit ? 'warning' : 'error';
+                KamplesLogger::$nivelLog("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
                     'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
-                    'retryAfterSugerido' => $retryAfterOut,
+                    'retryAfterSugerido' => $retryAfter,
+                    'esRateLimit' => $esRateLimit,
                     'url' => \preg_replace('/key=[^&]+/', 'key=***', $url),
                 ]);
-                return null;
+
+                return self::resultadoError(
+                    "HTTP {$httpCode}: " . \mb_substr($respuestaTexto, 0, 500),
+                    $httpCode,
+                    $esRateLimit,
+                    $retryAfter
+                );
             }
 
-            return $respuesta;
+            return self::resultadoOk($respuesta, $httpCode);
         } catch (\Throwable $e) {
             KamplesLogger::error("GroqHttpClient: excepción inesperada ({$etiqueta})", ['error' => $e->getMessage()]);
-            $curlErrorOut = $e->getMessage();
-            return null;
+            return self::resultadoError($e->getMessage());
         } finally {
             if ($ch !== null) {
                 \curl_close($ch);
@@ -105,6 +213,7 @@ class GroqHttpClient
 
     /**
      * POST multipart/form-data para endpoints de audio (Groq Whisper STT).
+     * Mantiene firma original por compatibilidad.
      */
     public static function peticionCurlMultipart(
         string $url,
@@ -115,6 +224,25 @@ class GroqHttpClient
         string $etiqueta,
         int $timeout = 0
     ): ?string {
+        $resultado = self::peticionCurlMultipartTipada($url, $campos, $campoArchivo, $archivo, $headers, $etiqueta, $timeout);
+        return $resultado['body'];
+    }
+
+    /**
+     * C356: POST multipart tipada — retorna ResultadoGroq.
+     * Usada por ServicioIA para Whisper STT con deteccion de rate limit.
+     *
+     * @return array{ok: bool, body: string|null, esRateLimit: bool, retryAfter: float, httpCode: int, error: string|null}
+     */
+    public static function peticionCurlMultipartTipada(
+        string $url,
+        array $campos,
+        string $campoArchivo,
+        \CURLFile $archivo,
+        array $headers,
+        string $etiqueta,
+        int $timeout = 0
+    ): array {
         $payload = $campos;
         $payload[$campoArchivo] = $archivo;
         $ch = null;
@@ -124,7 +252,7 @@ class GroqHttpClient
 
             if ($ch === false) {
                 KamplesLogger::error("GroqHttpClient: curl_init() falló multipart ({$etiqueta})");
-                return null;
+                return self::resultadoError('curl_init failed');
             }
 
             \curl_setopt_array($ch, [
@@ -135,6 +263,7 @@ class GroqHttpClient
                 CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
                 CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
                 CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
             ]);
 
             $respuesta = \curl_exec($ch);
@@ -145,22 +274,40 @@ class GroqHttpClient
 
             if ($curlError) {
                 KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
-                return null;
+                return self::resultadoError($curlError);
             }
 
             if ($httpCode !== 200) {
                 $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
-                KamplesLogger::error("GroqHttpClient: HTTP {$httpCode} ({$etiqueta})", [
+                $retryAfter = self::extraerRetryAfter($respuestaTexto);
+                $esRateLimit = ($httpCode === self::HTTP_RATE_LIMIT);
+
+                /* C356: Propagar rate limit al estado estatico del request */
+                if ($esRateLimit) {
+                    self::$rateLimitDetectado = true;
+                    self::$retryAfterSegundos = \max(self::$retryAfterSegundos, $retryAfter);
+                }
+
+                $nivelLog = $esRateLimit ? 'warning' : 'error';
+                KamplesLogger::$nivelLog("GroqHttpClient: HTTP {$httpCode} multipart ({$etiqueta})", [
                     'respuesta' => \mb_substr($respuestaTexto, 0, 1000),
+                    'retryAfter' => $retryAfter,
+                    'esRateLimit' => $esRateLimit,
                     'url' => $url,
                 ]);
-                return null;
+
+                return self::resultadoError(
+                    "HTTP {$httpCode}: " . \mb_substr($respuestaTexto, 0, 500),
+                    $httpCode,
+                    $esRateLimit,
+                    $retryAfter
+                );
             }
 
-            return \is_string($respuesta) ? $respuesta : null;
+            return self::resultadoOk(\is_string($respuesta) ? $respuesta : '', $httpCode);
         } catch (\Throwable $e) {
             KamplesLogger::error("GroqHttpClient: excepción inesperada multipart ({$etiqueta})", ['error' => $e->getMessage()]);
-            return null;
+            return self::resultadoError($e->getMessage());
         } finally {
             if ($ch !== null) {
                 \curl_close($ch);

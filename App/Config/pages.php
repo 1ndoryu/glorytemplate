@@ -86,8 +86,13 @@ PageManager::reactPage('publicacion', 'PublicacionIsland', function($pageId) {
 
 PageManager::registrarRutaDinamica('publicacion');
 
-/* C281: Explorador — vista de carpetas para samples coleccionados */
-PageManager::reactPage('explorador', 'ExploradorIsland');
+/*
+ * C353: Explorador desactivado temporalmente.
+ * El sistema de carpetas basado en metadata IA se reemplazara por uno basado en
+ * colecciones del usuario (ver C355 en roadmap). Se reactivara cuando el nuevo
+ * sistema de sincronizacion este listo.
+ */
+// PageManager::reactPage('explorador', 'ExploradorIsland');
 
 /*
  * Colección detalle — recibe coleccionId como segmento dinámico

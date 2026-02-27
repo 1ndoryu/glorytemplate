@@ -10,6 +10,7 @@ import type { TabDefinicion } from '@app/components/ui';
 import { TabResumenAdmin } from '@app/components/admin/TabResumenAdmin';
 import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
+import { TabColaIaAdmin } from '@app/components/admin/TabColaIaAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useAuthStore } from '@app/stores/authStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -20,6 +21,7 @@ const TABS_ADMIN: TabDefinicion[] = [
     { id: 'resumen', etiqueta: 'Resumen' },
     { id: 'usuarios', etiqueta: 'Usuarios' },
     { id: 'moderacion', etiqueta: 'Moderación' },
+    { id: 'cola-ia', etiqueta: 'Cola IA' },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -90,6 +92,10 @@ const AdminPanelBase = (): JSX.Element => {
                     onModerar={admin.moderar}
                     onResolverReporte={admin.manejarResolverReporte}
                 />
+            )}
+
+            {admin.tabActiva === 'cola-ia' && (
+                <TabColaIaAdmin />
             )}
         </div>
     );

@@ -1,0 +1,201 @@
+/*
+ * Estilos: Tab Cola IA — C356
+ * Estilos para la vista de gestion de cola de procesamiento IA
+ * en el panel de administracion.
+ */
+
+/* Contenedor principal */
+.tabColaIa {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Estadisticas resumidas */
+.colaIaEstadisticas {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--espacioMd);
+}
+
+.colaIaStat {
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: var(--espacioMd);
+    text-align: center;
+}
+
+.colaIaStatNumero {
+    display: block;
+    font-size: var(--fuenteXl);
+    font-weight: 700;
+    color: var(--textoPrimario);
+}
+
+.colaIaStatLabel {
+    display: block;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    margin-top: var(--espacioXs);
+}
+
+.colaIaStatPendiente .colaIaStatNumero {
+    color: var(--acento);
+}
+
+.colaIaStatProcesando .colaIaStatNumero {
+    color: var(--colorAlerta);
+}
+
+.colaIaStatExito .colaIaStatNumero {
+    color: var(--colorExito);
+}
+
+.colaIaStatError .colaIaStatNumero {
+    color: var(--colorError);
+}
+
+/* Barra de acciones: filtros + botones */
+.colaIaAcciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.colaIaFiltros {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.colaIaBotones {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+/* Resultado del procesamiento */
+.colaIaResultado {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radio);
+    font-size: var(--fuenteSm);
+    color: var(--colorExito);
+}
+
+/* Cargando */
+.colaIaCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioXl);
+}
+
+/* Estado vacio */
+.colaIaVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl);
+    color: var(--textoSecundario);
+    text-align: center;
+}
+
+/* Tabla */
+.colaIaTabla {
+    overflow-x: auto;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+}
+
+.colaIaTabla table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteSm);
+}
+
+.colaIaTabla th {
+    text-align: left;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--superficie);
+    color: var(--textoSecundario);
+    font-weight: 600;
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--borde);
+    white-space: nowrap;
+}
+
+.colaIaTabla td {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--borde);
+    color: var(--textoPrimario);
+    vertical-align: middle;
+}
+
+.colaIaTabla tr:last-child td {
+    border-bottom: none;
+}
+
+.colaIaTabla tr:hover td {
+    background: var(--superficie);
+}
+
+/* Celdas especiales */
+.colaIaOperacion {
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.colaIaError {
+    max-width: 200px;
+}
+
+.colaIaErrorTexto {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--colorError);
+    font-size: var(--fuenteXs);
+}
+
+.colaIaSinError {
+    color: var(--textoSecundario);
+    opacity: 0.4;
+}
+
+/* Paginacion */
+.colaIaPaginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.colaIaPaginaActual {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .colaIaEstadisticas {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .colaIaAcciones {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .colaIaFiltros,
+    .colaIaBotones {
+        flex-wrap: wrap;
+    }
+}

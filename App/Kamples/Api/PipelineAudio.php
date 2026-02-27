@@ -19,8 +19,10 @@
 namespace App\Kamples\Api;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\ColaProcesamientoIaRepository;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\ColaProcesamientoIaEnums;
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
@@ -153,6 +155,12 @@ class PipelineAudio
             );
         }
 
+        /*
+         * C356: Resetear estado de rate limit antes de la llamada IA
+         * para no arrastrar estado de operaciones previas en el mismo request.
+         */
+        GroqHttpClient::resetearEstadoRateLimit();
+
         $metadataIA = ServicioIA::analizarAudio($rutaAudioParaIA, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
         /* Limpiar MP3 temporal */
@@ -161,6 +169,42 @@ class PipelineAudio
                 \unlink($mp3TemporalIA);
             } catch (\Throwable $e) {
                 KamplesLogger::warning('Pipeline: no se pudo eliminar MP3 temporal IA', ['error' => $e->getMessage()]);
+            }
+        }
+
+        /*
+         * C356: Si Groq devolvio rate limit (429), encolar para reproceso posterior.
+         * El sample se publica igualmente con los datos tecnico que tenemos (BPM, key, waveform, etc.)
+         * pero sin metadata creativa (tags, genero, carpeta, descripcion).
+         * El cron ProcesadorColaIA reintentara el analisis IA mas tarde.
+         */
+        $iaEncolada = false;
+        if ($metadataIA === null && GroqHttpClient::fueRateLimited()) {
+            KamplesLogger::warning('Pipeline: IA rate-limited, encolando para reproceso', [
+                'sampleId' => $sampleId,
+                'retryAfter' => GroqHttpClient::obtenerRetryAfterSegundos(),
+            ]);
+
+            try {
+                ColaProcesamientoIaRepository::encolar(
+                    ColaProcesamientoIaEnums::TIPO_SAMPLE,
+                    $sampleId,
+                    ColaProcesamientoIaEnums::OPERACION_ANALISIS_AUDIO,
+                    [
+                        'rutaArchivo' => $rutaArchivo,
+                        'nombreOriginal' => $nombreOriginal,
+                        'descripcionUsuario' => $descripcionUsuario,
+                        'tagsUsuario' => $tagsUsuario,
+                        'contextoTecnico' => $contextoTecnico,
+                        'retryAfterSugerido' => GroqHttpClient::obtenerRetryAfterSegundos(),
+                    ]
+                );
+                $iaEncolada = true;
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Pipeline: Error encolando en cola IA', [
+                    'sampleId' => $sampleId,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -194,6 +238,21 @@ class PipelineAudio
                 'ia_carpeta_secundaria' => !empty($metadataIA['carpeta_secundaria']) ? $metadataIA['carpeta_secundaria'] : 'General',
                 'bpm_confianza'        => $analisisTecnico['bpm_confianza'],
                 'key_confianza'        => $analisisTecnico['key_confianza'],
+            ]);
+        } elseif ($iaEncolada) {
+            /*
+             * C356: IA encolada por rate limit — metadata minima con datos tecnicos disponibles.
+             * Marca ia_pendiente para que el frontend/sync sepan que falta el analisis creativo.
+             * El ProcesadorColaIA actualizara esta metadata cuando se reprocese.
+             */
+            $actualizaciones['tipo'] = 'otro';
+            $actualizaciones['metadata'] = \json_encode([
+                'ia_pendiente' => true,
+                'ia_encolada_at' => \date('Y-m-d H:i:s'),
+                'carpeta_primaria' => SamplesRepository::CARPETA_DEFAULT,
+                'carpeta_secundaria' => 'General',
+                'bpm_confianza' => $analisisTecnico['bpm_confianza'],
+                'key_confianza' => $analisisTecnico['key_confianza'],
             ]);
         }
 

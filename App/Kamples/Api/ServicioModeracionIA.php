@@ -20,10 +20,12 @@ namespace App\Kamples\Api;
 
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\ComentariosEnums;
+use App\Config\Schema\_generated\ColaProcesamientoIaEnums;
 
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Kamples\Database\Repositories\ColaProcesamientoIaRepository;
 use App\Kamples\Services\ServicioBan;
 use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\Api\AnalizadoresModeracion;
@@ -52,6 +54,9 @@ class ServicioModeracionIA
 
         $resultados = [];
 
+        /* C356: Resetear estado rate limit para no arrastrar estado previo */
+        GroqHttpClient::resetearEstadoRateLimit();
+
         /* Capa 1: Guardia de texto (toxicidad) */
         if (!empty(\trim($texto))) {
             $resultados['guard_texto'] = AnalizadoresModeracion::analizarTextoGuard($apiKey, $texto);
@@ -65,6 +70,58 @@ class ServicioModeracionIA
         /* Capa 3: Moderación contextual (combina todo) */
         if (!empty(\trim($texto)) || !empty($imagenes)) {
             $resultados['contextual'] = AnalizadoresModeracion::analizarContextual($apiKey, $texto, $imagenes);
+        }
+
+        /*
+         * C356: Si Groq devolvio rate limit, encolar para moderar despues.
+         * El contenido queda en 'revision' (requiere moderacion humana o reproceso).
+         * Esto es mas seguro que aprobar por defecto cuando IA no responde.
+         */
+        if (GroqHttpClient::fueRateLimited()) {
+            KamplesLogger::warning('ModeracionIA: Rate limit, encolando publicacion para moderar despues', [
+                'publicacionId' => $publicacionId,
+                'retryAfter' => GroqHttpClient::obtenerRetryAfterSegundos(),
+            ]);
+
+            try {
+                ColaProcesamientoIaRepository::encolar(
+                    ColaProcesamientoIaEnums::TIPO_PUBLICACION,
+                    $publicacionId,
+                    ColaProcesamientoIaEnums::OPERACION_MODERACION_COMPLETA,
+                    [
+                        'texto' => \mb_substr($texto, 0, 5000),
+                        'imagenes' => $imagenes,
+                        'retryAfterSugerido' => GroqHttpClient::obtenerRetryAfterSegundos(),
+                    ]
+                );
+            } catch (\Throwable $e) {
+                KamplesLogger::error('ModeracionIA: Error encolando publicacion', [
+                    'publicacionId' => $publicacionId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            /* Forzar veredicto a 'revision' en vez de aprobar por defecto */
+            $veredictoRateLimit = [
+                'nivel' => PublicacionesEnums::MODERACION_REVISION,
+                'razon' => 'rate_limit_ia',
+                'detalles' => ['motivo' => 'Groq rate limit 429, encolado para reproceso'],
+            ];
+
+            try {
+                PublicacionesRepository::actualizarVeredictoModeracion(
+                    $publicacionId,
+                    $veredictoRateLimit['nivel'],
+                    \json_encode($veredictoRateLimit)
+                );
+            } catch (\Throwable $e) {
+                KamplesLogger::error('ModeracionIA: Error guardando veredicto rate limit', [
+                    'publicacionId' => $publicacionId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return $veredictoRateLimit;
         }
 
         /*
@@ -129,6 +186,9 @@ class ServicioModeracionIA
 
         $resultados = [];
 
+        /* C356: Resetear estado rate limit */
+        GroqHttpClient::resetearEstadoRateLimit();
+
         /* Capa Guard: solo si hay texto, y solo detecta spam/contenido sexual/ilegal */
         if (!empty(\trim($texto))) {
             $resultados['guard_texto'] = AnalizadoresModeracion::analizarTextoComentario($apiKey, $texto);
@@ -137,6 +197,58 @@ class ServicioModeracionIA
         /* Capa Vision: solo si el comentario tiene imagen */
         if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN && !empty($mediaUrl)) {
             $resultados['guard_imagen'] = AnalizadoresModeracion::analizarImagenComentario($apiKey, $mediaUrl);
+        }
+
+        /*
+         * C356: Si Groq devolvio rate limit, encolar comentario para moderar despues.
+         * Mas seguro que aprobar por defecto cuando la IA no responde.
+         */
+        if (GroqHttpClient::fueRateLimited()) {
+            KamplesLogger::warning('ModeracionIA: Rate limit, encolando comentario', [
+                'comentarioId' => $comentarioId,
+                'retryAfter' => GroqHttpClient::obtenerRetryAfterSegundos(),
+            ]);
+
+            try {
+                ColaProcesamientoIaRepository::encolar(
+                    ColaProcesamientoIaEnums::TIPO_COMENTARIO,
+                    $comentarioId,
+                    ColaProcesamientoIaEnums::OPERACION_MODERACION_TEXTO,
+                    [
+                        'autorId' => $autorId,
+                        'texto' => \mb_substr($texto, 0, 5000),
+                        'mediaUrl' => $mediaUrl,
+                        'tipoContenido' => $tipoContenido,
+                        'retryAfterSugerido' => GroqHttpClient::obtenerRetryAfterSegundos(),
+                    ]
+                );
+            } catch (\Throwable $e) {
+                KamplesLogger::error('ModeracionIA: Error encolando comentario', [
+                    'comentarioId' => $comentarioId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            $veredictoRateLimit = [
+                'nivel' => PublicacionesEnums::MODERACION_REVISION,
+                'razon' => 'rate_limit_ia',
+                'detalles' => ['motivo' => 'Groq rate limit 429, encolado para reproceso'],
+            ];
+
+            try {
+                ComentariosRepository::actualizarVeredictoModeracion(
+                    $comentarioId,
+                    $veredictoRateLimit['nivel'],
+                    \json_encode($veredictoRateLimit)
+                );
+            } catch (\Throwable $e) {
+                KamplesLogger::error('ModeracionIA: Error guardando veredicto rate limit comentario', [
+                    'comentarioId' => $comentarioId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return $veredictoRateLimit;
         }
 
         $veredicto = self::determinarVeredicto($resultados);

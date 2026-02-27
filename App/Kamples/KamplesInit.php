@@ -16,6 +16,7 @@ namespace App\Kamples;
 use App\Kamples\Api\KamplesController;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
+use App\Kamples\Services\ProcesadorColaIA;
 
 class KamplesInit
 {
@@ -44,6 +45,9 @@ class KamplesInit
 
         /* Cron para recálculos temporales del algoritmo (C45) */
         self::registrarCronAlgoritmo();
+
+        /* C356: Cron para reprocesar cola IA (rate limit 429) cada 15 min */
+        ProcesadorColaIA::registrarCron();
     }
 
     /*
