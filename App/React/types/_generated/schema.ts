@@ -21,6 +21,21 @@ export interface IAlgoritmoEstado {
   versionPerfil: number
 }
 
+export interface IColaProcesamientoIa {
+  id: number
+  tipo: 'sample' | 'comentario' | 'publicacion'
+  entidadId: number
+  operacion: 'analisis_audio' | 'moderacion_texto' | 'moderacion_imagen' | 'moderacion_completa'
+  estado: 'pendiente' | 'procesando' | 'completado' | 'error_reintento' | 'error_final'
+  intentos: number
+  maxIntentos: number
+  ultimoError: string | null
+  proximoIntento: string | null
+  metadata: Record<string, unknown>
+  procesadoAt: string | null
+  createdAt: string
+}
+
 export interface IColecciones {
   id: number
   usuarioId: number
@@ -280,6 +295,22 @@ export const AlgoritmoEstadoCols = {
   VERSION_PERFIL: 'version_perfil'
 } as const
 
+export const ColaProcesamientoIaCols = {
+  TABLA: 'cola_procesamiento_ia',
+  ID: 'id',
+  TIPO: 'tipo',
+  ENTIDAD_ID: 'entidad_id',
+  OPERACION: 'operacion',
+  ESTADO: 'estado',
+  INTENTOS: 'intentos',
+  MAX_INTENTOS: 'max_intentos',
+  ULTIMO_ERROR: 'ultimo_error',
+  PROXIMO_INTENTO: 'proximo_intento',
+  METADATA: 'metadata',
+  PROCESADO_AT: 'procesado_at',
+  CREATED_AT: 'created_at'
+} as const
+
 export const ColeccionesCols = {
   TABLA: 'colecciones',
   ID: 'id',
@@ -535,6 +566,21 @@ export const UsuariosExtCols = {
 } as const
 
 /* Constantes de valores enum/check (mirror de PHP) */
+export const ColaProcesamientoIaEnums = {
+  TIPO_SAMPLE: 'sample',
+  TIPO_COMENTARIO: 'comentario',
+  TIPO_PUBLICACION: 'publicacion',
+  OPERACION_ANALISIS_AUDIO: 'analisis_audio',
+  OPERACION_MODERACION_TEXTO: 'moderacion_texto',
+  OPERACION_MODERACION_IMAGEN: 'moderacion_imagen',
+  OPERACION_MODERACION_COMPLETA: 'moderacion_completa',
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_PROCESANDO: 'procesando',
+  ESTADO_COMPLETADO: 'completado',
+  ESTADO_ERROR_REINTENTO: 'error_reintento',
+  ESTADO_ERROR_FINAL: 'error_final'
+} as const
+
 export const ComentariosEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_PUBLICACION: 'publicacion'
