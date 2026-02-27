@@ -4,6 +4,7 @@
  * Monitorea la carpeta local de sync en busca de:
  * - Archivos de audio nuevos → los encola para subida automática
  * - Archivos eliminados → marca como no_sincronizar (no borra del server)
+ * - Carpetas de nivel 1 creadas/renombradas → sincroniza con colecciones (C357)
  *
  * Usa @tauri-apps/plugin-fs watch() con debounce para agrupar eventos
  * rápidos (ej: copiar múltiples archivos de golpe).
@@ -14,6 +15,9 @@
  *
  *   watch(carpetaSync) → evento remove → marcar sync_deshabilitado
  *   en el índice local (NO borrar del servidor)
+ *
+ *   watch(carpetaSync) → evento create/rename carpeta nivel 1 →
+ *   crear o renombrar colección en el servidor (C357)
  */
 
 import { esDesktop } from './desktopService';
@@ -59,9 +63,24 @@ type OnArchivoNuevoFn = (ruta: string, nombreArchivo: string, carpetas: string[]
 type OnArchivoEliminadoFn = (ruta: string) => void;
 type OnArchivoMovidoFn = (rutaAnterior: string, rutaNueva: string, nombreArchivo: string, carpetas: string[]) => void;
 
+/* C357: Callbacks para eventos de carpetas de nivel 1 (colecciones) */
+type OnCarpetaNuevaFn = (nombre: string, rutaCompleta: string) => void;
+type OnCarpetaRenombradaFn = (nombreAnterior: string, nombreNuevo: string, rutaNueva: string) => void;
+
 let onArchivoNuevo: OnArchivoNuevoFn | null = null;
 let onArchivoEliminado: OnArchivoEliminadoFn | null = null;
 let onArchivoMovido: OnArchivoMovidoFn | null = null;
+
+/* C357: Callbacks de carpetas */
+let onCarpetaNueva: OnCarpetaNuevaFn | null = null;
+let onCarpetaRenombrada: OnCarpetaRenombradaFn | null = null;
+
+/*
+ * Buffer de eliminaciones de carpetas para detectar renames.
+ * Similar al patrón delete+create → move para archivos.
+ */
+const carpetasEliminadasPendientes = new Map<string, { nombre: string; ruta: string; timeout: ReturnType<typeof setTimeout> }>();
+const GRACIA_RENAME_CARPETA_MS = 3000;
 
 /*
  * Registra los callbacks externos para archivos nuevos/eliminados/movidos.
@@ -75,6 +94,18 @@ export function registrarCallbacks(
     onArchivoNuevo = cbNuevo;
     onArchivoEliminado = cbEliminado;
     onArchivoMovido = cbMovido ?? null;
+}
+
+/*
+ * C357: Registra callbacks para eventos de carpetas de nivel 1 (colecciones).
+ * Separados de los callbacks de archivos para mantener SRP.
+ */
+export function registrarCallbacksCarpeta(
+    cbNueva: OnCarpetaNuevaFn,
+    cbRenombrada: OnCarpetaRenombradaFn,
+): void {
+    onCarpetaNueva = cbNueva;
+    onCarpetaRenombrada = cbRenombrada;
 }
 
 /*
@@ -122,6 +153,12 @@ export async function detenerObservacion(): Promise<void> {
     }
     eliminacionesPendientes.clear();
 
+    /* C357: Limpiar carpetas pendientes de rename */
+    for (const [, pendiente] of carpetasEliminadasPendientes) {
+        clearTimeout(pendiente.timeout);
+    }
+    carpetasEliminadasPendientes.clear();
+
     console.info('[FileWatcher] Observación detenida');
 }
 
@@ -135,6 +172,7 @@ export function estaObservando(): boolean {
 /*
  * Procesa un evento del watcher del filesystem.
  * Filtra por tipos relevantes (create, remove) y valida extensiones.
+ * C357: También detecta eventos de carpetas de nivel 1 (colecciones).
  */
 function procesarEvento(
     evento: { type: unknown; paths: string[] },
@@ -149,8 +187,25 @@ function procesarEvento(
         /* Ignorar archivos temporales */
         if (PATRONES_TEMPORALES.some(p => p.test(nombreArchivo))) continue;
 
-        /* Verificar extensión de audio */
+        /*
+         * C357: Detectar eventos de carpetas de nivel 1 (hijas directas de carpetaBase).
+         * Una carpeta de nivel 1 = carpeta de colección. Si se crea o renombra, sincronizar.
+         * Heurística: si el path NO tiene extensión de audio y es hijo directo de base,
+         * tratarlo como posible evento de carpeta.
+         */
         const extension = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
+        const baseNormalizada = carpetaBase.replace(/\\/g, '/').replace(/\/$/, '');
+        const relativa = normalizada.startsWith(baseNormalizada + '/')
+            ? normalizada.slice(baseNormalizada.length + 1)
+            : '';
+
+        if (relativa && !relativa.includes('/') && !EXTENSIONES_AUDIO.has(extension)) {
+            /* Es un path directo bajo carpetaBase sin extensión de audio → posible carpeta */
+            procesarEventoCarpeta(tipo, normalizada, relativa, baseNormalizada);
+            continue;
+        }
+
+        /* Verificar extensión de audio para archivos normales */
         if (!EXTENSIONES_AUDIO.has(extension)) continue;
 
         /* Debounce por archivo: ignorar si fue procesado recientemente */
@@ -274,4 +329,71 @@ function manejarArchivoEliminado(rutaOriginal: string): void {
         nombreArchivo,
         timeout,
     });
+}
+
+/*
+ * C357: Procesa eventos de carpetas de nivel 1 (colecciones).
+ * Detecta creación y rename (delete+create con diferente nombre).
+ *
+ * Rename de carpeta emite: remove(nombreViejo) + create(nombreNuevo).
+ * Se usa buffer temporal similar al de archivos para detectar el patrón.
+ */
+function procesarEventoCarpeta(
+    tipo: unknown,
+    rutaCompleta: string,
+    nombreCarpeta: string,
+    _baseNormalizada: string,
+): void {
+    if (esEventoCreacion(tipo)) {
+        /* Verificar si hay una carpeta eliminada pendiente → es un rename */
+        const pendiente = encuentraCarpetaEliminadaPendiente();
+
+        if (pendiente) {
+            clearTimeout(pendiente.timeout);
+            carpetasEliminadasPendientes.delete(pendiente.nombre);
+
+            console.info('[FileWatcher] Rename de carpeta detectado:', pendiente.nombre, '→', nombreCarpeta);
+
+            if (onCarpetaRenombrada) {
+                onCarpetaRenombrada(pendiente.nombre, nombreCarpeta, rutaCompleta);
+            }
+            return;
+        }
+
+        console.info('[FileWatcher] Carpeta nueva detectada (colección):', nombreCarpeta);
+
+        if (onCarpetaNueva) {
+            onCarpetaNueva(nombreCarpeta, rutaCompleta);
+        }
+    } else if (esEventoEliminacion(tipo)) {
+        /* Bufferar eliminación para detectar posible rename */
+        const existente = carpetasEliminadasPendientes.get(nombreCarpeta);
+        if (existente) {
+            clearTimeout(existente.timeout);
+        }
+
+        const timeout = setTimeout(() => {
+            carpetasEliminadasPendientes.delete(nombreCarpeta);
+            /* Eliminación confirmada — la carpeta fue borrada, no renombrada.
+             * No sincronizamos borrado de carpeta al servidor (podría ser limpieza local). */
+            console.info('[FileWatcher] Carpeta eliminada (no fue rename):', nombreCarpeta);
+        }, GRACIA_RENAME_CARPETA_MS);
+
+        carpetasEliminadasPendientes.set(nombreCarpeta, {
+            nombre: nombreCarpeta,
+            ruta: rutaCompleta,
+            timeout,
+        });
+    }
+}
+
+/*
+ * Busca la primera carpeta eliminada pendiente (para detectar rename).
+ * Debería haber como máximo una a la vez en una operación de rename.
+ */
+function encuentraCarpetaEliminadaPendiente(): { nombre: string; ruta: string; timeout: ReturnType<typeof setTimeout> } | null {
+    for (const [, val] of carpetasEliminadasPendientes) {
+        return val;
+    }
+    return null;
 }

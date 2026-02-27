@@ -51,6 +51,10 @@ interface Window {
         marcarNoSincronizarPorId: (sampleId: number) => Promise<boolean>;
         reactivarSync: (sampleId: number) => Promise<boolean>;
         obtenerSamplesNoSincronizados: () => Array<{ sampleId: number; nombre: string }>;
+        /* C358: Historial y resync */
+        obtenerHistorialSync: (limite?: number) => Array<{ tipo: string; descripcion: string; sampleId?: number; coleccionId?: number; timestamp: number }>;
+        obtenerColeccionesSync: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
+        forzarResync: (onProgreso?: (p: ProgresoSyncGlobal) => void) => Promise<{ nuevos: number; eliminados: number }>;
     };
     __KAMPLES_UPLOAD__?: {
         obtenerEstadoCola: () => { items: unknown[]; totalPendientes: number; totalErrores: number; procesando: boolean };

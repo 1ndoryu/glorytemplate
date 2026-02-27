@@ -1,6 +1,7 @@
 /*
  * sincronizacion.css — Kamples
  * Estilos del panel de sincronización estilo Google Drive.
+ * C358: Tabs estado/historial/colecciones.
  * Reutiliza variables del sistema de diseño y patrón dropdownPanel.
  */
 
@@ -54,6 +55,38 @@
 .sincPanelCerrar:hover {
     color: var(--textoPrimario);
     background-color: var(--fondoElevado2);
+}
+
+/* Tabs */
+.sincPanelTabs {
+    display: flex;
+    border-bottom: 1px solid var(--bordeSutil);
+    padding: 0 var(--espacioLg);
+    gap: 0;
+}
+
+.sincPanelTab {
+    flex: 1;
+    padding: var(--espacioSm) var(--espacioXs);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    text-align: center;
+}
+
+.sincPanelTab:hover {
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelTab--activo {
+    color: var(--acento);
+    border-bottom-color: var(--acento);
 }
 
 /* Estado actual */
@@ -188,10 +221,29 @@
     background-color: white;
 }
 
+/* Acciones de sync (botones apilados) */
+.sincPanelAcciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
 /* Sincronizar ahora */
 .sincPanelSincAhora {
     width: 100%;
     justify-content: center;
+}
+
+/* Re-sync forzada */
+.sincPanelResync {
+    width: 100%;
+    justify-content: center;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.sincPanelResync:hover {
+    color: var(--advertencia);
 }
 
 /* Spinner para iconos de carga */
@@ -285,4 +337,130 @@
 
 .sincPanelFooterSep {
     color: var(--bordeSutil);
+}
+
+/* Estado vacío para tabs sin contenido */
+.sincPanelVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl) var(--espacioLg);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+/* Historial de acciones */
+.sincPanelHistorial {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+}
+
+.sincPanelHistorialItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+    transition: background-color var(--transicionRapida);
+}
+
+.sincPanelHistorialItem:last-child {
+    border-bottom: none;
+}
+
+.sincPanelHistorialItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelHistorialIcono {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radioFull);
+    background-color: var(--fondoElevado3);
+    color: var(--textoSecundario);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.sincPanelHistorialInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sincPanelHistorialDesc {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sincPanelHistorialTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Colecciones sincronizadas */
+.sincPanelColecciones {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+}
+
+.sincPanelColeccionItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+    transition: background-color var(--transicionRapida);
+}
+
+.sincPanelColeccionItem:last-child {
+    border-bottom: none;
+}
+
+.sincPanelColeccionItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelColeccionIcono {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+.sincPanelColeccionInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sincPanelColeccionNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sincPanelColeccionMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
 }

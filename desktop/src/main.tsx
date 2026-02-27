@@ -32,6 +32,10 @@ import {
     marcarNoSincronizarPorId,
     reactivarSync,
     obtenerSamplesNoSincronizados,
+    /* C358: Historial y resync */
+    obtenerHistorialSync,
+    obtenerColeccionesSync,
+    forzarResync,
 } from '@desktop/services/syncService';
 
 /* C341: Upload queue — estado de subidas automáticas */
@@ -105,6 +109,10 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         marcarNoSincronizarPorId,
         reactivarSync,
         obtenerSamplesNoSincronizados,
+        /* C358: Historial y resync forzada */
+        obtenerHistorialSync,
+        obtenerColeccionesSync,
+        forzarResync,
     };
     /* C341: Upload queue — control de subidas automáticas */
     window.__KAMPLES_UPLOAD__ = {

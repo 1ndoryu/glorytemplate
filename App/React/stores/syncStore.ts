@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 
 export type EstadoSync = 'inactivo' | 'sincronizando' | 'completado' | 'error' | 'pausado';
+export type TabSync = 'estado' | 'historial' | 'colecciones';
 
 interface ArchivoSync {
     sampleId: number;
@@ -17,9 +18,27 @@ interface ArchivoSync {
     descargadoEn: number;
 }
 
+/* C358: Entrada del historial de sync */
+export interface EntradaHistorial {
+    tipo: string;
+    descripcion: string;
+    sampleId?: number;
+    coleccionId?: number;
+    timestamp: number;
+}
+
+/* C358: Info de colección sincronizada */
+export interface ColeccionSyncInfo {
+    id: number;
+    nombre: string;
+    carpetaLocal: string;
+    archivos: number;
+}
+
 interface SyncStoreState {
     /* UI */
     panelAbierto: boolean;
+    tabActual: TabSync;
     /* Config */
     carpetaLocal: string | null;
     sincronizacionActiva: boolean;
@@ -32,10 +51,14 @@ interface SyncStoreState {
     archivos: ArchivoSync[];
     totalArchivos: number;
     espacioUsado: number;
+    /* C358: Historial y colecciones */
+    historial: EntradaHistorial[];
+    colecciones: ColeccionSyncInfo[];
     /* Acciones */
     abrirPanel: () => void;
     cerrarPanel: () => void;
     alternarPanel: () => void;
+    setTab: (tab: TabSync) => void;
     setCarpeta: (carpeta: string | null) => void;
     setActiva: (activa: boolean) => void;
     setEstado: (estado: EstadoSync, mensaje?: string) => void;
@@ -44,10 +67,14 @@ interface SyncStoreState {
     setUltimaSync: (timestamp: number) => void;
     agregarArchivo: (archivo: ArchivoSync) => void;
     actualizarArchivoEstado: (sampleId: number, estado: ArchivoSync['estado']) => void;
+    /* C358 */
+    setHistorial: (historial: EntradaHistorial[]) => void;
+    setColecciones: (colecciones: ColeccionSyncInfo[]) => void;
 }
 
 export const useSyncStore = create<SyncStoreState>((set) => ({
     panelAbierto: false,
+    tabActual: 'estado' as TabSync,
     carpetaLocal: null,
     sincronizacionActiva: false,
     ultimaSync: 0,
@@ -57,10 +84,13 @@ export const useSyncStore = create<SyncStoreState>((set) => ({
     archivos: [],
     totalArchivos: 0,
     espacioUsado: 0,
+    historial: [],
+    colecciones: [],
 
     abrirPanel: () => set({ panelAbierto: true }),
-    cerrarPanel: () => set({ panelAbierto: false }),
+    cerrarPanel: () => set({ panelAbierto: false, tabActual: 'estado' }),
     alternarPanel: () => set(s => ({ panelAbierto: !s.panelAbierto })),
+    setTab: (tab) => set({ tabActual: tab }),
 
     setCarpeta: (carpeta) => set({ carpetaLocal: carpeta }),
 
@@ -95,4 +125,7 @@ export const useSyncStore = create<SyncStoreState>((set) => ({
             a.sampleId === sampleId ? { ...a, estado } : a,
         ),
     })),
+
+    setHistorial: (historial) => set({ historial }),
+    setColecciones: (colecciones) => set({ colecciones }),
 }));

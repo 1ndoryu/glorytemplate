@@ -697,7 +697,7 @@ async function inicializarSyncBidireccional(): Promise<void> {
     if (!config.carpetaLocal || !config.sincronizacionActiva) return;
 
     try {
-        const { registrarCallbacks, iniciarObservacion } = await import('./fileWatcherService');
+        const { registrarCallbacks, registrarCallbacksCarpeta, iniciarObservacion } = await import('./fileWatcherService');
         const { inicializarUploadQueue, encolarArchivo } = await import('./uploadQueueService');
 
         /* Registrar callbacks del watcher */
@@ -716,7 +716,17 @@ async function inicializarSyncBidireccional(): Promise<void> {
                     return;
                 }
 
-                /* Buscar por ruta exacta */
+                /* v2: buscar en tracking primero */
+                if (trackingModule) {
+                    const enTracking = trackingModule.buscarArchivoPorRuta(ruta)
+                        ?? trackingModule.buscarArchivoPorNombre(nombreArchivo);
+                    if (enTracking) {
+                        console.info('[Sync] Archivo ya en tracking v2, ignorando:', nombreArchivo);
+                        return;
+                    }
+                }
+
+                /* v1: Buscar por ruta exacta */
                 const porRuta = indiceArchivos.find(
                     a => a.ruta.replace(/\\/g, '/') === rutaNorm,
                 );
@@ -751,6 +761,44 @@ async function inicializarSyncBidireccional(): Promise<void> {
                 manejarMoveLocal(rutaAnterior, rutaNueva, nombreArchivo, carpetas);
             },
         );
+
+        /*
+         * C357: Registrar callbacks de carpetas para sincronizar colecciones.
+         * Solo si el módulo de colecciones v2 está disponible.
+         */
+        if (collectionModule) {
+            const colMod = collectionModule;
+            registrarCallbacksCarpeta(
+                /* Carpeta nueva de nivel 1 → crear colección en servidor */
+                (nombre: string, _rutaCompleta: string) => {
+                    console.info('[Sync] Carpeta nueva detectada → crear colección:', nombre);
+                    colMod.crearColeccionDesdeLocal(nombre).catch(err => {
+                        console.error('[Sync] Error creando colección desde carpeta local:', err);
+                    });
+                },
+                /* Carpeta renombrada → renombrar colección en servidor */
+                (nombreAnterior: string, nombreNuevo: string, _rutaNueva: string) => {
+                    if (!trackingModule) return;
+                    const coleccion = trackingModule.buscarColeccionPorCarpeta(nombreAnterior);
+                    if (coleccion) {
+                        console.info('[Sync] Carpeta renombrada → renombrar colección:', coleccion.id, nombreAnterior, '→', nombreNuevo);
+                        colMod.renombrarColeccionEnServidor(coleccion.id, nombreNuevo).catch(err => {
+                            console.error('[Sync] Error renombrando colección:', err);
+                        });
+                        /* Actualizar tracking local */
+                        trackingModule.actualizarNombreColeccion(coleccion.id, nombreNuevo, nombreNuevo).catch(err => {
+                            console.error('[Sync] Error actualizando nombre local de colección:', err);
+                        });
+                    } else {
+                        /* No se encontró colección — posiblemente es nueva, crearla */
+                        console.info('[Sync] Carpeta renombrada sin colección asociada → crear:', nombreNuevo);
+                        colMod.crearColeccionDesdeLocal(nombreNuevo).catch(err => {
+                            console.error('[Sync] Error creando colección desde rename:', err);
+                        });
+                    }
+                },
+            );
+        }
 
         /* Inicializar upload queue (carga items pendientes del store) */
         await inicializarUploadQueue();
@@ -914,6 +962,66 @@ export function obtenerSamplesNoSincronizados(): Array<{ sampleId: number; nombr
 }
 
 /*
+ * C358: Obtiene el historial de acciones de sync.
+ * Retorna los últimos N eventos del tracking v2.
+ */
+export function obtenerHistorialSync(limite = 50): Array<{
+    tipo: string;
+    descripcion: string;
+    sampleId?: number;
+    coleccionId?: number;
+    timestamp: number;
+}> {
+    if (!trackingModule) return [];
+    return trackingModule.obtenerHistorial(limite);
+}
+
+/*
+ * C358: Obtiene información de colecciones sincronizadas.
+ * Para mostrar el mapeo colecciones ↔ carpetas en el panel.
+ */
+export function obtenerColeccionesSync(): Array<{
+    id: number;
+    nombre: string;
+    carpetaLocal: string;
+    archivos: number;
+}> {
+    if (!trackingModule) return [];
+    const colecciones = trackingModule.todasLasColecciones();
+    return colecciones.map(col => ({
+        id: col.id,
+        nombre: col.nombre,
+        carpetaLocal: col.carpetaLocal,
+        archivos: trackingModule!.listarArchivosPorColeccion(col.id).length,
+    }));
+}
+
+/*
+ * C358: Fuerza una re-sincronización completa.
+ * Resetea el tracking v2 y ejecuta sincronizarConServidor de nuevo
+ * para que todos los archivos se re-evalúen.
+ */
+export async function forzarResync(
+    onProgreso?: ProgressCallback,
+): Promise<{ nuevos: number; eliminados: number }> {
+    /* Resetear tracking v2 */
+    if (trackingModule) {
+        await trackingModule.resetearTracking();
+        await trackingModule.registrarAccion({
+            tipo: 'creado',
+            descripcion: 'Re-sync forzada por el usuario',
+        });
+    }
+
+    /* Limpiar índice v1 también */
+    indiceArchivos = [];
+    await guardarIndice();
+
+    /* Re-ejecutar sync completa */
+    return sincronizarConServidor(onProgreso);
+}
+
+/*
  * Detiene el watcher si está activo (para cleanup al cerrar).
  */
 export async function detenerSyncBidireccional(): Promise<void> {
@@ -931,15 +1039,24 @@ export async function detenerSyncBidireccional(): Promise<void> {
 
 /*
  * Sincroniza la estructura de carpetas del servidor a disco local.
- * Crea carpetas que existen en la web pero no localmente.
+ * C357: En v2, delega a collectionModule para sincronizar colecciones.
+ * En v1, crea carpetas basadas en la estructura de metadata IA.
  * Se ejecuta periódicamente y al iniciar sync bidireccional.
- *
- * Las carpetas locales vacías no se sincronizan al servidor porque
- * el backend genera carpetas implícitamente basado en los samples.
  */
 async function sincronizarEstructuraCarpetas(): Promise<void> {
     if (!config.carpetaLocal || !estaOnline()) return;
 
+    /* C357: v2 — sincronizar colecciones silenciosamente (sin progreso) */
+    if (collectionModule) {
+        try {
+            await collectionModule.sincronizarColecciones(config.carpetaLocal);
+        } catch (err) {
+            console.error('[Sync] Error en polling de colecciones v2:', err);
+        }
+        return;
+    }
+
+    /* v1 fallback: crear carpetas basadas en metadata IA */
     try {
         const { mkdir } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
