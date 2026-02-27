@@ -137,6 +137,26 @@ class AlgoritmoEstadoRepository extends BaseRepository
     }
 
     /*
+     * Obtener solo usuarios que necesitan recalculo (filtrado por intervalo minimo).
+     * Evita cargar TODOS los usuarios cuando solo unos pocos necesitan actualización.
+     * Solo retorna usuarios cuyo ultimo_rapido O ultimo_preciso exceda el intervalo minimo.
+     */
+    public static function obtenerParaEvaluacionFiltrado(int $intervaloMinimoSeg): array
+    {
+        $tabla = AlgoritmoEstadoCols::TABLA;
+        return static::consultar(
+            "SELECT " . AlgoritmoEstadoCols::USUARIO_ID . ",
+                    EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMO_RAPIDO . ") as seg_desde_rapido,
+                    EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMO_PRECISO . ") as seg_desde_preciso,
+                    EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMA_ACTIVIDAD . ") as seg_inactivo
+             FROM {$tabla}
+             WHERE EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMO_RAPIDO . ") >= :intervalo
+                OR EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMO_PRECISO . ") >= :intervalo2",
+            ['intervalo' => $intervaloMinimoSeg, 'intervalo2' => $intervaloMinimoSeg]
+        );
+    }
+
+    /*
      * Estado detallado con calculos de tiempo para diagnostico (admin).
      */
     public static function obtenerEstadoDiagnostico(int $userId): ?array

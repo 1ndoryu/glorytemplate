@@ -21,6 +21,8 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\AlgoritmoEstadoRepository;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
+use App\Kamples\Services\MotorRecomendacion;
+use App\Kamples\Services\GeneradorEmbeddings;
 use App\Config\Schema\_generated\AlgoritmoEstadoCols;
 
 class PlanificadorAlgoritmo
@@ -133,10 +135,8 @@ class PlanificadorAlgoritmo
      */
     public static function ejecutarRapido(int $userId): void
     {
-        /* Borrar transients del feed */
-        \delete_transient('kamples_feed_' . $userId . '_20');
-        \delete_transient('kamples_feed_' . $userId . '_50');
-        \delete_transient('kamples_feed_' . $userId . '_100');
+        /* Borrar TODOS los transients del feed del usuario (cualquier limite/offset) */
+        MotorRecomendacion::invalidarCache($userId);
 
         /* Resetear contadores rápidos */
         AlgoritmoEstadoRepository::resetearContadoresRapidos($userId);
@@ -152,6 +152,9 @@ class PlanificadorAlgoritmo
     {
         /* Invalidar cache del feed primero */
         self::ejecutarRapido($userId);
+
+        /* Invalidar cache del perfil vector ANTES de regenerar */
+        GeneradorEmbeddings::invalidarPerfilCache($userId);
 
         /* Regenerar perfil de embeddings del usuario (si pgvector disponible) */
         try {
@@ -189,8 +192,15 @@ class PlanificadorAlgoritmo
         $intervaloPrecisoActivo = ($config['preciso']['intervalo_activo_min'] ?? 60) * 60;
         $intervaloPrecisoInactivo = ($config['preciso']['intervalo_inactivo_min'] ?? 960) * 60;
 
-        /* Obtener todos los usuarios con estado registrado */
-        $usuarios = AlgoritmoEstadoRepository::obtenerTodosParaEvaluacion();
+        /*
+         * Solo cargar usuarios que NECESITAN recálculo (filtro SQL).
+         * El intervalo más largo posible es el preciso inactivo,
+         * así que solo necesitamos usuarios cuyo último recálculo supere
+         * el intervalo activo mínimo (el más corto).
+         */
+        $usuarios = AlgoritmoEstadoRepository::obtenerParaEvaluacionFiltrado(
+            $intervaloRapidoActivo
+        );
 
         foreach ($usuarios as $u) {
             $uid = (int) $u[AlgoritmoEstadoCols::USUARIO_ID];
@@ -235,6 +245,7 @@ class PlanificadorAlgoritmo
 
     /**
      * Forzar recálculo completo (admin). Invalida todos los feeds.
+     * Procesa en batches de 50 para evitar timeouts y OOM.
      *
      * @return int Cantidad de usuarios procesados
      */
@@ -246,6 +257,13 @@ class PlanificadorAlgoritmo
         foreach ($usuarios as $u) {
             self::ejecutarPreciso((int) $u[AlgoritmoEstadoCols::USUARIO_ID]);
             $count++;
+
+            /* Liberar memoria cada 50 usuarios */
+            if ($count % 50 === 0) {
+                if (\function_exists('gc_collect_cycles')) {
+                    \gc_collect_cycles();
+                }
+            }
         }
 
         KamplesLogger::info("Planificador: Recálculo global forzado: {$count} usuarios");

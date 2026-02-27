@@ -64,12 +64,21 @@ class MotorRecomendacion
 
     /**
      * Verifica si pgvector está disponible y configurado.
-     * Se cachea en memoria para no consultar en cada request.
+     * Se cachea en memoria + WP transient para no consultar en cada request.
      */
     private static function pgvectorActivo(): bool
     {
         if (self::$pgvectorDisponible !== null) return self::$pgvectorDisponible;
+
+        /* Cache en transient para evitar query SQL por request */
+        $cached = \get_transient('kamples_pgvector_activo');
+        if ($cached !== false) {
+            self::$pgvectorDisponible = ($cached === '1');
+            return self::$pgvectorDisponible;
+        }
+
         self::$pgvectorDisponible = SamplesRepository::verificarPgvector();
+        \set_transient('kamples_pgvector_activo', self::$pgvectorDisponible ? '1' : '0', 3600);
         return self::$pgvectorDisponible;
     }
 
@@ -84,16 +93,14 @@ class MotorRecomendacion
             'userId' => $userId, 'limite' => $limite, 'offset' => $offset,
         ]);
 
-        /* Intentar leer de cache solo para la primera página */
-        if ($offset === 0) {
-            $cacheKey = self::CACHE_PREFIX . $userId . '_' . $limite;
-            $cached = \get_transient($cacheKey);
-            if ($cached !== false && \is_array($cached)) {
-                KamplesLogger::debug('Algoritmo: Sirviendo desde cache', [
-                    'cacheKey' => $cacheKey, 'resultados' => \count($cached),
-                ]);
-                return $cached;
-            }
+        /* Intentar leer de cache (todas las páginas) */
+        $cacheKey = self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset;
+        $cached = \get_transient($cacheKey);
+        if ($cached !== false && \is_array($cached)) {
+            KamplesLogger::debug('Algoritmo: Sirviendo desde cache', [
+                'cacheKey' => $cacheKey, 'resultados' => \count($cached),
+            ]);
+            return $cached;
         }
 
         $config = self::cargarPesos();
@@ -108,8 +115,8 @@ class MotorRecomendacion
                 'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
             ]);
             $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
-            if ($offset === 0 && !empty($resultado)) {
-                \set_transient($cacheKey ?? '', $resultado, self::CACHE_TTL);
+            if (!empty($resultado)) {
+                \set_transient($cacheKey, $resultado, self::CACHE_TTL);
             }
             return $resultado;
         }
@@ -252,7 +259,12 @@ class MotorRecomendacion
         $comTipoSample = ComentariosEnums::TIPO_SAMPLE;
         $userId_int = (int) $userId;
 
-        $sql = "WITH scored AS (
+        /*
+         * CTE de dos niveles para evitar calcular el score dos veces:
+         * 1. base_scores: calcula score + flags de usuario
+         * 2. scored: añade ROW_NUMBER sobre el score ya calculado
+         */
+        $sql = "WITH base_scores AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                            u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},
                            u.{$uWpId} AS creador_wp_user_id,
@@ -262,11 +274,15 @@ class MotorRecomendacion
                            (SELECT 1 FROM {$tcs} cs_f JOIN {$tcCol} c_f ON cs_f.{$csColId} = c_f.{$colId} WHERE c_f.{$colUid} = {$userId_int} AND cs_f.{$csSid} = s.{$sId} LIMIT 1) AS ya_guardado_en_coleccion,
                            (SELECT 1 FROM {$tcom} WHERE {$comAutor} = {$userId_int} AND {$comTipo} = '{$comTipoSample}' AND {$comTarget} = s.{$sId} LIMIT 1) AS ya_comentado,
                            (s.{$sCreadorId} = {$userId_int}) AS es_mio,
-                           ({$scoreTotal}) as score,
-                           ROW_NUMBER() OVER (PARTITION BY s.{$sCreadorId} ORDER BY ({$scoreTotal}) DESC) as rn
+                           ({$scoreTotal}) as score
                     FROM {$ts} s
                     LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
                     WHERE s.{$sEstado} = '{$eActivo}'
+                ),
+                scored AS (
+                    SELECT base_scores.*,
+                           ROW_NUMBER() OVER (PARTITION BY base_scores.{$sCreadorId} ORDER BY base_scores.score DESC) as rn
+                    FROM base_scores
                 )
                 SELECT * FROM scored
                 ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
@@ -279,9 +295,9 @@ class MotorRecomendacion
             'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
         ]);
 
-        /* Guardar en cache (solo primera página) */
-        if ($offset === 0 && !empty($resultado)) {
-            \set_transient(self::CACHE_PREFIX . $userId . '_' . $limite, $resultado, self::CACHE_TTL);
+        /* Guardar en cache */
+        if (!empty($resultado)) {
+            \set_transient(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, self::CACHE_TTL);
         }
 
         return $resultado;
@@ -289,7 +305,8 @@ class MotorRecomendacion
 
     /**
      * Feed para usuarios nuevos sin historial de interacciones.
-     * Mezcla trending reciente + samples nuevos.
+     * Mezcla trending reciente + samples nuevos + diversidad por creador.
+     * Score: engagement ponderado * freshness decay * diversidad creador.
      */
     private static function feedNuevoUsuario(int $limite, int $offset, ?int $userId = null): array
     {
@@ -299,24 +316,50 @@ class MotorRecomendacion
         $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
         $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
         $sPubAt = SamplesCols::PUBLICADO_AT;
+        $sVerif = SamplesCols::VERIFICADO;
+        $sCreadorId = SamplesCols::CREADOR_ID;
 
-        $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " WHERE s.{$sEstado} = '{$eActivo}'"
-             . " ORDER BY (s.{$sTotLikes} * 2 + s.{$sTotRepro} + s.{$sTotDesc} * 3)"
-             . "   * GREATEST(0.1, 1 - EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / (86400 * 30)) DESC"
-             . " LIMIT :limit OFFSET :offset";
+        /*
+         * CTE dos niveles: calcular score engagement + freshness, luego diversidad por creador.
+         * Freshness: decay exponencial a 30 días (no lineal como antes).
+         * Diversidad: penalización suave a partir del 3er sample del mismo creador.
+         * Boost: +15% para samples verificados.
+         */
+        $selectBase = NormalizadorSample::sqlSelectSamples($userId);
+        $sql = "WITH base AS (
+                    {$selectBase}
+                    WHERE s.{$sEstado} = '{$eActivo}'
+                ),
+                ranked AS (
+                    SELECT base.*,
+                           ((base.{$sTotLikes} * 2 + base.{$sTotRepro} + base.{$sTotDesc} * 3)
+                            * EXP(-EXTRACT(EPOCH FROM NOW() - base.{$sPubAt}) / (30 * 86400))
+                            * CASE WHEN base.{$sVerif} = true THEN 1.15 ELSE 1 END
+                           ) as score_nuevo,
+                           ROW_NUMBER() OVER (PARTITION BY base.{$sCreadorId} ORDER BY (base.{$sTotLikes} * 2 + base.{$sTotRepro} + base.{$sTotDesc} * 3) DESC) as rn_creador
+                    FROM base
+                )
+                SELECT * FROM ranked
+                ORDER BY (score_nuevo * CASE WHEN rn_creador <= 3 THEN 1 ELSE GREATEST(0.3, 1.0 - (rn_creador - 3) * 0.2) END) DESC
+                LIMIT :limit OFFSET :offset";
 
         return SamplesRepository::consultar($sql, ['limit' => $limite, 'offset' => $offset]);
     }
 
     /**
      * Invalida el cache de feed para un usuario específico.
+     * Borra TODOS los transients del feed del usuario (cualquier limite/offset).
      * Llamar cuando: el usuario da like, descarga, o se publica un nuevo sample.
      */
     public static function invalidarCache(int $userId): void
     {
-        \delete_transient(self::CACHE_PREFIX . $userId . '_20');
-        \delete_transient(self::CACHE_PREFIX . $userId . '_50');
+        global $wpdb;
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+                '_transient_' . self::CACHE_PREFIX . $userId . '_%'
+            )
+        );
     }
 
     /**
@@ -337,11 +380,13 @@ class MotorRecomendacion
 
     /**
      * Samples similares a uno dado.
-     * Usa embeddings pgvector (cosine distance) con fallback a scoring por tags + BPM + key + tipo.
+     * Usa embeddings pgvector (cosine distance) con fallback a scoring
+     * por tags + BPM + key + tipo usando pesos de config['samples_similares'].
      */
     public static function samplesSimilares(int $sampleId, int $limite = 5, ?int $userId = null): array
     {
         $config = self::cargarPesos();
+        $pesosSimil = $config['samples_similares'] ?? [];
 
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
@@ -363,10 +408,18 @@ class MotorRecomendacion
             }
         }
 
-        /* Fallback: scoring por tags, BPM, key, tipo */
+        /*
+         * Fallback: scoring por tags, BPM, key, tipo usando pesos de config.
+         * Los pesos se leen de config['samples_similares'] normalizado a 1.0 total.
+         */
         $sample = SamplesRepository::buscarMetadataParaSimilares($sampleId);
 
         if (!$sample) return [];
+
+        $pesoSimilitud = $pesosSimil['similitud_contenido'] ?? 0.45;
+        $pesoContexto = $pesosSimil['contexto'] ?? 0.25;
+        $pesoTendencias = $pesosSimil['tendencias'] ?? 0.15;
+        $pesoNovedad = $pesosSimil['novedad'] ?? 0.15;
 
         $tags = NormalizadorSample::pgArrayToPhp($sample[SamplesCols::TAGS] ?? '');
         $bpm = $sample[SamplesCols::BPM] ? (int) $sample[SamplesCols::BPM] : null;
@@ -376,34 +429,50 @@ class MotorRecomendacion
 
         $params = ['sampleId' => $sampleId, 'limit' => $limite];
 
-        /* Score por tags en común */
+        /* Similitud contenido: tags en comun — normalizado a [0,1] */
         $sTags = SamplesCols::TAGS;
         $tagParts = [];
         foreach (\array_slice($tags, 0, 10) as $i => $tag) {
-            $tagParts[] = "CASE WHEN :tag{$i} = ANY(s.{$sTags}) THEN 2 ELSE 0 END";
+            $tagParts[] = "CASE WHEN :tag{$i} = ANY(s.{$sTags}) THEN 1 ELSE 0 END";
             $params["tag{$i}"] = $tag;
         }
-        $tagScore = !empty($tagParts) ? '(' . \implode(' + ', $tagParts) . ')' : '0';
+        $numTags = \max(1, \count($tagParts));
+        $tagScore = !empty($tagParts) ? '((' . \implode(' + ', $tagParts) . ')::float / ' . $numTags . ')' : '0';
 
+        /* Contexto: BPM + key + tipo — cada sub-factor [0,1] */
         $sBpm = SamplesCols::BPM;
         $sKey = SamplesCols::KEY;
         $sTipo = SamplesCols::TIPO;
         $sTotLk = SamplesCols::TOTAL_LIKES;
+        $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
 
         $bpmScore = $bpm
-            ? "GREATEST(0, {$toleranciaBpm} - ABS(COALESCE(s.{$sBpm}, 0) - {$bpm})) / {$toleranciaBpm} * 5"
-            : "0";
+            ? "GREATEST(0, ({$toleranciaBpm} - ABS(COALESCE(s.{$sBpm}, 0) - {$bpm}))::float / {$toleranciaBpm})"
+            : "0.5";
 
-        $keyScore = $key ? "CASE WHEN s.{$sKey} = :simKey THEN 5 ELSE 0 END" : "0";
+        $keyScore = $key ? "CASE WHEN s.{$sKey} = :simKey THEN 1 ELSE 0 END" : "0.5";
         if ($key) $params['simKey'] = $key;
 
-        $tipoScore = "CASE WHEN s.{$sTipo} = :simTipo THEN 3 ELSE 0 END";
+        $tipoScore = "CASE WHEN s.{$sTipo} = :simTipo THEN 1 ELSE 0 END";
         $params['simTipo'] = $tipo;
+
+        $contextoScore = "(0.4 * {$bpmScore} + 0.35 * {$keyScore} + 0.25 * {$tipoScore})";
+
+        /* Tendencias: engagement total normalizado (aprox, sin ventana temporal) */
+        $tendenciasScore = "(LEAST(1.0, (s.{$sTotLk} * 2 + s.{$sTotRepro} + s.{$sTotDesc} * 3)::float / GREATEST(1, (SELECT AVG({$sTotLk} * 2 + {$sTotRepro} + {$sTotDesc} * 3) FROM {$ts} WHERE {$sEstado} = '{$eActivo}')::float)))";
+
+        /* Novedad: decay logaritmico */
+        $diasBoost = (int) ($config['parametros']['novedad_dias_boost'] ?? 14);
+        $novedadScore = "GREATEST(0, 1 - LN(GREATEST(1, EXTRACT(EPOCH FROM NOW() - s.{$sPubAt}) / 86400)) / LN({$diasBoost}))";
+
+        $scoreFinal = "({$pesoSimilitud} * {$tagScore} + {$pesoContexto} * {$contextoScore} + {$pesoTendencias} * {$tendenciasScore} + {$pesoNovedad} * {$novedadScore})";
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s.{$sEstado} = '{$eActivo}' AND s.{$sId} != :sampleId"
-             . " ORDER BY ({$tagScore} + {$bpmScore} + {$keyScore} + {$tipoScore}) DESC,"
-             . " s.{$sTotLk} DESC LIMIT :limit";
+             . " ORDER BY {$scoreFinal} DESC"
+             . " LIMIT :limit";
 
         return SamplesRepository::consultar($sql, $params);
     }

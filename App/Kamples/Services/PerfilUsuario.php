@@ -37,6 +37,7 @@ class PerfilUsuario
             'userId'        => $userId,
             'bpmProm'       => UsuariosExtRepository::bpmPromedio($userId) ?? 0,
             'keyFav'        => UsuariosExtRepository::keyFavorita($userId),
+            'escalaFav'     => UsuariosExtRepository::escalaFavorita($userId),
             'tipoFav'       => UsuariosExtRepository::tipoFavorito($userId),
             'creadoresFav'  => self::obtenerCreadoresFavoritos($userId),
         ];

@@ -793,38 +793,55 @@ class SamplesRepository extends BaseRepository
     }
 
     /*
-     * Obtener todos los samples activos sin embedding para generacion batch.
+     * Obtener samples activos sin embedding para generacion batch.
+     * Acepta limite opcional para procesamiento por lotes (evita OOM).
      */
-    public static function buscarSinEmbeddingActivos(): array
+    public static function buscarSinEmbeddingActivos(?int $limit = null): array
     {
         $ts = SamplesCols::TABLA;
 
-        return static::consultar(
-            "SELECT " . SamplesCols::ID . ", " . SamplesCols::BPM . ", " . SamplesCols::KEY
+        $sql = "SELECT " . SamplesCols::ID . ", " . SamplesCols::BPM . ", " . SamplesCols::KEY
             . ", " . SamplesCols::ESCALA . ", " . SamplesCols::TIPO . ", " . SamplesCols::DURACION
             . ", " . SamplesCols::ES_PREMIUM . ", " . SamplesCols::TAGS
             . " FROM {$ts} WHERE " . SamplesCols::EMBEDDING . " IS NULL AND "
-            . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-        );
+            . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'";
+
+        if ($limit !== null) {
+            return static::consultar($sql . " LIMIT :lim", ['lim' => $limit]);
+        }
+
+        return static::consultar($sql);
     }
 
     /*
      * Obtener embeddings de samples con los que el usuario interactuó.
      * Usado por GeneradorEmbeddings::perfilUsuario para construir perfil vectorial.
      * Retorna filas con: embedding::text, tipo_interaccion, peso.
+     *
+     * Decay temporal: interacciones mas recientes pesan mas.
+     * Formula: peso_base * EXP(-dias_desde_interaccion / 30).
+     * Esto da ~37% de peso a 30 dias, ~14% a 60 dias, ~5% a 90 dias.
      */
     public static function buscarInteraccionesParaPerfil(int $userId): array
     {
-        $sql = "SELECT s." . SamplesCols::EMBEDDING . "::text, tipo_interaccion, peso FROM ("
-             . " SELECT " . LikesCols::TARGET_ID . " as sample_id, '" . LikesEnums::REACCION_LIKE . "' as tipo_interaccion, 3 as peso"
+        $lCreAt = LikesCols::CREATED_AT;
+        $dCreAt = DescargasCols::CREATED_AT;
+        $rCreAt = ReproduccionesCols::CREATED_AT;
+
+        $sql = "SELECT s." . SamplesCols::EMBEDDING . "::text, tipo_interaccion,"
+             . " (peso_base * EXP(-EXTRACT(EPOCH FROM NOW() - fecha) / (30 * 86400)))::float as peso"
+             . " FROM ("
+             . " SELECT " . LikesCols::TARGET_ID . " as sample_id, '" . LikesEnums::REACCION_LIKE . "' as tipo_interaccion, 3 as peso_base, {$lCreAt} as fecha"
              . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
+             . " AND " . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
              . " UNION ALL"
-             . " SELECT " . DescargasCols::SAMPLE_ID . ", 'descarga', 5"
+             . " SELECT " . DescargasCols::SAMPLE_ID . ", 'descarga', 5, {$dCreAt}"
              . " FROM " . DescargasCols::TABLA . " WHERE " . DescargasCols::USUARIO_ID . " = :userId"
              . " UNION ALL"
              . " SELECT " . ReproduccionesCols::SAMPLE_ID . ","
              . " CASE WHEN " . ReproduccionesCols::COMPLETADA . " THEN 'reproduccion_completa' ELSE 'reproduccion' END,"
-             . " CASE WHEN " . ReproduccionesCols::COMPLETADA . " THEN 2 ELSE 1 END"
+             . " CASE WHEN " . ReproduccionesCols::COMPLETADA . " THEN 2 ELSE 1 END,"
+             . " {$rCreAt}"
              . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId"
              . ") interacciones"
              . " JOIN " . SamplesCols::TABLA . " s ON s." . SamplesCols::ID . " = interacciones.sample_id"

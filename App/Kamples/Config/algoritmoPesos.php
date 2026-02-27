@@ -5,7 +5,8 @@
  *
  * 100% dinámico, sin hardcode. Todo controlable desde este archivo.
  * Cada peso define cuánto influye una señal en el ranking final.
- * Los pesos deben sumar 1.0 (normalizados internamente si no lo hacen).
+ * Los pesos principales DEBEN sumar 1.0 (cada señal produce [0,1], el score final
+ * es la suma ponderada). Los sub-pesos dentro de cada señal también deben sumar 1.0.
  *
  * @package Kamples
  */
@@ -49,10 +50,12 @@ return [
     ],
 
     'contexto_detalle' => [
-        'bpm_proximidad'       => 0.35,  /* Cercanía de BPM */
-        'key_match'            => 0.30,  /* Coincidencia de tonalidad */
-        'genero_match'         => 0.20,  /* Coincidencia de género */
-        'tipo_match'           => 0.15,  /* Mismo tipo (loop/oneshot) */
+        'bpm_proximidad'       => 0.15,  /* Cercanía de BPM al promedio del usuario */
+        'key_match'            => 0.12,  /* Coincidencia de tonalidad */
+        'escala_match'         => 0.08,  /* Coincidencia de escala (major/minor) */
+        'genero_match'         => 0.20,  /* Coincidencia de género vía tags enriquecidos */
+        'tipo_match'           => 0.10,  /* Mismo tipo (loop/oneshot) */
+        'creador_afin'         => 0.35,  /* Boost si el creador es uno de los favoritos */
     ],
 
     'tendencias_detalle' => [

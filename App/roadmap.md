@@ -94,15 +94,22 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 
 ### FASE 11 — Algoritmo v2
 
-> Estado: 6 señales con embeddings 128d. Perfil usuario = promedio ponderado. Sin A/B testing ni collaborative filtering.
+> Estado: 6 señales con embeddings 128d. Perfil usuario = promedio ponderado con **decay temporal** y **cache transient**. Sub-factores bounded [0,1]. Dislike como señal negativa. Escala musical en contexto. CTE 2 niveles. Batching + GC en cron. Sin A/B testing ni collaborative filtering.
+
+#### Auditoría AG-ALG (17 fixes implementados)
+> P0 (4): sub-pesos contexto rebalanceados (6 factores, suman 1.0), tendencias/comportamiento bounded [0,1], perfil vectorial cacheado.
+> P1 (8): CTE 2 niveles, cache todas las páginas, pgvector check cacheado, invalidarCache SQL LIKE, procesarTemporales filtrado SQL, generarTodos batch 200, GC forzarRecalculoGlobal.
+> P2 (5): decay temporal perfil (EXP -d/30), dislike penalty comportamiento (-0.15), feedNuevoUsuario mejorado, escala_match en contexto, samplesSimilares config weights.
+> P4 (2): docblock + invalidarCache consistencia.
+> Detalle completo: `App/docs/algoritmo.md` (sección Changelog de Auditoría).
 
 - [ ] **11.1** Contexto DAW — datos mezclador en señales (afinidad cruzada)
-- [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa) reemplazando tags hasheados
-- [ ] **11.3** User embeddings dedicados — vector separado, decay temporal
+- [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa) reemplazando tags hasheados (106 slots CRC32)
+- [x] **11.3** ~~User embeddings dedicados — vector separado, decay temporal~~ **PARCIAL:** Decay temporal implementado (EXP(-dias/30)) en interacciones para perfil. Vector separado pendiente.
 - [ ] **11.4** Collaborative filtering — "usuarios similares descargaron X" (requiere ~100+ usuarios)
 - [ ] **11.5** A/B testing framework — cohortes, métricas (CTR, descarga/impresión), dashboard
-- [ ] **11.6** Diversidad mejorada — penalización creador repetido, boost géneros sub-representados
-- [ ] **11.7** Feedback signals — "no me interesa", señal negativa explícita
+- [x] **11.6** ~~Diversidad mejorada~~ **PARCIAL:** feedNuevoUsuario con diversidad creador + boost verificado + decay exponencial. Feed principal ya tenía diversidad (ROW_NUMBER PARTITION).
+- [x] **11.7** ~~Feedback signals — "no me interesa", señal negativa explícita~~ **PARCIAL:** Dislike ahora penaliza en Comportamiento (max -0.15 por overlap tags). Falta botón UI "no me interesa" (diferente de dislike).
 - **Deps:** 11.2 requiere pipeline Python/WASM (128d→256d+). 11.4 requiere volumen mínimo. 11.5 independiente.
 
 ### FASE 12 — SEO/Performance/Hardening

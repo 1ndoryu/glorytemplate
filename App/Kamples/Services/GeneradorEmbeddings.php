@@ -161,20 +161,33 @@ class GeneradorEmbeddings
 
     /**
      * Genera embeddings para TODOS los samples que no tienen uno.
+     * Procesa en batches de 200 para evitar OOM.
      * Ideal para ejecución inicial o batch.
      *
      * @return int Cantidad de samples actualizados
      */
     public static function generarTodos(): int
     {
-        $samples = SamplesRepository::buscarSinEmbeddingActivos();
-
         $actualizados = 0;
-        foreach ($samples as $sample) {
-            $vectorStr = self::generarString($sample);
-            SamplesRepository::actualizarEmbedding((int) $sample[SamplesCols::ID], $vectorStr);
-            $actualizados++;
-        }
+        $batchSize = 200;
+
+        do {
+            $samples = SamplesRepository::buscarSinEmbeddingActivos($batchSize);
+
+            if (empty($samples)) break;
+
+            foreach ($samples as $sample) {
+                $vectorStr = self::generarString($sample);
+                SamplesRepository::actualizarEmbedding((int) $sample[SamplesCols::ID], $vectorStr);
+                $actualizados++;
+            }
+
+            /* Liberar memoria entre batches */
+            unset($samples);
+            if (\function_exists('gc_collect_cycles')) {
+                \gc_collect_cycles();
+            }
+        } while (true);
 
         return $actualizados;
     }
@@ -184,10 +197,20 @@ class GeneradorEmbeddings
      * Promedia los embeddings de los samples que el usuario ha likeado,
      * reproducido y descargado, con pesos diferentes por tipo de interacción.
      *
+     * El resultado se cachea en WP transients (1 hora) para evitar
+     * recalcular en cada request del feed. Se invalida al ejecutar recálculo preciso.
+     *
      * @return array|null Vector de 128d o null si no hay datos
      */
     public static function perfilUsuario(int $userId): ?array
     {
+        /* Intentar leer de cache */
+        $cacheKey = 'kamples_perfil_vec_' . $userId;
+        $cached = \get_transient($cacheKey);
+        if ($cached !== false && \is_array($cached) && \count($cached) === self::DIMENSION) {
+            return $cached;
+        }
+
         $rows = SamplesRepository::buscarInteraccionesParaPerfil($userId);
 
         if (empty($rows)) return null;
@@ -226,7 +249,19 @@ class GeneradorEmbeddings
             }
         }
 
+        /* Persistir en cache — 1 hora de TTL, se invalida en recálculo preciso */
+        \set_transient($cacheKey, $resultado, 3600);
+
         return $resultado;
+    }
+
+    /**
+     * Invalida el cache del perfil vector de un usuario.
+     * Se llama desde PlanificadorAlgoritmo::ejecutarPreciso().
+     */
+    public static function invalidarPerfilCache(int $userId): void
+    {
+        \delete_transient('kamples_perfil_vec_' . $userId);
     }
 
     /**

@@ -2,12 +2,13 @@
 
 > Documentacion tecnica del sistema de descubrimiento.
 > Ultima actualizacion: sesion AG-ALG (27/02/2026) — verificado contra codigo fuente.
+> Revision completa: sesion AG-ALG (auditoría 20 puntos, mismo dia).
 
 ---
 
 ## Resumen
 
-El algoritmo combina **6 senales ponderadas** para generar un score por sample candidato. Cada senal produce un valor entre 0 y 1, que se multiplica por su peso y se suma. El score total se ajusta con multiplicadores de penalizacion por repeticion, boost verificado, y diversidad por creador. Todo es configurable desde `algoritmoPesos.php`.
+El algoritmo combina **6 senales ponderadas** para generar un score por sample candidato. Cada senal produce un valor **estrictamente** entre 0 y 1 (bounded con `LEAST(1.0, ...)` y `GREATEST(0, ...)`), que se multiplica por su peso y se suma. El score total se ajusta con multiplicadores de penalizacion por repeticion, boost verificado, y diversidad por creador. Todo es configurable desde `algoritmoPesos.php`.
 
 ## Arquitectura (archivos)
 
@@ -15,13 +16,13 @@ El algoritmo combina **6 senales ponderadas** para generar un score por sample c
 | -------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Orquestacion   | `App/Kamples/Services/MotorRecomendacion.php`                | Feed personalizado, cache transients, samples similares      |
 | SQL Scoring    | `App/Kamples/Services/ConstructorSenales.php`                | Fragmentos SQL ponderados para las 6 senales                 |
-| Perfil         | `App/Kamples/Services/PerfilUsuario.php`                     | BPM prom, key fav, tipo fav, top 5 creadores                |
-| Embeddings     | `App/Kamples/Services/GeneradorEmbeddings.php`               | Vectores 128d, perfil usuario, pgvector coseno               |
+| Perfil         | `App/Kamples/Services/PerfilUsuario.php`                     | BPM prom, key fav, tipo fav, escala fav, top 5 creadores    |
+| Embeddings     | `App/Kamples/Services/GeneradorEmbeddings.php`               | Vectores 128d, perfil usuario (cacheado), pgvector coseno    |
 | Planificador   | `App/Kamples/Services/PlanificadorAlgoritmo.php`             | Triggers de recalculo por interacciones + cron temporal      |
 | Config         | `App/Kamples/Config/algoritmoPesos.php`                      | Todos los pesos, parametros, frecuencias, variantes          |
 | Repo Algoritmo | `App/Kamples/Database/Repositories/AlgoritmoEstadoRepository.php` | CRUD tabla `algoritmo_estado` (contadores recalculo)    |
-| Repo Usuarios  | `App/Kamples/Database/Repositories/UsuariosExtRepository.php` | Queries perfil: BPM promedio, key fav, creadores fav        |
-| Repo Samples   | `App/Kamples/Database/Repositories/SamplesRepository.php`    | Interacciones para perfil, verificar pgvector, embeddings    |
+| Repo Usuarios  | `App/Kamples/Database/Repositories/UsuariosExtRepository.php` | Queries perfil: BPM promedio, key fav, escala fav, creadores fav |
+| Repo Samples   | `App/Kamples/Database/Repositories/SamplesRepository.php`    | Interacciones para perfil (con decay temporal), pgvector, embeddings |
 
 ### Dependencia entre capas
 
@@ -30,11 +31,11 @@ MotorRecomendacion (orquestador)
 ├── ConstructorSenales (genera SQL para cada senal)
 │   └── GeneradorEmbeddings (perfil vectorial para similitud)
 ├── PerfilUsuario (preferencias del usuario)
-│   └── UsuariosExtRepository (queries de perfil)
+│   └── UsuariosExtRepository (queries de perfil + escala favorita)
 ├── SamplesRepository (ejecucion SQL final)
 ├── NormalizadorSample (SELECT base con flags usuario)
 └── PlanificadorAlgoritmo (gestiona recalculo)
-    └── AlgoritmoEstadoRepository (tabla de contadores)
+    └── AlgoritmoEstadoRepository (tabla de contadores + filtrado SQL)
 ```
 
 ---
@@ -46,16 +47,16 @@ score_total = SUM(peso_i * senal_i) * penalizacion_repeticion * boost_verificado
 score_final = score_total * penalizacion_diversidad_creador
 ```
 
-| #   | Senal               | Peso     | Descripcion                                                                     |
-| --- | ------------------- | -------- | ------------------------------------------------------------------------------- |
-| 1   | Similitud Contenido | **0.25** | Distancia coseno pgvector entre embedding del sample y el perfil del usuario    |
-| 2   | Comportamiento      | **0.25** | Coincidencia de tags enriquecidos con interacciones del usuario (5 sub-factores) |
-| 3   | Contexto            | **0.15** | Match de BPM, key, genero, tipo y creador afin (5 sub-factores)                 |
-| 4   | Tendencias          | **0.15** | Velocidad de engagement reciente normalizada por edad (4 sub-factores)           |
-| 5   | Grafo Social        | **0.10** | Contenido de creadores seguidos y likeado por seguidos (2 sub-factores)          |
-| 6   | Novedad             | **0.10** | Boost logaritmico decreciente para samples nuevos (14 dias)                     |
+| #   | Senal               | Peso     | Descripcion                                                                            |
+| --- | ------------------- | -------- | -------------------------------------------------------------------------------------- |
+| 1   | Similitud Contenido | **0.25** | Distancia coseno pgvector entre embedding del sample y el perfil del usuario           |
+| 2   | Comportamiento      | **0.25** | Tags enriquecidos vs interacciones (5 sub-factores + penalizacion dislike)             |
+| 3   | Contexto            | **0.15** | Match de BPM, key, escala, genero, tipo y creador afin (6 sub-factores, suman 1.0)    |
+| 4   | Tendencias          | **0.15** | Velocidad de engagement reciente normalizada por edad (4 sub-factores, bounded [0,1])  |
+| 5   | Grafo Social        | **0.10** | Contenido de creadores seguidos y likeado por seguidos (2 sub-factores)                |
+| 6   | Novedad             | **0.10** | Boost logaritmico decreciente para samples nuevos (14 dias)                            |
 
-> Los pesos son configurables desde `algoritmoPesos.php['senales']` y deben sumar 1.0. MotorRecomendacion los lee dinamicamente al construir la query.
+> Los pesos son configurables desde `algoritmoPesos.php['senales']` y **DEBEN sumar 1.0**. Los sub-pesos dentro de cada senal tambien deben sumar 1.0. MotorRecomendacion los lee dinamicamente al construir la query.
 
 ---
 
@@ -71,7 +72,7 @@ COALESCE(s.tags, ARRAY[]::text[])
 ```
 
 - Maneja `jsonb_typeof` para soportar tanto arrays como strings en cada campo JSONB.
-- Se usa con alias parametrico (`s`, `s2`, etc.) para diferentes contextos en la query.
+- Se usa con alias parametrico (`s`, `s2`, `s7`, etc.) para diferentes contextos en la query.
 - El alias se valida con regex `^[a-z_][a-z0-9_]*$` para prevenir SQL injection.
 - **Resultado:** Un array de texto que combina tags manuales + metadata IA, usado para comparar afinidad.
 
@@ -91,52 +92,65 @@ GREATEST(0, 1 - (s.embedding <=> :userProfileVector::vector) / 2)
 - Conversion a similitud: `1 - distancia/2` → rango [0, 1].
 - Si el sample no tiene embedding: retorna 0.
 - Si pgvector no esta disponible: la senal completa se omite (fail-open, no rompe el feed).
+- **Check pgvector cacheado**: El resultado de `verificarPgvector()` se cachea en WP transient `kamples_pgvector_activo` con TTL de 1 hora, ademas del cache estatico en memoria por request.
 
 **Vector de perfil del usuario** (`GeneradorEmbeddings::perfilUsuario()`):
 
-Promedio ponderado de embeddings de todos los samples con los que el usuario ha interactuado, normalizado a vector unitario (magnitud 1):
+Promedio ponderado de embeddings de todos los samples con los que el usuario ha interactuado, **con decay temporal exponencial**, normalizado a vector unitario (magnitud 1):
 
-| Tipo interaccion         | Peso | Fuente tabla      |
-| ------------------------ | ---- | ----------------- |
-| Likes (like + encanta)   | 3    | `likes`           |
-| Descargas                | 5    | `descargas`       |
-| Reproducciones completas | 2    | `reproducciones`  |
-| Reproducciones normales  | 1    | `reproducciones`  |
+| Tipo interaccion         | Peso base | Fuente tabla      |
+| ------------------------ | --------- | ----------------- |
+| Likes (like + encanta)   | 3         | `likes`           |
+| Descargas                | 5         | `descargas`       |
+| Reproducciones completas | 2         | `reproducciones`  |
+| Reproducciones normales  | 1         | `reproducciones`  |
 
-Proceso: `SamplesRepository::buscarInteraccionesParaPerfil()` retorna pares `(embedding, peso)`. `perfilUsuario()` calcula `sum(embedding_i * peso_i) / sum(peso_i)` y normaliza a norma L2 = 1.
+**Decay temporal**: Cada interaccion recibe un multiplicador `EXP(-dias / 30)` donde `dias = EXTRACT(EPOCH FROM NOW() - fecha) / 86400`. Interacciones de hace 30 dias pesan ~37% del original, 60 dias ~13%, 90 dias ~5%. Esto asegura que el perfil refleje gustos recientes.
 
-### 2. Comportamiento (0.25) — 5 sub-factores
+**Filtro dislikes**: Solo se incluyen likes con `reaccion IN ('like', 'encanta')`. Dislikes se **excluyen** de la construccion del perfil vectorial (no suman embedding negativo, simplemente se ignoran).
 
-Cada sub-factor compara los **tags enriquecidos** del sample candidato con los tags de samples con los que el usuario interactuo. La puntuacion mide la proporcion de tags del candidato que aparecen en las interacciones.
+Proceso: `SamplesRepository::buscarInteraccionesParaPerfil()` retorna pares `(embedding, peso_con_decay)`. `perfilUsuario()` calcula `sum(embedding_i * peso_i) / sum(peso_i)` y normaliza a norma L2 = 1.
+
+**Cache de perfil**: El vector resultante se almacena en WP transient `kamples_perfil_vec_{userId}` con TTL de 1 hora. Se invalida explicitamente con `GeneradorEmbeddings::invalidarPerfilCache($userId)` durante el recalculo preciso.
+
+### 2. Comportamiento (0.25) — 5 sub-factores + penalizacion dislike
+
+Cada sub-factor compara los **tags enriquecidos** del sample candidato con los tags de samples con los que el usuario interactuo. La puntuacion mide la proporcion de tags del candidato que aparecen en las interacciones. **Todos los sub-factores estan bounded a [0,1] con `LEAST(1.0, ...)`.**
 
 | Sub-factor     | Peso | Fuente                                                              | Formula SQL                                                              |
 | -------------- | ---- | ------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Likes dados    | 0.30 | `likes` con `reaccion IN ('like','encanta')`, encanta pondera x2    | `SUM(peso_por_reaccion) / GREATEST(1, array_length(tags_candidato, 1))`  |
-| Reproducciones | 0.25 | Todas las reproducciones del usuario                                | `COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1))`       |
-| Tiempo escucha | 0.20 | Solo reproducciones con `duracion_escuchada > 10s`                  | `COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1))`       |
-| Descargas      | 0.15 | Todas las descargas del usuario                                     | `COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1))`       |
-| Completadas    | 0.10 | Solo reproducciones con `completada = true`                         | `COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1))`       |
+| Likes dados    | 0.30 | `likes` con `reaccion IN ('like','encanta')`, encanta pondera x2    | `LEAST(1.0, SUM(peso_por_reaccion) / GREATEST(1, array_length(tags_candidato, 1)))` |
+| Reproducciones | 0.25 | Todas las reproducciones del usuario                                | `LEAST(1.0, COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1)))`       |
+| Tiempo escucha | 0.20 | Solo reproducciones con `duracion_escuchada > 10s`                  | `LEAST(1.0, COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1)))`       |
+| Descargas      | 0.15 | Todas las descargas del usuario                                     | `LEAST(1.0, COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1)))`       |
+| Completadas    | 0.10 | Solo reproducciones con `completada = true`                         | `LEAST(1.0, COUNT(tags_comun) / GREATEST(1, array_length(tags_candidato, 1)))`       |
 
-**Detalle del sub-factor Likes:**
-- Cada tag de un sample likeado tiene peso 1.
-- Cada tag de un sample con `encanta` tiene peso 2.
-- Se suman los pesos de tags en comun con el candidato y se dividen por la longitud de tags del candidato.
+**Penalizacion por dislikes (senal negativa)**:
+
+Ademas de los 5 sub-factores positivos, el score de comportamiento recibe una **penalizacion** basada en los tags de samples que el usuario dio dislike. Se construyen los tags enriquecidos de los samples dislikeados (con alias `s7`) y se calcula la proporcion de overlap con el candidato. La penalizacion esta capeada a **0.15** maximo.
+
+```sql
+GREATEST(0, (suma_subfactores_positivos - LEAST(0.15, dislike_overlap)))
+```
+
+Esto asegura que el candidato que comparte muchos tags con contenido rechazado baje en el ranking, pero el score nunca sea negativo.
 
 Los pesos se leen de `algoritmoPesos.php['comportamiento_detalle']`.
 
-### 3. Contexto (0.15) — 5 sub-factores
+### 3. Contexto (0.15) — 6 sub-factores
 
-> **DISCREPANCIA CONOCIDA:** La config `algoritmoPesos.php['contexto_detalle']` NO incluye `creador_afin`. Los 4 pesos de config suman 1.0 (bpm 0.35 + key 0.30 + genero 0.20 + tipo 0.15). Pero el codigo siempre agrega `creador_afin` con default 0.35, haciendo que los sub-pesos sumen **1.35** en la practica. La config sobreescribe los BPM/key con valores altos, desplazando los defaults del codigo.
+Los 6 sub-pesos estan definidos en `algoritmoPesos.php['contexto_detalle']` y **suman exactamente 1.0**:
 
-**Valores efectivos en ejecucion** (config + defaults del codigo):
+| Sub-factor     | Peso   | Calculo                                                                          |
+| -------------- | ------ | -------------------------------------------------------------------------------- |
+| Creador afin   | 0.35   | `1 si creador_id IN top_5_creadores_favoritos, 0 si no`                          |
+| Genero match   | 0.20   | Tags enriquecidos candidato vs top 8 tags likeados del usuario (excluye dislikes)|
+| BPM proximidad | 0.15   | `GREATEST(0, (tolerancia - ABS(bpm_sample - bpm_prom)) / tolerancia)`. Sin BPM → 0.5 |
+| Key match      | 0.12   | `1 si key = keyFavorita, 0 si no`. Sin keyFav → 0.5                              |
+| Tipo match     | 0.10   | `1 si tipo = tipoFavorito, 0 si no`. Sin tipoFav → 0.5                           |
+| Escala match   | 0.08   | `1 si escala = escalaFavorita, 0 si no`. Sin escalaFav → 0.5                     |
 
-| Sub-factor     | Valor config           | Default codigo | Valor efectivo | Calculo                                                                          |
-| -------------- | ---------------------- | -------------- | -------------- | -------------------------------------------------------------------------------- |
-| BPM proximidad | `bpm_proximidad: 0.35` | 0.15           | **0.35**       | `GREATEST(0, (15 - ABS(bpm_sample - bpm_prom_usuario)) / 15)`. Sin BPM → 0.5    |
-| Key match      | `key_match: 0.30`      | 0.10           | **0.30**       | `1 si key = keyFavorita, 0 si no`. Sin keyFav → 0.5                              |
-| Genero match   | `genero_match: 0.20`   | 0.30           | **0.20**       | Tags enriquecidos candidato vs top 8 tags likeados del usuario (excluye dislikes) |
-| Tipo match     | `tipo_match: 0.15`     | 0.10           | **0.15**       | `1 si tipo = tipoFavorito, 0 si no`. Sin tipoFav → 0.5                           |
-| Creador afin   | NO en config           | 0.35           | **0.35**       | `1 si creador_id IN top_5_creadores_favoritos, 0 si no`                           |
+**Escala favorita** (nuevo): `UsuariosExtRepository::escalaFavorita($userId)` calcula la escala mas frecuente (major/minor) entre los samples likeados y reproducidos por el usuario. Usa `LOWER()` para normalizar variaciones (Major/major/Mayor). Se agrega al perfil via `PerfilUsuario::construir()`.
 
 **Top 5 creadores favoritos** (`UsuariosExtRepository::obtenerCreadoresFavoritos()`):
 
@@ -157,19 +171,20 @@ Se calculan sumando puntaje de afinidad por creador:
 - `bpmProm`: promedio de BPM de samples likeados (like + encanta, excluyendo dislike) + reproducidos.
 - `keyFav`: key musical mas frecuente en samples likeados + reproducidos.
 - `tipoFav`: tipo de sample mas frecuente en samples likeados + reproducidos.
+- `escalaFav`: escala musical mas frecuente (major/minor) en samples likeados + reproducidos.
 - `creadoresFav`: array de IDs de los top 5 creadores.
 - `interacciones`: total de likes + reproducciones + descargas. Si < 5, se usa feed de tendencias.
 
 ### 4. Tendencias (0.15) — Engagement velocity
 
-Mide la velocidad de engagement reciente, normalizada por el tiempo desde la publicacion del sample (penaliza samples viejos con engagement absoluto alto pero velocity baja).
+Mide la velocidad de engagement reciente, normalizada por el tiempo desde la publicacion del sample (penaliza samples viejos con engagement absoluto alto pero velocity baja). **Todos los sub-factores estan bounded a [0,1] con `LEAST(1.0, ...)`.**
 
-| Sub-factor         | Peso | Ventana            | Formula SQL                                                      |
-| ------------------ | ---- | ------------------ | ---------------------------------------------------------------- |
-| Likes 24h          | 0.40 | `INTERVAL '24 hours'` | `SUM(ponderado) / GREATEST(1, horas_desde_publicacion)`       |
-| Reproducciones 24h | 0.30 | `INTERVAL '24 hours'` | `COUNT(*) / GREATEST(1, horas_desde_publicacion)`             |
-| Descargas 7d       | 0.20 | `INTERVAL '7 days'`   | `COUNT(*) / GREATEST(1, dias_desde_publicacion)`              |
-| Follows creador 7d | 0.10 | `INTERVAL '7 days'`   | `COUNT(*) / GREATEST(1, dias_desde_publicacion)`              |
+| Sub-factor         | Peso | Ventana            | Formula SQL                                                                  |
+| ------------------ | ---- | ------------------ | ---------------------------------------------------------------------------- |
+| Likes 24h          | 0.40 | `INTERVAL '24 hours'` | `LEAST(1.0, SUM(ponderado) / GREATEST(1, horas_desde_publicacion))`       |
+| Reproducciones 24h | 0.30 | `INTERVAL '24 hours'` | `LEAST(1.0, COUNT(*) / GREATEST(1, horas_desde_publicacion))`             |
+| Descargas 7d       | 0.20 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / GREATEST(1, dias_desde_publicacion))`              |
+| Follows creador 7d | 0.10 | `INTERVAL '7 days'`   | `LEAST(1.0, COUNT(*) / GREATEST(1, dias_desde_publicacion))`              |
 
 **Reacciones ponderadas en el sub-factor Likes 24h:**
 - `encanta` = 2
@@ -261,6 +276,32 @@ ORDER BY (score * CASE WHEN rn <= 3 THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - 3) * 0
 
 ---
 
+## CTE de 2 niveles (feedPersonalizado)
+
+La query principal usa **dos niveles de CTE** para evitar computar la expresion de score dos veces (una vez para el valor y otra vez para el PARTITION BY):
+
+```sql
+WITH base_scores AS (
+  SELECT s.*, <expresion_score_completa> AS score,
+         s.verificado AS verificado_sample, ...flags_usuario...
+  FROM samples s LEFT JOIN usuarios_ext u ...
+  WHERE s.estado = 'activo'
+),
+scored AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY creador_id ORDER BY score DESC) AS rn
+  FROM base_scores
+)
+SELECT * FROM scored
+ORDER BY (score * penalizacion_diversidad) DESC
+LIMIT :limit OFFSET :offset
+```
+
+- `base_scores`: computa score una sola vez por sample.
+- `scored`: usa score pre-computado para ROW_NUMBER sin re-evaluar la expresion completa.
+- **Beneficio:** Elimina la duplicacion de la expresion de 6 senales (que puede ser >50 lineas SQL).
+
+---
+
 ## Vectores (Embeddings 128d)
 
 Generados por `GeneradorEmbeddings::generar()`. Constantes: `DIMENSION=128`, `BPM_MAX=300`, `DURACION_MAX=600`, `TAGS_OFFSET=22`, `TAGS_SLOTS=106`.
@@ -282,7 +323,7 @@ Generados por `GeneradorEmbeddings::generar()`. Constantes: `DIMENSION=128`, `BP
 - Colisiones posibles: dos tags con el mismo hash suman sus pesos (max 1.0).
 - Sin tags: posiciones 22-127 quedan en 0.0 (similitud basada solo en atributos musicales).
 
-**Generacion batch:** `GeneradorEmbeddings::generarTodos()` procesa todos los samples activos sin embedding.
+**Generacion batch:** `GeneradorEmbeddings::generarTodos()` procesa samples activos sin embedding en **batches de 200**, con `gc_collect_cycles()` entre batches para control de memoria. Usa `SamplesRepository::buscarSinEmbeddingActivos($limit)` con parametro limit para paginacion.
 
 **Almacenamiento:** String formato PostgreSQL `'[0.5,0,1,...,0]'` en columna `embedding VECTOR(128)`. Indice HNSW con distancia coseno.
 
@@ -335,7 +376,7 @@ Dos modos independientes que se evaluan en paralelo:
 
 - Intervalo temporal activo: cada **30 min** conectado.
 - Intervalo temporal inactivo: cada **480 min** (8 horas).
-- Accion: borra transients `kamples_feed_{userId}_{20,50,100}`, resetea contadores rapidos.
+- Accion: delega a `MotorRecomendacion::invalidarCache($userId)` (SQL LIKE pattern), resetea contadores rapidos.
 
 **Preciso** (regenera embedding de perfil + invalida cache):
 
@@ -350,21 +391,31 @@ Dos modos independientes que se evaluan en paralelo:
 
 - Intervalo temporal activo: cada **60 min** conectado.
 - Intervalo temporal inactivo: cada **960 min** (16 horas).
-- Accion: ejecuta rapido primero, luego regenera `GeneradorEmbeddings::perfilUsuario()`, resetea contadores precisos, incrementa `version_perfil`.
-- Admin puede forzar recalculo global para todos los usuarios via `PlanificadorAlgoritmo::forzarRecalculoGlobal()`.
+- Accion: ejecuta rapido primero, luego **invalida cache de perfil vectorial** (`GeneradorEmbeddings::invalidarPerfilCache($userId)`), regenera `perfilUsuario()`, resetea contadores precisos, incrementa `version_perfil`.
+- Admin puede forzar recalculo global para todos los usuarios via `PlanificadorAlgoritmo::forzarRecalculoGlobal()` (con GC cada 50 usuarios).
 
 **Umbral inactividad:** Un usuario se considera inactivo si `ultima_actividad` > **600 seg** (10 min) sin interacciones. Config: `frecuencia.umbral_inactividad_seg`.
 
-**Procesamiento temporal:** `PlanificadorAlgoritmo::procesarTemporales()` — pensado para WP Cron cada 5 min. Itera todos los usuarios registrados en `algoritmo_estado` y aplica recalculos segun intervalos.
+**Procesamiento temporal:** `PlanificadorAlgoritmo::procesarTemporales()` — pensado para WP Cron cada 5 min. Usa `obtenerParaEvaluacionFiltrado($intervaloRapidoActivo)` para cargar **solo** usuarios cuyo ultimo recalculo excede el intervalo minimo (filtro SQL, no carga todos en memoria). Aplica recalculos segun intervalos.
 
 ### Cache
 
 - **Mecanismo:** WP transients con TTL de **300 seg** (5 min). Constante: `MotorRecomendacion::CACHE_TTL`.
-- **Clave:** `kamples_feed_{userId}_{limite}` (ej: `kamples_feed_42_20`).
-- **Solo primera pagina:** Solo se cachea cuando `offset === 0`.
-- **Invalidacion por usuario:** `invalidarCache()` borra transients para limites 20 y 50.
+- **Clave:** `kamples_feed_{userId}_{limite}_{offset}` (ej: `kamples_feed_42_20_0`).
+- **Todas las paginas:** Se cachea para **cualquier offset**, no solo la primera pagina.
+- **Invalidacion por usuario:** `invalidarCache()` usa SQL `LIKE` pattern `_transient_kamples_feed_{userId}_%` para borrar todas las paginas cacheadas de un usuario en una sola query. No depende de hardcodear limites especificos.
 - **Invalidacion global:** `invalidarCacheGlobal()` usa SQL `DELETE FROM wp_options WHERE option_name LIKE '_transient_kamples_feed_%'` para purgar todos los feeds.
 - **Invalidacion automatica:** Al disparar recalculo rapido o preciso.
+
+**Cache de perfil vectorial:**
+- **Clave:** `kamples_perfil_vec_{userId}`.
+- **TTL:** 3600 seg (1 hora).
+- **Invalidado** durante recalculo preciso antes de regenerar.
+
+**Cache de pgvector:**
+- **Clave:** `kamples_pgvector_activo`.
+- **TTL:** 3600 seg (1 hora).
+- Evita verificar extension + columna en cada request.
 
 ---
 
@@ -375,37 +426,49 @@ GET /feed?tipo=descubrir
 
 1. Usuario autenticado + tipo=descubrir
    → MotorRecomendacion::feedPersonalizado($userId, $limite, $offset)
-   → Cache check: get_transient (solo si offset=0)
+   → Cache check: get_transient (TODAS las paginas se cachean)
    → PerfilUsuario::construir($userId)
-     → Si interacciones < 5: feedNuevoUsuario() (trending simple)
+     → Si interacciones < 5: feedNuevoUsuario() (trending mejorado)
      → Si >= 5: construir query multi-senal
 
 2. Construccion de senales (orden en el codigo):
-   a) Comportamiento (ConstructorSenales::sqlComportamiento)
-   b) Contexto (ConstructorSenales::sqlContexto)
-   c) Tendencias (ConstructorSenales::sqlTendencias)
+   a) Comportamiento (ConstructorSenales::sqlComportamiento) ← incluye penalizacion dislike
+   b) Contexto (ConstructorSenales::sqlContexto) ← 6 sub-factores (incluye escala_match)
+   c) Tendencias (ConstructorSenales::sqlTendencias) ← bounded [0,1]
    d) Novedad (inline en MotorRecomendacion)
    e) Grafo Social (ConstructorSenales::sqlGrafoSocial)
    f) Similitud Contenido (ConstructorSenales::sqlSimilitudContenido)
-      → Solo si pgvector esta activo
+      → Solo si pgvector esta activo (check cacheado en transient)
 
-3. Query CTE:
-   WITH scored AS (
-     SELECT s.*, score, ROW_NUMBER() OVER (PARTITION BY creador_id ORDER BY score DESC) as rn,
-            reaccion_usuario, ya_coleccionado, ya_guardado_en_coleccion, ya_comentado, es_mio
+3. Query CTE de 2 niveles:
+   WITH base_scores AS (
+     SELECT s.*, score_expr AS score,
+            s.verificado AS verificado_sample, ...flags_usuario...
      FROM samples s LEFT JOIN usuarios_ext u ...
      WHERE s.estado = 'activo'
+   ),
+   scored AS (
+     SELECT *, ROW_NUMBER() OVER (PARTITION BY creador_id ORDER BY score DESC) AS rn
+     FROM base_scores
    )
    SELECT * FROM scored
    ORDER BY (score * penalizacion_diversidad) DESC
    LIMIT :limit OFFSET :offset
 
-4. Cache write: set_transient (solo si offset=0 y hay resultados)
+4. Cache write: set_transient (para cualquier offset, si hay resultados)
 
 5. Feed nuevo usuario (< 5 interacciones):
-   ORDER BY (likes*2 + reproducciones + descargas*3)
-            * GREATEST(0.1, 1 - dias/30) DESC
-   → Pondera descargas x3, likes x2, con decay lineal a 30 dias (min 0.1).
+   WITH base AS (
+     SELECT ...,
+       (likes*2 + reproducciones + descargas*3)
+       * EXP(-dias_desde_publicacion / 30) AS score,
+       CASE WHEN s.verificado THEN 1.15 ELSE 1 END AS boost
+   ),
+   ranked AS (
+     SELECT *, ROW_NUMBER() OVER (PARTITION BY creador_id ORDER BY score*boost DESC) AS rn
+   )
+   → Decay exponencial (no lineal), boost verificado, diversidad por creador
+     con penalizacion suave despues del 3er sample por creador.
 
 6. Fallback general (error o no autenticado):
    → Misma formula que feed nuevo usuario
@@ -415,7 +478,7 @@ GET /feed?tipo=descubrir
 
 ## Samples Similares (samplesSimilares)
 
-Metodo independiente con dos estrategias:
+Metodo independiente con dos estrategias. Lee pesos de `algoritmoPesos.php['samples_similares']`.
 
 ### Estrategia 1: pgvector (preferida)
 
@@ -432,23 +495,29 @@ LIMIT :limit
 - No usa pesos configurables, es comparacion pura.
 - Retorno inmediato si hay resultados.
 
-### Estrategia 2: Fallback por scoring manual
+### Estrategia 2: Fallback por scoring multi-senal (config-based)
 
-Si pgvector no esta disponible o el sample no tiene embedding:
+Si pgvector no esta disponible o el sample no tiene embedding. Usa los **pesos de `samples_similares`** de config:
 
 ```
-score = tag_score + bpm_score + key_score + tipo_score
+score = similitud_contenido * tagScore
+      + contexto * (0.4*bpmScore + 0.35*keyScore + 0.25*tipoScore)
+      + tendencias * tendenciasScore
+      + novedad * novedadScore
 ```
 
-| Factor     | Peso | Calculo                                                                    |
-| ---------- | ---- | -------------------------------------------------------------------------- |
-| Tags       | 2/tag | 2 puntos por cada tag del sample original que aparece en el candidato (max 10 tags) |
-| BPM        | 5    | `GREATEST(0, 15 - ABS(bpm_candidato - bpm_original)) / 15 * 5`            |
-| Key        | 5    | `5 si key coincide, 0 si no`                                               |
-| Tipo       | 3    | `3 si tipo coincide, 0 si no`                                              |
+| Senal               | Peso config | Sub-factores                                                             |
+| ------------------- | ----------- | ------------------------------------------------------------------------ |
+| Similitud contenido | 0.45        | Tags en comun normalizados: `count(matches) / count(tags)` → [0,1]      |
+| Contexto            | 0.25        | BPM proximidad (40%) + key match (35%) + tipo match (25%) → cada [0,1]  |
+| Tendencias          | 0.15        | Engagement normalizado por promedio global → [0,1] con LEAST(1.0)       |
+| Novedad             | 0.15        | Decay logaritmico identico al de senal 6                                |
 
-- Desempate: `total_likes DESC`.
-- Tolerancia BPM: 15 (configurable).
+- BPM proximity: `GREATEST(0, (tolerancia - ABS(bpm_cand - bpm_orig)) / tolerancia)` → [0,1]. Sin BPM original → 0.5 (neutro).
+- Key match: 1 si coincide, 0 si no. Sin key original → 0.5 (neutro).
+- Tipo match: 1 si coincide, 0 si no.
+- Tags: max 10 tags comparados, peso = `count_matches / total_tags` → [0,1].
+- ORDER BY score DESC (sin desempate por likes).
 
 ---
 
@@ -488,7 +557,7 @@ Ademas del feed principal, la config define pesos alternativos para contextos es
 | Tendencias          | 0.15 |
 | Novedad             | 0.15 |
 
-> No incluye `comportamiento` ni `grafo_social`. Nota: `samplesSimilares()` actualmente usa pgvector directo o fallback manual, no estos pesos. Estos estan definidos para uso futuro o consumidores externos.
+> Usado activamente por `samplesSimilares()` en el fallback de scoring manual. Cuando pgvector esta disponible, se usa distancia coseno directa en su lugar.
 
 ---
 
@@ -510,12 +579,42 @@ Generados por `NormalizadorSample::sqlSelectSamples(?int $userId)` en feeds, y d
 
 ## Gotchas y Problemas Conocidos
 
-- **[Config vs Codigo]:** `contexto_detalle` en config NO incluye `creador_afin`. Los sub-pesos efectivos suman 1.35, no 1.0. No se normalizan. El score de contexto puede exceder `0.15 * 1.0` teorico.
 - **[Fail-open pgvector]:** Si pgvector no esta disponible, la senal de similitud se omite completamente. El feed funciona con 5 senales y pesos que suman 0.75 (no se redistribuyen).
 - **[Tags enriquecidos]:** Concatenan `tags + genero + instrumentos + emocion` de metadata JSONB. Un sample sin metadata IA solo usa tags manuales.
-- **[Reacciones]:** `encanta` = 2x peso de `like` en comportamiento, tendencias y grafo social. `dislike` = -1 solo en tendencias.
-- **[Nuevos usuarios]:** < 5 interacciones totales (likes + reproducciones + descargas) = feed de tendencias simple.
+- **[Reacciones]:** `encanta` = 2x peso de `like` en comportamiento, tendencias y grafo social. `dislike` = penalizacion en comportamiento (max -0.15) y -1 en tendencias.
+- **[Nuevos usuarios]:** < 5 interacciones totales (likes + reproducciones + descargas) = feed de tendencias mejorado con decay exponencial, boost verificado y diversidad por creador.
 - **[verificado_sample]:** El CTE aliasa `s.verificado AS verificado_sample` para evitar que PDO sobreescriba con `u.verificado` (el ultimo valor con mismo key gana en arrays asociativos).
-- **[Variantes sin usar]:** Los pesos `tambien_te_gustaria`, `mas_ideas_coleccion` y `samples_similares` estan definidos en config pero `samplesSimilares()` usa pgvector directo. Los pesos serian para un futuro scoring multi-senal en esos contextos.
 - **[Concurrencia Planificador]:** `procesarTemporales()` no tiene lock. Si dos crons se ejecutan simultaneamente, podrian procesar el mismo usuario dos veces (bajo riesgo, efecto: doble invalidacion de cache).
 - **[Key enarmonicas]:** C#=Db, D#=Eb, F#=Gb, G#=Ab, A#=Bb. Ambas notaciones mapean a la misma posicion en el embedding.
+- **[Tag hash colisiones]:** 106 slots para CRC32 hash. Con >50 tags unicos probables colisiones. TO-DO futuro: ampliar slots o usar spectrogramas (Fase 11.2 roadmap).
+
+---
+
+## Changelog de Auditoría (sesion AG-ALG)
+
+> Resumen de los 17 cambios implementados (de los 20 identificados en auditoría):
+
+| # | Prioridad | Fix | Archivos |
+|---|-----------|-----|----------|
+| 1 | P0 | `contexto_detalle` sub-pesos rebalanceados: 6 factores suman 1.0 (antes 1.35). Agregados `creador_afin: 0.35` y `escala_match: 0.08` | algoritmoPesos.php, ConstructorSenales.php |
+| 2 | P0 | Tendencias velocity bounded [0,1] con `LEAST(1.0, ...)` en los 4 sub-factores | ConstructorSenales.php |
+| 3 | P0 | Comportamiento 5 sub-factores bounded [0,1] con `LEAST(1.0, ...)` | ConstructorSenales.php |
+| 4 | P0 | Perfil vectorial cacheado en WP transient (1hr TTL) + invalidacion en recalculo preciso | GeneradorEmbeddings.php, PlanificadorAlgoritmo.php |
+| 5 | P1 | CTE refactorizado a 2 niveles (base_scores → scored) para evitar doble computo de score | MotorRecomendacion.php |
+| 6 | P1 | Cache extendido a TODAS las paginas (no solo offset=0). Key incluye offset | MotorRecomendacion.php |
+| 7 | P1 | Check pgvector cacheado en transient (1hr TTL) | MotorRecomendacion.php |
+| 8 | P1 | `invalidarCache()` usa SQL LIKE pattern (borra todas las paginas, no hardcoded 20/50) | MotorRecomendacion.php |
+| 9 | P1 | `ejecutarRapido()` delega a `MotorRecomendacion::invalidarCache()` (consistencia) | PlanificadorAlgoritmo.php |
+| 10 | P1 | `procesarTemporales()` usa `obtenerParaEvaluacionFiltrado()` (filtro SQL, no carga todos) | PlanificadorAlgoritmo.php, AlgoritmoEstadoRepository.php |
+| 11 | P1 | `generarTodos()` procesa en batches de 200 con GC entre batches | GeneradorEmbeddings.php, SamplesRepository.php |
+| 12 | P1 | `forzarRecalculoGlobal()` ejecuta GC cada 50 usuarios | PlanificadorAlgoritmo.php |
+| 13 | P2 | Decay temporal en perfil: `EXP(-dias/30)` para cada interaccion | SamplesRepository.php |
+| 14 | P2 | Senal negativa dislike en Comportamiento: penalizacion max 0.15 por overlap tags | ConstructorSenales.php |
+| 15 | P2 | Feed nuevo usuario mejorado: decay exponencial + boost verificado + diversidad creador | MotorRecomendacion.php |
+| 16 | P2 | `escala_match` agregado a Contexto (0.08) + `escalaFavorita()` en perfil | ConstructorSenales.php, PerfilUsuario.php, UsuariosExtRepository.php |
+| 17 | P2 | `samplesSimilares()` fallback usa pesos de config con 4 senales normalizadas [0,1] | MotorRecomendacion.php |
+
+**Diferidos:**
+- P2 #15 (tag hash 106 slots): Requiere espectrogramas/expansion. Planificado en Fase 11.2 del roadmap.
+- P4 #20 (docblock): Corregido inline (claims de normalizacion eliminados).
+- P4 #19 (invalidarCache consistencia): Incluido en fix #8 y #9.

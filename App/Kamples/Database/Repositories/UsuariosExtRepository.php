@@ -435,6 +435,26 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
+     * Escala musical mas frecuente en samples likeados/reproducidos (major/minor).
+     */
+    public static function escalaFavorita(int $userId): ?string
+    {
+        $row = static::consultarUno(
+            "SELECT LOWER(s." . SamplesCols::ESCALA . ") as escala_fav, COUNT(*) as cnt"
+            . " FROM " . SamplesCols::TABLA . " s"
+            . " WHERE s." . SamplesCols::ESCALA . " IS NOT NULL AND s." . SamplesCols::ESCALA . " != '' AND s." . SamplesCols::ID . " IN ("
+            . " SELECT " . LikesCols::TARGET_ID . " FROM " . LikesCols::TABLA . " WHERE " . LikesCols::USUARIO_ID . " = :userId AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND " . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
+            . " UNION"
+            . " SELECT " . ReproduccionesCols::SAMPLE_ID . " FROM " . ReproduccionesCols::TABLA . " WHERE " . ReproduccionesCols::USUARIO_ID . " = :userId2"
+            . ")"
+            . " GROUP BY LOWER(s." . SamplesCols::ESCALA . ") ORDER BY cnt DESC LIMIT 1",
+            ['userId' => $userId, 'userId2' => $userId]
+        );
+
+        return $row['escala_fav'] ?? null;
+    }
+
+    /*
      * Top 5 creadores con mayor afinidad del usuario.
      * Pesos: encanta=2, like=1, reproduccion=0.5, descarga=1.5.
      * Excluye al propio usuario y requiere afinidad >= 2.
