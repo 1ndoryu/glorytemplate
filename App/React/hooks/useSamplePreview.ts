@@ -6,7 +6,7 @@
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { registrarReproduccion } from '../services/apiReproduciones';
+import { enviarTrackingReproduccion } from '../utils/trackingReproduccion';
 
 const EVENTO_REPRODUCCION = 'kamples:reproduccion-sample';
 
@@ -21,6 +21,7 @@ export const useSamplePreview = (sampleId: number, rutaPreview: string) => {
             audio.addEventListener('play', () => setReproduciendo(true));
             audio.addEventListener('pause', () => setReproduciendo(false));
             audio.addEventListener('ended', () => {
+                enviarTrackingReproduccion(sampleId, audio.duration || 0, true);
                 setReproduciendo(false);
                 audio.currentTime = 0;
             });
@@ -30,6 +31,7 @@ export const useSamplePreview = (sampleId: number, rutaPreview: string) => {
         const audio = audioRef.current;
 
         if (!audio.paused) {
+            enviarTrackingReproduccion(sampleId, audio.currentTime || 0, false);
             audio.pause();
             return;
         }
@@ -40,7 +42,6 @@ export const useSamplePreview = (sampleId: number, rutaPreview: string) => {
         );
 
         audio.play().catch(() => setReproduciendo(false));
-        registrarReproduccion(sampleId).catch(() => { /* silencioso */ });
     }, [sampleId, rutaPreview]);
 
     /* Escuchar evento global para pausar si otro sample empieza */
@@ -57,6 +58,9 @@ export const useSamplePreview = (sampleId: number, rutaPreview: string) => {
         return () => {
             window.removeEventListener(EVENTO_REPRODUCCION, pausarSiEsOtro as EventListener);
             if (audioRef.current) {
+                if (!audioRef.current.paused) {
+                    enviarTrackingReproduccion(sampleId, audioRef.current.currentTime || 0, false);
+                }
                 audioRef.current.pause();
                 audioRef.current = null;
             }

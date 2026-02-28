@@ -90,39 +90,83 @@ return [
         'novedad_dias_boost'   => 14,
 
         /*
+         * Clasificación de calidad de reproducción.
+         *
+         * Samples duran entre 2s y 3min (10-20s lo más frecuente).
+         * No todas las reproducciones valen igual:
+         * - Significativa: usuario escuchó >= umbral (según duración del sample)
+         * - Rápida: escuchó algo (>= 1s) pero menos del umbral → peso reducido
+         * - Ignorada: < 1s (accidental/skip) → no cuenta
+         * - Legacy: duracion_escuchada=0 (datos anteriores al tracking) → configurable
+         *
+         * Umbrales adaptativos por duración del sample:
+         * - Corto (<= 20s): escuchar >= 50% → 10s sample requiere 5s mínimo.
+         * - Medio (20-60s): escuchar >= 30% con mínimo absoluto 10s.
+         * - Largo (> 60s): escuchar >= 15% con mínimo absoluto 10s.
+         */
+        'clasificacion_reproduccion' => [
+            'habilitado'                     => true,
+            'umbral_minimo_seg'              => 1,    /* < 1s = no cuenta (accidental/skip) */
+            'porcentaje_significativa_corto' => 0.50,  /* Samples <= 20s: escuchar >= 50% */
+            'porcentaje_significativa_medio' => 0.30,  /* Samples 20-60s: escuchar >= 30% */
+            'porcentaje_significativa_largo' => 0.15,  /* Samples > 60s: escuchar >= 15% */
+            'minimo_absoluto_significativa'  => 10,    /* Mín segundos para significativa en medio/largo */
+            'peso_rapida'                    => 0.30,  /* Peso relativo de reproducción rápida (significativa=1.0) */
+            'legacy_como_significativa'      => true,   /* duracion_escuchada=0 → tratar como significativa */
+        ],
+
+        /*
          * Penalización progresiva por reproducciones.
-         * Cada reproducción reduce el score con decaimiento hiperbólico:
-         * multiplicador = max(minimo, 1 / (1 + count * tasa_decaimiento))
-         * 0 plays=1.0, 1=0.87, 3=0.69, 5=0.57, 10=0.40
-         * El sample no desaparece pero baja progresivamente para priorizar lo no escuchado.
+         * Cada reproducción reduce el score con decaimiento hiperbólico.
+         * Usa SUM(peso_calidad) en vez de COUNT(*): reproducciones rápidas
+         * penalizan menos que significativas (0.3 vs 1.0).
+         * multiplicador = max(minimo, 1 / (1 + sum_calidad * tasa_decaimiento))
          */
         'penalizacion_reproduccion' => [
-            'tasa_decaimiento'      => 0.15, /* Factor de decaimiento por reproducción */
+            'tasa_decaimiento'      => 0.15, /* Factor de decaimiento por reproducción ponderada */
             'minimo'                => 0.20, /* Piso — nunca se oculta completamente */
         ],
 
         /*
          * Penalización pasiva: reproducción sin acción positiva.
-         * Si el usuario reprodujo un sample >= N veces pero NO dio like,
-         * NI lo descargó, NI lo guardó en colección → se considera
-         * "dislike implícito" y se aplica penalización (mitad de un dislike).
+         * Si el usuario reprodujo un sample >= N veces de forma SIGNIFICATIVA
+         * (no quick-plays) pero NO dio like, NI lo descargó, NI lo guardó
+         * en colección → se considera "dislike implícito" (mitad de un dislike).
+         * Quick-plays no disparan esta penalización — el usuario no tuvo
+         * oportunidad real de decidir.
          */
         'penalizacion_pasiva' => [
             'habilitado'            => true,
             'factor'                => 0.85, /* 15% penalty = mitad de dislike máximo */
-            'min_reproducciones'    => 2,    /* Mínimo de plays para activar */
+            'min_reproducciones'    => 2,    /* Mínimo de reproducciones SIGNIFICATIVAS para activar */
         ],
 
         /*
          * Saturación de popularidad: samples muy descargados pierden valor.
          * Los usuarios buscan samples buenos que no estén sobreusados.
+         *
+         * Modo 'dinamico' (default): percentiles de la plataforma como umbral.
+         *   - P75 de descargas = punto donde empieza la saturación
+         *   - P95 - P75 = escala del decaimiento
+         *   Se adapta automáticamente: si la plataforma crece de 50 a 1000
+         *   descargas diarias, los umbrales suben proporcionalmente.
+         *   Stats cacheadas en WP transient (cache_ttl).
+         *
+         * Modo 'fijo': usa umbral_descargas y escala literales (para override manual).
+         *
          * Formula: max(minimo, 1 / (1 + LN(1 + max(0, descargas - umbral) / escala)))
-         * 50 descargas=1.0, 100=0.71, 200=0.52, 500=0.37, 1000=0.30(piso)
          */
         'saturacion_popularidad' => [
             'habilitado'            => true,
-            'umbral_descargas'      => 50,   /* Debajo de esto, sin penalización */
-            'escala'                => 100,  /* Controla la pendiente del decaimiento */
+            'modo'                  => 'dinamico', /* 'dinamico' | 'fijo' */
+            /* Modo dinámico: percentiles que definen los umbrales */
+            'percentil_umbral'      => 0.75,  /* P75 = punto donde empieza saturación */
+            'percentil_escala'      => 0.95,  /* P95 - P75 = escala de decaimiento */
+            'cache_ttl'             => 3600,  /* Segundos para cachear stats de plataforma */
+            /* Modo fijo (fallback si falla el cálculo dinámico): */
+            'umbral_descargas'      => 50,
+            'escala'                => 100,
+            /* Común a ambos modos: */
             'minimo'                => 0.30, /* Piso — samples populares siguen apareciendo */
         ],
 

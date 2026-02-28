@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { registrarReproduccion } from '@app/services/apiReproduciones';
+import { enviarTrackingReproduccion } from '@app/utils/trackingReproduccion';
 import type { Sample } from '@app/types';
 
 interface SampleAudioState {
@@ -75,6 +75,9 @@ export function useSampleAudio(sample: Sample | null): SampleAudioState {
         const onPlay = () => setReproduciendo(true);
         const onPause = () => setReproduciendo(false);
         const onFin = () => {
+            if (sample) {
+                enviarTrackingReproduccion(sample.id, audio.duration || 0, true);
+            }
             setReproduciendo(false);
             setProgreso(0);
             audio.currentTime = 0;
@@ -93,10 +96,13 @@ export function useSampleAudio(sample: Sample | null): SampleAudioState {
         };
     }, [sample]);
 
-    /* Cleanup al desmontar */
+    /* Cleanup al desmontar — enviar tracking parcial si estaba reproduciendo */
     useEffect(() => {
         return () => {
             if (audioRef.current) {
+                if (!audioRef.current.paused && sample) {
+                    enviarTrackingReproduccion(sample.id, audioRef.current.currentTime || 0, false);
+                }
                 audioRef.current.pause();
                 audioRef.current = null;
             }
@@ -110,10 +116,10 @@ export function useSampleAudio(sample: Sample | null): SampleAudioState {
 
         if (audio.paused) {
             audio.play().catch(() => { setReproduciendo(false); });
-            if (sample) {
-                registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
-            }
             return;
+        }
+        if (sample) {
+            enviarTrackingReproduccion(sample.id, audio.currentTime || 0, false);
         }
         audio.pause();
     }, [sample]);

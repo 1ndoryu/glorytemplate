@@ -1,0 +1,36 @@
+/*
+ * trackingReproduccion — Utilidad centralizada para tracking de reproducciones.
+ * Encapsula la lógica de cuándo y cómo enviar datos de duración al backend.
+ *
+ * El backend tiene debounce (30s): si ya existe reproducción reciente del mismo
+ * user+sample, actualiza la existente. Esto permite múltiples señales (pause, ended,
+ * track-change) sin crear duplicados.
+ *
+ * S4: Creado para reemplazar el patrón anterior de registrar en play-start
+ * sin datos de duración. Ahora solo se envía cuando hay duración real.
+ */
+
+import { registrarReproduccion } from '../services/apiReproduciones';
+
+/* Umbral mínimo (seg) para considerar una escucha trackeable — evita clicks accidentales */
+const UMBRAL_MINIMO_SEG = 0.5;
+
+/*
+ * Envía tracking de reproducción al backend con duración real.
+ * Solo envía si la duración supera el umbral mínimo.
+ * Best-effort: errores de red no bloquean la UX.
+ */
+export const enviarTrackingReproduccion = (
+    sampleId: number,
+    duracionEscuchada: number,
+    completada: boolean
+): void => {
+    if (!sampleId || duracionEscuchada < UMBRAL_MINIMO_SEG) return;
+
+    registrarReproduccion(sampleId, {
+        duracionEscuchada: Math.round(duracionEscuchada * 100) / 100,
+        completada,
+    }).catch(() => {
+        /* Best-effort: tracking no bloquea UX */
+    });
+};

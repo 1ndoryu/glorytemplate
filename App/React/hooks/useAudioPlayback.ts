@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import type { SampleResumen } from '@app/types';
-import { registrarReproduccion } from '@app/services/apiReproduciones';
+import { enviarTrackingReproduccion } from '@app/utils/trackingReproduccion';
 import { extraerPicosAudio, EVENTO_REPRODUCCION_SAMPLE } from './utils/tarjetaSampleUtils';
 
 interface UseAudioPlaybackOpciones {
@@ -100,6 +100,7 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
         audio.addEventListener('play', () => setReproduciendoLocal(true));
         audio.addEventListener('pause', () => setReproduciendoLocal(false));
         audio.addEventListener('ended', () => {
+            enviarTrackingReproduccion(sample.id, audio.duration || 0, true);
             setReproduciendoLocal(false);
             setProgresoLocal(0);
             audio.currentTime = 0;
@@ -128,6 +129,7 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
             const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
             if (detalle?.sampleId === sample.id) return;
             if (audioRef.current && !audioRef.current.paused) {
+                enviarTrackingReproduccion(sample.id, audioRef.current.currentTime || 0, false);
                 audioRef.current.pause();
             }
         };
@@ -136,6 +138,9 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
         return () => {
             window.removeEventListener(EVENTO_REPRODUCCION_SAMPLE, pausarSiEsOtro as EventListener);
             if (audioRef.current) {
+                if (!audioRef.current.paused) {
+                    enviarTrackingReproduccion(sample.id, audioRef.current.currentTime || 0, false);
+                }
                 audioRef.current.pause();
                 audioRef.current = null;
             }
@@ -147,6 +152,7 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
         e.stopPropagation();
         const audio = inicializarAudio();
         if (!audio.paused) {
+            enviarTrackingReproduccion(sample.id, audio.currentTime || 0, false);
             audio.pause();
             onPause?.();
             return;
@@ -157,7 +163,6 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
         );
         audio.play().catch(() => setReproduciendoLocal(false));
         onPlay?.(sample);
-        registrarReproduccion(sample.id).catch(() => { /* silencioso */ });
     }, [inicializarAudio, onPlay, onPause, sample]);
 
     /* Seek en waveform */

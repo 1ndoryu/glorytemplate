@@ -13,15 +13,15 @@ Kamples monetiza mediante **suscripciones recurrentes** (Stripe Billing) y **rev
 
 ## Planes de Suscripción
 
-| | **Free** | **Pro** | **Premium** |
-|---|---|---|---|
-| Precio mensual | $0 | $5.00 | $19.99 |
-| Precio anual | — | $50.00 (10 meses) | $199.90 (10 meses) |
-| Descargas/día | 5 | 50 | Ilimitadas (`-1`) |
-| Transferencia/mes | 1 GB | 10 GB | 50 GB |
-| Subidas/mes | Ilimitadas | Ilimitadas | Ilimitadas |
-| Revenue share | Sin monetización | 70% creador / 30% plataforma | 80% creador / 20% plataforma |
-| Prueba gratuita | 30 días (20 desc/día) | — | — |
+|                   | **Free**              | **Pro**                      | **Premium**                  |
+| ----------------- | --------------------- | ---------------------------- | ---------------------------- |
+| Precio mensual    | $0                    | $5.00                        | $19.99                       |
+| Precio anual      | —                     | $50.00 (10 meses)            | $199.90 (10 meses)           |
+| Descargas/día     | 5                     | 50                           | Ilimitadas (`-1`)            |
+| Transferencia/mes | 1 GB                  | 10 GB                        | 50 GB                        |
+| Subidas/mes       | Ilimitadas            | Ilimitadas                   | Ilimitadas                   |
+| Revenue share     | Sin monetización      | 70% creador / 30% plataforma | 80% creador / 20% plataforma |
+| Prueba gratuita   | 30 días (20 desc/día) | —                            | —                            |
 
 - **Descuento anual:** equivale a 10 meses (ahorro de 2 meses, ~17%).
 - **Precios definidos en:** `StripeService::PLANES` (backend) y vars de entorno `STRIPE_PRICE_PRO` / `STRIPE_PRICE_PREMIUM` (IDs de Stripe).
@@ -42,11 +42,11 @@ comisionPlataforma = montoPorDescarga × (1 - revenueShare)
 
 ### Ejemplos Concretos
 
-| Plan del descargador | Precio | Monto/descarga | Creador recibe | Plataforma retiene |
-|---|---|---|---|---|
-| **Pro** ($5, 70%) | $5.00 | $0.025 | $0.0175 | $0.0075 |
-| **Premium** ($19.99, 80%) | $19.99 | ~$0.0999 | ~$0.0800 | ~$0.0200 |
-| **Free** | $0 | $0 | $0 | $0 |
+| Plan del descargador      | Precio | Monto/descarga | Creador recibe | Plataforma retiene |
+| ------------------------- | ------ | -------------- | -------------- | ------------------ |
+| **Pro** ($5, 70%)         | $5.00  | $0.025         | $0.0175        | $0.0075            |
+| **Premium** ($19.99, 80%) | $19.99 | ~$0.0999       | ~$0.0800       | ~$0.0200           |
+| **Free**                  | $0     | $0             | $0             | $0                 |
 
 ### Condiciones para que se registre revenue share
 
@@ -72,11 +72,11 @@ comisionPlataforma = montoPorDescarga × (1 - revenueShare)
 
 ### Productos Stripe Utilizados
 
-| Producto | Uso |
-|---|---|
-| **Stripe Billing** | Suscripciones recurrentes (checkout sessions, customer portal) |
-| **Stripe Connect Express** | Onboarding de creadores + transferencias de revenue share |
-| **Stripe Webhooks** | Sincronización de estados (suscripción activa/cancelada, cuenta Connect) |
+| Producto                   | Uso                                                                      |
+| -------------------------- | ------------------------------------------------------------------------ |
+| **Stripe Billing**         | Suscripciones recurrentes (checkout sessions, customer portal)           |
+| **Stripe Connect Express** | Onboarding de creadores + transferencias de revenue share                |
+| **Stripe Webhooks**        | Sincronización de estados (suscripción activa/cancelada, cuenta Connect) |
 
 ### Variables de Entorno Requeridas
 
@@ -91,30 +91,30 @@ STRIPE_PRICE_PREMIUM      # Price ID de Stripe para plan Premium
 
 #### Pagos (suscripciones)
 
-| Endpoint | Método | Auth | Función |
-|---|---|---|---|
-| `/pagos/checkout` | POST | Sí | Crea Checkout Session de Stripe |
-| `/pagos/portal` | POST | Sí | Genera link al Customer Portal |
-| `/pagos/webhook` | POST | No (público) | Recibe webhooks de Stripe |
-| `/pagos/planes` | GET | No | Información pública de planes |
+| Endpoint          | Método | Auth         | Función                         |
+| ----------------- | ------ | ------------ | ------------------------------- |
+| `/pagos/checkout` | POST   | Sí           | Crea Checkout Session de Stripe |
+| `/pagos/portal`   | POST   | Sí           | Genera link al Customer Portal  |
+| `/pagos/webhook`  | POST   | No (público) | Recibe webhooks de Stripe       |
+| `/pagos/planes`   | GET    | No           | Información pública de planes   |
 
 #### Connect (creadores)
 
-| Endpoint | Método | Auth | Función |
-|---|---|---|---|
-| `/connect/onboarding` | POST | Sí | Crea cuenta Express en Stripe |
-| `/connect/estado` | GET | Sí | Estado actual de la cuenta Connect |
-| `/connect/dashboard` | POST | Sí | Login link al Express Dashboard |
-| `/connect/balance` | GET | Sí | Balance disponible y pendiente |
+| Endpoint              | Método | Auth | Función                            |
+| --------------------- | ------ | ---- | ---------------------------------- |
+| `/connect/onboarding` | POST   | Sí   | Crea cuenta Express en Stripe      |
+| `/connect/estado`     | GET    | Sí   | Estado actual de la cuenta Connect |
+| `/connect/dashboard`  | POST   | Sí   | Login link al Express Dashboard    |
+| `/connect/balance`    | GET    | Sí   | Balance disponible y pendiente     |
 
 ### Webhooks Procesados
 
-| Evento | Acción |
-|---|---|
-| `checkout.session.completed` | Activa suscripción, actualiza plan en BD, notifica al usuario |
-| `customer.subscription.updated` | Sincroniza plan según lookup_key (`pro`/`premium`) |
-| `customer.subscription.deleted` | Degrada a plan Free |
-| `account.updated` | Actualiza estado Connect del creador |
+| Evento                          | Acción                                                        |
+| ------------------------------- | ------------------------------------------------------------- |
+| `checkout.session.completed`    | Activa suscripción, actualiza plan en BD, notifica al usuario |
+| `customer.subscription.updated` | Sincroniza plan según lookup_key (`pro`/`premium`)            |
+| `customer.subscription.deleted` | Degrada a plan Free                                           |
+| `account.updated`               | Actualiza estado Connect del creador                          |
 
 ---
 
@@ -155,16 +155,16 @@ STRIPE_PRICE_PREMIUM      # Price ID de Stripe para plan Premium
 
 ### Columnas Principales
 
-| Columna | Tipo | Descripción |
-|---|---|---|
-| `comprador_id` | int | Usuario que descargó |
-| `creador_id` | int | Dueño del sample |
-| `sample_id` | int | Sample descargado |
-| `tipo` | text | Tipo de transacción (`'descarga'`) |
-| `monto` | decimal | Monto total de la transacción |
-| `pago_creador` | decimal | Porción para el creador |
-| `comision_plataforma` | decimal | Porción para la plataforma |
-| `estado` | text | Estado (`TransaccionesEnums::ESTADO_COMPLETED`) |
+| Columna               | Tipo    | Descripción                                     |
+| --------------------- | ------- | ----------------------------------------------- |
+| `comprador_id`        | int     | Usuario que descargó                            |
+| `creador_id`          | int     | Dueño del sample                                |
+| `sample_id`           | int     | Sample descargado                               |
+| `tipo`                | text    | Tipo de transacción (`'descarga'`)              |
+| `monto`               | decimal | Monto total de la transacción                   |
+| `pago_creador`        | decimal | Porción para el creador                         |
+| `comision_plataforma` | decimal | Porción para la plataforma                      |
+| `estado`              | text    | Estado (`TransaccionesEnums::ESTADO_COMPLETED`) |
 
 ### Queries de Dashboard (optimizadas)
 
@@ -176,12 +176,12 @@ STRIPE_PRICE_PREMIUM      # Price ID de Stripe para plan Premium
 
 ## Seguridad de Descargas
 
-| Mecanismo | Descripción |
-|---|---|
-| **Advisory Lock** | `UsuariosExtRepository::advisoryLock` previene TOCTOU en verificación de créditos |
-| **HMAC Streaming** | Token firmado temporal (30 min) para servir archivos WAV |
-| **.htaccess** | Bloquea acceso directo a WAV/MP3 |
-| **Limit checks** | Doble verificación: descargas/día + transferencia GB/mes |
+| Mecanismo          | Descripción                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| **Advisory Lock**  | `UsuariosExtRepository::advisoryLock` previene TOCTOU en verificación de créditos |
+| **HMAC Streaming** | Token firmado temporal (30 min) para servir archivos WAV                          |
+| **.htaccess**      | Bloquea acceso directo a WAV/MP3                                                  |
+| **Limit checks**   | Doble verificación: descargas/día + transferencia GB/mes                          |
 
 ---
 

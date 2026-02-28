@@ -410,6 +410,7 @@ class ConstructorSenales
 
         $repro24h = "COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trSid} = s.{$sId} AND {$trCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
+        /* @codeSentinel-ignore INTERVAL — misma whitelist líneas 370-373 */
         $descargas7d = "COALESCE((SELECT COUNT(*) FROM {$td} WHERE {$dSid} = s.{$sId} AND {$dCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
         $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
@@ -462,13 +463,20 @@ class ConstructorSenales
     }
 
     /**
-     * Penalización progresiva por reproducciones.
-     * Decaimiento hiperbólico: cada reproducción reduce el multiplicador.
-     * Formula: max(minimo, 1 / (1 + count * tasa))
-     * 0 plays=1.0, 1=0.87, 3=0.69, 5=0.57, 10=0.40
+     * Penalización progresiva por reproducciones ponderadas por calidad.
      *
-     * Reemplaza la penalización binaria anterior (umbral 3 → 0.3).
-     * Samples nunca escuchados tienen máxima prioridad (mult=1.0).
+     * Usa SUM(peso_calidad) en vez de COUNT(*):
+     * - Significativa (escuchó >= umbral adaptativo): peso 1.0
+     * - Rápida (escuchó algo pero < umbral): peso configurable (default 0.3)
+     * - Ignorada (< 1s): peso 0 (no cuenta)
+     * - Legacy (duracion_escuchada=0): configurable (default = significativa)
+     *
+     * Umbrales adaptativos según duración del sample:
+     * - Corto (<= 20s): >= 50% del sample
+     * - Medio (20-60s): >= 30% o mínimo 10s
+     * - Largo (> 60s): >= 15% o mínimo 10s
+     *
+     * Formula: max(minimo, 1 / (1 + sum_ponderada * tasa))
      */
     public static function sqlPenalizacionReproduccion(int $userId, array $config): string
     {
@@ -476,19 +484,67 @@ class ConstructorSenales
         $tasa = (float) ($penConfig['tasa_decaimiento'] ?? 0.15);
         $minimo = (float) ($penConfig['minimo'] ?? 0.20);
 
+        $clasConfig = $config['parametros']['clasificacion_reproduccion'] ?? [];
+        $habilitado = $clasConfig['habilitado'] ?? true;
+
         $trep = ReproduccionesCols::TABLA;
         $trUid = ReproduccionesCols::USUARIO_ID;
         $trSid = ReproduccionesCols::SAMPLE_ID;
+        $trDur = ReproduccionesCols::DURACION_ESCUCHADA;
         $sId = SamplesCols::ID;
+        $sDuracion = SamplesCols::DURACION;
 
-        return "GREATEST({$minimo}, 1.0 / (1.0 + COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}), 0) * {$tasa}))";
+        if (!$habilitado) {
+            /* Sin clasificación: comportamiento legacy con COUNT */
+            return "GREATEST({$minimo}, 1.0 / (1.0 + COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}), 0) * {$tasa}))";
+        }
+
+        $umbralMin = (float) ($clasConfig['umbral_minimo_seg'] ?? 1);
+        $pctCorto = (float) ($clasConfig['porcentaje_significativa_corto'] ?? 0.50);
+        $pctMedio = (float) ($clasConfig['porcentaje_significativa_medio'] ?? 0.30);
+        $pctLargo = (float) ($clasConfig['porcentaje_significativa_largo'] ?? 0.15);
+        $minAbsoluto = (int) ($clasConfig['minimo_absoluto_significativa'] ?? 10);
+        $pesoRapida = (float) ($clasConfig['peso_rapida'] ?? 0.30);
+        $legacyComoSig = ($clasConfig['legacy_como_significativa'] ?? true) ? '1.0' : (string) $pesoRapida;
+
+        /*
+         * CASE clasifica cada reproducción según duración escuchada vs duración del sample:
+         * 1. Legacy (duracion_escuchada=0): configurable
+         * 2. Ignorada (< umbral_minimo): peso 0
+         * 3. Significativa: cumple umbral adaptativo → peso 1.0
+         * 4. Rápida: escuchó algo pero no suficiente → peso reducido
+         */
+        $sumPonderada = "(SELECT COALESCE(SUM(
+            CASE
+                /* Legacy: datos sin tracking de duración */
+                WHEN r_pen.{$trDur} = 0 THEN {$legacyComoSig}
+                /* Ignorada: < umbral_minimo (accidental) */
+                WHEN r_pen.{$trDur} < {$umbralMin} THEN 0
+                /* Significativa: cumple umbral adaptativo según duración del sample */
+                WHEN CASE
+                    WHEN s.{$sDuracion} <= 20 THEN r_pen.{$trDur} >= s.{$sDuracion} * {$pctCorto}
+                    WHEN s.{$sDuracion} <= 60 THEN r_pen.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctMedio})
+                    ELSE r_pen.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctLargo})
+                END THEN 1.0
+                /* Rápida: escuchó algo pero no suficiente */
+                ELSE {$pesoRapida}
+            END
+        ), 0) FROM {$trep} r_pen WHERE r_pen.{$trUid} = :userId AND r_pen.{$trSid} = s.{$sId})";
+
+        return "GREATEST({$minimo}, 1.0 / (1.0 + {$sumPonderada} * {$tasa}))";
     }
 
     /**
      * Penalización pasiva: reproducción sin acción positiva.
      * Si el usuario reprodujo un sample >= N veces pero NO dio like,
      * NI lo descargó, NI lo guardó en colección → "dislike implícito".
-     * Penalización = mitad de un dislike explícito.
+    /**
+     * Penalización pasiva: reproducciones significativas sin acción positiva.
+     *
+     * Solo cuenta reproducciones donde el usuario escuchó lo suficiente
+     * (clasificadas como "significativas" por el sistema de calidad).
+     * Quick-plays no disparan esta penalización — el usuario no tuvo
+     * oportunidad real de decidir si le gustaba.
      *
      * @param int $userId ID del usuario
      * @param array $config Configuración completa del algoritmo
@@ -503,9 +559,13 @@ class ConstructorSenales
         $minRepro = (int) ($penConfig['min_reproducciones'] ?? 2);
         $userId_int = (int) $userId;
 
+        $clasConfig = $config['parametros']['clasificacion_reproduccion'] ?? [];
+        $clasHabilitado = $clasConfig['habilitado'] ?? true;
+
         $trep = ReproduccionesCols::TABLA;
         $trUid = ReproduccionesCols::USUARIO_ID;
         $trSid = ReproduccionesCols::SAMPLE_ID;
+        $trDur = ReproduccionesCols::DURACION_ESCUCHADA;
         $tl = LikesCols::TABLA;
         $lUid = LikesCols::USUARIO_ID;
         $lTarget = LikesCols::TARGET_ID;
@@ -520,10 +580,33 @@ class ConstructorSenales
         $colId = ColeccionesCols::ID;
         $colUid = ColeccionesCols::USUARIO_ID;
         $sId = SamplesCols::ID;
+        $sDuracion = SamplesCols::DURACION;
         $ltSample = LikesEnums::TIPO_SAMPLE;
 
-        /* Ha reproducido >= N veces */
-        $hasPlayed = "(SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$minRepro}";
+        /*
+         * Contar solo reproducciones significativas (donde el usuario realmente escuchó).
+         * Quick-plays (< umbral adaptativo) no disparan penalización pasiva.
+         */
+        if ($clasHabilitado) {
+            $umbralMin = (float) ($clasConfig['umbral_minimo_seg'] ?? 1);
+            $pctCorto = (float) ($clasConfig['porcentaje_significativa_corto'] ?? 0.50);
+            $pctMedio = (float) ($clasConfig['porcentaje_significativa_medio'] ?? 0.30);
+            $pctLargo = (float) ($clasConfig['porcentaje_significativa_largo'] ?? 0.15);
+            $minAbsoluto = (int) ($clasConfig['minimo_absoluto_significativa'] ?? 10);
+
+            $hasPlayed = "(SELECT COUNT(*) FROM {$trep} rp WHERE rp.{$trUid} = :userId AND rp.{$trSid} = s.{$sId}
+                AND rp.{$trDur} >= {$umbralMin}
+                AND CASE
+                    WHEN rp.{$trDur} = 0 THEN true
+                    WHEN s.{$sDuracion} <= 20 THEN rp.{$trDur} >= s.{$sDuracion} * {$pctCorto}
+                    WHEN s.{$sDuracion} <= 60 THEN rp.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctMedio})
+                    ELSE rp.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctLargo})
+                END
+            ) >= {$minRepro}";
+        } else {
+            /* Sin clasificación: contar todas las reproducciones como antes */
+            $hasPlayed = "(SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$minRepro}";
+        }
 
         /* NO tiene like/reacción */
         $noLike = "NOT EXISTS (SELECT 1 FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId})";
@@ -538,8 +621,14 @@ class ConstructorSenales
     }
 
     /**
-     * Saturación de popularidad: samples muy descargados pierden valor.
-     * Los usuarios buscan samples buenos que no estén sobreusados.
+     * Saturación de popularidad con umbrales dinámicos (percentiles de la plataforma).
+     *
+     * En modo 'dinamico': calcula P75 y P95 de descargas de samples activos,
+     * y los usa como umbral y escala respectivamente. Se adapta automáticamente
+     * al crecimiento de la plataforma. Stats cacheadas en WP transient.
+     *
+     * En modo 'fijo': usa los valores hardcodeados de config (fallback/override).
+     *
      * Formula: max(minimo, 1 / (1 + LN(1 + max(0, descargas - umbral) / escala)))
      *
      * @param array $config Configuración completa del algoritmo
@@ -550,12 +639,92 @@ class ConstructorSenales
         $satConfig = $config['parametros']['saturacion_popularidad'] ?? [];
         if (!($satConfig['habilitado'] ?? true)) return '1';
 
-        $umbral = (int) ($satConfig['umbral_descargas'] ?? 50);
-        $escala = (int) ($satConfig['escala'] ?? 100);
         $minimo = (float) ($satConfig['minimo'] ?? 0.30);
+        $modo = $satConfig['modo'] ?? 'dinamico';
+
+        if ($modo === 'dinamico') {
+            $stats = self::obtenerStatsDescargas($satConfig);
+            $umbral = $stats['umbral'];
+            $escala = $stats['escala'];
+        } else {
+            $umbral = (int) ($satConfig['umbral_descargas'] ?? 50);
+            $escala = (int) ($satConfig['escala'] ?? 100);
+        }
+
+        /* Protección: escala nunca puede ser 0 (evita división por cero) */
+        $escala = \max(1, $escala);
 
         $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
 
         return "GREATEST({$minimo}, 1.0 / (1.0 + LN(1.0 + GREATEST(0, s.{$sTotDesc} - {$umbral})::float / {$escala})))";
+    }
+
+    /**
+     * Calcula stats de descargas de la plataforma para saturación dinámica.
+     *
+     * Usa percentiles configurables (default P75 y P95) sobre samples activos.
+     * Cacheado en WP transient para evitar recálculo en cada query del feed.
+     *
+     * @param array $satConfig Sección 'saturacion_popularidad' de config
+     * @return array{umbral: int, escala: int} Umbral y escala calculados
+     */
+    private static function obtenerStatsDescargas(array $satConfig): array
+    {
+        $ttl = (int) ($satConfig['cache_ttl'] ?? 3600);
+        $cacheKey = 'kamples_sat_pop_stats';
+
+        /* Intentar leer de cache */
+        $cached = \get_transient($cacheKey);
+        if ($cached !== false && \is_array($cached)) {
+            return $cached;
+        }
+
+        /* Calcular percentiles con query a BD */
+        $pctUmbral = (float) ($satConfig['percentil_umbral'] ?? 0.75);
+        $pctEscala = (float) ($satConfig['percentil_escala'] ?? 0.95);
+        $sEstado = SamplesCols::ESTADO;
+        $eActivo = \App\Config\Schema\_generated\SamplesEnums::ESTADO_ACTIVO;
+        $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
+        $ts = SamplesCols::TABLA;
+
+        try {
+            $resultado = \App\Kamples\Database\Repositories\SamplesRepository::consultar(
+                "SELECT 
+                    COALESCE(PERCENTILE_CONT({$pctUmbral}) WITHIN GROUP (ORDER BY {$sTotDesc}), 0)::int AS p_umbral,
+                    COALESCE(PERCENTILE_CONT({$pctEscala}) WITHIN GROUP (ORDER BY {$sTotDesc}), 0)::int AS p_escala
+                 FROM {$ts}
+                 WHERE {$sEstado} = :estado AND {$sTotDesc} > 0",
+                ['estado' => $eActivo]
+            );
+
+            if (!empty($resultado)) {
+                $pUmbral = (int) ($resultado[0]['p_umbral'] ?? 0);
+                $pEscala = (int) ($resultado[0]['p_escala'] ?? 0);
+
+                /* La escala es la diferencia entre P95 y P75 (rango del top 20%) */
+                $escalaCalc = \max(1, $pEscala - $pUmbral);
+
+                /* Mínimos: si la plataforma es nueva, usar fallbacks razonables */
+                if ($pUmbral < 1) $pUmbral = (int) ($satConfig['umbral_descargas'] ?? 50);
+                if ($escalaCalc < 2) $escalaCalc = (int) ($satConfig['escala'] ?? 100);
+
+                $stats = ['umbral' => $pUmbral, 'escala' => $escalaCalc];
+                \set_transient($cacheKey, $stats, $ttl);
+                return $stats;
+            }
+        } catch (\Throwable $e) {
+            /* Fallo silencioso: usar fallback fijo y loguear */
+            if (\class_exists(\App\Kamples\LogAlgoritmo::class)) {
+                \App\Kamples\LogAlgoritmo::debug('Saturación dinámica: fallo al calcular percentiles, usando fallback', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        /* Fallback: valores fijos de config */
+        return [
+            'umbral' => (int) ($satConfig['umbral_descargas'] ?? 50),
+            'escala' => (int) ($satConfig['escala'] ?? 100),
+        ];
     }
 }

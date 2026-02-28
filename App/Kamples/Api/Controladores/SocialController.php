@@ -75,13 +75,13 @@ class SocialController
     public static function misSeguidos(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $seguidos = FollowsRepository::idsSeguidos($userId);
+            $seguidos = FollowsRepository::idsSeguidos($userId);
 
-        $ids = array_map(fn($row) => ['id' => (int) $row['id']], $seguidos);
-        return new \WP_REST_Response(['data' => $ids], 200);
+            $ids = array_map(fn($row) => ['id' => (int) $row['id']], $seguidos);
+            return new \WP_REST_Response(['data' => $ids], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::misSeguidos error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -91,34 +91,34 @@ class SocialController
     public static function seguir(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
-        $seguidorId = UsuarioHelper::obtenerIdPg();
-        if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
+            $seguidorId = UsuarioHelper::obtenerIdPg();
+            if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
-        /* C164: Rate limit — 20 follows por minuto */
-        $limitResp = RateLimiter::verificarUsuario($seguidorId, 'follow', 20, 60);
-        if ($limitResp) return $limitResp;
+            /* C164: Rate limit — 20 follows por minuto */
+            $limitResp = RateLimiter::verificarUsuario($seguidorId, 'follow', 20, 60);
+            if ($limitResp) return $limitResp;
 
-        $targetId = (int) $request->get_param('userId');
+            $targetId = (int) $request->get_param('userId');
 
-        if ($seguidorId === $targetId) {
-            return new \WP_REST_Response(['code' => 'no_self_follow', 'message' => 'No puedes seguirte a ti mismo'], 400);
-        }
+            if ($seguidorId === $targetId) {
+                return new \WP_REST_Response(['code' => 'no_self_follow', 'message' => 'No puedes seguirte a ti mismo'], 400);
+            }
 
-        /* Verificar que el usuario target existe */
-        if (!UsuariosExtRepository::existe(['id' => $targetId])) {
-            return new \WP_REST_Response(['code' => 'usuario_no_encontrado', 'message' => 'El usuario no existe'], 404);
-        }
+            /* Verificar que el usuario target existe */
+            if (!UsuariosExtRepository::existe(['id' => $targetId])) {
+                return new \WP_REST_Response(['code' => 'usuario_no_encontrado', 'message' => 'El usuario no existe'], 404);
+            }
 
-        FollowsRepository::seguir($seguidorId, $targetId);
-        FollowsRepository::actualizarContadores($seguidorId, $targetId);
+            FollowsRepository::seguir($seguidorId, $targetId);
+            FollowsRepository::actualizarContadores($seguidorId, $targetId);
 
-        /* C266: Notificacion de nuevo seguidor (centralizada, excluye auto-follow) */
-        ServicioNotificaciones::follow($targetId, $seguidorId);
+            /* C266: Notificacion de nuevo seguidor (centralizada, excluye auto-follow) */
+            ServicioNotificaciones::follow($targetId, $seguidorId);
 
-        /* C45: registrar interacción para el planificador del algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($seguidorId, 'follow');
+            /* C45: registrar interacción para el planificador del algoritmo */
+            PlanificadorAlgoritmo::registrarInteraccion($seguidorId, 'follow');
 
-        return new \WP_REST_Response(['ok' => true], 200);
+            return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::seguir error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -128,15 +128,15 @@ class SocialController
     public static function dejarDeSeguir(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
-        $seguidorId = UsuarioHelper::obtenerIdPg();
-        if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
+            $seguidorId = UsuarioHelper::obtenerIdPg();
+            if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $targetId = (int) $request->get_param('userId');
+            $targetId = (int) $request->get_param('userId');
 
-        FollowsRepository::dejarDeSeguir($seguidorId, $targetId);
-        FollowsRepository::actualizarContadores($seguidorId, $targetId);
+            FollowsRepository::dejarDeSeguir($seguidorId, $targetId);
+            FollowsRepository::actualizarContadores($seguidorId, $targetId);
 
-        return new \WP_REST_Response(['ok' => true], 200);
+            return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::dejarDeSeguir error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -146,83 +146,83 @@ class SocialController
     public static function darLike(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        /* C164: Rate limit — 30 likes por minuto */
-        $limitResp = RateLimiter::verificarUsuario($userId, 'like', 30, 60);
-        if ($limitResp) return $limitResp;
+            /* C164: Rate limit — 30 likes por minuto */
+            $limitResp = RateLimiter::verificarUsuario($userId, 'like', 30, 60);
+            if ($limitResp) return $limitResp;
 
-        $tipo     = sanitize_text_field($request->get_param('tipo'));
-        $targetId = (int) $request->get_param('target_id');
-        $reaccion = sanitize_text_field($request->get_param('reaccion') ?? LikesEnums::REACCION_LIKE);
+            $tipo     = sanitize_text_field($request->get_param('tipo'));
+            $targetId = (int) $request->get_param('target_id');
+            $reaccion = sanitize_text_field($request->get_param('reaccion') ?? LikesEnums::REACCION_LIKE);
 
-        /* Validar reacción */
-        $reaccionesValidas = [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA];
-        if (!in_array($reaccion, $reaccionesValidas, true)) {
-            $reaccion = LikesEnums::REACCION_LIKE;
-        }
+            /* Validar reacción */
+            $reaccionesValidas = [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA];
+            if (!in_array($reaccion, $reaccionesValidas, true)) {
+                $reaccion = LikesEnums::REACCION_LIKE;
+            }
 
-        /* Verificar que el target existe antes de crear la reacción */
-        $targetExiste = $tipo === LikesEnums::TIPO_PUBLICACION
-            ? PublicacionesRepository::existe(['id' => $targetId])
-            : SamplesRepository::existe(['id' => $targetId]);
+            /* Verificar que el target existe antes de crear la reacción */
+            $targetExiste = $tipo === LikesEnums::TIPO_PUBLICACION
+                ? PublicacionesRepository::existe(['id' => $targetId])
+                : SamplesRepository::existe(['id' => $targetId]);
 
-        if (!$targetExiste) {
-            return new \WP_REST_Response(['code' => 'target_no_encontrado', 'message' => 'El contenido no existe'], 404);
-        }
+            if (!$targetExiste) {
+                return new \WP_REST_Response(['code' => 'target_no_encontrado', 'message' => 'El contenido no existe'], 404);
+            }
 
-        /*
+            /*
          * C144/C145: UPSERT — si ya existe una reacción, la actualiza.
          * Un usuario solo puede tener UNA reacción por target.
          */
-        LikesRepository::upsertReaccion($userId, $tipo, $targetId, $reaccion);
+            LikesRepository::upsertReaccion($userId, $tipo, $targetId, $reaccion);
 
-        /*
+            /*
          * Recalcular total_likes: solo cuenta 'like' y 'encanta', NO 'dislike'.
          * Los dislikes no tienen contador público (C144).
          */
-        if ($tipo === LikesEnums::TIPO_SAMPLE) {
-            LikesRepository::recalcularTotalSample($targetId);
+            if ($tipo === LikesEnums::TIPO_SAMPLE) {
+                LikesRepository::recalcularTotalSample($targetId);
 
-            /* Notificacion al creador (solo para like/encanta, no dislike) — C266 centralizado */
-            if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
-                $sample = SamplesRepository::buscarInfoNotificacion($targetId);
-                if ($sample) {
-                    ServicioNotificaciones::likeSample(
-                        (int) $sample[SamplesCols::CREADOR_ID],
-                        $userId,
-                        $targetId,
-                        $sample[SamplesCols::TITULO] ?? '',
-                        $sample[SamplesCols::SLUG] ?? null,
-                        $reaccion
-                    );
+                /* Notificacion al creador (solo para like/encanta, no dislike) — C266 centralizado */
+                if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
+                    $sample = SamplesRepository::buscarInfoNotificacion($targetId);
+                    if ($sample) {
+                        ServicioNotificaciones::likeSample(
+                            (int) $sample[SamplesCols::CREADOR_ID],
+                            $userId,
+                            $targetId,
+                            $sample[SamplesCols::TITULO] ?? '',
+                            $sample[SamplesCols::SLUG] ?? null,
+                            $reaccion
+                        );
+                    }
+                }
+            } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
+                LikesRepository::recalcularTotalPublicacion($targetId);
+
+                /* C266: Notificacion de like en publicacion */
+                if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
+                    $pub = PublicacionesRepository::buscarPorId($targetId);
+                    if ($pub) {
+                        ServicioNotificaciones::likePublicacion(
+                            (int) $pub[PublicacionesCols::AUTOR_ID],
+                            $userId,
+                            $targetId,
+                            $reaccion
+                        );
+                    }
                 }
             }
-        } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
-            LikesRepository::recalcularTotalPublicacion($targetId);
 
-            /* C266: Notificacion de like en publicacion */
-            if ($reaccion !== LikesEnums::REACCION_DISLIKE) {
-                $pub = PublicacionesRepository::buscarPorId($targetId);
-                if ($pub) {
-                    ServicioNotificaciones::likePublicacion(
-                        (int) $pub[PublicacionesCols::AUTOR_ID],
-                        $userId,
-                        $targetId,
-                        $reaccion
-                    );
-                }
-            }
-        }
+            /* Invalidar cache del feed para que el algoritmo recalcule */
+            MotorRecomendacion::invalidarCache($userId);
 
-        /* Invalidar cache del feed para que el algoritmo recalcule */
-        MotorRecomendacion::invalidarCache($userId);
+            /* C45: registrar interacción para el planificador del algoritmo */
+            PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === LikesEnums::REACCION_DISLIKE ? 'dislike' : 'like');
 
-        /* C45: registrar interacción para el planificador del algoritmo */
-        PlanificadorAlgoritmo::registrarInteraccion($userId, $reaccion === LikesEnums::REACCION_DISLIKE ? 'dislike' : 'like');
-
-        return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
+            return new \WP_REST_Response(['ok' => true, 'reaccion' => $reaccion], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::darLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -232,25 +232,25 @@ class SocialController
     public static function quitarLike(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
-        $userId = UsuarioHelper::obtenerIdPg();
-        if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $tipo     = sanitize_text_field($request->get_param('tipo'));
-        $targetId = (int) $request->get_param('target_id');
+            $tipo     = sanitize_text_field($request->get_param('tipo'));
+            $targetId = (int) $request->get_param('target_id');
 
-        LikesRepository::eliminarReaccion($userId, $tipo, $targetId);
+            LikesRepository::eliminarReaccion($userId, $tipo, $targetId);
 
-        /* Recalcular total_likes (solo like+encanta, sin dislikes) */
-        if ($tipo === LikesEnums::TIPO_SAMPLE) {
-            LikesRepository::recalcularTotalSample($targetId);
-        } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
-            LikesRepository::recalcularTotalPublicacion($targetId);
-        }
+            /* Recalcular total_likes (solo like+encanta, sin dislikes) */
+            if ($tipo === LikesEnums::TIPO_SAMPLE) {
+                LikesRepository::recalcularTotalSample($targetId);
+            } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
+                LikesRepository::recalcularTotalPublicacion($targetId);
+            }
 
-        /* Invalidar cache del feed para que el algoritmo recalcule */
-        MotorRecomendacion::invalidarCache($userId);
+            /* Invalidar cache del feed para que el algoritmo recalcule */
+            MotorRecomendacion::invalidarCache($userId);
 
-        return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
+            return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::quitarLike error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

@@ -11,6 +11,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useReproductorStore } from '../stores/reproductorStore';
 import { crearLogger } from '../services/logger';
+import { enviarTrackingReproduccion } from '../utils/trackingReproduccion';
 import type { SampleResumen } from '../types/sample';
 
 const log = crearLogger('useReproductor');
@@ -30,6 +31,7 @@ export const useReproductor = () => {
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const intervaloRef = useRef<number | null>(null);
+    const samplePrevioRef = useRef<SampleResumen | null>(null);
 
     /* Inicializar elemento de audio una sola vez */
     useEffect(() => {
@@ -46,6 +48,11 @@ export const useReproductor = () => {
         };
 
         const onEnded = () => {
+            /* S4: Tracking de reproducción completada */
+            const { sampleActual: sActual } = useReproductorStore.getState();
+            if (sActual) {
+                enviarTrackingReproduccion(sActual.id, audio.duration || 0, true);
+            }
             obtenerAcciones().siguiente();
         };
 
@@ -92,6 +99,11 @@ export const useReproductor = () => {
                 obtenerAcciones().setProgreso(audio.currentTime);
             }, 250);
         } else {
+            /* S4: Enviar tracking parcial al pausar */
+            const { sampleActual: sActual } = useReproductorStore.getState();
+            if (sActual && audio.currentTime > 0) {
+                enviarTrackingReproduccion(sActual.id, audio.currentTime, false);
+            }
             audio.pause();
             if (intervaloRef.current) {
                 clearInterval(intervaloRef.current);
@@ -100,10 +112,20 @@ export const useReproductor = () => {
         }
     }, [reproduciendo]);
 
-    /* Cargar nuevo sample */
+    /* Cargar nuevo sample — enviar tracking del anterior si estaba en reproducción */
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio || !sampleActual) return;
+
+        /* S4: Si había un sample previo reproduciéndose, enviar tracking parcial */
+        if (samplePrevioRef.current && samplePrevioRef.current.id !== sampleActual.id) {
+            enviarTrackingReproduccion(
+                samplePrevioRef.current.id,
+                audio.currentTime || 0,
+                false
+            );
+        }
+        samplePrevioRef.current = sampleActual;
 
         const urlAudio = sampleActual.rutaPreview ?? '';
         if (urlAudio && audio.src !== urlAudio) {
