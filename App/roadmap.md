@@ -120,6 +120,14 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 > - **Tendencias sin sesgo edad:** Normalización por máximos absolutos de ventana en vez de horas_desde_publicación.
 > - **samples_similares:** Tags/género dominan (0.55), técnico reducido (0.10).
 
+#### Sesión AG-ALG S4: Calidad reproducciones + saturación dinámica + tracking (6 cambios)
+> - **Clasificación calidad reproducciones:** Cada play clasificada como ignorada (<1s, peso 0), rápida (browsing, peso 0.30) o significativa (umbral adaptativo, peso 1.0). Umbrales: corto <=20s→50%, medio 20-60s→30%/min10s, largo >60s→15%/min10s.
+> - **Penalización reproducciones con SUM(peso):** Ya no cuenta plays (COUNT), pondera por calidad (SUM CASE). 3 plays rápidas pesan 0.9, no 3.0.
+> - **Penalización pasiva solo significativas:** Plays rápidas no activan dislike implícito. Solo escuchas reales cuentan para el umbral.
+> - **Saturación popularidad dinámica:** PERCENTILE_CONT(0.75/0.95) reemplaza valores fijos. Cache WP transient 1hr. Se adapta al crecimiento de la plataforma.
+> - **Frontend tracking duración real:** 4 hooks + utilidad centralizada (`trackingReproduccion.ts`). Envían `duracionEscuchada` y `completada` en pause, ended, track-change, cleanup. Ya no registran en play-start con datos vacíos.
+> - **Verificación intervalo_activo_min:** Confirmado funcional. `ultima_actividad = NOW()` en cada incrementarContador(). PlanificadorAlgoritmo compara contra 600s.
+
 - [ ] **11.1** Contexto DAW — datos mezclador en señales (afinidad cruzada)
 - [ ] **11.2** Embeddings mejorados — espectrograma mel (Essentia/librosa) reemplazando tags hasheados (106 slots CRC32)
 - [x] **11.3** ~~User embeddings dedicados — vector separado, decay temporal~~ **PARCIAL:** Decay temporal implementado (EXP(-dias/30)) en interacciones para perfil. Vector separado pendiente.
@@ -135,6 +143,13 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 - [Serendipia]: pgvector BETWEEN en distancia coseno funciona nativo. Fallback random con filtro de engagement es suficiente.
 - [Penalizaciones]: Multiplicativas (post-score) > aditivas para penalties que modifican el scoring sin romper la suma=1.0.
 - [samples_similares]: El path pgvector ya es correcto (tags dominan 106/128 dims). Solo el fallback necesitaba rebalanceo.
+
+**Aprendizajes S4:**
+- [Tracking]: Backend debounce 30s (buscarRecientePorUsuario) funciona bien para el patrón "registrar al finalizar". No hace falta registro al iniciar play.
+- [Clasificación]: Umbrales adaptativos por duración del sample evitan tratar un sample de 5s igual que uno de 2min. CASE en SQL con subconsulta a s.duracion.
+- [Saturación]: PERCENTILE_CONT es nativo PostgreSQL, no requiere extensiones. Cache en WP transient evita recalcular en cada query.
+- [Frontend]: La utilidad centralizada `trackingReproduccion.ts` simplifica los 4 hooks — una función, un umbral mínimo, best-effort.
+- [Actividad]: `intervalo_activo_min` funciona correctamente via `ultima_actividad = NOW()` en incrementarContador(). No requiere cambios.
 
 ### FASE 12 — SEO/Performance/Hardening
 
@@ -645,6 +660,7 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Build WDAC]: OneDrive sincroniza `target/` → WDAC bloquea build-script-build.exe (os error 4551). Fix: `.cargo/config.toml` con `target-dir = "C:\\cargo-target\\kamples"` redirige fuera de OneDrive. Bundles en `C:\cargo-target\kamples\release\bundle\`.
 - [Sync window standalone]: Multiwindow Tauri: `sync.html` + `sync.tsx` como entry point separado. `tauri.conf.json` define window `sync-panel` (frameless, always-on-top, skip-taskbar, hidden). Rust `mostrar_ventana_sync()` posiciona en esquina inferior derecha (`monitor.size() - ventana - margen - 48px taskbar`). VentanaSincPanel usa `data-tauri-drag-region` + `-webkit-app-region: drag` para barra superior. `getCurrentWindow().hide()` en vez de destruir. `onFocusChanged` re-abre panel store al mostrar. `principal.json` capabilities: `["main", "sync-panel"]`.
 - [MPA Vite]: `rollupOptions.input` acepta múltiples HTML entries. Cada entry tiene su propio CSS bundle + JS chunk tree. Sync window importa `@/index.css` directamente para tener variables CSS.
+- [Sync window bugs]: `window-state` plugin restaura visibilidad de sesiones previas → `with_denylist(&["sync-panel"])` excluye del state save/restore. `focus: false` en tauri.conf.json previene auto-foco al crear. `onFocusChanged` con `ventana.hide()` en blur cierra al click fuera. sync.tsx NO debe llamar `inicializarDesktop()` completo — solo `configurarApiDesktop()` + `inicializarSyncService()`. `@source` en index.css debe incluir `desktop/src/**` para que Tailwind genere utilidades usadas en componentes desktop.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
