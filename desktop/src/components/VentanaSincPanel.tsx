@@ -56,15 +56,21 @@ export function VentanaSincPanel(): JSX.Element {
         }
     }, [cerrarPanel]);
 
-    /* Re-abrir panel al mostrar la ventana (evento focus) */
+    /* Auto-ocultar ventana al perder foco (click fuera = cerrar) */
     useEffect(() => {
         let limpiar: (() => void) | undefined;
 
         (async () => {
             try {
                 const { getCurrentWindow } = await import('@tauri-apps/api/window');
-                const desuscribir = await getCurrentWindow().onFocusChanged(({ payload: enfocado }) => {
-                    if (enfocado) {
+                const ventana = getCurrentWindow();
+                const desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
+                    if (!enfocado) {
+                        /* Perdi el foco: ocultar la ventana */
+                        useSyncStore.getState().cerrarPanel();
+                        ventana.hide().catch(() => {});
+                    } else {
+                        /* Gane el foco: asegurar que el store marca panel abierto */
                         useSyncStore.getState().abrirPanel();
                     }
                 });

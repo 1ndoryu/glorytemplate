@@ -3,11 +3,11 @@
  * Ventana Tauri independiente (sin layout ni islands system).
  * Renderiza VentanaSincPanel directamente con React.
  *
- * Estrategia cross-window:
- * Esta ventana inicializa su propia instancia del syncService.
- * Comparte el Tauri Store (persistente) con la ventana principal,
- * asi ambas leen la misma configuracion de carpeta/activa/etc.
- * El file watcher corre solo en la ventana principal.
+ * Esta ventana NO inicializa el sistema completo de islas/auth.
+ * Solo configura las dependencias minimas para el panel de sync:
+ * - CSS variables y estilos
+ * - syncService expuesto en window.__KAMPLES_SYNC__
+ * - Store Zustand compartido (en memoria, no cross-window)
  */
 
 /* CSS base: variables, reset, tailwind */
@@ -16,11 +16,11 @@ import '@/index.css';
 /* Componente standalone del panel de sincronizacion */
 import { VentanaSincPanel } from './components/VentanaSincPanel';
 
-/* Servicios desktop: solo los necesarios para sync */
-import { inicializarDesktop } from '@desktop/services/desktopService';
-
-/* Store sync — se accede fuera de React para eventos Tauri */
+/* Store sync */
 import { useSyncStore } from '@app/stores/syncStore';
+
+/* syncService — se inicializa por separado, no via desktopService completo */
+import { inicializarSyncService } from '@desktop/services/syncService';
 
 /* Exponer syncService en window para que usePanelSincronizacion funcione */
 import {
@@ -38,6 +38,9 @@ import {
     obtenerColeccionesSync,
     forzarResync,
 } from '@desktop/services/syncService';
+
+/* Configurar API base para que las requests apunten al servidor correcto */
+import { configurarApiDesktop } from '@desktop/services/apiDesktopAdapter';
 
 import { createRoot } from 'react-dom/client';
 
@@ -64,20 +67,13 @@ function configurarEntorno(): void {
 
 async function inicializar(): Promise<void> {
     configurarEntorno();
-    await inicializarDesktop();
+
+    /* Solo configurar API + sync service (no auth completo ni offline queue) */
+    configurarApiDesktop();
+    await inicializarSyncService();
 
     /* Marcar panel como abierto para que el hook cargue config/datos */
     useSyncStore.getState().abrirPanel();
-
-    /* Escuchar evento del tray para re-activar cuando se muestra la ventana */
-    try {
-        const { listen } = await import('@tauri-apps/api/event');
-        await listen('abrir-panel-sync', () => {
-            useSyncStore.getState().abrirPanel();
-        });
-    } catch {
-        /* Entorno no-Tauri — ignorar */
-    }
 
     /* Montar React */
     const contenedor = document.getElementById('sync-root');

@@ -6,7 +6,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager,
+    Manager,
 };
 
 /* Comando: obtener version de la app */
@@ -106,7 +106,6 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
  * Si no, la posiciona cerca del area de tray y la muestra.
  */
 fn mostrar_ventana_sync(app: &tauri::AppHandle) {
-    let _ = app.emit("abrir-panel-sync", ());
     if let Some(ventana) = app.get_webview_window("sync-panel") {
         if ventana.is_visible().unwrap_or(false) {
             let _ = ventana.hide();
@@ -143,7 +142,11 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         /* TO-DO: Habilitar updater cuando se genere pubkey con tauri signer */
         /* .plugin(tauri_plugin_updater::Builder::new().build()) */
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_denylist(&["sync-panel"])
+                .build(),
+        )
         .plugin(tauri_plugin_drag::init())
         /* Comandos custom */
         .invoke_handler(tauri::generate_handler![

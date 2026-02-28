@@ -38,7 +38,9 @@
         "alwaysOnTop": true,
         "skipTaskbar": true,
         "center": false,
-        "transparent": false
+        "transparent": false,
+        "closable": false,
+        "focus": false
       }
     ],
     "security": {
