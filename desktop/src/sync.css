@@ -1,0 +1,21 @@
+/*
+ * Estilos dedicados para la ventana standalone de sincronizacion.
+ * No depende de index.css global para evitar fallos de carga en MPA.
+ */
+
+@import '../../App/Assets/css/init.css';
+@import '../../App/React/styles/componentes/botonBase.css';
+@import '../../App/React/styles/componentes/sincronizacion.css';
+
+html,
+body,
+#sync-root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--fondoBase);
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+}

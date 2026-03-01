@@ -59,28 +59,48 @@ export function VentanaSincPanel(): JSX.Element {
     /* Auto-ocultar ventana al perder foco (click fuera = cerrar) */
     useEffect(() => {
         let limpiar: (() => void) | undefined;
+        let intervalo: ReturnType<typeof setInterval> | undefined;
 
         (async () => {
             try {
                 const { getCurrentWindow } = await import('@tauri-apps/api/window');
                 const ventana = getCurrentWindow();
+                const ocultarSiPerdioFoco = () => {
+                    useSyncStore.getState().cerrarPanel();
+                    ventana.hide().catch(() => {});
+                };
+
                 const desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
                     if (!enfocado) {
                         /* Perdi el foco: ocultar la ventana */
-                        useSyncStore.getState().cerrarPanel();
-                        ventana.hide().catch(() => {});
+                        ocultarSiPerdioFoco();
                     } else {
                         /* Gane el foco: asegurar que el store marca panel abierto */
                         useSyncStore.getState().abrirPanel();
                     }
                 });
+
+                /* Fallback robusto: algunos entornos no disparan onFocusChanged consistentemente */
+                intervalo = setInterval(() => {
+                    ventana.isFocused()
+                        .then(enfocado => {
+                            if (!enfocado && useSyncStore.getState().panelAbierto) {
+                                ocultarSiPerdioFoco();
+                            }
+                        })
+                        .catch(() => {});
+                }, 180);
+
                 limpiar = desuscribir;
             } catch {
                 /* Entorno no-Tauri */
             }
         })();
 
-        return () => { limpiar?.(); };
+        return () => {
+            limpiar?.();
+            if (intervalo) clearInterval(intervalo);
+        };
     }, []);
 
     return (

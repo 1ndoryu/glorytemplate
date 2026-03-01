@@ -10,8 +10,8 @@
  * - Store Zustand compartido (en memoria, no cross-window)
  */
 
-/* CSS base: variables, reset, tailwind */
-import '@/index.css';
+/* CSS dedicado de la ventana sync */
+import './sync.css';
 
 /* Componente standalone del panel de sincronizacion */
 import { VentanaSincPanel } from './components/VentanaSincPanel';
