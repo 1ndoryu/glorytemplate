@@ -11,7 +11,7 @@
  */
 
 /* Variables + estilos de UI reutilizados */
-import '../../App/Assets/css/init.css';
+import '@app/styles/variables.css';
 import '@app/styles/componentes/botonBase.css';
 import '@app/styles/componentes/sincronizacion.css';
 
