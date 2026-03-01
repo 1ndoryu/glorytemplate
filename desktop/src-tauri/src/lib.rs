@@ -6,7 +6,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Manager, WindowEvent,
 };
 
 /* Comando: obtener version de la app */
@@ -159,6 +159,17 @@ pub fn run() {
         /* Setup: tray icon */
         .setup(|app| {
             configurar_tray(app)?;
+
+            /* Cerrar popup sync al perder foco (click fuera) en backend */
+            if let Some(ventana_sync) = app.get_webview_window("sync-panel") {
+                let ventana_sync_handle = ventana_sync.clone();
+                ventana_sync.on_window_event(move |evento| {
+                    if let WindowEvent::Focused(false) = evento {
+                        let _ = ventana_sync_handle.hide();
+                    }
+                });
+            }
+
             Ok(())
         })
         .run(tauri::generate_context!())

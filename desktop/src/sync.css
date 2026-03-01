@@ -1,11 +1,7 @@
 /*
- * Estilos dedicados para la ventana standalone de sincronizacion.
- * No depende de index.css global para evitar fallos de carga en MPA.
+ * Estilos shell de la ventana standalone de sincronizacion.
+ * Los estilos de componentes y variables se importan desde sync.tsx.
  */
-
-@import '../../App/Assets/css/init.css';
-@import '../../App/React/styles/componentes/botonBase.css';
-@import '../../App/React/styles/componentes/sincronizacion.css';
 
 html,
 body,

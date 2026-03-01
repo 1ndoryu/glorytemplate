@@ -39,8 +39,7 @@
         "skipTaskbar": true,
         "center": false,
         "transparent": false,
-        "closable": false,
-        "focus": false
+        "closable": false
       }
     ],
     "security": {

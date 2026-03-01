@@ -10,7 +10,12 @@
  * - Store Zustand compartido (en memoria, no cross-window)
  */
 
-/* CSS dedicado de la ventana sync */
+/* Variables + estilos de UI reutilizados */
+import '../../App/Assets/css/init.css';
+import '@app/styles/componentes/botonBase.css';
+import '@app/styles/componentes/sincronizacion.css';
+
+/* CSS shell de la ventana sync */
 import './sync.css';
 
 /* Componente standalone del panel de sincronizacion */
