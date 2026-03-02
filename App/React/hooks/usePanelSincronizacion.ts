@@ -35,6 +35,7 @@ interface KamplesSync {
     obtenerColeccionesSync?: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
     forzarResync?: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
     haySyncEnCurso?: () => boolean;
+    limpiarHistorialSync?: () => Promise<void>;
 }
 
 /* Tipo del objeto expuesto en window.__KAMPLES_UPLOAD__ para cola de subidas */
@@ -258,6 +259,17 @@ export const usePanelSincronizacion = () => {
         }
     }, [setEstado]);
 
+    const limpiarHistorialLocal = useCallback(async () => {
+        const srv = obtenerSync();
+        if (!srv?.limpiarHistorialSync) return;
+        try {
+            await srv.limpiarHistorialSync();
+            setHistorial([]);
+        } catch {
+            setEstado('error', 'Error al limpiar el historial');
+        }
+    }, [setHistorial, setEstado]);
+
     /* Helper: ejecutar sync con progreso.
      * Envuelve fnSync en try-catch para que un error siempre
      * transite el estado a 'error' y nunca deje el spinner congelado. */
@@ -376,6 +388,7 @@ export const usePanelSincronizacion = () => {
         alternarSincronizacion,
         sincronizarAhora,
         forzarResyncAhora,
+        limpiarHistorialLocal,
     };
 };
 

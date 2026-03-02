@@ -33,6 +33,8 @@ interface Window {
         obtenerHistorialSync: (limite?: number) => Array<{ tipo: string; descripcion: string; sampleId?: number; coleccionId?: number; timestamp: number }>;
         obtenerColeccionesSync: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
         forzarResync: (onProgreso?: (progreso: { actual: number; total: number; sampleId: number; nombre: string; estado: 'descargando' | 'descargado' | 'error'; tamano?: number; ruta?: string }) => void) => Promise<{ nuevos: number; eliminados: number }>;
+        haySyncEnCurso: () => boolean;
+        limpiarHistorialSync: () => Promise<void>;
     };
     __KAMPLES_UPLOAD__?: {
         obtenerEstadoCola: () => { items: unknown[]; totalPendientes: number; totalErrores: number; procesando: boolean };

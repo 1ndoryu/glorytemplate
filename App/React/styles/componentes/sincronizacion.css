@@ -509,6 +509,7 @@
 
 .ventanaSincPanelMinimal {
     border: 1px solid var(--bordeSutil);
+    box-shadow: none;
 }
 
 .sincPanelMinimalTop {
@@ -517,20 +518,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--bordeSutil);
-    padding: 0 var(--espacioSm);
+    padding: 8px var(--espacioLg);
 }
 
 .sincPanelPerfilBloque {
     display: inline-flex;
     align-items: center;
-    gap: var(--espacioXs);
+    gap: var(--espacioSm);
     -webkit-app-region: no-drag;
 }
 
 .sincPanelPerfilAvatar {
-    width: 20px;
-    height: 20px;
+    width: 26px;
+    height: 26px;
     border-radius: var(--radioFull);
     object-fit: cover;
 }
@@ -539,13 +539,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--fuenteXs);
+    font-size: var(--fuenteMd);
     color: var(--textoPrimarioInverso);
     background: var(--acento);
 }
 
 .sincPanelPerfilNombre {
-    font-size: var(--fuenteXs);
+    font-size: var(--fuenteMd);
     color: var(--textoPrimario);
     max-width: 140px;
     overflow: hidden;
@@ -592,6 +592,14 @@
     font-size: var(--fuenteXs);
 }
 
+.sincPanelMinimalMenuItemPeligro {
+    color: var(--error);
+}
+
+.sincPanelMinimalMenuItemPeligro:hover {
+    background-color: color-mix(in srgb, var(--error) 12%, transparent);
+}
+
 .sincPanelMinimalContenido {
     padding: 0;
 }
@@ -601,6 +609,26 @@
     flex-direction: column;
     height: 100%;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--bordeSutil) var(--fondoBase);
+}
+
+.sincPanelHistorialMinimal::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.sincPanelHistorialMinimal::-webkit-scrollbar-track {
+    background: var(--fondoBase);
+}
+
+.sincPanelHistorialMinimal::-webkit-scrollbar-thumb {
+    background: var(--bordeSutil);
+    border-radius: var(--radioFull);
+}
+
+.sincPanelHistorialMinimal::-webkit-scrollbar-thumb:hover {
+    background: var(--bordeActivo);
 }
 
 .sincPanelHistorialVacio {
@@ -613,8 +641,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    padding: var(--espacioSm) var(--espacioMd);
-    border-bottom: 1px solid var(--bordeSutil);
+    padding: var(--espacioSm) var(--espacioLg);
 }
 
 .sincPanelHistorialMedia {
@@ -622,8 +649,8 @@
 }
 
 .sincPanelHistorialThumb {
-    width: 26px;
-    height: 26px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radioSm);
     object-fit: cover;
     background: var(--fondoElevado3);
@@ -641,7 +668,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--espacio2xs);
 }
 
 .sincPanelHistorialDescMinimal {
@@ -672,9 +699,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
-    background: var(--fondoElevado2);
+    padding: 8px var(--espacioLg);
 }
 
 .sincPanelFooterEstadoMinimal {

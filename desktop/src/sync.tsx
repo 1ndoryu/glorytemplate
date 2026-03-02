@@ -43,6 +43,8 @@ import {
     obtenerHistorialSync,
     obtenerColeccionesSync,
     forzarResync,
+    haySyncEnCurso,
+    limpiarHistorialSync,
 } from '@desktop/services/syncService';
 
 /* Configurar API base para que las requests apunten al servidor correcto */
@@ -69,6 +71,8 @@ function configurarEntorno(): void {
         obtenerHistorialSync,
         obtenerColeccionesSync,
         forzarResync,
+        haySyncEnCurso,
+        limpiarHistorialSync,
     };
 }
 

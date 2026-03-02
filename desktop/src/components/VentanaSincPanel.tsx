@@ -22,6 +22,7 @@ import {
     XCircle,
     FolderSync,
     EyeOff,
+    Trash2,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
@@ -112,6 +113,7 @@ export function VentanaSincPanel(): JSX.Element {
         alternarSincronizacion,
         sincronizarAhora,
         abrirCarpetaSincronizacion,
+        limpiarHistorialLocal,
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
@@ -270,6 +272,14 @@ export function VentanaSincPanel(): JSX.Element {
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={alternarSincronizacion} type="button">
                             <PauseCircle size={14} />
                             {sincronizacionActiva ? 'Pausar sync' : 'Activar sync'}
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={alternarSincronizacion} type="button">
+                            <PauseCircle size={14} />
+                            {sincronizacionActiva ? 'Pausar sync' : 'Activar sync'}
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem sincPanelMinimalMenuItemPeligro" onClick={limpiarHistorialLocal} type="button">
+                            <Trash2 size={14} />
+                            Limpiar historial
                         </BotonBase>
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={ocultarVentana} type="button">
                             <EyeOff size={14} />

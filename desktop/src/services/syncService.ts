@@ -461,6 +461,11 @@ export function obtenerHistorialSync(limite = 50): Array<{
     return estado.trackingModule.obtenerHistorial(limite);
 }
 
+export async function limpiarHistorialSync(): Promise<void> {
+    if (!estado.trackingModule) return;
+    await estado.trackingModule.limpiarHistorial();
+}
+
 export function obtenerColeccionesSync(): Array<{
     id: number;
     nombre: string;

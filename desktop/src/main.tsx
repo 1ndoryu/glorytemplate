@@ -38,6 +38,7 @@ import {
     forzarResync,
     haySyncEnCurso,
     abrirCarpetaSync,
+    limpiarHistorialSync,
 } from '@desktop/services/syncService';
 
 /* C341: Upload queue — estado de subidas automáticas */
@@ -117,6 +118,7 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         forzarResync,
         haySyncEnCurso,
         abrirCarpetaSync,
+        limpiarHistorialSync,
     };
     /* C341: Upload queue — control de subidas automáticas */
     window.__KAMPLES_UPLOAD__ = {
