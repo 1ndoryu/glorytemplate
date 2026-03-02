@@ -365,7 +365,16 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     const enTracking = trackingModule.buscarArchivoPorRuta(ruta)
                         ?? trackingModule.buscarArchivoPorNombre(nombreArchivo);
                     if (enTracking) {
-                        console.info('[Sync] Archivo ya en tracking v2, ignorando:', nombreArchivo);
+                        if (enTracking.syncDeshabilitado) {
+                            /* El archivo fue borrado localmente y el usuario lo volvio a anadir:
+                             * limpiar el entry del tracking para que el upload lo trate como nuevo. */
+                            console.info('[Sync] Archivo re-anadido tras borrado local, re-encolando:', nombreArchivo);
+                            trackingModule.eliminarArchivo(enTracking.sampleId, enTracking.coleccionId)
+                                .then(() => encolarArchivo(ruta, nombreArchivo, carpetas))
+                                .catch(err => console.error('[Sync] Error limpiando tracking para re-encolar:', nombreArchivo, err));
+                        } else {
+                            console.info('[Sync] Archivo ya en tracking v2, ignorando:', nombreArchivo);
+                        }
                         return;
                     }
                 }

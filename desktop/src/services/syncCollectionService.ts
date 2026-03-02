@@ -30,6 +30,7 @@ import {
     iniciarLote,
     finalizarLote,
     todosLosArchivos,
+    eliminarArchivo,
     type ArchivoTracking,
     type ColeccionLocal,
 } from './syncTrackingService';
@@ -167,6 +168,23 @@ export async function sincronizarColecciones(
 ): Promise<{ nuevos: number; errores: number }> {
     const datosServidor = await obtenerColeccionesDelServidor();
     if (!datosServidor) return { nuevos: 0, errores: 0 };
+
+    /* Mantener tracking consistente: purgar entries de samples que el servidor ya no tiene.
+     * Esto permite que el watcher re-encole archivos borrados del servidor cuando el
+     * usuario los vuelva a anadir localmente. */
+    const sampleIdsServidor = new Set<number>();
+    for (const col of datosServidor.colecciones) {
+        for (const s of col.samples) sampleIdsServidor.add(s.id);
+    }
+    for (const s of datosServidor.sinColeccion) sampleIdsServidor.add(s.id);
+
+    const archivosActuales = todosLosArchivos();
+    for (const archivo of archivosActuales) {
+        if (!sampleIdsServidor.has(archivo.sampleId)) {
+            await eliminarArchivo(archivo.sampleId, archivo.coleccionId);
+            console.info('[SyncCollection] Eliminado de tracking (ya no existe en servidor):', archivo.nombreLocal, '(id:', archivo.sampleId, ')');
+        }
+    }
 
     const { mkdir, writeFile, exists, rename } = await import('@tauri-apps/plugin-fs');
     const { join } = await import('@tauri-apps/api/path');
