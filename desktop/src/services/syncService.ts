@@ -213,6 +213,32 @@ export async function registrarDescarga(
     await guardarIndice();
 }
 
+/* Registro de subidas locales */
+
+/*
+ * Registra un archivo subido desde carpeta local:
+ * - actualiza índice/tracking igual que una descarga
+ * - agrega entrada de historial tipo "subida" para feedback persistente en panel
+ */
+export async function registrarSubidaLocal(
+    sampleId: number,
+    ruta: string,
+    nombreArchivo: string,
+    coleccionId?: number | null,
+): Promise<void> {
+    await registrarDescarga(sampleId, ruta, nombreArchivo, nombreArchivo, coleccionId);
+
+    const { trackingModule } = estado;
+    if (!trackingModule) return;
+
+    await trackingModule.registrarAccion({
+        tipo: 'subida',
+        descripcion: `Archivo subido: "${nombreArchivo}"`,
+        sampleId,
+        coleccionId: coleccionId ?? undefined,
+    });
+}
+
 /* Operaciones de archivo */
 
 /*

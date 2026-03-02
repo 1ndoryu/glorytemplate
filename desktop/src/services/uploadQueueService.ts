@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarDescarga, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
+import { extraerMetadataDeRuta, registrarSubidaLocal, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
 
 const STORE_FILE = 'upload-queue.json';
@@ -275,11 +275,10 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
 
         item.sampleIdServidor = resultado.sample_id;
 
-        /* Registrar en el índice de sync para que no se re-descargue */
-        await registrarDescarga(
+        /* Registrar en tracking + historial para feedback persistente en panel */
+        await registrarSubidaLocal(
             resultado.sample_id,
             item.rutaArchivo,
-            item.nombreArchivo,
             item.nombreArchivo,
         );
 

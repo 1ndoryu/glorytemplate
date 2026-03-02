@@ -678,6 +678,7 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Sync encoding]: Archivos con doble encoding (UTF-8→Win1252→UTF-8) producen mojibake en runtime: `ó`→`Ã³`, `á`→`Ã¡`. Constantes legacy DEBEN usar escapes Unicode explícitos (`\u00c3\u00b3`) después de corregir encoding del source, si no la detección de carpetas legacy falla. `replaceAll` requiere ES2021+ — usar `split().join()` si target es ES2020.
 - [Sync state]: `ejecutarSyncConProgreso` sin try-catch interno = spinner infinito si sync lanza. `sincronizarAhora` debe pasar `{ forzar: true }` para que funcione con auto-sync pausado. `historial` en deps de useEffect que modifica historial = intervalo recreado infinitamente → usar `useRef`.
 - [Sync uploads]: `uploadQueueService.onProgresoUpload()` existe pero nadie lo consume = 0 feedback visual al arrastrar archivos. Conectar en el hook del panel con `useEffect`.
+- [Sync uploads historial]: Feedback en vivo NO reemplaza persistencia. Toda subida local debe registrar `trackingModule.registrarAccion({ tipo: 'subida' })` (vía `registrarSubidaLocal`) o el panel queda vacío al reabrirse aunque el upload haya ocurrido.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
