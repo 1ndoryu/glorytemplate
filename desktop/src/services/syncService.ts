@@ -213,6 +213,24 @@ export async function registrarDescarga(
     await guardarIndice();
 }
 
+/* Historial de acciones (wrapper público) */
+
+/*
+ * Registra una acción en el historial del panel de sync.
+ * Wrapper público de trackingModule.registrarAccion() para que otros servicios
+ * (uploadQueueService) puedan escribir historial sin acceso directo al tracking.
+ */
+export async function registrarAccionHistorial(datos: {
+    tipo: string;
+    descripcion: string;
+    sampleId?: number;
+    coleccionId?: number;
+}): Promise<void> {
+    const { trackingModule } = estado;
+    if (!trackingModule) return;
+    await trackingModule.registrarAccion(datos);
+}
+
 /* Registro de subidas locales */
 
 /*

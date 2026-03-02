@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarSubidaLocal, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
+import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
 
 const STORE_FILE = 'upload-queue.json';
@@ -145,6 +145,12 @@ export async function encolarArchivo(
     cola.push(item);
     await guardarCola();
 
+    /* Feedback persistente: el usuario ve que el archivo fue detectado */
+    registrarAccionHistorial({
+        tipo: 'subida_pendiente',
+        descripcion: `Archivo detectado: "${nombreArchivo}"`,
+    }).catch(() => { /* No bloquear encolamiento por fallo en historial */ });
+
     console.info('[UploadQueue] Archivo encolado:', nombreArchivo);
 
     /* Si estamos online, procesar inmediatamente */
@@ -175,6 +181,12 @@ async function procesarCola(): Promise<void> {
             emitirProgreso(siguiente);
             await guardarCola();
 
+            /* Feedback persistente: el usuario ve que la subida está en progreso */
+            await registrarAccionHistorial({
+                tipo: 'subiendo',
+                descripcion: `Subiendo: "${siguiente.nombreArchivo}"`,
+            }).catch(() => {});
+
             const exito = await subirArchivo(siguiente);
 
             if (exito) {
@@ -186,6 +198,11 @@ async function procesarCola(): Promise<void> {
                 siguiente.intentos++;
                 if (siguiente.intentos >= MAX_REINTENTOS) {
                     siguiente.estado = 'error';
+                    /* Feedback persistente: el usuario ve que la subida falló */
+                    registrarAccionHistorial({
+                        tipo: 'error_subida',
+                        descripcion: `Error al subir: "${siguiente.nombreArchivo}" — ${siguiente.ultimoError ?? 'desconocido'}`,
+                    }).catch(() => {});
                     console.error('[UploadQueue] Máximo de reintentos alcanzado:', siguiente.nombreArchivo);
                 } else {
                     siguiente.estado = 'pendiente';

@@ -47,6 +47,14 @@ import {
     limpiarHistorialSync,
 } from '@desktop/services/syncService';
 
+/* Cola de subidas — expuesto en window para feedback de uploads */
+import {
+    obtenerEstadoCola,
+    onProgresoUpload,
+    reintentarItem,
+    eliminarItemCola,
+} from '@desktop/services/uploadQueueService';
+
 /* Configurar API base para que las requests apunten al servidor correcto */
 import { configurarApiDesktop } from '@desktop/services/apiDesktopAdapter';
 
@@ -73,6 +81,14 @@ function configurarEntorno(): void {
         forzarResync,
         haySyncEnCurso,
         limpiarHistorialSync,
+    };
+    /* Cola de subidas: necesario para que usePanelSincronizacion conecte
+     * el callback de progreso de uploads y muestre feedback en vivo. */
+    window.__KAMPLES_UPLOAD__ = {
+        obtenerEstadoCola,
+        onProgresoUpload,
+        reintentarItem,
+        eliminarItemCola,
     };
 }
 

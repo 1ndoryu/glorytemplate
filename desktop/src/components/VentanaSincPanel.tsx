@@ -82,6 +82,7 @@ function obtenerIconoEntrada(entrada: EntradaHistorial): JSX.Element {
     const tipo = entrada.tipo.toLowerCase();
     if (tipo.includes('coleccion') || tipo.includes('carpeta')) return <Layers3 size={14} />;
     if (tipo.includes('error') || tipo.includes('elimin')) return <XCircle size={14} />;
+    if (tipo.includes('subiendo') || tipo.includes('pendiente')) return <Loader2 size={14} className="sincPanelSpinner" />;
     if (tipo.includes('sync') || tipo.includes('renombrado') || tipo.includes('movido')) return <RefreshCw size={14} />;
     return <Music2 size={14} />;
 }
@@ -89,6 +90,7 @@ function obtenerIconoEntrada(entrada: EntradaHistorial): JSX.Element {
 function obtenerIconoEstadoFila(entrada: EntradaHistorial): JSX.Element {
     const tipo = entrada.tipo.toLowerCase();
     if (tipo.includes('error') || tipo.includes('elimin')) return <AlertCircle size={13} />;
+    if (tipo.includes('subiendo') || tipo.includes('pendiente')) return <Loader2 size={13} className="sincPanelSpinner" />;
     if (tipo.includes('sync') || tipo.includes('movido') || tipo.includes('renombrado')) return <Loader2 size={13} className="sincPanelSpinner" />;
     return <CheckCircle2 size={13} />;
 }
@@ -268,10 +270,6 @@ export function VentanaSincPanel(): JSX.Element {
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={abrirCarpetaSincronizacion} type="button">
                             <FolderOpen size={14} />
                             Abrir carpeta
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={alternarSincronizacion} type="button">
-                            <PauseCircle size={14} />
-                            {sincronizacionActiva ? 'Pausar sync' : 'Activar sync'}
                         </BotonBase>
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={alternarSincronizacion} type="button">
                             <PauseCircle size={14} />
