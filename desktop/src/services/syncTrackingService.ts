@@ -50,11 +50,46 @@ export interface AccionHistorial {
     timestamp: number;
 }
 
+/*
+ * Modelo v2 del historial: 1 entrada por sample con estado mutable.
+ * Reemplaza el log append-only (AccionHistorial[]) con un modelo
+ * donde cada sample tiene una sola fila cuyo estado evoluciona:
+ * detectado → subiendo → sincronizado (o error).
+ *
+ * Acciones de sistema (migración, resync) no aparecen en el historial
+ * visible — solo samples reales con sampleId.
+ */
+export type EstadoSampleHistorial =
+    | 'detectado'
+    | 'subiendo'
+    | 'sincronizado'
+    | 'error'
+    | 'moviendo'
+    | 'descargando'
+    | 'descargado';
+
+export interface EntradaHistorialSample {
+    sampleId: number;
+    nombreArchivo: string;
+    estado: EstadoSampleHistorial;
+    imagenUrl: string | null;
+    rutaLocal: string | null;
+    coleccionNombre?: string;
+    timestampCreado: number;
+    timestampActualizado: number;
+    error?: string;
+}
+
 export interface BaseSyncLocal {
     archivos: Record<string, ArchivoTracking>;
     colecciones: Record<number, ColeccionLocal>;
     sinColeccion: number[];         /* IDs de samples descargados sin colección */
     historial: AccionHistorial[];
+    /*
+     * Historial v2: por sample con estado mutable (upsert por sampleId).
+     * Indexado como mapa para O(1) lookup, serializado como array para persistencia.
+     */
+    historialSamples: EntradaHistorialSample[];
 }
 
 /* Estado interno */
@@ -67,7 +102,13 @@ let datos: BaseSyncLocal = {
     colecciones: {},
     sinColeccion: [],
     historial: [],
+    historialSamples: [],
 };
+
+/* Índice en memoria para O(1) upsert en historialSamples. Clave: sampleId → índice en array.
+ * Entradas sin sampleId real (pre-upload) se indexan por nombre en indiceNombreSampleHistorial. */
+const indiceSampleHistorial = new Map<number, number>();
+const indiceNombreSampleHistorial = new Map<string, number>();
 
 /*
  * Índices secundarios para O(1) lookup por ruta y nombre.
@@ -98,8 +139,10 @@ export async function inicializarTracking(): Promise<void> {
 
         const guardado = await storeCache!.get<BaseSyncLocal>(STORE_KEY_TRACKING);
         if (guardado) {
-            datos = guardado;
+            /* Migrar estructura: añadir historialSamples si no existe en datos almacenados */
+            datos = { ...guardado, historialSamples: guardado.historialSamples ?? [] };
             reconstruirIndices();
+            reconstruirIndiceSampleHistorial();
         }
     } catch {
         /* Store no disponible — usar defaults */
@@ -135,6 +178,19 @@ function reconstruirIndices(): void {
 
     for (const id of datos.sinColeccion) {
         sinColeccionSet.add(id);
+    }
+}
+
+/* Reconstruye índice de historialSamples para O(1) upsert por sampleId */
+function reconstruirIndiceSampleHistorial(): void {
+    indiceSampleHistorial.clear();
+    indiceNombreSampleHistorial.clear();
+    for (let i = 0; i < datos.historialSamples.length; i++) {
+        const entrada = datos.historialSamples[i];
+        if (entrada.sampleId > 0) {
+            indiceSampleHistorial.set(entrada.sampleId, i);
+        }
+        indiceNombreSampleHistorial.set(entrada.nombreArchivo.toLowerCase(), i);
     }
 }
 
@@ -321,7 +377,103 @@ export function totalSinColeccion(): number {
     return datos.sinColeccion.length;
 }
 
-/* Historial */
+/* Historial per-sample (v2): upsert por sampleId con estado mutable */
+
+const MAX_HISTORIAL_SAMPLES = 100;
+
+/**
+ * Upsert: si ya existe una entrada para este sampleId (o nombreArchivo si sampleId=0),
+ * actualiza su estado. Si no existe, inserta al inicio. Persiste automáticamente.
+ *
+ * Flujo típico de upload:
+ *   1. Detectado (sampleId=0, nombre=X) → crea entrada
+ *   2. Subiendo (sampleId=0, nombre=X) → actualiza por nombre
+ *   3. Sincronizado (sampleId=REAL, nombre=X) → actualiza por nombre y fija sampleId real
+ */
+export async function actualizarEstadoSample(entrada: {
+    sampleId: number;
+    nombreArchivo: string;
+    estado: EstadoSampleHistorial;
+    imagenUrl?: string | null;
+    rutaLocal?: string | null;
+    coleccionNombre?: string;
+    error?: string;
+}): Promise<void> {
+    const ahora = Date.now();
+    const nombreNorm = entrada.nombreArchivo.toLowerCase();
+
+    /* Buscar entrada existente: primero por sampleId real, luego por nombre */
+    let idxExistente: number | undefined;
+    if (entrada.sampleId > 0) {
+        idxExistente = indiceSampleHistorial.get(entrada.sampleId);
+    }
+    if (idxExistente === undefined) {
+        idxExistente = indiceNombreSampleHistorial.get(nombreNorm);
+    }
+
+    if (idxExistente !== undefined && idxExistente < datos.historialSamples.length) {
+        /* Actualizar entrada existente */
+        const existente = datos.historialSamples[idxExistente];
+        existente.estado = entrada.estado;
+        existente.timestampActualizado = ahora;
+
+        /* Actualizar sampleId si ahora tenemos el real (era 0 y ahora es > 0) */
+        if (entrada.sampleId > 0 && existente.sampleId === 0) {
+            existente.sampleId = entrada.sampleId;
+        }
+
+        if (entrada.imagenUrl !== undefined) existente.imagenUrl = entrada.imagenUrl;
+        if (entrada.rutaLocal !== undefined) existente.rutaLocal = entrada.rutaLocal;
+        if (entrada.coleccionNombre !== undefined) existente.coleccionNombre = entrada.coleccionNombre;
+        if (entrada.error !== undefined) existente.error = entrada.error;
+        if (entrada.nombreArchivo) existente.nombreArchivo = entrada.nombreArchivo;
+
+        /* Mover al inicio para que aparezca primero (más reciente) */
+        if (idxExistente > 0) {
+            datos.historialSamples.splice(idxExistente, 1);
+            datos.historialSamples.unshift(existente);
+            reconstruirIndiceSampleHistorial();
+        }
+    } else {
+        /* Insertar nueva entrada al inicio */
+        const nueva: EntradaHistorialSample = {
+            sampleId: entrada.sampleId,
+            nombreArchivo: entrada.nombreArchivo,
+            estado: entrada.estado,
+            imagenUrl: entrada.imagenUrl ?? null,
+            rutaLocal: entrada.rutaLocal ?? null,
+            coleccionNombre: entrada.coleccionNombre,
+            timestampCreado: ahora,
+            timestampActualizado: ahora,
+            error: entrada.error,
+        };
+        datos.historialSamples.unshift(nueva);
+
+        /* Limitar tamaño */
+        if (datos.historialSamples.length > MAX_HISTORIAL_SAMPLES) {
+            datos.historialSamples = datos.historialSamples.slice(0, MAX_HISTORIAL_SAMPLES);
+        }
+
+        reconstruirIndiceSampleHistorial();
+    }
+
+    await persistir();
+}
+
+/** Obtiene el historial per-sample ordenado por última actualización. */
+export function obtenerHistorialSamples(limite = 50): EntradaHistorialSample[] {
+    return datos.historialSamples.slice(0, limite);
+}
+
+/** Limpia el historial per-sample completo. */
+export async function limpiarHistorialSamples(): Promise<void> {
+    datos.historialSamples = [];
+    indiceSampleHistorial.clear();
+    indiceNombreSampleHistorial.clear();
+    await persistir();
+}
+
+/* Historial legacy (append-only, mantenido para compatibilidad con SincPanelTabs) */
 
 export async function registrarAccion(accion: Omit<AccionHistorial, 'timestamp'>): Promise<void> {
     datos.historial.unshift({ ...accion, timestamp: Date.now() });
@@ -397,7 +549,17 @@ export async function migrarDesdeV1(): Promise<boolean> {
         reconstruirIndices();
         await persistir();
 
-        /* Registrar migración en historial */
+        /* Eliminar clave v1 para que la migración no se repita en futuros reinicios.
+         * Sin esto, si el store v2 falla al cargar en algún reinicio, la presencia
+         * de sync_indice vuelve a trigger la migración produciendo duplicados. */
+        try {
+            await store.set('sync_indice', null);
+            await store.save();
+        } catch {
+            /* No crítico: la migración ya ocurrió, el peor caso es una re-migración idempotente */
+        }
+
+        /* Registrar migración en historial legacy (no aparece en historialSamples) */
         await registrarAccion({
             tipo: 'creado',
             descripcion: `Migración v1→v2: ${indiceV1.length} archivos convertidos`,
@@ -419,10 +581,12 @@ export async function resetearTracking(): Promise<void> {
         colecciones: {},
         sinColeccion: [],
         historial: [],
+        historialSamples: [],
     };
     indiceRuta.clear();
     indiceNombre.clear();
     sinColeccionSet.clear();
+    indiceSampleHistorial.clear();
     await persistir();
 }
 

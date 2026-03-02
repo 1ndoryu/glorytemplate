@@ -32,6 +32,17 @@ interface KamplesSync {
     sincronizarConServidor: (onProgreso?: (p: ProgresoSync) => void, opciones?: { forzar?: boolean }) => Promise<{ nuevos: number; eliminados: number }>;
     /* C358 */
     obtenerHistorialSync?: (limite?: number) => Array<{ tipo: string; descripcion: string; sampleId?: number; coleccionId?: number; timestamp: number }>;
+    obtenerHistorialSamplesSync?: (limite?: number) => Array<{
+        sampleId: number;
+        nombreArchivo: string;
+        estado: 'detectado' | 'subiendo' | 'sincronizado' | 'error' | 'moviendo' | 'descargando' | 'descargado';
+        imagenUrl: string | null;
+        rutaLocal: string | null;
+        coleccionNombre?: string;
+        timestampCreado: number;
+        timestampActualizado: number;
+        error?: string;
+    }>;
     obtenerColeccionesSync?: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
     forzarResync?: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
     haySyncEnCurso?: () => boolean;
@@ -58,6 +69,17 @@ function historialCambioVisible(
     return anterior[0].timestamp !== siguiente[0].timestamp;
 }
 
+function historialSamplesCambioVisible(
+    anterior: Array<{ timestampActualizado: number; estado: string }>,
+    siguiente: Array<{ timestampActualizado: number; estado: string }>,
+): boolean {
+    if (anterior.length !== siguiente.length) return true;
+    if (anterior.length === 0) return false;
+    /* Detectar cambio en la entrada más reciente (timestamp o estado) */
+    return anterior[0].timestampActualizado !== siguiente[0].timestampActualizado
+        || anterior[0].estado !== siguiente[0].estado;
+}
+
 function obtenerSync(): KamplesSync | null {
     return window.__KAMPLES_SYNC__ ?? null;
 }
@@ -79,6 +101,7 @@ export const usePanelSincronizacion = () => {
     const totalArchivos = useSyncStore(s => s.totalArchivos);
     const espacioUsado = useSyncStore(s => s.espacioUsado);
     const historial = useSyncStore(s => s.historial);
+    const historialSamples = useSyncStore(s => s.historialSamples);
     const colecciones = useSyncStore(s => s.colecciones);
     const cerrarPanel = useSyncStore(s => s.cerrarPanel);
     const setTab = useSyncStore(s => s.setTab);
@@ -90,6 +113,7 @@ export const usePanelSincronizacion = () => {
     const agregarArchivo = useSyncStore(s => s.agregarArchivo);
     const actualizarArchivoEstado = useSyncStore(s => s.actualizarArchivoEstado);
     const setHistorial = useSyncStore(s => s.setHistorial);
+    const setHistorialSamples = useSyncStore(s => s.setHistorialSamples);
     const setColecciones = useSyncStore(s => s.setColecciones);
 
     /* Cargar config guardada al abrir el panel */
@@ -117,16 +141,23 @@ export const usePanelSincronizacion = () => {
             setHistorial(srv.obtenerHistorialSync(50));
         }
 
+        /* Historial per-sample v2 (principal para VentanaSincPanel) */
+        if (srv.obtenerHistorialSamplesSync) {
+            setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
+        }
+
         if (srv.obtenerColeccionesSync) {
             setColecciones(srv.obtenerColeccionesSync());
         }
-    }, [panelAbierto, setHistorial, setColecciones]);
+    }, [panelAbierto, setHistorial, setHistorialSamples, setColecciones]);
 
     /* Refresco en vivo: historial/colecciones sin recargar ventana.
      * Usa ref para la comparación de cambio, evitando que 'historial' en deps
      * recree el interval en cada actualización. */
     const historialRef = useRef(historial);
     historialRef.current = historial;
+    const historialSamplesRef = useRef(historialSamples);
+    historialSamplesRef.current = historialSamples;
 
     useEffect(() => {
         if (!panelAbierto) return;
@@ -141,6 +172,14 @@ export const usePanelSincronizacion = () => {
                     setHistorial(nuevoHistorial);
                 }
 
+                /* Refrescar historial per-sample v2 */
+                if (srv.obtenerHistorialSamplesSync) {
+                    const nuevoSamples = srv.obtenerHistorialSamplesSync(50);
+                    if (historialSamplesCambioVisible(historialSamplesRef.current, nuevoSamples)) {
+                        setHistorialSamples(nuevoSamples);
+                    }
+                }
+
                 if (srv.obtenerColeccionesSync) {
                     setColecciones(srv.obtenerColeccionesSync());
                 }
@@ -151,7 +190,7 @@ export const usePanelSincronizacion = () => {
 
         const intervalo = setInterval(refrescar, 1200);
         return () => clearInterval(intervalo);
-    }, [panelAbierto, setHistorial, setColecciones]);
+    }, [panelAbierto, setHistorial, setHistorialSamples, setColecciones]);
 
     /* Watchdog: si UI quedó en "sincronizando" pero el lock global ya terminó, normalizar estado */
     useEffect(() => {
@@ -171,6 +210,9 @@ export const usePanelSincronizacion = () => {
                 if (srv.obtenerHistorialSync) {
                     setHistorial(srv.obtenerHistorialSync(50));
                 }
+                if (srv.obtenerHistorialSamplesSync) {
+                    setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
+                }
             } catch {
                 /* Ignorar errores de verificación del lock */
             }
@@ -179,7 +221,7 @@ export const usePanelSincronizacion = () => {
         verificarEstadoReal();
         const intervalo = setInterval(verificarEstadoReal, 1200);
         return () => clearInterval(intervalo);
-    }, [panelAbierto, estado, setEstado, setProgreso, setHistorial]);
+    }, [panelAbierto, estado, setEstado, setProgreso, setHistorial, setHistorialSamples]);
 
     /* Feedback de uploads: conectar cola de subidas al estado del panel.
      * Cuando el watcher detecta un archivo arrastrado y lo sube,
@@ -199,6 +241,9 @@ export const usePanelSincronizacion = () => {
                 const srv = obtenerSync();
                 if (srv?.obtenerHistorialSync) {
                     setHistorial(srv.obtenerHistorialSync(50));
+                }
+                if (srv?.obtenerHistorialSamplesSync) {
+                    setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
                 }
                 /* Si no hay más en cola, marcar como completado */
                 if (totalEnCola <= 1) {
@@ -265,10 +310,11 @@ export const usePanelSincronizacion = () => {
         try {
             await srv.limpiarHistorialSync();
             setHistorial([]);
+            setHistorialSamples([]);
         } catch {
             setEstado('error', 'Error al limpiar el historial');
         }
-    }, [setHistorial, setEstado]);
+    }, [setHistorial, setHistorialSamples, setEstado]);
 
     /* Helper: ejecutar sync con progreso.
      * Envuelve fnSync en try-catch para que un error siempre
@@ -337,10 +383,13 @@ export const usePanelSincronizacion = () => {
             if (srv.obtenerHistorialSync) {
                 setHistorial(srv.obtenerHistorialSync(50));
             }
+            if (srv.obtenerHistorialSamplesSync) {
+                setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
+            }
         } catch {
             setEstado('error', 'Error al sincronizar');
         }
-    }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial]);
+    }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial, setHistorialSamples]);
 
     /* C358: Re-sync forzada (resetea tracking y re-descarga todo) */
     const forzarResyncAhora = useCallback(async () => {
@@ -355,14 +404,17 @@ export const usePanelSincronizacion = () => {
                 'completado',
                 `Re-sync completa: ${resultado.nuevos} archivos descargados`,
             );
-            /* Refrescar historial si estamos en esa tab */
+            /* Refrescar historial */
             if (srv.obtenerHistorialSync) {
                 setHistorial(srv.obtenerHistorialSync(50));
+            }
+            if (srv.obtenerHistorialSamplesSync) {
+                setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
             }
         } catch {
             setEstado('error', 'Error al forzar re-sync');
         }
-    }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial]);
+    }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial, setHistorialSamples]);
 
     const espacioFormateado = formatearTamano(espacioUsado);
     const ultimaSyncFormateada = ultimaSync > 0 ? formatearTiempoRelativo(ultimaSync) : 'Nunca';
@@ -380,6 +432,7 @@ export const usePanelSincronizacion = () => {
         espacioFormateado,
         ultimaSyncFormateada,
         historial,
+        historialSamples,
         colecciones,
         cerrarPanel,
         cambiarTab,

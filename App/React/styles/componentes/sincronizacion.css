@@ -644,6 +644,22 @@
     padding: var(--espacioSm) var(--espacioLg);
 }
 
+/* Items clickables (con rutaLocal) muestran cursor pointer y hover */
+.sincPanelHistorialClickable {
+    cursor: pointer;
+    transition: background-color var(--transicionRapida);
+}
+
+.sincPanelHistorialClickable:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.sincPanelHistorialClickable:focus-visible {
+    outline: 2px solid var(--acento);
+    outline-offset: -2px;
+    border-radius: var(--radioSm);
+}
+
 .sincPanelHistorialMedia {
     flex-shrink: 0;
 }
@@ -683,6 +699,43 @@
     color: var(--textoTerciario);
     font-size: var(--fuenteXs);
     flex-shrink: 0;
+}
+
+/* Etiqueta de estado debajo del nombre del archivo */
+.sincPanelHistorialEstadoLabel {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sincPanelHistorialEstadoLabel.sincPanelEstadoError {
+    color: var(--error);
+}
+
+.sincPanelHistorialEstadoLabel.sincPanelEstadoProgreso {
+    color: var(--acento);
+}
+
+.sincPanelHistorialEstadoLabel.sincPanelEstadoOk {
+    color: var(--exito);
+}
+
+/* Flecha de navegacion: visible solo en hover del item clickable */
+.sincPanelHistorialNavegar {
+    width: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
+}
+
+.sincPanelHistorialClickable:hover .sincPanelHistorialNavegar {
+    opacity: 1;
 }
 
 .sincPanelHistorialEstadoFinal {

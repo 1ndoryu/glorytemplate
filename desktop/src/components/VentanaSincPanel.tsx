@@ -17,17 +17,16 @@ import {
     PauseCircle,
     CircleDotDashed,
     Music2,
-    Layers3,
     RefreshCw,
-    XCircle,
     FolderSync,
     EyeOff,
     Trash2,
+    ArrowRight,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
 import { useSyncStore } from '@app/stores/syncStore';
-import type { EntradaHistorial } from '@app/stores/syncStore';
+import type { EntradaHistorialSample, EstadoSampleHistorial } from '@app/stores/syncStore';
 import '@app/styles/componentes/sincronizacion.css';
 
 function formatearTiempoRelativo(timestamp: number): string {
@@ -78,31 +77,60 @@ function repararMojibake(texto: string): string {
     }
 }
 
-function obtenerIconoEntrada(entrada: EntradaHistorial): JSX.Element {
-    const tipo = entrada.tipo.toLowerCase();
-    if (tipo.includes('coleccion') || tipo.includes('carpeta')) return <Layers3 size={14} />;
-    if (tipo.includes('error') || tipo.includes('elimin')) return <XCircle size={14} />;
-    if (tipo.includes('subiendo') || tipo.includes('pendiente')) return <Loader2 size={14} className="sincPanelSpinner" />;
-    if (tipo.includes('sync') || tipo.includes('renombrado') || tipo.includes('movido')) return <RefreshCw size={14} />;
-    return <Music2 size={14} />;
+/* Helpers para el historial per-sample */
+
+function etiquetaEstadoSample(estado: EstadoSampleHistorial | string): string {
+    switch (estado) {
+        case 'detectado': return 'Detectado';
+        case 'subiendo': return 'Subiendo';
+        case 'sincronizado': return 'Sincronizado';
+        case 'error': return 'Error';
+        case 'moviendo': return 'Moviendo';
+        case 'descargando': return 'Descargando';
+        case 'descargado': return 'Descargado';
+        default: return capitalizarPrimera(estado);
+    }
 }
 
-function obtenerIconoEstadoFila(entrada: EntradaHistorial): JSX.Element {
-    const tipo = entrada.tipo.toLowerCase();
-    if (tipo.includes('error') || tipo.includes('elimin')) return <AlertCircle size={13} />;
-    if (tipo.includes('subiendo') || tipo.includes('pendiente')) return <Loader2 size={13} className="sincPanelSpinner" />;
-    if (tipo.includes('sync') || tipo.includes('movido') || tipo.includes('renombrado')) return <Loader2 size={13} className="sincPanelSpinner" />;
-    return <CheckCircle2 size={13} />;
+function iconoEstadoSample(estado: EstadoSampleHistorial | string): JSX.Element {
+    switch (estado) {
+        case 'detectado': return <CircleDotDashed size={13} />;
+        case 'subiendo':
+        case 'descargando':
+        case 'moviendo':
+            return <Loader2 size={13} className="sincPanelSpinner" />;
+        case 'sincronizado':
+        case 'descargado':
+            return <CheckCircle2 size={13} />;
+        case 'error': return <AlertCircle size={13} />;
+        default: return <Music2 size={13} />;
+    }
 }
 
-function obtenerImagenEntrada(entrada: EntradaHistorial): string | null {
-    const candidato = entrada as EntradaHistorial & {
-        imagenUrl?: string;
-        miniaturaUrl?: string;
-        coverUrl?: string;
-    };
+function claseEstadoSample(estado: EstadoSampleHistorial | string): string {
+    switch (estado) {
+        case 'error': return 'sincPanelEstadoError';
+        case 'subiendo':
+        case 'descargando':
+        case 'moviendo':
+            return 'sincPanelEstadoProgreso';
+        case 'sincronizado':
+        case 'descargado':
+            return 'sincPanelEstadoOk';
+        default: return '';
+    }
+}
 
-    return candidato.imagenUrl ?? candidato.miniaturaUrl ?? candidato.coverUrl ?? null;
+/* Navegar al archivo en el explorador del sistema */
+async function abrirArchivoEnExplorador(rutaLocal: string): Promise<void> {
+    try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        /* Abrir la carpeta contenedora y seleccionar el archivo */
+        const carpeta = rutaLocal.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
+        await invoke('abrir_carpeta', { ruta: carpeta });
+    } catch {
+        /* Silencioso: entorno no-Tauri o error de permisos */
+    }
 }
 
 export function VentanaSincPanel(): JSX.Element {
@@ -110,7 +138,7 @@ export function VentanaSincPanel(): JSX.Element {
         sincronizacionActiva,
         estado,
         mensajeEstado,
-        historial,
+        historialSamples,
         elegirCarpeta,
         alternarSincronizacion,
         sincronizarAhora,
@@ -289,33 +317,51 @@ export function VentanaSincPanel(): JSX.Element {
 
             <div className="ventanaSincPanelContenido sincPanelMinimalContenido">
                 <div className="sincPanelHistorialMinimal">
-                    {historial.length === 0 ? (
+                    {historialSamples.length === 0 ? (
                         <div className="sincPanelHistorialVacio">Sin actividad reciente</div>
                     ) : (
-                        historial.map((entrada, i) => (
-                            <div key={`${entrada.timestamp}-${i}`} className="sincPanelHistorialItemMinimal">
+                        historialSamples.map((entrada) => (
+                            <div
+                                key={`${entrada.sampleId}-${entrada.nombreArchivo}`}
+                                className={`sincPanelHistorialItemMinimal ${entrada.rutaLocal ? 'sincPanelHistorialClickable' : ''}`}
+                                onClick={entrada.rutaLocal ? () => abrirArchivoEnExplorador(entrada.rutaLocal!) : undefined}
+                                role={entrada.rutaLocal ? 'button' : undefined}
+                                tabIndex={entrada.rutaLocal ? 0 : undefined}
+                                onKeyDown={entrada.rutaLocal ? (e) => { if (e.key === 'Enter') abrirArchivoEnExplorador(entrada.rutaLocal!); } : undefined}
+                            >
                                 <div className="sincPanelHistorialMedia">
-                                    {obtenerImagenEntrada(entrada) ? (
+                                    {entrada.imagenUrl ? (
                                         <img
                                             className="sincPanelHistorialThumb"
-                                            src={obtenerImagenEntrada(entrada) ?? ''}
-                                            alt="preview"
+                                            src={entrada.imagenUrl}
+                                            alt={repararMojibake(entrada.nombreArchivo)}
                                         />
                                     ) : (
                                         <div className="sincPanelHistorialThumb sincPanelHistorialThumbFallback">
-                                            {obtenerIconoEntrada(entrada)}
+                                            <Music2 size={14} />
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="sincPanelHistorialContenido">
-                                    <span className="sincPanelHistorialDescMinimal">{repararMojibake(entrada.descripcion)}</span>
-                                    <span className="sincPanelHistorialTiempoMinimal">{formatearTiempoRelativo(entrada.timestamp)}</span>
+                                    <span className="sincPanelHistorialDescMinimal">
+                                        {repararMojibake(entrada.nombreArchivo)}
+                                    </span>
+                                    <span className={`sincPanelHistorialEstadoLabel ${claseEstadoSample(entrada.estado)}`}>
+                                        {etiquetaEstadoSample(entrada.estado as EstadoSampleHistorial)}
+                                        {entrada.error ? ` — ${entrada.error}` : ''}
+                                    </span>
                                 </div>
 
                                 <div className="sincPanelHistorialEstadoFinal">
-                                    {obtenerIconoEstadoFila(entrada)}
+                                    {iconoEstadoSample(entrada.estado as EstadoSampleHistorial)}
                                 </div>
+
+                                {entrada.rutaLocal && (
+                                    <div className="sincPanelHistorialNavegar">
+                                        <ArrowRight size={12} />
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}

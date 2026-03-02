@@ -18,13 +18,30 @@ interface ArchivoSync {
     descargadoEn: number;
 }
 
-/* C358: Entrada del historial de sync */
+/* C358: Entrada del historial de sync (legacy, append-only) */
 export interface EntradaHistorial {
     tipo: string;
     descripcion: string;
     sampleId?: number;
     coleccionId?: number;
     timestamp: number;
+}
+
+/* Historial per-sample v2: 1 entrada por sample, estado mutable, imagen + click-to-navigate */
+export type EstadoSampleHistorial =
+    | 'detectado' | 'subiendo' | 'sincronizado' | 'error'
+    | 'moviendo' | 'descargando' | 'descargado';
+
+export interface EntradaHistorialSample {
+    sampleId: number;
+    nombreArchivo: string;
+    estado: EstadoSampleHistorial;
+    imagenUrl: string | null;
+    rutaLocal: string | null;
+    coleccionNombre?: string;
+    timestampCreado: number;
+    timestampActualizado: number;
+    error?: string;
 }
 
 /* C358: Info de colección sincronizada */
@@ -53,6 +70,7 @@ interface SyncStoreState {
     espacioUsado: number;
     /* C358: Historial y colecciones */
     historial: EntradaHistorial[];
+    historialSamples: EntradaHistorialSample[];
     colecciones: ColeccionSyncInfo[];
     /* Acciones */
     abrirPanel: () => void;
@@ -69,6 +87,7 @@ interface SyncStoreState {
     actualizarArchivoEstado: (sampleId: number, estado: ArchivoSync['estado']) => void;
     /* C358 */
     setHistorial: (historial: EntradaHistorial[]) => void;
+    setHistorialSamples: (historialSamples: EntradaHistorialSample[]) => void;
     setColecciones: (colecciones: ColeccionSyncInfo[]) => void;
 }
 
@@ -85,6 +104,7 @@ export const useSyncStore = create<SyncStoreState>((set) => ({
     totalArchivos: 0,
     espacioUsado: 0,
     historial: [],
+    historialSamples: [],
     colecciones: [],
 
     abrirPanel: () => set({ panelAbierto: true }),
@@ -127,5 +147,6 @@ export const useSyncStore = create<SyncStoreState>((set) => ({
     })),
 
     setHistorial: (historial) => set({ historial }),
+    setHistorialSamples: (historialSamples) => set({ historialSamples }),
     setColecciones: (colecciones) => set({ colecciones }),
 }));

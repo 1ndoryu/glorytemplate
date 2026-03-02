@@ -257,6 +257,16 @@ export async function registrarSubidaLocal(
         sampleId,
         coleccionId: coleccionId ?? undefined,
     });
+
+    /* Historial per-sample v2: marcar como sincronizado */
+    if (trackingModule.actualizarEstadoSample) {
+        await trackingModule.actualizarEstadoSample({
+            sampleId,
+            nombreArchivo,
+            estado: 'sincronizado',
+            rutaLocal: ruta,
+        });
+    }
 }
 
 /* Operaciones de archivo */
@@ -297,6 +307,17 @@ export async function moverArchivoASinColeccion(
                 descripcion: `${nombreArchivo} → Sin colección`,
                 sampleId,
             });
+
+            /* Historial per-sample v2: actualizar ruta tras mover */
+            if (trackingModule.actualizarEstadoSample) {
+                await trackingModule.actualizarEstadoSample({
+                    sampleId,
+                    nombreArchivo,
+                    estado: 'sincronizado',
+                    rutaLocal: nuevaRuta,
+                    coleccionNombre: 'Sin colección',
+                });
+            }
         }
 
         const archivoV1 = estado.indiceArchivos.find(a => a.sampleId === sampleId);
@@ -507,9 +528,52 @@ export function obtenerHistorialSync(limite = 50): Array<{
     return estado.trackingModule.obtenerHistorial(limite);
 }
 
+/**
+ * Historial per-sample v2: una entrada por sample con estado evolutivo.
+ * Usado por VentanaSincPanel para mostrar historial con imagen y click-to-navigate.
+ */
+export function obtenerHistorialSamplesSync(limite = 50): Array<{
+    sampleId: number;
+    nombreArchivo: string;
+    estado: 'detectado' | 'subiendo' | 'sincronizado' | 'error' | 'moviendo' | 'descargando' | 'descargado';
+    imagenUrl: string | null;
+    rutaLocal: string | null;
+    coleccionNombre?: string;
+    timestampCreado: number;
+    timestampActualizado: number;
+    error?: string;
+}> {
+    if (!estado.trackingModule?.obtenerHistorialSamples) return [];
+    return estado.trackingModule.obtenerHistorialSamples(limite);
+}
+
+/**
+ * Upsert en historial per-sample: actualiza el estado de un sample existente
+ * o crea nueva entrada. Un sample = una fila, estado mutable.
+ */
+export async function actualizarEstadoSampleHistorial(datos: {
+    sampleId: number;
+    nombreArchivo: string;
+    estado: string;
+    imagenUrl?: string | null;
+    rutaLocal?: string | null;
+    coleccionNombre?: string;
+    error?: string;
+}): Promise<void> {
+    const { trackingModule } = estado;
+    if (!trackingModule?.actualizarEstadoSample) return;
+    await trackingModule.actualizarEstadoSample(
+        datos as Parameters<typeof trackingModule.actualizarEstadoSample>[0],
+    );
+}
+
 export async function limpiarHistorialSync(): Promise<void> {
     if (!estado.trackingModule) return;
     await estado.trackingModule.limpiarHistorial();
+    /* Limpiar también historial per-sample v2 */
+    if (estado.trackingModule.limpiarHistorialSamples) {
+        await estado.trackingModule.limpiarHistorialSamples();
+    }
 }
 
 export function obtenerColeccionesSync(): Array<{

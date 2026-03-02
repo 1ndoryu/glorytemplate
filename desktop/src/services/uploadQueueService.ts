@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
+import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
 
 const STORE_FILE = 'upload-queue.json';
@@ -145,7 +145,15 @@ export async function encolarArchivo(
     cola.push(item);
     await guardarCola();
 
-    /* Feedback persistente: el usuario ve que el archivo fue detectado */
+    /* Historial per-sample: entrada inicial "detectado" (se actualiza a subiendo/sincronizado) */
+    actualizarEstadoSampleHistorial({
+        sampleId: 0, /* Temporal: se actualiza con sampleId real tras upload exitoso */
+        nombreArchivo,
+        estado: 'detectado',
+        rutaLocal: rutaArchivo,
+    }).catch(() => { /* No bloquear encolamiento por fallo en historial */ });
+
+    /* Historial legacy para compatibilidad */
     registrarAccionHistorial({
         tipo: 'subida_pendiente',
         descripcion: `Archivo detectado: "${nombreArchivo}"`,
@@ -181,10 +189,16 @@ async function procesarCola(): Promise<void> {
             emitirProgreso(siguiente);
             await guardarCola();
 
-            /* Historial persistente solo en primer intento.
-             * Reintentos no escriben nuevas entradas para no inundar el panel.
-             * El footer muestra estado en vivo via emitirProgreso. */
+            /* Historial per-sample: actualizar a "subiendo" (upsert, no nueva entrada) */
             if (siguiente.intentos === 0) {
+                await actualizarEstadoSampleHistorial({
+                    sampleId: 0,
+                    nombreArchivo: siguiente.nombreArchivo,
+                    estado: 'subiendo',
+                    rutaLocal: siguiente.rutaArchivo,
+                }).catch(() => {});
+
+                /* Historial legacy para compatibilidad */
                 await registrarAccionHistorial({
                     tipo: 'subiendo',
                     descripcion: `Subiendo: "${siguiente.nombreArchivo}"`,
@@ -202,7 +216,16 @@ async function procesarCola(): Promise<void> {
                 siguiente.intentos++;
                 if (siguiente.intentos >= MAX_REINTENTOS) {
                     siguiente.estado = 'error';
-                    /* Feedback persistente: el usuario ve que la subida falló */
+                    /* Historial per-sample: marcar como error */
+                    actualizarEstadoSampleHistorial({
+                        sampleId: 0,
+                        nombreArchivo: siguiente.nombreArchivo,
+                        estado: 'error',
+                        rutaLocal: siguiente.rutaArchivo,
+                        error: siguiente.ultimoError ?? 'Máximo de reintentos alcanzado',
+                    }).catch(() => {});
+
+                    /* Historial legacy para compatibilidad */
                     registrarAccionHistorial({
                         tipo: 'error_subida',
                         descripcion: `Error al subir: "${siguiente.nombreArchivo}" — ${siguiente.ultimoError ?? 'desconocido'}`,
@@ -302,6 +325,18 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             item.rutaArchivo,
             item.nombreArchivo,
         );
+
+        /* Intentar obtener imagen de portada del sample recién subido (no bloquea el flujo) */
+        obtenerImagenSampleDesdeServidor(resultado.sample_id).then(imagenUrl => {
+            if (imagenUrl) {
+                actualizarEstadoSampleHistorial({
+                    sampleId: resultado.sample_id!,
+                    nombreArchivo: item.nombreArchivo,
+                    estado: 'sincronizado',
+                    imagenUrl,
+                }).catch(() => {});
+            }
+        }).catch(() => { /* No bloquear flujo si falla obtener imagen */ });
 
         /*
          * Asignar carpeta en el servidor basada en la ubicación local.
@@ -585,4 +620,24 @@ export async function eliminarItemCola(itemId: string): Promise<void> {
 export async function limpiarCompletados(): Promise<void> {
     cola = cola.filter(i => i.estado !== 'completado');
     await guardarCola();
+}
+
+/*
+ * Obtiene la imagen de portada de un sample desde la API.
+ * Usado después del upload para enriquecer el historial con la imagen.
+ * No bloquea el flujo principal — llamado en segundo plano.
+ */
+async function obtenerImagenSampleDesdeServidor(sampleId: number): Promise<string | null> {
+    try {
+        const baseUrl = obtenerBaseUrlSync();
+        if (!baseUrl) return null;
+
+        const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${sampleId}`);
+        if (!respuesta.ok) return null;
+
+        const data = await respuesta.json() as { imagenUrl?: string | null; imagen_url?: string | null };
+        return data.imagenUrl ?? data.imagen_url ?? null;
+    } catch {
+        return null;
+    }
 }

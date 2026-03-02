@@ -34,6 +34,7 @@ import {
     obtenerSamplesNoSincronizados,
     /* C358: Historial y resync */
     obtenerHistorialSync,
+    obtenerHistorialSamplesSync,
     obtenerColeccionesSync,
     forzarResync,
     haySyncEnCurso,
@@ -114,6 +115,7 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         obtenerSamplesNoSincronizados,
         /* C358: Historial y resync forzada */
         obtenerHistorialSync,
+        obtenerHistorialSamplesSync,
         obtenerColeccionesSync,
         forzarResync,
         haySyncEnCurso,
