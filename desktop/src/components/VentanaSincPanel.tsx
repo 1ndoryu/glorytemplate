@@ -7,54 +7,40 @@
  * y el boton cerrar oculta la ventana (no la destruye).
  */
 
-import { useCallback, useEffect } from 'react';
-import { FolderSync, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { AlertCircle, CheckCircle2, EllipsisVertical, FolderOpen, Loader2, PauseCircle } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
 import { useSyncStore } from '@app/stores/syncStore';
-import type { TabSync } from '@app/stores/syncStore';
-import { TabEstadoSync, TabHistorialSync, TabColeccionesSync } from '@app/components/desktop/SincPanelTabs';
 import '@app/styles/componentes/sincronizacion.css';
 
-/* Tabs identicos al panel embebido */
-const TABS: { id: TabSync; label: string }[] = [
-    { id: 'estado', label: 'Estado' },
-    { id: 'historial', label: 'Historial' },
-    { id: 'colecciones', label: 'Colecciones' },
-];
+function formatearTiempoRelativo(timestamp: number): string {
+    const seg = Math.floor((Date.now() - timestamp) / 1000);
+    if (seg < 60) return 'ahora';
+    const min = Math.floor(seg / 60);
+    if (min < 60) return `${min}m`;
+    const horas = Math.floor(min / 60);
+    if (horas < 24) return `${horas}h`;
+    return `${Math.floor(horas / 24)}d`;
+}
+
+function iconoEstado(estado: string): JSX.Element {
+    switch (estado) {
+        case 'sincronizando': return <Loader2 size={14} className="sincPanelSpinner" />;
+        case 'completado': return <CheckCircle2 size={14} />;
+        case 'error': return <AlertCircle size={14} />;
+        case 'pausado': return <PauseCircle size={14} />;
+        default: return <Loader2 size={14} />;
+    }
+}
 
 export function VentanaSincPanel(): JSX.Element {
     const {
-        tabActual,
-        carpetaLocal,
-        sincronizacionActiva,
         estado,
         mensajeEstado,
-        archivos,
-        totalArchivos,
-        espacioFormateado,
-        ultimaSyncFormateada,
         historial,
-        colecciones,
-        cambiarTab,
-        elegirCarpeta,
-        alternarSincronizacion,
-        sincronizarAhora,
-        forzarResyncAhora,
+        abrirCarpetaSincronizacion,
     } = usePanelSincronizacion();
-
-    const cerrarPanel = useSyncStore(s => s.cerrarPanel);
-
-    /* Ocultar ventana Tauri en vez de destruirla */
-    const ocultarVentana = useCallback(async () => {
-        cerrarPanel();
-        try {
-            const { getCurrentWindow } = await import('@tauri-apps/api/window');
-            await getCurrentWindow().hide();
-        } catch {
-            /* Fallback si no estamos en Tauri */
-        }
-    }, [cerrarPanel]);
 
     /* Auto-ocultar ventana al perder foco (click fuera = cerrar) */
     useEffect(() => {
@@ -104,67 +90,48 @@ export function VentanaSincPanel(): JSX.Element {
     }, []);
 
     return (
-        <div className="ventanaSincPanel">
-            {/* Barra superior draggable (reemplaza decorations del OS) */}
-            <div className="ventanaSincPanelBarra" data-tauri-drag-region>
-                <div className="sincPanelTitulo">
-                    <FolderSync size={16} />
-                    <span>Sincronización</span>
-                </div>
+        <div className="ventanaSincPanel ventanaSincPanelMinimal">
+            <div className="sincPanelMinimalTop" data-tauri-drag-region>
+                <div className="sincPanelMinimalDrag" />
                 <BotonBase
                     variante="ghost"
-                    className="sincPanelCerrar"
-                    onClick={ocultarVentana}
+                    className="sincPanelMinimalMenu"
                     type="button"
-                    aria-label="Cerrar panel"
+                    aria-label="Opciones"
                 >
-                    <X size={14} />
+                    <EllipsisVertical size={14} />
                 </BotonBase>
             </div>
 
-            {/* Tabs */}
-            <div className="sincPanelTabs" role="tablist">
-                {TABS.map((tab) => (
-                    <BotonBase
-                        key={tab.id}
-                        variante="ghost"
-                        className={`sincPanelTab ${tabActual === tab.id ? 'sincPanelTab--activo' : ''}`}
-                        onClick={() => cambiarTab(tab.id)}
-                        role="tab"
-                        aria-selected={tabActual === tab.id}
-                        type="button"
-                    >
-                        {tab.label}
-                    </BotonBase>
-                ))}
+            <div className="ventanaSincPanelContenido sincPanelMinimalContenido">
+                <div className="sincPanelHistorialMinimal">
+                    {historial.length === 0 ? (
+                        <div className="sincPanelHistorialVacio">Sin actividad reciente</div>
+                    ) : (
+                        historial.map((entrada, i) => (
+                            <div key={`${entrada.timestamp}-${i}`} className="sincPanelHistorialItemMinimal">
+                                <span className="sincPanelHistorialDescMinimal">{entrada.descripcion}</span>
+                                <span className="sincPanelHistorialTiempoMinimal">{formatearTiempoRelativo(entrada.timestamp)}</span>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
 
-            {/* Contenido por tab */}
-            <div className="ventanaSincPanelContenido">
-                {tabActual === 'estado' && (
-                    <TabEstadoSync
-                        estado={estado}
-                        mensajeEstado={mensajeEstado}
-                        ultimaSyncFormateada={ultimaSyncFormateada}
-                        carpetaLocal={carpetaLocal}
-                        sincronizacionActiva={sincronizacionActiva}
-                        archivos={archivos}
-                        totalArchivos={totalArchivos}
-                        espacioFormateado={espacioFormateado}
-                        elegirCarpeta={elegirCarpeta}
-                        alternarSincronizacion={alternarSincronizacion}
-                        sincronizarAhora={sincronizarAhora}
-                        forzarResyncAhora={forzarResyncAhora}
-                    />
-                )}
-
-                {tabActual === 'historial' && (
-                    <TabHistorialSync historial={historial} />
-                )}
-
-                {tabActual === 'colecciones' && (
-                    <TabColeccionesSync colecciones={colecciones} />
-                )}
+            <div className={`sincPanelFooterMinimal sincPanelIndicador--${estado}`}>
+                <div className="sincPanelFooterEstadoMinimal">
+                    {iconoEstado(estado)}
+                    <span>{mensajeEstado || estado}</span>
+                </div>
+                <BotonBase
+                    variante="ghost"
+                    className="sincPanelFooterCarpetaMinimal"
+                    onClick={abrirCarpetaSincronizacion}
+                    type="button"
+                    aria-label="Abrir carpeta de sincronización"
+                >
+                    <FolderOpen size={15} />
+                </BotonBase>
             </div>
         </div>
     );

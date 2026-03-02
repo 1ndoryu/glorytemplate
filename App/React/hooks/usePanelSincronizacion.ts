@@ -28,6 +28,7 @@ interface KamplesSync {
     elegirCarpetaSync: () => Promise<string | null>;
     toggleSincronizacion: (activa: boolean) => Promise<void>;
     obtenerConfigSync: () => { carpetaLocal: string | null; sincronizacionActiva: boolean; ultimaSync: number };
+    abrirCarpetaSync?: () => Promise<boolean>;
     sincronizarConServidor: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
     /* C358 */
     obtenerHistorialSync?: (limite?: number) => Array<{ tipo: string; descripcion: string; sampleId?: number; coleccionId?: number; timestamp: number }>;
@@ -80,18 +81,20 @@ export const usePanelSincronizacion = () => {
         }
     }, [panelAbierto, setCarpeta, setActiva, setUltimaSync]);
 
-    /* C358: Cargar historial y colecciones al cambiar de tab */
+    /* C358: Cargar historial al abrir panel (UI minimal no usa tabs) */
     useEffect(() => {
         if (!panelAbierto) return;
         const srv = obtenerSync();
         if (!srv) return;
 
-        if (tabActual === 'historial' && srv.obtenerHistorialSync) {
+        if (srv.obtenerHistorialSync) {
             setHistorial(srv.obtenerHistorialSync(50));
-        } else if (tabActual === 'colecciones' && srv.obtenerColeccionesSync) {
+        }
+
+        if (srv.obtenerColeccionesSync) {
             setColecciones(srv.obtenerColeccionesSync());
         }
-    }, [panelAbierto, tabActual, setHistorial, setColecciones]);
+    }, [panelAbierto, setHistorial, setColecciones]);
 
     /* Cambiar tab activo */
     const cambiarTab = useCallback((tab: TabSync) => {
@@ -126,6 +129,20 @@ export const usePanelSincronizacion = () => {
             setEstado('error', 'Error al cambiar sincronización');
         }
     }, [sincronizacionActiva, setActiva, setEstado]);
+
+    const abrirCarpetaSincronizacion = useCallback(async () => {
+        const srv = obtenerSync();
+        if (!srv?.abrirCarpetaSync) return;
+
+        try {
+            const ok = await srv.abrirCarpetaSync();
+            if (!ok) {
+                setEstado('error', 'No se pudo abrir la carpeta de sincronización');
+            }
+        } catch {
+            setEstado('error', 'No se pudo abrir la carpeta de sincronización');
+        }
+    }, [setEstado]);
 
     /* Helper: ejecutar sync con progreso */
     const ejecutarSyncConProgreso = useCallback(async (
@@ -181,10 +198,13 @@ export const usePanelSincronizacion = () => {
                 'completado',
                 `Sync completa: ${resultado.nuevos} nuevos, ${resultado.eliminados} eliminados`,
             );
+            if (srv.obtenerHistorialSync) {
+                setHistorial(srv.obtenerHistorialSync(50));
+            }
         } catch {
             setEstado('error', 'Error al sincronizar');
         }
-    }, [carpetaLocal, sincronizacionActiva, ejecutarSyncConProgreso, setEstado]);
+    }, [carpetaLocal, sincronizacionActiva, ejecutarSyncConProgreso, setEstado, setHistorial]);
 
     /* C358: Re-sync forzada (resetea tracking y re-descarga todo) */
     const forzarResyncAhora = useCallback(async () => {
@@ -228,6 +248,7 @@ export const usePanelSincronizacion = () => {
         cerrarPanel,
         cambiarTab,
         elegirCarpeta,
+        abrirCarpetaSincronizacion,
         alternarSincronizacion,
         sincronizarAhora,
         forzarResyncAhora,

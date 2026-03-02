@@ -135,6 +135,20 @@ export function obtenerConfigSync(): SyncConfig {
     return { ...estado.config };
 }
 
+export async function abrirCarpetaSync(): Promise<boolean> {
+    if (!esDesktop()) return false;
+    if (!estado.config.carpetaLocal) return false;
+
+    try {
+        const { open } = await import('@tauri-apps/plugin-shell');
+        await open(estado.config.carpetaLocal);
+        return true;
+    } catch (err) {
+        console.error('[Sync] Error abriendo carpeta local:', err);
+        return false;
+    }
+}
+
 /* Consultas */
 
 /*
