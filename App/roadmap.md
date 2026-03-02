@@ -679,6 +679,7 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Sync state]: `ejecutarSyncConProgreso` sin try-catch interno = spinner infinito si sync lanza. `sincronizarAhora` debe pasar `{ forzar: true }` para que funcione con auto-sync pausado. `historial` en deps de useEffect que modifica historial = intervalo recreado infinitamente → usar `useRef`.
 - [Sync uploads]: `uploadQueueService.onProgresoUpload()` existe pero nadie lo consume = 0 feedback visual al arrastrar archivos. Conectar en el hook del panel con `useEffect`.
 - [Sync uploads historial]: Feedback en vivo NO reemplaza persistencia. Toda subida local debe registrar `trackingModule.registrarAccion({ tipo: 'subida' })` (vía `registrarSubidaLocal`) o el panel queda vacío al reabrirse aunque el upload haya ocurrido.
+- [Sync window uploads]: `sync.tsx` DEBE exponer `window.__KAMPLES_UPLOAD__` igual que `main.tsx`. Sin él, `usePanelSincronizacion` obtiene `null` al llamar `obtenerUpload()` → callback de progreso nunca se registra → 0 feedback visual de subidas. Además, escribir historial persistente en CADA etapa del upload (encolado → subiendo → subido/error) porque si la subida falla (ej: entorno local sin servidor de uploads), `registrarSubidaLocal` nunca se ejecuta y el panel muestra vacío.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
