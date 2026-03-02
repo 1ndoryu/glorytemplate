@@ -478,8 +478,9 @@
     flex-direction: column;
     background-color: var(--fondoBase);
     overflow: hidden;
-    border-radius: var(--radioMd);
+    border-radius: var(--radioLg);
     border: 1px solid var(--bordeSutil);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Barra superior draggable (reemplaza titlebar del OS) */
@@ -509,7 +510,6 @@
 
 .ventanaSincPanelMinimal {
     border: 1px solid var(--bordeSutil);
-    box-shadow: none;
 }
 
 .sincPanelMinimalTop {

@@ -1,6 +1,8 @@
 /*
  * Estilos shell de la ventana standalone de sincronizacion.
  * Los estilos de componentes y variables se importan desde sync.tsx.
+ * html/body son transparentes para que el border-radius CSS sea visible
+ * (requiere transparent: true en tauri.conf.json para la ventana sync-panel).
  */
 
 html,
@@ -11,7 +13,8 @@ body,
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: var(--fondoBase);
+    /* Transparente: el fondo real esta en .ventanaSincPanel con border-radius */
+    background-color: transparent;
     color: var(--textoPrimario);
     font-family: var(--fuentePrincipal);
 }

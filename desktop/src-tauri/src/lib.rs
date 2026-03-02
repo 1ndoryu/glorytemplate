@@ -42,6 +42,84 @@ fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
         .map_err(|e| format!("Error obteniendo espacio disponible en {}: {}", ruta, e))
 }
 
+/* Comando: abrir carpeta local en el explorador del sistema */
+#[tauri::command]
+fn abrir_carpeta(ruta: String) -> Result<(), String> {
+    let path = std::path::Path::new(&ruta);
+    if !path.exists() {
+        return Err(format!("La ruta no existe: {}", ruta));
+    }
+
+    if !path.is_dir() {
+        return Err(format!("La ruta no es una carpeta: {}", ruta));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&ruta)
+            .spawn()
+            .map_err(|e| format!("Error abriendo carpeta {}: {}", ruta, e))?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&ruta)
+            .spawn()
+            .map_err(|e| format!("Error abriendo carpeta {}: {}", ruta, e))?;
+        return Ok(());
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&ruta)
+            .spawn()
+            .map_err(|e| format!("Error abriendo carpeta {}: {}", ruta, e))?;
+        return Ok(());
+    }
+}
+
+/* Comando: seleccionar un archivo en el explorador (lo resalta en su carpeta) */
+#[tauri::command]
+fn seleccionar_archivo(ruta: String) -> Result<(), String> {
+    let _path = std::path::Path::new(&ruta);
+
+    #[cfg(target_os = "windows")]
+    {
+        /* /select resalta el archivo sin abrir una nueva ventana si ya hay una */
+        let argumento = format!("/select,{}", ruta.replace('/', "\\"));
+        std::process::Command::new("explorer")
+            .arg(&argumento)
+            .spawn()
+            .map_err(|e| format!("Error seleccionando archivo {}: {}", ruta, e))?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg("-R")
+            .arg(&ruta)
+            .spawn()
+            .map_err(|e| format!("Error seleccionando archivo {}: {}", ruta, e))?;
+        return Ok(());
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        /* Linux: abrir carpeta contenedora como fallback */
+        let carpeta = _path.parent().unwrap_or(_path);
+        std::process::Command::new("xdg-open")
+            .arg(carpeta)
+            .spawn()
+            .map_err(|e| format!("Error abriendo carpeta {}: {}", ruta, e))?;
+        return Ok(());
+    }
+}
+
 /*
  * Configura el tray icon con menu contextual.
  * Left-click y "Sincronización" abren la ventana sync-panel (popup).
@@ -120,7 +198,7 @@ fn mostrar_ventana_sync(app: &tauri::AppHandle) {
                     let alto_ventana = 520.0;
                     let margen = 12.0;
                     let x = (tamano_pantalla.width as f64 / escala) - ancho_ventana - margen + (posicion_monitor.x as f64 / escala);
-                    let y = (tamano_pantalla.height as f64 / escala) - alto_ventana - margen - 48.0 + (posicion_monitor.y as f64 / escala);
+                    let y = (tamano_pantalla.height as f64 / escala) - alto_ventana - 4.0 - 48.0 + (posicion_monitor.y as f64 / escala);
                     let _ = ventana.set_position(tauri::Position::Logical(tauri::LogicalPosition::new(x, y)));
                 }
             }
@@ -155,17 +233,32 @@ pub fn run() {
             archivo_existe,
             obtener_tamano_archivo,
             obtener_espacio_disponible,
+            abrir_carpeta,
+            seleccionar_archivo,
         ])
         /* Setup: tray icon */
         .setup(|app| {
             configurar_tray(app)?;
 
-            /* Cerrar popup sync al perder foco (click fuera) en backend */
+            /* Cerrar popup sync al perder foco (click fuera).
+             * Delay de 220ms para que el toggle del tray icon tenga prioridad:
+             * si el usuario hace click en el icono de bandeja, el tray handler
+             * oculta la ventana primero; el delayed-hide aqui es no-op porque
+             * la ventana ya no esta enfocada (is_focused = false confirma). */
             if let Some(ventana_sync) = app.get_webview_window("sync-panel") {
-                let ventana_sync_handle = ventana_sync.clone();
+                let app_handle_sync = app.handle().clone();
                 ventana_sync.on_window_event(move |evento| {
                     if let WindowEvent::Focused(false) = evento {
-                        let _ = ventana_sync_handle.hide();
+                        let handle = app_handle_sync.clone();
+                        std::thread::spawn(move || {
+                            std::thread::sleep(std::time::Duration::from_millis(220));
+                            if let Some(v) = handle.get_webview_window("sync-panel") {
+                                /* Solo ocultar si sigue sin foco (evita parpadeo en toggle) */
+                                if !v.is_focused().unwrap_or(true) {
+                                    let _ = v.hide();
+                                }
+                            }
+                        });
                     }
                 });
             }

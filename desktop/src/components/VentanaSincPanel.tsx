@@ -7,7 +7,7 @@
  * y el boton cerrar oculta la ventana (no la destruye).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertCircle,
     CheckCircle2,
@@ -121,13 +121,11 @@ function claseEstadoSample(estado: EstadoSampleHistorial | string): string {
     }
 }
 
-/* Navegar al archivo en el explorador del sistema */
+/* Seleccionar un archivo en el explorador del sistema (resaltado en su carpeta) */
 async function abrirArchivoEnExplorador(rutaLocal: string): Promise<void> {
     try {
         const { invoke } = await import('@tauri-apps/api/core');
-        /* Abrir la carpeta contenedora y seleccionar el archivo */
-        const carpeta = rutaLocal.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
-        await invoke('abrir_carpeta', { ruta: carpeta });
+        await invoke('seleccionar_archivo', { ruta: rutaLocal });
     } catch {
         /* Silencioso: entorno no-Tauri o error de permisos */
     }
@@ -147,6 +145,8 @@ export function VentanaSincPanel(): JSX.Element {
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const botonMenuRef = useRef<HTMLDivElement>(null);
     const [perfilDesktop, setPerfilDesktop] = useState<{
         nombre: string;
         avatarUrl: string | null;
@@ -175,52 +175,43 @@ export function VentanaSincPanel(): JSX.Element {
 
     const estadoVisible = capitalizarPrimera(repararMojibake(mensajeEstado || estadoLabel(estado)));
 
-    /* Auto-ocultar ventana al perder foco (click fuera = cerrar) */
+    /* Cerrar menú al hacer click fuera (delegado al documento) */
     useEffect(() => {
-        let limpiar: (() => void) | undefined;
-        let intervalo: ReturnType<typeof setInterval> | undefined;
+        if (!menuAbierto) return;
+        const cerrarMenu = (e: MouseEvent) => {
+            const target = e.target as Node;
+            if (
+                menuRef.current && !menuRef.current.contains(target) &&
+                botonMenuRef.current && !botonMenuRef.current.contains(target)
+            ) {
+                setMenuAbierto(false);
+            }
+        };
+        document.addEventListener('mousedown', cerrarMenu);
+        return () => document.removeEventListener('mousedown', cerrarMenu);
+    }, [menuAbierto]);
 
+    /* Sincronizar estado del store al recibir/perder foco.
+     * El cierre de ventana por pérdida de foco lo maneja el backend Rust
+     * con un delay de 220ms para que el toggle del tray tenga prioridad. */
+    useEffect(() => {
+        let desuscribir: (() => void) | undefined;
         (async () => {
             try {
                 const { getCurrentWindow } = await import('@tauri-apps/api/window');
                 const ventana = getCurrentWindow();
-                const ocultarSiPerdioFoco = () => {
-                    useSyncStore.getState().cerrarPanel();
-                    ventana.hide().catch(() => {});
-                };
-
-                const desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
+                desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
                     if (!enfocado) {
-                        /* Perdi el foco: ocultar la ventana */
                         setMenuAbierto(false);
-                        ocultarSiPerdioFoco();
                     } else {
-                        /* Gane el foco: asegurar que el store marca panel abierto */
                         useSyncStore.getState().abrirPanel();
                     }
                 });
-
-                /* Fallback robusto: algunos entornos no disparan onFocusChanged consistentemente */
-                intervalo = setInterval(() => {
-                    ventana.isFocused()
-                        .then(enfocado => {
-                            if (!enfocado && useSyncStore.getState().panelAbierto) {
-                                ocultarSiPerdioFoco();
-                            }
-                        })
-                        .catch(() => {});
-                }, 180);
-
-                limpiar = desuscribir;
             } catch {
                 /* Entorno no-Tauri */
             }
         })();
-
-        return () => {
-            limpiar?.();
-            if (intervalo) clearInterval(intervalo);
-        };
+        return () => desuscribir?.();
     }, []);
 
     /* Cargar perfil real desde store desktop (sync window no monta auth completa) */
@@ -275,18 +266,20 @@ export function VentanaSincPanel(): JSX.Element {
 
                 <div className="sincPanelMinimalDrag" />
 
-                <BotonBase
-                    variante="ghost"
-                    className="sincPanelMinimalMenu"
-                    type="button"
-                    aria-label="Opciones"
-                    onClick={() => setMenuAbierto(v => !v)}
-                >
-                    <EllipsisVertical size={14} />
-                </BotonBase>
+                <div ref={botonMenuRef} style={{ display: 'contents' }}>
+                    <BotonBase
+                        variante="ghost"
+                        className="sincPanelMinimalMenu"
+                        type="button"
+                        aria-label="Opciones"
+                        onClick={() => setMenuAbierto(v => !v)}
+                    >
+                        <EllipsisVertical size={14} />
+                    </BotonBase>
+                </div>
 
                 {menuAbierto && (
-                    <div className="sincPanelMinimalMenuLista">
+                    <div className="sincPanelMinimalMenuLista" ref={menuRef}>
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={sincronizarAhora} type="button">
                             <FolderSync size={14} />
                             Sincronizar ahora
