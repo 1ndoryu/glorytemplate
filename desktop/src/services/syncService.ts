@@ -24,6 +24,7 @@ import {
     adquirirLockSync,
     registrarSyncActiva,
     liberarLockSync,
+    esSyncEnCurso,
 } from './syncGuards';
 import {
     estado,
@@ -135,13 +136,17 @@ export function obtenerConfigSync(): SyncConfig {
     return { ...estado.config };
 }
 
+export function haySyncEnCurso(): boolean {
+    return esSyncEnCurso();
+}
+
 export async function abrirCarpetaSync(): Promise<boolean> {
     if (!esDesktop()) return false;
     if (!estado.config.carpetaLocal) return false;
 
     try {
-        const { open } = await import('@tauri-apps/plugin-shell');
-        await open(estado.config.carpetaLocal);
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('abrir_carpeta', { ruta: estado.config.carpetaLocal });
         return true;
     } catch (err) {
         console.error('[Sync] Error abriendo carpeta local:', err);
@@ -273,9 +278,17 @@ export async function moverArchivoASinColeccion(
  */
 export async function sincronizarConServidor(
     onProgreso?: ProgressCallback,
+    opciones?: { forzar?: boolean },
 ): Promise<{ nuevos: number; eliminados: number }> {
     const { config, collectionModule } = estado;
-    if (!config.carpetaLocal || !config.sincronizacionActiva || !estaOnline()) {
+    const esForzado = opciones?.forzar ?? false;
+
+    if (!config.carpetaLocal || !estaOnline()) {
+        return { nuevos: 0, eliminados: 0 };
+    }
+
+    /* Si auto-sync está desactivada Y no es forzado, no ejecutar */
+    if (!config.sincronizacionActiva && !esForzado) {
         return { nuevos: 0, eliminados: 0 };
     }
 

@@ -582,6 +582,17 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - Frontend (main.tsx): Listener `@tauri-apps/api/event` abre panel via `useSyncStore.getState().abrirPanel()`.
 - En web: modal centrado (componente Modal existente, sin header).
 
+### Deep Fix Sync System — Auditoría completa
+> **Estado:** ✅ COMPLETADO [AG-SYN]
+
+**5 bugs críticos corregidos:**
+1. **Encoding mojibake (syncCollectionService.ts):** 41 instancias de doble encoding UTF-8→Win1252→UTF-8 corregidas (Ã³→ó, Ã¡→á, Ã©→é, â€"→—, â†"→↔, â†'→→). Constante `CARPETA_SIN_COLECCION_LEGACY` usa escapes Unicode explícitos para detectar carpetas disco con nombre corrupto.
+2. **Estado congelado en 'sincronizando' (usePanelSincronizacion.ts):** `ejecutarSyncConProgreso` ahora tiene try-catch interno — errores transitan a estado 'error' en vez de dejar spinner infinito.
+3. **Sync manual bloqueada con auto-sync pausado (syncService.ts + usePanelSincronizacion.ts):** `sincronizarConServidor` acepta `opciones?: { forzar?: boolean }`. `sincronizarAhora` pasa `{ forzar: true }` y ya no requiere `sincronizacionActiva`.
+4. **Sin feedback de uploads (usePanelSincronizacion.ts):** Nuevo `useEffect` conecta `onProgresoUpload` del upload queue al estado del panel — muestra nombre archivo, progreso, y refresca historial al completar.
+5. **Polling race + rename loop (syncWatcherSetup.ts + syncCollectionService.ts):** Guard `esSyncEnCurso()` evita que polling 60s colisione con sync manual. Caché `coleccionesNormalizadasEnSesion` evita repetir `renombrarColeccionEnServidor` cada ciclo.
+**Fix adicional:** `abrirCarpetaSync` faltaba en import/assignment de main.tsx. Intervalo historial corregido (useRef para evitar recreación infinita por ref de `historial` en deps).
+
 ---
 
 ## Notas Compactas
@@ -664,6 +675,9 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Sync minimal UI]: Ventana sync minimalista sin tabs ni header. Estructura: barra superior mínima solo con ícono `...` (derecha), cuerpo con lista de historial simple, footer fijo con estado + ícono de carpeta para abrir ruta local. Historial debe cargarse al abrir panel (no depender de tab activa). Acción abrir carpeta expuesta en `syncService` como `abrirCarpetaSync()` usando `@tauri-apps/plugin-shell`.
 - [Sync minimal UI v2]: Menú `...` funcional (Sincronizar ahora, Elegir carpeta, Abrir carpeta, Pausar/Activar sync, Ocultar panel). Topbar incluye perfil a la izquierda (avatar + nombre). Filas de historial: miniatura si existe (`imagenUrl|miniaturaUrl|coverUrl`) o icono fallback, tiempo relativo, icono de estado al final. Normalización de mojibake (`ColecciÃ³n` → `Colección`) en render. Estado footer con icono `Inactivo` dedicado (`CircleDotDashed`) y texto capitalizado.
 - [Sync perfil desktop]: `GLORY_CONTEXT.currentUser` puede venir vacío en ventana `sync` (no monta flujo auth completo). Solución: leer `auth_usuario` desde `auth.json` (Tauri Store) en `VentanaSincPanel` y usarlo como fuente principal de `nombre/avatar`, con fallback a `GLORY_CONTEXT`.
+- [Sync encoding]: Archivos con doble encoding (UTF-8→Win1252→UTF-8) producen mojibake en runtime: `ó`→`Ã³`, `á`→`Ã¡`. Constantes legacy DEBEN usar escapes Unicode explícitos (`\u00c3\u00b3`) después de corregir encoding del source, si no la detección de carpetas legacy falla. `replaceAll` requiere ES2021+ — usar `split().join()` si target es ES2020.
+- [Sync state]: `ejecutarSyncConProgreso` sin try-catch interno = spinner infinito si sync lanza. `sincronizarAhora` debe pasar `{ forzar: true }` para que funcione con auto-sync pausado. `historial` en deps de useEffect que modifica historial = intervalo recreado infinitamente → usar `useRef`.
+- [Sync uploads]: `uploadQueueService.onProgresoUpload()` existe pero nadie lo consume = 0 feedback visual al arrastrar archivos. Conectar en el hook del panel con `useEffect`.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.

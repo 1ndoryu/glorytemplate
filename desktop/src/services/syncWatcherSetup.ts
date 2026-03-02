@@ -13,7 +13,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { esDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { esDescargaEnCurso, obtenerBaseUrlSync, esSyncEnCurso } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import {
     estado,
@@ -317,6 +317,9 @@ async function actualizarRutaYCarpeta(
 async function sincronizarEstructuraCarpetas(): Promise<void> {
     const { config, collectionModule } = estado;
     if (!config.carpetaLocal || !estaOnline()) return;
+
+    /* No ejecutar polling si hay una sync completa en curso (evita race conditions) */
+    if (esSyncEnCurso()) return;
 
     if (collectionModule) {
         try {

@@ -1,12 +1,12 @@
 /*
- * Servicio: syncCollectionService â€” C355
- * LÃ³gica de mapeo colecciones del servidor â†” carpetas locales en disco.
+ * Servicio: syncCollectionService — C355
+ * Lógica de mapeo colecciones del servidor ↔ carpetas locales en disco.
  *
  * Responsabilidades:
  * - Sincronizar con el nuevo endpoint GET /me/sync/colecciones
  * - Crear/renombrar carpetas locales para colecciones
  * - Descargar samples nuevos a la carpeta correcta
- * - Detectar cambios servidor â†’ local (polling)
+ * - Detectar cambios servidor → local (polling)
  * - Sanitizar nombres de carpeta para filesystem
  *
  * NO maneja: watcher (eso es fileWatcherService), upload (uploadQueueService),
@@ -29,6 +29,7 @@ import {
     agregarSinColeccion,
     iniciarLote,
     finalizarLote,
+    todosLosArchivos,
     type ArchivoTracking,
     type ColeccionLocal,
 } from './syncTrackingService';
@@ -55,16 +56,24 @@ export interface RespuestaSyncColecciones {
 
 /* Config */
 
-const CARPETA_SIN_COLECCION = 'Sin colecciÃ³n';
+const CARPETA_SIN_COLECCION = 'Sin colecci\u00f3n';
+/* Nombre legacy que se escribió a disco cuando el source tenía encoding corrupto.
+ * ó (U+00F3) en UTF-8 = bytes C3 B3 → interpretados como Windows-1252 = Ã (U+00C3) + ³ (U+00B3).
+ * Usamos escapes Unicode explícitos para independizarnos del encoding del archivo. */
+const CARPETA_SIN_COLECCION_LEGACY = 'Sin colecci\u00c3\u00b3n';
 
-/* Caracteres no vÃ¡lidos en nombres de carpeta Windows/macOS/Linux */
+/* Caracteres no válidos en nombres de carpeta Windows/macOS/Linux */
 const REGEX_CARACTERES_INVALIDOS = /[/\\:*?"<>|]/g;
+
+/* Caché de sesión: IDs de colecciones ya normalizadas para evitar
+ * llamadas repetidas a renombrarColeccionEnServidor en cada polling (60s). */
+const coleccionesNormalizadasEnSesion = new Set<number>();
 
 /* Utilidades */
 
 /**
- * Sanitiza un nombre de colecciÃ³n para usarlo como nombre de carpeta.
- * Reemplaza caracteres invÃ¡lidos y recorta espacios.
+ * Sanitiza un nombre de colección para usarlo como nombre de carpeta.
+ * Reemplaza caracteres inválidos y recorta espacios.
  */
 export function sanitizarNombreCarpeta(nombre: string): string {
     return nombre
@@ -75,8 +84,8 @@ export function sanitizarNombreCarpeta(nombre: string): string {
 }
 
 /**
- * Resuelve conflictos de nombre de carpeta agregando sufijo numÃ©rico.
- * Si "Mi ColecciÃ³n" ya existe, retorna "Mi ColecciÃ³n (2)".
+ * Resuelve conflictos de nombre de carpeta agregando sufijo numérico.
+ * Si "Mi Colección" ya existe, retorna "Mi Colección (2)".
  */
 function resolverConflictoNombre(nombreBase: string, nombresExistentes: Set<string>): string {
     if (!nombresExistentes.has(nombreBase)) return nombreBase;
@@ -86,6 +95,14 @@ function resolverConflictoNombre(nombreBase: string, nombresExistentes: Set<stri
         sufijo++;
     }
     return `${nombreBase} (${sufijo})`;
+}
+
+function normalizarNombreColeccion(nombre: string): string {
+    const limpio = nombre.trim();
+    if (limpio === CARPETA_SIN_COLECCION_LEGACY) {
+        return CARPETA_SIN_COLECCION;
+    }
+    return limpio.split(CARPETA_SIN_COLECCION_LEGACY).join(CARPETA_SIN_COLECCION);
 }
 
 /* Fetch de colecciones */
@@ -134,14 +151,14 @@ export interface ProgresoSyncColecciones {
 export type CallbackProgresoColecciones = (progreso: ProgresoSyncColecciones) => void;
 
 /**
- * SincronizaciÃ³n completa basada en colecciones.
+ * Sincronización completa basada en colecciones.
  * 1. Obtiene colecciones del servidor
- * 2. Crea/actualiza carpetas locales por colecciÃ³n
+ * 2. Crea/actualiza carpetas locales por colección
  * 3. Descarga samples nuevos a la carpeta correspondiente
- * 4. Samples sin colecciÃ³n van a la carpeta especial "Sin colecciÃ³n"
+ * 4. Samples sin colección van a la carpeta especial "Sin colección"
  *
  * @param soloEstructura Si true, solo sincroniza carpetas (no descarga archivos).
- *   Usado por el polling periÃ³dico para evitar roundtrips de descarga cada 60s.
+ *   Usado por el polling periódico para evitar roundtrips de descarga cada 60s.
  */
 export async function sincronizarColecciones(
     carpetaBase: string,
@@ -151,7 +168,7 @@ export async function sincronizarColecciones(
     const datosServidor = await obtenerColeccionesDelServidor();
     if (!datosServidor) return { nuevos: 0, errores: 0 };
 
-    const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
+    const { mkdir, writeFile, exists, rename } = await import('@tauri-apps/plugin-fs');
     const { join } = await import('@tauri-apps/api/path');
 
     let nuevos = 0;
@@ -167,18 +184,25 @@ export async function sincronizarColecciones(
 
     const nombresUsados = new Set<string>();
 
-    /* Sincronizar colecciones del servidor â†’ carpetas locales */
+    /* Sincronizar colecciones del servidor → carpetas locales */
     for (const colServer of datosServidor.colecciones) {
+        const nombreNormalizado = normalizarNombreColeccion(colServer.nombre);
+        if (nombreNormalizado !== colServer.nombre && !coleccionesNormalizadasEnSesion.has(colServer.id)) {
+            await renombrarColeccionEnServidor(colServer.id, nombreNormalizado);
+            colServer.nombre = nombreNormalizado;
+            coleccionesNormalizadasEnSesion.add(colServer.id);
+        }
+
         const colLocal = obtenerColeccion(colServer.id);
 
         if (colLocal) {
-            /* Verificar si el nombre cambiÃ³ en el servidor */
+            /* Verificar si el nombre cambió en el servidor */
             if (colLocal.nombre !== colServer.nombre) {
                 await manejarRenombreColeccion(carpetaBase, colLocal, colServer.nombre);
             }
             nombresUsados.add(colLocal.carpetaLocal);
         } else {
-            /* ColecciÃ³n nueva del servidor â€” crear carpeta local */
+            /* Colección nueva del servidor — crear carpeta local */
             const nombreCarpeta = sanitizarNombreCarpeta(colServer.nombre);
             const nombreFinal = resolverConflictoNombre(nombreCarpeta, nombresUsados);
             nombresUsados.add(nombreFinal);
@@ -197,13 +221,59 @@ export async function sincronizarColecciones(
 
             await registrarAccion({
                 tipo: 'creado',
-                descripcion: `Carpeta creada para colecciÃ³n "${colServer.nombre}"`,
+                descripcion: `Carpeta creada para colección "${colServer.nombre}"`,
                 coleccionId: colServer.id,
             });
         }
     }
 
-    /* Asegurar carpeta "Sin colecciÃ³n" */
+    /* Normalizar carpeta legacy "Sin colección" -> "Sin colección" */
+    const rutaSinColLegacy = await join(carpetaBase, CARPETA_SIN_COLECCION_LEGACY);
+    const rutaSinColCanonical = await join(carpetaBase, CARPETA_SIN_COLECCION);
+
+    const existeLegacy = await exists(rutaSinColLegacy);
+    const existeCanonical = await exists(rutaSinColCanonical);
+
+    if (existeLegacy && !existeCanonical) {
+        try {
+            await rename(rutaSinColLegacy, rutaSinColCanonical);
+            await registrarAccion({
+                tipo: 'renombrado',
+                descripcion: `Carpeta renombrada: "${CARPETA_SIN_COLECCION_LEGACY}" → "${CARPETA_SIN_COLECCION}"`,
+            });
+        } catch (err) {
+            console.warn('[SyncCollection] No se pudo renombrar carpeta legacy Sin colección:', err);
+        }
+    }
+
+    /* Reparar rutas legacy en tracking para evitar desalineación */
+    let rutasCorregidas = 0;
+    const archivosTracking = todosLosArchivos();
+    for (const archivo of archivosTracking) {
+        if (!archivo.rutaLocal.includes(CARPETA_SIN_COLECCION_LEGACY)) continue;
+
+        const rutaCorregida = archivo.rutaLocal.replace(
+            CARPETA_SIN_COLECCION_LEGACY,
+            CARPETA_SIN_COLECCION,
+        );
+
+        if (rutaCorregida !== archivo.rutaLocal) {
+            await registrarArchivo({
+                ...archivo,
+                rutaLocal: rutaCorregida,
+            });
+            rutasCorregidas++;
+        }
+    }
+
+    if (rutasCorregidas > 0) {
+        await registrarAccion({
+            tipo: 'renombrado',
+            descripcion: `Tracking reparado: ${rutasCorregidas} ruta(s) actualizadas a "${CARPETA_SIN_COLECCION}"`,
+        });
+    }
+
+    /* Asegurar carpeta "Sin colección" */
     const rutaSinCol = await join(carpetaBase, CARPETA_SIN_COLECCION);
     try {
         await mkdir(rutaSinCol, { recursive: true });
@@ -225,7 +295,7 @@ export async function sincronizarColecciones(
     iniciarLote();
     onProgreso?.({ fase: 'descarga', actual: 0, total: totalSamples });
 
-    /* Procesar samples de cada colecciÃ³n */
+    /* Procesar samples de cada colección */
     for (const colServer of datosServidor.colecciones) {
         const colLocal = obtenerColeccion(colServer.id);
         if (!colLocal) continue;
@@ -242,7 +312,7 @@ export async function sincronizarColecciones(
         }
     }
 
-    /* Procesar samples sin colecciÃ³n */
+    /* Procesar samples sin colección */
     for (const sample of datosServidor.sinColeccion) {
         procesados++;
         const resultado = await descargarSiNecesario(
@@ -288,13 +358,13 @@ async function descargarSiNecesario(
         return 'existente';
     }
 
-    /* Verificar si existe en otra colecciÃ³n (archivo ya descargado, solo necesita tracking) */
+    /* Verificar si existe en otra colección (archivo ya descargado, solo necesita tracking) */
     const enOtraCol = buscarArchivoPorSampleId(sample.id);
     if (enOtraCol && !enOtraCol.syncDeshabilitado) {
         /*
-         * El archivo ya existe en disco por otra colecciÃ³n.
-         * Registrar nuevo tracking para esta colecciÃ³n apuntando al mismo archivo.
-         * TO-DO: Copiar archivo a la carpeta de la nueva colecciÃ³n (hardlink/copy).
+         * El archivo ya existe en disco por otra colección.
+         * Registrar nuevo tracking para esta colección apuntando al mismo archivo.
+         * TO-DO: Copiar archivo a la carpeta de la nueva colección (hardlink/copy).
          */
         await registrarArchivo({
             sampleId: sample.id,
@@ -370,7 +440,7 @@ async function descargarSiNecesario(
     }
 }
 
-/* Renombre de colecciÃ³n */
+/* Renombre de colección */
 
 async function manejarRenombreColeccion(
     carpetaBase: string,
@@ -395,17 +465,17 @@ async function manejarRenombreColeccion(
 
         await registrarAccion({
             tipo: 'renombrado',
-            descripcion: `ColecciÃ³n renombrada: "${colLocal.nombre}" â†’ "${nuevoNombreServer}"`,
+            descripcion: `Colección renombrada: "${colLocal.nombre}" → "${nuevoNombreServer}"`,
             coleccionId: colLocal.id,
         });
 
-        console.info(`[SyncCollection] ColecciÃ³n ${colLocal.id} renombrada: ${colLocal.carpetaLocal} â†’ ${nuevaCarpeta}`);
+        console.info(`[SyncCollection] Colección ${colLocal.id} renombrada: ${colLocal.carpetaLocal} → ${nuevaCarpeta}`);
     } catch (err) {
-        console.error(`[SyncCollection] Error renombrando colecciÃ³n ${colLocal.id}:`, err);
+        console.error(`[SyncCollection] Error renombrando colección ${colLocal.id}:`, err);
     }
 }
 
-/* Acciones locales â†’ servidor */
+/* Acciones locales → servidor */
 
 /**
  * Mover un sample entre colecciones en el servidor.
@@ -421,7 +491,7 @@ export async function moverSampleEntreColecciones(
     try {
         const baseUrl = obtenerBaseUrlSync();
 
-        /* Quitar de la colecciÃ³n origen */
+        /* Quitar de la colección origen */
         if (coleccionOrigenId !== null) {
             const respQuitar = await fetch(
                 `${baseUrl}/kamples/v1/colecciones/${coleccionOrigenId}/samples`,
@@ -432,11 +502,11 @@ export async function moverSampleEntreColecciones(
                 },
             );
             if (!respQuitar.ok) {
-                console.error('[SyncCollection] Error quitando sample de colecciÃ³n origen:', respQuitar.status);
+                console.error('[SyncCollection] Error quitando sample de colección origen:', respQuitar.status);
             }
         }
 
-        /* Agregar a la colecciÃ³n destino */
+        /* Agregar a la colección destino */
         if (coleccionDestinoId !== null) {
             const respAgregar = await fetch(
                 `${baseUrl}/kamples/v1/colecciones/${coleccionDestinoId}/samples`,
@@ -447,14 +517,14 @@ export async function moverSampleEntreColecciones(
                 },
             );
             if (!respAgregar.ok) {
-                console.error('[SyncCollection] Error agregando sample a colecciÃ³n destino:', respAgregar.status);
+                console.error('[SyncCollection] Error agregando sample a colección destino:', respAgregar.status);
                 return false;
             }
         }
 
         await registrarAccion({
             tipo: 'movido',
-            descripcion: `Sample ${sampleId} movido de colecciÃ³n ${coleccionOrigenId ?? 'ninguna'} a ${coleccionDestinoId ?? 'ninguna'}`,
+            descripcion: `Sample ${sampleId} movido de colección ${coleccionOrigenId ?? 'ninguna'} a ${coleccionDestinoId ?? 'ninguna'}`,
             sampleId,
             coleccionId: coleccionDestinoId ?? undefined,
         });
@@ -467,22 +537,23 @@ export async function moverSampleEntreColecciones(
 }
 
 /**
- * Crear una colecciÃ³n en el servidor a partir de carpeta local nueva.
- * Retorna el ID de la colecciÃ³n creada, o null si falla.
+ * Crear una colección en el servidor a partir de carpeta local nueva.
+ * Retorna el ID de la colección creada, o null si falla.
  */
 export async function crearColeccionDesdeLocal(nombre: string): Promise<number | null> {
     if (!estaOnline()) return null;
 
     try {
+        const nombreNormalizado = normalizarNombreColeccion(nombre);
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, descripcion: '', publica: false }),
+            body: JSON.stringify({ nombre: nombreNormalizado, descripcion: '', publica: false }),
         });
 
         if (!resp.ok) {
-            console.error('[SyncCollection] Error creando colecciÃ³n:', resp.status);
+            console.error('[SyncCollection] Error creando colección:', resp.status);
             return null;
         }
 
@@ -492,57 +563,58 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
         if (id) {
             await registrarColeccion({
                 id: Number(id),
-                nombre,
-                carpetaLocal: sanitizarNombreCarpeta(nombre),
+                nombre: nombreNormalizado,
+                carpetaLocal: sanitizarNombreCarpeta(nombreNormalizado),
                 creadaLocalmente: true,
             });
 
             await registrarAccion({
                 tipo: 'creado',
-                descripcion: `ColecciÃ³n "${nombre}" creada desde carpeta local`,
+                descripcion: `Colección "${nombreNormalizado}" creada desde carpeta local`,
                 coleccionId: Number(id),
             });
         }
 
         return id ? Number(id) : null;
     } catch (err) {
-        console.error('[SyncCollection] Error creando colecciÃ³n desde local:', err);
+        console.error('[SyncCollection] Error creando colección desde local:', err);
         return null;
     }
 }
 
 /**
- * Renombrar una colecciÃ³n en el servidor.
+ * Renombrar una colección en el servidor.
  * Se llama cuando el watcher detecta RENAME de una carpeta mapeada.
  */
 export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNombre: string): Promise<boolean> {
     if (!estaOnline()) return false;
 
     try {
+        const nombreNormalizado = normalizarNombreColeccion(nuevoNombre);
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre: nuevoNombre }),
+            body: JSON.stringify({ nombre: nombreNormalizado }),
         });
 
         if (!resp.ok) {
-            console.error('[SyncCollection] Error renombrando colecciÃ³n en servidor:', resp.status);
+            console.error('[SyncCollection] Error renombrando colección en servidor:', resp.status);
             return false;
         }
 
-        const carpetaNueva = sanitizarNombreCarpeta(nuevoNombre);
-        await actualizarNombreColeccion(coleccionId, nuevoNombre, carpetaNueva);
+        const carpetaNueva = sanitizarNombreCarpeta(nombreNormalizado);
+        await actualizarNombreColeccion(coleccionId, nombreNormalizado, carpetaNueva);
 
         await registrarAccion({
             tipo: 'renombrado',
-            descripcion: `ColecciÃ³n ${coleccionId} renombrada a "${nuevoNombre}"`,
+            descripcion: `Colección ${coleccionId} renombrada a "${nombreNormalizado}"`,
             coleccionId,
         });
 
         return true;
     } catch (err) {
-        console.error('[SyncCollection] Error renombrando colecciÃ³n en servidor:', err);
+        console.error('[SyncCollection] Error renombrando colección en servidor:', err);
         return false;
     }
 }
