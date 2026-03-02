@@ -115,6 +115,10 @@ export function VentanaSincPanel(): JSX.Element {
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [perfilDesktop, setPerfilDesktop] = useState<{
+        nombre: string;
+        avatarUrl: string | null;
+    } | null>(null);
 
     const ocultarVentana = useCallback(async () => {
         useSyncStore.getState().cerrarPanel();
@@ -130,12 +134,12 @@ export function VentanaSincPanel(): JSX.Element {
         currentUser?: { nombreVisible?: string; username?: string; avatarUrl?: string | null };
     } | undefined;
 
-    const nombreUsuario = useMemo(
-        () => contexto?.currentUser?.nombreVisible ?? contexto?.currentUser?.username ?? 'Usuario',
-        [contexto?.currentUser?.nombreVisible, contexto?.currentUser?.username],
-    );
+    const nombreUsuario = useMemo(() => {
+        if (perfilDesktop?.nombre) return perfilDesktop.nombre;
+        return contexto?.currentUser?.nombreVisible ?? contexto?.currentUser?.username ?? 'Usuario';
+    }, [perfilDesktop?.nombre, contexto?.currentUser?.nombreVisible, contexto?.currentUser?.username]);
 
-    const avatarUsuario = contexto?.currentUser?.avatarUrl ?? null;
+    const avatarUsuario = perfilDesktop?.avatarUrl ?? contexto?.currentUser?.avatarUrl ?? null;
 
     const estadoVisible = capitalizarPrimera(repararMojibake(mensajeEstado || estadoLabel(estado)));
 
@@ -184,6 +188,42 @@ export function VentanaSincPanel(): JSX.Element {
         return () => {
             limpiar?.();
             if (intervalo) clearInterval(intervalo);
+        };
+    }, []);
+
+    /* Cargar perfil real desde store desktop (sync window no monta auth completa) */
+    useEffect(() => {
+        let cancelado = false;
+
+        (async () => {
+            try {
+                const { load } = await import('@tauri-apps/plugin-store');
+                const store = await load('auth.json');
+                const usuario = await store.get<Record<string, unknown>>('auth_usuario');
+                if (!usuario || cancelado) return;
+
+                const nombre =
+                    (usuario.nombreVisible as string | undefined)
+                    ?? (usuario.nombre_display as string | undefined)
+                    ?? (usuario.username as string | undefined)
+                    ?? '';
+
+                const avatarRaw =
+                    (usuario.avatarUrl as string | undefined)
+                    ?? (usuario.avatar_url as string | undefined)
+                    ?? null;
+
+                setPerfilDesktop({
+                    nombre: nombre || 'Usuario',
+                    avatarUrl: avatarRaw && avatarRaw.trim() !== '' ? avatarRaw : null,
+                });
+            } catch {
+                /* Si falla el store, usar fallback de GLORY_CONTEXT */
+            }
+        })();
+
+        return () => {
+            cancelado = true;
         };
     }, []);
 
