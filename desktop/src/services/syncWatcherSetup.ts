@@ -408,11 +408,24 @@ export async function inicializarSyncBidireccional(): Promise<void> {
             },
         );
 
+        /* Carpetas locales del sistema que NO deben crear colecciones en el servidor.
+         * Son carpetas internas de la app, no colecciones del usuario. */
+        const carpetasSistema = new Set([
+            'sin colecci\u00f3n',       /* Sin colección (canónico) */
+            'sin coleccion',             /* variante sin tilde */
+            'sin colecci\u00c3\u00b3n', /* variante mojibake legacy */
+        ]);
+
         /* C357: Callbacks de carpetas para sincronizar colecciones */
         if (collectionModule) {
             const colMod = collectionModule;
             registrarCallbacksCarpeta(
                 (nombre: string, _rutaCompleta: string) => {
+                    /* Excluir carpetas del sistema que NO son colecciones reales */
+                    if (carpetasSistema.has(nombre.toLowerCase())) {
+                        console.info('[Sync] Carpeta de sistema ignorada (no es colección):', nombre);
+                        return;
+                    }
                     console.info('[Sync] Carpeta nueva detectada → crear colección:', nombre);
                     colMod.crearColeccionDesdeLocal(nombre).catch(err => {
                         console.error('[Sync] Error creando colección desde carpeta local:', err);
@@ -420,6 +433,11 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                 },
                 (nombreAnterior: string, nombreNuevo: string, _rutaNueva: string) => {
                     if (!trackingModule) return;
+                    /* Excluir carpetas del sistema que NO son colecciones reales */
+                    if (carpetasSistema.has(nombreNuevo.toLowerCase())) {
+                        console.info('[Sync] Rename a carpeta de sistema ignorado:', nombreNuevo);
+                        return;
+                    }
                     const coleccion = trackingModule.buscarColeccionPorCarpeta(nombreAnterior);
                     if (coleccion) {
                         console.info('[Sync] Carpeta renombrada → renombrar colección:', coleccion.id, nombreAnterior, '→', nombreNuevo);

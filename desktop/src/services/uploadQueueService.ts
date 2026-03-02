@@ -181,11 +181,15 @@ async function procesarCola(): Promise<void> {
             emitirProgreso(siguiente);
             await guardarCola();
 
-            /* Feedback persistente: el usuario ve que la subida está en progreso */
-            await registrarAccionHistorial({
-                tipo: 'subiendo',
-                descripcion: `Subiendo: "${siguiente.nombreArchivo}"`,
-            }).catch(() => {});
+            /* Historial persistente solo en primer intento.
+             * Reintentos no escriben nuevas entradas para no inundar el panel.
+             * El footer muestra estado en vivo via emitirProgreso. */
+            if (siguiente.intentos === 0) {
+                await registrarAccionHistorial({
+                    tipo: 'subiendo',
+                    descripcion: `Subiendo: "${siguiente.nombreArchivo}"`,
+                }).catch(() => {});
+            }
 
             const exito = await subirArchivo(siguiente);
 

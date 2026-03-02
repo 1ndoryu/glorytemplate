@@ -228,7 +228,9 @@ export async function registrarAccionHistorial(datos: {
 }): Promise<void> {
     const { trackingModule } = estado;
     if (!trackingModule) return;
-    await trackingModule.registrarAccion(datos);
+    /* El tipo se valida por TipoAccionHistorial en el tracking module.
+     * Hacemos cast seguro porque los callers internos usan tipos conocidos. */
+    await trackingModule.registrarAccion(datos as Omit<import('./syncTrackingService').AccionHistorial, 'timestamp'>);
 }
 
 /* Registro de subidas locales */

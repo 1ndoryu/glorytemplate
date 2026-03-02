@@ -38,7 +38,9 @@ export interface ColeccionLocal {
     creadaLocalmente: boolean;      /* true si fue creada como carpeta local primero */
 }
 
-export type TipoAccionHistorial = 'descarga' | 'subida' | 'movido' | 'renombrado' | 'creado' | 'eliminado_local';
+export type TipoAccionHistorial =
+    | 'descarga' | 'subida' | 'movido' | 'renombrado' | 'creado' | 'eliminado_local'
+    | 'subida_pendiente' | 'subiendo' | 'error_subida';
 
 export interface AccionHistorial {
     tipo: TipoAccionHistorial;
