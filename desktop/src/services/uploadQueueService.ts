@@ -90,6 +90,31 @@ const rutasEncolando = new Set<string>();
  */
 const hashesEnVuelo = new Set<string>(); 
 
+function normalizarRutaCola(ruta: string): string {
+    return ruta.replace(/\\/g, '/');
+}
+
+function claveRutaEnCola(ruta: string): string {
+    return normalizarRutaCola(ruta).toLowerCase();
+}
+
+function hashSimpleTexto(texto: string): string {
+    let hash = 2166136261;
+    for (let i = 0; i < texto.length; i++) {
+        hash ^= texto.charCodeAt(i);
+        hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function crearIdempotencyKeyDeterministica(rutaArchivo: string, nombreArchivo: string, hashParcial?: string): string {
+    if (hashParcial && hashParcial.length > 0) {
+        return `up-hash-${hashParcial.slice(0, 48)}`;
+    }
+    const rutaNorm = normalizarRutaCola(rutaArchivo);
+    return `up-ruta-${hashSimpleTexto(`${rutaNorm}|${nombreArchivo.toLowerCase()}`)}`;
+}
+
 /* Semáforo de concurrencia: controla cuántos archivos se suben en paralelo.
  * El límite se lee de configAvanzada.archivosParalelos al iniciar procesarCola. */
 let semaforoUpload: Semaforo | null = null;
@@ -114,12 +139,17 @@ export async function inicializarUploadQueue(): Promise<void> {
                 if (item.estado === 'subiendo') {
                     item.estado = 'pendiente';
                 }
+                item.rutaArchivo = normalizarRutaCola(item.rutaArchivo);
                 if (!item.idempotencyKey) {
-                    item.idempotencyKey = crypto.randomUUID();
+                    item.idempotencyKey = crearIdempotencyKeyDeterministica(
+                        item.rutaArchivo,
+                        item.nombreArchivo,
+                        item.hashParcial,
+                    );
                 }
             }
             /* Reconstruir Set de rutas para lookups O(1) */
-            rutasEnCola = new Set(cola.map(i => i.rutaArchivo));
+            rutasEnCola = new Set(cola.map(i => claveRutaEnCola(i.rutaArchivo)));
         }
 
         const hashesGuardados = await store.get<string[]>(STORE_KEY_HASHES);
@@ -157,8 +187,11 @@ export async function encolarArchivo(
     nombreArchivo: string,
     carpetas: string[],
 ): Promise<boolean> {
+    const rutaNormalizada = normalizarRutaCola(rutaArchivo);
+    const rutaClave = claveRutaEnCola(rutaNormalizada);
+
     /* P3: Rechazar archivos dentro de .papelera — defensa en profundidad */
-    if (esRutaPapelera(rutaArchivo)) {
+    if (esRutaPapelera(rutaNormalizada)) {
         console.info('[UploadQueue] Archivo en .papelera, rechazando:', nombreArchivo);
         return false;
     }
@@ -169,16 +202,16 @@ export async function encolarArchivo(
      * Si otro llamado a encolarArchivo() ya está procesando esta ruta
      * (calculando hash, etc.), rechazar inmediatamente.
      */
-    if (rutasEncolando.has(rutaArchivo)) {
+    if (rutasEncolando.has(rutaClave)) {
         console.info('[UploadQueue] Archivo ya en proceso de encolamiento, ignorando:', nombreArchivo);
         return false;
     }
-    rutasEncolando.add(rutaArchivo);
+    rutasEncolando.add(rutaClave);
 
     try {
-        return await encolarArchivoInterno(rutaArchivo, nombreArchivo, carpetas);
+        return await encolarArchivoInterno(rutaNormalizada, nombreArchivo, carpetas);
     } finally {
-        rutasEncolando.delete(rutaArchivo);
+        rutasEncolando.delete(rutaClave);
     }
 }
 
@@ -199,7 +232,8 @@ async function encolarArchivoInterno(
     const nombreNormalizado = normalizarNombreParaDedup(nombreArchivo);
 
     /* Verificar si ya está en la cola (misma ruta) — O(1) con Set */
-    if (rutasEnCola.has(rutaArchivo) && cola.some(i => i.rutaArchivo === rutaArchivo && i.estado !== 'error')) {
+    const rutaClave = claveRutaEnCola(rutaArchivo);
+    if (rutasEnCola.has(rutaClave) && cola.some(i => claveRutaEnCola(i.rutaArchivo) === rutaClave && i.estado !== 'error')) {
         console.info('[UploadQueue] Archivo ya en cola, ignorando:', nombreNormalizado);
         return false;
     }
@@ -221,11 +255,11 @@ async function encolarArchivoInterno(
         timestampCreado: Date.now(),
         timestampActualizado: Date.now(),
         hashParcial: hash ?? undefined,
-        idempotencyKey: crypto.randomUUID(),
+        idempotencyKey: crearIdempotencyKeyDeterministica(rutaArchivo, nombreNormalizado, hash ?? undefined),
     };
 
     cola.push(item);
-    rutasEnCola.add(rutaArchivo);
+    rutasEnCola.add(rutaClave);
     guardarColaDebounced();
 
     /* Historial per-sample: entrada inicial "detectado" (se actualiza a subiendo/sincronizado) */
@@ -347,7 +381,7 @@ async function procesarItemUpload(
              * No esperar al fin de procesarCola — previene duplicados por race condition. */
             guardarHashes().catch(() => {});
         }
-        rutasEnCola.delete(item.rutaArchivo);
+        rutasEnCola.delete(claveRutaEnCola(item.rutaArchivo));
 
         /* Throttle inter-archivo: si hay límite de velocidad, esperar proporcionalmente */
         if (configAvanzada.velocidadMaximaSubidaMbps > 0 && item.hashParcial) {
@@ -362,7 +396,7 @@ async function procesarItemUpload(
         item.intentos++;
         if (item.intentos >= MAX_REINTENTOS) {
             item.estado = 'error';
-            rutasEnCola.delete(item.rutaArchivo);
+            rutasEnCola.delete(claveRutaEnCola(item.rutaArchivo));
 
             actualizarEstadoSampleHistorial({
                 sampleId: 0,
@@ -819,7 +853,7 @@ export async function reintentarItem(itemId: string): Promise<void> {
         item.intentos = 0;
         item.ultimoError = undefined;
         item.timestampActualizado = Date.now();
-        rutasEnCola.add(item.rutaArchivo);
+        rutasEnCola.add(claveRutaEnCola(item.rutaArchivo));
         await guardarCola(); /* Guardar inmediato: acción explícita del usuario */
 
         if (estaOnline()) {
@@ -834,7 +868,7 @@ export async function reintentarItem(itemId: string): Promise<void> {
 export async function eliminarItemCola(itemId: string): Promise<void> {
     const item = cola.find(i => i.id === itemId);
     if (item) {
-        rutasEnCola.delete(item.rutaArchivo);
+        rutasEnCola.delete(claveRutaEnCola(item.rutaArchivo));
     }
     cola = cola.filter(i => i.id !== itemId);
     await guardarCola(); /* Guardar inmediato: acción explícita del usuario */
@@ -847,7 +881,7 @@ export async function limpiarCompletados(): Promise<void> {
     /* Limpiar Set de rutas de items completados */
     for (const item of cola) {
         if (item.estado === 'completado') {
-            rutasEnCola.delete(item.rutaArchivo);
+            rutasEnCola.delete(claveRutaEnCola(item.rutaArchivo));
         }
     }
     cola = cola.filter(i => i.estado !== 'completado');

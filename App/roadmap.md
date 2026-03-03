@@ -287,6 +287,11 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] Migración store upload pre-C368: regenerar `idempotencyKey` faltante al restaurar cola
     - [x] Rename interno seguro: `marcarMovimientoInterno()` + filtro en `manejarBorradoLocal()` para evitar soft-delete accidental por DELETE de ruta origen
 
+370. ✅ [AG-SYN] **Hotfix OneDrive duplicado + not found + papelera incidental**
+    - [x] `uploadQueueService`: dedup por ruta ahora usa clave normalizada (`/` + lowercase) para evitar doble encolado por variantes `C:\...` vs `C:/...`
+    - [x] `uploadQueueService`: `item.rutaArchivo` se normaliza al restaurar cola para consistencia de lookups O(1)
+    - [x] `uploadQueueService`: `idempotencyKey` determinística por hash (o fallback por ruta+nombre) para que dos requests del mismo archivo colisionen en backend en vez de publicar doble
+
 ---
 
 ## Notas Compactas
@@ -406,6 +411,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Watcher papelera]: `.papelera/` está DENTRO de la carpeta sync → el watcher la observa recursivamente. Todo rename a `.papelera/` genera CREATE visible para callbacks → re-upload fantasma. Excluir SIEMPRE carpetas internas del watcher con `CARPETAS_EXCLUIDAS`.
 - [Papelera guard]: `moverAPapelera()` NO usaba `marcarDescargaEnCurso()` como sí lo hace `moverArchivoASinColeccion()`. Toda operación que genera rename dentro de la carpeta sync DEBE usar el guard.
 - [OneDrive readFile]: `readFile` de Tauri falla con ruta truncada en archivos cloud-only de OneDrive. Pre-check con `exists()` + mensaje descriptivo.
+- [OneDrive watcher path]: `watch()` puede emitir rutas equivalentes con formato distinto (`\\` vs `/`, casing). Cualquier dedup por ruta en cola DEBE usar clave normalizada canónica.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 
