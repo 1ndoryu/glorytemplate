@@ -267,6 +267,17 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [ ] **367e** Server-side dedup: Considerar endpoint `POST /samples/check-duplicate` (hash parcial) consultado antes del upload. Alternativa: backend retorna `already_exists` con `sample_id` existente si hash coincide. TO-DO para implementar.
     - [ ] **367f** Constraint UNIQUE: Agregar `UNIQUE (usuario_id, LOWER(nombre))` a tabla colecciones para dedup atómico (actual: check-then-insert con race window mínima).
 
+368. **REVISIÓN PROFUNDA — Ciclo Upload→Papelera→Re-Upload→Duplicado (7 tareas)**
+    > **Plan detallado en:** `App/docs/plan-sync-optimizacion.md` (Fase 2)
+    > **Bug:** Watcher no excluye `.papelera/` → archivos movidos allí se re-suben como nuevos → duplicados en servidor.
+    - [ ] **P1** Excluir `.papelera/` del watcher (`fileWatcherService.ts` — `CARPETAS_EXCLUIDAS` extensible)
+    - [ ] **P2** Guard `marcarDescargaEnCurso()` en `papeleraService.moverAPapelera()` antes del rename
+    - [ ] **P3** Pre-check `exists()` antes de `readFile` en `subirArchivo()` + rechazo rutas `.papelera/` en `encolarArchivo()`
+    - [ ] **P4** Normalización nombre (strip `^\d{13,}_`) para dedup contra prefijo timestamp papelera
+    - [ ] **P5** Idempotency key server-side (header `X-Idempotency-Key` + check en `SamplesUploadController`)
+    - [ ] **P6** Consistencia historial: `moverAPapelera()` actualiza estado sample a `en_papelera`
+    - [ ] **P7** Auditar carpetas excluidas del watcher (`Sin colección` solo-delete, `.sync-temp` futuro)
+
 ---
 
 ## Notas Compactas
@@ -383,6 +394,11 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [API endpoint samples GET]: La ruta es `/samples/{slug}` (string), NO `/samples/{id}` (numérico). `obtenerImagenSampleDesdeServidor` debe usar `resultado.slug`, no `resultado.sample_id`. La respuesta va envuelta en envelope `{ data: { imagenUrl, ... } }` — siempre desenvolver.
 - [Tauri 2 core:default permisos]: `core:default` incluye `core:window:default` que es SOLO lectura (isMinimized, isVisible, size, etc.). Mutaciones como `minimize()`, `hide()`, `show()`, `setFocus()`, `center()`, `close()` requieren permisos explícitos: `core:window:allow-minimize`, etc. Sin ellos, las llamadas JS fallan silenciosamente — los catch vacíos ocultan el error.
 - [Rehidratación historial]: Corregir solo el fetch de imagen post-upload no arregla entradas YA persistidas con `imagenUrl: null`. Al iniciar sync, `rehidratarImagenesPendientes()` hace batch GET `/samples?creador=username&per_page=100`, construye mapa sampleId→imagenUrl y actualiza todas las entradas sin imagen. Una request, N actualizaciones. El endpoint de listado envuelve en doble envelope: `{ data: { data: [...], pagination } }`.
+- [Watcher papelera]: `.papelera/` está DENTRO de la carpeta sync → el watcher la observa recursivamente. Todo rename a `.papelera/` genera CREATE visible para callbacks → re-upload fantasma. Excluir SIEMPRE carpetas internas del watcher con `CARPETAS_EXCLUIDAS`.
+- [Papelera guard]: `moverAPapelera()` NO usaba `marcarDescargaEnCurso()` como sí lo hace `moverArchivoASinColeccion()`. Toda operación que genera rename dentro de la carpeta sync DEBE usar el guard.
+- [OneDrive readFile]: `readFile` de Tauri falla con ruta truncada en archivos cloud-only de OneDrive. Pre-check con `exists()` + mensaje descriptivo.
+- [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
+- [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
