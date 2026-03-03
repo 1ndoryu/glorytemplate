@@ -1,6 +1,21 @@
 # Plan: Optimización Sync + Panel Configuración + Papelera + Borrado Bidireccional
 
 > **Fecha:** 2026-02-27 | **Prioridad:** Alta | **Módulos afectados:** 8 servicios sync + 1 componente UI nuevo + backend
+> **Estado:** ✅ IMPLEMENTADO — Commit `0e02e219` (base) + sesión posterior (config window independiente + fix duplicados + deep review).
+
+### Resumen de implementación post-plan
+- **Semáforo concurrencia** (`semaforo.ts`): Implementado. Uploads y downloads paralelos 1-5 configurable.
+- **Persistencia debounced** (`persistenciaDebounce.ts`): Implementado. Timer 2s + flush `beforeunload`.
+- **Map indices O(1)** (`syncState.ts`): Implementado. `indiceArchivosPorRuta` + `indiceArchivosPorNombre`.
+- **Purga periódica watcher** (`fileWatcherService.ts`): Implementado. Interval 10s, TTL 30s.
+- **Panel configuración**: Implementado como overlay (`ConfiguracionSync.tsx`) + **ventana independiente** (`VentanaConfigSync.tsx`, MPA entry point Tauri).
+- **Papelera 30 días** (`papeleraService.ts`): Implementado. `.papelera/` física + `papelera.json` Store.
+- **Borrado bidireccional**: Implementado. Local→servidor rate-limited + servidor→local con papelera.
+- **Fix upload duplicado**: `marcarDescargaEnCurso(nuevaRuta)` ANTES de `rename()` en `moverArchivoASinColeccion()`.
+- **Fix manejarMoveLocal**: Fallback a tracking v2 cuando v1 index lookup falla.
+- **Config window independiente**: Entry MPA `config.html`, ventana Tauri dinámica (`WebviewWindowBuilder`), comunicación inter-window via Tauri events.
+
+---
 
 ## 1. Auditoría de Eficiencia — Escenario 1000 Samples
 

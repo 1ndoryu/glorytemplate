@@ -630,6 +630,37 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Papelera física]: Mover archivos a `.papelera/` dentro de carpeta sync permite restauración sin re-descarga. JSON persistido mapea ruta original → ruta papelera.
 - [Config avanzada]: Separar config avanzada de config básica (carpeta, toggle sync) evita migración innecesaria al añadir campos.
 
+### Config Window Independiente + Fix Duplicate Upload + Deep Review
+> **Estado:** ✅ COMPLETADO [AG-SYN]
+
+**Bug fix — Upload duplicado al mover a Sin colección:**
+- Root cause: `moverArchivoASinColeccion()` hacía `rename(old, new)` → watcher detectaba CREATE en ruta nueva → `esDescargaEnCurso` no la tenía registrada → archivo re-encolado para upload.
+- Fix: `marcarDescargaEnCurso(nuevaRuta)` ANTES del `rename()` en `syncService.ts`. Grace period 10s (GRACIA_DESCARGA_MS) cubre holgadamente el procesamiento del watcher. Defensa secundaria: hash-based dedup en `encolarArchivo()`.
+
+**Ventana ConfigSync independiente (Tauri MPA):**
+- `config.html` + `config.tsx` — Nuevo entry point MPA (tercer window: main, sync, config).
+- `VentanaConfigSync.tsx` — Componente standalone frameless. Drag region header (`data-tauri-drag-region`), botones minimizar/cerrar. Sliders velocidad y paralelos, checkboxes borrado bidireccional, toggle papelera + días.
+- `useConfiguracionSyncVentana.ts` — Hook standalone que lee/escribe directamente del Tauri Store (`sync-config.json` key `sync_config_avanzada`), sin depender del estado en memoria de sync window. Emite evento `config-sync-actualizada` al guardar.
+- `lib.rs` — Comando `mostrar_ventana_config`: crea ventana `config-sync` dinámicamente via `WebviewWindowBuilder` (460x500, decorations false, transparent true, centered). Reutiliza en llamadas subsecuentes (show+center+focus). `window-state` denylist: `["sync-panel", "config-sync"]`.
+- `vite.config.ts` — Tercer input en `rollupOptions.input`: `config: resolve(__dirname, 'config.html')`.
+- `capabilities/principal.json` — Windows: `["main", "sync-panel", "config-sync"]`.
+- `VentanaSincPanel.tsx` — Removido overlay ConfiguracionSync. Botón configuración ahora invoca `mostrar_ventana_config` via Tauri invoke. Función `abrirVentanaConfig()` extraída como función nombrada.
+- `syncService.ts` — Listener `config-sync-actualizada` en `inicializarSyncService()` re-carga config avanzada al recibir evento desde config window.
+- `sync.tsx` — Removido import de `configuracionSync.css` (ya no se renderiza en sync window).
+- `configuracionSync.css` — Clases standalone: `.configSyncPanelStandalone`, `.configSyncCabeceraStandalone`, `.configSyncBotonesVentana`.
+
+**Deep review — Mejora manejarMoveLocal:**
+- `syncWatcherSetup.ts` — `manejarMoveLocal()` ahora tiene fallback a tracking v2 cuando v1 index lookup falla. Antes: si `buscarEnIndicePorRuta` retornaba null, el move se descartaba silenciosamente. Ahora: busca en `trackingModule.buscarArchivoPorRuta()`, actualiza `rutaLocal`, registra acción, y sincroniza con servidor via `moverSampleEnServidor`.
+
+**5 archivos nuevos, 7 archivos modificados. Type-check limpio.**
+
+**Lecciones aprendidas:**
+- [Config MPA]: Cada ventana Tauri es un entry point HTML separado con su propio árbol React. Comunicación inter-ventana via Tauri events (`emit`/`listen`), NO via stores compartidos (contextos JS separados).
+- [Tauri Store compartido]: Múltiples ventanas pueden leer/escribir el mismo Tauri Store file. Pero el estado en memoria de cada ventana es independiente — después de write externo, la otra ventana debe re-leer explícitamente.
+- [Window denylist]: `tauri-plugin-window-state` restaura visibilidad de sesiones previas. Ventanas popup/transitorias (sync-panel, config-sync) DEBEN estar en denylist para evitar que reaparezcan al iniciar la app.
+- [Rename watcher race]: Cualquier `rename()` interno genera CREATE en watcher. SIEMPRE marcar la ruta destino en `descargasEnCurso` ANTES del rename para evitar re-procesamiento.
+- [v1/v2 fallback]: Lookups en índice v1 pueden fallar si v1 se desincronizó (crash, migración parcial). Siempre tener fallback a tracking v2 antes de descartar silenciosamente.
+
 ---
 
 ## Notas Compactas
@@ -733,6 +764,10 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Sync papelera]: Movimiento físico a `.papelera/` dentro de raíz sync. Persistencia en `papelera.json` Tauri Store separado. `purgarExpirados()` debe ejecutarse al inicializar. Duración configurable via `SyncConfigAvanzada.papeleraDuracionDias`.
 - [Sync borrado bidireccional]: Rate-limiting obligatorio en borrado local→servidor. Sin él, drag 1000 archivos a Trash = 1000 DELETEs instantáneos. Mapa `contadorBorradosCiclo` con reset por timer (5min). Soft-delete via `?soft=true` en endpoint DELETE permite al servidor mover a papelera en vez de eliminar permanentemente.
 - [Sync indices Map]: `indiceArchivosPorRuta` y `indiceArchivosPorNombre` (Map) en syncState. Reconstruirse después de `cargarDatos()`, migración, y cada `registrarArchivo()`/`eliminarArchivo()`. Lookup O(1) reemplaza `Object.values().find()` O(n) en watcher hot path.
+- [Config MPA window]: Ventana config como entry point MPA separado (`config.html`+`config.tsx`). Creación dinámica desde Rust via `WebviewWindowBuilder` (no en `tauri.conf.json`) para evitar carga al iniciar app. `window.hide()` en vez de destruir para reutilización.
+- [Inter-window Tauri events]: Comunicación entre ventanas (config→sync) via `emit('config-sync-actualizada')` + `listen()`. Stores Zustand NO se comparten entre MPA windows (contextos JS separados). La ventana receptora debe re-leer del Tauri Store file.
+- [Rename race condition]: `moverArchivoASinColeccion()` hace `rename()` interno que genera CREATE en watcher. Solución: `marcarDescargaEnCurso(nuevaRuta)` ANTES del rename. El grace period de 10s (GRACIA_DESCARGA_MS) cubre el procesamiento async del watcher.
+- [v1/v2 index fallback]: `manejarMoveLocal` debe buscar en tracking v2 como fallback si v1 index no tiene el archivo. Descartar silenciosamente por fallo de lookup v1 pierde moves legítimos en archivos migrados o con v1 desincronizado.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.

@@ -121,6 +121,39 @@ fn seleccionar_archivo(ruta: String) -> Result<(), String> {
 }
 
 /*
+ * Comando: mostrar (o crear) la ventana independiente de configuración sync.
+ * Se crea dinámicamente la primera vez; las siguientes veces se reutiliza.
+ * La ventana es frameless, centrada, con fondo transparente para border-radius CSS.
+ */
+#[tauri::command]
+fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
+    if let Some(ventana) = app.get_webview_window("config-sync") {
+        let _ = ventana.show();
+        let _ = ventana.center();
+        let _ = ventana.set_focus();
+    } else {
+        let ventana = tauri::WebviewWindowBuilder::new(
+            &app,
+            "config-sync",
+            tauri::WebviewUrl::App("config.html".into()),
+        )
+        .title("Configuración")
+        .inner_size(460.0, 500.0)
+        .decorations(false)
+        .resizable(false)
+        .center()
+        .transparent(true)
+        .always_on_top(false)
+        .skip_taskbar(false)
+        .shadow(false)
+        .build()
+        .map_err(|e| format!("Error creando ventana de config: {}", e))?;
+        let _ = ventana.set_focus();
+    }
+    Ok(())
+}
+
+/*
  * Configura el tray icon con menu contextual.
  * Left-click y "Sincronización" abren la ventana sync-panel (popup).
  * "Mostrar Kamples" abre la ventana principal.
@@ -222,7 +255,7 @@ pub fn run() {
         /* .plugin(tauri_plugin_updater::Builder::new().build()) */
         .plugin(
             tauri_plugin_window_state::Builder::default()
-                .with_denylist(&["sync-panel"])
+                .with_denylist(&["sync-panel", "config-sync"])
                 .build(),
         )
         .plugin(tauri_plugin_drag::init())
@@ -235,6 +268,7 @@ pub fn run() {
             obtener_espacio_disponible,
             abrir_carpeta,
             seleccionar_archivo,
+            mostrar_ventana_config,
         ])
         /* Setup: tray icon */
         .setup(|app| {

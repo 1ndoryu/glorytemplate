@@ -1,0 +1,18 @@
+/*
+ * Estilos shell de la ventana standalone de configuracion sync.
+ * html/body transparentes para que el border-radius CSS sea visible
+ * (requiere transparent: true en la creacion de la ventana).
+ */
+
+html,
+body,
+#config-root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: transparent;
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+}

@@ -242,7 +242,32 @@ async function manejarMoveLocal(
     const archivo = buscarEnIndicePorRuta(rutaAntNorm);
 
     if (!archivo) {
-        console.warn('[Sync] Move: archivo no encontrado en índice por ruta anterior:', rutaAnterior);
+        /*
+         * Fallback a tracking v2: si el archivo existe en v2 pero no en v1
+         * (puede pasar tras migración parcial o crash antes de persistir v1),
+         * procesar el move directamente en v2 para no perderlo.
+         */
+        if (trackingModule) {
+            const archivoV2 = trackingModule.buscarArchivoPorRuta(rutaAnterior);
+            if (archivoV2) {
+                archivoV2.rutaLocal = rutaNueva;
+                if (archivoV2.syncDeshabilitado) archivoV2.syncDeshabilitado = false;
+                await trackingModule.registrarArchivo(archivoV2);
+                await trackingModule.registrarAccion({
+                    tipo: 'movido',
+                    descripcion: `Movido a ${carpetas[0] || 'General'}${carpetas[1] ? '/' + carpetas[1] : ''}`,
+                    sampleId: archivoV2.sampleId,
+                });
+
+                const primaria = carpetas[0] || 'General';
+                const secundaria = carpetas[1] || '';
+                await moverSampleEnServidor(archivoV2.sampleId, primaria, secundaria);
+                console.info('[Sync] Move procesado (solo v2): sample', archivoV2.sampleId, '→', primaria, secundaria || '(raíz)');
+                return;
+            }
+        }
+
+        console.warn('[Sync] Move: archivo no encontrado en índice v1 ni tracking v2:', rutaAnterior);
         return;
     }
 

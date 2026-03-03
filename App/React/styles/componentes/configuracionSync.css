@@ -223,3 +223,32 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/*
+ * Modo standalone: cuando ConfiguracionSync se renderiza como ventana
+ * independiente (sin overlay), necesita ocupar toda la ventana,
+ * tener sombra propia y una cabecera draggable.
+ */
+.configSyncPanelStandalone {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: var(--radioLg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    animation: none;
+}
+
+.configSyncCabeceraStandalone {
+    /* Drag region: la cabecera completa es arrastrable */
+    -webkit-app-region: drag;
+    app-region: drag;
+}
+
+.configSyncBotonesVentana {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio2xs);
+    /* Botones NO son draggables (permiten click) */
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+}

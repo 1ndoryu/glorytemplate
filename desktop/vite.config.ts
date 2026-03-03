@@ -23,6 +23,7 @@ export default defineConfig({
             input: {
                 main: resolve(__dirname, 'index.html'),
                 sync: resolve(__dirname, 'sync.html'),
+                config: resolve(__dirname, 'config.html'),
             },
         },
     },

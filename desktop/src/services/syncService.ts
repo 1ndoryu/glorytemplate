@@ -108,6 +108,17 @@ export async function inicializarSyncService(): Promise<void> {
     }
 
     await inicializarSyncBidireccional();
+
+    /* Escuchar evento de la ventana config-sync para refrescar config en memoria */
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        await listen('config-sync-actualizada', async () => {
+            console.info('[Sync] Config actualizada desde ventana independiente, recargando...');
+            await cargarConfigAvanzada();
+        });
+    } catch (err) {
+        console.error('[Sync] Error registrando listener de config:', err);
+    }
 }
 
 /* Configuración */
@@ -298,6 +309,15 @@ export async function moverArchivoASinColeccion(
         await mkdir(carpetaSinCol, { recursive: true }).catch(() => { /* ya existe */ });
 
         const nuevaRuta = await join(carpetaSinCol, nombreArchivo);
+
+        /*
+         * FIX: Marcar la nueva ruta como "descarga en curso" ANTES del rename.
+         * El rename produce un evento CREATE en el watcher que, sin este guard,
+         * genera una subida duplicada por race condition:
+         * el watcher detecta el CREATE antes de que el tracking se actualice.
+         */
+        marcarDescargaEnCurso(nuevaRuta);
+
         await rename(rutaActual, nuevaRuta);
 
         if (trackingModule) {
