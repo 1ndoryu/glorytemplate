@@ -60,6 +60,27 @@ export async function inicializarOfflineQueue(): Promise<void> {
     /* Escuchar cambios de conectividad para sincronizar */
     window.addEventListener('online', () => { sincronizarCola(); });
 
+    /* Listener cross-ventana: el sync panel emite 'reintentar-errores-offline' y la
+     * ventana principal (con la cola real) procesa el reintento. */
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        void listen('reintentar-errores-offline', async () => {
+            let cambios = false;
+            for (const op of cola) {
+                if (op.intentos > 0) {
+                    op.intentos = 0;
+                    cambios = true;
+                }
+            }
+            if (cambios) {
+                await guardarCola();
+                if (estaOnline()) sincronizarCola();
+            }
+        });
+    } catch {
+        /* Entorno sin Tauri — ignorar */
+    }
+
     /* Si arrancamos online y hay operaciones pendientes, sincronizar */
     if (estaOnline() && cola.length > 0) {
         sincronizarCola();
@@ -188,7 +209,10 @@ export function obtenerCola(): Readonly<OperacionPendiente[]> {
 }
 
 /*
- * C378: Resetea reintentos para operaciones fallidas en la cola offline y fuerza reconexión
+ * C378: Resetea reintentos para operaciones fallidas en la cola offline y fuerza reconexión.
+ *
+ * Arquitectura multi-ventana: también emite evento Tauri para que la ventana
+ * principal (donde vive la cola real) procese el reintento.
  */
 export async function reintentarErroresOffline(): Promise<void> {
     let cambios = false;
@@ -204,5 +228,13 @@ export async function reintentarErroresOffline(): Promise<void> {
         if (estaOnline()) {
             await sincronizarCola();
         }
+    }
+
+    /* Notificar a todas las ventanas Tauri para procesar el reintento. */
+    try {
+        const { emit } = await import('@tauri-apps/api/event');
+        await emit('reintentar-errores-offline', {});
+    } catch {
+        /* Entorno sin Tauri — ignorar */
     }
 }

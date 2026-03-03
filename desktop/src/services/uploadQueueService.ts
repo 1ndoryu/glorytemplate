@@ -163,6 +163,32 @@ export async function inicializarUploadQueue(): Promise<void> {
     /* Escuchar reconexión para reanudar subidas */
     window.addEventListener('online', () => { procesarCola(); });
 
+    /* Listener cross-ventana: el sync panel (sync.html) tiene su propia instancia de módulo
+     * con cola vacía. Cuando presiona "Sincronizar ahora", emite este evento y la ventana
+     * principal (donde vive la cola real) lo recibe y procesa los errores. */
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        void listen('reintentar-errores-upload', async () => {
+            let algunActualizado = false;
+            for (const item of cola) {
+                if (item.estado === 'error') {
+                    item.estado = 'pendiente';
+                    item.intentos = 0;
+                    item.ultimoError = undefined;
+                    item.timestampActualizado = Date.now();
+                    rutasEnCola.add(claveRutaEnCola(item.rutaArchivo));
+                    algunActualizado = true;
+                }
+            }
+            if (algunActualizado) {
+                await guardarCola();
+                if (estaOnline()) procesarCola();
+            }
+        });
+    } catch {
+        /* Entorno sin Tauri — ignorar */
+    }
+
     /* Si hay items pendientes y estamos online, procesar */
     if (estaOnline() && tienePendientes()) {
         procesarCola();
@@ -856,6 +882,12 @@ export async function reintentarItem(itemId: string): Promise<void> {
 /*
  * Reintenta todos los items que estén en estado "error".
  * Útil para cuando el usuario presiona "Sincronizar ahora".
+ *
+ * Arquitectura multi-ventana Tauri: el sync panel (sync.html) y la ventana
+ * principal (index.html) son procesos JS separados con instancias de módulo
+ * distintas. El sync panel tiene su cola vacía; la real vive en la ventana
+ * principal. Por eso también emitimos el evento Tauri `reintentar-errores-upload`
+ * para que el listener en inicializarUploadQueue() lo procese en la ventana correcta.
  */
 export async function reintentarTodosConError(): Promise<void> {
     let algunActualizado = false;
@@ -875,6 +907,15 @@ export async function reintentarTodosConError(): Promise<void> {
         if (estaOnline()) {
             procesarCola();
         }
+    }
+
+    /* Notificar a TODAS las ventanas Tauri (especialmente la principal
+     * que tiene la cola real) para que también procesen el reintento. */
+    try {
+        const { emit } = await import('@tauri-apps/api/event');
+        await emit('reintentar-errores-upload', {});
+    } catch {
+        /* Entorno sin Tauri — ignorar */
     }
 }
 
