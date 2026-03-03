@@ -1,7 +1,7 @@
 ﻿# Algoritmo de Recomendacion Kamples
 
 > Documentacion tecnica del sistema de descubrimiento.
-> Ultima actualizacion: sesion AG-ALG S3 — penalizaciones progresivas, serendipia, saturacion popularidad, tendencias sin sesgo edad.
+> Ultima actualizacion: sesion AG-ALG S4 — clasificacion calidad reproducciones, saturacion dinamica por percentiles, tracking frontend duracion real.
 > Revision completa: sesion AG-ALG S1 (auditoría 20 puntos).
 
 ---
@@ -239,41 +239,58 @@ Donde `dias_desde_publicacion = EXTRACT(EPOCH FROM NOW() - s.publicado_at) / 864
 
 ## Multiplicadores Post-Score
 
-### Penalizacion progresiva por reproducciones (S3)
+### Penalizacion progresiva por reproducciones (S3, actualizado S4)
 
-Reemplaza la penalizacion binaria anterior (umbral 3 → 0.3). Ahora cada reproduccion reduce progresivamente el score con decaimiento hiperbolico:
+Reemplaza la penalizacion binaria anterior (umbral 3 → 0.3). Ahora cada reproduccion reduce progresivamente el score con decaimiento hiperbolico, pero **ponderado por calidad de escucha** (S4):
 
 ```sql
-GREATEST(minimo, 1.0 / (1.0 + COUNT(reproducciones) * tasa_decaimiento))
+GREATEST(minimo, 1.0 / (1.0 + SUM(peso_calidad) * tasa_decaimiento))
 ```
 
-| Reproducciones | Multiplicador (tasa=0.15, min=0.20) |
-| -------------- | ----------------------------------- |
-| 0              | 1.00 (maximo — nunca escuchado)     |
-| 1              | 0.87                                |
-| 2              | 0.77                                |
-| 3              | 0.69                                |
-| 5              | 0.57                                |
-| 10             | 0.40                                |
-| 15+            | 0.20 (piso)                         |
+**Clasificacion de calidad (S4):** Cada reproduccion se clasifica segun la duracion escuchada vs la duracion total del sample:
+
+| Tipo sample (duracion) | Umbral significativa | Ejemplo |
+| ---------------------- | -------------------- | ------- |
+| Corto (<=20s)          | 50% de la duracion   | 10s sample → escuchar >=5s |
+| Medio (20-60s)         | 30% (min 10s abs)    | 45s sample → escuchar >=13.5s |
+| Largo (>60s)           | 15% (min 10s abs)    | 120s sample → escuchar >=18s |
+
+| Clasificacion | Peso | Condicion |
+| ------------- | ---- | --------- |
+| Ignorada      | 0.00 | duracion_escuchada < 1s |
+| Rapida        | 0.30 | Escucho pero no alcanzo umbral significativa |
+| Significativa | 1.00 | Alcanzo umbral segun tipo sample |
+| Legacy        | configurable (default 1.0) | duracion_escuchada = 0 (datos pre-S4) |
+
+| SUM(peso_calidad) | Multiplicador (tasa=0.15, min=0.20) |
+| ----------------- | ----------------------------------- |
+| 0                 | 1.00 (maximo — nunca escuchado)     |
+| 1.0               | 0.87                                |
+| 2.0               | 0.77                                |
+| 3.0               | 0.69                                |
+| 5.0               | 0.57                                |
+| 10.0              | 0.40                                |
+| 15.0+             | 0.20 (piso)                         |
 
 - Config: `parametros.penalizacion_reproduccion.tasa_decaimiento` = 0.15, `.minimo` = 0.20.
-- **Filosofia:** Samples nunca escuchados tienen maxima prioridad (mult=1.0), favoreciendo descubrimiento. Nunca llega a 0 — el sample sigue apareciendo pero muy abajo.
+- Config: `parametros.clasificacion_reproduccion` — umbrales y pesos por tipo.
+- **Filosofia:** Una reproduccion rapida (1-5s, usuario descartando) pesa 0.30 en vez de 1.0. Escuchas significativas (50%+ de un sample corto) pesan 1.0 completo. Un sample que el usuario solo "pincho" rapidamente 3 veces suma peso 0.9 (vs 3.0 antes). Esto evita penalizar por browsing casual.
 
-### Penalizacion pasiva (S3)
+### Penalizacion pasiva (S3, actualizado S4)
 
-Si el usuario reprodujo un sample >= N veces pero NO dio like, NI lo descargo, NI lo guardo en coleccion → "dislike implicito". Penalizacion = mitad de un dislike.
+Si el usuario reprodujo un sample >= N veces de forma **significativa** pero NO dio like, NI lo descargo, NI lo guardo en coleccion → "dislike implicito". Penalizacion = mitad de un dislike.
 
 ```sql
-CASE WHEN (plays >= min_reproducciones) AND NOT EXISTS(like) AND NOT EXISTS(descarga) AND NOT EXISTS(coleccion)
+CASE WHEN (plays_significativas >= min_reproducciones) AND NOT EXISTS(like) AND NOT EXISTS(descarga) AND NOT EXISTS(coleccion)
   THEN factor ELSE 1 END
 ```
 
 - Config: `parametros.penalizacion_pasiva.factor` = 0.85, `.min_reproducciones` = 2.
 - Deshabitable: `.habilitado` = false devuelve multiplicador 1 siempre.
-- **Logica:** Si escuchaste algo 2+ veces y no hiciste NADA positivo, probablemente no te gusto.
+- **Cambio S4:** Solo reproducciones significativas (que alcanzan umbral de duracion) cuentan para el conteo de `min_reproducciones`. Plays rapidas (1-5s browsing) no activan la penalizacion pasiva. Esto evita castigar samples en los que el usuario solo hizo preview rapido.
+- **Logica:** Si escuchaste algo 2+ veces *de verdad* y no hiciste NADA positivo, probablemente no te gusto.
 
-### Saturacion de popularidad (S3)
+### Saturacion de popularidad (S3, dinamica S4)
 
 Samples muy descargados pierden valor. Los usuarios buscan samples buenos que no esten sobreusados.
 
@@ -281,17 +298,22 @@ Samples muy descargados pierden valor. Los usuarios buscan samples buenos que no
 GREATEST(minimo, 1.0 / (1.0 + LN(1.0 + GREATEST(0, total_descargas - umbral) / escala)))
 ```
 
-| Total descargas | Multiplicador (umbral=50, escala=100, min=0.30) |
-| --------------- | ------------------------------------------------ |
-| 0-50            | 1.00 (sin penalizacion)                          |
-| 100             | 0.71                                             |
-| 200             | 0.52                                             |
-| 500             | 0.37                                             |
-| 1000+           | 0.30 (piso)                                      |
+**Modo dinamico (S4):** Los valores de `umbral` y `escala` se calculan automaticamente a partir de percentiles de la plataforma en vez de ser constantes fijas:
 
-- Config: `parametros.saturacion_popularidad.umbral_descargas` = 50, `.escala` = 100, `.minimo` = 0.30.
-- Deshabitable: `.habilitado` = false.
-- **Filosofia:** 1000 samples top en 5 generos — los mismos 10 no deben dominar.
+- `umbral` = PERCENTILE_CONT(0.75) de descargas de samples activos con descargas > 0
+- `escala` = PERCENTILE_CONT(0.95) - P75
+- Cacheado en WP transient `kamples_sat_pop_stats` (TTL 1hr)
+- Fallback a valores fijos si la plataforma tiene <10 samples con descargas
+
+| Escenario | P75 (umbral) | P95-P75 (escala) | Comportamiento |
+| --------- | ------------ | ---------------- | -------------- |
+| Plataforma nueva | 50 (fallback) | 100 (fallback) | Valores fijos iniciales |
+| 100 samples activos | ~8 | ~25 | Penaliza a partir de 8 descargas |
+| 10K samples activos | ~45 | ~180 | Se adapta a mayor volumen |
+
+- Config: `parametros.saturacion_popularidad.modo` = 'dinamico', `.percentil_umbral` = 0.75, `.percentil_escala` = 0.95.
+- Deshabitable: `.habilitado` = false. Modo fijo: `.modo` = 'fijo' usa `.umbral_descargas` y `.escala` directos.
+- **Filosofia:** Si la plataforma crece, los umbrales crecen automaticamente. No hay que reconfigurar manualmente cuando pasan de 100 a 10K samples.
 
 ### Boost verificado
 
@@ -813,3 +835,16 @@ Tags se almacenaban con casing original del usuario (ej: "HipHop", "TRAP"). Pero
 - P2 #15 (tag hash 106 slots): Requiere espectrogramas/expansion. Planificado en Fase 11.2 del roadmap.
 - P4 #20 (docblock): Corregido inline (claims de normalizacion eliminados).
 - P4 #19 (invalidarCache consistencia): Incluido en fix #8 y #9.
+
+### Sesion 4: Calidad reproducciones + saturacion dinamica + tracking frontend (AG-ALG)
+
+> Clasificacion de calidad de escucha, saturacion por percentiles, tracking real de duracion desde frontend.
+
+| # | Fix | Archivos |
+|---|-----|----------|
+| 31 | **Clasificacion calidad reproducciones (NEW):** Cada play se clasifica como ignorada (<1s, peso 0), rapida (escucho pero no alcanzo umbral, peso 0.30), o significativa (alcanzo umbral adaptativo segun duracion sample, peso 1.0). Legacy (dur=0) configurable. | algoritmoPesos.php, ConstructorSenales.php |
+| 32 | **Penalizacion reproducciones con pesos:** `sqlPenalizacionReproduccion()` reescrito: usa SUM(CASE peso_calidad) en vez de COUNT(*). Umbrales adaptativos: corto<=20s→50%, medio 20-60s→30%/min10s, largo>60s→15%/min10s. | ConstructorSenales.php |
+| 33 | **Penalizacion pasiva solo significativas:** `sqlPenalizacionPasiva()` cuenta solo reproducciones significativas para el umbral min_reproducciones. Plays rapidas (browsing) no activan dislike implicito. | ConstructorSenales.php |
+| 34 | **Saturacion popularidad dinamica (NEW):** Reemplaza umbrales fijos (50/100) con PERCENTILE_CONT(0.75/0.95) sobre samples activos. Cache WP transient 1hr. Fallback a fijos si <10 samples. | algoritmoPesos.php, ConstructorSenales.php |
+| 35 | **Frontend tracking duracion real:** 4 hooks modificados para enviar `duracionEscuchada` y `completada` reales al backend. Nueva utilidad `trackingReproduccion.ts` centralizada. Tracking en: ended, pause, track-change, cleanup. Ya no se registra en play-start sin datos. | useAudioPlayback.ts, useSampleAudio.ts, useSamplePreview.ts, useReproductor.ts, trackingReproduccion.ts |
+| 36 | **Verificacion intervalo_activo_min:** Confirmado que el sistema de actividad funciona correctamente. `ultima_actividad = NOW()` se actualiza en cada `incrementarContador()`. PlanificadorAlgoritmo compara seg_inactivo contra umbral_inactividad_seg (600s). | (sin cambios — solo verificacion) |
