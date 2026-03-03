@@ -137,8 +137,8 @@ async function abrirVentanaConfig(): Promise<void> {
     try {
         const { invoke } = await import('@tauri-apps/api/core');
         await invoke('mostrar_ventana_config');
-    } catch {
-        /* Entorno no-Tauri */
+    } catch (err) {
+        console.error('[ConfigSync] Error abriendo ventana de configuracion:', err);
     }
 }
 
@@ -202,9 +202,9 @@ export function VentanaSincPanel(): JSX.Element {
         return () => document.removeEventListener('mousedown', cerrarMenu);
     }, [menuAbierto]);
 
-    /* Sincronizar estado del store al recibir/perder foco.
-     * El cierre de ventana por pérdida de foco lo maneja el backend Rust
-     * con un delay de 220ms para que el toggle del tray tenga prioridad. */
+    /* Sincronizar estado del store y auto-hide al perder foco.
+     * El backend Rust tiene un handler equivalente con 220ms delay.
+     * Este handler frontend actua como fallback (ej: binario no recompilado). */
     useEffect(() => {
         let desuscribir: (() => void) | undefined;
         (async () => {
@@ -214,6 +214,18 @@ export function VentanaSincPanel(): JSX.Element {
                 desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
                     if (!enfocado) {
                         setMenuAbierto(false);
+                        /* Auto-hide: delay para no interferir con toggle del tray icon.
+                         * Si el tray handler ya mostrara la ventana, isFocused() sera true
+                         * y el hide no se ejecuta. */
+                        setTimeout(async () => {
+                            try {
+                                const sigueEnfocado = await ventana.isFocused();
+                                if (!sigueEnfocado) {
+                                    useSyncStore.getState().cerrarPanel();
+                                    await ventana.hide();
+                                }
+                            } catch { /* Silencioso */ }
+                        }, 300);
                     } else {
                         useSyncStore.getState().abrirPanel();
                     }

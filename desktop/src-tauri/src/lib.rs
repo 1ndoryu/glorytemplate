@@ -142,10 +142,8 @@ fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
         .decorations(false)
         .resizable(false)
         .center()
-        .transparent(true)
         .always_on_top(false)
         .skip_taskbar(false)
-        .shadow(false)
         .build()
         .map_err(|e| format!("Error creando ventana de config: {}", e))?;
         let _ = ventana.set_focus();
