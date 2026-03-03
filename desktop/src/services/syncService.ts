@@ -119,6 +119,10 @@ export async function inicializarSyncService(): Promise<void> {
     } catch (err) {
         console.error('[Sync] Error registrando listener de config:', err);
     }
+
+    /* Rehidratar imágenes de portada de samples ya sincronizados que no las tienen.
+     * Se lanza en background (no bloquea inicialización). */
+    rehidratarImagenesPendientes().catch(() => {});
 }
 
 /* Configuración */
@@ -651,4 +655,76 @@ export async function forzarResync(
     await guardarIndice();
 
     return sincronizarConServidor(onProgreso);
+}
+
+/*
+ * Rehidrata imágenes de portada para entradas del historial que no las tienen.
+ * Usa batch fetch: GET /samples?creador=username para obtener todas las imágenes
+ * del usuario en una sola request, luego mapea sampleId → imagenUrl.
+ *
+ * Se lanza en background al inicializar el sync service. No bloquea el flujo.
+ * Solo procesa entradas con sampleId > 0 y imagenUrl === null.
+ */
+async function rehidratarImagenesPendientes(): Promise<void> {
+    const { trackingModule } = estado;
+    if (!trackingModule?.obtenerHistorialSamples || !trackingModule?.actualizarEstadoSample) return;
+    if (!estaOnline()) return;
+
+    const historial = trackingModule.obtenerHistorialSamples(100);
+    const sinImagen = historial.filter(e => e.sampleId > 0 && !e.imagenUrl);
+    if (sinImagen.length === 0) return;
+
+    const baseUrl = obtenerBaseUrlSync();
+    if (!baseUrl) return;
+
+    try {
+        /* Obtener username del usuario autenticado para filtrar por creador */
+        const { useAuthStore } = await import(/* @vite-ignore */ '@app/stores/authStore');
+        const username = useAuthStore.getState().usuario?.username;
+        if (!username) return;
+
+        /* Batch: obtener samples del creador (max 100 por página, suficiente para historial reciente) */
+        const respuesta = await fetch(
+            `${baseUrl}/kamples/v1/samples?creador=${encodeURIComponent(username)}&per_page=100&page=1`,
+        );
+        if (!respuesta.ok) return;
+
+        /* Estructura: { data: { data: [...], pagination: {...} } } */
+        const json = await respuesta.json() as {
+            data?: {
+                data?: Array<{ id?: number; imagenUrl?: string | null }>;
+            };
+        };
+        const samples = json.data?.data;
+        if (!Array.isArray(samples)) return;
+
+        /* Construir mapa sampleId → imagenUrl para O(1) lookup */
+        const mapaImagenes = new Map<number, string>();
+        for (const s of samples) {
+            if (s.id && s.imagenUrl) {
+                mapaImagenes.set(s.id, s.imagenUrl);
+            }
+        }
+
+        /* Actualizar entradas sin imagen que encontramos en el batch */
+        let actualizadas = 0;
+        for (const entrada of sinImagen) {
+            const urlImagen = mapaImagenes.get(entrada.sampleId);
+            if (urlImagen) {
+                await trackingModule.actualizarEstadoSample({
+                    sampleId: entrada.sampleId,
+                    nombreArchivo: entrada.nombreArchivo,
+                    estado: entrada.estado,
+                    imagenUrl: urlImagen,
+                });
+                actualizadas++;
+            }
+        }
+
+        if (actualizadas > 0) {
+            console.info(`[Sync] Rehidratadas ${actualizadas} imágenes de samples en historial`);
+        }
+    } catch (err) {
+        console.error('[Sync] Error rehidratando imágenes pendientes:', err);
+    }
 }
