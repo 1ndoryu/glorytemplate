@@ -50,6 +50,25 @@ class SamplesUploadController
         try {
             $wpUserId = AuthMiddleware::obtenerWpUserId();
 
+        /*
+         * P5: Idempotencia — Si el cliente envía X-Idempotency-Key y ya procesamos
+         * esa clave, retornar la respuesta anterior en vez de crear duplicado.
+         * Usa transients de WP con TTL de 1 hora (suficiente para reintentos).
+         */
+        $idempotencyKey = $request->get_header('X-Idempotency-Key');
+        if ($idempotencyKey) {
+            $idempotencyKey = \substr(\preg_replace('/[^a-zA-Z0-9\-]/', '', $idempotencyKey), 0, 64);
+            $cacheKey = 'idem_upload_' . $idempotencyKey;
+            $cached = \get_transient($cacheKey);
+            if ($cached && \is_array($cached)) {
+                KamplesLogger::info('Upload idempotente: retornando resultado cacheado', [
+                    'idempotencyKey' => $idempotencyKey,
+                    'sampleId' => $cached['sample_id'] ?? null,
+                ]);
+                return new \WP_REST_Response($cached, 200);
+            }
+        }
+
         /* C164: Rate limit — 10 uploads por hora */
         $pgId = UsuarioHelper::obtenerIdPg();
         if ($pgId) {
@@ -257,10 +276,17 @@ class SamplesUploadController
             }, 0);
         }
 
-        return new \WP_REST_Response([
+        $respuestaExitosa = [
             'ok' => true, 'sample_id' => $sampleId, 'id_corto' => $idCorto,
             'slug' => $slug, 'url' => $subido['url'], 'estado' => 'procesando',
-        ], 201);
+        ];
+
+        /* P5: Cachear resultado para idempotencia (TTL 1 hora) */
+        if (isset($cacheKey)) {
+            \set_transient($cacheKey, $respuestaExitosa, 3600);
+        }
+
+        return new \WP_REST_Response($respuestaExitosa, 201);
         } catch (\Throwable $e) {
             KamplesLogger::error('[SamplesUploadController::subir] Error no capturado', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno al procesar la subida'], 500);

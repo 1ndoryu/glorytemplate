@@ -33,6 +33,22 @@ const PATRONES_TEMPORALES = [
     /\.download$/i, /Thumbs\.db$/i, /desktop\.ini$/i,
 ];
 
+/*
+ * P1+P7: Carpetas internas excluidas del watcher.
+ * CARPETAS_EXCLUIDAS_TOTAL: se ignora TODO evento (create, delete, modify).
+ * CARPETAS_SOLO_DELETE: se ignoran CREATEs pero se procesan DELETEs
+ *   (para que manejarBorradoLocal funcione si alguien borra desde ahí).
+ * El filtro se aplica por segmento de ruta (split('/')) para evitar falsos
+ * positivos con nombres como "carpeta.papelera-mix/".
+ */
+const CARPETAS_EXCLUIDAS_TOTAL = new Set([
+    '.papelera',
+]);
+const CARPETAS_SOLO_DELETE = new Set([
+    'sin colecci\u00f3n',
+    'sin coleccion',
+]);
+
 /* Cache de archivos recientemente procesados para ignorar eventos duplicados */
 const archivosRecientes = new Map<string, number>();
 const DEBOUNCE_ARCHIVO_MS = 3000;
@@ -211,6 +227,8 @@ function procesarEvento(
 ): void {
     const tipo = evento.type;
 
+    const baseNormalizada = carpetaBase.replace(/\\/g, '/').replace(/\/$/, '');
+
     for (const ruta of evento.paths) {
         const normalizada = ruta.replace(/\\/g, '/');
         const nombreArchivo = normalizada.split('/').pop() ?? '';
@@ -219,16 +237,27 @@ function procesarEvento(
         if (PATRONES_TEMPORALES.some(p => p.test(nombreArchivo))) continue;
 
         /*
+         * P1+P7: Filtro temprano de carpetas excluidas.
+         * Se evalúa ANTES de clasificar tipo de evento para cortar lo más pronto posible.
+         */
+        const relativa = normalizada.startsWith(baseNormalizada + '/')
+            ? normalizada.slice(baseNormalizada.length + 1)
+            : '';
+        const segmentosRuta = relativa.split('/');
+
+        /* Exclusión total: ignorar TODO evento dentro de .papelera/ */
+        if (segmentosRuta.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s))) continue;
+
+        /* Exclusión parcial: ignorar CREATEs pero permitir DELETEs en Sin colección */
+        if (esEventoCreacion(tipo) && segmentosRuta.some(s => CARPETAS_SOLO_DELETE.has(s.toLowerCase()))) continue;
+
+        /*
          * C357: Detectar eventos de carpetas de nivel 1 (hijas directas de carpetaBase).
          * Una carpeta de nivel 1 = carpeta de colección. Si se crea o renombra, sincronizar.
          * Heurística: si el path NO tiene extensión de audio y es hijo directo de base,
          * tratarlo como posible evento de carpeta.
          */
         const extension = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
-        const baseNormalizada = carpetaBase.replace(/\\/g, '/').replace(/\/$/, '');
-        const relativa = normalizada.startsWith(baseNormalizada + '/')
-            ? normalizada.slice(baseNormalizada.length + 1)
-            : '';
 
         if (relativa && !relativa.includes('/') && !EXTENSIONES_AUDIO.has(extension)) {
             /* Es un path directo bajo carpetaBase sin extensión de audio → posible carpeta */

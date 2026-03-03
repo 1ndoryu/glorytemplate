@@ -25,6 +25,7 @@ import { obtenerBaseUrlSync } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 import { estado } from './syncState';
+import { esRutaPapelera, normalizarNombreParaDedup } from './normalizarNombreArchivo';
 
 const STORE_FILE = 'upload-queue.json';
 const STORE_KEY_COLA = 'upload_cola';
@@ -48,6 +49,8 @@ export interface ItemUploadCola {
     timestampActualizado: number;
     sampleIdServidor?: number;
     hashParcial?: string;
+    /** Clave de idempotencia para evitar duplicados si el upload se reintenta tras timeout */
+    idempotencyKey: string;
 }
 
 export interface ProgresoUpload {
@@ -129,29 +132,43 @@ export async function encolarArchivo(
     nombreArchivo: string,
     carpetas: string[],
 ): Promise<boolean> {
+    /* P3: Rechazar archivos dentro de .papelera — defensa en profundidad */
+    if (esRutaPapelera(rutaArchivo)) {
+        console.info('[UploadQueue] Archivo en .papelera, rechazando:', nombreArchivo);
+        return false;
+    }
+
+    /*
+     * P4: Normalizar nombre (elimina prefijo timestamp de papelera) para
+     * que el dedup por nombre funcione aunque el archivo haya pasado por
+     * papelera y luego reaparecido con prefijo timestamp.
+     */
+    const nombreNormalizado = normalizarNombreParaDedup(nombreArchivo);
+
     /* Verificar si ya está en la cola (misma ruta) — O(1) con Set */
     if (rutasEnCola.has(rutaArchivo) && cola.some(i => i.rutaArchivo === rutaArchivo && i.estado !== 'error')) {
-        console.info('[UploadQueue] Archivo ya en cola, ignorando:', nombreArchivo);
+        console.info('[UploadQueue] Archivo ya en cola, ignorando:', nombreNormalizado);
         return false;
     }
 
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
     if (hash && hashesConocidos.has(hash)) {
-        console.info('[UploadQueue] Duplicado detectado por hash:', nombreArchivo);
+        console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
         return false;
     }
 
     const item: ItemUploadCola = {
         id: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         rutaArchivo,
-        nombreArchivo,
+        nombreArchivo: nombreNormalizado,
         carpetas,
         estado: 'pendiente',
         intentos: 0,
         timestampCreado: Date.now(),
         timestampActualizado: Date.now(),
         hashParcial: hash ?? undefined,
+        idempotencyKey: crypto.randomUUID(),
     };
 
     cola.push(item);
@@ -357,8 +374,24 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             return true;
         }
 
-        const { readFile } = await import('@tauri-apps/plugin-fs');
+        const { readFile, exists } = await import('@tauri-apps/plugin-fs');
         const baseUrl = obtenerBaseUrlSync();
+
+        /*
+         * P3: Verificar existencia antes de leer.
+         * En entornos OneDrive el archivo puede haberse movido a papelera
+         * o estar en proceso de sincronización cloud → "failed to open file".
+         * Detectarlo aquí evita reintentos inútiles contra un archivo que ya no existe.
+         */
+        const archivoExiste = await exists(item.rutaArchivo);
+        if (!archivoExiste) {
+            const esOneDrive = item.rutaArchivo.includes('OneDrive');
+            item.ultimoError = esOneDrive
+                ? 'Archivo no encontrado (posible conflicto OneDrive/papelera)'
+                : 'Archivo no encontrado en disco';
+            console.warn('[UploadQueue] Archivo no existe, abortando upload:', item.rutaArchivo);
+            return false;
+        }
 
         /* Leer el archivo de audio del disco */
         const contenidoArchivo = await readFile(item.rutaArchivo);
@@ -387,11 +420,14 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         formData.append('es_premium', 'false');
         formData.append('mostrar_en_comunidad', 'true');
 
-        /* POST al servidor */
+        /* POST al servidor — P5: incluir clave de idempotencia para evitar duplicados por timeout */
         const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/upload`, {
             method: 'POST',
             body: formData,
-            /* No poner Content-Type: el browser lo genera con el boundary correcto */
+            headers: {
+                'X-Idempotency-Key': item.idempotencyKey,
+            },
+            /* Content-Type se genera automáticamente con el boundary correcto */
         });
 
         if (!respuesta.ok) {

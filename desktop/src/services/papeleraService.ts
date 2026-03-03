@@ -15,6 +15,8 @@
  */
 
 import { estado } from './syncState';
+import { marcarDescargaEnCurso } from './syncGuards';
+import { actualizarEstadoSampleHistorial } from './syncService';
 
 const STORE_FILE = 'papelera.json';
 const STORE_KEY_ITEMS = 'papelera_items';
@@ -87,6 +89,11 @@ export async function moverAPapelera(
             tamano = info.size ?? 0;
         } catch { /* si falla stat, seguir con tamano 0 */ }
 
+        /* P2: Guard para que el watcher ignore el CREATE en .papelera/.
+         * Defensa en profundidad: P1 (filtro en watcher) es la línea principal,
+         * este guard es el fallback por si algún edge case lo atraviesa. */
+        marcarDescargaEnCurso(rutaPapelera);
+
         /* Mover archivo (no eliminarlo) */
         await rename(rutaOriginal, rutaPapelera);
 
@@ -104,6 +111,14 @@ export async function moverAPapelera(
 
         items.push(item);
         await guardarPapelera();
+
+        /* P6: Actualizar historial per-sample para que el panel muestre estado correcto */
+        actualizarEstadoSampleHistorial({
+            sampleId: sampleId ?? 0,
+            nombreArchivo,
+            estado: 'en_papelera',
+            rutaLocal: rutaPapelera,
+        }).catch(() => { /* No bloquear movimiento a papelera por fallo en historial */ });
 
         console.info('[Papelera] Archivo movido a papelera:', nombreArchivo);
         return true;

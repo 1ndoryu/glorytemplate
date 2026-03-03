@@ -1,7 +1,7 @@
 # Plan: Revisión Profunda — Sistema de Sync (Upload + Watcher + Papelera)
 
 > **Fecha:** 2026-03-03 | **Prioridad:** Crítica | **Módulos afectados:** fileWatcherService, papeleraService, uploadQueueService, syncWatcherSetup, syncService, backend upload
-> **Estado:** PENDIENTE — Planificación completada tras bug reportado upload→papelera→re-upload→duplicado.
+> **Estado:** COMPLETADO — Implementación total de P1-P7 (2026-03-03).
 > **Referencia roadmap:** C368
 
 ---

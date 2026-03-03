@@ -267,16 +267,16 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [ ] **367e** Server-side dedup: Considerar endpoint `POST /samples/check-duplicate` (hash parcial) consultado antes del upload. Alternativa: backend retorna `already_exists` con `sample_id` existente si hash coincide. TO-DO para implementar.
     - [ ] **367f** Constraint UNIQUE: Agregar `UNIQUE (usuario_id, LOWER(nombre))` a tabla colecciones para dedup atómico (actual: check-then-insert con race window mínima).
 
-368. **REVISIÓN PROFUNDA — Ciclo Upload→Papelera→Re-Upload→Duplicado (7 tareas)**
+368. ✅ [AG-SYN] **REVISIÓN PROFUNDA — Ciclo Upload→Papelera→Re-Upload→Duplicado (7 tareas)**
     > **Plan detallado en:** `App/docs/plan-sync-optimizacion.md` (Fase 2)
-    > **Bug:** Watcher no excluye `.papelera/` → archivos movidos allí se re-suben como nuevos → duplicados en servidor.
-    - [ ] **P1** Excluir `.papelera/` del watcher (`fileWatcherService.ts` — `CARPETAS_EXCLUIDAS` extensible)
-    - [ ] **P2** Guard `marcarDescargaEnCurso()` en `papeleraService.moverAPapelera()` antes del rename
-    - [ ] **P3** Pre-check `exists()` antes de `readFile` en `subirArchivo()` + rechazo rutas `.papelera/` en `encolarArchivo()`
-    - [ ] **P4** Normalización nombre (strip `^\d{13,}_`) para dedup contra prefijo timestamp papelera
-    - [ ] **P5** Idempotency key server-side (header `X-Idempotency-Key` + check en `SamplesUploadController`)
-    - [ ] **P6** Consistencia historial: `moverAPapelera()` actualiza estado sample a `en_papelera`
-    - [ ] **P7** Auditar carpetas excluidas del watcher (`Sin colección` solo-delete, `.sync-temp` futuro)
+    > **Implementado:** 2026-03-03 — todas las capas de defensa.
+    - [x] **P1** Excluir `.papelera/` del watcher (`fileWatcherService.ts` — `CARPETAS_EXCLUIDAS_TOTAL` Set)
+    - [x] **P2** Guard `marcarDescargaEnCurso()` en `papeleraService.moverAPapelera()` antes del rename
+    - [x] **P3** Pre-check `exists()` antes de `readFile` en `subirArchivo()` + rechazo rutas `.papelera/` en `encolarArchivo()`
+    - [x] **P4** Normalización nombre (strip `^\d{13,}_`) para dedup — `normalizarNombreArchivo.ts` + aplicado en `encolarArchivo` y `onArchivoNuevo`
+    - [x] **P5** Idempotency key: header `X-Idempotency-Key` (cliente) + transient check en `SamplesUploadController` (servidor)
+    - [x] **P6** Consistencia historial: `moverAPapelera()` actualiza estado sample a `en_papelera`
+    - [x] **P7** Auditar carpetas excluidas del watcher (`CARPETAS_SOLO_DELETE` para `Sin colección` — CREATEs ignorados, DELETEs pasan)
 
 ---
 

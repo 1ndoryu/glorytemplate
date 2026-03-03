@@ -26,6 +26,7 @@ import {
 } from './syncState';
 import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
 import { inicializarPapelera, purgarExpirados } from './papeleraService';
+import { normalizarNombreParaDedup } from './normalizarNombreArchivo';
 
 /* Operaciones de estado de sync por sample */
 
@@ -480,9 +481,16 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     return;
                 }
 
+                /*
+                 * P4: Normalizar nombre para dedup.
+                 * Si el archivo pasó por papelera, su nombre tiene prefijo timestamp
+                 * que rompe búsquedas por nombre en tracking e índice.
+                 */
+                const nombreNorm = normalizarNombreParaDedup(nombreArchivo);
+
                 if (trackingModule) {
                     const enTracking = trackingModule.buscarArchivoPorRuta(ruta)
-                        ?? trackingModule.buscarArchivoPorNombre(nombreArchivo);
+                        ?? trackingModule.buscarArchivoPorNombre(nombreNorm);
                     if (enTracking) {
                         if (enTracking.syncDeshabilitado) {
                             /* El archivo fue borrado localmente y el usuario lo volvio a anadir:
@@ -504,9 +512,9 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     return;
                 }
 
-                const porNombre = buscarEnIndicePorNombre(nombreArchivo);
+                const porNombre = buscarEnIndicePorNombre(nombreNorm);
                 if (porNombre) {
-                    console.info('[Sync] Archivo conocido detectado en nueva ubicación:', nombreArchivo);
+                    console.info('[Sync] Archivo conocido detectado en nueva ubicación:', nombreNorm);
                     actualizarRutaYCarpeta(porNombre, ruta, carpetas);
                     return;
                 }
