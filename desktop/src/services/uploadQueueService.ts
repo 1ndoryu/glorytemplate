@@ -854,6 +854,31 @@ export async function reintentarItem(itemId: string): Promise<void> {
 }
 
 /*
+ * Reintenta todos los items que estén en estado "error".
+ * Útil para cuando el usuario presiona "Sincronizar ahora".
+ */
+export async function reintentarTodosConError(): Promise<void> {
+    let algunActualizado = false;
+    for (const item of cola) {
+        if (item.estado === 'error') {
+            item.estado = 'pendiente';
+            item.intentos = 0;
+            item.ultimoError = undefined;
+            item.timestampActualizado = Date.now();
+            rutasEnCola.add(claveRutaEnCola(item.rutaArchivo));
+            algunActualizado = true;
+        }
+    }
+
+    if (algunActualizado) {
+        await guardarCola();
+        if (estaOnline()) {
+            procesarCola();
+        }
+    }
+}
+
+/*
  * Elimina un item de la cola (cancelar upload).
  */
 export async function eliminarItemCola(itemId: string): Promise<void> {

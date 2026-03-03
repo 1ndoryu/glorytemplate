@@ -424,6 +424,14 @@ async function ejecutarSync(
     const carpetaLocal = estado.config.carpetaLocal;
     if (!carpetaLocal) return { nuevos: 0, eliminados: 0 };
 
+    /* C378: Si el usuario fuerza "Sincronizar ahora" pero hay items que fallaron por HTTP 429, reintentarlos */
+    try {
+        const { reintentarTodosConError } = await import('./uploadQueueService');
+        await reintentarTodosConError();
+    } catch (e) {
+        console.warn('[Sync] No se pudo reintentar la cola de subida antes de sync:', e);
+    }
+
     if (collectionModule) {
         try {
             const resultado = await collectionModule.sincronizarColecciones(
