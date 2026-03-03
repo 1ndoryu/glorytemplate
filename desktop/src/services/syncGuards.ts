@@ -13,18 +13,31 @@
 /* Descargas en curso */
 
 const descargasEnCurso = new Set<string>();
+const descargasTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const GRACIA_DESCARGA_MS = 10_000;
 
 /**
  * Marca una ruta como descarga en curso para que el watcher la ignore.
  * La ruta se limpia automáticamente después de GRACIA_DESCARGA_MS.
+ * Si se llama repetidamente para la misma ruta, cancela el timeout anterior
+ * para evitar acumulación de timers (1000 descargas = 1000 timers sin este fix).
  */
 export function marcarDescargaEnCurso(ruta: string): void {
     const normalizada = ruta.replace(/\\/g, '/');
     descargasEnCurso.add(normalizada);
-    setTimeout(() => {
+
+    /* Cancelar timeout anterior para esta ruta si existe */
+    const timerAnterior = descargasTimeouts.get(normalizada);
+    if (timerAnterior) {
+        clearTimeout(timerAnterior);
+    }
+
+    const nuevoTimer = setTimeout(() => {
         descargasEnCurso.delete(normalizada);
+        descargasTimeouts.delete(normalizada);
     }, GRACIA_DESCARGA_MS);
+
+    descargasTimeouts.set(normalizada, nuevoTimer);
 }
 
 /**

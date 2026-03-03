@@ -30,6 +30,8 @@ import {
     estado,
     guardarConfig,
     guardarIndice,
+    cargarConfigAvanzada,
+    reconstruirIndicesArchivos,
     STORE_FILE,
     STORE_KEY_CONFIG,
     STORE_KEY_INDICE,
@@ -82,6 +84,12 @@ export async function inicializarSyncService(): Promise<void> {
     } catch {
         /* Config no disponible — usar defaults */
     }
+
+    /* Reconstruir índices O(1) para lookups rápidos del watcher */
+    reconstruirIndicesArchivos();
+
+    /* Cargar configuración avanzada (paralelismo, throttle, papelera) */
+    await cargarConfigAvanzada();
 
     /* C355: Inicializar tracking v2 y migrar datos v1 si es primera vez */
     try {

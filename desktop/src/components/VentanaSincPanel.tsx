@@ -22,11 +22,13 @@ import {
     EyeOff,
     Trash2,
     ArrowRight,
+    Settings,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
 import { useSyncStore } from '@app/stores/syncStore';
 import type { EntradaHistorialSample, EstadoSampleHistorial } from '@app/stores/syncStore';
+import { ConfiguracionSync } from './ConfiguracionSync';
 import '@app/styles/componentes/sincronizacion.css';
 
 function formatearTiempoRelativo(timestamp: number): string {
@@ -145,6 +147,7 @@ export function VentanaSincPanel(): JSX.Element {
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [configAbierto, setConfigAbierto] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const botonMenuRef = useRef<HTMLDivElement>(null);
     const [perfilDesktop, setPerfilDesktop] = useState<{
@@ -296,6 +299,10 @@ export function VentanaSincPanel(): JSX.Element {
                             <PauseCircle size={14} />
                             {sincronizacionActiva ? 'Pausar sync' : 'Activar sync'}
                         </BotonBase>
+                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={() => { setConfigAbierto(true); setMenuAbierto(false); }} type="button">
+                            <Settings size={14} />
+                            Configuración
+                        </BotonBase>
                         <BotonBase variante="ghost" className="sincPanelMinimalMenuItem sincPanelMinimalMenuItemPeligro" onClick={limpiarHistorialLocal} type="button">
                             <Trash2 size={14} />
                             Limpiar historial
@@ -376,6 +383,11 @@ export function VentanaSincPanel(): JSX.Element {
                     <FolderOpen size={15} />
                 </BotonBase>
             </div>
+
+            <ConfiguracionSync
+                abierto={configAbierto}
+                onCerrar={() => setConfigAbierto(false)}
+            />
         </div>
     );
 }

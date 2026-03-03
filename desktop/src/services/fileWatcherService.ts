@@ -37,6 +37,28 @@ const PATRONES_TEMPORALES = [
 const archivosRecientes = new Map<string, number>();
 const DEBOUNCE_ARCHIVO_MS = 3000;
 
+/* Purga periódica del cache para evitar crecimiento ilimitado en batches grandes */
+const PURGA_INTERVALO_MS = 10_000;
+const PURGA_TTL_MS = 30_000;
+let purgaInterval: ReturnType<typeof setInterval> | null = null;
+
+function iniciarPurgaPeriodica(): void {
+    if (purgaInterval) return;
+    purgaInterval = setInterval(() => {
+        const ahora = Date.now();
+        for (const [k, v] of archivosRecientes) {
+            if (ahora - v > PURGA_TTL_MS) archivosRecientes.delete(k);
+        }
+    }, PURGA_INTERVALO_MS);
+}
+
+function detenerPurgaPeriodica(): void {
+    if (purgaInterval) {
+        clearInterval(purgaInterval);
+        purgaInterval = null;
+    }
+}
+
 /*
  * Gracia para detección de MOVEs.
  * Un MOVE genera DELETE + CREATE. Bufferamos el DELETE por GRACIA_MOVE_MS
@@ -128,6 +150,7 @@ export async function iniciarObservacion(): Promise<boolean> {
         );
 
         observando = true;
+        iniciarPurgaPeriodica();
         console.info('[FileWatcher] Observando carpeta:', config.carpetaLocal);
         return true;
     } catch (err) {
@@ -145,6 +168,7 @@ export async function detenerObservacion(): Promise<void> {
         unwatchFn = null;
     }
     observando = false;
+    detenerPurgaPeriodica();
     archivosRecientes.clear();
 
     /* Limpiar eliminaciones pendientes para evitar callbacks sueltos */
@@ -213,13 +237,6 @@ function procesarEvento(
         const ultimoProcesado = archivosRecientes.get(normalizada);
         if (ultimoProcesado && (ahora - ultimoProcesado) < DEBOUNCE_ARCHIVO_MS) continue;
         archivosRecientes.set(normalizada, ahora);
-
-        /* Limpiar cache vieja periodicamente */
-        if (archivosRecientes.size > 500) {
-            for (const [k, v] of archivosRecientes) {
-                if (ahora - v > 30_000) archivosRecientes.delete(k);
-            }
-        }
 
         if (esEventoCreacion(tipo)) {
             manejarArchivoNuevo(ruta, normalizada, carpetaBase);

@@ -18,10 +18,14 @@ import { encolarOperacion } from './offlineQueueService';
 import {
     estado,
     guardarIndice,
+    buscarEnIndicePorRuta,
+    buscarEnIndicePorNombre,
+    actualizarIndiceArchivo,
     POLLING_CARPETAS_MS,
     type ArchivoLocal,
 } from './syncState';
 import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
+import { inicializarPapelera, purgarExpirados } from './papeleraService';
 
 /* Operaciones de estado de sync por sample */
 
@@ -48,9 +52,7 @@ export async function marcarNoSincronizar(ruta: string): Promise<boolean> {
     }
 
     const rutaNormalizada = ruta.replace(/\\/g, '/');
-    const archivo = indiceArchivos.find(
-        a => a.ruta.replace(/\\/g, '/') === rutaNormalizada,
-    );
+    const archivo = buscarEnIndicePorRuta(rutaNormalizada);
 
     if (!archivo) {
         if (trackingModule?.buscarArchivoPorRuta(ruta)) return true;
@@ -60,7 +62,7 @@ export async function marcarNoSincronizar(ruta: string): Promise<boolean> {
 
     archivo.syncDeshabilitado = true;
     archivo.rutaEliminada = archivo.ruta;
-    await guardarIndice();
+    guardarIndice();
 
     console.info('[Sync] Sample marcado como no_sincronizar:', archivo.nombre, '(sampleId:', archivo.sampleId, ')');
     return true;
@@ -88,7 +90,7 @@ export async function marcarNoSincronizarPorId(sampleId: number): Promise<boolea
 
     archivo.syncDeshabilitado = true;
     archivo.rutaEliminada = archivo.ruta;
-    await guardarIndice();
+    guardarIndice();
 
     console.info('[Sync] Sample marcado como no_sincronizar por ID:', sampleId);
     return true;
@@ -110,7 +112,7 @@ export async function reactivarSync(sampleId: number): Promise<boolean> {
     if (!archivo && !encontradoV2) return false;
 
     estado.indiceArchivos = estado.indiceArchivos.filter(a => a.sampleId !== sampleId);
-    await guardarIndice();
+    guardarIndice();
 
     console.info('[Sync] Sync reactivada para sample:', sampleId, '— se descargará en próxima sync');
     return true;
@@ -237,9 +239,7 @@ async function manejarMoveLocal(
 ): Promise<void> {
     const { trackingModule, indiceArchivos } = estado;
     const rutaAntNorm = rutaAnterior.replace(/\\/g, '/');
-    const archivo = indiceArchivos.find(
-        a => a.ruta.replace(/\\/g, '/') === rutaAntNorm,
-    );
+    const archivo = buscarEnIndicePorRuta(rutaAntNorm);
 
     if (!archivo) {
         console.warn('[Sync] Move: archivo no encontrado en índice por ruta anterior:', rutaAnterior);
@@ -251,7 +251,8 @@ async function manejarMoveLocal(
         archivo.syncDeshabilitado = false;
         archivo.rutaEliminada = undefined;
     }
-    await guardarIndice();
+    actualizarIndiceArchivo(archivo, rutaAntNorm);
+    guardarIndice();
 
     /* v2: actualizar tracking si existe */
     if (trackingModule) {
@@ -285,13 +286,15 @@ async function actualizarRutaYCarpeta(
     carpetas: string[],
 ): Promise<void> {
     const { trackingModule } = estado;
+    const rutaAnterior = archivo.ruta.replace(/\\/g, '/');
 
     archivo.ruta = rutaNueva;
     if (archivo.syncDeshabilitado) {
         archivo.syncDeshabilitado = false;
         archivo.rutaEliminada = undefined;
     }
-    await guardarIndice();
+    actualizarIndiceArchivo(archivo, rutaAnterior);
+    guardarIndice();
 
     if (trackingModule) {
         const archivoTracking = trackingModule.buscarArchivoPorSampleId(archivo.sampleId);
@@ -334,6 +337,93 @@ async function sincronizarEstructuraCarpetas(): Promise<void> {
     await sincronizarEstructuraCarpetasV1();
 }
 
+/* Borrado local → papelera + borrado en servidor si configurado */
+
+/*
+ * Maneja la eliminacion de un archivo local detectada por el watcher.
+ * 1. Si la papelera esta activa, el archivo ya fue movido por el OS (watcher detecta remove).
+ *    Registrar en tracking como no_sincronizar.
+ * 2. Si borrado bidireccional (local→servidor) esta activo, llamar soft-delete en servidor.
+ * 3. Rate-limit: maximo 50 borrados en servidor por ciclo de sync.
+ */
+const LIMITE_BORRADOS_POR_CICLO = 50;
+let borradosEnCiclo = 0;
+let ultimoResetBorrados = Date.now();
+
+async function manejarBorradoLocal(ruta: string): Promise<void> {
+    /* Marcar como no sincronizar (comportamiento base) */
+    await marcarNoSincronizar(ruta);
+
+    /* Verificar si borrado bidireccional local→servidor esta activo */
+    if (!estado.configAvanzada.borrarEnServidorAlBorrarLocal) return;
+
+    /* Rate-limit: resetear contador cada 5 minutos */
+    const ahora = Date.now();
+    if (ahora - ultimoResetBorrados > 5 * 60 * 1000) {
+        borradosEnCiclo = 0;
+        ultimoResetBorrados = ahora;
+    }
+
+    if (borradosEnCiclo >= LIMITE_BORRADOS_POR_CICLO) {
+        console.warn('[Sync] Limite de borrados en servidor alcanzado (50/ciclo). Ignorando:', ruta);
+        return;
+    }
+
+    /* Buscar sampleId en indice */
+    const rutaNorm = ruta.replace(/\\/g, '/');
+    const archivo = buscarEnIndicePorRuta(rutaNorm);
+    const sampleId = archivo?.sampleId;
+
+    if (!sampleId) {
+        /* Intentar buscar en tracking v2 */
+        const archivoV2 = estado.trackingModule?.buscarArchivoPorRuta(ruta);
+        if (!archivoV2) return;
+        await softDeleteEnServidor(archivoV2.sampleId);
+        borradosEnCiclo++;
+        return;
+    }
+
+    await softDeleteEnServidor(sampleId);
+    borradosEnCiclo++;
+}
+
+/*
+ * Soft-delete de un sample en el servidor.
+ * Marca como eliminado sin borrar permanentemente (el servidor puede tener su propia papelera).
+ */
+async function softDeleteEnServidor(sampleId: number): Promise<boolean> {
+    if (!estaOnline()) {
+        encolarOperacion({
+            tipo: 'soft_delete',
+            endpoint: `${obtenerBaseUrlSync()}/kamples/v1/samples/${sampleId}`,
+            method: 'DELETE',
+            body: { soft: true },
+            claveDuplicacion: `soft_delete_${sampleId}`,
+        });
+        return true;
+    }
+
+    try {
+        const baseUrl = obtenerBaseUrlSync();
+        const resp = await fetch(`${baseUrl}/kamples/v1/samples/${sampleId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ soft: true }),
+        });
+
+        if (!resp.ok) {
+            console.error('[Sync] Error en soft-delete servidor:', sampleId, resp.status);
+            return false;
+        }
+
+        console.info('[Sync] Sample eliminado en servidor (soft-delete):', sampleId);
+        return true;
+    } catch (err) {
+        console.error('[Sync] Error en soft-delete:', sampleId, err);
+        return false;
+    }
+}
+
 /* Inicialización del watcher bidireccional */
 
 /*
@@ -350,6 +440,10 @@ export async function inicializarSyncBidireccional(): Promise<void> {
     try {
         const { registrarCallbacks, registrarCallbacksCarpeta, iniciarObservacion } = await import('./fileWatcherService');
         const { inicializarUploadQueue, encolarArchivo } = await import('./uploadQueueService');
+
+        /* Inicializar papelera y purgar expirados */
+        await inicializarPapelera();
+        await purgarExpirados();
 
         registrarCallbacks(
             /* Archivo nuevo */
@@ -379,17 +473,13 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     }
                 }
 
-                const porRuta = estado.indiceArchivos.find(
-                    a => a.ruta.replace(/\\/g, '/') === rutaNorm,
-                );
+                const porRuta = buscarEnIndicePorRuta(rutaNorm);
                 if (porRuta) {
                     console.info('[Sync] Archivo ya en índice (por ruta), ignorando:', nombreArchivo);
                     return;
                 }
 
-                const porNombre = estado.indiceArchivos.find(
-                    a => a.nombreServidor === nombreArchivo || a.nombreOriginal === nombreArchivo,
-                );
+                const porNombre = buscarEnIndicePorNombre(nombreArchivo);
                 if (porNombre) {
                     console.info('[Sync] Archivo conocido detectado en nueva ubicación:', nombreArchivo);
                     actualizarRutaYCarpeta(porNombre, ruta, carpetas);
@@ -398,9 +488,9 @@ export async function inicializarSyncBidireccional(): Promise<void> {
 
                 encolarArchivo(ruta, nombreArchivo, carpetas);
             },
-            /* Archivo eliminado */
+            /* Archivo eliminado — papelera + borrado bidireccional */
             (ruta: string) => {
-                marcarNoSincronizar(ruta);
+                manejarBorradoLocal(ruta);
             },
             /* Archivo movido */
             (rutaAnterior: string, rutaNueva: string, nombreArchivo: string, carpetas: string[]) => {

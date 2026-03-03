@@ -14,6 +14,7 @@
 import '@app/styles/variables.css';
 import '@app/styles/componentes/botonBase.css';
 import '@app/styles/componentes/sincronizacion.css';
+import '@app/styles/componentes/configuracionSync.css';
 
 /* CSS shell de la ventana sync */
 import './sync.css';

@@ -22,6 +22,9 @@
 import { esDesktop, estaOnline } from './desktopService';
 import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
+import { Semaforo } from './semaforo';
+import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
+import { estado } from './syncState';
 
 const STORE_FILE = 'upload-queue.json';
 const STORE_KEY_COLA = 'upload_cola';
@@ -60,6 +63,13 @@ let hashesConocidos = new Set<string>();
 let procesando = false;
 let callbackProgreso: OnProgresoUploadFn | null = null;
 
+/* Set O(1) para verificar si una ruta ya está en cola. Evita cola.some() O(n). */
+let rutasEnCola = new Set<string>();
+
+/* Semáforo de concurrencia: controla cuántos archivos se suben en paralelo.
+ * El límite se lee de configAvanzada.archivosParalelos al iniciar procesarCola. */
+let semaforoUpload: Semaforo | null = null;
+
 /*
  * Inicializa la cola: carga items pendientes y hashes del store.
  */
@@ -80,6 +90,8 @@ export async function inicializarUploadQueue(): Promise<void> {
                     item.estado = 'pendiente';
                 }
             }
+            /* Reconstruir Set de rutas para lookups O(1) */
+            rutasEnCola = new Set(cola.map(i => i.rutaArchivo));
         }
 
         const hashesGuardados = await store.get<string[]>(STORE_KEY_HASHES);
@@ -117,8 +129,8 @@ export async function encolarArchivo(
     nombreArchivo: string,
     carpetas: string[],
 ): Promise<boolean> {
-    /* Verificar si ya está en la cola (misma ruta) */
-    if (cola.some(i => i.rutaArchivo === rutaArchivo && i.estado !== 'error')) {
+    /* Verificar si ya está en la cola (misma ruta) — O(1) con Set */
+    if (rutasEnCola.has(rutaArchivo) && cola.some(i => i.rutaArchivo === rutaArchivo && i.estado !== 'error')) {
         console.info('[UploadQueue] Archivo ya en cola, ignorando:', nombreArchivo);
         return false;
     }
@@ -143,7 +155,8 @@ export async function encolarArchivo(
     };
 
     cola.push(item);
-    await guardarCola();
+    rutasEnCola.add(rutaArchivo);
+    guardarColaDebounced();
 
     /* Historial per-sample: entrada inicial "detectado" (se actualiza a subiendo/sincronizado) */
     actualizarEstadoSampleHistorial({
@@ -170,83 +183,139 @@ export async function encolarArchivo(
 }
 
 /*
- * Procesa la cola FIFO: sube un archivo a la vez.
- * Reintentos con backoff exponencial.
+ * Procesa la cola con paralelismo controlado.
+ * El número de uploads simultáneos se lee de configAvanzada.archivosParalelos.
+ * Incluye throttle inter-archivo si hay límite de velocidad configurado.
  */
 async function procesarCola(): Promise<void> {
     if (procesando || !estaOnline()) return;
     procesando = true;
 
+    const configAvanzada = estado.configAvanzada;
+    const maxParalelos = Math.max(1, Math.min(5, configAvanzada.archivosParalelos));
+
+    /* Crear o actualizar semáforo */
+    if (!semaforoUpload || semaforoUpload.limite !== maxParalelos) {
+        semaforoUpload = new Semaforo(maxParalelos);
+    }
+
+    const promesasActivas: Promise<void>[] = [];
+
     try {
         while (true) {
             const siguiente = cola.find(i => i.estado === 'pendiente');
-            if (!siguiente) break;
+
+            if (!siguiente) {
+                /* No hay más pendientes: esperar a que terminen las activas */
+                if (promesasActivas.length > 0) {
+                    await Promise.race(promesasActivas);
+                    continue;
+                }
+                break;
+            }
 
             if (!estaOnline()) break;
 
             siguiente.estado = 'subiendo';
             siguiente.timestampActualizado = Date.now();
             emitirProgreso(siguiente);
-            await guardarCola();
+            guardarColaDebounced();
 
-            /* Historial per-sample: actualizar a "subiendo" (upsert, no nueva entrada) */
+            /* Historial per-sample: actualizar a "subiendo" solo en primer intento */
             if (siguiente.intentos === 0) {
-                await actualizarEstadoSampleHistorial({
+                actualizarEstadoSampleHistorial({
                     sampleId: 0,
                     nombreArchivo: siguiente.nombreArchivo,
                     estado: 'subiendo',
                     rutaLocal: siguiente.rutaArchivo,
                 }).catch(() => {});
 
-                /* Historial legacy para compatibilidad */
-                await registrarAccionHistorial({
+                registrarAccionHistorial({
                     tipo: 'subiendo',
                     descripcion: `Subiendo: "${siguiente.nombreArchivo}"`,
                 }).catch(() => {});
             }
 
-            const exito = await subirArchivo(siguiente);
+            /* Adquirir slot del semáforo (espera si pool lleno) */
+            await semaforoUpload.adquirir();
 
-            if (exito) {
-                siguiente.estado = 'completado';
-                if (siguiente.hashParcial) {
-                    hashesConocidos.add(siguiente.hashParcial);
-                }
-            } else {
-                siguiente.intentos++;
-                if (siguiente.intentos >= MAX_REINTENTOS) {
-                    siguiente.estado = 'error';
-                    /* Historial per-sample: marcar como error */
-                    actualizarEstadoSampleHistorial({
-                        sampleId: 0,
-                        nombreArchivo: siguiente.nombreArchivo,
-                        estado: 'error',
-                        rutaLocal: siguiente.rutaArchivo,
-                        error: siguiente.ultimoError ?? 'Máximo de reintentos alcanzado',
-                    }).catch(() => {});
+            const itemRef = siguiente;
+            const promesa = procesarItemUpload(itemRef, configAvanzada)
+                .finally(() => {
+                    semaforoUpload!.liberar();
+                    const idx = promesasActivas.indexOf(promesa);
+                    if (idx !== -1) promesasActivas.splice(idx, 1);
+                });
 
-                    /* Historial legacy para compatibilidad */
-                    registrarAccionHistorial({
-                        tipo: 'error_subida',
-                        descripcion: `Error al subir: "${siguiente.nombreArchivo}" — ${siguiente.ultimoError ?? 'desconocido'}`,
-                    }).catch(() => {});
-                    console.error('[UploadQueue] Máximo de reintentos alcanzado:', siguiente.nombreArchivo);
-                } else {
-                    siguiente.estado = 'pendiente';
-                    /* Backoff exponencial antes de reintentar */
-                    const espera = BACKOFF_BASE_MS * Math.pow(2, siguiente.intentos - 1);
-                    await new Promise(r => setTimeout(r, espera));
-                }
-            }
-
-            siguiente.timestampActualizado = Date.now();
-            emitirProgreso(siguiente);
-            await guardarCola();
+            promesasActivas.push(promesa);
         }
+
+        /* Esperar que TODAS las activas terminen */
+        await Promise.all(promesasActivas);
     } finally {
         procesando = false;
         await guardarHashes();
+        await flushPersistencia('upload_cola');
     }
+}
+
+/*
+ * Procesa un item individual de la cola.
+ * Gestiona rethintos, backoff, y throttle inter-archivo.
+ */
+async function procesarItemUpload(
+    item: ItemUploadCola,
+    configAvanzada: { velocidadMaximaSubidaMbps: number },
+): Promise<void> {
+    const exito = await subirArchivo(item);
+
+    if (exito) {
+        item.estado = 'completado';
+        if (item.hashParcial) {
+            hashesConocidos.add(item.hashParcial);
+        }
+        rutasEnCola.delete(item.rutaArchivo);
+
+        /* Throttle inter-archivo: si hay límite de velocidad, esperar proporcionalmente */
+        if (configAvanzada.velocidadMaximaSubidaMbps > 0 && item.hashParcial) {
+            const tamanoEstimadoBytes = 5 * 1024 * 1024; /* ~5MB promedio */
+            const bytesPerSegundo = configAvanzada.velocidadMaximaSubidaMbps * 125_000;
+            const delayMs = Math.max(0, (tamanoEstimadoBytes / bytesPerSegundo) * 1000 - 500);
+            if (delayMs > 100) {
+                await new Promise(r => setTimeout(r, delayMs));
+            }
+        }
+    } else {
+        item.intentos++;
+        if (item.intentos >= MAX_REINTENTOS) {
+            item.estado = 'error';
+            rutasEnCola.delete(item.rutaArchivo);
+
+            actualizarEstadoSampleHistorial({
+                sampleId: 0,
+                nombreArchivo: item.nombreArchivo,
+                estado: 'error',
+                rutaLocal: item.rutaArchivo,
+                error: item.ultimoError ?? 'Máximo de reintentos alcanzado',
+            }).catch(() => {});
+
+            registrarAccionHistorial({
+                tipo: 'error_subida',
+                descripcion: `Error al subir: "${item.nombreArchivo}" — ${item.ultimoError ?? 'desconocido'}`,
+            }).catch(() => {});
+
+            console.error('[UploadQueue] Máximo de reintentos alcanzado:', item.nombreArchivo);
+        } else {
+            item.estado = 'pendiente';
+            /* Backoff exponencial antes de reintentar */
+            const espera = BACKOFF_BASE_MS * Math.pow(2, item.intentos - 1);
+            await new Promise(r => setTimeout(r, espera));
+        }
+    }
+
+    item.timestampActualizado = Date.now();
+    emitirProgreso(item);
+    guardarColaDebounced();
 }
 
 /*
@@ -528,14 +597,15 @@ function emitirProgreso(item: ItemUploadCola): void {
 }
 
 /*
- * Persiste la cola en el store de Tauri.
+ * Persiste la cola filtrando items completados viejos.
+ * Se usa para guardar con urgencia (reintento, eliminación manual).
+ * Para persistencia frecuente en bucle, usar guardarColaDebounced().
  */
 async function guardarCola(): Promise<void> {
     if (!esDesktop()) return;
     try {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
-        /* Guardar solo items relevantes (no completados viejos) */
         const paraGuardar = cola.filter(i =>
             i.estado !== 'completado' ||
             (Date.now() - i.timestampActualizado < 3600_000),
@@ -545,6 +615,19 @@ async function guardarCola(): Promise<void> {
     } catch {
         /* Fallo silencioso — la cola en memoria sigue viva */
     }
+}
+
+/*
+ * Versión debounced de guardarCola para uso en bucles de alta frecuencia.
+ * Agrupa múltiples escrituras en una sola operación de disco.
+ */
+function guardarColaDebounced(): void {
+    if (!esDesktop()) return;
+    const paraGuardar = cola.filter(i =>
+        i.estado !== 'completado' ||
+        (Date.now() - i.timestampActualizado < 3600_000),
+    );
+    persistirConDebounce('upload_cola', STORE_FILE, STORE_KEY_COLA, paraGuardar, 2000);
 }
 
 /*
@@ -598,7 +681,8 @@ export async function reintentarItem(itemId: string): Promise<void> {
         item.intentos = 0;
         item.ultimoError = undefined;
         item.timestampActualizado = Date.now();
-        await guardarCola();
+        rutasEnCola.add(item.rutaArchivo);
+        await guardarCola(); /* Guardar inmediato: acción explícita del usuario */
 
         if (estaOnline()) {
             procesarCola();
@@ -610,14 +694,24 @@ export async function reintentarItem(itemId: string): Promise<void> {
  * Elimina un item de la cola (cancelar upload).
  */
 export async function eliminarItemCola(itemId: string): Promise<void> {
+    const item = cola.find(i => i.id === itemId);
+    if (item) {
+        rutasEnCola.delete(item.rutaArchivo);
+    }
     cola = cola.filter(i => i.id !== itemId);
-    await guardarCola();
+    await guardarCola(); /* Guardar inmediato: acción explícita del usuario */
 }
 
 /*
  * Limpia items completados de la cola.
  */
 export async function limpiarCompletados(): Promise<void> {
+    /* Limpiar Set de rutas de items completados */
+    for (const item of cola) {
+        if (item.estado === 'completado') {
+            rutasEnCola.delete(item.rutaArchivo);
+        }
+    }
     cola = cola.filter(i => i.estado !== 'completado');
     await guardarCola();
 }

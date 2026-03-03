@@ -1,0 +1,225 @@
+/*
+ * configuracionSync.css
+ * Estilos del panel de configuracion avanzada de sincronizacion.
+ * Se renderiza como overlay centrado sobre la ventana de sync.
+ */
+
+/* Overlay que cubre toda la ventana */
+.configSyncOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlayOscuro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--zModal);
+    animation: configSyncFadeIn 150ms ease;
+}
+
+@keyframes configSyncFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Panel central */
+.configSyncPanel {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    width: 340px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: configSyncSlideIn 150ms ease;
+}
+
+@keyframes configSyncSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Cabecera */
+.configSyncCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioMd) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.configSyncTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.configSyncCerrar {
+    padding: var(--espacioXs) !important;
+    min-width: unset !important;
+    color: var(--textoTerciario);
+}
+
+/* Contenido scrollable */
+.configSyncContenido {
+    padding: var(--espacioMd) var(--espacioLg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Secciones individuales */
+.configSyncSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.configSyncLabel {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.configSyncDescripcion {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    line-height: 1.4;
+}
+
+/* Grupo input + valor */
+.configSyncInputGrupo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioXs);
+}
+
+.configSyncInputGrupoIndentado {
+    padding-left: var(--espacioLg);
+}
+
+/* Slider */
+.configSyncSlider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--bordeSutil);
+    border-radius: var(--radioFull);
+    outline: none;
+    cursor: pointer;
+}
+
+.configSyncSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radioFull);
+    background: var(--acento);
+    cursor: pointer;
+    border: 2px solid var(--fondoElevado1);
+    transition: box-shadow var(--transicionRapida);
+}
+
+.configSyncSlider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 4px var(--acentoMuted);
+}
+
+.configSyncSlider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radioFull);
+    background: var(--acento);
+    cursor: pointer;
+    border: 2px solid var(--fondoElevado1);
+}
+
+.configSyncValor {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    min-width: 60px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Input numérico */
+.configSyncInputNumero {
+    width: 56px;
+    padding: var(--espacio2xs) var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoPrimario);
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    outline: none;
+    text-align: center;
+    transition: border-color var(--transicionRapida);
+}
+
+.configSyncInputNumero:focus {
+    border-color: var(--acento);
+}
+
+/* Checkboxes (toggles) */
+.configSyncToggleGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioXs);
+}
+
+.configSyncToggleLabel {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.configSyncCheckbox {
+    margin-top: 2px;
+    accent-color: var(--acento);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Footer */
+.configSyncFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) var(--espacioLg);
+    border-top: 1px solid var(--bordeSutil);
+    gap: var(--espacioSm);
+}
+
+.configSyncFooterDerecha {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.configSyncBotonResetear {
+    color: var(--textoTerciario) !important;
+    font-size: var(--fuenteXs) !important;
+}
+
+.configSyncBotonGuardar {
+    font-size: var(--fuenteXs) !important;
+}
+
+.configSyncBotonGuardar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

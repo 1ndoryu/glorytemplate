@@ -15,6 +15,9 @@
 
 import { estaOnline } from './desktopService';
 import { marcarDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { Semaforo } from './semaforo';
+import { estado } from './syncState';
+import { moverAPapelera } from './papeleraService';
 import {
     obtenerArchivo,
     buscarArchivoPorSampleId,
@@ -179,8 +182,29 @@ export async function sincronizarColecciones(
     for (const s of datosServidor.sinColeccion) sampleIdsServidor.add(s.id);
 
     const archivosActuales = todosLosArchivos();
+    const borrarLocalSiNoEnServidor = estado.configAvanzada.borrarEnLocalAlBorrarEnServidor;
+
     for (const archivo of archivosActuales) {
         if (!sampleIdsServidor.has(archivo.sampleId)) {
+            /* Borrado bidireccional server→local: mover a papelera si esta activo */
+            if (borrarLocalSiNoEnServidor && archivo.rutaLocal) {
+                const { exists: existeFs } = await import('@tauri-apps/plugin-fs');
+                const existeArchivo = await existeFs(archivo.rutaLocal).catch(() => false);
+                if (existeArchivo && estado.config.carpetaLocal) {
+                    const movido = await moverAPapelera(
+                        archivo.rutaLocal,
+                        archivo.nombreLocal,
+                        archivo.sampleId,
+                        archivo.coleccionId,
+                        'servidor',
+                        estado.config.carpetaLocal,
+                    );
+                    if (movido) {
+                        console.info('[SyncCollection] Archivo local movido a papelera (borrado en servidor):', archivo.nombreLocal);
+                    }
+                }
+            }
+
             await eliminarArchivo(archivo.sampleId, archivo.coleccionId);
             console.info('[SyncCollection] Eliminado de tracking (ya no existe en servidor):', archivo.nombreLocal, '(id:', archivo.sampleId, ')');
         }
@@ -195,7 +219,6 @@ export async function sincronizarColecciones(
     /* Calcular total de samples para progreso */
     const totalSamples = datosServidor.colecciones.reduce((sum, c) => sum + c.samples.length, 0)
         + datosServidor.sinColeccion.length;
-    let procesados = 0;
 
     /* Fase 1: Crear/actualizar estructura de carpetas */
     onProgreso?.({ fase: 'estructura', actual: 0, total: datosServidor.colecciones.length + 1 });
@@ -313,35 +336,66 @@ export async function sincronizarColecciones(
     iniciarLote();
     onProgreso?.({ fase: 'descarga', actual: 0, total: totalSamples });
 
-    /* Procesar samples de cada colección */
+    /* Construir lista plana de descargas para procesar en paralelo */
+    interface TareaDescarga {
+        sample: SampleSync;
+        coleccionId: number | null;
+        carpetaDestino: string;
+        esSinColeccion: boolean;
+    }
+
+    const tareasDescarga: TareaDescarga[] = [];
+
     for (const colServer of datosServidor.colecciones) {
         const colLocal = obtenerColeccion(colServer.id);
         if (!colLocal) continue;
-
         const carpetaColeccion = await join(carpetaBase, colLocal.carpetaLocal);
-
         for (const sample of colServer.samples) {
-            procesados++;
-            const resultado = await descargarSiNecesario(
-                sample, colServer.id, carpetaColeccion, onProgreso, procesados, totalSamples,
-            );
-            if (resultado === 'nuevo') nuevos++;
-            if (resultado === 'error') errores++;
+            tareasDescarga.push({
+                sample,
+                coleccionId: colServer.id,
+                carpetaDestino: carpetaColeccion,
+                esSinColeccion: false,
+            });
         }
     }
 
-    /* Procesar samples sin colección */
     for (const sample of datosServidor.sinColeccion) {
-        procesados++;
-        const resultado = await descargarSiNecesario(
-            sample, null, rutaSinCol, onProgreso, procesados, totalSamples,
-        );
-        if (resultado === 'nuevo') {
-            nuevos++;
-            await agregarSinColeccion(sample.id);
-        }
-        if (resultado === 'error') errores++;
+        tareasDescarga.push({
+            sample,
+            coleccionId: null,
+            carpetaDestino: rutaSinCol,
+            esSinColeccion: true,
+        });
     }
+
+    /* Procesar descargas en paralelo con semáforo */
+    const maxParalelos = Math.max(1, Math.min(5, estado.configAvanzada.archivosParalelos));
+    const semaforoDescargas = new Semaforo(maxParalelos);
+    let procesados = 0;
+
+    const promesasDescarga = tareasDescarga.map(tarea => {
+        return semaforoDescargas.adquirir().then(async () => {
+            try {
+                procesados++;
+                const resultado = await descargarSiNecesario(
+                    tarea.sample, tarea.coleccionId, tarea.carpetaDestino,
+                    onProgreso, procesados, totalSamples,
+                );
+                if (resultado === 'nuevo') {
+                    nuevos++;
+                    if (tarea.esSinColeccion) {
+                        await agregarSinColeccion(tarea.sample.id);
+                    }
+                }
+                if (resultado === 'error') errores++;
+            } finally {
+                semaforoDescargas.liberar();
+            }
+        });
+    });
+
+    await Promise.all(promesasDescarga);
 
     onProgreso?.({ fase: 'completado', actual: totalSamples, total: totalSamples });
 
