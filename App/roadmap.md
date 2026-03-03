@@ -303,6 +303,15 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `syncService.rehidratarImagenesPendientes`: compatibilidad con payload backend `imagenUrl` y `imagen_url`
     - [x] Exposición tipada en `window.__KAMPLES_SYNC__` (`sync.tsx`, `desktop/global.d.ts`, `App/React/global.d.ts`)
 
+373. ✅ [AG-SYN] **Root cause portada no visible: backend devolvía ruta de filesystem en `imagenUrl`**
+    - [x] `NormalizadorSample::normalizar`: `imagenUrl` ahora usa `rutaAUrl()` (igual que `rutaPreview`/`rutaWaveform`)
+    - [x] Compatibilidad: mantiene URLs HTTP intactas y convierte rutas absolutas `.../wp-content/uploads/...` a URL pública
+
+374. ✅ [AG-SYN] **Solución arquitectónica anti-duplicado + anti-papelera accidental (sin parches)**
+    - [x] `SyncRepository`: `/me/sync/colecciones` ahora incluye estados visibles para sync (`activo`, `procesando`, `en_supervision`), evitando que samples recién subidos desaparezcan temporalmente del snapshot servidor
+    - [x] `SyncRepository::descargasSinColeccion`: incluye también samples propios del creador sin colección (no solo tabla `descargas`)
+    - [x] `syncCollectionService`: ventana de gracia de presencia servidor (15 min) antes de purgar/mover a papelera un sample ausente en snapshot
+
 ---
 
 ## Notas Compactas
@@ -425,6 +434,8 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [OneDrive watcher path]: `watch()` puede emitir rutas equivalentes con formato distinto (`\\` vs `/`, casing). Cualquier dedup por ruta en cola DEBE usar clave normalizada canónica.
 - [Sync portada desktop]: `imagenUrl` puede venir relativa (`/wp-content/...`). En ventana Tauri/MPA debe resolverse contra el origen del servidor; si no, `<img>` apunta al origen local de la app y no carga.
 - [Sync portada tardía]: Si la imagen se genera después de los retries post-upload, queda `null` indefinidamente. Requiere rehidratación periódica con throttle + parse defensivo `imagenUrl|imagen_url`.
+- [Sync contract]: Un endpoint de sync no puede ocultar estados transitorios (`procesando`) si el cliente usa snapshot para purgar locales. Debe exponer estados visibles para consistencia eventual.
+- [Sync purge safety]: Antes de mover a papelera por "ausente en servidor", aplicar ventana de gracia para evitar falsos positivos por latencia pipeline/cache.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 

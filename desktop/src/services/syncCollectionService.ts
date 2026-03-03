@@ -73,6 +73,13 @@ const REGEX_CARACTERES_INVALIDOS = /[/\\:*?"<>|]/g;
  * llamadas repetidas a renombrarColeccionEnServidor en cada polling (60s). */
 const coleccionesNormalizadasEnSesion = new Set<number>();
 
+/*
+ * Gracia de presencia en servidor para samples recién registrados localmente.
+ * Evita falsos borrados cuando el endpoint /me/sync/colecciones todavía no refleja
+ * un sample nuevo (pipeline async, latencia de replicación o caché).
+ */
+const GRACIA_PRESENCIA_SERVIDOR_MS = 15 * 60 * 1000;
+
 /* Utilidades */
 
 /**
@@ -186,6 +193,12 @@ export async function sincronizarColecciones(
 
     for (const archivo of archivosActuales) {
         if (!sampleIdsServidor.has(archivo.sampleId)) {
+            const esReciente = (Date.now() - (archivo.descargadoEn ?? 0)) < GRACIA_PRESENCIA_SERVIDOR_MS;
+            if (esReciente) {
+                console.info('[SyncCollection] Omitiendo purge por ventana de gracia (sample reciente):', archivo.sampleId, archivo.nombreLocal);
+                continue;
+            }
+
             /* Borrado bidireccional server→local: mover a papelera si esta activo */
             if (borrarLocalSiNoEnServidor && archivo.rutaLocal) {
                 const { exists: existeFs } = await import('@tauri-apps/plugin-fs');

@@ -200,7 +200,13 @@ class NormalizadorSample
              * Los archivos originales solo se sirven via el endpoint /descargar autenticado.
              * Evita que usuarios anonimos obtengan URLs directas a WAV/MP3 originales.
              */
-            'imagenUrl'        => $row[SamplesCols::IMAGEN_URL] ?? null,
+            /*
+             * imagenUrl puede persistirse como ruta absoluta de filesystem
+             * (igual que preview/waveform). Normalizar siempre a URL HTTP.
+             */
+            'imagenUrl'        => !empty($row[SamplesCols::IMAGEN_URL])
+                ? self::rutaAUrl((string) $row[SamplesCols::IMAGEN_URL])
+                : null,
             'totalDescargas'   => (int) ($row[SamplesCols::TOTAL_DESCARGAS] ?? 0),
             'totalLikes'       => (int) ($row[SamplesCols::TOTAL_LIKES] ?? 0),
             'totalReproducciones' => (int) ($row[SamplesCols::TOTAL_REPRODUCCIONES] ?? 0),
