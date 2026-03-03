@@ -69,10 +69,10 @@ class SamplesUploadController
             }
         }
 
-        /* C164: Rate limit — 10 uploads por hora */
+        /* C164: Rate limit — 5000 uploads por hora (Alto para permitir Desktop Sync de librerías enteras) */
         $pgId = UsuarioHelper::obtenerIdPg();
         if ($pgId) {
-            $limitResp = RateLimiter::verificarUsuario($pgId, 'subir_sample', 10, 3600);
+            $limitResp = RateLimiter::verificarUsuario($pgId, 'subir_sample', 5000, 3600);
             if ($limitResp) return $limitResp;
         }
 

@@ -99,6 +99,12 @@ function inyectarRutas(): void {    window.__GLORY_ROUTES__ = RUTAS_DESKTOP;}
  */
 function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
     window.__KAMPLES_VERSION__ = '0.1.0';
+
+    const toggleVentanaSync = async (): Promise<void> => {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('toggle_ventana_sync');
+    };
+
     /* Exponer syncService para que hooks en App/React no necesiten dynamic imports */
     window.__KAMPLES_SYNC__ = {
         elegirCarpetaSync,
@@ -121,6 +127,7 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         haySyncEnCurso,
         abrirCarpetaSync,
         limpiarHistorialSync,
+        toggleVentanaSync,
     };
     /* C341: Upload queue — control de subidas automáticas */
     window.__KAMPLES_UPLOAD__ = {

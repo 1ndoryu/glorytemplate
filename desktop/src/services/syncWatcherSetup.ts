@@ -26,6 +26,13 @@ import {
 import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
 import { inicializarPapelera, purgarExpirados } from './papeleraService';
 
+/* Carpetas locales del sistema que NO deben crear colecciones en el servidor. */
+const CARPETAS_SISTEMA_SYNC = new Set([
+    'sin colecci\u00f3n',
+    'sin coleccion',
+    'sin colecci\u00c3\u00b3n',
+]);
+
 /* Operaciones de estado de sync por sample */
 
 /*
@@ -233,7 +240,7 @@ export async function moverSampleEnServidorPublico(
 async function manejarMoveLocal(
     rutaAnterior: string,
     rutaNueva: string,
-    _nombreArchivo: string,
+    nombreArchivo: string,
     carpetas: string[],
 ): Promise<void> {
     const { trackingModule, indiceArchivos } = estado;
@@ -266,7 +273,21 @@ async function manejarMoveLocal(
             }
         }
 
-        console.warn('[Sync] Move: archivo no encontrado en índice v1 ni tracking v2:', rutaAnterior);
+        console.warn('[Sync] Move sin tracking previo; se trata como archivo nuevo para upload:', rutaNueva);
+
+        const carpetaDestino = (carpetas[0] ?? '').trim();
+        if (carpetaDestino && !CARPETAS_SISTEMA_SYNC.has(carpetaDestino.toLowerCase())) {
+            estado.collectionModule?.crearColeccionDesdeLocal(carpetaDestino).catch(err => {
+                console.error('[Sync] Error creando colección destino desde move no trackeado:', err);
+            });
+        }
+
+        try {
+            const { encolarArchivo } = await import('./uploadQueueService');
+            await encolarArchivo(rutaNueva, nombreArchivo, carpetas);
+        } catch (err) {
+            console.error('[Sync] Error encolando move no trackeado como upload:', err);
+        }
         return;
     }
 
@@ -501,21 +522,13 @@ export async function inicializarSyncBidireccional(): Promise<void> {
             },
         );
 
-        /* Carpetas locales del sistema que NO deben crear colecciones en el servidor.
-         * Son carpetas internas de la app, no colecciones del usuario. */
-        const carpetasSistema = new Set([
-            'sin colecci\u00f3n',       /* Sin colección (canónico) */
-            'sin coleccion',             /* variante sin tilde */
-            'sin colecci\u00c3\u00b3n', /* variante mojibake legacy */
-        ]);
-
         /* C357: Callbacks de carpetas para sincronizar colecciones */
         if (collectionModule) {
             const colMod = collectionModule;
             registrarCallbacksCarpeta(
                 (nombre: string, _rutaCompleta: string) => {
                     /* Excluir carpetas del sistema que NO son colecciones reales */
-                    if (carpetasSistema.has(nombre.toLowerCase())) {
+                    if (CARPETAS_SISTEMA_SYNC.has(nombre.toLowerCase())) {
                         console.info('[Sync] Carpeta de sistema ignorada (no es colección):', nombre);
                         return;
                     }
@@ -527,7 +540,7 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                 (nombreAnterior: string, nombreNuevo: string, _rutaNueva: string) => {
                     if (!trackingModule) return;
                     /* Excluir carpetas del sistema que NO son colecciones reales */
-                    if (carpetasSistema.has(nombreNuevo.toLowerCase())) {
+                    if (CARPETAS_SISTEMA_SYNC.has(nombreNuevo.toLowerCase())) {
                         console.info('[Sync] Rename a carpeta de sistema ignorado:', nombreNuevo);
                         return;
                     }

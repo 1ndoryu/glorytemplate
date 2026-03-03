@@ -61,6 +61,7 @@ interface Window {
         limpiarHistorialSync: () => Promise<void>;
         recargarHistorialDesdeStore: () => Promise<void>;
         rehidratarImagenesPendientesSync: () => Promise<void>;
+        toggleVentanaSync?: () => Promise<void>;
     };
     __KAMPLES_UPLOAD__?: {
         obtenerEstadoCola: () => { items: unknown[]; totalPendientes: number; totalErrores: number; procesando: boolean };

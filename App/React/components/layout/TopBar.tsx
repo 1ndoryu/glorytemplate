@@ -17,7 +17,6 @@ import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { toast } from '@app/stores/toastStore';
-import { invoke } from '@tauri-apps/api/core';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
@@ -26,7 +25,12 @@ export const TopBar = (): JSX.Element => {
     const abrirVentanaSyncDesktop = async (): Promise<void> => {
         if (!esDesktop) return;
         try {
-            await invoke('toggle_ventana_sync');
+            const syncBridge = window.__KAMPLES_SYNC__;
+            if (!syncBridge?.toggleVentanaSync) {
+                toast.error('Sincronización no disponible en este entorno desktop');
+                return;
+            }
+            await syncBridge.toggleVentanaSync();
         } catch (error) {
             console.error('[TopBar] No se pudo abrir la ventana de sincronización:', error);
             toast.error('No se pudo abrir la ventana de sincronización');

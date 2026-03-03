@@ -323,6 +323,12 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `uploadQueueService` + `syncService`: rehidratación de portadas centralizada en endpoint de sync (forzada tras upload, sin dependencia de slug)
     - [x] UI desktop: `TopBar` elimina `PanelSincronizacion` embebido; botón sync abre solo la ventana Tauri `sync-panel` (`toggle_ventana_sync`)
 
+377. ✅ [AG-SYN] **Move local a carpeta nueva ahora detecta subida y crea colección de forma robusta**
+    - [x] `TopBar`: eliminado import estático `@tauri-apps/api/core` del bundle web; usa bridge `window.__KAMPLES_SYNC__.toggleVentanaSync()` (build `Glory/assets/react` vuelve a compilar)
+    - [x] `fileWatcherService`: soporte explícito para evento `modify.kind = 'name'` (rename/move nativo) en archivos y carpetas de nivel 1
+    - [x] `syncWatcherSetup.manejarMoveLocal`: fallback estructural para move sin tracking previo → encola upload en ruta destino y crea colección destino (si no es carpeta sistema)
+    - [x] Validación: `npm run build --prefix Glory/assets/react` OK; `npm run type-check --prefix Glory/assets/react` OK
+
 ---
 
 ## Notas Compactas
@@ -451,6 +457,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 - [Sync portada endpoint]: Si `/me/sync/colecciones` omite o rompe `imagen_url`, la rehidratación del panel nunca converge. El contrato de sync debe incluir `imagen_url` tanto en colecciones como en `sinColeccion` y el cliente debe usar ese snapshot como fuente única.
+- [Watcher moves]: En Tauri FS watcher, un move/rename puede llegar como `modify.kind='name'` (sin `remove+create`). Si no se maneja explícitamente, se pierden uploads y creación de colección al mover archivos/carpetas.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.

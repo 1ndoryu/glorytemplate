@@ -30,8 +30,8 @@ class ColeccionesCrudController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        /* C164: Rate limit — 10 colecciones por hora */
-        $limitResp = RateLimiter::verificarUsuario($userId, 'crear_coleccion', 10, 3600);
+        /* C164: Rate limit — 500 colecciones por hora (Alto para permitir Desktop Sync de carpetas anidadas) */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'crear_coleccion', 500, 3600);
         if ($limitResp) return $limitResp;
 
         $body = $request->get_json_params();

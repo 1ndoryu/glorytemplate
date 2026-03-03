@@ -229,6 +229,67 @@ function procesarEvento(
 
     const baseNormalizada = carpetaBase.replace(/\\/g, '/').replace(/\/$/, '');
 
+    /*
+     * Manejo explícito de rename/move nativo del FS.
+     * Algunos proveedores emiten modify.kind = 'name' con 2 paths (origen, destino)
+     * en vez de remove+create. Si no lo manejamos aquí, el move se pierde.
+     */
+    if (esEventoRename(tipo) && evento.paths.length >= 2) {
+        const rutaOrigen = evento.paths[0] ?? '';
+        const rutaDestino = evento.paths[1] ?? '';
+        const origenNorm = rutaOrigen.replace(/\\/g, '/');
+        const destinoNorm = rutaDestino.replace(/\\/g, '/');
+
+        const relativaOrigen = origenNorm.startsWith(baseNormalizada + '/')
+            ? origenNorm.slice(baseNormalizada.length + 1)
+            : '';
+        const relativaDestino = destinoNorm.startsWith(baseNormalizada + '/')
+            ? destinoNorm.slice(baseNormalizada.length + 1)
+            : '';
+
+        const segmentosOrigen = relativaOrigen.split('/').filter(Boolean);
+        const segmentosDestino = relativaDestino.split('/').filter(Boolean);
+
+        if (segmentosOrigen.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s)) || segmentosDestino.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s))) {
+            return;
+        }
+
+        const nombreDestino = destinoNorm.split('/').pop() ?? '';
+        const extensionDestino = nombreDestino.split('.').pop()?.toLowerCase() ?? '';
+
+        const esCarpetaNivel1Rename =
+            !!relativaOrigen
+            && !!relativaDestino
+            && !relativaOrigen.includes('/')
+            && !relativaDestino.includes('/')
+            && !EXTENSIONES_AUDIO.has(extensionDestino);
+
+        if (esCarpetaNivel1Rename) {
+            const nombreOrigen = relativaOrigen;
+            const nombreNueva = relativaDestino;
+            console.info('[FileWatcher] Rename carpeta (evento name):', nombreOrigen, '→', nombreNueva);
+            if (onCarpetaRenombrada) {
+                onCarpetaRenombrada(nombreOrigen, nombreNueva, rutaDestino);
+            }
+            return;
+        }
+
+        if (EXTENSIONES_AUDIO.has(extensionDestino)) {
+            const partesDestino = relativaDestino ? relativaDestino.split('/') : [nombreDestino];
+            const nombreArchivo = partesDestino.pop() ?? nombreDestino;
+            const carpetas = partesDestino.slice(0, 3);
+            console.info('[FileWatcher] Move archivo (evento name):', rutaOrigen, '→', rutaDestino);
+            if (onArchivoMovido) {
+                onArchivoMovido(rutaOrigen, rutaDestino, nombreArchivo, carpetas);
+                return;
+            }
+            if (onArchivoNuevo) {
+                onArchivoNuevo(rutaDestino, nombreArchivo, carpetas);
+                return;
+            }
+        }
+    }
+
     for (const ruta of evento.paths) {
         const normalizada = ruta.replace(/\\/g, '/');
         const nombreArchivo = normalizada.split('/').pop() ?? '';
@@ -298,6 +359,14 @@ function esEventoCreacion(tipo: unknown): boolean {
         const modify = (tipo as { modify: { kind: string } }).modify;
         /* Solo data changes, no metadata */
         return modify?.kind === 'data' || modify?.kind === 'any';
+    }
+    return false;
+}
+
+function esEventoRename(tipo: unknown): boolean {
+    if (typeof tipo === 'object' && tipo !== null && 'modify' in tipo) {
+        const modify = (tipo as { modify: { kind: string } }).modify;
+        return modify?.kind === 'name';
     }
     return false;
 }
