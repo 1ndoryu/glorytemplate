@@ -1,4 +1,4 @@
-# Kamples — Roadmap Integral de Producto
+﻿# Kamples — Roadmap Integral de Producto
 
 > **Versión:** 4.1 | **Última actualización:** 26/02/2026 | **Stack:** Glory Framework (WP + React Islands + TS) | **Competencia:** Splice
 
@@ -200,466 +200,72 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 352. Créditos sin límite visible: Mostrar solo "Créditos: 5" (no "5/5"). Al límite: "Créditos: 0".
     - Archivos: `useTopBar.ts`
 
-## SPRINT ACTUAL — Tareas 353-358 (Sync v2 + Cola IA + UI)
+## Completado — Sprint Sync v2 + Cola IA + UI (C353-C358)
 
-> **Estado:** COMPLETADO. Todas las tareas implementadas y commiteadas.
+> Todas las tareas implementadas y commiteadas. Detalle de arquitectura, escenarios y edge cases en secciones de referencia abajo.
 
----
-
-### C353 — Ocultar Explorador temporalmente
-> **Complejidad:** Baja | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `3c2b570b`
-
-### C354 — Fix subida duplicada de audio
-> **Complejidad:** Media | **Estado:** ✅ RESUELTO [AG-IA] — Solucionado por Sync v2
-
-**Resolución:** El nuevo tracking v2 (`syncTrackingService`) usa `sampleId_coleccionId` como clave. En `inicializarSyncBidireccional()` el callback `onArchivoNuevo` ahora verifica primero contra tracking v2 (busca por ruta y por nombre) antes de encolar upload. Si el sample ya está trackeado, se ignora.
-
-### C355 — Sync v2: Backend + Desktop Services + Refactor
-> **Complejidad:** Muy alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `2aaafa0b`
-
-Archivos nuevos: SyncController.php, SyncRepository.php, syncTrackingService.ts (~338 lín), syncCollectionService.ts (~528 lín). Refactor: syncService.ts (v2+v1 fallback en todos los métodos). Migración automática v1→v2. Tipos actualizados en ambos global.d.ts.
-
-### C356 — Sistema de Cola IA con detección de rate limit
-> **Complejidad:** Alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `3c2b570b`
-
-19 archivos, +2119 líneas. Schema+generados, ColaProcesamientoIaRepository, ProcesadorColaIA (cron 15min), GroqHttpClient reescrito, PipelineAudio/ServicioIA/ServicioModeracionIA con encolado 429, ColaIaController (5 endpoints), TabColaIaAdmin.tsx+hook+api+CSS.
-
-### C357 — FileWatcher: Handlers de carpetas/colecciones
-> **Complejidad:** Alta | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `d6c8b8d8`
-
-fileWatcherService.ts: callbacks OnCarpetaNuevaFn/OnCarpetaRenombradaFn, detección rename (delete→create grace 3s), procesarEventoCarpeta(). syncService.ts: wiring callbacks carpeta, v2 check en onArchivoNuevo, sincronizarEstructuraCarpetas con collectionModule.
-
-### C358 — SyncPanel: Tabs + Historial + Colecciones + Re-sync
-> **Complejidad:** Media | **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `d6c8b8d8`
-
-syncService.ts: +3 funciones (obtenerHistorialSync, obtenerColeccionesSync, forzarResync). syncStore.ts: TabSync, EntradaHistorial, ColeccionSyncInfo types + state + actions. usePanelSincronizacion.ts: tabs, carga datos por tab, ejecutarSyncConProgreso compartido, forzarResyncAhora. PanelSincronizacion.tsx: 3 tabs (Estado/Historial/Colecciones), TabEstado con botón re-sync, TabHistorial con iconos por tipo + tiempo relativo, TabColecciones con info carpetas. sincronizacion.css: +180 líneas (tabs, historial, colecciones, estado vacío).
-
-#### Problema
-Groq free tier tiene cuotas. Si se alcanza el límite (HTTP 429), los samples se quedan en `procesando` eternamente. Los comentarios/publicaciones pierden moderación IA y se aprueban sin filtro (fallback actual).
-
-#### Arquitectura: Cola de Procesamiento IA
-
-**1. Nueva tabla PostgreSQL `cola_procesamiento_ia`:**
-```sql
-CREATE TABLE cola_procesamiento_ia (
-    id SERIAL PRIMARY KEY,
-    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('sample', 'comentario', 'publicacion')),
-    entidad_id INTEGER NOT NULL,
-    operacion VARCHAR(30) NOT NULL CHECK (operacion IN ('analisis_audio', 'moderacion_texto', 'moderacion_imagen')),
-    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'procesando', 'completado', 'error_reintento', 'error_final')),
-    intentos INTEGER NOT NULL DEFAULT 0,
-    max_intentos INTEGER NOT NULL DEFAULT 2,
-    ultimo_error TEXT,
-    proximo_intento TIMESTAMP,
-    creado_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    procesado_at TIMESTAMP,
-    metadata JSONB DEFAULT '{}'
-);
-CREATE INDEX idx_cola_ia_estado ON cola_procesamiento_ia(estado, proximo_intento);
-CREATE INDEX idx_cola_ia_tipo ON cola_procesamiento_ia(tipo, entidad_id);
-```
-
-**2. Flujo de retry:**
-```
-Subida sample → PipelineAudio intenta procesar
-  → Si OK: sample.estado = 'activo', no encolar
-  → Si 429: Encolar en cola_procesamiento_ia
-    → intento 1 inmediato (ya falló)
-    → intento 2 en +30 minutos (wp_schedule_single_event)
-    → Si falla intento 2: estado = 'error_final', sample queda en 'procesando'
-    → Cola se re-procesa cada hora via WP Cron
-    → Cuando Groq responde → procesar → sample.estado = 'activo'
-```
-
-**3. Flujo moderación (comentarios/publicaciones):**
-```
-Nuevo comentario/publicación → ServicioModeracionIA intenta moderar
-  → Si OK: publicar normalmente
-  → Si 429: Encolar + marcar como 'pendiente de supervisión' (visible pero no publicado)
-  → Cuando cola se procese y Groq responda → aprobar/rechazar
-  → El contenido NO se muestra hasta que la IA responda
-```
-
-**4. GroqHttpClient — Propagación de 429:**
-- Modificar `peticionCurl()` y `peticionCurlMultipart()` para retornar un resultado tipado en vez de `null` genérico.
-- Nuevo tipo de retorno: `['ok' => false, 'esRateLimit' => true, 'retryAfter' => 23.7]`
-- Los callers (`ServicioIA`, `ServicioModeracionIA`) detectan `esRateLimit` y deciden encolar.
-
-**5. Procesador de cola (WP Cron):**
-- Clase `ProcesadorColaIA` registrada como WP Cron hook cada 15 minutos.
-- Selecciona items con `estado = 'pendiente' OR (estado = 'error_reintento' AND proximo_intento <= NOW())`.
-- Procesa en orden FIFO con límite de 10 items/ejecución.
-- Si encuentra 429 otra vez → incrementa `intentos`, programa `proximo_intento += 30min`.
-
-**6. Panel Admin — Tab "Cola IA":**
-- **Endpoint:** `GET /admin/cola-ia` → stats + lista de items.
-- **Endpoint:** `POST /admin/cola-ia/{id}/reintentar` → fuerza reintento inmediato.
-- **Endpoint:** `POST /admin/cola-ia/reintentar-todos` → reinicia todos los `error_final`.
-- **Stats visibles:** Procesados hoy, en cola, en error, tasa éxito, último 429 detectado.
-- **Componente React:** `TabColaIA.tsx` con tabla paginada de items en cola.
-
-**Archivos nuevos:**
-- `App/Config/Schema/ColaProcesamientoIASchema.php` → schema + generados
-- `App/Kamples/Database/Repositories/ColaIARepository.php`
-- `App/Kamples/Api/Controladores/ColaIAController.php` (o endpoints en AdminController)
-- `App/Kamples/Services/ProcesadorColaIA.php`
-- `App/React/components/admin/TabColaIA.tsx`
-- `App/React/hooks/admin/useTabColaIA.ts`
-
-**Archivos modificados:**
-- `App/Kamples/Api/GroqHttpClient.php` — retorno tipado con detección 429
-- `App/Kamples/Api/PipelineAudio.php` — encolar si 429
-- `App/Kamples/Api/ServicioIA.php` — propagar resultado tipado
-- `App/Kamples/Api/ServicioModeracionIA.php` — encolar si 429
-- `App/Kamples/Api/Controladores/AdminController.php` — registrar nuevas rutas
-- `App/React/islands/admin/AdminPanelIsland.tsx` — nuevo tab
+- **C353** Ocultar Explorador temporalmente.
+- **C354** Fix subida duplicada — tracking v2 verifica por ruta y nombre antes de encolar upload.
+- **C355** Sync v2 Backend + Desktop — SyncController.php, SyncRepository.php, syncTrackingService.ts (~338 lin), syncCollectionService.ts (~528 lin). Migracion v1-v2 automatica. Tipos actualizados en ambos global.d.ts.
+- **C356** Cola IA — tabla `cola_procesamiento_ia` (sample/comentario/publicacion, 2 reintentos +30min), ProcesadorColaIA (cron 15min, 10 items FIFO), GroqHttpClient retorno tipado 429, PipelineAudio/ServicioModeracionIA encolado, 5 endpoints admin, TabColaIaAdmin.tsx.
+- **C357** FileWatcher carpetas — callbacks OnCarpetaNuevaFn/OnCarpetaRenombradaFn, deteccion rename (delete-create grace 3s), `procesarEventoCarpeta()`.
+- **C358** SyncPanel tabs + historial per-sample + colecciones + re-sync + boton forzar.
+- **Auditoria Sync v2** 13 hallazgos corregidos: descargasEnCurso v2, polling soloEstructura, manejarMoveLocal tracking v2, indices Map O(1), batch mode lote, centralizacion syncGuards, sinColeccionSet, cola offline, deteccion disco lleno, lock sync concurrente.
+- **Samples raiz -> Sin coleccion** Mover a `Sin coleccion/` automatico al subir. syncTrackingService: `totalSinColeccion()`.
+- **Sentinel + VarSense** 62 errores CSS + 27 violaciones Sentinel corregidos (15 archivos CSS, splits PanelSincronizacion/AdminController/PipelineAudio).
+- **Tray Icon -> SincPanel** Left-click tray abre sync. Menu "Sincronizacion". Evento `abrir-panel-sync`.
+- **Deep Fix Sync** 5 bugs criticos: encoding mojibake (41 instancias), estado congelado 'sincronizando', sync manual con auto-sync pausado, feedback uploads, polling race + rename loop.
+- **Sync Optimizacion 1000+** Semaforo concurrencia, persistencia debounce, Map O(1) indices, config panel UI, papelera 30d, borrado bidireccional rate-limited. 17 archivos, +2135 lin.
+- **Config Window MPA** `config.html`+`config.tsx` entry point independiente, VentanaConfigSync.tsx frameless, useConfiguracionSyncVentana.ts standalone, pre-creada en tauri.conf.json (evita deadlock WebviewWindowBuilder en Windows), onFocusChanged recarga config.
 
 ---
 
-### Auditoría Sync v2 — Hallazgos y Correcciones
-> **Estado:** ✅ PARCIAL [AG-IA] | **Commit:** `129de63f`
-> Se auditaron los 12 archivos del sistema Sync v2. 13 hallazgos identificados, 7 corregidos.
+### Arquitectura de Referencia — Sync v2 Colecciones (implementada)
 
-**Corregidos (commit `129de63f`):**
-1. **BUG — descargasEnCurso no aplicado en v2:** syncCollectionService descargaba sin marcar en `descargasEnCurso`, causando que el watcher re-subiera archivos recién descargados. → Creado `syncGuards.ts` con `marcarDescargaEnCurso()` centralizado, aplicado en syncCollectionService + syncService.
-2. **BUG — Polling ejecutaba sync completo cada 60s:** `sincronizarEstructuraCarpetas()` llamaba `sincronizarColecciones()` sin restricción, descargando todos los samples cada minuto. → Añadido parámetro `soloEstructura=true` que solo crea carpetas sin descargar.
-3. **BUG — manejarMoveLocal no actualiza tracking v2:** Solo actualizaba `indiceArchivos` (v1), dejando tracking v2 desincronizado. → Ahora actualiza `registrarArchivo()` + `registrarAccion('movido')` en tracking v2. También arreglado `actualizarRutaYCarpeta()`.
-4. **PERF — Lookups O(n) en tracking:** `buscarArchivoPorRuta()` y `buscarArchivoPorNombre()` iteraban todos los archivos. → Índices secundarios `indiceRuta: Map` y `indiceNombre: Map` con O(1) lookup.
-5. **PERF — persistir() en cada operación:** 100 descargas = 100 escrituras a disco. → Batch mode con `iniciarLote()/finalizarLote()` que acumula cambios y persiste una vez.
-6. **ARCH — obtenerBaseUrl duplicado 3x:** Misma función en syncService, syncCollectionService y uploadQueueService. → Centralizado en `syncGuards.ts` como `obtenerBaseUrlSync()`.
-7. **ARCH — descargasEnCurso/GRACIA_DESCARGA_MS duplicado:** Set + timeout en syncService. → Centralizado en `syncGuards.ts`.
+**Modelo:** Carpetas locales = colecciones del usuario (no categorias IA). `carpetaSync/{coleccion}/sample.wav` + `Sin coleccion/`.
+**Tracking (Tauri Store):** `archivos: Record<"{sampleId}_{coleccionId}", ArchivoTracking>`, `colecciones: Record<number, ColeccionLocal>`, `sinColeccion: Set<number>`, `historial: AccionHistorial[]`.
+**Endpoint:** `GET /me/sync/colecciones` -> colecciones con samples + sinColeccion.
 
-**Pendientes resueltos (commit a14f09e0):**
-- ✅ **ARCH — syncService.ts 1273 → 448 líneas:** Split en 4 módulos: syncState (tipos+estado), syncDownloadV1 (legacy), syncWatcherSetup (watcher+ops), syncService (facade). Commit `4e51b73c`.
-- ✅ **ARCH — Código v1 muerto:** V1 aislado en syncDownloadV1.ts. Paths v1 en otros módulos son fallback defensivo, se mantienen.
-- ✅ **PERF — sinColeccion.includes() O(1):** Set sombra (`sinColeccionSet`) para lookups O(1). Array interno mantenido para serialización al store.
-- ✅ **FEATURE — Cola offline:** offlineQueueService extendido con: tipo `mover_carpeta`, deduplicación por `claveDuplicacion`, max intentos, store cacheado. syncWatcherSetup encola moves cuando offline.
-- ✅ **FEATURE — Detección disco lleno:** Comando Rust `obtener_espacio_disponible` (fs2 crate). syncCollectionService verifica espacio antes de descargas masivas (500MB margen).
-- ✅ **FEATURE — Lock de sync concurrente:** syncGuards expone lock con Promise sharing (callers duplicados reciben misma Promise). sincronizarConServidor usa adquirirLockSync/liberarLockSync.
+**Local -> Servidor:** Mover sample entre carpetas (POST+DELETE coleccion) | Renombrar carpeta (PUT nombre) | Crear carpeta (POST coleccion) | Renombrar sample (nada, nombre local libre) | Borrar sample (`syncDeshabilitado=true`) | Borrar carpeta (marcar todos deshabilitados).
 
-**Lecciones aprendidas:**
-- [syncGuards]: Archivo zero-imports para evitar circular deps (syncService ↔ syncCollectionService ambos necesitan descargasEnCurso).
-- [tracking]: `registrarArchivo()` funciona como upsert — si la clave existe, actualiza entry + reindexar.
-- [polling]: El polling de 60s SOLO debe crear estructura de carpetas, nunca descargar samples automáticamente.
-- [indices]: Map secondary indexes deben reconstruirse después de `cargarDatos()` y `migrarDesdeV1()`.
-- [sinColeccionSet]: Patrón shadow Set — mantener array para serialización + Set para O(1) lookup. Reconstruir en reconstruirIndices().
-- [offlineQueue]: Deduplicación por claveDuplicacion evita encolar N moves para el mismo sample. Solo el último destino importa.
-- [lock]: Patrón Promise sharing — adquirirLockSync retorna promesa existente si hay sync en curso. Evita trabajo duplicado y IO concurrente.
-- [disco]: fs2 crate da espacio disponible cross-platform. El guard es fail-open (si no puede verificar, permite descarga).
+**Servidor -> Local:** Sample agregado (descargar a carpeta) | Coleccion renombrada (renombrar carpeta local con guard watcher) | Sample/coleccion eliminado (nada, local permanece como "huerfano").
+
+**Edge cases activos:** Conflicto nombres carpeta (sufijo ` (2)`), disco lleno (guard fail-open), offline-online (offlineQueue), sample en 2+ colecciones (copia), subcarpetas (coleccion padre), caracteres especiales (sanitize filesystem).
+
+### Cola IA — Referencia (implementada)
+
+Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (analisis_audio/moderacion_texto/moderacion_imagen), estado (pendiente-procesando-completado-error_reintento-error_final), max 2 intentos, +30min retry. Cron 15min FIFO 10 items. GroqHttpClient detecta 429 -> caller encola. Panel admin: stats + reintentar individual/masivo.
 
 ---
 
-### C355+C357 — Sync v2: Sincronización basada en Colecciones
-> **Complejidad:** Muy alta | **Dependencias:** C353 (explorador oculto) | **Estado:** Arquitectura definida
+### Pendientes
 
-#### Cambio fundamental
-**Antes:** Carpetas locales = metadata IA (`carpeta_primaria`/`carpeta_secundaria`). La IA decide dónde va el sample.
-**Después:** Carpetas locales = colecciones del usuario. El usuario decide dónde va el sample.
-
-#### Estructura de carpetas local
-```
-carpetaSync/
-├── Mi Colección Hip-Hop/         ← colección ID 45 del server
-│   ├── sample1.wav
-│   ├── sample2.wav
-│   └── Favorites/                ← subcarpeta libre, samples siguen perteneciendo a colección 45
-│       └── sample3.wav
-├── Beats Dark/                   ← colección ID 78
-│   └── sample4.wav
-└── Sin colección/                ← samples descargados/coleccionados sin colección asignada
-    ├── sample5.wav
-    └── sample6.wav
-```
-
-#### Nuevo modelo de tracking (Tauri Store)
-```typescript
-/* Reemplaza el flat array ArchivoLocal[] actual */
-interface BaseSyncLocal {
-    /* Mapeo sampleId → info de tracking. Clave: "{sampleId}_{coleccionId}" */
-    archivos: Record<string, ArchivoTracking>;
-    /* Mapeo colección server → carpeta local */
-    colecciones: Record<number, ColeccionLocal>;
-    /* Samples descargados sin colección */
-    sinColeccion: Set<number>;
-    /* Historial de acciones para el tab historial */
-    historial: AccionHistorial[];
-}
-
-interface ArchivoTracking {
-    sampleId: number;
-    coleccionId: number | null;     /* null = "Sin colección" */
-    rutaLocal: string;              /* ruta relativa desde carpetaSync */
-    nombreLocal: string;            /* nombre actual del archivo (puede diferir del server) */
-    nombreServidor: string;         /* nombre original del server */
-    descargadoEn: number;
-    tamano: number;
-    syncDeshabilitado: boolean;     /* true = borrado localmente, no re-descargar */
-}
-
-interface ColeccionLocal {
-    id: number;
-    nombre: string;                 /* nombre de la colección en server */
-    carpetaLocal: string;           /* nombre de la carpeta en disco */
-    creadaLocalmente: boolean;      /* true si fue creada como carpeta local primero */
-}
-
-interface AccionHistorial {
-    tipo: 'descarga' | 'subida' | 'movido' | 'renombrado' | 'creado' | 'eliminado_local';
-    descripcion: string;
-    sampleId?: number;
-    coleccionId?: number;
-    timestamp: number;
-}
-```
-
-#### Nuevo endpoint backend
-```
-GET /me/sync/colecciones
-```
-Retorna colecciones del usuario con sus samples para sync:
-```json
-{
-    "colecciones": [
-        {
-            "id": 45,
-            "nombre": "Mi Colección Hip-Hop",
-            "samples": [
-                { "id": 101, "titulo": "Dark Beat", "formato": "wav" },
-                { "id": 102, "titulo": "Trap Melody", "formato": "wav" }
-            ]
-        }
-    ],
-    "sinColeccion": [
-        { "id": 200, "titulo": "Random Loop", "formato": "wav" }
-    ]
-}
-```
-**Nota:** `sinColeccion` = samples descargados (tienen registro en `descargas`) que NO están en ninguna colección (`coleccion_samples`).
-
-#### Tabla de escenarios — Acciones locales → Servidor
-
-| # | Acción local | Detección | Acción en servidor | Notas |
-|---|---|---|---|---|
-| 1 | Mover sample entre carpetas | fileWatcher (MOVE) | `POST /colecciones/{newId}/samples/{sampleId}` + `DELETE /colecciones/{oldId}/samples/{sampleId}` | Mapear carpeta → coleccionId via tracking |
-| 2 | Renombrar carpeta | fileWatcher (RENAME dir) | `PUT /colecciones/{id}` con nuevo nombre | Solo carpetas mapeadas a colecciones |
-| 3 | Crear carpeta nueva | fileWatcher (CREATE dir) | `POST /colecciones` con nombre de carpeta | Solo en raíz de sync, no subcarpetas |
-| 4 | Mover sample a carpeta nueva | Combo: crear colección + mover | Crear colección + agregar sample | |
-| 5 | Renombrar sample | fileWatcher (RENAME file) | **Nada en servidor** — nombre local es libre | Actualizar tracking local |
-| 6 | Borrar sample | fileWatcher (REMOVE file) | **Nada en servidor** — marcar `syncDeshabilitado` | No re-descarga en próxima sync |
-| 7 | Borrar carpeta completa | fileWatcher (REMOVE dir) | **Nada en servidor** — marcar all samples `syncDeshabilitado` | Colección permanece en server |
-| 8 | Copiar sample en otra carpeta | fileWatcher (CREATE file) | `POST /colecciones/{id}/samples/{sampleId}` (agregar a colección) | No subir de nuevo, reconocer por hash/nombre |
-| 9 | Forzar re-sync | Botón UI | Limpiar `syncDeshabilitado` en todo | Re-descarga todo lo que falta |
-
-#### Tabla de escenarios — Servidor → Local
-
-| # | Evento servidor | Detección | Acción local | Notas |
-|---|---|---|---|---|
-| 10 | Sample eliminado del server | Polling: sample no aparece en respuesta | **Nada** — archivo local permanece | Marcar como "huérfano" en tracking (informativo) |
-| 11 | Colección eliminada en server | Polling: colección desaparece | **Nada** — carpeta local permanece | Marcar como "huérfana" |
-| 12 | Colección renombrada en server | Polling: nombre cambió | Renombrar carpeta local | Con guard para no triggear watcher |
-| 13 | Sample agregado a colección webui | Polling: sample nuevo en respuesta | Descargar a carpeta correspondiente | Normal sync flow |
-| 14 | Sample agregado a nueva colección | Polling: nueva colección con samples | Crear carpeta + descargar | Normal sync flow |
-
-#### Escenarios adicionales anticipados (edge cases)
-
-| # | Escenario | Comportamiento |
-|---|---|---|
-| 15 | **Conflicto de nombres de carpeta** — dos colecciones con mismo nombre | Agregar sufijo ` (2)` a la carpeta local. Tracking mapea ambas correctamente. |
-| 16 | **Disco lleno durante sync** | Detectar error de escritura. Pausar sync. Notificar en SyncPanel. Reanudar cuando haya espacio. |
-| 17 | **Red interrumpida mid-sync** | Guardar progreso parcial. Reanudar desde el último sample descargado exitosamente. |
-| 18 | **Carpeta de sync eliminada/movida externamente** | Detectar al iniciar. Pedir al usuario re-seleccionar carpeta. No perder tracking (se puede reconstruir). |
-| 19 | **Múltiples instancias de la app** | Lock file en carpeta sync para evitar sync concurrentes. |
-| 20 | **Sample aparece en 2+ colecciones** | Descargar una vez, crear hardlink/copia en cada carpeta. Tracking: múltiples entradas con mismo sampleId, diferente coleccionId. |
-| 21 | **Subcarpeta dentro de colección** | Permitido. Samples en subcarpetas pertenecen a la colección padre. fileWatcher sube/trackea pero con coleccionId del padre. |
-| 22 | **Caracteres especiales en nombre de colección** | Sanitizar para filesystem (reemplazar `/\:*?"<>|` con `-`). Mantener nombre real en tracking. |
-| 23 | **Offline → Online** | Al reconectar, ejecutar sync completa. Acciones locales pendientes se encolan en offlineQueueService y se sincronizan al reconectar. |
-| 24 | **Sample sin audio (solo metadata)** | Skip en sync. Solo sincronizar samples con `ruta_original` válida. |
-
-#### Módulos Tauri a crear/modificar
-
-**Nuevos:**
-- `desktop/src/services/syncTrackingService.ts` — CRUD del Tauri Store tipado (reemplaza flat array)
-- `desktop/src/services/syncCollectionService.ts` — Lógica de mapeo colecciones ↔ carpetas
-- `desktop/src/services/syncHistorialService.ts` — Registro de acciones para historial UI
-
-**Modificados:**
-- `desktop/src/services/syncService.ts` — Refactorizar `sincronizarConServidor()` para usar colecciones. Split en submódulos.
-- `desktop/src/services/fileWatcherService.ts` — Nuevos handlers para RENAME dir, CREATE dir, detectar colección padre.
-- `desktop/src/services/uploadQueueService.ts` — Al subir, vincular a colección si está en carpeta mapeada.
-
-**Backend nuevo:**
-- `App/Kamples/Api/Controladores/SyncController.php` — `GET /me/sync/colecciones` + endpoints auxiliares
-- `App/Kamples/Database/Repositories/SyncRepository.php` — Queries optimizadas para sync (colecciones + samples + descargas sin colección en una query)
+359. Componente centralizado estados vacios/carga (coherencia visual).
+360. Al eliminar sample propio, restar credito.
+361. (vacia)
 
 ---
 
-### C358 — SyncPanel: Modal + Stats persistentes + Historial
-> **Complejidad:** Media | **Dependencias:** C355 (tracking service) | **Estado:** Arquitectura definida
+## SPRINT ACTUAL — Bugs Sync Desktop
 
-#### Cambios UI
-1. **Modal centrado** en vez de dropdown. Sin header. Tamaño ~600x500px. Cierre con click fuera o X.
-2. **Stats persistentes**: `usePanelSincronizacion` debe leer espacio usado y total archivos del tracking service (Tauri Store), no calcularlo en memoria.
-3. **Tab historial**: Nuevo tab con lista cronológica de acciones (descarga, subida, movido, renombrado, etc.) desde `syncHistorialService`.
+362. ✅ [AG-SYN] **Imagenes samples no se actualizan en sync panel:** Fix: `obtenerImagenSampleDesdeServidor` ahora usa retry con backoff exponencial (4s→12s→30s→60s, 4 intentos) para dar tiempo al pipeline del backend.
 
-#### Tabs del modal:
-- **Sync** (actual): carpeta, toggle, botón sincronizar, progreso, botón forzar re-sync.
-- **Historial**: lista de acciones con timestamp, tipo icono, y descripción. Scroll virtual si >100 items.
+363. ✅ [AG-SYN] **Ventana configuracion no se minimiza ni cierra:** Fix: `data-tauri-drag-region` en el div padre interceptaba mousedown antes que los botones. Eliminado atributo HTML; el drag se maneja exclusivamente via CSS `app-region: drag/no-drag` (ya existía en configuracionSync.css).
 
-#### Archivos:
-- `App/React/components/desktop/PanelSincronizacion.tsx` — convertir a modal
-- `App/React/hooks/desktop/usePanelSincronizacion.ts` — leer stats desde tracking service
-- `App/React/styles/desktop/panelSincronizacion.css` — estilos modal
+364. ✅ [AG-SYN] **Click en historial sync abre ubicacion incorrecta:** Fix: `seleccionar_archivo` en lib.rs usaba `.arg()` que wrappea en comillas rutas con espacios, rompiendo `explorer /select,`. Cambiado a `.raw_arg()` (via `CommandExt` on Windows). Ahora abre la ubicación correcta del sample.
 
----
+365. ✅ [AG-SYN] **Samples se duplican en el servidor al sincronizar:** Fix 3 capas: (1) En `subirArchivo`, verificación de última línea contra tracking v2 + hash antes del POST. (2) Hash se persiste inmediatamente tras upload exitoso (no al fin de cola). (3) Re-verificación hash pre-upload por si upload paralelo lo añadió.
 
-### Orden de implementación detallado
+366. ✅ [AG-SYN] **Colecciones/carpetas se duplican al crear y al recargar:** Fix 3 capas: (1) `fileWatcherService.ts`: debounce `carpetasRecientes` (5s) para ignorar evento create+modify sobre misma carpeta. (2) `syncCollectionService.ts`: `crearColeccionDesdeLocal` verifica tracking local antes de POST. (3) Backend `ColeccionesRepository.php`: check-before-insert por nombre (case-insensitive) por usuario.
 
-```
-Fase A — Inmediato (sin dependencias):
-  C353: Ocultar explorador (5 min)
-  C356: Cola IA (2-3 sesiones)
-    A1. Schema + generados cola_procesamiento_ia
-    A2. ColaIARepository + ProcesadorColaIA
-    A3. GroqHttpClient retorno tipado + detección 429
-    A4. PipelineAudio + ServicioModeracionIA → encolar si 429
-    A5. WP Cron hook para procesar cola
-    A6. Endpoints admin
-    A7. TabColaIA React
-
-Fase B — Sync v2 foundation (1-2 sesiones):
-  C355: Sync basado en colecciones
-    B1. SyncController backend + SyncRepository
-    B2. syncTrackingService (Tauri Store tipado)
-    B3. syncCollectionService (mapeo colecciones ↔ carpetas)
-    B4. Refactorizar sincronizarConServidor()
-    B5. Migración: convertir índice plano actual al nuevo formato
-
-Fase C — Sync v2 bidireccional (1-2 sesiones):
-  C357: Edge cases sync
-    C1. fileWatcherService: nuevos handlers (rename dir, create dir, copy detection)
-    C2. syncService: handlers de acciones locales → API calls
-    C3. Escenarios servidor → local (polling mejorado)
-    C4. Botón forzar re-sync
-    C5. offlineQueueService: colas de acciones pendientes
-
-Fase D — UI polish (1 sesión):
-  C354: Fix duplicados (ya resuelto si Sync v2 está)
-  C358: SyncPanel modal + historial
-    D1. syncHistorialService + persistencia
-    D2. PanelSincronizacion → modal + tabs
-    D3. Stats persistentes
-```
-
-### Samples en raíz de sync → Sin colección
-> **Estado:** ✅ COMPLETADO [AG-IA] | **Commit:** `50750a65`
-
-Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colección), al subirlos se mueven automáticamente a `Sin colección/`. syncTrackingService: `totalSinColeccion()`. syncService: `moverArchivoASinColeccion()` (mkdir+rename+tracking+historial). uploadQueueService: else branch cuando `carpetas.length === 0`. PanelSincronizacion: entrada virtual id=0 con icono FolderOpen e itálica. IconoHistorial: alineado con TipoAccionHistorial completo (`eliminado_local`, `renombrado`, `creado`, `subida`, `movido`).
-
----
-
-359. que todos los estados vacíos, de carga, etc como div className="coleccionVacia", sean un componente y este centralizado para que haya coherencia visual entre todos los estados vacíos. 
-
-360. Cuando un usuario elimina su sample que subio, debe restarse un credito.
-
-361. 
-
----
-
-### Sentinel + VarSense — Fix completo
-> **Estado:** ✅ COMPLETADO [AG-SNC] | **Commit:** `66067b87`
-
-**VarSense (62/62 errores corregidos):** 15 archivos CSS — sincronizacion, colaIaAdmin, publicacionDetalle, panelLateral, tarjetaPublicacion, comunidad, tooltip, planes, adminPanel, bienvenida, cardPerfil, tarjetaColeccion, sidebar, selectFiltro, modalColeccion. Mappings principales: `--superficie`→`--fondoElevado2`, `--borde`→`--bordeSutil`, `--textoTenue`→`--textoTerciario`, `--colorTexto`→`--textoPrimario`, `--espaciado*`→`--espacio*`, hardcoded colors→variables.
-
-**Sentinel (27/27 violaciones resueltas):**
-- Info 21/21: Barras decorativas eliminadas en syncTrackingService.ts(9), syncCollectionService.ts(9), syncGuards.ts(3).
-- Warning 4/4: PanelSincronizacion.tsx split (438→115 lín + SincPanelTabs.tsx 270 lín), AdminController.php split (457→300 lín + AdminModeracionController.php 190 lín), PipelineAudio.php split (463→350 lín + PipelineAudioHelpers.php 115 lín), SamplesModificacionController try-catch.
-- Hint 2/2: ColaProcesamientoIaRepository `SELECT *` → columnas explícitas con `ColaProcesamientoIaCols::TODAS`.
-
-### Tray Icon → SincPanel
-> **Estado:** ✅ COMPLETADO [AG-SNC] | **Commit:** `66067b87`
-
-- Rust (lib.rs): Left-click en tray icon emite `abrir-panel-sync` + show/focus ventana. Menú tray: +item "Sincronización" con mismo comportamiento.
-- Frontend (main.tsx): Listener `@tauri-apps/api/event` abre panel via `useSyncStore.getState().abrirPanel()`.
-- En web: modal centrado (componente Modal existente, sin header).
-
-### Deep Fix Sync System — Auditoría completa
-> **Estado:** ✅ COMPLETADO [AG-SYN]
-
-**5 bugs críticos corregidos:**
-1. **Encoding mojibake (syncCollectionService.ts):** 41 instancias de doble encoding UTF-8→Win1252→UTF-8 corregidas (Ã³→ó, Ã¡→á, Ã©→é, â€"→—, â†"→↔, â†'→→). Constante `CARPETA_SIN_COLECCION_LEGACY` usa escapes Unicode explícitos para detectar carpetas disco con nombre corrupto.
-2. **Estado congelado en 'sincronizando' (usePanelSincronizacion.ts):** `ejecutarSyncConProgreso` ahora tiene try-catch interno — errores transitan a estado 'error' en vez de dejar spinner infinito.
-3. **Sync manual bloqueada con auto-sync pausado (syncService.ts + usePanelSincronizacion.ts):** `sincronizarConServidor` acepta `opciones?: { forzar?: boolean }`. `sincronizarAhora` pasa `{ forzar: true }` y ya no requiere `sincronizacionActiva`.
-4. **Sin feedback de uploads (usePanelSincronizacion.ts):** Nuevo `useEffect` conecta `onProgresoUpload` del upload queue al estado del panel — muestra nombre archivo, progreso, y refresca historial al completar.
-5. **Polling race + rename loop (syncWatcherSetup.ts + syncCollectionService.ts):** Guard `esSyncEnCurso()` evita que polling 60s colisione con sync manual. Caché `coleccionesNormalizadasEnSesion` evita repetir `renombrarColeccionEnServidor` cada ciclo.
-**Fix adicional:** `abrirCarpetaSync` faltaba en import/assignment de main.tsx. Intervalo historial corregido (useRef para evitar recreación infinita por ref de `historial` en deps).
-
-### Sync Optimización 1000+ samples + Config Panel + Papelera + Borrado Bidireccional
-> **Estado:** ✅ COMPLETADO [AG-OPT] | **Commit:** `0e02e219`
-
-**Optimización para volumen masivo (1000+ samples):**
-- `semaforo.ts` — Semáforo de concurrencia reutilizable (Promise queue, `adquirir()/liberar()/cambiarLimite()`). Controla paralelos de uploads y downloads (1-5 configurable).
-- `persistenciaDebounce.ts` — Persistencia debounced a Tauri Store. Evita 1000+ escrituras a disco individuales en batch operations. `beforeunload` flush.
-- `syncState.ts` — Map indices (`indiceArchivosPorRuta`, `indiceArchivosPorNombre`) para O(1) lookups reemplazando O(n) `find()`. `SyncConfigAvanzada` interface.
-- `syncGuards.ts` — Fix timeout leak: Map `descargasTimeouts` con clearTimeout antes de nuevo setTimeout.
-- `fileWatcherService.ts` — Purga periódica (10s interval, 30s TTL) reemplazando check inline >500.
-- `syncWatcherSetup.ts` — Lookups O(1) via Map. Rate-limited soft-delete local→servidor (50/ciclo, reset 5min).
-- `uploadQueueService.ts` — `rutasEnCola` Set para O(1) dedup. Procesamiento paralelo con Semáforo (pool de promesas). Persistencia debounced en loop, explícita en acciones usuario.
-- `syncCollectionService.ts` — Descargas paralelas con Semáforo + flat `TareaDescarga[]` + `Promise.all()`. Borrado servidor→local con papelera.
-
-**Panel de configuración:**
-- `ConfiguracionSync.tsx` — Overlay modal centrado: sliders (velocidad 0-100Mbps, archivos paralelos 1-5), checkboxes borrado bidireccional, toggle papelera + duración días. Guardar/Cancelar/Restaurar.
-- `useConfiguracionSync.ts` — Hook con setters individuales, `guardar()` aplica a estado + persiste, `resetear()` a defaults, `hayaCambios` computed.
-- `configuracionSync.css` — Estilado completo con variables CSS existentes, animaciones fade/slide.
-- `VentanaSincPanel.tsx` — Icono Settings en menú `...`, overlay ConfiguracionSync.
-
-**Sistema de papelera (30 días):**
-- `papeleraService.ts` — Papelera virtual con movimiento físico a `.papelera/`. Persistencia `papelera.json` Tauri Store. Funciones: `moverAPapelera`, `restaurarDePapelera`, `eliminarPermanente`, `purgarExpirados`, `vaciarPapelera`, `obtenerEstadoPapelera`.
-
-**Borrado bidireccional:**
-- Local→Servidor: `manejarBorradoLocal()` en watcher, rate-limited (50/ciclo), `softDeleteEnServidor()` con fallback offline queue.
-- Servidor→Local: En purga de syncCollectionService, `moverAPapelera()` antes de eliminar tracking. Ambos controlados por flags en `SyncConfigAvanzada`.
-- `offlineQueueService.ts` — `'soft_delete'` añadido a `TipoOperacion`.
-
-**17 archivos, 2135 insertions, 102 deletions.**
-
-**Lecciones aprendidas:**
-- [Semáforo]: Patrón Promise-queue para limitar concurrencia. `adquirir()` retorna Promise que resuelve cuando hay slot libre. `liberar()` en finally para evitar deadlock.
-- [Debounce persistencia]: Alta frecuencia de escrituras Tauri Store (1 por sample en batch) causa lag perceptible. Debounce 2s + flush en `beforeunload` es el balance correcto.
-- [Map indices]: Reconstruir al cargar datos y al migrar. `actualizarIndiceArchivo()` mantiene sincronía. Nunca iterar array completo si hay índice disponible.
-- [Rate-limiting borrado]: El watcher puede detectar 1000 deletes en 1 ciclo. Sin rate-limit → 1000 requests DELETE simultáneos al servidor. 50/ciclo con reset 5min es suficiente para uso normal.
-- [Papelera física]: Mover archivos a `.papelera/` dentro de carpeta sync permite restauración sin re-descarga. JSON persistido mapea ruta original → ruta papelera.
-- [Config avanzada]: Separar config avanzada de config básica (carpeta, toggle sync) evita migración innecesaria al añadir campos.
-
-### Config Window Independiente + Fix Duplicate Upload + Deep Review
-> **Estado:** ✅ COMPLETADO [AG-SYN]
-
-**Bug fix — Upload duplicado al mover a Sin colección:**
-- Root cause: `moverArchivoASinColeccion()` hacía `rename(old, new)` → watcher detectaba CREATE en ruta nueva → `esDescargaEnCurso` no la tenía registrada → archivo re-encolado para upload.
-- Fix: `marcarDescargaEnCurso(nuevaRuta)` ANTES del `rename()` en `syncService.ts`. Grace period 10s (GRACIA_DESCARGA_MS) cubre holgadamente el procesamiento del watcher. Defensa secundaria: hash-based dedup en `encolarArchivo()`.
-
-**Ventana ConfigSync independiente (Tauri MPA):**
-- `config.html` + `config.tsx` — Nuevo entry point MPA (tercer window: main, sync, config).
-- `VentanaConfigSync.tsx` — Componente standalone frameless. Drag region header (`data-tauri-drag-region`), botones minimizar/cerrar. Sliders velocidad y paralelos, checkboxes borrado bidireccional, toggle papelera + días.
-- `useConfiguracionSyncVentana.ts` — Hook standalone que lee/escribe directamente del Tauri Store (`sync-config.json` key `sync_config_avanzada`), sin depender del estado en memoria de sync window. Emite evento `config-sync-actualizada` al guardar.
-- `lib.rs` — Comando `mostrar_ventana_config`: crea ventana `config-sync` dinámicamente via `WebviewWindowBuilder` (460x500, decorations false, transparent true, centered). Reutiliza en llamadas subsecuentes (show+center+focus). `window-state` denylist: `["sync-panel", "config-sync"]`.
-- `vite.config.ts` — Tercer input en `rollupOptions.input`: `config: resolve(__dirname, 'config.html')`.
-- `capabilities/principal.json` — Windows: `["main", "sync-panel", "config-sync"]`.
-- `VentanaSincPanel.tsx` — Removido overlay ConfiguracionSync. Botón configuración ahora invoca `mostrar_ventana_config` via Tauri invoke. Función `abrirVentanaConfig()` extraída como función nombrada.
-- `syncService.ts` — Listener `config-sync-actualizada` en `inicializarSyncService()` re-carga config avanzada al recibir evento desde config window.
-- `sync.tsx` — Removido import de `configuracionSync.css` (ya no se renderiza en sync window).
-- `configuracionSync.css` — Clases standalone: `.configSyncPanelStandalone`, `.configSyncCabeceraStandalone`, `.configSyncBotonesVentana`.
-
-**Deep review — Mejora manejarMoveLocal:**
-- `syncWatcherSetup.ts` — `manejarMoveLocal()` ahora tiene fallback a tracking v2 cuando v1 index lookup falla. Antes: si `buscarEnIndicePorRuta` retornaba null, el move se descartaba silenciosamente. Ahora: busca en `trackingModule.buscarArchivoPorRuta()`, actualiza `rutaLocal`, registra acción, y sincroniza con servidor via `moverSampleEnServidor`.
-
-**5 archivos nuevos, 7 archivos modificados. Type-check limpio.**
-
-**Lecciones aprendidas:**
-- [Config MPA]: Cada ventana Tauri es un entry point HTML separado con su propio árbol React. Comunicación inter-ventana via Tauri events (`emit`/`listen`), NO via stores compartidos (contextos JS separados).
-- [Tauri Store compartido]: Múltiples ventanas pueden leer/escribir el mismo Tauri Store file. Pero el estado en memoria de cada ventana es independiente — después de write externo, la otra ventana debe re-leer explícitamente.
-- [Window denylist]: `tauri-plugin-window-state` restaura visibilidad de sesiones previas. Ventanas popup/transitorias (sync-panel, config-sync) DEBEN estar en denylist para evitar que reaparezcan al iniciar la app.
-- [Rename watcher race]: Cualquier `rename()` interno genera CREATE en watcher. SIEMPRE marcar la ruta destino en `descargasEnCurso` ANTES del rename para evitar re-procesamiento.
-- [v1/v2 fallback]: Lookups en índice v1 pueden fallar si v1 se desincronizó (crash, migración parcial). Siempre tener fallback a tracking v2 antes de descartar silenciosamente.
+367. **Planificar revision detallada del sistema de subidas — PLAN:**  
+    > **Alcance:** Auditar uploadQueueService, syncService, PipelineAudio para resiliencia y edge cases.
+    - [ ] **367a** Cancelación por mala conexión: Verificar que reintentos (MAX_REINTENTOS=3, backoff exponencial) cubren desconexión mid-upload. Añadir timeout al fetch POST (AbortController con 120s) + test manual desconectando wifi.
+    - [ ] **367b** Integridad al mover archivos: Verificar hash pre/post `moverArchivoASinColeccion` para detectar corrupción durante rename. Si hash difiere, revertir.
+    - [ ] **367c** Pipeline IA resilience: Auditar `ProcesadorColaIA` — qué pasa si Groq está caído 24h, si el sample se borra entre encolado y procesamiento, si la respuesta IA es malformada.
+    - [ ] **367d** Upload queue edge cases: Qué pasa con archivos >100MB (timeout?), archivos de 0 bytes (debería rechazar), archivos corruptos (header WAV inválido), nombres con emojis/unicode especial.
+    - [ ] **367e** Server-side dedup: Considerar endpoint `POST /samples/check-duplicate` (hash parcial) consultado antes del upload. Alternativa: backend retorna `already_exists` con `sample_id` existente si hash coincide. TO-DO para implementar.
+    - [ ] **367f** Constraint UNIQUE: Agregar `UNIQUE (usuario_id, LOWER(nombre))` a tabla colecciones para dedup atómico (actual: check-then-insert con race window mínima).
 
 ---
 
@@ -769,6 +375,11 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Config window import isolation]: La ventana config crasheaba porque `useConfiguracionSyncVentana` importaba de `syncState.ts` → `desktopService.ts` → `syncService.ts` (655 lín) → cadena completa de servicios sync. La evaluación de todo el árbol de módulos en un contexto nuevo sin globals inicializados causa freeze. Fix: `syncConstants.ts` (ZERO imports) con tipos + constantes. `syncState.ts` re-exporta para compatibilidad. Hook importa de `syncConstants` directamente. **Regla general MPA:** cada entry point debe importar SOLO lo que necesita; nunca tirar de un módulo "state" que depende de servicios pesados si solo necesitas tipos/constantes.
 - [Rename race condition]: `moverArchivoASinColeccion()` hace `rename()` interno que genera CREATE en watcher. Solución: `marcarDescargaEnCurso(nuevaRuta)` ANTES del rename. El grace period de 10s (GRACIA_DESCARGA_MS) cubre el procesamiento async del watcher.
 - [v1/v2 index fallback]: `manejarMoveLocal` debe buscar en tracking v2 como fallback si v1 index no tiene el archivo. Descartar silenciosamente por fallo de lookup v1 pierde moves legítimos en archivos migrados o con v1 desincronizado.
+- [Drag region MPA]: En ventanas frameless con botones custom, **NUNCA** usar `data-tauri-drag-region` en el div padre que contiene botones. El atributo HTML sobreescribe CSS `app-region: no-drag` en hijos. Usar solo CSS `app-region: drag` en header + `no-drag` en contenedor de botones.
+- [Explorer /select Windows]: `std::process::Command::new("explorer").arg(formato_select_ruta)` falla con rutas con espacios porque Rust wrappea en comillas automáticamente. `explorer.exe` no parsea `/select,"ruta con espacios"`. Fix: usar `CommandExt::raw_arg()` (stable desde Rust 1.62).
+- [Colección dedup 3 capas]: Watcher emite create + modify para una carpeta nueva → dos callbacks `onCarpetaNueva`. Fix: debounce `carpetasRecientes` Map (5s). Capa 2: tracking check pre-POST. Capa 3: backend check-before-insert case-insensitive. TO-DO: UNIQUE constraint DB.
+- [Upload dedup pre-flight]: El tiempo entre `encolarArchivo` y `subirArchivo` (semáforo, backoff) permite que otro upload complete. Verificar tracking v2 + hash justo antes del POST, no solo al encolar. Persistir hash inmediatamente tras cada upload (no al fin de la cola).
+- [Pipeline imagen post-upload]: La imagen de portada se genera async en backend. Fetch inmediato retorna null. Retry con backoff (4s→12s→30s→60s) cubre la latencia del pipeline.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.

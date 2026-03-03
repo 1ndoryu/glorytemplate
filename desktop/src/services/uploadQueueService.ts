@@ -273,6 +273,9 @@ async function procesarItemUpload(
         item.estado = 'completado';
         if (item.hashParcial) {
             hashesConocidos.add(item.hashParcial);
+            /* Persistir hash inmediatamente para que uploads paralelos lo vean.
+             * No esperar al fin de procesarCola — previene duplicados por race condition. */
+            guardarHashes().catch(() => {});
         }
         rutasEnCola.delete(item.rutaArchivo);
 
@@ -322,14 +325,38 @@ async function procesarItemUpload(
  * Sube un archivo individual al servidor.
  *
  * Flujo:
- * 1. Leer archivo del disco (Tauri readFile)
- * 2. Generar título y tags desde nombre y carpetas
- * 3. Construir FormData
- * 4. POST /kamples/v1/samples/upload
- * 5. Registrar descarga en índice local
+ * 1. Verificar duplicado en tracking v2 (defensa de última línea)
+ * 2. Leer archivo del disco (Tauri readFile)
+ * 3. Generar título y tags desde nombre y carpetas
+ * 4. Construir FormData
+ * 5. POST /kamples/v1/samples/upload
+ * 6. Registrar descarga en índice local
+ * 7. Guardar hash inmediatamente (no esperar fin de cola)
  */
 async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
     try {
+        /*
+         * Verificación de última línea contra tracking v2: entre el momento de encolar
+         * y el momento de subir puede haber pasado tiempo (backoff, semáforo, etc.).
+         * Otro upload del mismo archivo podría haber terminado en ese intervalo.
+         */
+        if (estado.trackingModule) {
+            const enTracking = estado.trackingModule.buscarArchivoPorRuta(item.rutaArchivo)
+                ?? estado.trackingModule.buscarArchivoPorNombre(item.nombreArchivo);
+            if (enTracking && !enTracking.syncDeshabilitado) {
+                console.info('[UploadQueue] Duplicado detectado en tracking pre-upload, omitiendo:', item.nombreArchivo);
+                item.sampleIdServidor = enTracking.sampleId;
+                /* Marcar como completado sin subir */
+                return true;
+            }
+        }
+
+        /* Re-verificar hash por si otro upload paralelo lo añadió */
+        if (item.hashParcial && hashesConocidos.has(item.hashParcial)) {
+            console.info('[UploadQueue] Duplicado por hash detectado pre-upload:', item.nombreArchivo);
+            return true;
+        }
+
         const { readFile } = await import('@tauri-apps/plugin-fs');
         const baseUrl = obtenerBaseUrlSync();
 
@@ -720,18 +747,41 @@ export async function limpiarCompletados(): Promise<void> {
  * Obtiene la imagen de portada de un sample desde la API.
  * Usado después del upload para enriquecer el historial con la imagen.
  * No bloquea el flujo principal — llamado en segundo plano.
+ *
+ * Implementa retry con backoff exponencial porque el pipeline del backend
+ * genera la imagen asincrónicamente (PipelineAudio), y no está lista
+ * inmediatamente después del upload.
+ *
+ * Intentos: 4s → 12s → 30s → 60s (total ~106s de espera)
  */
+const IMAGEN_RETRY_DELAYS_MS = [4000, 12000, 30000, 60000];
+
 async function obtenerImagenSampleDesdeServidor(sampleId: number): Promise<string | null> {
-    try {
-        const baseUrl = obtenerBaseUrlSync();
-        if (!baseUrl) return null;
+    const baseUrl = obtenerBaseUrlSync();
+    if (!baseUrl) return null;
 
-        const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${sampleId}`);
-        if (!respuesta.ok) return null;
+    for (let intento = 0; intento <= IMAGEN_RETRY_DELAYS_MS.length; intento++) {
+        /* Esperar antes de cada intento (excepto el primero que ya tiene 4s de delay) */
+        if (intento > 0) {
+            await new Promise(r => setTimeout(r, IMAGEN_RETRY_DELAYS_MS[intento - 1]));
+        } else {
+            /* Delay inicial para dar tiempo al pipeline del backend */
+            await new Promise(r => setTimeout(r, IMAGEN_RETRY_DELAYS_MS[0]));
+        }
 
-        const data = await respuesta.json() as { imagenUrl?: string | null; imagen_url?: string | null };
-        return data.imagenUrl ?? data.imagen_url ?? null;
-    } catch {
-        return null;
+        try {
+            const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${sampleId}`);
+            if (!respuesta.ok) continue;
+
+            const data = await respuesta.json() as { imagenUrl?: string | null; imagen_url?: string | null };
+            const url = data.imagenUrl ?? data.imagen_url ?? null;
+
+            if (url) return url;
+            /* null → pipeline aún no terminó, reintentar */
+        } catch {
+            /* Error de red, reintentar */
+        }
     }
+
+    return null;
 }

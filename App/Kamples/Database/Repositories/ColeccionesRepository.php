@@ -223,10 +223,22 @@ class ColeccionesRepository extends BaseRepository
 
     /*
      * Crear colección y retornar ID.
+     * Incluye dedup: si ya existe una colección con el mismo nombre
+     * (case-insensitive) para el mismo usuario, retorna el ID existente.
+     * TO-DO: Agregar UNIQUE constraint (usuario_id, LOWER(nombre)) para dedup atómico.
      */
     public static function crear(int $userId, string $nombre, string $descripcion, bool $publica): ?int
     {
         $t = ColeccionesCols::TABLA;
+
+        /* Verificar si ya existe una colección con el mismo nombre para este usuario */
+        $existente = static::consultarUno(
+            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::USUARIO_ID . " = :userId AND LOWER(" . ColeccionesCols::NOMBRE . ") = LOWER(:nombre) LIMIT 1",
+            ['userId' => $userId, 'nombre' => $nombre]
+        );
+        if ($existente) {
+            return (int) $existente[ColeccionesCols::ID];
+        }
 
         return static::insertar(
             "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")

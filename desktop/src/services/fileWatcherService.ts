@@ -37,6 +37,12 @@ const PATRONES_TEMPORALES = [
 const archivosRecientes = new Map<string, number>();
 const DEBOUNCE_ARCHIVO_MS = 3000;
 
+/* Cache de carpetas recientemente procesadas para ignorar eventos duplicados.
+ * Evita que eventos create + modify sobre la misma carpeta disparen
+ * múltiples llamadas a onCarpetaNueva (causa raíz de duplicación de colecciones). */
+const carpetasRecientes = new Map<string, number>();
+const DEBOUNCE_CARPETA_MS = 5000;
+
 /* Purga periódica del cache para evitar crecimiento ilimitado en batches grandes */
 const PURGA_INTERVALO_MS = 10_000;
 const PURGA_TTL_MS = 30_000;
@@ -170,6 +176,7 @@ export async function detenerObservacion(): Promise<void> {
     observando = false;
     detenerPurgaPeriodica();
     archivosRecientes.clear();
+    carpetasRecientes.clear();
 
     /* Limpiar eliminaciones pendientes para evitar callbacks sueltos */
     for (const [, pendiente] of eliminacionesPendientes) {
@@ -376,6 +383,14 @@ function procesarEventoCarpeta(
             }
             return;
         }
+
+        /* Debounce por carpeta: ignorar si fue procesada recientemente.
+         * Previene que el par create + modify emita dos callbacks. */
+        const claveCarpeta = nombreCarpeta.toLowerCase();
+        const ahora = Date.now();
+        const ultimoProcesada = carpetasRecientes.get(claveCarpeta);
+        if (ultimoProcesada && (ahora - ultimoProcesada) < DEBOUNCE_CARPETA_MS) return;
+        carpetasRecientes.set(claveCarpeta, ahora);
 
         console.info('[FileWatcher] Carpeta nueva detectada (colección):', nombreCarpeta);
 

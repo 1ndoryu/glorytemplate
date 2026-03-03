@@ -89,10 +89,16 @@ fn seleccionar_archivo(ruta: String) -> Result<(), String> {
 
     #[cfg(target_os = "windows")]
     {
-        /* /select resalta el archivo sin abrir una nueva ventana si ya hay una */
+        /*
+         * /select resalta el archivo sin abrir una nueva ventana si ya hay una.
+         * IMPORTANTE: Se usa raw_arg() en vez de arg() porque arg() agrega comillas
+         * automáticas cuando el argumento contiene espacios. Eso rompe el parsing
+         * de explorer.exe para /select, haciendo que abra Documents en su lugar.
+         */
+        use std::os::windows::process::CommandExt;
         let argumento = format!("/select,{}", ruta.replace('/', "\\"));
         std::process::Command::new("explorer")
-            .arg(&argumento)
+            .raw_arg(&argumento)
             .spawn()
             .map_err(|e| format!("Error seleccionando archivo {}: {}", ruta, e))?;
         return Ok(());

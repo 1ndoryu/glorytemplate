@@ -617,6 +617,20 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
 
     try {
         const nombreNormalizado = normalizarNombreColeccion(nombre);
+
+        /* Verificar si ya existe en tracking local antes de crear en servidor.
+         * Previene duplicación cuando watcher + polling disparan casi simultáneamente. */
+        const coleccionesLocales = todasLasColecciones();
+        const carpetaEsperada = sanitizarNombreCarpeta(nombreNormalizado).toLowerCase();
+        const yaExiste = coleccionesLocales.find(c =>
+            c.nombre.toLowerCase() === nombreNormalizado.toLowerCase()
+            || c.carpetaLocal.toLowerCase() === carpetaEsperada,
+        );
+        if (yaExiste) {
+            console.info('[SyncCollection] Colección ya existe en tracking, omitiendo POST:', nombreNormalizado, '→ id:', yaExiste.id);
+            return yaExiste.id;
+        }
+
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
             method: 'POST',

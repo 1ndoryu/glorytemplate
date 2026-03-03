@@ -54,7 +54,7 @@ export function VentanaConfigSync(): JSX.Element {
     if (cargando) {
         return (
             <div className="configSyncPanel configSyncPanelStandalone">
-                <div className="configSyncCabecera" data-tauri-drag-region>
+                <div className="configSyncCabecera configSyncCabeceraStandalone">
                     <span className="configSyncTitulo">Configuración de sincronización</span>
                 </div>
                 <div className="configSyncContenido" style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
@@ -66,8 +66,10 @@ export function VentanaConfigSync(): JSX.Element {
 
     return (
         <div className="configSyncPanel configSyncPanelStandalone">
-            {/* Barra de título draggable */}
-            <div className="configSyncCabecera configSyncCabeceraStandalone" data-tauri-drag-region>
+            {/* Barra de título draggable via CSS app-region (en configuracionSync.css).
+                NO usar data-tauri-drag-region en el parent: sobreescribe el CSS no-drag
+                de los botones, haciendo que minimize/close no respondan a clicks. */}
+            <div className="configSyncCabecera configSyncCabeceraStandalone">
                 <span className="configSyncTitulo">Configuración de sincronización</span>
                 <div className="configSyncBotonesVentana">
                     <BotonBase
