@@ -111,7 +111,7 @@ export async function encolarOperacion(
  * Ejecuta en orden FIFO. Si una falla por red, se detiene.
  * Si falla por respuesta (4xx/5xx), incrementa intentos y continua.
  */
-async function sincronizarCola(): Promise<void> {
+export async function sincronizarCola(): Promise<void> {
     if (sincronizando || cola.length === 0) return;
     sincronizando = true;
 
@@ -185,4 +185,24 @@ export function obtenerPendientes(): number {
  */
 export function obtenerCola(): Readonly<OperacionPendiente[]> {
     return cola;
+}
+
+/*
+ * C378: Resetea reintentos para operaciones fallidas en la cola offline y fuerza reconexión
+ */
+export async function reintentarErroresOffline(): Promise<void> {
+    let cambios = false;
+    for (const op of cola) {
+        if (op.intentos > 0) {
+            op.intentos = 0;
+            cambios = true;
+        }
+    }
+
+    if (cambios) {
+        await guardarCola();
+        if (estaOnline()) {
+            await sincronizarCola();
+        }
+    }
 }

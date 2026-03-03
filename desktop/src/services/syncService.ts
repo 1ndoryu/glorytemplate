@@ -428,8 +428,11 @@ async function ejecutarSync(
     try {
         const { reintentarTodosConError } = await import('./uploadQueueService');
         await reintentarTodosConError();
+        
+        const { reintentarErroresOffline } = await import('./offlineQueueService');
+        await reintentarErroresOffline();
     } catch (e) {
-        console.warn('[Sync] No se pudo reintentar la cola de subida antes de sync:', e);
+        console.warn('[Sync] No se pudo reintentar colas de subida/offline antes de sync:', e);
     }
 
     if (collectionModule) {
