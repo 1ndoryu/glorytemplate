@@ -248,7 +248,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 
 ## SPRINT ACTUAL — Bugs Sync Desktop
 
-362. ✅ [AG-SYN] **Imagenes samples no se actualizan en sync panel:** Fix real (2do intento): `obtenerImagenSampleDesdeServidor` tenía DOS bugs: (1) usaba `sampleId` numérico pero la ruta GET `/samples/{slug}` espera string slug → siempre 404, (2) no desenvolvía el envelope `{ data: { imagenUrl } }` → siempre null. Ahora recibe `slug`, usa `encodeURIComponent(slug)`, y lee `json.data.imagenUrl`. Retry con backoff se mantiene (4s→12s→30s→60s).
+362. ✅ [AG-SYN] **Imagenes samples no se actualizan en sync panel:** Fix real (2do intento): `obtenerImagenSampleDesdeServidor` tenía DOS bugs: (1) usaba `sampleId` numérico pero la ruta GET `/samples/{slug}` espera string slug → siempre 404, (2) no desenvolvía el envelope `{ data: { imagenUrl } }` → siempre null. Ahora recibe `slug`, usa `encodeURIComponent(slug)`, y lee `json.data.imagenUrl`. Retry con backoff se mantiene (4s→12s→30s→60s). **Además:** `rehidratarImagenesPendientes()` en syncService.ts recorre entradas del historial sin imagen al iniciar, hace batch fetch `GET /samples?creador=username` y actualiza todas de golpe. Esto cubre samples ya sincronizados antes del fix.
 
 363. ✅ [AG-SYN] **Ventana configuracion no se minimiza ni cierra:** Fix real (2do intento): `core:default` en Tauri 2 NO incluye permisos de mutación de ventana. `getCurrentWindow().minimize()` y `.hide()` fallaban silenciosamente por falta de permisos. Agregados a `principal.json`: `core:window:allow-minimize`, `allow-hide`, `allow-show`, `allow-set-focus`, `allow-center`, `allow-close`. Los catch vacíos ahora logean con `console.error` para diagnóstico.
 
@@ -382,6 +382,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Pipeline imagen post-upload]: La imagen de portada se genera async en backend. Fetch inmediato retorna null. Retry con backoff (4s→12s→30s→60s) cubre la latencia del pipeline.
 - [API endpoint samples GET]: La ruta es `/samples/{slug}` (string), NO `/samples/{id}` (numérico). `obtenerImagenSampleDesdeServidor` debe usar `resultado.slug`, no `resultado.sample_id`. La respuesta va envuelta en envelope `{ data: { imagenUrl, ... } }` — siempre desenvolver.
 - [Tauri 2 core:default permisos]: `core:default` incluye `core:window:default` que es SOLO lectura (isMinimized, isVisible, size, etc.). Mutaciones como `minimize()`, `hide()`, `show()`, `setFocus()`, `center()`, `close()` requieren permisos explícitos: `core:window:allow-minimize`, etc. Sin ellos, las llamadas JS fallan silenciosamente — los catch vacíos ocultan el error.
+- [Rehidratación historial]: Corregir solo el fetch de imagen post-upload no arregla entradas YA persistidas con `imagenUrl: null`. Al iniciar sync, `rehidratarImagenesPendientes()` hace batch GET `/samples?creador=username&per_page=100`, construye mapa sampleId→imagenUrl y actualiza todas las entradas sin imagen. Una request, N actualizaciones. El endpoint de listado envuelve en doble envelope: `{ data: { data: [...], pagination } }`.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
