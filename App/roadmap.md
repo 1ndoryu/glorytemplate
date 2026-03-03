@@ -292,6 +292,11 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `uploadQueueService`: `item.rutaArchivo` se normaliza al restaurar cola para consistencia de lookups O(1)
     - [x] `uploadQueueService`: `idempotencyKey` determinística por hash (o fallback por ruta+nombre) para que dos requests del mismo archivo colisionen en backend en vez de publicar doble
 
+371. ✅ [AG-SYN] **Hotfix portada no visible en Sync Panel (desktop/MPA)**
+    - [x] `VentanaSincPanel`: resolver URLs de portada relativas (`/wp-content/...`) a absolutas del servidor usando `__KAMPLES_CONFIG__.serverUrl`/`GLORY_CONTEXT.apiUrl`
+    - [x] Mantener compatibilidad con URLs absolutas (`https://...`) y protocol-relative (`//...`)
+    - [x] Fallback seguro: si no hay origen resoluble, conservar URL original para entorno dev con proxy
+
 ---
 
 ## Notas Compactas
@@ -412,6 +417,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Papelera guard]: `moverAPapelera()` NO usaba `marcarDescargaEnCurso()` como sí lo hace `moverArchivoASinColeccion()`. Toda operación que genera rename dentro de la carpeta sync DEBE usar el guard.
 - [OneDrive readFile]: `readFile` de Tauri falla con ruta truncada en archivos cloud-only de OneDrive. Pre-check con `exists()` + mensaje descriptivo.
 - [OneDrive watcher path]: `watch()` puede emitir rutas equivalentes con formato distinto (`\\` vs `/`, casing). Cualquier dedup por ruta en cola DEBE usar clave normalizada canónica.
+- [Sync portada desktop]: `imagenUrl` puede venir relativa (`/wp-content/...`). En ventana Tauri/MPA debe resolverse contra el origen del servidor; si no, `<img>` apunta al origen local de la app y no carga.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 

@@ -78,6 +78,47 @@ function repararMojibake(texto: string): string {
     }
 }
 
+function obtenerOrigenServidorSync(): string | null {
+    const config = window.__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;
+    const desdeConfig = config?.serverUrl;
+    if (desdeConfig && /^https?:\/\//i.test(desdeConfig)) {
+        try {
+            return new URL(desdeConfig).origin;
+        } catch {
+            /* continuar con fallback */
+        }
+    }
+
+    const ctx = window.GLORY_CONTEXT as { apiUrl?: string; restUrl?: string } | undefined;
+    const candidata = ctx?.apiUrl ?? ctx?.restUrl;
+    if (candidata && /^https?:\/\//i.test(candidata)) {
+        try {
+            return new URL(candidata).origin;
+        } catch {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+function resolverUrlPortada(url: string | null | undefined): string | null {
+    if (!url) return null;
+
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.startsWith('//')) return `${window.location.protocol}${url}`;
+
+    const origen = obtenerOrigenServidorSync();
+
+    if (url.startsWith('/')) {
+        if (origen) return `${origen}${url}`;
+        return url;
+    }
+
+    if (origen) return `${origen}/${url.replace(/^\/+/, '')}`;
+    return url;
+}
+
 /* Helpers para el historial per-sample */
 
 function etiquetaEstadoSample(estado: EstadoSampleHistorial | string): string {
@@ -350,10 +391,10 @@ export function VentanaSincPanel(): JSX.Element {
                                 onKeyDown={entrada.rutaLocal ? (e) => { if (e.key === 'Enter') abrirArchivoEnExplorador(entrada.rutaLocal!); } : undefined}
                             >
                                 <div className="sincPanelHistorialMedia">
-                                    {entrada.imagenUrl ? (
+                                    {resolverUrlPortada(entrada.imagenUrl) ? (
                                         <img
                                             className="sincPanelHistorialThumb"
-                                            src={entrada.imagenUrl}
+                                            src={resolverUrlPortada(entrada.imagenUrl) ?? undefined}
                                             alt={repararMojibake(entrada.nombreArchivo)}
                                         />
                                     ) : (
