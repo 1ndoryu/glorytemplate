@@ -248,9 +248,9 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 
 ## SPRINT ACTUAL — Bugs Sync Desktop
 
-362. ✅ [AG-SYN] **Imagenes samples no se actualizan en sync panel:** Fix: `obtenerImagenSampleDesdeServidor` ahora usa retry con backoff exponencial (4s→12s→30s→60s, 4 intentos) para dar tiempo al pipeline del backend.
+362. ✅ [AG-SYN] **Imagenes samples no se actualizan en sync panel:** Fix real (2do intento): `obtenerImagenSampleDesdeServidor` tenía DOS bugs: (1) usaba `sampleId` numérico pero la ruta GET `/samples/{slug}` espera string slug → siempre 404, (2) no desenvolvía el envelope `{ data: { imagenUrl } }` → siempre null. Ahora recibe `slug`, usa `encodeURIComponent(slug)`, y lee `json.data.imagenUrl`. Retry con backoff se mantiene (4s→12s→30s→60s).
 
-363. ✅ [AG-SYN] **Ventana configuracion no se minimiza ni cierra:** Fix: `data-tauri-drag-region` en el div padre interceptaba mousedown antes que los botones. Eliminado atributo HTML; el drag se maneja exclusivamente via CSS `app-region: drag/no-drag` (ya existía en configuracionSync.css).
+363. ✅ [AG-SYN] **Ventana configuracion no se minimiza ni cierra:** Fix real (2do intento): `core:default` en Tauri 2 NO incluye permisos de mutación de ventana. `getCurrentWindow().minimize()` y `.hide()` fallaban silenciosamente por falta de permisos. Agregados a `principal.json`: `core:window:allow-minimize`, `allow-hide`, `allow-show`, `allow-set-focus`, `allow-center`, `allow-close`. Los catch vacíos ahora logean con `console.error` para diagnóstico.
 
 364. ✅ [AG-SYN] **Click en historial sync abre ubicacion incorrecta:** Fix: `seleccionar_archivo` en lib.rs usaba `.arg()` que wrappea en comillas rutas con espacios, rompiendo `explorer /select,`. Cambiado a `.raw_arg()` (via `CommandExt` on Windows). Ahora abre la ubicación correcta del sample.
 
@@ -380,6 +380,8 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Colección dedup 3 capas]: Watcher emite create + modify para una carpeta nueva → dos callbacks `onCarpetaNueva`. Fix: debounce `carpetasRecientes` Map (5s). Capa 2: tracking check pre-POST. Capa 3: backend check-before-insert case-insensitive. TO-DO: UNIQUE constraint DB.
 - [Upload dedup pre-flight]: El tiempo entre `encolarArchivo` y `subirArchivo` (semáforo, backoff) permite que otro upload complete. Verificar tracking v2 + hash justo antes del POST, no solo al encolar. Persistir hash inmediatamente tras cada upload (no al fin de la cola).
 - [Pipeline imagen post-upload]: La imagen de portada se genera async en backend. Fetch inmediato retorna null. Retry con backoff (4s→12s→30s→60s) cubre la latencia del pipeline.
+- [API endpoint samples GET]: La ruta es `/samples/{slug}` (string), NO `/samples/{id}` (numérico). `obtenerImagenSampleDesdeServidor` debe usar `resultado.slug`, no `resultado.sample_id`. La respuesta va envuelta en envelope `{ data: { imagenUrl, ... } }` — siempre desenvolver.
+- [Tauri 2 core:default permisos]: `core:default` incluye `core:window:default` que es SOLO lectura (isMinimized, isVisible, size, etc.). Mutaciones como `minimize()`, `hide()`, `show()`, `setFocus()`, `center()`, `close()` requieren permisos explícitos: `core:window:allow-minimize`, etc. Sin ellos, las llamadas JS fallan silenciosamente — los catch vacíos ocultan el error.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
