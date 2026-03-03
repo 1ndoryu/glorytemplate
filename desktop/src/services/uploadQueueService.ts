@@ -422,17 +422,20 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             item.nombreArchivo,
         );
 
-        /* Intentar obtener imagen de portada del sample recién subido (no bloquea el flujo) */
-        obtenerImagenSampleDesdeServidor(resultado.sample_id).then(imagenUrl => {
-            if (imagenUrl) {
-                actualizarEstadoSampleHistorial({
-                    sampleId: resultado.sample_id!,
-                    nombreArchivo: item.nombreArchivo,
-                    estado: 'sincronizado',
-                    imagenUrl,
-                }).catch(() => {});
-            }
-        }).catch(() => { /* No bloquear flujo si falla obtener imagen */ });
+        /* Intentar obtener imagen de portada del sample recién subido (no bloquea el flujo).
+         * Usa slug (no ID numérico) porque la ruta GET /samples/{slug} lo requiere. */
+        if (resultado.slug) {
+            obtenerImagenSampleDesdeServidor(resultado.slug).then(imagenUrl => {
+                if (imagenUrl) {
+                    actualizarEstadoSampleHistorial({
+                        sampleId: resultado.sample_id!,
+                        nombreArchivo: item.nombreArchivo,
+                        estado: 'sincronizado',
+                        imagenUrl,
+                    }).catch(() => {});
+                }
+            }).catch(() => { /* No bloquear flujo si falla obtener imagen */ });
+        }
 
         /*
          * Asignar carpeta en el servidor basada en la ubicación local.
@@ -756,7 +759,7 @@ export async function limpiarCompletados(): Promise<void> {
  */
 const IMAGEN_RETRY_DELAYS_MS = [4000, 12000, 30000, 60000];
 
-async function obtenerImagenSampleDesdeServidor(sampleId: number): Promise<string | null> {
+async function obtenerImagenSampleDesdeServidor(slug: string): Promise<string | null> {
     const baseUrl = obtenerBaseUrlSync();
     if (!baseUrl) return null;
 
@@ -770,11 +773,15 @@ async function obtenerImagenSampleDesdeServidor(sampleId: number): Promise<strin
         }
 
         try {
-            const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${sampleId}`);
+            /* La ruta GET /samples/{slug} espera slug string, no ID numérico */
+            const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${encodeURIComponent(slug)}`);
             if (!respuesta.ok) continue;
 
-            const data = await respuesta.json() as { imagenUrl?: string | null; imagen_url?: string | null };
-            const url = data.imagenUrl ?? data.imagen_url ?? null;
+            /* La API envuelve en envelope { data: { imagenUrl, ... } } */
+            const json = await respuesta.json() as { data?: { imagenUrl?: string | null; imagen_url?: string | null } };
+            const sample = json.data ?? json;
+            const url = (sample as { imagenUrl?: string | null; imagen_url?: string | null }).imagenUrl
+                ?? (sample as { imagen_url?: string | null }).imagen_url ?? null;
 
             if (url) return url;
             /* null → pipeline aún no terminó, reintentar */

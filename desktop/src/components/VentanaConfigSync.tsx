@@ -20,14 +20,18 @@ async function minimizarVentana(): Promise<void> {
     try {
         const { getCurrentWindow } = await import('@tauri-apps/api/window');
         await getCurrentWindow().minimize();
-    } catch { /* Entorno no-Tauri */ }
+    } catch (err) {
+        console.error('[ConfigSync] Error minimizando ventana:', err);
+    }
 }
 
 async function cerrarVentana(): Promise<void> {
     try {
         const { getCurrentWindow } = await import('@tauri-apps/api/window');
         await getCurrentWindow().hide();
-    } catch { /* Entorno no-Tauri */ }
+    } catch (err) {
+        console.error('[ConfigSync] Error ocultando ventana:', err);
+    }
 }
 
 export function VentanaConfigSync(): JSX.Element {

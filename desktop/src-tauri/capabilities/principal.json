@@ -5,6 +5,12 @@
   "windows": ["main", "sync-panel", "config-sync"],
   "permissions": [
     "core:default",
+    "core:window:allow-minimize",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:window:allow-center",
+    "core:window:allow-close",
     "dialog:default",
     "dialog:allow-open",
     "dialog:allow-save",
