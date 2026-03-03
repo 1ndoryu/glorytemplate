@@ -41,6 +41,19 @@
         "shadow": false,
         "transparent": true,
         "closable": false
+      },
+      {
+        "label": "config-sync",
+        "title": "Configuración",
+        "url": "config.html",
+        "width": 460,
+        "height": 500,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "alwaysOnTop": false,
+        "skipTaskbar": false,
+        "center": true
       }
     ],
     "security": {

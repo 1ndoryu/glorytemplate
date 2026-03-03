@@ -121,33 +121,19 @@ fn seleccionar_archivo(ruta: String) -> Result<(), String> {
 }
 
 /*
- * Comando: mostrar (o crear) la ventana independiente de configuración sync.
- * Se crea dinámicamente la primera vez; las siguientes veces se reutiliza.
- * La ventana es frameless, centrada, con fondo transparente para border-radius CSS.
+ * Comando: mostrar la ventana de configuración sync.
+ * La ventana se pre-crea oculta en tauri.conf.json para evitar
+ * deadlock de WebView2 al crearla dinámicamente en Windows.
+ * Este comando solo la muestra, centra y enfoca.
  */
 #[tauri::command]
 fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
-    if let Some(ventana) = app.get_webview_window("config-sync") {
-        let _ = ventana.show();
-        let _ = ventana.center();
-        let _ = ventana.set_focus();
-    } else {
-        let ventana = tauri::WebviewWindowBuilder::new(
-            &app,
-            "config-sync",
-            tauri::WebviewUrl::App("config.html".into()),
-        )
-        .title("Configuración")
-        .inner_size(460.0, 500.0)
-        .decorations(false)
-        .resizable(false)
-        .center()
-        .always_on_top(false)
-        .skip_taskbar(false)
-        .build()
-        .map_err(|e| format!("Error creando ventana de config: {}", e))?;
-        let _ = ventana.set_focus();
-    }
+    let ventana = app
+        .get_webview_window("config-sync")
+        .ok_or_else(|| "Ventana config-sync no encontrada".to_string())?;
+    let _ = ventana.show();
+    let _ = ventana.center();
+    let _ = ventana.set_focus();
     Ok(())
 }
 

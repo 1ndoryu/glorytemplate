@@ -49,32 +49,50 @@ export function useConfiguracionSyncVentana(): UseConfiguracionSyncVentanaReturn
     const [cargando, setCargando] = useState(true);
     const [guardando, setGuardando] = useState(false);
 
-    /* Leer config desde Tauri Store al montar */
+    /* Función reutilizable para cargar config desde el Tauri Store */
+    const cargarDesdeStore = useCallback(async () => {
+        try {
+            const { load } = await import('@tauri-apps/plugin-store');
+            const store = await load(STORE_FILE);
+            const guardada = await store.get<SyncConfigAvanzada>(STORE_KEY_CONFIG_AVANZADA);
+            if (guardada) {
+                const merged = { ...CONFIG_AVANZADA_DEFAULT, ...guardada };
+                setConfig(merged);
+                setConfigInicial(merged);
+            }
+        } catch (err) {
+            console.error('[ConfigVentana] Error cargando config desde store:', err);
+        }
+    }, []);
+
+    /* Carga inicial al montar + re-carga al ganar foco (la ventana se pre-crea
+     * oculta en tauri.conf.json, así que el mount ocurre al inicio de la app;
+     * recargar al ganar foco garantiza datos frescos cada vez que se abre). */
     useEffect(() => {
         let cancelado = false;
+        let desuscribir: (() => void) | undefined;
 
         (async () => {
+            await cargarDesdeStore();
+            if (cancelado) return;
+            setCargando(false);
+
             try {
-                const { load } = await import('@tauri-apps/plugin-store');
-                const store = await load(STORE_FILE);
-                const guardada = await store.get<SyncConfigAvanzada>(STORE_KEY_CONFIG_AVANZADA);
-
-                if (cancelado) return;
-
-                if (guardada) {
-                    const merged = { ...CONFIG_AVANZADA_DEFAULT, ...guardada };
-                    setConfig(merged);
-                    setConfigInicial(merged);
-                }
-            } catch (err) {
-                console.error('[ConfigVentana] Error cargando config desde store:', err);
-            } finally {
-                if (!cancelado) setCargando(false);
-            }
+                const { getCurrentWindow } = await import('@tauri-apps/api/window');
+                const ventana = getCurrentWindow();
+                desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
+                    if (enfocado && !cancelado) {
+                        cargarDesdeStore();
+                    }
+                });
+            } catch { /* Entorno no-Tauri */ }
         })();
 
-        return () => { cancelado = true; };
-    }, []);
+        return () => {
+            cancelado = true;
+            desuscribir?.();
+        };
+    }, [cargarDesdeStore]);
 
     const hayaCambios = JSON.stringify(config) !== JSON.stringify(configInicial);
 
