@@ -51,6 +51,7 @@ import {
     haySyncEnCurso,
     limpiarHistorialSync,
     recargarHistorialDesdeStore,
+    rehidratarImagenesPendientesSync,
 } from '@desktop/services/syncService';
 
 /* Cola de subidas — expuesto en window para feedback de uploads */
@@ -89,6 +90,7 @@ function configurarEntorno(): void {
         haySyncEnCurso,
         limpiarHistorialSync,
         recargarHistorialDesdeStore,
+        rehidratarImagenesPendientesSync,
     };
     /* Cola de subidas: necesario para que usePanelSincronizacion conecte
      * el callback de progreso de uploads y muestre feedback en vivo. */

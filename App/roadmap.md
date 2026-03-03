@@ -297,6 +297,12 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] Mantener compatibilidad con URLs absolutas (`https://...`) y protocol-relative (`//...`)
     - [x] Fallback seguro: si no hay origen resoluble, conservar URL original para entorno dev con proxy
 
+372. ✅ [AG-SYN] **Hotfix portada tardía pipeline no rehidrataba en panel sync**
+    - [x] `syncService`: nueva API `rehidratarImagenesPendientesSync()` con throttle (60s) para reintentos periódicos
+    - [x] `usePanelSincronizacion`: polling invoca rehidratación periódica (no bloqueante)
+    - [x] `syncService.rehidratarImagenesPendientes`: compatibilidad con payload backend `imagenUrl` y `imagen_url`
+    - [x] Exposición tipada en `window.__KAMPLES_SYNC__` (`sync.tsx`, `desktop/global.d.ts`, `App/React/global.d.ts`)
+
 ---
 
 ## Notas Compactas
@@ -418,6 +424,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [OneDrive readFile]: `readFile` de Tauri falla con ruta truncada en archivos cloud-only de OneDrive. Pre-check con `exists()` + mensaje descriptivo.
 - [OneDrive watcher path]: `watch()` puede emitir rutas equivalentes con formato distinto (`\\` vs `/`, casing). Cualquier dedup por ruta en cola DEBE usar clave normalizada canónica.
 - [Sync portada desktop]: `imagenUrl` puede venir relativa (`/wp-content/...`). En ventana Tauri/MPA debe resolverse contra el origen del servidor; si no, `<img>` apunta al origen local de la app y no carga.
+- [Sync portada tardía]: Si la imagen se genera después de los retries post-upload, queda `null` indefinidamente. Requiere rehidratación periódica con throttle + parse defensivo `imagenUrl|imagen_url`.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 

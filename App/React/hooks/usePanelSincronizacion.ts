@@ -48,6 +48,7 @@ interface KamplesSync {
     haySyncEnCurso?: () => boolean;
     limpiarHistorialSync?: () => Promise<void>;
     recargarHistorialDesdeStore?: () => Promise<void>;
+    rehidratarImagenesPendientesSync?: () => Promise<void>;
 }
 
 /* Tipo del objeto expuesto en window.__KAMPLES_UPLOAD__ para cola de subidas */
@@ -185,6 +186,12 @@ export const usePanelSincronizacion = () => {
                  * llamarlo cada 1.2s es seguro — solo ejecuta cada 5s. */
                 if (srv.recargarHistorialDesdeStore) {
                     srv.recargarHistorialDesdeStore().catch(() => {});
+                }
+
+                /* Rehidratar portadas que llegan tarde desde pipeline backend.
+                 * Tiene throttle interno (60s), así que llamarlo en polling es seguro. */
+                if (srv.rehidratarImagenesPendientesSync) {
+                    srv.rehidratarImagenesPendientesSync().catch(() => {});
                 }
 
                 const nuevoHistorial = srv.obtenerHistorialSync?.(50) ?? [];

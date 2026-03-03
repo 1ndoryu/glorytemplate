@@ -624,6 +624,20 @@ export async function recargarHistorialDesdeStore(): Promise<void> {
     await estado.trackingModule.recargarHistorialDesdeStore();
 }
 
+const REHIDRATAR_IMAGENES_INTERVALO_MS = 60_000;
+let ultimaRehidratacionImagenes = 0;
+
+/**
+ * Rehidratación periódica de portadas para entradas del historial sin imagen.
+ * Diseñada para ser llamada frecuentemente (ej: polling UI); tiene throttle interno.
+ */
+export async function rehidratarImagenesPendientesSync(): Promise<void> {
+    const ahora = Date.now();
+    if (ahora - ultimaRehidratacionImagenes < REHIDRATAR_IMAGENES_INTERVALO_MS) return;
+    ultimaRehidratacionImagenes = ahora;
+    await rehidratarImagenesPendientes();
+}
+
 export function obtenerColeccionesSync(): Array<{
     id: number;
     nombre: string;
@@ -708,7 +722,7 @@ async function rehidratarImagenesPendientes(): Promise<void> {
         /* Estructura: { data: { data: [...], pagination: {...} } } */
         const json = await respuesta.json() as {
             data?: {
-                data?: Array<{ id?: number; imagenUrl?: string | null }>;
+                data?: Array<{ id?: number; imagenUrl?: string | null; imagen_url?: string | null }>;
             };
         };
         const samples = json.data?.data;
@@ -717,8 +731,9 @@ async function rehidratarImagenesPendientes(): Promise<void> {
         /* Construir mapa sampleId → imagenUrl para O(1) lookup */
         const mapaImagenes = new Map<number, string>();
         for (const s of samples) {
-            if (s.id && s.imagenUrl) {
-                mapaImagenes.set(s.id, s.imagenUrl);
+            const imagen = s.imagenUrl ?? s.imagen_url ?? null;
+            if (s.id && imagen) {
+                mapaImagenes.set(s.id, imagen);
             }
         }
 
