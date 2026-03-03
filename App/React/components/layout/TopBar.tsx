@@ -5,7 +5,7 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, FolderSync, Trash2, Trash } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -16,27 +16,9 @@ import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
-import { toast } from '@app/stores/toastStore';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
-    const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
-
-    const abrirVentanaSyncDesktop = async (): Promise<void> => {
-        if (!esDesktop) return;
-        try {
-            const syncBridge = window.__KAMPLES_SYNC__;
-            if (!syncBridge?.toggleVentanaSync) {
-                toast.error('Sincronización no disponible en este entorno desktop');
-                return;
-            }
-            await syncBridge.toggleVentanaSync();
-        } catch (error) {
-            console.error('[TopBar] No se pudo abrir la ventana de sincronización:', error);
-            toast.error('No se pudo abrir la ventana de sincronización');
-        }
-    };
-
     /* Leer devMode inyectado por PHP en GLORY_CONTEXT (Partial<GloryContext> del framework Glory) */
     const gloryCtx = (window as unknown as Record<string, Partial<GloryContext> | undefined>).GLORY_CONTEXT;
     const devModeActivo = gloryCtx?.devMode === true;
@@ -221,21 +203,6 @@ export const TopBar = (): JSX.Element => {
                     >
                         <Music2 size={18} />
                     </BotonBase>
-
-                    {/* Botón de sincronización — solo visible en desktop (Tauri) */}
-                    {esDesktop && (
-                        <div className="topbarIconoWrapper">
-                            <BotonBase
-                                variante="ghost"
-                                tamano="md"
-                                soloIcono
-                                onClick={() => { void abrirVentanaSyncDesktop(); }}
-                                aria-label="Sincronización"
-                            >
-                                <FolderSync size={18} />
-                            </BotonBase>
-                        </div>
-                    )}
 
                     <div className="topbarIconoWrapper">
                         <BotonBase

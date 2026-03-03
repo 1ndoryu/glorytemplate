@@ -200,8 +200,8 @@ class ColeccionesCrudController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        /* C164: Rate limit — 30 adiciones a colección por minuto */
-        $limitResp = RateLimiter::verificarUsuario($userId, 'agregar_sample_col', 30, 60);
+        /* C164: Rate limit — 2000 adiciones a colección por hora (subido para soportar sync masivo de carpetas) */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'agregar_sample_col', 2000, 3600);
         if ($limitResp) return $limitResp;
 
         $colId = (int) $request->get_param('id');
