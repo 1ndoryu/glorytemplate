@@ -11,12 +11,12 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { SyncConfigAvanzada } from '@desktop/services/syncState';
+import type { SyncConfigAvanzada } from '@desktop/services/syncConstants';
 import {
     STORE_FILE,
     STORE_KEY_CONFIG_AVANZADA,
     CONFIG_AVANZADA_DEFAULT,
-} from '@desktop/services/syncState';
+} from '@desktop/services/syncConstants';
 
 interface UseConfiguracionSyncVentanaReturn {
     config: SyncConfigAvanzada;

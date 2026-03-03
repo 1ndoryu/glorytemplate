@@ -5,100 +5,49 @@
  * y la persistencia en Tauri Store. Importado por todos los módulos sync
  * que necesitan acceso al estado sin crear dependencias circulares.
  *
+ * Tipos y constantes viven en syncConstants.ts (sin dependencias),
+ * y se re-exportan aquí para compatibilidad con importadores existentes.
+ *
  * Responsabilidad: estado + persistencia. Sin lógica de negocio.
  */
 
 import { esDesktop } from './desktopService';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 
-/* Tipos del sistema sync */
+/* Re-exportar tipos y constantes desde módulo sin dependencias */
+export type {
+    SyncConfig,
+    SyncConfigAvanzada,
+    ArchivoLocal,
+    CarpetaInfo,
+    SampleBasico,
+    ResultadoDescargaApi,
+    ProgresoSync,
+    ProgressCallback,
+} from './syncConstants';
 
-export interface CarpetaInfo {
-    primaria: string;
-    total: number;
-    subcarpetas: Array<{ nombre: string; total: number }>;
-}
+export {
+    CONFIG_AVANZADA_DEFAULT,
+    STORE_FILE,
+    STORE_KEY_CONFIG,
+    STORE_KEY_INDICE,
+    STORE_KEY_CONFIG_AVANZADA,
+    POLLING_CARPETAS_MS,
+} from './syncConstants';
 
-export interface SampleBasico {
-    id: number;
-    titulo: string;
-    metadata?: {
-        carpeta_primaria?: string;
-        carpeta_secundaria?: string;
-        [key: string]: unknown;
-    };
-}
-
-export interface ResultadoDescargaApi {
-    url: string;
-    nombre: string;
-    formato: string;
-    tamano: number;
-}
-
-export interface ProgresoSync {
-    actual: number;
-    total: number;
-    sampleId: number;
-    nombre: string;
-    estado: 'descargando' | 'descargado' | 'error';
-    tamano?: number;
-    ruta?: string;
-}
-
-export type ProgressCallback = (progreso: ProgresoSync) => void;
-
-export interface SyncConfig {
-    carpetaLocal: string | null;
-    sincronizacionActiva: boolean;
-    ultimaSync: number;
-}
-
-/**
- * Configuración avanzada de sync, persistida por separado.
- * Controla: paralelismo, throttle, borrado bidireccional, papelera.
- */
-export interface SyncConfigAvanzada {
-    velocidadMaximaSubidaMbps: number;       /* 0 = sin límite */
-    archivosParalelos: number;                /* 1-5, default 1 */
-    borrarEnServidorAlBorrarLocal: boolean;   /* default false */
-    borrarEnLocalAlBorrarEnServidor: boolean; /* default false */
-    papeleraActiva: boolean;                  /* default true */
-    papeleraDuracionDias: number;             /* default 30 */
-}
-
-export const CONFIG_AVANZADA_DEFAULT: SyncConfigAvanzada = {
-    velocidadMaximaSubidaMbps: 0,
-    archivosParalelos: 1,
-    borrarEnServidorAlBorrarLocal: false,
-    borrarEnLocalAlBorrarEnServidor: false,
-    papeleraActiva: true,
-    papeleraDuracionDias: 30,
-};
-
-export interface ArchivoLocal {
-    ruta: string;
-    nombre: string;
-    sampleId: number;
-    hash: string;
-    descargadoEn: number;
-    nombreOriginal: string;
-    nombreServidor: string;
-    /*
-     * C341: Si true, el archivo se eliminó localmente pero no del server.
-     * No se re-descarga en la próxima sync. Visible en el explorador.
-     */
-    syncDeshabilitado?: boolean;
-    /* Ruta original antes de que se eliminara (para UI) */
-    rutaEliminada?: string;
-}
-
-/* Constantes de persistencia */
-export const STORE_FILE = 'sync-config.json';
-export const STORE_KEY_CONFIG = 'sync_config';
-export const STORE_KEY_INDICE = 'sync_indice';
-export const STORE_KEY_CONFIG_AVANZADA = 'sync_config_avanzada';
-export const POLLING_CARPETAS_MS = 60_000;
+import type {
+    SyncConfig,
+    SyncConfigAvanzada,
+    ArchivoLocal,
+} from './syncConstants';
+import {
+    CONFIG_AVANZADA_DEFAULT,
+    STORE_FILE,
+    STORE_KEY_CONFIG,
+    STORE_KEY_INDICE,
+    STORE_KEY_CONFIG_AVANZADA,
+    POLLING_CARPETAS_MS,
+} from './syncConstants';
 
 /*
  * Estado global mutable del sync.
