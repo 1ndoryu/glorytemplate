@@ -15,7 +15,7 @@
  */
 
 import { estado } from './syncState';
-import { marcarDescargaEnCurso } from './syncGuards';
+import { marcarDescargaEnCurso, marcarMovimientoInterno } from './syncGuards';
 import { actualizarEstadoSampleHistorial } from './syncService';
 
 const STORE_FILE = 'papelera.json';
@@ -93,6 +93,7 @@ export async function moverAPapelera(
          * Defensa en profundidad: P1 (filtro en watcher) es la línea principal,
          * este guard es el fallback por si algún edge case lo atraviesa. */
         marcarDescargaEnCurso(rutaPapelera);
+        marcarMovimientoInterno(rutaOriginal);
 
         /* Mover archivo (no eliminarlo) */
         await rename(rutaOriginal, rutaPapelera);
@@ -154,6 +155,7 @@ export async function restaurarDePapelera(itemId: string): Promise<boolean> {
         } catch { /* ya existe */ }
 
         /* Mover de vuelta a ubicacion original */
+        marcarMovimientoInterno(item.rutaPapelera);
         await rename(item.rutaPapelera, item.rutaOriginal);
 
         items = items.filter(i => i.id !== itemId);

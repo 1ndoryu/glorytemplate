@@ -13,7 +13,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { esDescargaEnCurso, obtenerBaseUrlSync, esSyncEnCurso } from './syncGuards';
+import { esDescargaEnCurso, esMovimientoInterno, obtenerBaseUrlSync, esSyncEnCurso } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import {
     estado,
@@ -377,6 +377,17 @@ let borradosEnCiclo = 0;
 let ultimoResetBorrados = Date.now();
 
 async function manejarBorradoLocal(ruta: string): Promise<void> {
+    /*
+     * Defensa: si esta ruta fue marcada como movimiento interno
+     * (ej: rename de moverArchivoASinColeccion), ignorar el DELETE.
+     * Sin esto, un fallo en la actualización de tracking podría causar
+     * soft-delete del sample recién subido cuando borrarEnServidorAlBorrarLocal está activo.
+     */
+    if (esMovimientoInterno(ruta)) {
+        console.info('[Sync] Ignorando DELETE de ruta movida internamente:', ruta);
+        return;
+    }
+
     /* Marcar como no sincronizar (comportamiento base) */
     await marcarNoSincronizar(ruta);
 

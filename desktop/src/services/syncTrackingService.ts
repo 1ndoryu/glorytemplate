@@ -460,9 +460,45 @@ export async function actualizarEstadoSample(entrada: {
     await persistir();
 }
 
-/** Obtiene el historial per-sample ordenado por última actualización. */
+/**
+ * Obtiene el historial per-sample ordenado por última actualización.
+ * Retorna copias superficiales de cada entrada para evitar que mutaciones
+ * internas (ej: actualizarEstadoSample) invaliden comparaciones en React.
+ * Sin esto, el polling en usePanelSincronizacion compara objetos mutados
+ * contra sí mismos y nunca detecta cambios (ej: imagen actualizada).
+ */
 export function obtenerHistorialSamples(limite = 50): EntradaHistorialSample[] {
-    return datos.historialSamples.slice(0, limite);
+    return datos.historialSamples.slice(0, limite).map(e => ({ ...e }));
+}
+
+/**
+ * Recarga el historial per-sample desde el Tauri Store.
+ *
+ * Necesario en ventanas MPA (sync panel): la ventana main actualiza el Store
+ * (ej: imagen post-pipeline), pero la ventana sync tiene su propia copia en memoria.
+ * El Store de Tauri 2.0 comparte el backend entre ventanas, así que store.get()
+ * retorna datos frescos sin leer de disco.
+ *
+ * Throttle interno de 5s para no sobrecargar el IPC con lecturas cada 1.2s.
+ */
+let ultimaRecargaStore = 0;
+const RECARGA_STORE_INTERVALO_MS = 5000;
+
+export async function recargarHistorialDesdeStore(): Promise<void> {
+    const ahora = Date.now();
+    if (ahora - ultimaRecargaStore < RECARGA_STORE_INTERVALO_MS) return;
+    ultimaRecargaStore = ahora;
+
+    if (!storeCache) return;
+    try {
+        const guardado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+        if (guardado?.historialSamples) {
+            datos.historialSamples = guardado.historialSamples;
+            reconstruirIndiceSampleHistorial();
+        }
+    } catch {
+        /* Store no disponible o error de lectura */
+    }
 }
 
 /** Limpia el historial per-sample completo. */

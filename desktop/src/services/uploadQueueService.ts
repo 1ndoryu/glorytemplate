@@ -69,6 +69,27 @@ let callbackProgreso: OnProgresoUploadFn | null = null;
 /* Set O(1) para verificar si una ruta ya está en cola. Evita cola.some() O(n). */
 let rutasEnCola = new Set<string>();
 
+/*
+ * Guard síncrono contra race condition en encolarArchivo().
+ * Problema: encolarArchivo es async y el callback del watcher no hace await.
+ * Si llegan dos eventos rápidos (create + modify), ambos entran en encolarArchivo,
+ * ambos pasan rutasEnCola.has() (que se actualiza DESPUÉS del await calcularHash),
+ * y ambos encolan el mismo archivo → duplicado.
+ *
+ * Solución: este Set se actualiza SÍNCRONAMENTE al inicio de encolarArchivo,
+ * antes de cualquier await. El segundo llamado lo ve inmediatamente y retorna false.
+ */
+const rutasEncolando = new Set<string>();
+
+/*
+ * Guard de hash en vuelo para uploads paralelos.
+ * Con archivosParalelos > 1, dos items con el mismo hash podrían ejecutar
+ * subirArchivo() simultáneamente, ambos pasando hashesConocidos.has() antes
+ * de que ninguno lo añada. Este Set previene que dos uploads del mismo
+ * contenido estén en vuelo al mismo tiempo.
+ */
+const hashesEnVuelo = new Set<string>(); 
+
 /* Semáforo de concurrencia: controla cuántos archivos se suben en paralelo.
  * El límite se lee de configAvanzada.archivosParalelos al iniciar procesarCola. */
 let semaforoUpload: Semaforo | null = null;
@@ -87,10 +108,14 @@ export async function inicializarUploadQueue(): Promise<void> {
         if (colaGuardada) {
             /* Restaurar solo items no completados */
             cola = colaGuardada.filter(i => i.estado !== 'completado');
-            /* Items que estaban "subiendo" al cerrar -> volver a pendiente */
+            /* Items que estaban "subiendo" al cerrar -> volver a pendiente.
+             * Migración: items de store pre-C368 no tienen idempotencyKey. */
             for (const item of cola) {
                 if (item.estado === 'subiendo') {
                     item.estado = 'pendiente';
+                }
+                if (!item.idempotencyKey) {
+                    item.idempotencyKey = crypto.randomUUID();
                 }
             }
             /* Reconstruir Set de rutas para lookups O(1) */
@@ -138,6 +163,34 @@ export async function encolarArchivo(
         return false;
     }
 
+    /*
+     * Guard síncrono: prevenir race condition entre eventos create y modify.
+     * DEBE ejecutarse ANTES de cualquier await para ser efectivo.
+     * Si otro llamado a encolarArchivo() ya está procesando esta ruta
+     * (calculando hash, etc.), rechazar inmediatamente.
+     */
+    if (rutasEncolando.has(rutaArchivo)) {
+        console.info('[UploadQueue] Archivo ya en proceso de encolamiento, ignorando:', nombreArchivo);
+        return false;
+    }
+    rutasEncolando.add(rutaArchivo);
+
+    try {
+        return await encolarArchivoInterno(rutaArchivo, nombreArchivo, carpetas);
+    } finally {
+        rutasEncolando.delete(rutaArchivo);
+    }
+}
+
+/*
+ * Lógica interna de encolamiento, separada para que el guard síncrono
+ * de encolarArchivo() pueda usar try/finally limpiamente.
+ */
+async function encolarArchivoInterno(
+    rutaArchivo: string,
+    nombreArchivo: string,
+    carpetas: string[],
+): Promise<boolean> {
     /*
      * P4: Normalizar nombre (elimina prefijo timestamp de papelera) para
      * que el dedup por nombre funcione aunque el archivo haya pasado por
@@ -374,6 +427,20 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             return true;
         }
 
+        /*
+         * Guard de hash en vuelo: si otro upload paralelo del mismo contenido
+         * está en progreso, esperar a que termine en vez de subir dos veces.
+         * Esto cubre la ventana entre que subirArchivo() empieza y hashesConocidos
+         * se actualiza tras el POST exitoso.
+         */
+        if (item.hashParcial) {
+            if (hashesEnVuelo.has(item.hashParcial)) {
+                console.info('[UploadQueue] Hash en vuelo (upload paralelo), omitiendo:', item.nombreArchivo);
+                return true;
+            }
+            hashesEnVuelo.add(item.hashParcial);
+        }
+
         const { readFile, exists } = await import('@tauri-apps/plugin-fs');
         const baseUrl = obtenerBaseUrlSync();
 
@@ -508,6 +575,11 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         item.ultimoError = err instanceof Error ? err.message : String(err);
         console.error('[UploadQueue] Error subiendo archivo:', item.nombreArchivo, err);
         return false;
+    } finally {
+        /* Liberar hash en vuelo siempre, éxito o fallo */
+        if (item.hashParcial) {
+            hashesEnVuelo.delete(item.hashParcial);
+        }
     }
 }
 

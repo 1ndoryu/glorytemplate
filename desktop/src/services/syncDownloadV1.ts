@@ -8,7 +8,7 @@
  * Responsabilidad: descarga v1. Sin estado propio (usa syncState).
  */
 
-import { marcarDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { marcarDescargaEnCurso, marcarMovimientoInterno, obtenerBaseUrlSync } from './syncGuards';
 import {
     estado,
     guardarIndice,
@@ -137,6 +137,7 @@ export async function sincronizarConServidorV1(
 
                                     marcarDescargaEnCurso(nuevaRuta);
                                     marcarDescargaEnCurso(archivoExistente.ruta);
+                                    marcarMovimientoInterno(archivoExistente.ruta);
 
                                     await rename(archivoExistente.ruta, nuevaRuta);
                                     archivoExistente.ruta = nuevaRuta;

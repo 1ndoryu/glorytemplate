@@ -278,6 +278,15 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] **P6** Consistencia historial: `moverAPapelera()` actualiza estado sample a `en_papelera`
     - [x] **P7** Auditar carpetas excluidas del watcher (`CARPETAS_SOLO_DELETE` para `Sin colección` — CREATEs ignorados, DELETEs pasan)
 
+369. ✅ [AG-SYN] **Hardening post-C368 — duplicado real + refresh imagen cross-window + guards de renames internos**
+    - [x] Race condition `encolarArchivo()` (create+modify concurrentes): guard síncrono `rutasEncolando` antes de cualquier `await`
+    - [x] Upload paralelo mismo contenido: guard `hashesEnVuelo` en `subirArchivo()`
+    - [x] Historial per-sample no refrescaba imagen: `obtenerHistorialSamples()` ahora retorna copias (`map(e => ({ ...e }))`)
+    - [x] Polling panel sync ahora detecta `imagenUrl` y cambios en toda la lista (no solo el primer item)
+    - [x] MPA sync-panel/main: `recargarHistorialDesdeStore()` expuesto en `window.__KAMPLES_SYNC__` con throttle interno 5s
+    - [x] Migración store upload pre-C368: regenerar `idempotencyKey` faltante al restaurar cola
+    - [x] Rename interno seguro: `marcarMovimientoInterno()` + filtro en `manejarBorradoLocal()` para evitar soft-delete accidental por DELETE de ruta origen
+
 ---
 
 ## Notas Compactas

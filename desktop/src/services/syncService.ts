@@ -20,6 +20,7 @@
 import { esDesktop, estaOnline } from './desktopService';
 import {
     marcarDescargaEnCurso,
+    marcarMovimientoInterno,
     obtenerBaseUrlSync,
     adquirirLockSync,
     registrarSyncActiva,
@@ -319,8 +320,13 @@ export async function moverArchivoASinColeccion(
          * El rename produce un evento CREATE en el watcher que, sin este guard,
          * genera una subida duplicada por race condition:
          * el watcher detecta el CREATE antes de que el tracking se actualice.
+         *
+         * También marcar la ruta ORIGINAL como movimiento interno para que
+         * el evento DELETE no dispare manejarBorradoLocal → softDeleteEnServidor
+         * si la actualización de tracking falla.
          */
         marcarDescargaEnCurso(nuevaRuta);
+        marcarMovimientoInterno(rutaActual);
 
         await rename(rutaActual, nuevaRuta);
 
@@ -606,6 +612,16 @@ export async function limpiarHistorialSync(): Promise<void> {
     if (estado.trackingModule.limpiarHistorialSamples) {
         await estado.trackingModule.limpiarHistorialSamples();
     }
+}
+
+/**
+ * Re-lee el historial per-sample desde el Tauri Store compartido.
+ * Necesario en ventanas MPA (sync panel) para ver actualizaciones de la ventana main
+ * (ej: imagen de portada obtenida post-pipeline). Throttle interno de 5s.
+ */
+export async function recargarHistorialDesdeStore(): Promise<void> {
+    if (!estado.trackingModule?.recargarHistorialDesdeStore) return;
+    await estado.trackingModule.recargarHistorialDesdeStore();
 }
 
 export function obtenerColeccionesSync(): Array<{

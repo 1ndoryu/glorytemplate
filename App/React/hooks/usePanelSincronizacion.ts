@@ -47,6 +47,7 @@ interface KamplesSync {
     forzarResync?: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
     haySyncEnCurso?: () => boolean;
     limpiarHistorialSync?: () => Promise<void>;
+    recargarHistorialDesdeStore?: () => Promise<void>;
 }
 
 /* Tipo del objeto expuesto en window.__KAMPLES_UPLOAD__ para cola de subidas */
@@ -70,14 +71,26 @@ function historialCambioVisible(
 }
 
 function historialSamplesCambioVisible(
-    anterior: Array<{ timestampActualizado: number; estado: string }>,
-    siguiente: Array<{ timestampActualizado: number; estado: string }>,
+    anterior: Array<{ timestampActualizado: number; estado: string; imagenUrl?: string | null }>,
+    siguiente: Array<{ timestampActualizado: number; estado: string; imagenUrl?: string | null }>,
 ): boolean {
     if (anterior.length !== siguiente.length) return true;
     if (anterior.length === 0) return false;
-    /* Detectar cambio en la entrada más reciente (timestamp o estado) */
-    return anterior[0].timestampActualizado !== siguiente[0].timestampActualizado
-        || anterior[0].estado !== siguiente[0].estado;
+    /*
+     * Comparar todas las entradas: O(n) con n=50 máx, negligible cada 1.2s.
+     * Antes solo comparábamos la primera entrada, lo cual ignoraba cambios
+     * en posiciones intermedias (ej: imagen actualizada de un sample que no es el más reciente).
+     */
+    for (let i = 0; i < anterior.length; i++) {
+        const a = anterior[i];
+        const b = siguiente[i];
+        if (a.timestampActualizado !== b.timestampActualizado
+            || a.estado !== b.estado
+            || a.imagenUrl !== b.imagenUrl) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function obtenerSync(): KamplesSync | null {
@@ -167,6 +180,13 @@ export const usePanelSincronizacion = () => {
 
         const refrescar = () => {
             try {
+                /* Cross-window: re-leer datos del Tauri Store compartido.
+                 * recargarHistorialDesdeStore tiene throttle interno de 5s,
+                 * llamarlo cada 1.2s es seguro — solo ejecuta cada 5s. */
+                if (srv.recargarHistorialDesdeStore) {
+                    srv.recargarHistorialDesdeStore().catch(() => {});
+                }
+
                 const nuevoHistorial = srv.obtenerHistorialSync?.(50) ?? [];
                 if (historialCambioVisible(historialRef.current, nuevoHistorial)) {
                     setHistorial(nuevoHistorial);

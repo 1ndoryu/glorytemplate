@@ -56,8 +56,10 @@ interface Window {
         obtenerHistorialSync: (limite?: number) => Array<{ tipo: string; descripcion: string; sampleId?: number; coleccionId?: number; timestamp: number }>;
         obtenerColeccionesSync: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
         forzarResync: (onProgreso?: (p: ProgresoSyncGlobal) => void) => Promise<{ nuevos: number; eliminados: number }>;
+        obtenerHistorialSamplesSync: (limite?: number) => Array<{ sampleId: number; nombreArchivo: string; estado: 'detectado' | 'subiendo' | 'sincronizado' | 'error' | 'moviendo' | 'descargando' | 'descargado'; imagenUrl: string | null; rutaLocal: string | null; coleccionNombre?: string; timestampCreado: number; timestampActualizado: number; error?: string }>;
         haySyncEnCurso: () => boolean;
         limpiarHistorialSync: () => Promise<void>;
+        recargarHistorialDesdeStore: () => Promise<void>;
     };
     __KAMPLES_UPLOAD__?: {
         obtenerEstadoCola: () => { items: unknown[]; totalPendientes: number; totalErrores: number; procesando: boolean };

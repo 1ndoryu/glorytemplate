@@ -48,6 +48,47 @@ export function esDescargaEnCurso(ruta: string): boolean {
     return descargasEnCurso.has(ruta.replace(/\\/g, '/'));
 }
 
+/* Movimientos internos — protege rutas origen de DELETE falsos */
+
+/*
+ * Cuando hacemos rename() interno (ej: moverArchivoASinColeccion), la ruta
+ * ORIGINAL genera un evento DELETE en el watcher. Si manejarBorradoLocal la
+ * procesa y borrarEnServidorAlBorrarLocal está activo, puede hacer soft-delete
+ * del sample recién subido (si la actualización de tracking falló).
+ *
+ * Este Set marca rutas origen de moves internos para que manejarBorradoLocal
+ * las ignore. TTL automático de GRACIA_MOVIMIENTO_MS.
+ */
+const movimientosInternos = new Set<string>();
+const movimientosTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const GRACIA_MOVIMIENTO_MS = 15_000;
+
+/**
+ * Marca una ruta como origen de un movimiento interno.
+ * manejarBorradoLocal la ignorará durante GRACIA_MOVIMIENTO_MS.
+ */
+export function marcarMovimientoInterno(ruta: string): void {
+    const normalizada = ruta.replace(/\\/g, '/');
+    movimientosInternos.add(normalizada);
+
+    const timerAnterior = movimientosTimeouts.get(normalizada);
+    if (timerAnterior) clearTimeout(timerAnterior);
+
+    const nuevoTimer = setTimeout(() => {
+        movimientosInternos.delete(normalizada);
+        movimientosTimeouts.delete(normalizada);
+    }, GRACIA_MOVIMIENTO_MS);
+
+    movimientosTimeouts.set(normalizada, nuevoTimer);
+}
+
+/**
+ * Verifica si una ruta está marcada como origen de movimiento interno.
+ */
+export function esMovimientoInterno(ruta: string): boolean {
+    return movimientosInternos.has(ruta.replace(/\\/g, '/'));
+}
+
 /* Lock de sync concurrente */
 
 /*
