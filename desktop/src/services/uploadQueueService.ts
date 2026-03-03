@@ -163,26 +163,35 @@ export async function inicializarUploadQueue(): Promise<void> {
     /* Escuchar reconexión para reanudar subidas */
     window.addEventListener('online', () => { procesarCola(); });
 
-    /* Listener cross-ventana: el sync panel (sync.html) tiene su propia instancia de módulo
-     * con cola vacía. Cuando presiona "Sincronizar ahora", emite este evento y la ventana
-     * principal (donde vive la cola real) lo recibe y procesa los errores. */
+    /* Listener cross-ventana: el sync panel (sync.html) actualiza el Tauri Store
+     * directamente y emite este evento. La ventana principal recarga la cola
+     * desde el Store para sincronizar su memoria con los cambios. */
     try {
         const { listen } = await import('@tauri-apps/api/event');
         void listen('reintentar-errores-upload', async () => {
-            let algunActualizado = false;
-            for (const item of cola) {
-                if (item.estado === 'error') {
-                    item.estado = 'pendiente';
-                    item.intentos = 0;
-                    item.ultimoError = undefined;
-                    item.timestampActualizado = Date.now();
-                    rutasEnCola.add(claveRutaEnCola(item.rutaArchivo));
-                    algunActualizado = true;
+            /* Recargar cola desde el Store (el sync panel ya la actualizó ahí) */
+            try {
+                const { load } = await import('@tauri-apps/plugin-store');
+                const store = await load(STORE_FILE);
+                const colaGuardada = await store.get<ItemUploadCola[]>(STORE_KEY_COLA);
+                if (colaGuardada) {
+                    cola = colaGuardada.filter(i => i.estado !== 'completado');
+                    rutasEnCola = new Set(cola.map(i => claveRutaEnCola(i.rutaArchivo)));
+                }
+            } catch {
+                /* Fallback: resetear desde memoria */
+                for (const item of cola) {
+                    if (item.estado === 'error') {
+                        item.estado = 'pendiente';
+                        item.intentos = 0;
+                        item.ultimoError = undefined;
+                        item.timestampActualizado = Date.now();
+                        rutasEnCola.add(claveRutaEnCola(item.rutaArchivo));
+                    }
                 }
             }
-            if (algunActualizado) {
-                await guardarCola();
-                if (estaOnline()) procesarCola();
+            if (estaOnline() && tienePendientes()) {
+                procesarCola();
             }
         });
     } catch {

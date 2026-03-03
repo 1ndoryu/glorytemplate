@@ -60,22 +60,26 @@ export async function inicializarOfflineQueue(): Promise<void> {
     /* Escuchar cambios de conectividad para sincronizar */
     window.addEventListener('online', () => { sincronizarCola(); });
 
-    /* Listener cross-ventana: el sync panel emite 'reintentar-errores-offline' y la
-     * ventana principal (con la cola real) procesa el reintento. */
+    /* Listener cross-ventana: el sync panel actualiza el Store directamente
+     * y emite este evento. La ventana principal recarga la cola desde Store. */
     try {
         const { listen } = await import('@tauri-apps/api/event');
         void listen('reintentar-errores-offline', async () => {
-            let cambios = false;
-            for (const op of cola) {
-                if (op.intentos > 0) {
-                    op.intentos = 0;
-                    cambios = true;
+            /* Recargar cola desde el Store (el sync panel ya la actualizó ahí) */
+            try {
+                const { load } = await import('@tauri-apps/plugin-store');
+                const store = await load(STORE_FILE);
+                const guardadas = await store.get<OperacionPendiente[]>(STORE_KEY);
+                if (guardadas) {
+                    cola = guardadas.map(op => ({ ...op, intentos: op.intentos ?? 0 }));
+                }
+            } catch {
+                /* Fallback: resetear desde memoria */
+                for (const op of cola) {
+                    if (op.intentos > 0) op.intentos = 0;
                 }
             }
-            if (cambios) {
-                await guardarCola();
-                if (estaOnline()) sincronizarCola();
-            }
+            if (estaOnline() && cola.length > 0) sincronizarCola();
         });
     } catch {
         /* Entorno sin Tauri — ignorar */

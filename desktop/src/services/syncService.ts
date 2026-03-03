@@ -424,13 +424,107 @@ async function ejecutarSync(
     const carpetaLocal = estado.config.carpetaLocal;
     if (!carpetaLocal) return { nuevos: 0, eliminados: 0 };
 
-    /* C378: Si el usuario fuerza "Sincronizar ahora" pero hay items que fallaron por HTTP 429, reintentarlos */
+    /* C378: Forzar retry de items con error en la cola de uploads.
+     *
+     * Arquitectura multi-ventana Tauri: el sync panel (sync.html) ejecuta este código
+     * pero la cola real de uploads vive en la ventana principal (index.html).
+     * Los módulos importados aquí operan sobre instancias locales con cola vacía.
+     *
+     * Solución: accedemos directamente al Tauri Store compartido (fuente de verdad)
+     * y reseteamos los items en error. Además emitimos eventos para que la ventana
+     * principal refresque su cola en memoria y procese los items. */
     try {
-        const { reintentarTodosConError } = await import('./uploadQueueService');
-        await reintentarTodosConError();
-        
-        const { reintentarErroresOffline } = await import('./offlineQueueService');
-        await reintentarErroresOffline();
+        const { load } = await import('@tauri-apps/plugin-store');
+
+        /* 1. Resetear errores en upload-queue.json (cola de subida de archivos) */
+        const uploadStore = await load('upload-queue.json');
+        const uploadCola = await uploadStore.get<Array<{
+            id: string;
+            estado: string;
+            intentos: number;
+            ultimoError?: string;
+            timestampActualizado: number;
+            rutaArchivo: string;
+            [k: string]: unknown;
+        }>>('upload_cola');
+
+        if (uploadCola) {
+            let uploadCambios = false;
+            for (const item of uploadCola) {
+                if (item.estado === 'error') {
+                    item.estado = 'pendiente';
+                    item.intentos = 0;
+                    item.ultimoError = undefined;
+                    item.timestampActualizado = Date.now();
+                    uploadCambios = true;
+                }
+            }
+            if (uploadCambios) {
+                await uploadStore.set('upload_cola', uploadCola);
+                await uploadStore.save();
+                console.info('[Sync] Reseteados items con error en upload-queue.json (Store directo)');
+            }
+        }
+
+        /* 2. Resetear errores en offline-queue.json (cola de operaciones API) */
+        const offlineStore = await load('offline-queue.json');
+        const offlineCola = await offlineStore.get<Array<{
+            id: string;
+            intentos: number;
+            [k: string]: unknown;
+        }>>('operaciones_pendientes');
+
+        if (offlineCola) {
+            let offlineCambios = false;
+            for (const op of offlineCola) {
+                if (op.intentos > 0) {
+                    op.intentos = 0;
+                    offlineCambios = true;
+                }
+            }
+            if (offlineCambios) {
+                await offlineStore.set('operaciones_pendientes', offlineCola);
+                await offlineStore.save();
+                console.info('[Sync] Reseteados intentos en offline-queue.json (Store directo)');
+            }
+        }
+
+        /* 3. Resetear entradas del tracking historial (sync-config.json) que están en 'error'
+         *    para que la UI del panel muestre el estado correcto. */
+        const trackingStore = await load('sync-config.json');
+        const tracking = await trackingStore.get<{
+            historialSamples?: Array<{
+                estado: string;
+                error?: string;
+                timestampActualizado: number;
+                nombreArchivo: string;
+                [k: string]: unknown;
+            }>;
+            [k: string]: unknown;
+        }>('sync_tracking_v2');
+
+        if (tracking?.historialSamples) {
+            let trackingCambios = false;
+            for (const sample of tracking.historialSamples) {
+                if (sample.estado === 'error') {
+                    sample.estado = 'subiendo';
+                    sample.error = undefined;
+                    sample.timestampActualizado = Date.now();
+                    trackingCambios = true;
+                }
+            }
+            if (trackingCambios) {
+                await trackingStore.set('sync_tracking_v2', tracking);
+                await trackingStore.save();
+                console.info('[Sync] Reseteadas entradas de error en tracking historial (Store directo)');
+            }
+        }
+
+        /* 4. Emitir eventos Tauri para que la ventana principal recargue su cola
+         *    en memoria desde el Store ya actualizado y procese los items. */
+        const { emit } = await import('@tauri-apps/api/event');
+        await emit('reintentar-errores-upload', {});
+        await emit('reintentar-errores-offline', {});
     } catch (e) {
         console.warn('[Sync] No se pudo reintentar colas de subida/offline antes de sync:', e);
     }
