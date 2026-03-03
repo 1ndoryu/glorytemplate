@@ -51,7 +51,7 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 ## Completado (ultra-compacto)
 
 - **F0-F7:** Schema 14 tablas, PostgresService, API REST, CSS system, colors/ dinámicos, FFmpeg, Login/Registro, Perfil, ModalConfiguracion, Auth, LandingPublica, Upload real (FormData+pipeline+IA), WaveformPlayer, ReproductorGlobal, AnalizadorAudio, ServicioIA, PipelineAudio, tags, deduplicación, DescubrirIsland, endpoints feed/notif/msg/dashboard, BotonFollow/Like, ModalPublicar, InicioIsland, ModalFiltros, infinite scroll+virtualización, LibreriaIsland, ColeccionesController CRUD, ChatFlotante multimedia, DashboardCreador, SPA navigation, SampleDetalle, ColeccionDetalle, ComunidadIsland, MensajesIsland, ChatIsland, NotificacionesIsland, Stripe Billing, PlanesIsland.
-- **F9 Desktop:** Tauri 2.0 MVP completo (tray+menu, 6 servicios TS, JWT backend, Vite proxy, auth, sync bidireccional, drag-to-DAW nativo, auto-sync). Build: exe+MSI+NSIS.
+- **F9 Desktop:** Tauri 2.0 MVP completo (tray+menu, 6 servicios TS, JWT backend, Vite proxy, auth, sync bidireccional, drag-to-DAW nativo, auto-sync). Build: exe+MSI+NSIS. Sync optimizado 1000+ samples (semáforo paralelo, debounce store, Map O(1), config panel, papelera 30d, borrado bidireccional).
 - **F13 parcial:** AdminController 6 endpoints, 3 tabs (Resumen+Usuarios+Moderación).
 - **SOLID PHP:** KamplesController 1713→60 lín (12 sub-controllers). Repository Pattern: 27 controllers, ~340 queries → 18 repos. Schema System: 18 schemas + 36 generados + Enums 8 tablas.
 - **React:** ~50 componentes + ~50 hooks. Sentinel: 48 reglas, 325+ violaciones corregidas. Mezclador DAW aislado (`/Mezclador/`, 50+ archivos, CR+Patterns+Mixer+Piano Roll). 5 auditorías (~275 hallazgos, ~95% resueltos).
@@ -593,6 +593,43 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 5. **Polling race + rename loop (syncWatcherSetup.ts + syncCollectionService.ts):** Guard `esSyncEnCurso()` evita que polling 60s colisione con sync manual. Caché `coleccionesNormalizadasEnSesion` evita repetir `renombrarColeccionEnServidor` cada ciclo.
 **Fix adicional:** `abrirCarpetaSync` faltaba en import/assignment de main.tsx. Intervalo historial corregido (useRef para evitar recreación infinita por ref de `historial` en deps).
 
+### Sync Optimización 1000+ samples + Config Panel + Papelera + Borrado Bidireccional
+> **Estado:** ✅ COMPLETADO [AG-OPT] | **Commit:** `0e02e219`
+
+**Optimización para volumen masivo (1000+ samples):**
+- `semaforo.ts` — Semáforo de concurrencia reutilizable (Promise queue, `adquirir()/liberar()/cambiarLimite()`). Controla paralelos de uploads y downloads (1-5 configurable).
+- `persistenciaDebounce.ts` — Persistencia debounced a Tauri Store. Evita 1000+ escrituras a disco individuales en batch operations. `beforeunload` flush.
+- `syncState.ts` — Map indices (`indiceArchivosPorRuta`, `indiceArchivosPorNombre`) para O(1) lookups reemplazando O(n) `find()`. `SyncConfigAvanzada` interface.
+- `syncGuards.ts` — Fix timeout leak: Map `descargasTimeouts` con clearTimeout antes de nuevo setTimeout.
+- `fileWatcherService.ts` — Purga periódica (10s interval, 30s TTL) reemplazando check inline >500.
+- `syncWatcherSetup.ts` — Lookups O(1) via Map. Rate-limited soft-delete local→servidor (50/ciclo, reset 5min).
+- `uploadQueueService.ts` — `rutasEnCola` Set para O(1) dedup. Procesamiento paralelo con Semáforo (pool de promesas). Persistencia debounced en loop, explícita en acciones usuario.
+- `syncCollectionService.ts` — Descargas paralelas con Semáforo + flat `TareaDescarga[]` + `Promise.all()`. Borrado servidor→local con papelera.
+
+**Panel de configuración:**
+- `ConfiguracionSync.tsx` — Overlay modal centrado: sliders (velocidad 0-100Mbps, archivos paralelos 1-5), checkboxes borrado bidireccional, toggle papelera + duración días. Guardar/Cancelar/Restaurar.
+- `useConfiguracionSync.ts` — Hook con setters individuales, `guardar()` aplica a estado + persiste, `resetear()` a defaults, `hayaCambios` computed.
+- `configuracionSync.css` — Estilado completo con variables CSS existentes, animaciones fade/slide.
+- `VentanaSincPanel.tsx` — Icono Settings en menú `...`, overlay ConfiguracionSync.
+
+**Sistema de papelera (30 días):**
+- `papeleraService.ts` — Papelera virtual con movimiento físico a `.papelera/`. Persistencia `papelera.json` Tauri Store. Funciones: `moverAPapelera`, `restaurarDePapelera`, `eliminarPermanente`, `purgarExpirados`, `vaciarPapelera`, `obtenerEstadoPapelera`.
+
+**Borrado bidireccional:**
+- Local→Servidor: `manejarBorradoLocal()` en watcher, rate-limited (50/ciclo), `softDeleteEnServidor()` con fallback offline queue.
+- Servidor→Local: En purga de syncCollectionService, `moverAPapelera()` antes de eliminar tracking. Ambos controlados por flags en `SyncConfigAvanzada`.
+- `offlineQueueService.ts` — `'soft_delete'` añadido a `TipoOperacion`.
+
+**17 archivos, 2135 insertions, 102 deletions.**
+
+**Lecciones aprendidas:**
+- [Semáforo]: Patrón Promise-queue para limitar concurrencia. `adquirir()` retorna Promise que resuelve cuando hay slot libre. `liberar()` en finally para evitar deadlock.
+- [Debounce persistencia]: Alta frecuencia de escrituras Tauri Store (1 por sample en batch) causa lag perceptible. Debounce 2s + flush en `beforeunload` es el balance correcto.
+- [Map indices]: Reconstruir al cargar datos y al migrar. `actualizarIndiceArchivo()` mantiene sincronía. Nunca iterar array completo si hay índice disponible.
+- [Rate-limiting borrado]: El watcher puede detectar 1000 deletes en 1 ciclo. Sin rate-limit → 1000 requests DELETE simultáneos al servidor. 50/ciclo con reset 5min es suficiente para uso normal.
+- [Papelera física]: Mover archivos a `.papelera/` dentro de carpeta sync permite restauración sin re-descarga. JSON persistido mapea ruta original → ruta papelera.
+- [Config avanzada]: Separar config avanzada de config básica (carpeta, toggle sync) evita migración innecesaria al añadir campos.
+
 ---
 
 ## Notas Compactas
@@ -690,6 +727,12 @@ Cuando el usuario coloca samples en la carpeta raíz (fuera de cualquier colecci
 - [Sync ventana transparent]: Para bordes redondeados visibles en ventana frameless, `transparent: true` en tauri.conf.json + `background: transparent` en html/body/root + box-shadow en el contenedor React. Sin `transparent:true`, los píxeles de esquina son siempre opacos aunque el CSS diga `border-radius`.
 - [Sync toggle tray]: El `onFocusChanged(false)` del frontend ocultaba la ventana ANTES de que el Rust toggle verificara `is_visible()`, rompiendo el toggle. Fix: mover el hide al backend Rust con `std::thread::sleep(220ms)` + verificar `is_focused()` antes de ocultar. El handler frontend solo cierra el menú y sincroniza el store.
 - [Sync menu click-outside]: `useRef` en el div wrapper del botón (BotonBase no tiene forwardRef) + `useRef` en el contenedor del menú. `useEffect` con `document.addEventListener('mousedown')` activo solo cuando `menuAbierto=true`. Verificar contains() de ambos refs antes de cerrar.
+- [Sync parallelism]: Clase `Semaforo` (semaforo.ts) para limitar concurrencia en uploads/downloads. Patrón: `await semaforo.adquirir()` → trabajo → `semaforo.liberar()` en finally. `cambiarLimite()` permite ajuste dinámico sin recrear instancia.
+- [Sync debounce store]: `persistirConDebounce` (persistenciaDebounce.ts) wrappea escrituras Tauri Store con timer. Clave única por store key. `flushTodo()` en `beforeunload` para no perder datos. Clave de colección Map = `storeFile:storeKey`.
+- [Sync config avanzada]: `SyncConfigAvanzada` separada de config básica (carpeta, toggle). Permite añadir campos sin migración. Defaults defensivos en `cargarConfigAvanzada()`. Panel UI en overlay modal (ConfiguracionSync.tsx).
+- [Sync papelera]: Movimiento físico a `.papelera/` dentro de raíz sync. Persistencia en `papelera.json` Tauri Store separado. `purgarExpirados()` debe ejecutarse al inicializar. Duración configurable via `SyncConfigAvanzada.papeleraDuracionDias`.
+- [Sync borrado bidireccional]: Rate-limiting obligatorio en borrado local→servidor. Sin él, drag 1000 archivos a Trash = 1000 DELETEs instantáneos. Mapa `contadorBorradosCiclo` con reset por timer (5min). Soft-delete via `?soft=true` en endpoint DELETE permite al servidor mover a papelera en vez de eliminar permanentemente.
+- [Sync indices Map]: `indiceArchivosPorRuta` y `indiceArchivosPorNombre` (Map) en syncState. Reconstruirse después de `cargarDatos()`, migración, y cada `registrarArchivo()`/`eliminarArchivo()`. Lookup O(1) reemplaza `Object.values().find()` O(n) en watcher hot path.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
