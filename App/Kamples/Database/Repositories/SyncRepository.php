@@ -50,7 +50,7 @@ class SyncRepository extends BaseRepository
     /**
      * Obtener colecciones del usuario con samples para sync.
      * Una sola query con array_agg para evitar N+1.
-     * Retorna colecciones con campo 'samples_json' (JSON array de {id, titulo, formato, tamano}).
+    * Retorna colecciones con campo 'samples_json' (JSON array de {id, titulo, formato, tamano, imagen_url}).
      */
     public static function coleccionesConSamples(int $userId): array
     {
@@ -73,7 +73,8 @@ class SyncRepository extends BaseRepository
                             'id', s." . SamplesCols::ID . ",
                             'titulo', s." . SamplesCols::TITULO . ",
                             'formato', s." . SamplesCols::FORMATO . ",
-                            'tamano', s." . SamplesCols::TAMANO . "
+                            'tamano', s." . SamplesCols::TAMANO . ",
+                               'imagen_url', s." . SamplesCols::IMAGEN_URL . "
                         ) ORDER BY cs." . ColeccionSamplesCols::POSICION . " ASC,
                                    cs." . ColeccionSamplesCols::ADDED_AT . " DESC
                     ) as samples_json
@@ -114,7 +115,8 @@ class SyncRepository extends BaseRepository
                 s." . SamplesCols::ID . ",
                 s." . SamplesCols::TITULO . ",
                 s." . SamplesCols::FORMATO . ",
-                s." . SamplesCols::TAMANO . "
+                s." . SamplesCols::TAMANO . ",
+                s." . SamplesCols::IMAGEN_URL . " as imagen_url
             FROM {$ts} s
             LEFT JOIN {$td} d
                    ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID . "

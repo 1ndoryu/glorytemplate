@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion } from './syncService';
+import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
@@ -542,7 +542,6 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             ok: boolean;
             sample_id?: number;
             id_corto?: string;
-            slug?: string;
         };
 
         if (!resultado.ok || !resultado.sample_id) {
@@ -559,20 +558,12 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             item.nombreArchivo,
         );
 
-        /* Intentar obtener imagen de portada del sample recién subido (no bloquea el flujo).
-         * Usa slug (no ID numérico) porque la ruta GET /samples/{slug} lo requiere. */
-        if (resultado.slug) {
-            obtenerImagenSampleDesdeServidor(resultado.slug).then(imagenUrl => {
-                if (imagenUrl) {
-                    actualizarEstadoSampleHistorial({
-                        sampleId: resultado.sample_id!,
-                        nombreArchivo: item.nombreArchivo,
-                        estado: 'sincronizado',
-                        imagenUrl,
-                    }).catch(() => {});
-                }
-            }).catch(() => { /* No bloquear flujo si falla obtener imagen */ });
-        }
+        /* Rehidratación centralizada: usar snapshot /me/sync/colecciones como fuente
+         * única para imagenes. Evita depender de slug/endpoint individual y mantiene
+         * consistencia entre ventana main y ventana sync-panel. */
+        rehidratarImagenesPendientesForzadoSync().catch(() => {
+            /* No bloquear flujo de upload por fallo de rehidratación */
+        });
 
         /*
          * Asignar carpeta en el servidor basada en la ubicación local.
@@ -888,49 +879,3 @@ export async function limpiarCompletados(): Promise<void> {
     await guardarCola();
 }
 
-/*
- * Obtiene la imagen de portada de un sample desde la API.
- * Usado después del upload para enriquecer el historial con la imagen.
- * No bloquea el flujo principal — llamado en segundo plano.
- *
- * Implementa retry con backoff exponencial porque el pipeline del backend
- * genera la imagen asincrónicamente (PipelineAudio), y no está lista
- * inmediatamente después del upload.
- *
- * Intentos: 4s → 12s → 30s → 60s (total ~106s de espera)
- */
-const IMAGEN_RETRY_DELAYS_MS = [4000, 12000, 30000, 60000];
-
-async function obtenerImagenSampleDesdeServidor(slug: string): Promise<string | null> {
-    const baseUrl = obtenerBaseUrlSync();
-    if (!baseUrl) return null;
-
-    for (let intento = 0; intento <= IMAGEN_RETRY_DELAYS_MS.length; intento++) {
-        /* Esperar antes de cada intento (excepto el primero que ya tiene 4s de delay) */
-        if (intento > 0) {
-            await new Promise(r => setTimeout(r, IMAGEN_RETRY_DELAYS_MS[intento - 1]));
-        } else {
-            /* Delay inicial para dar tiempo al pipeline del backend */
-            await new Promise(r => setTimeout(r, IMAGEN_RETRY_DELAYS_MS[0]));
-        }
-
-        try {
-            /* La ruta GET /samples/{slug} espera slug string, no ID numérico */
-            const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/${encodeURIComponent(slug)}`);
-            if (!respuesta.ok) continue;
-
-            /* La API envuelve en envelope { data: { imagenUrl, ... } } */
-            const json = await respuesta.json() as { data?: { imagenUrl?: string | null; imagen_url?: string | null } };
-            const sample = json.data ?? json;
-            const url = (sample as { imagenUrl?: string | null; imagen_url?: string | null }).imagenUrl
-                ?? (sample as { imagen_url?: string | null }).imagen_url ?? null;
-
-            if (url) return url;
-            /* null → pipeline aún no terminó, reintentar */
-        } catch {
-            /* Error de red, reintentar */
-        }
-    }
-
-    return null;
-}

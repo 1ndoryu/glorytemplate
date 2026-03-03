@@ -638,6 +638,14 @@ export async function rehidratarImagenesPendientesSync(): Promise<void> {
     await rehidratarImagenesPendientes();
 }
 
+export async function rehidratarImagenesPendientesForzadoSync(): Promise<void> {
+    const ahora = Date.now();
+    /* Forzado: permite rehidratación inmediata tras upload exitoso,
+     * pero actualiza marca temporal para evitar tormenta de requests. */
+    ultimaRehidratacionImagenes = ahora;
+    await rehidratarImagenesPendientes();
+}
+
 export function obtenerColeccionesSync(): Array<{
     id: number;
     nombre: string;
@@ -696,44 +704,33 @@ export async function forzarResync(
  * Solo procesa entradas con sampleId > 0 y imagenUrl === null.
  */
 async function rehidratarImagenesPendientes(): Promise<void> {
-    const { trackingModule } = estado;
+    const { trackingModule, collectionModule } = estado;
     if (!trackingModule?.obtenerHistorialSamples || !trackingModule?.actualizarEstadoSample) return;
+    if (!collectionModule?.obtenerColeccionesDelServidor) return;
     if (!estaOnline()) return;
 
     const historial = trackingModule.obtenerHistorialSamples(100);
     const sinImagen = historial.filter(e => e.sampleId > 0 && !e.imagenUrl);
     if (sinImagen.length === 0) return;
 
-    const baseUrl = obtenerBaseUrlSync();
-    if (!baseUrl) return;
-
     try {
-        /* Obtener username del usuario autenticado para filtrar por creador */
-        const { useAuthStore } = await import(/* @vite-ignore */ '@app/stores/authStore');
-        const username = useAuthStore.getState().usuario?.username;
-        if (!username) return;
+        const datos = await collectionModule.obtenerColeccionesDelServidor();
+        if (!datos) return;
 
-        /* Batch: obtener samples del creador (max 100 por página, suficiente para historial reciente) */
-        const respuesta = await fetch(
-            `${baseUrl}/kamples/v1/samples?creador=${encodeURIComponent(username)}&per_page=100&page=1`,
-        );
-        if (!respuesta.ok) return;
-
-        /* Estructura: { data: { data: [...], pagination: {...} } } */
-        const json = await respuesta.json() as {
-            data?: {
-                data?: Array<{ id?: number; imagenUrl?: string | null; imagen_url?: string | null }>;
-            };
-        };
-        const samples = json.data?.data;
-        if (!Array.isArray(samples)) return;
-
-        /* Construir mapa sampleId → imagenUrl para O(1) lookup */
+        /* Construir mapa sampleId → imagenUrl para O(1) lookup desde snapshot de sync. */
         const mapaImagenes = new Map<number, string>();
-        for (const s of samples) {
-            const imagen = s.imagenUrl ?? s.imagen_url ?? null;
-            if (s.id && imagen) {
-                mapaImagenes.set(s.id, imagen);
+        for (const coleccion of datos.colecciones) {
+            for (const sample of coleccion.samples) {
+                const imagen = sample.imagenUrl ?? sample.imagen_url ?? null;
+                if (sample.id && imagen) {
+                    mapaImagenes.set(sample.id, imagen);
+                }
+            }
+        }
+        for (const sample of datos.sinColeccion) {
+            const imagen = sample.imagenUrl ?? sample.imagen_url ?? null;
+            if (sample.id && imagen) {
+                mapaImagenes.set(sample.id, imagen);
             }
         }
 

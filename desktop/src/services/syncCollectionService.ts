@@ -15,6 +15,7 @@
 
 import { estaOnline } from './desktopService';
 import { marcarDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
 import { moverAPapelera } from './papeleraService';
@@ -45,6 +46,8 @@ export interface SampleSync {
     titulo: string;
     formato: string;
     tamano: number;
+    imagenUrl?: string | null;
+    imagen_url?: string | null;
 }
 
 export interface ColeccionSync {
@@ -79,6 +82,65 @@ const coleccionesNormalizadasEnSesion = new Set<number>();
  * un sample nuevo (pipeline async, latencia de replicación o caché).
  */
 const GRACIA_PRESENCIA_SERVIDOR_MS = 15 * 60 * 1000;
+const MAX_REINTENTOS_CREAR_COLECCION = 4;
+const BACKOFF_BASE_CREAR_COLECCION_MS = 1200;
+
+/* Evita POST duplicados cuando watcher/polling disparan la misma colección a la vez. */
+const creacionesColeccionEnVuelo = new Map<string, Promise<number | null>>();
+
+function dormir(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function calcularBackoffCreacion(intento: number, retryAfterHeader: string | null): number {
+    if (retryAfterHeader) {
+        const segundos = Number(retryAfterHeader);
+        if (Number.isFinite(segundos) && segundos > 0) {
+            return Math.min(segundos * 1000, 60_000);
+        }
+    }
+
+    const exponencial = BACKOFF_BASE_CREAR_COLECCION_MS * Math.pow(2, intento - 1);
+    const jitter = Math.floor(Math.random() * 400);
+    return Math.min(exponencial + jitter, 60_000);
+}
+
+async function buscarColeccionServidorPorNombre(nombreNormalizado: string): Promise<number | null> {
+    const datosServidor = await obtenerColeccionesDelServidor();
+    if (!datosServidor) return null;
+
+    const objetivo = nombreNormalizado.toLowerCase();
+    const existente = datosServidor.colecciones.find(c => c.nombre.toLowerCase() === objetivo);
+    return existente?.id ?? null;
+}
+
+function encolarCreacionColeccion(nombreNormalizado: string): void {
+    const baseUrl = obtenerBaseUrlSync();
+    encolarOperacion({
+        tipo: 'crear_coleccion',
+        endpoint: `${baseUrl}/kamples/v1/colecciones`,
+        method: 'POST',
+        body: { nombre: nombreNormalizado, descripcion: '', publica: false },
+        claveDuplicacion: `crear_coleccion_${nombreNormalizado.toLowerCase()}`,
+    }).catch(err => {
+        console.error('[SyncCollection] Error encolando creación de colección:', err);
+    });
+}
+
+async function registrarColeccionNuevaLocal(id: number, nombreNormalizado: string): Promise<void> {
+    await registrarColeccion({
+        id,
+        nombre: nombreNormalizado,
+        carpetaLocal: sanitizarNombreCarpeta(nombreNormalizado),
+        creadaLocalmente: true,
+    });
+
+    await registrarAccion({
+        tipo: 'creado',
+        descripcion: `Colección "${nombreNormalizado}" creada desde carpeta local`,
+        coleccionId: id,
+    });
+}
 
 /* Utilidades */
 
@@ -626,10 +688,14 @@ export async function moverSampleEntreColecciones(
  * Retorna el ID de la colección creada, o null si falla.
  */
 export async function crearColeccionDesdeLocal(nombre: string): Promise<number | null> {
-    if (!estaOnline()) return null;
-
     try {
         const nombreNormalizado = normalizarNombreColeccion(nombre);
+        const claveColeccion = nombreNormalizado.toLowerCase();
+
+        if (!estaOnline()) {
+            encolarCreacionColeccion(nombreNormalizado);
+            return null;
+        }
 
         /* Verificar si ya existe en tracking local antes de crear en servidor.
          * Previene duplicación cuando watcher + polling disparan casi simultáneamente. */
@@ -644,37 +710,72 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
             return yaExiste.id;
         }
 
-        const baseUrl = obtenerBaseUrlSync();
-        const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre: nombreNormalizado, descripcion: '', publica: false }),
-        });
+        const enVuelo = creacionesColeccionEnVuelo.get(claveColeccion);
+        if (enVuelo) return enVuelo;
 
-        if (!resp.ok) {
-            console.error('[SyncCollection] Error creando colección:', resp.status);
+        const promesa = (async (): Promise<number | null> => {
+            const existenteServidor = await buscarColeccionServidorPorNombre(nombreNormalizado);
+            if (existenteServidor) {
+                await registrarColeccionNuevaLocal(existenteServidor, nombreNormalizado);
+                return existenteServidor;
+            }
+
+            const baseUrl = obtenerBaseUrlSync();
+
+            for (let intento = 1; intento <= MAX_REINTENTOS_CREAR_COLECCION; intento++) {
+                const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre: nombreNormalizado, descripcion: '', publica: false }),
+                });
+
+                if (resp.ok) {
+                    const json = await resp.json();
+                    const id = json?.data?.id ?? json?.id;
+                    if (id) {
+                        const idNum = Number(id);
+                        await registrarColeccionNuevaLocal(idNum, nombreNormalizado);
+                        return idNum;
+                    }
+                    return null;
+                }
+
+                if (resp.status === 409) {
+                    const idExistente = await buscarColeccionServidorPorNombre(nombreNormalizado);
+                    if (idExistente) {
+                        await registrarColeccionNuevaLocal(idExistente, nombreNormalizado);
+                        return idExistente;
+                    }
+                    return null;
+                }
+
+                const reintentable = resp.status === 429 || resp.status >= 500;
+                if (!reintentable) {
+                    console.error('[SyncCollection] Error creando colección:', resp.status);
+                    return null;
+                }
+
+                if (intento < MAX_REINTENTOS_CREAR_COLECCION) {
+                    const delay = calcularBackoffCreacion(intento, resp.headers.get('Retry-After'));
+                    console.warn(`[SyncCollection] Crear colección reintentable (HTTP ${resp.status}), reintentando en ${delay}ms:`, nombreNormalizado);
+                    await dormir(delay);
+                    continue;
+                }
+
+                console.error('[SyncCollection] Crear colección agotó reintentos, encolando:', resp.status, nombreNormalizado);
+                encolarCreacionColeccion(nombreNormalizado);
+                return null;
+            }
+
             return null;
+        })();
+
+        creacionesColeccionEnVuelo.set(claveColeccion, promesa);
+        try {
+            return await promesa;
+        } finally {
+            creacionesColeccionEnVuelo.delete(claveColeccion);
         }
-
-        const json = await resp.json();
-        const id = json?.data?.id ?? json?.id;
-
-        if (id) {
-            await registrarColeccion({
-                id: Number(id),
-                nombre: nombreNormalizado,
-                carpetaLocal: sanitizarNombreCarpeta(nombreNormalizado),
-                creadaLocalmente: true,
-            });
-
-            await registrarAccion({
-                tipo: 'creado',
-                descripcion: `Colección "${nombreNormalizado}" creada desde carpeta local`,
-                coleccionId: Number(id),
-            });
-        }
-
-        return id ? Number(id) : null;
     } catch (err) {
         console.error('[SyncCollection] Error creando colección desde local:', err);
         return null;

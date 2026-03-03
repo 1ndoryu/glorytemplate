@@ -143,6 +143,13 @@ fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/* Comando: toggle de ventana de sincronización (sync-panel) */
+#[tauri::command]
+fn toggle_ventana_sync(app: tauri::AppHandle) -> Result<(), String> {
+    mostrar_ventana_sync(&app);
+    Ok(())
+}
+
 /*
  * Configura el tray icon con menu contextual.
  * Left-click y "Sincronización" abren la ventana sync-panel (popup).
@@ -259,6 +266,7 @@ pub fn run() {
             abrir_carpeta,
             seleccionar_archivo,
             mostrar_ventana_config,
+            toggle_ventana_sync,
         ])
         /* Setup: tray icon */
         .setup(|app| {

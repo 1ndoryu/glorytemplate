@@ -14,16 +14,24 @@ import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { Modal } from '../ui/Modal';
-import { PanelSincronizacion } from '../desktop/PanelSincronizacion';
-import { useSyncStore } from '@app/stores/syncStore';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
+import { toast } from '@app/stores/toastStore';
+import { invoke } from '@tauri-apps/api/core';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
     const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
-    const alternarPanelSync = useSyncStore(s => s.alternarPanel);
-    const syncPanelAbierto = useSyncStore(s => s.panelAbierto);
+
+    const abrirVentanaSyncDesktop = async (): Promise<void> => {
+        if (!esDesktop) return;
+        try {
+            await invoke('toggle_ventana_sync');
+        } catch (error) {
+            console.error('[TopBar] No se pudo abrir la ventana de sincronización:', error);
+            toast.error('No se pudo abrir la ventana de sincronización');
+        }
+    };
 
     /* Leer devMode inyectado por PHP en GLORY_CONTEXT (Partial<GloryContext> del framework Glory) */
     const gloryCtx = (window as unknown as Record<string, Partial<GloryContext> | undefined>).GLORY_CONTEXT;
@@ -217,13 +225,11 @@ export const TopBar = (): JSX.Element => {
                                 variante="ghost"
                                 tamano="md"
                                 soloIcono
-                                onClick={alternarPanelSync}
+                                onClick={() => { void abrirVentanaSyncDesktop(); }}
                                 aria-label="Sincronización"
-                                className={syncPanelAbierto ? 'topbarBotonActivo' : ''}
                             >
                                 <FolderSync size={18} />
                             </BotonBase>
-                            <PanelSincronizacion />
                         </div>
                     )}
 

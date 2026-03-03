@@ -317,6 +317,12 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] Se mantiene dedup por ruta real y dedup fuerte en cola (`hash + idempotency`) como única fuente de verdad
     - [x] Limpieza de código muerto (`actualizarRutaYCarpeta` fallback por nombre) para evitar rutas lógicas paralelas
 
+376. ✅ [AG-SYN] **Retry anti-429 en crear colección + portada sync robusta + eliminar panel embebido**
+    - [x] `syncCollectionService`: creación de colección con backoff exponencial + `Retry-After` en 429, dedup en vuelo por nombre y fallback a offline queue
+    - [x] `SyncRepository`: payload `/me/sync/colecciones` corrige `json_build_object` y expone `imagen_url` también en `sinColeccion`
+    - [x] `uploadQueueService` + `syncService`: rehidratación de portadas centralizada en endpoint de sync (forzada tras upload, sin dependencia de slug)
+    - [x] UI desktop: `TopBar` elimina `PanelSincronizacion` embebido; botón sync abre solo la ventana Tauri `sync-panel` (`toggle_ventana_sync`)
+
 ---
 
 ## Notas Compactas
@@ -444,6 +450,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Watcher dedup]: Bloquear create por coincidencia de nombre es inseguro (mismo nombre ≠ mismo contenido). El watcher debe deduplicar por ruta/evento; contenido se deduplica por hash en uploadQueue.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
+- [Sync portada endpoint]: Si `/me/sync/colecciones` omite o rompe `imagen_url`, la rehidratación del panel nunca converge. El contrato de sync debe incluir `imagen_url` tanto en colecciones como en `sinColeccion` y el cliente debe usar ese snapshot como fuente única.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
