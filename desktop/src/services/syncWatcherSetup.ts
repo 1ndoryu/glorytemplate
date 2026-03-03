@@ -19,14 +19,12 @@ import {
     estado,
     guardarIndice,
     buscarEnIndicePorRuta,
-    buscarEnIndicePorNombre,
     actualizarIndiceArchivo,
     POLLING_CARPETAS_MS,
     type ArchivoLocal,
 } from './syncState';
 import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
 import { inicializarPapelera, purgarExpirados } from './papeleraService';
-import { normalizarNombreParaDedup } from './normalizarNombreArchivo';
 
 /* Operaciones de estado de sync por sample */
 
@@ -302,40 +300,6 @@ async function manejarMoveLocal(
     console.info('[Sync] Move procesado: sample', archivo.sampleId, '→', primaria, secundaria || '(raíz)');
 }
 
-/*
- * Actualiza la ruta de un archivo conocido detectado en nueva ubicación.
- * (archivo copiado/movido dentro de la carpeta sync, reconocido por nombre)
- */
-async function actualizarRutaYCarpeta(
-    archivo: ArchivoLocal,
-    rutaNueva: string,
-    carpetas: string[],
-): Promise<void> {
-    const { trackingModule } = estado;
-    const rutaAnterior = archivo.ruta.replace(/\\/g, '/');
-
-    archivo.ruta = rutaNueva;
-    if (archivo.syncDeshabilitado) {
-        archivo.syncDeshabilitado = false;
-        archivo.rutaEliminada = undefined;
-    }
-    actualizarIndiceArchivo(archivo, rutaAnterior);
-    guardarIndice();
-
-    if (trackingModule) {
-        const archivoTracking = trackingModule.buscarArchivoPorSampleId(archivo.sampleId);
-        if (archivoTracking) {
-            archivoTracking.rutaLocal = rutaNueva;
-            if (archivoTracking.syncDeshabilitado) archivoTracking.syncDeshabilitado = false;
-            await trackingModule.registrarArchivo(archivoTracking);
-        }
-    }
-
-    const primaria = carpetas[0] || 'General';
-    const secundaria = carpetas[1] || '';
-    await moverSampleEnServidor(archivo.sampleId, primaria, secundaria);
-}
-
 /* Polling de estructura de carpetas */
 
 /*
@@ -497,21 +461,17 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                  * Si el archivo pasó por papelera, su nombre tiene prefijo timestamp
                  * que rompe búsquedas por nombre en tracking e índice.
                  */
-                const nombreNorm = normalizarNombreParaDedup(nombreArchivo);
-
                 if (trackingModule) {
-                    const enTracking = trackingModule.buscarArchivoPorRuta(ruta)
-                        ?? trackingModule.buscarArchivoPorNombre(nombreNorm);
-                    if (enTracking) {
-                        if (enTracking.syncDeshabilitado) {
-                            /* El archivo fue borrado localmente y el usuario lo volvio a anadir:
-                             * limpiar el entry del tracking para que el upload lo trate como nuevo. */
-                            console.info('[Sync] Archivo re-anadido tras borrado local, re-encolando:', nombreArchivo);
-                            trackingModule.eliminarArchivo(enTracking.sampleId, enTracking.coleccionId)
+                    const enTrackingPorRuta = trackingModule.buscarArchivoPorRuta(rutaNorm);
+                    if (enTrackingPorRuta) {
+                        if (enTrackingPorRuta.syncDeshabilitado) {
+                            /* Archivo re-añadido en la misma ruta tras borrado local. */
+                            console.info('[Sync] Archivo re-anadido tras borrado local (misma ruta), re-encolando:', nombreArchivo);
+                            trackingModule.eliminarArchivo(enTrackingPorRuta.sampleId, enTrackingPorRuta.coleccionId)
                                 .then(() => encolarArchivo(ruta, nombreArchivo, carpetas))
                                 .catch(err => console.error('[Sync] Error limpiando tracking para re-encolar:', nombreArchivo, err));
                         } else {
-                            console.info('[Sync] Archivo ya en tracking v2, ignorando:', nombreArchivo);
+                            console.info('[Sync] Archivo ya en tracking v2 (misma ruta), ignorando:', nombreArchivo);
                         }
                         return;
                     }
@@ -523,12 +483,11 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     return;
                 }
 
-                const porNombre = buscarEnIndicePorNombre(nombreNorm);
-                if (porNombre) {
-                    console.info('[Sync] Archivo conocido detectado en nueva ubicación:', nombreNorm);
-                    actualizarRutaYCarpeta(porNombre, ruta, carpetas);
-                    return;
-                }
+                /*
+                 * No bloquear por nombre:
+                 * nombres iguales pueden representar archivos distintos.
+                 * El dedup real vive en uploadQueue (hash + idempotency key).
+                 */
 
                 encolarArchivo(ruta, nombreArchivo, carpetas);
             },

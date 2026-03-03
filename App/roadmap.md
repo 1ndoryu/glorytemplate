@@ -312,6 +312,11 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `SyncRepository::descargasSinColeccion`: incluye también samples propios del creador sin colección (no solo tabla `descargas`)
     - [x] `syncCollectionService`: ventana de gracia de presencia servidor (15 min) antes de purgar/mover a papelera un sample ausente en snapshot
 
+375. ✅ [AG-SYN] **Watcher robusto: bloqueo por ruta real, no por nombre (evita falsos negativos de upload)**
+    - [x] `syncWatcherSetup.onArchivoNuevo`: se elimina bloqueo por `buscarArchivoPorNombre` (tracking y v1 index)
+    - [x] Se mantiene dedup por ruta real y dedup fuerte en cola (`hash + idempotency`) como única fuente de verdad
+    - [x] Limpieza de código muerto (`actualizarRutaYCarpeta` fallback por nombre) para evitar rutas lógicas paralelas
+
 ---
 
 ## Notas Compactas
@@ -436,6 +441,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Sync portada tardía]: Si la imagen se genera después de los retries post-upload, queda `null` indefinidamente. Requiere rehidratación periódica con throttle + parse defensivo `imagenUrl|imagen_url`.
 - [Sync contract]: Un endpoint de sync no puede ocultar estados transitorios (`procesando`) si el cliente usa snapshot para purgar locales. Debe exponer estados visibles para consistencia eventual.
 - [Sync purge safety]: Antes de mover a papelera por "ausente en servidor", aplicar ventana de gracia para evitar falsos positivos por latencia pipeline/cache.
+- [Watcher dedup]: Bloquear create por coincidencia de nombre es inseguro (mismo nombre ≠ mismo contenido). El watcher debe deduplicar por ruta/evento; contenido se deduplica por hash en uploadQueue.
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 
