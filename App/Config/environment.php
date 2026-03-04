@@ -26,5 +26,36 @@ $envGlobalDev = $_ENV['DEV'] ?? getenv('DEV');
 $globalDev = $envGlobalDev !== null && $envGlobalDev !== false ? filter_var($envGlobalDev, FILTER_VALIDATE_BOOLEAN) : false;
 AssetManager::setGlobalDevMode($globalDev);
 
+/*
+ * =====================================================
+ * STRIPE — Puente .env → constantes Glory
+ * =====================================================
+ * En .env se puede usar cualquiera de estos formatos:
+ *   GLORY_STRIPE_SECRET_KEY=sk_test_...     (formato con prefijo)
+ *   STRIPE_SECRET_KEY=sk_test_...           (formato corto)
+ *
+ * Las constantes GLORY_STRIPE_* son las que usa StripeConfig.
+ */
+$stripeConstants = [
+    'GLORY_STRIPE_SECRET_KEY',
+    'GLORY_STRIPE_PUBLISHABLE_KEY',
+    'GLORY_STRIPE_WEBHOOK_SECRET',
+];
+
+foreach ($stripeConstants as $constName) {
+    if (!defined($constName)) {
+        // Primero buscar con prefijo GLORY_
+        $val = $_ENV[$constName] ?? getenv($constName);
+        // Si no, buscar sin prefijo (STRIPE_SECRET_KEY)
+        if (($val === null || $val === false || $val === '') && str_starts_with($constName, 'GLORY_')) {
+            $shortKey = substr($constName, 6); // quita "GLORY_"
+            $val = $_ENV[$shortKey] ?? getenv($shortKey);
+        }
+        if ($val !== null && $val !== false && $val !== '') {
+            define($constName, $val);
+        }
+    }
+}
+
 // Log de estado de entorno
 #error_log('[ENV] LOCAL=' . ($localValue ? 'true' : 'false') . ' | GLOBAL_DEV_MODE=' . ($globalDev ? 'true' : 'false'));
