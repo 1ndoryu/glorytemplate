@@ -3,9 +3,7 @@
  * SelectorFechas, TarjetaVehiculo y utilidades.
  */
 
-/* ================================================================ */
-/* SelectorFechas                                                    */
-/* ================================================================ */
+/* SelectorFechas */
 
 .selectorFechas {
     background-color: var(--cresta-blanco);
@@ -91,9 +89,7 @@
 }
 
 
-/* ================================================================ */
-/* TarjetaVehiculo                                                   */
-/* ================================================================ */
+/* TarjetaVehiculo */
 
 .tarjetaVehiculo {
     background-color: var(--cresta-blanco);

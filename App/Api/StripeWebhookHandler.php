@@ -5,6 +5,7 @@ namespace App\Api;
 use Glory\Services\Stripe\AbstractStripeWebhookHandler;
 use Glory\Core\GloryLogger;
 use App\Services\NotificacionService;
+use Glory\Services\EventBus;
 
 /**
  * Handler de webhooks de Stripe para Cresta Campers.
@@ -86,8 +87,8 @@ class StripeWebhookHandler extends AbstractStripeWebhookHandler
         }
 
         // Emitir evento para invalidar cache de disponibilidad
-        if (class_exists('Glory\\Services\\EventBus')) {
-            \Glory\Services\EventBus::emit('disponibilidad', [
+        if (class_exists(EventBus::class)) {
+            EventBus::emit('disponibilidad', [
                 'vehiculo_id' => get_post_meta($reservaId, '_reserva_vehiculo_id', true),
                 'reserva_id'  => $reservaId,
                 'accion'      => 'confirmada',

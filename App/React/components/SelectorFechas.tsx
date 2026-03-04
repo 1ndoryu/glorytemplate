@@ -4,6 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { CampoFecha } from '@app/components/ui';
 
 interface SelectorFechasProps {
     fechaInicio: string;
@@ -43,8 +44,7 @@ export function SelectorFechas({
     const [focusField, setFocusField] = useState<'inicio' | 'fin' | null>(null);
     const minimo = minDate ?? sumarDias(hoy(), 2);
 
-    const handleInicioChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const nuevoInicio = e.target.value;
+    const handleInicioChange = useCallback((nuevoInicio: string) => {
         let nuevoFin = fechaFin;
 
         if (nuevoFin && nuevoFin <= nuevoInicio) {
@@ -54,8 +54,8 @@ export function SelectorFechas({
         onChange(nuevoInicio, nuevoFin);
     }, [fechaFin, onChange]);
 
-    const handleFinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange(fechaInicio, e.target.value);
+    const handleFinChange = useCallback((nuevoFin: string) => {
+        onChange(fechaInicio, nuevoFin);
     }, [fechaInicio, onChange]);
 
     const minFin = fechaInicio ? sumarDias(fechaInicio, 2) : sumarDias(minimo, 2);
@@ -63,8 +63,7 @@ export function SelectorFechas({
     if (compact) {
         return (
             <div className={`selectorFechasCompacto ${className}`}>
-                <input
-                    type="date"
+                <CampoFecha
                     value={fechaInicio}
                     onChange={handleInicioChange}
                     min={minimo}
@@ -72,8 +71,7 @@ export function SelectorFechas({
                     className="selectorFechasInputCompacto"
                 />
                 <span className="selectorFechasFlecha">&rarr;</span>
-                <input
-                    type="date"
+                <CampoFecha
                     value={fechaFin}
                     onChange={handleFinChange}
                     min={minFin}
@@ -90,8 +88,7 @@ export function SelectorFechas({
                 {/* Recogida */}
                 <div className="selectorFechasCampo">
                     <label className="selectorFechasLabel">Recogida</label>
-                    <input
-                        type="date"
+                    <CampoFecha
                         value={fechaInicio}
                         onChange={handleInicioChange}
                         onFocus={() => setFocusField('inicio')}
@@ -108,8 +105,7 @@ export function SelectorFechas({
                 {/* Devolución */}
                 <div className="selectorFechasCampo">
                     <label className="selectorFechasLabel">Devolución</label>
-                    <input
-                        type="date"
+                    <CampoFecha
                         value={fechaFin}
                         onChange={handleFinChange}
                         onFocus={() => setFocusField('fin')}

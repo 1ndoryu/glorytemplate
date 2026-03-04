@@ -12,11 +12,7 @@ use Glory\Manager\PageManager;
 
 PageManager::setDefaultContentMode('code');
 
-/*
- * =====================================================
- * PAGINAS PUBLICAS
- * =====================================================
- */
+/* PAGINAS PUBLICAS */
 
 // Página principal — Hero, catálogo destacado, cómo funciona
 PageManager::reactPage('home', 'HomeIsland');
@@ -38,22 +34,14 @@ PageManager::reactPage('contacto', 'ContactoIsland');
 // Sobre nosotros — Misión, valores, CTA
 PageManager::reactPage('sobre-nosotros', 'SobreNosotrosIsland');
 
-/*
- * =====================================================
- * PAGINAS LEGALES
- * =====================================================
- */
+/* PAGINAS LEGALES */
 
 PageManager::reactPage('condiciones', 'CondicionesIsland');
 PageManager::reactPage('privacidad', 'PrivacidadIsland');
 PageManager::reactPage('aviso-legal', 'AvisoLegalIsland');
 PageManager::reactPage('cookies', 'CookiesIsland');
 
-/*
- * =====================================================
- * SEO DEFAULTS
- * =====================================================
- */
+/* SEO DEFAULTS */
 
 PageManager::setDefaultSeoMap([
     'home' => [

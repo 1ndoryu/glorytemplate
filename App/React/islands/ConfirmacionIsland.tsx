@@ -31,9 +31,13 @@ export function ConfirmacionIsland(): JSX.Element {
         setLoading(true);
         setError(null);
 
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+
         try {
             const res = await fetch(
-                `/wp-json/glory/v1/reservas/${reservaId}?email=${encodeURIComponent(emailInput)}`
+                `/wp-json/glory/v1/reservas/${reservaId}?email=${encodeURIComponent(emailInput)}`,
+                { signal: controller.signal }
             );
             const data: ReservaDetalleResponse = await res.json();
 
@@ -43,9 +47,14 @@ export function ConfirmacionIsland(): JSX.Element {
             } else {
                 setError(data.error ?? 'No se pudo cargar la reserva.');
             }
-        } catch {
-            setError('Error de conexión. Inténtalo de nuevo.');
+        } catch (err) {
+            if (err instanceof DOMException && err.name === 'AbortError') {
+                setError('La petición tardó demasiado. Inténtalo de nuevo.');
+            } else {
+                setError('Error de conexión. Inténtalo de nuevo.');
+            }
         } finally {
+            clearTimeout(timeout);
             setLoading(false);
         }
     }, [reservaId, emailInput]);

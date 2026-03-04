@@ -5,6 +5,7 @@ namespace App\Api;
 use WP_REST_Request;
 use WP_REST_Response;
 use Glory\Core\GloryLogger;
+use App\Services\PrecioService;
 
 /**
  * REST Controller para vehículos.
@@ -176,7 +177,7 @@ class VehiculoController
         }
 
         $precioBase = (float) get_post_meta($vehiculoId, '_vehiculo_precio_base', true);
-        $tabla = \App\Services\PrecioService::tablaPreciosVehiculo($precioBase);
+        $tabla = PrecioService::tablaPreciosVehiculo($precioBase);
 
         return new WP_REST_Response([
             'success'    => true,
@@ -232,7 +233,7 @@ class VehiculoController
             }, $galeriaIds);
 
             // Tabla de precios
-            $data['precios'] = \App\Services\PrecioService::tablaPreciosVehiculo($data['precioBase']);
+            $data['precios'] = PrecioService::tablaPreciosVehiculo($data['precioBase']);
         }
 
         return $data;

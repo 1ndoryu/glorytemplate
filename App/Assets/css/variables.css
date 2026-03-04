@@ -81,6 +81,7 @@
 
     /* Bordes */
     --cresta-radio: 0.5rem;
+    --cresta-radioMd: 0.625rem;
     --cresta-radioLg: 0.75rem;
     --cresta-radioXl: 1rem;
     --cresta-radio2xl: 1.5rem;

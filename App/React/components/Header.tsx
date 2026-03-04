@@ -7,6 +7,7 @@
 import { GloryLink } from '@/core/router/GloryLink';
 import { useNavigation } from '@/hooks';
 import { useState, useCallback, useEffect } from 'react';
+import { Boton } from '@app/components/ui';
 
 const NAV_ITEMS = [
     { label: 'Inicio', href: '/' },
@@ -81,7 +82,8 @@ export function Header({ transparente = false }: HeaderProps): JSX.Element {
                     </div>
 
                     {/* Hamburger mobile */}
-                    <button
+                    <Boton
+                        variante="icono"
                         onClick={toggleMenu}
                         className={`cabeceraHamburguesa ${esOscuro ? 'cabeceraHamburguesaClaro' : ''}`}
                         aria-label="Abrir menú"
@@ -92,7 +94,7 @@ export function Header({ transparente = false }: HeaderProps): JSX.Element {
                                 : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             }
                         </svg>
-                    </button>
+                    </Boton>
                 </div>
 
                 {/* Mobile menu */}

@@ -12,6 +12,7 @@
 namespace App\Cron;
 
 use Glory\Core\GloryLogger;
+use Glory\Services\EventBus;
 
 class LimpiarReservasPendientes
 {
@@ -87,8 +88,8 @@ class LimpiarReservasPendientes
             $canceladas++;
 
             // Emitir evento para invalidar cache de disponibilidad
-            if (class_exists('Glory\\Services\\EventBus')) {
-                \Glory\Services\EventBus::emit('disponibilidad', [
+            if (class_exists(EventBus::class)) {
+                EventBus::emit('disponibilidad', [
                     'vehiculo_id' => get_post_meta($post->ID, '_reserva_vehiculo_id', true),
                     'reserva_id'  => $post->ID,
                     'accion'      => 'expirada',

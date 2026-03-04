@@ -222,7 +222,7 @@
 }
 
 .flotaVaciaIcono {
-    font-size: 3rem;
+    font-size: var(--cresta-texto5xl);
     margin-bottom: var(--cresta-espacioMd);
 }
 
@@ -308,7 +308,7 @@
     justify-content: center;
     background-color: var(--cresta-primarioSuave);
     border-radius: var(--cresta-radio2xl);
-    font-size: 2rem;
+    font-size: var(--cresta-texto4xl);
     transition: transform var(--cresta-transicionMedia);
 }
 .pasoTarjeta:hover .pasoIcono {
@@ -364,7 +364,7 @@
 
 .reseniaEstrellas {
     display: flex;
-    gap: 2px;
+    gap: var(--cresta-espacio2xs);
     margin-bottom: var(--cresta-espacioSm);
     color: var(--cresta-acentoClaro);
     font-size: var(--cresta-textoLg);

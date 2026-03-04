@@ -13,6 +13,7 @@ import { TarjetaVehiculo } from '@app/components/TarjetaVehiculo';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import { VehiculoDetalleIsland } from './VehiculoDetalleIsland';
+import { Boton, CampoSelect } from '@app/components/ui';
 
 type Ordenacion = 'precio-asc' | 'precio-desc' | 'capacidad' | 'nombre';
 
@@ -94,31 +95,31 @@ function FlotaCatalogo(): JSX.Element {
             <section className="flotaFiltros">
                 <div className="flotaFiltrosContenido">
                     <div className="flotaFiltroGrupo">
-                        <label className="flotaFiltroLabel">Plazas mín.:</label>
-                        <select
+                        <CampoSelect
+                            label="Plazas mín.:"
                             value={filtroCapacidad}
-                            onChange={e => setFiltroCapacidad(Number(e.target.value))}
+                            onChange={v => setFiltroCapacidad(Number(v))}
                             className="flotaFiltroSelect"
                         >
                             <option value={0}>Todas</option>
                             {capacidadesUnicas.map(c => (
                                 <option key={c} value={c}>{c}+ plazas</option>
                             ))}
-                        </select>
+                        </CampoSelect>
                     </div>
 
                     <div className="flotaFiltroGrupo">
-                        <label className="flotaFiltroLabel">Ordenar:</label>
-                        <select
+                        <CampoSelect
+                            label="Ordenar:"
                             value={ordenar}
-                            onChange={e => setOrdenar(e.target.value as Ordenacion)}
+                            onChange={v => setOrdenar(v as Ordenacion)}
                             className="flotaFiltroSelect"
                         >
                             <option value="precio-asc">Precio: menor a mayor</option>
                             <option value="precio-desc">Precio: mayor a menor</option>
                             <option value="capacidad">Mayor capacidad</option>
                             <option value="nombre">Nombre A-Z</option>
-                        </select>
+                        </CampoSelect>
 
                         <span className="flotaFiltroContador">
                             {vehiculosFiltrados.length} {vehiculosFiltrados.length === 1 ? 'vehículo' : 'vehículos'}
@@ -141,12 +142,13 @@ function FlotaCatalogo(): JSX.Element {
                     ) : vehiculosFiltrados.length === 0 ? (
                         <div className="flotaVacioFiltros">
                             <p className="flotaVacioFiltrosTexto">No se encontraron vehículos con esos filtros.</p>
-                            <button
+                            <Boton
+                                variante="secundario"
                                 onClick={() => { setFiltroCapacidad(0); }}
-                                className="flotaLimpiarFiltros"
+                                claseExtra="flotaLimpiarFiltros"
                             >
                                 Limpiar filtros
-                            </button>
+                            </Boton>
                         </div>
                     ) : (
                         <div className="flotaGridContenedor">

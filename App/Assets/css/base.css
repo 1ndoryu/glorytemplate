@@ -150,6 +150,6 @@ h1, h2, h3, h4, h5, h6 {
     height: 2.5rem;
     border: 3px solid var(--cresta-gris300);
     border-top-color: var(--cresta-primario);
-    border-radius: 50%;
+    border-radius: var(--cresta-radioCompleto);
     animation: girar 0.6s linear infinite;
 }

@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import type { GaleriaItem } from '@app/types/cresta';
+import { Boton } from '@app/components/ui';
 
 interface GaleriaProps {
     imagenes: GaleriaItem[];
@@ -56,20 +57,22 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                 {/* Flechas */}
                 {imagenes.length > 1 && (
                     <>
-                        <button
+                        <Boton
+                            variante="icono"
                             onClick={anterior}
                             className="galeriaFlechaIzq"
                             aria-label="Anterior"
                         >
                             ◀
-                        </button>
-                        <button
+                        </Boton>
+                        <Boton
+                            variante="icono"
                             onClick={siguiente}
                             className="galeriaFlechaDer"
                             aria-label="Siguiente"
                         >
                             ▶
-                        </button>
+                        </Boton>
                     </>
                 )}
 
@@ -77,13 +80,14 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                 {imagenes.length > 1 && (
                     <div className="galeriaThumbnails">
                         {imagenes.map((img, i) => (
-                            <button
+                            <Boton
                                 key={img.id}
+                                variante="icono"
                                 onClick={() => setActiva(i)}
                                 className={`galeriaThumbnail${i === activa ? ' galeriaThumbnailActiva' : ''}`}
                             >
                                 <img src={img.url} alt={img.alt} className="galeriaThumbnailImg" />
-                            </button>
+                            </Boton>
                         ))}
                     </div>
                 )}
@@ -95,13 +99,14 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                     className="galeriaLightbox"
                     onClick={() => setLightboxAbierto(false)}
                 >
-                    <button
+                    <Boton
+                        variante="icono"
                         onClick={() => setLightboxAbierto(false)}
                         className="galeriaLightboxCerrar"
                         aria-label="Cerrar"
                     >
                         ✕
-                    </button>
+                    </Boton>
 
                     <div className="galeriaLightboxContenido" onClick={e => e.stopPropagation()}>
                         <img
@@ -112,20 +117,22 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
 
                         {imagenes.length > 1 && (
                             <>
-                                <button
+                                <Boton
+                                    variante="icono"
                                     onClick={anterior}
                                     className="galeriaLightboxFlechaIzq"
                                     aria-label="Anterior"
                                 >
                                     ◀
-                                </button>
-                                <button
+                                </Boton>
+                                <Boton
+                                    variante="icono"
                                     onClick={siguiente}
                                     className="galeriaLightboxFlechaDer"
                                     aria-label="Siguiente"
                                 >
                                     ▶
-                                </button>
+                                </Boton>
                             </>
                         )}
                     </div>

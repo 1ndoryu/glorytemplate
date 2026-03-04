@@ -7,13 +7,15 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type VarianteBoton = 'primario' | 'secundario' | 'enlace' | 'atras';
+type VarianteBoton = 'primario' | 'secundario' | 'enlace' | 'atras' | 'icono';
 
 const CLASE_POR_VARIANTE: Record<VarianteBoton, string> = {
     primario: 'botonPrimario',
     secundario: 'botonSecundario',
     enlace: 'mensajeExitoEnlace',
     atras: 'reservarBotonAtras',
+    /* Sin clase base: solo aplica className/claseExtra del caller */
+    icono: '',
 };
 
 interface BotonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {

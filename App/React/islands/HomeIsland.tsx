@@ -12,6 +12,7 @@ import { SelectorFechas } from '@app/components/SelectorFechas';
 import { TarjetaVehiculo } from '@app/components/TarjetaVehiculo';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
+import { Boton } from '@app/components/ui';
 
 const RESENIAS = [
     {
@@ -102,13 +103,13 @@ export function HomeIsland(): JSX.Element {
                             fechaFin={fechaFin}
                             onChange={handleFechasChange}
                         />
-                        <button
+                        <Boton
                             onClick={handleBuscar}
                             disabled={!fechaInicio || !fechaFin}
-                            className="heroBuscarBoton"
+                            claseExtra="heroBuscarBoton"
                         >
                             Buscar disponibilidad
-                        </button>
+                        </Boton>
                     </div>
 
                     <p className="heroHorarios">
@@ -220,8 +221,8 @@ export function HomeIsland(): JSX.Element {
                     </div>
 
                     <div className="reseniasGrid">
-                        {RESENIAS.map((r, i) => (
-                            <div key={i} className="reseniaTarjeta">
+                        {RESENIAS.map((r) => (
+                            <div key={r.nombre} className="reseniaTarjeta">
                                 <div className="reseniaEstrellas">
                                     {Array.from({ length: r.estrellas }, (_, j) => (
                                         <span key={j}>&#9733;</span>

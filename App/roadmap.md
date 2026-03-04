@@ -21,7 +21,7 @@ Dominio: **crestacampers.com**
 
 - WordPress + Glory Framework (PHP bridge + React Islands)
 - React + TypeScript (islas interactivas)
-- CSS propio (arquitectura modular: 9 archivos via init.css)
+- CSS propio (arquitectura modular: 13 archivos via init.css)
 - Stripe Checkout (pagos)
 - Sin tablas custom — todo vía CPTs + `wp_postmeta` + `wp_options`
 
@@ -300,7 +300,7 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Implementar cron de limpieza de reservas pendientes (`App/Cron/LimpiarReservasPendientes.php`)
 
 ### Fase 3 — Frontend (Islas React)
-- [x] ~~Tailwind CSS~~ Migrado a CSS propio modular (9 archivos via init.css)
+- [x] ~~Tailwind CSS~~ Migrado a CSS propio modular (13 archivos via init.css)
 - [x] Diseñar sistema de diseño (colores verde #2d6a4f, tipografía, componentes base)
 - [x] Crear `HomeIsland` con hero + buscador de fechas + secciones
 - [x] Crear `FlotaIsland` con grid de vehículos + router a detalle
@@ -310,7 +310,8 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Crear `ContactoIsland` (integrado con FormController)
 - [x] Crear islas legales (condiciones, privacidad, aviso legal, cookies)
 - [x] Crear componentes compartidos: `CalendarioDisponibilidad`, `SelectorFechas`, `TarjetaVehiculo`, `ResumenPrecio`, `Galeria`, `Header`, `Footer`, `PaginaLegal`
-- [x] Crear hooks: `useDisponibilidad`, `useVehiculos`, `useReserva`, `usePrecios`
+- [x] Crear hooks: `useDisponibilidad`, `useVehiculos`, `useReserva`, `usePrecios`, `useContacto`, `useReservarFlujo`
+- [x] Crear componentes UI atómicos: `Boton`, `CampoTexto`, `CampoTextarea`, `CampoSelect` en `components/ui/`
 - [x] Crear tipos TypeScript: `App/React/types/cresta.ts`
 
 ### Fase 4 — Páginas y navegación
@@ -395,24 +396,32 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 ## Migración Tailwind → CSS propio (completado)
 
 ### Arquitectura CSS
-- Entry point: `App/Assets/css/init.css` con 8 `@import url()`
-- Cadena: variables → base → header → footer → componentes → home → paginas → galeria-calendario
+- Entry point: `App/Assets/css/init.css` con 13 `@import`
+- Cadena: variables → base → header → footer → componentes → home → paginas-base → paginas-vehiculo → paginas-reservar → paginas-contacto → galeria → calendario → resumen-precio
 - Registrado en `assets.php` como `AssetManager::define('style', 'cresta-styles', '/App/Assets/css/init.css')`
 - Tailwind deshabilitado en `control.php`: `GloryFeatures::disable('tailwind')`
+- Todas las variables con prefijo `--cresta-` en `variables.css` (~140 líneas, 105+ tokens semánticos)
 
 ### Lecciones aprendidas
-- [CSS]: Todas las variables están en `variables.css` con prefijo `--cresta-` y nombres en español camelCase
+- [CSS]: Todas las variables en `variables.css` con prefijo `--cresta-`, nombres español camelCase. Incluye tokens alpha (blancoAlpha90-10, negroAlpha, primarioAlpha), estados (error, aviso), temporadas (tempBaja-Especial)
 - [CSS]: `botonPrimario` y `botonSecundario` están en `home.css` pero se usan globalmente — considerar mover a `componentes.css`
-- [CSS]: paginas.css tiene ~986 líneas (excede límite 300). Candidato a split futuro por dominio (detalle, reservar, confirmacion, contacto)
-- [CSS]: galeria-calendario.css agrupa galería + calendario + resumen precio (~440 líneas). Otra candidata a split
+- [CSS]: paginas.css (986 líneas) spliteado en 4: paginas-base, paginas-vehiculo, paginas-reservar, paginas-contacto (todos <300)
+- [CSS]: galeria-calendario.css (440 líneas) spliteado en 3: galeria, calendario, resumen-precio (todos <200)
+- [CSS]: Todos los rgba() hardcodeados reemplazados por variables semánticas en header.css, home.css, base.css
 - [Header]: header.css usa clases directas (no parent-scoped). El componente aplica `cabeceraNavEnlaceClaro` etc. según estado
 - [TS]: tsconfig tiene `noUnusedLocals` — variables con prefijo `_` tampoco pasan, hay que eliminar directamente
-- [Lint]: Hay reglas custom que piden componentes UI abstractos (`<Boton>`, `<Input>`, `<Select>`) — no existen aún, crear en futuro sprint
+- [React]: Componentes UI atómicos en `App/React/components/ui/` (Boton, CampoTexto, CampoTextarea, CampoSelect) — todo input/button debe usar estos
+- [React]: Hooks de lógica separados: useContacto (form + empresa), useReservarFlujo (8 useState extraídos de ReservarIsland)
+- [Vite]: Plugin @tailwindcss/vite eliminado. Solo plugin react(). Imports CSS con sintaxis `@import './file.css'` (no url())
 
 ### TO-DO pendientes (post-migración)
-- [ ] Crear componentes UI atómicos: `Boton`, `Input`, `Select`, `Textarea` en `components/ui/`
-- [ ] Splitear `paginas.css` (>300 líneas) por dominio
-- [ ] Splitear `galeria-calendario.css` (>300 líneas)
+- [x] Crear componentes UI atómicos: `Boton`, `CampoTexto`, `CampoTextarea`, `CampoSelect` en `components/ui/`
+- [x] Splitear `paginas.css` (986→4 archivos <300 líneas)
+- [x] Splitear `galeria-calendario.css` (440→3 archivos <200 líneas)
+- [x] Reemplazar todos los rgba() hardcodeados con variables CSS semánticas
+- [x] Eliminar barras decorativas de opcionesTema.php
+- [x] Extraer hooks: useContacto, useReservarFlujo
+- [x] Reescribir ContactoIsland, ReservarIsland, VehiculoDetalleIsland, ConfirmacionIsland con componentes atómicos
 - [ ] Mover `.botonPrimario`/`.botonSecundario` de `home.css` a `componentes.css`
 - [ ] Redactar contenido de texto para todas las páginas
 - [ ] Redactar textos legales (RGPD, cookies, condiciones)

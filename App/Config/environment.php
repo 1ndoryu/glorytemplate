@@ -27,9 +27,7 @@ $globalDev = $envGlobalDev !== null && $envGlobalDev !== false ? filter_var($env
 AssetManager::setGlobalDevMode($globalDev);
 
 /*
- * =====================================================
- * STRIPE — Puente .env → constantes Glory
- * =====================================================
+ * STRIPE — Puente .env a constantes Glory
  * En .env se puede usar cualquiera de estos formatos:
  *   GLORY_STRIPE_SECRET_KEY=sk_test_...     (formato con prefijo)
  *   STRIPE_SECRET_KEY=sk_test_...           (formato corto)
