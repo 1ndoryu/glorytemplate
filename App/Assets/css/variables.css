@@ -79,6 +79,9 @@
     --cresta-anchoCentrado: 720px;
     --cresta-padLateral: 1.5rem;
 
+    /* Tamaños de iconos */
+    --cresta-iconoMd: 3.5rem;
+
     /* Bordes */
     --cresta-radio: 0.5rem;
     --cresta-radioMd: 0.625rem;

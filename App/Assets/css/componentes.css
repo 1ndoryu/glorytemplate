@@ -96,15 +96,18 @@
     border-radius: var(--cresta-radioLg);
     border: 1px solid var(--cresta-gris200);
     overflow: hidden;
-    transition: transform var(--cresta-transicionMedia);
+    transition: box-shadow var(--cresta-transicionMedia), transform var(--cresta-transicionMedia);
+    display: flex;
+    flex-direction: column;
 }
 .tarjetaVehiculo:hover {
-    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .tarjetaVehiculoImagenWrap {
     position: relative;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background-color: var(--cresta-gris100);
 }
@@ -128,69 +131,116 @@
     color: var(--cresta-gris400);
 }
 
-.tarjetaVehiculoPlaceholderIcono {
-    width: 4rem;
-    height: 4rem;
-}
-
-.tarjetaVehiculoPrecio {
-    position: absolute;
-    bottom: var(--cresta-espacioSm);
-    right: var(--cresta-espacioSm);
-    background-color: var(--cresta-primario);
-    color: var(--cresta-blanco);
-    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
-    border-radius: var(--cresta-radioCompleto);
+/* Fila de specs (asientos + camas) con línea separadora */
+.tarjetaVehiculoSeparador {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioLg);
+    border-bottom: 1px solid var(--cresta-gris200);
     font-size: var(--cresta-textoSm);
-    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris600);
 }
 
+.tarjetaVehiculoSpecIcono {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+}
+
+.tarjetaVehiculoSeparadorLinea {
+    flex: 1;
+    height: 1px;
+    background-color: var(--cresta-gris200);
+}
+
+/* Info */
 .tarjetaVehiculoInfo {
-    padding: var(--cresta-espacioLg);
+    padding: var(--cresta-espacioMd) var(--cresta-espacioLg) var(--cresta-espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+    flex: 1;
+}
+
+.tarjetaVehiculoCabecera {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--cresta-espacioXs);
+    flex-wrap: wrap;
 }
 
 .tarjetaVehiculoNombre {
     font-size: var(--cresta-textoXl);
     font-weight: var(--cresta-pesoBold);
     color: var(--cresta-negro);
-    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.tarjetaVehiculoUbicacion {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+    white-space: nowrap;
 }
 
 .tarjetaVehiculoDescripcion {
     font-size: var(--cresta-textoSm);
     color: var(--cresta-gris600);
-    margin-bottom: var(--cresta-espacioSm);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
 }
 
-.tarjetaVehiculoSpecs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--cresta-espacioSm);
-    margin-bottom: var(--cresta-espacioMd);
-    font-size: var(--cresta-textoSm);
-    color: var(--cresta-gris600);
-}
-
-.tarjetaVehiculoSpec {
+/* Pie: precio + botón */
+.tarjetaVehiculoPie {
     display: flex;
     align-items: center;
-    gap: var(--cresta-espacio2xs);
+    justify-content: space-between;
+    gap: var(--cresta-espacioSm);
+    margin-top: auto;
+    padding-top: var(--cresta-espacioSm);
+    border-top: 1px solid var(--cresta-gris100);
+}
+
+.tarjetaVehiculoPrecioBloque {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+}
+
+.tarjetaVehiculoPrecioDesde {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+}
+
+.tarjetaVehiculoPrecioValor {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-negro);
+}
+
+.tarjetaVehiculoPrecioNoche {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
 }
 
 .tarjetaVehiculoCta {
-    display: block;
-    width: 100%;
-    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: var(--cresta-primario);
     color: var(--cresta-blanco);
     font-weight: var(--cresta-pesoSemibold);
-    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    font-size: var(--cresta-textoSm);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioLg);
     border-radius: var(--cresta-radioXl);
     transition: background-color var(--cresta-transicion);
+    white-space: nowrap;
 }
 .tarjetaVehiculoCta:hover {
     background-color: var(--cresta-primarioOscuro);
@@ -229,3 +279,187 @@
     background-color: var(--cresta-primarioFondo);
     transform: translateY(-1px);
 }
+
+/* SelectVehiculo — Dropdown personalizado con buscador e imagen */
+
+.selectVehiculo {
+    position: relative;
+}
+
+.selectVehiculoTrigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cresta-espacioXs);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioLg);
+    background-color: var(--cresta-blanco);
+    font-family: var(--cresta-fuentePrincipal);
+    font-size: var(--cresta-textoBase);
+    color: var(--cresta-gris800);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color var(--cresta-transicion);
+    min-height: 2.75rem;
+}
+
+.selectVehiculoTrigger:hover,
+.selectVehiculoTriggerAbierto {
+    border-color: var(--cresta-primario);
+    outline: none;
+}
+
+.selectVehiculoSeleccionado {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    flex: 1;
+    min-width: 0;
+}
+
+.selectVehiculoMiniImg {
+    width: 2.5rem;
+    height: 1.75rem;
+    object-fit: cover;
+    border-radius: var(--cresta-radio);
+    flex-shrink: 0;
+}
+
+.selectVehiculoNombreSelec {
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectVehiculoPrecioSelec {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.selectVehiculoPlaceholder {
+    color: var(--cresta-gris400);
+}
+
+/* Dropdown */
+.selectVehiculoDropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: var(--cresta-zOverlay);
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioLg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+}
+
+/* Buscador dentro del dropdown */
+.selectVehiculoBuscadorWrap {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    border-bottom: 1px solid var(--cresta-gris100);
+    color: var(--cresta-gris400);
+}
+
+.selectVehiculoBuscador {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: var(--cresta-fuentePrincipal);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris800);
+    background: transparent;
+    padding: var(--cresta-espacio2xs) 0;
+}
+
+.selectVehiculoBuscador::placeholder {
+    color: var(--cresta-gris400);
+}
+
+/* Lista de opciones */
+.selectVehiculoLista {
+    max-height: 320px;
+    overflow-y: auto;
+    list-style: none;
+    padding: var(--cresta-espacio2xs) 0;
+}
+
+.selectVehiculoVacio {
+    padding: var(--cresta-espacioMd);
+    text-align: center;
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris400);
+}
+
+.selectVehiculoOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    cursor: pointer;
+    transition: background-color var(--cresta-transicion);
+}
+
+.selectVehiculoOpcion:hover,
+.selectVehiculoOpcionActiva {
+    background-color: var(--cresta-primarioFondo);
+}
+
+.selectVehiculoOpcionActiva .selectVehiculoOpcionNombre {
+    color: var(--cresta-primario);
+    font-weight: var(--cresta-pesoSemibold);
+}
+
+.selectVehiculoOpcionImg {
+    width: 4rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: var(--cresta-radioLg);
+    flex-shrink: 0;
+    border: 1px solid var(--cresta-gris100);
+}
+
+.selectVehiculoOpcionImgPlaceholder {
+    width: 4rem;
+    height: 3rem;
+    border-radius: var(--cresta-radioLg);
+    background-color: var(--cresta-gris100);
+    flex-shrink: 0;
+}
+
+.selectVehiculoOpcionTexto {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacio2xs);
+    min-width: 0;
+}
+
+.selectVehiculoOpcionNombre {
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris900);
+    font-size: var(--cresta-textoSm);
+}
+
+.selectVehiculoOpcionDesc {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selectVehiculoOpcionPrecio {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-primario);
+    font-weight: var(--cresta-pesoSemibold);
+}
+

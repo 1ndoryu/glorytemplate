@@ -1,19 +1,17 @@
 /**
  * FlotaIsland — Catálogo de vehículos + router para detalle.
- * 
- * En ruta /flota/ muestra el grid con filtros.
+ *
+ * En ruta /flota/ muestra el grid con filtros en sidebar lateral.
  * En ruta /flota/{slug}/ delega a VehiculoDetalleIsland.
- * El framework SPA resuelve /flota/{slug} al padre /flota/ via prefix matching,
- * así que esta isla detecta el segmento extra y renderiza el detalle.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useVehiculos } from '@app/hooks/useVehiculos';
 import { TarjetaVehiculo } from '@app/components/TarjetaVehiculo';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import { VehiculoDetalleIsland } from './VehiculoDetalleIsland';
-import { Boton, CampoSelect } from '@app/components/ui';
+import { Boton, CampoRadio } from '@app/components/ui';
 
 type Ordenacion = 'precio-asc' | 'precio-desc' | 'capacidad' | 'nombre';
 
@@ -28,33 +26,65 @@ function getVehiculoSlug(): string | null {
     return null;
 }
 
+interface FiltrosState {
+    ordenar: Ordenacion;
+    capacidadMin: number;
+    ubicacion: string;
+}
+
+const FILTROS_INICIALES: FiltrosState = {
+    ordenar: 'precio-asc',
+    capacidadMin: 0,
+    ubicacion: '',
+};
+
+function IconoFiltro(): JSX.Element {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+    );
+}
+
 export function FlotaIsland(): JSX.Element {
     const vehiculoSlug = getVehiculoSlug();
 
-    // Si hay slug, renderizar ficha de detalle
     if (vehiculoSlug) {
         return <VehiculoDetalleIsland vehiculoSlug={vehiculoSlug} />;
     }
 
-    // Sin slug → catálogo
     return <FlotaCatalogo />;
 }
 
 function FlotaCatalogo(): JSX.Element {
     const { vehiculos, loading, error } = useVehiculos();
-    const [ordenar, setOrdenar] = useState<Ordenacion>('precio-asc');
-    const [filtroCapacidad, setFiltroCapacidad] = useState<number>(0);
+    const [filtros, setFiltros] = useState<FiltrosState>(FILTROS_INICIALES);
+    const [filtrosMobileAbiertos, setFiltrosMobileAbiertos] = useState(false);
+
+    const actualizarFiltro = useCallback(<K extends keyof FiltrosState>(clave: K, valor: FiltrosState[K]) => {
+        setFiltros(prev => ({ ...prev, [clave]: valor }));
+    }, []);
+
+    const limpiarFiltros = useCallback(() => {
+        setFiltros(FILTROS_INICIALES);
+    }, []);
+
+    const hayFiltrosActivos = filtros.capacidadMin > 0 || filtros.ubicacion !== '';
 
     const vehiculosFiltrados = useMemo(() => {
         let resultado = [...vehiculos];
 
-        // Filtro por capacidad
-        if (filtroCapacidad > 0) {
-            resultado = resultado.filter(v => v.capacidad >= filtroCapacidad);
+        if (filtros.capacidadMin > 0) {
+            resultado = resultado.filter(v => v.capacidad >= filtros.capacidadMin);
         }
 
-        // Ordenar
-        switch (ordenar) {
+        if (filtros.ubicacion) {
+            resultado = resultado.filter(v =>
+                v.ubicacion?.toLowerCase().includes(filtros.ubicacion.toLowerCase())
+            );
+        }
+
+        switch (filtros.ordenar) {
             case 'precio-asc':
                 resultado.sort((a, b) => a.precioBase - b.precioBase);
                 break;
@@ -70,11 +100,16 @@ function FlotaCatalogo(): JSX.Element {
         }
 
         return resultado;
-    }, [vehiculos, ordenar, filtroCapacidad]);
+    }, [vehiculos, filtros]);
 
     const capacidadesUnicas = useMemo(() => {
         const caps = [...new Set(vehiculos.map(v => v.capacidad))];
         return caps.sort((a, b) => a - b);
+    }, [vehiculos]);
+
+    const ubicacionesUnicas = useMemo(() => {
+        const ubs = [...new Set(vehiculos.map(v => v.ubicacion).filter(Boolean))];
+        return ubs as string[];
     }, [vehiculos]);
 
     return (
@@ -91,72 +126,160 @@ function FlotaCatalogo(): JSX.Element {
                 </div>
             </section>
 
-            {/* Filtros */}
-            <section className="flotaFiltros">
-                <div className="flotaFiltrosContenido">
-                    <div className="flotaFiltroGrupo">
-                        <CampoSelect
-                            label="Plazas mín.:"
-                            value={filtroCapacidad}
-                            onChange={v => setFiltroCapacidad(Number(v))}
-                            className="flotaFiltroSelect"
-                        >
-                            <option value={0}>Todas</option>
-                            {capacidadesUnicas.map(c => (
-                                <option key={c} value={c}>{c}+ plazas</option>
-                            ))}
-                        </CampoSelect>
+            {/* Layout: sidebar + grid */}
+            <section className="flotaContenedor">
+                {/* Botón filtros mobile */}
+                <Boton
+                    variante="icono"
+                    claseExtra="flotaFiltrosToggle"
+                    onClick={() => setFiltrosMobileAbiertos(a => !a)}
+                    aria-expanded={filtrosMobileAbiertos}
+                >
+                    <IconoFiltro />
+                    Filtros
+                    {hayFiltrosActivos && <span className="flotaFiltrosBadge" />}
+                </Boton>
+
+                <div className="flotaLayout">
+                    {/* Sidebar filtros */}
+                    <aside className={`flotaSidebar ${filtrosMobileAbiertos ? 'flotaSidebarVisible' : ''}`}>
+                        <div className="flotaSidebarCabecera">
+                            <div className="flotaSidebarTitulo">
+                                <IconoFiltro />
+                                Filtros
+                            </div>
+                            {hayFiltrosActivos && (
+                                <Boton variante="icono" claseExtra="flotaLimpiarBtn" onClick={limpiarFiltros}>
+                                    Limpiar
+                                </Boton>
+                            )}
+                        </div>
+
+                        {/* Ordenar */}
+                        <div className="flotaFiltroBloque">
+                            <h3 className="flotaFiltroBloqueTitle">Ordenar por</h3>
+                            <div className="flotaFiltroRadios">
+                                {([
+                                    { valor: 'precio-asc', label: 'Precio más bajo' },
+                                    { valor: 'precio-desc', label: 'Precio más alto' },
+                                    { valor: 'capacidad', label: 'Mayor capacidad' },
+                                    { valor: 'nombre', label: 'Nombre A-Z' },
+                                ] as const).map(op => (
+                                    <CampoRadio
+                                        key={op.valor}
+                                        label={op.label}
+                                        name="ordenar"
+                                        value={op.valor}
+                                        checked={filtros.ordenar === op.valor}
+                                        onChange={() => actualizarFiltro('ordenar', op.valor)}
+                                        labelClase="flotaFiltroRadioLabel"
+                                        className="flotaFiltroRadio"
+                                        textoClase="flotaFiltroRadioTexto"
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Plazas */}
+                        {capacidadesUnicas.length > 0 && (
+                            <div className="flotaFiltroBloque">
+                                <h3 className="flotaFiltroBloqueTitle">Asientos y camas</h3>
+                                <div className="flotaFiltroRadios">
+                                    <CampoRadio
+                                        label="Cualquier capacidad"
+                                        name="capacidad"
+                                        value={0}
+                                        checked={filtros.capacidadMin === 0}
+                                        onChange={() => actualizarFiltro('capacidadMin', 0)}
+                                        labelClase="flotaFiltroRadioLabel"
+                                        className="flotaFiltroRadio"
+                                        textoClase="flotaFiltroRadioTexto"
+                                    />
+                                    {capacidadesUnicas.map(c => (
+                                        <CampoRadio
+                                            key={c}
+                                            label={`${c}+ plazas`}
+                                            name="capacidad"
+                                            value={c}
+                                            checked={filtros.capacidadMin === c}
+                                            onChange={() => actualizarFiltro('capacidadMin', c)}
+                                            labelClase="flotaFiltroRadioLabel"
+                                            className="flotaFiltroRadio"
+                                            textoClase="flotaFiltroRadioTexto"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Ubicación */}
+                        {ubicacionesUnicas.length > 1 && (
+                            <div className="flotaFiltroBloque">
+                                <h3 className="flotaFiltroBloqueTitle">Ubicación</h3>
+                                <div className="flotaFiltroRadios">
+                                    <CampoRadio
+                                        label="Todas"
+                                        name="ubicacion"
+                                        value=""
+                                        checked={filtros.ubicacion === ''}
+                                        onChange={() => actualizarFiltro('ubicacion', '')}
+                                        labelClase="flotaFiltroRadioLabel"
+                                        className="flotaFiltroRadio"
+                                        textoClase="flotaFiltroRadioTexto"
+                                    />
+                                    {ubicacionesUnicas.map(u => (
+                                        <CampoRadio
+                                            key={u}
+                                            label={u}
+                                            name="ubicacion"
+                                            value={u}
+                                            checked={filtros.ubicacion === u}
+                                            onChange={() => actualizarFiltro('ubicacion', u)}
+                                            labelClase="flotaFiltroRadioLabel"
+                                            className="flotaFiltroRadio"
+                                            textoClase="flotaFiltroRadioTexto"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </aside>
+
+                    {/* Grid de vehículos */}
+                    <div className="flotaGridArea">
+                        <div className="flotaGridHeader">
+                            <p className="flotaContador">
+                                {vehiculosFiltrados.length} {vehiculosFiltrados.length === 1 ? 'vehículo' : 'vehículos'}
+                            </p>
+                        </div>
+
+                        {loading ? (
+                            <div className="cargando">
+                                <div className="cargandoSpinner" />
+                            </div>
+                        ) : error ? (
+                            <div className="flotaError">
+                                <p>{error}</p>
+                            </div>
+                        ) : vehiculosFiltrados.length === 0 ? (
+                            <div className="flotaVacioFiltros">
+                                <p className="flotaVacioFiltrosTexto">No se encontraron vehículos con esos filtros.</p>
+                                <Boton
+                                    variante="secundario"
+                                    onClick={limpiarFiltros}
+                                    claseExtra="flotaLimpiarFiltros"
+                                >
+                                    Limpiar filtros
+                                </Boton>
+                            </div>
+                        ) : (
+                            <div className="flotaGridContenedor">
+                                {vehiculosFiltrados.map(v => (
+                                    <TarjetaVehiculo key={v.id} vehiculo={v} />
+                                ))}
+                            </div>
+                        )}
                     </div>
-
-                    <div className="flotaFiltroGrupo">
-                        <CampoSelect
-                            label="Ordenar:"
-                            value={ordenar}
-                            onChange={v => setOrdenar(v as Ordenacion)}
-                            className="flotaFiltroSelect"
-                        >
-                            <option value="precio-asc">Precio: menor a mayor</option>
-                            <option value="precio-desc">Precio: mayor a menor</option>
-                            <option value="capacidad">Mayor capacidad</option>
-                            <option value="nombre">Nombre A-Z</option>
-                        </CampoSelect>
-
-                        <span className="flotaFiltroContador">
-                            {vehiculosFiltrados.length} {vehiculosFiltrados.length === 1 ? 'vehículo' : 'vehículos'}
-                        </span>
-                    </div>
-                </div>
-            </section>
-
-            {/* Grid */}
-            <section className="flotaSeccionGrid">
-                <div className="contenedor">
-                    {loading ? (
-                        <div className="cargando">
-                            <div className="cargandoSpinner" />
-                        </div>
-                    ) : error ? (
-                        <div className="flotaError">
-                            <p>{error}</p>
-                        </div>
-                    ) : vehiculosFiltrados.length === 0 ? (
-                        <div className="flotaVacioFiltros">
-                            <p className="flotaVacioFiltrosTexto">No se encontraron vehículos con esos filtros.</p>
-                            <Boton
-                                variante="secundario"
-                                onClick={() => { setFiltroCapacidad(0); }}
-                                claseExtra="flotaLimpiarFiltros"
-                            >
-                                Limpiar filtros
-                            </Boton>
-                        </div>
-                    ) : (
-                        <div className="flotaGridContenedor">
-                            {vehiculosFiltrados.map(v => (
-                                <TarjetaVehiculo key={v.id} vehiculo={v} />
-                            ))}
-                        </div>
-                    )}
                 </div>
             </section>
 
@@ -164,3 +287,4 @@ function FlotaCatalogo(): JSX.Element {
         </div>
     );
 }
+

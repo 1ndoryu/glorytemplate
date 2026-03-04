@@ -1,9 +1,216 @@
 /*
  * Cresta Campers — Flota + Detalle de vehículo.
- * Filtros, grid de catálogo, ficha de vehículo, specs, equipamiento, precios, sidebar.
+ * Layout sidebar con filtros a la izquierda y grid a la derecha.
  */
 
-/* Flota — Filtros sticky */
+/* Contenedor principal de la sección catálogo */
+.flotaContenedor {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
+    padding: var(--cresta-espacio2xl) var(--cresta-padLateral) var(--cresta-espacio4xl);
+}
+
+/* Botón para mostrar/ocultar filtros en mobile */
+.flotaFiltrosToggle {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioMd);
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioXl);
+    background-color: var(--cresta-blanco);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris700);
+    cursor: pointer;
+    margin-bottom: var(--cresta-espacioMd);
+    transition: border-color var(--cresta-transicion);
+}
+
+.flotaFiltrosToggle:hover {
+    border-color: var(--cresta-primario);
+    color: var(--cresta-primario);
+}
+
+.flotaFiltrosBadge {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--cresta-radioCompleto);
+    background-color: var(--cresta-primario);
+}
+
+@media (min-width: 1024px) {
+    .flotaFiltrosToggle {
+        display: none;
+    }
+}
+
+/* Layout sidebar + grid */
+.flotaLayout {
+    display: flex;
+    gap: var(--cresta-espacio2xl);
+    align-items: flex-start;
+}
+
+/* Sidebar de filtros */
+.flotaSidebar {
+    display: none;
+    width: 260px;
+    flex-shrink: 0;
+    position: sticky;
+    top: calc(5rem + var(--cresta-espacioMd));
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioXl);
+    overflow: hidden;
+}
+
+.flotaSidebarVisible {
+    display: block;
+}
+
+@media (min-width: 1024px) {
+    .flotaSidebar {
+        display: block;
+    }
+}
+
+.flotaSidebarCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--cresta-espacioMd) var(--cresta-espacioLg);
+    border-bottom: 1px solid var(--cresta-gris200);
+}
+
+.flotaSidebarTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    font-weight: var(--cresta-pesoBold);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris900);
+}
+
+.flotaLimpiarBtn {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-primario);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: var(--cresta-pesoMedio);
+    text-decoration: underline;
+}
+
+/* Bloques de filtro */
+.flotaFiltroBloque {
+    padding: var(--cresta-espacioMd) var(--cresta-espacioLg);
+    border-bottom: 1px solid var(--cresta-gris100);
+}
+
+.flotaFiltroBloque:last-child {
+    border-bottom: none;
+}
+
+.flotaFiltroBloqueTitle {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.flotaFiltroRadios {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+}
+
+.flotaFiltroRadioLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    cursor: pointer;
+    padding: var(--cresta-espacio2xs) 0;
+}
+
+.flotaFiltroRadio {
+    accent-color: var(--cresta-primario);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.flotaFiltroRadioTexto {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris700);
+}
+
+.flotaFiltroRadioLabel:hover .flotaFiltroRadioTexto {
+    color: var(--cresta-primario);
+}
+
+/* Área del grid */
+.flotaGridArea {
+    flex: 1;
+    min-width: 0;
+}
+
+.flotaGridHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+.flotaContador {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}
+
+/* Grid de tarjetas — inline desde flotaGridArea */
+.flotaGridContenedor {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioLg);
+}
+
+@media (min-width: 640px) {
+    .flotaGridContenedor {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1280px) {
+    .flotaGridContenedor {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.flotaError {
+    text-align: center;
+    padding: var(--cresta-espacio4xl) 0;
+    color: var(--cresta-error);
+    font-size: var(--cresta-textoLg);
+}
+
+.flotaVacioFiltros {
+    text-align: center;
+    padding: var(--cresta-espacio4xl) 0;
+    color: var(--cresta-gris400);
+}
+
+.flotaVacioFiltrosTexto {
+    font-size: var(--cresta-textoLg);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.flotaLimpiarFiltros {
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoSm);
+}
+
+/* --- Clases antiguas (no eliminar, se usan en el grid de home) --- */
 .flotaFiltros {
     background-color: var(--cresta-blanco);
     border-bottom: 1px solid var(--cresta-gris200);
@@ -35,11 +242,6 @@
     align-items: center;
 }
 
-.flotaFiltroLabel {
-    font-size: var(--cresta-textoSm);
-    color: var(--cresta-gris500);
-}
-
 .flotaFiltroSelect {
     border: 1px solid var(--cresta-gris200);
     border-radius: var(--cresta-radioLg);
@@ -58,42 +260,8 @@
     color: var(--cresta-gris400);
 }
 
-/* Grid de catálogo */
 .flotaSeccionGrid {
     padding: var(--cresta-espacioXl) 0;
-}
-
-.flotaGridContenedor {
-    max-width: var(--cresta-anchoMax);
-    margin: 0 auto;
-    padding: 0 var(--cresta-espacioMd);
-}
-
-.flotaError {
-    text-align: center;
-    padding: var(--cresta-espacio4xl) 0;
-    color: var(--cresta-error);
-    font-size: var(--cresta-textoLg);
-}
-
-.flotaVacioFiltros {
-    text-align: center;
-    padding: var(--cresta-espacio4xl) 0;
-    color: var(--cresta-gris400);
-}
-
-.flotaVacioFiltrosTexto {
-    font-size: var(--cresta-textoLg);
-    margin-bottom: var(--cresta-espacio2xs);
-}
-
-.flotaLimpiarFiltros {
-    color: var(--cresta-primario);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: var(--cresta-textoSm);
-    text-decoration: underline;
 }
 
 /* Vehículo Detalle — Layout */

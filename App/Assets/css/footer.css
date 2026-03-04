@@ -19,6 +19,9 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--cresta-espacio2xl);
+    padding: var(--cresta-espacio3xl) var(--cresta-padLateral) var(--cresta-espacio2xl);
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
 }
 
 @media (min-width: 768px) {
@@ -32,14 +35,16 @@
     max-width: 280px;
 }
 
-.pieMarcaLogo {
+/* Nombre del logo — explícitamente blanco para máximo contraste */
+.pieMarcaNombre {
     font-size: var(--cresta-texto2xl);
     font-weight: var(--cresta-pesoBold);
-    margin-bottom: var(--cresta-espacioSm);
     color: var(--cresta-blanco);
+    margin-bottom: var(--cresta-espacioSm);
+    letter-spacing: -0.02em;
 }
 
-.pieMarcaLogo .logoLight {
+.pieMarcaLight {
     font-weight: var(--cresta-pesoNormal);
 }
 
@@ -98,22 +103,29 @@
     font-size: var(--cresta-textoSm);
 }
 
-/* Bottom bar */
+/* Bottom bar — centrada en mobile, sides en desktop */
 .pieBarra {
     border-top: 1px solid var(--cresta-gris800);
-    margin-top: var(--cresta-espacio2xl);
-    padding-top: var(--cresta-espacioLg);
+    padding: var(--cresta-espacioLg) var(--cresta-padLateral);
+}
+
+.pieBarraContenido {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--cresta-espacioSm);
     font-size: var(--cresta-textoSm);
     color: var(--cresta-gris600);
+    text-align: center;
 }
 
 @media (min-width: 768px) {
-    .pieBarra {
+    .pieBarraContenido {
         flex-direction: row;
         justify-content: space-between;
+        text-align: left;
     }
 }
+

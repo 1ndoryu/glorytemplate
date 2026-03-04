@@ -7,11 +7,11 @@
  */
 
 import { SelectorFechas } from '@app/components/SelectorFechas';
+import { SelectVehiculo } from '@app/components/SelectVehiculo';
 import { ResumenPrecio } from '@app/components/ResumenPrecio';
 import { Boton } from '@app/components/ui/Boton';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { CampoTextarea } from '@app/components/ui/CampoTextarea';
-import { CampoSelect } from '@app/components/ui/CampoSelect';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import { useReservarFlujo } from '@app/hooks/useReservarFlujo';
@@ -66,18 +66,12 @@ export function ReservarIsland(): JSX.Element {
                             <h2 className="reservarPasoTitulo">Selecciona tu furgoneta y fechas</h2>
 
                             {/* Selector de vehículo */}
-                            <CampoSelect
+                            <SelectVehiculo
+                                vehiculos={vehiculos}
+                                vehiculoId={vehiculoId}
+                                onChange={setVehiculoId}
                                 label="Furgoneta"
-                                value={String(vehiculoId)}
-                                onChange={v => setVehiculoId(Number(v))}
-                            >
-                                <option value={0}>Selecciona una furgoneta...</option>
-                                {vehiculos.map(v => (
-                                    <option key={v.id} value={v.id}>
-                                        {v.nombre} — desde {v.precioBase}€/noche
-                                    </option>
-                                ))}
-                            </CampoSelect>
+                            />
 
                             {/* Fechas */}
                             <SelectorFechas

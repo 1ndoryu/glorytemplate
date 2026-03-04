@@ -71,10 +71,22 @@
     }
 }
 
-/* Buscador en hero */
+/* Buscador en hero — caja blanca que contiene SelectorFechas + botón */
 .heroBuscador {
     max-width: 600px;
     margin: 0 auto;
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radio2xl);
+    border: 1px solid var(--cresta-gris200);
+    padding: var(--cresta-espacioLg);
+}
+
+/* El SelectorFechas dentro del heroBuscador no necesita su propia card */
+.heroBuscador .selectorFechas {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    border-radius: 0;
 }
 
 .heroBuscarBoton {

@@ -21,16 +21,18 @@ export function ContactoIsland(): JSX.Element {
         <div className="paginaBase">
             <Header />
 
+            {/* Hero con fondo verde — título visible */}
+            <section className="heroInterior">
+                <div className="heroInteriorContenido">
+                    <h1 className="heroInteriorTitulo">Contacto</h1>
+                    <p className="heroInteriorSubtitulo">
+                        ¿Tienes alguna pregunta? Estamos aquí para ayudarte.
+                    </p>
+                </div>
+            </section>
+
             <div className="contactoLayout">
                 <div className="contactoContenedor">
-                    {/* Título */}
-                    <div className="confirmacionExito">
-                        <h1 className="heroInteriorTitulo">Contacto</h1>
-                        <p className="heroInteriorSubtitulo">
-                            ¿Tienes alguna pregunta? Estamos aquí para ayudarte.
-                        </p>
-                    </div>
-
                     <div className="contactoGrid">
                         {/* Formulario */}
                         <div>
@@ -87,15 +89,15 @@ export function ContactoIsland(): JSX.Element {
                         </div>
 
                         {/* Info de contacto */}
-                        <div>
+                        <div className="contactoSidebar">
                             <div className="panelBlanco">
                                 <h2 className="panelTitulo">{empresa.nombre}</h2>
-                                <div className="reservarPasoContenido">
+                                <div className="contactoInfoLista">
                                     {empresa.email && (
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📧</span>
                                             <div>
-                                                <div className="contactoInfoLabel">Email</div>
+                                                <p className="contactoInfoLabel">Email</p>
                                                 <a href={`mailto:${empresa.email}`} className="contactoInfoValor">
                                                     {empresa.email}
                                                 </a>
@@ -106,7 +108,7 @@ export function ContactoIsland(): JSX.Element {
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📞</span>
                                             <div>
-                                                <div className="contactoInfoLabel">Teléfono</div>
+                                                <p className="contactoInfoLabel">Teléfono</p>
                                                 <a href={`tel:${empresa.telefono}`} className="contactoInfoValor">
                                                     {empresa.telefono}
                                                 </a>
@@ -117,7 +119,7 @@ export function ContactoIsland(): JSX.Element {
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📍</span>
                                             <div>
-                                                <div className="contactoInfoLabel">Dirección</div>
+                                                <p className="contactoInfoLabel">Dirección</p>
                                                 <p className="contactoInfoValor">{empresa.direccion}</p>
                                             </div>
                                         </div>
@@ -128,11 +130,20 @@ export function ContactoIsland(): JSX.Element {
                             {/* Horarios */}
                             <div className="horariosBox">
                                 <h3 className="horariosBoxTitulo">Horario de atención</h3>
-                                <div className="horariosBoxLista">
-                                    <p>Lunes a Viernes: 9:00 — 19:00</p>
-                                    <p>Sábados: 10:00 — 14:00</p>
-                                    <p>Domingos: Cerrado</p>
-                                </div>
+                                <ul className="horariosLista">
+                                    <li className="horariosItem">
+                                        <span className="horariosDia">Lun — Vie</span>
+                                        <span className="horariosHora">9:00 — 19:00</span>
+                                    </li>
+                                    <li className="horariosItem">
+                                        <span className="horariosDia">Sábados</span>
+                                        <span className="horariosHora">10:00 — 14:00</span>
+                                    </li>
+                                    <li className="horariosItem">
+                                        <span className="horariosDia">Domingos</span>
+                                        <span className="horariosHora horariosHoraCerrado">Cerrado</span>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>

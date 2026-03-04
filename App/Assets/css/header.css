@@ -22,10 +22,11 @@
     background-color: transparent;
 }
 
-/* Cuando se hace scroll y el header es transparente, mostrar fondo */
+/* Cuando se hace scroll y el header es transparente, mostrar fondo blanco como el resto de páginas */
 .cabeceraFija.cabeceraScrolled {
-    background-color: var(--cresta-primarioAlpha95);
-    backdrop-filter: blur(8px);
+    background-color: var(--cresta-blanco);
+    backdrop-filter: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .cabeceraNav {

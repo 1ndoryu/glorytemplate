@@ -7,11 +7,30 @@
 .paginaBase {
     min-height: 100vh;
     background-color: var(--cresta-gris50);
+    display: flex;
+    flex-direction: column;
 }
 
 .paginaBaseBlanca {
     min-height: 100vh;
     background-color: var(--cresta-blanco);
+    display: flex;
+    flex-direction: column;
+}
+
+/* El footer queda al fondo: las secciones de contenido crecen para ocupar el espacio restante */
+.paginaBase > section:not(.heroInterior),
+.paginaBase > div:not(.cabeceraFija),
+.paginaBaseBlanca > section:not(.heroInterior),
+.paginaBaseBlanca > div:not(.cabeceraFija) {
+    flex: 1;
+}
+
+/* El footer no crece — se mantiene al final */
+.paginaBase > footer,
+.paginaBaseBlanca > footer {
+    flex-shrink: 0;
+    flex-grow: 0;
 }
 
 /* Hero interior (verde sólido) */

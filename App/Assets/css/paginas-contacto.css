@@ -6,7 +6,7 @@
 
 /* Contacto layout */
 .contactoLayout {
-    padding-top: var(--cresta-espacio5xl);
+    padding-top: var(--cresta-espacioXl);
     padding-bottom: var(--cresta-espacio4xl);
 }
 
@@ -131,24 +131,71 @@
 
 /* Horarios box */
 .horariosBox {
-    background-color: var(--cresta-primarioFondo);
-    border: 1px solid var(--cresta-primarioFondo);
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
     border-radius: var(--cresta-radioXl);
-    padding: var(--cresta-espacioMd);
+    padding: var(--cresta-espacioMd) var(--cresta-espacioLg);
+    margin-top: var(--cresta-espacioMd);
 }
 
 .horariosBoxTitulo {
     font-weight: var(--cresta-pesoBold);
-    color: var(--cresta-primarioOscuro);
-    margin-bottom: var(--cresta-espacioXs);
+    font-size: var(--cresta-textoSm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cresta-gris500);
+    margin-bottom: var(--cresta-espacioSm);
 }
 
-.horariosBoxLista {
-    font-size: var(--cresta-textoSm);
-    color: var(--cresta-primarioOscuro);
+/* Lista de horarios: tabla día + hora */
+.horariosLista {
+    list-style: none;
     display: flex;
     flex-direction: column;
-    gap: var(--cresta-espacio2xs);
+    gap: 0;
+}
+
+.horariosItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--cresta-espacioXs) 0;
+    border-bottom: 1px solid var(--cresta-gris100);
+    font-size: var(--cresta-textoSm);
+}
+
+.horariosItem:last-child {
+    border-bottom: none;
+}
+
+.horariosDia {
+    color: var(--cresta-gris700);
+    font-weight: var(--cresta-pesoMedio);
+}
+
+.horariosHora {
+    color: var(--cresta-gris900);
+    font-weight: var(--cresta-pesoSemibold);
+}
+
+.horariosHoraCerrado {
+    color: var(--cresta-gris400);
+    font-weight: var(--cresta-pesoNormal);
+}
+
+/* Sidebar de contacto con espacio entre panels */
+.contactoSidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Lista de info de contacto dentro del panel */
+.contactoInfoLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioMd);
+    margin-top: var(--cresta-espacioSm);
 }
 
 /* Mensaje de éxito (contacto) */
@@ -239,4 +286,100 @@
 
 .contactoMiniBoton:hover {
     background-color: var(--cresta-gris200);
+}
+
+/* Sobre Nosotros — secciones */
+.sobreSeccion {
+    padding: var(--cresta-espacio3xl) 0;
+}
+
+.sobreSeccionClara {
+    background-color: var(--cresta-gris50);
+}
+
+.sobreSeccionVerde {
+    background-color: var(--cresta-primario);
+}
+
+/* Etiqueta de sección sobre fondo claro */
+.seccionEtiquetaOscura {
+    display: inline-block;
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cresta-primario);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.sobreSeccionVerde .seccionEtiquetaOscura {
+    color: var(--cresta-blancoAlpha70);
+}
+
+.sobreTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioMd);
+    line-height: var(--cresta-lineaAlturaTitulo, 1.2);
+}
+
+.sobreTexto {
+    font-size: var(--cresta-textoLg);
+    color: var(--cresta-gris600);
+    line-height: var(--cresta-lineaAltura);
+    max-width: var(--cresta-anchoCentrado);
+}
+
+/* CTA de Sobre Nosotros */
+.sobreCta {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--cresta-espacioMd);
+}
+
+.sobreCtaTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-blanco);
+    margin-bottom: 0;
+}
+
+.sobreCtaTexto {
+    color: var(--cresta-blancoAlpha80);
+    font-size: var(--cresta-textoLg);
+}
+
+/* Botón blanco sobre fondo verde */
+.botonPrimarioBlanco {
+    display: inline-block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacio2xl);
+    background-color: var(--cresta-blanco);
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoSemibold);
+    border-radius: var(--cresta-radioXl);
+    text-decoration: none;
+    transition: background-color var(--cresta-transicion);
+    border: none;
+    cursor: pointer;
+}
+
+.botonPrimarioBlanco:hover {
+    background-color: var(--cresta-gris100);
+}
+
+/* Icono de valor en tarjeta de valor */
+.valorIconoWrap {
+    width: var(--cresta-iconoMd);
+    height: var(--cresta-iconoMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioXl);
+    color: var(--cresta-primario);
+    margin: 0 auto var(--cresta-espacioSm);
 }
