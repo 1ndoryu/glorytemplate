@@ -417,6 +417,7 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [Sentinel]: FQN inline eliminados de VehiculoController, StripeWebhookHandler, LimpiarReservasPendientes (usando use statements)
 - [Sentinel]: BienvenidaIsland eliminado (código muerto del framework, no usado en Cresta Campers)
 - [Sentinel]: ConfirmacionIsland fetch protegido con AbortController + timeout de 15s
+- [Sentinel-refactor]: Refactorización completa de code-sentinel — 5 monolitos spliteados: gloryAnalyzer (1460→121), reactAnalyzer (1082→101), phpAnalyzer (847→59), staticAnalyzer (610→189), gloryPhpRules (688→3 módulos). Archivo más grande: 478 líneas. 174 tests passing, 0 regresiones.
 - [Seed]: 3 vehículos en defaultContent.php — Cresta One (Madrid, 2p, 89€/noche, manual), Cresta Duo (Barcelona, 4p, 129€, automático), Cresta Pro (Sevilla, 2p premium, 149€, km ilimitados)
 - [DefaultContentManager]: La clave para metadatos en DefaultContentManager::define() es **`'metaEntrada'`**, NO `'meta'`. PostSyncHandler usa `$definition['metaEntrada']` para `meta_input` en wp_insert_post. Usar `'meta'` crea los posts sin metadatos.
 
