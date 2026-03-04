@@ -14,7 +14,7 @@ import { useDisponibilidad } from '@app/hooks/useDisponibilidad';
 import { useReserva } from '@app/hooks/useReserva';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
-import type { VehiculosListResponse, Vehiculo, DatosCliente, CalculoPrecio } from '@app/types/cresta';
+import type { VehiculosListResponse, DatosCliente, CalculoPrecio } from '@app/types/cresta';
 
 type Paso = 1 | 2 | 3 | 4;
 
@@ -45,8 +45,8 @@ export function ReservarIsland(): JSX.Element {
     const vehiculoSeleccionado = vehiculos.find(v => v.id === vehiculoId);
 
     // Hooks
-    const { disponible, precio, motivo, loading: loadingDisp, verificar } = useDisponibilidad(vehiculoId);
-    const { crear, loading: loadingReserva, error: errorReserva, checkoutUrl } = useReserva();
+    const { disponible, motivo, loading: loadingDisp, verificar } = useDisponibilidad(vehiculoId);
+    const { crear, loading: loadingReserva, error: errorReserva } = useReserva();
 
     // Verificar disponibilidad al cambiar fechas
     const handleContinuarPaso1 = useCallback(async () => {
@@ -93,49 +93,47 @@ export function ReservarIsland(): JSX.Element {
     const cancelado = params.get('cancelado') === '1';
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="paginaBase">
             <Header />
 
-            <div className="pt-24 pb-20">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            <div className="reservarLayout">
+                <div className="reservarContenedor">
                     {/* Título */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservar tu furgoneta</h1>
-                        <p className="text-gray-500">Completa los pasos para finalizar tu reserva.</p>
+                    <div>
+                        <h1 className="reservarTitulo">Reservar tu furgoneta</h1>
+                        <p className="reservarSubtitulo">Completa los pasos para finalizar tu reserva.</p>
                     </div>
 
                     {cancelado && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-amber-800">
+                        <div className="alertaAviso">
                             El pago fue cancelado. Puedes intentarlo de nuevo.
                         </div>
                     )}
 
                     {/* Progress bar */}
-                    <div className="flex items-center gap-2 mb-10">
+                    <div className="progressBar">
                         {[1, 2, 3, 4].map(p => (
-                            <div key={p} className="flex-1 flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition ${
-                                    p <= paso ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
-                                }`}>
+                            <div key={p} className="progressPaso">
+                                <div className={`progressCirculo ${p <= paso ? 'progressCirculoActivo' : 'progressCirculoInactivo'}`}>
                                     {p < paso ? '✓' : p}
                                 </div>
-                                {p < 4 && <div className={`flex-1 h-1 rounded-full ${p < paso ? 'bg-green-600' : 'bg-gray-200'}`} />}
+                                {p < 4 && <div className={`progressLinea ${p < paso ? 'progressLineaActiva' : 'progressLineaInactiva'}`} />}
                             </div>
                         ))}
                     </div>
 
                     {/* Paso 1: Selección */}
                     {paso === 1 && (
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-bold text-gray-900">Selecciona tu furgoneta y fechas</h2>
+                        <div className="reservarPasoContenido">
+                            <h2 className="reservarPasoTitulo">Selecciona tu furgoneta y fechas</h2>
 
                             {/* Selector de vehículo */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Furgoneta</label>
+                                <label className="campoLabel">Furgoneta</label>
                                 <select
                                     value={vehiculoId}
                                     onChange={e => setVehiculoId(Number(e.target.value))}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-green-500"
+                                    className="campoInput"
                                 >
                                     <option value={0}>Selecciona una furgoneta...</option>
                                     {vehiculos.map(v => (
@@ -154,20 +152,18 @@ export function ReservarIsland(): JSX.Element {
                             />
 
                             {/* Info horarios */}
-                            <div className="text-sm text-gray-500 bg-gray-100 rounded-xl p-4">
-                                📌 Recogida a las <strong>{horarioRecogida}</strong> · Devolución a las <strong>{horarioDevolucion}</strong>
+                            <div className="alertaInfo">
+                                Recogida a las <strong>{horarioRecogida}</strong> · Devolución a las <strong>{horarioDevolucion}</strong>
                             </div>
 
                             {disponible === false && motivo && (
-                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 text-sm">
-                                    {motivo}
-                                </div>
+                                <div className="alertaError">{motivo}</div>
                             )}
 
                             <button
                                 onClick={handleContinuarPaso1}
                                 disabled={!vehiculoId || !fechaInicio || !fechaFin || loadingDisp}
-                                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition text-lg"
+                                className="botonPrimario"
                             >
                                 {loadingDisp ? 'Verificando disponibilidad...' : 'Continuar'}
                             </button>
@@ -176,18 +172,18 @@ export function ReservarIsland(): JSX.Element {
 
                     {/* Paso 2: Resumen precio */}
                     {paso === 2 && precioCalculado && vehiculoSeleccionado && (
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-bold text-gray-900">Resumen de tu reserva</h2>
+                        <div className="reservarPasoContenido">
+                            <h2 className="reservarPasoTitulo">Resumen de tu reserva</h2>
 
                             {/* Info del vehículo */}
-                            <div className="bg-white rounded-2xl shadow-md p-6 flex gap-4 items-center">
+                            <div className="reservarVehiculoResumen">
                                 {vehiculoSeleccionado.imagen && (
                                     <img src={vehiculoSeleccionado.imagen} alt={vehiculoSeleccionado.nombre}
-                                        className="w-24 h-16 rounded-lg object-cover" />
+                                        className="reservarVehiculoImg" />
                                 )}
                                 <div>
-                                    <h3 className="font-bold text-gray-900">{vehiculoSeleccionado.nombre}</h3>
-                                    <p className="text-sm text-gray-500">
+                                    <h3 className="reservarVehiculoNombre">{vehiculoSeleccionado.nombre}</h3>
+                                    <p className="reservarVehiculoFechas">
                                         {fechaInicio} → {fechaFin}
                                     </p>
                                 </div>
@@ -195,16 +191,16 @@ export function ReservarIsland(): JSX.Element {
 
                             <ResumenPrecio calculo={precioCalculado} fianza={fianza} />
 
-                            <div className="flex gap-3">
+                            <div className="reservarBotones">
                                 <button
                                     onClick={() => setPaso(1)}
-                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl transition"
+                                    className="reservarBotonAtras"
                                 >
                                     ← Atrás
                                 </button>
                                 <button
                                     onClick={() => setPaso(3)}
-                                    className="flex-[2] bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition"
+                                    className="reservarBotonContinuar botonPrimario"
                                 >
                                     Continuar
                                 </button>
@@ -214,10 +210,10 @@ export function ReservarIsland(): JSX.Element {
 
                     {/* Paso 3: Datos del cliente */}
                     {paso === 3 && (
-                        <div className="space-y-6">
-                            <h2 className="text-xl font-bold text-gray-900">Tus datos</h2>
+                        <div className="reservarPasoContenido">
+                            <h2 className="reservarPasoTitulo">Tus datos</h2>
 
-                            <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
+                            <div className="formulario">
                                 <InputField
                                     label="Nombre completo"
                                     value={datosCliente.nombre}
@@ -242,40 +238,38 @@ export function ReservarIsland(): JSX.Element {
                                     placeholder="+34 600 000 000"
                                 />
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+                                    <label className="campoLabel">Notas (opcional)</label>
                                     <textarea
                                         value={datosCliente.notas ?? ''}
                                         onChange={e => setDatosCliente(d => ({ ...d, notas: e.target.value }))}
                                         rows={3}
                                         placeholder="¿Alguna petición especial?"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-green-500 resize-none"
+                                        className="campoTextarea"
                                     />
                                 </div>
                             </div>
 
                             {errorReserva && (
-                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-800 text-sm">
-                                    {errorReserva}
-                                </div>
+                                <div className="alertaError">{errorReserva}</div>
                             )}
 
-                            <div className="flex gap-3">
+                            <div className="reservarBotones">
                                 <button
                                     onClick={() => setPaso(2)}
-                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl transition"
+                                    className="reservarBotonAtras"
                                 >
                                     ← Atrás
                                 </button>
                                 <button
                                     onClick={handleReservar}
                                     disabled={loadingReserva}
-                                    className="flex-[2] bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 rounded-xl transition text-lg"
+                                    className="reservarBotonContinuar botonPrimario"
                                 >
-                                    {loadingReserva ? 'Procesando...' : 'Pagar con tarjeta 💳'}
+                                    {loadingReserva ? 'Procesando...' : 'Pagar con tarjeta'}
                                 </button>
                             </div>
 
-                            <p className="text-xs text-gray-400 text-center">
+                            <p className="reservarRedireccionarTexto">
                                 Serás redirigido a Stripe para completar el pago de forma segura.
                             </p>
                         </div>
@@ -283,10 +277,10 @@ export function ReservarIsland(): JSX.Element {
 
                     {/* Paso 4: Redireccionando */}
                     {paso === 4 && (
-                        <div className="text-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-6" />
-                            <h2 className="text-xl font-bold text-gray-900 mb-2">Redirigiendo a Stripe...</h2>
-                            <p className="text-gray-500">Estás siendo redirigido a la pasarela de pago seguro.</p>
+                        <div className="reservarRedireccionar">
+                            <div className="cargandoSpinner" />
+                            <h2 className="reservarRedireccionarTitulo">Redirigiendo a Stripe...</h2>
+                            <p className="reservarRedireccionarTexto">Estás siendo redirigido a la pasarela de pago seguro.</p>
                         </div>
                     )}
                 </div>
@@ -307,17 +301,15 @@ function InputField({
 }): JSX.Element {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+            <label className="campoLabel">{label}</label>
             <input
                 type={type}
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 placeholder={placeholder}
-                className={`w-full border rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-green-500 ${
-                    error ? 'border-red-300 bg-red-50' : 'border-gray-200'
-                }`}
+                className={`campoInput${error ? ' campoInputError' : ''}`}
             />
-            {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+            {error && <p className="campoError">{error}</p>}
         </div>
     );
 }

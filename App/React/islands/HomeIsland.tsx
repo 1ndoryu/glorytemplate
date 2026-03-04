@@ -1,6 +1,7 @@
 /**
  * HomeIsland — Landing page principal de Cresta Campers.
- * Hero con buscador de fechas prominente, sección de flota, cómo funciona, CTA.
+ * Hero con buscador, flota destacada, cómo funciona, reseñas, CTA final.
+ * Inspirado en roadsurfer.com — sin estilos inline, CSS en home.css
  */
 
 import { useState, useCallback } from 'react';
@@ -11,6 +12,46 @@ import { SelectorFechas } from '@app/components/SelectorFechas';
 import { TarjetaVehiculo } from '@app/components/TarjetaVehiculo';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
+
+const RESENIAS = [
+    {
+        nombre: 'Laura M.',
+        texto: 'Una experiencia increíble. La furgoneta estaba impecable y totalmente equipada. Recorrimos la costa mediterránea sin prisas. Repetiremos seguro.',
+        estrellas: 5,
+    },
+    {
+        nombre: 'Carlos P.',
+        texto: 'El proceso de reserva fue muy sencillo y el trato del equipo excelente. La camper era perfecta para nuestra escapada en familia por el norte.',
+        estrellas: 5,
+    },
+    {
+        nombre: 'Ana & Sergio',
+        texto: 'Viajamos 10 días por Portugal y fue el mejor viaje de nuestra vida. La furgoneta tenía todo lo necesario. Atención al cliente de 10.',
+        estrellas: 5,
+    },
+];
+
+const PASOS = [
+    { paso: '1', icono: 'calendario', titulo: 'Elige tus fechas', desc: 'Selecciona las fechas de recogida y devolución. Consulta la disponibilidad en tiempo real.' },
+    { paso: '2', icono: 'pago', titulo: 'Reserva online', desc: 'Completa tu reserva con pago seguro. Recibirás la confirmación al instante por email.' },
+    { paso: '3', icono: 'furgoneta', titulo: 'Recoge y viaja', desc: 'Recoge tu furgoneta en el punto acordado, totalmente equipada y lista para la aventura.' },
+];
+
+function IconoPaso({ tipo }: { tipo: string }): JSX.Element {
+    if (tipo === 'calendario') {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+        );
+    }
+    if (tipo === 'pago') {
+        return (
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+        );
+    }
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17h14v-5H5v5z" /><path d="M2 12l3-6h14l3 6" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></svg>
+    );
+}
 
 export function HomeIsland(): JSX.Element {
     const { navegar } = useNavigation();
@@ -37,28 +78,25 @@ export function HomeIsland(): JSX.Element {
     const horarioDevolucion = reservasData.horarioDevolucion || '10:00';
 
     return (
-        <div className="min-h-screen">
+        <div>
             <Header transparente />
 
             {/* Hero */}
-            <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-green-900 via-green-800 to-emerald-900">
-                {/* Overlay pattern */}
-                <div className="absolute inset-0 opacity-10" style={{
-                    backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-                    backgroundSize: '40px 40px',
-                }} />
+            <section className="heroSeccion">
+                <div className="heroOverlay" />
 
-                <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight">
-                        Tu aventura sobre<br />
-                        <span className="text-green-300">ruedas</span> empieza aquí
+                <div className="heroContenido">
+                    <h1 className="heroTitulo">
+                        Tu aventura sobre{' '}
+                        <span className="heroTituloResaltado">ruedas</span>{' '}
+                        empieza aquí
                     </h1>
-                    <p className="text-lg md:text-xl text-green-100/80 mb-10 max-w-2xl mx-auto">
-                        Alquila una furgoneta camper equipada y viaja a tu ritmo. Sin prisas, sin rutas fijas, solo tú y el camino.
+                    <p className="heroSubtitulo">
+                        Alquila una furgoneta camper equipada y viaja a tu ritmo.
+                        Sin prisas, sin rutas fijas, solo tú y el camino.
                     </p>
 
-                    {/* Buscador de fechas */}
-                    <div className="max-w-2xl mx-auto">
+                    <div className="heroBuscador">
                         <SelectorFechas
                             fechaInicio={fechaInicio}
                             fechaFin={fechaFin}
@@ -67,55 +105,79 @@ export function HomeIsland(): JSX.Element {
                         <button
                             onClick={handleBuscar}
                             disabled={!fechaInicio || !fechaFin}
-                            className="mt-4 w-full md:w-auto bg-green-500 hover:bg-green-400 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold text-lg px-10 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl"
+                            className="heroBuscarBoton"
                         >
                             Buscar disponibilidad
                         </button>
                     </div>
 
-                    <p className="mt-4 text-sm text-green-200/60">
+                    <p className="heroHorarios">
                         Recogida a las {horarioRecogida} · Devolución a las {horarioDevolucion}
                     </p>
+
+                    <div className="heroBadges">
+                        <span className="heroBadge">
+                            <svg className="heroBadgeIcono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                            Kilometraje ilimitado
+                        </span>
+                        <span className="heroBadge">
+                            <svg className="heroBadgeIcono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
+                            2do conductor gratis
+                        </span>
+                        <span className="heroBadge">
+                            <svg className="heroBadgeIcono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" /></svg>
+                            Asistencia 24/7
+                        </span>
+                        <span className="heroBadge">
+                            <svg className="heroBadgeIcono" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+                            Cancelación flexible
+                        </span>
+                    </div>
                 </div>
 
-                {/* Scroll indicator */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-                    <svg className="w-6 h-6 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="heroScrollIndicador">
+                    <svg className="heroScrollIcono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                 </div>
             </section>
 
             {/* Nuestras furgonetas */}
-            <section className="py-20 bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                            Nuestras furgonetas
-                        </h2>
-                        <p className="text-gray-500 text-lg max-w-xl mx-auto">
+            <section className="seccionFlota">
+                <div className="contenedor">
+                    <div className="seccionCabecera">
+                        <span className="seccionEtiqueta">Nuestra flota</span>
+                        <h2 className="seccionTitulo">Encuentra tu camper ideal</h2>
+                        <p className="seccionDescripcion">
                             Furgonetas camper totalmente equipadas para que solo tengas que preocuparte de disfrutar.
                         </p>
                     </div>
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600" />
+                        <div className="cargando">
+                            <div className="cargandoSpinner" />
                         </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    ) : vehiculos.length > 0 ? (
+                        <div className="flotaGrid">
                             {vehiculos.map(v => (
                                 <TarjetaVehiculo key={v.id} vehiculo={v} />
                             ))}
                         </div>
+                    ) : (
+                        <div className="flotaVacia">
+                            <div className="flotaVaciaIcono">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M5 17h14v-5H5v5z" /><path d="M2 12l3-6h14l3 6" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></svg>
+                            </div>
+                            <h3 className="flotaVaciaTitulo">Pronto disponible</h3>
+                            <p className="flotaVaciaTexto">
+                                Estamos preparando nuestra flota. Vuelve pronto para descubrir nuestras furgonetas.
+                            </p>
+                        </div>
                     )}
 
                     {!loading && vehiculos.length > 0 && (
-                        <div className="text-center mt-10">
-                            <GloryLink
-                                href="/flota/"
-                                className="inline-block bg-white border-2 border-green-600 text-green-700 hover:bg-green-50 font-semibold px-8 py-3 rounded-xl transition"
-                            >
+                        <div className="seccionBotonCentro">
+                            <GloryLink href="/flota/" className="botonSecundario">
                                 Ver toda la flota
                             </GloryLink>
                         </div>
@@ -124,32 +186,49 @@ export function HomeIsland(): JSX.Element {
             </section>
 
             {/* Cómo funciona */}
-            <section className="py-20 bg-white">
-                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-14">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                            Cómo funciona
-                        </h2>
-                        <p className="text-gray-500 text-lg">
-                            Reservar tu furgoneta camper es fácil y rápido.
+            <section className="seccionComoFunciona">
+                <div className="contenedorEstrecho">
+                    <div className="seccionCabecera">
+                        <span className="seccionEtiqueta">Cómo funciona</span>
+                        <h2 className="seccionTitulo">Reservar es fácil y rápido</h2>
+                        <p className="seccionDescripcion">
+                            En tres sencillos pasos estarás listo para la aventura.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {[
-                            { paso: '1', icon: '📅', titulo: 'Elige tus fechas', desc: 'Selecciona las fechas de recogida y devolución. Consulta la disponibilidad en tiempo real.' },
-                            { paso: '2', icon: '💳', titulo: 'Reserva online', desc: 'Completa tu reserva con pago seguro. Recibirás la confirmación al instante por email.' },
-                            { paso: '3', icon: '🚐', titulo: 'Recoge y viaja', desc: 'Recoge tu furgoneta en el punto acordado, totalmente equipada y lista para la aventura.' },
-                        ].map(step => (
-                            <div key={step.paso} className="text-center group">
-                                <div className="w-20 h-20 mx-auto mb-4 bg-green-50 rounded-2xl flex items-center justify-center text-4xl group-hover:scale-110 transition-transform">
-                                    {step.icon}
+                    <div className="pasosGrid">
+                        {PASOS.map(step => (
+                            <div key={step.paso} className="pasoTarjeta">
+                                <div className="pasoIcono">
+                                    <IconoPaso tipo={step.icono} />
                                 </div>
-                                <div className="text-xs font-bold text-green-600 uppercase tracking-widest mb-2">
-                                    Paso {step.paso}
+                                <div className="pasoNumero">Paso {step.paso}</div>
+                                <h3 className="pasoTitulo">{step.titulo}</h3>
+                                <p className="pasoDescripcion">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Reseñas de clientes */}
+            <section className="seccionResenias">
+                <div className="contenedor">
+                    <div className="seccionCabecera">
+                        <span className="seccionEtiqueta">Reseñas de clientes</span>
+                        <h2 className="seccionTitulo">Lo que dicen nuestros viajeros</h2>
+                    </div>
+
+                    <div className="reseniasGrid">
+                        {RESENIAS.map((r, i) => (
+                            <div key={i} className="reseniaTarjeta">
+                                <div className="reseniaEstrellas">
+                                    {Array.from({ length: r.estrellas }, (_, j) => (
+                                        <span key={j}>&#9733;</span>
+                                    ))}
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">{step.titulo}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+                                <p className="reseniaTexto">&ldquo;{r.texto}&rdquo;</p>
+                                <p className="reseniaAutor">{r.nombre}</p>
                             </div>
                         ))}
                     </div>
@@ -157,18 +236,15 @@ export function HomeIsland(): JSX.Element {
             </section>
 
             {/* CTA final */}
-            <section className="py-20 bg-green-700">
-                <div className="max-w-3xl mx-auto px-4 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <section className="seccionCtaFinal">
+                <div className="contenedorCentrado">
+                    <h2 className="ctaFinalTitulo">
                         ¿Listo para tu próxima aventura?
                     </h2>
-                    <p className="text-green-100/80 text-lg mb-8">
+                    <p className="ctaFinalTexto">
                         Reserva tu furgoneta camper hoy y empieza a planificar el viaje de tu vida.
                     </p>
-                    <GloryLink
-                        href="/reservar/"
-                        className="inline-block bg-white text-green-700 hover:bg-green-50 font-bold text-lg px-10 py-4 rounded-xl transition shadow-lg"
-                    >
+                    <GloryLink href="/reservar/" className="botonCtaFinal">
                         Reservar ahora
                     </GloryLink>
                 </div>

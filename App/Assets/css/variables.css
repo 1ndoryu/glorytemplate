@@ -1,0 +1,104 @@
+/*
+ * Cresta Campers — Variables de diseño
+ * Sistema de diseño centralizado: colores, tipografía, espaciados, radios.
+ * Inspirado en la estética limpia de roadsurfer.com
+ */
+
+:root {
+    /* Colores primarios — verde naturaleza */
+    --cresta-primario: #2d6a4f;
+    --cresta-primarioOscuro: #1b4332;
+    --cresta-primarioClaro: #40916c;
+    --cresta-primarioSuave: #d8f3dc;
+    --cresta-primarioFondo: #f0faf4;
+
+    /* Colores secundarios */
+    --cresta-acento: #f77f00;
+    --cresta-acentoOscuro: #e36002;
+    --cresta-acentoClaro: #fcbf49;
+
+    /* Neutros */
+    --cresta-blanco: #ffffff;
+    --cresta-negro: #1a1a1a;
+    --cresta-gris900: #212529;
+    --cresta-gris800: #343a40;
+    --cresta-gris700: #495057;
+    --cresta-gris600: #6c757d;
+    --cresta-gris500: #adb5bd;
+    --cresta-gris400: #ced4da;
+    --cresta-gris300: #dee2e6;
+    --cresta-gris200: #e9ecef;
+    --cresta-gris100: #f5f5f5;
+    --cresta-gris50: #fafafa;
+
+    /* Estados */
+    --cresta-exito: #2d6a4f;
+    --cresta-error: #e63946;
+    --cresta-aviso: #f77f00;
+    --cresta-info: #457b9d;
+
+    /* Tipografía */
+    --cresta-fuentePrincipal: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --cresta-fuenteTitulos: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    --cresta-textoXs: 0.75rem;
+    --cresta-textoSm: 0.875rem;
+    --cresta-textoBase: 1rem;
+    --cresta-textoLg: 1.125rem;
+    --cresta-textoXl: 1.25rem;
+    --cresta-texto2xl: 1.5rem;
+    --cresta-texto3xl: 1.875rem;
+    --cresta-texto4xl: 2.25rem;
+    --cresta-texto5xl: 3rem;
+    --cresta-texto6xl: 3.75rem;
+
+    --cresta-pesoNormal: 400;
+    --cresta-pesoMedio: 500;
+    --cresta-pesoSemibold: 600;
+    --cresta-pesoBold: 700;
+    --cresta-pesoExtrabold: 800;
+
+    --cresta-lineaAltura: 1.6;
+    --cresta-lineaAlturaTitulo: 1.15;
+
+    /* Espaciados */
+    --cresta-espacio2xs: 0.25rem;
+    --cresta-espacioXs: 0.5rem;
+    --cresta-espacioSm: 0.75rem;
+    --cresta-espacioMd: 1rem;
+    --cresta-espacioLg: 1.5rem;
+    --cresta-espacioXl: 2rem;
+    --cresta-espacio2xl: 3rem;
+    --cresta-espacio3xl: 4rem;
+    --cresta-espacio4xl: 5rem;
+    --cresta-espacio5xl: 6rem;
+
+    /* Contenedores */
+    --cresta-anchoMax: 1280px;
+    --cresta-anchoEstrecho: 960px;
+    --cresta-anchoCentrado: 720px;
+    --cresta-padLateral: 1.5rem;
+
+    /* Bordes */
+    --cresta-radio: 0.5rem;
+    --cresta-radioLg: 0.75rem;
+    --cresta-radioXl: 1rem;
+    --cresta-radio2xl: 1.5rem;
+    --cresta-radioCompleto: 9999px;
+
+    /* Transiciones */
+    --cresta-transicion: 0.2s ease;
+    --cresta-transicionMedia: 0.3s ease;
+    --cresta-transicionLenta: 0.5s ease;
+
+    /* Z-index */
+    --cresta-zHeader: 100;
+    --cresta-zOverlay: 200;
+    --cresta-zModal: 300;
+}
+
+/* Breakpoints de referencia (usados en media queries):
+   - Movil: < 768px
+   - Tablet: 768px - 1024px
+   - Escritorio: > 1024px
+*/

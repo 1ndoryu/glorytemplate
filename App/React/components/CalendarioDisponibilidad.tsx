@@ -96,23 +96,23 @@ export function CalendarioDisponibilidad({
     const offset = primerDia === 0 ? 6 : primerDia - 1;
 
     return (
-        <div className={`bg-white rounded-2xl shadow-md border border-gray-100 p-5 ${className}`}>
+        <div className={`calendario ${className}`}>
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="calendarioHeader">
                 <button
                     onClick={mesAnterior}
                     disabled={esPasado(mes - 1, mes === 1 ? anio - 1 : anio)}
-                    className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    className="calendarioFlecha"
                     aria-label="Mes anterior"
                 >
                     ◀
                 </button>
-                <h3 className="text-lg font-semibold text-gray-800">
+                <h3 className="calendarioMes">
                     {MESES[mes - 1]} {anio}
                 </h3>
                 <button
                     onClick={mesSiguiente}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition"
+                    className="calendarioFlecha"
                     aria-label="Mes siguiente"
                 >
                     ▶
@@ -120,9 +120,9 @@ export function CalendarioDisponibilidad({
             </div>
 
             {/* Días de la semana */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="calendarioSemana">
                 {DIAS_SEMANA.map(d => (
-                    <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">
+                    <div key={d} className="calendarioSemanaLabel">
                         {d}
                     </div>
                 ))}
@@ -130,11 +130,11 @@ export function CalendarioDisponibilidad({
 
             {/* Grid de días */}
             {calendarioLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" />
+                <div className="cargando">
+                    <div className="cargandoSpinner" />
                 </div>
             ) : (
-                <div className="grid grid-cols-7 gap-1">
+                <div className="calendarioDias">
                     {/* Espacios vacíos antes del primer día */}
                     {Array.from({ length: offset }).map((_, i) => (
                         <div key={`empty-${i}`} />
@@ -145,19 +145,19 @@ export function CalendarioDisponibilidad({
                         const sel = estaSeleccionado(dia.dia);
                         const disponible = dia.disponible && !dia.pasado;
 
+                        let claseDia = 'calendarioDia';
+                        if (dia.pasado) claseDia += ' calendarioDiaPasado';
+                        else if (!dia.disponible) claseDia += ' calendarioDiaOcupado';
+                        else if (sel === 'inicio' || sel === 'fin') claseDia += ' calendarioDiaSelInicio';
+                        else if (sel === 'rango') claseDia += ' calendarioDiaSelRango';
+                        else claseDia += ' calendarioDiaDisponible';
+
                         return (
                             <button
                                 key={dia.dia}
                                 onClick={() => handleDiaClick(dia)}
                                 disabled={!disponible}
-                                className={`
-                                    aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-all
-                                    ${dia.pasado ? 'text-gray-300 cursor-not-allowed' : ''}
-                                    ${!dia.disponible && !dia.pasado ? 'bg-gray-100 text-gray-400 cursor-not-allowed line-through' : ''}
-                                    ${disponible && !sel ? 'text-gray-700 hover:bg-green-50 hover:text-green-700 cursor-pointer' : ''}
-                                    ${sel === 'inicio' || sel === 'fin' ? 'bg-green-600 text-white shadow-md' : ''}
-                                    ${sel === 'rango' ? 'bg-green-100 text-green-800' : ''}
-                                `}
+                                className={claseDia}
                             >
                                 {dia.dia}
                             </button>
@@ -167,12 +167,12 @@ export function CalendarioDisponibilidad({
             )}
 
             {/* Leyenda */}
-            <div className="flex gap-4 mt-4 text-xs text-gray-500 justify-center">
-                <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded bg-green-100 border border-green-300" /> Disponible
+            <div className="calendarioLeyenda">
+                <span className="calendarioLeyendaItem">
+                    <span className="calendarioLeyendaColor calendarioLeyendaDisponible" /> Disponible
                 </span>
-                <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded bg-gray-200" /> Ocupado
+                <span className="calendarioLeyendaItem">
+                    <span className="calendarioLeyendaColor calendarioLeyendaOcupado" /> Ocupado
                 </span>
             </div>
         </div>

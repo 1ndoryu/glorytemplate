@@ -1,0 +1,13 @@
+/*
+ * Cresta Campers — Punto de entrada CSS
+ * Importa variables, reset, componentes y páginas.
+ */
+
+@import url('./variables.css');
+@import url('./base.css');
+@import url('./header.css');
+@import url('./footer.css');
+@import url('./componentes.css');
+@import url('./home.css');
+@import url('./paginas.css');
+@import url('./galeria-calendario.css');

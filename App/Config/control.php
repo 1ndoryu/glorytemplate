@@ -26,9 +26,9 @@ GloryFeatures::enable('menu');
 GloryFeatures::enable('postThumbnails');
 
 /* 
- * Frontend: Tailwind CSS
+ * Frontend: CSS propio (Tailwind deshabilitado)
  */
-GloryFeatures::enable('tailwind');
+GloryFeatures::disable('tailwind');
 GloryFeatures::disable('shadcnUI');
 
 /* 

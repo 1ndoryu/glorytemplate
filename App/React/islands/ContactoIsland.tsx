@@ -67,89 +67,87 @@ export function ContactoIsland(): JSX.Element {
     }, [form, baseUrl, nonce]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="paginaBase">
             <Header />
 
-            <div className="pt-24 pb-20">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="contactoLayout">
+                <div className="contactoContenedor">
                     {/* Título */}
-                    <div className="text-center mb-12">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Contacto</h1>
-                        <p className="text-gray-500 text-lg max-w-xl mx-auto">
+                    <div className="confirmacionExito">
+                        <h1 className="heroInteriorTitulo">Contacto</h1>
+                        <p className="heroInteriorSubtitulo">
                             ¿Tienes alguna pregunta? Estamos aquí para ayudarte.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div className="contactoGrid">
                         {/* Formulario */}
                         <div>
                             {enviado ? (
-                                <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-                                    <div className="text-4xl mb-3">✉️</div>
-                                    <h2 className="text-xl font-bold text-green-800 mb-2">¡Mensaje enviado!</h2>
-                                    <p className="text-green-700 text-sm mb-4">
+                                <div className="mensajeExito">
+                                    <div className="mensajeExitoIcono">✉️</div>
+                                    <h2 className="mensajeExitoTitulo">¡Mensaje enviado!</h2>
+                                    <p className="mensajeExitoTexto">
                                         Hemos recibido tu mensaje. Te responderemos lo antes posible.
                                     </p>
                                     <button
                                         onClick={() => setEnviado(false)}
-                                        className="text-green-600 hover:text-green-700 font-medium text-sm"
+                                        className="mensajeExitoEnlace"
                                     >
                                         Enviar otro mensaje
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-md p-8 space-y-5">
+                                <form onSubmit={handleSubmit} className="formulario">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+                                        <label className="campoLabel">Nombre *</label>
                                         <input
                                             type="text"
                                             value={form.nombre}
                                             onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                                            className="campoInput"
                                             placeholder="Tu nombre"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                        <label className="campoLabel">Email *</label>
                                         <input
                                             type="email"
                                             value={form.email}
                                             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                                            className="campoInput"
                                             placeholder="tu@email.com"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                        <label className="campoLabel">Teléfono</label>
                                         <input
                                             type="tel"
                                             value={form.telefono}
                                             onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500"
+                                            className="campoInput"
                                             placeholder="+34 600 000 000"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Mensaje *</label>
+                                        <label className="campoLabel">Mensaje *</label>
                                         <textarea
                                             value={form.mensaje}
                                             onChange={e => setForm(f => ({ ...f, mensaje: e.target.value }))}
                                             rows={5}
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 resize-none"
+                                            className="campoTextarea"
                                             placeholder="¿En qué podemos ayudarte?"
                                         />
                                     </div>
 
                                     {error && (
-                                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                                            {error}
-                                        </div>
+                                        <div className="alertaError">{error}</div>
                                     )}
 
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-4 rounded-xl transition text-lg"
+                                        className="botonPrimario"
                                     >
                                         {loading ? 'Enviando...' : 'Enviar mensaje'}
                                     </button>
@@ -158,38 +156,38 @@ export function ContactoIsland(): JSX.Element {
                         </div>
 
                         {/* Info de contacto */}
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-2xl shadow-md p-8">
-                                <h2 className="text-xl font-bold text-gray-900 mb-6">{empresa}</h2>
-                                <div className="space-y-4">
+                        <div>
+                            <div className="panelBlanco">
+                                <h2 className="panelTitulo">{empresa}</h2>
+                                <div className="reservarPasoContenido">
                                     {emailEmpresa && (
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-2xl">📧</span>
+                                        <div className="contactoInfoItem">
+                                            <span className="contactoInfoIcono">📧</span>
                                             <div>
-                                                <div className="text-sm text-gray-400">Email</div>
-                                                <a href={`mailto:${emailEmpresa}`} className="text-gray-800 hover:text-green-600 transition">
+                                                <div className="contactoInfoLabel">Email</div>
+                                                <a href={`mailto:${emailEmpresa}`} className="contactoInfoValor">
                                                     {emailEmpresa}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
                                     {telefonoEmpresa && (
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-2xl">📞</span>
+                                        <div className="contactoInfoItem">
+                                            <span className="contactoInfoIcono">📞</span>
                                             <div>
-                                                <div className="text-sm text-gray-400">Teléfono</div>
-                                                <a href={`tel:${telefonoEmpresa}`} className="text-gray-800 hover:text-green-600 transition">
+                                                <div className="contactoInfoLabel">Teléfono</div>
+                                                <a href={`tel:${telefonoEmpresa}`} className="contactoInfoValor">
                                                     {telefonoEmpresa}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
                                     {direccionEmpresa && (
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-2xl">📍</span>
+                                        <div className="contactoInfoItem">
+                                            <span className="contactoInfoIcono">📍</span>
                                             <div>
-                                                <div className="text-sm text-gray-400">Dirección</div>
-                                                <p className="text-gray-800">{direccionEmpresa}</p>
+                                                <div className="contactoInfoLabel">Dirección</div>
+                                                <p className="contactoInfoValor">{direccionEmpresa}</p>
                                             </div>
                                         </div>
                                     )}
@@ -197,9 +195,9 @@ export function ContactoIsland(): JSX.Element {
                             </div>
 
                             {/* Horarios */}
-                            <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
-                                <h3 className="font-bold text-green-800 mb-3">Horario de atención</h3>
-                                <div className="text-sm text-green-700 space-y-1">
+                            <div className="horariosBox">
+                                <h3 className="horariosBoxTitulo">Horario de atención</h3>
+                                <div className="horariosBoxLista">
                                     <p>Lunes a Viernes: 9:00 — 19:00</p>
                                     <p>Sábados: 10:00 — 14:00</p>
                                     <p>Domingos: Cerrado</p>

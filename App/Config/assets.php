@@ -10,3 +10,9 @@ use Glory\Manager\AssetManager;
  * del framework Glory.
  */
 
+/*
+ * CSS principal — init.css importa toda la cadena:
+ * variables -> base -> header -> footer -> componentes -> home -> paginas -> galeria-calendario
+ */
+AssetManager::define('style', 'cresta-styles', '/App/Assets/css/init.css');
+

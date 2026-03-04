@@ -1,0 +1,239 @@
+/*
+ * Cresta Campers — Header
+ * Navegación principal fija con soporte transparente y fondo sólido al hacer scroll.
+ */
+
+.cabeceraFija {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--cresta-zHeader);
+    transition: background-color var(--cresta-transicionMedia), backdrop-filter var(--cresta-transicionMedia);
+}
+
+/* Estado por defecto: fondo blanco */
+.cabeceraFija.cabeceraConFondo {
+    background-color: var(--cresta-blanco);
+}
+
+/* Estado transparente (solo en hero) */
+.cabeceraFija.cabeceraTransparente {
+    background-color: transparent;
+}
+
+/* Cuando se hace scroll y el header es transparente, mostrar fondo */
+.cabeceraFija.cabeceraScrolled {
+    background-color: rgba(27, 67, 50, 0.95);
+    backdrop-filter: blur(8px);
+}
+
+.cabeceraNav {
+    max-width: var(--cresta-anchoMax);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--cresta-padLateral);
+    padding-right: var(--cresta-padLateral);
+}
+
+.cabeceraContenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+}
+
+@media (min-width: 768px) {
+    .cabeceraContenido {
+        height: 5rem;
+    }
+}
+
+/* Logo */
+.cabeceraLogo {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    text-decoration: none;
+}
+
+.cabeceraLogoTexto {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    letter-spacing: -0.02em;
+    transition: color var(--cresta-transicion);
+}
+
+.cabeceraLogoLight {
+    font-weight: var(--cresta-pesoNormal);
+}
+
+.cabeceraLogoOscuro {
+    color: var(--cresta-primario);
+}
+
+.cabeceraLogoClaro {
+    color: var(--cresta-blanco);
+}
+
+/* Navegación desktop */
+.cabeceraNavDesktop {
+    display: none;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+}
+
+@media (min-width: 768px) {
+    .cabeceraNavDesktop {
+        display: flex;
+    }
+}
+
+.cabeceraNavEnlace {
+    padding: var(--cresta-espacioXs) var(--cresta-espacioMd);
+    border-radius: var(--cresta-radio);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris600);
+    text-decoration: none;
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+
+.cabeceraNavEnlace:hover {
+    color: var(--cresta-negro);
+    background-color: var(--cresta-gris100);
+}
+
+/* Enlace activo fondo claro (blanco/scrolled) */
+.cabeceraNavEnlaceActivo {
+    color: var(--cresta-primario);
+    background-color: var(--cresta-primarioSuave);
+}
+
+/* Enlace en modo transparente (texto blanco) */
+.cabeceraNavEnlaceClaro {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.cabeceraNavEnlaceClaro:hover {
+    color: var(--cresta-blanco);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Enlace activo en modo transparente */
+.cabeceraNavEnlaceActivoClaro {
+    color: var(--cresta-blanco);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Botón CTA en header */
+.cabeceraCtaBoton {
+    margin-left: var(--cresta-espacioXs);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioLg);
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    border-radius: var(--cresta-radioXl);
+    text-decoration: none;
+    transition: background-color var(--cresta-transicion);
+}
+
+.cabeceraCtaBoton:hover {
+    background-color: var(--cresta-primarioOscuro);
+}
+
+/* Hamburguesa móvil */
+.cabeceraHamburguesa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cresta-espacioXs);
+    border-radius: var(--cresta-radio);
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--cresta-gris600);
+    transition: background-color var(--cresta-transicion);
+}
+
+.cabeceraHamburguesa:hover {
+    background-color: var(--cresta-gris100);
+}
+
+.cabeceraHamburguesaClaro {
+    color: var(--cresta-blanco);
+}
+
+.cabeceraHamburguesaClaro:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+    .cabeceraHamburguesa {
+        display: none;
+    }
+}
+
+/* Menú móvil */
+.cabeceraMenuMovil {
+    display: none;
+    padding-bottom: var(--cresta-espacioMd);
+    background-color: var(--cresta-blanco);
+    border-bottom-left-radius: var(--cresta-radio2xl);
+    border-bottom-right-radius: var(--cresta-radio2xl);
+}
+
+.cabeceraMenuMovil.menuAbierto {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .cabeceraMenuMovil {
+        display: none !important;
+    }
+}
+
+.menuMovilLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacio2xs);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioXs);
+}
+
+.menuMovilEnlace {
+    display: block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    border-radius: var(--cresta-radio);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris600);
+    text-decoration: none;
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+
+.menuMovilEnlace:hover {
+    background-color: var(--cresta-gris100);
+}
+
+.menuMovilEnlaceActivo {
+    color: var(--cresta-primario);
+    background-color: var(--cresta-primarioSuave);
+}
+
+.menuMovilCta {
+    display: block;
+    margin-top: var(--cresta-espacioXs);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-weight: var(--cresta-pesoSemibold);
+    border-radius: var(--cresta-radioXl);
+    text-align: center;
+    text-decoration: none;
+    transition: background-color var(--cresta-transicion);
+}
+
+.menuMovilCta:hover {
+    background-color: var(--cresta-primarioOscuro);
+}

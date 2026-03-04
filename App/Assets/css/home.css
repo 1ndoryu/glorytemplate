@@ -1,0 +1,429 @@
+/*
+ * Cresta Campers — HomeIsland
+ * Página de inicio: hero con buscador, flota destacada, cómo funciona,
+ * reseñas, y CTA final. Inspirado en roadsurfer.com/es/
+ */
+
+/* Hero */
+.heroSeccion {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, var(--cresta-primarioOscuro) 0%, var(--cresta-primario) 50%, var(--cresta-primarioClaro) 100%);
+    overflow: hidden;
+}
+
+.heroImagen {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.25;
+}
+
+.heroOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(27, 67, 50, 0.4) 0%, rgba(27, 67, 50, 0.7) 100%);
+}
+
+.heroContenido {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 6rem var(--cresta-padLateral) var(--cresta-espacio3xl);
+    text-align: center;
+}
+
+.heroTitulo {
+    font-size: var(--cresta-texto4xl);
+    font-weight: var(--cresta-pesoExtrabold);
+    color: var(--cresta-blanco);
+    line-height: var(--cresta-lineaAlturaTitulo);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+@media (min-width: 768px) {
+    .heroTitulo {
+        font-size: var(--cresta-texto6xl);
+    }
+}
+
+.heroTituloResaltado {
+    color: var(--cresta-primarioSuave);
+}
+
+.heroSubtitulo {
+    font-size: var(--cresta-textoLg);
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 560px;
+    margin: 0 auto var(--cresta-espacio2xl);
+    line-height: 1.7;
+}
+
+@media (min-width: 768px) {
+    .heroSubtitulo {
+        font-size: var(--cresta-textoXl);
+    }
+}
+
+/* Buscador en hero */
+.heroBuscador {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.heroBuscarBoton {
+    display: block;
+    width: 100%;
+    margin-top: var(--cresta-espacioMd);
+    padding: var(--cresta-espacioMd) var(--cresta-espacio2xl);
+    background-color: var(--cresta-acento);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+}
+.heroBuscarBoton:hover:not(:disabled) {
+    background-color: var(--cresta-acentoOscuro);
+    transform: translateY(-1px);
+}
+.heroBuscarBoton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+    .heroBuscarBoton {
+        width: auto;
+    }
+}
+
+.heroHorarios {
+    margin-top: var(--cresta-espacioMd);
+    font-size: var(--cresta-textoSm);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Badges bajo el hero — estilo roadsurfer */
+.heroBadges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--cresta-espacioLg);
+    margin-top: var(--cresta-espacio2xl);
+}
+
+.heroBadge {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+}
+
+.heroBadgeIcono {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* Scroll indicator */
+.heroScrollIndicador {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: rebote 2s ease infinite;
+}
+
+.heroScrollIcono {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes rebote {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* Sección: Nuestras Furgonetas */
+.seccionFlota {
+    padding: var(--cresta-espacio4xl) 0;
+    background-color: var(--cresta-gris50);
+}
+
+.seccionCabecera {
+    text-align: center;
+    margin-bottom: var(--cresta-espacio2xl);
+}
+
+.seccionEtiqueta {
+    display: inline-block;
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cresta-primario);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.seccionTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-negro);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+@media (min-width: 768px) {
+    .seccionTitulo {
+        font-size: var(--cresta-texto4xl);
+    }
+}
+
+.seccionDescripcion {
+    font-size: var(--cresta-textoLg);
+    color: var(--cresta-gris600);
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+/* Grid de vehículos */
+.flotaGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioLg);
+}
+
+@media (min-width: 768px) {
+    .flotaGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .flotaGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Placeholder cuando no hay vehículos */
+.flotaVacia {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--cresta-espacio3xl) var(--cresta-espacioMd);
+}
+
+.flotaVaciaIcono {
+    font-size: 3rem;
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+.flotaVaciaTitulo {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris700);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.flotaVaciaTexto {
+    color: var(--cresta-gris500);
+}
+
+.seccionBotonCentro {
+    text-align: center;
+    margin-top: var(--cresta-espacio2xl);
+}
+
+/* Botones reutilizables */
+.botonPrimario {
+    display: inline-block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacio2xl);
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoSemibold);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+    text-align: center;
+}
+.botonPrimario:hover {
+    background-color: var(--cresta-primarioOscuro);
+    transform: translateY(-1px);
+}
+
+.botonSecundario {
+    display: inline-block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacio2xl);
+    background-color: var(--cresta-blanco);
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoSemibold);
+    border: 2px solid var(--cresta-primario);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion), transform var(--cresta-transicion);
+    text-align: center;
+}
+.botonSecundario:hover {
+    background-color: var(--cresta-primarioFondo);
+    transform: translateY(-1px);
+}
+
+/* Sección: Cómo funciona */
+.seccionComoFunciona {
+    padding: var(--cresta-espacio4xl) 0;
+    background-color: var(--cresta-blanco);
+}
+
+.pasosGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacio2xl);
+}
+
+@media (min-width: 768px) {
+    .pasosGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.pasoTarjeta {
+    text-align: center;
+    padding: var(--cresta-espacioLg);
+}
+
+.pasoIcono {
+    width: 5rem;
+    height: 5rem;
+    margin: 0 auto var(--cresta-espacioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--cresta-primarioSuave);
+    border-radius: var(--cresta-radio2xl);
+    font-size: 2rem;
+    transition: transform var(--cresta-transicionMedia);
+}
+.pasoTarjeta:hover .pasoIcono {
+    transform: scale(1.05);
+}
+
+.pasoNumero {
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoBold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--cresta-primario);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.pasoTitulo {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-negro);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.pasoDescripcion {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+    line-height: 1.7;
+}
+
+/* Sección: Reseñas — estilo roadsurfer */
+.seccionResenias {
+    padding: var(--cresta-espacio4xl) 0;
+    background-color: var(--cresta-gris50);
+}
+
+.reseniasGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioLg);
+}
+
+@media (min-width: 768px) {
+    .reseniasGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.reseniaTarjeta {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioLg);
+    border: 1px solid var(--cresta-gris200);
+}
+
+.reseniaEstrellas {
+    display: flex;
+    gap: 2px;
+    margin-bottom: var(--cresta-espacioSm);
+    color: var(--cresta-acentoClaro);
+    font-size: var(--cresta-textoLg);
+}
+
+.reseniaTexto {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris700);
+    line-height: 1.7;
+    margin-bottom: var(--cresta-espacioMd);
+    font-style: italic;
+}
+
+.reseniaAutor {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-negro);
+}
+
+/* Sección: CTA final */
+.seccionCtaFinal {
+    padding: var(--cresta-espacio5xl) 0;
+    background: linear-gradient(160deg, var(--cresta-primarioOscuro) 0%, var(--cresta-primario) 100%);
+    text-align: center;
+}
+
+.ctaFinalTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-blanco);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+@media (min-width: 768px) {
+    .ctaFinalTitulo {
+        font-size: var(--cresta-texto4xl);
+    }
+}
+
+.ctaFinalTexto {
+    font-size: var(--cresta-textoLg);
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: var(--cresta-espacio2xl);
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.botonCtaFinal {
+    display: inline-block;
+    padding: var(--cresta-espacioMd) var(--cresta-espacio3xl);
+    background-color: var(--cresta-blanco);
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+}
+.botonCtaFinal:hover {
+    background-color: var(--cresta-primarioSuave);
+    transform: translateY(-2px);
+}

@@ -21,7 +21,7 @@ Dominio: **crestacampers.com**
 
 - WordPress + Glory Framework (PHP bridge + React Islands)
 - React + TypeScript (islas interactivas)
-- Tailwind CSS (estilado)
+- CSS propio (arquitectura modular: 9 archivos via init.css)
 - Stripe Checkout (pagos)
 - Sin tablas custom — todo vía CPTs + `wp_postmeta` + `wp_options`
 
@@ -53,7 +53,7 @@ Dominio: **crestacampers.com**
 
 ```php
 GloryFeatures::enable('stripe');
-GloryFeatures::enable('tailwind');
+GloryFeatures::disable('tailwind'); /* CSS propio via init.css */
 GloryFeatures::enable('gloryForm');
 GloryFeatures::enable('menu');
 ```
@@ -300,7 +300,7 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Implementar cron de limpieza de reservas pendientes (`App/Cron/LimpiarReservasPendientes.php`)
 
 ### Fase 3 — Frontend (Islas React)
-- [x] Configurar Tailwind CSS (activar flag + setup)
+- [x] ~~Tailwind CSS~~ Migrado a CSS propio modular (9 archivos via init.css)
 - [x] Diseñar sistema de diseño (colores verde #2d6a4f, tipografía, componentes base)
 - [x] Crear `HomeIsland` con hero + buscador de fechas + secciones
 - [x] Crear `FlotaIsland` con grid de vehículos + router a detalle
@@ -389,3 +389,31 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - El webhook de Stripe se verifica con HMAC-SHA256 (`StripeWebhookVerifier`).
 - Los endpoints de creación de reserva validan disponibilidad server-side antes de crear la sesión de pago.
 - No se confía en datos del frontend para calcular precios — todo se recalcula en el backend.
+
+---
+
+## Migración Tailwind → CSS propio (completado)
+
+### Arquitectura CSS
+- Entry point: `App/Assets/css/init.css` con 8 `@import url()`
+- Cadena: variables → base → header → footer → componentes → home → paginas → galeria-calendario
+- Registrado en `assets.php` como `AssetManager::define('style', 'cresta-styles', '/App/Assets/css/init.css')`
+- Tailwind deshabilitado en `control.php`: `GloryFeatures::disable('tailwind')`
+
+### Lecciones aprendidas
+- [CSS]: Todas las variables están en `variables.css` con prefijo `--cresta-` y nombres en español camelCase
+- [CSS]: `botonPrimario` y `botonSecundario` están en `home.css` pero se usan globalmente — considerar mover a `componentes.css`
+- [CSS]: paginas.css tiene ~986 líneas (excede límite 300). Candidato a split futuro por dominio (detalle, reservar, confirmacion, contacto)
+- [CSS]: galeria-calendario.css agrupa galería + calendario + resumen precio (~440 líneas). Otra candidata a split
+- [Header]: header.css usa clases directas (no parent-scoped). El componente aplica `cabeceraNavEnlaceClaro` etc. según estado
+- [TS]: tsconfig tiene `noUnusedLocals` — variables con prefijo `_` tampoco pasan, hay que eliminar directamente
+- [Lint]: Hay reglas custom que piden componentes UI abstractos (`<Boton>`, `<Input>`, `<Select>`) — no existen aún, crear en futuro sprint
+
+### TO-DO pendientes (post-migración)
+- [ ] Crear componentes UI atómicos: `Boton`, `Input`, `Select`, `Textarea` en `components/ui/`
+- [ ] Splitear `paginas.css` (>300 líneas) por dominio
+- [ ] Splitear `galeria-calendario.css` (>300 líneas)
+- [ ] Mover `.botonPrimario`/`.botonSecundario` de `home.css` a `componentes.css`
+- [ ] Redactar contenido de texto para todas las páginas
+- [ ] Redactar textos legales (RGPD, cookies, condiciones)
+- [ ] Testing responsive completo

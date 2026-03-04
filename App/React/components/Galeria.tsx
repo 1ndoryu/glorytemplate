@@ -24,7 +24,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
 
     if (!imagenes.length) {
         return (
-            <div className={`bg-gray-100 rounded-2xl aspect-[16/9] flex items-center justify-center text-gray-400 ${className}`}>
+            <div className={`galeriaVacia ${className}`}>
                 Sin imágenes disponibles
             </div>
         );
@@ -32,22 +32,22 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
 
     return (
         <>
-            <div className={`relative ${className}`}>
+            <div className={`galeria ${className}`}>
                 {/* Imagen principal */}
                 <div
-                    className="relative aspect-[16/9] rounded-2xl overflow-hidden cursor-pointer group"
+                    className="galeriaPrincipalWrap"
                     onClick={() => setLightboxAbierto(true)}
                 >
                     <img
                         src={imagenes[activa].url}
                         alt={imagenes[activa].alt || 'Imagen del vehículo'}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="galeriaPrincipalImg"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                    <div className="galeriaOverlay" />
 
                     {/* Contador */}
                     {imagenes.length > 1 && (
-                        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full">
+                        <div className="galeriaContador">
                             {activa + 1} / {imagenes.length}
                         </div>
                     )}
@@ -58,14 +58,14 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                     <>
                         <button
                             onClick={anterior}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition"
+                            className="galeriaFlechaIzq"
                             aria-label="Anterior"
                         >
                             ◀
                         </button>
                         <button
                             onClick={siguiente}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition"
+                            className="galeriaFlechaDer"
                             aria-label="Siguiente"
                         >
                             ▶
@@ -75,16 +75,14 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
 
                 {/* Thumbnails */}
                 {imagenes.length > 1 && (
-                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                    <div className="galeriaThumbnails">
                         {imagenes.map((img, i) => (
                             <button
                                 key={img.id}
                                 onClick={() => setActiva(i)}
-                                className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 transition
-                                    ${i === activa ? 'border-green-600 shadow-md' : 'border-transparent opacity-70 hover:opacity-100'}
-                                `}
+                                className={`galeriaThumbnail${i === activa ? ' galeriaThumbnailActiva' : ''}`}
                             >
-                                <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                                <img src={img.url} alt={img.alt} className="galeriaThumbnailImg" />
                             </button>
                         ))}
                     </div>
@@ -94,36 +92,36 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
             {/* Lightbox */}
             {lightboxAbierto && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                    className="galeriaLightbox"
                     onClick={() => setLightboxAbierto(false)}
                 >
                     <button
                         onClick={() => setLightboxAbierto(false)}
-                        className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10"
+                        className="galeriaLightboxCerrar"
                         aria-label="Cerrar"
                     >
                         ✕
                     </button>
 
-                    <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                    <div className="galeriaLightboxContenido" onClick={e => e.stopPropagation()}>
                         <img
                             src={imagenes[activa].url}
                             alt={imagenes[activa].alt}
-                            className="max-w-full max-h-[90vh] object-contain"
+                            className="galeriaLightboxImg"
                         />
 
                         {imagenes.length > 1 && (
                             <>
                                 <button
                                     onClick={anterior}
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 text-white text-4xl hover:text-green-400 transition"
+                                    className="galeriaLightboxFlechaIzq"
                                     aria-label="Anterior"
                                 >
                                     ◀
                                 </button>
                                 <button
                                     onClick={siguiente}
-                                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 text-white text-4xl hover:text-green-400 transition"
+                                    className="galeriaLightboxFlechaDer"
                                     aria-label="Siguiente"
                                 >
                                     ▶

@@ -1,0 +1,439 @@
+/* 
+ * Estilos de Galeria y CalendarioDisponibilidad.
+ * Sin sombras. Bordes sólidos.
+ */
+
+/* ============================
+   Galería
+   ============================ */
+
+.galeria {
+    position: relative;
+}
+
+.galeriaVacia {
+    background-color: var(--cresta-gris100);
+    border-radius: var(--cresta-radioXl);
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cresta-gris400);
+}
+
+.galeriaPrincipalWrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--cresta-radioXl);
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.galeriaPrincipalImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.galeriaPrincipalWrap:hover .galeriaPrincipalImg {
+    transform: scale(1.05);
+}
+
+.galeriaOverlay {
+    position: absolute;
+    inset: 0;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+}
+
+.galeriaPrincipalWrap:hover .galeriaOverlay {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.galeriaContador {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoXs);
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--cresta-radioCompleto);
+}
+
+/* Flechas */
+.galeriaFlechaIzq,
+.galeriaFlechaDer {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color var(--cresta-transicion);
+    font-size: var(--cresta-textoBase);
+}
+
+.galeriaFlechaIzq {
+    left: 0.75rem;
+}
+
+.galeriaFlechaDer {
+    right: 0.75rem;
+}
+
+.galeriaFlechaIzq:hover,
+.galeriaFlechaDer:hover {
+    background-color: var(--cresta-blanco);
+}
+
+/* Thumbnails */
+.galeriaThumbnails {
+    display: flex;
+    gap: var(--cresta-espacio2xs);
+    margin-top: var(--cresta-espacioXs);
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+}
+
+.galeriaThumbnail {
+    flex-shrink: 0;
+    width: 5rem;
+    height: 3.5rem;
+    border-radius: var(--cresta-radioLg);
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity var(--cresta-transicion), border-color var(--cresta-transicion);
+}
+
+.galeriaThumbnailActiva {
+    border-color: var(--cresta-primario);
+    opacity: 1;
+}
+
+.galeriaThumbnail:hover {
+    opacity: 1;
+}
+
+.galeriaThumbnailImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Lightbox */
+.galeriaLightbox {
+    position: fixed;
+    inset: 0;
+    z-index: var(--cresta-zModal);
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.galeriaLightboxCerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-texto3xl);
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    transition: color var(--cresta-transicion);
+}
+
+.galeriaLightboxCerrar:hover {
+    color: var(--cresta-gris300);
+}
+
+.galeriaLightboxContenido {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.galeriaLightboxImg {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.galeriaLightboxFlechaIzq,
+.galeriaLightboxFlechaDer {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-texto4xl);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color var(--cresta-transicion);
+}
+
+.galeriaLightboxFlechaIzq {
+    left: 0;
+    transform: translateY(-50%) translateX(-3rem);
+}
+
+.galeriaLightboxFlechaDer {
+    right: 0;
+    transform: translateY(-50%) translateX(3rem);
+}
+
+.galeriaLightboxFlechaIzq:hover,
+.galeriaLightboxFlechaDer:hover {
+    color: var(--cresta-primarioClaro);
+}
+
+/* ============================
+   Calendario Disponibilidad
+   ============================ */
+
+.calendario {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radioXl);
+    border: 1px solid var(--cresta-gris200);
+    padding: var(--cresta-espacioSm);
+}
+
+.calendarioHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.calendarioMes {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris800);
+}
+
+.calendarioFlecha {
+    padding: var(--cresta-espacio2xs);
+    border-radius: var(--cresta-radioLg);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--cresta-transicion);
+}
+
+.calendarioFlecha:hover {
+    background-color: var(--cresta-gris100);
+}
+
+.calendarioFlecha:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Grid días de la semana */
+.calendarioSemana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.calendarioSemanaLabel {
+    text-align: center;
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris400);
+    padding: 0.25rem 0;
+}
+
+/* Grid de días */
+.calendarioDias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+}
+
+.calendarioDia {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--cresta-radioLg);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    border: none;
+    cursor: pointer;
+    transition: all var(--cresta-transicion);
+}
+
+.calendarioDiaPasado {
+    color: var(--cresta-gris300);
+    cursor: not-allowed;
+    background: none;
+}
+
+.calendarioDiaOcupado {
+    background-color: var(--cresta-gris100);
+    color: var(--cresta-gris400);
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.calendarioDiaDisponible {
+    color: var(--cresta-gris700);
+    background: none;
+}
+
+.calendarioDiaDisponible:hover {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primario);
+}
+
+.calendarioDiaSelInicio,
+.calendarioDiaSelFin {
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+}
+
+.calendarioDiaSelRango {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primarioOscuro);
+}
+
+/* Leyenda */
+.calendarioLeyenda {
+    display: flex;
+    gap: var(--cresta-espacioSm);
+    margin-top: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+    justify-content: center;
+}
+
+.calendarioLeyendaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.calendarioLeyendaColor {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--cresta-radio);
+}
+
+.calendarioLeyendaDisponible {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primarioClaro);
+}
+
+.calendarioLeyendaOcupado {
+    background-color: var(--cresta-gris200);
+}
+
+/* ============================
+   ResumenPrecio
+   ============================ */
+
+.resumenPrecio {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radioXl);
+    border: 1px solid var(--cresta-gris200);
+    padding: var(--cresta-espacioMd);
+}
+
+.resumenPrecioTitulo {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.resumenPrecioDesglose {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.resumenPrecioFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resumenPrecioTemporada {
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoMedio);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--cresta-radioCompleto);
+}
+
+.resumenPrecioTemporadaBaja {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+}
+
+.resumenPrecioTemporadaMedia {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #b45309;
+}
+
+.resumenPrecioTemporadaAlta {
+    background-color: rgba(249, 115, 22, 0.1);
+    color: #c2410c;
+}
+
+.resumenPrecioTemporadaEspecial {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+}
+
+.resumenPrecioDetalle {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}
+
+.resumenPrecioSubtotal {
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris800);
+}
+
+.resumenPrecioSeparador {
+    border-top: 1px solid var(--cresta-gris200);
+    margin: var(--cresta-espacioSm) 0;
+}
+
+.resumenPrecioTotalFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resumenPrecioTotalLabel {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+}
+
+.resumenPrecioTotalValor {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primario);
+}
+
+.resumenPrecioFianza {
+    margin-top: var(--cresta-espacioSm);
+    background-color: rgba(245, 158, 11, 0.05);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioXs);
+    font-size: var(--cresta-textoSm);
+    color: #92400e;
+}

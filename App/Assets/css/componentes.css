@@ -1,0 +1,201 @@
+/*
+ * Cresta Campers — Componentes compartidos
+ * SelectorFechas, TarjetaVehiculo y utilidades.
+ */
+
+/* ================================================================ */
+/* SelectorFechas                                                    */
+/* ================================================================ */
+
+.selectorFechas {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radio2xl);
+    border: 1px solid var(--cresta-gris200);
+    padding: var(--cresta-espacioLg);
+}
+
+.selectorFechasGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioMd);
+}
+
+@media (min-width: 768px) {
+    .selectorFechasGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.selectorFechasCompacto {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+}
+
+.selectorFechasFlecha {
+    color: var(--cresta-gris400);
+}
+
+.selectorFechasCampo {
+    display: flex;
+    flex-direction: column;
+}
+
+.selectorFechasLabel {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris600);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.selectorFechasInput {
+    width: 100%;
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    font-size: var(--cresta-textoLg);
+    font-family: var(--cresta-fuentePrincipal);
+    color: var(--cresta-gris800);
+    background-color: var(--cresta-blanco);
+    transition: border-color var(--cresta-transicion);
+    outline: none;
+}
+.selectorFechasInput:focus {
+    border-color: var(--cresta-primario);
+}
+.selectorFechasInput:disabled {
+    background-color: var(--cresta-gris100);
+    cursor: not-allowed;
+    color: var(--cresta-gris500);
+}
+.selectorFechasInput:hover:not(:disabled):not(:focus) {
+    border-color: var(--cresta-primarioClaro);
+}
+
+.selectorFechasCompacto .selectorFechasInput {
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+}
+
+.selectorFechasAyuda {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+    margin-top: var(--cresta-espacio2xs);
+}
+
+.selectorFechasNoches {
+    margin-top: var(--cresta-espacioSm);
+    text-align: center;
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+}
+
+
+/* ================================================================ */
+/* TarjetaVehiculo                                                   */
+/* ================================================================ */
+
+.tarjetaVehiculo {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radioLg);
+    border: 1px solid var(--cresta-gris200);
+    overflow: hidden;
+    transition: transform var(--cresta-transicionMedia);
+}
+.tarjetaVehiculo:hover {
+    transform: translateY(-4px);
+}
+
+.tarjetaVehiculoImagen {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: var(--cresta-gris100);
+}
+
+.tarjetaVehiculoImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--cresta-transicionLenta);
+}
+.tarjetaVehiculo:hover .tarjetaVehiculoImg {
+    transform: scale(1.03);
+}
+
+.tarjetaVehiculoPlaceholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cresta-gris400);
+}
+
+.tarjetaVehiculoPlaceholderIcono {
+    width: 4rem;
+    height: 4rem;
+}
+
+.tarjetaVehiculoPrecio {
+    position: absolute;
+    bottom: var(--cresta-espacioSm);
+    right: var(--cresta-espacioSm);
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
+    border-radius: var(--cresta-radioCompleto);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoBold);
+}
+
+.tarjetaVehiculoInfo {
+    padding: var(--cresta-espacioLg);
+}
+
+.tarjetaVehiculoNombre {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-negro);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.tarjetaVehiculoDescripcion {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+    margin-bottom: var(--cresta-espacioSm);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tarjetaVehiculoSpecs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cresta-espacioSm);
+    margin-bottom: var(--cresta-espacioMd);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+}
+
+.tarjetaVehiculoSpec {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+}
+
+.tarjetaVehiculoCta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-weight: var(--cresta-pesoSemibold);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion);
+}
+.tarjetaVehiculoCta:hover {
+    background-color: var(--cresta-primarioOscuro);
+}

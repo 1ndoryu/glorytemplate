@@ -1,6 +1,6 @@
 /**
  * SelectorFechas — Componente para seleccionar rango de fechas (recogida / devolución).
- * Estilo prominente tipo roadsurfer/yescapa.
+ * Estilos en componentes.css — sin Tailwind ni estilos inline.
  */
 
 import { useState, useCallback } from 'react';
@@ -47,7 +47,6 @@ export function SelectorFechas({
         const nuevoInicio = e.target.value;
         let nuevoFin = fechaFin;
 
-        // Si la fecha de fin es anterior a la nueva de inicio, ajustarla
         if (nuevoFin && nuevoFin <= nuevoInicio) {
             nuevoFin = sumarDias(nuevoInicio, 2);
         }
@@ -63,36 +62,34 @@ export function SelectorFechas({
 
     if (compact) {
         return (
-            <div className={`flex gap-2 items-center ${className}`}>
+            <div className={`selectorFechasCompacto ${className}`}>
                 <input
                     type="date"
                     value={fechaInicio}
                     onChange={handleInicioChange}
                     min={minimo}
                     disabled={disabled}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="selectorFechasInputCompacto"
                 />
-                <span className="text-gray-400">→</span>
+                <span className="selectorFechasFlecha">&rarr;</span>
                 <input
                     type="date"
                     value={fechaFin}
                     onChange={handleFinChange}
                     min={minFin}
                     disabled={disabled || !fechaInicio}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="selectorFechasInputCompacto"
                 />
             </div>
         );
     }
 
     return (
-        <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-6 ${className}`}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`selectorFechas ${className}`}>
+            <div className="selectorFechasGrid">
                 {/* Recogida */}
-                <div className="relative">
-                    <label className="block text-sm font-medium text-gray-600 mb-1.5">
-                        📅 Recogida
-                    </label>
+                <div className="selectorFechasCampo">
+                    <label className="selectorFechasLabel">Recogida</label>
                     <input
                         type="date"
                         value={fechaInicio}
@@ -101,21 +98,16 @@ export function SelectorFechas({
                         onBlur={() => setFocusField(null)}
                         min={minimo}
                         disabled={disabled}
-                        className={`w-full border rounded-xl px-4 py-3 text-lg transition-all
-                            ${focusField === 'inicio' ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}
-                            ${disabled ? 'bg-gray-50 cursor-not-allowed' : 'hover:border-green-300'}
-                        `}
+                        className={`selectorFechasInput ${focusField === 'inicio' ? 'selectorFechasInputFocus' : ''} ${disabled ? 'selectorFechasInputDisabled' : ''}`}
                     />
                     {fechaInicio && (
-                        <span className="text-xs text-gray-500 mt-1 block">{formatearFecha(fechaInicio)}</span>
+                        <span className="selectorFechasHint">{formatearFecha(fechaInicio)}</span>
                     )}
                 </div>
 
                 {/* Devolución */}
-                <div className="relative">
-                    <label className="block text-sm font-medium text-gray-600 mb-1.5">
-                        📅 Devolución
-                    </label>
+                <div className="selectorFechasCampo">
+                    <label className="selectorFechasLabel">Devolución</label>
                     <input
                         type="date"
                         value={fechaFin}
@@ -124,19 +116,16 @@ export function SelectorFechas({
                         onBlur={() => setFocusField(null)}
                         min={minFin}
                         disabled={disabled || !fechaInicio}
-                        className={`w-full border rounded-xl px-4 py-3 text-lg transition-all
-                            ${focusField === 'fin' ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'}
-                            ${disabled || !fechaInicio ? 'bg-gray-50 cursor-not-allowed' : 'hover:border-green-300'}
-                        `}
+                        className={`selectorFechasInput ${focusField === 'fin' ? 'selectorFechasInputFocus' : ''} ${disabled || !fechaInicio ? 'selectorFechasInputDisabled' : ''}`}
                     />
                     {fechaFin && (
-                        <span className="text-xs text-gray-500 mt-1 block">{formatearFecha(fechaFin)}</span>
+                        <span className="selectorFechasHint">{formatearFecha(fechaFin)}</span>
                     )}
                 </div>
             </div>
 
             {fechaInicio && fechaFin && (
-                <div className="mt-3 text-center text-sm text-gray-600">
+                <div className="selectorFechasNoches">
                     {calcularNoches(fechaInicio, fechaFin)} noches
                 </div>
             )}

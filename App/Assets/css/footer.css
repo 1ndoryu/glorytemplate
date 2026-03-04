@@ -1,0 +1,119 @@
+/*
+ * Cresta Campers — Footer
+ * Pie de página oscuro con navegación, legal y contacto.
+ */
+
+.piePagina {
+    background-color: var(--cresta-gris900);
+    color: var(--cresta-blanco);
+}
+
+.pieContenido {
+    max-width: var(--cresta-anchoMax);
+    margin-left: auto;
+    margin-right: auto;
+    padding: var(--cresta-espacio3xl) var(--cresta-padLateral);
+}
+
+.pieGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacio2xl);
+}
+
+@media (min-width: 768px) {
+    .pieGrid {
+        grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    }
+}
+
+/* Columna marca */
+.pieMarca {
+    max-width: 280px;
+}
+
+.pieMarcaLogo {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    margin-bottom: var(--cresta-espacioSm);
+    color: var(--cresta-blanco);
+}
+
+.pieMarcaLogo .logoLight {
+    font-weight: var(--cresta-pesoNormal);
+}
+
+.pieMarcaDescripcion {
+    color: var(--cresta-gris500);
+    font-size: var(--cresta-textoSm);
+    line-height: 1.7;
+}
+
+/* Secciones del footer */
+.pieSeccionTitulo {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--cresta-gris500);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+.pieSeccionLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+}
+
+.pieEnlace {
+    color: var(--cresta-gris400);
+    font-size: var(--cresta-textoSm);
+    transition: color var(--cresta-transicion);
+}
+.pieEnlace:hover {
+    color: var(--cresta-blanco);
+}
+
+/* Contacto */
+.pieContactoItem {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    color: var(--cresta-gris400);
+    font-size: var(--cresta-textoSm);
+    transition: color var(--cresta-transicion);
+}
+.pieContactoItem:hover {
+    color: var(--cresta-blanco);
+}
+
+.pieContactoIcono {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.pieContactoDireccion {
+    color: var(--cresta-gris500);
+    font-size: var(--cresta-textoSm);
+}
+
+/* Bottom bar */
+.pieBarra {
+    border-top: 1px solid var(--cresta-gris800);
+    margin-top: var(--cresta-espacio2xl);
+    padding-top: var(--cresta-espacioLg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+}
+
+@media (min-width: 768px) {
+    .pieBarra {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}

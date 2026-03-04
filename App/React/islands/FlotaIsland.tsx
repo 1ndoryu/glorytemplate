@@ -77,30 +77,28 @@ function FlotaCatalogo(): JSX.Element {
     }, [vehiculos]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="paginaBase">
             <Header />
 
             {/* Hero */}
-            <section className="bg-green-800 pt-24 pb-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl md:text-5xl font-bold text-white mb-3">
-                        Nuestra Flota
-                    </h1>
-                    <p className="text-green-100/70 text-lg max-w-xl">
+            <section className="heroInterior">
+                <div className="heroInteriorContenido">
+                    <h1 className="heroInteriorTitulo">Nuestra Flota</h1>
+                    <p className="heroInteriorSubtitulo">
                         Elige tu compañera de viaje. Todas nuestras furgonetas están completamente equipadas.
                     </p>
                 </div>
             </section>
 
             {/* Filtros */}
-            <section className="bg-white border-b border-gray-200 sticky top-16 md:top-20 z-30">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap gap-4 items-center justify-between">
-                    <div className="flex gap-3 items-center">
-                        <label className="text-sm text-gray-500">Plazas mín.:</label>
+            <section className="flotaFiltros">
+                <div className="flotaFiltrosContenido">
+                    <div className="flotaFiltroGrupo">
+                        <label className="flotaFiltroLabel">Plazas mín.:</label>
                         <select
                             value={filtroCapacidad}
                             onChange={e => setFiltroCapacidad(Number(e.target.value))}
-                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500"
+                            className="flotaFiltroSelect"
                         >
                             <option value={0}>Todas</option>
                             {capacidadesUnicas.map(c => (
@@ -109,12 +107,12 @@ function FlotaCatalogo(): JSX.Element {
                         </select>
                     </div>
 
-                    <div className="flex gap-3 items-center">
-                        <label className="text-sm text-gray-500">Ordenar:</label>
+                    <div className="flotaFiltroGrupo">
+                        <label className="flotaFiltroLabel">Ordenar:</label>
                         <select
                             value={ordenar}
                             onChange={e => setOrdenar(e.target.value as Ordenacion)}
-                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500"
+                            className="flotaFiltroSelect"
                         >
                             <option value="precio-asc">Precio: menor a mayor</option>
                             <option value="precio-desc">Precio: mayor a menor</option>
@@ -122,7 +120,7 @@ function FlotaCatalogo(): JSX.Element {
                             <option value="nombre">Nombre A-Z</option>
                         </select>
 
-                        <span className="text-sm text-gray-400">
+                        <span className="flotaFiltroContador">
                             {vehiculosFiltrados.length} {vehiculosFiltrados.length === 1 ? 'vehículo' : 'vehículos'}
                         </span>
                     </div>
@@ -130,28 +128,28 @@ function FlotaCatalogo(): JSX.Element {
             </section>
 
             {/* Grid */}
-            <section className="py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="flotaSeccionGrid">
+                <div className="contenedor">
                     {loading ? (
-                        <div className="flex justify-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600" />
+                        <div className="cargando">
+                            <div className="cargandoSpinner" />
                         </div>
                     ) : error ? (
-                        <div className="text-center py-20 text-red-500">
-                            <p className="text-lg">{error}</p>
+                        <div className="flotaError">
+                            <p>{error}</p>
                         </div>
                     ) : vehiculosFiltrados.length === 0 ? (
-                        <div className="text-center py-20 text-gray-400">
-                            <p className="text-lg mb-2">No se encontraron vehículos con esos filtros.</p>
+                        <div className="flotaVacioFiltros">
+                            <p className="flotaVacioFiltrosTexto">No se encontraron vehículos con esos filtros.</p>
                             <button
                                 onClick={() => { setFiltroCapacidad(0); }}
-                                className="text-green-600 hover:underline"
+                                className="flotaLimpiarFiltros"
                             >
                                 Limpiar filtros
                             </button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="flotaGridContenedor">
                             {vehiculosFiltrados.map(v => (
                                 <TarjetaVehiculo key={v.id} vehiculo={v} />
                             ))}
