@@ -237,15 +237,23 @@ export async function inicializarUploadQueue(): Promise<void> {
                 if (colaGuardada) {
                     cola = colaGuardada.filter(i => {
                         if (i.estado === 'completado') return false;
+                        /* C384b: Excluir items que agotaron reintentos (archivo inexistente u
+                         * otro error fatal). Con la nueva lógica subirArchivo retorna true en
+                         * file-not-found → estado=completado. Pero items de versiones anteriores
+                         * pueden estar como 'error' con intentos agotados en el Store. */
+                        if (i.estado === 'error' && i.intentos >= MAX_REINTENTOS) return false;
                         if (!estaEnCarpetaSync(i.rutaArchivo)) return false;
                         return true;
                     });
                     rutasEnCola = new Set(cola.map(i => claveRutaEnCola(i.rutaArchivo)));
                 }
             } catch {
-                /* Fallback: resetear desde memoria */
+                /* Fallback: resetear desde memoria solo items con reintentos disponibles.
+                 * Items que agotaron reintentos (intentos >= MAX_REINTENTOS) fueron
+                 * descartados permanentemente (archivo inexistente u otro error fatal)
+                 * y NO deben resetearse — hacerlo crea el ciclo infinito de reintentos. */
                 for (const item of cola) {
-                    if (item.estado === 'error') {
+                    if (item.estado === 'error' && item.intentos < MAX_REINTENTOS) {
                         item.estado = 'pendiente';
                         item.intentos = 0;
                         item.ultimoError = undefined;
@@ -640,13 +648,25 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
                 ? 'Archivo no encontrado (posible conflicto OneDrive/papelera)'
                 : 'Archivo no encontrado en disco';
             /*
-             * C384: Fast-track a error sin reintentos. Un archivo que no existe en disco
-             * no va a aparecer mágicamente — reintentar 3 veces es inútil y causa la
-             * persistencia de "uploads fantasma" que reaparecen en cada reinicio de la app.
+             * C384b: Retornar true (descartado) para que procesarItemUpload marque el item
+             * como 'completado' y lo saque de rutasEnCola permanentemente.
+             * Retornar false causaba que el item quedara como 'error' en el Store, y al
+             * hacer 'Sincronizar ahora' el listener reintentar-errores-upload lo reseteaba
+             * a 'pendiente' creando un ciclo infinito de reintentos fallidos.
              */
-            item.intentos = MAX_REINTENTOS;
-            console.warn('[UploadQueue] Archivo no existe, descartando (sin reintentos):', item.rutaArchivo);
-            return false;
+            actualizarEstadoSampleHistorial({
+                sampleId: 0,
+                nombreArchivo: item.nombreArchivo,
+                estado: 'error',
+                rutaLocal: item.rutaArchivo,
+                error: item.ultimoError,
+            }).catch(() => {});
+            registrarAccionHistorial({
+                tipo: 'error_subida',
+                descripcion: `Archivo no encontrado, descartado: "${item.nombreArchivo}"`,
+            }).catch(() => {});
+            console.warn('[UploadQueue] Archivo no existe, descartando permanentemente:', item.rutaArchivo);
+            return true; /* true = completado/descartado, no reintentar */
         }
 
         /* Leer el archivo de audio del disco */
