@@ -418,6 +418,7 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [Sentinel]: BienvenidaIsland eliminado (código muerto del framework, no usado en Cresta Campers)
 - [Sentinel]: ConfirmacionIsland fetch protegido con AbortController + timeout de 15s
 - [Seed]: 3 vehículos en defaultContent.php — Cresta One (Madrid, 2p, 89€/noche, manual), Cresta Duo (Barcelona, 4p, 129€, automático), Cresta Pro (Sevilla, 2p premium, 149€, km ilimitados)
+- [DefaultContentManager]: La clave para metadatos en DefaultContentManager::define() es **`'metaEntrada'`**, NO `'meta'`. PostSyncHandler usa `$definition['metaEntrada']` para `meta_input` en wp_insert_post. Usar `'meta'` crea los posts sin metadatos.
 
 ### TO-DO pendientes (post-migración)
 - [x] Crear componentes UI atómicos: `Boton`, `CampoTexto`, `CampoTextarea`, `CampoSelect` en `components/ui/`
