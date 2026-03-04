@@ -329,6 +329,12 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `syncWatcherSetup.manejarMoveLocal`: fallback estructural para move sin tracking previo → encola upload en ruta destino y crea colección destino (si no es carpeta sistema)
     - [x] Validación: `npm run build --prefix Glory/assets/react` OK; `npm run type-check --prefix Glory/assets/react` OK
 
+378. ✅ [AG-SYNC] **Bug crítico: watcher subía todos los audios de la carpeta Documentos en vez de la carpeta sync configurada**
+    - [x] `fileWatcherService.procesarEvento`: añadido guard `if (!relativa) continue` tras calcular ruta relativa — omite eventos de archivos FUERA de `carpetaBase`
+    - [x] `fileWatcherService.manejarArchivoNuevo`: corregido fallback erróneo (usaba ruta absoluta cuando path estaba fuera de base); ahora devuelve '' y guard defensivo hace early return con warning
+    - [x] `fileWatcherService` handler rename: guard `relativaDestino` antes de encolar move de audio — evita encolar archivos cuyo destino está fuera de la carpeta sync
+    - [x] Consistencia: todos los `startsWith` del archivo usan `baseNormalizada + '/'` (con barra) para evitar falsos positivos con carpetas de nombre similar
+
 ---
 
 ## Notas Compactas
@@ -458,6 +464,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 - [Sync portada endpoint]: Si `/me/sync/colecciones` omite o rompe `imagen_url`, la rehidratación del panel nunca converge. El contrato de sync debe incluir `imagen_url` tanto en colecciones como en `sinColeccion` y el cliente debe usar ese snapshot como fuente única.
 - [Watcher moves]: En Tauri FS watcher, un move/rename puede llegar como `modify.kind='name'` (sin `remove+create`). Si no se maneja explícitamente, se pierden uploads y creación de colección al mover archivos/carpetas.
+- [Watcher scope OneDrive/Windows]: En Windows con OneDrive o SMB el driver del FS puede emitir eventos para rutas FUERA de la carpeta vigilada. `procesarEvento` DEBE hacer `if (!relativa) continue` para descartar eventos con ruta relativa vacía. `manejarArchivoNuevo` DEBE usar `startsWith(base + '/')` (con barra) y hacer early return si `relativa` es `''`. Sin estos guards, archivos de toda la carpeta Documentos/OneDrive aparecen en la cola de subida.
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
