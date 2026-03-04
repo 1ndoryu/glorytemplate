@@ -167,7 +167,7 @@ class ConstructorSenales
                 JOIN {$ts} s2 ON l.{$lTarget} = s2.{$sId}
                 WHERE l.{$lUid} = :userId AND l.{$lTipo} = '{$ltSample}' AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
             ) liked_tags
-            WHERE liked_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[liked_tags.tag::text]
         ), 0))";
 
         /* Sub-factor 2: Afinidad por tags de samples reproducidos (0.25) — acotado [0,1] */
@@ -179,7 +179,7 @@ class ConstructorSenales
                 JOIN {$ts} s3 ON r.{$trSid} = s3.{$sId}
                 WHERE r.{$trUid} = :userId
             ) repro_tags
-            WHERE repro_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[repro_tags.tag::text]
         ), 0))";
 
         /* Sub-factor 3: Afinidad calculada por tiempo total escuchado (0.20) — acotado [0,1] */
@@ -191,7 +191,7 @@ class ConstructorSenales
                 JOIN {$ts} s4 ON r2.{$trSid} = s4.{$sId}
                 WHERE r2.{$trUid} = :userId AND r2.{$trDur} > 10
             ) tiempo_tags
-            WHERE tiempo_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[tiempo_tags.tag::text]
         ), 0))";
 
         /* Sub-factor 4: Afinidad por tags de samples descargados (0.15) — acotado [0,1] */
@@ -203,7 +203,7 @@ class ConstructorSenales
                 JOIN {$ts} s5 ON d.{$dSid} = s5.{$sId}
                 WHERE d.{$dUid} = :userId
             ) desc_tags
-            WHERE desc_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[desc_tags.tag::text]
         ), 0))";
 
         /* Sub-factor 5: Afinidad por reproducciones completadas (0.10) — acotado [0,1] */
@@ -215,7 +215,7 @@ class ConstructorSenales
                 JOIN {$ts} s6 ON r3.{$trSid} = s6.{$sId}
                 WHERE r3.{$trUid} = :userId AND r3.{$trComp} = true
             ) comp_tags
-            WHERE comp_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[comp_tags.tag::text]
         ), 0))";
 
         /*
@@ -231,7 +231,7 @@ class ConstructorSenales
                 JOIN {$ts} s7 ON l_d.{$lTarget} = s7.{$sId}
                 WHERE l_d.{$lUid} = :userId AND l_d.{$lTipo} = '{$ltSample}' AND l_d.{$lReacc} = '{$lrDislike}'
             ) dislike_tags
-            WHERE dislike_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[dislike_tags.tag::text]
         ), 0))";
 
         return "({$peso} * GREATEST(0, (
@@ -313,7 +313,7 @@ class ConstructorSenales
                     WHERE l_inner.{$lUid} = :userId AND l_inner.{$lTipo} = '{$ltSample}' AND l_inner.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
                 ) t GROUP BY tag ORDER BY freq DESC LIMIT 8
             ) top_tags
-            WHERE top_tags.tag = ANY({$tagsCandidato})
+            WHERE {$tagsCandidato} @> ARRAY[top_tags.tag::text]
         ), 0)";
 
         /* Tipo match: coincide con el tipo favorito del usuario */
