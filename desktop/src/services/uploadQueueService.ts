@@ -661,38 +661,25 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         /*
          * Asignar sample a colección en el servidor.
          *
-         * Dos operaciones complementarias:
+         * Si hay colección conocida en tracking:
          * 1. POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real).
-         *    Sin esto, el sample no aparece dentro de la colección en sync ni en la web.
          * 2. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
-         *    Mantiene compatibilidad con flujos legacy que leen metadata del sample.
+         *
+         * Si hay carpeta pero NO colección en tracking:
+         * Solo actualizar metadata. La colección será creada por el watcher de carpetas
+         * (procesarEventoCarpeta) y el próximo ciclo de sync reconciliará la asociación.
+         * NO crear colecciones aquí — causa race conditions y duplicados con el folder handler.
          */
-        if (item.carpetas.length > 0 && coleccionIdResuelta) {
-            /* Importar agregarSampleAColeccion dinámicamente para evitar dependencia circular */
-            try {
-                const { agregarSampleAColeccion } = await import('./syncCollectionService');
-                await agregarSampleAColeccion(coleccionIdResuelta, resultado.sample_id);
-            } catch (err) {
-                console.error('[UploadQueue] Error agregando sample a colección:', err);
-            }
-
-            const primaria = item.carpetas[0] || 'General';
-            const secundaria = item.carpetas[1] || '';
-            await moverSampleEnServidorPublico(resultado.sample_id, primaria, secundaria);
-        } else if (item.carpetas.length > 0) {
-            /* Carpeta existe pero no tiene colección registrada en tracking.
-             * Intentar crear la colección y agregar el sample. */
-            try {
-                const { crearColeccionDesdeLocal, agregarSampleAColeccion } = await import('./syncCollectionService');
-                const nombreCarpeta = item.carpetas[0] || '';
-                if (nombreCarpeta) {
-                    const colId = await crearColeccionDesdeLocal(nombreCarpeta);
-                    if (colId) {
-                        await agregarSampleAColeccion(colId, resultado.sample_id);
-                    }
+        if (item.carpetas.length > 0) {
+            if (coleccionIdResuelta) {
+                try {
+                    const { agregarSampleAColeccion } = await import('./syncCollectionService');
+                    await agregarSampleAColeccion(coleccionIdResuelta, resultado.sample_id);
+                } catch (err) {
+                    console.error('[UploadQueue] Error agregando sample a colección:', err);
                 }
-            } catch (err) {
-                console.error('[UploadQueue] Error creando colección y agregando sample:', err);
+            } else {
+                console.info('[UploadQueue] Carpeta sin colección en tracking, omitiendo asociación (se reconcilia en sync):', item.carpetas[0]);
             }
 
             const primaria = item.carpetas[0] || 'General';

@@ -59,6 +59,20 @@ const DEBOUNCE_ARCHIVO_MS = 3000;
 const carpetasRecientes = new Map<string, number>();
 const DEBOUNCE_CARPETA_MS = 5000;
 
+/*
+ * Carpetas pendientes de creacion: cuando Windows crea una carpeta nueva,
+ * la nombra "Nueva carpeta" y luego el usuario la renombra.
+ * Si disparamos onCarpetaNueva inmediatamente, creamos una coleccion con
+ * nombre incorrecto en el servidor. Delay de 3s da tiempo al rename.
+ * Si el rename llega antes del timeout, cancelamos y usamos el nombre final.
+ */
+const carpetasPendientesCreacion = new Map<string, {
+    timeout: ReturnType<typeof setTimeout>;
+    nombreOriginal: string;
+    rutaCompleta: string;
+}>();
+const DELAY_CREACION_CARPETA_MS = 3000;
+
 /* Purga periódica del cache para evitar crecimiento ilimitado en batches grandes */
 const PURGA_INTERVALO_MS = 10_000;
 const PURGA_TTL_MS = 30_000;
@@ -206,6 +220,12 @@ export async function detenerObservacion(): Promise<void> {
     }
     carpetasEliminadasPendientes.clear();
 
+    /* Limpiar creaciones de carpeta pendientes (debounce rename) */
+    for (const [, pendiente] of carpetasPendientesCreacion) {
+        clearTimeout(pendiente.timeout);
+    }
+    carpetasPendientesCreacion.clear();
+
     console.info('[FileWatcher] Observación detenida');
 }
 
@@ -267,6 +287,19 @@ function procesarEvento(
         if (esCarpetaNivel1Rename) {
             const nombreOrigen = relativaOrigen;
             const nombreNueva = relativaDestino;
+
+            /* Cancelar creacion pendiente del nombre origen.
+             * Esto cubre el caso "Nueva carpeta" → "test2" donde Windows
+             * primero emite CREATE y luego RENAME. Sin esto, la coleccion
+             * se crea con el nombre temporal. */
+            const claveOrigen = nombreOrigen.toLowerCase();
+            const pendiente = carpetasPendientesCreacion.get(claveOrigen);
+            if (pendiente) {
+                clearTimeout(pendiente.timeout);
+                carpetasPendientesCreacion.delete(claveOrigen);
+                console.info('[FileWatcher] Creacion cancelada por rename:', nombreOrigen, '→', nombreNueva);
+            }
+
             console.info('[FileWatcher] Rename carpeta (evento name):', nombreOrigen, '→', nombreNueva);
             if (onCarpetaRenombrada) {
                 onCarpetaRenombrada(nombreOrigen, nombreNueva, rutaDestino);
@@ -493,6 +526,15 @@ function procesarEventoCarpeta(
             clearTimeout(pendiente.timeout);
             carpetasEliminadasPendientes.delete(pendiente.nombre);
 
+            /* Cancelar creacion pendiente del nombre viejo (delete+create rename) */
+            const clavePendiente = pendiente.nombre.toLowerCase();
+            const creacionPendiente = carpetasPendientesCreacion.get(clavePendiente);
+            if (creacionPendiente) {
+                clearTimeout(creacionPendiente.timeout);
+                carpetasPendientesCreacion.delete(clavePendiente);
+                console.info('[FileWatcher] Creacion cancelada por rename (delete+create):', pendiente.nombre);
+            }
+
             console.info('[FileWatcher] Rename de carpeta detectado:', pendiente.nombre, '→', nombreCarpeta);
 
             if (onCarpetaRenombrada) {
@@ -509,11 +551,28 @@ function procesarEventoCarpeta(
         if (ultimoProcesada && (ahora - ultimoProcesada) < DEBOUNCE_CARPETA_MS) return;
         carpetasRecientes.set(claveCarpeta, ahora);
 
-        console.info('[FileWatcher] Carpeta nueva detectada (colección):', nombreCarpeta);
+        console.info('[FileWatcher] Carpeta nueva detectada, esperando rename:', nombreCarpeta);
 
-        if (onCarpetaNueva) {
-            onCarpetaNueva(nombreCarpeta, rutaCompleta);
-        }
+        /* Delay la creacion para dar tiempo a que Windows complete el rename.
+         * Sin esto, "Nueva carpeta" se envia al servidor antes de que el usuario
+         * termine de escribir el nombre real. */
+        const claveCreacion = nombreCarpeta.toLowerCase();
+        const pendienteExistente = carpetasPendientesCreacion.get(claveCreacion);
+        if (pendienteExistente) clearTimeout(pendienteExistente.timeout);
+
+        const timeoutCreacion = setTimeout(() => {
+            carpetasPendientesCreacion.delete(claveCreacion);
+            console.info('[FileWatcher] Carpeta nueva confirmada (sin rename):', nombreCarpeta);
+            if (onCarpetaNueva) {
+                onCarpetaNueva(nombreCarpeta, rutaCompleta);
+            }
+        }, DELAY_CREACION_CARPETA_MS);
+
+        carpetasPendientesCreacion.set(claveCreacion, {
+            timeout: timeoutCreacion,
+            nombreOriginal: nombreCarpeta,
+            rutaCompleta,
+        });
     } else if (esEventoEliminacion(tipo)) {
         /* Bufferar eliminación para detectar posible rename */
         const existente = carpetasEliminadasPendientes.get(nombreCarpeta);

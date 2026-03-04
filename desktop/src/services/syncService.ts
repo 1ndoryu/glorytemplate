@@ -546,6 +546,13 @@ async function ejecutarSync(
 
             estado.config.ultimaSync = Date.now();
             await guardarConfig();
+
+            /* Rehidratar imágenes de samples que aún no las tengan.
+             * El pipeline del backend genera imágenes async (~30-60s post-upload).
+             * Al ejecutar esto en cada ciclo de sync, convergemos eventualmente
+             * sin depender de timing del pipeline. */
+            rehidratarImagenesPendientes().catch(() => {});
+
             return { nuevos: resultado.nuevos, eliminados: 0 };
         } catch (err) {
             console.error('[Sync] Error en sync v2 (colecciones):', err);
