@@ -286,7 +286,7 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Registrar CPT `vehiculo` en `postType.php` con metas por defecto
 - [x] Registrar CPT `reserva` en `postType.php` (private, sin archive)
 - [x] Registrar opciones del tema en `opcionesTema.php` (empresa, temporadas, precios)
-- [x] Crear contenido por defecto del primer vehículo en `defaultContent.php`
+- [x] Crear contenido por defecto de 3 vehículos en `defaultContent.php` (Cresta One / Duo / Pro)
 
 ### Fase 2 — Backend (API REST)
 - [x] Crear `App/Api/VehiculoController.php` — endpoints GET de vehículos + lookup por slug
@@ -417,6 +417,7 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [Sentinel]: FQN inline eliminados de VehiculoController, StripeWebhookHandler, LimpiarReservasPendientes (usando use statements)
 - [Sentinel]: BienvenidaIsland eliminado (código muerto del framework, no usado en Cresta Campers)
 - [Sentinel]: ConfirmacionIsland fetch protegido con AbortController + timeout de 15s
+- [Seed]: 3 vehículos en defaultContent.php — Cresta One (Madrid, 2p, 89€/noche, manual), Cresta Duo (Barcelona, 4p, 129€, automático), Cresta Pro (Sevilla, 2p premium, 149€, km ilimitados)
 
 ### TO-DO pendientes (post-migración)
 - [x] Crear componentes UI atómicos: `Boton`, `CampoTexto`, `CampoTextarea`, `CampoSelect` en `components/ui/`
