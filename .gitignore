@@ -110,3 +110,6 @@ css-vars-validator/
 App1/
 .github/instructions/test.instructions.md
 .vitepress/
+dist/ 
+src-tauri/
+colors/
