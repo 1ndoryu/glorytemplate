@@ -20,7 +20,7 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
-import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync } from './syncService';
+import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync, obtenerConfigSync } from './syncService';
 import { obtenerBaseUrlSync } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
@@ -475,6 +475,21 @@ async function procesarItemUpload(
 async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
     try {
         /*
+         * Guard: descartar items cuya ruta está fuera de la carpeta de sync configurada.
+         * Esto cubre items residuales encolados antes del fix C378 del watcher scope,
+         * y previene subidas erróneas si la carpeta de sync se reconfigura entre sesiones.
+         */
+        const configSync = obtenerConfigSync();
+        if (configSync?.carpetaLocal) {
+            const carpetaNorm = configSync.carpetaLocal.replace(/\\/g, '/').toLowerCase();
+            const rutaNorm = item.rutaArchivo.replace(/\\/g, '/').toLowerCase();
+            if (!rutaNorm.startsWith(carpetaNorm)) {
+                console.warn('[UploadQueue] Item fuera de carpeta sync, descartando:', item.rutaArchivo);
+                return true; /* true = no reintentar, simplemente descartar */
+            }
+        }
+
+        /*
          * Verificación de última línea contra tracking v2: entre el momento de encolar
          * y el momento de subir puede haber pasado tiempo (backoff, semáforo, etc.).
          * Otro upload del mismo archivo podría haber terminado en ese intervalo.
@@ -586,11 +601,28 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
 
         item.sampleIdServidor = resultado.sample_id;
 
+        /*
+         * Resolver colección real a partir del nombre de carpeta local.
+         * Permite pasar coleccionId a registrarSubidaLocal para tracking correcto
+         * y agregar el sample a la tabla coleccion_samples en el servidor.
+         */
+        let coleccionIdResuelta: number | null = null;
+        if (item.carpetas.length > 0) {
+            const nombreCarpeta = item.carpetas[0] || '';
+            if (nombreCarpeta && estado.trackingModule) {
+                const coleccion = estado.trackingModule.buscarColeccionPorCarpeta(nombreCarpeta);
+                if (coleccion) {
+                    coleccionIdResuelta = coleccion.id;
+                }
+            }
+        }
+
         /* Registrar en tracking + historial para feedback persistente en panel */
         await registrarSubidaLocal(
             resultado.sample_id,
             item.rutaArchivo,
             item.nombreArchivo,
+            coleccionIdResuelta,
         );
 
         /* Rehidratación centralizada: usar snapshot /me/sync/colecciones como fuente
@@ -601,11 +633,42 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         });
 
         /*
-         * Asignar carpeta en el servidor basada en la ubicación local.
-         * PipelineAudio del backend asigna carpeta vía IA, pero la estructura
-         * local del usuario tiene prioridad. carpetas[0] = primaria, [1] = secundaria.
+         * Asignar sample a colección en el servidor.
+         *
+         * Dos operaciones complementarias:
+         * 1. POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real).
+         *    Sin esto, el sample no aparece dentro de la colección en sync ni en la web.
+         * 2. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
+         *    Mantiene compatibilidad con flujos legacy que leen metadata del sample.
          */
-        if (item.carpetas.length > 0) {
+        if (item.carpetas.length > 0 && coleccionIdResuelta) {
+            /* Importar agregarSampleAColeccion dinámicamente para evitar dependencia circular */
+            try {
+                const { agregarSampleAColeccion } = await import('./syncCollectionService');
+                await agregarSampleAColeccion(coleccionIdResuelta, resultado.sample_id);
+            } catch (err) {
+                console.error('[UploadQueue] Error agregando sample a colección:', err);
+            }
+
+            const primaria = item.carpetas[0] || 'General';
+            const secundaria = item.carpetas[1] || '';
+            await moverSampleEnServidorPublico(resultado.sample_id, primaria, secundaria);
+        } else if (item.carpetas.length > 0) {
+            /* Carpeta existe pero no tiene colección registrada en tracking.
+             * Intentar crear la colección y agregar el sample. */
+            try {
+                const { crearColeccionDesdeLocal, agregarSampleAColeccion } = await import('./syncCollectionService');
+                const nombreCarpeta = item.carpetas[0] || '';
+                if (nombreCarpeta) {
+                    const colId = await crearColeccionDesdeLocal(nombreCarpeta);
+                    if (colId) {
+                        await agregarSampleAColeccion(colId, resultado.sample_id);
+                    }
+                }
+            } catch (err) {
+                console.error('[UploadQueue] Error creando colección y agregando sample:', err);
+            }
+
             const primaria = item.carpetas[0] || 'General';
             const secundaria = item.carpetas[1] || '';
             await moverSampleEnServidorPublico(resultado.sample_id, primaria, secundaria);

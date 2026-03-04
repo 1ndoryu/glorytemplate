@@ -12,7 +12,7 @@
 import { esDesktop, estaOnline } from './desktopService';
 
 /* Tipos extensibles de operacion. Agregar aqui nuevos tipos sin modificar logica base. */
-type TipoOperacion = 'reproduccion' | 'like' | 'follow' | 'descarga' | 'mover_carpeta' | 'soft_delete' | 'crear_coleccion';
+type TipoOperacion = 'reproduccion' | 'like' | 'follow' | 'descarga' | 'mover_carpeta' | 'soft_delete' | 'crear_coleccion' | 'agregar_sample_coleccion';
 
 export interface OperacionPendiente {
     id: string;

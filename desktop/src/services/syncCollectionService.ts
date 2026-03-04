@@ -684,6 +684,53 @@ export async function moverSampleEntreColecciones(
 }
 
 /**
+ * Agrega un sample a una colección en el servidor via POST /colecciones/{id}/samples.
+ *
+ * Diferencia con moverSampleEnServidorPublico (PUT carpeta):
+ * - PUT /me/coleccionados/{id}/carpeta → solo actualiza metadata del sample (label carpeta)
+ * - POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real)
+ *
+ * Sin esta llamada, el sample no aparece dentro de la colección en sync ni en la web.
+ */
+export async function agregarSampleAColeccion(
+    coleccionId: number,
+    sampleId: number,
+): Promise<boolean> {
+    if (!estaOnline()) {
+        encolarOperacion({
+            tipo: 'agregar_sample_coleccion',
+            endpoint: `${obtenerBaseUrlSync()}/kamples/v1/colecciones/${coleccionId}/samples`,
+            method: 'POST',
+            body: { sampleId },
+            claveDuplicacion: `agregar_sample_${coleccionId}_${sampleId}`,
+        });
+        console.info('[SyncCollection] Agregar sample a colección encolado para cuando haya conexión:', sampleId, '→ col:', coleccionId);
+        return true;
+    }
+
+    try {
+        const baseUrl = obtenerBaseUrlSync();
+        const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}/samples`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sampleId }),
+        });
+
+        if (!resp.ok) {
+            const body = await resp.json().catch(() => ({}));
+            console.error('[SyncCollection] Error agregando sample a colección:', coleccionId, sampleId, resp.status, body);
+            return false;
+        }
+
+        console.info('[SyncCollection] Sample agregado a colección:', sampleId, '→ col:', coleccionId);
+        return true;
+    } catch (err) {
+        console.error('[SyncCollection] Error en request agregar sample a colección:', err);
+        return false;
+    }
+}
+
+/**
  * Crear una colección en el servidor a partir de carpeta local nueva.
  * Retorna el ID de la colección creada, o null si falla.
  */

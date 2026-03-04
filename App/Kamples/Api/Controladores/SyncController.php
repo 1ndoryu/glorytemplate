@@ -70,20 +70,22 @@ class SyncController
                     'id'      => (int) $col['id'],
                     'nombre'  => $col['nombre'],
                     'samples' => array_map(fn(array $s): array => [
-                        'id'      => (int) $s['id'],
-                        'titulo'  => $s['titulo'],
-                        'formato' => $s['formato'],
-                        'tamano'  => (int) ($s['tamano'] ?? 0),
+                        'id'         => (int) $s['id'],
+                        'titulo'     => $s['titulo'],
+                        'formato'    => $s['formato'],
+                        'tamano'     => (int) ($s['tamano'] ?? 0),
+                        'imagen_url' => $s['imagen_url'] ?? null,
                     ], $samples ?? []),
                 ];
             }, $coleccionesRaw);
 
             /* Normalizar sinColeccion (ya viene plano del repo) */
             $sinColeccionNorm = array_map(fn(array $s): array => [
-                'id'      => (int) $s['id'],
-                'titulo'  => $s['titulo'],
-                'formato' => $s['formato'],
-                'tamano'  => (int) ($s['tamano'] ?? 0),
+                'id'         => (int) $s['id'],
+                'titulo'     => $s['titulo'],
+                'formato'    => $s['formato'],
+                'tamano'     => (int) ($s['tamano'] ?? 0),
+                'imagen_url' => $s['imagen_url'] ?? null,
             ], $sinColeccion);
 
             return new \WP_REST_Response([
