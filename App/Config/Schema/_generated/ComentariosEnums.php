@@ -10,4 +10,10 @@ final class ComentariosEnums
     /* Valores para columna "tipo" */
     const TIPO_SAMPLE = 'sample';
     const TIPO_PUBLICACION = 'publicacion';
+
+    /* Valores para columna "moderacion_estado" */
+    const MODERACION_PENDIENTE = 'pendiente';
+    const MODERACION_REVISION = 'revision';
+    const MODERACION_APROBADO = 'aprobado';
+    const MODERACION_RECHAZADO = 'rechazado';
 }
