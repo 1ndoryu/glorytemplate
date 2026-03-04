@@ -217,6 +217,7 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 - **Deep Fix Sync** 5 bugs criticos: encoding mojibake (41 instancias), estado congelado 'sincronizando', sync manual con auto-sync pausado, feedback uploads, polling race + rename loop.
 - **Sync Optimizacion 1000+** Semaforo concurrencia, persistencia debounce, Map O(1) indices, config panel UI, papelera 30d, borrado bidireccional rate-limited. 17 archivos, +2135 lin.
 - **Config Window MPA** `config.html`+`config.tsx` entry point independiente, VentanaConfigSync.tsx frameless, useConfiguracionSyncVentana.ts standalone, pre-creada en tauri.conf.json (evita deadlock WebviewWindowBuilder en Windows), onFocusChanged recarga config.
+- **C379 Fix sync: imagen_url + coleccion_samples + guard carpeta** SyncController.php incluye `imagen_url` en normalización. `agregarSampleAColeccion` (POST /colecciones/{id}/samples) creada en syncCollectionService. uploadQueueService: resolver coleccionId real desde tracking → agregar a coleccion_samples post-upload + crear colección si no existe. Guard pre-upload descarta items fuera de carpeta sync configurada. `offlineQueueService`: tipo `agregar_sample_coleccion` agregado.
 
 ---
 
@@ -463,6 +464,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Dedup timestamp]: El prefijo `${Date.now()}_` de la papelera rompe comparaciones por nombre. Normalizar con `nombre.replace(/^\d{13,}_/, '')` antes de dedup.
 - [Idempotency uploads]: Sin idempotency key server-side, retry de upload = duplicado. Patrón: `X-Idempotency-Key` header + check-before-insert en backend.
 - [Sync portada endpoint]: Si `/me/sync/colecciones` omite o rompe `imagen_url`, la rehidratación del panel nunca converge. El contrato de sync debe incluir `imagen_url` tanto en colecciones como en `sinColeccion` y el cliente debe usar ese snapshot como fuente única.
+- [Sync upload→coleccion]: `moverSampleEnServidorPublico` (PUT /me/coleccionados/{id}/carpeta) solo actualiza `samples.metadata.carpeta_primaria` — NO inserta en `coleccion_samples`. Para que un sample aparezca dentro de una colección en sync/web, se DEBE hacer POST `/colecciones/{colId}/samples` (`ColeccionesCrudController::agregarSample`). Sin ambas llamadas, el sample queda en `sinColeccion` en el siguiente sync.
 - [Watcher moves]: En Tauri FS watcher, un move/rename puede llegar como `modify.kind='name'` (sin `remove+create`). Si no se maneja explícitamente, se pierden uploads y creación de colección al mover archivos/carpetas.
 - [Watcher scope OneDrive/Windows]: En Windows con OneDrive o SMB el driver del FS puede emitir eventos para rutas FUERA de la carpeta vigilada. `procesarEvento` DEBE hacer `if (!relativa) continue` para descartar eventos con ruta relativa vacía. `manejarArchivoNuevo` DEBE usar `startsWith(base + '/')` (con barra) y hacer early return si `relativa` es `''`. Sin estos guards, archivos de toda la carpeta Documentos/OneDrive aparecen en la cola de subida.
 
