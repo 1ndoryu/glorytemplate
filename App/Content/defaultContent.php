@@ -12,7 +12,7 @@ DefaultContentManager::define('vehiculo', [
         'slugDefault' => 'cresta-one',
         'titulo'      => 'Cresta One',
         'contenido'   => 'Nuestra primera furgoneta camper, completamente equipada para tu aventura. Cocina, nevera, cama doble, calefacción estacionaria y mucho más. Perfecta para parejas o familias pequeñas que buscan libertad en la carretera.',
-        'meta'        => [
+        'metaEntrada' => [
             '_vehiculo_nombre'               => 'Cresta One',
             '_vehiculo_descripcion_corta'     => 'Furgoneta camper equipada para 2 personas. Cocina, nevera, calefacción y todo lo que necesitas.',
             '_vehiculo_capacidad'             => 2,
@@ -45,7 +45,7 @@ DefaultContentManager::define('vehiculo', [
         'slugDefault' => 'cresta-duo',
         'titulo'      => 'Cresta Duo',
         'contenido'   => 'La opción familiar de Cresta Campers. Con cuatro plazas para dormir, transmisión automática y el equipamiento más completo del catálogo, la Cresta Duo es perfecta para grupos y familias que no quieren renunciar a ninguna comodidad. Basada en un Volkswagen Crafter de gran capacidad, ofrece espacio para moverse con total libertad.',
-        'meta'        => [
+        'metaEntrada' => [
             '_vehiculo_nombre'               => 'Cresta Duo',
             '_vehiculo_descripcion_corta'     => 'Camper familiar XL para 4 personas. Automática, cocina completa, literas y baño interior.',
             '_vehiculo_capacidad'             => 4,
@@ -80,7 +80,7 @@ DefaultContentManager::define('vehiculo', [
         'slugDefault' => 'cresta-pro',
         'titulo'      => 'Cresta Pro',
         'contenido'   => 'La experiencia premium de Cresta Campers. Basada en un Mercedes-Benz Sprinter de última generación, la Cresta Pro combina el tamaño compacto ideal para parejas con acabados de lujo: colchón viscoelástico, cocina de inducción, climatización independiente y sistema de entretenimiento integrado. Para quienes buscan la carretera sin renunciar al confort de un hotel.',
-        'meta'        => [
+        'metaEntrada' => [
             '_vehiculo_nombre'               => 'Cresta Pro',
             '_vehiculo_descripcion_corta'     => 'Camper premium para 2 personas. Mercedes Sprinter con acabados de lujo, climatización y cocina de inducción.',
             '_vehiculo_capacidad'             => 2,
