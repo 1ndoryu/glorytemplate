@@ -101,7 +101,15 @@ const rutasEncolando = new Set<string>();
  * de que ninguno lo añada. Este Set previene que dos uploads del mismo
  * contenido estén en vuelo al mismo tiempo.
  */
-const hashesEnVuelo = new Set<string>(); 
+const hashesEnVuelo = new Set<string>();
+
+/*
+ * Guard de ruta en vuelo: complementa hashesEnVuelo para cubrir el caso
+ * donde hash es null (error de FS, archivo bloqueado, OneDrive).
+ * Sin esto, dos items del mismo archivo con hash null pueden uploadear
+ * en paralelo porque hashesEnVuelo no los cubre.
+ */
+const rutasEnVuelo = new Set<string>();
 
 function normalizarRutaCola(ruta: string): string {
     return ruta.replace(/\\/g, '/');
@@ -310,8 +318,27 @@ async function encolarArchivoInterno(
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
     if (hash && hashesConocidos.has(hash)) {
-        console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
-        return false;
+        /*
+         * Hash conocido, pero verificar si el archivo sigue en tracking.
+         * hashesConocidos es write-only: nunca evicta hashes de archivos eliminados
+         * del servidor. Si tracking ya no tiene este archivo (fue borrado del servidor
+         * y purgado en sincronizarColecciones), evictar el hash stale y proceder
+         * con la subida normalmente. Esto corrige falsos duplicados.
+         */
+        if (estado.trackingModule) {
+            const enTracking = estado.trackingModule.buscarArchivoPorRuta(rutaArchivo);
+            if (!enTracking || enTracking.syncDeshabilitado) {
+                console.info('[UploadQueue] Hash conocido pero archivo no está en tracking, evictando hash stale:', nombreNormalizado);
+                hashesConocidos.delete(hash);
+                /* Continuar con encolamiento normal */
+            } else {
+                console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
+                return false;
+            }
+        } else {
+            console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
+            return false;
+        }
     }
 
     const item: ItemUploadCola = {
@@ -507,6 +534,8 @@ async function procesarItemUpload(
  * 7. Guardar hash inmediatamente (no esperar fin de cola)
  */
 async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
+    const rutaClave = claveRutaEnCola(item.rutaArchivo);
+
     try {
         /* Guard: descartar items cuya ruta está fuera de la carpeta de sync.
          * Usa función centralizada estaEnCarpetaSync (normaliza separadores + casing). */
@@ -516,13 +545,27 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         }
 
         /*
+         * Guard de ruta en vuelo: previene que dos uploads del mismo archivo
+         * estén en progreso simultáneamente. Complementa hashesEnVuelo para
+         * cubrir el caso donde hash es null (error de FS, OneDrive lock).
+         */
+        if (rutasEnVuelo.has(rutaClave)) {
+            console.info('[UploadQueue] Ruta en vuelo (upload paralelo), omitiendo:', item.nombreArchivo);
+            return true;
+        }
+        rutasEnVuelo.add(rutaClave);
+
+        /*
          * Verificación de última línea contra tracking v2: entre el momento de encolar
          * y el momento de subir puede haber pasado tiempo (backoff, semáforo, etc.).
          * Otro upload del mismo archivo podría haber terminado en ese intervalo.
+         *
+         * SOLO lookup por ruta (no por nombre): buscarArchivoPorNombre es demasiado
+         * amplio y causa falsos positivos cuando archivos con el mismo nombre existen
+         * en colecciones diferentes (ej: kick.wav en "808" y en "Drums").
          */
         if (estado.trackingModule) {
-            const enTracking = estado.trackingModule.buscarArchivoPorRuta(item.rutaArchivo)
-                ?? estado.trackingModule.buscarArchivoPorNombre(item.nombreArchivo);
+            const enTracking = estado.trackingModule.buscarArchivoPorRuta(item.rutaArchivo);
             if (enTracking && !enTracking.syncDeshabilitado) {
                 console.info('[UploadQueue] Duplicado detectado en tracking pre-upload, omitiendo:', item.nombreArchivo);
                 item.sampleIdServidor = enTracking.sampleId;
@@ -712,10 +755,11 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         console.error('[UploadQueue] Error subiendo archivo:', item.nombreArchivo, err);
         return false;
     } finally {
-        /* Liberar hash en vuelo siempre, éxito o fallo */
+        /* Liberar guards en vuelo siempre, éxito o fallo */
         if (item.hashParcial) {
             hashesEnVuelo.delete(item.hashParcial);
         }
+        rutasEnVuelo.delete(rutaClave);
     }
 }
 
@@ -1028,5 +1072,15 @@ export async function limpiarCompletados(): Promise<void> {
     }
     cola = cola.filter(i => i.estado !== 'completado');
     await guardarCola();
+}
+
+/*
+ * Limpia todos los hashes conocidos. Necesario para force-resync:
+ * sin esto, archivos previamente subidos se rechazan como duplicados
+ * incluso después de resetear el tracking (ej: borrado del servidor + re-subida).
+ */
+export async function limpiarHashesConocidos(): Promise<void> {
+    hashesConocidos.clear();
+    await guardarHashes();
 }
 

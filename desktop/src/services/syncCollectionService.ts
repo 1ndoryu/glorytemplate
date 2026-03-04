@@ -832,12 +832,30 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
 /**
  * Renombrar una colección en el servidor.
  * Se llama cuando el watcher detecta RENAME de una carpeta mapeada.
+ *
+ * Si estamos offline, encola la operación para reintento automático.
+ * Si la petición falla por error transitorio, también encola.
  */
 export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNombre: string): Promise<boolean> {
-    if (!estaOnline()) return false;
+    const nombreNormalizado = normalizarNombreColeccion(nuevoNombre);
+
+    if (!estaOnline()) {
+        /*
+         * Encolar para reintento cuando se recupere conexión.
+         * Sin esto, renames offline se pierden silenciosamente.
+         */
+        await encolarOperacion({
+            tipo: 'renombrar_coleccion',
+            endpoint: `${obtenerBaseUrlSync()}/kamples/v1/colecciones/${coleccionId}`,
+            method: 'PUT',
+            body: { nombre: nombreNormalizado },
+            claveDuplicacion: `rename-col-${coleccionId}`,
+        });
+        console.info('[SyncCollection] Rename encolado (offline):', coleccionId, '→', nombreNormalizado);
+        return false;
+    }
 
     try {
-        const nombreNormalizado = normalizarNombreColeccion(nuevoNombre);
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}`, {
             method: 'PUT',
@@ -847,6 +865,19 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
 
         if (!resp.ok) {
             console.error('[SyncCollection] Error renombrando colección en servidor:', resp.status);
+            /*
+             * Error transitorio (500, 429, timeout): encolar para reintento.
+             * Solo fallos permanentes (400, 404) se descartan definitivamente.
+             */
+            if (resp.status >= 500 || resp.status === 429) {
+                await encolarOperacion({
+                    tipo: 'renombrar_coleccion',
+                    endpoint: `${baseUrl}/kamples/v1/colecciones/${coleccionId}`,
+                    method: 'PUT',
+                    body: { nombre: nombreNormalizado },
+                    claveDuplicacion: `rename-col-${coleccionId}`,
+                });
+            }
             return false;
         }
 
@@ -862,6 +893,14 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
         return true;
     } catch (err) {
         console.error('[SyncCollection] Error renombrando colección en servidor:', err);
+        /* Error de red: encolar para reintento */
+        await encolarOperacion({
+            tipo: 'renombrar_coleccion',
+            endpoint: `${obtenerBaseUrlSync()}/kamples/v1/colecciones/${coleccionId}`,
+            method: 'PUT',
+            body: { nombre: nombreNormalizado },
+            claveDuplicacion: `rename-col-${coleccionId}`,
+        });
         return false;
     }
 }

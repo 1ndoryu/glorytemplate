@@ -147,11 +147,51 @@ export async function inicializarTracking(): Promise<void> {
     } catch {
         /* Store no disponible — usar defaults */
     }
+
+    /*
+     * Listener cross-window: cuando otra ventana limpia el historial,
+     * actualizar la copia in-memory para que el próximo persistir()
+     * no sobreescriba el Store con datos viejos.
+     */
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        void listen('limpiar-historial-samples', () => {
+            datos.historialSamples = [];
+            indiceSampleHistorial.clear();
+            indiceNombreSampleHistorial.clear();
+        });
+    } catch {
+        /* Entorno sin Tauri */
+    }
 }
 
 async function persistir(): Promise<void> {
     if (enLote || !storeCache) return;
     try {
+        /*
+         * Merge cross-window: preservar imagenUrl de entradas que otra ventana actualizó.
+         * En Tauri MPA, cada ventana tiene su propia copia de `datos` en memoria.
+         * Si la ventana main escribió imagenUrl via rehidratarImagenesPendientes y luego
+         * la ventana sync-panel persiste su copia (sin imagenUrl), se pierde la imagen.
+         * Solución: leer el Store antes de escribir y mergear campos que solo la otra
+         * ventana pudo haber actualizado.
+         */
+        const almacenado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+        if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
+            const mapaImagenes = new Map<number, string>();
+            for (const e of almacenado.historialSamples) {
+                if (e.sampleId > 0 && e.imagenUrl) {
+                    mapaImagenes.set(e.sampleId, e.imagenUrl);
+                }
+            }
+            for (const e of datos.historialSamples) {
+                if (e.sampleId > 0 && !e.imagenUrl) {
+                    const url = mapaImagenes.get(e.sampleId);
+                    if (url) e.imagenUrl = url;
+                }
+            }
+        }
+
         await storeCache.set(STORE_KEY_TRACKING, datos);
         await storeCache.save();
     } catch (err) {
@@ -479,10 +519,12 @@ export function obtenerHistorialSamples(limite = 50): EntradaHistorialSample[] {
  * El Store de Tauri 2.0 comparte el backend entre ventanas, así que store.get()
  * retorna datos frescos sin leer de disco.
  *
- * Throttle interno de 5s para no sobrecargar el IPC con lecturas cada 1.2s.
+ * Throttle interno de 2s: balance entre frescura de datos y carga IPC.
+ * Reducido de 5s para que imágenes rehidratadas por la ventana main
+ * aparezcan más rápido en el sync panel.
  */
 let ultimaRecargaStore = 0;
-const RECARGA_STORE_INTERVALO_MS = 5000;
+const RECARGA_STORE_INTERVALO_MS = 2000;
 
 export async function recargarHistorialDesdeStore(): Promise<void> {
     const ahora = Date.now();
@@ -507,6 +549,18 @@ export async function limpiarHistorialSamples(): Promise<void> {
     indiceSampleHistorial.clear();
     indiceNombreSampleHistorial.clear();
     await persistir();
+
+    /*
+     * Notificar a otras ventanas Tauri (ej: main window) para que limpien
+     * su copia in-memory del historial. Sin esto, la ventana main persiste
+     * su datos.historialSamples viejo y sobreescribe el Store limpio.
+     */
+    try {
+        const { emit } = await import('@tauri-apps/api/event');
+        await emit('limpiar-historial-samples', {});
+    } catch {
+        /* Entorno sin Tauri — ignorar */
+    }
 }
 
 /* Historial legacy (append-only, mantenido para compatibilidad con SincPanelTabs) */

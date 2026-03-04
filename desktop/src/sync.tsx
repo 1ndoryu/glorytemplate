@@ -110,6 +110,31 @@ async function inicializar(): Promise<void> {
 
     /* Configurar API con token ya en memoria + inicializar sync service */
     configurarApiDesktop();
+
+    /*
+     * Exponer origen del servidor para que VentanaSincPanel resuelva URLs de imágenes.
+     * En la web, PHP inyecta __KAMPLES_CONFIG__. En desktop, configurarApiDesktop()
+     * inyecta GLORY_CONTEXT, pero obtenerOrigenServidorSync() primero busca en
+     * __KAMPLES_CONFIG__. Además, en dev GLORY_CONTEXT.apiUrl es relativo ("/wp-json")
+     * lo cual falla en Tauri (resuelve contra tauri://localhost).
+     * Solución: derivar el origen del servidor desde GLORY_CONTEXT o SERVIDOR_PROD.
+     */
+    const gloryCtx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;
+    const apiUrl = gloryCtx?.apiUrl ?? '';
+    let origenServidor = '';
+
+    if (/^https?:\/\//i.test(apiUrl)) {
+        /* URL absoluta (producción): extraer origin */
+        try { origenServidor = new URL(apiUrl).origin; } catch { /* fallback abajo */ }
+    }
+
+    /* Fallback: en dev, construir desde host conocido */
+    if (!origenServidor) {
+        origenServidor = import.meta.env.DEV ? 'http://glory.local' : 'https://kamples.com';
+    }
+
+    window.__KAMPLES_CONFIG__ = { serverUrl: `${origenServidor}/wp-json` };
+
     await inicializarSyncService();
 
     /* Marcar panel como abierto para que el hook cargue config/datos */

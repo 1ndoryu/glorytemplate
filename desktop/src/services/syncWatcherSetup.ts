@@ -547,12 +547,28 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     const coleccion = trackingModule.buscarColeccionPorCarpeta(nombreAnterior);
                     if (coleccion) {
                         console.info('[Sync] Carpeta renombrada → renombrar colección:', coleccion.id, nombreAnterior, '→', nombreNuevo);
-                        colMod.renombrarColeccionEnServidor(coleccion.id, nombreNuevo).catch(err => {
-                            console.error('[Sync] Error renombrando colección:', err);
-                        });
-                        trackingModule.actualizarNombreColeccion(coleccion.id, nombreNuevo, nombreNuevo).catch(err => {
-                            console.error('[Sync] Error actualizando nombre local de colección:', err);
-                        });
+                        /*
+                         * Await el rename en servidor: renombrarColeccionEnServidor ya actualiza
+                         * tracking internamente tras éxito. NO duplicar la escritura aquí.
+                         * El fire-and-forget anterior causaba renames perdidos silenciosamente
+                         * y double-write en tracking con nombre no sanitizado.
+                         */
+                        colMod.renombrarColeccionEnServidor(coleccion.id, nombreNuevo)
+                            .then(exito => {
+                                if (!exito) {
+                                    /*
+                                     * Falló o se encoló offline. Actualizar tracking local de todas
+                                     * formas para que la UI refleje el nombre nuevo de la carpeta.
+                                     * Cuando la operación se sincronice, el servidor se alineará.
+                                     */
+                                    trackingModule.actualizarNombreColeccion(coleccion.id, nombreNuevo, nombreNuevo).catch(err => {
+                                        console.error('[Sync] Error actualizando nombre local de colección:', err);
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                console.error('[Sync] Error renombrando colección:', err);
+                            });
                     } else {
                         console.info('[Sync] Carpeta renombrada sin colección asociada → crear:', nombreNuevo);
                         colMod.crearColeccionDesdeLocal(nombreNuevo).catch(err => {

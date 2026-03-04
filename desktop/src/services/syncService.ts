@@ -801,6 +801,19 @@ export async function forzarResync(
         });
     }
 
+    /*
+     * Limpiar hashes de uploads conocidos: sin esto, archivos previamente subidos
+     * se rechazan como duplicados incluso después de resetear tracking.
+     * hashesConocidos es write-only por diseño (monotónico), así que necesita
+     * limpieza explícita cuando el tracking se resetea.
+     */
+    try {
+        const { limpiarHashesConocidos } = await import('./uploadQueueService');
+        await limpiarHashesConocidos();
+    } catch {
+        /* uploadQueueService no disponible — continuar sin limpiar hashes */
+    }
+
     estado.indiceArchivos = [];
     await guardarIndice();
 
