@@ -195,3 +195,37 @@
 .tarjetaVehiculoCta:hover {
     background-color: var(--cresta-primarioOscuro);
 }
+
+/* Botones globales — movidos desde home.css para uso global */
+.botonPrimario {
+    display: inline-block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacio2xl);
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoSemibold);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+    text-align: center;
+}
+.botonPrimario:hover {
+    background-color: var(--cresta-primarioOscuro);
+    transform: translateY(-1px);
+}
+
+.botonSecundario {
+    display: inline-block;
+    padding: var(--cresta-espacioSm) var(--cresta-espacio2xl);
+    background-color: var(--cresta-blanco);
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoBase);
+    font-weight: var(--cresta-pesoSemibold);
+    border: 2px solid var(--cresta-primario);
+    border-radius: var(--cresta-radioXl);
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion), transform var(--cresta-transicion);
+    text-align: center;
+}
+.botonSecundario:hover {
+    background-color: var(--cresta-primarioFondo);
+    transform: translateY(-1px);
+}

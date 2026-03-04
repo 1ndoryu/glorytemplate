@@ -86,7 +86,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                                 onClick={() => setActiva(i)}
                                 className={`galeriaThumbnail${i === activa ? ' galeriaThumbnailActiva' : ''}`}
                             >
-                                <img src={img.url} alt={img.alt} className="galeriaThumbnailImg" />
+                                <img src={img.url} alt={img.alt} className="galeriaThumbnailImg" loading="lazy" />
                             </Boton>
                         ))}
                     </div>

@@ -14,6 +14,7 @@ use App\Api\StripeWebhookHandler;
 use App\Admin\ReservaAdmin;
 use App\Admin\VehiculoAdmin;
 use App\Admin\DashboardWidget;
+use App\Admin\ExportReservas;
 use App\Config\ReactContext;
 use App\Seo\CrestaSeo;
 
@@ -27,6 +28,7 @@ StripeWebhookHandler::register();
 ReservaAdmin::register();
 VehiculoAdmin::register();
 DashboardWidget::register();
+ExportReservas::register();
 
 // Registrar contexto React + SEO
 ReactContext::register();

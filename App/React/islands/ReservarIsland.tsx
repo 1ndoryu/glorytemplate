@@ -113,7 +113,7 @@ export function ReservarIsland(): JSX.Element {
                             <div className="reservarVehiculoResumen">
                                 {vehiculoSeleccionado.imagen && (
                                     <img src={vehiculoSeleccionado.imagen} alt={vehiculoSeleccionado.nombre}
-                                        className="reservarVehiculoImg" />
+                                        className="reservarVehiculoImg" loading="lazy" />
                                 )}
                                 <div>
                                     <h3 className="reservarVehiculoNombre">{vehiculoSeleccionado.nombre}</h3>
