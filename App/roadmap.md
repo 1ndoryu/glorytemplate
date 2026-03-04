@@ -410,9 +410,13 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [CSS]: Todos los rgba() hardcodeados reemplazados por variables semánticas en header.css, home.css, base.css
 - [Header]: header.css usa clases directas (no parent-scoped). El componente aplica `cabeceraNavEnlaceClaro` etc. según estado
 - [TS]: tsconfig tiene `noUnusedLocals` — variables con prefijo `_` tampoco pasan, hay que eliminar directamente
-- [React]: Componentes UI atómicos en `App/React/components/ui/` (Boton, CampoTexto, CampoTextarea, CampoSelect) — todo input/button debe usar estos
-- [React]: Hooks de lógica separados: useContacto (form + empresa), useReservarFlujo (8 useState extraídos de ReservarIsland)
+- [React]: Componentes UI atómicos en `App/React/components/ui/` (Boton, CampoTexto, CampoTextarea, CampoSelect, CampoFecha) — todo input/button debe usar estos
+- [React]: Hooks de lógica separados: useContacto (form + empresa), useReservarFlujo (8 useState extraídos de ReservarIsland), useCalendarioDisponibilidad (4 useState + callbacks extraídos)
 - [Vite]: Plugin @tailwindcss/vite eliminado. Solo plugin react(). Imports CSS con sintaxis `@import './file.css'` (no url())
+- [Sentinel]: Todas las barras decorativas eliminadas de pages.php, componentes.css, environment.php, opcionesTema.php
+- [Sentinel]: FQN inline eliminados de VehiculoController, StripeWebhookHandler, LimpiarReservasPendientes (usando use statements)
+- [Sentinel]: BienvenidaIsland eliminado (código muerto del framework, no usado en Cresta Campers)
+- [Sentinel]: ConfirmacionIsland fetch protegido con AbortController + timeout de 15s
 
 ### TO-DO pendientes (post-migración)
 - [x] Crear componentes UI atómicos: `Boton`, `CampoTexto`, `CampoTextarea`, `CampoSelect` en `components/ui/`
@@ -422,6 +426,12 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [x] Eliminar barras decorativas de opcionesTema.php
 - [x] Extraer hooks: useContacto, useReservarFlujo
 - [x] Reescribir ContactoIsland, ReservarIsland, VehiculoDetalleIsland, ConfirmacionIsland con componentes atómicos
+- [x] Reescribir Galeria (6 buttons), CalendarioDisponibilidad (3 buttons+hook), SelectorFechas (4 inputs), FlotaIsland (2 selects+1 button), HomeIsland (1 button+key fix), Header (1 button) con componentes atómicos
+- [x] Limpiar barras decorativas en pages.php, componentes.css, environment.php
+- [x] Extraer FQN inline en VehiculoController, StripeWebhookHandler, LimpiarReservasPendientes
+- [x] AbortController+timeout en ConfirmacionIsland fetch
+- [x] Eliminar BienvenidaIsland (código muerto)
+- [x] Corregir VarSense: --cresta-radioMd, font-size hardcoded, gap 2px, border-radius 50%
 - [ ] Mover `.botonPrimario`/`.botonSecundario` de `home.css` a `componentes.css`
 - [ ] Redactar contenido de texto para todas las páginas
 - [ ] Redactar textos legales (RGPD, cookies, condiciones)
