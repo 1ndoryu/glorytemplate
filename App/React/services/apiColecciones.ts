@@ -6,7 +6,7 @@
 
 import { apiGet, apiPost, apiPut, apiDelete, apiPostFormData } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
-import type { Coleccion, SampleResumen, UsuarioResumen } from '../types';
+import type { Coleccion, ColeccionResumen, SampleResumen, UsuarioResumen } from '../types';
 
 /*
  * Normalizador: convierte respuesta raw de PostgreSQL (snake_case)
@@ -23,6 +23,8 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
     totalSamples: (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number,
     creadoAt: (raw.created_at ?? raw.creadoAt ?? '') as string,
     actualizadoAt: (raw.updated_at ?? raw.actualizadoAt ?? '') as string,
+    parentId: (raw.parent_id ?? raw.parentId ?? null) as number | null,
+    tags: Array.isArray(raw.tags) ? raw.tags as string[] : [],
     usuario: raw.username ? {
         id: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
         username: raw.username as string,
@@ -30,21 +32,80 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
         avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
     } as UsuarioResumen : raw.usuario as Coleccion['usuario'],
     samples: raw.samples as Coleccion['samples'],
+    subcolecciones: Array.isArray(raw.subcolecciones)
+        ? (raw.subcolecciones as Record<string, unknown>[]).map(normalizarColeccionResumen)
+        : undefined,
     contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
+});
+
+/* Normalizador para resumen de subcolección */
+const normalizarColeccionResumen = (raw: Record<string, unknown>): ColeccionResumen => ({
+    id: (raw.id ?? 0) as number,
+    nombre: (raw.nombre ?? '') as string,
+    imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
+    totalSamples: (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number,
+    esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
+    parentId: (raw.parent_id ?? raw.parentId ?? null) as number | null,
+    tags: Array.isArray(raw.tags) ? raw.tags as string[] : [],
 });
 
 /* Normalizar array de colecciones */
 const normalizarLista = (data: unknown[]): Coleccion[] =>
     Array.isArray(data) ? data.map(d => normalizarColeccion(d as Record<string, unknown>)) : [];
 
-/* Listar colecciones del usuario (o de otro si se pasa usuarioId) — C169: con búsqueda */
-export const listarColecciones = async (usuarioId?: number, busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {
+/* C388: Respuesta de listar colecciones con tags frecuentes */
+export interface RespuestaListarColecciones {
+    colecciones: Coleccion[];
+    tagsFrecuentes: string[];
+}
+
+/* Tipo raw backend: { colecciones: [...], tags_frecuentes: [...] } */
+interface ListarRaw {
+    colecciones: unknown[];
+    tags_frecuentes: string[];
+}
+
+/*
+ * Listar colecciones del usuario (o de otro si se pasa usuarioId) — C169: con búsqueda.
+ * C388: Devuelve colecciones + tags_frecuentes del backend.
+ */
+export const listarColecciones = async (
+    usuarioId?: number,
+    busqueda?: string
+): Promise<RespuestaApi<RespuestaListarColecciones>> => {
     const params: Record<string, string | number | boolean | undefined> = {};
     if (usuarioId) params.usuario_id = usuarioId;
     if (busqueda) params.busqueda = busqueda;
-    const resp = await apiGet<Coleccion[]>('/colecciones', params);
-    if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
-    return resp;
+
+    const resp = await apiGet<ListarRaw>('/colecciones', params);
+
+    if (resp.ok && resp.data) {
+        /*
+         * Backend retorna { data: { colecciones: [...], tags_frecuentes: [...] } }
+         * apiGet extrae json.data → resp.data = { colecciones, tags_frecuentes }
+         * Fallback: si resp.data es array directamente (compat con formato anterior)
+         */
+        const raw = resp.data;
+        const coleccionesRaw = Array.isArray(raw) ? raw : (raw.colecciones ?? []);
+        const tagsFrecuentes = Array.isArray(raw) ? [] : (raw.tags_frecuentes ?? []);
+
+        return {
+            ok: true,
+            data: {
+                colecciones: normalizarLista(coleccionesRaw as unknown[]),
+                tagsFrecuentes,
+            },
+            error: null,
+            status: resp.status,
+        };
+    }
+
+    return {
+        ok: false,
+        data: null,
+        error: resp.error,
+        status: resp.status,
+    };
 };
 
 /* Colecciones públicas para explorar — C169: con búsqueda */
@@ -63,13 +124,18 @@ export const obtenerColeccion = async (id: number): Promise<RespuestaApi<Colecci
     return resp;
 };
 
-/* Crear colección */
+/* Crear colección (opcionalmente como subcolección con parentId) */
 export const crearColeccion = async (datos: {
     nombre: string;
     descripcion?: string;
     esPublica?: boolean;
+    parentId?: number;
 }): Promise<RespuestaApi<Coleccion>> => {
-    return apiPost<Coleccion>('/colecciones', datos);
+    const body: Record<string, unknown> = { nombre: datos.nombre };
+    if (datos.descripcion !== undefined) body.descripcion = datos.descripcion;
+    if (datos.esPublica !== undefined) body.publica = datos.esPublica;
+    if (datos.parentId !== undefined) body.parent_id = datos.parentId;
+    return apiPost<Coleccion>('/colecciones', body);
 };
 
 /* Actualizar colección */

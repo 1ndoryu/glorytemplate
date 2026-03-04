@@ -38,6 +38,7 @@ class ColeccionesCrudController
         $nombre = sanitize_text_field($body['nombre'] ?? '');
         $descripcion = sanitize_textarea_field($body['descripcion'] ?? '');
         $publica = (bool) ($body['publica'] ?? true);
+        $parentId = isset($body['parent_id']) ? (int) $body['parent_id'] : null;
 
         if (empty($nombre)) {
             return new \WP_REST_Response(['code' => 'nombre_requerido', 'message' => 'El nombre es obligatorio'], 400);
@@ -50,7 +51,15 @@ class ColeccionesCrudController
             if ($errorDesc) return Validador::respuestaError($errorDesc);
         }
 
-        $id = ColeccionesRepository::crear($userId, $nombre, $descripcion, $publica);
+        /* parentId: la validación de profundidad y propiedad se delega al repository */
+        $id = ColeccionesRepository::crear($userId, $nombre, $descripcion, $publica, $parentId);
+
+        if ($id === null && $parentId !== null) {
+            return new \WP_REST_Response([
+                'code' => 'parent_invalido',
+                'message' => 'El padre no existe, no pertenece al usuario o excede la profundidad máxima (2 niveles)',
+            ], 400);
+        }
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
         } catch (\Throwable $e) {

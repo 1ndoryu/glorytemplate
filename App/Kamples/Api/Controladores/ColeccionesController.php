@@ -97,7 +97,7 @@ class ColeccionesController
         ]);
     }
 
-    /* C169: Soporte busqueda en mis colecciones */
+    /* C169: Soporte busqueda en mis colecciones. C388: tags_frecuentes. */
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
@@ -107,7 +107,17 @@ class ColeccionesController
         $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
         $colecciones = ColeccionesRepository::listarDelUsuario($userId, $busqueda);
 
-        return new \WP_REST_Response(['data' => $colecciones], 200);
+        /* C388: Tags más frecuentes (solo si no hay búsqueda activa) */
+        $tagsFrecuentes = empty($busqueda)
+            ? ColeccionesRepository::tagsFrecuentesDelUsuario($userId)
+            : [];
+
+        return new \WP_REST_Response([
+            'data' => [
+                'colecciones' => $colecciones,
+                'tags_frecuentes' => $tagsFrecuentes,
+            ],
+        ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::listar', [
                 'error' => $e->getMessage(),
@@ -178,6 +188,14 @@ class ColeccionesController
 
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
         $coleccion['total_items'] = \count($samples);
+
+        /* Subcolecciones (solo para colecciones raíz) */
+        $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
+        if ($parentId === null) {
+            $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
+        } else {
+            $coleccion['subcolecciones'] = [];
+        }
 
         /* C193: Fallback avatar propietario */
         $coleccion[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(

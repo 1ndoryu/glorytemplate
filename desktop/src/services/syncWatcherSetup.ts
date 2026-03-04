@@ -95,13 +95,38 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
                     const subEntradas = await readDir(rutaCarpeta);
                     for (const sub of subEntradas) {
                         if (!sub.name) continue;
+
+                        /*
+                         * C387: Nivel 2 — subdirectorio dentro de colección = subcolección.
+                         * Escanear audio dentro de subcarpetas (max profundidad 2).
+                         */
+                        if (sub.isDirectory) {
+                            if (CARPETAS_EXCLUIDAS_SCAN.has(sub.name.toLowerCase())) continue;
+                            if (CARPETAS_SISTEMA_SYNC.has(sub.name.toLowerCase())) continue;
+
+                            const rutaSubcarpeta = await join(rutaCarpeta, sub.name);
+                            try {
+                                const subSubEntradas = await readDir(rutaSubcarpeta);
+                                for (const archivo of subSubEntradas) {
+                                    if (!archivo.name) continue;
+                                    const extSub = archivo.name.split('.').pop()?.toLowerCase() ?? '';
+                                    if (!EXTENSIONES_AUDIO_SCAN.has(extSub)) continue;
+                                    const rutaArchivo = await join(rutaSubcarpeta, archivo.name);
+                                    await procesarArchivo(rutaArchivo, archivo.name, [entrada.name, sub.name]);
+                                }
+                            } catch (errSub2) {
+                                console.warn('[Sync] Error escaneando subcarpeta nivel 2:', rutaSubcarpeta, errSub2);
+                            }
+                            continue;
+                        }
+
                         const ext = sub.name.split('.').pop()?.toLowerCase() ?? '';
                         if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
                         const rutaArchivo = await join(rutaCarpeta, sub.name);
                         await procesarArchivo(rutaArchivo, sub.name, [entrada.name]);
                     }
                 } catch (errSub) {
-                    console.warn('[Sync] Error escaneando subcarpeta:', rutaCarpeta, errSub);
+                    console.warn('[Sync] Error escaneando carpeta colección:', rutaCarpeta, errSub);
                 }
             } else {
                 const ext = entrada.name.split('.').pop()?.toLowerCase() ?? '';
@@ -572,7 +597,7 @@ export async function inicializarSyncBidireccional(): Promise<void> {
     if (!config.carpetaLocal || !config.sincronizacionActiva) return;
 
     try {
-        const { registrarCallbacks, registrarCallbacksCarpeta, iniciarObservacion } = await import('./fileWatcherService');
+        const { registrarCallbacks, registrarCallbacksCarpeta, registrarCallbacksSubcarpeta, iniciarObservacion } = await import('./fileWatcherService');
         const { inicializarUploadQueue, encolarArchivo } = await import('./uploadQueueService');
 
         /* Inicializar papelera y purgar expirados */
@@ -705,6 +730,63 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                                 console.error('[Sync] Error en fallback rename de colección:', err);
                             }
                         })();
+                    }
+                },
+            );
+
+            /*
+             * C387: Callbacks de subcarpetas para sincronizar subcolecciones.
+             * Se disparan cuando se crea o renombra una carpeta de nivel 2
+             * (dentro de una colección existente).
+             */
+            registrarCallbacksSubcarpeta(
+                (nombreSub: string, carpetaPadre: string, _rutaCompleta: string) => {
+                    if (CARPETAS_SISTEMA_SYNC.has(nombreSub.toLowerCase())) return;
+                    if (!trackingModule) {
+                        console.warn('[Sync] Subcarpeta nueva ignorada (sin tracking):', nombreSub);
+                        return;
+                    }
+
+                    const padre = trackingModule.buscarColeccionPorCarpeta(carpetaPadre);
+                    if (!padre) {
+                        console.warn('[Sync] Subcarpeta nueva ignorada (padre no encontrado):', carpetaPadre, '/', nombreSub);
+                        return;
+                    }
+
+                    console.info('[Sync] Subcarpeta nueva → crear subcolección:', nombreSub, 'en', carpetaPadre, '(padreId:', padre.id, ')');
+                    colMod.crearColeccionDesdeLocal(nombreSub, padre.id).catch(err => {
+                        console.error('[Sync] Error creando subcolección desde subcarpeta local:', err);
+                    });
+                },
+                (nombreAnterior: string, nombreNuevo: string, carpetaPadre: string, _rutaNueva: string) => {
+                    if (!trackingModule) return;
+                    if (CARPETAS_SISTEMA_SYNC.has(nombreNuevo.toLowerCase())) return;
+
+                    const sub = trackingModule.buscarSubcoleccion(carpetaPadre, nombreAnterior);
+                    if (sub) {
+                        console.info('[Sync] Subcarpeta renombrada → renombrar subcolección:', sub.id, nombreAnterior, '→', nombreNuevo);
+                        colMod.renombrarColeccionEnServidor(sub.id, nombreNuevo)
+                            .then(exito => {
+                                if (!exito && trackingModule) {
+                                    trackingModule.actualizarNombreColeccion(sub.id, nombreNuevo, nombreNuevo).catch(err => {
+                                        console.error('[Sync] Error actualizando nombre local de subcolección:', err);
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                console.error('[Sync] Error renombrando subcolección:', err);
+                            });
+                    } else {
+                        /* Padre podría no estar en tracking aún — crear la subcolección como nueva */
+                        const padre = trackingModule.buscarColeccionPorCarpeta(carpetaPadre);
+                        if (padre) {
+                            console.info('[Sync] Subcarpeta renombrada sin sub local → crear nueva:', nombreNuevo, 'en padreId:', padre.id);
+                            colMod.crearColeccionDesdeLocal(nombreNuevo, padre.id).catch(err => {
+                                console.error('[Sync] Error creando subcolección tras rename:', err);
+                            });
+                        } else {
+                            console.warn('[Sync] Subcarpeta renombrada ignorada (padre y sub no encontrados):', carpetaPadre, '/', nombreAnterior);
+                        }
                     }
                 },
             );

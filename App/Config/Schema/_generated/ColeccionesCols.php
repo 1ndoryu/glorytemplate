@@ -11,6 +11,7 @@ final class ColeccionesCols
 
     const ID = 'id';
     const USUARIO_ID = 'usuario_id';
+    const PARENT_ID = 'parent_id';
     const NOMBRE = 'nombre';
     const DESCRIPCION = 'descripcion';
     const IMAGEN_URL = 'imagen_url';
@@ -21,5 +22,5 @@ final class ColeccionesCols
     const PORTADA_URL = 'portada_url';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'usuario_id', 'nombre', 'descripcion', 'imagen_url', 'publica', 'total_samples', 'created_at', 'updated_at', 'portada_url'];
+    const TODAS = ['id', 'usuario_id', 'parent_id', 'nombre', 'descripcion', 'imagen_url', 'publica', 'total_samples', 'created_at', 'updated_at', 'portada_url'];
 }

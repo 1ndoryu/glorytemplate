@@ -86,6 +86,7 @@ class SyncRepository extends BaseRepository
             SELECT
                 c." . ColeccionesCols::ID . ",
                 c." . ColeccionesCols::NOMBRE . ",
+                c." . ColeccionesCols::PARENT_ID . ",
                 COALESCE(spc.samples_json, '[]'::json) as samples_json
             FROM {$tc} c
             LEFT JOIN samples_por_coleccion spc ON spc." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "

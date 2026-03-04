@@ -56,7 +56,7 @@ export const useModalSeleccionColeccion = () => {
                 if (!activo) return;
 
                 if (respTodas.ok && respTodas.data) {
-                    let ordenadas = respTodas.data;
+                    let ordenadas = respTodas.data.colecciones;
 
                     if (respRelevantes?.ok && respRelevantes.data?.length) {
                         const idsRelevantes = new Set(respRelevantes.data.map(c => c.id));

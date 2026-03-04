@@ -53,6 +53,7 @@ export interface SampleSync {
 export interface ColeccionSync {
     id: number;
     nombre: string;
+    parent_id: number | null;
     samples: SampleSync[];
 }
 
@@ -136,17 +137,18 @@ function encolarCreacionColeccion(nombreNormalizado: string): void {
     });
 }
 
-async function registrarColeccionNuevaLocal(id: number, nombreNormalizado: string): Promise<void> {
+async function registrarColeccionNuevaLocal(id: number, nombreNormalizado: string, parentId: number | null = null): Promise<void> {
     await registrarColeccion({
         id,
         nombre: nombreNormalizado,
         carpetaLocal: sanitizarNombreCarpeta(nombreNormalizado),
         creadaLocalmente: true,
+        parentId,
     });
 
     await registrarAccion({
         tipo: 'creado',
-        descripcion: `Colección "${nombreNormalizado}" creada desde carpeta local`,
+        descripcion: `Colección "${nombreNormalizado}" creada desde carpeta local${parentId ? ` (sub de #${parentId})` : ''}`,
         coleccionId: id,
     });
 }
@@ -309,8 +311,15 @@ export async function sincronizarColecciones(
 
     const nombresUsados = new Set<string>();
 
-    /* Sincronizar colecciones del servidor → carpetas locales */
-    for (const colServer of datosServidor.colecciones) {
+    /*
+     * Separar colecciones raíz y subcolecciones.
+     * Procesar raíz primero para que las subcarpetas tengan un padre creado.
+     */
+    const coleccionesRaiz = datosServidor.colecciones.filter(c => c.parent_id === null || c.parent_id === undefined);
+    const subcolecciones = datosServidor.colecciones.filter(c => c.parent_id !== null && c.parent_id !== undefined);
+
+    /* Sincronizar colecciones raíz del servidor → carpetas locales */
+    for (const colServer of coleccionesRaiz) {
         const nombreNormalizado = normalizarNombreColeccion(colServer.nombre);
         if (nombreNormalizado !== colServer.nombre && !coleccionesNormalizadasEnSesion.has(colServer.id)) {
             await renombrarColeccionEnServidor(colServer.id, nombreNormalizado);
@@ -342,12 +351,56 @@ export async function sincronizarColecciones(
                 nombre: colServer.nombre,
                 carpetaLocal: nombreFinal,
                 creadaLocalmente: false,
+                parentId: null,
             });
 
             await registrarAccion({
                 tipo: 'creado',
                 descripcion: `Carpeta creada para colección "${colServer.nombre}"`,
                 coleccionId: colServer.id,
+            });
+        }
+    }
+
+    /* Sincronizar subcolecciones del servidor → subcarpetas locales */
+    for (const subServer of subcolecciones) {
+        const padreLocal = obtenerColeccion(subServer.parent_id!);
+        if (!padreLocal) {
+            console.warn('[SyncCollection] Padre no encontrado para subcolección:', subServer.nombre, 'parent_id:', subServer.parent_id);
+            continue;
+        }
+
+        const nombreNormalizado = normalizarNombreColeccion(subServer.nombre);
+        const subLocal = obtenerColeccion(subServer.id);
+
+        if (subLocal) {
+            if (subLocal.nombre !== subServer.nombre) {
+                /* Renombrar subcarpeta si cambió el nombre en servidor */
+                const carpetaPadre = await join(carpetaBase, padreLocal.carpetaLocal);
+                await manejarRenombreColeccion(carpetaPadre, subLocal, subServer.nombre);
+            }
+        } else {
+            /* Subcolección nueva — crear subcarpeta dentro de la carpeta padre */
+            const nombreCarpeta = sanitizarNombreCarpeta(nombreNormalizado);
+            const carpetaPadre = await join(carpetaBase, padreLocal.carpetaLocal);
+            const rutaSubcarpeta = await join(carpetaPadre, nombreCarpeta);
+
+            try {
+                await mkdir(rutaSubcarpeta, { recursive: true });
+            } catch { /* puede existir */ }
+
+            await registrarColeccion({
+                id: subServer.id,
+                nombre: subServer.nombre,
+                carpetaLocal: nombreCarpeta,
+                creadaLocalmente: false,
+                parentId: subServer.parent_id!,
+            });
+
+            await registrarAccion({
+                tipo: 'creado',
+                descripcion: `Subcarpeta creada para subcolección "${subServer.nombre}" en "${padreLocal.nombre}"`,
+                coleccionId: subServer.id,
             });
         }
     }
@@ -433,7 +486,17 @@ export async function sincronizarColecciones(
     for (const colServer of datosServidor.colecciones) {
         const colLocal = obtenerColeccion(colServer.id);
         if (!colLocal) continue;
-        const carpetaColeccion = await join(carpetaBase, colLocal.carpetaLocal);
+
+        /* Resolver ruta de carpeta: subcolecciones viven dentro de la carpeta del padre */
+        let carpetaColeccion: string;
+        if (colLocal.parentId !== null) {
+            const padreLocal = obtenerColeccion(colLocal.parentId);
+            if (!padreLocal) continue;
+            carpetaColeccion = await join(carpetaBase, padreLocal.carpetaLocal, colLocal.carpetaLocal);
+        } else {
+            carpetaColeccion = await join(carpetaBase, colLocal.carpetaLocal);
+        }
+
         for (const sample of colServer.samples) {
             tareasDescarga.push({
                 sample,
@@ -743,10 +806,10 @@ export async function agregarSampleAColeccion(
  * Crear una colección en el servidor a partir de carpeta local nueva.
  * Retorna el ID de la colección creada, o null si falla.
  */
-export async function crearColeccionDesdeLocal(nombre: string): Promise<number | null> {
+export async function crearColeccionDesdeLocal(nombre: string, parentId: number | null = null): Promise<number | null> {
     try {
         const nombreNormalizado = normalizarNombreColeccion(nombre);
-        const claveColeccion = nombreNormalizado.toLowerCase();
+        const claveColeccion = `${parentId ?? 'raiz'}_${nombreNormalizado.toLowerCase()}`;
 
         if (!estaOnline()) {
             encolarCreacionColeccion(nombreNormalizado);
@@ -758,8 +821,9 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
         const coleccionesLocales = todasLasColecciones();
         const carpetaEsperada = sanitizarNombreCarpeta(nombreNormalizado).toLowerCase();
         const yaExiste = coleccionesLocales.find(c =>
-            c.nombre.toLowerCase() === nombreNormalizado.toLowerCase()
-            || c.carpetaLocal.toLowerCase() === carpetaEsperada,
+            c.parentId === parentId
+            && (c.nombre.toLowerCase() === nombreNormalizado.toLowerCase()
+                || c.carpetaLocal.toLowerCase() === carpetaEsperada),
         );
         if (yaExiste) {
             console.info('[SyncCollection] Colección ya existe en tracking, omitiendo POST:', nombreNormalizado, '→ id:', yaExiste.id);
@@ -772,17 +836,19 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
         const promesa = (async (): Promise<number | null> => {
             const existenteServidor = await buscarColeccionServidorPorNombre(nombreNormalizado);
             if (existenteServidor) {
-                await registrarColeccionNuevaLocal(existenteServidor, nombreNormalizado);
+                await registrarColeccionNuevaLocal(existenteServidor, nombreNormalizado, parentId);
                 return existenteServidor;
             }
 
             const baseUrl = obtenerBaseUrlSync();
+            const bodyCrear: Record<string, unknown> = { nombre: nombreNormalizado, descripcion: '', publica: false };
+            if (parentId !== null) bodyCrear.parent_id = parentId;
 
             for (let intento = 1; intento <= MAX_REINTENTOS_CREAR_COLECCION; intento++) {
                 const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre: nombreNormalizado, descripcion: '', publica: false }),
+                    body: JSON.stringify(bodyCrear),
                 });
 
                 if (resp.ok) {
@@ -790,7 +856,7 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
                     const id = json?.data?.id ?? json?.id;
                     if (id) {
                         const idNum = Number(id);
-                        await registrarColeccionNuevaLocal(idNum, nombreNormalizado);
+                        await registrarColeccionNuevaLocal(idNum, nombreNormalizado, parentId);
                         return idNum;
                     }
                     return null;
@@ -799,7 +865,7 @@ export async function crearColeccionDesdeLocal(nombre: string): Promise<number |
                 if (resp.status === 409) {
                     const idExistente = await buscarColeccionServidorPorNombre(nombreNormalizado);
                     if (idExistente) {
-                        await registrarColeccionNuevaLocal(idExistente, nombreNormalizado);
+                        await registrarColeccionNuevaLocal(idExistente, nombreNormalizado, parentId);
                         return idExistente;
                     }
                     return null;

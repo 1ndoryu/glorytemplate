@@ -36,6 +36,7 @@ export interface ColeccionLocal {
     nombre: string;                 /* nombre de la colección en server */
     carpetaLocal: string;           /* nombre de la carpeta en disco (sanitizado) */
     creadaLocalmente: boolean;      /* true si fue creada como carpeta local primero */
+    parentId: number | null;        /* null = raíz, number = subcolección (max 2 niveles) */
 }
 
 export type TipoAccionHistorial =
@@ -376,6 +377,28 @@ export async function registrarColeccion(coleccion: ColeccionLocal): Promise<voi
 export async function eliminarColeccion(id: number): Promise<void> {
     delete datos.colecciones[id];
     await persistir();
+}
+
+/*
+ * Buscar subcolección por nombre de carpeta dentro de una colección padre.
+ * carpetaPadre: nombre de carpeta del padre (nivel 1).
+ * nombreSub: nombre de subcarpeta (nivel 2).
+ */
+export function buscarSubcoleccion(carpetaPadre: string, nombreSub: string): ColeccionLocal | null {
+    const padre = buscarColeccionPorCarpeta(carpetaPadre);
+    if (!padre) return null;
+    const busqueda = nombreSub.toLowerCase();
+    for (const col of Object.values(datos.colecciones)) {
+        if (col.parentId !== padre.id) continue;
+        if (col.carpetaLocal.toLowerCase() === busqueda) return col;
+        if (col.nombre.toLowerCase() === busqueda) return col;
+    }
+    return null;
+}
+
+/* Listar subcolecciones de un padre por ID */
+export function subcoleccionesDePadre(parentId: number): ColeccionLocal[] {
+    return Object.values(datos.colecciones).filter(c => c.parentId === parentId);
 }
 
 export async function actualizarNombreColeccion(id: number, nombre: string, carpetaLocal: string): Promise<void> {

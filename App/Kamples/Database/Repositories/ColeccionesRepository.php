@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\ConstructorSenales;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 
 class ColeccionesRepository extends BaseRepository
 {
@@ -64,12 +65,16 @@ class ColeccionesRepository extends BaseRepository
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
     /*
-     * Listar colecciones del usuario con conteo de items y búsqueda opcional.
+     * Listar colecciones del usuario con conteo de items, tags agregados y búsqueda opcional.
+     * Incluye subcolecciones anidadas en campo 'subcolecciones' para cada padre.
+     * Si $busqueda está activo, busca en todo el árbol (padres + sub) y devuelve plano.
+     * C388: Cada colección incluye 'tags' (array de tags distintos de sus samples).
      */
     public static function listarDelUsuario(int $userId, string $busqueda = ''): array
     {
         $t = ColeccionesCols::TABLA;
         $tcs = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
 
         $params = ['userId' => $userId];
         $where = "c." . ColeccionesCols::USUARIO_ID . " = :userId";
@@ -81,10 +86,115 @@ class ColeccionesRepository extends BaseRepository
             $params['busqueda'] = '%' . $busqueda . '%';
         }
 
-        return static::consultar(
-            "SELECT c.*, (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items
+        /*
+         * C388: Subquery para tags agregados de cada colección.
+         * UNNEST + DISTINCT sobre los tags de samples activos vinculados.
+         */
+        $sampleId = SamplesCols::ID;
+        $sampleTags = SamplesCols::TAGS;
+        $sampleEstado = SamplesCols::ESTADO;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
+        $colId = ColeccionesCols::ID;
+
+        $todas = static::consultar(
+            "SELECT c.*,
+                    (SELECT COUNT(*) FROM {$tcs} cs WHERE cs.{$csColeccionId} = c.{$colId}) as total_items,
+                    COALESCE(
+                        (SELECT array_agg(DISTINCT tag_val)
+                         FROM {$tcs} cs2
+                         JOIN {$ts} s ON cs2.{$csSampleId} = s.{$sampleId}
+                         CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+                         WHERE cs2.{$csColeccionId} = c.{$colId}
+                           AND s.{$sampleEstado} = '{$estadoActivo}'),
+                        ARRAY[]::TEXT[]
+                    ) as tags
              FROM {$t} c WHERE {$where} ORDER BY c." . ColeccionesCols::UPDATED_AT . " DESC",
             $params
+        );
+
+        /* PG devuelve tags como string '{tag1,tag2}' — parsear a array PHP */
+        foreach ($todas as &$row) {
+            $row['tags'] = NormalizadorSample::pgArrayToPhp($row['tags'] ?? '{}');
+        }
+        unset($row);
+
+        /* Si hay búsqueda, devolver plano (incluye padres + sub que matcheen) */
+        if (!empty($busqueda)) {
+            return $todas;
+        }
+
+        /* Agrupar: padres (parent_id IS NULL) con sus subcolecciones anidadas */
+        $padres = [];
+        $subsPorPadre = [];
+        foreach ($todas as $col) {
+            $parentId = $col[ColeccionesCols::PARENT_ID] ?? null;
+            if ($parentId === null) {
+                $padres[] = $col;
+            } else {
+                $subsPorPadre[(int) $parentId][] = $col;
+            }
+        }
+
+        foreach ($padres as &$padre) {
+            $id = (int) $padre[ColeccionesCols::ID];
+            $padre['subcolecciones'] = $subsPorPadre[$id] ?? [];
+        }
+        unset($padre);
+
+        return $padres;
+    }
+
+    /*
+     * C388: Tags más frecuentes del usuario (agregados de sus colecciones).
+     * Devuelve array de strings ordenados por frecuencia descendente.
+     */
+    public static function tagsFrecuentesDelUsuario(int $userId, int $limite = 15): array
+    {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+
+        $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $sampleId = SamplesCols::ID;
+        $sampleTags = SamplesCols::TAGS;
+        $sampleEstado = SamplesCols::ESTADO;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        $colUsuarioId = ColeccionesCols::USUARIO_ID;
+        $colId = ColeccionesCols::ID;
+
+        $rows = static::consultar(
+            "SELECT tag_val, COUNT(*) as frecuencia
+             FROM {$tcs} cs
+             JOIN {$t} c ON cs.{$csColeccionId} = c.{$colId}
+             JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
+             CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+             WHERE c.{$colUsuarioId} = :userId
+               AND s.{$sampleEstado} = '{$estadoActivo}'
+             GROUP BY tag_val
+             ORDER BY frecuencia DESC
+             LIMIT :limite",
+            ['userId' => $userId, 'limite' => $limite]
+        );
+
+        return array_column($rows, 'tag_val');
+    }
+
+    /*
+     * Listar subcolecciones de un padre específico.
+     * Retorna subcolecciones con conteo de items.
+     */
+    public static function listarSubcolecciones(int $parentId): array
+    {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT c.*, (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items
+             FROM {$t} c WHERE c." . ColeccionesCols::PARENT_ID . " = :parentId ORDER BY c." . ColeccionesCols::NOMBRE . " ASC",
+            ['parentId' => $parentId]
         );
     }
 
@@ -235,26 +345,76 @@ class ColeccionesRepository extends BaseRepository
     /*
      * Crear colección y retornar ID.
      * Incluye dedup: si ya existe una colección con el mismo nombre
-     * (case-insensitive) para el mismo usuario, retorna el ID existente.
-     * TO-DO: Agregar UNIQUE constraint (usuario_id, LOWER(nombre)) para dedup atómico.
+     * (case-insensitive) para el mismo usuario dentro del mismo padre, retorna el ID existente.
+     * parentId: null = colección raíz, int = subcolección.
+     * Validación de profundidad máxima (2 niveles) se realiza aquí:
+     * si el padre ya tiene parent_id, se rechaza la creación.
      */
-    public static function crear(int $userId, string $nombre, string $descripcion, bool $publica): ?int
+    public static function crear(int $userId, string $nombre, string $descripcion, bool $publica, ?int $parentId = null): ?int
     {
         $t = ColeccionesCols::TABLA;
 
-        /* Verificar si ya existe una colección con el mismo nombre para este usuario */
+        /* Validar profundidad: si parentId dado, verificar que el padre no sea subcolección */
+        if ($parentId !== null) {
+            $padre = static::consultarUno(
+                "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::USUARIO_ID
+                . " FROM {$t} WHERE " . ColeccionesCols::ID . " = :parentId",
+                ['parentId' => $parentId]
+            );
+
+            if (!$padre) {
+                return null;
+            }
+
+            /* Padre debe pertenecer al mismo usuario */
+            if ((int) $padre[ColeccionesCols::USUARIO_ID] !== $userId) {
+                return null;
+            }
+
+            /* Máximo 2 niveles: padre no puede tener parent_id */
+            if (!empty($padre[ColeccionesCols::PARENT_ID])) {
+                return null;
+            }
+        }
+
+        /* Dedup: verificar existencia por (usuario, nombre, padre) — case-insensitive */
+        $parentCondition = $parentId !== null
+            ? ColeccionesCols::PARENT_ID . " = :parentId"
+            : ColeccionesCols::PARENT_ID . " IS NULL";
+
+        $params = ['userId' => $userId, 'nombre' => $nombre];
+        if ($parentId !== null) {
+            $params['parentId'] = $parentId;
+        }
+
         $existente = static::consultarUno(
-            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::USUARIO_ID . " = :userId AND LOWER(" . ColeccionesCols::NOMBRE . ") = LOWER(:nombre) LIMIT 1",
-            ['userId' => $userId, 'nombre' => $nombre]
+            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::USUARIO_ID . " = :userId AND LOWER(" . ColeccionesCols::NOMBRE . ") = LOWER(:nombre) AND {$parentCondition} LIMIT 1",
+            $params
         );
         if ($existente) {
             return (int) $existente[ColeccionesCols::ID];
         }
 
+        $insertParams = [
+            'userId' => $userId,
+            'nombre' => $nombre,
+            'desc' => $descripcion,
+            ColeccionesCols::PUBLICA => $publica ? 'true' : 'false',
+        ];
+
+        if ($parentId !== null) {
+            $insertParams['parentId'] = $parentId;
+            return static::insertar(
+                "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
+                 VALUES (:userId, :parentId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
+                $insertParams
+            );
+        }
+
         return static::insertar(
             "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
              VALUES (:userId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
-            ['userId' => $userId, 'nombre' => $nombre, 'desc' => $descripcion, ColeccionesCols::PUBLICA => $publica ? 'true' : 'false']
+            $insertParams
         );
     }
 

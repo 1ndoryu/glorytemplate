@@ -39,6 +39,7 @@ export interface IColaProcesamientoIa {
 export interface IColecciones {
   id: number
   usuarioId: number
+  parentId: number | null
   nombre: string
   descripcion: string
   imagenUrl: string | null
@@ -141,7 +142,7 @@ export interface IPublicaciones {
   createdAt: string
   repostId: number | null
   imagenesMetadata: Record<string, unknown>
-  moderacionEstado: string
+  moderacionEstado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado'
   moderacionDetalle: Record<string, unknown>
   moderacionRazon: string | null
   updatedAt: string
@@ -315,6 +316,7 @@ export const ColeccionesCols = {
   TABLA: 'colecciones',
   ID: 'id',
   USUARIO_ID: 'usuario_id',
+  PARENT_ID: 'parent_id',
   NOMBRE: 'nombre',
   DESCRIPCION: 'descripcion',
   IMAGEN_URL: 'imagen_url',
@@ -597,7 +599,11 @@ export const LikesEnums = {
 
 export const PublicacionesEnums = {
   TIPO_SOCIAL: 'social',
-  TIPO_SAMPLE: 'sample'
+  TIPO_SAMPLE: 'sample',
+  MODERACION_ESTADO_PENDIENTE: 'pendiente',
+  MODERACION_ESTADO_REVISION: 'revision',
+  MODERACION_ESTADO_APROBADO: 'aprobado',
+  MODERACION_ESTADO_RECHAZADO: 'rechazado'
 } as const
 
 export const ReportesDuplicadosEnums = {

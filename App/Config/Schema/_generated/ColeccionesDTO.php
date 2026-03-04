@@ -10,6 +10,7 @@ final class ColeccionesDTO
     public function __construct(
         public readonly int $id,
         public readonly int $usuarioId,
+        public readonly ?int $parentId,
         public readonly string $nombre,
         public readonly string $descripcion,
         public readonly ?string $imagenUrl,
@@ -29,6 +30,7 @@ final class ColeccionesDTO
         return new self(
             id: (int) ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en colecciones", 'colecciones', 'id')),
             usuarioId: (int) ($row['usuario_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'usuario_id' ausente en colecciones", 'colecciones', 'usuario_id')),
+            parentId: isset($row['parent_id']) ? (int) $row['parent_id'] : null,
             nombre: ($row['nombre'] ?? throw new \Glory\Exception\SchemaException("Columna 'nombre' ausente en colecciones", 'colecciones', 'nombre')),
             descripcion: ($row['descripcion'] ?? ''),
             imagenUrl: isset($row['imagen_url']) ? $row['imagen_url'] : null,
@@ -56,6 +58,7 @@ final class ColeccionesDTO
         return [
             'id' => $this->id,
             'usuario_id' => $this->usuarioId,
+            'parent_id' => $this->parentId,
             'nombre' => $this->nombre,
             'descripcion' => $this->descripcion,
             'imagen_url' => $this->imagenUrl,

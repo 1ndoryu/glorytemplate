@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
-import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2 } from 'lucide-react';
+import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
@@ -17,6 +17,8 @@ import '../../styles/componentes/tarjetaColeccion.css';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
+    /** C388: Indica visualmente que es subcolección (tiene parentId) */
+    esSubcoleccion?: boolean;
     onEditar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
     className?: string;
@@ -24,6 +26,7 @@ interface TarjetaColeccionProps {
 
 export const TarjetaColeccion = ({
     coleccion,
+    esSubcoleccion = false,
     onEditar,
     onEliminar,
     className = '',
@@ -79,13 +82,18 @@ export const TarjetaColeccion = ({
     }, [coleccion, onEditar, onEliminar]);
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
-    const clases = ['tarjetaColeccion', className].filter(Boolean).join(' ');
+    const clases = ['tarjetaColeccion', esSubcoleccion ? 'tarjetaColeccionSub' : '', className].filter(Boolean).join(' ');
 
     return (
         <div className={clases}>
             <EnlaceNavegacion href={`/coleccion/${coleccion.id}/`} className="tarjetaColeccionEnlace">
                 <div className="tarjetaColeccionPortada">
                     <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
+                    {esSubcoleccion && (
+                        <span className="tarjetaColeccionSubBadge" title="Subcolección">
+                            <FolderTree size={12} />
+                        </span>
+                    )}
                 </div>
 
                 <div className="tarjetaColeccionInfo">

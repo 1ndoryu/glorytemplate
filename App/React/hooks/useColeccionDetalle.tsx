@@ -18,7 +18,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
-import type { Coleccion } from '@app/types';
+import type { Coleccion, ColeccionResumen, SampleResumen } from '@app/types';
 
 const TABS_COLECCION_DETALLE = [
     { id: 'samples', etiqueta: 'Samples' },
@@ -35,6 +35,16 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
     const [guardada, setGuardada] = useState(false);
     const [descargando, setDescargando] = useState(false);
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
+
+    /*
+     * C387: Subcolecciones — filtro por sub.
+     * subActiva = null → muestra samples del padre (por defecto).
+     * subActiva = id → carga y muestra samples de esa sub.
+     * Cache evita refetch si el usuario alterna entre subs.
+     */
+    const [subActiva, setSubActiva] = useState<number | null>(null);
+    const [samplesSub, setSamplesSub] = useState<Map<number, SampleResumen[]>>(new Map());
+    const [cargandoSub, setCargandoSub] = useState(false);
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -140,11 +150,52 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
 
     const samples = coleccion?.samples ?? [];
 
-    /* Metas mas comunes de los samples */
+    /* C387: Subcolecciones disponibles (solo para colecciones raíz) */
+    const subcolecciones: ColeccionResumen[] = useMemo(
+        () => (coleccion?.parentId === null ? coleccion?.subcolecciones ?? [] : []),
+        [coleccion],
+    );
+
+    /*
+     * C387: Fetch lazy de samples de subcolecciones.
+     * Al seleccionar una sub, si no está en cache, se carga su detalle.
+     */
+    useEffect(() => {
+        if (subActiva === null) return;
+        if (samplesSub.has(subActiva)) return;
+
+        const controller = new AbortController();
+        setCargandoSub(true);
+
+        const cargarSub = async () => {
+            try {
+                const resp = await obtenerColeccion(subActiva);
+                if (controller.signal.aborted) return;
+                if (resp.ok && resp.data?.samples) {
+                    setSamplesSub(prev => new Map(prev).set(subActiva, resp.data!.samples ?? []));
+                }
+            } catch {
+                /* Fallo silencioso: se mostrará lista vacía */
+            } finally {
+                if (!controller.signal.aborted) setCargandoSub(false);
+            }
+        };
+
+        cargarSub();
+        return () => { controller.abort(); };
+    }, [subActiva, samplesSub]);
+
+    /* C387: Samples visibles según filtro de subcolección */
+    const samplesVisibles = useMemo(() => {
+        if (subActiva === null) return samples;
+        return samplesSub.get(subActiva) ?? [];
+    }, [subActiva, samples, samplesSub]);
+
+    /* Metas mas comunes de los samples visibles */
     const metasComunes = useMemo(() => {
-        if (!samples.length) return [];
+        if (!samplesVisibles.length) return [];
         const conteo = new Map<string, number>();
-        for (const s of samples) {
+        for (const s of samplesVisibles) {
             const m = s.metadata;
             if (!m) continue;
             const valores: string[] = [];
@@ -167,7 +218,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5)
             .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
-    }, [samples]);
+    }, [samplesVisibles]);
 
     /* Menu contextual de la coleccion */
     const [menuColeccion, setMenuColeccion] = useState<{ abierto: boolean; x: number; y: number }>({
@@ -258,8 +309,12 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         tabActiva,
         usuario,
         id,
-        samples,
+        samples: samplesVisibles,
         metasComunes,
+        subcolecciones,
+        subActiva,
+        setSubActiva,
+        cargandoSub,
         menuColeccion,
         abrirMenuColeccion,
         cerrarMenuColeccion,

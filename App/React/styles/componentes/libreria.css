@@ -2,6 +2,7 @@
  * libreria.css — Kamples
  * Estilos de la isla LibreriaIsland.
  * Estructura consistente con inicio.css (tabs en TopBar, mismo gap).
+ * C388: barraControl con ordenamiento + tags frecuentes.
  */
 
 .libreriaContenedor {
@@ -12,24 +13,92 @@
     margin: 0 auto;
 }
 
-/* Barra de búsqueda + acciones contextuales */
-.libreriaBarraAcciones {
+/* C388: Barra de control — mismo patrón que inicioBarraControl */
+.libreriaBarraControl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+}
+
+.libreriaControlesIzquierda {
     display: flex;
     align-items: center;
     gap: var(--espacioMd);
 }
 
-.libreriaBusqueda {
-    flex: 1;
-    max-width: 400px;
+.libreriaContador {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    white-space: nowrap;
 }
 
-.libreriaAcciones {
+.libreriaControlesDerecha {
     display: flex;
+    align-items: center;
     gap: var(--espacioSm);
 }
 
-/* Lista de samples — usa clase centralizada .listaDeSamples de feedSamples.css */
+/* Dropdown de ordenamiento */
+.libreriaOrdenWrapper {
+    position: relative;
+}
+
+.libreriaOrdenBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    border-radius: var(--radioFull);
+    font-size: var(--fuenteSm);
+    white-space: nowrap;
+}
+
+.libreriaOrdenMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    min-width: 140px;
+}
+
+.libreriaOrdenMenu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.libreriaOrdenMenu button:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.libreriaOrdenActivo {
+    color: var(--acento) !important;
+}
+
+/* C388: Tags frecuentes — fila de badges filtrables */
+.libreriaTagsFrecuentes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+    align-items: center;
+}
 
 /* Grid de colecciones — tarjetas visuales en cuadrícula */
 .libreriaGridColecciones {

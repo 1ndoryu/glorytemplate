@@ -17,6 +17,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\SyncRepository;
+use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\KamplesLogger;
 
 class SyncController
@@ -67,9 +68,10 @@ class SyncController
                 }
 
                 return [
-                    'id'      => (int) $col['id'],
-                    'nombre'  => $col['nombre'],
-                    'samples' => array_map(fn(array $s): array => [
+                    'id'        => (int) $col['id'],
+                    'nombre'    => $col['nombre'],
+                    'parent_id' => isset($col[ColeccionesCols::PARENT_ID]) ? (int) $col[ColeccionesCols::PARENT_ID] : null,
+                    'samples'   => array_map(fn(array $s): array => [
                         'id'         => (int) $s['id'],
                         'titulo'     => $s['titulo'],
                         'formato'    => $s['formato'],

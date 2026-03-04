@@ -16,6 +16,7 @@ import { obtenerSugerencias } from '@app/services/apiColecciones';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
+import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
 
@@ -27,6 +28,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     const {
         coleccion, cargando, guardada, descargando, navegar,
         tabActiva, usuario, id, samples, metasComunes,
+        subcolecciones, subActiva, setSubActiva, cargandoSub,
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
@@ -152,13 +154,22 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
                 </div>
             </div>
 
+            {/* C387: Badges de subcolecciones como filtro */}
+            <FiltroSubcolecciones
+                subcolecciones={subcolecciones}
+                activa={subActiva}
+                onChange={setSubActiva}
+            />
+
             {/* Contenido según tab activa — key distinta fuerza desmontaje para evitar race conditions (C46) */}
-            {tabActiva === 'samples' ? (
+            {cargandoSub ? (
+                <div className="coleccionCargando">Cargando subcolección...</div>
+            ) : tabActiva === 'samples' ? (
                 <FeedSamples
-                    key="coleccion-samples"
+                    key={`coleccion-samples-${subActiva ?? 'raiz'}`}
                     samplesIniciales={samples}
                     proveedor={async () => []}
-                    claveCache={`coleccion_${coleccion.id}`}
+                    claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}`}
                     infiniteScroll={false}
                     virtualizar={false}
                     mostrarTags

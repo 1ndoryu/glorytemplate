@@ -121,3 +121,24 @@
     display: block;
     margin-top: calc(var(--espacioXs) / 2);
 }
+
+/* C388: Indicador visual de subcolección — badge en esquina superior izquierda de portada */
+.tarjetaColeccionSub {
+    border-style: dashed;
+}
+
+.tarjetaColeccionSubBadge {
+    position: absolute;
+    top: var(--espacioXs);
+    left: var(--espacioXs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radioFull);
+    background: var(--overlaySuave);
+    color: var(--blanco);
+    backdrop-filter: blur(4px);
+    z-index: 3;
+}

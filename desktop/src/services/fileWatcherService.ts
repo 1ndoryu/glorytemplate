@@ -133,12 +133,38 @@ let onArchivoMovido: OnArchivoMovidoFn | null = null;
 let onCarpetaNueva: OnCarpetaNuevaFn | null = null;
 let onCarpetaRenombrada: OnCarpetaRenombradaFn | null = null;
 
+/* C387: Callbacks para eventos de subcarpetas de nivel 2 (subcolecciones) */
+type OnSubcarpetaNuevaFn = (nombreSub: string, carpetaPadre: string, rutaCompleta: string) => void;
+type OnSubcarpetaRenombradaFn = (nombreAnterior: string, nombreNuevo: string, carpetaPadre: string, rutaNueva: string) => void;
+
+let onSubcarpetaNueva: OnSubcarpetaNuevaFn | null = null;
+let onSubcarpetaRenombrada: OnSubcarpetaRenombradaFn | null = null;
+
 /*
  * Buffer de eliminaciones de carpetas para detectar renames.
  * Similar al patrón delete+create → move para archivos.
  */
 const carpetasEliminadasPendientes = new Map<string, { nombre: string; ruta: string; timeout: ReturnType<typeof setTimeout> }>();
 const GRACIA_RENAME_CARPETA_MS = 3000;
+
+/*
+ * C387: State para subcarpetas de nivel 2.
+ * Debounce y buffers análogos a los de carpetas de nivel 1 pero con clave
+ * compuesta carpetaPadre/nombreSub para evitar colisiones entre colecciones.
+ */
+const subcarpetasRecientes = new Map<string, number>();
+const subcarpetasPendientesCreacion = new Map<string, {
+    timeout: ReturnType<typeof setTimeout>;
+    nombreOriginal: string;
+    carpetaPadre: string;
+    rutaCompleta: string;
+}>();
+const subcarpetasEliminadasPendientes = new Map<string, {
+    nombre: string;
+    carpetaPadre: string;
+    ruta: string;
+    timeout: ReturnType<typeof setTimeout>;
+}>();
 
 /*
  * Registra los callbacks externos para archivos nuevos/eliminados/movidos.
@@ -164,6 +190,18 @@ export function registrarCallbacksCarpeta(
 ): void {
     onCarpetaNueva = cbNueva;
     onCarpetaRenombrada = cbRenombrada;
+}
+
+/*
+ * C387: Registra callbacks para eventos de subcarpetas de nivel 2 (subcolecciones).
+ * carpetaPadre identifica en qué colección se creó la subcarpeta.
+ */
+export function registrarCallbacksSubcarpeta(
+    cbNueva: OnSubcarpetaNuevaFn,
+    cbRenombrada: OnSubcarpetaRenombradaFn,
+): void {
+    onSubcarpetaNueva = cbNueva;
+    onSubcarpetaRenombrada = cbRenombrada;
 }
 
 /*
@@ -225,6 +263,17 @@ export async function detenerObservacion(): Promise<void> {
         clearTimeout(pendiente.timeout);
     }
     carpetasPendientesCreacion.clear();
+
+    /* C387: Limpiar state de subcarpetas */
+    for (const [, pendiente] of subcarpetasPendientesCreacion) {
+        clearTimeout(pendiente.timeout);
+    }
+    subcarpetasPendientesCreacion.clear();
+    for (const [, pendiente] of subcarpetasEliminadasPendientes) {
+        clearTimeout(pendiente.timeout);
+    }
+    subcarpetasEliminadasPendientes.clear();
+    subcarpetasRecientes.clear();
 
     console.info('[FileWatcher] Observación detenida');
 }
@@ -307,6 +356,40 @@ function procesarEvento(
             return;
         }
 
+        /*
+         * C387: Detectar rename de subcarpetas de nivel 2.
+         * Ambos paths deben tener exactamente 2 segmentos con el mismo padre.
+         */
+        const segOrigenArr = relativaOrigen.split('/').filter(Boolean);
+        const segDestinoArr = relativaDestino.split('/').filter(Boolean);
+
+        const esSubcarpetaRename =
+            segOrigenArr.length === 2
+            && segDestinoArr.length === 2
+            && segOrigenArr[0].toLowerCase() === segDestinoArr[0].toLowerCase()
+            && !EXTENSIONES_AUDIO.has(extensionDestino);
+
+        if (esSubcarpetaRename) {
+            const carpetaPadre = segDestinoArr[0];
+            const subOrigen = segOrigenArr[1];
+            const subNuevo = segDestinoArr[1];
+
+            /* Cancelar creacion pendiente del nombre origen si existe */
+            const claveSubOrigen = `${carpetaPadre.toLowerCase()}/${subOrigen.toLowerCase()}`;
+            const pendienteSub = subcarpetasPendientesCreacion.get(claveSubOrigen);
+            if (pendienteSub) {
+                clearTimeout(pendienteSub.timeout);
+                subcarpetasPendientesCreacion.delete(claveSubOrigen);
+                console.info('[FileWatcher] Creacion subcarpeta cancelada por rename:', subOrigen, '→', subNuevo);
+            }
+
+            console.info('[FileWatcher] Rename subcarpeta (evento name):', subOrigen, '→', subNuevo, 'en', carpetaPadre);
+            if (onSubcarpetaRenombrada) {
+                onSubcarpetaRenombrada(subOrigen, subNuevo, carpetaPadre, rutaDestino);
+            }
+            return;
+        }
+
         /* Guard: solo procesar el move si el destino está dentro de la carpeta base */
         if (EXTENSIONES_AUDIO.has(extensionDestino) && relativaDestino) {
             const partesDestino = relativaDestino.split('/');
@@ -366,6 +449,17 @@ function procesarEvento(
         if (relativa && !relativa.includes('/') && !EXTENSIONES_AUDIO.has(extension)) {
             /* Es un path directo bajo carpetaBase sin extensión de audio → posible carpeta */
             procesarEventoCarpeta(tipo, normalizada, relativa, baseNormalizada);
+            continue;
+        }
+
+        /*
+         * C387: Detectar eventos de subcarpetas de nivel 2 (subcolecciones).
+         * Exactamente 2 segmentos en la ruta relativa: carpetaPadre/nombreSub.
+         * Ej: "MiColeccion/Kicks" → carpetaPadre="MiColeccion", nombreSub="Kicks".
+         */
+        if (segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extension)) {
+            const [carpetaPadre, nombreSubcarpeta] = segmentosRuta;
+            procesarEventoSubcarpeta(tipo, normalizada, nombreSubcarpeta, carpetaPadre, baseNormalizada);
             continue;
         }
 
@@ -602,6 +696,112 @@ function procesarEventoCarpeta(
 function encuentraCarpetaEliminadaPendiente(): { nombre: string; ruta: string; timeout: ReturnType<typeof setTimeout> } | null {
     for (const [, val] of carpetasEliminadasPendientes) {
         return val;
+    }
+    return null;
+}
+
+/*
+ * C387: Procesa eventos de subcarpetas de nivel 2 (subcolecciones).
+ * Lógica análoga a procesarEventoCarpeta pero con clave compuesta
+ * carpetaPadre/nombreSub y callbacks dedicados (onSubcarpetaNueva/Renombrada).
+ *
+ * Rename de subcarpeta emite: remove(padre/viejo) + create(padre/nuevo).
+ * El buffer de eliminaciones se busca filtrando por el mismo carpetaPadre.
+ */
+function procesarEventoSubcarpeta(
+    tipo: unknown,
+    rutaCompleta: string,
+    nombreSubcarpeta: string,
+    carpetaPadre: string,
+    _baseNormalizada: string,
+): void {
+    const claveCompuesta = `${carpetaPadre.toLowerCase()}/${nombreSubcarpeta.toLowerCase()}`;
+
+    if (esEventoCreacion(tipo)) {
+        /* Verificar si hay una subcarpeta eliminada pendiente del mismo padre → rename */
+        const pendiente = encuentraSubcarpetaEliminadaPendiente(carpetaPadre);
+
+        if (pendiente) {
+            clearTimeout(pendiente.timeout);
+            const clavePendiente = `${pendiente.carpetaPadre.toLowerCase()}/${pendiente.nombre.toLowerCase()}`;
+            subcarpetasEliminadasPendientes.delete(clavePendiente);
+
+            /* Cancelar creacion pendiente del nombre viejo si existía */
+            const claveCreacionVieja = `${pendiente.carpetaPadre.toLowerCase()}/${pendiente.nombre.toLowerCase()}`;
+            const creacionPendiente = subcarpetasPendientesCreacion.get(claveCreacionVieja);
+            if (creacionPendiente) {
+                clearTimeout(creacionPendiente.timeout);
+                subcarpetasPendientesCreacion.delete(claveCreacionVieja);
+            }
+
+            console.info('[FileWatcher] Rename subcarpeta detectado:', pendiente.nombre, '→', nombreSubcarpeta, 'en', carpetaPadre);
+
+            if (onSubcarpetaRenombrada) {
+                onSubcarpetaRenombrada(pendiente.nombre, nombreSubcarpeta, carpetaPadre, rutaCompleta);
+            }
+            return;
+        }
+
+        /* Debounce: ignorar si fue procesada recientemente */
+        const ahora = Date.now();
+        const ultimoProcesada = subcarpetasRecientes.get(claveCompuesta);
+        if (ultimoProcesada && (ahora - ultimoProcesada) < DEBOUNCE_CARPETA_MS) return;
+        subcarpetasRecientes.set(claveCompuesta, ahora);
+
+        console.info('[FileWatcher] Subcarpeta nueva detectada, esperando rename:', nombreSubcarpeta, 'en', carpetaPadre);
+
+        /* Delay para dar tiempo a rename de Windows ("Nueva carpeta" → nombre real) */
+        const pendienteExistente = subcarpetasPendientesCreacion.get(claveCompuesta);
+        if (pendienteExistente) clearTimeout(pendienteExistente.timeout);
+
+        const timeoutCreacion = setTimeout(() => {
+            subcarpetasPendientesCreacion.delete(claveCompuesta);
+            console.info('[FileWatcher] Subcarpeta nueva confirmada (sin rename):', nombreSubcarpeta, 'en', carpetaPadre);
+            if (onSubcarpetaNueva) {
+                onSubcarpetaNueva(nombreSubcarpeta, carpetaPadre, rutaCompleta);
+            }
+        }, DELAY_CREACION_CARPETA_MS);
+
+        subcarpetasPendientesCreacion.set(claveCompuesta, {
+            timeout: timeoutCreacion,
+            nombreOriginal: nombreSubcarpeta,
+            carpetaPadre,
+            rutaCompleta,
+        });
+    } else if (esEventoEliminacion(tipo)) {
+        /* Bufferar eliminación para detectar posible rename */
+        const existente = subcarpetasEliminadasPendientes.get(claveCompuesta);
+        if (existente) {
+            clearTimeout(existente.timeout);
+        }
+
+        const timeout = setTimeout(() => {
+            subcarpetasEliminadasPendientes.delete(claveCompuesta);
+            console.info('[FileWatcher] Subcarpeta eliminada (no fue rename):', nombreSubcarpeta, 'en', carpetaPadre);
+        }, GRACIA_RENAME_CARPETA_MS);
+
+        subcarpetasEliminadasPendientes.set(claveCompuesta, {
+            nombre: nombreSubcarpeta,
+            carpetaPadre,
+            ruta: rutaCompleta,
+            timeout,
+        });
+    }
+}
+
+/*
+ * C387: Busca la primera subcarpeta eliminada pendiente dentro de un padre específico.
+ * Filtra por carpetaPadre para no cruzar renames entre colecciones distintas.
+ */
+function encuentraSubcarpetaEliminadaPendiente(carpetaPadre: string): {
+    nombre: string;
+    carpetaPadre: string;
+    ruta: string;
+    timeout: ReturnType<typeof setTimeout>;
+} | null {
+    const padreNorm = carpetaPadre.toLowerCase();
+    for (const [, val] of subcarpetasEliminadasPendientes) {
+        if (val.carpetaPadre.toLowerCase() === padreNorm) return val;
     }
     return null;
 }
