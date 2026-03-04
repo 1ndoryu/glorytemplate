@@ -274,8 +274,9 @@ function procesarEvento(
             return;
         }
 
-        if (EXTENSIONES_AUDIO.has(extensionDestino)) {
-            const partesDestino = relativaDestino ? relativaDestino.split('/') : [nombreDestino];
+        /* Guard: solo procesar el move si el destino está dentro de la carpeta base */
+        if (EXTENSIONES_AUDIO.has(extensionDestino) && relativaDestino) {
+            const partesDestino = relativaDestino.split('/');
             const nombreArchivo = partesDestino.pop() ?? nombreDestino;
             const carpetas = partesDestino.slice(0, 3);
             console.info('[FileWatcher] Move archivo (evento name):', rutaOrigen, '→', rutaDestino);
@@ -304,6 +305,15 @@ function procesarEvento(
         const relativa = normalizada.startsWith(baseNormalizada + '/')
             ? normalizada.slice(baseNormalizada.length + 1)
             : '';
+
+        /*
+         * Guard crítico: omitir eventos de rutas que NO están dentro de la carpeta base.
+         * En Windows con OneDrive/SMB el driver del sistema de archivos puede emitir
+         * eventos para directorios hermanos o padres de la carpeta vigilada.
+         * Sin este filtro, archivos fuera del scope configurado se encolarían para subida.
+         */
+        if (!relativa) continue;
+
         const segmentosRuta = relativa.split('/');
 
         /* Exclusión total: ignorar TODO evento dentro de .papelera/ */
@@ -387,9 +397,18 @@ function esEventoEliminacion(tipo: unknown): boolean {
 function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carpetaBase: string): void {
     /* Extraer las 3 carpetas padre relativas a la carpeta base de sync */
     const baseNormalizada = carpetaBase.replace(/\\/g, '/');
-    const relativa = rutaNormalizada.startsWith(baseNormalizada)
-        ? rutaNormalizada.slice(baseNormalizada.length).replace(/^\//, '')
-        : rutaNormalizada;
+    const relativa = rutaNormalizada.startsWith(baseNormalizada + '/')
+        ? rutaNormalizada.slice(baseNormalizada.length + 1)
+        : '';
+
+    /*
+     * Guard defensivo: en circunstancias normales procesarEvento ya filtró rutas fuera
+     * de la carpeta base. Este guard protege ante llamadas directas o cambios futuros.
+     */
+    if (!relativa) {
+        console.warn('[FileWatcher] manejarArchivoNuevo: ruta fuera de carpeta base ignorada:', rutaNormalizada, '(base:', carpetaBase, ')');
+        return;
+    }
 
     const partes = relativa.split('/');
     const nombreArchivo = partes.pop() ?? '';
