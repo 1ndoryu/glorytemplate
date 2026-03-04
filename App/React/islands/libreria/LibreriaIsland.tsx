@@ -1,18 +1,14 @@
 /*
  * LibreriaIsland — Kamples
- * Librería personal: explorar colecciones públicas, mis colecciones y subidos.
+ * Librería personal: explorar colecciones públicas y mis colecciones.
  * Lógica extraída a useLibreriaIsland (SRP).
  */
 
-import { FolderOpen, Upload, Music, Plus, Globe } from 'lucide-react';
+import { FolderOpen, Music, Plus, Globe } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
-import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { MenuContextual } from '@app/components/ui/MenuContextual';
-import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
-import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
 import { useAuthStore } from '@app/stores/authStore';
@@ -21,33 +17,17 @@ import '../../styles/componentes/libreria.css';
 const TABS_LIBRERIA = [
     { id: 'explorar', etiqueta: 'Explorar' },
     { id: 'colecciones', etiqueta: 'Mis Colecciones' },
-    { id: 'subidos', etiqueta: 'Subidos' },
 ];
-
-const ICONOS_TAB: Record<string, JSX.Element> = {
-    explorar: <Globe size={16} />,
-    colecciones: <FolderOpen size={16} />,
-    subidos: <Upload size={16} />,
-};
-
-const mensajeVacio: Record<string, { titulo: string; texto: string }> = {
-    colecciones: { titulo: 'Sin colecciones', texto: 'Crea tu primera colección para organizar samples.' },
-    subidos: { titulo: 'Sin samples subidos', texto: 'Sube tu primer sample para compartirlo.' },
-};
 
 export const LibreriaIsland = (): JSX.Element => {
     const {
-        samples, colecciones, coleccionesPublicas, cargando,
+        colecciones, coleccionesPublicas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
-        tabActiva, menu, navegar, abrirSubirModal,
-        manejarClickTitulo, manejarComentar, manejarLike,
+        tabActiva,
         abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     } = useLibreriaIsland();
     /* Necesario para mostrar opciones de editar/eliminar en colecciones propias del tab Explorar */
     const usuario = useAuthStore(s => s.usuario);
-
-    /* Filtrado client-side por tags/BPM para el tab de subidos */
-    const filtros = useFeedFiltros({ samples });
 
     useTabsIsla('LibreriaIsland', TABS_LIBRERIA, 'explorar');
 
@@ -80,57 +60,24 @@ export const LibreriaIsland = (): JSX.Element => {
                         })}
                     </div>
                 )
-            ) : tabActiva === 'colecciones' ? (
-                colecciones.length === 0 ? (
-                    <div className="libreriaVacio">
-                        <FolderOpen size={32} />
-                        <h3 className="libreriaVacioTitulo">Sin colecciones</h3>
-                        <p className="libreriaVacioTexto">Crea tu primera colección para organizar samples.</p>
-                        <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
-                            <Plus size={14} /> Nueva colección
-                        </BotonBase>
-                    </div>
-                ) : (
-                    <div className="libreriaGridColecciones">
-                        {colecciones.map(col => (
-                            <TarjetaColeccion key={col.id} coleccion={col}
-                                onEditar={manejarEditarColeccion} onEliminar={manejarEliminarColeccion} />
-                        ))}
-                    </div>
-                )
-            ) : samples.length === 0 ? (
+            ) : colecciones.length === 0 ? (
                 <div className="libreriaVacio">
-                    {ICONOS_TAB[tabActiva]}
-                    <h3 className="libreriaVacioTitulo">{mensajeVacio[tabActiva]?.titulo}</h3>
-                    <p className="libreriaVacioTexto">{mensajeVacio[tabActiva]?.texto}</p>
-                    {tabActiva === 'subidos' && (
-                        <BotonBase variante="primario" tamano="sm" onClick={abrirSubirModal}>Subir sample</BotonBase>
-                    )}
+                    <FolderOpen size={32} />
+                    <h3 className="libreriaVacioTitulo">Sin colecciones</h3>
+                    <p className="libreriaVacioTexto">Crea tu primera colección para organizar samples.</p>
+                    <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
+                        <Plus size={14} /> Nueva colección
+                    </BotonBase>
                 </div>
             ) : (
-                <>
-                    <FiltroTags
-                        tagsAgrupados={filtros.tagsAgrupados}
-                        tagsSueltos={filtros.tagsSueltos}
-                        tagsIncluidos={filtros.tagsIncluidos}
-                        tagsExcluidos={filtros.tagsExcluidos}
-                        bpmMin={filtros.bpmMin}
-                        bpmMax={filtros.bpmMax}
-                        onIncluirTag={filtros.manejarIncluirTag}
-                        onExcluirTag={filtros.manejarExcluirTag}
-                        onQuitarTag={filtros.quitarTag}
-                        onCambiarBpm={filtros.setBpmRango}
-                    />
-                    <div className="listaDeSamples">
-                        {filtros.samplesFiltrados.map(sample => (
-                            <TarjetaSample key={sample.id} sample={sample} onLike={manejarLike} onMenu={menu.abrirMenu}
-                                onClickCreador={u => navegar(`/perfil/${u}`)} onClickTitulo={manejarClickTitulo} onComentar={manejarComentar} />
-                        ))}
-                    </div>
-                </>
+                <div className="libreriaGridColecciones">
+                    {colecciones.map(col => (
+                        <TarjetaColeccion key={col.id} coleccion={col}
+                            onEditar={manejarEditarColeccion} onEliminar={manejarEliminarColeccion} />
+                    ))}
+                </div>
             )}
 
-            <MenuContextual abierto={menu.estado.abierto} onCerrar={menu.cerrarMenu} items={menu.items} x={menu.estado.x} y={menu.estado.y} />
             <ModalColeccion abierto={modalColeccionAbierto} onCerrar={() => setModalColeccionAbierto(false)}
                 onGuardar={manejarGuardarColeccion} coleccion={coleccionEditando} />
         </div>

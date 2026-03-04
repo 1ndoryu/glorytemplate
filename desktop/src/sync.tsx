@@ -108,16 +108,16 @@ async function inicializar(): Promise<void> {
     /* Restaurar token JWT del store de Tauri → sin esto, fetch no tiene Authorization header */
     await inicializarAuthDesktop();
 
-    /* Configurar API con token ya en memoria + inicializar sync service */
-    configurarApiDesktop();
-
     /*
-     * Exponer origen del servidor para que VentanaSincPanel resuelva URLs de imágenes.
-     * En la web, PHP inyecta __KAMPLES_CONFIG__. En desktop, configurarApiDesktop()
-     * inyecta GLORY_CONTEXT, pero obtenerOrigenServidorSync() primero busca en
-     * __KAMPLES_CONFIG__. Además, en dev GLORY_CONTEXT.apiUrl es relativo ("/wp-json")
-     * lo cual falla en Tauri (resuelve contra tauri://localhost).
-     * Solución: derivar el origen del servidor desde GLORY_CONTEXT o SERVIDOR_PROD.
+     * Exponer origen del servidor para que:
+     * 1. configurarApiDesktop() resuelva la URL del servidor correctamente
+     *    (obtenerServidorUrl() lee __KAMPLES_CONFIG__ primero)
+     * 2. VentanaSincPanel.resolverUrlPortada() resuelva URLs de imágenes
+     *    relativas contra el origen real (no tauri://localhost)
+     *
+     * DEBE ir ANTES de configurarApiDesktop() — si no, obtenerServidorUrl()
+     * no encuentra __KAMPLES_CONFIG__ y usa fallback relativo /wp-json
+     * que falla en contexto Tauri (resuelve contra tauri://localhost).
      */
     const gloryCtx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;
     const apiUrl = gloryCtx?.apiUrl ?? '';
@@ -135,7 +135,17 @@ async function inicializar(): Promise<void> {
 
     window.__KAMPLES_CONFIG__ = { serverUrl: `${origenServidor}/wp-json` };
 
-    await inicializarSyncService();
+    /* Configurar API con token ya en memoria + URL del servidor resuelta */
+    configurarApiDesktop();
+
+    /*
+     * Inicializar sync service en modo SOLO-LECTURA.
+     * La ventana sync-panel solo necesita leer historial y colecciones.
+     * El watcher, upload queue y polling los ejecuta la ventana principal.
+     * Sin este flag, se duplican watchers → uploads dobles, race conditions
+     * en tracking que borran imagenUrl, y colisiones en persistir().
+     */
+    await inicializarSyncService({ soloLectura: true });
 
     /* Marcar panel como abierto para que el hook cargue config/datos */
     useSyncStore.getState().abrirPanel();

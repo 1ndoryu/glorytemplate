@@ -112,8 +112,17 @@ class ColeccionesRepository extends BaseRepository
             $params['busqueda'] = '%' . $busqueda . '%';
         }
 
+        /*
+         * Filtro de visibilidad: colecciones p\u00fablicas + propias del usuario (incluso privadas).
+         * Las colecciones propias aparecen primero gracias al boost propio_boost en el scoring.
+         */
+        $colUsuarioId = ColeccionesCols::USUARIO_ID;
+        $colPublica = ColeccionesCols::PUBLICA;
+
         if ($userId) {
             $params['userId'] = $userId;
+            $params['userIdVisibilidad'] = $userId;
+            $whereVisibilidad = "(c.{$colPublica} = true OR c.{$colUsuarioId} = :userIdVisibilidad)";
             $tagsLiked = ConstructorSenales::sqlTagsEnriquecidos('s_l');
             $tipoSample = LikesEnums::TIPO_SAMPLE;
             $reaccionLike = LikesEnums::REACCION_LIKE;
@@ -158,15 +167,17 @@ class ColeccionesRepository extends BaseRepository
                            CASE WHEN EXISTS(
                                SELECT 1 FROM {$tf} WHERE {$fSeguidorId} = :userId AND {$fSeguidoId} = c." . ColeccionesCols::USUARIO_ID . "
                            ) THEN 1.3 ELSE 1.0 END as follow_boost,
-                           1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c." . ColeccionesCols::UPDATED_AT . ") / 86400.0) as frescura
+                           1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - c." . ColeccionesCols::UPDATED_AT . ") / 86400.0) as frescura,
+                           CASE WHEN c.{$colUsuarioId} = :userIdVisibilidad THEN 100.0 ELSE 0.0 END as propio_boost
                     FROM {$t} c
                     JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                     LEFT JOIN coleccion_tags ct ON ct.{$coleccionId} = c." . ColeccionesCols::ID . "
-                    WHERE c." . ColeccionesCols::PUBLICA . " = true
-                      AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2 WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ")) > 0
+                    WHERE {$whereVisibilidad}
+                      AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2 WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ")) >= 0
                       {$whereBusqueda}
                 ) sub
-                ORDER BY (
+                ORDER BY sub.propio_boost DESC,
+                (
                     COALESCE(sub.tag_score, 0) * 0.60
                     * sub.follow_boost
                     + sub.frescura * 0.20

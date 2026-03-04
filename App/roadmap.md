@@ -23,7 +23,7 @@ Plataforma de samples con alma de red social. Algoritmo de descubrimiento multi-
 | `/publicacion/{id}` | `PublicacionIsland` | Detalle publicación + comentarios |
 | `/descubrir` | `DescubrirIsland` | Algoritmo personalizado |
 | `/perfil/{username}` | `PerfilIsland` | Perfil público |
-| `/libreria` | `LibreriaIsland` | Colecciones + subidos |
+| `/libreria` | `LibreriaIsland` | Explorar colecciones + mis colecciones |
 | `/descargas` | `DescargasIsland` | Mis descargas + sugerencias |
 | `/favoritos` | `FavoritosIsland` | Mis favoritos + sugerencias |
 | `/mensajes` | `MensajesIsland` | Conversaciones completas |
@@ -339,6 +339,13 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] `fileWatcherService` handler rename: guard `relativaDestino` antes de encolar move de audio — evita encolar archivos cuyo destino está fuera de la carpeta sync
     - [x] Consistencia: todos los `startsWith` del archivo usan `baseNormalizada + '/'` (con barra) para evitar falsos positivos con carpetas de nombre similar
 
+383. ✅ [AG-SYN] **Fix imágenes sync panel + carpetas/colecciones bidireccional + Explorar colecciones propias + eliminar tab Subidos**
+    - [x] **Root cause sync bugs (1-3):** `sync.tsx` ejecutaba `inicializarSyncBidireccional()` → segundo file watcher + upload queue + polling duplicado en ventana sync (MPA). Race condition: `persistir()` de sync panel sobreescribía `imagenUrl` del main window. Fix: `inicializarSyncService({ soloLectura: true })` — sync panel solo lee tracking/colecciones, sin watcher/upload/polling.
+    - [x] **Image URL timing:** `__KAMPLES_CONFIG__` se seteaba DESPUÉS de `configurarApiDesktop()` → `obtenerServidorUrl()` fallback a `/wp-json` (resuelve contra `tauri://localhost` = 404). Movido ANTES.
+    - [x] **Rehidratación más rápida:** `REHIDRATAR_IMAGENES_INTERVALO_MS` reducido de 60s a 15s para que imágenes del pipeline aparezcan sin tanta espera.
+    - [x] **Explorar muestra colecciones propias primero:** `ColeccionesRepository::explorarPublicas()` WHERE cambiado de `publica = true` a `(publica = true OR usuario_id = :userIdVisibilidad)`. Colecciones propias (incluso privadas) aparecen con boost `propio_boost = 100.0` en ORDER BY. Colecciones vacías propias también se muestran (`>= 0` en vez de `> 0`).
+    - [x] **Tab Subidos eliminada:** Removida de LibreriaIsland, useLibreriaIsland, PanelLibreria, usePanelLibreria. Limpieza completa: imports muertos (TarjetaSample, FiltroTags, useFeedFiltros, Upload, listarSamples, darLike, quitarLike, useSubirModalStore, useMenuContextualSample, MenuContextual), state muerto (samples, manejarLike, manejarClickTitulo, manejarComentar), ICONOS_TAB, mensajeVacio.
+
 ---
 
 ## Notas Compactas
@@ -479,6 +486,10 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - [Sync rename offline]: `renombrarColeccionEnServidor` retornaba `false` si estaba offline sin encolar. El callback en syncWatcherSetup hacía `.catch()` fire-and-forget → rename perdido silenciosamente. Fix: encolar en offlineQueue con `tipo: 'renombrar_coleccion'` + `claveDuplicacion` para dedup. El callback debe usar await y solo actualizar tracking local si el server rename falla.
 - [Sync imagenUrl Tauri origin]: URLs relativas (`/wp-content/...`) en `imagenUrl` se resuelven contra `tauri://localhost` en ventana Tauri → 404. `sync.tsx` DEBE setear `window.__KAMPLES_CONFIG__` con `serverUrl` derivado de `GLORY_CONTEXT.apiUrl` para que `obtenerOrigenServidorSync()` pueda resolver URLs absolutas.
 - [Sync rutasEnVuelo null hash]: Cuando `calcularHashParcial` retorna null (OneDrive cloud-only, FS error), las capas de dedup por hash (2+3) se bypasean completamente. Sin guard por ruta, el mismo archivo puede subirse N veces en paralelo. Fix: `rutasEnVuelo` Set (path-based) en `subirArchivo()` — add antes del POST, delete en finally.
+
+- [Sync MPA soloLectura]: Ventanas secundarias MPA (sync panel) que solo muestran datos NO deben ejecutar la infraestructura de sync bidireccional (watcher, upload queue, polling). `inicializarSyncService({ soloLectura: true })` para read-only. Sin esto: race conditions en `persistir()`, watchers duplicados, uploads duplicados.
+- [Sync __KAMPLES_CONFIG__ timing]: En entry points MPA, `window.__KAMPLES_CONFIG__` DEBE setearse ANTES de cualquier llamada a `configurarApiDesktop()` / `inicializarSyncService()`. `obtenerServidorUrl()` lee de `__KAMPLES_CONFIG__` — si no existe, fallback a `/wp-json` que contra `tauri://localhost` = 404.
+- [Explorar propias]: `ColeccionesRepository::explorarPublicas()` usa `WHERE (publica OR usuario_id = :owner)` + `propio_boost = 100.0` en ORDER BY para colecciones propias primero. Rama sin $userId no muestra privadas (correcto: anon solo ve públicas).
 
 ### Sentinel / Análisis Estático
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.

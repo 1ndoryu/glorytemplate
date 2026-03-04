@@ -5,9 +5,8 @@
  * Lógica extraída a usePanelLibreria (SRP).
  */
 
-import { FolderOpen, Upload, Globe, Plus, X, Music } from 'lucide-react';
+import { FolderOpen, Globe, Plus, X, Music } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { usePanelLibreria } from '@app/hooks/usePanelLibreria';
@@ -15,15 +14,14 @@ import { usePanelLibreria } from '@app/hooks/usePanelLibreria';
 const TABS = [
     { id: 'explorar' as const, icono: <Globe size={14} />, etiqueta: 'Explorar' },
     { id: 'colecciones' as const, icono: <FolderOpen size={14} />, etiqueta: 'Colecciones' },
-    { id: 'subidos' as const, icono: <Upload size={14} />, etiqueta: 'Subidos' },
 ];
 
 export const PanelLibreria = (): JSX.Element => {
     const {
-        tab, setTab, samples, colecciones, coleccionesPublicas, cargando,
+        tab, setTab, colecciones, coleccionesPublicas, cargando,
         modalColeccion, setModalColeccion, coleccionEditando,
-        navegar, abrirSubirModal, cerrarPanel, abrirDetalle,
-        manejarLike, manejarGuardarColeccion, manejarEditarColeccion,
+        cerrarPanel,
+        manejarGuardarColeccion, manejarEditarColeccion,
         manejarEliminarColeccion, abrirNuevaColeccion,
     } = usePanelLibreria();
 
@@ -49,11 +47,6 @@ export const PanelLibreria = (): JSX.Element => {
                 {tab === 'colecciones' && (
                     <BotonBase variante="ghost" tamano="sm" onClick={abrirNuevaColeccion}>
                         <Plus size={12} /> Nueva
-                    </BotonBase>
-                )}
-                {tab === 'subidos' && (
-                    <BotonBase variante="ghost" tamano="sm" onClick={abrirSubirModal}>
-                        <Upload size={12} /> Subir
                     </BotonBase>
                 )}
             </div>
@@ -87,19 +80,7 @@ export const PanelLibreria = (): JSX.Element => {
                             ))}
                         </div>
                     )
-                ) : samples.length === 0 ? (
-                    <div className="panelLibreriaVacio">
-                        <Upload size={24} /><span>Sin samples subidos</span>
-                        <BotonBase variante="ghost" tamano="sm" onClick={abrirSubirModal}>Subir sample</BotonBase>
-                    </div>
-                ) : (
-                    <div className="panelLibreriaLista">
-                        {samples.map(sample => (
-                            <TarjetaSample key={sample.id} sample={sample} onLike={manejarLike}
-                                onClickCreador={u => navegar(`/perfil/${u}`)} onClickTitulo={s => abrirDetalle(s)} />
-                        ))}
-                    </div>
-                )}
+                ) : null}
             </div>
 
             <ModalColeccion abierto={modalColeccion} onCerrar={() => setModalColeccion(false)}

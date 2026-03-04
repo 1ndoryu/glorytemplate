@@ -70,8 +70,20 @@ export const detenerSyncBidireccional = detenerBidireccional;
 /*
  * Inicializa el servicio de sync: carga config, tracking v2 y migra si necesario.
  */
-export async function inicializarSyncService(): Promise<void> {
+/**
+ * Inicializa el servicio de sincronización.
+ *
+ * @param opciones.soloLectura Si true, solo inicializa tracking y collectionModule
+ *   para lectura (historial, colecciones). NO arranca watcher, upload queue ni polling.
+ *   Usado por ventanas secundarias MPA (sync-panel) que solo muestran datos.
+ *   Sin esto, cada ventana MPA duplica watchers y upload queues causando
+ *   race conditions en tracking, imagenUrl sobreescrito y uploads duplicados.
+ */
+export async function inicializarSyncService(
+    opciones: { soloLectura?: boolean } = {},
+): Promise<void> {
     if (!esDesktop()) return;
+    const { soloLectura = false } = opciones;
 
     try {
         const { load } = await import('@tauri-apps/plugin-store');
@@ -108,7 +120,15 @@ export async function inicializarSyncService(): Promise<void> {
         console.error('[Sync] Error inicializando tracking v2:', err);
     }
 
-    await inicializarSyncBidireccional();
+    /*
+     * Modo solo-lectura: la ventana solo necesita leer historial/colecciones.
+     * NO arrancar watcher, upload queue ni polling — eso lo hace la ventana principal.
+     * Arrancar duplicados causa: watchers dobles, uploads duplicados, race conditions
+     * en persistir() que borran imagenUrl de otras ventanas.
+     */
+    if (!soloLectura) {
+        await inicializarSyncBidireccional();
+    }
 
     /* Escuchar evento de la ventana config-sync para refrescar config en memoria */
     try {
@@ -736,7 +756,7 @@ export async function recargarHistorialDesdeStore(): Promise<void> {
     await estado.trackingModule.recargarHistorialDesdeStore();
 }
 
-const REHIDRATAR_IMAGENES_INTERVALO_MS = 60_000;
+const REHIDRATAR_IMAGENES_INTERVALO_MS = 15_000;
 let ultimaRehidratacionImagenes = 0;
 
 /**

@@ -1,43 +1,33 @@
 /*
  * Hook: useLibreriaIsland — Kamples
- * Lógica de LibreriaIsland: carga por tab, likes, CRUD colecciones, panel lateral.
+ * Lógica de LibreriaIsland: carga por tab (explorar/colecciones), CRUD colecciones.
  * Extraído de LibreriaIsland (SRP).
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { listarSamples } from '@app/services/apiSamples';
-import { darLike, quitarLike } from '@app/services/apiSocial';
 import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
-import { useSubirModalStore } from '@app/stores/subirModalStore';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
-import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { crearLogger } from '@app/services/logger';
-import type { TipoReaccion, SampleResumen, Coleccion } from '@app/types';
+import type { Coleccion } from '@app/types';
 
 const log = crearLogger('LibreriaIsland');
 
 export function useLibreriaIsland() {
-    const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [coleccionesPublicas, setColeccionesPublicas] = useState<Coleccion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
     const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
 
-    const navegar = useNavigationStore(s => s.navegar);
-    const abrirSubirModal = useSubirModalStore(s => s.abrir);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
-    const menu = useMenuContextualSample();
 
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
-    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
-    const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const busquedaGlobal = useFiltrosStore(s => s.busqueda);
 
     /* Keep-alive: congelar tabActiva y busqueda cuando la isla está oculta.
@@ -54,31 +44,6 @@ export function useLibreriaIsland() {
     useEffect(() => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
-
-    /* Listener para eliminación/restauración optimista */
-    useEffect(() => {
-        const manejarEliminacion = (event: Event) => {
-            const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
-            if (detalle?.sampleId) {
-                setSamples(prev => prev.filter(s => s.id !== detalle.sampleId));
-            }
-        };
-        const manejarRestauracion = (event: Event) => {
-            const detalle = (event as CustomEvent<{ sample?: SampleResumen }>).detail;
-            if (detalle?.sample) {
-                setSamples(prev => {
-                    if (prev.some(s => s.id === detalle.sample!.id)) return prev;
-                    return [detalle.sample!, ...prev];
-                });
-            }
-        };
-        window.addEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
-        window.addEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
-        return () => {
-            window.removeEventListener(EVENTO_SAMPLE_ELIMINADO, manejarEliminacion as EventListener);
-            window.removeEventListener(EVENTO_SAMPLE_RESTAURADO, manejarRestauracion as EventListener);
-        };
-    }, []);
 
     /* Cargar datos según tab activa con cleanup.
      * C346: Skip de re-fetch si los parámetros no cambiaron realmente
@@ -109,24 +74,12 @@ export function useLibreriaIsland() {
                     const resp = await listarColecciones(undefined, busqueda || undefined);
                     if (!activo) return;
                     setColecciones(resp.ok && resp.data ? resp.data : []);
-                } else if (tabActiva === 'subidos') {
-                    const { useAuthStore } = await import('@app/stores/authStore');
-                    if (!activo) return;
-                    const username = useAuthStore.getState().usuario?.username;
-                    const resp = await listarSamples({
-                        creador: username || undefined,
-                        busqueda: busqueda || undefined,
-                        perPage: 20,
-                    });
-                    if (!activo) return;
-                    setSamples(resp.ok && resp.data ? (resp.data.data ?? []) : []);
                 }
                 if (activo) {
                     ultimoFetchRef.current = { tab: tabActiva, busqueda };
                 }
             } catch {
                 if (activo) {
-                    setSamples([]);
                     setColecciones([]);
                     setColeccionesPublicas([]);
                 }
@@ -138,44 +91,6 @@ export function useLibreriaIsland() {
         cargar();
         return () => { activo = false; };
     }, [tabActiva, busqueda]);
-
-    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
-        abrirDetalle(sample);
-    }, [abrirDetalle]);
-
-    const manejarComentar = useCallback((sampleId: number) => {
-        const sample = samples.find(s => s.id === sampleId);
-        if (sample) abrirComentarios(sample);
-    }, [samples, abrirComentarios]);
-
-    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sample = samples.find(s => s.id === sampleId);
-        const snapshot = samples;
-        try {
-            if (reaccion) {
-                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                setSamples(prev => prev.map(s =>
-                    s.id === sampleId ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) } : s
-                ));
-                await darLike('sample', sampleId, reaccion);
-            } else if (sample?.liked || sample?.reaccion) {
-                const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                setSamples(prev => prev.map(s =>
-                    s.id === sampleId ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) } : s
-                ));
-                await quitarLike('sample', sampleId);
-            } else {
-                setSamples(prev => prev.map(s =>
-                    s.id === sampleId ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 } : s
-                ));
-                await darLike('sample', sampleId, 'like');
-            }
-        } catch {
-            setSamples(snapshot);
-        }
-    }, [samples]);
 
     const abrirNuevaColeccion = useCallback(() => {
         setColeccionEditando(null);
@@ -204,10 +119,9 @@ export function useLibreriaIsland() {
     }, []);
 
     return {
-        samples, colecciones, coleccionesPublicas, cargando,
+        colecciones, coleccionesPublicas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
-        tabActiva, menu, navegar, abrirSubirModal,
-        manejarClickTitulo, manejarComentar, manejarLike,
+        tabActiva,
         abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     };
 }
