@@ -1,398 +1,151 @@
-# Plan: Revisión Profunda — Sistema de Sync (Upload + Watcher + Papelera)
+# Plan: Sistema de Sync — Colecciones y Subcolecciones
 
-> **Fecha:** 2026-03-03 | **Prioridad:** Crítica | **Módulos afectados:** fileWatcherService, papeleraService, uploadQueueService, syncWatcherSetup, syncService, backend upload
-> **Estado:** COMPLETADO — Implementación total de P1-P7 (2026-03-03).
-> **Referencia roadmap:** C368
+> **Última actualización:** 2026-03-04 | **Módulos:** fileWatcherService, syncCollectionService, syncWatcherSetup, syncTrackingService, ColeccionesRepository, ColeccionDetalleIsland, LibreriaIsland
 
 ---
 
-## Historial: Fase 1 (Completada — 2026-02-27)
+## Historial Compactado (Fases 1-2 — COMPLETADAS)
 
-> Resumen compacto de lo implementado previamente. Detalles originales archivados en git (commit `0e02e219`+).
+> Detalles completos en git. Commits de referencia: `0e02e219`+ (Fase 1), C368 (Fase 2).
 
-| Implementación | Archivo | Estado |
-|---|---|---|
-| Semáforo concurrencia (1-5 paralelos) | `semaforo.ts` | Implementado |
-| Persistencia debounced (2s + flush beforeunload) | `persistenciaDebounce.ts` | Implementado |
-| Map indices O(1) para lookups | `syncState.ts` | Implementado |
-| Purga periódica watcher cache (10s/30s TTL) | `fileWatcherService.ts` | Implementado |
-| Panel configuración (overlay + ventana MPA) | `ConfiguracionSync.tsx` / `VentanaConfigSync.tsx` | Implementado |
-| Papelera 30 días (.papelera/ + papelera.json Store) | `papeleraService.ts` | Implementado |
-| Borrado bidireccional rate-limited | `syncWatcherSetup.ts` | Implementado |
-| Guard descarga pre-rename | `syncService.ts` (`marcarDescargaEnCurso`) | Implementado |
-| Fallback tracking v1→v2 en manejarMoveLocal | `syncWatcherSetup.ts` | Implementado |
-| Upload dedup pre-flight (hash + tracking) | `uploadQueueService.ts` | Implementado |
-| Set O(1) rutas en cola | `uploadQueueService.ts` | Implementado |
-| Config window MPA aislada | `config.html` / `config.tsx` | Implementado |
+**Fase 1 (2026-02-27):** Infraestructura base sync — semáforo concurrencia, persistencia debounced, indices O(1), purga periódica, papelera 30 días, borrado bidireccional, config MPA, upload dedup pre-flight.
 
----
+**Fase 2 (2026-03-03 — C368):** Fix ciclo upload→papelera→re-upload→duplicado (7 tareas P1-P7):
+- P1: Excluir `.papelera/` del watcher (`CARPETAS_EXCLUIDAS_TOTAL`)
+- P2: Guard `marcarDescargaEnCurso()` en papeleraService antes de rename
+- P3: `exists()` pre-readFile + rechazo rutas `.papelera/` en encolarArchivo
+- P4: Normalización nombre (strip `^\d{13,}_`) para dedup — `normalizarNombreArchivo.ts`
+- P5: Idempotency key `X-Idempotency-Key` cliente + check server-side
+- P6: Historial: `moverAPapelera()` actualiza estado a `en_papelera`
+- P7: Auditoría carpetas excluidas (`CARPETAS_SOLO_DELETE` para `Sin colección`)
 
-## Fase 2: Corrección Arquitectónica — Ciclo Upload→Papelera→Re-Upload
-
-### Bug Reportado (2026-03-03)
-
-**Secuencia reproducida por el usuario:**
-1. Se sube `Synth Guitar Loop_UhiJ_2upra.wav`
-2. Error: `"failed to open file at path: C:\Users\Owner\O"` (ruta OneDrive truncada)
-3. El archivo se borra de la ubicación original y aparece en `.papelera/` como `1772563989924_Synth Guitar Loop_UhiJ_2upra.wav`
-4. El panel muestra ese archivo de papelera como **"Sincronizado"**
-5. El sample se **duplica** en el servidor
-
-### Análisis de Causas Raíz (5 problemas sistémicos interconectados)
-
-```
-FLUJO DEL BUG:
-
-  [1] Usuario arrastra archivo a carpeta sync
-  [2] Watcher emite CREATE → encolarArchivo() → cola
-  [3] subirArchivo() llama readFile(ruta) → FALLA (OneDrive / archivo no disponible)
-  [4] Error después de N reintentos → (algo) mueve archivo a .papelera/
-                                        ↓
-  [5] papeleraService.rename(original, .papelera/1772563989924_nombre.wav)
-      ├── Watcher emite DELETE para ruta original → manejarBorradoLocal()
-      └── Watcher emite CREATE para .papelera/1772563989924_nombre.wav ← PROBLEMA RAÍZ
-                                        ↓
-  [6] onArchivoNuevo() recibe "1772563989924_Synth Guitar Loop.wav"
-      ├── buscarArchivoPorNombre("1772563989924_Synth Guitar...") → NO MATCH (prefijo timestamp)
-      ├── buscarEnIndicePorRuta(".papelera/...") → NO MATCH (ruta nueva)
-      └── buscarEnIndicePorNombre("1772563989924_...") → NO MATCH
-                                        ↓
-  [7] encolarArchivo() acepta → subirArchivo() → POST al server → ÉXITO
-  [8] Historial marca "Sincronizado" para archivo que está en papelera
-  [9] Server tiene 2 registros del mismo audio (si el primer upload parcial llegó)
-```
+**Lecciones Fase 2:**
+- [Watcher]: `.papelera/` dentro de carpeta sync = watcher la observa. Excluir SIEMPRE carpetas internas.
+- [Papelera]: Toda operación rename dentro de carpeta sync DEBE usar guard `marcarDescargaEnCurso`.
+- [OneDrive]: `readFile` falla en archivos cloud-only sin error descriptivo. Siempre pre-check `exists()`.
+- [Dedup]: Prefijo `${Date.now()}_` de papelera rompe comparaciones por nombre. Normalizar.
+- [Idempotency]: Sin key server-side, retry = duplicado. Exactly-once imposible solo desde cliente.
 
 ---
 
-## Tareas de Corrección
+## Fase 3: Subcolecciones + Fix Rename + UI Colecciones
 
-### P1. Excluir `.papelera/` del watcher de archivos (CRÍTICA)
+### Bug Activo: Rename carpeta duplica colección en servidor
 
-**Archivo:** `fileWatcherService.ts`
-**Problema:** `procesarEvento()` itera `evento.paths` sin filtrar rutas que contengan `/.papelera/` o `\.papelera\`. Cualquier rename/create dentro de `.papelera/` se trata como archivo nuevo legítimo.
+**Reporte:** Al renombrar una carpeta, el servidor crea una nueva colección con el nombre nuevo en vez de renombrar la existente. El usuario ve 2 colecciones: una con el nombre viejo y otra con el nuevo.
 
-**Solución:**
-- Añadir filtro temprano en `procesarEvento()`, ANTES de clasificar por tipo de evento.
-- El filtro debe operar sobre la ruta normalizada (ya disponible como `normalizada`).
-- Patrón de exclusión: `/.papelera/` en la ruta relativa (después de `carpetaBase`).
+**Root Cause:**
+En `syncWatcherSetup.ts`, el callback de rename de carpeta busca con `buscarColeccionPorCarpeta(nombreAnterior)`. Esta función busca por `carpetaLocal === nombreAnterior` (case-sensitive, match exacto). Si la carpeta en tracking se sanitizó diferente del nombre del directorio en disco (ej: acentos, espacios), la búsqueda falla → cae al `else` → `crearColeccionDesdeLocal(nombreNuevo)` → nueva colección duplicada.
 
-**Implementación concreta:**
-```typescript
-/* En procesarEvento(), después de normalizar ruta, ANTES de todo lo demás */
-const CARPETAS_EXCLUIDAS = ['.papelera'];
+Además, `fileWatcherService.ts` detecta renames de carpeta por DOS patrones:
+1. **Evento `modify.kind = 'name'`:** El OS reporta directamente `(rutaOrigen, rutaDestino)` → `esCarpetaNivel1Rename` → callback con `(nombreOrigen, nombreNuevo)`.
+2. **Patrón `delete + create`:** OS emite `remove(viejo)` + `create(nuevo)` → buffer `carpetasEliminadasPendientes` (3s gracia) → si llega create, es rename.
 
-/* Verificar si la ruta está dentro de una carpeta excluida */
-const relativa = normalizada.startsWith(baseNormalizada + '/')
-    ? normalizada.slice(baseNormalizada.length + 1)
-    : '';
-const segmentosRuta = relativa.split('/');
-if (segmentosRuta.some(s => CARPETAS_EXCLUIDAS.includes(s))) continue;
+El problema es que `buscarColeccionPorCarpeta` busca por nombre de carpeta ACTUAL en disco. Si el tracking registró el nombre sanitizado (ej: `"mi carpeta"` → tracking `carpetaLocal: "mi carpeta"`) pero el OS reporta un nombre ligeramente diferente, no hay match.
+
+**Fix planificado:**
+1. **`buscarColeccionPorCarpeta`** → buscar case-insensitive + comparar también después de sanitizar ambos lados.
+2. **Callback rename en syncWatcherSetup** → antes de crear nueva, verificar si existe colección en servidor con nombre viejo y renombrarla.
+
+### C386: Fix Rename Carpeta Duplica Colección
+
+- [ ] **C386a** `syncTrackingService.buscarColeccionPorCarpeta`: comparar case-insensitive (`toLowerCase`) + sanitización de ambos lados para match robusto.
+- [ ] **C386b** `syncWatcherSetup` callback rename: fallback — si `buscarColeccionPorCarpeta(nombreAnterior)` falla, buscar en servidor por nombre y renombrar en vez de crear.
+
+### C387: Subcolecciones (2 niveles máximo)
+
+**Modelo de datos:**
+- Tabla `colecciones`: agregar columna `parent_id INT NULL REFERENCES colecciones(id) ON DELETE CASCADE`.
+- Constraint: subcolección (parent_id != null) NO puede tener hijos → máximo 2 niveles.
+- Constraint: `UNIQUE (usuario_id, LOWER(nombre), COALESCE(parent_id, 0))` — nombres únicos dentro del mismo padre.
+
+**Regla de carpetas:**
+```
+carpetaSync/
+  coleccion/           → colección (parent_id = null)
+    sample.wav
+    subcoleccion/      → subcolección (parent_id = coleccion.id)
+      sample2.wav
+      sub-sub/         → NO es otra subcolección. Sus archivos pertenecen a "subcoleccion"
+        sample3.wav    → se asigna a "subcoleccion", NO crea sub-sub-colección
 ```
 
-**Por qué no es un parche:**
-- `CARPETAS_EXCLUIDAS` es un array extensible (mañana se añade `.cache/`, `.temp/` etc. sin tocar lógica).
-- El filtro es por segmento de ruta, no substring (evita falsos positivos tipo `carpeta.papelera-mix/`).
-- Se aplica una sola vez en el punto de entrada central, no en cada callback.
+**Tareas backend:**
+- [ ] **C387a** Migración SQL: `ALTER TABLE colecciones ADD COLUMN parent_id INT NULL REFERENCES colecciones(id) ON DELETE CASCADE; CREATE INDEX idx_colecciones_parent ON colecciones(parent_id);`
+- [ ] **C387b** Schema: Actualizar `ColeccionesSchema.php` + regenerar (`npx glory schema:generate`).
+- [ ] **C387c** `ColeccionesRepository`: método `listarConSubcolecciones(userId)` — retorna colecciones padre con `subcolecciones: []` anidadas. Método `listarSubcolecciones(parentId)`.
+- [ ] **C387d** `ColeccionesCrudController::crear`: aceptar param `parent_id` opcional. Validar: (1) padre existe y es del usuario, (2) padre NO es subcolección (max 2 niveles), (3) nombre único dentro del padre.
+- [ ] **C387e** `ColeccionesController::obtener`: incluir subcolecciones en la respuesta de detalle.
+- [ ] **C387f** `ColeccionesController::listar`: incluir subcolecciones agrupadas dentro de sus padres.
+- [ ] **C387g** SyncRepository (`/me/sync/colecciones`): incluir `parent_id` en el payload de sync.
+- [ ] **C387h** NormalizadorSample/normalizarColeccion: incluir `parentId` en la normalización.
 
-**Verificaciones post-implementación:**
-- [ ] Mover un archivo a `.papelera/` → watcher NO emite evento procesable
-- [ ] Restaurar un archivo de `.papelera/` → watcher SÍ lo detecta como nuevo (la ruta destino está fuera de `.papelera/`)
-- [ ] Crear archivo directamente en `.papelera/` (edge case) → watcher NO lo procesa
+**Tareas desktop sync:**
+- [ ] **C387i** `syncTrackingService.ColeccionLocal`: agregar campo `parentId: number | null`.
+- [ ] **C387j** `syncCollectionService.crearColeccionDesdeLocal`: aceptar `parentId` opcional. Si la carpeta estáen nivel 2 (subcarpeta de colección), buscar parent por nombre de carpeta padre.
+- [ ] **C387k** `fileWatcherService`: extender detección de carpetas a nivel 2 (actualmente solo nivel 1). Carpeta nueva dentro de colección = subcolección.
+- [ ] **C387l** `syncWatcherSetup`: callbacks de carpeta nivel 2 → crear subcolección con `parentId`.
+- [ ] **C387m** `escanearCarpetaYEncolar`: ya escanea 2 niveles, ajustar para crear subcolecciones cuando detecte archivos en nivel 2.
+- [ ] **C387n** `encolarArchivo`: si `carpetas` tiene 2 elementos (coleccion/subcoleccion), resolver ambos IDs.
 
----
+**Tareas React UI — Detalle colección (feedTags subcolecciones):**
+- [ ] **C387o** `useColeccionDetalle`: cargar subcolecciones del endpoint. Nuevo state `subcolecciones` + `subcoleccionActiva: number | null`.
+- [ ] **C387p** `ColeccionDetalleIsland`: renderizar subcolecciones como badges/tags debajo del header, ANTES del FeedSamples. Badge "Ver todo" (default activo) + badge por subcolección. Al hacer click se filtra el feed por samples de esa subcolección.
+- [ ] **C387q** Crear componente `FiltroSubcolecciones.tsx`: fila horizontal de badges clicables (estilo feedTags). Props: `subcolecciones`, `activa`, `onCambiar`. Incluye badge "Ver todo" que muestra todos los samples incluyendo subcolecciones.
+- [ ] **C387r** CSS: `filtroSubcolecciones.css` — estilo consistente con feedTags existente.
 
-### P2. Guard de rename en papeleraService (CRÍTICA)
+### C388: UI Página Colecciones — barraControl + tags
 
-**Archivo:** `papeleraService.ts`
-**Problema:** `moverAPapelera()` hace `rename(rutaOriginal, rutaPapelera)` SIN proteger contra el watcher. Comparar con `moverArchivoASinColeccion()` en `syncService.ts`, que SÍ usa `marcarDescargaEnCurso(nuevaRuta)`.
+**Contexto:** La página de colecciones (LibreriaIsland tab "Mis Colecciones") actualmente muestra un grid plano de `TarjetaColeccion`. Necesita:
+1. `inicioBarraControl` con filtros y ordenamiento (como en InicioIsland).
+2. `feedSamplesContenedor` con `feedTags` para filtrar por los tags más frecuentes de los samples dentro de las colecciones.
+3. Las subcolecciones deben mostrarse igual que las colecciones en la grid.
 
-**Secuencia actual (rota):**
-```
-moverAPapelera()
-  └── rename(original, .papelera/timestamp_nombre.wav)
-      ├── Watcher: DELETE original → manejarBorradoLocal (OK, esperado)
-      └── Watcher: CREATE .papelera/... → encolarArchivo (BUG)
-```
-
-**Secuencia correcta (con P1 + P2):**
-```
-moverAPapelera()
-  └── marcarDescargaEnCurso(rutaPapelera)     ← P2: guard
-  └── rename(original, .papelera/timestamp_...)
-      ├── Watcher: DELETE original → manejarBorradoLocal (OK)
-      └── Watcher: ruta contiene .papelera/ → FILTRADA por P1, nunca llega a callbacks
-```
-
-**Implementación concreta:**
-- Importar `marcarDescargaEnCurso` de `syncGuards.ts` en `papeleraService.ts`.
-- Llamar `marcarDescargaEnCurso(rutaPapelera)` ANTES de `rename()`.
-- Esto es defensa en profundidad: P1 (filtro de ruta) es la línea principal, P2 (guard) es el fallback.
-
-**Nota:** El guard actual usa `setTimeout` con TTL de 10s. Si el rename falla, el guard expira sin efecto secundario.
-
----
-
-### P3. Pre-verificación de existencia antes de readFile (ALTA)
-
-**Archivo:** `uploadQueueService.ts`
-**Problema:** `subirArchivo()` llama `readFile(item.rutaArchivo)` directamente. Si el archivo fue movido, renombrado, o no está disponible (OneDrive cloud-only), falla con error críptico: `"failed to open file at path: C:\Users\Owner\O"` (ruta truncada).
-
-**Causas del error `readFile`:**
-1. **OneDrive cloud-only:** El archivo tiene el icono de nube en Explorer pero no está descargado localmente. Tauri `readFile` no puede acceder a archivos placeholder de OneDrive.
-2. **Race condition:** El archivo fue movido/renombrado entre el encolamiento y el procesamiento (puede pasar minutos/horas después con backoff).
-3. **Path encoding:** Rutas con caracteres especiales o muy largas pueden truncarse.
-
-**Solución (3 capas):**
-
-**Capa 1 — Verificar existencia antes de leer:**
-```typescript
-async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
-    try {
-        const { readFile, exists } = await import('@tauri-apps/plugin-fs');
-
-        /* Verificar que el archivo existe y es accesible */
-        const archivoExiste = await exists(item.rutaArchivo);
-        if (!archivoExiste) {
-            item.ultimoError = `Archivo no encontrado: ${item.rutaArchivo}`;
-            console.warn('[UploadQueue] Archivo no existe, posiblemente movido:', item.nombreArchivo);
-            /* Buscar si fue movido a otra ubicación conocida */
-            const alternativa = buscarArchivoMovido(item);
-            if (alternativa) {
-                item.rutaArchivo = alternativa;
-                /* Continuar con la nueva ruta */
-            } else {
-                return false;
-            }
-        }
-        // ... resto del upload
-```
-
-**Capa 2 — Error descriptivo en lugar de error críptico:**
-```typescript
-        let contenidoArchivo: Uint8Array;
-        try {
-            contenidoArchivo = await readFile(item.rutaArchivo);
-        } catch (errLectura) {
-            const msg = errLectura instanceof Error ? errLectura.message : String(errLectura);
-            /* Detectar errores de OneDrive (archivos cloud-only) */
-            const esOneDrive = item.rutaArchivo.includes('OneDrive')
-                && (msg.includes('failed to open') || msg.includes('cloud'));
-            item.ultimoError = esOneDrive
-                ? `Archivo en la nube (OneDrive). Descárgalo localmente primero: ${item.nombreArchivo}`
-                : `No se pudo leer el archivo: ${msg}`;
-            return false;
-        }
-```
-
-**Capa 3 — No encolar archivos de `.papelera/`:**
-En `encolarArchivo()`, antes de aceptar:
-```typescript
-if (rutaArchivo.replace(/\\/g, '/').includes('/.papelera/')) {
-    console.warn('[UploadQueue] Archivo en papelera, rechazando:', nombreArchivo);
-    return false;
-}
-```
-Esto es triple defensa: P1 (watcher no emite) + P2 (guard rename) + P3 (cola rechaza).
-
----
-
-### P4. Normalización de nombre para dedup contra prefijo timestamp (ALTA)
-
-**Archivo:** `uploadQueueService.ts` + `syncWatcherSetup.ts`
-**Problema:** La papelera renombra archivos a `{13dígitos}_{nombre}`. Las capas de dedup buscan por nombre exacto → no matchean.
-
-**Ejemplo:**
-- Nombre original: `Synth Guitar Loop_UhiJ_2upra.wav`
-- Nombre en papelera: `1772563989924_Synth Guitar Loop_UhiJ_2upra.wav`
-- `buscarArchivoPorNombre("1772563989924_Synth Guitar Loop_UhiJ_2upra.wav")` → null
-- `buscarEnIndicePorNombre("1772563989924_Synth Guitar Loop_UhiJ_2upra.wav")` → null
-
-**Solución — Utilidad de normalización de nombre:**
-```typescript
-/* utils/normalizarNombreArchivo.ts */
-const PREFIJO_PAPELERA = /^\d{13,}_/;
-
-export function normalizarNombreParaDedup(nombre: string): string {
-    return nombre.replace(PREFIJO_PAPELERA, '');
-}
-```
-
-**Aplicación en 2 puntos:**
-1. `encolarArchivo()`: Antes de dedup por nombre, normalizar.
-2. `onArchivoNuevo` callback en `syncWatcherSetup.ts`: Normalizar `nombreArchivo` antes de `buscarArchivoPorNombre`.
-
-**Por qué no es un parche:** La regex `^\d{13,}_` es el patrón documentado de la papelera (`${Date.now()}_${nombre}`). Si mañana el formato cambia, se actualiza EN UN lugar.
-
-**Nota:** Si P1 se implementa correctamente, esta normalización es defensa en profundidad. Un archivo de `.papelera/` nunca debería llegar a `encolarArchivo()`. Pero si por algún edge case lo hace (watcher de otro proceso, restore manual), la normalización evita el duplicado.
-
----
-
-### P5. Idempotency key para uploads — Prevención de duplicados server-side (ALTA)
-
-**Archivos:** `uploadQueueService.ts` (cliente) + `SamplesUploadController.php` (servidor)
-**Problema:** Si un upload llega al servidor pero el cliente no recibe/procesa la respuesta (timeout, desconexión, error post-response), el retry crea un registro duplicado. No hay dedup server-side.
-
-**Solución — Idempotency key (patrón estándar de APIs de pago):**
-
-**Cliente (`uploadQueueService.ts`):**
-- Al crear `ItemUploadCola`, generar `idempotencyKey: crypto.randomUUID()`.
-- Enviar como header `X-Idempotency-Key` en el POST.
-- El key se mantiene entre reintentos del mismo item (NO se regenera).
-
-```typescript
-const item: ItemUploadCola = {
-    id: `upload-${Date.now()}-...`,
-    idempotencyKey: crypto.randomUUID(), /* Persistente entre reintentos */
-    // ... resto
-};
-
-/* En subirArchivo(): */
-const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/upload`, {
-    method: 'POST',
-    body: formData,
-    headers: { 'X-Idempotency-Key': item.idempotencyKey },
-});
-```
-
-**Servidor (`SamplesUploadController.php`):**
-```php
-/* Antes de crear sample: */
-$idempotencyKey = $request->get_header('X-Idempotency-Key');
-if ($idempotencyKey) {
-    $existente = $this->repo->buscarPorIdempotencyKey($idempotencyKey, $usuarioId);
-    if ($existente) {
-        /* Ya se procesó este upload: retornar el resultado original */
-        return new WP_REST_Response(['ok' => true, 'sample_id' => $existente['id']], 200);
-    }
-}
-
-/* Después de crear sample: guardar key con TTL */
-$this->repo->guardarIdempotencyKey($idempotencyKey, $sampleId, $usuarioId);
-/* TTL: 24h (cleanup cron) */
-```
-
-**Tabla nueva o campo:**
-- Opción simple: columna `idempotency_key VARCHAR(36)` + `idempotency_expires_at TIMESTAMP` en tabla `samples`.
-- Opción robusta: tabla `idempotency_keys (key, resource_type, resource_id, usuario_id, created_at)` con índice UNIQUE en `(key, usuario_id)` y cleanup cron cada 24h.
-
-**Por qué no es un parche:** La idempotency key es un patrón estándar (Stripe, AWS, etc.) que protege contra CUALQUIER tipo de retry duplicado — no solo el caso de la papelera. Funciona incluso si el cliente se reinicia entre intentos (el key está persistido en la cola).
-
----
-
-### P6. Consistencia historial + papelera (MEDIA)
-
-**Archivos:** `papeleraService.ts`, `uploadQueueService.ts`
-**Problema:** Un archivo puede aparecer como "Sincronizado" en el panel aunque esté físicamente en `.papelera/`. Esto ocurre cuando el re-upload desde papelera tiene éxito (bug de P1) pero también puede ocurrir si el usuario mueve manualmente un archivo ya sincronizado a la papelera.
-
-**Solución — 2 acciones:**
-
-**Acción 1: `moverAPapelera()` actualiza historial:**
-Cuando `papeleraService.moverAPapelera()` mueve un archivo, debe actualizar el historial per-sample:
-```typescript
-/* Después de mover exitosamente */
-actualizarEstadoSampleHistorial({
-    sampleId: sampleId ?? 0,
-    nombreArchivo,
-    estado: 'en_papelera',
-    rutaLocal: rutaPapelera,
-}).catch(() => {});
-```
-
-**Acción 2: Validar ruta al mostrar estado en panel:**
-El componente que muestra el historial puede verificar:
-- Si `rutaLocal` contiene `.papelera/` → mostrar badge "En papelera" en vez de "Sincronizado".
-- Esto es puramente visual, defensivo, no afecta lógica.
-
----
-
-### P7. Auditoría: Otros archivos/carpetas que el watcher debería excluir (MEDIA)
-
-**Archivo:** `fileWatcherService.ts`
-**Problema:** Actualmente solo se excluyen patrones temporales (`PATRONES_TEMPORALES`). El array `CARPETAS_EXCLUIDAS` de P1 debería incluir TODAS las carpetas internas del sistema sync.
-
-**Carpetas a excluir del watcher:**
-| Carpeta | Razón |
-|---|---|
-| `.papelera` | Archivos eliminados, no deben re-subirse |
-| `Sin colección` | Archivos ya subidos y reubicados post-upload |
-| `Sin coleccion` | Variante sin tilde (legacy) |
-| `.sync-temp` | Si se implementa staging area futura |
-
-**Nota sobre `Sin colección`:** Actualmente `moverArchivoASinColeccion()` usa `marcarDescargaEnCurso()` como guard. Con la exclusión a nivel watcher, el guard se vuelve redundante pero se mantiene como defensa en profundidad.
-
-**Implementación:**
-```typescript
-const CARPETAS_EXCLUIDAS_UPLOAD = new Set([
-    '.papelera',
-]);
-
-/* Carpetas donde el watcher debe ignorar CREATEs pero NO DELETEs */
-const CARPETAS_SOLO_DELETE = new Set([
-    'sin colecci\u00f3n',
-    'sin coleccion',
-]);
-```
-
-El filtro en `procesarEvento()` diferencia:
-- Si ruta contiene carpeta de `CARPETAS_EXCLUIDAS_UPLOAD` → ignorar TODO evento.
-- Si ruta contiene carpeta de `CARPETAS_SOLO_DELETE` → ignorar CREATEs, procesar DELETEs (para que `manejarBorradoLocal` siga funcionando si alguien borra desde "Sin colección").
+**Tareas:**
+- [ ] **C388a** `apiColecciones`: nuevo endpoint o param para obtener tags agregados de todas las colecciones del usuario (top N tags más frecuentes).
+- [ ] **C388b** Backend: `ColeccionesController::listar` → incluir `tags_frecuentes` (top 15 tags de todos los samples del usuario agrupados por frecuencia).
+- [ ] **C388c** `useLibreriaIsland`: agregar estado para filtros (tags incluidos/excluidos), ordenamiento (recientes, nombre, total_samples), y búsqueda.
+- [ ] **C388d** `LibreriaIsland` tab "Mis Colecciones": agregar `inicioBarraControl` con contador, selector de orden, y botón "Nueva colección".
+- [ ] **C388e** `LibreriaIsland`: agregar `FiltroTags` encima del grid para filtrar colecciones por tags de sus samples.
+- [ ] **C388f** `LibreriaIsland`: renderizar subcolecciones en el mismo grid que colecciones padre (con indicador visual de que son sub). TarjetaColeccion muestra badge "Sub" o ícono de anidamiento.
+- [ ] **C388g** `TarjetaColeccion`: prop opcional `esSubcoleccion` para renderizar indicador visual (ícono folder anidado o badge).
 
 ---
 
 ## Orden de Implementación
 
-| Prioridad | Tarea | Impacto | Riesgo | Dependencia |
-|---|---|---|---|---|
-| 1 | **P1** — Excluir `.papelera/` del watcher | Elimina raíz del bug | Bajo | Ninguna |
-| 2 | **P2** — Guard rename en papeleraService | Defensa en profundidad | Bajo | Ninguna |
-| 3 | **P3** — Pre-check existencia en subirArchivo | Errores claros, no crípticos | Bajo | Ninguna |
-| 4 | **P4** — Normalización nombre dedup | Triple defensa client-side | Bajo | Ninguna |
-| 5 | **P7** — Auditar carpetas excluidas | Previene bugs similares futuros | Bajo | P1 (extiende array) |
-| 6 | **P6** — Consistencia historial + papelera | UX correcta | Bajo | P2 |
-| 7 | **P5** — Idempotency key server-side | Prevención definitiva duplicados | Medio | Backend migration |
-
-**P1+P2 juntos eliminan el 95% del problema reportado.**
-P3+P4 cubren edge cases y mejoran UX de errores.
-P5 es la solución definitiva a largo plazo contra duplicados por cualquier causa.
-P6+P7 son limpieza y consistencia.
-
----
-
-## Métricas de Verificación
-
-| Escenario | Antes | Después |
+| Prioridad | Tarea | Dependencia |
 |---|---|---|
-| Archivo movido a `.papelera/` | Watcher lo re-sube | Watcher lo ignora completamente |
-| Upload falla + archivo en papelera | Re-upload fantasma + duplicado | Error claro + no re-upload |
-| Retry de upload tras timeout | Duplicado en servidor | Idempotency key previene |
-| Historial de archivo en papelera | Muestra "Sincronizado" (falso) | Muestra "En papelera" |
-| Nombre con prefijo timestamp | Bypass total del dedup | Normalización antes de comparar |
-
----
+| 1 | **C386** Fix rename duplica colección | Ninguna (bug activo) |
+| 2 | **C387a-b** Migración BD + schema | Ninguna |
+| 3 | **C387c-h** Backend API subcolecciones | C387a-b |
+| 4 | **C387i-n** Desktop sync subcolecciones | C387c-h |
+| 5 | **C387o-r** UI feedTags subcolecciones en detalle | C387c-h |
+| 6 | **C388a-g** UI barraControl + tags en página colecciones | C387c-h |
 
 ## Archivos a Modificar
 
-| Archivo | Cambios | Tareas |
-|---|---|---|
-| `fileWatcherService.ts` | Filtro de rutas excluidas en `procesarEvento()` | P1, P7 |
-| `papeleraService.ts` | `marcarDescargaEnCurso()` antes de rename + update historial | P2, P6 |
-| `uploadQueueService.ts` | `exists()` pre-readFile + rechazo `.papelera/` + normalización nombre + idempotency header | P3, P4, P5 |
-| `syncWatcherSetup.ts` | Normalización nombre en callback `onArchivoNuevo` | P4 |
-| `SamplesUploadController.php` | Idempotency key check + store | P5 |
-| Migración/tabla BD | Campo o tabla idempotency_keys | P5 |
+| Archivo | Cambios |
+|---|---|
+| `syncTrackingService.ts` | `buscarColeccionPorCarpeta` case-insensitive + `ColeccionLocal.parentId` |
+| `syncWatcherSetup.ts` | Fallback rename + callbacks carpeta nivel 2 |
+| `syncCollectionService.ts` | `crearColeccionDesdeLocal` con `parentId` |
+| `fileWatcherService.ts` | Detección carpetas nivel 2 |
+| `ColeccionesSchema.php` | `parent_id` columna |
+| `ColeccionesRepository.php` | Queries con subcolecciones |
+| `ColeccionesCrudController.php` | Validación `parent_id` en crear |
+| `ColeccionesController.php` | Endpoints ajustados |
+| `SyncRepository.php` | `parent_id` en payload sync |
+| `coleccion.ts` (tipos) | `parentId` en interfaces |
+| `ColeccionDetalleIsland.tsx` | Badges subcolecciones |
+| `useColeccionDetalle.tsx` | State subcolecciones |
+| `LibreriaIsland.tsx` | barraControl + filtros + subcolecciones en grid |
+| `useLibreriaIsland.ts` | Lógica filtros/orden |
 
 ## Archivos Nuevos
 
 | Archivo | Responsabilidad |
 |---|---|
-| `desktop/src/utils/normalizarNombreArchivo.ts` | Utilidad: strip prefijo timestamp de papelera para dedup |
-
----
-
-## Lecciones (para roadmap.md)
-
-- [Watcher]: `.papelera/` está DENTRO de la carpeta sync → el watcher la observa recursivamente. Todo rename a `.papelera/` genera CREATE visible para callbacks. Excluir SIEMPRE carpetas internas del watcher.
-- [Papelera]: `moverAPapelera()` NO usa `marcarDescargaEnCurso()` como sí lo hace `moverArchivoASinColeccion()`. Toda operación que genera rename dentro de la carpeta sync DEBE usar el guard.
-- [OneDrive]: `readFile` de Tauri falla en archivos cloud-only de OneDrive sin error descriptivo. Siempre pre-check con `exists()` y dar mensaje claro al usuario.
-- [Dedup nombre]: El prefijo `${Date.now()}_` de la papelera rompe todas las comparaciones por nombre. Normalizar antes de buscar.
-- [Idempotency]: Sin idempotency key server-side, CUALQUIER retry de upload puede crear duplicados. Es imposible garantizar exactly-once delivery solo desde el cliente.
+| `v021_subcolecciones.sql` | Migración `parent_id` + índice |
+| `FiltroSubcolecciones.tsx` | Componente badges de subcolecciones |
+| `filtroSubcolecciones.css` | Estilos del filtro |
