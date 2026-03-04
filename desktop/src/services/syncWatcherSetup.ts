@@ -33,6 +33,94 @@ const CARPETAS_SISTEMA_SYNC = new Set([
     'sin colecci\u00c3\u00b3n',
 ]);
 
+/* Extensiones de audio reconocidas — debe mantenerse en sync con fileWatcherService.ts */
+const EXTENSIONES_AUDIO_SCAN = new Set(['wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg']);
+
+/*
+ * Carpetas totalmente excluidas del escaneo local.
+ * Espeja CARPETAS_EXCLUIDAS_TOTAL de fileWatcherService.ts.
+ */
+const CARPETAS_EXCLUIDAS_SCAN = new Set(['.papelera']);
+
+/*
+ * Escanea la carpeta de sync en busca de archivos de audio locales que no
+ * están en el tracking (no fueron detectados por el watcher — arranque,
+ * archivos copiados mientras la app estaba cerrada, etc.) y los encola para
+ * subida. Máximo 2 niveles de profundidad (coleccion/subcoleccion).
+ *
+ * Idempotente: encolarArchivo ya tiene guards de dedup (ruta + hash).
+ * Se puede llamar múltiples veces sin efectos secundarios.
+ */
+export async function escanearCarpetaYEncolar(): Promise<number> {
+    const { config, trackingModule } = estado;
+    if (!config.carpetaLocal || !config.sincronizacionActiva) return 0;
+
+    try {
+        const { readDir } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const { encolarArchivo } = await import('./uploadQueueService');
+
+        const carpetaBase = config.carpetaLocal;
+        let encolados = 0;
+
+        const procesarArchivo = async (
+            rutaArchivo: string,
+            nombreArchivo: string,
+            carpetas: string[],
+        ): Promise<void> => {
+            const rutaNorm = rutaArchivo.replace(/\\/g, '/');
+
+            if (trackingModule) {
+                const enTracking = trackingModule.buscarArchivoPorRuta(rutaNorm);
+                if (enTracking && !enTracking.syncDeshabilitado) return;
+            }
+            if (buscarEnIndicePorRuta(rutaNorm)) return;
+
+            encolados++;
+            await encolarArchivo(rutaArchivo, nombreArchivo, carpetas);
+        };
+
+        const entradas = await readDir(carpetaBase);
+
+        for (const entrada of entradas) {
+            if (!entrada.name) continue;
+            const nombreLower = entrada.name.toLowerCase();
+            if (CARPETAS_EXCLUIDAS_SCAN.has(nombreLower)) continue;
+
+            if (entrada.isDirectory) {
+                if (CARPETAS_SISTEMA_SYNC.has(nombreLower)) continue;
+
+                const rutaCarpeta = await join(carpetaBase, entrada.name);
+                try {
+                    const subEntradas = await readDir(rutaCarpeta);
+                    for (const sub of subEntradas) {
+                        if (!sub.name) continue;
+                        const ext = sub.name.split('.').pop()?.toLowerCase() ?? '';
+                        if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
+                        const rutaArchivo = await join(rutaCarpeta, sub.name);
+                        await procesarArchivo(rutaArchivo, sub.name, [entrada.name]);
+                    }
+                } catch (errSub) {
+                    console.warn('[Sync] Error escaneando subcarpeta:', rutaCarpeta, errSub);
+                }
+            } else {
+                const ext = entrada.name.split('.').pop()?.toLowerCase() ?? '';
+                if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
+                const rutaArchivo = await join(carpetaBase, entrada.name);
+                await procesarArchivo(rutaArchivo, entrada.name, []);
+            }
+        }
+
+        if (encolados > 0) {
+            console.info(`[Sync] Escaneo local: ${encolados} archivo(s) nuevo(s) encolado(s) para subida`);
+        }
+        return encolados;
+    } catch (err) {
+        console.error('[Sync] Error en escaneo de carpeta local:', err);
+        return 0;
+    }
+}
+
 /* Operaciones de estado de sync por sample */
 
 /*
@@ -611,6 +699,31 @@ export async function inicializarSyncBidireccional(): Promise<void> {
         }
 
         await sincronizarEstructuraCarpetas();
+
+        /*
+         * Escaneo inicial: detectar archivos locales preexistentes que el watcher
+         * no puede ver (no emite eventos para archivos ya presentes al iniciar).
+         * Se lanza async para no bloquear el arranque.
+         */
+        escanearCarpetaYEncolar().catch(err => {
+            console.error('[Sync] Error en escaneo inicial de carpeta local:', err);
+        });
+
+        /*
+         * Listener para escaneo bajo demanda desde el sync panel.
+         * "Sincronizar ahora" emite este evento para detectar archivos nuevos.
+         */
+        try {
+            const { listen: listenTauri } = await import('@tauri-apps/api/event');
+            await listenTauri('escanear-subidas-local', () => {
+                escanearCarpetaYEncolar().catch(err => {
+                    console.error('[Sync] Error en escaneo local bajo demanda:', err);
+                });
+            });
+        } catch {
+            /* Entorno sin Tauri — ignorar */
+        }
+
         estado.pollingCarpetasInterval = setInterval(() => {
             sincronizarEstructuraCarpetas();
         }, POLLING_CARPETAS_MS);

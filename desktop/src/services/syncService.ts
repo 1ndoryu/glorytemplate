@@ -541,10 +541,14 @@ async function ejecutarSync(
         }
 
         /* 4. Emitir eventos Tauri para que la ventana principal recargue su cola
-         *    en memoria desde el Store ya actualizado y procese los items. */
+         *    en memoria desde el Store ya actualizado y procese los items.
+         *    C385: escanear-subidas-local hace que la ventana principal escanee la
+         *    carpeta local y encole archivos que el watcher no detectó (startup,
+         *    archivos copiados mientras la app estaba cerrada). */
         const { emit } = await import('@tauri-apps/api/event');
         await emit('reintentar-errores-upload', {});
         await emit('reintentar-errores-offline', {});
+        await emit('escanear-subidas-local', {});
     } catch (e) {
         console.warn('[Sync] No se pudo reintentar colas de subida/offline antes de sync:', e);
     }
