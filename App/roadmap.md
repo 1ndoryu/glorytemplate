@@ -350,6 +350,34 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
     - [x] **Explorar muestra colecciones propias primero:** `ColeccionesRepository::explorarPublicas()` WHERE cambiado de `publica = true` a `(publica = true OR usuario_id = :userIdVisibilidad)`. Colecciones propias (incluso privadas) aparecen con boost `propio_boost = 100.0` en ORDER BY. Colecciones vacías propias también se muestran (`>= 0` en vez de `> 0`).
     - [x] **Tab Subidos eliminada:** Removida de LibreriaIsland, useLibreriaIsland, PanelLibreria, usePanelLibreria. Limpieza completa: imports muertos (TarjetaSample, FiltroTags, useFeedFiltros, Upload, listarSamples, darLike, quitarLike, useSubirModalStore, useMenuContextualSample, MenuContextual), state muerto (samples, manejarLike, manejarClickTitulo, manejarComentar), ICONOS_TAB, mensajeVacio.
 
+384. ✅ [AG-SUB] **C387 — Subcolecciones full-stack (migración + backend + desktop + React)**
+    - [x] Migración `v022_subcolecciones.sql`: columnas `parent_id`, `depth` en tabla colecciones con FK + CHECK depth ≤ 3
+    - [x] Schema regenerado: `ColeccionesSchema.php`, `ColeccionesCols.php`, `ColeccionesDTO.php`, `schema.ts`
+    - [x] `ColeccionesRepository`: `listarDelUsuario` con tags subquery (array_agg DISTINCT + UNNEST), `tagsFrecuentesDelUsuario()`, `listarSubcolecciones()`, `crear()` con parentId + depth validation
+    - [x] `ColeccionesCrudController`: CRUD endpoints con soporte parentId
+    - [x] `SyncRepository`: `c.PARENT_ID` en sync query; `SyncController` actualizado
+    - [x] Desktop: `syncTrackingService`, `syncCollectionService`, `fileWatcherService`, `syncWatcherSetup` actualizados para subcollections
+    - [x] React: `FiltroSubcolecciones.tsx` + `filtroSubcolecciones.css` (nuevo componente), `useColeccionDetalle.tsx`, `ColeccionDetalleIsland.tsx` actualizados
+
+385. ✅ [AG-SUB] **C388 — barraControl colecciones (backend tags + UI librería + TarjetaColeccion)**
+    - [x] `ColeccionesRepository`: métodos `tagsFrecuentesDelUsuario()` con agregación SQL
+    - [x] `ColeccionesController`: response anidada `{ data: { colecciones, tags_frecuentes } }` (compatibilidad apiGet)
+    - [x] `apiColecciones.ts`: `RespuestaListarColecciones`, `ListarRaw`, tags en normalizadores, reescritura `listarColecciones()`
+    - [x] `useLibreriaIsland.ts`: reescritura completa con filtrado por tag, ordenamiento (recientes/nombre/totalSamples), aplanamiento subcolecciones
+    - [x] `LibreriaIsland.tsx`: barraControl con contador, dropdown ordenamiento, botón Nueva, fila de tags frecuentes (Badge), grid con esSubcoleccion
+    - [x] `TarjetaColeccion.tsx`: prop `esSubcoleccion` + badge visual + borde discontinuo
+    - [x] `libreria.css` + `tarjetaColeccion.css`: estilos barraControl y subcolección
+    - [x] `usePanelLibreria.ts`, `useModalSeleccionColeccion.ts`: consumidores actualizados
+    - [x] `coleccion.ts`: tags: string[] en interfaces
+
+386. ✅ [AG-SUB] **Fix crítico: repositoryGenerate.mjs corrompía 18 repositorios al regenerar schema**
+    - [x] **Root cause:** `schema:generate` (`repositoryGenerate.mjs`) tenía 5 bugs: (1) `colId()` siempre `::ID` — rompía tablas con PK compuesto, (2) ORDER BY hardcodeado `'id'`/`'created_at'` — perdía safety de constantes schema, (3) `use` statements custom se eliminaban al regenerar, (4) código entre zona auto y marca CUSTOM se destruía, (5) `.trim()` rompía indentación de primera línea custom
+    - [x] Nuevas funciones: `extraerUsesCustom()`, `extraerColIdCustom()`, `extraerCodigoEntreAutoYCustom()` preservan código manual
+    - [x] Templates ORDER BY usan `${colsClass}::ID` y `${colsClass}::CREATED_AT` en vez de strings
+    - [x] `generarRepositorios()` emite warnings si detecta código huérfano entre zonas
+    - [x] 18 repos restaurados desde HEAD + `PublicacionesEnums.php` restaurado + `scripts/` restaurados
+    - [x] type-check 0 errores post-fix
+
 ---
 
 ## Notas Compactas
@@ -380,6 +408,7 @@ Tabla `cola_procesamiento_ia`: tipo (sample/comentario/publicacion), operacion (
 - Cols en `App\Config\Schema\_generated\`. Sentinel: param keys y SET clauses → Cols constants. SQL aliases strings OK.
 - Union types TS de `ISamples['tipo']` → si se regenera, TS rompe. Interfaces manuales porque API normaliza a español.
 - Regex `validarQueryContraSchema()`: NUNCA negative lookahead → usar `\b`.
+- [repositoryGenerate.mjs]: `schema:generate` puede corromper repositorios. 5 bugs corregidos: (1) `colId()` forzaba `::ID` en tablas composite PK, (2) ORDER BY hardcodeados, (3) `use` custom eliminados, (4) código entre zona auto y CUSTOM destruido, (5) `.trim()` rompía indentación. Funciones `extraerUsesCustom`, `extraerColIdCustom`, `extraerCodigoEntreAutoYCustom` ahora preservan código manual.
 
 ### React / TypeScript
 - React Compiler: no `Date.now()` en render/useMemo, no refs `.current` en render. PageRenderer: render-time state update.
