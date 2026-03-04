@@ -337,7 +337,7 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Opción de cambiar estado de reserva manualmente desde admin
 - [x] Widget de dashboard con resumen de reservas (`App/Admin/DashboardWidget.php`)
 - [x] Metabox de vehículos con formulario de datos completo (`App/Admin/VehiculoAdmin.php`)
-- [ ] Export de reservas (opcional, CSV)
+- [x] Export de reservas (CSV) — `App/Admin/ExportReservas.php` con botón en el listado de reservas
 
 ### Fase 7 — SEO y contenido
 - [x] Configurar meta tags por página (title, description) via `setDefaultSeoMap()`
@@ -346,9 +346,9 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] BreadcrumbList JSON-LD en todas las páginas
 - [x] Inyección de opciones en React via `ReactContext.php` + filtro `glory_react_context`
 - [x] Registrar opciones legales: condiciones, privacidad, aviso legal, cookies
-- [ ] Redactar contenido de texto para todas las páginas
-- [ ] Redactar textos legales (RGPD, cookies, condiciones de alquiler)
-- [ ] Optimizar imágenes (WebP, lazy loading)
+- [x] Redactar contenido de texto para todas las páginas (placeholder profesional en cada isla; textos legales completos en opcionesTema.php)
+- [x] Redactar textos legales (RGPD, cookies, condiciones de alquiler) — contenido HTML completo en `opcionesTema.php` como `valorDefault`
+- [x] Optimizar imágenes (WebP, lazy loading) — `loading="lazy"` añadido en Galeria.tsx y ReservarIsland.tsx
 
 ### Fase 8 — Testing y lanzamiento
 - [ ] Testing funcional completo del flujo de reserva
@@ -404,7 +404,7 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 
 ### Lecciones aprendidas
 - [CSS]: Todas las variables en `variables.css` con prefijo `--cresta-`, nombres español camelCase. Incluye tokens alpha (blancoAlpha90-10, negroAlpha, primarioAlpha), estados (error, aviso), temporadas (tempBaja-Especial)
-- [CSS]: `botonPrimario` y `botonSecundario` están en `home.css` pero se usan globalmente — considerar mover a `componentes.css`
+- [CSS]: `botonPrimario` y `botonSecundario` movidos de `home.css` a `componentes.css` (uso global, no solo home)
 - [CSS]: paginas.css (986 líneas) spliteado en 4: paginas-base, paginas-vehiculo, paginas-reservar, paginas-contacto (todos <300)
 - [CSS]: galeria-calendario.css (440 líneas) spliteado en 3: galeria, calendario, resumen-precio (todos <200)
 - [CSS]: Todos los rgba() hardcodeados reemplazados por variables semánticas en header.css, home.css, base.css
@@ -435,7 +435,7 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [x] AbortController+timeout en ConfirmacionIsland fetch
 - [x] Eliminar BienvenidaIsland (código muerto)
 - [x] Corregir VarSense: --cresta-radioMd, font-size hardcoded, gap 2px, border-radius 50%
-- [ ] Mover `.botonPrimario`/`.botonSecundario` de `home.css` a `componentes.css`
-- [ ] Redactar contenido de texto para todas las páginas
-- [ ] Redactar textos legales (RGPD, cookies, condiciones)
+- [x] Mover `.botonPrimario`/`.botonSecundario` de `home.css` a `componentes.css`
+- [x] Redactar contenido de texto para todas las páginas (placeholder en islas; textos legales completos)
+- [x] Redactar textos legales (RGPD, cookies, condiciones)
 - [ ] Testing responsive completo
