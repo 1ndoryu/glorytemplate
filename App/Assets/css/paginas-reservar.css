@@ -1,0 +1,247 @@
+/*
+ * Cresta Campers — Flujo de reserva + confirmación.
+ * Progress bar, pasos, datos de vehículo, botones de navegación,
+ * confirmación post-pago, grid de datos, caja info.
+ */
+
+/* Layout reservar */
+.reservarLayout {
+    padding-top: var(--cresta-espacio5xl);
+    padding-bottom: var(--cresta-espacio4xl);
+}
+
+.reservarContenedor {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+}
+
+.reservarTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.reservarSubtitulo {
+    color: var(--cresta-gris500);
+}
+
+/* Progress bar */
+.progressBar {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    margin-bottom: var(--cresta-espacioXl);
+}
+
+.progressPaso {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+}
+
+.progressCirculo {
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--cresta-radioCompleto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoBold);
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+
+.progressCirculoActivo {
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+}
+
+.progressCirculoInactivo {
+    background-color: var(--cresta-gris200);
+    color: var(--cresta-gris500);
+}
+
+.progressLinea {
+    flex: 1;
+    height: var(--cresta-espacio2xs);
+    border-radius: var(--cresta-radioCompleto);
+}
+
+.progressLineaActiva {
+    background-color: var(--cresta-primario);
+}
+
+.progressLineaInactiva {
+    background-color: var(--cresta-gris200);
+}
+
+/* Pasos de reserva */
+.reservarPasoContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioMd);
+}
+
+.reservarPasoTitulo {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+}
+
+/* Info de vehículo en resumen */
+.reservarVehiculoResumen {
+    display: flex;
+    gap: var(--cresta-espacioSm);
+    align-items: center;
+}
+
+.reservarVehiculoImg {
+    width: 6rem;
+    height: 4rem;
+    border-radius: var(--cresta-radioLg);
+    object-fit: cover;
+}
+
+.reservarVehiculoNombre {
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+}
+
+.reservarVehiculoFechas {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}
+
+/* Botones de navegación entre pasos */
+.reservarBotones {
+    display: flex;
+    gap: var(--cresta-espacioXs);
+}
+
+.reservarBotonAtras {
+    flex: 1;
+    background-color: var(--cresta-gris100);
+    color: var(--cresta-gris700);
+    font-weight: var(--cresta-pesoMedio);
+    padding: var(--cresta-espacioXs) 0;
+    border-radius: var(--cresta-radioLg);
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--cresta-transicion);
+}
+
+.reservarBotonAtras:hover {
+    background-color: var(--cresta-gris200);
+}
+
+.reservarBotonContinuar {
+    flex: 2;
+}
+
+/* Redireccionando a Stripe */
+.reservarRedireccionar {
+    text-align: center;
+    padding: var(--cresta-espacio4xl) 0;
+}
+
+.reservarRedireccionarTitulo {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.reservarRedireccionarTexto {
+    color: var(--cresta-gris500);
+}
+
+/* Confirmación — estado de éxito */
+.confirmacionExito {
+    text-align: center;
+    margin-bottom: var(--cresta-espacioLg);
+}
+
+.confirmacionIcono {
+    width: 5rem;
+    height: 5rem;
+    background-color: var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioCompleto);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--cresta-espacioSm);
+}
+
+.confirmacionIcono svg {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--cresta-primario);
+}
+
+.confirmacionTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.confirmacionSubtitulo {
+    color: var(--cresta-gris500);
+    font-size: var(--cresta-textoLg);
+}
+
+/* Grid de datos de la reserva */
+.confirmacionDatosGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+}
+
+.infoRowLabel {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris400);
+}
+
+.infoRowValor {
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris800);
+}
+
+.infoRowValorResaltado {
+    color: var(--cresta-primario);
+    font-size: var(--cresta-textoLg);
+}
+
+.confirmacionSeparador {
+    border-top: 1px solid var(--cresta-gris100);
+    padding-top: var(--cresta-espacioSm);
+}
+
+/* Caja info (instrucciones antes de recogida) */
+.cajaInfo {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioMd);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+.cajaInfoTitulo {
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primarioOscuro);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.cajaInfoLista {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacio2xs);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-primarioOscuro);
+}

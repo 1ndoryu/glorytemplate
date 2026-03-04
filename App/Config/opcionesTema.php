@@ -6,9 +6,7 @@ use Glory\Manager\OpcionManager;
  * Cresta Campers — Opciones del Tema
  */
 
-// ==========================================
-// EMPRESA
-// ==========================================
+/* EMPRESA */
 
 $secEmpresa = 'empresa';
 
@@ -57,9 +55,7 @@ OpcionManager::register('cresta_empresa_cif', [
     'subSeccion'   => 'datos_generales',
 ]);
 
-// ==========================================
-// RESERVAS — TEMPORADAS Y PRECIOS
-// ==========================================
+/* RESERVAS — TEMPORADAS Y PRECIOS */
 
 $secReservas = 'reservas';
 
@@ -206,9 +202,7 @@ OpcionManager::register('cresta_fechas_especiales', [
     'subSeccion'   => 'temporadas',
 ]);
 
-// ==========================================
-// POLÍTICAS Y LEGAL
-// ==========================================
+/* POLÍTICAS Y LEGAL */
 
 $secLegal = 'legal';
 
@@ -257,9 +251,7 @@ OpcionManager::register('cresta_cookies', [
     'subSeccion'   => 'politicas',
 ]);
 
-// ==========================================
-// INTEGRACIONES Y TRACKING
-// ==========================================
+/* INTEGRACIONES Y TRACKING */
 
 $secIntegraciones = 'integrations';
 

@@ -3,68 +3,19 @@
  * Integrado con FormController de Glory.
  */
 
-import { useState, useCallback } from 'react';
-import { useGloryContext, useGloryOptions } from '@/hooks';
+import { useContacto } from '@app/hooks/useContacto';
+import { Boton } from '@app/components/ui/Boton';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
+import { CampoTextarea } from '@app/components/ui/CampoTextarea';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 
 export function ContactoIsland(): JSX.Element {
-    const { restUrl, nonce } = useGloryContext();
-    const { get } = useGloryOptions();
-
-    const empresaData = get('empresa', {}) as Record<string, string>;
-    const empresa = empresaData.nombre || 'Cresta Campers';
-    const emailEmpresa = empresaData.email || '';
-    const telefonoEmpresa = empresaData.telefono || '';
-    const direccionEmpresa = empresaData.direccion || '';
-
-    const [form, setForm] = useState({ nombre: '', email: '', telefono: '', mensaje: '' });
-    const [loading, setLoading] = useState(false);
-    const [enviado, setEnviado] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const baseUrl = restUrl?.replace(/\/$/, '') ?? '/wp-json';
-
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form.nombre || !form.email || !form.mensaje) {
-            setError('Por favor, rellena todos los campos obligatorios.');
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            if (nonce) headers['X-WP-Nonce'] = nonce;
-
-            const res = await fetch(`${baseUrl}/glory/v1/form`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    formId: 'cresta-contacto',
-                    nombre: form.nombre,
-                    email: form.email,
-                    telefono: form.telefono,
-                    mensaje: form.mensaje,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-                setEnviado(true);
-                setForm({ nombre: '', email: '', telefono: '', mensaje: '' });
-            } else {
-                setError(data.message ?? data.error ?? 'Error al enviar el formulario.');
-            }
-        } catch {
-            setError('Error de conexión. Inténtalo de nuevo.');
-        } finally {
-            setLoading(false);
-        }
-    }, [form, baseUrl, nonce]);
+    const {
+        form, actualizarCampo, handleSubmit,
+        loading, enviado, error, resetear,
+        empresa,
+    } = useContacto();
 
     return (
         <div className="paginaBase">
@@ -90,67 +41,47 @@ export function ContactoIsland(): JSX.Element {
                                     <p className="mensajeExitoTexto">
                                         Hemos recibido tu mensaje. Te responderemos lo antes posible.
                                     </p>
-                                    <button
-                                        onClick={() => setEnviado(false)}
-                                        className="mensajeExitoEnlace"
-                                    >
+                                    <Boton variante="enlace" onClick={resetear}>
                                         Enviar otro mensaje
-                                    </button>
+                                    </Boton>
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="formulario">
-                                    <div>
-                                        <label className="campoLabel">Nombre *</label>
-                                        <input
-                                            type="text"
-                                            value={form.nombre}
-                                            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                                            className="campoInput"
-                                            placeholder="Tu nombre"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="campoLabel">Email *</label>
-                                        <input
-                                            type="email"
-                                            value={form.email}
-                                            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                                            className="campoInput"
-                                            placeholder="tu@email.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="campoLabel">Teléfono</label>
-                                        <input
-                                            type="tel"
-                                            value={form.telefono}
-                                            onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))}
-                                            className="campoInput"
-                                            placeholder="+34 600 000 000"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="campoLabel">Mensaje *</label>
-                                        <textarea
-                                            value={form.mensaje}
-                                            onChange={e => setForm(f => ({ ...f, mensaje: e.target.value }))}
-                                            rows={5}
-                                            className="campoTextarea"
-                                            placeholder="¿En qué podemos ayudarte?"
-                                        />
-                                    </div>
+                                    <CampoTexto
+                                        label="Nombre *"
+                                        value={form.nombre}
+                                        onChange={v => actualizarCampo('nombre', v)}
+                                        placeholder="Tu nombre"
+                                    />
+                                    <CampoTexto
+                                        label="Email *"
+                                        type="email"
+                                        value={form.email}
+                                        onChange={v => actualizarCampo('email', v)}
+                                        placeholder="tu@email.com"
+                                    />
+                                    <CampoTexto
+                                        label="Teléfono"
+                                        type="tel"
+                                        value={form.telefono}
+                                        onChange={v => actualizarCampo('telefono', v)}
+                                        placeholder="+34 600 000 000"
+                                    />
+                                    <CampoTextarea
+                                        label="Mensaje *"
+                                        value={form.mensaje}
+                                        onChange={v => actualizarCampo('mensaje', v)}
+                                        rows={5}
+                                        placeholder="¿En qué podemos ayudarte?"
+                                    />
 
                                     {error && (
                                         <div className="alertaError">{error}</div>
                                     )}
 
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="botonPrimario"
-                                    >
+                                    <Boton type="submit" disabled={loading}>
                                         {loading ? 'Enviando...' : 'Enviar mensaje'}
-                                    </button>
+                                    </Boton>
                                 </form>
                             )}
                         </div>
@@ -158,36 +89,36 @@ export function ContactoIsland(): JSX.Element {
                         {/* Info de contacto */}
                         <div>
                             <div className="panelBlanco">
-                                <h2 className="panelTitulo">{empresa}</h2>
+                                <h2 className="panelTitulo">{empresa.nombre}</h2>
                                 <div className="reservarPasoContenido">
-                                    {emailEmpresa && (
+                                    {empresa.email && (
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📧</span>
                                             <div>
                                                 <div className="contactoInfoLabel">Email</div>
-                                                <a href={`mailto:${emailEmpresa}`} className="contactoInfoValor">
-                                                    {emailEmpresa}
+                                                <a href={`mailto:${empresa.email}`} className="contactoInfoValor">
+                                                    {empresa.email}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
-                                    {telefonoEmpresa && (
+                                    {empresa.telefono && (
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📞</span>
                                             <div>
                                                 <div className="contactoInfoLabel">Teléfono</div>
-                                                <a href={`tel:${telefonoEmpresa}`} className="contactoInfoValor">
-                                                    {telefonoEmpresa}
+                                                <a href={`tel:${empresa.telefono}`} className="contactoInfoValor">
+                                                    {empresa.telefono}
                                                 </a>
                                             </div>
                                         </div>
                                     )}
-                                    {direccionEmpresa && (
+                                    {empresa.direccion && (
                                         <div className="contactoInfoItem">
                                             <span className="contactoInfoIcono">📍</span>
                                             <div>
                                                 <div className="contactoInfoLabel">Dirección</div>
-                                                <p className="contactoInfoValor">{direccionEmpresa}</p>
+                                                <p className="contactoInfoValor">{empresa.direccion}</p>
                                             </div>
                                         </div>
                                     )}

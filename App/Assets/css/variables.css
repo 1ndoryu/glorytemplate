@@ -95,6 +95,43 @@
     --cresta-zHeader: 100;
     --cresta-zOverlay: 200;
     --cresta-zModal: 300;
+
+    /* Overlays y transparencias */
+    --cresta-blancoAlpha90: rgba(255, 255, 255, 0.9);
+    --cresta-blancoAlpha80: rgba(255, 255, 255, 0.8);
+    --cresta-blancoAlpha70: rgba(255, 255, 255, 0.7);
+    --cresta-blancoAlpha50: rgba(255, 255, 255, 0.5);
+    --cresta-blancoAlpha40: rgba(255, 255, 255, 0.4);
+    --cresta-blancoAlpha20: rgba(255, 255, 255, 0.2);
+    --cresta-blancoAlpha10: rgba(255, 255, 255, 0.1);
+    --cresta-negroAlpha90: rgba(0, 0, 0, 0.9);
+    --cresta-negroAlpha60: rgba(0, 0, 0, 0.6);
+    --cresta-negroAlpha10: rgba(0, 0, 0, 0.1);
+
+    /* Primario con transparencia */
+    --cresta-primarioAlpha95: rgba(27, 67, 50, 0.95);
+    --cresta-primarioAlpha70: rgba(27, 67, 50, 0.7);
+    --cresta-primarioAlpha40: rgba(27, 67, 50, 0.4);
+
+    /* Fondos y bordes de estados */
+    --cresta-errorFondo: rgba(220, 38, 38, 0.05);
+    --cresta-errorBorde: rgba(220, 38, 38, 0.2);
+    --cresta-avisoFondo: rgba(245, 158, 11, 0.05);
+    --cresta-avisoBorde: rgba(245, 158, 11, 0.2);
+    --cresta-avisoTexto: #92400e;
+
+    /* Colores de temporada (precios) */
+    --cresta-tempBajaFondo: rgba(59, 130, 246, 0.1);
+    --cresta-tempBajaTexto: #1d4ed8;
+    --cresta-tempMediaFondo: rgba(245, 158, 11, 0.1);
+    --cresta-tempMediaTexto: #b45309;
+    --cresta-tempAltaFondo: rgba(249, 115, 22, 0.1);
+    --cresta-tempAltaTexto: #c2410c;
+    --cresta-tempEspecialFondo: rgba(220, 38, 38, 0.1);
+    --cresta-tempEspecialTexto: #b91c1c;
+
+    /* Raíz */
+    --cresta-raizFuente: 16px;
 }
 
 /* Breakpoints de referencia (usados en media queries):

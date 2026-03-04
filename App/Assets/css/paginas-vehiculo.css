@@ -1,0 +1,276 @@
+/*
+ * Cresta Campers — Flota + Detalle de vehículo.
+ * Filtros, grid de catálogo, ficha de vehículo, specs, equipamiento, precios, sidebar.
+ */
+
+/* Flota — Filtros sticky */
+.flotaFiltros {
+    background-color: var(--cresta-blanco);
+    border-bottom: 1px solid var(--cresta-gris200);
+    position: sticky;
+    top: 4rem;
+    z-index: 30;
+}
+
+@media (min-width: 768px) {
+    .flotaFiltros {
+        top: 5rem;
+    }
+}
+
+.flotaFiltrosContenido {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cresta-espacioSm);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.flotaFiltroGrupo {
+    display: flex;
+    gap: var(--cresta-espacioXs);
+    align-items: center;
+}
+
+.flotaFiltroLabel {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}
+
+.flotaFiltroSelect {
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioXs);
+    font-size: var(--cresta-textoSm);
+    transition: border-color var(--cresta-transicion);
+}
+
+.flotaFiltroSelect:focus {
+    outline: none;
+    border-color: var(--cresta-primario);
+}
+
+.flotaFiltroContador {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris400);
+}
+
+/* Grid de catálogo */
+.flotaSeccionGrid {
+    padding: var(--cresta-espacioXl) 0;
+}
+
+.flotaGridContenedor {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+}
+
+.flotaError {
+    text-align: center;
+    padding: var(--cresta-espacio4xl) 0;
+    color: var(--cresta-error);
+    font-size: var(--cresta-textoLg);
+}
+
+.flotaVacioFiltros {
+    text-align: center;
+    padding: var(--cresta-espacio4xl) 0;
+    color: var(--cresta-gris400);
+}
+
+.flotaVacioFiltrosTexto {
+    font-size: var(--cresta-textoLg);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.flotaLimpiarFiltros {
+    color: var(--cresta-primario);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--cresta-textoSm);
+    text-decoration: underline;
+}
+
+/* Vehículo Detalle — Layout */
+.detalleLayout {
+    padding-top: var(--cresta-espacio5xl);
+    padding-bottom: var(--cresta-espacio4xl);
+}
+
+.detalleGrid {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioLg);
+}
+
+@media (min-width: 1024px) {
+    .detalleGrid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.detalleColumnaIzq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioLg);
+}
+
+.detalleTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+@media (min-width: 768px) {
+    .detalleTitulo {
+        font-size: var(--cresta-texto4xl);
+    }
+}
+
+.detalleUbicacion {
+    color: var(--cresta-gris500);
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+/* Especificaciones */
+.specsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--cresta-espacioSm);
+}
+
+@media (min-width: 768px) {
+    .specsGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.specItem {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    padding: var(--cresta-espacio2xs) 0;
+}
+
+.specIcono {
+    font-size: var(--cresta-texto2xl);
+}
+
+.specLabel {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris400);
+}
+
+.specValor {
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris800);
+}
+
+/* Equipamiento */
+.equipamientoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--cresta-espacio2xs);
+}
+
+@media (min-width: 768px) {
+    .equipamientoGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.equipamientoItem {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris700);
+    padding: var(--cresta-espacioXs) 0;
+}
+
+.equipamientoCheck {
+    color: var(--cresta-primarioClaro);
+}
+
+/* Tabla de precios */
+.preciosTabla {
+    width: 100%;
+    font-size: var(--cresta-textoSm);
+}
+
+.preciosTabla thead tr {
+    border-bottom: 1px solid var(--cresta-gris200);
+}
+
+.preciosTabla th {
+    padding: var(--cresta-espacio2xs) 0;
+    color: var(--cresta-gris500);
+    font-weight: var(--cresta-pesoMedio);
+    text-align: left;
+}
+
+.preciosTabla th:last-child {
+    text-align: right;
+}
+
+.preciosTabla tbody tr {
+    border-bottom: 1px solid var(--cresta-gris100);
+}
+
+.preciosTabla td {
+    padding: var(--cresta-espacioXs) 0;
+}
+
+.preciosTabla td:first-child {
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris800);
+}
+
+.preciosTabla td:last-child {
+    text-align: right;
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primario);
+}
+
+/* Sidebar (detalle) */
+.detalleSidebar {
+    position: sticky;
+    top: var(--cresta-espacio5xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioMd);
+}
+
+.detallePrecioBadge {
+    text-align: center;
+}
+
+.detallePrecioDesde {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.detallePrecioValor {
+    font-size: var(--cresta-texto4xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primario);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.detallePrecioUnidad {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}

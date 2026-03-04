@@ -1,11 +1,8 @@
 /**
  * Componente: Pagina de Bienvenida
  * Muestra un mensaje simple centrado en pantalla.
- * Caso de uso: Primera pagina de prueba.
+ * Caso de uso: Primera pagina de prueba del framework.
  */
-
-import '../styles/variables.css';
-import '../styles/bienvenida.css';
 
 interface BienvenidaIslandProps {
     titulo?: string;

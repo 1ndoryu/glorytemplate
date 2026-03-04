@@ -2,3 +2,5 @@ export { useVehiculos } from './useVehiculos';
 export { useDisponibilidad } from './useDisponibilidad';
 export { useReserva } from './useReserva';
 export { usePrecios } from './usePrecios';
+export { useContacto } from './useContacto';
+export { useReservarFlujo } from './useReservarFlujo';

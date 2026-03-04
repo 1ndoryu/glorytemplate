@@ -1,0 +1,191 @@
+/*
+ * Cresta Campers — Galería de imágenes.
+ * Componente de galería con lightbox, thumbnails y navegación.
+ */
+
+.galeria {
+    margin-bottom: var(--cresta-espacioLg);
+}
+
+.galeriaVacia {
+    background-color: var(--cresta-gris100);
+    border-radius: var(--cresta-radioXl);
+    height: 24rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cresta-gris400);
+}
+
+/* Imagen principal */
+.galeriaPrincipalWrap {
+    position: relative;
+    border-radius: var(--cresta-radioXl);
+    overflow: hidden;
+    cursor: pointer;
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.galeriaPrincipalImg {
+    width: 100%;
+    height: 24rem;
+    object-fit: cover;
+}
+
+.galeriaOverlay {
+    position: absolute;
+    inset: 0;
+    background-color: transparent;
+    transition: background-color var(--cresta-transicion);
+}
+
+.galeriaPrincipalWrap:hover .galeriaOverlay {
+    background-color: var(--cresta-negroAlpha10);
+}
+
+/* Contador de fotos */
+.galeriaContador {
+    position: absolute;
+    bottom: var(--cresta-espacioSm);
+    right: var(--cresta-espacioSm);
+    background-color: var(--cresta-negroAlpha60);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoSm);
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioXs);
+    border-radius: var(--cresta-radioLg);
+}
+
+/* Flechas de navegación */
+.galeriaFlechaIzq,
+.galeriaFlechaDer {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--cresta-blancoAlpha90);
+    border: none;
+    border-radius: var(--cresta-radioCompleto);
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: var(--cresta-textoLg);
+    box-shadow: none;
+    transition: background-color var(--cresta-transicion);
+}
+
+.galeriaFlechaIzq:hover,
+.galeriaFlechaDer:hover {
+    background-color: var(--cresta-blanco);
+}
+
+.galeriaFlechaIzq {
+    left: var(--cresta-espacioSm);
+}
+
+.galeriaFlechaDer {
+    right: var(--cresta-espacioSm);
+}
+
+/* Thumbnails */
+.galeriaThumbnails {
+    display: flex;
+    gap: var(--cresta-espacioXs);
+    overflow-x: auto;
+}
+
+.galeriaThumbnail {
+    flex-shrink: 0;
+    width: 5rem;
+    height: 3.5rem;
+    border-radius: var(--cresta-radioMd);
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color var(--cresta-transicion);
+    opacity: 0.6;
+}
+
+.galeriaThumbnail:hover {
+    opacity: 0.8;
+}
+
+.galeriaThumbnailActiva {
+    border-color: var(--cresta-primario);
+    opacity: 1;
+}
+
+.galeriaThumbnailImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Lightbox */
+.galeriaLightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: var(--cresta-negroAlpha90);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cresta-espacioMd);
+}
+
+.galeriaLightboxCerrar {
+    position: absolute;
+    top: var(--cresta-espacioMd);
+    right: var(--cresta-espacioMd);
+    background: none;
+    border: none;
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-texto2xl);
+    cursor: pointer;
+}
+
+.galeriaLightboxContenido {
+    position: relative;
+    max-width: 64rem;
+    width: 100%;
+}
+
+.galeriaLightboxImg {
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: var(--cresta-radioLg);
+}
+
+.galeriaLightboxFlechaIzq,
+.galeriaLightboxFlechaDer {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--cresta-blancoAlpha20);
+    border: none;
+    border-radius: var(--cresta-radioCompleto);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoXl);
+    transition: background-color var(--cresta-transicion);
+}
+
+.galeriaLightboxFlechaIzq:hover,
+.galeriaLightboxFlechaDer:hover {
+    background-color: var(--cresta-blancoAlpha40);
+}
+
+.galeriaLightboxFlechaIzq {
+    left: var(--cresta-espacioMd);
+}
+
+.galeriaLightboxFlechaDer {
+    right: var(--cresta-espacioMd);
+}

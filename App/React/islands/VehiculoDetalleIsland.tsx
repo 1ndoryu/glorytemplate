@@ -11,6 +11,7 @@ import { CalendarioDisponibilidad } from '@app/components/CalendarioDisponibilid
 import { ResumenPrecio } from '@app/components/ResumenPrecio';
 import { SelectorFechas } from '@app/components/SelectorFechas';
 import { useDisponibilidad } from '@app/hooks/useDisponibilidad';
+import { Boton } from '@app/components/ui/Boton';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import type { VehiculoDetalleResponse, NombreTemporada } from '@app/types/cresta';
@@ -203,13 +204,13 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                             />
 
                             {fechaInicio && fechaFin && (
-                                <button
+                                <Boton
+                                    variante="secundario"
                                     onClick={handleVerificar}
                                     disabled={loadingDisp}
-                                    className="botonSecundario"
                                 >
                                     {loadingDisp ? 'Verificando...' : 'Verificar disponibilidad'}
-                                </button>
+                                </Boton>
                             )}
 
                             {/* Resultado de disponibilidad */}
@@ -227,12 +228,9 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                             {disponible && precio && (
                                 <>
                                     <ResumenPrecio calculo={precio} fianza={vehiculo.fianza} />
-                                    <button
-                                        onClick={handleReservar}
-                                        className="botonPrimario"
-                                    >
+                                    <Boton onClick={handleReservar}>
                                         Reservar ahora
-                                    </button>
+                                    </Boton>
                                 </>
                             )}
 

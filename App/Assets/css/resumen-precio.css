@@ -1,0 +1,111 @@
+/*
+ * Cresta Campers — Resumen de precio.
+ * Desglose de tarifas por temporada, totales y fianza.
+ */
+
+.resumenPrecio {
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioMd);
+}
+
+.resumenPrecioTitulo {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+/* Desglose de líneas */
+.resumenPrecioDesglose {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+}
+
+.resumenPrecioFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris700);
+}
+
+/* Badge de temporada (base) */
+.resumenPrecioTemporada {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoMedio);
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioXs);
+    border-radius: var(--cresta-radioCompleto);
+}
+
+/* Variantes de temporada */
+.resumenPrecioTemporadaBaja {
+    background-color: var(--cresta-tempBajaFondo);
+    color: var(--cresta-tempBajaTexto);
+}
+
+.resumenPrecioTemporadaMedia {
+    background-color: var(--cresta-tempMediaFondo);
+    color: var(--cresta-tempMediaTexto);
+}
+
+.resumenPrecioTemporadaAlta {
+    background-color: var(--cresta-tempAltaFondo);
+    color: var(--cresta-tempAltaTexto);
+}
+
+.resumenPrecioTemporadaEspecial {
+    background-color: var(--cresta-tempEspecialFondo);
+    color: var(--cresta-tempEspecialTexto);
+}
+
+/* Detalle dentro de cada fila */
+.resumenPrecioDetalle {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris400);
+}
+
+.resumenPrecioSubtotal {
+    font-weight: var(--cresta-pesoMedio);
+}
+
+/* Separador y total */
+.resumenPrecioSeparador {
+    border: none;
+    border-top: 1px solid var(--cresta-gris200);
+    margin: var(--cresta-espacioSm) 0;
+}
+
+.resumenPrecioTotalFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resumenPrecioTotalLabel {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+}
+
+.resumenPrecioTotalValor {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primario);
+}
+
+/* Fianza */
+.resumenPrecioFianza {
+    margin-top: var(--cresta-espacioSm);
+    background-color: var(--cresta-avisoFondo);
+    border: 1px solid var(--cresta-avisoBorde);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-avisoTexto);
+}

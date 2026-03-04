@@ -5,6 +5,8 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useGloryOptions } from '@/hooks';
 import { GloryLink } from '@/core/router/GloryLink';
+import { Boton } from '@app/components/ui/Boton';
+import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import type { ReservaDetalleResponse } from '@app/types/cresta';
@@ -73,20 +75,19 @@ export function ConfirmacionIsland(): JSX.Element {
                             <h2 className="panelTitulo">Ver detalles de tu reserva</h2>
                             <p className="reservarSubtitulo">Introduce el email con el que realizaste la reserva.</p>
                             <div className="reservarBotones">
-                                <input
+                                <CampoTexto
+                                    label=""
                                     type="email"
                                     value={emailInput}
-                                    onChange={e => setEmailInput(e.target.value)}
+                                    onChange={setEmailInput}
                                     placeholder="tu@email.com"
-                                    className="campoInput"
                                 />
-                                <button
+                                <Boton
                                     onClick={cargarReserva}
                                     disabled={loading || !emailInput}
-                                    className="botonPrimario"
                                 >
                                     {loading ? 'Cargando...' : 'Ver'}
-                                </button>
+                                </Boton>
                             </div>
                             {error && <p className="campoError">{error}</p>}
                         </div>

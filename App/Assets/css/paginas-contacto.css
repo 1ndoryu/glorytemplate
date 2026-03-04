@@ -1,0 +1,242 @@
+/*
+ * Cresta Campers — Contacto, sobre nosotros, legal.
+ * Layouts de contacto, valores, horarios, mensajes de éxito,
+ * info items, mini botones, y contenido legal.
+ */
+
+/* Contacto layout */
+.contactoLayout {
+    padding-top: var(--cresta-espacio5xl);
+    padding-bottom: var(--cresta-espacio4xl);
+}
+
+.contactoContenedor {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+}
+
+.contactoGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioXl);
+}
+
+@media (min-width: 1024px) {
+    .contactoGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Sobre nosotros — valores */
+.valoresGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--cresta-espacioLg);
+}
+
+@media (min-width: 768px) {
+    .valoresGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.valorTarjeta {
+    text-align: center;
+}
+
+.valorIcono {
+    font-size: var(--cresta-texto4xl);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.valorTitulo {
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.valorDescripcion {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+    line-height: var(--cresta-lineaAltura);
+}
+
+/* Legal */
+.legalContenido {
+    padding-top: var(--cresta-espacio5xl);
+    padding-bottom: var(--cresta-espacio4xl);
+}
+
+.legalContenedor {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+}
+
+.legalTitulo {
+    font-size: var(--cresta-texto3xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioLg);
+}
+
+.legalHtml {
+    font-size: var(--cresta-textoLg);
+    line-height: var(--cresta-lineaAltura);
+    color: var(--cresta-gris700);
+}
+
+.legalHtml h2 {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-top: var(--cresta-espacioLg);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.legalHtml h3 {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+    margin-top: var(--cresta-espacioMd);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.legalHtml p {
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.legalHtml a {
+    color: var(--cresta-primario);
+    text-decoration: underline;
+}
+
+.legalHtml a:hover {
+    color: var(--cresta-primarioOscuro);
+}
+
+.legalHtml ul, .legalHtml ol {
+    margin-bottom: var(--cresta-espacioSm);
+    padding-left: var(--cresta-espacioMd);
+}
+
+.legalHtml li {
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.legalPlaceholder {
+    color: var(--cresta-gris500);
+}
+
+/* Horarios box */
+.horariosBox {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioMd);
+}
+
+.horariosBoxTitulo {
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primarioOscuro);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.horariosBoxLista {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-primarioOscuro);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacio2xs);
+}
+
+/* Mensaje de éxito (contacto) */
+.mensajeExito {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioLg);
+    text-align: center;
+}
+
+.mensajeExitoIcono {
+    font-size: var(--cresta-texto4xl);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.mensajeExitoTitulo {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-primarioOscuro);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.mensajeExitoTexto {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-primarioOscuro);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.mensajeExitoEnlace {
+    color: var(--cresta-primario);
+    font-weight: var(--cresta-pesoMedio);
+    font-size: var(--cresta-textoSm);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Contacto sidebar — items de información */
+.contactoInfoItem {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cresta-espacioXs);
+}
+
+.contactoInfoIcono {
+    font-size: var(--cresta-texto2xl);
+}
+
+.contactoInfoLabel {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris400);
+}
+
+.contactoInfoValor {
+    color: var(--cresta-gris800);
+    text-decoration: none;
+    transition: color var(--cresta-transicion);
+}
+
+.contactoInfoValor:hover {
+    color: var(--cresta-primario);
+}
+
+/* Contacto mini botones */
+.contactoMiniBotones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioXs);
+}
+
+@media (min-width: 768px) {
+    .contactoMiniBotones {
+        flex-direction: row;
+        justify-content: center;
+    }
+}
+
+.contactoMiniBoton {
+    background-color: var(--cresta-gris100);
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
+    border-radius: var(--cresta-radioLg);
+    font-size: var(--cresta-textoSm);
+    text-decoration: none;
+    color: var(--cresta-gris700);
+    transition: background-color var(--cresta-transicion);
+}
+
+.contactoMiniBoton:hover {
+    background-color: var(--cresta-gris200);
+}

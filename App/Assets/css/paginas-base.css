@@ -1,0 +1,198 @@
+/*
+ * Cresta Campers — Estilos base compartidos de páginas interiores.
+ * Layouts, heros, paneles, formularios, alertas, badges.
+ */
+
+/* Página genérica con Header no-transparente */
+.paginaBase {
+    min-height: 100vh;
+    background-color: var(--cresta-gris50);
+}
+
+.paginaBaseBlanca {
+    min-height: 100vh;
+    background-color: var(--cresta-blanco);
+}
+
+/* Hero interior (verde sólido) */
+.heroInterior {
+    background-color: var(--cresta-primario);
+    padding-top: var(--cresta-espacio5xl);
+    padding-bottom: var(--cresta-espacio2xl);
+}
+
+.heroInteriorContenido {
+    max-width: var(--cresta-anchoMax);
+    margin: 0 auto;
+    padding: 0 var(--cresta-espacioMd);
+}
+
+.heroInteriorTitulo {
+    font-size: var(--cresta-texto4xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-blanco);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.heroInteriorSubtitulo {
+    color: var(--cresta-blancoAlpha70);
+    font-size: var(--cresta-textoLg);
+    max-width: 36rem;
+}
+
+@media (min-width: 768px) {
+    .heroInteriorTitulo {
+        font-size: var(--cresta-texto5xl);
+    }
+}
+
+/* Tarjeta blanca genérica para paneles */
+.panelBlanco {
+    background-color: var(--cresta-blanco);
+    border-radius: var(--cresta-radioXl);
+    border: 1px solid var(--cresta-gris200);
+    padding: var(--cresta-espacioMd);
+}
+
+.panelTitulo {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+/* Formulario genérico */
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacioSm);
+}
+
+/* Campos de formulario */
+.campoLabel {
+    display: block;
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris700);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.campoInput {
+    width: 100%;
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    font-size: var(--cresta-textoBase);
+    transition: border-color var(--cresta-transicion);
+}
+
+.campoInput:focus {
+    outline: none;
+    border-color: var(--cresta-primario);
+}
+
+.campoInputError {
+    border-color: var(--cresta-error);
+    background-color: var(--cresta-errorFondo);
+}
+
+.campoTextarea {
+    width: 100%;
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    font-size: var(--cresta-textoBase);
+    resize: none;
+    transition: border-color var(--cresta-transicion);
+}
+
+.campoTextarea:focus {
+    outline: none;
+    border-color: var(--cresta-primario);
+}
+
+.campoError {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-error);
+    margin-top: var(--cresta-espacio2xs);
+}
+
+/* Alertas */
+.alertaExito {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primarioClaro);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-primarioOscuro);
+}
+
+.alertaError {
+    background-color: var(--cresta-errorFondo);
+    border: 1px solid var(--cresta-errorBorde);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-error);
+}
+
+.alertaAviso {
+    background-color: var(--cresta-avisoFondo);
+    border: 1px solid var(--cresta-avisoBorde);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-avisoTexto);
+}
+
+.alertaInfo {
+    background-color: var(--cresta-gris100);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris500);
+}
+
+/* CTA box reutilizable */
+.ctaBox {
+    background-color: var(--cresta-primarioFondo);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioLg);
+    text-align: center;
+}
+
+.ctaBoxTitulo {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin-bottom: var(--cresta-espacioXs);
+}
+
+.ctaBoxTexto {
+    color: var(--cresta-gris500);
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+/* Badge de estado */
+.badgeEstado {
+    display: inline-block;
+    font-weight: var(--cresta-pesoMedio);
+    padding: 0.125rem var(--cresta-espacioXs);
+    border-radius: var(--cresta-radioCompleto);
+    font-size: var(--cresta-textoXs);
+    text-transform: uppercase;
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primarioOscuro);
+}
+
+/* Enlace de vuelta */
+.enlaceVolver {
+    color: var(--cresta-primario);
+    font-weight: var(--cresta-pesoMedio);
+    text-decoration: none;
+    transition: color var(--cresta-transicion);
+}
+
+.enlaceVolver:hover {
+    color: var(--cresta-primarioOscuro);
+}

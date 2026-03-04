@@ -24,7 +24,7 @@
 
 /* Cuando se hace scroll y el header es transparente, mostrar fondo */
 .cabeceraFija.cabeceraScrolled {
-    background-color: rgba(27, 67, 50, 0.95);
+    background-color: var(--cresta-primarioAlpha95);
     backdrop-filter: blur(8px);
 }
 
@@ -112,18 +112,18 @@
 
 /* Enlace en modo transparente (texto blanco) */
 .cabeceraNavEnlaceClaro {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--cresta-blancoAlpha80);
 }
 
 .cabeceraNavEnlaceClaro:hover {
     color: var(--cresta-blanco);
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--cresta-blancoAlpha10);
 }
 
 /* Enlace activo en modo transparente */
 .cabeceraNavEnlaceActivoClaro {
     color: var(--cresta-blanco);
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--cresta-blancoAlpha20);
 }
 
 /* Botón CTA en header */
@@ -166,7 +166,7 @@
 }
 
 .cabeceraHamburguesaClaro:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--cresta-blancoAlpha10);
 }
 
 @media (min-width: 768px) {

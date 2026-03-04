@@ -1,0 +1,148 @@
+/*
+ * Cresta Campers — Calendario de disponibilidad.
+ * Selector de fechas con estados visuales por disponibilidad.
+ */
+
+.calendario {
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioXl);
+    padding: var(--cresta-espacioMd);
+}
+
+/* Cabecera del calendario */
+.calendarioHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cresta-espacioMd);
+}
+
+.calendarioMes {
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+}
+
+.calendarioFlecha {
+    background: none;
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioLg);
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--cresta-gris600);
+    transition: background-color var(--cresta-transicion);
+}
+
+.calendarioFlecha:hover {
+    background-color: var(--cresta-gris100);
+}
+
+/* Semana (encabezados) */
+.calendarioSemana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: var(--cresta-espacio2xs);
+}
+
+.calendarioSemanaLabel {
+    text-align: center;
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris400);
+    padding: var(--cresta-espacio2xs) 0;
+}
+
+/* Grid de días */
+.calendarioDias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--cresta-espacio2xs);
+}
+
+/* Día base */
+.calendarioDia {
+    text-align: center;
+    padding: var(--cresta-espacioXs) var(--cresta-espacio2xs);
+    border-radius: var(--cresta-radioMd);
+    font-size: var(--cresta-textoSm);
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+
+/* Día pasado o deshabilitado */
+.calendarioDiaPasado {
+    color: var(--cresta-gris300);
+    cursor: not-allowed;
+}
+
+/* Día ocupado */
+.calendarioDiaOcupado {
+    background-color: var(--cresta-errorFondo);
+    color: var(--cresta-gris400);
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+/* Día disponible */
+.calendarioDiaDisponible {
+    color: var(--cresta-gris700);
+}
+
+.calendarioDiaDisponible:hover {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primario);
+}
+
+/* Selección: inicio y fin */
+.calendarioDiaSelInicio,
+.calendarioDiaSelFin {
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-weight: var(--cresta-pesoSemibold);
+}
+
+/* Rango entre inicio y fin */
+.calendarioDiaSelRango {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primario);
+}
+
+/* Leyenda */
+.calendarioLeyenda {
+    display: flex;
+    gap: var(--cresta-espacioMd);
+    margin-top: var(--cresta-espacioSm);
+    padding-top: var(--cresta-espacioSm);
+    border-top: 1px solid var(--cresta-gris200);
+    flex-wrap: wrap;
+}
+
+.calendarioLeyendaItem {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacio2xs);
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+}
+
+.calendarioLeyendaColor {
+    width: var(--cresta-espacioSm);
+    height: var(--cresta-espacioSm);
+    border-radius: var(--cresta-espacio2xs);
+}
+
+.calendarioLeyendaDisponible {
+    background-color: var(--cresta-primarioFondo);
+    border: 1px solid var(--cresta-primario);
+}
+
+.calendarioLeyendaOcupado {
+    background-color: var(--cresta-errorFondo);
+    border: 1px solid var(--cresta-errorBorde);
+}
