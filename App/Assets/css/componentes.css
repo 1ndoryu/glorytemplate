@@ -102,20 +102,20 @@
     transform: translateY(-4px);
 }
 
-.tarjetaVehiculoImagen {
+.tarjetaVehiculoImagenWrap {
     position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
     background-color: var(--cresta-gris100);
 }
 
-.tarjetaVehiculoImg {
+.tarjetaVehiculoImagen {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform var(--cresta-transicionLenta);
 }
-.tarjetaVehiculo:hover .tarjetaVehiculoImg {
+.tarjetaVehiculo:hover .tarjetaVehiculoImagen {
     transform: scale(1.03);
 }
 
