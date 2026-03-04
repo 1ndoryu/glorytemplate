@@ -267,7 +267,6 @@ class MotorRecomendacion
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                            u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},
                            u.{$uWpId} AS creador_wp_user_id,
-                           u.{$uId} as creador_id,
                            (SELECT {$lReacc} FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} LIMIT 1) AS reaccion_usuario,
                            (SELECT 1 FROM {$td} WHERE {$dUid} = {$userId_int} AND {$dSid} = s.{$sId} LIMIT 1) AS ya_coleccionado,
                            (SELECT 1 FROM {$tcs} cs_f JOIN {$tcCol} c_f ON cs_f.{$csColId} = c_f.{$colId} WHERE c_f.{$colUid} = {$userId_int} AND cs_f.{$csSid} = s.{$sId} LIMIT 1) AS ya_guardado_en_coleccion,
