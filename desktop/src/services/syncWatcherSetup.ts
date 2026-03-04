@@ -682,10 +682,29 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                                 console.error('[Sync] Error renombrando colección:', err);
                             });
                     } else {
-                        console.info('[Sync] Carpeta renombrada sin colección asociada → crear:', nombreNuevo);
-                        colMod.crearColeccionDesdeLocal(nombreNuevo).catch(err => {
-                            console.error('[Sync] Error creando colección desde rename:', err);
-                        });
+                        /*
+                         * Fallback: la colección no está en tracking local por nombre anterior.
+                         * Antes de crear una nueva, verificar si existe en servidor con el nombre
+                         * viejo → renombrar en vez de duplicar. Solo crear si realmente no existe.
+                         */
+                        console.info('[Sync] Carpeta renombrada sin colección local → buscando en servidor:', nombreAnterior);
+                        (async () => {
+                            try {
+                                const idServidor = await colMod.buscarColeccionServidorPorNombrePublico(nombreAnterior);
+                                if (idServidor) {
+                                    console.info('[Sync] Colección encontrada en servidor por nombre anterior, renombrando:', idServidor, '→', nombreNuevo);
+                                    const exito = await colMod.renombrarColeccionEnServidor(idServidor, nombreNuevo);
+                                    if (!exito && trackingModule) {
+                                        await trackingModule.actualizarNombreColeccion(idServidor, nombreNuevo, nombreNuevo);
+                                    }
+                                } else {
+                                    console.info('[Sync] Colección no existe en servidor → crear nueva:', nombreNuevo);
+                                    await colMod.crearColeccionDesdeLocal(nombreNuevo);
+                                }
+                            } catch (err) {
+                                console.error('[Sync] Error en fallback rename de colección:', err);
+                            }
+                        })();
                     }
                 },
             );

@@ -114,6 +114,15 @@ async function buscarColeccionServidorPorNombre(nombreNormalizado: string): Prom
     return existente?.id ?? null;
 }
 
+/*
+ * Versión pública de buscarColeccionServidorPorNombre.
+ * Usada por syncWatcherSetup para el fallback de rename:
+ * si la colección no está en tracking local, buscar en servidor antes de crear duplicada.
+ */
+export async function buscarColeccionServidorPorNombrePublico(nombre: string): Promise<number | null> {
+    return buscarColeccionServidorPorNombre(normalizarNombreColeccion(nombre));
+}
+
 function encolarCreacionColeccion(nombreNormalizado: string): void {
     const baseUrl = obtenerBaseUrlSync();
     encolarOperacion({

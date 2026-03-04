@@ -387,8 +387,17 @@ export async function actualizarNombreColeccion(id: number, nombre: string, carp
 }
 
 export function buscarColeccionPorCarpeta(carpetaLocal: string): ColeccionLocal | null {
+    const busqueda = carpetaLocal.toLowerCase();
     for (const col of Object.values(datos.colecciones)) {
-        if (col.carpetaLocal === carpetaLocal) return col;
+        /*
+         * Comparación case-insensitive: Windows no distingue mayúsculas en nombres de carpeta.
+         * Sin esto, el watcher reporta "Mi Carpeta" pero tracking tiene "mi carpeta" → no match
+         * → se crea colección duplicada en vez de renombrar.
+         */
+        if (col.carpetaLocal.toLowerCase() === busqueda) return col;
+        /* Fallback: comparar también por nombre de colección (el watcher puede reportar
+         * el nombre exacto del directorio que coincide con el nombre, no con carpetaLocal sanitizada) */
+        if (col.nombre.toLowerCase() === busqueda) return col;
     }
     return null;
 }
