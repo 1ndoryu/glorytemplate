@@ -28,6 +28,19 @@ import { estado } from './syncState';
 import { esRutaPapelera, normalizarNombreParaDedup } from './normalizarNombreArchivo';
 
 const STORE_FILE = 'upload-queue.json';
+
+/*
+ * Verifica si una ruta de archivo está dentro de la carpeta de sync configurada.
+ * Normaliza separadores y casing para comparación segura en Windows.
+ * Retorna false si no hay carpeta configurada (failsafe: bloquear).
+ */
+function estaEnCarpetaSync(rutaArchivo: string): boolean {
+    const config = obtenerConfigSync();
+    if (!config?.carpetaLocal) return false;
+    const carpetaNorm = config.carpetaLocal.replace(/\\/g, '/').toLowerCase();
+    const rutaNorm = rutaArchivo.replace(/\\/g, '/').toLowerCase();
+    return rutaNorm.startsWith(carpetaNorm);
+}
 const STORE_KEY_COLA = 'upload_cola';
 const STORE_KEY_HASHES = 'upload_hashes_procesados';
 
@@ -131,8 +144,17 @@ export async function inicializarUploadQueue(): Promise<void> {
 
         const colaGuardada = await store.get<ItemUploadCola[]>(STORE_KEY_COLA);
         if (colaGuardada) {
-            /* Restaurar solo items no completados */
-            cola = colaGuardada.filter(i => i.estado !== 'completado');
+            /* Restaurar solo items no completados Y dentro de la carpeta sync.
+             * Items residuales de antes del fix C378 (watcher scope) se purgan aquí
+             * para que no se reintenten eternamente al reiniciar la app. */
+            cola = colaGuardada.filter(i => {
+                if (i.estado === 'completado') return false;
+                if (!estaEnCarpetaSync(i.rutaArchivo)) {
+                    console.warn('[UploadQueue] Purgando item persistido fuera de carpeta sync:', i.nombreArchivo);
+                    return false;
+                }
+                return true;
+            });
             /* Items que estaban "subiendo" al cerrar -> volver a pendiente.
              * Migración: items de store pre-C368 no tienen idempotencyKey. */
             for (const item of cola) {
@@ -175,7 +197,11 @@ export async function inicializarUploadQueue(): Promise<void> {
                 const store = await load(STORE_FILE);
                 const colaGuardada = await store.get<ItemUploadCola[]>(STORE_KEY_COLA);
                 if (colaGuardada) {
-                    cola = colaGuardada.filter(i => i.estado !== 'completado');
+                    cola = colaGuardada.filter(i => {
+                        if (i.estado === 'completado') return false;
+                        if (!estaEnCarpetaSync(i.rutaArchivo)) return false;
+                        return true;
+                    });
                     rutasEnCola = new Set(cola.map(i => claveRutaEnCola(i.rutaArchivo)));
                 }
             } catch {
@@ -228,6 +254,14 @@ export async function encolarArchivo(
     /* P3: Rechazar archivos dentro de .papelera — defensa en profundidad */
     if (esRutaPapelera(rutaNormalizada)) {
         console.info('[UploadQueue] Archivo en .papelera, rechazando:', nombreArchivo);
+        return false;
+    }
+
+    /* Guard: rechazar archivos fuera de la carpeta de sync configurada.
+     * Defensa en profundidad — complementa el guard del watcher (C378).
+     * Cubre edge cases de OneDrive/Windows donde el driver FS emite rutas externas. */
+    if (!estaEnCarpetaSync(rutaNormalizada)) {
+        console.warn('[UploadQueue] Archivo fuera de carpeta sync, rechazando en encolamiento:', nombreArchivo, rutaNormalizada);
         return false;
     }
 
@@ -474,19 +508,11 @@ async function procesarItemUpload(
  */
 async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
     try {
-        /*
-         * Guard: descartar items cuya ruta está fuera de la carpeta de sync configurada.
-         * Esto cubre items residuales encolados antes del fix C378 del watcher scope,
-         * y previene subidas erróneas si la carpeta de sync se reconfigura entre sesiones.
-         */
-        const configSync = obtenerConfigSync();
-        if (configSync?.carpetaLocal) {
-            const carpetaNorm = configSync.carpetaLocal.replace(/\\/g, '/').toLowerCase();
-            const rutaNorm = item.rutaArchivo.replace(/\\/g, '/').toLowerCase();
-            if (!rutaNorm.startsWith(carpetaNorm)) {
-                console.warn('[UploadQueue] Item fuera de carpeta sync, descartando:', item.rutaArchivo);
-                return true; /* true = no reintentar, simplemente descartar */
-            }
+        /* Guard: descartar items cuya ruta está fuera de la carpeta de sync.
+         * Usa función centralizada estaEnCarpetaSync (normaliza separadores + casing). */
+        if (!estaEnCarpetaSync(item.rutaArchivo)) {
+            console.warn('[UploadQueue] Item fuera de carpeta sync, descartando:', item.rutaArchivo);
+            return true; /* true = no reintentar, simplemente descartar */
         }
 
         /*
