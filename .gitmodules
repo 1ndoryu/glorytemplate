@@ -1,0 +1,11 @@
+[submodule ".agent/coolify-manager"]
+	path = .agent/coolify-manager
+	url = https://github.com/1ndoryu/coolify-manager.git
+
+[submodule ".agent/varsense"]
+	path = .agent/varsense
+	url = https://github.com/1ndoryu/varsense.git
+
+[submodule "Glory"]
+	path = Glory
+	url = https://github.com/1ndoryu/Glory.git
