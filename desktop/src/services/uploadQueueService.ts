@@ -163,6 +163,36 @@ export async function inicializarUploadQueue(): Promise<void> {
                 }
                 return true;
             });
+
+            /*
+             * C384: Verificar existencia física de archivos en disco.
+             * Items cuyo archivo fue eliminado/movido/OneDrive cloud-only no deben
+             * persistir en la cola entre reinicios. Sin esta verificación, archivos
+             * fantasma se reintentan eternamente cada vez que se abre la app.
+             */
+            try {
+                const { exists } = await import('@tauri-apps/plugin-fs');
+                const verificaciones = await Promise.all(
+                    cola.map(async (item) => {
+                        try { return await exists(item.rutaArchivo); }
+                        catch { return true; /* En caso de error FS, conservar item */ }
+                    }),
+                );
+                const antesCount = cola.length;
+                cola = cola.filter((_, idx) => {
+                    if (!verificaciones[idx]) {
+                        console.warn('[UploadQueue] Purgando item con archivo inexistente:', cola[idx].nombreArchivo);
+                        return false;
+                    }
+                    return true;
+                });
+                if (antesCount !== cola.length) {
+                    console.info(`[UploadQueue] Purgados ${antesCount - cola.length} items con archivos inexistentes`);
+                }
+            } catch {
+                /* plugin-fs no disponible — conservar items existentes */
+            }
+
             /* Items que estaban "subiendo" al cerrar -> volver a pendiente.
              * Migración: items de store pre-C368 no tienen idempotencyKey. */
             for (const item of cola) {
@@ -609,7 +639,13 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             item.ultimoError = esOneDrive
                 ? 'Archivo no encontrado (posible conflicto OneDrive/papelera)'
                 : 'Archivo no encontrado en disco';
-            console.warn('[UploadQueue] Archivo no existe, abortando upload:', item.rutaArchivo);
+            /*
+             * C384: Fast-track a error sin reintentos. Un archivo que no existe en disco
+             * no va a aparecer mágicamente — reintentar 3 veces es inútil y causa la
+             * persistencia de "uploads fantasma" que reaparecen en cada reinicio de la app.
+             */
+            item.intentos = MAX_REINTENTOS;
+            console.warn('[UploadQueue] Archivo no existe, descartando (sin reintentos):', item.rutaArchivo);
             return false;
         }
 
@@ -708,12 +744,26 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
          * 1. POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real).
          * 2. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
          *
-         * Si hay carpeta pero NO colección en tracking:
-         * Solo actualizar metadata. La colección será creada por el watcher de carpetas
-         * (procesarEventoCarpeta) y el próximo ciclo de sync reconciliará la asociación.
-         * NO crear colecciones aquí — causa race conditions y duplicados con el folder handler.
+         * C384: Si hay carpeta pero NO colección en tracking, crearla ahora.
+         * crearColeccionDesdeLocal es idempotente (verifica tracking local, in-flight Map,
+         * servidor via GET y maneja 409 conflict), así que es seguro llamarla aunque
+         * el folder handler la dispare en paralelo. Esto resuelve el caso donde el
+         * usuario mueve un archivo a una carpeta nueva y la colección nunca se creaba.
          */
         if (item.carpetas.length > 0) {
+            if (!coleccionIdResuelta && item.carpetas[0]) {
+                try {
+                    const { crearColeccionDesdeLocal } = await import('./syncCollectionService');
+                    const idCreada = await crearColeccionDesdeLocal(item.carpetas[0]);
+                    if (idCreada) {
+                        coleccionIdResuelta = idCreada;
+                        console.info('[UploadQueue] Colección creada/resuelta para carpeta:', item.carpetas[0], '→ id:', idCreada);
+                    }
+                } catch (err) {
+                    console.error('[UploadQueue] Error creando colección para carpeta:', item.carpetas[0], err);
+                }
+            }
+
             if (coleccionIdResuelta) {
                 try {
                     const { agregarSampleAColeccion } = await import('./syncCollectionService');
@@ -721,8 +771,6 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
                 } catch (err) {
                     console.error('[UploadQueue] Error agregando sample a colección:', err);
                 }
-            } else {
-                console.info('[UploadQueue] Carpeta sin colección en tracking, omitiendo asociación (se reconcilia en sync):', item.carpetas[0]);
             }
 
             const primaria = item.carpetas[0] || 'General';

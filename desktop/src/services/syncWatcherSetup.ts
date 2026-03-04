@@ -267,6 +267,16 @@ async function manejarMoveLocal(
 
                 const primaria = carpetas[0] || 'General';
                 const secundaria = carpetas[1] || '';
+
+                /* C384: Asegurar colección destino existe (idempotente) */
+                if (primaria && primaria !== 'General' && estado.collectionModule) {
+                    try {
+                        await estado.collectionModule.crearColeccionDesdeLocal(primaria);
+                    } catch (err) {
+                        console.error('[Sync] Error asegurando colección destino en move v2:', primaria, err);
+                    }
+                }
+
                 await moverSampleEnServidor(archivoV2.sampleId, primaria, secundaria);
                 console.info('[Sync] Move procesado (solo v2): sample', archivoV2.sampleId, '→', primaria, secundaria || '(raíz)');
                 return;
@@ -316,6 +326,20 @@ async function manejarMoveLocal(
 
     const primaria = carpetas[0] || 'General';
     const secundaria = carpetas[1] || '';
+
+    /*
+     * C384: Asegurar que la colección destino existe antes de mover.
+     * Si el usuario mueve un archivo a una carpeta nueva que no tiene colección
+     * en el servidor, crearla ahora. crearColeccionDesdeLocal es idempotente.
+     */
+    if (primaria && primaria !== 'General' && estado.collectionModule) {
+        try {
+            await estado.collectionModule.crearColeccionDesdeLocal(primaria);
+        } catch (err) {
+            console.error('[Sync] Error asegurando colección destino en move:', primaria, err);
+        }
+    }
+
     await moverSampleEnServidor(archivo.sampleId, primaria, secundaria);
 
     console.info('[Sync] Move procesado: sample', archivo.sampleId, '→', primaria, secundaria || '(raíz)');
