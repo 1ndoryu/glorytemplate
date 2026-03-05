@@ -11,7 +11,6 @@ import { AdminFlota } from '@app/components/admin/AdminFlota';
 import { AdminClientes } from '@app/components/admin/AdminClientes';
 import { AdminConfiguracion } from '@app/components/admin/AdminConfiguracion';
 import { Header } from '@app/components/Header';
-import { Footer } from '@app/components/Footer';
 import { Boton } from '@app/components/ui/Boton';
 import { GloryLink } from '@/core/router/GloryLink';
 
@@ -75,13 +74,12 @@ export function PanelIsland(): JSX.Element {
                     <p>No tienes permisos para acceder al panel de administración.</p>
                     <GloryLink href="/" className="boton botonPrimario">Volver al inicio</GloryLink>
                 </div>
-                <Footer />
             </div>
         );
     }
 
     return (
-        <div className="paginaBase">
+        <div className="adminPagina">
             <Header />
 
             <div className="adminLayout">
@@ -106,8 +104,6 @@ export function PanelIsland(): JSX.Element {
                     <ContenidoSeccion {...panel} />
                 </main>
             </div>
-
-            <Footer />
         </div>
     );
 }

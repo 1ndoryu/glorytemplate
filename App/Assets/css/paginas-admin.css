@@ -3,11 +3,28 @@
  * Layout principal, sidebar, tarjetas de stats, tablas, formularios.
  */
 
-/* Layout general admin */
+/* Contenedor raíz del panel — ocupa toda la pantalla sin footer */
+.adminPagina {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--cresta-gris100);
+}
+
+/* Layout general admin — empieza debajo del header fijo (4rem móvil / 5rem desktop) */
 .adminLayout {
     display: flex;
-    min-height: calc(100vh - 120px);
+    flex: 1;
+    padding-top: 4rem;
+    min-height: calc(100vh - 4rem);
     background-color: var(--cresta-gris100);
+}
+
+@media (min-width: 768px) {
+    .adminLayout {
+        padding-top: 5rem;
+        min-height: calc(100vh - 5rem);
+    }
 }
 
 .adminContenido {
