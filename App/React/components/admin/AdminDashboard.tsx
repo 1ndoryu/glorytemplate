@@ -24,13 +24,13 @@ interface TarjetaStatProps {
 function TarjetaStat({ titulo, valor, icono, color }: TarjetaStatProps): JSX.Element {
     return (
         <div className="adminStatTarjeta">
-            <div className={`adminStatIcono adminStatIcono--${color}`}>
-                {icono}
-            </div>
-            <div className="adminStatContenido">
-                <span className="adminStatValor">{valor}</span>
+            <div className="adminStatCabecera">
                 <span className="adminStatTitulo">{titulo}</span>
+                <div className={`adminStatIcono adminStatIcono--${color}`}>
+                    {icono}
+                </div>
             </div>
+            <span className="adminStatValor">{valor}</span>
         </div>
     );
 }

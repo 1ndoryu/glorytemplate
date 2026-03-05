@@ -143,7 +143,7 @@
 /* Stats dashboard */
 .adminStatsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--cresta-espacioMd);
     margin-bottom: var(--cresta-espacioXl);
 }
@@ -153,14 +153,33 @@
     border-radius: var(--cresta-radioLg);
     padding: var(--cresta-espacioLg);
     display: flex;
-    align-items: flex-start;
-    gap: var(--cresta-espacioMd);
-    box-shadow: 0 1px 3px var(--cresta-negroAlpha10);
+    flex-direction: column;
+    gap: var(--cresta-espacioSm);
+    box-shadow: 0 1px 4px var(--cresta-negroAlpha10);
+    border: 1px solid var(--cresta-gris200);
+    transition: box-shadow var(--cresta-transicion);
+}
+
+.adminStatTarjeta:hover {
+    box-shadow: 0 4px 16px var(--cresta-negroAlpha10);
+}
+
+.adminStatCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.adminStatTitulo {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    color: var(--cresta-gris600);
+    letter-spacing: 0.01em;
 }
 
 .adminStatIcono {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--cresta-radioMd);
     display: flex;
     align-items: center;
@@ -183,24 +202,12 @@
     color: var(--cresta-aviso);
 }
 
-.adminStatContenido {
-    flex: 1;
-    min-width: 0;
-}
-
 .adminStatValor {
-    font-size: var(--cresta-textoXl);
+    font-size: var(--cresta-texto3xl);
     font-weight: var(--cresta-pesoBold);
     color: var(--cresta-gris900);
-    line-height: 1.2;
-}
-
-.adminStatTitulo {
-    font-size: var(--cresta-textoXs);
-    color: var(--cresta-gris600);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-top: var(--cresta-espacio2xs);
+    line-height: 1;
+    letter-spacing: -0.02em;
 }
 
 /* Filtros */
@@ -505,6 +512,12 @@
     font-size: var(--cresta-textoSm);
 }
 
+@media (max-width: 1200px) {
+    .adminStatsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .adminLayout {
@@ -539,7 +552,7 @@
 
 @media (max-width: 768px) {
     .adminStatsGrid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
     .adminFormGrid {
