@@ -532,3 +532,36 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [Boton]: Variantes disponibles: primario|secundario|enlace|atras|icono. NO existe variante "texto" — usar "icono" para botones sin estilo
 - [CSS-Admin]: init.css ahora tiene 14 imports (añadido paginas-admin.css)
 - [opcionesTema]: `cresta_noches_maximas` registrada como opción numérica — recordar que las nuevas opciones se registran aquí antes de usarlas en el controller
+
+### Iteración UI/UX (AG-PNL, post-lanzamiento panel)
+
+#### Commits completados
+- ✅ d84443ca — Header solapamiento: `padding-top` en `.adminLayout`; Footer eliminado de PanelIsland
+- ✅ 73c9c3a7 — `adminStatTarjeta` rediseño: layout vertical, valor grande abajo (textoXl), grid 4 cols
+- ✅ 10d2cedd — Iconos dashboard: strokeWidth 1.5, 20px, semánticos (shield-check, hourglass, banknote, etc.)
+- ✅ 2f2a1290 — AdminFlota: acciones como 3 iconos (editar/toggle/eliminar). AdminSidebar: logo → user card con avatar/iniciales. ReactContext: inyectar `options.usuario` (nombre, email, avatar)
+- ✅ 671dd0a0 — Modal genérico `Modal.tsx`: backdrop, Escape, click-outside, lock scroll. AdminFlota usa modal. AdminSidebar: quitar iconos SVG de nav items. tsconfig: incluir vite-env.d.ts
+
+#### Lecciones de iteración
+- [Modal]: Patrón: `abierto={editando !== null}` + `{editando && (<>...</>)}` dentro del children — evita render de form cuando está cerrado sin unmount/remount innecesario
+- [AdminSidebar]: La propiedad `icono` del tipo `ItemMenu` y sus componentes SVG se eliminaron completamente — `noUnusedLocals: false` en tsconfig permite tenerlos pero es mejor eliminar directamente
+- [tsconfig]: App/React/tsconfig.json necesita incluir `../../Glory/assets/react/src/vite-env.d.ts` para que `import.meta.env` no genere TS2339 al tipar archivos de Glory via path alias `@/*`
+- [CSS-Modal]: Variables usadas: `--cresta-zModal: 300` (ya existía en variables.css), `--cresta-radioXl`, `--cresta-espacioLg`, `--cresta-gris200`, `--cresta-blanco`, `--cresta-gris900`
+
+#### Sesión AG-ADM: Fix imágenes + Admin UI
+
+**Cambios realizados:**
+- ✅ AdminReservas: fechas en columna flex + noches en línea separada. Botones acción → iconos SVG con confirm-cancel.
+- ✅ Camper images renombradas a canonical names (cresta-one/duo/pro.jpg)
+- ✅ PageDefinition::getHandlerPorSlug() — fix TypeError al restablecer (retornaba callable array en lugar de string)
+- ✅ DefaultContentSynchronizer::restablecer() — limpieza de transients + delete_post_thumbnail + eliminarAttachmentsStaleDeAsset
+
+**Fix crítico — Causa raíz del bug de imágenes:**
+- El alias `campers` se registraba en `assets.php` vía `add_action('glory/register_asset_paths', ...)`, pero `assets.php` se carga DESPUÉS de que `AssetResolver::init()` dispare `do_action('glory/register_asset_paths')` en el constructor de `Setup`.
+- Resultado: el alias nunca se registraba → `resolveAssetPath('campers', ...)` retornaba `null` → las imágenes nunca se importaban.
+- Solución: mover todos los `registerAssetPath` a `control.php` (cargado por `load.php` ANTES del boot de Glory).
+
+**Lecciones:**
+- [Boot Order]: `control.php` se carga antes del boot de Glory. `assets.php` se carga después vía `incluirArchivos('App/')`. Cualquier `add_action` para hooks de Glory que se disparan durante el boot DEBE ir en `control.php`.
+- [Debug]: Cuando un sistema de importación "no funciona", verificar primero que los alias/paths están realmente registrados antes de tocar la lógica de importación.
+- [AssetResolver]: `$isInitialized = true` impide re-inicialización. Los hooks registrados después del primer `init()` nunca se ejecutan.
