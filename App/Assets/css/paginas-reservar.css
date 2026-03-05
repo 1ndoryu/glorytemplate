@@ -48,6 +48,10 @@
     gap: var(--cresta-espacio2xs);
 }
 
+.progressPasoFinal {
+    flex: 0;
+}
+
 .progressCirculo {
     width: 2rem;
     height: 2rem;

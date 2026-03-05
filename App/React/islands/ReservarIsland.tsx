@@ -51,7 +51,7 @@ export function ReservarIsland(): JSX.Element {
                     {/* Progress bar */}
                     <div className="progressBar">
                         {[1, 2, 3, 4].map(p => (
-                            <div key={p} className="progressPaso">
+                            <div key={p} className={`progressPaso${p === 4 ? ' progressPasoFinal' : ''}`}>
                                 <div className={`progressCirculo ${p <= paso ? 'progressCirculoActivo' : 'progressCirculoInactivo'}`}>
                                     {p < paso ? '✓' : p}
                                 </div>
