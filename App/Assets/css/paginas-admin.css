@@ -413,6 +413,15 @@
     display: flex;
     align-items: center;
     gap: var(--cresta-espacioSm);
+    min-width: 0; /* crítico para que text-overflow funcione en flex */
+    overflow: hidden;
+}
+
+.adminVehiculoTexto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .adminVehiculoMiniImg {
@@ -426,6 +435,9 @@
 .adminVehiculoNombre {
     font-weight: var(--cresta-pesoSemibold);
     color: var(--cresta-gris900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .adminVehiculoDesc {

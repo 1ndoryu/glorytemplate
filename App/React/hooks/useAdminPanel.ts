@@ -159,7 +159,10 @@ export function useAdminPanel(): UseAdminPanelResult {
         setLoadingReservas(true);
         const filtro = filtroEstadoReserva !== 'todas' ? `?estado=${filtroEstadoReserva}` : '';
         const data = await fetchAdmin<{ success: boolean; reservas: AdminReserva[] }>(`reservas${filtro}`);
-        if (data) setReservas(data.reservas);
+        if (data) {
+            /* Si no hay datos reales aún, mostrar mocks como previsualización */
+            setReservas(data.reservas.length > 0 ? data.reservas : MOCK_RESERVAS);
+        }
         setLoadingReservas(false);
     }, [fetchAdmin, filtroEstadoReserva, esModoPreview]);
 
@@ -235,7 +238,10 @@ export function useAdminPanel(): UseAdminPanelResult {
         if (esModoPreview) { setClientes(MOCK_CLIENTES); return; }
         setLoadingClientes(true);
         const data = await fetchAdmin<{ success: boolean; clientes: AdminCliente[] }>('clientes');
-        if (data) setClientes(data.clientes);
+        if (data) {
+            /* Si no hay datos reales aún, mostrar mocks como previsualización */
+            setClientes(data.clientes.length > 0 ? data.clientes : MOCK_CLIENTES);
+        }
         setLoadingClientes(false);
     }, [fetchAdmin, esModoPreview]);
 

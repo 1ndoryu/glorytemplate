@@ -210,7 +210,7 @@ export function AdminFlota({ vehiculos, loading, onGuardar, onToggleActivo, onEl
                                             {v.imagen && (
                                                 <img src={v.imagen} alt={v.nombre} className="adminVehiculoMiniImg" />
                                             )}
-                                            <div>
+                                            <div className="adminVehiculoTexto">
                                                 <span className="adminVehiculoNombre">{v.nombre}</span>
                                                 <span className="adminVehiculoDesc">{v.descripcionCorta}</span>
                                             </div>
