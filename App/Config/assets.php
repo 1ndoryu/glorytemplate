@@ -17,11 +17,8 @@ use Glory\Manager\AssetManager;
 AssetManager::define('style', 'cresta-styles', '/App/Assets/css/init.css');
 
 /*
- * Imágenes del tema — alias para que PostSyncHandler pueda importar
- * imágenes destacadas desde defaultContent vía `imagenDestacadaAsset`.
+ * Imágenes del tema — alias registrados en control.php (que se carga antes
+ * de do_action('glory/register_asset_paths')). Si se registran aquí vía
+ * add_action, llegan tarde porque assets.php se carga después del boot de Glory.
  */
-add_action('glory/register_asset_paths', function (): void {
-    \Glory\Utility\AssetResolver::registerAssetPath('cresta', 'App/Assets/images');
-    \Glory\Utility\AssetResolver::registerAssetPath('campers', 'App/Assets/images/campers');
-});
 
