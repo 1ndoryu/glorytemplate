@@ -217,42 +217,11 @@
     box-shadow: 0 4px 16px var(--cresta-negroAlpha10);
 }
 
-.adminStatCabecera {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
 .adminStatTitulo {
     font-size: var(--cresta-textoSm);
     font-weight: var(--cresta-pesoMedio);
     color: var(--cresta-gris600);
     letter-spacing: 0.01em;
-}
-
-.adminStatIcono {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--cresta-radioMd);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.adminStatIcono--primario {
-    background-color: var(--cresta-primarioSuave);
-    color: var(--cresta-primario);
-}
-
-.adminStatIcono--exito {
-    background-color: rgba(45, 106, 79, 0.12);
-    color: var(--cresta-exito);
-}
-
-.adminStatIcono--aviso {
-    background-color: var(--cresta-avisoFondo);
-    color: var(--cresta-aviso);
 }
 
 .adminStatValor {
