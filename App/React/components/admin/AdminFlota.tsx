@@ -1,12 +1,13 @@
 /**
  * AdminFlota — Gestión de vehículos: listar, crear, editar, toggle activo, eliminar.
- * Minimalista con tabla y modal de edición inline.
+ * Edición a través de un modal reutilizable.
  */
 
 import { useState, useCallback } from 'react';
 import { Boton } from '@app/components/ui/Boton';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { CampoSelect } from '@app/components/ui/CampoSelect';
+import { Modal } from '@app/components/ui/Modal';
 import type { AdminVehiculoEditable } from '@app/types/cresta';
 
 interface AdminFlotaProps {
@@ -52,7 +53,7 @@ export function AdminFlota({ vehiculos, loading, onGuardar, onToggleActivo, onEl
         setEditando({ ...v });
     }, []);
 
-    const cerrarEditor = useCallback(() => {
+    const cerrarModal = useCallback(() => {
         setEditando(null);
     }, []);
 
@@ -73,102 +74,103 @@ export function AdminFlota({ vehiculos, loading, onGuardar, onToggleActivo, onEl
         setConfirmEliminar(null);
     }, [onEliminar]);
 
-    if (editando) {
-        return (
-            <div className="adminSeccion">
-                <div className="adminSeccionCabecera">
-                    <h2 className="adminSeccionTitulo">
-                        {editando.id ? 'Editar vehículo' : 'Nuevo vehículo'}
-                    </h2>
-                    <Boton variante="atras" onClick={cerrarEditor}>Volver</Boton>
-                </div>
-
-                <div className="adminFormGrid">
-                    <CampoTexto
-                        label="Nombre"
-                        value={editando.nombre}
-                        onChange={v => actualizarCampo('nombre', v)}
-                        placeholder="Ej: Cresta One"
-                    />
-                    <CampoTexto
-                        label="Descripción corta"
-                        value={editando.descripcionCorta}
-                        onChange={v => actualizarCampo('descripcionCorta', v)}
-                        placeholder="Breve descripción para tarjetas"
-                    />
-                    <CampoTexto
-                        label="Precio base (€/noche)"
-                        type="number"
-                        value={String(editando.precioBase)}
-                        onChange={v => actualizarCampo('precioBase', Number(v))}
-                    />
-                    <CampoTexto
-                        label="Ubicación"
-                        value={editando.ubicacion}
-                        onChange={v => actualizarCampo('ubicacion', v)}
-                        placeholder="Ej: Madrid"
-                    />
-                    <CampoTexto
-                        label="Capacidad (camas)"
-                        type="number"
-                        value={String(editando.capacidad)}
-                        onChange={v => actualizarCampo('capacidad', Number(v))}
-                    />
-                    <CampoTexto
-                        label="Plazas de viaje"
-                        type="number"
-                        value={String(editando.plazasViaje)}
-                        onChange={v => actualizarCampo('plazasViaje', Number(v))}
-                    />
-                    <CampoTexto
-                        label="Fianza (€)"
-                        type="number"
-                        value={String(editando.fianza)}
-                        onChange={v => actualizarCampo('fianza', Number(v))}
-                    />
-                    <CampoTexto
-                        label="Km incluidos/día (0 = ilimitados)"
-                        type="number"
-                        value={String(editando.kmIncluidos)}
-                        onChange={v => actualizarCampo('kmIncluidos', Number(v))}
-                    />
-                    <CampoTexto
-                        label="Edad mínima"
-                        type="number"
-                        value={String(editando.edadMinima)}
-                        onChange={v => actualizarCampo('edadMinima', Number(v))}
-                    />
-                    <CampoSelect
-                        label="Combustible"
-                        value={editando.combustible}
-                        onChange={v => actualizarCampo('combustible', v)}
-                    >
-                        <option value="diesel">Diésel</option>
-                        <option value="gasolina">Gasolina</option>
-                        <option value="electrico">Eléctrico</option>
-                        <option value="hibrido">Híbrido</option>
-                    </CampoSelect>
-                    <CampoSelect
-                        label="Transmisión"
-                        value={editando.transmision}
-                        onChange={v => actualizarCampo('transmision', v)}
-                    >
-                        <option value="manual">Manual</option>
-                        <option value="automatico">Automática</option>
-                    </CampoSelect>
-                </div>
-
-                <div className="adminFormAcciones">
-                    <Boton onClick={handleGuardar} disabled={guardando || !editando.nombre}>
-                        {guardando ? 'Guardando...' : 'Guardar vehículo'}
-                    </Boton>
-                </div>
-            </div>
-        );
-    }
+    const tituloModal = editando?.id ? `Editar — ${editando.nombre || 'vehículo'}` : 'Nuevo vehículo';
 
     return (
         <div className="adminSeccion">
+            {/* Modal de edición / creación */}
+            <Modal
+                abierto={editando !== null}
+                titulo={tituloModal}
+                onCerrar={cerrarModal}
+                ancho="640px"
+            >
+                {editando && (
+                    <>
+                        <div className="adminFormGrid">
+                            <CampoTexto
+                                label="Nombre"
+                                value={editando.nombre}
+                                onChange={v => actualizarCampo('nombre', v)}
+                                placeholder="Ej: Cresta One"
+                            />
+                            <CampoTexto
+                                label="Descripción corta"
+                                value={editando.descripcionCorta}
+                                onChange={v => actualizarCampo('descripcionCorta', v)}
+                                placeholder="Breve descripción para tarjetas"
+                            />
+                            <CampoTexto
+                                label="Precio base (€/noche)"
+                                type="number"
+                                value={String(editando.precioBase)}
+                                onChange={v => actualizarCampo('precioBase', Number(v))}
+                            />
+                            <CampoTexto
+                                label="Ubicación"
+                                value={editando.ubicacion}
+                                onChange={v => actualizarCampo('ubicacion', v)}
+                                placeholder="Ej: Madrid"
+                            />
+                            <CampoTexto
+                                label="Capacidad (camas)"
+                                type="number"
+                                value={String(editando.capacidad)}
+                                onChange={v => actualizarCampo('capacidad', Number(v))}
+                            />
+                            <CampoTexto
+                                label="Plazas de viaje"
+                                type="number"
+                                value={String(editando.plazasViaje)}
+                                onChange={v => actualizarCampo('plazasViaje', Number(v))}
+                            />
+                            <CampoTexto
+                                label="Fianza (€)"
+                                type="number"
+                                value={String(editando.fianza)}
+                                onChange={v => actualizarCampo('fianza', Number(v))}
+                            />
+                            <CampoTexto
+                                label="Km incluidos/día (0 = ilimitados)"
+                                type="number"
+                                value={String(editando.kmIncluidos)}
+                                onChange={v => actualizarCampo('kmIncluidos', Number(v))}
+                            />
+                            <CampoTexto
+                                label="Edad mínima"
+                                type="number"
+                                value={String(editando.edadMinima)}
+                                onChange={v => actualizarCampo('edadMinima', Number(v))}
+                            />
+                            <CampoSelect
+                                label="Combustible"
+                                value={editando.combustible}
+                                onChange={v => actualizarCampo('combustible', v)}
+                            >
+                                <option value="diesel">Diésel</option>
+                                <option value="gasolina">Gasolina</option>
+                                <option value="electrico">Eléctrico</option>
+                                <option value="hibrido">Híbrido</option>
+                            </CampoSelect>
+                            <CampoSelect
+                                label="Transmisión"
+                                value={editando.transmision}
+                                onChange={v => actualizarCampo('transmision', v)}
+                            >
+                                <option value="manual">Manual</option>
+                                <option value="automatico">Automática</option>
+                            </CampoSelect>
+                        </div>
+
+                        <div className="adminFormAcciones">
+                            <Boton onClick={handleGuardar} disabled={guardando || !editando.nombre}>
+                                {guardando ? 'Guardando...' : 'Guardar vehículo'}
+                            </Boton>
+                        </div>
+                    </>
+                )}
+            </Modal>
+
             <div className="adminSeccionCabecera">
                 <div>
                     <h2 className="adminSeccionTitulo">Flota</h2>

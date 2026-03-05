@@ -20,5 +20,9 @@
             "@app/*": ["./*"]
         }
     },
-    "include": ["./**/*.ts", "./**/*.tsx"]
+    "include": [
+        "./**/*.ts",
+        "./**/*.tsx",
+        "../../Glory/assets/react/src/vite-env.d.ts"
+    ]
 }
