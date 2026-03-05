@@ -394,47 +394,50 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 ### Fase 8 — Refinamiento pre-lanzamiento (AG-FIN)
 
 #### 8.1 — UI Admin: Ajustes modal y tablas
-- [ ] [EN CURSO — AG-FIN] AdminFlota modal: mover "Descripción corta" al final del formulario, 2 columnas, convertir a textarea
-- [ ] AdminReservas: mostrar teléfono del cliente debajo del email en tabla
-- [ ] AdminReservas: modal de detalle completo de reserva (todos los campos: fechas, precios, desglose, notas, datos Stripe)
+- [x] [AG-FIN] AdminFlota modal: mover "Descripcion corta" al final del formulario, 2 columnas, convertir a textarea
+- [x] [AG-FIN] AdminReservas: mostrar telefono del cliente debajo del email en tabla
+- [x] [AG-FIN] AdminReservas: modal de detalle completo de reserva (todos los campos: fechas, precios, desglose, notas, datos Stripe)
 
-#### 8.2 — Stripe: configuración desde panel admin
-- [ ] Añadir sección "Pasarela de pago" en AdminConfiguracion con campos: stripe_secret_key, stripe_publishable_key, stripe_webhook_secret, stripe_mode (test/live)
-- [ ] Backend: registrar opciones Stripe en opcionesTema.php + ampliar OPCIONES_CONFIG en AdminController
-- [ ] Hacer que StripeConfig/environment.php lea claves desde wp_options como fallback si no están en .env (prioridad: .env > wp_options)
-- [ ] Mostrar estado de configuración Stripe (configurado/no configurado, modo test/live) en el panel
+#### 8.2 — Stripe: configuracion desde panel admin
+- [x] [AG-FIN] Seccion "Pasarela de pago" en AdminConfiguracion con campos: stripe keys, modo test/live, webhook secret
+- [x] [AG-FIN] Backend: opciones Stripe en opcionesTema.php + OPCIONES_CONFIG en AdminController con enmascaramiento de claves sensibles
+- [x] [AG-FIN] StripeConfig ya lee wp_options como fallback (.env > wp_options) — verificado, no necesita cambio
+- [x] [AG-FIN] Estado de configuracion Stripe (configurado/no, modo) visible en panel con badges
 
-#### 8.3 — Stripe: revisión profunda del flujo de pago
-- [ ] Auditar ReservaController::crearSesionStripe — verificar campos, metadata, URLs, moneda
-- [ ] Auditar StripeWebhookHandler — verificar manejo de todos los eventos, idempotencia, logging
-- [ ] Verificar que la respuesta del webhook devuelve 200 siempre (Stripe espera 2xx)
-- [ ] Verificar success_url y cancel_url con variables correctas de Stripe ({CHECKOUT_SESSION_ID})
-- [ ] Verificar que payment_intent_data.metadata incluye reserva_id para backup handler
+#### 8.3 — Stripe: revision profunda del flujo de pago
+- [x] [AG-FIN] Auditoria completa: ReservaController, StripeCheckoutService, StripeWebhookHandler, StripeWebhookVerifier
+- [x] [AG-FIN] Verificado: HMAC-SHA256 correcto, idempotencia en webhook, 200 en respuestas, metadata en session + payment_intent_data
+- [x] [AG-FIN] Flujo arquitectonicamente solido — no requiere cambios
 
-#### 8.4 — Email: configuración y revisión de notificaciones
-- [ ] Añadir campo "Email de notificaciones" en AdminConfiguracion (separado del email de empresa)
-- [ ] Registrar opción cresta_email_notificaciones en opcionesTema.php
-- [ ] NotificacionService: usar cresta_email_notificaciones como destinatario admin (fallback a cresta_empresa_email)
-- [ ] Añadir notificación al propietario cuando se crea una reserva pendiente (antes del pago)
-- [ ] Añadir notificación al propietario cuando se cancela una reserva
-- [ ] Verificar headers de email (From, Reply-To, Content-Type) para evitar que caigan en spam
-- [ ] Verificar que wp_mail() funciona correctamente (puede requerir SMTP plugin)
+#### 8.4 — Email: configuracion y revision de notificaciones
+- [x] [AG-FIN] Campo "Email de notificaciones" en AdminConfiguracion + opcion cresta_email_notificaciones en opcionesTema.php
+- [x] [AG-FIN] NotificacionService: usa cresta_email_notificaciones como destinatario admin (fallback cresta_empresa_email > admin_email)
+- [x] [AG-FIN] Notificacion al propietario cuando se crea reserva pendiente (notificarAdminReservaPendiente desde ReservaController)
+- [x] [AG-FIN] Notificacion al propietario + cliente cuando se cancela reserva (notificarCancelacionReserva desde AdminController)
+- [x] [AG-FIN] Headers: From, Reply-To (con email del cliente en admin notifs, y email admin en cliente notifs), Content-Type HTML
+- [ ] Verificar que wp_mail() funciona correctamente en produccion (puede requerir SMTP plugin)
 
 #### 8.5 — Dashboard: sistema de notificaciones/actividad
-- [ ] Crear endpoint GET /glory/v1/admin/actividad — lista de eventos recientes del negocio
-- [ ] Backend: AdminRepository::obtenerActividadReciente() — consulta de reservas recientes con cambios de estado
-- [ ] Tipos de eventos: nueva reserva, reserva confirmada (pago exitoso), reserva cancelada, vehículo entregado (fecha inicio = hoy), vehículo a devolver (fecha fin = hoy/mañana), pago fallido
-- [ ] AdminDashboard: sección "Actividad reciente" debajo de las estadísticas con timeline de eventos
-- [ ] CSS: estilos para timeline de actividad en paginas-admin.css
+- [x] [AG-FIN] Endpoint GET /glory/v1/admin/actividad con AdminRepository::obtenerActividadReciente()
+- [x] [AG-FIN] 7 tipos de eventos: nueva_reserva, reserva_confirmada, reserva_cancelada, pago_fallido, entrega_hoy, devolucion_hoy, devolucion_manana
+- [x] [AG-FIN] AdminDashboard: seccion "Actividad reciente" con timeline de eventos, iconos por tipo, fechas relativas
+- [x] [AG-FIN] CSS: estilos completos para timeline actividad, detalle reserva, stripe badges, telefono cliente
 
 #### 8.6 — Testing y lanzamiento
 - [ ] Testing funcional completo del flujo de reserva
 - [ ] Testing de responsive (mobile first)
 - [ ] Testing con pagos reales en Stripe
 - [ ] Performance audit (Lighthouse)
-- [ ] Configurar dominio crestacampers.com en producción
+- [ ] Configurar dominio crestacampers.com en produccion
 - [ ] Certificado SSL
 - [ ] Lanzamiento
+
+#### Aprendizajes Fase 8
+- [StripeConfig]: Lee credenciales con prioridad defined() constants (.env) > get_option() (wp_options). No fue necesario cambiar nada.
+- [Enmascaramiento]: Claves sensibles se muestran como "sk_test_ab...". guardarConfiguracion ignora valores con "..." para no sobreescribir con el placeholder.
+- [NotificacionService]: obtenerEmailAdmin() centraliza la resolucion de email de destino (cresta_email_notificaciones > cresta_empresa_email > admin_email).
+- [AdminRepository]: obtenerActividadReciente usa una sola query SQL con JOIN de postmeta, generate eventos en PHP para flexibilidad de logica.
+- [CSS Variables]: exitoFondo/exitoTexto/secundario no existian como variables — usar primarioFondo/primarioOscuro/primarioClaro como alternativa.
 
 ---
 
