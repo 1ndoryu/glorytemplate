@@ -5,6 +5,12 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGloryContext } from '@/hooks';
+import {
+    MOCK_ESTADISTICAS,
+    MOCK_RESERVAS,
+    MOCK_CLIENTES,
+    MOCK_VEHICULOS,
+} from '@app/dev/mockAdmin';
 import type {
     SeccionPanel,
     AdminReserva,
@@ -128,23 +134,34 @@ export function useAdminPanel(): UseAdminPanelResult {
         }
     }, [baseUrl, headers]);
 
+    /* Sin contexto WP (desarrollo) — usar datos de previsualización */
+    const esModoPreview = !nonce;
+
     /* Cargar estadísticas */
     const cargarEstadisticas = useCallback(async () => {
+        if (esModoPreview) { setEstadisticas(MOCK_ESTADISTICAS); return; }
         setLoadingEstadisticas(true);
         const data = await fetchAdmin<{ success: boolean; estadisticas: AdminEstadisticas }>('estadisticas');
         if (data) setEstadisticas(data.estadisticas);
         else setEstadisticas(ESTADISTICAS_INICIAL);
         setLoadingEstadisticas(false);
-    }, [fetchAdmin]);
+    }, [fetchAdmin, esModoPreview]);
 
     /* Cargar reservas */
     const cargarReservas = useCallback(async () => {
+        if (esModoPreview) {
+            const filtradas = filtroEstadoReserva !== 'todas'
+                ? MOCK_RESERVAS.filter(r => r.estado === filtroEstadoReserva)
+                : MOCK_RESERVAS;
+            setReservas(filtradas);
+            return;
+        }
         setLoadingReservas(true);
         const filtro = filtroEstadoReserva !== 'todas' ? `?estado=${filtroEstadoReserva}` : '';
         const data = await fetchAdmin<{ success: boolean; reservas: AdminReserva[] }>(`reservas${filtro}`);
         if (data) setReservas(data.reservas);
         setLoadingReservas(false);
-    }, [fetchAdmin, filtroEstadoReserva]);
+    }, [fetchAdmin, filtroEstadoReserva, esModoPreview]);
 
     /* Cambiar estado de reserva */
     const cambiarEstadoReserva = useCallback(async (id: number, estado: EstadoReserva): Promise<boolean> => {
@@ -161,11 +178,12 @@ export function useAdminPanel(): UseAdminPanelResult {
 
     /* Cargar vehículos */
     const cargarVehiculos = useCallback(async () => {
+        if (esModoPreview) { setVehiculos(MOCK_VEHICULOS); return; }
         setLoadingVehiculos(true);
         const data = await fetchAdmin<{ success: boolean; vehiculos: AdminVehiculoEditable[] }>('vehiculos');
         if (data) setVehiculos(data.vehiculos);
         setLoadingVehiculos(false);
-    }, [fetchAdmin]);
+    }, [fetchAdmin, esModoPreview]);
 
     /* Guardar vehículo */
     const guardarVehiculo = useCallback(async (v: AdminVehiculoEditable): Promise<boolean> => {
@@ -214,11 +232,12 @@ export function useAdminPanel(): UseAdminPanelResult {
 
     /* Cargar clientes */
     const cargarClientes = useCallback(async () => {
+        if (esModoPreview) { setClientes(MOCK_CLIENTES); return; }
         setLoadingClientes(true);
         const data = await fetchAdmin<{ success: boolean; clientes: AdminCliente[] }>('clientes');
         if (data) setClientes(data.clientes);
         setLoadingClientes(false);
-    }, [fetchAdmin]);
+    }, [fetchAdmin, esModoPreview]);
 
     /* Cargar configuración */
     const cargarConfiguracion = useCallback(async () => {
@@ -243,7 +262,7 @@ export function useAdminPanel(): UseAdminPanelResult {
 
     /* Carga según sección activa */
     useEffect(() => {
-        if (!isAdmin) return;
+        if (!isAdmin && !esModoPreview) return;
         setError(null);
         switch (seccion) {
             case 'dashboard':
@@ -262,14 +281,14 @@ export function useAdminPanel(): UseAdminPanelResult {
                 cargarConfiguracion();
                 break;
         }
-    }, [seccion, isAdmin, cargarEstadisticas, cargarReservas, cargarVehiculos, cargarClientes, cargarConfiguracion]);
+    }, [seccion, isAdmin, esModoPreview, cargarEstadisticas, cargarReservas, cargarVehiculos, cargarClientes, cargarConfiguracion]);
 
     /* Recargar reservas cuando cambia el filtro */
     useEffect(() => {
-        if (seccion === 'reservas' && isAdmin) {
+        if (seccion === 'reservas' && (isAdmin || esModoPreview)) {
             cargarReservas();
         }
-    }, [filtroEstadoReserva, seccion, isAdmin, cargarReservas]);
+    }, [filtroEstadoReserva, seccion, isAdmin, esModoPreview, cargarReservas]);
 
     /* Cleanup */
     useEffect(() => {
