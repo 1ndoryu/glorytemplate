@@ -390,6 +390,12 @@
     background-color: rgba(45, 106, 79, 0.08);
 }
 
+.adminAccionIconoCompletar:hover {
+    border-color: var(--cresta-primario);
+    color: var(--cresta-primario);
+    background-color: var(--cresta-primarioSuave);
+}
+
 .adminAccionIconoEliminar:hover {
     border-color: var(--cresta-error);
     color: var(--cresta-error);
@@ -466,10 +472,17 @@
 }
 
 /* Fechas y detalles en tabla */
+.adminFechasInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .adminFechas {
     font-size: var(--cresta-textoXs);
     color: var(--cresta-gris700);
     line-height: 1.5;
+    white-space: nowrap;
 }
 
 .adminNoches {

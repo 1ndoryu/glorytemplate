@@ -3,7 +3,7 @@
  * Permite cambiar el estado de cada reserva.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Boton } from '@app/components/ui/Boton';
 import type { AdminReserva, EstadoReserva } from '@app/types/cresta';
 
@@ -47,6 +47,7 @@ function formatearEuros(cantidad: number): string {
 }
 
 export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange, onCambiarEstado }: AdminReservasProps): JSX.Element {
+    const [confirmCancelar, setConfirmCancelar] = useState<number | null>(null);
 
     const handleCambiarEstado = useCallback(async (id: number, estado: EstadoReserva) => {
         await onCambiarEstado(id, estado);
@@ -106,28 +107,69 @@ export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange,
                                     </td>
                                     <td className="adminTablaCelda">{r.vehiculoNombre}</td>
                                     <td className="adminTablaCelda">
-                                        <span className="adminFechas">
-                                            {formatearFecha(r.fechaInicio)} — {formatearFecha(r.fechaFin)}
-                                        </span>
-                                        <span className="adminNoches">{r.noches} noches</span>
+                                        <div className="adminFechasInfo">
+                                            <span className="adminFechas">
+                                                {formatearFecha(r.fechaInicio)} — {formatearFecha(r.fechaFin)}
+                                            </span>
+                                            <span className="adminNoches">{r.noches} noches</span>
+                                        </div>
                                     </td>
                                     <td className="adminTablaCelda adminPrecio">{formatearEuros(r.precioTotal)}</td>
                                     <td className="adminTablaCelda"><BadgeEstado estado={r.estado} /></td>
-                                    <td className="adminTablaCelda">
+                                    <td className="adminTablaAcciones">
                                         <div className="adminAcciones">
                                             {r.estado === 'pendiente' && (
                                                 <>
-                                                    <Boton variante="enlace" onClick={() => handleCambiarEstado(r.id, 'confirmada')}>
-                                                        Confirmar
+                                                    {/* Confirmar reserva */}
+                                                    <Boton
+                                                        variante="icono"
+                                                        className="adminAccionIcono adminAccionIconoExito"
+                                                        title="Confirmar reserva"
+                                                        onClick={() => handleCambiarEstado(r.id, 'confirmada')}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="20 6 9 17 4 12" />
+                                                        </svg>
                                                     </Boton>
-                                                    <Boton variante="enlace" onClick={() => handleCambiarEstado(r.id, 'cancelada')}>
-                                                        Cancelar
-                                                    </Boton>
+                                                    {/* Cancelar reserva con confirm */}
+                                                    {confirmCancelar === r.id ? (
+                                                        <Boton
+                                                            variante="icono"
+                                                            className="adminAccionIcono adminAccionIconoEliminarConfirm"
+                                                            title="Confirmar cancelación"
+                                                            onClick={() => { handleCambiarEstado(r.id, 'cancelada'); setConfirmCancelar(null); }}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <polyline points="20 6 9 17 4 12" />
+                                                            </svg>
+                                                        </Boton>
+                                                    ) : (
+                                                        <Boton
+                                                            variante="icono"
+                                                            className="adminAccionIcono adminAccionIconoEliminar"
+                                                            title="Cancelar reserva"
+                                                            onClick={() => setConfirmCancelar(r.id)}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                                            </svg>
+                                                        </Boton>
+                                                    )}
                                                 </>
                                             )}
                                             {r.estado === 'confirmada' && (
-                                                <Boton variante="enlace" onClick={() => handleCambiarEstado(r.id, 'completada')}>
-                                                    Completar
+                                                /* Marcar como completada */
+                                                <Boton
+                                                    variante="icono"
+                                                    className="adminAccionIcono adminAccionIconoCompletar"
+                                                    title="Marcar como completada"
+                                                    onClick={() => handleCambiarEstado(r.id, 'completada')}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                                    </svg>
                                                 </Boton>
                                             )}
                                         </div>
