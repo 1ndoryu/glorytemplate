@@ -17,7 +17,15 @@ class ReactContext
 
     public static function addOptions(array $context): array
     {
+        $usuario = wp_get_current_user();
+
         $context['options'] = [
+            /* Datos del usuario autenticado (solo disponibles si hay sesión) */
+            'usuario' => [
+                'nombre' => $usuario->ID ? $usuario->display_name : '',
+                'email'  => $usuario->ID ? $usuario->user_email : '',
+                'avatar' => $usuario->ID ? get_avatar_url($usuario->ID, ['size' => 64]) : '',
+            ],
             // Datos de empresa
             'empresa' => [
                 'nombre'    => OpcionManager::get('cresta_empresa_nombre', 'Cresta Campers'),

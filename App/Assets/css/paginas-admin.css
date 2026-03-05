@@ -44,24 +44,6 @@
     flex-direction: column;
 }
 
-.adminSidebarLogo {
-    display: flex;
-    align-items: center;
-    gap: var(--cresta-espacioSm);
-    padding: var(--cresta-espacioLg);
-    border-bottom: 1px solid var(--cresta-primarioAlpha40);
-}
-
-.adminSidebarLogoLight {
-    background-color: var(--cresta-primarioClaro);
-}
-
-.adminSidebarLogoTexto {
-    font-size: var(--cresta-textoLg);
-    font-weight: var(--cresta-pesoBold);
-    letter-spacing: -0.02em;
-}
-
 .adminSidebarNav {
     display: flex;
     flex-direction: column;
@@ -96,6 +78,65 @@
     background-color: var(--cresta-blancoAlpha20);
     color: var(--cresta-blanco);
     font-weight: var(--cresta-pesoSemibold);
+}
+
+/* Tarjeta de usuario al pie del sidebar */
+.adminSidebarUsuario {
+    margin-top: auto;
+    padding: var(--cresta-espacioMd) var(--cresta-espacioSm);
+    border-top: 1px solid var(--cresta-blancoAlpha10);
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    min-width: 0;
+}
+
+.adminSidebarAvatarWrap {
+    flex-shrink: 0;
+}
+
+.adminSidebarAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--cresta-blancoAlpha20);
+}
+
+.adminSidebarAvatarInicial {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--cresta-blancoAlpha20);
+    color: var(--cresta-blanco);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoBold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.adminSidebarUsuarioInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.adminSidebarUsuarioNombre {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-blanco);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminSidebarUsuarioEmail {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-blancoAlpha70);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Secciones genéricas */
@@ -286,6 +327,11 @@
     white-space: nowrap;
 }
 
+/* Columna de nombre: permite wrap y limita ancho */
+.adminTablaColNombre {
+    max-width: 220px;
+}
+
 /* Badges de estado */
 .adminBadge {
     display: inline-block;
@@ -317,27 +363,68 @@
 }
 
 /* Acciones en tabla */
+.adminTablaAcciones {
+    width: 1%; /* Columna tan estrecha como su contenido */
+    white-space: nowrap;
+}
+
 .adminAcciones {
     display: flex;
-    gap: var(--cresta-espacioXs);
-    flex-wrap: wrap;
+    gap: var(--cresta-espacio2xs);
+    align-items: center;
 }
 
-.adminAcciones button {
-    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
-    border: 1px solid var(--cresta-gris300);
-    border-radius: var(--cresta-radio);
-    background: var(--cresta-blanco);
-    font-size: var(--cresta-textoXs);
+/* Botones de acción icono en tabla */
+.adminAccionIcono {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--cresta-radioMd);
+    border: 1px solid var(--cresta-gris200);
+    background: transparent;
+    color: var(--cresta-gris500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all var(--cresta-transicion);
-    font-family: var(--cresta-fuentePrincipal);
-    color: var(--cresta-gris700);
+    padding: 0;
+    flex-shrink: 0;
 }
 
-.adminAcciones button:hover {
+.adminAccionIcono:hover {
     border-color: var(--cresta-primario);
     color: var(--cresta-primario);
+    background-color: var(--cresta-primarioSuave);
+}
+
+.adminAccionIconoAviso:hover {
+    border-color: var(--cresta-aviso);
+    color: var(--cresta-avisoTexto);
+    background-color: var(--cresta-avisoFondo);
+}
+
+.adminAccionIconoExito:hover {
+    border-color: var(--cresta-exito);
+    color: var(--cresta-exito);
+    background-color: rgba(45, 106, 79, 0.08);
+}
+
+.adminAccionIconoEliminar:hover {
+    border-color: var(--cresta-error);
+    color: var(--cresta-error);
+    background-color: var(--cresta-errorFondo);
+}
+
+.adminAccionIconoEliminarConfirm {
+    border-color: var(--cresta-error);
+    color: var(--cresta-blanco);
+    background-color: var(--cresta-error);
+}
+
+.adminAccionIconoEliminarConfirm:hover {
+    background-color: var(--cresta-error);
+    color: var(--cresta-blanco);
+    filter: brightness(0.9);
 }
 
 /* Info vehículo en tabla */

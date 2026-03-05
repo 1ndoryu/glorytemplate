@@ -5,6 +5,7 @@
 
 import type { SeccionPanel } from '@app/types/cresta';
 import { Boton } from '@app/components/ui/Boton';
+import { useGloryOptions } from '@/hooks';
 
 interface AdminSidebarProps {
     seccion: SeccionPanel;
@@ -71,12 +72,16 @@ const ITEMS_MENU: ItemMenu[] = [
 ];
 
 export function AdminSidebar({ seccion, onChange }: AdminSidebarProps): JSX.Element {
+    const { get } = useGloryOptions();
+    const usuario = get<{ nombre: string; email: string; avatar: string }>('usuario', { nombre: '', email: '', avatar: '' });
+
+    /* Iniciales para el avatar de fallback */
+    const iniciales = usuario.nombre
+        ? usuario.nombre.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
+        : '?';
+
     return (
         <aside className="adminSidebar">
-            <div className="adminSidebarLogo">
-                <span className="adminSidebarLogoTexto">Cresta</span>
-                <span className="adminSidebarLogoLight">Panel</span>
-            </div>
             <nav className="adminSidebarNav">
                 {ITEMS_MENU.map(item => (
                     <Boton
@@ -90,6 +95,19 @@ export function AdminSidebar({ seccion, onChange }: AdminSidebarProps): JSX.Elem
                     </Boton>
                 ))}
             </nav>
+
+            <div className="adminSidebarUsuario">
+                <div className="adminSidebarAvatarWrap">
+                    {usuario.avatar
+                        ? <img src={usuario.avatar} alt={usuario.nombre} className="adminSidebarAvatar" />
+                        : <span className="adminSidebarAvatarInicial">{iniciales}</span>
+                    }
+                </div>
+                <div className="adminSidebarUsuarioInfo">
+                    <span className="adminSidebarUsuarioNombre">{usuario.nombre || 'Administrador'}</span>
+                    <span className="adminSidebarUsuarioEmail">{usuario.email}</span>
+                </div>
+            </div>
         </aside>
     );
 }
