@@ -6,6 +6,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 use Glory\Core\GloryLogger;
 use App\Services\AdminRepository;
+use App\Services\NotificacionService;
 
 /**
  * REST Controller para el panel de administración.
@@ -59,12 +60,22 @@ class AdminController
         'multiplicadorMedia'   => 'cresta_multiplicador_media',
         'multiplicadorAlta'    => 'cresta_multiplicador_alta',
         'multiplicadorEspecial'=> 'cresta_multiplicador_especial',
+        'emailNotificaciones'  => 'cresta_email_notificaciones',
+        'stripeSecretKey'      => 'glory_stripe_secret_key',
+        'stripePublishableKey' => 'glory_stripe_publishable_key',
+        'stripeWebhookSecret'  => 'glory_stripe_webhook_secret',
+        'stripeMode'           => 'cresta_stripe_mode',
     ];
 
     /* Opciones numéricas (para castear al leer/escribir) */
     private const OPCIONES_NUMERICAS = [
         'minNoches', 'maxNoches', 'diasAnticipacion',
         'multiplicadorMedia', 'multiplicadorAlta', 'multiplicadorEspecial',
+    ];
+
+    /* Opciones sensibles — se enmascaran al leer (solo muestran prefijo) */
+    private const OPCIONES_SENSIBLES = [
+        'stripeSecretKey', 'stripePublishableKey', 'stripeWebhookSecret',
     ];
 
     public static function register(): void
@@ -158,6 +169,13 @@ class AdminController
             'callback'            => [self::class, 'guardarConfiguracion'],
             'permission_callback' => $adminCheck,
         ]);
+
+        /* Actividad reciente */
+        register_rest_route('glory/v1', '/admin/actividad', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'obtenerActividad'],
+            'permission_callback' => $adminCheck,
+        ]);
     }
 
     /* ------------------------------------------------------------------ */
@@ -240,12 +258,17 @@ class AdminController
                     'estado'          => get_post_meta($id, '_reserva_estado', true),
                     'nombreCliente'   => get_post_meta($id, '_reserva_nombre_cliente', true),
                     'emailCliente'    => get_post_meta($id, '_reserva_email_cliente', true),
-                    'telefonoCliente' => get_post_meta($id, '_reserva_telefono_cliente', true),
+                    'telefono'        => get_post_meta($id, '_reserva_telefono_cliente', true),
                     'vehiculoNombre'  => $vehiculoNombre,
+                    'vehiculoId'      => $vehiculoId,
                     'fechaInicio'     => get_post_meta($id, '_reserva_fecha_inicio', true),
                     'fechaFin'        => get_post_meta($id, '_reserva_fecha_fin', true),
                     'noches'          => (int) get_post_meta($id, '_reserva_noches', true),
                     'precioTotal'     => (float) get_post_meta($id, '_reserva_precio_total', true),
+                    'precioNoche'     => (float) get_post_meta($id, '_reserva_precio_noche', true),
+                    'temporada'       => get_post_meta($id, '_reserva_temporada', true),
+                    'notas'           => get_post_meta($id, '_reserva_notas', true),
+                    'stripeSessionId' => get_post_meta($id, '_reserva_stripe_session_id', true),
                     'fechaCreacion'   => $post->post_date,
                 ];
             }
@@ -284,6 +307,15 @@ class AdminController
             update_post_meta($id, '_reserva_estado', $nuevoEstado);
 
             GloryLogger::info("AdminController — Reserva #{$id} cambiada a '{$nuevoEstado}'");
+
+            /* Enviar notificaciones segun el nuevo estado */
+            if ($nuevoEstado === 'cancelada') {
+                try {
+                    NotificacionService::notificarCancelacionReserva($id);
+                } catch (\Throwable $e) {
+                    GloryLogger::error("Error notificando cancelacion reserva #{$id}: " . $e->getMessage());
+                }
+            }
 
             return new WP_REST_Response(['success' => true], 200);
         } catch (\Throwable $e) {
@@ -487,6 +519,28 @@ class AdminController
             $config = [];
             foreach (self::OPCIONES_CONFIG as $claveFront => $claveWp) {
                 $valor = get_option($claveWp, '');
+
+                /* Las claves sensibles de Stripe se enmascaran al leer */
+                if (in_array($claveFront, self::OPCIONES_SENSIBLES, true)) {
+                    if (!empty($valor)) {
+                        $config[$claveFront] = substr($valor, 0, 8) . '...';
+                    } else {
+                        /* Si no hay valor en wp_options, intentar leer de constantes (.env) */
+                        $constMap = [
+                            'stripeSecretKey'      => 'GLORY_STRIPE_SECRET_KEY',
+                            'stripePublishableKey' => 'GLORY_STRIPE_PUBLISHABLE_KEY',
+                            'stripeWebhookSecret'  => 'GLORY_STRIPE_WEBHOOK_SECRET',
+                        ];
+                        $constName = $constMap[$claveFront] ?? '';
+                        if ($constName && defined($constName)) {
+                            $config[$claveFront] = substr(constant($constName), 0, 8) . '... (.env)';
+                        } else {
+                            $config[$claveFront] = '';
+                        }
+                    }
+                    continue;
+                }
+
                 if (in_array($claveFront, self::OPCIONES_NUMERICAS, true)) {
                     $config[$claveFront] = (float) $valor;
                 } else {
@@ -517,6 +571,16 @@ class AdminController
                     continue;
                 }
                 $valor = $datos[$claveFront];
+
+                /* No sobreescribir claves sensibles con valores enmascarados */
+                if (in_array($claveFront, self::OPCIONES_SENSIBLES, true)) {
+                    if (empty($valor) || str_contains((string) $valor, '...')) {
+                        continue;
+                    }
+                    update_option($claveWp, sanitize_text_field((string) $valor));
+                    continue;
+                }
+
                 if (in_array($claveFront, self::OPCIONES_NUMERICAS, true)) {
                     $valor = (string) (float) $valor;
                 } else {
@@ -530,6 +594,25 @@ class AdminController
             return new WP_REST_Response(['success' => true], 200);
         } catch (\Throwable $e) {
             GloryLogger::error('AdminController::guardarConfiguracion — ' . $e->getMessage());
+            return new WP_REST_Response(['success' => false, 'error' => 'Error interno.'], 500);
+        }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Actividad reciente                                                */
+    /* ------------------------------------------------------------------ */
+
+    public static function obtenerActividad(WP_REST_Request $request): WP_REST_Response
+    {
+        try {
+            $eventos = AdminRepository::obtenerActividadReciente();
+
+            return new WP_REST_Response([
+                'success'  => true,
+                'eventos'  => $eventos,
+            ], 200);
+        } catch (\Throwable $e) {
+            GloryLogger::error('AdminController::obtenerActividad — ' . $e->getMessage());
             return new WP_REST_Response(['success' => false, 'error' => 'Error interno.'], 500);
         }
     }

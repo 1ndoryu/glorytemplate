@@ -28,6 +28,11 @@ const CONFIG_INICIAL: ConfigTipo = {
     multiplicadorMedia: 1.3,
     multiplicadorAlta: 1.6,
     multiplicadorEspecial: 2.0,
+    emailNotificaciones: '',
+    stripeSecretKey: '',
+    stripePublishableKey: '',
+    stripeWebhookSecret: '',
+    stripeMode: 'test',
 };
 
 export function AdminConfiguracion({ configuracion, loading, onGuardar }: AdminConfiguracionProps): JSX.Element {
@@ -146,7 +151,7 @@ export function AdminConfiguracion({ configuracion, loading, onGuardar }: AdminC
             {/* Multiplicadores de temporada */}
             <div className="adminConfigSeccion">
                 <h3 className="adminConfigSubtitulo">Multiplicadores de temporada</h3>
-                <p className="adminConfigAyuda">El precio final = precio base del vehículo x multiplicador</p>
+                <p className="adminConfigAyuda">El precio final = precio base del vehiculo x multiplicador</p>
                 <div className="adminFormGrid">
                     <CampoTexto
                         label="Temporada media (x)"
@@ -167,6 +172,70 @@ export function AdminConfiguracion({ configuracion, loading, onGuardar }: AdminC
                         onChange={v => actualizar('multiplicadorEspecial', Number(v))}
                     />
                 </div>
+            </div>
+
+            {/* Notificaciones */}
+            <div className="adminConfigSeccion">
+                <h3 className="adminConfigSubtitulo">Notificaciones</h3>
+                <p className="adminConfigAyuda">
+                    Email donde se reciben las notificaciones de reservas. Si se deja vacio, se usa el email de empresa.
+                </p>
+                <div className="adminFormGrid">
+                    <CampoTexto
+                        label="Email de notificaciones"
+                        type="email"
+                        value={form.emailNotificaciones}
+                        onChange={v => actualizar('emailNotificaciones', v)}
+                        placeholder="notificaciones@tuempresa.com"
+                    />
+                </div>
+            </div>
+
+            {/* Pasarela de pago (Stripe) */}
+            <div className="adminConfigSeccion">
+                <h3 className="adminConfigSubtitulo">Pasarela de pago (Stripe)</h3>
+                <div className="adminStripeEstado">
+                    <span className={`adminStripeBadge ${form.stripeMode === 'live' ? 'adminStripeBadgeLive' : 'adminStripeBadgeTest'}`}>
+                        {form.stripeMode === 'live' ? 'Produccion' : 'Modo test'}
+                    </span>
+                    {form.stripeSecretKey
+                        ? <span className="adminStripeConfigurado">Configurado</span>
+                        : <span className="adminStripeNoConfigurado">No configurado</span>
+                    }
+                </div>
+                <p className="adminConfigAyuda">
+                    Si las claves estan configuradas en el archivo .env del servidor, se usan esas como prioridad.
+                    Los valores enmascarados (sk_test_...) indican claves ya guardadas.
+                </p>
+                <div className="adminFormGrid">
+                    <CampoTexto
+                        label="Modo"
+                        value={form.stripeMode}
+                        onChange={v => actualizar('stripeMode', v)}
+                        placeholder="test"
+                    />
+                    <CampoTexto
+                        label="Publishable Key"
+                        value={form.stripePublishableKey}
+                        onChange={v => actualizar('stripePublishableKey', v)}
+                        placeholder="pk_test_..."
+                    />
+                    <CampoTexto
+                        label="Secret Key"
+                        value={form.stripeSecretKey}
+                        onChange={v => actualizar('stripeSecretKey', v)}
+                        placeholder="sk_test_..."
+                    />
+                    <CampoTexto
+                        label="Webhook Secret"
+                        value={form.stripeWebhookSecret}
+                        onChange={v => actualizar('stripeWebhookSecret', v)}
+                        placeholder="whsec_..."
+                    />
+                </div>
+                <p className="adminConfigAyuda adminConfigAyudaMono">
+                    URL del webhook: /wp-json/glory/v1/stripe/webhook
+                </p>
             </div>
 
             <div className="adminFormAcciones">

@@ -21,6 +21,8 @@ function ContenidoSeccion(props: ReturnType<typeof useAdminPanel>): JSX.Element 
                 <AdminDashboard
                     estadisticas={props.estadisticas}
                     loading={props.loadingEstadisticas}
+                    actividad={props.actividad}
+                    loadingActividad={props.loadingActividad}
                 />
             );
         case 'reservas':

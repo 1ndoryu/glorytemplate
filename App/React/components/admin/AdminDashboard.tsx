@@ -1,13 +1,15 @@
 /**
- * AdminDashboard — Vista general con estadísticas del negocio.
- * Tarjetas de resumen: reservas, ingresos, vehículos, clientes.
+ * AdminDashboard — Vista general con estadisticas del negocio.
+ * Tarjetas de resumen + actividad reciente.
  */
 
-import type { AdminEstadisticas } from '@app/types/cresta';
+import type { AdminEstadisticas, EventoActividad, TipoEvento } from '@app/types/cresta';
 
 interface AdminDashboardProps {
     estadisticas: AdminEstadisticas | null;
     loading: boolean;
+    actividad: EventoActividad[];
+    loadingActividad: boolean;
 }
 
 function formatearEuros(cantidad: number): string {
@@ -28,7 +30,48 @@ function TarjetaStat({ titulo, valor }: TarjetaStatProps): JSX.Element {
     );
 }
 
-export function AdminDashboard({ estadisticas, loading }: AdminDashboardProps): JSX.Element {
+const ICONO_EVENTO: Record<TipoEvento, string> = {
+    nueva_reserva: 'reserva',
+    reserva_confirmada: 'exito',
+    reserva_cancelada: 'error',
+    pago_fallido: 'error',
+    entrega_hoy: 'entrega',
+    devolucion_hoy: 'devolucion',
+    devolucion_manana: 'aviso',
+};
+
+function formatearFechaRelativa(fecha: string): string {
+    try {
+        const ahora = Date.now();
+        const objetivo = new Date(fecha).getTime();
+        const diffMs = ahora - objetivo;
+        const diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return 'ahora';
+        if (diffMin < 60) return `hace ${diffMin} min`;
+        const diffH = Math.floor(diffMin / 60);
+        if (diffH < 24) return `hace ${diffH}h`;
+        const diffD = Math.floor(diffH / 24);
+        if (diffD < 7) return `hace ${diffD}d`;
+        return new Date(fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    } catch {
+        return fecha;
+    }
+}
+
+function EventoItem({ evento }: { evento: EventoActividad }): JSX.Element {
+    const clase = ICONO_EVENTO[evento.tipo] ?? 'reserva';
+    return (
+        <div className={`adminActividadItem adminActividadItem--${clase}`}>
+            <div className="adminActividadIcono" />
+            <div className="adminActividadContenido">
+                <span className="adminActividadMensaje">{evento.mensaje}</span>
+                <span className="adminActividadFecha">{formatearFechaRelativa(evento.fecha)}</span>
+            </div>
+        </div>
+    );
+}
+
+export function AdminDashboard({ estadisticas, loading, actividad, loadingActividad }: AdminDashboardProps): JSX.Element {
     if (loading) {
         return (
             <div className="adminSeccionCargando">
@@ -59,8 +102,26 @@ export function AdminDashboard({ estadisticas, loading }: AdminDashboardProps): 
                 <TarjetaStat titulo="Pendientes" valor={String(stats.reservasPendientes)} />
                 <TarjetaStat titulo="Ingresos del mes" valor={formatearEuros(stats.ingresosMes)} />
                 <TarjetaStat titulo="Ingresos totales" valor={formatearEuros(stats.ingresosTotales)} />
-                <TarjetaStat titulo="Vehículos activos" valor={String(stats.vehiculosActivos)} />
-                <TarjetaStat titulo="Clientes únicos" valor={String(stats.clientesUnicos)} />
+                <TarjetaStat titulo="Vehiculos activos" valor={String(stats.vehiculosActivos)} />
+                <TarjetaStat titulo="Clientes unicos" valor={String(stats.clientesUnicos)} />
+            </div>
+
+            {/* Actividad reciente */}
+            <div className="adminActividadSeccion">
+                <h3 className="adminConfigSubtitulo">Actividad reciente</h3>
+                {loadingActividad ? (
+                    <div className="adminSeccionCargando">
+                        <div className="cargandoSpinner" />
+                    </div>
+                ) : actividad.length === 0 ? (
+                    <p className="adminVacioTexto">No hay actividad reciente</p>
+                ) : (
+                    <div className="adminActividadLista">
+                        {actividad.map((ev, i) => (
+                            <EventoItem key={`${ev.tipo}-${ev.reservaId ?? i}`} evento={ev} />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

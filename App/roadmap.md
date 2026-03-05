@@ -391,7 +391,43 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Redactar textos legales (RGPD, cookies, condiciones de alquiler) — contenido HTML completo en `opcionesTema.php` como `valorDefault`
 - [x] Optimizar imágenes (WebP, lazy loading) — `loading="lazy"` añadido en Galeria.tsx y ReservarIsland.tsx
 
-### Fase 8 — Testing y lanzamiento
+### Fase 8 — Refinamiento pre-lanzamiento (AG-FIN)
+
+#### 8.1 — UI Admin: Ajustes modal y tablas
+- [ ] [EN CURSO — AG-FIN] AdminFlota modal: mover "Descripción corta" al final del formulario, 2 columnas, convertir a textarea
+- [ ] AdminReservas: mostrar teléfono del cliente debajo del email en tabla
+- [ ] AdminReservas: modal de detalle completo de reserva (todos los campos: fechas, precios, desglose, notas, datos Stripe)
+
+#### 8.2 — Stripe: configuración desde panel admin
+- [ ] Añadir sección "Pasarela de pago" en AdminConfiguracion con campos: stripe_secret_key, stripe_publishable_key, stripe_webhook_secret, stripe_mode (test/live)
+- [ ] Backend: registrar opciones Stripe en opcionesTema.php + ampliar OPCIONES_CONFIG en AdminController
+- [ ] Hacer que StripeConfig/environment.php lea claves desde wp_options como fallback si no están en .env (prioridad: .env > wp_options)
+- [ ] Mostrar estado de configuración Stripe (configurado/no configurado, modo test/live) en el panel
+
+#### 8.3 — Stripe: revisión profunda del flujo de pago
+- [ ] Auditar ReservaController::crearSesionStripe — verificar campos, metadata, URLs, moneda
+- [ ] Auditar StripeWebhookHandler — verificar manejo de todos los eventos, idempotencia, logging
+- [ ] Verificar que la respuesta del webhook devuelve 200 siempre (Stripe espera 2xx)
+- [ ] Verificar success_url y cancel_url con variables correctas de Stripe ({CHECKOUT_SESSION_ID})
+- [ ] Verificar que payment_intent_data.metadata incluye reserva_id para backup handler
+
+#### 8.4 — Email: configuración y revisión de notificaciones
+- [ ] Añadir campo "Email de notificaciones" en AdminConfiguracion (separado del email de empresa)
+- [ ] Registrar opción cresta_email_notificaciones en opcionesTema.php
+- [ ] NotificacionService: usar cresta_email_notificaciones como destinatario admin (fallback a cresta_empresa_email)
+- [ ] Añadir notificación al propietario cuando se crea una reserva pendiente (antes del pago)
+- [ ] Añadir notificación al propietario cuando se cancela una reserva
+- [ ] Verificar headers de email (From, Reply-To, Content-Type) para evitar que caigan en spam
+- [ ] Verificar que wp_mail() funciona correctamente (puede requerir SMTP plugin)
+
+#### 8.5 — Dashboard: sistema de notificaciones/actividad
+- [ ] Crear endpoint GET /glory/v1/admin/actividad — lista de eventos recientes del negocio
+- [ ] Backend: AdminRepository::obtenerActividadReciente() — consulta de reservas recientes con cambios de estado
+- [ ] Tipos de eventos: nueva reserva, reserva confirmada (pago exitoso), reserva cancelada, vehículo entregado (fecha inicio = hoy), vehículo a devolver (fecha fin = hoy/mañana), pago fallido
+- [ ] AdminDashboard: sección "Actividad reciente" debajo de las estadísticas con timeline de eventos
+- [ ] CSS: estilos para timeline de actividad en paginas-admin.css
+
+#### 8.6 — Testing y lanzamiento
 - [ ] Testing funcional completo del flujo de reserva
 - [ ] Testing de responsive (mobile first)
 - [ ] Testing con pagos reales en Stripe

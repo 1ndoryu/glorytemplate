@@ -183,11 +183,15 @@ export interface AdminReserva {
     fechaFin: string;
     noches: number;
     precioTotal: number;
+    precioNoche: number;
     nombreCliente: string;
     emailCliente: string;
     telefono: string;
     vehiculoNombre: string;
     vehiculoId: number;
+    temporada: string;
+    notas: string;
+    stripeSessionId: string;
     fechaCreacion: string;
 }
 
@@ -242,4 +246,28 @@ export interface AdminConfiguracion {
     multiplicadorMedia: number;
     multiplicadorAlta: number;
     multiplicadorEspecial: number;
+    emailNotificaciones: string;
+    stripeSecretKey: string;
+    stripePublishableKey: string;
+    stripeWebhookSecret: string;
+    stripeMode: string;
+}
+
+/* Actividad reciente del dashboard */
+export type TipoEvento =
+    | 'nueva_reserva'
+    | 'reserva_confirmada'
+    | 'reserva_cancelada'
+    | 'pago_fallido'
+    | 'entrega_hoy'
+    | 'devolucion_hoy'
+    | 'devolucion_manana';
+
+export interface EventoActividad {
+    tipo: TipoEvento;
+    mensaje: string;
+    fecha: string;
+    reservaId?: number;
+    vehiculoNombre?: string;
+    clienteNombre?: string;
 }

@@ -6,6 +6,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 use App\Services\DisponibilidadService;
 use App\Services\PrecioService;
+use App\Services\NotificacionService;
 use Glory\Services\Stripe\StripeApiClient;
 use Glory\Core\GloryLogger;
 
@@ -167,6 +168,13 @@ class ReservaController
         update_post_meta($reservaId, '_reserva_stripe_session_id', $stripeResult['sessionId']);
 
         GloryLogger::info("Reserva #{$reservaId} creada — Stripe session: {$stripeResult['sessionId']}");
+
+        // Notificar al admin que hay una nueva reserva pendiente de pago
+        try {
+            NotificacionService::notificarAdminReservaPendiente($reservaId);
+        } catch (\Throwable $e) {
+            GloryLogger::error("Error notificando reserva pendiente #{$reservaId}: " . $e->getMessage());
+        }
 
         return new WP_REST_Response([
             'success'     => true,

@@ -133,4 +133,125 @@ class AdminRepository
 
         return $resultado;
     }
+
+    /**
+     * Genera lista de eventos de actividad reciente para el dashboard.
+     *
+     * Tipos: nueva_reserva, reserva_confirmada, reserva_cancelada, pago_fallido,
+     * entrega_hoy, devolucion_hoy, devolucion_manana.
+     *
+     * @return array<int, array{tipo: string, mensaje: string, fecha: string, reservaId: int, vehiculoNombre: string, clienteNombre: string}>
+     */
+    public static function obtenerActividadReciente(): array
+    {
+        global $wpdb;
+
+        $eventos = [];
+        $hoy = gmdate('Y-m-d');
+        $manana = gmdate('Y-m-d', strtotime('+1 day'));
+
+        /* Reservas recientes (últimas 20) con todos los metas necesarios */
+        $reservas = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT p.ID, p.post_date,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_estado' THEN pm.meta_value END) as estado,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_nombre_cliente' THEN pm.meta_value END) as cliente,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_vehiculo_id' THEN pm.meta_value END) as vehiculo_id,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_fecha_inicio' THEN pm.meta_value END) as fecha_inicio,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_fecha_fin' THEN pm.meta_value END) as fecha_fin,
+                    MAX(CASE WHEN pm.meta_key = '_reserva_precio_total' THEN pm.meta_value END) as precio_total
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                WHERE p.post_type = %s AND p.post_status = 'publish'
+                GROUP BY p.ID, p.post_date
+                ORDER BY p.post_date DESC
+                LIMIT 50",
+                'reserva'
+            )
+        );
+
+        foreach ($reservas as $r) {
+            $vehiculoNombre = '';
+            if ($r->vehiculo_id) {
+                $vehiculoNombre = get_post_meta((int) $r->vehiculo_id, '_vehiculo_nombre', true)
+                    ?: get_the_title((int) $r->vehiculo_id);
+            }
+
+            $base = [
+                'reservaId'      => (int) $r->ID,
+                'vehiculoNombre' => $vehiculoNombre,
+                'clienteNombre'  => $r->cliente ?? '',
+            ];
+
+            /* Entrega hoy: fecha_inicio = hoy y estado confirmada */
+            if ($r->fecha_inicio === $hoy && $r->estado === 'confirmada') {
+                $eventos[] = array_merge($base, [
+                    'tipo'    => 'entrega_hoy',
+                    'mensaje' => sprintf('Entregar %s a %s', $vehiculoNombre, $r->cliente),
+                    'fecha'   => $hoy,
+                ]);
+            }
+
+            /* Devolución hoy */
+            if ($r->fecha_fin === $hoy && in_array($r->estado, ['confirmada', 'completada'], true)) {
+                $eventos[] = array_merge($base, [
+                    'tipo'    => 'devolucion_hoy',
+                    'mensaje' => sprintf('Recibir %s de %s', $vehiculoNombre, $r->cliente),
+                    'fecha'   => $hoy,
+                ]);
+            }
+
+            /* Devolución mañana */
+            if ($r->fecha_fin === $manana && in_array($r->estado, ['confirmada', 'completada'], true)) {
+                $eventos[] = array_merge($base, [
+                    'tipo'    => 'devolucion_manana',
+                    'mensaje' => sprintf('Mañana: recibir %s de %s', $vehiculoNombre, $r->cliente),
+                    'fecha'   => $manana,
+                ]);
+            }
+
+            /* Eventos por estado de la reserva (las más recientes) */
+            $fechaCreacion = $r->post_date;
+            switch ($r->estado) {
+                case 'pendiente':
+                    $eventos[] = array_merge($base, [
+                        'tipo'    => 'nueva_reserva',
+                        'mensaje' => sprintf('Nueva reserva pendiente de %s — %s', $r->cliente, $vehiculoNombre),
+                        'fecha'   => $fechaCreacion,
+                    ]);
+                    break;
+
+                case 'confirmada':
+                    $eventos[] = array_merge($base, [
+                        'tipo'    => 'reserva_confirmada',
+                        'mensaje' => sprintf('Reserva confirmada de %s — %s (%.2f€)', $r->cliente, $vehiculoNombre, (float) $r->precio_total),
+                        'fecha'   => $fechaCreacion,
+                    ]);
+                    break;
+
+                case 'cancelada':
+                    $eventos[] = array_merge($base, [
+                        'tipo'    => 'reserva_cancelada',
+                        'mensaje' => sprintf('Reserva cancelada: %s — %s', $r->cliente, $vehiculoNombre),
+                        'fecha'   => $fechaCreacion,
+                    ]);
+                    break;
+
+                case 'fallida':
+                    $eventos[] = array_merge($base, [
+                        'tipo'    => 'pago_fallido',
+                        'mensaje' => sprintf('Pago fallido: %s — %s', $r->cliente, $vehiculoNombre),
+                        'fecha'   => $fechaCreacion,
+                    ]);
+                    break;
+            }
+        }
+
+        /* Ordenar por fecha descendente y limitar a 20 eventos */
+        usort($eventos, function ($a, $b) {
+            return strcmp($b['fecha'], $a['fecha']);
+        });
+
+        return array_slice($eventos, 0, 20);
+    }
 }

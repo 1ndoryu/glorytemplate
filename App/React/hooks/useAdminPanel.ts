@@ -10,6 +10,7 @@ import {
     MOCK_RESERVAS,
     MOCK_CLIENTES,
     MOCK_VEHICULOS,
+    MOCK_ACTIVIDAD,
 } from '@app/dev/mockAdmin';
 import type {
     SeccionPanel,
@@ -19,6 +20,7 @@ import type {
     AdminVehiculoEditable,
     AdminConfiguracion,
     EstadoReserva,
+    EventoActividad,
 } from '@app/types/cresta';
 
 interface UseAdminPanelResult {
@@ -29,6 +31,8 @@ interface UseAdminPanelResult {
     /* Dashboard */
     estadisticas: AdminEstadisticas | null;
     loadingEstadisticas: boolean;
+    actividad: EventoActividad[];
+    loadingActividad: boolean;
 
     /* Reservas */
     reservas: AdminReserva[];
@@ -78,6 +82,8 @@ export function useAdminPanel(): UseAdminPanelResult {
     /* Dashboard */
     const [estadisticas, setEstadisticas] = useState<AdminEstadisticas | null>(null);
     const [loadingEstadisticas, setLoadingEstadisticas] = useState(false);
+    const [actividad, setActividad] = useState<EventoActividad[]>([]);
+    const [loadingActividad, setLoadingActividad] = useState(false);
 
     /* Reservas */
     const [reservas, setReservas] = useState<AdminReserva[]>([]);
@@ -145,6 +151,16 @@ export function useAdminPanel(): UseAdminPanelResult {
         if (data) setEstadisticas(data.estadisticas);
         else setEstadisticas(ESTADISTICAS_INICIAL);
         setLoadingEstadisticas(false);
+    }, [fetchAdmin, esModoPreview]);
+
+    /* Cargar actividad reciente */
+    const cargarActividad = useCallback(async () => {
+        if (esModoPreview) { setActividad(MOCK_ACTIVIDAD); return; }
+        setLoadingActividad(true);
+        const data = await fetchAdmin<{ success: boolean; actividad: EventoActividad[] }>('actividad');
+        if (data) setActividad(data.actividad);
+        else setActividad([]);
+        setLoadingActividad(false);
     }, [fetchAdmin, esModoPreview]);
 
     /* Cargar reservas */
@@ -273,6 +289,7 @@ export function useAdminPanel(): UseAdminPanelResult {
         switch (seccion) {
             case 'dashboard':
                 cargarEstadisticas();
+                cargarActividad();
                 break;
             case 'reservas':
                 cargarReservas();
@@ -287,7 +304,7 @@ export function useAdminPanel(): UseAdminPanelResult {
                 cargarConfiguracion();
                 break;
         }
-    }, [seccion, isAdmin, esModoPreview, cargarEstadisticas, cargarReservas, cargarVehiculos, cargarClientes, cargarConfiguracion]);
+    }, [seccion, isAdmin, esModoPreview, cargarEstadisticas, cargarActividad, cargarReservas, cargarVehiculos, cargarClientes, cargarConfiguracion]);
 
     /* Recargar reservas cuando cambia el filtro */
     useEffect(() => {
@@ -304,6 +321,7 @@ export function useAdminPanel(): UseAdminPanelResult {
     return {
         seccion, setSeccion, isAdmin,
         estadisticas, loadingEstadisticas,
+        actividad, loadingActividad,
         reservas, loadingReservas, filtroEstadoReserva, setFiltroEstadoReserva, cambiarEstadoReserva,
         vehiculos, loadingVehiculos, guardarVehiculo, toggleActivoVehiculo, eliminarVehiculo,
         clientes, loadingClientes,

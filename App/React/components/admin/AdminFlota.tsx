@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react';
 import { Boton } from '@app/components/ui/Boton';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
+import { CampoTextarea } from '@app/components/ui/CampoTextarea';
 import { CampoSelect } from '@app/components/ui/CampoSelect';
 import { Modal } from '@app/components/ui/Modal';
 import type { AdminVehiculoEditable } from '@app/types/cresta';
@@ -95,12 +96,6 @@ export function AdminFlota({ vehiculos, loading, onGuardar, onToggleActivo, onEl
                                 placeholder="Ej: Cresta One"
                             />
                             <CampoTexto
-                                label="Descripción corta"
-                                value={editando.descripcionCorta}
-                                onChange={v => actualizarCampo('descripcionCorta', v)}
-                                placeholder="Breve descripción para tarjetas"
-                            />
-                            <CampoTexto
                                 label="Precio base (€/noche)"
                                 type="number"
                                 value={String(editando.precioBase)}
@@ -160,6 +155,16 @@ export function AdminFlota({ vehiculos, loading, onGuardar, onToggleActivo, onEl
                                 <option value="manual">Manual</option>
                                 <option value="automatico">Automática</option>
                             </CampoSelect>
+                        </div>
+
+                        <div className="adminFormColumnaCompleta">
+                            <CampoTextarea
+                                label="Descripción corta"
+                                value={editando.descripcionCorta}
+                                onChange={v => actualizarCampo('descripcionCorta', v)}
+                                placeholder="Breve descripción para tarjetas y listados"
+                                rows={3}
+                            />
                         </div>
 
                         <div className="adminFormAcciones">

@@ -1,10 +1,11 @@
 /**
  * AdminReservas — Listado de reservas con filtros por estado.
- * Permite cambiar el estado de cada reserva.
+ * Permite cambiar el estado de cada reserva y ver detalles completos.
  */
 
 import { useCallback, useState } from 'react';
 import { Boton } from '@app/components/ui/Boton';
+import { Modal } from '@app/components/ui/Modal';
 import type { AdminReserva, EstadoReserva } from '@app/types/cresta';
 
 interface AdminReservasProps {
@@ -48,6 +49,7 @@ function formatearEuros(cantidad: number): string {
 
 export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange, onCambiarEstado }: AdminReservasProps): JSX.Element {
     const [confirmCancelar, setConfirmCancelar] = useState<number | null>(null);
+    const [reservaDetalle, setReservaDetalle] = useState<AdminReserva | null>(null);
 
     const handleCambiarEstado = useCallback(async (id: number, estado: EstadoReserva) => {
         await onCambiarEstado(id, estado);
@@ -103,6 +105,7 @@ export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange,
                                         <div className="adminClienteInfo">
                                             <span className="adminClienteNombre">{r.nombreCliente}</span>
                                             <span className="adminClienteEmail">{r.emailCliente}</span>
+                                            {r.telefono && <span className="adminClienteTelefono">{r.telefono}</span>}
                                         </div>
                                     </td>
                                     <td className="adminTablaCelda">{r.vehiculoNombre}</td>
@@ -118,6 +121,18 @@ export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange,
                                     <td className="adminTablaCelda"><BadgeEstado estado={r.estado} /></td>
                                     <td className="adminTablaAcciones">
                                         <div className="adminAcciones">
+                                            {/* Ver detalle */}
+                                            <Boton
+                                                variante="icono"
+                                                className="adminAccionIcono"
+                                                title="Ver detalle"
+                                                onClick={() => setReservaDetalle(r)}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            </Boton>
                                             {r.estado === 'pendiente' && (
                                                 <>
                                                     {/* Confirmar reserva */}
@@ -180,6 +195,74 @@ export function AdminReservas({ reservas, loading, filtroEstado, onFiltroChange,
                     </table>
                 </div>
             )}
+
+            {/* Modal detalle de reserva */}
+            <Modal
+                abierto={reservaDetalle !== null}
+                titulo={reservaDetalle ? `Reserva #${reservaDetalle.id}` : ''}
+                onCerrar={() => setReservaDetalle(null)}
+                ancho="520px"
+            >
+                {reservaDetalle && (
+                    <div className="adminReservaDetalle">
+                        <div className="adminDetalleSeccion">
+                            <h4 className="adminDetalleSubtitulo">Estado</h4>
+                            <BadgeEstado estado={reservaDetalle.estado} />
+                        </div>
+
+                        <div className="adminDetalleSeccion">
+                            <h4 className="adminDetalleSubtitulo">Cliente</h4>
+                            <p className="adminDetalleLinea"><strong>{reservaDetalle.nombreCliente}</strong></p>
+                            <p className="adminDetalleLinea">{reservaDetalle.emailCliente}</p>
+                            {reservaDetalle.telefono && (
+                                <p className="adminDetalleLinea">{reservaDetalle.telefono}</p>
+                            )}
+                        </div>
+
+                        <div className="adminDetalleSeccion">
+                            <h4 className="adminDetalleSubtitulo">Reserva</h4>
+                            <div className="adminDetalleGrid">
+                                <span className="adminDetalleLabel">Vehiculo</span>
+                                <span>{reservaDetalle.vehiculoNombre}</span>
+                                <span className="adminDetalleLabel">Fechas</span>
+                                <span>{formatearFecha(reservaDetalle.fechaInicio)} — {formatearFecha(reservaDetalle.fechaFin)}</span>
+                                <span className="adminDetalleLabel">Noches</span>
+                                <span>{reservaDetalle.noches}</span>
+                                <span className="adminDetalleLabel">Temporada</span>
+                                <span>{reservaDetalle.temporada || '—'}</span>
+                            </div>
+                        </div>
+
+                        <div className="adminDetalleSeccion">
+                            <h4 className="adminDetalleSubtitulo">Precio</h4>
+                            <div className="adminDetalleGrid">
+                                <span className="adminDetalleLabel">Precio/noche</span>
+                                <span>{reservaDetalle.precioNoche ? formatearEuros(reservaDetalle.precioNoche) : '—'}</span>
+                                <span className="adminDetalleLabel">Total</span>
+                                <span className="adminDetallePrecioTotal">{formatearEuros(reservaDetalle.precioTotal)}</span>
+                            </div>
+                        </div>
+
+                        {reservaDetalle.notas && (
+                            <div className="adminDetalleSeccion">
+                                <h4 className="adminDetalleSubtitulo">Notas del cliente</h4>
+                                <p className="adminDetalleNotas">{reservaDetalle.notas}</p>
+                            </div>
+                        )}
+
+                        {reservaDetalle.stripeSessionId && (
+                            <div className="adminDetalleSeccion">
+                                <h4 className="adminDetalleSubtitulo">Stripe</h4>
+                                <p className="adminDetalleLinea adminDetalleMono">{reservaDetalle.stripeSessionId}</p>
+                            </div>
+                        )}
+
+                        <p className="adminDetalleFechaCreacion">
+                            Creada el {formatearFecha(reservaDetalle.fechaCreacion)}
+                        </p>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }

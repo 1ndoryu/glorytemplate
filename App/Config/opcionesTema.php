@@ -349,6 +349,32 @@ OpcionManager::register('cresta_aviso_legal', [
     'subSeccion'   => 'politicas',
 ]);
 
+/* NOTIFICACIONES */
+
+$secNotificaciones = 'notificaciones';
+
+OpcionManager::register('cresta_email_notificaciones', [
+    'valorDefault' => '',
+    'tipo'         => 'text',
+    'etiqueta'     => 'Email de notificaciones',
+    'descripcion'  => 'Email donde se enviarán las notificaciones de reservas. Si está vacío, se usará el email de la empresa.',
+    'seccion'      => $secNotificaciones,
+    'subSeccion'   => 'correo',
+]);
+
+/* PASARELA DE PAGO — Stripe */
+
+$secStripe = 'stripe';
+
+OpcionManager::register('cresta_stripe_mode', [
+    'valorDefault' => 'test',
+    'tipo'         => 'text',
+    'etiqueta'     => 'Modo de Stripe',
+    'descripcion'  => 'test o live. Determina qué claves de Stripe se usan.',
+    'seccion'      => $secStripe,
+    'subSeccion'   => 'configuracion',
+]);
+
 OpcionManager::register('cresta_cookies', [
     'valorDefault' => '<h2>Política de Cookies</h2>
 <p><em>Última actualización: marzo de 2026</em></p>
