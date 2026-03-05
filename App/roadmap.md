@@ -21,7 +21,7 @@ Dominio: **crestacampers.com**
 
 - WordPress + Glory Framework (PHP bridge + React Islands)
 - React + TypeScript (islas interactivas)
-- CSS propio (arquitectura modular: 13 archivos via init.css)
+- CSS propio (arquitectura modular: 14 archivos via init.css)
 - Stripe Checkout (pagos)
 - Sin tablas custom — todo vía CPTs + `wp_postmeta` + `wp_options`
 
@@ -139,6 +139,7 @@ GloryFeatures::enable('menu');
 | `cresta_horario_devolucion` | text | Hora de devolución (ej: "10:00") |
 | `cresta_stripe_mode` | text | live / test |
 | `cresta_moneda` | text | EUR |
+| `cresta_noches_maximas` | text | Máximo de noches por reserva |
 
 ---
 
@@ -157,6 +158,7 @@ GloryFeatures::enable('menu');
 | `privacidad` | `PrivacidadIsland` | Política de privacidad (RGPD) |
 | `aviso-legal` | `AvisoLegalIsland` | Aviso legal |
 | `cookies` | `CookiesIsland` | Política de cookies |
+| `panel` | `PanelIsland` | Panel de administración SaaS (solo admins) |
 
 ---
 
@@ -173,6 +175,17 @@ GloryFeatures::enable('menu');
 | `POST` | `/glory/v1/stripe/webhook` | Webhook de Stripe → confirma pago, actualiza estado a `confirmada`, envía emails |
 | `GET` | `/glory/v1/precios` | Tabla de precios por temporada para un vehículo |
 | `POST` | `/glory/v1/form` | Formulario de contacto (ya existente en Glory) |
+| `GET` | `/glory/v1/admin/estadisticas` | Dashboard: reservas por estado, ingresos, vehículos activos, clientes (admin) |
+| `GET` | `/glory/v1/admin/reservas` | Lista reservas con metas completas (admin) |
+| `PUT` | `/glory/v1/admin/reservas/{id}/estado` | Cambiar estado de reserva (admin) |
+| `GET` | `/glory/v1/admin/vehiculos` | Lista vehículos con todas sus metas (admin) |
+| `POST` | `/glory/v1/admin/vehiculos` | Crear vehículo (admin) |
+| `PUT` | `/glory/v1/admin/vehiculos/{id}` | Editar vehículo (admin) |
+| `DELETE` | `/glory/v1/admin/vehiculos/{id}` | Eliminar vehículo (admin) |
+| `PUT` | `/glory/v1/admin/vehiculos/{id}/toggle` | Activar/desactivar vehículo (admin) |
+| `GET` | `/glory/v1/admin/clientes` | Lista clientes agregados desde reservas (admin) |
+| `GET` | `/glory/v1/admin/configuracion` | Lee opciones del tema (admin) |
+| `PUT` | `/glory/v1/admin/configuracion` | Guarda opciones del tema (admin) |
 
 ---
 
@@ -220,6 +233,18 @@ GloryFeatures::enable('menu');
 - Integrado con `FormController` existente de Glory
 - Mapa (embed de Google Maps con ubicación)
 - Datos de contacto de la empresa
+
+### `PanelIsland` — Panel de administración SaaS
+- Guard de acceso: si no es admin, muestra "Acceso restringido" con enlace a home
+- Sidebar de navegación con 5 secciones: Dashboard, Reservas, Flota, Clientes, Configuración
+- **Dashboard** (`AdminDashboard`): 7 tarjetas de estadísticas (reservas por estado, ingresos, vehículos activos, clientes)
+- **Reservas** (`AdminReservas`): Filtros por estado + tabla con acciones de cambio de estado
+- **Flota** (`AdminFlota`): CRUD completo de vehículos con editor inline (nombre, precio, capacidad, combustible, transmisión, ubicación, fianza, km, edad mínima)
+- **Clientes** (`AdminClientes`): Tabla de clientes agregados con nº reservas y gasto total
+- **Configuración** (`AdminConfiguracion`): Formulario con secciones Empresa, Horarios, Reservas, Multiplicadores temporada
+- Hook centralizado: `useAdminPanel.ts` gestiona todo el estado y las llamadas API
+- Backend: `AdminController.php` + `AdminRepository.php` (queries extraídas del controller)
+- CSS: `paginas-admin.css` (diseño completo del panel)
 
 ### Islas de contenido legal
 - `CondicionesIsland`, `PrivacidadIsland`, `AvisoLegalIsland`, `CookiesIsland`
@@ -330,7 +355,7 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [ ] Testing completo con tarjetas de prueba de Stripe
 - [ ] Migrar a claves de producción
 
-### Fase 6 — Panel de administración
+### Fase 6 — Panel de administración (wp-admin)
 - [x] Opciones del tema editables desde el panel Glory (OpcionManager)
 - [x] Crear metabox personalizado para gestión de reservas en wp-admin (`App/Admin/ReservaAdmin.php`)
 - [x] Dashboard de reservas: listado con estado, fechas, vehículo, cliente, monto (columnas custom)
@@ -338,6 +363,22 @@ precio_final = precio_base_vehiculo × multiplicador_temporada
 - [x] Widget de dashboard con resumen de reservas (`App/Admin/DashboardWidget.php`)
 - [x] Metabox de vehículos con formulario de datos completo (`App/Admin/VehiculoAdmin.php`)
 - [x] Export de reservas (CSV) — `App/Admin/ExportReservas.php` con botón en el listado de reservas
+
+### Fase 6b — Panel de administración SaaS (frontend React)
+- [x] Crear `PanelIsland` con guard de acceso admin y navegación por secciones
+- [x] Crear `AdminDashboard` con 7 tarjetas de estadísticas del negocio
+- [x] Crear `AdminReservas` con filtros por estado y tabla con acciones de gestión
+- [x] Crear `AdminFlota` con CRUD completo de vehículos (crear, editar, activar/desactivar, eliminar)
+- [x] Crear `AdminClientes` con tabla de clientes agregados desde reservas
+- [x] Crear `AdminConfiguracion` con formulario de configuración del negocio (empresa, horarios, reservas, temporadas)
+- [x] Crear `AdminSidebar` con navegación de secciones y iconos SVG
+- [x] Crear hook centralizado `useAdminPanel.ts` para toda la lógica del panel
+- [x] Crear `AdminController.php` — API REST completa con todos los endpoints admin (`manage_options`)
+- [x] Crear `AdminRepository.php` — queries de estadísticas y clientes extraídas del controller
+- [x] Crear `paginas-admin.css` — diseño completo del panel (layout, sidebar, stats, tablas, formularios, responsive)
+- [x] Registrar página `panel` en `pages.php` e isla en `appIslands.tsx`
+- [x] Header: botón CTA cambia a "Ir al panel" cuando el usuario es admin
+- [x] Registrar opción `cresta_noches_maximas` en `opcionesTema.php`
 
 ### Fase 7 — SEO y contenido
 - [x] Configurar meta tags por página (title, description) via `setDefaultSeoMap()`
@@ -396,8 +437,8 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 ## Migración Tailwind → CSS propio (completado)
 
 ### Arquitectura CSS
-- Entry point: `App/Assets/css/init.css` con 13 `@import`
-- Cadena: variables → base → header → footer → componentes → home → paginas-base → paginas-vehiculo → paginas-reservar → paginas-contacto → galeria → calendario → resumen-precio
+- Entry point: `App/Assets/css/init.css` con 14 `@import`
+- Cadena: variables → base → header → footer → componentes → home → paginas-base → paginas-vehiculo → paginas-reservar → paginas-contacto → galeria → calendario → resumen-precio → paginas-admin
 - Registrado en `assets.php` como `AssetManager::define('style', 'cresta-styles', '/App/Assets/css/init.css')`
 - Tailwind deshabilitado en `control.php`: `GloryFeatures::disable('tailwind')`
 - Todas las variables con prefijo `--cresta-` en `variables.css` (~140 líneas, 105+ tokens semánticos)
@@ -439,3 +480,55 @@ Para este proyecto se usa `StripeApiClient::post('/checkout/sessions')` con `pri
 - [x] Redactar contenido de texto para todas las páginas (placeholder en islas; textos legales completos)
 - [x] Redactar textos legales (RGPD, cookies, condiciones)
 - [ ] Testing responsive completo
+---
+
+## Correcciones UI/UX — Sprint visual (AG-UI, 2025)
+
+### Fixes completados (commit 9995f204)
+
+- [x] **Header scroll**: `cabeceraScrolled` ahora usa `--cresta-blanco` + box-shadow. Bug anterior: `--cresta-primarioAlpha95` no existía → fondo se veía transparente/roto.
+- [x] **TarjetaVehiculo**: Rediseño completo con SVG icons inline (IconoAsientos, IconoCamas, IconoUbicacion). Layout: imagen → separador con icons+specs → info → precio+CTA. Clases nuevas: `tarjetaVehiculoSeparador`, `tarjetaVehiculoPie`, `tarjetaVehiculoPrecioBloque`.
+- [x] **FlotaIsland — sidebar filtros**: De barra horizontal a sidebar colapsable. Layout `flotaLayout: flex`. Sidebar con grupos radio (Ordenar/Plazas/Ubicación) en `flotaSidebar`. Toggle mobile con badge de filtros activos.
+- [x] **SelectVehiculo** (nuevo componente): Dropdown custom (`components/SelectVehiculo.tsx`) con buscador, imagen del vehículo, título y descripción. Click-outside + Escape para cerrar.
+- [x] **Footer**: Logo visible (`color: var(--cresta-blanco)` en `.pieMarcaNombre`), `pieGrid` con padding correcto, `pieBarra` centrado con `pieBarraContenido` div interno.
+- [x] **Sticky footer**: `paginaBase` y `paginaBaseBlanca` con `display: flex; flex-direction: column; min-height: 100vh`.
+- [x] **Contacto — contraste**: Título "Contacto" en `heroInterior` (verde) en vez de `confirmacionExito` (blanco). Horarios rediseñados como tabla (día | hora) con `horariosLista/horariosItem`.
+- [x] **SobreNosotros**: Rediseño completo. Tres secciones: misión (sobreSeccionClara) + valores (valoresGrid) + CTA (sobreSeccionVerde). SVG icons en `valorIconoWrap`. Componente `botonPrimarioBlanco` para CTA sobre verde.
+- [x] **Home — botón en caja**: `.heroBuscador` ahora es la caja blanca (`background: blanco; border-radius; border; padding`). `.heroBuscador .selectorFechas` override: transparente sin borde para evitar doble card.
+- [x] **CampoRadio** (nuevo componente UI): `components/ui/CampoRadio.tsx` — abstracción de `label > input[radio] + span`. Props: `label`, `onChange`, `labelClase`, `textoClase`. Usado en FlotaIsland para todos los filtros radio.
+
+### Lecciones aprendidas de esta sesión
+
+- [CSS]: `.heroBuscador .selectorFechas` — cuando un componente card está DENTRO de otra card, usar selector de contexto para hacer el inner transparente. Patrón reutilizable.
+- [CSS]: Variables `--cresta-blancoAlpha70/80` existen en `variables.css` — VarSense puede dar falso positivo al resolver el valor rgba interno. Usar `var()` directo, ignorar warning si el code está correcto.
+- [CSS]: Nueva variable `--cresta-iconoMd: 3.5rem` añadida a `variables.css` para tamaños de iconos contenerizados (uso en `valorIconoWrap`).
+- [React]: Patrón para custom dropdown: `useRef` para el contenedor + `mousedown` listener en `document` para detectar click-outside (no `click` — evita race conditions con el propio toggle). Escape key en `keydown`.
+- [React]: `CampoRadio` — `onChange: () => void` no `(e) => void` porque el caller no necesita el evento, solo notificar el cambio seleccionado por valor de la opción.
+- [VarSense]: Flags `1fr`, `0`, `none`, `flex`, `center` son falsos positivos de VarSense — valores CSS estándar que no son "hardcodeados" en el sentido del proyecto. No requieren acción.
+
+---
+
+## Panel de Administración SaaS (AG-PNL, 2025)
+
+### Componentes creados
+- [x] `PanelIsland` — isla principal con guard de acceso + layout sidebar/contenido
+- [x] `AdminSidebar` — navegación de 5 secciones con iconos SVG
+- [x] `AdminDashboard` — 7 tarjetas de estadísticas
+- [x] `AdminReservas` — filtros por estado + tabla con acciones
+- [x] `AdminFlota` — CRUD completo de vehículos con editor inline
+- [x] `AdminClientes` — tabla de clientes agregados
+- [x] `AdminConfiguracion` — formulario empresa/horarios/reservas/temporadas
+- [x] `useAdminPanel.ts` — hook centralizado para toda la lógica admin
+- [x] `AdminController.php` — API REST con 12 endpoints (`manage_options`)
+- [x] `AdminRepository.php` — queries extraídas del controller
+- [x] `paginas-admin.css` — diseño completo (~400 líneas)
+- [x] Header: botón CTA cambia a "Ir al panel" para admins
+- [x] Página `panel` registrada en pages.php + SEO
+
+### Lecciones aprendidas
+- [Admin API]: Todos los endpoints en `/glory/v1/admin/*` con `manage_options` — usar constantes para whitelists de campos y opciones (CAMPOS_VEHICULO, OPCIONES_CONFIG)
+- [AdminController]: Queries agregadas deben ir en Repository separado, no en el controller directamente
+- [React-Admin]: Props de componentes admin: `AdminReservas` usa `filtroEstado`/`onFiltroChange`, `AdminSidebar` usa `seccion`/`onChange` — verificar con type-check antes de dar por terminado
+- [Boton]: Variantes disponibles: primario|secundario|enlace|atras|icono. NO existe variante "texto" — usar "icono" para botones sin estilo
+- [CSS-Admin]: init.css ahora tiene 14 imports (añadido paginas-admin.css)
+- [opcionesTema]: `cresta_noches_maximas` registrada como opción numérica — recordar que las nuevas opciones se registran aquí antes de usarlas en el controller

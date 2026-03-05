@@ -169,3 +169,77 @@ export interface PreciosResponse {
     precioBase: number;
     precios: PrecioTemporada[];
 }
+
+/* ------------------------------------------------------------------ */
+/* Panel Admin                                                         */
+/* ------------------------------------------------------------------ */
+
+export type SeccionPanel = 'dashboard' | 'reservas' | 'flota' | 'clientes' | 'configuracion';
+
+export interface AdminReserva {
+    id: number;
+    estado: EstadoReserva;
+    fechaInicio: string;
+    fechaFin: string;
+    noches: number;
+    precioTotal: number;
+    nombreCliente: string;
+    emailCliente: string;
+    telefono: string;
+    vehiculoNombre: string;
+    vehiculoId: number;
+    fechaCreacion: string;
+}
+
+export interface AdminEstadisticas {
+    totalReservas: number;
+    reservasConfirmadas: number;
+    reservasPendientes: number;
+    ingresosMes: number;
+    ingresosTotales: number;
+    vehiculosActivos: number;
+    clientesUnicos: number;
+}
+
+export interface AdminCliente {
+    email: string;
+    nombre: string;
+    telefono: string;
+    totalReservas: number;
+    ultimaReserva: string;
+    gastoTotal: number;
+}
+
+export interface AdminVehiculoEditable {
+    id: number;
+    nombre: string;
+    descripcionCorta: string;
+    capacidad: number;
+    plazasViaje: number;
+    combustible: string;
+    transmision: string;
+    precioBase: number;
+    activo: boolean;
+    ubicacion: string;
+    fianza: number;
+    kmIncluidos: number;
+    edadMinima: number;
+    equipamiento: string[];
+    imagen: string;
+}
+
+export interface AdminConfiguracion {
+    empresaNombre: string;
+    empresaEmail: string;
+    empresaTelefono: string;
+    empresaDireccion: string;
+    empresaCif: string;
+    horarioRecogida: string;
+    horarioDevolucion: string;
+    minNoches: number;
+    maxNoches: number;
+    diasAnticipacion: number;
+    multiplicadorMedia: number;
+    multiplicadorAlta: number;
+    multiplicadorEspecial: number;
+}

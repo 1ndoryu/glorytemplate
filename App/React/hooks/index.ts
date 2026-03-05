@@ -5,3 +5,5 @@ export { usePrecios } from './usePrecios';
 export { useContacto } from './useContacto';
 export { useReservarFlujo } from './useReservarFlujo';
 export { useCalendarioDisponibilidad } from './useCalendarioDisponibilidad';
+export { useClickFuera } from './useClickFuera';
+export { useTeclaEscape } from './useTeclaEscape';

@@ -37,7 +37,7 @@ export function ReservarIsland(): JSX.Element {
             <div className="reservarLayout">
                 <div className="reservarContenedor">
                     {/* Título */}
-                    <div>
+                    <div className="reservarCabecera">
                         <h1 className="reservarTitulo">Reservar tu furgoneta</h1>
                         <p className="reservarSubtitulo">Completa los pasos para finalizar tu reserva.</p>
                     </div>

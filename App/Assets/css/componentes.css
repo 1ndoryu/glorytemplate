@@ -1,9 +1,9 @@
 /*
  * Cresta Campers — Componentes compartidos
- * SelectorFechas, TarjetaVehiculo y utilidades.
+ * SelectorFechas, CampoFechaPersonalizado, CalendarioPopup, TarjetaVehiculo.
  */
 
-/* SelectorFechas */
+/* SelectorFechas — contenedor principal */
 
 .selectorFechas {
     background-color: var(--cresta-blanco);
@@ -46,41 +46,6 @@
     margin-bottom: var(--cresta-espacio2xs);
 }
 
-.selectorFechasInput {
-    width: 100%;
-    border: 1px solid var(--cresta-gris300);
-    border-radius: var(--cresta-radioLg);
-    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
-    font-size: var(--cresta-textoLg);
-    font-family: var(--cresta-fuentePrincipal);
-    color: var(--cresta-gris800);
-    background-color: var(--cresta-blanco);
-    transition: border-color var(--cresta-transicion);
-    outline: none;
-}
-.selectorFechasInput:focus {
-    border-color: var(--cresta-primario);
-}
-.selectorFechasInput:disabled {
-    background-color: var(--cresta-gris100);
-    cursor: not-allowed;
-    color: var(--cresta-gris500);
-}
-.selectorFechasInput:hover:not(:disabled):not(:focus) {
-    border-color: var(--cresta-primarioClaro);
-}
-
-.selectorFechasCompacto .selectorFechasInput {
-    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
-    font-size: var(--cresta-textoSm);
-}
-
-.selectorFechasAyuda {
-    font-size: var(--cresta-textoXs);
-    color: var(--cresta-gris500);
-    margin-top: var(--cresta-espacio2xs);
-}
-
 .selectorFechasNoches {
     margin-top: var(--cresta-espacioSm);
     text-align: center;
@@ -88,6 +53,194 @@
     color: var(--cresta-gris600);
 }
 
+/* CampoFechaPersonalizado — botón trigger */
+
+.campoFechaPersonalizadoContenedor {
+    position: relative;
+    width: 100%;
+}
+
+.campoFechaPersonalizado {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioXs);
+    width: 100%;
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    font-size: var(--cresta-textoBase);
+    font-family: var(--cresta-fuentePrincipal);
+    color: var(--cresta-gris800);
+    background-color: var(--cresta-blanco);
+    cursor: pointer;
+    transition: border-color var(--cresta-transicion), box-shadow var(--cresta-transicion);
+    text-align: left;
+}
+.campoFechaPersonalizado:hover:not(:disabled) {
+    border-color: var(--cresta-primarioClaro);
+}
+.campoFechaPersonalizadoAbierto {
+    border-color: var(--cresta-primario);
+    box-shadow: 0 0 0 3px var(--cresta-primarioSuave);
+}
+.campoFechaPersonalizadoDeshabilitado {
+    background-color: var(--cresta-gris100);
+    cursor: not-allowed;
+    color: var(--cresta-gris500);
+}
+.campoFechaPersonalizadoVacio .campoFechaPersonalizadoTexto {
+    color: var(--cresta-gris400);
+}
+
+.campoFechaPersonalizadoIcono {
+    flex-shrink: 0;
+    color: var(--cresta-gris500);
+    display: flex;
+    align-items: center;
+}
+.campoFechaPersonalizadoAbierto .campoFechaPersonalizadoIcono {
+    color: var(--cresta-primario);
+}
+
+.campoFechaPersonalizadoTexto {
+    flex: 1;
+    font-size: var(--cresta-textoBase);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.campoFechaPersonalizadoChevron {
+    flex-shrink: 0;
+    color: var(--cresta-gris400);
+    font-size: var(--cresta-textoLg);
+    line-height: 1;
+    transition: transform var(--cresta-transicion);
+}
+.campoFechaPersonalizadoAbierto .campoFechaPersonalizadoChevron {
+    transform: rotate(180deg);
+}
+
+/* Popup del calendario */
+.campoFechaPersonalizadoPopup {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: var(--cresta-zOverlay);
+    animation: calendarioEntrada var(--cresta-transicion) ease;
+}
+
+@keyframes calendarioEntrada {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Variante compacta dentro de selectorFechasCompacto */
+.selectorFechasCompacto .campoFechaPersonalizado {
+    padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    font-size: var(--cresta-textoSm);
+}
+
+/* CalendarioPopup — cuadrícula de días */
+
+.calendarioPopup {
+    background-color: var(--cresta-blanco);
+    border: 1px solid var(--cresta-gris200);
+    border-radius: var(--cresta-radioXl);
+    box-shadow: 0 8px 24px var(--cresta-negroAlpha10), 0 2px 6px var(--cresta-negroAlpha10);
+    padding: var(--cresta-espacioMd);
+    width: 280px;
+    user-select: none;
+}
+
+.calendarioNavegacion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cresta-espacioSm);
+}
+
+.calendarioNavBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--cresta-gris600);
+    font-size: var(--cresta-textoXl);
+    line-height: 1;
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioXs);
+    border-radius: var(--cresta-radio);
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+.calendarioNavBtn:hover {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primario);
+}
+
+.calendarioMesTitulo {
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris800);
+    text-transform: capitalize;
+}
+
+.calendarioGrilla {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.calendarioDiaSemana {
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris500);
+    text-align: center;
+    padding: var(--cresta-espacio2xs) 0 var(--cresta-espacioXs);
+    text-transform: uppercase;
+}
+
+.calendarioCeldaVacia {
+    display: block;
+}
+
+.calendarioDia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border: none;
+    background: none;
+    border-radius: var(--cresta-radioCompleto);
+    font-size: var(--cresta-textoSm);
+    font-family: var(--cresta-fuentePrincipal);
+    color: var(--cresta-gris800);
+    cursor: pointer;
+    transition: background-color var(--cresta-transicion), color var(--cresta-transicion);
+}
+.calendarioDia:hover:not(:disabled) {
+    background-color: var(--cresta-primarioFondo);
+    color: var(--cresta-primario);
+}
+
+.calendarioDiaHoy {
+    background-color: var(--cresta-gris100);
+    font-weight: var(--cresta-pesoSemibold);
+}
+
+.calendarioDiaSeleccionado {
+    background-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+    font-weight: var(--cresta-pesoSemibold);
+}
+.calendarioDiaSeleccionado:hover:not(:disabled) {
+    background-color: var(--cresta-primarioOscuro);
+    color: var(--cresta-blanco);
+}
+
+.calendarioDiaDeshabilitado {
+    color: var(--cresta-gris300);
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
 /* TarjetaVehiculo */
 
@@ -96,7 +249,9 @@
     border-radius: var(--cresta-radioLg);
     border: 1px solid var(--cresta-gris200);
     overflow: hidden;
-    transition: box-shadow var(--cresta-transicionMedia), transform var(--cresta-transicionMedia);
+    transition:
+        box-shadow var(--cresta-transicionMedia),
+        transform var(--cresta-transicionMedia);
     display: flex;
     flex-direction: column;
 }
@@ -199,12 +354,14 @@
 /* Pie: precio + botón */
 .tarjetaVehiculoPie {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--cresta-espacioSm);
     margin-top: auto;
     padding-top: var(--cresta-espacioSm);
     border-top: 1px solid var(--cresta-gris100);
+    flex-direction: column;
+    width: 100%;
 }
 
 .tarjetaVehiculoPrecioBloque {
@@ -241,7 +398,9 @@
     border-radius: var(--cresta-radioXl);
     transition: background-color var(--cresta-transicion);
     white-space: nowrap;
+    width: 100%;
 }
+
 .tarjetaVehiculoCta:hover {
     background-color: var(--cresta-primarioOscuro);
 }
@@ -255,7 +414,9 @@
     font-size: var(--cresta-textoBase);
     font-weight: var(--cresta-pesoSemibold);
     border-radius: var(--cresta-radioXl);
-    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+    transition:
+        background-color var(--cresta-transicion),
+        transform var(--cresta-transicion);
     text-align: center;
 }
 .botonPrimario:hover {
@@ -272,7 +433,10 @@
     font-weight: var(--cresta-pesoSemibold);
     border: 2px solid var(--cresta-primario);
     border-radius: var(--cresta-radioXl);
-    transition: background-color var(--cresta-transicion), color var(--cresta-transicion), transform var(--cresta-transicion);
+    transition:
+        background-color var(--cresta-transicion),
+        color var(--cresta-transicion),
+        transform var(--cresta-transicion);
     text-align: center;
 }
 .botonSecundario:hover {
@@ -441,6 +605,14 @@
     flex-direction: column;
     gap: var(--cresta-espacio2xs);
     min-width: 0;
+    flex: 1;
+}
+
+.selectVehiculoOpcionCabecera {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--cresta-espacioSm);
 }
 
 .selectVehiculoOpcionNombre {
@@ -462,4 +634,3 @@
     color: var(--cresta-primario);
     font-weight: var(--cresta-pesoSemibold);
 }
-

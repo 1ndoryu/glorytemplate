@@ -36,7 +36,8 @@
 /* Hero interior (verde sólido) */
 .heroInterior {
     background-color: var(--cresta-primario);
-    padding-top: var(--cresta-espacio5xl);
+    padding: var(--cresta-espacioXl);
+    padding-top: var(--cresta-espacio6xl);
     padding-bottom: var(--cresta-espacio2xl);
 }
 

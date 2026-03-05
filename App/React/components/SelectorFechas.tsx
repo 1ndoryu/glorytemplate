@@ -1,10 +1,11 @@
 /**
  * SelectorFechas — Componente para seleccionar rango de fechas (recogida / devolución).
+ * Usa CampoFechaPersonalizado para mostrar un calendario propio sin depender del browser.
  * Estilos en componentes.css — sin Tailwind ni estilos inline.
  */
 
-import { useState, useCallback } from 'react';
-import { CampoFecha } from '@app/components/ui';
+import { useCallback } from 'react';
+import { CampoFechaPersonalizado } from '@app/components/ui';
 
 interface SelectorFechasProps {
     fechaInicio: string;
@@ -21,15 +22,15 @@ function hoy(): string {
 }
 
 function sumarDias(fecha: string, dias: number): string {
-    const d = new Date(fecha);
+    const d = new Date(fecha + 'T12:00:00');
     d.setDate(d.getDate() + dias);
     return d.toISOString().split('T')[0];
 }
 
-function formatearFecha(fecha: string): string {
-    if (!fecha) return '';
-    const d = new Date(fecha + 'T12:00:00');
-    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+function calcularNoches(inicio: string, fin: string): number {
+    const d1 = new Date(inicio + 'T12:00:00');
+    const d2 = new Date(fin + 'T12:00:00');
+    return Math.max(0, Math.round((d2.getTime() - d1.getTime()) / 86400000));
 }
 
 export function SelectorFechas({
@@ -41,42 +42,38 @@ export function SelectorFechas({
     className = '',
     compact = false,
 }: SelectorFechasProps): JSX.Element {
-    const [focusField, setFocusField] = useState<'inicio' | 'fin' | null>(null);
     const minimo = minDate ?? sumarDias(hoy(), 2);
+    const minFin = fechaInicio ? sumarDias(fechaInicio, 2) : sumarDias(minimo, 2);
 
-    const handleInicioChange = useCallback((nuevoInicio: string) => {
+    const manejarInicioChange = useCallback((nuevoInicio: string) => {
         let nuevoFin = fechaFin;
-
         if (nuevoFin && nuevoFin <= nuevoInicio) {
             nuevoFin = sumarDias(nuevoInicio, 2);
         }
-
         onChange(nuevoInicio, nuevoFin);
     }, [fechaFin, onChange]);
 
-    const handleFinChange = useCallback((nuevoFin: string) => {
+    const manejarFinChange = useCallback((nuevoFin: string) => {
         onChange(fechaInicio, nuevoFin);
     }, [fechaInicio, onChange]);
-
-    const minFin = fechaInicio ? sumarDias(fechaInicio, 2) : sumarDias(minimo, 2);
 
     if (compact) {
         return (
             <div className={`selectorFechasCompacto ${className}`}>
-                <CampoFecha
+                <CampoFechaPersonalizado
                     value={fechaInicio}
-                    onChange={handleInicioChange}
+                    onChange={manejarInicioChange}
                     min={minimo}
                     disabled={disabled}
-                    className="selectorFechasInputCompacto"
+                    placeholder="Recogida"
                 />
                 <span className="selectorFechasFlecha">&rarr;</span>
-                <CampoFecha
+                <CampoFechaPersonalizado
                     value={fechaFin}
-                    onChange={handleFinChange}
+                    onChange={manejarFinChange}
                     min={minFin}
                     disabled={disabled || !fechaInicio}
-                    className="selectorFechasInputCompacto"
+                    placeholder="Devolución"
                 />
             </div>
         );
@@ -88,35 +85,25 @@ export function SelectorFechas({
                 {/* Recogida */}
                 <div className="selectorFechasCampo">
                     <label className="selectorFechasLabel">Recogida</label>
-                    <CampoFecha
+                    <CampoFechaPersonalizado
                         value={fechaInicio}
-                        onChange={handleInicioChange}
-                        onFocus={() => setFocusField('inicio')}
-                        onBlur={() => setFocusField(null)}
+                        onChange={manejarInicioChange}
                         min={minimo}
                         disabled={disabled}
-                        className={`selectorFechasInput ${focusField === 'inicio' ? 'selectorFechasInputFocus' : ''} ${disabled ? 'selectorFechasInputDisabled' : ''}`}
+                        placeholder="Seleccionar fecha"
                     />
-                    {fechaInicio && (
-                        <span className="selectorFechasHint">{formatearFecha(fechaInicio)}</span>
-                    )}
                 </div>
 
                 {/* Devolución */}
                 <div className="selectorFechasCampo">
                     <label className="selectorFechasLabel">Devolución</label>
-                    <CampoFecha
+                    <CampoFechaPersonalizado
                         value={fechaFin}
-                        onChange={handleFinChange}
-                        onFocus={() => setFocusField('fin')}
-                        onBlur={() => setFocusField(null)}
+                        onChange={manejarFinChange}
                         min={minFin}
                         disabled={disabled || !fechaInicio}
-                        className={`selectorFechasInput ${focusField === 'fin' ? 'selectorFechasInputFocus' : ''} ${disabled || !fechaInicio ? 'selectorFechasInputDisabled' : ''}`}
+                        placeholder="Seleccionar fecha"
                     />
-                    {fechaFin && (
-                        <span className="selectorFechasHint">{formatearFecha(fechaFin)}</span>
-                    )}
                 </div>
             </div>
 
@@ -127,10 +114,4 @@ export function SelectorFechas({
             )}
         </div>
     );
-}
-
-function calcularNoches(inicio: string, fin: string): number {
-    const d1 = new Date(inicio);
-    const d2 = new Date(fin);
-    return Math.max(0, Math.round((d2.getTime() - d1.getTime()) / 86400000));
 }

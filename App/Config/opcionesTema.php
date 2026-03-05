@@ -20,7 +20,7 @@ OpcionManager::register('cresta_empresa_nombre', [
 ]);
 
 OpcionManager::register('cresta_empresa_email', [
-    'valorDefault' => '',
+    'valorDefault' => 'info@crestacampers.com',
     'tipo'         => 'text',
     'etiqueta'     => 'Email de contacto',
     'descripcion'  => 'Email principal de la empresa.',
@@ -29,7 +29,7 @@ OpcionManager::register('cresta_empresa_email', [
 ]);
 
 OpcionManager::register('cresta_empresa_telefono', [
-    'valorDefault' => '',
+    'valorDefault' => '+34 912 345 678',
     'tipo'         => 'text',
     'etiqueta'     => 'Teléfono',
     'descripcion'  => 'Teléfono de contacto.',
@@ -38,7 +38,7 @@ OpcionManager::register('cresta_empresa_telefono', [
 ]);
 
 OpcionManager::register('cresta_empresa_direccion', [
-    'valorDefault' => '',
+    'valorDefault' => 'Calle de la Aventura 42, 28001 Madrid, España',
     'tipo'         => 'textarea',
     'etiqueta'     => 'Dirección',
     'descripcion'  => 'Dirección física de la empresa.',
@@ -64,6 +64,15 @@ OpcionManager::register('cresta_noches_minimas', [
     'tipo'         => 'text',
     'etiqueta'     => 'Noches mínimas',
     'descripcion'  => 'Número mínimo de noches por reserva.',
+    'seccion'      => $secReservas,
+    'subSeccion'   => 'reglas',
+]);
+
+OpcionManager::register('cresta_noches_maximas', [
+    'valorDefault' => '30',
+    'tipo'         => 'text',
+    'etiqueta'     => 'Noches máximas',
+    'descripcion'  => 'Número máximo de noches por reserva.',
     'seccion'      => $secReservas,
     'subSeccion'   => 'reglas',
 ]);

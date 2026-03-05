@@ -5,7 +5,7 @@
  */
 
 import { GloryLink } from '@/core/router/GloryLink';
-import { useNavigation } from '@/hooks';
+import { useNavigation, useGloryContext } from '@/hooks';
 import { useState, useCallback, useEffect } from 'react';
 import { Boton } from '@app/components/ui';
 
@@ -23,6 +23,7 @@ interface HeaderProps {
 
 export function Header({ transparente = false }: HeaderProps): JSX.Element {
     const { esRutaActiva } = useNavigation();
+    const { isAdmin } = useGloryContext();
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -76,8 +77,8 @@ export function Header({ transparente = false }: HeaderProps): JSX.Element {
                             );
                         })}
 
-                        <GloryLink href="/reservar/" className="cabeceraCtaBoton">
-                            Reservar ahora
+                        <GloryLink href={isAdmin ? '/panel/' : '/reservar/'} className="cabeceraCtaBoton">
+                            {isAdmin ? 'Ir al panel' : 'Reservar ahora'}
                         </GloryLink>
                     </div>
 
@@ -112,11 +113,11 @@ export function Header({ transparente = false }: HeaderProps): JSX.Element {
                                 </GloryLink>
                             ))}
                             <GloryLink
-                                href="/reservar/"
+                                href={isAdmin ? '/panel/' : '/reservar/'}
                                 onClick={() => setMenuAbierto(false)}
                                 className="menuMovilCta"
                             >
-                                Reservar ahora
+                                {isAdmin ? 'Ir al panel' : 'Reservar ahora'}
                             </GloryLink>
                         </div>
                     </div>

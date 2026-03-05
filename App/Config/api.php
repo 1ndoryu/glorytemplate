@@ -11,6 +11,7 @@ use App\Api\VehiculoController;
 use App\Api\DisponibilidadController;
 use App\Api\ReservaController;
 use App\Api\StripeWebhookHandler;
+use App\Api\AdminController;
 use App\Admin\ReservaAdmin;
 use App\Admin\VehiculoAdmin;
 use App\Admin\DashboardWidget;
@@ -23,6 +24,7 @@ VehiculoController::register();
 DisponibilidadController::register();
 ReservaController::register();
 StripeWebhookHandler::register();
+AdminController::register();
 
 // Registrar personalización del admin
 ReservaAdmin::register();

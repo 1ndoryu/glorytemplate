@@ -170,11 +170,13 @@ export function SelectVehiculo({ vehiculos, vehiculoId, onChange, label = 'Furgo
                                         <div className="selectVehiculoOpcionImgPlaceholder" />
                                     )}
                                     <div className="selectVehiculoOpcionTexto">
-                                        <span className="selectVehiculoOpcionNombre">{v.nombre}</span>
+                                        <div className="selectVehiculoOpcionCabecera">
+                                            <span className="selectVehiculoOpcionNombre">{v.nombre}</span>
+                                            <span className="selectVehiculoOpcionPrecio">desde {v.precioBase}€/noche</span>
+                                        </div>
                                         {v.descripcionCorta && (
                                             <span className="selectVehiculoOpcionDesc">{v.descripcionCorta}</span>
                                         )}
-                                        <span className="selectVehiculoOpcionPrecio">desde {v.precioBase}€/noche</span>
                                     </div>
                                 </li>
                             ))

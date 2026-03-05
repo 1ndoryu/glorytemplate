@@ -20,6 +20,7 @@ import {CondicionesIsland} from './islands/CondicionesIsland';
 import {PrivacidadIsland} from './islands/PrivacidadIsland';
 import {AvisoLegalIsland} from './islands/AvisoLegalIsland';
 import {CookiesIsland} from './islands/CookiesIsland';
+import {PanelIsland} from './islands/PanelIsland';
 
 registerAppBlocks();
 
@@ -42,6 +43,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     PrivacidadIsland: PrivacidadIsland as React.ComponentType<Record<string, unknown>>,
     AvisoLegalIsland: AvisoLegalIsland as React.ComponentType<Record<string, unknown>>,
     CookiesIsland: CookiesIsland as React.ComponentType<Record<string, unknown>>,
+    PanelIsland: PanelIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

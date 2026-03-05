@@ -20,10 +20,10 @@ class ReactContext
         $context['options'] = [
             // Datos de empresa
             'empresa' => [
-                'nombre'    => OpcionManager::get('cresta_nombre_empresa', 'Cresta Campers'),
-                'email'     => OpcionManager::get('cresta_email_empresa', ''),
-                'telefono'  => OpcionManager::get('cresta_telefono_empresa', ''),
-                'direccion' => OpcionManager::get('cresta_direccion_empresa', ''),
+                'nombre'    => OpcionManager::get('cresta_empresa_nombre', 'Cresta Campers'),
+                'email'     => OpcionManager::get('cresta_empresa_email', 'info@crestacampers.com'),
+                'telefono'  => OpcionManager::get('cresta_empresa_telefono', '+34 912 345 678'),
+                'direccion' => OpcionManager::get('cresta_empresa_direccion', 'Calle de la Aventura 42, 28001 Madrid, España'),
                 'instagram' => OpcionManager::get('cresta_instagram', ''),
                 'facebook'  => OpcionManager::get('cresta_facebook', ''),
                 'horario'   => OpcionManager::get('cresta_horario', ''),

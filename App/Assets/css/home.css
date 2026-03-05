@@ -99,7 +99,9 @@
     font-size: var(--cresta-textoLg);
     font-weight: var(--cresta-pesoBold);
     border-radius: var(--cresta-radioXl);
-    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+    transition:
+        background-color var(--cresta-transicion),
+        transform var(--cresta-transicion);
 }
 .heroBuscarBoton:hover:not(:disabled) {
     background-color: var(--cresta-acentoOscuro);
@@ -162,8 +164,13 @@
 }
 
 @keyframes rebote {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(8px); }
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(8px);
+    }
 }
 
 /* Sección: Nuestras Furgonetas */
@@ -399,9 +406,15 @@
     font-size: var(--cresta-textoLg);
     font-weight: var(--cresta-pesoBold);
     border-radius: var(--cresta-radioXl);
-    transition: background-color var(--cresta-transicion), transform var(--cresta-transicion);
+    transition:
+        background-color var(--cresta-transicion),
+        transform var(--cresta-transicion);
 }
 .botonCtaFinal:hover {
     background-color: var(--cresta-primarioSuave);
     transform: translateY(-2px);
+}
+
+button.botonPrimario {
+    width: 100%;
 }

@@ -34,6 +34,10 @@ PageManager::reactPage('contacto', 'ContactoIsland');
 // Sobre nosotros — Misión, valores, CTA
 PageManager::reactPage('sobre-nosotros', 'SobreNosotrosIsland');
 
+/* PANEL DE ADMINISTRACION — Solo accesible para admins */
+
+PageManager::reactPage('panel', 'PanelIsland');
+
 /* PAGINAS LEGALES */
 
 PageManager::reactPage('condiciones', 'CondicionesIsland');
@@ -67,6 +71,10 @@ PageManager::setDefaultSeoMap([
     'sobre-nosotros' => [
         'title' => 'Sobre Nosotros — Cresta Campers',
         'desc'  => 'Conoce al equipo de Cresta Campers. Nuestra misión es hacer el vanlife accesible para todos.',
+    ],
+    'panel' => [
+        'title' => 'Panel de Administración — Cresta Campers',
+        'desc'  => 'Gestiona reservas, flota, clientes y configuración de tu negocio.',
     ],
     'condiciones' => [
         'title' => 'Condiciones de Alquiler — Cresta Campers',

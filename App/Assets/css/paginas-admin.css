@@ -1,0 +1,540 @@
+/*
+ * Panel de administración — Cresta Campers
+ * Layout principal, sidebar, tarjetas de stats, tablas, formularios.
+ */
+
+/* Layout general admin */
+.adminLayout {
+    display: flex;
+    min-height: calc(100vh - 120px);
+    background-color: var(--cresta-gris100);
+}
+
+.adminContenido {
+    flex: 1;
+    padding: var(--cresta-espacioXl);
+    overflow-y: auto;
+    max-width: 100%;
+}
+
+/* Sidebar */
+.adminSidebar {
+    width: 260px;
+    min-width: 260px;
+    background-color: var(--cresta-primarioOscuro);
+    color: var(--cresta-blanco);
+    display: flex;
+    flex-direction: column;
+}
+
+.adminSidebarLogo {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    padding: var(--cresta-espacioLg);
+    border-bottom: 1px solid var(--cresta-primarioAlpha40);
+}
+
+.adminSidebarLogoLight {
+    background-color: var(--cresta-primarioClaro);
+}
+
+.adminSidebarLogoTexto {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoBold);
+    letter-spacing: -0.02em;
+}
+
+.adminSidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cresta-espacio2xs);
+    padding: var(--cresta-espacioMd) var(--cresta-espacioSm);
+}
+
+.adminSidebarItem {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    border-radius: var(--cresta-radioMd);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--cresta-blancoAlpha70);
+    font-size: var(--cresta-textoSm);
+    font-weight: var(--cresta-pesoMedio);
+    transition: all var(--cresta-transicion);
+    width: 100%;
+    text-align: left;
+    font-family: var(--cresta-fuentePrincipal);
+}
+
+.adminSidebarItem:hover {
+    background-color: var(--cresta-blancoAlpha10);
+    color: var(--cresta-blanco);
+}
+
+.adminSidebarItemActivo {
+    background-color: var(--cresta-blancoAlpha20);
+    color: var(--cresta-blanco);
+    font-weight: var(--cresta-pesoSemibold);
+}
+
+/* Secciones genéricas */
+.adminSeccion {
+    animation: adminEntrar 0.25s ease;
+}
+
+@keyframes adminEntrar {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.adminSeccionTitulo {
+    font-size: var(--cresta-texto2xl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    margin: 0 0 var(--cresta-espacio2xs);
+}
+
+.adminSeccionDesc {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+    margin: 0 0 var(--cresta-espacioXl);
+}
+
+.adminSeccionCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--cresta-espacioLg);
+    flex-wrap: wrap;
+    gap: var(--cresta-espacioMd);
+}
+
+.adminSeccionCargando {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cresta-espacioMd);
+    padding: var(--cresta-espacio3xl) 0;
+    color: var(--cresta-gris600);
+}
+
+/* Stats dashboard */
+.adminStatsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--cresta-espacioMd);
+    margin-bottom: var(--cresta-espacioXl);
+}
+
+.adminStatTarjeta {
+    background: var(--cresta-blanco);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioLg);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cresta-espacioMd);
+    box-shadow: 0 1px 3px var(--cresta-negroAlpha10);
+}
+
+.adminStatIcono {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--cresta-radioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.adminStatIcono--primario {
+    background-color: var(--cresta-primarioSuave);
+    color: var(--cresta-primario);
+}
+
+.adminStatIcono--exito {
+    background-color: rgba(45, 106, 79, 0.12);
+    color: var(--cresta-exito);
+}
+
+.adminStatIcono--aviso {
+    background-color: var(--cresta-avisoFondo);
+    color: var(--cresta-aviso);
+}
+
+.adminStatContenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.adminStatValor {
+    font-size: var(--cresta-textoXl);
+    font-weight: var(--cresta-pesoBold);
+    color: var(--cresta-gris900);
+    line-height: 1.2;
+}
+
+.adminStatTitulo {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris600);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--cresta-espacio2xs);
+}
+
+/* Filtros */
+.adminFiltros {
+    display: flex;
+    gap: var(--cresta-espacioXs);
+    flex-wrap: wrap;
+    margin-bottom: var(--cresta-espacioLg);
+}
+
+.adminFiltroBtn {
+    padding: var(--cresta-espacioXs) var(--cresta-espacioMd);
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioCompleto);
+    background: var(--cresta-blanco);
+    color: var(--cresta-gris700);
+    font-size: var(--cresta-textoSm);
+    cursor: pointer;
+    transition: all var(--cresta-transicion);
+    font-family: var(--cresta-fuentePrincipal);
+}
+
+.adminFiltroBtn:hover {
+    border-color: var(--cresta-primario);
+    color: var(--cresta-primario);
+}
+
+.adminFiltroBtnActivo {
+    background-color: var(--cresta-primario);
+    border-color: var(--cresta-primario);
+    color: var(--cresta-blanco);
+}
+
+/* Tablas */
+.adminTablaWrap {
+    overflow-x: auto;
+    background: var(--cresta-blanco);
+    border-radius: var(--cresta-radioLg);
+    box-shadow: 0 1px 3px var(--cresta-negroAlpha10);
+}
+
+.adminTabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--cresta-textoSm);
+}
+
+.adminTabla th {
+    text-align: left;
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris600);
+    font-size: var(--cresta-textoXs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--cresta-gris200);
+    white-space: nowrap;
+}
+
+.adminTabla td {
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    border-bottom: 1px solid var(--cresta-gris200);
+    color: var(--cresta-gris800);
+    vertical-align: middle;
+}
+
+.adminTabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.adminTabla tbody tr:hover {
+    background-color: var(--cresta-gris50);
+}
+
+.adminTablaCelda {
+    white-space: nowrap;
+}
+
+/* Badges de estado */
+.adminBadge {
+    display: inline-block;
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
+    border-radius: var(--cresta-radioCompleto);
+    font-size: var(--cresta-textoXs);
+    font-weight: var(--cresta-pesoSemibold);
+    line-height: 1;
+}
+
+.adminBadgeExito {
+    background-color: rgba(45, 106, 79, 0.1);
+    color: var(--cresta-exito);
+}
+
+.adminBadgeAviso {
+    background-color: var(--cresta-avisoFondo);
+    color: var(--cresta-avisoTexto);
+}
+
+.adminBadgeError {
+    background-color: var(--cresta-errorFondo);
+    color: var(--cresta-error);
+}
+
+.adminBadgePrimario {
+    background-color: var(--cresta-primarioSuave);
+    color: var(--cresta-primario);
+}
+
+/* Acciones en tabla */
+.adminAcciones {
+    display: flex;
+    gap: var(--cresta-espacioXs);
+    flex-wrap: wrap;
+}
+
+.adminAcciones button {
+    padding: var(--cresta-espacio2xs) var(--cresta-espacioSm);
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radio);
+    background: var(--cresta-blanco);
+    font-size: var(--cresta-textoXs);
+    cursor: pointer;
+    transition: all var(--cresta-transicion);
+    font-family: var(--cresta-fuentePrincipal);
+    color: var(--cresta-gris700);
+}
+
+.adminAcciones button:hover {
+    border-color: var(--cresta-primario);
+    color: var(--cresta-primario);
+}
+
+/* Info vehículo en tabla */
+.adminVehiculoInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioSm);
+}
+
+.adminVehiculoMiniImg {
+    width: 48px;
+    height: 36px;
+    border-radius: var(--cresta-radio);
+    object-fit: cover;
+    background-color: var(--cresta-gris200);
+}
+
+.adminVehiculoNombre {
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+}
+
+.adminVehiculoDesc {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris600);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Info cliente en tabla */
+.adminClienteInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.adminClienteNombre {
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+}
+
+.adminClienteEmail {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris600);
+}
+
+/* Fechas y detalles en tabla */
+.adminFechas {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris700);
+    line-height: 1.5;
+}
+
+.adminNoches {
+    font-size: var(--cresta-textoXs);
+    color: var(--cresta-gris500);
+}
+
+.adminPrecio {
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+}
+
+/* Formularios admin */
+.adminFormGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--cresta-espacioMd);
+    margin-bottom: var(--cresta-espacioLg);
+}
+
+.adminCampoSelect {
+    width: 100%;
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    border: 1px solid var(--cresta-gris300);
+    border-radius: var(--cresta-radioMd);
+    font-size: var(--cresta-textoSm);
+    font-family: var(--cresta-fuentePrincipal);
+    color: var(--cresta-gris800);
+    background-color: var(--cresta-blanco);
+    transition: border-color var(--cresta-transicion);
+}
+
+.adminCampoSelect:focus {
+    outline: none;
+    border-color: var(--cresta-primario);
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+.adminFormAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--cresta-espacioMd);
+    padding-top: var(--cresta-espacioMd);
+}
+
+/* Configuración secciones */
+.adminConfigSeccion {
+    background: var(--cresta-blanco);
+    border-radius: var(--cresta-radioLg);
+    padding: var(--cresta-espacioLg);
+    margin-bottom: var(--cresta-espacioLg);
+    box-shadow: 0 1px 3px var(--cresta-negroAlpha10);
+}
+
+.adminConfigSubtitulo {
+    font-size: var(--cresta-textoLg);
+    font-weight: var(--cresta-pesoSemibold);
+    color: var(--cresta-gris900);
+    margin: 0 0 var(--cresta-espacioMd);
+}
+
+.adminConfigAyuda {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-gris600);
+    margin: 0 0 var(--cresta-espacioMd);
+}
+
+/* Mensajes */
+.adminGuardadoMsg {
+    font-size: var(--cresta-textoSm);
+    color: var(--cresta-exito);
+    font-weight: var(--cresta-pesoMedio);
+}
+
+.adminErrorBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--cresta-errorFondo);
+    border: 1px solid var(--cresta-errorBorde);
+    border-radius: var(--cresta-radioMd);
+    padding: var(--cresta-espacioSm) var(--cresta-espacioMd);
+    margin-bottom: var(--cresta-espacioLg);
+    color: var(--cresta-error);
+    font-size: var(--cresta-textoSm);
+}
+
+.adminErrorCerrar {
+    background: none;
+    border: none;
+    color: var(--cresta-error);
+    font-size: var(--cresta-textoXl);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Acceso denegado */
+.adminAccesoDenegado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--cresta-espacio4xl) var(--cresta-espacioXl);
+    gap: var(--cresta-espacioMd);
+    color: var(--cresta-gris700);
+}
+
+.adminAccesoDenegado h1 {
+    font-size: var(--cresta-texto2xl);
+    color: var(--cresta-gris900);
+}
+
+/* Estado vacío */
+.adminVacio {
+    text-align: center;
+    padding: var(--cresta-espacio3xl);
+    color: var(--cresta-gris500);
+    font-size: var(--cresta-textoSm);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .adminLayout {
+        flex-direction: column;
+    }
+
+    .adminSidebar {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .adminSidebarNav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: var(--cresta-espacio2xs);
+        padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    }
+
+    .adminSidebarItem {
+        white-space: nowrap;
+        min-width: max-content;
+    }
+
+    .adminSidebarLogo {
+        padding: var(--cresta-espacioMd) var(--cresta-espacioLg);
+    }
+
+    .adminContenido {
+        padding: var(--cresta-espacioMd);
+    }
+}
+
+@media (max-width: 768px) {
+    .adminStatsGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .adminFormGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .adminTabla {
+        font-size: var(--cresta-textoXs);
+    }
+
+    .adminTabla th,
+    .adminTabla td {
+        padding: var(--cresta-espacioXs) var(--cresta-espacioSm);
+    }
+}

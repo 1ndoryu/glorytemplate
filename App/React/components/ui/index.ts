@@ -3,4 +3,6 @@ export { CampoTexto } from './CampoTexto';
 export { CampoTextarea } from './CampoTextarea';
 export { CampoSelect } from './CampoSelect';
 export { CampoFecha } from './CampoFecha';
+export { CampoFechaPersonalizado } from './CampoFechaPersonalizado';
+export { CalendarioPopup } from './CalendarioPopup';
 export { CampoRadio } from './CampoRadio';
