@@ -18,7 +18,7 @@ class PrecioService
      * @param float  $precioBase   Precio base por noche del vehículo.
      * @param string $fechaInicio  Fecha de inicio (Y-m-d).
      * @param string $fechaFin     Fecha de fin (Y-m-d).
-     * @return array{noches: int, precioTotal: float, precioMedio: float, desglose: array, temporadaPrincipal: string}
+     * @return array{noches: int, total: float, precioMedio: float, desglose: array, temporadaPrincipal: string}
      */
     public static function calcularReserva(float $precioBase, string $fechaInicio, string $fechaFin): array
     {
@@ -28,7 +28,7 @@ class PrecioService
         if ($fin <= $inicio) {
             return [
                 'noches'             => 0,
-                'precioTotal'        => 0,
+                'total'              => 0,
                 'precioMedio'        => 0,
                 'desglose'           => [],
                 'temporadaPrincipal' => 'baja',
@@ -67,7 +67,7 @@ class PrecioService
 
         return [
             'noches'             => $noches,
-            'precioTotal'        => round($total, 2),
+            'total'              => round($total, 2),
             'precioMedio'        => $noches > 0 ? round($total / $noches, 2) : 0,
             'desglose'           => $desglose,
             'temporadaPrincipal' => $temporadaPrincipal,
