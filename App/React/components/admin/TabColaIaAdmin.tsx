@@ -8,7 +8,8 @@
 import { RefreshCw, Play, RotateCcw, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
-import { SelectorBase } from '../ui/SelectorBase';
+import { SelectorMenu } from '../ui/SelectorMenu';
+import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabColaIa } from '../../hooks/useTabColaIa';
 import type { ItemColaIa, EstadisticasColaIa } from '../../services/apiColaIa';
 import '../../styles/componentes/colaIaAdmin.css';
@@ -51,14 +52,6 @@ const OPCIONES_TIPO = [
 export const TabColaIaAdmin = (): JSX.Element => {
     const cola = useTabColaIa();
 
-    const manejarCambioEstado = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        cola.setFiltroEstado(e.target.value);
-    };
-
-    const manejarCambioTipo = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-        cola.setFiltroTipo(e.target.value);
-    };
-
     return (
         <div className="tabColaIa">
             {/* Estadisticas resumidas */}
@@ -67,22 +60,16 @@ export const TabColaIaAdmin = (): JSX.Element => {
             {/* Barra de acciones */}
             <div className="colaIaAcciones">
                 <div className="colaIaFiltros">
-                    <SelectorBase
-                        value={cola.filtroEstado}
-                        onChange={manejarCambioEstado}
-                    >
-                        {OPCIONES_ESTADO.map(op => (
-                            <option key={op.valor} value={op.valor}>{op.etiqueta}</option>
-                        ))}
-                    </SelectorBase>
-                    <SelectorBase
-                        value={cola.filtroTipo}
-                        onChange={manejarCambioTipo}
-                    >
-                        {OPCIONES_TIPO.map(op => (
-                            <option key={op.valor} value={op.valor}>{op.etiqueta}</option>
-                        ))}
-                    </SelectorBase>
+                    <SelectorMenu
+                        opciones={OPCIONES_ESTADO}
+                        valor={cola.filtroEstado}
+                        onChange={cola.setFiltroEstado}
+                    />
+                    <SelectorMenu
+                        opciones={OPCIONES_TIPO}
+                        valor={cola.filtroTipo}
+                        onChange={cola.setFiltroTipo}
+                    />
                 </div>
 
                 <div className="colaIaBotones">
@@ -140,10 +127,10 @@ export const TabColaIaAdmin = (): JSX.Element => {
 
             {/* Lista de items */}
             {!cola.cargando && cola.items.length === 0 && (
-                <div className="colaIaVacia">
-                    <CheckCircle size={24} style={{ opacity: 0.4 }} />
-                    <p>No hay items en la cola con los filtros seleccionados.</p>
-                </div>
+                <EstadoVacio
+                    mensaje="No hay items en la cola con los filtros seleccionados."
+                    icono={<CheckCircle size={24} />}
+                />
             )}
 
             {!cola.cargando && cola.items.length > 0 && (

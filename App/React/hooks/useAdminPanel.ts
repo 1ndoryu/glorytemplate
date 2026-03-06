@@ -2,6 +2,7 @@
  * Hook: useAdminPanel — Kamples (FASE 13)
  * Lógica de datos del panel de administración.
  * Carga KPIs, actividad, usuarios y moderación.
+ * D4: tabActiva viene del store global (TopBar) via useTabsTopBarStore.
  * Separación vista-lógica (SRP).
  */
 
@@ -21,6 +22,9 @@ import {
     type DatosModeracion,
     type PublicacionModeracion,
 } from '../services/apiAdmin';
+import { useTabsTopBarStore } from '../stores/tabsTopBarStore';
+import { useIslaActiva } from './useIslaActiva';
+import { useValorCongelado } from './useValorCongelado';
 import { crearLogger } from '../services/logger';
 
 const log = crearLogger('useAdminPanel');
@@ -36,7 +40,11 @@ export function useAdminPanel() {
     const [moderacion, setModeracion] = useState<DatosModeracion | null>(null);
     const [historialModeracion, setHistorialModeracion] = useState<PublicacionModeracion[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [tabActiva, setTabActiva] = useState('resumen');
+
+    /* D4: Tab viene del store global (TopBar), congelada cuando la isla está oculta */
+    const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
+    const activa = useIslaActiva('AdminPanelIsland');
+    const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
     /* Carga inicial: KPIs + actividad */
     useEffect(() => {
@@ -178,7 +186,6 @@ export function useAdminPanel() {
         tabActiva,
 
         /* Setters */
-        setTabActiva,
         setPaginaUsuarios,
         setBusquedaUsuarios,
         setFiltroPlannUsuarios,

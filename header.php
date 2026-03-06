@@ -13,6 +13,7 @@ $usuarioId = get_current_user_id();
     </style>
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
+    <link rel="icon" type="image/svg+xml" href="<?php echo esc_url(get_template_directory_uri() . '/Glory/assets/images/favicon.svg'); ?>">
     <?php wp_head(); ?>
 </head>
 

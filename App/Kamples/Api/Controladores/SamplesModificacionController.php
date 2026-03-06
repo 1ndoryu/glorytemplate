@@ -50,6 +50,13 @@ class SamplesModificacionController
                 ],
             ],
         ]);
+
+        /* D8: Subir/reemplazar imagen de portada de un sample */
+        \register_rest_route($namespace, '/samples/(?P<id>\d+)/imagen', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'subirImagen'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -207,6 +214,95 @@ class SamplesModificacionController
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SamplesModificacionController::actualizar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * POST /samples/{id}/imagen — Subir/reemplazar imagen de portada.
+     * Solo el propietario o admin puede cambiar la imagen.
+     * Patrón idéntico a ColeccionesCrudController::subirImagen.
+     */
+    public static function subirImagen(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $usuarioId = UsuarioHelper::obtenerIdPg();
+            if (!$usuarioId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
+
+            $sampleId = (int) $request->get_param('id');
+            $esAdmin = UsuarioHelper::esAdmin();
+
+            $sample = SamplesRepository::buscarParaModificacion($sampleId);
+            if (!$sample) {
+                return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+            }
+
+            if ((int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId && !$esAdmin) {
+                return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para editar este sample'], 403);
+            }
+
+            $files = $request->get_file_params();
+            if (empty($files['imagen']) || $files['imagen']['error'] !== UPLOAD_ERR_OK) {
+                return new \WP_REST_Response(['code' => 'imagen_requerida', 'message' => 'Se requiere un archivo de imagen'], 400);
+            }
+
+            $archivo = $files['imagen'];
+
+            /* Validar tipo MIME real (no confiar en Content-Type del cliente) */
+            $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $finfo = \finfo_open(FILEINFO_MIME_TYPE);
+            $tipoReal = \finfo_file($finfo, $archivo['tmp_name']);
+            \finfo_close($finfo);
+
+            if (!\in_array($tipoReal, $tiposPermitidos, true)) {
+                return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => 'Solo se permiten imágenes JPG, PNG, WebP o GIF'], 400);
+            }
+
+            if ($archivo['size'] > 5 * 1024 * 1024) {
+                return new \WP_REST_Response(['code' => 'archivo_muy_grande', 'message' => 'La imagen no puede superar 5MB'], 400);
+            }
+
+            $uploadDir = \wp_upload_dir();
+            $carpeta = $uploadDir['basedir'] . '/kamples/samples/' . $usuarioId;
+            if (!\file_exists($carpeta)) {
+                $creada = \wp_mkdir_p($carpeta);
+                if ($creada === false) {
+                    KamplesLogger::error('No se pudo crear carpeta de imágenes sample', ['carpeta' => $carpeta]);
+                    return new \WP_REST_Response(['code' => 'error_directorio', 'message' => 'Error al preparar almacenamiento'], 500);
+                }
+            }
+
+            $ext = match ($tipoReal) {
+                'image/jpeg' => 'jpg',
+                'image/png'  => 'png',
+                'image/webp' => 'webp',
+                'image/gif'  => 'gif',
+                default      => 'jpg',
+            };
+
+            $nombreArchivo = 'smp_' . \bin2hex(\random_bytes(8)) . '.' . $ext;
+            $rutaDestino = $carpeta . '/' . $nombreArchivo;
+
+            if (!move_uploaded_file($archivo['tmp_name'], $rutaDestino)) {
+                return new \WP_REST_Response(['code' => 'error_guardado', 'message' => 'Error al guardar la imagen'], 500);
+            }
+
+            $url = \esc_url_raw($uploadDir['baseurl'] . '/kamples/samples/' . $usuarioId . '/' . $nombreArchivo);
+
+            /* Persistir la URL en imagen_url */
+            SamplesRepository::actualizarCampos(
+                $sampleId,
+                [SamplesCols::IMAGEN_URL . ' = :imagenUrl'],
+                ['imagenUrl' => $url]
+            );
+
+            KamplesLogger::info('Imagen de sample actualizada', ['sampleId' => $sampleId, 'url' => $url]);
+
+            return new \WP_REST_Response(['imagenUrl' => $url], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesModificacionController::subirImagen error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

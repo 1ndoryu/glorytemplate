@@ -1,0 +1,31 @@
+/*
+ * EstadoVacio — Kamples
+ * Componente centralizado para estados vacíos y carga.
+ */
+
+.estadoVacioContenedor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacio3xl) var(--espacioXl);
+    text-align: center;
+    color: var(--textoTerciario);
+}
+
+.estadoVacioIcono {
+    opacity: 0.4;
+    color: var(--textoTerciario);
+}
+
+.estadoVacioMensaje {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+.estadoVacioAccion {
+    margin-top: var(--espacioSm);
+}

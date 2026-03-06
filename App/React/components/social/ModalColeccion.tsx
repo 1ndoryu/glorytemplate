@@ -10,6 +10,7 @@ import { FolderPlus, Camera } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { Checkbox } from '@app/components/ui/Checkbox';
 import { Input } from '@app/components/ui/Input';
 import { useModalColeccion } from '@app/hooks/useModalColeccion';
@@ -120,8 +121,8 @@ export const ModalColeccion = ({
                     </span>
                 </label>
 
-                <div className="modalColeccionAcciones">
-                    <BotonBase variante="ghost" onClick={onCerrar}>
+                <ModalAcciones>
+                    <BotonBase variante="secundario" onClick={onCerrar}>
                         Cancelar
                     </BotonBase>
                     <BotonBase
@@ -131,7 +132,7 @@ export const ModalColeccion = ({
                     >
                         {guardando ? 'Guardando...' : esEdicion ? 'Guardar' : 'Crear'}
                     </BotonBase>
-                </div>
+                </ModalAcciones>
             </div>
         </Modal>
     );

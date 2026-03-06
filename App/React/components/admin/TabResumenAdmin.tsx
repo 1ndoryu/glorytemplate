@@ -16,6 +16,7 @@ import {
     BarChart3,
 } from 'lucide-react';
 import type { KpisAdmin, DatosActividad } from '../../services/apiAdmin';
+import { EstadoVacio } from '../ui/EstadoVacio';
 
 interface TabResumenAdminProps {
     kpis: KpisAdmin | null;
@@ -193,7 +194,7 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
 
 export const TabResumenAdmin = ({ kpis, actividad }: TabResumenAdminProps): JSX.Element => {
     if (!kpis) {
-        return <div className="adminVacio">No hay datos disponibles</div>;
+        return <EstadoVacio mensaje="No hay datos disponibles" />;
     }
 
     return (

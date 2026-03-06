@@ -95,17 +95,6 @@
     padding: var(--espacioXl);
 }
 
-/* Estado vacio */
-.colaIaVacia {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--espacioSm);
-    padding: var(--espacioXl);
-    color: var(--textoSecundario);
-    text-align: center;
-}
-
 /* Tabla */
 .colaIaTabla {
     overflow-x: auto;

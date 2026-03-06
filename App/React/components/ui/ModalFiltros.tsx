@@ -9,12 +9,14 @@ import { useCallback } from 'react';
 import { Play, Heart, Users, Download, DollarSign } from 'lucide-react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { useFiltrosStore, type FiltroPrecio } from '@app/stores/filtrosStore';
 import '../../styles/componentes/modalFiltros.css';
 
 interface FiltroToggleDef {
     id: string;
     etiqueta: string;
+    descripcion: string;
     icono: React.ReactNode;
     activo: boolean;
     onToggle: () => void;
@@ -39,10 +41,10 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
     const resetearFiltros = useFiltrosStore(s => s.resetearFiltros);
 
     const filtros: FiltroToggleDef[] = [
-        { id: 'yaReproducidos', etiqueta: 'Ocultar ya reproducidos', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
-        { id: 'likeados', etiqueta: 'Ocultar ya likeados', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
-        { id: 'deSeguidos', etiqueta: 'Mostrar solo los de personas que sigo', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
-        { id: 'descargados', etiqueta: 'Ocultar ya descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
+        { id: 'yaReproducidos', etiqueta: 'Ocultar ya reproducidos', descripcion: 'No mostrar samples que ya escuchaste', icono: <Play size={16} />, activo: yaReproducidos, onToggle: toggleYaReproducidos },
+        { id: 'likeados', etiqueta: 'Ocultar ya likeados', descripcion: 'Excluir samples a los que diste like', icono: <Heart size={16} />, activo: likeados, onToggle: toggleLikeados },
+        { id: 'deSeguidos', etiqueta: 'Solo de personas que sigo', descripcion: 'Ver únicamente samples de creadores que sigues', icono: <Users size={16} />, activo: deSeguidos, onToggle: toggleDeSeguidos },
+        { id: 'descargados', etiqueta: 'Ocultar ya descargados', descripcion: 'Excluir samples que ya tienes descargados', icono: <Download size={16} />, activo: descargados, onToggle: toggleDescargados },
     ];
 
     const hayFiltrosActivos = yaReproducidos || likeados || deSeguidos || descargados || filtroPrecio !== 'todos';
@@ -72,7 +74,10 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
                             type="button"
                         >
                             <span className="filtroToggleIcono">{f.icono}</span>
-                            <span className="filtroToggleTexto">{f.etiqueta}</span>
+                            <div className="filtroToggleContenido">
+                                <span className="filtroToggleTexto">{f.etiqueta}</span>
+                                <span className="filtroToggleDescripcion">{f.descripcion}</span>
+                            </div>
                             <span className={`filtroToggleSwitch ${f.activo ? 'filtroToggleSwitchOn' : ''}`}>
                                 <span className="filtroToggleSwitchDot" />
                             </span>
@@ -100,16 +105,17 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
                     </div>
                 </div>
 
-                <div className="filtrosAcciones">
+                {/* D7: Acciones unificadas */}
+                <ModalAcciones>
                     {hayFiltrosActivos && (
-                        <BotonBase variante="ghost" onClick={manejarReset}>
+                        <BotonBase variante="secundario" onClick={manejarReset}>
                             Limpiar filtros
                         </BotonBase>
                     )}
                     <BotonBase variante="primario" onClick={onCerrar}>
                         Aplicar
                     </BotonBase>
-                </div>
+                </ModalAcciones>
             </div>
         </Modal>
     );

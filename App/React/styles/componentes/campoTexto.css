@@ -1,6 +1,8 @@
 /*
  * CampoTexto — Kamples
  * Input y textarea estilizados.
+ * Variante por defecto: 'minimal' (border-bottom).
+ * Variante 'bordado': border completo + padding + radius (para admin, filtros, etc.).
  */
 
 .contenedorCampoTexto {
@@ -16,6 +18,7 @@
     color: var(--textoSecundario);
 }
 
+/* Estilo minimal (default): border-bottom solamente */
 .campTextoInput, .campoTextoArea {
     width: 100%;
     padding: var(--espacioMd) 0; 
@@ -23,10 +26,19 @@
     font-size: var(--fuenteMd);
     font-family: var(--fuentePrincipal);
     transition: border-color var(--transicionRapida);
-    /* background: unset; */
+    background: unset;
     border: unset;
     border-bottom: 1px solid var(--bordeSutil);
     border-radius: unset;
+}
+
+/* Estilo bordado: border completo + padding + radius */
+.campTextoInput.campoBordado, .campoTextoArea.campoBordado {
+    padding: var(--espacioSm) var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    background: var(--fondoBase);
+    font-size: var(--fuenteSm);
 }
 
 .campTextoInput::placeholder,

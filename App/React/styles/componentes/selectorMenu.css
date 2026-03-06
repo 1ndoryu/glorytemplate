@@ -1,0 +1,148 @@
+/*
+ * SelectorMenu — Kamples
+ * Dropdown custom que reemplaza el <select> nativo.
+ * Se abre como menú contextual posicionado debajo del trigger.
+ */
+
+.selectorMenuContenedor {
+    position: relative;
+    display: inline-flex;
+    width: 100%;
+}
+
+/* Trigger: el botón que abre el dropdown */
+.selectorMenuTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    font-family: var(--fuentePrincipal);
+    color: var(--textoPrimario);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: border-color var(--transicionRapida);
+    text-align: left;
+    line-height: 1.4;
+    min-height: 32px;
+}
+
+.selectorMenuTrigger:hover {
+    border-color: var(--bordeActivo);
+}
+
+.selectorMenuTrigger:focus {
+    border-color: var(--acento);
+    outline: none;
+}
+
+.selectorMenuTriggerAbierto {
+    border-color: var(--acento);
+}
+
+.selectorMenuTrigger:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.selectorMenuPlaceholder {
+    color: var(--textoTerciario);
+}
+
+.selectorMenuIconoChevron {
+    flex-shrink: 0;
+    color: var(--textoTerciario);
+    transition: transform var(--transicionRapida);
+}
+
+.selectorMenuTriggerAbierto .selectorMenuIconoChevron {
+    transform: rotate(180deg);
+}
+
+/* Overlay invisible para cerrar */
+.selectorMenuOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--zMenu);
+}
+
+/* Dropdown: lista de opciones */
+.selectorMenuDropdown {
+    position: fixed;
+    min-width: 160px;
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    box-shadow: var(--sombraElevada);
+    padding: var(--espacioXs) 0;
+    z-index: var(--zMenu);
+    animation: fadeInSelectorMenu var(--transicionRapida) ease;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+/* Cada opción */
+.selectorMenuOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    font-family: var(--fuentePrincipal);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    background: none;
+    border: none;
+    text-align: left;
+}
+
+.selectorMenuOpcion:hover {
+    background: var(--fondoElevado2);
+    color: var(--textoPrimario);
+}
+
+.selectorMenuOpcionActiva {
+    color: var(--acento);
+    font-weight: var(--pesoMedio);
+}
+
+.selectorMenuOpcionActiva:hover {
+    color: var(--acento);
+}
+
+.selectorMenuOpcionIcono {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Variante compacta: sin borde, solo texto+chevron (para inline en tablas) */
+.selectorMenuCompacto .selectorMenuTrigger {
+    padding: var(--espacioXs) var(--espacioSm);
+    border-color: transparent;
+    background: transparent;
+    min-height: unset;
+    font-size: var(--fuenteXs);
+}
+
+.selectorMenuCompacto .selectorMenuTrigger:hover {
+    border-color: var(--bordeSutil);
+    background: var(--fondoElevado2);
+}
+
+@keyframes fadeInSelectorMenu {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

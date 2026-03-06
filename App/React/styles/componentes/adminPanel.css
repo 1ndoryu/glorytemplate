@@ -1,6 +1,8 @@
 /*
- * Estilos: Panel de AdministraciÃ³n (FASE 13)
- * Layout, tarjetas KPI, grÃ¡fica de actividad, tabla usuarios, moderaciÃ³n.
+ * Estilos: Panel de Administración (FASE 13)
+ * Layout, tarjetas KPI, gráfica de actividad, tabla usuarios, moderación.
+ * D5: Eliminado adminPanelTitulo/Subtitulo, adminVacio (→ EstadoVacio),
+ * adminSelectPlan (→ SelectorMenu), adminUsuariosFiltro (→ SelectorMenu).
  */
 
 /* Contenedor principal */
@@ -8,24 +10,6 @@
     padding: var(--espacioXl);
     max-width: 1200px;
     margin: 0 auto;
-}
-
-.adminPanelTitulo {
-    font-size: var(--fuenteXl);
-    font-weight: 700;
-    margin-bottom: var(--espacioXs);
-    color: var(--textoPrimario);
-}
-
-.adminPanelSubtitulo {
-    font-size: var(--fuenteMd);
-    color: var(--textoSecundario);
-    margin-bottom: var(--espacioXl);
-}
-
-/* Tabs */
-.adminPanelTabs {
-    margin-bottom: var(--espacioXl);
 }
 
 /* Grid de KPIs */
@@ -303,36 +287,35 @@
 }
 
 /* Tabla de usuarios */
+/* Controles búsqueda + filtro (D5: search icon + SelectorMenu ya maneja filtro) */
 .adminUsuariosControles {
     display: flex;
     gap: var(--espacioMd);
     margin-bottom: var(--espacioLg);
     flex-wrap: wrap;
+    align-items: center;
 }
 
-.adminUsuariosBusqueda {
+/* Contenedor relativo para lupa sobre CampoTexto */
+.adminBusquedaContenedor {
+    position: relative;
     flex: 1;
     min-width: 200px;
-    padding: var(--espacioSm) var(--espacioMd);
-    border-radius: var(--radioMd);
-    border: 1px solid var(--bordeSutil);
-    background: var(--fondoBase);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
 }
 
-.adminUsuariosBusqueda:focus {
-    outline: none;
-    border-color: var(--acento);
+.adminBusquedaIcono {
+    position: absolute;
+    left: var(--espacioSm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--textoTerciario);
+    pointer-events: none;
+    z-index: 1;
 }
 
-.adminUsuariosFiltro {
-    padding: var(--espacioSm) var(--espacioMd);
-    border-radius: var(--radioMd);
-    border: 1px solid var(--bordeSutil);
-    background: var(--fondoBase);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
+/* El input de búsqueda necesita padding-left para la lupa */
+.adminUsuariosBusqueda .campTextoInput {
+    padding-left: 2rem;
 }
 
 .adminTablaUsuarios {
@@ -420,28 +403,7 @@
     border-color: var(--error);
 }
 
-/* C257: Select de plan en acciones */
-.adminSelectPlan {
-    padding: 0.25rem 0.4rem;
-    border-radius: var(--radioMd);
-    border: 1px solid var(--bordeSutil);
-    background: var(--fondoElevado1);
-    color: var(--textoSecundario);
-    cursor: pointer;
-    font-size: var(--fuenteXs);
-    transition:
-        border-color 0.15s,
-        color 0.15s;
-}
-
-.adminSelectPlan:hover,
-.adminSelectPlan:focus {
-    border-color: var(--bordeActivo);
-    color: var(--textoPrimario);
-    outline: none;
-}
-
-/* Paginación */
+/* Paginación */ */
 .adminPaginacion {
     display: flex;
     justify-content: center;
@@ -464,7 +426,13 @@
     cursor: not-allowed;
 }
 
-/* ModeraciÃ³n */
+.adminPaginacionTexto {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    padding: var(--espacioXs);
+}
+
+/* Moderación */
 .adminModeracionLista {
     display: flex;
     flex-direction: column;
@@ -658,7 +626,7 @@
     color: var(--textoSecundario);
 }
 
-/* SecciÃ³n de reportes */
+/* Sección de reportes */
 .adminSeccionTitulo {
     font-size: var(--fuenteLg);
     font-weight: 600;
@@ -668,19 +636,6 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-}
-
-/* Estado vacío */
-.adminVacio {
-    text-align: center;
-    padding: var(--espacio3xl);
-    color: var(--textoTerciario);
-    font-size: var(--fuenteSm);
-}
-
-.adminVacioIcono {
-    margin-bottom: var(--espacioSm);
-    opacity: 0.5;
 }
 
 /* Cargando */

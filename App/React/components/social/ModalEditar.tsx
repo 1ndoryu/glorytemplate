@@ -8,6 +8,7 @@
 import { useRef } from 'react';
 import { Modal } from '@app/components/ui/Modal';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useEditar } from '@app/hooks/useEditar';
 import { Music, Image as ImageIcon } from 'lucide-react';
@@ -47,6 +48,10 @@ export const ModalEditar = (): JSX.Element | null => {
         guardando,
         guardar,
         archivos,
+        imagenSamplePreview,
+        seleccionarImagenSample,
+        limpiarImagenSample,
+        inputImagenSampleRef,
     } = useEditar(tipo, sample, publicacion, coleccion, manejarExito);
 
     /* Slot a reemplazar al seleccionar imagen (no dispara re-render) */
@@ -65,7 +70,10 @@ export const ModalEditar = (): JSX.Element | null => {
                     <FormularioEditarSample
                         formulario={formularioSample}
                         setFormulario={setFormularioSample}
-                        sample={sample ?? null}
+                        imagenPreview={imagenSamplePreview}
+                        onSeleccionarImagen={seleccionarImagenSample}
+                        onLimpiarImagen={limpiarImagenSample}
+                        inputImagenRef={inputImagenSampleRef}
                     />
                 )}
 
@@ -85,49 +93,48 @@ export const ModalEditar = (): JSX.Element | null => {
                     />
                 )}
 
-                <div className="editarAcciones">
-                    <div className="editarAccionesIzquierda">
-                        {tipo === 'publicacion' && (
-                            <>
-                                <BotonBase
-                                    variante="ghost"
-                                    tamano="sm"
-                                    soloIcono
-                                    onClick={() => document.getElementById('editar-input-audio')?.click()}
-                                    disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
-                                    type="button"
-                                    aria-label="Adjuntar audio"
-                                >
-                                    <Music size={18} />
-                                </BotonBase>
-                                <BotonBase
-                                    variante="ghost"
-                                    tamano="sm"
-                                    soloIcono
-                                    onClick={() => document.getElementById('editar-input-imagen')?.click()}
-                                    disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
-                                    type="button"
-                                    aria-label="Adjuntar imagen"
-                                >
-                                    <ImageIcon size={18} />
-                                </BotonBase>
-                            </>
-                        )}
-                    </div>
-                    <div className="editarAccionesDerecha">
-                        <BotonBase variante="ghost" onClick={cerrar}>
-                            Cancelar
+                {/* D7: Adjuntos separados de las acciones */}
+                {tipo === 'publicacion' && (
+                    <div className="editarAdjuntos">
+                        <BotonBase
+                            variante="ghost"
+                            tamano="sm"
+                            soloIcono
+                            onClick={() => document.getElementById('editar-input-audio')?.click()}
+                            disabled={!!formularioPublicacion.audioExistente || !!archivos.audioAdjunto}
+                            type="button"
+                            aria-label="Adjuntar audio"
+                        >
+                            <Music size={18} />
                         </BotonBase>
                         <BotonBase
-                            variante="primario"
-                            onClick={manejarGuardar}
-                            disabled={guardando}
-                            cargando={guardando}
+                            variante="ghost"
+                            tamano="sm"
+                            soloIcono
+                            onClick={() => document.getElementById('editar-input-imagen')?.click()}
+                            disabled={formularioPublicacion.imagenesExistentes.length + archivos.imagenes.length >= 4}
+                            type="button"
+                            aria-label="Adjuntar imagen"
                         >
-                            {guardando ? 'Guardando...' : 'Guardar cambios'}
+                            <ImageIcon size={18} />
                         </BotonBase>
                     </div>
-                </div>
+                )}
+
+                {/* D7: Acciones unificadas — botones 100% ancho, cancel=borde sin fondo */}
+                <ModalAcciones>
+                    <BotonBase variante="secundario" onClick={cerrar}>
+                        Cancelar
+                    </BotonBase>
+                    <BotonBase
+                        variante="primario"
+                        onClick={manejarGuardar}
+                        disabled={guardando}
+                        cargando={guardando}
+                    >
+                        {guardando ? 'Guardando...' : 'Guardar cambios'}
+                    </BotonBase>
+                </ModalAcciones>
             </div>
         </Modal>
     );

@@ -144,6 +144,16 @@ export const eliminarSample = async (sampleId: number): Promise<RespuestaApi<{ e
     return apiDelete<{ eliminado: boolean }>(`/samples/${sampleId}`);
 };
 
+/* D8: Subir/reemplazar imagen de portada de un sample */
+export const subirImagenSample = async (
+    sampleId: number,
+    archivo: File
+): Promise<RespuestaApi<{ imagenUrl: string }>> => {
+    const fd = new FormData();
+    fd.append('imagen', archivo);
+    return apiPostFormData<{ imagenUrl: string }>(`/samples/${sampleId}/imagen`, fd);
+};
+
 /* C126: Datos editables de un sample */
 export interface DatosActualizarSample {
     titulo?: string;

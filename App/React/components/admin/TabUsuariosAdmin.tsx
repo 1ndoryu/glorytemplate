@@ -9,8 +9,10 @@ import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight } from 'luci
 import { Badge } from '../ui/Badge';
 import type { UsuarioAdmin } from '../../services/apiAdmin';
 import { BotonBase } from '../ui/BotonBase';
-import { SelectorBase } from '../ui/SelectorBase';
+import { SelectorMenu } from '../ui/SelectorMenu';
+import type { OpcionSelector } from '../ui/SelectorMenu';
 import { CampoTexto } from '../ui/CampoTexto';
+import { EstadoVacio } from '../ui/EstadoVacio';
 
 interface TabUsuariosAdminProps {
     usuarios: UsuarioAdmin[];
@@ -34,6 +36,20 @@ const colorPlan = (plan: string): 'neutro' | 'acento' | 'premium' | 'info' => {
     if (plan === 'pro') return 'acento';
     return 'neutro';
 };
+
+/* Opciones para filtro y selector de plan */
+const OPCIONES_FILTRO_PLAN: OpcionSelector[] = [
+    { valor: '', etiqueta: 'Todos los planes' },
+    { valor: 'free', etiqueta: 'Free' },
+    { valor: 'pro', etiqueta: 'Pro' },
+    { valor: 'premium', etiqueta: 'Premium' },
+];
+
+const OPCIONES_PLAN: OpcionSelector[] = [
+    { valor: 'free', etiqueta: 'Free' },
+    { valor: 'pro', etiqueta: 'Pro' },
+    { valor: 'premium', etiqueta: 'Premium' },
+];
 
 export const TabUsuariosAdmin = ({
     usuarios,
@@ -70,26 +86,21 @@ export const TabUsuariosAdmin = ({
         <div>
             {/* Controles búsqueda + filtro */}
             <div className="adminUsuariosControles">
-                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--textoTerciario)' }} />
+                <div className="adminBusquedaContenedor">
+                    <Search size={14} className="adminBusquedaIcono" />
                     <CampoTexto
                         className="adminUsuariosBusqueda"
+                        variante="bordado"
                         placeholder="Buscar por nombre, username o email..."
                         value={busqueda}
                         onChange={(e) => onCambiarBusqueda(e.target.value)}
-                        style={{ paddingLeft: '2rem' }}
                     />
                 </div>
-                <SelectorBase
-                    className="adminUsuariosFiltro"
-                    value={filtroPlan}
-                    onChange={(e) => onCambiarFiltroPlan(e.target.value)}
-                >
-                    <option value="">Todos los planes</option>
-                    <option value="free">Free</option>
-                    <option value="pro">Pro</option>
-                    <option value="premium">Premium</option>
-                </SelectorBase>
+                <SelectorMenu
+                    opciones={OPCIONES_FILTRO_PLAN}
+                    valor={filtroPlan}
+                    onChange={onCambiarFiltroPlan}
+                />
             </div>
 
             {/* Tabla */}
@@ -108,8 +119,11 @@ export const TabUsuariosAdmin = ({
                 <tbody>
                     {usuarios.length === 0 && (
                         <tr>
-                            <td colSpan={7} className="adminVacio">
-                                No se encontraron usuarios
+                            <td colSpan={7}>
+                                <EstadoVacio
+                                    mensaje="No se encontraron usuarios"
+                                    icono={<Search size={24} />}
+                                />
                             </td>
                         </tr>
                     )}
@@ -145,6 +159,7 @@ export const TabUsuariosAdmin = ({
                             <td>
                                 <div className="adminUsuarioAcciones">
                                     <BotonBase variante="ghost"
+                                        tamano="ninguno"
                                         className="adminBotonAccion"
                                         title={u.verificado ? 'Quitar verificación' : 'Verificar'}
                                         onClick={() => manejarAccion(u.id, { verificado: !u.verificado })}
@@ -154,6 +169,7 @@ export const TabUsuariosAdmin = ({
                                         <BadgeCheck size={14} />
                                     </BotonBase>
                                     <BotonBase variante="ghost"
+                                        tamano="ninguno"
                                         className="adminBotonAccion"
                                         title="Cambiar a admin"
                                         onClick={() => manejarAccion(u.id, { rol: u.rol === 'admin' ? 'usuario' : 'admin' })}
@@ -163,6 +179,7 @@ export const TabUsuariosAdmin = ({
                                         <Shield size={14} />
                                     </BotonBase>
                                     <BotonBase variante="ghost"
+                                        tamano="ninguno"
                                         className={`adminBotonAccion ${u.ban_hasta ? '' : 'adminBotonAccionPeligro'}`}
                                         title={u.ban_hasta ? 'Desbanear' : 'Banear 7 días'}
                                         onClick={() => toggleBan(u)}
@@ -172,17 +189,13 @@ export const TabUsuariosAdmin = ({
                                         <Ban size={14} />
                                     </BotonBase>
                                     {/* C257: Selector de plan */}
-                                    <SelectorBase
-                                        className="adminSelectPlan"
-                                        value={u.plan}
-                                        onChange={(e) => manejarAccion(u.id, { plan: e.target.value })}
+                                    <SelectorMenu
+                                        compacto
+                                        opciones={OPCIONES_PLAN}
+                                        valor={u.plan}
+                                        onChange={(nuevoPlan) => manejarAccion(u.id, { plan: nuevoPlan })}
                                         disabled={procesando === u.id}
-                                        title="Cambiar plan"
-                                    >
-                                        <option value="free">Free</option>
-                                        <option value="pro">Pro</option>
-                                        <option value="premium">Premium</option>
-                                    </SelectorBase>
+                                    />
                                 </div>
                             </td>
                         </tr>
@@ -201,7 +214,7 @@ export const TabUsuariosAdmin = ({
                     >
                         <ChevronLeft size={14} />
                     </BotonBase>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--textoSecundario)', padding: '0.4rem' }}>
+                    <span className="adminPaginacionTexto">
                         {pagina} / {totalPaginas} ({totalUsuarios} total)
                     </span>
                     <BotonBase variante="ghost"

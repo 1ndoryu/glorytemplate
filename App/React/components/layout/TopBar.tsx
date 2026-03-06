@@ -14,6 +14,7 @@ import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { Modal } from '../ui/Modal';
+import { LogoKamples } from '../ui/LogoKamples';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import '../../styles/componentes/topbar.css';
@@ -131,6 +132,11 @@ export const TopBar = (): JSX.Element => {
 
     return (
         <div className="topbar">
+            {/* D3: Logo Kamples */}
+            <div className="topbarLogo" onClick={() => navegar('/')} role="button" tabIndex={0}>
+                <LogoKamples tamano={20} />
+            </div>
+
             {/* Tabs dinámicas (definidas por cada isla) */}
             <div className="topbarTabs">
                 {tabs.map((tab) => (

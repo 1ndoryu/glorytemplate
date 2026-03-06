@@ -4,8 +4,8 @@
  * Separada del componente visual (SRP).
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { actualizarSample, subirSample } from '@app/services/apiSamples';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { actualizarSample, subirSample, subirImagenSample } from '@app/services/apiSamples';
 import { actualizarPublicacion, subirImagenPublicacion } from '@app/services/apiSocial';
 import { actualizarColeccion } from '@app/services/apiColecciones';
 import { toast } from '@app/stores/toastStore';
@@ -26,6 +26,7 @@ export interface FormularioSample {
     esPremium: boolean;
     precio: string;
     permitirDescarga: boolean;
+    imagenUrl: string | null;
 }
 
 /* Estado interno del formulario de publicación */
@@ -52,6 +53,12 @@ interface RetornoEditar {
     guardando: boolean;
     guardar: () => Promise<boolean>;
     archivos: ReturnType<typeof useArchivosDragDrop>;
+    /* D8: Imagen de portada del sample */
+    imagenSampleFile: File | null;
+    imagenSamplePreview: string | null;
+    seleccionarImagenSample: (archivo: File) => void;
+    limpiarImagenSample: () => void;
+    inputImagenSampleRef: React.RefObject<HTMLInputElement>;
 }
 
 const sampleInicial: FormularioSample = {
@@ -62,6 +69,7 @@ const sampleInicial: FormularioSample = {
     esPremium: false,
     precio: '',
     permitirDescarga: true,
+    imagenUrl: null,
 };
 
 const publicacionInicial: FormularioPublicacion = {
@@ -89,6 +97,34 @@ export const useEditar = (
     const [guardando, setGuardando] = useState(false);
     const archivos = useArchivosDragDrop();
 
+    /* D8: Imagen de portada del sample — archivo seleccionado + preview URL */
+    const [imagenSampleFile, setImagenSampleFile] = useState<File | null>(null);
+    const [imagenSamplePreview, setImagenSamplePreview] = useState<string | null>(null);
+    const inputImagenSampleRef = useRef<HTMLInputElement | null>(null);
+
+    const seleccionarImagenSample = useCallback((archivo: File) => {
+        const tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!tiposPermitidos.includes(archivo.type)) {
+            toast.error('Solo se permiten imágenes JPG, PNG, WebP o GIF');
+            return;
+        }
+        if (archivo.size > 5 * 1024 * 1024) {
+            toast.error('La imagen no puede superar 5MB');
+            return;
+        }
+        setImagenSampleFile(archivo);
+        const url = URL.createObjectURL(archivo);
+        setImagenSamplePreview(url);
+    }, []);
+
+    const limpiarImagenSample = useCallback(() => {
+        setImagenSampleFile(null);
+        if (imagenSamplePreview) {
+            URL.revokeObjectURL(imagenSamplePreview);
+        }
+        setImagenSamplePreview(null);
+    }, [imagenSamplePreview]);
+
     /* Pre-rellenar formularios con datos actuales — C170: cargar descripcion real */
     useEffect(() => {
         if (tipo === 'sample' && sample) {
@@ -107,7 +143,10 @@ export const useEditar = (
                 esPremium: sample.esPremium || false,
                 precio: sample.precio ? String(sample.precio) : '',
                 permitirDescarga: true,
+                imagenUrl: sample.imagenUrl || null,
             });
+            /* Limpiar imagen previa al cambiar de sample */
+            limpiarImagenSample();
         } else if (tipo === 'publicacion' && publicacion) {
             setFormularioPublicacion({
                 contenido: publicacion.contenido || '',
@@ -130,6 +169,15 @@ export const useEditar = (
 
         try {
             if (tipo === 'sample' && sample) {
+                /* D8: Si hay imagen nueva, subirla primero */
+                if (imagenSampleFile) {
+                    const respImg = await subirImagenSample(sample.id, imagenSampleFile);
+                    if (!respImg.ok) {
+                        toast.error(respImg.error ?? 'Error al subir la imagen');
+                        return false;
+                    }
+                }
+
                 const tagsArray = formularioSample.tags
                     .split(',')
                     .map((t) => t.trim())
@@ -233,7 +281,7 @@ export const useEditar = (
         } finally {
             setGuardando(false);
         }
-    }, [tipo, sample, publicacion, coleccion, formularioSample, formularioPublicacion, formularioColeccion, guardando, onExito]);
+    }, [tipo, sample, publicacion, coleccion, formularioSample, formularioPublicacion, formularioColeccion, guardando, onExito, imagenSampleFile]);
 
     return {
         formularioSample,
@@ -245,5 +293,10 @@ export const useEditar = (
         guardando,
         guardar,
         archivos,
+        imagenSampleFile,
+        imagenSamplePreview,
+        seleccionarImagenSample,
+        limpiarImagenSample,
+        inputImagenSampleRef,
     };
 };

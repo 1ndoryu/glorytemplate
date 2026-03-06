@@ -21,7 +21,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacioMd);
-    padding: var(--espacioMd);
+    padding: var(--espacioMd) var(--espacioLg);
     background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
@@ -50,11 +50,24 @@
     color: var(--acento);
 }
 
-.filtroToggleTexto {
+/* D6: Contenedor de texto + descripción */
+.filtroToggleContenido {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     text-align: left;
+}
+
+.filtroToggleTexto {
     font-size: var(--fuenteMd);
     color: var(--textoPrimario);
+}
+
+.filtroToggleDescripcion {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    line-height: 1.3;
 }
 
 .filtroToggleSwitch {
@@ -84,14 +97,6 @@
 .filtroToggleSwitchOn .filtroToggleSwitchDot {
     transform: translateX(16px);
     background: var(--blanco);
-}
-
-.filtrosAcciones {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--espacioMd);
-    padding-top: var(--espacioMd);
 }
 
 /* C274 + C345: Selector de precio free/premium con separación visual */

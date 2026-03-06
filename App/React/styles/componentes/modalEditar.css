@@ -1,6 +1,8 @@
 /*
  * modalEditar.css — Kamples (C126)
  * Estilos para el modal de edición unificado de samples/publicaciones/colecciones.
+ * D7: editarAcciones/Izquierda/Derecha eliminados (ahora ModalAcciones).
+ * D8: editarMetadataChips eliminados, editarImagenPortada agregado.
  */
 
 .editarFormulario {
@@ -42,68 +44,47 @@
     height: 16px;
 }
 
-.editarSelectContenedor {
-    position: relative;
-}
-
-.editarSelect {
-    width: 100%;
-    background-color: var(--fondoElevado2);
-    border-radius: var(--radioSm);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteSm);
-    font-family: var(--fuentePrincipal);
-    cursor: pointer;
-    appearance: none;
-    outline: none;
-    transition: border-color var(--transicionRapida);
-}
-
-.editarSelect:focus {
-    border-color: var(--bordeActivo);
-}
-
-.editarAcciones {
+/* D8: Preview de imagen de portada */
+.editarImagenPortada {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: var(--espacioSm);
+    flex-direction: column;
+    gap: var(--espacioSm);
 }
 
-.editarAccionesIzquierda {
+.editarImagenContenedor {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacioSm);
+}
+
+.editarImagenPreview {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radioMd);
+    object-fit: cover;
+    border: 1px solid var(--bordeSutil);
+}
+
+.editarImagenAcciones {
     display: flex;
     gap: var(--espacioXs);
+    align-items: center;
 }
 
-.editarAccionesDerecha {
+.editarImagenVacia {
+    align-self: flex-start;
+}
+
+/* D7: Adjuntos audio/imagen separados de las acciones */
+.editarAdjuntos {
     display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
+    gap: var(--espacioXs);
 }
 
 .editarTagsHint {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
-}
-
-/* C170: Chips de metadata IA */
-.editarMetadataChips {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.editarMetadataLabel {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.editarChipsFila {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espacioXs);
 }
 
 /* Responsive */

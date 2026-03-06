@@ -2,14 +2,14 @@
  * Componente: BotonBase
  * Boton reutilizable con variantes y tamaños.
  * Variantes: primario, secundario, ghost, peligro
- * Tamaños: sm, md
+ * Tamaños: sm, md, ninguno (sin padding/height forzado)
  */
 
 import { type ReactNode, type ButtonHTMLAttributes } from 'react';
 import '../../styles/componentes/botonBase.css';
 
 type VarianteBoton = 'primario' | 'secundario' | 'ghost' | 'peligro';
-type TamanoBoton = 'sm' | 'md';
+type TamanoBoton = 'sm' | 'md' | 'ninguno';
 
 interface BotonBaseProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variante?: VarianteBoton;
@@ -30,6 +30,7 @@ const mapaVariante: Record<VarianteBoton, string> = {
 const mapaTamano: Record<TamanoBoton, string> = {
     sm: 'tamanoSm',
     md: 'tamanoMd',
+    ninguno: '',
 };
 
 export const BotonBase = ({

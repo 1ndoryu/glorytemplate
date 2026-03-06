@@ -5,9 +5,10 @@
  * Solo vista; lógica en useAdminPanel.
  */
 
-import { CheckCircle, XCircle, AlertTriangle, Flag, History, Eye, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Flag, History, Eye, Trash2, Loader2 } from 'lucide-react';
 import type { DatosModeracion, PublicacionModeracion } from '../../services/apiAdmin';
 import { BotonBase } from '../ui/BotonBase';
+import { EstadoVacio } from '../ui/EstadoVacio';
 
 interface TabModeracionAdminProps {
     moderacion: DatosModeracion | null;
@@ -80,7 +81,12 @@ export const TabModeracionAdmin = ({
     onResolverReporte,
 }: TabModeracionAdminProps): JSX.Element => {
     if (!moderacion) {
-        return <div className="adminVacio">Cargando moderación...</div>;
+        return (
+            <EstadoVacio
+                mensaje="Cargando moderación..."
+                icono={<Loader2 size={24} className="adminSpinner" />}
+            />
+        );
     }
 
     const publicaciones = moderacion?.publicaciones ?? [];
@@ -89,10 +95,10 @@ export const TabModeracionAdmin = ({
 
     if (sinContenido) {
         return (
-            <div className="adminVacio">
-                <CheckCircle size={24} className="adminVacioIcono" />
-                <div>Todo en orden. No hay contenido pendiente de moderación.</div>
-            </div>
+            <EstadoVacio
+                mensaje="Todo en orden. No hay contenido pendiente de moderación."
+                icono={<CheckCircle size={24} />}
+            />
         );
     }
 

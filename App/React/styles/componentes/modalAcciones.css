@@ -1,0 +1,17 @@
+/*
+ * Estilos: ModalAcciones — D7
+ * Footer unificado para acciones modales.
+ * Los hijos directos .botonBase obtienen flex:1 para cubrir 100% del ancho.
+ */
+
+.modalAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+/* Cada botón dentro de la barra de acciones ocupa espacio igual */
+.modalAcciones > .botonBase {
+    flex: 1;
+}

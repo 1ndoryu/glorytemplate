@@ -1,164 +1,199 @@
 /*
  * Sub-componente: FormularioEditarSample — Kamples
  * Formulario de edicion de sample, extraido de ModalEditar (SRP + limite-lineas).
- * Incluye MetadataChips para mostrar info IA detectada.
+ * D8: MetadataChips eliminados, imagen de portada editable, SelectorBase → SelectorMenu.
  */
 
 import { CampoTexto } from '@app/components/ui/CampoTexto';
-import { Badge } from '@app/components/ui/Badge';
 import { Checkbox } from '@app/components/ui/Checkbox';
-import { SelectorBase } from '@app/components/ui/SelectorBase';
+import { SelectorMenu, type OpcionSelector } from '@app/components/ui/SelectorMenu';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import type { FormularioSample } from '@app/hooks/useEditar';
-import type { TipoSample, SampleResumen } from '@app/types';
+import type { TipoSample } from '@app/types';
+import { ImageIcon, X } from 'lucide-react';
 
-const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
+const OPCIONES_TIPO: OpcionSelector[] = [
     { valor: 'loop', etiqueta: 'Loop' },
     { valor: 'oneshot', etiqueta: 'One Shot' },
 ];
 
-/* C170: Chips informativos de metadata IA (solo lectura) */
-const MetadataChips = ({ sample }: { sample: SampleResumen }): JSX.Element | null => {
-    const chips: string[] = [];
-    if (sample.bpm) chips.push(`${sample.bpm} BPM`);
-    if (sample.key) chips.push(`${sample.key}${sample.escala === 'menor' ? 'm' : ''}`);
-    if (sample.metadata?.genero) {
-        const generos = Array.isArray(sample.metadata.genero)
-            ? sample.metadata.genero
-            : [sample.metadata.genero];
-        chips.push(...generos.slice(0, 3));
-    }
-    if (sample.metadata?.emocionEs) chips.push(sample.metadata.emocionEs);
-    if (!chips.length) return null;
-    return (
-        <div className="editarMetadataChips">
-            <span className="editarMetadataLabel">Detectado por IA</span>
-            <div className="editarChipsFila">
-                {chips.map((c) => (
-                    <Badge key={c} variante="neutro" tamano="xs">{c}</Badge>
-                ))}
-            </div>
-        </div>
-    );
-};
-
 interface FormularioEditarSampleProps {
     formulario: FormularioSample;
     setFormulario: React.Dispatch<React.SetStateAction<FormularioSample>>;
-    sample: SampleResumen | null;
+    imagenPreview: string | null;
+    onSeleccionarImagen: (archivo: File) => void;
+    onLimpiarImagen: () => void;
+    inputImagenRef: React.RefObject<HTMLInputElement>;
 }
 
 export const FormularioEditarSample = ({
     formulario,
     setFormulario,
-    sample,
-}: FormularioEditarSampleProps): JSX.Element => (
-    <>
-        {sample && <MetadataChips sample={sample} />}
+    imagenPreview,
+    onSeleccionarImagen,
+    onLimpiarImagen,
+    inputImagenRef,
+}: FormularioEditarSampleProps): JSX.Element => {
+    /* La imagen a mostrar: preview local si hay archivo nuevo, sino la existente */
+    const imagenVisible = imagenPreview ?? formulario.imagenUrl;
 
-        <CampoTexto
-            etiqueta="Título"
-            value={formulario.titulo}
-            onChange={(e) =>
-                setFormulario((prev) => ({
-                    ...prev,
-                    titulo: (e.target as HTMLInputElement).value,
-                }))
-            }
-            placeholder="Nombre del sample"
-            maxLength={200}
-            autoFocus
-        />
+    const manejarSeleccionImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0];
+        if (archivo) onSeleccionarImagen(archivo);
+        /* Resetear input para permitir seleccionar el mismo archivo */
+        e.target.value = '';
+    };
 
-        <CampoTexto
-            etiqueta="Descripción"
-            value={formulario.descripcion}
-            onChange={(e) =>
-                setFormulario((prev) => ({
-                    ...prev,
-                    descripcion: (e.target as HTMLTextAreaElement).value,
-                }))
-            }
-            placeholder="Descripción del sample (opcional)"
-            maxLength={1000}
-            multilínea
-        />
-
-        <div className="editarGrupo">
-            <CampoTexto
-                etiqueta="Tags"
-                value={formulario.tags}
-                onChange={(e) =>
-                    setFormulario((prev) => ({
-                        ...prev,
-                        tags: (e.target as HTMLInputElement).value,
-                    }))
-                }
-                placeholder="trap, dark, 808, ambient"
-                maxLength={500}
-            />
-            <span className="editarTagsHint">Separados por comas. Mínimo 2 tags.</span>
-        </div>
-
-        <div className="editarFilaDoble">
-            <div className="editarGrupo">
-                <span className="editarGrupoLabel">Tipo</span>
-                <div className="editarSelectContenedor">
-                    <SelectorBase
-                        className="editarSelect"
-                        value={formulario.tipo}
-                        onChange={(e) =>
-                            setFormulario((prev) => ({
-                                ...prev,
-                                tipo: e.target.value as TipoSample,
-                            }))
-                        }
+    return (
+        <>
+            {/* D8: Preview de imagen + botón cambiar */}
+            <div className="editarImagenPortada">
+                {imagenVisible ? (
+                    <div className="editarImagenContenedor">
+                        <img
+                            src={imagenVisible}
+                            alt={formulario.titulo || 'Portada del sample'}
+                            className="editarImagenPreview"
+                        />
+                        <div className="editarImagenAcciones">
+                            <BotonBase
+                                variante="secundario"
+                                tamano="sm"
+                                onClick={() => inputImagenRef.current?.click()}
+                                type="button"
+                            >
+                                <ImageIcon size={14} />
+                                Cambiar
+                            </BotonBase>
+                            {imagenPreview && (
+                                <BotonBase
+                                    variante="ghost"
+                                    tamano="sm"
+                                    soloIcono
+                                    onClick={onLimpiarImagen}
+                                    type="button"
+                                    aria-label="Quitar imagen nueva"
+                                >
+                                    <X size={14} />
+                                </BotonBase>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <BotonBase
+                        variante="secundario"
+                        tamano="sm"
+                        onClick={() => inputImagenRef.current?.click()}
+                        type="button"
+                        className="editarImagenVacia"
                     >
-                        {tiposSample.map((t) => (
-                            <option key={t.valor} value={t.valor}>
-                                {t.etiqueta}
-                            </option>
-                        ))}
-                    </SelectorBase>
-                </div>
+                        <ImageIcon size={16} />
+                        Agregar imagen
+                    </BotonBase>
+                )}
+                <input
+                    ref={inputImagenRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={manejarSeleccionImagen}
+                    hidden
+                />
             </div>
 
             <CampoTexto
-                etiqueta="Precio"
-                value={formulario.precio}
+                etiqueta="Título"
+                value={formulario.titulo}
                 onChange={(e) =>
                     setFormulario((prev) => ({
                         ...prev,
-                        precio: (e.target as HTMLInputElement).value,
+                        titulo: (e.target as HTMLInputElement).value,
                     }))
                 }
-                placeholder="0.00"
-                type="number"
-                disabled={!formulario.esPremium}
-            />
-        </div>
-
-        <div className="editarFilaDoble">
-            <Checkbox
-                label="Premium"
-                checked={formulario.esPremium}
-                onChange={(e) =>
-                    setFormulario((prev) => ({
-                        ...prev,
-                        esPremium: e.target.checked,
-                    }))
-                }
+                placeholder="Nombre del sample"
+                maxLength={200}
+                autoFocus
             />
 
-            <Checkbox
-                label="Permitir descarga"
-                checked={formulario.permitirDescarga}
+            <CampoTexto
+                etiqueta="Descripción"
+                value={formulario.descripcion}
                 onChange={(e) =>
                     setFormulario((prev) => ({
                         ...prev,
-                        permitirDescarga: e.target.checked,
+                        descripcion: (e.target as HTMLTextAreaElement).value,
                     }))
                 }
+                placeholder="Descripción del sample (opcional)"
+                maxLength={1000}
+                multilínea
             />
-        </div>
-    </>
-);
+
+            <div className="editarGrupo">
+                <CampoTexto
+                    etiqueta="Tags"
+                    value={formulario.tags}
+                    onChange={(e) =>
+                        setFormulario((prev) => ({
+                            ...prev,
+                            tags: (e.target as HTMLInputElement).value,
+                        }))
+                    }
+                    placeholder="trap, dark, 808, ambient"
+                    maxLength={500}
+                />
+                <span className="editarTagsHint">Separados por comas. Mínimo 2 tags.</span>
+            </div>
+
+            <div className="editarFilaDoble">
+                <div className="editarGrupo">
+                    <SelectorMenu
+                        etiqueta="Tipo"
+                        opciones={OPCIONES_TIPO}
+                        valor={formulario.tipo}
+                        onChange={(v) =>
+                            setFormulario((prev) => ({ ...prev, tipo: v as TipoSample }))
+                        }
+                    />
+                </div>
+
+                <CampoTexto
+                    etiqueta="Precio"
+                    value={formulario.precio}
+                    onChange={(e) =>
+                        setFormulario((prev) => ({
+                            ...prev,
+                            precio: (e.target as HTMLInputElement).value,
+                        }))
+                    }
+                    placeholder="0.00"
+                    type="number"
+                    disabled={!formulario.esPremium}
+                />
+            </div>
+
+            <div className="editarFilaDoble">
+                <Checkbox
+                    label="Premium"
+                    checked={formulario.esPremium}
+                    onChange={(e) =>
+                        setFormulario((prev) => ({
+                            ...prev,
+                            esPremium: e.target.checked,
+                        }))
+                    }
+                />
+
+                <Checkbox
+                    label="Permitir descarga"
+                    checked={formulario.permitirDescarga}
+                    onChange={(e) =>
+                        setFormulario((prev) => ({
+                            ...prev,
+                            permitirDescarga: e.target.checked,
+                        }))
+                    }
+                />
+            </div>
+        </>
+    );
+};

@@ -71,7 +71,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["icons/32x32.png"],
+    "resources": ["icons/32x32.png", "icons/favicon.svg"],
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
