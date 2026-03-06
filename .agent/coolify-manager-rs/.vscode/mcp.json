@@ -1,9 +1,0 @@
-{
-  "servers": {
-    "coolify-manager": {
-      "type": "stdio",
-      "command": "${workspaceFolder}/.agent/coolify-manager-rs/target/release/coolify-manager.exe",
-      "args": ["--mcp"]
-    }
-  }
-}

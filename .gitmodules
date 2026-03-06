@@ -9,3 +9,6 @@
 [submodule "Glory"]
 	path = Glory
 	url = https://github.com/1ndoryu/Glory.git
+[submodule ".agent/coolify-manager-rs"]
+	path = .agent/coolify-manager-rs
+	url = https://github.com/1ndoryu/coolify-manager-rs.git
