@@ -144,6 +144,7 @@
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar credito.
 361. (vacia)
+362. **[POST-C9] Migración BD 2 tipos:** `UPDATE samples SET tipo = 'oneshot' WHERE tipo NOT IN ('loop', 'oneshot');` + `ALTER TABLE samples DROP CONSTRAINT ..., ADD CONSTRAINT ... CHECK (tipo IN ('loop','oneshot'));` + regenerar schema.ts (`npx glory schema:generate`).
 
 ---
 

@@ -106,3 +106,23 @@
 - **C384 (full-stack subcolecciones)** ✅ Migración `v022_subcolecciones.sql`, schema regenerado, ColeccionesRepository con tags subquery, CRUD parentId, SyncRepository parent_id, desktop services actualizados, FiltroSubcolecciones.tsx nuevo.
 - **C385 (barraControl colecciones)** ✅ Tags agregación SQL, response anidada, apiColecciones reescritura, useLibreriaIsland filtrado/orden/aplanamiento, LibreriaIsland barraControl+tags+grid, TarjetaColeccion esSubcoleccion.
 - **C386** ✅ Fix repositoryGenerate.mjs corrompía 18 repos. 5 bugs corregidos: colId(), ORDER BY, uses custom, código entre zonas, trim(). 18 repos restaurados.
+
+---
+
+## Completado — Sprint UI/Sync/Backend (C1-C9+C8.1)
+
+- **C1** ✅ Skip "Nueva carpeta" temp names (NOMBRES_CARPETA_TEMPORAL) + delay 60s en fileWatcher antes de notificar carpeta nueva.
+- **C2** ✅ Bordes izquierda eliminados de toasts/notificaciones (6 reglas CSS). Enter auto-acepta toast de confirmación.
+- **C3** ✅ Auto-move subcarpetas creadas dentro de "Sin coleccion" a raíz (syncWatcherSetup onSubcarpetaNueva).
+- **C4** ✅ Tags backend: endpoint `GET /tags/aggregates` con SQL UNNEST + jsonb_array_elements_text. Frontend useFeedFiltros debounce 400ms server-side. Elimina iteración client-side.
+- **C5** ✅ Paginación 12 per page (SamplesController + apiSamples + useAlgoritmo).
+- **C6** ✅ Dedup cross-folder en uploadQueueService: Map hash→ruta, detecta duplicados aunque estén en carpetas distintas.
+- **C7** ✅ Thumbnails sync panel: cache-busting `?t=` + no-cache header en syncCollectionService. Rehidratación throttle 5s.
+- **C8** ✅ Modals sin header (titulo prop eliminada de 7 modales). border-top editarAcciones eliminada. textarea auto-resize (field-sizing:content). Tipos reducidos a 2 en FormularioEditarSample.
+- **C8.1** ✅ Inspector: useEffect + obtenerSample(slug) para cargar Sample completo (rutaOriginal, rutaOptimizada, estado, formato, tamano).
+- **C9** ✅ Sistema de 2 tipos (loop/oneshot): SamplesSchema CHECK, SamplesEnums (4 constantes eliminadas), SamplesModificacionController, PipelineAudio, ProcesadorColaIA, GeneradorEmbeddings (map reducido), PasoMetadata, BienvenidaIsland, schema.ts.
+- **Aprendizajes:**
+  - [Tags]: SQL LATERAL + jsonb_array_elements_text es la forma correcta de agregar tags JSONB. UNNEST para arrays nativos.
+  - [Inspector]: SampleResumen no tiene campos técnicos — siempre fetch full Sample si se necesitan.
+  - [Tipos]: Cambiar enum system-wide requiere tocar ~15 archivos (schema, generated, controllers, pipeline, IA, embeddings, frontend). TO-DO: ALTER TABLE + regenerar schema.ts.
+  - [field-sizing]: CSS `field-sizing: content` auto-resize textarea nativo, sin JS.
