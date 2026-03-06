@@ -151,7 +151,17 @@ class ColeccionesController
         }
         unset($col);
 
-        return new \WP_REST_Response(['data' => $colecciones], 200);
+        /* B1: Tags frecuentes de colecciones públicas (solo sin búsqueda activa) */
+        $tagsFrecuentes = empty($busqueda)
+            ? ColeccionesRepository::tagsFrecuentesExplorar()
+            : [];
+
+        return new \WP_REST_Response([
+            'data' => [
+                'colecciones' => $colecciones,
+                'tags_frecuentes' => $tagsFrecuentes,
+            ],
+        ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::explorar', [
                 'error' => $e->getMessage(),

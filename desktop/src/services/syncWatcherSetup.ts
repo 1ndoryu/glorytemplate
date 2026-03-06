@@ -709,12 +709,24 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                     } else {
                         /*
                          * Fallback: la colección no está en tracking local por nombre anterior.
-                         * Antes de crear una nueva, verificar si existe en servidor con el nombre
-                         * viejo → renombrar en vez de duplicar. Solo crear si realmente no existe.
+                         * B-Rename: Primero esperar si hay una creación en vuelo para el nombre
+                         * viejo. Si la creación POST está todavía procesándose, nos daría un ID
+                         * para renombrar en vez de crear un duplicado.
+                         * Si no hay en-vuelo, buscar en servidor antes de crear.
                          */
-                        console.info('[Sync] Carpeta renombrada sin colección local → buscando en servidor:', nombreAnterior);
+                        console.info('[Sync] Carpeta renombrada sin colección local → verificando en-vuelo/servidor:', nombreAnterior);
                         (async () => {
                             try {
+                                const idEnVuelo = await colMod.esperarCreacionEnVuelo(nombreAnterior);
+                                if (idEnVuelo) {
+                                    console.info('[Sync] Creación en-vuelo completada, renombrando:', idEnVuelo, '→', nombreNuevo);
+                                    const exito = await colMod.renombrarColeccionEnServidor(idEnVuelo, nombreNuevo);
+                                    if (!exito && trackingModule) {
+                                        await trackingModule.actualizarNombreColeccion(idEnVuelo, nombreNuevo, nombreNuevo);
+                                    }
+                                    return;
+                                }
+
                                 const idServidor = await colMod.buscarColeccionServidorPorNombrePublico(nombreAnterior);
                                 if (idServidor) {
                                     console.info('[Sync] Colección encontrada en servidor por nombre anterior, renombrando:', idServidor, '→', nombreNuevo);

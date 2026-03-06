@@ -314,6 +314,42 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
+     * B1: Tags más frecuentes de colecciones públicas (explorar).
+     * Agrega tags de todos los samples activos en colecciones públicas.
+     */
+    public static function tagsFrecuentesExplorar(int $limite = 15): array
+    {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+
+        $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $sampleId = SamplesCols::ID;
+        $sampleTags = SamplesCols::TAGS;
+        $sampleEstado = SamplesCols::ESTADO;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        $colPublica = ColeccionesCols::PUBLICA;
+        $colId = ColeccionesCols::ID;
+
+        $rows = static::consultar(
+            "SELECT tag_val, COUNT(*) as frecuencia
+             FROM {$tcs} cs
+             JOIN {$t} c ON cs.{$csColeccionId} = c.{$colId}
+             JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
+             CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+             WHERE c.{$colPublica} = true
+               AND s.{$sampleEstado} = '{$estadoActivo}'
+             GROUP BY tag_val
+             ORDER BY frecuencia DESC
+             LIMIT :limite",
+            ['limite' => $limite]
+        );
+
+        return array_column($rows, 'tag_val');
+    }
+
+    /*
      * Obtener colección con datos del creador (JOIN usuarios_ext).
      */
     public static function obtenerConCreador(int $id): ?array

@@ -108,13 +108,31 @@ export const listarColecciones = async (
     };
 };
 
-/* Colecciones públicas para explorar — C169: con búsqueda */
-export const listarColeccionesPublicas = async (busqueda?: string): Promise<RespuestaApi<Coleccion[]>> => {
+/* B1: Colecciones públicas para explorar — ahora retorna tags_frecuentes también */
+export const listarColeccionesPublicas = async (
+    busqueda?: string
+): Promise<RespuestaApi<RespuestaListarColecciones>> => {
     const params: Record<string, string | number | boolean | undefined> = {};
     if (busqueda) params.busqueda = busqueda;
-    const resp = await apiGet<Coleccion[]>('/colecciones/explorar', params);
-    if (resp.ok && resp.data) resp.data = normalizarLista(resp.data);
-    return resp;
+    const resp = await apiGet<ListarRaw>('/colecciones/explorar', params);
+
+    if (resp.ok && resp.data) {
+        const raw = resp.data;
+        const coleccionesRaw = Array.isArray(raw) ? raw : (raw.colecciones ?? []);
+        const tagsFrecuentes = Array.isArray(raw) ? [] : (raw.tags_frecuentes ?? []);
+
+        return {
+            ok: true,
+            data: {
+                colecciones: normalizarLista(coleccionesRaw as unknown[]),
+                tagsFrecuentes,
+            },
+            error: null,
+            status: resp.status,
+        };
+    }
+
+    return { ok: false, data: null, error: resp.error, status: resp.status };
 };
 
 /* Detalle de una colección */

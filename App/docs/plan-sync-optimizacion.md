@@ -49,8 +49,8 @@ El problema es que `buscarColeccionPorCarpeta` busca por nombre de carpeta ACTUA
 
 ### C386: Fix Rename Carpeta Duplica Colección
 
-- [ ] **C386a** `syncTrackingService.buscarColeccionPorCarpeta`: comparar case-insensitive (`toLowerCase`) + sanitización de ambos lados para match robusto.
-- [ ] **C386b** `syncWatcherSetup` callback rename: fallback — si `buscarColeccionPorCarpeta(nombreAnterior)` falla, buscar en servidor por nombre y renombrar en vez de crear.
+- [x] **C386a** `syncTrackingService.buscarColeccionPorCarpeta`: comparar case-insensitive (`toLowerCase`) + sanitización de ambos lados para match robusto. (Ya implementado: toLowerCase + fallback por nombre)
+- [x] **C386b** `syncWatcherSetup` callback rename: fallback — si `buscarColeccionPorCarpeta(nombreAnterior)` falla, buscar en servidor por nombre y renombrar en vez de crear. + `esperarCreacionEnVuelo()` para evitar race condition con creaciones in-flight.
 
 ### C387: Subcolecciones (2 niveles máximo)
 
@@ -71,28 +71,28 @@ carpetaSync/
 ```
 
 **Tareas backend:**
-- [ ] **C387a** Migración SQL: `ALTER TABLE colecciones ADD COLUMN parent_id INT NULL REFERENCES colecciones(id) ON DELETE CASCADE; CREATE INDEX idx_colecciones_parent ON colecciones(parent_id);`
-- [ ] **C387b** Schema: Actualizar `ColeccionesSchema.php` + regenerar (`npx glory schema:generate`).
-- [ ] **C387c** `ColeccionesRepository`: método `listarConSubcolecciones(userId)` — retorna colecciones padre con `subcolecciones: []` anidadas. Método `listarSubcolecciones(parentId)`.
-- [ ] **C387d** `ColeccionesCrudController::crear`: aceptar param `parent_id` opcional. Validar: (1) padre existe y es del usuario, (2) padre NO es subcolección (max 2 niveles), (3) nombre único dentro del padre.
-- [ ] **C387e** `ColeccionesController::obtener`: incluir subcolecciones en la respuesta de detalle.
-- [ ] **C387f** `ColeccionesController::listar`: incluir subcolecciones agrupadas dentro de sus padres.
-- [ ] **C387g** SyncRepository (`/me/sync/colecciones`): incluir `parent_id` en el payload de sync.
-- [ ] **C387h** NormalizadorSample/normalizarColeccion: incluir `parentId` en la normalización.
+- [x] **C387a** Migración SQL: `v022_subcolecciones.sql` aplicada (parent_id, depth, índices, constraint 2 niveles).
+- [x] **C387b** Schema: `ColeccionesSchema.php` actualizado + regenerado.
+- [x] **C387c** `ColeccionesRepository`: `listarSubcolecciones(parentId)` implementado.
+- [x] **C387d** `ColeccionesCrudController::crear`: acepta `parent_id`, valida 2 niveles máx.
+- [x] **C387e** `ColeccionesController::obtener`: incluye subcolecciones.
+- [x] **C387f** `ColeccionesController::listar`: incluye subcolecciones agrupadas.
+- [x] **C387g** SyncRepository: incluye `parent_id` en payload sync.
+- [x] **C387h** `normalizarColeccion` en apiColecciones.ts: incluye `parentId`.
 
 **Tareas desktop sync:**
-- [ ] **C387i** `syncTrackingService.ColeccionLocal`: agregar campo `parentId: number | null`.
-- [ ] **C387j** `syncCollectionService.crearColeccionDesdeLocal`: aceptar `parentId` opcional. Si la carpeta estáen nivel 2 (subcarpeta de colección), buscar parent por nombre de carpeta padre.
-- [ ] **C387k** `fileWatcherService`: extender detección de carpetas a nivel 2 (actualmente solo nivel 1). Carpeta nueva dentro de colección = subcolección.
-- [ ] **C387l** `syncWatcherSetup`: callbacks de carpeta nivel 2 → crear subcolección con `parentId`.
-- [ ] **C387m** `escanearCarpetaYEncolar`: ya escanea 2 niveles, ajustar para crear subcolecciones cuando detecte archivos en nivel 2.
-- [ ] **C387n** `encolarArchivo`: si `carpetas` tiene 2 elementos (coleccion/subcoleccion), resolver ambos IDs.
+- [x] **C387i** `syncTrackingService.ColeccionLocal`: campo `parentId` implementado.
+- [x] **C387j** `syncCollectionService.crearColeccionDesdeLocal`: acepta `parentId` opcional.
+- [x] **C387k** `fileWatcherService`: detección carpetas nivel 2 implementada (subcarpetas).
+- [x] **C387l** `syncWatcherSetup`: callbacks subcarpeta nivel 2 con `parentId`.
+- [x] **C387m** `escanearCarpetaYEncolar`: crea subcolecciones para archivos en nivel 2.
+- [x] **C387n** `uploadQueueService`: B2 fix — resuelve subcoleccionId desde carpetas[1], asigna sample a padre + subcolección.
 
 **Tareas React UI — Detalle colección (feedTags subcolecciones):**
-- [ ] **C387o** `useColeccionDetalle`: cargar subcolecciones del endpoint. Nuevo state `subcolecciones` + `subcoleccionActiva: number | null`.
-- [ ] **C387p** `ColeccionDetalleIsland`: renderizar subcolecciones como badges/tags debajo del header, ANTES del FeedSamples. Badge "Ver todo" (default activo) + badge por subcolección. Al hacer click se filtra el feed por samples de esa subcolección.
-- [ ] **C387q** Crear componente `FiltroSubcolecciones.tsx`: fila horizontal de badges clicables (estilo feedTags). Props: `subcolecciones`, `activa`, `onCambiar`. Incluye badge "Ver todo" que muestra todos los samples incluyendo subcolecciones.
-- [ ] **C387r** CSS: `filtroSubcolecciones.css` — estilo consistente con feedTags existente.
+- [x] **C387o** `useColeccionDetalle`: state subcolecciones + subcoleccionActiva implementado.
+- [x] **C387p** `ColeccionDetalleIsland`: badges subcolecciones con filtrado.
+- [x] **C387q** `FiltroSubcolecciones.tsx`: componente badges clicables implementado.
+- [x] **C387r** CSS: estilos filtroSubcolecciones implementados.
 
 ### C388: UI Página Colecciones — barraControl + tags
 
@@ -102,13 +102,13 @@ carpetaSync/
 3. Las subcolecciones deben mostrarse igual que las colecciones en la grid.
 
 **Tareas:**
-- [ ] **C388a** `apiColecciones`: nuevo endpoint o param para obtener tags agregados de todas las colecciones del usuario (top N tags más frecuentes).
-- [ ] **C388b** Backend: `ColeccionesController::listar` → incluir `tags_frecuentes` (top 15 tags de todos los samples del usuario agrupados por frecuencia).
-- [ ] **C388c** `useLibreriaIsland`: agregar estado para filtros (tags incluidos/excluidos), ordenamiento (recientes, nombre, total_samples), y búsqueda.
-- [ ] **C388d** `LibreriaIsland` tab "Mis Colecciones": agregar `inicioBarraControl` con contador, selector de orden, y botón "Nueva colección".
-- [ ] **C388e** `LibreriaIsland`: agregar `FiltroTags` encima del grid para filtrar colecciones por tags de sus samples.
-- [ ] **C388f** `LibreriaIsland`: renderizar subcolecciones en el mismo grid que colecciones padre (con indicador visual de que son sub). TarjetaColeccion muestra badge "Sub" o ícono de anidamiento.
-- [ ] **C388g** `TarjetaColeccion`: prop opcional `esSubcoleccion` para renderizar indicador visual (ícono folder anidado o badge).
+- [x] **C388a** `apiColecciones`: `listarColeccionesPublicas` retorna `tagsFrecuentes` (B1). Backend: `tagsFrecuentesExplorar()` en ColeccionesRepository.
+- [x] **C388b** Backend: `ColeccionesController::listar` incluye `tags_frecuentes`. `explorar` también incluye tags (B1).
+- [x] **C388c** `useLibreriaIsland`: estado filtros (tagActivo), ordenamiento (recientes/nombre/totalSamples), búsqueda global.
+- [x] **C388d** `LibreriaIsland`: barraControl compartida entre ambas tabs (B1) con contador, orden, y botón Nueva (solo en colecciones).
+- [x] **C388e** `LibreriaIsland`: badges tagsFrecuentes filtrables en ambas tabs.
+- [x] **C388f** `LibreriaIsland`: subcolecciones aplanadas en grid (coleccionesPlanas useMemo).
+- [x] **C388g** `TarjetaColeccion`: prop `esSubcoleccion` implementada.
 
 ---
 

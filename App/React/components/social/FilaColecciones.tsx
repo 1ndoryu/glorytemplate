@@ -22,7 +22,7 @@ export const FilaColecciones = (): JSX.Element | null => {
             try {
                 const resp = await listarColeccionesPublicas();
                 if (activo && resp.ok && resp.data) {
-                    setColecciones(resp.data.slice(0, MAX_COLECCIONES));
+                    setColecciones(resp.data.colecciones.slice(0, MAX_COLECCIONES));
                 }
             } catch {
                 /* Error cargando colecciones — fila no se muestra */

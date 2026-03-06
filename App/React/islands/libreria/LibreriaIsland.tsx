@@ -54,29 +54,9 @@ export const LibreriaIsland = (): JSX.Element => {
                     <Music size={32} className="libreriaVacioIcono" />
                     <p>Cargando...</p>
                 </div>
-            ) : tabActiva === 'explorar' ? (
-                coleccionesPublicas.length === 0 ? (
-                    <div className="libreriaVacio">
-                        <Globe size={32} />
-                        <h3 className="libreriaVacioTitulo">Sin colecciones públicas</h3>
-                        <p className="libreriaVacioTexto">Aún no hay colecciones compartidas por otros usuarios.</p>
-                    </div>
-                ) : (
-                    <div className="libreriaGridColecciones">
-                        {coleccionesPublicas.map(col => {
-                            const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
-                            return (
-                                <TarjetaColeccion key={col.id} coleccion={col}
-                                    onEditar={esPropia ? manejarEditarColeccion : undefined}
-                                    onEliminar={esPropia ? manejarEliminarColeccion : undefined}
-                                />
-                            );
-                        })}
-                    </div>
-                )
             ) : (
                 <>
-                    {/* C388: Barra de control con contador, ordenamiento y botón nueva */}
+                    {/* B1: barraControl compartida entre ambas tabs */}
                     <div className="libreriaBarraControl">
                         <div className="libreriaControlesIzquierda">
                             <span className="libreriaContador">{totalColecciones} colecciones</span>
@@ -109,13 +89,15 @@ export const LibreriaIsland = (): JSX.Element => {
                                 )}
                             </div>
 
-                            <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
-                                <Plus size={14} /> Nueva
-                            </BotonBase>
+                            {tabActiva !== 'explorar' && (
+                                <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
+                                    <Plus size={14} /> Nueva
+                                </BotonBase>
+                            )}
                         </div>
                     </div>
 
-                    {/* C388: Tags frecuentes como badges filtrables */}
+                    {/* B1: Tags frecuentes compartidos entre ambas tabs */}
                     {tagsFrecuentes.length > 0 && (
                         <div className="libreriaTagsFrecuentes">
                             <Badge
@@ -142,22 +124,49 @@ export const LibreriaIsland = (): JSX.Element => {
                         </div>
                     )}
 
-                    {/* Grid de colecciones (incluye subcolecciones aplanadas) */}
-                    {colecciones.length === 0 ? (
-                        <div className="libreriaVacio">
-                            <FolderOpen size={32} />
-                            <h3 className="libreriaVacioTitulo">
-                                {tagActivo ? 'Sin resultados' : 'Sin colecciones'}
-                            </h3>
-                            <p className="libreriaVacioTexto">
-                                {tagActivo
-                                    ? `No hay colecciones con el tag "${tagActivo}".`
-                                    : 'Crea tu primera colección para organizar samples.'}
-                            </p>
-                            {!tagActivo && (
-                                <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
-                                    <Plus size={14} /> Nueva colección
-                                </BotonBase>
+                    {/* Contenido de tab activa */}
+                    {tabActiva === 'explorar' ? (
+                        coleccionesPublicas.length === 0 ? (
+                            <div className="libreriaVacio">
+                                <Globe size={32} />
+                                <h3 className="libreriaVacioTitulo">
+                                    {tagActivo ? 'Sin resultados' : 'Sin colecciones públicas'}
+                                </h3>
+                                <p className="libreriaVacioTexto">
+                                    {tagActivo
+                                        ? `No hay colecciones con el tag "${tagActivo}".`
+                                        : 'Aún no hay colecciones compartidas por otros usuarios.'}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="libreriaGridColecciones">
+                                {coleccionesPublicas.map(col => {
+                                    const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
+                                    return (
+                                        <TarjetaColeccion key={col.id} coleccion={col}
+                                            onEditar={esPropia ? manejarEditarColeccion : undefined}
+                                            onEliminar={esPropia ? manejarEliminarColeccion : undefined}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )
+                    ) : (
+                        colecciones.length === 0 ? (
+                            <div className="libreriaVacio">
+                                <FolderOpen size={32} />
+                                <h3 className="libreriaVacioTitulo">
+                                    {tagActivo ? 'Sin resultados' : 'Sin colecciones'}
+                                </h3>
+                                <p className="libreriaVacioTexto">
+                                    {tagActivo
+                                        ? `No hay colecciones con el tag "${tagActivo}".`
+                                        : 'Crea tu primera colección para organizar samples.'}
+                                </p>
+                                {!tagActivo && (
+                                    <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
+                                        <Plus size={14} /> Nueva colección
+                                    </BotonBase>
                             )}
                         </div>
                     ) : (
@@ -170,7 +179,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                 />
                             ))}
                         </div>
-                    )}
+                    ))}
                 </>
             )}
 

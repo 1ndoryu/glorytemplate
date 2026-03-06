@@ -21,7 +21,7 @@
 
 import { esDesktop, estaOnline } from './desktopService';
 import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync, obtenerConfigSync } from './syncService';
-import { obtenerBaseUrlSync } from './syncGuards';
+import { obtenerBaseUrlSync, marcarDescargaEnCurso, marcarMovimientoInterno } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 import { estado } from './syncState';
@@ -370,11 +370,13 @@ async function encolarArchivoInterno(
                 hashesConocidos.delete(hash);
                 /* Continuar con encolamiento normal */
             } else {
-                console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
+                console.info('[UploadQueue] Duplicado detectado por hash, moviendo a duplicados/:', nombreNormalizado);
+                await moverADuplicados(rutaArchivo, carpetas);
                 return false;
             }
         } else {
-            console.info('[UploadQueue] Duplicado detectado por hash:', nombreNormalizado);
+            console.info('[UploadQueue] Duplicado detectado por hash, moviendo a duplicados/:', nombreNormalizado);
+            await moverADuplicados(rutaArchivo, carpetas);
             return false;
         }
     }
@@ -730,24 +732,39 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
          * Resolver colección real a partir del nombre de carpeta local.
          * Permite pasar coleccionId a registrarSubidaLocal para tracking correcto
          * y agregar el sample a la tabla coleccion_samples en el servidor.
+         *
+         * B2: Si el sample está en subcarpeta (carpetas[1]), resolver subcollección
+         * y asignar a AMBAS: la colección padre Y la subcolección.
+         * Así el sample aparece en la colección principal al expandirla
+         * y también se puede filtrar por subcolección.
          */
         let coleccionIdResuelta: number | null = null;
+        let subcoleccionIdResuelta: number | null = null;
         if (item.carpetas.length > 0) {
             const nombreCarpeta = item.carpetas[0] || '';
             if (nombreCarpeta && estado.trackingModule) {
                 const coleccion = estado.trackingModule.buscarColeccionPorCarpeta(nombreCarpeta);
                 if (coleccion) {
                     coleccionIdResuelta = coleccion.id;
+
+                    /* B2: Resolver subcolección si hay segundo nivel de carpeta */
+                    if (item.carpetas.length >= 2 && item.carpetas[1]) {
+                        const sub = estado.trackingModule.buscarSubcoleccion(nombreCarpeta, item.carpetas[1]);
+                        if (sub) {
+                            subcoleccionIdResuelta = sub.id;
+                        }
+                    }
                 }
             }
         }
 
-        /* Registrar en tracking + historial para feedback persistente en panel */
+        /* Registrar en tracking + historial para feedback persistente en panel.
+         * B2: Usar la colección más específica (subcolección > padre) para tracking. */
         await registrarSubidaLocal(
             resultado.sample_id,
             item.rutaArchivo,
             item.nombreArchivo,
-            coleccionIdResuelta,
+            subcoleccionIdResuelta ?? coleccionIdResuelta,
         );
 
         /* Rehidratación centralizada: usar snapshot /me/sync/colecciones como fuente
@@ -758,17 +775,18 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         });
 
         /*
-         * Asignar sample a colección en el servidor.
+         * Asignar sample a colección(es) en el servidor.
+         *
+         * B2: Asignar a AMBAS (padre + subcolección) para que el sample
+         * aparezca al navegar la colección padre y se pueda filtrar por sub.
          *
          * Si hay colección conocida en tracking:
          * 1. POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real).
-         * 2. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
+         * 2. Si hay subcolección, también POST para esa.
+         * 3. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
          *
          * C384: Si hay carpeta pero NO colección en tracking, crearla ahora.
-         * crearColeccionDesdeLocal es idempotente (verifica tracking local, in-flight Map,
-         * servidor via GET y maneja 409 conflict), así que es seguro llamarla aunque
-         * el folder handler la dispare en paralelo. Esto resuelve el caso donde el
-         * usuario mueve un archivo a una carpeta nueva y la colección nunca se creaba.
+         * crearColeccionDesdeLocal es idempotente.
          */
         if (item.carpetas.length > 0) {
             if (!coleccionIdResuelta && item.carpetas[0]) {
@@ -784,12 +802,37 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
                 }
             }
 
+            /* B2: Resolver/crear subcolección si hay segundo nivel */
+            if (!subcoleccionIdResuelta && item.carpetas[1] && coleccionIdResuelta) {
+                try {
+                    const { crearColeccionDesdeLocal } = await import('./syncCollectionService');
+                    const idSub = await crearColeccionDesdeLocal(item.carpetas[1], coleccionIdResuelta);
+                    if (idSub) {
+                        subcoleccionIdResuelta = idSub;
+                        console.info('[UploadQueue] Subcolección creada/resuelta:', item.carpetas[1], '→ id:', idSub);
+                    }
+                } catch (err) {
+                    console.error('[UploadQueue] Error creando subcolección:', item.carpetas[1], err);
+                }
+            }
+
+            /* Asignar a colección padre */
             if (coleccionIdResuelta) {
                 try {
                     const { agregarSampleAColeccion } = await import('./syncCollectionService');
                     await agregarSampleAColeccion(coleccionIdResuelta, resultado.sample_id);
                 } catch (err) {
-                    console.error('[UploadQueue] Error agregando sample a colección:', err);
+                    console.error('[UploadQueue] Error agregando sample a colección padre:', err);
+                }
+            }
+
+            /* B2: Asignar también a subcolección */
+            if (subcoleccionIdResuelta) {
+                try {
+                    const { agregarSampleAColeccion } = await import('./syncCollectionService');
+                    await agregarSampleAColeccion(subcoleccionIdResuelta, resultado.sample_id);
+                } catch (err) {
+                    console.error('[UploadQueue] Error agregando sample a subcolección:', err);
                 }
             }
 
@@ -828,6 +871,56 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             hashesEnVuelo.delete(item.hashParcial);
         }
         rutasEnVuelo.delete(rutaClave);
+    }
+}
+
+/*
+ * B6: Mueve un archivo duplicado a la carpeta duplicados/ manteniendo
+ * la estructura de carpetas relativa desde la raíz de sync.
+ *
+ * Ejemplo: sync/Hip Hop/kick.wav → sync/duplicados/Hip Hop/kick.wav
+ *
+ * Si el archivo destino ya existe, agrega timestamp al nombre para
+ * evitar colisiones (kick_1749839234.wav).
+ */
+async function moverADuplicados(rutaArchivo: string, carpetas: string[]): Promise<boolean> {
+    try {
+        const { rename, mkdir, exists } = await import('@tauri-apps/plugin-fs');
+        const { join, basename } = await import('@tauri-apps/api/path');
+
+        const config = obtenerConfigSync();
+        if (!config?.carpetaLocal) return false;
+
+        const nombreArchivo = await basename(rutaArchivo);
+        const carpetaDuplicados = await join(config.carpetaLocal, 'duplicados');
+
+        /* Reconstruir estructura de carpetas dentro de duplicados/ */
+        let carpetaDestino = carpetaDuplicados;
+        for (const carpeta of carpetas) {
+            carpetaDestino = await join(carpetaDestino, carpeta);
+        }
+
+        await mkdir(carpetaDestino, { recursive: true });
+
+        /* Evitar colisión de nombres */
+        let rutaDestino = await join(carpetaDestino, nombreArchivo);
+        if (await exists(rutaDestino)) {
+            const partes = nombreArchivo.split('.');
+            const extension = partes.length > 1 ? partes.pop() : '';
+            const base = partes.join('.');
+            rutaDestino = await join(carpetaDestino, `${base}_${Date.now()}.${extension}`);
+        }
+
+        /* Marcar como movimiento interno para que el watcher lo ignore */
+        marcarMovimientoInterno(rutaArchivo);
+        marcarDescargaEnCurso(rutaDestino);
+
+        await rename(rutaArchivo, rutaDestino);
+        console.info('[UploadQueue] Duplicado movido a:', rutaDestino);
+        return true;
+    } catch (err) {
+        console.error('[UploadQueue] Error moviendo duplicado:', err);
+        return false;
     }
 }
 
@@ -925,15 +1018,24 @@ function generarTagsDesdeContexto(carpetas: string[], nombreArchivo: string): st
         }
     }
 
-    /* Tags del nombre del archivo */
+    /*
+     * Tags del nombre del archivo.
+     * B4 fix: No agregar palabras sueltas que sean fragmentos de tags ya existentes
+     * (ej: si "hip hop" ya es tag de carpeta, no agregar "hip" ni "hop" por separado).
+     */
     const palabras = nombreArchivo
         .replace(/[_\-\.]+/g, ' ')
         .split(/\s+/)
         .map(p => p.toLowerCase().trim())
         .filter(p => p.length >= 2 && !/^\d+$/.test(p));
 
+    const tagsCarpetaExistentes = Array.from(tagsSet);
     for (const palabra of palabras) {
-        if (tagsSet.size < 8) {
+        if (tagsSet.size >= 8) break;
+        const esFragmento = tagsCarpetaExistentes.some(
+            tag => tag.includes(' ') && tag.includes(palabra) && tag !== palabra
+        );
+        if (!esFragmento) {
             tagsSet.add(palabra);
         }
     }

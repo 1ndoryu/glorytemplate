@@ -89,6 +89,23 @@ const BACKOFF_BASE_CREAR_COLECCION_MS = 1200;
 /* Evita POST duplicados cuando watcher/polling disparan la misma colección a la vez. */
 const creacionesColeccionEnVuelo = new Map<string, Promise<number | null>>();
 
+/*
+ * B-Rename: Permite al handler de rename esperar una creación en vuelo para
+ * el nombre anterior. Si hay un POST pendiente para la colección vieja,
+ * lo espera y retorna el ID creado para que pueda renombrarse en vez de duplicarse.
+ */
+export async function esperarCreacionEnVuelo(nombre: string, parentId: number | null = null): Promise<number | null> {
+    const nombreNormalizado = normalizarNombreColeccion(nombre);
+    const clave = `${parentId ?? 'raiz'}_${nombreNormalizado.toLowerCase()}`;
+    const enVuelo = creacionesColeccionEnVuelo.get(clave);
+    if (!enVuelo) return null;
+    try {
+        return await enVuelo;
+    } catch {
+        return null;
+    }
+}
+
 function dormir(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -252,9 +269,20 @@ export async function sincronizarColecciones(
     const datosServidor = await obtenerColeccionesDelServidor();
     if (!datosServidor) return { nuevos: 0, errores: 0 };
 
-    /* Mantener tracking consistente: purgar entries de samples que el servidor ya no tiene.
-     * Esto permite que el watcher re-encole archivos borrados del servidor cuando el
-     * usuario los vuelva a anadir localmente. */
+    /*
+     * Purga de tracking: eliminar entries de samples ausentes en el servidor.
+     * SOLO se ejecuta en sync completo (no en soloEstructura/polling).
+     *
+     * Sin este guard, el polling periódico (cada 60s) borraba tracking de
+     * archivos locales si el servidor devolvía datos vacíos o incompletos
+     * (auth no lista, latencia pipeline, error transitorio).
+     * Esto causaba que al iniciar el programa TODAS las colecciones se vaciaran
+     * porque la primera llamada de estructura purgaba el tracking entero.
+     *
+     * Protección adicional: si el servidor retorna 0 samples pero localmente
+     * hay >5 archivos trackeados, es casi seguro una respuesta inválida.
+     * En ese caso se omite la purga para evitar data loss.
+     */
     const sampleIdsServidor = new Set<number>();
     for (const col of datosServidor.colecciones) {
         for (const s of col.samples) sampleIdsServidor.add(s.id);
@@ -262,37 +290,46 @@ export async function sincronizarColecciones(
     for (const s of datosServidor.sinColeccion) sampleIdsServidor.add(s.id);
 
     const archivosActuales = todosLosArchivos();
-    const borrarLocalSiNoEnServidor = estado.configAvanzada.borrarEnLocalAlBorrarEnServidor;
 
-    for (const archivo of archivosActuales) {
-        if (!sampleIdsServidor.has(archivo.sampleId)) {
-            const esReciente = (Date.now() - (archivo.descargadoEn ?? 0)) < GRACIA_PRESENCIA_SERVIDOR_MS;
-            if (esReciente) {
-                console.info('[SyncCollection] Omitiendo purge por ventana de gracia (sample reciente):', archivo.sampleId, archivo.nombreLocal);
-                continue;
-            }
+    if (!soloEstructura) {
+        const borrarLocalSiNoEnServidor = estado.configAvanzada.borrarEnLocalAlBorrarEnServidor;
 
-            /* Borrado bidireccional server→local: mover a papelera si esta activo */
-            if (borrarLocalSiNoEnServidor && archivo.rutaLocal) {
-                const { exists: existeFs } = await import('@tauri-apps/plugin-fs');
-                const existeArchivo = await existeFs(archivo.rutaLocal).catch(() => false);
-                if (existeArchivo && estado.config.carpetaLocal) {
-                    const movido = await moverAPapelera(
-                        archivo.rutaLocal,
-                        archivo.nombreLocal,
-                        archivo.sampleId,
-                        archivo.coleccionId,
-                        'servidor',
-                        estado.config.carpetaLocal,
-                    );
-                    if (movido) {
-                        console.info('[SyncCollection] Archivo local movido a papelera (borrado en servidor):', archivo.nombreLocal);
+        /* Seguridad: no purgar si servidor devuelve vacío pero hay muchos archivos locales */
+        const esRespuestaVaciaSospechosa = sampleIdsServidor.size === 0 && archivosActuales.length > 5;
+        if (esRespuestaVaciaSospechosa) {
+            console.warn('[SyncCollection] Servidor retornó 0 samples pero hay', archivosActuales.length, 'locales. Omitiendo purga (posible error de auth/red).');
+        } else {
+            for (const archivo of archivosActuales) {
+                if (!sampleIdsServidor.has(archivo.sampleId)) {
+                    const esReciente = (Date.now() - (archivo.descargadoEn ?? 0)) < GRACIA_PRESENCIA_SERVIDOR_MS;
+                    if (esReciente) {
+                        console.info('[SyncCollection] Omitiendo purge por ventana de gracia (sample reciente):', archivo.sampleId, archivo.nombreLocal);
+                        continue;
                     }
+
+                    /* Borrado bidireccional server→local: mover a papelera si esta activo */
+                    if (borrarLocalSiNoEnServidor && archivo.rutaLocal) {
+                        const { exists: existeFs } = await import('@tauri-apps/plugin-fs');
+                        const existeArchivo = await existeFs(archivo.rutaLocal).catch(() => false);
+                        if (existeArchivo && estado.config.carpetaLocal) {
+                            const movido = await moverAPapelera(
+                                archivo.rutaLocal,
+                                archivo.nombreLocal,
+                                archivo.sampleId,
+                                archivo.coleccionId,
+                                'servidor',
+                                estado.config.carpetaLocal,
+                            );
+                            if (movido) {
+                                console.info('[SyncCollection] Archivo local movido a papelera (borrado en servidor):', archivo.nombreLocal);
+                            }
+                        }
+                    }
+
+                    await eliminarArchivo(archivo.sampleId, archivo.coleccionId);
+                    console.info('[SyncCollection] Eliminado de tracking (ya no existe en servidor):', archivo.nombreLocal, '(id:', archivo.sampleId, ')');
                 }
             }
-
-            await eliminarArchivo(archivo.sampleId, archivo.coleccionId);
-            console.info('[SyncCollection] Eliminado de tracking (ya no existe en servidor):', archivo.nombreLocal, '(id:', archivo.sampleId, ')');
         }
     }
 

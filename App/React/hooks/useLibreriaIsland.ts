@@ -78,7 +78,13 @@ export function useLibreriaIsland() {
                 if (tabActiva === 'explorar') {
                     const resp = await listarColeccionesPublicas(busqueda || undefined);
                     if (!activo) return;
-                    setColeccionesPublicas(resp.ok && resp.data ? resp.data : []);
+                    if (resp.ok && resp.data) {
+                        setColeccionesPublicas(resp.data.colecciones);
+                        setTagsFrecuentes(resp.data.tagsFrecuentes);
+                    } else {
+                        setColeccionesPublicas([]);
+                        setTagsFrecuentes([]);
+                    }
                 } else if (tabActiva === 'colecciones') {
                     const resp = await listarColecciones(undefined, busqueda || undefined);
                     if (!activo) return;
@@ -172,8 +178,37 @@ export function useLibreriaIsland() {
         return copia;
     }, [coleccionesPlanas, tagActivo, orden]);
 
-    /* C388: Total de colecciones para el contador */
-    const totalColecciones = coleccionesFiltradas.length;
+    /* B1: Filtrar y ordenar colecciones públicas (explorar) con los mismos criterios */
+    const publicasFiltradas: Coleccion[] = useMemo(() => {
+        let filtradas: Coleccion[] = coleccionesPublicas;
+
+        if (tagActivo) {
+            const tagLower = tagActivo.toLowerCase();
+            filtradas = filtradas.filter(c =>
+                c.tags.some(t => t.toLowerCase() === tagLower)
+            );
+        }
+
+        const copia = [...filtradas];
+        switch (orden) {
+            case 'nombre':
+                copia.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+                break;
+            case 'totalSamples':
+                copia.sort((a, b) => b.totalSamples - a.totalSamples);
+                break;
+            case 'recientes':
+            default:
+                break;
+        }
+
+        return copia;
+    }, [coleccionesPublicas, tagActivo, orden]);
+
+    /* C388: Total de colecciones para el contador (varía según tab activa) */
+    const totalColecciones = tabActiva === 'explorar'
+        ? publicasFiltradas.length
+        : coleccionesFiltradas.length;
 
     const abrirNuevaColeccion = useCallback(() => {
         setColeccionEditando(null);
@@ -186,10 +221,18 @@ export function useLibreriaIsland() {
     }, []);
 
     const manejarEliminarColeccion = useCallback(async (col: Coleccion) => {
+        /* B5: Eliminación optimista — remover de ambas listas inmediatamente */
+        setColecciones(prev => prev.filter(c => c.id !== col.id));
+        setColeccionesPublicas(prev => prev.filter(c => c.id !== col.id));
+
         const resp = await eliminarColeccion(col.id);
         if (resp.ok) {
-            setColecciones(prev => prev.filter(c => c.id !== col.id));
             log.info('Colección eliminada', { id: col.id });
+        } else {
+            /* Rollback: restaurar si falló */
+            log.error('Error eliminando colección, restaurando', { id: col.id });
+            setColecciones(prev => [col, ...prev]);
+            setColeccionesPublicas(prev => [col, ...prev]);
         }
     }, []);
 
@@ -202,7 +245,7 @@ export function useLibreriaIsland() {
     }, []);
 
     return {
-        colecciones: coleccionesFiltradas, coleccionesPublicas, cargando,
+        colecciones: coleccionesFiltradas, coleccionesPublicas: publicasFiltradas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         /* C388: Filtros y ordenamiento */

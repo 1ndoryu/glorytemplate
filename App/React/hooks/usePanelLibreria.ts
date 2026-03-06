@@ -31,7 +31,7 @@ export const usePanelLibreria = () => {
             try {
                 if (tab === 'explorar') {
                     const resp = await listarColeccionesPublicas();
-                    if (activo) setColeccionesPublicas(resp.ok && resp.data ? resp.data : []);
+                    if (activo) setColeccionesPublicas(resp.ok && resp.data ? resp.data.colecciones : []);
                 } else if (tab === 'colecciones') {
                     const resp = await listarColecciones();
                     if (activo) setColecciones(resp.ok && resp.data ? resp.data.colecciones : []);
