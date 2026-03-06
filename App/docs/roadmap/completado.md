@@ -148,3 +148,24 @@
   - [Skeleton]: Componentes skeleton por tipo de tarjeta (sample grid 40px|1fr|auto, colección flex col, publicación article layout). SkeletonFeed repite SkeletonTarjetaSample × cantidad. Animación pulso con opacity 0.45↔0.25 en 1.5s.
   - [Cola IA]: `marcarError()` maneja reintentos internamente (buscarPorId+intentos). El caller no debe pasar intentos, solo minutosEspera. listarItems necesita `$tipo` para filtrar por tipo procesamiento.
   - [Sentinel D2]: Regla `limite-lineas` funciona con 400 efectivas para services (path `/services/` o name `service`). ConstructorSenales y MotorRecomendacion son los únicos que exceden. lineCounter.ts excluye comentarios y blanks.
+
+---
+
+## Completado — Sprint E Fixes + Landing (E1-E8)
+
+- **E1** ✅ Landing page rediseñada: hero con buscador (busca en /explorar/?q=), 9 feature blocks en grid 3x4 (SeccionCaracteristicas.tsx) con overlay hover, tabla comparativa vs 4 competidores (TablaComparativa.tsx). Lógica extraída a useLandingPublica.ts. Nav con LogoKamples. CSS responsivo (3→2→1 columnas).
+- **E2** ✅ 6 fixes de log: NormalizadorSample +3 cols (publicado_at, created_at, total_comentarios), AdminRepo MODERACION_ESTADO_PENDIENTE, ReportesRepo +import ReportesEnums, ServicioIA max_tokens 1500→2500, ReproduccionesRepository void→bool con try-catch FK, BD +moderacion_razon TEXT.
+- **E3** ✅ Logo movido de TopBar a Sidebar (LogoKamples tamano=22, click→home). Favicon `<link>` después de `wp_head()` para override.
+- **E4** ✅ editarImagenPortada: preview 100% width, min-height 120px, max-height 240px, object-fit cover. Estado vacío drop-zone con borde punteado.
+- **E5** ✅ selectorMenu z-index: nueva variable --zMenuPortal:1100 (entre --zMenu:100 y --zModal:1000). Aplicada a overlay+dropdown.
+- **E6** ✅ feedTagsLista: SQL cambiado de UNNEST(s.tags) a jsonb_array_elements de metadata->'tags' + 'tags_es' + 'artista_vibes' (solo IA). +CARPETA_DEFAULT const, +TransaccionesEnums import+uso.
+- **E6b** ✅ Skeleton invisible: `--colorBorde` no existía en variables.css. Reemplazado por `--bordeSutil`.
+- **E7** ✅ Sync no community: mostrar_en_comunidad='false'. carpetasGenericas expandida con folders OS/cloud. Filtro regex drive letters.
+- **E7b** ✅ Sentinel lineCounter.ts: bloque `.ts` agregado antes de `.php` para detectar servicios/stores/modelos TS con sus límites (400/300 líneas).
+- **E8** ✅ Sentinel ruleLoader.ts: exclusiones expandidas (+desktop, +Mezclador, +temp, +.vscode-test).
+- **Aprendizajes:**
+  - [CSS vars]: Siempre verificar que una variable CSS existe en variables.css antes de usarla. `--colorBorde` era fantasma.
+  - [Sentinel]: La detección de tipo de archivo en lineCounter.ts retorna `null` para archivos sin handler → 0 diagnósticos. Cualquier nueva extensión necesita handler explícito.
+  - [Landing]: InputBusqueda tiene debounce (filtrado real-time), Input wrapper es mejor para submit-on-action (landing search).
+  - [Tags feed]: metadata JSONB con COALESCE + || (concat arrays) permite extraer múltiples keys IA sin UNNEST de tags manuales.
+  - [Favicon WP]: wp_head() puede inyectar su propio favicon. Poner `<link rel="icon">` después de wp_head() lo sobreescribe.

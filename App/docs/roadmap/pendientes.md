@@ -166,6 +166,21 @@ D9. ✅ [AG-SPD] **Skeleton loading system:** 6 componentes base (Skeleton, Skel
 
 ---
 
+## Sprint E — Fixes + Landing (completado)
+
+E1. ✅ [AG-SPE] Landing page rediseñada con hero+buscador, 9 feature blocks grid, tabla comparativa.
+E2. ✅ [AG-SPE] 6 log fixes (NormalizadorSample, AdminRepo, ReportesRepo, ServicioIA, ReproduccionesRepo, BD migration).
+E3. ✅ [AG-SPE] Logo a Sidebar + favicon override wp_head.
+E4. ✅ [AG-SPE] editarImagenPortada full-width + drop zone.
+E5. ✅ [AG-SPE] selectorMenu z-index --zMenuPortal:1100.
+E6. ✅ [AG-SPE] feedTagsLista solo tags IA (metadata JSONB).
+E6b. ✅ [AG-SPE] skeleton.css --colorBorde→--bordeSutil.
+E7. ✅ [AG-SPE] Sync mostrar_en_comunidad=false + filtro carpetas OS.
+E7b. ✅ [AG-SPE] Sentinel lineCounter.ts detecta servicios TS.
+E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
+
+---
+
 ## Pendientes sueltos
 
 359. Componente centralizado estados vacios/carga (coherencia visual).

@@ -54,6 +54,9 @@
 - No select nativo → MenuContextual. SVG flex: `flex-shrink:0`. Colors DAW: loop→acento, mute→error, solo→advertencia.
 - CSS vars rem/px → `--espacioX`/`--fuenteX`. VarSense mappings: bordeSubtle→bordeSutil, fondoSecundario→fondoElevado2, textoBase→textoPrimario, textoTenue→textoTerciario, textoAlto→blanco, verde→exito, rojo→error, radioCirculo→radioFull.
 - [BotonBase]: `.botonBase.tamanoMd` (especificidad 2) sobreescribe 1 clase → Fix: `.contenedor .clase.botonBase` (3+). Usar `<MenuContextual>` en 3-puntos. Input header: override contextual sin props extra.
+- [Skeleton]: `--colorBorde` no existe en variables.css → skeletons invisibles. Siempre verificar existencia de CSS vars antes de usar.
+- [Favicon]: `wp_head()` puede inyectar su propio `<link rel="icon">`. Poner el `<link>` personalizado DESPUÉS de wp_head() para override.
+- [z-index]: Portal dropdowns que aparecen sobre modales necesitan z-index mayor que --zModal. Solución: --zMenuPortal:1100.
 
 ---
 
