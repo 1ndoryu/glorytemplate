@@ -27,7 +27,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Glory\\": "Glory/src/"
+            "Glory\\": "Glory/src/",
+            "App\\": "App/"
         }
     },
     "scripts": {
