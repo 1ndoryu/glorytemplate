@@ -1,138 +1,99 @@
 /*
  * Componente: LandingPublica — Kamples
  * Página de bienvenida para usuarios no autenticados.
- * Muestra el valor de la plataforma, CTA de registro y samples trending.
- * Nav flotante fijo arriba con backdrop-filter: blur.
+ * Composición de secciones: Hero, Características, Trending, Comparativa, Planes, Footer.
+ * Lógica extraída a useLandingPublica.
  */
 
-import { useEffect, useState } from 'react';
 import {
-    AudioLines,
-    Headphones,
-    TrendingUp,
-    Users,
-    Zap,
     ArrowRight,
+    Search,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { LogoKamples } from '@app/components/ui/LogoKamples';
+import { Input } from '@app/components/ui/Input';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { Badge } from '@app/components/ui/Badge';
-import { obtenerFeed } from '@app/services/apiSamples';
-import { useNavigationStore } from '@/core/router';
-import { useReproductorStore } from '@app/stores/reproductorStore';
-import { useAuthModalStore } from '@app/stores/authModalStore';
-import type { SampleResumen } from '@app/types';
+import { useLandingPublica } from '@app/hooks/useLandingPublica';
+import { SeccionCaracteristicas } from './landing/SeccionCaracteristicas';
+import { TablaComparativa } from './landing/TablaComparativa';
 import '../../styles/componentes/landingPublica.css';
 
 export const LandingPublica = (): JSX.Element => {
-    const [trending, setTrending] = useState<SampleResumen[]>([]);
-    const navegar = useNavigationStore(s => s.navegar);
-    const setSample = useReproductorStore(s => s.setSample);
-    const sampleActual = useReproductorStore(s => s.sampleActual);
-    const reproduciendo = useReproductorStore(s => s.reproduciendo);
-    const progreso = useReproductorStore(s => s.progreso);
-    const abrirAuth = useAuthModalStore((s) => s.abrir);
-
-    useEffect(() => {
-        let activo = true;
-        const cargar = async () => {
-            try {
-                const resp = await obtenerFeed('trending');
-                if (activo && resp.ok && resp.data) setTrending(resp.data.slice(0, 6));
-            } catch {
-                /* Error cargando trending para landing — se muestra landing sin samples */
-            }
-        };
-        cargar();
-        return () => { activo = false; };
-    }, []);
+    const {
+        trending,
+        navegar,
+        setSample,
+        sampleActual,
+        reproduciendo,
+        progreso,
+        abrirAuth,
+    } = useLandingPublica();
 
     return (
         <div className="landingPublica" id="landingPublica">
             {/* Nav flotante con blur */}
             <nav className="landingNav">
                 <div className="landingNavIzquierda">
-                    <AudioLines size={24} />
+                    <LogoKamples tamano={22} />
                     <span className="landingNavLogo">Kamples</span>
                 </div>
                 <div className="landingNavDerecha">
-                    <BotonBase
-                        variante="ghost"
-                        tamano="sm"
-                        onClick={() => abrirAuth('login')}
-                    >
+                    <BotonBase variante="ghost" tamano="sm" onClick={() => abrirAuth('login')}>
                         Iniciar sesión
                     </BotonBase>
-                    <BotonBase
-                        variante="primario"
-                        tamano="sm"
-                        onClick={() => abrirAuth('registro')}
-                    >
+                    <BotonBase variante="primario" tamano="sm" onClick={() => abrirAuth('registro')}>
                         Crear cuenta
                     </BotonBase>
                 </div>
             </nav>
-            {/* Hero */}
+
+            {/* Hero con buscador */}
             <section className="landingHero">
-                <div className="landingHeroIcono">
-                    <AudioLines size={40} />
-                </div>
                 <h1 className="landingHeroTitulo">
-                    Descubre, comparte y crea
-                    <span className="landingHeroResaltado"> con samples</span>
+                    La mejor biblioteca de samples
+                    <span className="landingHeroResaltado"> del planeta</span>
                 </h1>
                 <p className="landingHeroDescripcion">
-                    La plataforma de samples con alma de red social.
-                    Algoritmo inteligente, comunidad de productores, todo en un solo lugar.
+                    Plataforma de samples con alma de red social. Algoritmo inteligente,
+                    comunidad de productores, sync automático — todo en un solo lugar.
                 </p>
-                <div className="landingHeroAcciones">
+                <div className="landingHeroBuscador">
+                    <Search size={18} className="landingHeroBuscadorIcono" />
+                    <Input
+                        className="landingHeroBuscadorInput"
+                        placeholder="Encuentra cualquier sonido"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                const valor = (e.target as HTMLInputElement).value.trim();
+                                if (valor) navegar(`/explorar/?q=${encodeURIComponent(valor)}`);
+                            }
+                        }}
+                    />
                     <BotonBase
                         variante="primario"
-                        onClick={() => abrirAuth('registro')}
+                        tamano="sm"
+                        onClick={() => {
+                            const input = document.querySelector<HTMLInputElement>('.landingHeroBuscadorInput');
+                            const valor = input?.value.trim();
+                            if (valor) navegar(`/explorar/?q=${encodeURIComponent(valor)}`);
+                        }}
                     >
+                        Buscar
+                    </BotonBase>
+                </div>
+                <div className="landingHeroAcciones">
+                    <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>
                         Crear cuenta gratis
                         <ArrowRight size={16} />
                     </BotonBase>
-                    <BotonBase
-                        variante="ghost"
-                        onClick={() => navegar('/explorar/')}
-                    >
+                    <BotonBase variante="ghost" onClick={() => navegar('/explorar/')}>
                         Explorar samples
                     </BotonBase>
                 </div>
             </section>
 
-            {/* Features */}
-            <section className="landingFeatures">
-                <div className="landingFeature">
-                    <div className="landingFeatureIcono">
-                        <Zap size={22} />
-                    </div>
-                    <h3>Algoritmo inteligente</h3>
-                    <p>6 señales de descubrimiento que superan la búsqueda básica</p>
-                </div>
-                <div className="landingFeature">
-                    <div className="landingFeatureIcono">
-                        <Users size={22} />
-                    </div>
-                    <h3>Red social nativa</h3>
-                    <p>Sigue a creadores, publica, comenta y comparte</p>
-                </div>
-                <div className="landingFeature">
-                    <div className="landingFeatureIcono">
-                        <Headphones size={22} />
-                    </div>
-                    <h3>Audio profesional</h3>
-                    <p>WAV original, waveforms interactivos, preview instantáneo</p>
-                </div>
-                <div className="landingFeature">
-                    <div className="landingFeatureIcono">
-                        <TrendingUp size={22} />
-                    </div>
-                    <h3>Monetización</h3>
-                    <p>Vende tus samples, gana revenue share, analytics avanzados</p>
-                </div>
-            </section>
+            <SeccionCaracteristicas />
 
             {/* Trending preview */}
             {trending.length > 0 && (
@@ -148,28 +109,21 @@ export const LandingPublica = (): JSX.Element => {
                                 sample={sample}
                                 onPlay={(s) => setSample(s)}
                                 activa={sampleActual?.id === sample.id}
-                                reproduciendo={
-                                    sampleActual?.id === sample.id && reproduciendo
-                                }
-                                progreso={
-                                    sampleActual?.id === sample.id ? progreso : 0
-                                }
-                                onClickCreador={(u) =>
-                                    navegar(`/perfil/${u}/`)
-                                }
+                                reproduciendo={sampleActual?.id === sample.id && reproduciendo}
+                                progreso={sampleActual?.id === sample.id ? progreso : 0}
+                                onClickCreador={(u) => navegar(`/perfil/${u}/`)}
                             />
                         ))}
                     </div>
                     <div className="landingTrendingCta">
-                        <BotonBase
-                            variante="secundario"
-                            onClick={() => navegar('/explorar/')}
-                        >
+                        <BotonBase variante="secundario" onClick={() => navegar('/explorar/')}>
                             Ver todos los samples
                         </BotonBase>
                     </div>
                 </section>
             )}
+
+            <TablaComparativa />
 
             {/* Planes preview */}
             <section className="landingPlanes">
@@ -183,49 +137,30 @@ export const LandingPublica = (): JSX.Element => {
                             <li>Calidad WAV original</li>
                             <li>Explora y descubre</li>
                         </ul>
-                        <BotonBase
-                            variante="ghost"
-                            onClick={() => abrirAuth('registro')}
-                        >
-                            Empezar
-                        </BotonBase>
+                        <BotonBase variante="ghost" onClick={() => abrirAuth('registro')}>Empezar</BotonBase>
                     </div>
                     <div className="landingPlan landingPlanDestacado">
                         <Badge>Popular</Badge>
                         <h3>Pro</h3>
-                        <span className="landingPlanPrecio">
-                            $5<small>/mes</small>
-                        </span>
+                        <span className="landingPlanPrecio">$5<small>/mes</small></span>
                         <ul>
                             <li>50 descargas/día</li>
                             <li>Calidad WAV original</li>
                             <li>Monetiza tus samples</li>
                             <li>Analytics avanzados</li>
                         </ul>
-                        <BotonBase
-                            variante="primario"
-                            onClick={() => abrirAuth('registro')}
-                        >
-                            Elegir Pro
-                        </BotonBase>
+                        <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>Elegir Pro</BotonBase>
                     </div>
                     <div className="landingPlan">
                         <h3>Premium</h3>
-                        <span className="landingPlanPrecio">
-                            $19.99<small>/mes</small>
-                        </span>
+                        <span className="landingPlanPrecio">$19.99<small>/mes</small></span>
                         <ul>
                             <li>Descargas ilimitadas</li>
                             <li>Todo lo de Pro</li>
                             <li>Revenue share 80/20</li>
                             <li>Soporte dedicado</li>
                         </ul>
-                        <BotonBase
-                            variante="ghost"
-                            onClick={() => abrirAuth('registro')}
-                        >
-                            Elegir Premium
-                        </BotonBase>
+                        <BotonBase variante="ghost" onClick={() => abrirAuth('registro')}>Elegir Premium</BotonBase>
                     </div>
                 </div>
             </section>
@@ -233,10 +168,7 @@ export const LandingPublica = (): JSX.Element => {
             {/* Footer CTA */}
             <section className="landingFooterCta">
                 <h2>Únete a la comunidad de productores</h2>
-                <BotonBase
-                    variante="primario"
-                    onClick={() => abrirAuth('registro')}
-                >
+                <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>
                     Crear cuenta gratis
                     <ArrowRight size={16} />
                 </BotonBase>

@@ -1,0 +1,138 @@
+/*
+ * landingCaracteristicas.css — Grid de 9 bloques de features.
+ * Layout grid 3x4 basado en diseño original, con overlay al hover.
+ */
+
+.landingCaracteristicas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXl);
+}
+
+.landingCaracteristicasTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingCaracteristicasGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: var(--espacioSm);
+    width: 100%;
+}
+
+/* Posiciones de bloques — réplica del grid original */
+.landingBloque1 { grid-area: 1 / 1 / 2 / 3; }
+.landingBloque2 { grid-area: 1 / 3 / 2 / 4; }
+.landingBloque3 { grid-area: 2 / 1 / 4 / 2; }
+.landingBloque4 { grid-area: 2 / 2 / 3 / 3; }
+.landingBloque5 { grid-area: 2 / 3 / 3 / 4; }
+.landingBloque6 { grid-area: 3 / 2 / 4 / 4; }
+.landingBloque7 { grid-area: 4 / 1 / 5 / 2; }
+.landingBloque8 { grid-area: 4 / 2 / 5 / 3; }
+.landingBloque9 { grid-area: 4 / 3 / 5 / 4; }
+
+.landingBloque {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    min-height: 160px;
+    transition: border-color var(--transicionBase);
+}
+
+.landingBloque:hover {
+    border-color: var(--bordeActivo);
+}
+
+.landingBloqueIcono {
+    color: var(--textoSecundario);
+    transition: color var(--transicionBase);
+}
+
+.landingBloque:hover .landingBloqueIcono {
+    color: var(--textoPrimario);
+}
+
+.landingBloqueTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+/* Overlay descriptivo — visible al hover */
+.landingBloqueOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--espacioLg);
+    background: linear-gradient(to top, var(--fondoElevado1) 40%, transparent);
+    opacity: 0;
+    transition: opacity var(--transicionBase);
+    pointer-events: none;
+}
+
+.landingBloque:hover .landingBloqueOverlay {
+    opacity: 1;
+}
+
+.landingBloqueOverlay p {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+/* Responsive: 2 columnas en tablet */
+@media (max-width: 1020px) {
+    .landingCaracteristicasGrid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+    }
+    .landingBloque1 { grid-area: 1 / 1 / 2 / 3; }
+    .landingBloque2 { grid-area: 5 / 2 / 6 / 3; }
+    .landingBloque3 { grid-area: 2 / 1 / 4 / 2; }
+    .landingBloque4 { grid-area: 2 / 2 / 3 / 3; }
+    .landingBloque5 { grid-area: 3 / 2 / 4 / 3; }
+    .landingBloque6 { grid-area: 4 / 1 / 5 / 3; }
+    .landingBloque7 { grid-area: 5 / 1 / 6 / 2; }
+    .landingBloque8 { grid-area: 6 / 1 / 7 / 2; }
+    .landingBloque9 { grid-area: 6 / 2 / 7 / 3; }
+}
+
+/* Responsive: 1 columna en móvil */
+@media (max-width: 640px) {
+    .landingCaracteristicasGrid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .landingBloque1,
+    .landingBloque2,
+    .landingBloque3,
+    .landingBloque4,
+    .landingBloque5,
+    .landingBloque6,
+    .landingBloque7,
+    .landingBloque8,
+    .landingBloque9 {
+        grid-area: auto;
+    }
+    .landingBloque {
+        min-height: 120px;
+    }
+}

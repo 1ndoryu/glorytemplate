@@ -733,7 +733,7 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         formData.append('permitir_descarga', 'true');
         formData.append('licencia_libre', 'false');
         formData.append('es_premium', 'false');
-        formData.append('mostrar_en_comunidad', 'true');
+        formData.append('mostrar_en_comunidad', 'false');
 
         /* POST al servidor — P5: incluir clave de idempotencia para evitar duplicados por timeout */
         const respuesta = await fetch(`${baseUrl}/kamples/v1/samples/upload`, {
@@ -1046,11 +1046,19 @@ function generarTagsDesdeContexto(carpetas: string[], nombreArchivo: string): st
     const carpetasGenericas = new Set([
         'samples', 'audio', 'music', 'sounds', 'downloads',
         'descargas', 'general', 'sync', 'kamples',
+        /* Carpetas del sistema operativo y rutas comunes */
+        'users', 'user', 'owner', 'documents', 'documentos',
+        'desktop', 'escritorio', 'onedrive', 'dropbox',
+        'google drive', 'icloud', 'home', 'library',
+        'appdata', 'local', 'roaming', 'program files',
+        'applications', 'volumes', 'media', 'mnt', 'tmp',
     ]);
 
     for (const carpeta of carpetas) {
         const normalizada = carpeta.toLowerCase().trim();
-        if (normalizada.length >= 2 && !carpetasGenericas.has(normalizada)) {
+        /* Filtrar: menores a 2 chars, genéricas, y letras de unidad (C:, D:) */
+        const esDriveLabel = /^[a-z]:?$/.test(normalizada);
+        if (normalizada.length >= 2 && !carpetasGenericas.has(normalizada) && !esDriveLabel) {
             tagsSet.add(normalizada);
         }
     }

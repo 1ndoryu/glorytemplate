@@ -60,10 +60,6 @@
     padding: var(--espacio2xl) 0;
 }
 
-.landingHeroIcono {
-    color: var(--textoPrimario);
-}
-
 .landingHeroTitulo {
     font-size: var(--fuente2xl);
     font-weight: var(--pesoBold);
@@ -79,50 +75,53 @@
 .landingHeroDescripcion {
     font-size: var(--fuenteMd);
     color: var(--textoSecundario);
-    max-width: 500px;
+    max-width: 540px;
     line-height: 1.5;
     margin: 0;
+}
+
+/* Buscador del hero */
+.landingHeroBuscador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    max-width: 520px;
+    padding: var(--espacioXs) var(--espacioSm);
+    background-color: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    transition: border-color var(--transicionBase);
+}
+
+.landingHeroBuscador:focus-within {
+    border-color: var(--bordeActivo);
+}
+
+.landingHeroBuscadorIcono {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.landingHeroBuscadorInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    outline: none;
+    font-family: inherit;
+    padding: var(--espacioXs) 0;
+}
+
+.landingHeroBuscadorInput::placeholder {
+    color: var(--textoTerciario);
 }
 
 .landingHeroAcciones {
     display: flex;
     gap: var(--espacioMd);
     align-items: center;
-}
-
-/* Features */
-.landingFeatures {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--espacioLg);
-}
-
-.landingFeature {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioSm);
-    padding: var(--espacioLg);
-    background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-}
-
-.landingFeatureIcono {
-    color: var(--textoPrimario);
-}
-
-.landingFeature h3 {
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    margin: 0;
-}
-
-.landingFeature p {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-    line-height: 1.4;
-    margin: 0;
 }
 
 /* Trending */

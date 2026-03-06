@@ -39,7 +39,7 @@ class AdminRepository
         $activo = SamplesEnums::ESTADO_ACTIVO;
         $pro = UsuariosExtEnums::PLAN_PRO;
         $premium = UsuariosExtEnums::PLAN_PREMIUM;
-        $modPendiente = PublicacionesEnums::MODERACION_PENDIENTE;
+        $modPendiente = PublicacionesEnums::MODERACION_ESTADO_PENDIENTE;
         $repPendiente = ReportesEnums::ESTADO_PENDIENTE;
 
         return SamplesRepository::consultarUno("SELECT

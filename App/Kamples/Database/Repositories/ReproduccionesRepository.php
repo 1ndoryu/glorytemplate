@@ -17,6 +17,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\KamplesLogger;
 
 class ReproduccionesRepository extends BaseRepository
 {
@@ -125,16 +126,27 @@ class ReproduccionesRepository extends BaseRepository
     /*
      * Registrar reproducción nueva con duración escuchada y flag de completada.
      */
-    public static function registrar(int $userId, int $sampleId, float $duracion = 0, bool $completada = false): void
+    public static function registrar(int $userId, int $sampleId, float $duracion = 0, bool $completada = false): bool
     {
         $tabla = ReproduccionesCols::TABLA;
 
-        static::ejecutar(
-            "INSERT INTO {$tabla} (" . ReproduccionesCols::USUARIO_ID . ", " . ReproduccionesCols::SAMPLE_ID
-            . ", " . ReproduccionesCols::DURACION_ESCUCHADA . ", " . ReproduccionesCols::COMPLETADA
-            . ") VALUES (:userId, :sampleId, :" . ReproduccionesCols::DURACION_ESCUCHADA . ", :" . ReproduccionesCols::COMPLETADA . ")",
-            ['userId' => $userId, 'sampleId' => $sampleId, ReproduccionesCols::DURACION_ESCUCHADA => $duracion, ReproduccionesCols::COMPLETADA => $completada ? 'true' : 'false']
-        );
+        try {
+            static::ejecutar(
+                "INSERT INTO {$tabla} (" . ReproduccionesCols::USUARIO_ID . ", " . ReproduccionesCols::SAMPLE_ID
+                . ", " . ReproduccionesCols::DURACION_ESCUCHADA . ", " . ReproduccionesCols::COMPLETADA
+                . ") VALUES (:userId, :sampleId, :" . ReproduccionesCols::DURACION_ESCUCHADA . ", :" . ReproduccionesCols::COMPLETADA . ")",
+                ['userId' => $userId, 'sampleId' => $sampleId, ReproduccionesCols::DURACION_ESCUCHADA => $duracion, ReproduccionesCols::COMPLETADA => $completada ? 'true' : 'false']
+            );
+            return true;
+        } catch (\Throwable $e) {
+            /* FK violation cuando el sample fue eliminado entre play y registro */
+            KamplesLogger::error('ReproduccionesRepository::registrar FK error', [
+                'userId' => $userId,
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
     }
 
     /*

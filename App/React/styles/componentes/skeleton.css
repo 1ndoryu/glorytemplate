@@ -7,7 +7,7 @@
 }
 
 .skeleton {
-    background: var(--colorBorde);
+    background: var(--bordeSutil);
     border-radius: var(--radioSm);
     animation: skeletonPulso 1.5s ease-in-out infinite;
 }

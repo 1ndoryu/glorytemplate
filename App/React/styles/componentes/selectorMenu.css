@@ -8,6 +8,8 @@
     position: relative;
     display: inline-flex;
     width: 100%;
+    gap: 15px;
+    flex-direction: column;
 }
 
 /* Trigger: el botón que abre el dropdown */
@@ -67,7 +69,7 @@
 .selectorMenuOverlay {
     position: fixed;
     inset: 0;
-    z-index: var(--zMenu);
+    z-index: var(--zMenuPortal);
 }
 
 /* Dropdown: lista de opciones */
@@ -79,7 +81,7 @@
     border-radius: var(--radioMd);
     box-shadow: var(--sombraElevada);
     padding: var(--espacioXs) 0;
-    z-index: var(--zMenu);
+    z-index: var(--zMenuPortal);
     animation: fadeInSelectorMenu var(--transicionRapida) ease;
     max-height: 240px;
     overflow-y: auto;

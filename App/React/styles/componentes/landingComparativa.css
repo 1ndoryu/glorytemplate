@@ -1,0 +1,94 @@
+/*
+ * landingComparativa.css — Tabla comparativa de funciones vs competidores.
+ * Estilo oscuro con columna destacada para Kamples.
+ */
+
+.landingComparativa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXl);
+}
+
+.landingComparativaTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoMedio);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.landingComparativaTabla {
+    overflow-x: auto;
+    width: 100%;
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+}
+
+.landingComparativaTabla table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteXs);
+    background-color: var(--fondoElevado1);
+}
+
+.landingComparativaTabla thead {
+    background-color: var(--fondoElevado2);
+}
+
+.landingComparativaTabla th,
+.landingComparativaTabla td {
+    padding: var(--espacioSm) var(--espacioMd);
+    text-align: center;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.landingComparativaTabla th:first-child,
+.landingComparativaTabla td:first-child {
+    text-align: left;
+    font-weight: var(--pesoNormal);
+}
+
+.landingComparativaTabla th {
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+}
+
+.landingComparativaTabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Columna Kamples destacada */
+.comparativaDestacado {
+    color: var(--acentoTexto);
+    font-weight: var(--pesoMedio);
+}
+
+.landingComparativaTabla thead .comparativaDestacado {
+    color: var(--textoPrimario);
+}
+
+/* Iconos de soporte */
+.comparativaIconoSi {
+    color: var(--acento);
+}
+
+.comparativaIconoNo {
+    color: var(--textoTerciario);
+    opacity: 0.4;
+}
+
+.comparativaIconoParcial {
+    color: var(--textoSecundario);
+}
+
+/* Responsive: tabla más compacta en móvil */
+@media (max-width: 640px) {
+    .landingComparativaTabla {
+        font-size: 10px;
+    }
+    .landingComparativaTabla th,
+    .landingComparativaTabla td {
+        padding: var(--espacioXs);
+    }
+}

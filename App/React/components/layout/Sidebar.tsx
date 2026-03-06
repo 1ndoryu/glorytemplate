@@ -13,7 +13,6 @@ import {
     Heart,
     FolderOpen,
     Settings,
-    AudioLines,
     ShieldCheck,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
@@ -21,6 +20,7 @@ import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore'
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
+import { LogoKamples } from '../ui/LogoKamples';
 
 export interface SidebarItemDef {
     id: string;
@@ -74,8 +74,8 @@ export const Sidebar = ({
 
     return (
         <div className="sidebar">
-            <div className="sidebarLogo">
-                <AudioLines size={24} />
+            <div className="sidebarLogo" onClick={() => navegar('/')} role="button" tabIndex={0}>
+                <LogoKamples tamano={22} />
             </div>
 
             <nav className="sidebarNav">

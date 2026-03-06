@@ -20,6 +20,7 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\TransaccionesCols;
+use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\LikesRepository;
@@ -29,6 +30,8 @@ use App\Kamples\Database\Repositories\DescargasRepository;
 
 class SamplesRepository extends BaseRepository
 {
+    const CARPETA_DEFAULT = 'General';
+
     protected static function tabla(): string
     {
         return SamplesCols::TABLA;
@@ -161,10 +164,14 @@ class SamplesRepository extends BaseRepository
             {$baseFrom}
             GROUP BY s.{$sTipo} ORDER BY conteo DESC";
 
-        /* Tags sueltos: UNNEST del array tags[] */
+        /* Tags sueltos: IA-generated desde metadata (tags, tags_es, artista_vibes) */
         $sqlOtro = "SELECT t.val AS tag, COUNT(*) AS conteo
-            FROM {$tabla} s, LATERAL UNNEST(s.{$sTags}) AS t(val)
-            WHERE {$whereSQL}
+            FROM {$tabla} s, LATERAL jsonb_array_elements_text(
+                COALESCE(s.{$sMeta}->'tags', '[]'::jsonb)
+                || COALESCE(s.{$sMeta}->'tags_es', '[]'::jsonb)
+                || COALESCE(s.{$sMeta}->'artista_vibes', '[]'::jsonb)
+            ) AS t(val)
+            WHERE {$whereSQL} AND s.{$sMeta} IS NOT NULL
             GROUP BY t.val ORDER BY conteo DESC LIMIT :lim_otro";
 
         $resultado = [
@@ -454,7 +461,7 @@ class SamplesRepository extends BaseRepository
             . ", s." . SamplesCols::TOTAL_LIKES . " as likes"
             . ", COALESCE((SELECT SUM(t." . TransaccionesCols::PAGO_CREADOR
             . ") FROM {$tt} t WHERE t." . TransaccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID
-            . " AND t." . TransaccionesCols::ESTADO . " = 'completed'), 0) as ingresos"
+            . " AND t." . TransaccionesCols::ESTADO . " = '" . TransaccionesEnums::ESTADO_COMPLETED . "'), 0) as ingresos"
             . " FROM {$ts} s WHERE s." . SamplesCols::CREADOR_ID . " = :userId AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
             . " ORDER BY s." . SamplesCols::TOTAL_DESCARGAS . " DESC LIMIT :limit",
             ['userId' => $creadorId, 'limit' => $limit]

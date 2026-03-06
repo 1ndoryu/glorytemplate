@@ -318,6 +318,9 @@ class NormalizadorSample
         $sHash = SamplesCols::AUDIO_HASH;
         $sVerif = SamplesCols::VERIFICADO;
         $sMostrar = SamplesCols::MOSTRAR_EN_COMUNIDAD;
+        $sPubAt = SamplesCols::PUBLICADO_AT;
+        $sCreatedAt = SamplesCols::CREATED_AT;
+        $sTotComent = SamplesCols::TOTAL_COMENTARIOS;
         $sCreadorId = SamplesCols::CREADOR_ID;
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
@@ -334,6 +337,7 @@ class NormalizadorSample
                        s.{$sPreview}, s.{$sWaveform},
                        s.{$sImagen}, s.{$sTotDesc}, s.{$sTotLikes}, s.{$sTotRepro},
                        s.{$sHash}, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
+                       s.{$sPubAt}, s.{$sCreatedAt}, s.{$sTotComent},
                        u.{$uId} as creador_id, u.{$uUser}, u.{$uNombre},
                        u.{$uAvatar}, u.{$uVerif}, u.{$uWpId} AS creador_wp_user_id,
                        {$reaccionExpr} AS reaccion_usuario,
