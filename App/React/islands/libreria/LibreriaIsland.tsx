@@ -6,11 +6,12 @@
  */
 
 import { useState } from 'react';
-import { FolderOpen, Music, Plus, Globe, ArrowDownWideNarrow, ChevronDown } from 'lucide-react';
+import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
+import { SkeletonTarjetaColeccion } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
@@ -50,9 +51,11 @@ export const LibreriaIsland = (): JSX.Element => {
         <div className="libreriaContenedor" id="seccionLibreria">
 
             {cargando ? (
-                <div className="libreriaVacio">
-                    <Music size={32} className="libreriaVacioIcono" />
-                    <p>Cargando...</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--espacioMd)', padding: 'var(--espacioMd)' }}>
+                    <SkeletonTarjetaColeccion />
+                    <SkeletonTarjetaColeccion />
+                    <SkeletonTarjetaColeccion />
+                    <SkeletonTarjetaColeccion />
                 </div>
             ) : (
                 <>

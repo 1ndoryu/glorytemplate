@@ -11,6 +11,7 @@ import { CampoTexto } from '../../components/ui/CampoTexto';
 import { Input } from '../../components/ui/Input';
 import { conAutenticacion } from '../../components/auth/ConAutenticacion';
 import { useEditarPerfil } from '@app/hooks/useEditarPerfil';
+import { SkeletonPerfil } from '@app/components/skeletons';
 import '../../styles/componentes/editarPerfil.css';
 
 export const EditarPerfilIsland = (): JSX.Element => {
@@ -24,7 +25,7 @@ export const EditarPerfilIsland = (): JSX.Element => {
     if (cargandoInicial) {
         return (
             <div className="editarPerfilContenedor">
-                <p>Cargando datos...</p>
+                <SkeletonPerfil />
             </div>
         );
     }

@@ -1,0 +1,203 @@
+/* skeleton.css — Sistema skeleton loading centralizado */
+
+/* Animacion pulse compartida para todos los skeletons */
+@keyframes skeletonPulso {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.25; }
+}
+
+.skeleton {
+    background: var(--colorBorde);
+    border-radius: var(--radioSm);
+    animation: skeletonPulso 1.5s ease-in-out infinite;
+}
+
+/* Variante circular (avatares) */
+.skeletonCirculo {
+    border-radius: 50%;
+}
+
+/* Variante de texto — lineas con alturas predefinidas */
+.skeletonTexto {
+    height: 0.75rem;
+    width: 100%;
+}
+
+.skeletonTextoCorto {
+    width: 40%;
+}
+
+.skeletonTextoMedio {
+    width: 65%;
+}
+
+/* Tarjeta Sample — Grid: 40px | 1fr | auto */
+.skeletonTarjetaSample {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: var(--espacioSm);
+    align-items: center;
+    padding: var(--espacioMd);
+}
+
+.skeletonTarjetaSamplePortada {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radioSm);
+}
+
+.skeletonTarjetaSampleContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.skeletonTarjetaSampleTitulo {
+    height: 0.8rem;
+    width: 60%;
+}
+
+.skeletonTarjetaSampleMeta {
+    height: 0.6rem;
+    width: 35%;
+}
+
+.skeletonTarjetaSampleAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    align-items: center;
+}
+
+.skeletonTarjetaSampleAccionItem {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+/* Tarjeta Coleccion — Flex column con portada aspect-ratio */
+.skeletonTarjetaColeccion {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radioMd);
+}
+
+.skeletonTarjetaColeccionPortada {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radioMd) var(--radioMd) 0 0;
+}
+
+.skeletonTarjetaColeccionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--espacioSm) var(--espacioXs);
+}
+
+.skeletonTarjetaColeccionNombre {
+    height: 0.8rem;
+    width: 70%;
+}
+
+.skeletonTarjetaColeccionMeta {
+    height: 0.6rem;
+    width: 40%;
+}
+
+/* Tarjeta Publicacion skeleton */
+.skeletonTarjetaPublicacion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+}
+
+.skeletonTarjetaPubCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.skeletonTarjetaPubAvatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.skeletonTarjetaPubAutor {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.skeletonTarjetaPubNombre {
+    height: 0.75rem;
+    width: 30%;
+}
+
+.skeletonTarjetaPubFecha {
+    height: 0.6rem;
+    width: 15%;
+}
+
+.skeletonTarjetaPubContenido {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skeletonTarjetaPubLineaTexto {
+    height: 0.7rem;
+}
+
+.skeletonTarjetaPubAcciones {
+    display: flex;
+    gap: var(--espacioLg);
+}
+
+.skeletonTarjetaPubAccionItem {
+    height: 0.65rem;
+    width: 40px;
+}
+
+/* Perfil skeleton — Para PerfilIsland header */
+.skeletonPerfil {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg) var(--espacioMd);
+}
+
+.skeletonPerfilAvatar {
+    width: 80px;
+    height: 80px;
+}
+
+.skeletonPerfilNombre {
+    height: 1rem;
+    width: 120px;
+}
+
+.skeletonPerfilUsername {
+    height: 0.7rem;
+    width: 80px;
+}
+
+.skeletonPerfilBio {
+    height: 0.7rem;
+    width: 200px;
+}
+
+.skeletonPerfilStats {
+    display: flex;
+    gap: var(--espacioLg);
+}
+
+.skeletonPerfilStatItem {
+    height: 0.7rem;
+    width: 60px;
+}

@@ -12,6 +12,7 @@ import { TarjetaSampleCuadricula } from '@app/components/ui/TarjetaSampleCuadric
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { SyncBadge } from '@app/components/ui/SyncBadge';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
+import { SkeletonFeed } from '@app/components/skeletons';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useExploradorIsland } from '@app/hooks/useExploradorIsland';
 import { ArbolCarpetas } from '@app/components/explorador/ArbolCarpetas';
@@ -67,7 +68,7 @@ const ExploradorBase = (): JSX.Element => {
     if (cargando && samples.length === 0) {
         return (
             <div className="explorador" id="seccionExplorador">
-                <div className="exploradorCargando">Cargando explorador...</div>
+                <SkeletonFeed cantidad={6} />
             </div>
         );
     }

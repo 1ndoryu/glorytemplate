@@ -25,6 +25,7 @@ import type { TabDefinicion } from '@app/components/ui';
 import type { IngresosPorPeriodo } from '@app/services/apiPagos';
 import { useDashboardCreador } from '@app/hooks/useDashboardCreador';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { Skeleton } from '@app/components/skeletons';
 import '../../styles/componentes/dashboard.css';
 
 /* Tabs del dashboard */
@@ -114,7 +115,11 @@ const DashboardIslandBase = (): JSX.Element => {
             </div>
 
             {cargando ? (
-                <div className="dashboardVacio">Cargando estadísticas...</div>
+                <div className="dashboardStatsGrid">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} alto={100} />
+                    ))}
+                </div>
             ) : (
                 <>
                     {/* Tarjetas de stats */}

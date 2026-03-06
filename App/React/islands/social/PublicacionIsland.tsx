@@ -11,6 +11,7 @@ import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { SkeletonTarjetaPublicacion } from '@app/components/skeletons';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { usePublicacionDetalle } from '@app/hooks/usePublicacionDetalle';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -51,7 +52,7 @@ const PublicacionBase = ({ publicacionId: idProp }: PublicacionIslandProps): JSX
     if (cargando) {
         return (
             <div className="publicacionDetalleContenedor" id="seccionPublicacionDetalle">
-                <div className="publicacionDetalleCargando">Cargando publicación…</div>
+                <SkeletonTarjetaPublicacion />
             </div>
         );
     }

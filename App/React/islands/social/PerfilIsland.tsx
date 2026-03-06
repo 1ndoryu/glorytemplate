@@ -13,6 +13,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
+import { SkeletonPerfil, SkeletonFeed } from '@app/components/skeletons';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { usePerfilIsland } from '@app/hooks/usePerfilIsland';
@@ -37,7 +38,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     if (cargando || (authCargando && !username)) {
         return (
             <div className="perfilContenedor">
-                <div className="perfilVacio">Cargando perfil...</div>
+                <SkeletonPerfil />
+                <SkeletonFeed cantidad={4} />
             </div>
         );
     }
@@ -56,11 +58,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     /* Renderizar lista de samples para la tab activa */
     const renderizarListaSamples = (lista: SampleResumen[], mensajeVacio: string, iconoVacio: JSX.Element) => {
         if (cargandoTab) {
-            return (
-                <div className="perfilVacio">
-                    <p>Cargando...</p>
-                </div>
-            );
+            return <SkeletonFeed cantidad={3} />;
         }
         if (lista.length === 0) {
             return (
@@ -186,9 +184,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                 {tabActiva === 'publicaciones' && (
                     <div className="perfilPublicaciones">
                         {cargandoTab ? (
-                            <div className="perfilVacio">
-                                <p>Cargando...</p>
-                            </div>
+                            <SkeletonFeed cantidad={3} />
                         ) : publicacionesPerfil.length === 0 ? (
                             <div className="perfilVacio">
                                 <p>No hay publicaciones aún</p>

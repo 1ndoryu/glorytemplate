@@ -12,6 +12,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
+import { SkeletonTarjetaColeccion, SkeletonFeed } from '@app/components/skeletons';
 import { obtenerSugerencias } from '@app/services/apiColecciones';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
@@ -44,7 +45,8 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="coleccionDetalle">
-                <div className="coleccionCargando">Cargando colección...</div>
+                <SkeletonTarjetaColeccion />
+                <SkeletonFeed cantidad={4} />
             </div>
         );
     }
@@ -163,7 +165,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
 
             {/* Contenido según tab activa — key distinta fuerza desmontaje para evitar race conditions (C46) */}
             {cargandoSub ? (
-                <div className="coleccionCargando">Cargando subcolección...</div>
+                <SkeletonFeed cantidad={3} />
             ) : tabActiva === 'samples' ? (
                 <FeedSamples
                     key={`coleccion-samples-${subActiva ?? 'raiz'}`}

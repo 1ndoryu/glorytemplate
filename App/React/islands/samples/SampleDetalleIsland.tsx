@@ -17,6 +17,8 @@ import {
     Badge,
     BotonBase,
 } from '@app/components/ui';
+import { Skeleton } from '@app/components/skeletons';
+import { SkeletonFeed } from '@app/components/skeletons';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -71,7 +73,16 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
     if (cargando) {
         return (
             <div className="detalleContenedor" id="seccionSampleDetalle">
-                <div className="detalleCargando">Cargando sample…</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacioMd)', padding: 'var(--espacioLg)' }}>
+                    <Skeleton alto={64} />
+                    <Skeleton alto={120} />
+                    <div style={{ display: 'flex', gap: 'var(--espacioSm)' }}>
+                        <Skeleton alto={32} ancho={80} />
+                        <Skeleton alto={32} ancho={80} />
+                        <Skeleton alto={32} ancho={80} />
+                    </div>
+                    <SkeletonFeed cantidad={3} />
+                </div>
             </div>
         );
     }

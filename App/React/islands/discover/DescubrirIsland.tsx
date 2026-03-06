@@ -7,6 +7,7 @@
 import { Sparkles, Music2 } from 'lucide-react';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
+import { SkeletonFeed } from '@app/components/skeletons';
 import { useDescubrirIsland } from '@app/hooks/useDescubrirIsland';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/descubrir.css';
@@ -28,10 +29,7 @@ export const DescubrirIsland = (): JSX.Element => {
     if (cargando) {
         return (
             <div className="descubrirIsland" id="descubrirIsland">
-                <div className="descubrirCargando">
-                    <Music2 size={32} />
-                    <span>Preparando recomendaciones...</span>
-                </div>
+                <SkeletonFeed cantidad={6} />
             </div>
         );
     }

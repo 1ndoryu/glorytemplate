@@ -13,6 +13,7 @@ import '../../styles/componentes/chat.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
 import { Input } from '../../components/ui/Input';
+import { Skeleton } from '@app/components/skeletons';
 
 interface ChatIslandProps {
     conversacionId?: string;
@@ -51,7 +52,11 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
 
             <div className="chatMensajes" ref={mensajesRef}>
                 {cargando ? (
-                    <div className="chatVacio">Cargando mensajes...</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
+                        {Array.from({ length: 4 }).map((_, i) => (
+                            <Skeleton key={i} ancho={i % 2 === 0 ? '60%' : '45%'} alto={36} className={i % 2 === 0 ? '' : 'skeleton'} />
+                        ))}
+                    </div>
                 ) : mensajes.length === 0 ? (
                     <div className="chatVacio"><p>Inicia la conversación</p></div>
                 ) : (

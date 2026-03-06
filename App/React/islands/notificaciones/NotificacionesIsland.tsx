@@ -22,6 +22,7 @@ import { Badge } from '@app/components/ui/Badge';
 import { Avatar } from '@app/components/ui/Avatar';
 import type { TipoNotificacion } from '@app/services/apiNotificaciones';
 import { useNotificacionesIsland } from '@app/hooks/useNotificacionesIsland';
+import { SkeletonFeed } from '@app/components/skeletons';
 import '../../styles/componentes/notificaciones.css';
 
 /* Mapa de iconos por tipo */
@@ -102,7 +103,7 @@ export const NotificacionesIsland = (): JSX.Element => {
 
             {/* Lista */}
             {cargando ? (
-                <div className="notificacionesVacio">Cargando...</div>
+                <SkeletonFeed cantidad={5} />
             ) : filtradas.length === 0 ? (
                 <div className="notificacionesVacio">
                     <Bell size={32} />

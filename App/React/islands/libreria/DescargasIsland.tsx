@@ -23,6 +23,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import '../../styles/componentes/coleccionDetalle.css';
 import { BotonBase } from '../../components/ui/BotonBase';
+import { SkeletonFeed } from '@app/components/skeletons';
 
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Coleccionados' },
@@ -69,7 +70,7 @@ const DescargasBase = (): JSX.Element => {
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="seccionDescargas">
-                <div className="coleccionCargando">Cargando coleccionados...</div>
+                <SkeletonFeed cantidad={4} />
             </div>
         );
     }

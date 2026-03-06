@@ -67,7 +67,7 @@ export const ModalFiltros = ({ abierto, onCerrar }: ModalFiltrosProps): JSX.Elem
 
                 <div className="filtrosToggles">
                     {filtros.map((f) => (
-                        <BotonBase variante="ghost"
+                        <BotonBase variante="ghost" tamano="ninguno"
                             key={f.id}
                             className={`filtroToggle ${f.activo ? 'filtroToggleActivo' : ''}`}
                             onClick={f.onToggle}

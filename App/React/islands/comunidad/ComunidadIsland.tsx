@@ -13,6 +13,7 @@ import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { CardPerfil } from '@app/components/social/CardPerfil';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { SkeletonTarjetaPublicacion } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
@@ -88,7 +89,11 @@ const ComunidadBase = (): JSX.Element => {
 
             <div className="comunidadFeed">
                 {cargando ? (
-                    <div className="comunidadCargando">Cargando publicaciones...</div>
+                    <>
+                        <SkeletonTarjetaPublicacion />
+                        <SkeletonTarjetaPublicacion />
+                        <SkeletonTarjetaPublicacion />
+                    </>
                 ) : publicaciones.length === 0 ? (
                     <div className="comunidadVacio">No hay publicaciones aún</div>
                 ) : (

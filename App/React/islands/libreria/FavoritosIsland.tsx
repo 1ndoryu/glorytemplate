@@ -20,6 +20,7 @@ import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import '../../styles/componentes/coleccionDetalle.css';
 import { BotonBase } from '../../components/ui/BotonBase';
@@ -69,7 +70,7 @@ const FavoritosBase = (): JSX.Element => {
     if (cargando) {
         return (
             <div className="coleccionDetalle" id="seccionFavoritos">
-                <div className="coleccionCargando">Cargando favoritos...</div>
+                <SkeletonFeed cantidad={4} />
             </div>
         );
     }

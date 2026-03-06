@@ -6,8 +6,9 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Music, SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
+import { SkeletonFeed } from '@app/components/skeletons';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { obtenerFeed } from '@app/services/apiSamples';
@@ -33,10 +34,7 @@ export const InicioIsland = (): JSX.Element => {
     if (cargando) {
         return (
             <div className="inicioContenedor" id="seccionInicio">
-                <div className="inicioVacio">
-                    <Music size={40} className="inicioVacioIcono" />
-                    <p>Cargando…</p>
-                </div>
+                <SkeletonFeed cantidad={8} />
             </div>
         );
     }

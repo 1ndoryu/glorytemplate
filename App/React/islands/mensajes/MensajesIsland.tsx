@@ -13,6 +13,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useMensajesIsland } from '@app/hooks/useMensajesIsland';
 import '../../styles/componentes/mensajes.css';
 import { BotonBase } from '../../components/ui/BotonBase';
+import { SkeletonFeed } from '@app/components/skeletons';
 
 /* Formatear tiempo relativo */
 const formatearTiempo = (fecha: string): string => {
@@ -59,7 +60,7 @@ const MensajesIslandBase = (): JSX.Element => {
 
             {/* Lista de conversaciones */}
             {cargandoConversaciones && !conversacionesCargadas ? (
-                <div className="mensajesVacio">Cargando conversaciones...</div>
+                <SkeletonFeed cantidad={4} />
             ) : filtradas.length === 0 ? (
                 <div className="mensajesVacio">
                     <MessageCircle size={32} />
