@@ -13,6 +13,10 @@
  * - Grafo social (seguidos + likes de seguidos)
  *
  * @package Kamples
+ *
+ * TO-DO [D2]: 655 lineas raw (~450 efectivas). Candidato a split:
+ * - ConstructorSenalesPositivas: tags, similitud, comportamiento, contexto, tendencias, grafo social
+ * - ConstructorPenalizaciones: reproduccion, pasiva, saturacion, statsDescargas
  */
 
 namespace App\Kamples\Services;

@@ -145,8 +145,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
     - Archivos: `syncService.ts`, `syncTrackingService.ts`, `SyncController.php`, desktop services
     - Requiere: endpoint delta/diff, descarga batch, reconciliación estado
 
-D2. **Glory Sentinel: detectar services >500 líneas.** Verificar si es intencional que no se detecten. Auditar services con >1000 líneas — ¿es normal? Los services tienen demasiadas líneas.
-    - Archivos: `.agent/code-sentinel/`, reglas Sentinel
+D2. ✅ [AG-SPD] **Sentinel services audit:** Regla funciona (400 líneas efectivas). 2 archivos superan: ConstructorSenales.php (655 raw, TO-DO split agregado) y MotorRecomendacion.php (544 raw, ya tenía TO-DO). Resto <400. Glory services todos <325. No hay sentinel-disable en ninguno.
 
 D3. ✅ [AG-SPD] **Logo Kamples:** LogoKamples.tsx (SVG inline), TopBar logo con click home, favicon.svg, header.php meta, desktop resource + favicon.
     - TO-DO: Regenerar PNGs desktop con `cargo tauri icon desktop/src-tauri/icons/favicon.svg`

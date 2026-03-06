@@ -147,3 +147,4 @@
   - [CSS modular]: ModalAcciones como componente CSS compartido evita duplicar estilos de acciones en cada modal.
   - [Skeleton]: Componentes skeleton por tipo de tarjeta (sample grid 40px|1fr|auto, colección flex col, publicación article layout). SkeletonFeed repite SkeletonTarjetaSample × cantidad. Animación pulso con opacity 0.45↔0.25 en 1.5s.
   - [Cola IA]: `marcarError()` maneja reintentos internamente (buscarPorId+intentos). El caller no debe pasar intentos, solo minutosEspera. listarItems necesita `$tipo` para filtrar por tipo procesamiento.
+  - [Sentinel D2]: Regla `limite-lineas` funciona con 400 efectivas para services (path `/services/` o name `service`). ConstructorSenales y MotorRecomendacion son los únicos que exceden. lineCounter.ts excluye comentarios y blanks.
