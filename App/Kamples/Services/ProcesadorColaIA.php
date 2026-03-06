@@ -168,21 +168,19 @@ class ProcesadorColaIA
                     /*
                      * Rate limit de nuevo — no contar como error del item.
                      * Revertir a pendiente con proximo_intento futuro.
+                     * marcarError(id, mensaje, minutosEspera) — el repo gestiona intentos internamente.
                      */
                     $retrySegundos = \max(GroqHttpClient::obtenerRetryAfterSegundos(), 900.0);
                     ColaProcesamientoIaRepository::marcarError(
                         $id,
                         'Rate limit 429 durante reproceso',
-                        (int) $item[ColaProcesamientoIaCols::INTENTOS],
-                        (int) ($item[ColaProcesamientoIaCols::MAX_INTENTOS] ?? 2)
+                        (int) \ceil($retrySegundos / 60)
                     );
                     $resultado['rateLimited'] = true;
                 } else {
                     ColaProcesamientoIaRepository::marcarError(
                         $id,
-                        'Fallo en reproceso (sin rate limit)',
-                        (int) $item[ColaProcesamientoIaCols::INTENTOS],
-                        (int) ($item[ColaProcesamientoIaCols::MAX_INTENTOS] ?? 2)
+                        'Fallo en reproceso (sin rate limit)'
                     );
                     $resultado['errores']++;
                 }

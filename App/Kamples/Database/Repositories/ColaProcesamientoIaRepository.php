@@ -287,24 +287,34 @@ class ColaProcesamientoIaRepository extends BaseRepository
      *
      * @return array {data: array, pagination: array}
      */
-    public static function listarItems(int $pagina = 1, int $porPagina = 20, ?string $estado = null): array
+    public static function listarItems(int $pagina = 1, int $porPagina = 20, ?string $estado = null, ?string $tipo = null): array
     {
         $tabla = ColaProcesamientoIaCols::TABLA;
         $colEstado = ColaProcesamientoIaCols::ESTADO;
+        $colTipo = ColaProcesamientoIaCols::TIPO;
         $colCreated = ColaProcesamientoIaCols::CREATED_AT;
         $offset = ($pagina - 1) * $porPagina;
 
-        $whereSql = '';
+        $conditions = [];
         $params = ['limite' => $porPagina, 'offset' => $offset];
+        $whereParams = [];
 
         if ($estado !== null) {
-            $whereSql = "WHERE {$colEstado} = :estado";
+            $conditions[] = "{$colEstado} = :estado";
             $params['estado'] = $estado;
+            $whereParams['estado'] = $estado;
         }
+        if ($tipo !== null) {
+            $conditions[] = "{$colTipo} = :tipo";
+            $params['tipo'] = $tipo;
+            $whereParams['tipo'] = $tipo;
+        }
+
+        $whereSql = !empty($conditions) ? 'WHERE ' . \implode(' AND ', $conditions) : '';
 
         $totalRow = static::consultarUno(
             "SELECT COUNT(*) AS total FROM {$tabla} {$whereSql}",
-            $estado !== null ? ['estado' => $estado] : []
+            $whereParams
         );
         $total = (int) ($totalRow['total'] ?? 0);
 

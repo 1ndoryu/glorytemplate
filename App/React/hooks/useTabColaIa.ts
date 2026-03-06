@@ -68,9 +68,15 @@ export function useTabColaIa(): UseTabColaIaReturn {
         }
     }, [pagina, filtroEstado, filtroTipo]);
 
-    /* Carga inicial y al cambiar filtros */
+    /* Carga inicial + polling cada 15s para mantener datos actualizados */
     useEffect(() => {
         cargarDatos();
+
+        const intervalo = setInterval(() => {
+            cargarDatos();
+        }, 15000);
+
+        return () => clearInterval(intervalo);
     }, [cargarDatos]);
 
     const reintentarItem = useCallback(async (id: number) => {
