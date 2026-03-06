@@ -61,6 +61,8 @@ class PublicacionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Listar publicaciones pendientes de moderación con datos del autor.
      */

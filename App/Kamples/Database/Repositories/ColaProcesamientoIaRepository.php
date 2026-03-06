@@ -3,8 +3,8 @@
 /**
  * ColaProcesamientoIaRepository — Acceso a datos para tabla 'cola_procesamiento_ia'.
  *
- * C356: Cola de procesamiento IA con retry automatico.
- * Gestiona el encolado y procesamiento de items cuando Groq alcanza rate limit.
+ * SECCION AUTO-GENERADA: Los metodos base se regeneran con schema:generate.
+ * SECCION CUSTOM: Todo debajo de la marca CUSTOM se preserva al regenerar.
  *
  * @package Kamples
  */
@@ -27,7 +27,22 @@ class ColaProcesamientoIaRepository extends BaseRepository
         return ColaProcesamientoIaCols::ID;
     }
 
+    /*
+     * Buscar registros mas recientes.
+     */
+    public static function buscarRecientes(int $limit = 20): array
+    {
+        $tabla = ColaProcesamientoIaCols::TABLA;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla} ORDER BY " . ColaProcesamientoIaCols::CREATED_AT . " DESC LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
+
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
     /**
      * Encolar un item para procesamiento IA.

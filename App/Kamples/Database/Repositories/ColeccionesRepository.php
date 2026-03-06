@@ -64,6 +64,8 @@ class ColeccionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Listar colecciones del usuario con conteo de items, tags agregados y búsqueda opcional.
      * Incluye subcolecciones anidadas en campo 'subcolecciones' para cada padre.

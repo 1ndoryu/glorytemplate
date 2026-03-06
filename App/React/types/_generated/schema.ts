@@ -67,7 +67,7 @@ export interface IComentarios {
   tipoContenido: string
   mediaUrl: string | null
   mediaMetadata: Record<string, unknown> | null
-  moderacionEstado: string
+  moderacionEstado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado'
   moderacionDetalle: Record<string, unknown>
   parentId: number | null
   totalRespuestas: number
@@ -197,8 +197,7 @@ export interface ISamples {
   metadata: Record<string, unknown>
   tags: string[]
   estado: 'procesando' | 'activo' | 'inactivo' | 'eliminado' | 'en_supervision'
-  tipo: 'loop' | 'oneshot' | 'fx' | 'vocal' | 'stem' | 'otro'
-  /* TO-DO: Regenerar schema.ts tras ALTER TABLE — CHECK constraint reducido a loop|oneshot */
+  tipo: 'loop' | 'oneshot'
   esPremium: boolean
   precio: number | null
   rutaOriginal: string | null
@@ -586,7 +585,11 @@ export const ColaProcesamientoIaEnums = {
 
 export const ComentariosEnums = {
   TIPO_SAMPLE: 'sample',
-  TIPO_PUBLICACION: 'publicacion'
+  TIPO_PUBLICACION: 'publicacion',
+  MODERACION_ESTADO_PENDIENTE: 'pendiente',
+  MODERACION_ESTADO_REVISION: 'revision',
+  MODERACION_ESTADO_APROBADO: 'aprobado',
+  MODERACION_ESTADO_RECHAZADO: 'rechazado'
 } as const
 
 export const LikesEnums = {
@@ -621,8 +624,7 @@ export const SamplesEnums = {
   ESTADO_ELIMINADO: 'eliminado',
   ESTADO_EN_SUPERVISION: 'en_supervision',
   TIPO_LOOP: 'loop',
-  TIPO_ONESHOT: 'oneshot',
-  /* TO-DO: Regenerar — TIPO_FX, TIPO_VOCAL, TIPO_STEM, TIPO_OTRO eliminados del schema */
+  TIPO_ONESHOT: 'oneshot'
 } as const
 
 export const SuscripcionesEnums = {

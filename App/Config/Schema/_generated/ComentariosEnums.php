@@ -12,8 +12,8 @@ final class ComentariosEnums
     const TIPO_PUBLICACION = 'publicacion';
 
     /* Valores para columna "moderacion_estado" */
-    const MODERACION_PENDIENTE = 'pendiente';
-    const MODERACION_REVISION = 'revision';
-    const MODERACION_APROBADO = 'aprobado';
-    const MODERACION_RECHAZADO = 'rechazado';
+    const MODERACION_ESTADO_PENDIENTE = 'pendiente';
+    const MODERACION_ESTADO_REVISION = 'revision';
+    const MODERACION_ESTADO_APROBADO = 'aprobado';
+    const MODERACION_ESTADO_RECHAZADO = 'rechazado';
 }

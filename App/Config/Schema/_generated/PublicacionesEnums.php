@@ -11,9 +11,9 @@ final class PublicacionesEnums
     const TIPO_SOCIAL = 'social';
     const TIPO_SAMPLE = 'sample';
 
-    /* Valores para columna "moderacion_estado" — agregados manualmente (schema actualizado, regenerar con schema:generate) */
-    const MODERACION_PENDIENTE = 'pendiente';
-    const MODERACION_REVISION = 'revision';
-    const MODERACION_APROBADO = 'aprobado';
-    const MODERACION_RECHAZADO = 'rechazado';
+    /* Valores para columna "moderacion_estado" */
+    const MODERACION_ESTADO_PENDIENTE = 'pendiente';
+    const MODERACION_ESTADO_REVISION = 'revision';
+    const MODERACION_ESTADO_APROBADO = 'aprobado';
+    const MODERACION_ESTADO_RECHAZADO = 'rechazado';
 }

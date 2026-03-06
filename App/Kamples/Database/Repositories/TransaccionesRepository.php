@@ -58,6 +58,8 @@ class TransaccionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Registrar transacción de revenue share por descarga.
      * TO-DO: 'descarga' hardcodeado como tipo — no existe TIPO_DESCARGA en TransaccionesEnums.

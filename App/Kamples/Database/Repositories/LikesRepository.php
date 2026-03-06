@@ -41,8 +41,7 @@ class LikesRepository extends BaseRepository
         $col = LikesCols::USUARIO_ID;
 
         return static::consultar(
-            /* Tabla likes no tiene columna id — se ordena por created_at */
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . LikesCols::ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -61,6 +60,8 @@ class LikesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
     /*
      * Eliminar todos los likes de tipo 'sample' para un sample dado.

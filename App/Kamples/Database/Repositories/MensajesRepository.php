@@ -21,7 +21,7 @@ class MensajesRepository extends BaseRepository
         return MensajesCols::TABLA;
     }
 
-            protected static function colId(): string
+    protected static function colId(): string
     {
         return MensajesCols::ID;
     }
@@ -54,6 +54,8 @@ class MensajesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
     /*
      * Obtener último mensaje de una conversación (para preview).

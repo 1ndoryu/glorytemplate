@@ -33,6 +33,8 @@ class ColeccionSamplesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Obtener samples de una colección con datos normalizados (JOIN samples + usuarios_ext).
      */

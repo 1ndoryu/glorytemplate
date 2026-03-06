@@ -48,6 +48,8 @@ class UsuariosExtRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Actualizar campos arbitrarios de un usuario (admin).
      * Recibe array de cláusulas SET ya armadas y parámetros.

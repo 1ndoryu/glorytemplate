@@ -59,6 +59,8 @@ class ComentariosRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
+    
+
     /*
      * Actualizar estado de moderación de un comentario.
      * Retorna true si el comentario existía.
