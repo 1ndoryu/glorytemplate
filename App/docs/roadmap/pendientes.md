@@ -139,12 +139,39 @@
 
 ---
 
+## Sprint D — UI/UX + Sync + Branding
+
+D1. **Sync server→local bidireccional:** Samples publicados desde web se sincronizan localmente automáticamente si sync activo (o al abrir). En laptop nueva, descargar samples existentes.
+    - Archivos: `syncService.ts`, `syncTrackingService.ts`, `SyncController.php`, desktop services
+    - Requiere: endpoint delta/diff, descarga batch, reconciliación estado
+
+D2. **Glory Sentinel: detectar services >500 líneas.** Verificar si es intencional que no se detecten. Auditar services con >1000 líneas — ¿es normal? Los services tienen demasiadas líneas.
+    - Archivos: `.agent/code-sentinel/`, reglas Sentinel
+
+D3. ✅ [AG-SPD] **Logo Kamples:** LogoKamples.tsx (SVG inline), TopBar logo con click home, favicon.svg, header.php meta, desktop resource + favicon.
+    - TO-DO: Regenerar PNGs desktop con `cargo tauri icon desktop/src-tauri/icons/favicon.svg`
+
+D4. ✅ [AG-SPD] **Admin tabs al nav:** useTabsIsla en AdminPanelIsland, tabs registradas en TopBar con keep-alive.
+
+D5. ✅ [AG-SPD] **Sistema estilos refactor:** SelectorMenu (portal), EstadoVacio, BotonBase variante ninguno, CampoTexto border-bottom, sin adminPanelTitulo, 4 tabs admin migradas.
+
+D5b. ✅ [AG-SPD] **Auditoría cola IA:** 3 bugs críticos corregidos (marcarError args, listarItems $tipo, polling frontend). Audit doc en `App/docs/auditoria-cola-ia.md`.
+
+D6. ✅ [AG-SPD] **Filtros toggles:** Descripcion + padding aumentado. FiltroToggleDef con campo descripcion.
+
+D7. ✅ [AG-SPD] **ModalAcciones centralizado:** Componente reutilizable, botones 100% ancho, 3 modales migrados (filtros, editar, coleccion).
+
+D8. ✅ [AG-SPD] **Image edit + MetadataChips eliminado:** PHP endpoint POST /samples/{id}/imagen, subirImagenSample TS, preview 80x80 en modal, SelectorBase->SelectorMenu.
+
+D9. ✅ [AG-SPD] **Skeleton loading system:** 6 componentes base (Skeleton, SkeletonFeed, SkeletonPerfil, SkeletonTarjetaSample, SkeletonTarjetaColeccion, SkeletonTarjetaPublicacion) + 16 islands migradas. CSS con animación pulso. Fix preexistente ModalFiltros variante.
+
+---
+
 ## Pendientes sueltos
 
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar credito.
-361. (vacia)
-362. **[POST-C9] Migración BD 2 tipos:** `UPDATE samples SET tipo = 'oneshot' WHERE tipo NOT IN ('loop', 'oneshot');` + `ALTER TABLE samples DROP CONSTRAINT ..., ADD CONSTRAINT ... CHECK (tipo IN ('loop','oneshot'));` + regenerar schema.ts (`npx glory schema:generate`).
+361. ✅ **[POST-C9] Migración BD completada** — CHECK constraint actualizado a loop|oneshot + schema.ts regenerado.
 
 ---
 

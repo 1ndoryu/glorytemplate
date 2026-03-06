@@ -126,3 +126,24 @@
   - [Inspector]: SampleResumen no tiene campos técnicos — siempre fetch full Sample si se necesitan.
   - [Tipos]: Cambiar enum system-wide requiere tocar ~15 archivos (schema, generated, controllers, pipeline, IA, embeddings, frontend). TO-DO: ALTER TABLE + regenerar schema.ts.
   - [field-sizing]: CSS `field-sizing: content` auto-resize textarea nativo, sin JS.
+
+---
+
+## Completado — Sprint D UI/UX + Branding (D3-D9)
+
+- **D3** ✅ LogoKamples.tsx (SVG inline, props: tamano/color/className). TopBar logo con click home. favicon.svg actualizado. header.php `<link rel="icon">`. Desktop: favicon.svg copiado a icons/, resource registrado en tauri.conf.json. TO-DO: regenerar PNGs con `cargo tauri icon`.
+- **D4** ✅ Admin tabs migradas a TopBar via useTabsIsla (keep-alive). AdminPanelIsland registra 4 tabs (Resumen/Usuarios/Moderacion/Cola IA). Eliminado adminPanelTabs interno + CSS.
+- **D5** ✅ SelectorMenu.tsx (portal + getBoundingClientRect). EstadoVacio.tsx. BotonBase variante `ninguno`. CampoTexto con soporte `borderBottom`. 4 tabs admin refactorizadas (selects nativos → SelectorMenu, adminVacio → EstadoVacio). adminPanelTitulo eliminado.
+- **D5b** ✅ Auditoría cola IA: 3 bugs críticos (marcarError 4→3 args, listarItems sin $tipo, polling frontend ausente). Doc en `App/docs/auditoria-cola-ia.md`.
+- **D6** ✅ FiltroToggleDef con campo `descripcion`. 4 toggles con descripción debajo. Padding aumentado a `espacioMd espacioLg`.
+- **D7** ✅ ModalAcciones.tsx centralizado. CSS `.modalAcciones > .botonBase { flex: 1 }`. Migrados: ModalFiltros, ModalEditar, ModalColeccion.
+- **D8** ✅ MetadataChips eliminado. SelectorBase→SelectorMenu en FormularioEditarSample. PHP endpoint `POST /samples/{id}/imagen` (finfo MIME validation, 5MB limit, ownership check). subirImagenSample en apiSamples.ts. Preview 80x80 en modal con cambiar/limpiar.
+- **D9** ✅ Sistema skeleton loading: 6 componentes (Skeleton, SkeletonFeed, SkeletonPerfil, SkeletonTarjetaSample, SkeletonTarjetaColeccion, SkeletonTarjetaPublicacion). skeleton.css con @keyframes skeletonPulso. 16 islands migradas de texto "Cargando..." a skeletons. Fix preexistente: ModalFiltros variante="ninguno" → variante="ghost" tamano="ninguno".
+- **Aprendizajes:**
+  - [RefObject]: `RefObject<HTMLInputElement>` (sin `| null`) para compatibilidad con React 18 `LegacyRef`. El `useRef<T | null>(null)` en el hook está bien.
+  - [SelectorMenu]: Portal con getBoundingClientRect + scroll listener para reposicionar. click-outside para cerrar.
+  - [useTabsIsla]: Patrón reutilizable para registrar tabs de islands en TopBar con keep-alive. El store usa Map por islaId.
+  - [Image upload]: FormData con key `imagen`, MIME validation con finfo_file(), move_uploaded_file() a wp_upload_dir.
+  - [CSS modular]: ModalAcciones como componente CSS compartido evita duplicar estilos de acciones en cada modal.
+  - [Skeleton]: Componentes skeleton por tipo de tarjeta (sample grid 40px|1fr|auto, colección flex col, publicación article layout). SkeletonFeed repite SkeletonTarjetaSample × cantidad. Animación pulso con opacity 0.45↔0.25 en 1.5s.
+  - [Cola IA]: `marcarError()` maneja reintentos internamente (buscarPorId+intentos). El caller no debe pasar intentos, solo minutosEspera. listarItems necesita `$tipo` para filtrar por tipo procesamiento.
