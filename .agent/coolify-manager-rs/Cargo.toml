@@ -1,0 +1,56 @@
+[package]
+name = "coolify-manager"
+version = "1.0.0"
+edition = "2021"
+description = "Herramienta de gestion para sitios WordPress en Coolify — CLI + MCP Server"
+license = "MIT"
+authors = ["1ndoryu"]
+
+[[bin]]
+name = "coolify-manager"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# HTTP client (Coolify API)
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# SSH nativo
+russh = "0.46"
+russh-keys = "0.46"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tracing-appender = "0.2"
+
+# Security
+secrecy = { version = "0.10", features = ["serde"] }
+zeroize = "1"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+colored = "3"
+dirs = "6"
+rand = "0.8"
+shellexpand = "3"
+regex = "1"
+
+[dev-dependencies]
+tempfile = "3"
+tokio-test = "0.4"

@@ -1,0 +1,40 @@
+services:
+    minecraft:
+        image: itzg/minecraft-server:latest
+        tty: true
+        stdin_open: true
+        ports:
+            - '25565:25565'
+        environment:
+            EULA: 'TRUE'
+            TYPE: 'VANILLA'
+            VERSION: 'LATEST'
+            MEMORY: '1536M'
+            MAX_PLAYERS: '20'
+            MOTD: 'Servidor Minecraft - Coolify Managed'
+            DIFFICULTY: 'normal'
+            ENABLE_COMMAND_BLOCK: 'true'
+            SPAWN_PROTECTION: '0'
+            ONLINE_MODE: 'FALSE'
+            SERVER_NAME: '{{SERVER_NAME}}'
+            TZ: 'America/Santo_Domingo'
+            VIEW_DISTANCE: '6'
+            SIMULATION_DISTANCE: '4'
+            ENTITY_BROADCAST_RANGE_PERCENTAGE: '60'
+            MAX_TICK_TIME: '-1'
+            NETWORK_COMPRESSION_THRESHOLD: '128'
+            SYNC_CHUNK_WRITES: 'false'
+            MAX_CHAINED_NEIGHBOR_UPDATES: '100000'
+            USE_AIKAR_FLAGS: 'true'
+            JVM_DD_OPTS: 'disable.watchdog=true'
+        volumes:
+            - minecraft_data:/data
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'mc-health']
+            interval: 30s
+            timeout: 10s
+            retries: 5
+            start_period: 120s
+volumes:
+    minecraft_data:
