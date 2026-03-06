@@ -33,7 +33,7 @@ export const useAlgoritmo = (config: ConfigAlgoritmo = {}) => {
     const {
         tipoInicial = 'descubrir',
         autoCargar = true,
-        porPagina = 20,
+        porPagina = 12,
     } = config;
 
     const [estado, setEstado] = useState<EstadoAlgoritmo>({

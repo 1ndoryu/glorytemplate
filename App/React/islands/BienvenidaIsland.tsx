@@ -21,7 +21,7 @@ const PASOS: PasoOnboarding[] = [
     {
         icono: '🎵',
         titulo: 'Descubre samples',
-        descripcion: 'Explora miles de loops, one-shots, vocales y FX de creadores de todo el mundo. Filtra por BPM, tonalidad y genero.',
+        descripcion: 'Explora miles de loops y one-shots de creadores de todo el mundo. Filtra por BPM, tonalidad y genero.',
     },
     {
         icono: '📤',

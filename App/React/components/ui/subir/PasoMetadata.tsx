@@ -40,7 +40,7 @@ export const metadataInicial: MetadataSample = {
 };
 
 const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const TIPOS: TipoSample[] = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
+const TIPOS: TipoSample[] = ['loop', 'oneshot'];
 const TAGS_SUGERIDOS = [
     'trap', 'hiphop', 'drill', 'reggaeton', 'house', 'techno',
     'ambient', 'cinematic', 'lo-fi', 'boom bap', 'pop', 'r&b',

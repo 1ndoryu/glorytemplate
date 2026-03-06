@@ -48,9 +48,7 @@
 
 .editarSelect {
     width: 100%;
-    padding: var(--espacioSm) var(--espacioMd);
     background-color: var(--fondoElevado2);
-    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
     color: var(--textoPrimario);
     font-size: var(--fuenteSm);
@@ -70,7 +68,6 @@
     justify-content: space-between;
     align-items: center;
     padding-top: var(--espacioSm);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 .editarAccionesIzquierda {

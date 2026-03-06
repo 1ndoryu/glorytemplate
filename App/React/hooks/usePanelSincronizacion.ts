@@ -189,7 +189,7 @@ export const usePanelSincronizacion = () => {
                 }
 
                 /* Rehidratar portadas que llegan tarde desde pipeline backend.
-                 * Tiene throttle interno (60s), así que llamarlo en polling es seguro. */
+                 * Tiene throttle interno (5s), así que llamarlo en polling es seguro. */
                 if (srv.rehidratarImagenesPendientesSync) {
                     srv.rehidratarImagenesPendientesSync().catch(() => {});
                 }

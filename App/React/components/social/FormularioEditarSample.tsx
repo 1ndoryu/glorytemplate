@@ -14,10 +14,6 @@ import type { TipoSample, SampleResumen } from '@app/types';
 const tiposSample: { valor: TipoSample; etiqueta: string }[] = [
     { valor: 'loop', etiqueta: 'Loop' },
     { valor: 'oneshot', etiqueta: 'One Shot' },
-    { valor: 'fx', etiqueta: 'FX' },
-    { valor: 'vocal', etiqueta: 'Vocal' },
-    { valor: 'stem', etiqueta: 'Stem' },
-    { valor: 'otro', etiqueta: 'Otro' },
 ];
 
 /* C170: Chips informativos de metadata IA (solo lectura) */

@@ -7,6 +7,7 @@
 import { apiGet, apiPostFormData, apiDelete, apiPut } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
+import type { CategoriaTag } from './tagUtils';
 
 export interface PaginacionSamples {
     page: number;
@@ -38,7 +39,7 @@ export interface FiltrosSamples {
 export const listarSamples = async (filtros: FiltrosSamples = {}): Promise<RespuestaApi<RespuestaListaSamples>> => {
     return apiGet<RespuestaListaSamples>('/samples', {
         page: filtros.page ?? 1,
-        per_page: filtros.perPage ?? 20,
+        per_page: filtros.perPage ?? 12,
         busqueda: filtros.busqueda,
         genero: filtros.genero,
         bpm_min: filtros.bpmMin,
@@ -64,6 +65,25 @@ export const obtenerFeed = async (
     page = 1
 ): Promise<RespuestaApi<SampleResumen[]>> => {
     return apiGet<SampleResumen[]>('/feed', { tipo, page });
+};
+
+/*
+ * C4: Tags agregados con conteo, calculados en el servidor.
+ * Soporta mismos filtros que listarSamples para faceted search.
+ */
+export type TagConConteo = { tag: string; conteo: number };
+export type TagsAgregadosResp = Record<CategoriaTag, TagConConteo[]>;
+
+export const obtenerTagsAgregados = async (
+    filtros: Pick<FiltrosSamples, 'genero' | 'bpmMin' | 'bpmMax' | 'key' | 'tipo'> = {}
+): Promise<RespuestaApi<TagsAgregadosResp>> => {
+    return apiGet<TagsAgregadosResp>('/tags/aggregates', {
+        genero: filtros.genero,
+        bpm_min: filtros.bpmMin,
+        bpm_max: filtros.bpmMax,
+        key: filtros.key,
+        tipo: filtros.tipo,
+    });
 };
 
 /* Respuesta del endpoint de subida */

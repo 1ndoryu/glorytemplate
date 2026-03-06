@@ -760,7 +760,8 @@ export async function recargarHistorialDesdeStore(): Promise<void> {
     await estado.trackingModule.recargarHistorialDesdeStore();
 }
 
-const REHIDRATAR_IMAGENES_INTERVALO_MS = 15_000;
+/* C7: Reducido de 15s a 5s para que imágenes asignadas via web se muestren más rápido */
+const REHIDRATAR_IMAGENES_INTERVALO_MS = 5_000;
 let ultimaRehidratacionImagenes = 0;
 
 /**

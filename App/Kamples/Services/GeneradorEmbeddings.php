@@ -47,15 +47,12 @@ class GeneradorEmbeddings
         'B' => 11
     ];
 
-    /* Mapa de tipos de sample a índices (0-4) */
+    /* Mapa de tipos de sample a indices (0-1) — solo loop/oneshot soportados */
     private const TIPOS = [
         'loop' => 0,
         'one_shot' => 1,
         'one shot' => 1,
         'oneshot' => 1,
-        'vocal' => 2,
-        'fx' => 3,
-        'preset' => 4
     ];
 
     /**

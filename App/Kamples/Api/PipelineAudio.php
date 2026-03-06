@@ -211,10 +211,10 @@ class PipelineAudio
         if ($metadataIA) {
             KamplesLogger::info('Pipeline: IA completada', ['tipo' => $metadataIA['tipo']]);
 
-            /* Normalizar tipo para cumplir CHECK constraint (loop|oneshot|fx|vocal|stem|otro) */
+            /* Normalizar tipo — solo loop/oneshot permitidos */
             $tipoRaw = \strtolower(\str_replace([' ', '-'], '', $metadataIA['tipo'] ?? ''));
-            $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
-            $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'otro';
+            $tiposValidos = ['loop', 'oneshot'];
+            $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'oneshot';
 
             /* Guardar toda la metadata creativa + confianza técnica en JSONB */
             $actualizaciones['metadata'] = \json_encode([
@@ -245,7 +245,7 @@ class PipelineAudio
              * Marca ia_pendiente para que el frontend/sync sepan que falta el analisis creativo.
              * El ProcesadorColaIA actualizara esta metadata cuando se reprocese.
              */
-            $actualizaciones['tipo'] = 'otro';
+            $actualizaciones['tipo'] = 'oneshot';
             $actualizaciones['metadata'] = \json_encode([
                 'ia_pendiente' => true,
                 'ia_encolada_at' => \date('Y-m-d H:i:s'),

@@ -76,6 +76,11 @@ type OnProgresoUploadFn = (progreso: ProgresoUpload) => void;
 
 let cola: ItemUploadCola[] = [];
 let hashesConocidos = new Set<string>();
+/*
+ * C6: Mapa hash → ruta para poder verificar si un hash corresponde a un archivo
+ * activo en tracking (no borrado del servidor). Permite dedup cross-carpeta correcta.
+ */
+let hashARuta = new Map<string, string>();
 let procesando = false;
 let callbackProgreso: OnProgresoUploadFn | null = null;
 
@@ -126,6 +131,22 @@ function hashSimpleTexto(texto: string): string {
         hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
     return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/*
+ * C6: Verifica si existe al menos un archivo activo en tracking que fue
+ * subido con el hash dado. Usa hashARuta para obtener la ruta original
+ * y luego verifica en tracking que el archivo sigue activo (no borrado).
+ * Si hashARuta no tiene la entrada, recorre la cola completada como fallback.
+ */
+function existeArchivoActivoConHash(hash: string): boolean {
+    const ruta = hashARuta.get(hash);
+    if (ruta && estado.trackingModule) {
+        const enTracking = estado.trackingModule.buscarArchivoPorRuta(ruta);
+        if (enTracking && !enTracking.syncDeshabilitado) return true;
+    }
+    /* Fallback: verificar si algún item completado en cola tiene este hash */
+    return cola.some(i => i.hashParcial === hash && i.estado === 'completado');
 }
 
 function crearIdempotencyKeyDeterministica(rutaArchivo: string, nombreArchivo: string, hashParcial?: string): string {
@@ -215,6 +236,11 @@ export async function inicializarUploadQueue(): Promise<void> {
         const hashesGuardados = await store.get<string[]>(STORE_KEY_HASHES);
         if (hashesGuardados) {
             hashesConocidos = new Set(hashesGuardados);
+        }
+        /* C6: Restaurar mapa hash→ruta para dedup cross-carpeta */
+        const mapaGuardado = await store.get<Record<string, string>>('hash_a_ruta');
+        if (mapaGuardado) {
+            hashARuta = new Map(Object.entries(mapaGuardado));
         }
     } catch {
         /* Store no disponible — usar cola en memoria */
@@ -355,22 +381,32 @@ async function encolarArchivoInterno(
 
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
+
+    /* Verificar también si otro item en cola ya tiene este hash (race entre encolas). */
+    if (hash && cola.some(i => i.hashParcial === hash && i.estado !== 'error' && i.estado !== 'completado')) {
+        console.info('[UploadQueue] Duplicado detectado: hash ya encolado, moviendo a duplicados/:', nombreNormalizado);
+        await moverADuplicados(rutaArchivo, carpetas);
+        return false;
+    }
+
     if (hash && hashesConocidos.has(hash)) {
         /*
-         * Hash conocido, pero verificar si el archivo sigue en tracking.
-         * hashesConocidos es write-only: nunca evicta hashes de archivos eliminados
-         * del servidor. Si tracking ya no tiene este archivo (fue borrado del servidor
-         * y purgado en sincronizarColecciones), evictar el hash stale y proceder
-         * con la subida normalmente. Esto corrige falsos duplicados.
+         * C6 fix: Hash conocido → verificar si ALGÚN archivo activo en tracking
+         * tiene ese contenido. Antes se buscaba solo por ruta del archivo nuevo,
+         * lo que fallaba para copias cross-carpeta (ruta diferente, contenido idéntico).
+         *
+         * Si al menos un archivo activo (no syncDeshabilitado) usa este hash,
+         * es un duplicado genuino → mover a duplicados/.
+         * Solo evictar si NO hay ningún archivo activo con este hash (borrado del servidor).
          */
         if (estado.trackingModule) {
-            const enTracking = estado.trackingModule.buscarArchivoPorRuta(rutaArchivo);
-            if (!enTracking || enTracking.syncDeshabilitado) {
-                console.info('[UploadQueue] Hash conocido pero archivo no está en tracking, evictando hash stale:', nombreNormalizado);
+            const hayActivoConHash = existeArchivoActivoConHash(hash);
+            if (!hayActivoConHash) {
+                console.info('[UploadQueue] Hash conocido pero sin archivo activo en tracking, evictando hash stale:', nombreNormalizado);
                 hashesConocidos.delete(hash);
                 /* Continuar con encolamiento normal */
             } else {
-                console.info('[UploadQueue] Duplicado detectado por hash, moviendo a duplicados/:', nombreNormalizado);
+                console.info('[UploadQueue] Duplicado cross-carpeta detectado por hash, moviendo a duplicados/:', nombreNormalizado);
                 await moverADuplicados(rutaArchivo, carpetas);
                 return false;
             }
@@ -513,6 +549,7 @@ async function procesarItemUpload(
         item.estado = 'completado';
         if (item.hashParcial) {
             hashesConocidos.add(item.hashParcial);
+            hashARuta.set(item.hashParcial, normalizarRutaCola(item.rutaArchivo));
             /* Persistir hash inmediatamente para que uploads paralelos lo vean.
              * No esperar al fin de procesarCola — previene duplicados por race condition. */
             guardarHashes().catch(() => {});
@@ -1129,6 +1166,10 @@ async function guardarHashes(): Promise<void> {
         /* Limitar a últimos 5000 hashes para no crecer indefinidamente */
         const hashesArray = Array.from(hashesConocidos).slice(-5000);
         await store.set(STORE_KEY_HASHES, hashesArray);
+        /* C6: Persistir mapa hash→ruta para dedup cross-carpeta entre reinicios */
+        const mapaObj: Record<string, string> = {};
+        for (const [h, r] of hashARuta) mapaObj[h] = r;
+        await store.set('hash_a_ruta', mapaObj);
         await store.save();
     } catch {
         /* Fallo silencioso */
@@ -1251,6 +1292,7 @@ export async function limpiarCompletados(): Promise<void> {
  */
 export async function limpiarHashesConocidos(): Promise<void> {
     hashesConocidos.clear();
+    hashARuta.clear();
     await guardarHashes();
 }
 

@@ -752,10 +752,40 @@ export async function inicializarSyncBidireccional(): Promise<void> {
              * (dentro de una colección existente).
              */
             registrarCallbacksSubcarpeta(
-                (nombreSub: string, carpetaPadre: string, _rutaCompleta: string) => {
+                (nombreSub: string, carpetaPadre: string, rutaCompleta: string) => {
                     if (CARPETAS_SISTEMA_SYNC.has(nombreSub.toLowerCase())) return;
                     if (!trackingModule) {
                         console.warn('[Sync] Subcarpeta nueva ignorada (sin tracking):', nombreSub);
+                        return;
+                    }
+
+                    /*
+                     * C3: Carpeta creada dentro de "Sin colección" → mover fuera como colección.
+                     * crearColeccionDesdeLocal es idempotente, así que si el watcher re-dispara
+                     * al detectar la carpeta nueva en root, no crea duplicados.
+                     */
+                    if (CARPETAS_SISTEMA_SYNC.has(carpetaPadre.toLowerCase())) {
+                        (async () => {
+                            try {
+                                const { rename, exists } = await import('@tauri-apps/plugin-fs');
+                                const { join, dirname } = await import('@tauri-apps/api/path');
+
+                                const dirPadre = await dirname(rutaCompleta);
+                                const rootSync = await dirname(dirPadre);
+                                const nuevaRuta = await join(rootSync, nombreSub);
+
+                                if (await exists(nuevaRuta)) {
+                                    console.warn('[Sync] Destino ya existe, no se puede mover fuera de Sin colección:', nuevaRuta);
+                                    return;
+                                }
+
+                                await rename(rutaCompleta, nuevaRuta);
+                                console.info('[Sync] C3: Carpeta movida fuera de Sin colección:', nombreSub);
+                                await colMod.crearColeccionDesdeLocal(nombreSub);
+                            } catch (err) {
+                                console.error('[Sync] Error moviendo carpeta fuera de Sin colección:', err);
+                            }
+                        })();
                         return;
                     }
 

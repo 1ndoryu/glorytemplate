@@ -40,7 +40,7 @@ export const SubirModal = (): JSX.Element | null => {
 
     if (!autenticado && abierto) {
         return (
-            <Modal abierto={abierto} onCerrar={manejarCerrar} titulo="Subir Samples" tamano="grande">
+            <Modal abierto={abierto} onCerrar={manejarCerrar} tamano="grande">
                 <div className="subirAuthAviso">
                     <p>Inicia sesión para subir samples.</p>
                     <BotonBase variante="primario" onClick={manejarCerrar}>
@@ -52,7 +52,7 @@ export const SubirModal = (): JSX.Element | null => {
     }
 
     return (
-        <Modal abierto={abierto} onCerrar={manejarCerrar} titulo="Subir Samples" tamano="grande">
+        <Modal abierto={abierto} onCerrar={manejarCerrar} tamano="grande">
             <div className="subirModalContenido">
                 {/* Indicador de pasos */}
                 <div className="subirPasos">

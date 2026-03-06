@@ -43,6 +43,7 @@
 .campoTextoArea {
     min-height: 80px;
     resize: vertical;
+    field-sizing: content;
 }
 
 .errorCampoTexto {

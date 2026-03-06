@@ -6,12 +6,13 @@
  * Se usa para verificar que los datos reales fluyen correctamente.
  */
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp} from 'lucide-react';
 import {Modal} from './Modal';
 import {Avatar} from './Avatar';
 import {Badge} from './Badge';
 import type {Sample, SampleResumen} from '@app/types';
+import {obtenerSample} from '@app/services/apiSamples';
 import '../../styles/componentes/modalInspector.css';
 import { BotonBase } from './BotonBase';
 
@@ -51,17 +52,37 @@ const Campo = ({etiqueta, valor, numerico, ancho}: {etiqueta: string; valor: str
 export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspectorSampleProps): JSX.Element | null => {
     const [jsonVisible, setJsonVisible] = useState(false);
     const [jsonIaVisible, setJsonIaVisible] = useState(false);
+    const [sampleCompleto, setSampleCompleto] = useState<Sample | null>(null);
+
+    /* Fetch del sample completo cuando se abre con un SampleResumen */
+    useEffect(() => {
+        if (!abierto || !sample) {
+            setSampleCompleto(null);
+            return;
+        }
+        if (esSampleCompleto(sample)) {
+            setSampleCompleto(sample);
+            return;
+        }
+        let cancelado = false;
+        obtenerSample(sample.slug).then((resp) => {
+            if (!cancelado && resp.ok && resp.data) setSampleCompleto(resp.data);
+        }).catch(() => { /* best-effort: el inspector sigue mostrando datos del resumen */ });
+        return () => { cancelado = true; };
+    }, [abierto, sample]);
 
     if (!sample) return null;
 
-    const completo = esSampleCompleto(sample);
-    const metadata = completo ? sample.metadata : null;
+    /* Usar sampleCompleto si disponible, si no fallback al resumen */
+    const datos: SampleInspectable = sampleCompleto ?? sample;
+    const completo = esSampleCompleto(datos);
+    const metadata = completo ? datos.metadata : (sample.metadata ?? null);
 
     /* Helper para acceder a campos IA (snake_case o camelCase) */
     const m = (metadata ?? {}) as Record<string, unknown>;
 
     return (
-        <Modal abierto={abierto} onCerrar={onCerrar} titulo="Inspector de Sample" tamano="grande">
+        <Modal abierto={abierto} onCerrar={onCerrar} tamano="grande">
             <div className="inspectorContenido">
                 {/* Sección: Info General */}
                 <div className="inspectorSeccion">
@@ -69,15 +90,15 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Music size={14} /> Info General
                     </div>
                     <div className="inspectorGrid">
-                        <Campo etiqueta="ID" valor={sample.id} numerico />
-                        <Campo etiqueta="Titulo" valor={sample.titulo} />
-                        <Campo etiqueta="Slug" valor={sample.slug} />
-                        <Campo etiqueta="Tipo" valor={sample.tipo} />
-                        <Campo etiqueta="Premium" valor={sample.esPremium} />
-                        <Campo etiqueta="Liked" valor={sample.liked} />
-                        {completo && <Campo etiqueta="Estado" valor={sample.estado} />}
-                        {completo && <Campo etiqueta="Formato" valor={sample.formato} />}
-                        {completo && <Campo etiqueta="Tamano" valor={completo ? `${(sample.tamano / 1024 / 1024).toFixed(2)} MB` : null} />}
+                        <Campo etiqueta="ID" valor={datos.id} numerico />
+                        <Campo etiqueta="Titulo" valor={datos.titulo} />
+                        <Campo etiqueta="Slug" valor={datos.slug} />
+                        <Campo etiqueta="Tipo" valor={datos.tipo} />
+                        <Campo etiqueta="Premium" valor={datos.esPremium} />
+                        <Campo etiqueta="Liked" valor={datos.liked} />
+                        {completo && <Campo etiqueta="Estado" valor={(datos as Sample).estado} />}
+                        {completo && <Campo etiqueta="Formato" valor={(datos as Sample).formato} />}
+                        {completo && <Campo etiqueta="Tamano" valor={`${((datos as Sample).tamano / 1024 / 1024).toFixed(2)} MB`} />}
                     </div>
                 </div>
 
@@ -87,24 +108,24 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <BarChart3 size={14} /> Analisis de Audio
                     </div>
                     <div className="inspectorGrid">
-                        <Campo etiqueta="BPM" valor={sample.bpm} numerico />
-                        <Campo etiqueta="Key" valor={sample.key} />
-                        <Campo etiqueta="Escala" valor={sample.escala} />
-                        <Campo etiqueta="Duracion" valor={sample.duracion ? formatearDuracion(sample.duracion) : null} />
-                        <Campo etiqueta="Ruta Preview" valor={sample.rutaPreview} ancho />
-                        <Campo etiqueta="Ruta Waveform" valor={sample.rutaWaveform} ancho />
-                        {completo && <Campo etiqueta="Archivo Original" valor={sample.rutaOriginal} ancho />}
-                        {completo && <Campo etiqueta="Audio Optimizado" valor={sample.rutaOptimizada} ancho />}
-                        {sample.imagenUrl && <Campo etiqueta="Imagen URL" valor={sample.imagenUrl} ancho />}
+                        <Campo etiqueta="BPM" valor={datos.bpm} numerico />
+                        <Campo etiqueta="Key" valor={datos.key} />
+                        <Campo etiqueta="Escala" valor={datos.escala} />
+                        <Campo etiqueta="Duracion" valor={datos.duracion ? formatearDuracion(datos.duracion) : null} />
+                        <Campo etiqueta="Ruta Preview" valor={datos.rutaPreview} ancho />
+                        <Campo etiqueta="Ruta Waveform" valor={datos.rutaWaveform} ancho />
+                        {completo && <Campo etiqueta="Archivo Original" valor={(datos as Sample).rutaOriginal} ancho />}
+                        {completo && <Campo etiqueta="Audio Optimizado" valor={(datos as Sample).rutaOptimizada} ancho />}
+                        {datos.imagenUrl && <Campo etiqueta="Imagen URL" valor={datos.imagenUrl} ancho />}
                     </div>
                 </div>
 
                 {/* Sección: Tags */}
-                {sample.tags && sample.tags.length > 0 && (
+                {datos.tags && datos.tags.length > 0 && (
                     <div className="inspectorSeccion">
                         <div className="inspectorSeccionTitulo">Tags</div>
                         <div className="inspectorTags">
-                            {sample.tags.map((tag) => (
+                            {datos.tags.map((tag) => (
                                 <span key={tag} className="inspectorTag">
                                     {tag}
                                 </span>
@@ -167,31 +188,31 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <BarChart3 size={14} /> Estadisticas
                     </div>
                     <div className="inspectorGrid">
-                        <Campo etiqueta="Descargas" valor={sample.totalDescargas} numerico />
-                        <Campo etiqueta="Likes" valor={sample.totalLikes} numerico />
-                        {'totalReproducciones' in sample && <Campo etiqueta="Reproducciones" valor={(sample as Sample).totalReproducciones} numerico />}
+                        <Campo etiqueta="Descargas" valor={datos.totalDescargas} numerico />
+                        <Campo etiqueta="Likes" valor={datos.totalLikes} numerico />
+                        {'totalReproducciones' in datos && <Campo etiqueta="Reproducciones" valor={(datos as Sample).totalReproducciones} numerico />}
                     </div>
                 </div>
 
                 {/* Sección: Creador */}
-                {sample.creador && (
+                {datos.creador && (
                     <div className="inspectorSeccion">
                         <div className="inspectorSeccionTitulo">
                             <User size={14} /> Creador
                         </div>
                         <div className="inspectorCreador">
-                            <Avatar nombre={sample.creador.nombreVisible} src={sample.creador.avatarUrl ?? undefined} tamano="sm" />
+                            <Avatar nombre={datos.creador.nombreVisible} src={datos.creador.avatarUrl ?? undefined} tamano="sm" />
                             <div className="inspectorCreadorInfo">
                                 <span className="inspectorCreadorNombre">
-                                    {sample.creador.nombreVisible}
-                                    {sample.creador.verificado && (
+                                    {datos.creador.nombreVisible}
+                                    {datos.creador.verificado && (
                                         <Badge variante="acento" tamano="xs">
                                             V
                                         </Badge>
                                     )}
                                 </span>
                                 <span className="inspectorCreadorUsername">
-                                    @{sample.creador.username} (ID: {sample.creador.id})
+                                    @{datos.creador.username} (ID: {datos.creador.id})
                                 </span>
                             </div>
                         </div>
@@ -204,7 +225,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Code size={14} /> JSON Crudo (Sample)
                         {jsonVisible ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </BotonBase>
-                    {jsonVisible && <pre className="inspectorJsonCrudo">{JSON.stringify(sample, null, 2)}</pre>}
+                    {jsonVisible && <pre className="inspectorJsonCrudo">{JSON.stringify(datos, null, 2)}</pre>}
                 </div>
 
                 {/* Sección: JSON Crudo de la IA (toggle separado) */}

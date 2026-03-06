@@ -49,7 +49,7 @@ export const ModalPublicar = (): JSX.Element | null => {
     if (!abierto) return null;
 
     return (
-        <Modal abierto={abierto} onCerrar={manejarCerrar} titulo="Crear publicación" tamano="normal">
+        <Modal abierto={abierto} onCerrar={manejarCerrar} tamano="normal">
             <div className="publicarContenido">
                 {!autenticado ? (
                     <div className="publicarAuthAviso">

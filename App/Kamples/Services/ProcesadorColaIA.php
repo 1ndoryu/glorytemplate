@@ -235,8 +235,8 @@ class ProcesadorColaIA
         $actualizaciones = [];
 
         $tipoRaw = \strtolower(\str_replace([' ', '-'], '', $metadataIA['tipo'] ?? ''));
-        $tiposValidos = ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro'];
-        $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'otro';
+        $tiposValidos = ['loop', 'oneshot'];
+        $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'oneshot';
 
         /* Preservar confianza tecnica existente si hay */
         $metadataExistente = \json_decode($sample[SamplesCols::METADATA] ?? '{}', true) ?: [];

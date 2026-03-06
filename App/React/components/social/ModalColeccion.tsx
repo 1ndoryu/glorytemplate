@@ -43,12 +43,10 @@ export const ModalColeccion = ({
         manejarGuardar,
         manejarSeleccionImagen,
         previewImagen,
-        titulo,
     } = useModalColeccion({ abierto, onCerrar, onGuardar, coleccion });
 
     return (
-        /* En modo edición NO se pasa título para ocultar la cabecera del modal */
-        <Modal abierto={abierto} onCerrar={onCerrar} titulo={esEdicion ? undefined : titulo} tamano="pequeno">
+        <Modal abierto={abierto} onCerrar={onCerrar} tamano="pequeno">
             <div className="modalColeccionContenido">
 
                 {esEdicion ? (

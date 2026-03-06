@@ -1,18 +1,18 @@
 /*
  * Hook: useFeedFiltros
  * Lógica de filtrado client-side del feed de samples: tags, BPM, precio.
- * Extrae la responsabilidad de filtrado de useFeedSamples para cumplir SRP.
+ * C4: Tags agrupados vienen del backend (escalable a 1M+), no de agregación client-side.
  */
 
-import { useMemo, useCallback } from 'react';
-import {
-    extraerTagsMetadata,
-    extraerTagsAgrupadosMetadata,
-} from '@app/services/tagUtils';
+import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
+import { extraerTagsMetadata } from '@app/services/tagUtils';
+import { obtenerTagsAgregados, type TagsAgregadosResp } from '@app/services/apiSamples';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { SampleResumen } from '@app/types';
+import type { CategoriaTag } from '@app/services/tagUtils';
 
 const MAX_TAGS_SUELTOS = 30;
+const DEBOUNCE_TAGS_MS = 400;
 
 interface UseFeedFiltrosOpciones {
     samples: SampleResumen[];
@@ -31,7 +31,29 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
     const quitarTag = useFiltrosStore(s => s.quitarTag);
     const setBpmRango = useFiltrosStore(s => s.setBpmRango);
 
-    const tagsAgrupados = useMemo(() => extraerTagsAgrupadosMetadata(samples), [samples]);
+    /* C4: Tags agrupados desde el backend — escalable a 1M+ */
+    const vacioTags: Record<CategoriaTag, string[]> = { genero: [], instrumento: [], sentimiento: [], tipo: [], otro: [] };
+    const [tagsAgrupados, setTagsAgrupados] = useState<Record<CategoriaTag, string[]>>(vacioTags);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+    useEffect(() => {
+        clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            obtenerTagsAgregados({ bpmMin: bpmMin ?? undefined, bpmMax: bpmMax ?? undefined })
+                .then((resp) => {
+                    if (!resp.ok || !resp.data) return;
+                    const datos = resp.data as TagsAgregadosResp;
+                    const agrupados: Record<CategoriaTag, string[]> = { genero: [], instrumento: [], sentimiento: [], tipo: [], otro: [] };
+                    for (const cat of Object.keys(agrupados) as CategoriaTag[]) {
+                        agrupados[cat] = (datos[cat] ?? []).map((t) => t.tag);
+                    }
+                    setTagsAgrupados(agrupados);
+                })
+                .catch(() => { /* best-effort: mantener tags anteriores */ });
+        }, DEBOUNCE_TAGS_MS);
+
+        return () => clearTimeout(timerRef.current);
+    }, [bpmMin, bpmMax]);
 
     const tagsSueltos = useMemo(
         () => (tagsAgrupados.otro ?? []).slice(0, MAX_TAGS_SUELTOS),

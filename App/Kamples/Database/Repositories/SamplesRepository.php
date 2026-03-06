@@ -127,6 +127,89 @@ class SamplesRepository extends BaseRepository
     }
 
     /*
+     * C4: Obtener tags agregados con conteo, filtrados por las mismas condiciones del listado.
+     * Usa UNNEST + jsonb_array_elements_text para extraer tags y metadata en SQL.
+     * Retorna: { genero: [{tag,conteo}], instrumento: [...], sentimiento: [...], tipo: [...], otro: [...] }
+     */
+    public static function tagsAgregados(string $whereSQL, array $params, int $limite = 30): array
+    {
+        $tabla = SamplesCols::TABLA;
+        $sMeta = SamplesCols::METADATA;
+        $sTags = SamplesCols::TAGS;
+        $sTipo = SamplesCols::TIPO;
+
+        $baseFrom = "FROM {$tabla} s WHERE {$whereSQL}";
+
+        /* Genero: extraer array JSONB metadata->'genero' */
+        $sqlGenero = "SELECT g.val AS tag, COUNT(*) AS conteo
+            FROM {$tabla} s, LATERAL jsonb_array_elements_text(s.{$sMeta}->'genero') AS g(val)
+            WHERE {$whereSQL} AND s.{$sMeta}->'genero' IS NOT NULL AND jsonb_typeof(s.{$sMeta}->'genero') = 'array'
+            GROUP BY g.val ORDER BY conteo DESC LIMIT :lim_genero";
+
+        /* Instrumento: extraer array JSONB metadata->'instrumentos' */
+        $sqlInstrumento = "SELECT i.val AS tag, COUNT(*) AS conteo
+            FROM {$tabla} s, LATERAL jsonb_array_elements_text(s.{$sMeta}->'instrumentos') AS i(val)
+            WHERE {$whereSQL} AND s.{$sMeta}->'instrumentos' IS NOT NULL AND jsonb_typeof(s.{$sMeta}->'instrumentos') = 'array'
+            GROUP BY i.val ORDER BY conteo DESC LIMIT :lim_instrumento";
+
+        /* Sentimiento: campo escalar metadata->>'emocion' */
+        $sqlSentimiento = "SELECT s.{$sMeta}->>'emocion' AS tag, COUNT(*) AS conteo
+            {$baseFrom} AND s.{$sMeta}->>'emocion' IS NOT NULL AND s.{$sMeta}->>'emocion' != ''
+            GROUP BY tag ORDER BY conteo DESC LIMIT :lim_sentimiento";
+
+        /* Tipo: campo tipo del sample (loop/oneshot) */
+        $sqlTipo = "SELECT s.{$sTipo} AS tag, COUNT(*) AS conteo
+            {$baseFrom}
+            GROUP BY s.{$sTipo} ORDER BY conteo DESC";
+
+        /* Tags sueltos: UNNEST del array tags[] */
+        $sqlOtro = "SELECT t.val AS tag, COUNT(*) AS conteo
+            FROM {$tabla} s, LATERAL UNNEST(s.{$sTags}) AS t(val)
+            WHERE {$whereSQL}
+            GROUP BY t.val ORDER BY conteo DESC LIMIT :lim_otro";
+
+        $resultado = [
+            'genero' => [],
+            'instrumento' => [],
+            'sentimiento' => [],
+            'tipo' => [],
+            'otro' => [],
+        ];
+
+        try {
+            $pGenero = $params;
+            $pGenero['lim_genero'] = $limite;
+            $resultado['genero'] = static::consultar($sqlGenero, $pGenero);
+        } catch (\Throwable $e) {
+            /* best-effort: si la metadata no tiene formato esperado */
+        }
+
+        try {
+            $pInstr = $params;
+            $pInstr['lim_instrumento'] = $limite;
+            $resultado['instrumento'] = static::consultar($sqlInstrumento, $pInstr);
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        try {
+            $pSent = $params;
+            $pSent['lim_sentimiento'] = $limite;
+            $resultado['sentimiento'] = static::consultar($sqlSentimiento, $pSent);
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        try {
+            $resultado['tipo'] = static::consultar($sqlTipo, $params);
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        try {
+            $pOtro = $params;
+            $pOtro['lim_otro'] = $limite;
+            $resultado['otro'] = static::consultar($sqlOtro, $pOtro);
+        } catch (\Throwable $e) { /* best-effort */ }
+
+        return $resultado;
+    }
+
+    /*
      * Buscar sugerencias de samples basadas en contexto de tags, BPM y key.
      * Excluye IDs dados. Scoring: tags comunes + proximidad BPM + match key.
      *

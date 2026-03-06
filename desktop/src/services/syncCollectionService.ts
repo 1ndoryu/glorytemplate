@@ -217,7 +217,10 @@ export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncCole
 
     try {
         const baseUrl = obtenerBaseUrlSync();
-        const resp = await fetch(`${baseUrl}/kamples/v1/me/sync/colecciones`);
+        /* C7: Cache-busting + no-cache para que imágenes recién asignadas se obtengan frescas */
+        const resp = await fetch(`${baseUrl}/kamples/v1/me/sync/colecciones?_t=${Date.now()}`, {
+            headers: { 'Cache-Control': 'no-cache' },
+        });
 
         if (!resp.ok) {
             console.error('[SyncCollection] Error obteniendo colecciones:', resp.status);

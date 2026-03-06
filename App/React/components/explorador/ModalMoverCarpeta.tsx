@@ -24,7 +24,7 @@ export const ModalMoverCarpeta = ({
     onMover,
     onCerrar,
 }: ModalMoverCarpetaProps): JSX.Element => (
-    <Modal abierto={true} onCerrar={onCerrar} titulo="Mover a carpeta" tamano="pequeno">
+    <Modal abierto={true} onCerrar={onCerrar} tamano="pequeno">
         <div className="exploradorModalLista">
             {todasCarpetas.map((c) => (
                 <div key={c.primaria}>

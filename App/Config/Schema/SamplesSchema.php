@@ -28,7 +28,7 @@ class SamplesSchema extends TableSchema
             'metadata'             => ['tipo' => 'json', 'default' => '{}'],
             'tags'                 => ['tipo' => 'array', 'default' => '{}'],
             'estado'               => ['tipo' => 'string', 'max' => 20, 'default' => 'procesando', 'check' => ['procesando', 'activo', 'inactivo', 'eliminado', 'en_supervision']],
-            'tipo'                 => ['tipo' => 'string', 'max' => 20, 'default' => 'loop', 'check' => ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro']],
+            'tipo'                 => ['tipo' => 'string', 'max' => 20, 'default' => 'loop', 'check' => ['loop', 'oneshot']],
             'es_premium'           => ['tipo' => 'bool', 'default' => false],
             'precio'               => ['tipo' => 'decimal', 'nullable' => true],
             'ruta_original'        => ['tipo' => 'text', 'nullable' => true],

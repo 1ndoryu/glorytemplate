@@ -73,6 +73,22 @@ const carpetasPendientesCreacion = new Map<string, {
 }>();
 const DELAY_CREACION_CARPETA_MS = 3000;
 
+/*
+ * C1: Nombres de carpetas temporales que los sistemas operativos crean
+ * al hacer "Nueva carpeta". NUNCA deben generar colecciones — el timeout
+ * se extiende a 60s (tiempo suficiente para que el usuario renombre).
+ * Si no se renombra en 60s, se ignora silenciosamente.
+ */
+const NOMBRES_CARPETA_TEMPORAL = new Set([
+    'nueva carpeta',
+    'new folder',
+    'nuevo directorio',
+    'untitled folder',
+    'sans titre',
+    'neuer ordner',
+]);
+const DELAY_CARPETA_TEMPORAL_MS = 60_000;
+
 /* Purga periódica del cache para evitar crecimiento ilimitado en batches grandes */
 const PURGA_INTERVALO_MS = 10_000;
 const PURGA_TTL_MS = 30_000;
@@ -436,7 +452,15 @@ function procesarEvento(
         if (segmentosRuta.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s))) continue;
 
         /* Exclusión parcial: ignorar CREATEs pero permitir DELETEs en Sin colección */
-        if (esEventoCreacion(tipo) && segmentosRuta.some(s => CARPETAS_SOLO_DELETE.has(s.toLowerCase()))) continue;
+        /*
+         * Exclusión parcial: ignorar CREATEs de archivos dentro de Sin colección.
+         * C3: Permitir CREATEs de subcarpetas (nivel 2) para poder moverlas fuera.
+         */
+        if (esEventoCreacion(tipo) && segmentosRuta.some(s => CARPETAS_SOLO_DELETE.has(s.toLowerCase()))) {
+            const extensionTemprana = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
+            const esPosibleSubcarpeta = segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extensionTemprana);
+            if (!esPosibleSubcarpeta) continue;
+        }
 
         /*
          * C357: Detectar eventos de carpetas de nivel 1 (hijas directas de carpetaBase).
@@ -649,18 +673,29 @@ function procesarEventoCarpeta(
 
         /* Delay la creacion para dar tiempo a que Windows complete el rename.
          * Sin esto, "Nueva carpeta" se envia al servidor antes de que el usuario
-         * termine de escribir el nombre real. */
+         * termine de escribir el nombre real.
+         * C1: Carpetas con nombres temporales del OS (Nueva carpeta, New folder, etc.)
+         * tienen timeout extendido de 60s y NO se crean si expiran — se ignoran. */
         const claveCreacion = nombreCarpeta.toLowerCase();
         const pendienteExistente = carpetasPendientesCreacion.get(claveCreacion);
         if (pendienteExistente) clearTimeout(pendienteExistente.timeout);
 
+        const esTemporal = NOMBRES_CARPETA_TEMPORAL.has(claveCreacion)
+            || /^nueva carpeta\s*\(\d+\)$/i.test(nombreCarpeta)
+            || /^new folder\s*\(\d+\)$/i.test(nombreCarpeta);
+        const delayMs = esTemporal ? DELAY_CARPETA_TEMPORAL_MS : DELAY_CREACION_CARPETA_MS;
+
         const timeoutCreacion = setTimeout(() => {
             carpetasPendientesCreacion.delete(claveCreacion);
+            if (esTemporal) {
+                console.info('[FileWatcher] Carpeta temporal ignorada (no renombrada a tiempo):', nombreCarpeta);
+                return;
+            }
             console.info('[FileWatcher] Carpeta nueva confirmada (sin rename):', nombreCarpeta);
             if (onCarpetaNueva) {
                 onCarpetaNueva(nombreCarpeta, rutaCompleta);
             }
-        }, DELAY_CREACION_CARPETA_MS);
+        }, delayMs);
 
         carpetasPendientesCreacion.set(claveCreacion, {
             timeout: timeoutCreacion,
@@ -750,17 +785,27 @@ function procesarEventoSubcarpeta(
 
         console.info('[FileWatcher] Subcarpeta nueva detectada, esperando rename:', nombreSubcarpeta, 'en', carpetaPadre);
 
-        /* Delay para dar tiempo a rename de Windows ("Nueva carpeta" → nombre real) */
+        /* Delay para dar tiempo a rename de Windows ("Nueva carpeta" → nombre real)
+         * C1: Misma lógica de carpetas temporales aplicada a subcarpetas. */
         const pendienteExistente = subcarpetasPendientesCreacion.get(claveCompuesta);
         if (pendienteExistente) clearTimeout(pendienteExistente.timeout);
 
+        const esTemporalSub = NOMBRES_CARPETA_TEMPORAL.has(nombreSubcarpeta.toLowerCase())
+            || /^nueva carpeta\s*\(\d+\)$/i.test(nombreSubcarpeta)
+            || /^new folder\s*\(\d+\)$/i.test(nombreSubcarpeta);
+        const delayMsSub = esTemporalSub ? DELAY_CARPETA_TEMPORAL_MS : DELAY_CREACION_CARPETA_MS;
+
         const timeoutCreacion = setTimeout(() => {
             subcarpetasPendientesCreacion.delete(claveCompuesta);
+            if (esTemporalSub) {
+                console.info('[FileWatcher] Subcarpeta temporal ignorada:', nombreSubcarpeta, 'en', carpetaPadre);
+                return;
+            }
             console.info('[FileWatcher] Subcarpeta nueva confirmada (sin rename):', nombreSubcarpeta, 'en', carpetaPadre);
             if (onSubcarpetaNueva) {
                 onSubcarpetaNueva(nombreSubcarpeta, carpetaPadre, rutaCompleta);
             }
-        }, DELAY_CREACION_CARPETA_MS);
+        }, delayMsSub);
 
         subcarpetasPendientesCreacion.set(claveCompuesta, {
             timeout: timeoutCreacion,

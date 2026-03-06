@@ -17,8 +17,4 @@ final class SamplesEnums
     /* Valores para columna "tipo" */
     const TIPO_LOOP = 'loop';
     const TIPO_ONESHOT = 'oneshot';
-    const TIPO_FX = 'fx';
-    const TIPO_VOCAL = 'vocal';
-    const TIPO_STEM = 'stem';
-    const TIPO_OTRO = 'otro';
 }

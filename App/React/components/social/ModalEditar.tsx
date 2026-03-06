@@ -54,19 +54,12 @@ export const ModalEditar = (): JSX.Element | null => {
 
     if (!abierto || !tipo) return null;
 
-    const titulo =
-        tipo === 'sample'
-            ? 'Editar sample'
-            : tipo === 'coleccion'
-                ? 'Editar colección'
-                : undefined;
-
     const manejarGuardar = async () => {
         await guardar();
     };
 
     return (
-        <Modal abierto={abierto} onCerrar={cerrar} titulo={titulo} tamano="normal">
+        <Modal abierto={abierto} onCerrar={cerrar} tamano="normal">
             <div className="editarFormulario">
                 {tipo === 'sample' && (
                     <FormularioEditarSample

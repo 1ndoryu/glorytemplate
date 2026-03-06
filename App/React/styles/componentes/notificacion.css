@@ -34,22 +34,7 @@
     animation: slideOutNotificacion var(--transicionNormal) ease forwards;
 }
 
-/* Tipos */
-.notificacionToast.notificacionExito {
-    border-left: 3px solid var(--exito);
-}
-
-.notificacionToast.notificacionError {
-    border-left: 3px solid var(--error);
-}
-
-.notificacionToast.notificacionAdvertencia {
-    border-left: 3px solid var(--advertencia);
-}
-
-.notificacionToast.notificacionInfo {
-    border-left: 3px solid var(--info);
-}
+/* Tipos — colores aplicados solo al icono, sin border-left */
 
 .notificacionIcono {
     flex-shrink: 0;

@@ -198,6 +198,7 @@ export interface ISamples {
   tags: string[]
   estado: 'procesando' | 'activo' | 'inactivo' | 'eliminado' | 'en_supervision'
   tipo: 'loop' | 'oneshot' | 'fx' | 'vocal' | 'stem' | 'otro'
+  /* TO-DO: Regenerar schema.ts tras ALTER TABLE — CHECK constraint reducido a loop|oneshot */
   esPremium: boolean
   precio: number | null
   rutaOriginal: string | null
@@ -621,10 +622,7 @@ export const SamplesEnums = {
   ESTADO_EN_SUPERVISION: 'en_supervision',
   TIPO_LOOP: 'loop',
   TIPO_ONESHOT: 'oneshot',
-  TIPO_FX: 'fx',
-  TIPO_VOCAL: 'vocal',
-  TIPO_STEM: 'stem',
-  TIPO_OTRO: 'otro'
+  /* TO-DO: Regenerar — TIPO_FX, TIPO_VOCAL, TIPO_STEM, TIPO_OTRO eliminados del schema */
 } as const
 
 export const SuscripcionesEnums = {

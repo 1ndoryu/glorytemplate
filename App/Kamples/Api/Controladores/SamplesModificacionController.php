@@ -111,10 +111,6 @@ class SamplesModificacionController
             $tiposValidos = [
                 SamplesEnums::TIPO_LOOP,
                 SamplesEnums::TIPO_ONESHOT,
-                SamplesEnums::TIPO_FX,
-                SamplesEnums::TIPO_VOCAL,
-                SamplesEnums::TIPO_STEM,
-                SamplesEnums::TIPO_OTRO,
             ];
             if (!\in_array($body['tipo'], $tiposValidos, true)) {
                 return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);

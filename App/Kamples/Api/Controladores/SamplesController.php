@@ -64,8 +64,16 @@ class SamplesController
             'args'                => [
                 'tipo'     => ['required' => false, 'type' => 'string', 'default' => 'descubrir', 'enum' => ['descubrir', 'trending', 'recientes']],
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
-                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
             ],
+        ]);
+
+        /* C4: Endpoint de tags agregados para filtrado escalable */
+        \register_rest_route($namespace, '/tags/aggregates', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'tagsAgregados'],
+            'permission_callback' => '__return_true',
+            'args'                => self::argsListar(),
         ]);
 
         /* --- Delegar a sub-controllers --- */
@@ -336,17 +344,74 @@ class SamplesController
 
 
 
+    /*
+     * C4: GET /tags/aggregates — Tags agregados con conteo, aplicando los mismos filtros del listado.
+     * Permite al frontend mostrar tags disponibles sin cargar todos los samples.
+     */
+    public static function tagsAgregados(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $sEstado = SamplesCols::ESTADO;
+            $eActivo = SamplesEnums::ESTADO_ACTIVO;
+            $sMeta = SamplesCols::METADATA;
+            $sBpm = SamplesCols::BPM;
+            $sKey = SamplesCols::KEY;
+            $sTipo = SamplesCols::TIPO;
+
+            $where  = ["s.{$sEstado} = '{$eActivo}'"];
+            $params = [];
+
+            $genero = $request->get_param('genero');
+            if (!empty($genero)) {
+                $where[]  = "s.{$sMeta}->'genero' ? :genero";
+                $params['genero'] = $genero;
+            }
+
+            $bpmMin = $request->get_param('bpm_min');
+            if ($bpmMin !== null) {
+                $where[]  = "s.{$sBpm} >= :bpm_min";
+                $params['bpm_min'] = (int) $bpmMin;
+            }
+
+            $bpmMax = $request->get_param('bpm_max');
+            if ($bpmMax !== null) {
+                $where[]  = "s.{$sBpm} <= :bpm_max";
+                $params['bpm_max'] = (int) $bpmMax;
+            }
+
+            $key = $request->get_param('key');
+            if (!empty($key)) {
+                $where[]  = "s.{$sKey} = :key";
+                $params['key'] = $key;
+            }
+
+            $tipo = $request->get_param('tipo');
+            if (!empty($tipo)) {
+                $where[]  = "s.{$sTipo} = :tipo";
+                $params['tipo'] = $tipo;
+            }
+
+            $whereSQL = \implode(' AND ', $where);
+            $resultado = SamplesRepository::tagsAgregados($whereSQL, $params);
+
+            return new \WP_REST_Response($resultado, 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesController::tagsAgregados error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
     private static function argsListar(): array
     {
         return [
             'page'     => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
-            'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
+            'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
             'busqueda' => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             'genero'   => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
             'bpm_min'  => ['required' => false, 'type' => 'integer', 'minimum' => 1, 'maximum' => 999],
             'bpm_max'  => ['required' => false, 'type' => 'integer', 'minimum' => 1, 'maximum' => 999],
             'key'      => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
-            'tipo'     => ['required' => false, 'type' => 'string', 'enum' => ['loop', 'oneshot', 'fx', 'vocal', 'stem', 'otro']],
+            'tipo'     => ['required' => false, 'type' => 'string', 'enum' => ['loop', 'oneshot']],
             'creador'  => ['required' => false, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
         ];
     }

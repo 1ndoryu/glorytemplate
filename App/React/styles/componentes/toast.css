@@ -42,17 +42,7 @@
     transform: translateX(100%);
 }
 
-.toastItemExito {
-    border-left: 3px solid var(--exito);
-}
-
-.toastItemError {
-    border-left: 3px solid var(--error);
-}
-
-.toastItemInfo {
-    border-left: 3px solid var(--info);
-}
+/* Tipos — colores aplicados solo al icono, sin border-left */
 
 .toastContenido {
     display: flex;
