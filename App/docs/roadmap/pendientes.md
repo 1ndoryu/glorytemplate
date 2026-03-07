@@ -400,13 +400,21 @@ C286. ✅ [AG-FIX] Tracking scoped por usuario — solución arquitectónica con
 - **cerrarSesionDesktop:** Ahora llama `resetearTracking()` para limpiar datos al logout.
 - **Retrocompatible:** Tracking sin userId (pre-C286) se adopta como del usuario actual.
 
-### Lecciones C282-C286
+C287. ✅ [AG-FIX] 3 bugs post-C286 — TC1 merge, carpeta repetida, subcarpeta rename:
+- **Bug 1 — TC1 merge re-importa datos contaminados:** Tras el cleanup por userId, `versionLocalConocida` quedaba en 0 mientras Store tenía versión N. El primer `escribirEnStore()` detectaba Store(N)>local(0) → TC1 merge re-importaba TODAS las colecciones del usuario anterior. **Fix:** (a) Persistir estado limpio al Store inmediatamente después del cleanup + actualizar `versionLocalConocida`. (b) Guard de userId en TC1 merge: si `almacenado.userId !== datos.userId`, omitir merge de colecciones/archivos/sinColeccion.
+- **Bug 2 — Callback "carpeta nueva" se dispara repetidamente:** Cada evento dentro de una carpeta (crear archivo, subcarpeta) re-disparaba el callback de `onCarpetaNueva`. `buscarColeccionHuerfana` encontraba colecciones ajenas → 403 → desvincula → siguiente evento encuentra otra → loop. **Fix:** Verificar `buscarColeccionPorCarpeta(nombre)` ANTES de buscar huérfanas. Si ya existe en tracking, omitir.
+- **Bug 3 — Rename subcarpeta no detectado:** En Windows, notify-rs puede emitir rename como 2 eventos separados (`RenameMode::From` + `RenameMode::To`) con 1 path cada uno. Tauri descarta el RenameMode en la serialización. El handler de rename solo procesaba eventos con 2+ paths. Eventos con 1 path caían al for loop donde `esEventoCreacion`/`esEventoEliminacion` no detectan `modify.kind='name'` → se ignoraban silenciosamente. **Fix:** Buffer de rename no pareados (`manejarRenameNoPareado`): buferea primer path, si llega segundo lo parea y re-despacha como rename con 2 paths. Si timeout sin par, despacha como DELETE sintético para el patrón delete+create existente.
+
+### Lecciones C282-C287
 - [File Lock]: Windows mantiene lock exclusivo durante copy/write. El file watcher emite CREATE inmediatamente. Esperar con backoff corto (300ms-5s) es más eficiente que desperdiciar un retry completo de la cola (2s+ backoff).
 - [403 Ownership]: Colecciones en tracking local que no pertenecen al usuario actual generan 403 en loop. Solución: delink inmediato del tracking + crear nueva colección si necesario.
 - [Logger TS vs PHP]: TypeScript syncLogger usa `warn`, PHP KamplesLogger usa `warning`. No confundir.
 - [Schema]: npx glory php:check es útil para validar antes de commit masivo PHP.
 - [Tracking Scoping]: El tracking de sync DEBE estar scoped por userId. Sin esto, cambiar de cuenta contamina el tracking con colecciones ajenas → 403 en cascada. La solución es almacenar userId en BaseSyncLocal y verificar en inicialización. También limpiar tracking en logout.
 - [Contaminación cross-usuario]: `crearColeccionDesdeLocal()` confiaba en el tracking local para decidir "ya existe". Si el tracking tenía colecciones de otro usuario, devolvía su ID ajeno sin verificar con el servidor. El userId scoping previene esto limpiando datos ajenos al inicializar.
+- [TC1 Merge]: Limpiar datos in-memory NO es suficiente si el Store persiste datos viejos. Hay que escribir al Store inmediatamente tras cleanup Y actualizar `versionLocalConocida` para que TC1 merge no re-importe lo borrado. Regla: toda limpieza de datos DEBE incluir persistencia inmediata.
+- [Carpeta nueva repetida]: Los modify events del interior de una carpeta pueden re-disparar `onCarpetaNueva` para la carpeta padre. Siempre verificar tracking ANTES de buscar huérfanas o crear nuevas.
+- [Rename unpaired]: En Windows con notify-rs, rename events de subcarpetas pueden llegar como 2 eventos separados (From+To) con 1 path cada uno. Tauri descarta RenameMode en la serialización a JS. El handler de rename DEBE contemplar ambos formatos (pareado con 2 paths Y separado con 1 path + buffer).
 
 ### Lecciones C278
 - [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.

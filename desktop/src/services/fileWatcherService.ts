@@ -129,6 +129,26 @@ interface EliminacionPendiente {
 /* Mapa: nombreArchivo normalizado → EliminacionPendiente */
 const eliminacionesPendientes = new Map<string, EliminacionPendiente>();
 
+/*
+ * C287: Buffer para rename events no pareados.
+ * En Windows, el notify crate puede emitir From y To como eventos separados
+ * con modify.kind='name' y 1 path cada uno. Sin buffer, ambos se ignoran
+ * silenciosamente en el for loop (esEventoCreacion y esEventoEliminacion
+ * no detectan modify.kind='name').
+ * Se buferea el primer path y se espera al segundo para parear como rename.
+ * Si no llega par en GRACIA_RENAME_PAR_MS, se despacha como DELETE sintético
+ * para que el patrón delete+create detecte el rename al llegar un CREATE posterior.
+ */
+interface RenameNoPareado {
+    ruta: string;
+    timestamp: number;
+    timeout: ReturnType<typeof setTimeout>;
+    baseNormalizada: string;
+    carpetaBase: string;
+}
+let renamePendienteNoPareado: RenameNoPareado | null = null;
+const GRACIA_RENAME_PAR_MS = 2000;
+
 type UnwatchFn = () => void;
 
 let unwatchFn: UnwatchFn | null = null;
@@ -293,6 +313,12 @@ export async function detenerObservacion(): Promise<void> {
     subcarpetasEliminadasPendientes.clear();
     subcarpetasRecientes.clear();
 
+    /* C287: Limpiar rename no pareado pendiente */
+    if (renamePendienteNoPareado) {
+        clearTimeout(renamePendienteNoPareado.timeout);
+        renamePendienteNoPareado = null;
+    }
+
     logSync.info('watcher', 'Observación detenida');
 }
 
@@ -430,6 +456,23 @@ function procesarEvento(
             error: err instanceof Error ? err.message : String(err),
         });
       }
+    }
+
+    /*
+     * C287: Fallback para rename events con un solo path (From/To separados).
+     * En Windows, notify puede emitir RenameMode::From y RenameMode::To como
+     * eventos independientes con modify.kind='name' y paths.length=1.
+     * Sin este fallback, ambos se ignoran silenciosamente porque
+     * esEventoCreacion/esEventoEliminacion no detectan modify.kind='name'.
+     *
+     * Estrategia: buffear el primer path (From) y esperar el segundo (To).
+     * Si llega par, re-despachar como rename pareado con 2 paths.
+     * Si no llega par (timeout), despachar como DELETE sintético para que
+     * el patrón delete+create existente detecte el rename.
+     */
+    if (esEventoRename(tipo) && evento.paths.length === 1) {
+        manejarRenameNoPareado(evento.paths[0], baseNormalizada, carpetaBase);
+        return;
     }
 
     for (const ruta of evento.paths) {
@@ -858,4 +901,88 @@ function encuentraSubcarpetaEliminadaPendiente(carpetaPadre: string): {
         if (val.carpetaPadre.toLowerCase() === padreNorm) return val;
     }
     return null;
+}
+
+/*
+ * C287: Maneja rename events con un solo path (From/To separados).
+ *
+ * En Windows, notify-rs puede emitir RenameMode::From y RenameMode::To
+ * como eventos independientes con modify.kind='name'. Tauri descarta
+ * el RenameMode, así que ambos llegan como { modify: { kind: 'name' } }
+ * con paths.length=1. Sin este handler, caen al for loop donde
+ * esEventoCreacion y esEventoEliminacion no los reconocen → se ignoran.
+ *
+ * Flujo:
+ *   1. Primer path (From, viejo) → buffear con timeout.
+ *   2. Segundo path (To, nuevo) → parear con buffer → re-despachar
+ *      como rename con 2 paths (procesarEvento recursivo).
+ *   3. Si solo llega 1 path (timeout sin par) → despachar como DELETE
+ *      sintético para que el patrón delete+create existente lo detecte
+ *      cuando llegue un CREATE posterior.
+ */
+function manejarRenameNoPareado(
+    ruta: string,
+    baseNormalizada: string,
+    carpetaBase: string,
+): void {
+    const normalizada = ruta.replace(/\\/g, '/');
+    const relativa = normalizada.startsWith(baseNormalizada + '/')
+        ? normalizada.slice(baseNormalizada.length + 1)
+        : '';
+    if (!relativa) return;
+
+    const segmentos = relativa.split('/').filter(Boolean);
+    if (segmentos.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s))) return;
+
+    if (renamePendienteNoPareado) {
+        /* Segundo path — parear con el primero y re-despachar como rename pareado */
+        clearTimeout(renamePendienteNoPareado.timeout);
+        const origenRuta = renamePendienteNoPareado.ruta;
+        renamePendienteNoPareado = null;
+
+        logSync.info('watcher', `Rename pareado desde eventos separados: ${origenRuta} → ${ruta}`);
+
+        /* Re-despachar: el handler de rename pareado (2 paths) resuelve nivel 1, 2 y archivos */
+        procesarEvento(
+            { type: { modify: { kind: 'name' } }, paths: [origenRuta, ruta] },
+            carpetaBase,
+        );
+    } else {
+        /* Primer path — buffear esperando el segundo */
+        const timeout = setTimeout(() => {
+            const pendiente = renamePendienteNoPareado;
+            renamePendienteNoPareado = null;
+            if (!pendiente) return;
+
+            /*
+             * Sin par: despachar como DELETE sintético.
+             * Si luego llega un CREATE (nuevo nombre), el patrón delete+create
+             * en procesarEventoCarpeta/Subcarpeta detectará el rename.
+             */
+            const norm = pendiente.ruta.replace(/\\/g, '/');
+            const rel = norm.startsWith(pendiente.baseNormalizada + '/')
+                ? norm.slice(pendiente.baseNormalizada.length + 1)
+                : '';
+            if (!rel) return;
+
+            const segs = rel.split('/').filter(Boolean);
+            const tipoRemove = { remove: { kind: 'any' } };
+
+            if (segs.length === 1 && !EXTENSIONES_AUDIO.has(segs[0].split('.').pop()?.toLowerCase() ?? '')) {
+                logSync.info('watcher', `Rename sin par → dispatch como eliminación carpeta: ${rel}`);
+                procesarEventoCarpeta(tipoRemove, norm, rel, pendiente.baseNormalizada);
+            } else if (segs.length === 2 && !EXTENSIONES_AUDIO.has(segs[1].split('.').pop()?.toLowerCase() ?? '')) {
+                logSync.info('watcher', `Rename sin par → dispatch como eliminación subcarpeta: ${rel}`);
+                procesarEventoSubcarpeta(tipoRemove, norm, segs[1], segs[0], pendiente.baseNormalizada);
+            }
+        }, GRACIA_RENAME_PAR_MS);
+
+        renamePendienteNoPareado = {
+            ruta,
+            timestamp: Date.now(),
+            timeout,
+            baseNormalizada,
+            carpetaBase,
+        };
+    }
 }

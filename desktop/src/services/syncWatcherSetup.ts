@@ -797,6 +797,21 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                      */
                     (async () => {
                         try {
+                            /*
+                             * C287: Si la colección ya existe en tracking, omitir.
+                             * Sin esto, cada evento sobre el interior de la carpeta
+                             * (crear archivos, subcarpetas) re-dispara este callback
+                             * y buscarColeccionHuerfana encuentra colecciones de otro
+                             * usuario → 403 en cascada.
+                             */
+                            if (trackingModule) {
+                                const existente = trackingModule.buscarColeccionPorCarpeta(nombre);
+                                if (existente) {
+                                    console.info('[Sync] Carpeta ya vinculada en tracking, omitiendo:', nombre, '→ id:', existente.id);
+                                    return;
+                                }
+                            }
+
                             const huerfana = await colMod.buscarColeccionHuerfana(nombre);
                             if (huerfana) {
                                 console.info('[Sync] Carpeta nueva detectada como posible rename (huérfana encontrada):', huerfana.id, huerfana.nombre, '→', nombre);

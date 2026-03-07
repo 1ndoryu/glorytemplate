@@ -265,27 +265,40 @@ async function escribirEnStore(): Promise<void> {
     if (versionStore > versionLocalConocida && almacenado) {
         logSync.info('tracking', `TC1: Versión Store (${versionStore}) > local (${versionLocalConocida}), fusionando datos cross-window`);
 
-        /* Fusionar archivos: preferir datos locales (nuestra ventana es la que hizo cambios),
-         * pero importar archivos que la otra ventana añadió y nosotros no tenemos */
-        for (const [clave, archivoRemoto] of Object.entries(almacenado.archivos)) {
-            if (!datos.archivos[clave]) {
-                datos.archivos[clave] = archivoRemoto;
+        /*
+         * C287: Guard de userId — si el Store pertenece a otro usuario, NO fusionar
+         * colecciones/archivos/sinColeccion. Evita que datos de un usuario anterior
+         * se re-importen despues del cleanup de inicializarTracking.
+         * Solo fusionar historialSamples (neutro respecto a propiedad).
+         */
+        const mismoUsuario = !datos.userId || !almacenado.userId || datos.userId === almacenado.userId;
+
+        if (mismoUsuario) {
+            /* Fusionar archivos: preferir datos locales (nuestra ventana es la que hizo cambios),
+             * pero importar archivos que la otra ventana añadió y nosotros no tenemos */
+            for (const [clave, archivoRemoto] of Object.entries(almacenado.archivos)) {
+                if (!datos.archivos[clave]) {
+                    datos.archivos[clave] = archivoRemoto;
+                }
             }
-        }
 
-        /* Fusionar colecciones: importar las que no tenemos */
-        for (const [idStr, colRemota] of Object.entries(almacenado.colecciones)) {
-            const id = Number(idStr);
-            if (!datos.colecciones[id]) {
-                datos.colecciones[id] = colRemota;
+            /* Fusionar colecciones: importar las que no tenemos */
+            for (const [idStr, colRemota] of Object.entries(almacenado.colecciones)) {
+                const id = Number(idStr);
+                if (!datos.colecciones[id]) {
+                    datos.colecciones[id] = colRemota;
+                }
             }
+
+            /* Fusionar sinColeccion: unión de sets */
+            const sinColSet = new Set([...datos.sinColeccion, ...almacenado.sinColeccion]);
+            datos.sinColeccion = Array.from(sinColSet);
+
+            reconstruirIndices();
+        } else {
+            logSync.warn('tracking',
+                `TC1: Store pertenece a usuario #${almacenado.userId}, local es #${datos.userId}. Omitiendo merge de colecciones/archivos.`);
         }
-
-        /* Fusionar sinColeccion: unión de sets */
-        const sinColSet = new Set([...datos.sinColeccion, ...almacenado.sinColeccion]);
-        datos.sinColeccion = Array.from(sinColSet);
-
-        reconstruirIndices();
     }
 
     if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
@@ -381,6 +394,28 @@ export async function inicializarTracking(userIdActual?: number): Promise<void> 
                 historialSamples: [],
                 userId: userIdActual,
             };
+
+            /*
+             * C287: Persistir estado limpio al Store inmediatamente.
+             * Sin esto, versionLocalConocida queda en 0 mientras Store tiene version N.
+             * El primer escribirEnStore() ve Store(N) > local(0) → TC1 merge
+             * re-importa TODAS las colecciones/archivos del usuario anterior.
+             */
+            if (storeCache) {
+                try {
+                    const storeActual = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+                    const versionActualStore = storeActual?.checkpointVersion ?? 0;
+                    versionLocalConocida = versionActualStore + 1;
+                    datos.checkpointVersion = versionLocalConocida;
+                    await storeCache.set(STORE_KEY_TRACKING, datos);
+                    await storeCache.save();
+                    logSync.info('tracking', `Estado limpio persistido al Store (version: ${versionLocalConocida})`);
+                } catch (err) {
+                    logSync.warn('tracking', 'Error persistiendo estado limpio al Store', {
+                        error: err instanceof Error ? err.message : String(err)
+                    });
+                }
+            }
         } else {
             /* Marcar userId si no existía (migración from pre-C286 tracking) */
             datos.userId = userIdActual;
