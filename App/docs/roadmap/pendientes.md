@@ -273,3 +273,16 @@ C273. ✅ [AG-FIX] Scroll infinito comunidad: useComunidadIsland no paginaba jam
 - [Auth]: authStore (datos usuario) y authModalStore (UI modal) son stores separados. Cerrar modal requiere acceder al store correcto.
 - [Feed]: Para diversidad justa, el scoring de ROW_NUMBER (cap por autor) no debe incluir señales personalizadas (social boost). Solo métricas objetivas (frescura + engagement).
 - [CSS]: Botones condicionales (X para limpiar) causan reflow. Usar position:absolute para elementos toggle.
+
+### Bugfixes post Sprint G (cont.)
+
+C274. ✅ [AG-FIX] Eliminar colección FK violation: eliminarDelUsuario() hacía DELETE FROM colecciones sin limpiar coleccion_samples. Cascada manual: verificar propiedad → DELETE coleccion_samples → DELETE colecciones.
+
+C275. ✅ [AG-SYN] Sync rename broken + ColeccionDetalle crash:
+- **buscarColeccionHuerfana import roto:** `import('./desktopService')` → `import('./syncService')` en syncCollectionService.ts. obtenerConfigSync solo existe en syncService.ts. Sin este fix, toda la cadena rename-via-orphan fallaba → creaba colección nueva en vez de renombrar.
+- **ColeccionDetalleIsland .length crash:** useModalColeccion.ts pasaba `resp.data` (={ok:true}) del PUT a `manejarGuardarEdicion` → `setColeccion({ok:true})` → `coleccion.samples` undefined → crash. Fix: construir objeto fusionado desde colección existente + campos editados del formulario, preservando samples/tags/likes.
+
+### Lecciones C274-C275
+- [Sync]: imports dinámicos (`await import('./x')`) no dan error de tipo en build — solo fallan en runtime. Verificar siempre que el export existe en el módulo target.
+- [API PUT]: Si el backend retorna solo `{ok:true}` sin el recurso completo, el frontend debe fusionar campos conocidos con el estado existente, no reemplazar el objeto entero. Alternativa: hacer que el PUT retorne el recurso actualizado (REST convencional).
+- [FK Cascade]: WordPress no soporta FK constraints nativos. Toda tabla con referencias cruzadas requiere cascada manual en DELETE (limpiar hijos antes que padre).

@@ -188,7 +188,7 @@ export async function buscarColeccionHuerfana(
     try {
         const { exists } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
-        const { obtenerConfigSync } = await import('./desktopService');
+        const { obtenerConfigSync } = await import('./syncService');
 
         const config = obtenerConfigSync();
         if (!config?.carpetaLocal) return null;

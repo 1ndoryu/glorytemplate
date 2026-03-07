@@ -94,8 +94,20 @@ export const useModalColeccion = ({
                 };
                 if (imagenUrl !== undefined) datos.imagenUrl = imagenUrl;
                 const resp = await actualizarColeccion(coleccion.id, datos);
-                if (resp.ok && resp.data) {
-                    onGuardar?.(resp.data);
+                if (resp.ok) {
+                    /*
+                     * El PUT solo retorna {ok:true}, no la colección completa.
+                     * Fusionamos los campos editados con el estado existente para
+                     * preservar samples, likes, tags, etc. sin roundtrip extra a BD.
+                     */
+                    const actualizada: Coleccion = {
+                        ...coleccion,
+                        nombre: nombre.trim(),
+                        descripcion: descripcion.trim(),
+                        esPublica,
+                        ...(imagenUrl !== undefined ? { imagenUrl } : {}),
+                    };
+                    onGuardar?.(actualizada);
                     log.info('Colección actualizada', { id: coleccion.id });
                 }
             } else {
