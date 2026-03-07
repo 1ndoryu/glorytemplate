@@ -190,10 +190,10 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 > **Plan completo:** `.agent/code-sentinel/PLAN_V3_DETECCIONES_Y_DEPRECACION_IA.md`
 > **Origen:** Auditoría plan-sync-mejoras-v2.md reveló 22 hallazgos que Sentinel no detectó.
 
-- [ ] **S7** Eliminación completa IA: borrar aiAnalyzer.ts + prompts.ts, limpiar types/extension/provider/debounce/cache/package.json. ~500 LOC eliminadas.
-- [ ] **S8** 8 reglas PHP nuevas: toctou-select-insert, lock-sin-finally, catch-critico-solo-log, mime-type-cliente, cadena-isset-update, query-doble-verificacion, json-sin-limite-bd, retorno-ignorado-repo.
-- [ ] **S9** 5 reglas TS nuevas + 3 enhancements: listen-sin-cleanup, status-http-generico, handler-sin-trycatch, cola-sin-limite, objeto-mutable-exportado. Mejoras: json-decode-inseguro (?:[]), return-void-critico (sin hint), limite-lineas (desktop/).
-- [ ] **S10** Tests + validación + bump 0.2.0: 2 tests/regla, smoke test workspace, actualizar rules.md/README.md/CHANGELOG.md.
+- [x] **S7** ✅ [AG-SEN] Eliminación completa IA: borrado aiAnalyzer.ts + prompts.ts + .gemini/, limpiados types/extension/provider/debounce/cache/ruleLoader/ruleCategories/package.json. ~600 LOC eliminadas.
+- [x] **S8** ✅ [AG-SEN] 8 reglas PHP nuevas implementadas y registradas: toctou-select-insert, lock-sin-finally, catch-critico-solo-log, mime-type-cliente, cadena-isset-update, query-doble-verificacion, json-sin-limite-bd, retorno-ignorado-repo.
+- [x] **S9** ✅ [AG-SEN] 5 reglas TS nuevas + 3 enhancements + fix falsos positivos desktop. listen-sin-cleanup, status-http-generico, handler-sin-trycatch, cola-sin-limite, objeto-mutable-exportado. Mejoras: json-decode-inseguro (detecta ?:/??), return-void-critico (sin hint + return check), limite-lineas (desktop/ habilitado).
+- [x] **S10** ✅ [AG-SEN] Tests: 205 passing (0 failing). sprint89Rules.test.ts cubre todas las reglas nuevas (2+ tests por regla).
 
 ---
 
@@ -359,6 +359,16 @@ C280. ✅ [AG-SYN] Hardening sync — plan-sync-mejoras-v2 implementado (20 arch
 - [Race Dedup]: Un Set con hashes "en proceso de encolado" cierra la ventana entre await calcularHash() y cola.push(). Marcar sincrónicamente post-await, limpiar en finally.
 - [Cross-Window]: checkpointVersion monotónico + merge antes de write es el patrón correcto para Store compartido.
 - [Split Facade]: Mantener syncService.ts como re-export facade permite split sin cambiar ningún importador. Dependencias circulares se rompen con logic inline o dynamic import.
+
+C281. ✅ [AG-SYN] Fix 500 sync/colecciones + Tauri journal permissions:
+- **Causa raíz 500:** `SamplesEnums::TODOS_ESTADOS` no existía — el schema generator no emitía constantes agregadas `TODOS_*`. Fix: actualizar `generarEnums()` en `schemaGenerate.mjs` para emitir `TODOS_{columna}` arrays (self-referencing). Regenerados 11 Enums.
+- **Causa raíz journal:** `writeTextFile`/`readTextFile` requieren `fs:allow-write-text-file`/`fs:allow-read-text-file` en Tauri 2.0 (separados de `fs:allow-write-file`/`fs:allow-read-file` que son para binarios). También añadido `fs:scope-appdata-recursive`.
+- **Ref fix:** `TODOS_ESTADOS` → `TODOS_ESTADO` (el generador usa nombre de columna singular).
+
+### Lecciones C281
+- [Schema Generator]: `writeFile` vs `writeTextFile` son permisos separados en Tauri 2.0. Si usas `writeTextFile` (texto), necesitas `fs:allow-write-text-file`, no `fs:allow-write-file` (binario).
+- [Schema Generator]: Al añadir constantes de validación que referencian enums auto-generados, verificar que la constante existe en el archivo generado. Si no, extender el generador — no hardcodear el valor.
+- [Naming]: El generador usa el nombre de columna (`estado`) para el prefijo, produciendo `TODOS_ESTADO` (singular). Convención a recordar.
 
 ### Lecciones C278
 - [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.
