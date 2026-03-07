@@ -33,6 +33,19 @@ import { logSync } from './syncLogger';
 const STORE_FILE = 'upload-queue.json';
 
 /*
+ * SEC-A3: Extensiones de audio validas para subida.
+ * Solo estos formatos se aceptan — cualquier otro se rechaza antes de encolar.
+ * Server-side tambien valida (defensa en profundidad).
+ */
+const EXTENSIONES_AUDIO_VALIDAS = new Set(['.wav', '.mp3', '.flac', '.aiff', '.aif', '.ogg']);
+
+function esExtensionAudioValida(nombreArchivo: string): boolean {
+    const ultimoPunto = nombreArchivo.lastIndexOf('.');
+    if (ultimoPunto < 0) return false;
+    return EXTENSIONES_AUDIO_VALIDAS.has(nombreArchivo.substring(ultimoPunto).toLowerCase());
+}
+
+/*
  * Verifica si una ruta de archivo está dentro de la carpeta de sync configurada.
  * Normaliza separadores y casing para comparación segura en Windows.
  * Retorna false si no hay carpeta configurada (failsafe: bloquear).
@@ -344,6 +357,12 @@ export async function encolarArchivo(
     /* P3: Rechazar archivos dentro de .papelera — defensa en profundidad */
     if (esRutaPapelera(rutaNormalizada)) {
         console.info('[UploadQueue] Archivo en .papelera, rechazando:', nombreArchivo);
+        return false;
+    }
+
+    /* SEC-A3: Rechazar archivos que no sean audio — solo extensiones validas */
+    if (!esExtensionAudioValida(nombreArchivo)) {
+        logSync.warning('uploadQueue', `Archivo ignorado (no audio): ${nombreArchivo}`);
         return false;
     }
 

@@ -267,9 +267,10 @@ class SyncChangelogRepository extends BaseRepository
             $diasRetencion = 90;
         }
 
+        /* SEC-C1: MAKE_INTERVAL parametrizado en vez de interpolacion string */
         $sql = "DELETE FROM " . SyncChangelogCols::TABLA
-            . " WHERE " . SyncChangelogCols::CREATED_AT . " < NOW() - INTERVAL '{$diasRetencion} days'";
+            . " WHERE " . SyncChangelogCols::CREATED_AT . " < NOW() - MAKE_INTERVAL(days => :dias)";
 
-        return static::ejecutar($sql);
+        return static::ejecutar($sql, ['dias' => $diasRetencion]);
     }
 }

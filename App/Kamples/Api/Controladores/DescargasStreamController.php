@@ -19,11 +19,15 @@ class DescargasStreamController
     /**
      * C202: Generar firma HMAC para tokens de descarga temporales.
      * Usado también por DescargasController::descargar() para crear tokens.
+     * SEC-C2: AUTH_SALT obligatorio — sin fallback hardcodeado.
      */
     public static function generarFirmaDescarga(int $sampleId, int $userId, int $expira): string
     {
-        $secreto = \defined('AUTH_SALT') ? AUTH_SALT : 'kamples-descarga-segura-2026';
-        return \hash_hmac('sha256', "{$sampleId}:{$userId}:{$expira}", $secreto);
+        if (!\defined('AUTH_SALT') || \AUTH_SALT === '') {
+            KamplesLogger::critical('DescargasStream: AUTH_SALT no configurado — descargas deshabilitadas');
+            throw new \RuntimeException('Configuracion de seguridad incompleta');
+        }
+        return \hash_hmac('sha256', "{$sampleId}:{$userId}:{$expira}", \AUTH_SALT);
     }
 
     /**

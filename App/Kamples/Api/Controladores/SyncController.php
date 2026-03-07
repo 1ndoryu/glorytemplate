@@ -16,6 +16,7 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\SyncRepository;
 use App\Kamples\Database\Repositories\SyncChangelogRepository;
@@ -58,6 +59,10 @@ class SyncController
             if (!$userId) {
                 return UsuarioHelper::respuestaNoEncontrado();
             }
+
+            /* SEC-M2: Rate limit — 60 req/min por usuario (full sync es costoso) */
+            $rl = RateLimiter::verificarUsuario($userId, 'sync_colecciones', 60, 60);
+            if ($rl) return $rl;
 
             $coleccionesRaw = SyncRepository::coleccionesConSamples($userId);
             $sinColeccion = SyncRepository::descargasSinColeccion($userId);
@@ -146,6 +151,10 @@ class SyncController
             if (!$userId) {
                 return UsuarioHelper::respuestaNoEncontrado();
             }
+
+            /* SEC-M2: Rate limit — 120 req/min por usuario (delta es mas ligero) */
+            $rl = RateLimiter::verificarUsuario($userId, 'sync_delta', 120, 60);
+            if ($rl) return $rl;
 
             $cursor = (int) ($request->get_param('cursor') ?? 0);
             $limite = (int) ($request->get_param('limite') ?? 100);
