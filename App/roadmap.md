@@ -13,6 +13,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 | Completado | [docs/roadmap/completado.md](docs/roadmap/completado.md) | Todo el trabajo completado (F0-F7, Sync, Algoritmo, Desktop) |
 | Referencia Sync | [docs/roadmap/referencia-sync.md](docs/roadmap/referencia-sync.md) | Arquitectura de referencia Sync v2 + Cola IA |
 | Lecciones | [docs/roadmap/lecciones.md](docs/roadmap/lecciones.md) | Gotchas y lecciones aprendidas por dominio |
+| Dedup Global | [docs/roadmap/plan-dedup-global.md](docs/roadmap/plan-dedup-global.md) | Plan "1 sample = 1 existencia" — dedup server + desktop + moderacion |
 
 ### Documentacion adicional
 
@@ -24,6 +25,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - `App/docs/plan-daw-channelrack-mixer.md` -- Plan DAW (Channel Rack + Mixer)
 - `App/docs/plan-piano-roll.md` -- Plan Piano Roll
 - `App/solid-seguridad-optimizacion.md` -- SOLID, seguridad y optimizacion
+- `App/docs/roadmap/plan-dedup-global.md` -- Plan de deduplicacion global (1 sample = 1 existencia)
 
 ---
 
