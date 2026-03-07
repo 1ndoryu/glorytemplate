@@ -123,7 +123,18 @@ class ColeccionesCrudController
             return new \WP_REST_Response(['code' => 'sin_cambios'], 400);
         }
 
-        ColeccionesRepository::actualizarCampos($id, $campos, $params);
+        /* F5.2: Optimistic locking — si el cliente envia version, verificar coincidencia */
+        $versionCliente = isset($body['version']) ? (int) $body['version'] : null;
+        $actualizado = ColeccionesRepository::actualizarCampos($id, $campos, $params, $versionCliente);
+
+        if (!$actualizado && $versionCliente !== null) {
+            /* Version mismatch: otro cliente/tab modifico la coleccion primero */
+            return new \WP_REST_Response([
+                'code' => 'conflicto_version',
+                'message' => 'La colección fue modificada por otro cliente. Sincroniza y reintenta.',
+                'versionServidor' => (int) ($coleccion[ColeccionesCols::VERSION] ?? 1),
+            ], 409);
+        }
 
         /* F2.1: Registrar rename en changelog si cambio el nombre */
         if (isset($params['nombre'])) {

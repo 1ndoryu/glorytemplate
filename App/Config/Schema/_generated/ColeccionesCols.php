@@ -20,7 +20,8 @@ final class ColeccionesCols
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
     const PORTADA_URL = 'portada_url';
+    const VERSION = 'version';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'usuario_id', 'parent_id', 'nombre', 'descripcion', 'imagen_url', 'publica', 'total_samples', 'created_at', 'updated_at', 'portada_url'];
+    const TODAS = ['id', 'usuario_id', 'parent_id', 'nombre', 'descripcion', 'imagen_url', 'publica', 'total_samples', 'created_at', 'updated_at', 'portada_url', 'version'];
 }

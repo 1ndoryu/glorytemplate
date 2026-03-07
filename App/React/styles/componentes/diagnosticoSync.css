@@ -1,0 +1,133 @@
+/*
+ * diagnosticoSync.css — F6.2
+ * Estilos del panel de diagnostico interno del sync.
+ * Panel expandible dentro de VentanaSincPanel, tab "diagnostico".
+ */
+
+.diagSyncPanel {
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.diagSyncSeccion {
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+}
+
+.diagSyncSeccionTitulo {
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin-bottom: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.diagSyncFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 0;
+}
+
+.diagSyncEtiqueta {
+    color: var(--textoTerciario);
+}
+
+.diagSyncValor {
+    font-family: var(--fuenteMono, monospace);
+    color: var(--textoPrimario);
+}
+
+/* Indicadores de estado con color semantico */
+.diagSyncEstado--cerrado {
+    color: var(--colorExito);
+}
+
+.diagSyncEstado--abierto {
+    color: var(--colorError);
+}
+
+.diagSyncEstado--semiAbierto {
+    color: var(--colorAdvertencia);
+}
+
+/* Log viewer minimalista */
+.diagSyncLogs {
+    font-family: var(--fuenteMono, monospace);
+    font-size: 11px;
+    line-height: 1.4;
+    max-height: 180px;
+    overflow-y: auto;
+    background: var(--fondoTerciario, rgba(0, 0, 0, 0.2));
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm);
+}
+
+.diagSyncLogEntrada {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.diagSyncLogEntrada--error {
+    color: var(--colorError);
+}
+
+.diagSyncLogEntrada--warn {
+    color: var(--colorAdvertencia);
+}
+
+.diagSyncLogEntrada--info {
+    color: var(--textoSecundario);
+}
+
+.diagSyncLogEntrada--debug {
+    color: var(--textoTerciario);
+    opacity: 0.7;
+}
+
+/* Botones de accion */
+.diagSyncAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.diagSyncBoton {
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoSecundario);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.diagSyncBoton:hover {
+    background: var(--fondoHover);
+    color: var(--textoPrimario);
+}
+
+/* Cola offline detalle */
+.diagSyncCola {
+    font-family: var(--fuenteMono, monospace);
+    font-size: 11px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.diagSyncColaItem {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 0;
+    border-bottom: 1px solid var(--bordeSutil);
+}

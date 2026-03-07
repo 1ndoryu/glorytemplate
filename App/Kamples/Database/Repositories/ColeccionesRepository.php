@@ -368,14 +368,15 @@ class ColeccionesRepository extends BaseRepository
 
     /*
      * Verificar que una colección pertenece al usuario.
-     * Retorna el registro mínimo o null.
+     * Retorna registro con id, nombre y version (necesario para changelog y optimistic locking).
      */
     public static function verificarPropiedad(int $id, int $userId): ?array
     {
         $t = ColeccionesCols::TABLA;
 
         return static::consultarUno(
-            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
+            "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::VERSION
+            . " FROM {$t} WHERE " . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
             ['id' => $id, 'userId' => $userId]
         );
     }
@@ -457,17 +458,36 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
-     * Actualizar campos de una colección.
+     * Actualizar campos de una colección con optimistic locking (F5.2).
+     *
+     * Si $versionEsperada es proporcionada, verifica que la version en BD coincida.
+     * Si no coincide, retorna false (conflicto). El caller debe responder 409.
+     * Incrementa version automaticamente en cada update exitoso.
+     *
      * $campos: array de pares SQL "columna = :param"
-     * $params: array de parámetros incluyendo 'id'
+     * $params: array de parámetros
+     * $versionEsperada: null = sin lock (backwards-compatible), int = optimistic lock
      */
-    public static function actualizarCampos(int $id, array $campos, array $params): bool
+    public static function actualizarCampos(int $id, array $campos, array $params, ?int $versionEsperada = null): bool
     {
         $t = ColeccionesCols::TABLA;
         $params['id'] = $id;
 
+        /* Siempre incrementar version y updated_at */
+        $setSql = implode(', ', $campos)
+            . ", " . ColeccionesCols::VERSION . " = " . ColeccionesCols::VERSION . " + 1"
+            . ", " . ColeccionesCols::UPDATED_AT . " = NOW()";
+
+        $whereSql = ColeccionesCols::ID . " = :id";
+
+        /* Optimistic locking: solo actualizar si la version coincide */
+        if ($versionEsperada !== null) {
+            $whereSql .= " AND " . ColeccionesCols::VERSION . " = :versionEsperada";
+            $params['versionEsperada'] = $versionEsperada;
+        }
+
         $afectadas = static::ejecutar(
-            "UPDATE {$t} SET " . implode(', ', $campos) . ", " . ColeccionesCols::UPDATED_AT . " = NOW() WHERE " . ColeccionesCols::ID . " = :id",
+            "UPDATE {$t} SET {$setSql} WHERE {$whereSql}",
             $params
         );
 

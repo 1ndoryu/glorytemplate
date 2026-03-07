@@ -21,7 +21,7 @@
 
 CREATE TABLE IF NOT EXISTS sync_changelog (
     id          BIGSERIAL PRIMARY KEY,
-    usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    usuario_id  INTEGER NOT NULL REFERENCES usuarios_ext(id) ON DELETE CASCADE,
     tipo        TEXT NOT NULL
                     CHECK (tipo IN (
                         'sample_added',

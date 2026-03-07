@@ -12,7 +12,7 @@
 
 type NivelLog = 'debug' | 'info' | 'warn' | 'error';
 
-interface EntradaLog {
+export interface EntradaLog {
     ts: number;
     nivel: NivelLog;
     modulo: string;
@@ -159,6 +159,14 @@ export async function exportarLogs(): Promise<string> {
 }
 
 /* Loggers por nivel — API principal */
+
+/*
+ * Obtener las últimas N entradas del buffer en memoria.
+ * No lee de disco — solo lo que está en el buffer actual (max 500).
+ */
+export function obtenerUltimasEntradas(n: number): ReadonlyArray<EntradaLog> {
+    return buffer.slice(-n);
+}
 
 export const logSync = {
     debug(modulo: string, msg: string, data?: unknown): void {

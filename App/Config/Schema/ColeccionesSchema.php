@@ -25,6 +25,7 @@ class ColeccionesSchema extends TableSchema
             'created_at'     => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'updated_at'     => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'portada_url'    => ['tipo' => 'text', 'nullable' => true],
+            'version'        => ['tipo' => 'int', 'default' => 1],
         ];
     }
 }

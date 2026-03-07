@@ -49,6 +49,7 @@ export interface ColeccionLocal {
     carpetaLocal: string;           /* nombre de la carpeta en disco (sanitizado) */
     creadaLocalmente: boolean;      /* true si fue creada como carpeta local primero */
     parentId: number | null;        /* null = raíz, number = subcolección (max 2 niveles) */
+    version: number;                /* F5.2: optimistic locking — se incrementa en cada update del servidor */
 }
 
 export type TipoAccionHistorial =

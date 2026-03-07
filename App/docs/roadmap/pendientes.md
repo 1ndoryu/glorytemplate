@@ -322,8 +322,19 @@ C278. ✅ [AG-SYN] Implementación plan sync mejoras — Fases F1-F6 (parcial):
 - **F4 — Errores:** errorSync.ts (taxonomía 6 categorías), backoff exponencial en offlineQueue/uploadQueue, circuitBreaker.ts integrado.
 - **F5 — Atómico:** TransaccionSync en rename colección (rollback automático).
 - **F6 — Observabilidad:** syncLogger.ts (logger estructurado con rotación), logSync integrado en 9 files incluido fileWatcherService (24 console calls migrados).
-- **Pendiente F5.2:** Versioning (campo version en colecciones, optimistic locking).
-- **Pendiente F6.2:** Panel diagnóstico UI.
+- ✅ **F5.2:** Versioning implementado — campo `version` en colecciones (v025 migration), optimistic locking en `actualizarCampos()`, 409 Conflict response, version sync bidireccional en desktop.
+- ✅ **F6.2:** Panel diagnóstico UI — `useDiagnosticoSync` hook + `DiagnosticoSync.tsx` component (4 secciones: estado general, circuit breaker, cola offline, logs) integrado en VentanaSincPanel.
+
+C279. ✅ [AG-SYN] F5.2 + F6.2 + Auditoría profunda v2:
+- **F5.2 Versioning:** v025_colecciones_version.sql ejecutado, ColeccionesSchema/Cols/Repository/Controller actualizados con optimistic locking, SyncRepository/Controller incluyen `version`, desktop syncTrackingService/syncCollectionService con `version: number` en ColeccionLocal/ColeccionSync + rename con 409 handling + polling version sync.
+- **F6.2 Panel diagnóstico:** syncLogger exporta EntradaLog + obtenerUltimasEntradas(), hook useDiagnosticoSync (recopila circuit breaker, cola offline, journal, cursor delta, polling, logs con refresh 3s), DiagnosticoSync.tsx (4 secciones + 4 acciones: reset circuit, retry queue, export logs, refresh), diagnosticoSync.css, integración en VentanaSincPanel menú toggle.
+- **Auditoría v2:** Análisis profundo de 8 archivos PHP + 19 archivos TS. Hallazgos: 3 críticos PHP + 2 críticos TS + 8 altos + 6 medios. Plan de ejecución en 5 sesiones. Documento completo en `App/docs/plan-sync-mejoras-v2.md`.
+
+### Lecciones C279
+- [Optimistic locking]: Implementar como parámetro opcional ($versionEsperada) permite backward compatibility — callers existentes siguen funcionando sin enviar version.
+- [409 Conflict]: Desktop debe enviar la versión que conoce y manejar 409 con log + skip (no retry automático, el usuario decide).
+- [Panel diagnóstico]: Refresh con setInterval 3s es razonable — datos de diagnóstico no necesitan ser real-time. Export logs como JSON facilita debugging offline.
+- [Auditoría]: v024_sync_changelog.sql ya tenía los índices creados — el subagente de auditoría no leyó la migración y reportó falso positivo. Siempre verificar hallazgos de auditoría contra el código fuente real.
 
 ### Lecciones C278
 - [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.

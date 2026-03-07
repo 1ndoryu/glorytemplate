@@ -79,6 +79,7 @@ class SyncController
                     'id'        => (int) $col['id'],
                     'nombre'    => $col['nombre'],
                     'parent_id' => isset($col[ColeccionesCols::PARENT_ID]) ? (int) $col[ColeccionesCols::PARENT_ID] : null,
+                    'version'   => (int) ($col[ColeccionesCols::VERSION] ?? 1),
                     'samples'   => array_map(fn(array $s): array => [
                         'id'         => (int) $s['id'],
                         'titulo'     => $s['titulo'],

@@ -32,6 +32,7 @@ import { useSyncStore } from '@app/stores/syncStore';
 import { toast } from '@app/stores/toastStore';
 import type { EntradaHistorialSample, EstadoSampleHistorial } from '@app/stores/syncStore';
 import '@app/styles/componentes/sincronizacion.css';
+import DiagnosticoSync from './DiagnosticoSync';
 
 const VERSION_PORTADA_INTERVALO_MS = 15_000;
 
@@ -232,6 +233,7 @@ export function VentanaSincPanel(): JSX.Element {
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+    const [diagnosticoVisible, setDiagnosticoVisible] = useState(false);
     const [perfilDesktop, setPerfilDesktop] = useState<{
         nombre: string;
         avatarUrl: string | null;
@@ -305,6 +307,12 @@ export function VentanaSincPanel(): JSX.Element {
             onClick: limpiarHistorialLocal,
         },
         {
+            id: 'diagnostico',
+            etiqueta: diagnosticoVisible ? 'Ocultar diagnóstico' : 'Diagnóstico sync',
+            icono: <Settings size={14} />,
+            onClick: () => setDiagnosticoVisible(v => !v),
+        },
+        {
             id: 'ocultar',
             etiqueta: 'Ocultar panel',
             icono: <EyeOff size={14} />,
@@ -313,6 +321,7 @@ export function VentanaSincPanel(): JSX.Element {
     ], [
         abrirCarpetaSincronizacion,
         alternarSincronizacion,
+        diagnosticoVisible,
         elegirCarpeta,
         limpiarHistorialLocal,
         ocultarVentana,
@@ -474,6 +483,9 @@ export function VentanaSincPanel(): JSX.Element {
                     )}
                 </div>
             </div>
+
+            {/* F6.2: Panel de diagnóstico colapsable */}
+            {diagnosticoVisible && <DiagnosticoSync />}
 
             <div className={`sincPanelFooterMinimal sincPanelIndicador--${estado}`}>
                 <div className="sincPanelFooterEstadoMinimal">
