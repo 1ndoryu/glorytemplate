@@ -629,12 +629,18 @@ class SamplesRepository extends BaseRepository
             }
         }
 
+        /*
+         * F12: Creador ve sus propios samples sin importar estado (pendiente, activo).
+         * Descargas ajenas requieren estado activo.
+         */
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " LEFT JOIN " . DescargasCols::TABLA . " d ON d."
              . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
-             . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'{$carpetaClause}"
-             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)"
+             . " WHERE ("
+             . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
+             . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
+             . " ){$carpetaClause}"
              . " ORDER BY GREATEST("
              . "   COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp),"
              . "   s." . SamplesCols::PUBLICADO_AT
@@ -668,12 +674,15 @@ class SamplesRepository extends BaseRepository
             }
         }
 
+        /* F12: Consistente con coleccionadosDeUsuario — propios sin filtro de estado */
         $sql = "SELECT COUNT(DISTINCT s." . SamplesCols::ID . ") AS total"
              . " FROM {$ts} s"
              . " LEFT JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
-             . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'{$carpetaClause}"
-             . " AND (d." . DescargasCols::ID . " IS NOT NULL OR s." . SamplesCols::CREADOR_ID . " = :uid2)";
+             . " WHERE ("
+             . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
+             . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
+             . " ){$carpetaClause}";
 
         $row = static::consultarUno($sql, $params);
         return (int) ($row['total'] ?? 0);
@@ -687,6 +696,7 @@ class SamplesRepository extends BaseRepository
         $ts = SamplesCols::TABLA;
         $td = DescargasCols::TABLA;
 
+        /* F12: El creador ve sus propios samples sin filtro de estado */
         $sql = "SELECT"
              . "  COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') AS primaria,"
              . "  s." . SamplesCols::METADATA . "->>'carpeta_secundaria' AS secundaria,"
@@ -698,7 +708,7 @@ class SamplesRepository extends BaseRepository
              . "  WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . "  UNION"
              . "  SELECT s." . SamplesCols::ID . ", s." . SamplesCols::METADATA . " FROM {$ts} s"
-             . "  WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "' AND s." . SamplesCols::CREADOR_ID . " = :uid2"
+             . "  WHERE s." . SamplesCols::CREADOR_ID . " = :uid2"
              . " ) s"
              . " GROUP BY primaria, secundaria"
              . " ORDER BY primaria, secundaria";

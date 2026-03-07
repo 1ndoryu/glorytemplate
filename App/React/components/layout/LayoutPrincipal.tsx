@@ -81,6 +81,7 @@ export const LayoutPrincipal = ({
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const autenticado = useAuthStore(s => s.autenticado);
+    const cargandoAuth = useAuthStore(s => s.cargando);
     const override = useDevToolsStore((s) => s.override);
 
     /* Modo de autenticación efectivo: real o simulado */
@@ -91,8 +92,10 @@ export const LayoutPrincipal = ({
         [paginaActiva, rutaActual]
     );
 
-    /* Si no está autenticado, mostrar contenido a pantalla completa (landing) */
-    if (!autenticadoEfectivo) {
+    /* Si no está autenticado y no está cargando, mostrar contenido público (landing).
+     * F11: Durante carga de auth, mostrar layout completo con sidebar/topbar para evitar
+     * flash público → privado. El skeleton del contenido lo maneja cada island. */
+    if (!autenticadoEfectivo && !cargandoAuth) {
         return (
             <div className="layoutPublico">
                 <main className="areaContenidoPublico">

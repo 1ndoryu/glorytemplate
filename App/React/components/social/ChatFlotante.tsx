@@ -100,7 +100,7 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
                 </BotonBase>
                 <CampoTexto ref={inputRef}  placeholder="Escribe..." value={texto}
                     onChange={e => setTexto(e.target.value)} onKeyDown={manejarKeyDown} disabled={enviando} />
-                <BotonBase variante="ghost" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
+                <BotonBase variante="ghost" tamano="ninguno" className={`chatFlotanteEnviar ${texto.trim() ? 'chatFlotanteEnviarActivo' : ''}`}
                     onClick={manejarEnviar} disabled={!texto.trim() || enviando} type="button" aria-label="Enviar">
                     <Send size={14} />
                 </BotonBase>

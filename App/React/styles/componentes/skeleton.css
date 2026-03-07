@@ -106,6 +106,37 @@
     width: 40%;
 }
 
+/* Coleccion Detalle skeleton — estructura tipo header + lista */
+.skeletonColeccionDetalle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+}
+
+.skeletonColeccionVolver {
+    border-radius: var(--radioSm);
+}
+
+.skeletonColeccionHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioSm);
+}
+
+.skeletonColeccionImg {
+    border-radius: var(--radioMd);
+    flex-shrink: 0;
+}
+
+.skeletonColeccionHeaderInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    flex: 1;
+}
+
 /* Tarjeta Publicacion skeleton */
 .skeletonTarjetaPublicacion {
     display: flex;

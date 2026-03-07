@@ -11,7 +11,6 @@ import {
     Box,
     Download,
     Heart,
-    FolderOpen,
     Settings,
     ShieldCheck,
 } from 'lucide-react';
@@ -36,7 +35,6 @@ const itemsDefault: SidebarItemDef[] = [
     { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
     { id: 'favoritos', etiqueta: 'Favoritos', icono: <Heart size={20} />, ruta: '/favoritos' },
-    { id: 'explorador', etiqueta: 'Explorador', icono: <FolderOpen size={20} />, ruta: '/explorador' },
 ];
 
 interface SidebarProps {

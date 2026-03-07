@@ -150,19 +150,29 @@ export const useMenuContextualPublicacion = (
                 peligro: true,
                 separadorDespues: !esPropietario,
                 onClick: () => {
-                    toast.confirmar('¿Eliminar esta publicación?', async () => {
-                        const resp = await eliminarPublicacion(post.id);
-                        if (resp.ok) {
-                            toast.exito('Publicación eliminada');
-                            if (setPublicaciones) {
-                                setPublicaciones(prev => prev.filter(p => p.id !== post.id));
-                            }
-                            window.dispatchEvent(new CustomEvent(EVENTO_PUBLICACION_ELIMINADA, {
-                                detail: { publicacionId: post.id },
-                            }));
-                        } else {
-                            toast.error('Error al eliminar');
+                    toast.confirmar('¿Eliminar esta publicación?', () => {
+                        /* F13: Eliminación optimista — quitar de UI inmediatamente */
+                        if (setPublicaciones) {
+                            setPublicaciones(prev => prev.filter(p => p.id !== post.id));
                         }
+                        window.dispatchEvent(new CustomEvent(EVENTO_PUBLICACION_ELIMINADA, {
+                            detail: { publicacionId: post.id },
+                        }));
+
+                        /* API call en background con rollback si falla */
+                        eliminarPublicacion(post.id).then(resp => {
+                            if (!resp.ok) {
+                                toast.error('Error al eliminar, restaurando...');
+                                if (setPublicaciones) {
+                                    setPublicaciones(prev => [...prev, post]);
+                                }
+                            }
+                        }).catch(() => {
+                            toast.error('Error de red al eliminar');
+                            if (setPublicaciones) {
+                                setPublicaciones(prev => [...prev, post]);
+                            }
+                        });
                     });
                 },
             });

@@ -7,7 +7,7 @@
  * y el boton cerrar oculta la ventana (no la destruye).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     AlertCircle,
     CheckCircle2,
@@ -21,7 +21,6 @@ import {
     FolderSync,
     EyeOff,
     Trash2,
-    ArrowRight,
     Settings,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -232,7 +231,6 @@ export function VentanaSincPanel(): JSX.Element {
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
-    const botonMenuRef = useRef<HTMLDivElement>(null);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
     const [perfilDesktop, setPerfilDesktop] = useState<{
         nombre: string;
@@ -262,11 +260,9 @@ export function VentanaSincPanel(): JSX.Element {
 
     const estadoVisible = capitalizarPrimera(repararMojibake(mensajeEstado || estadoLabel(estado)));
 
-    const abrirMenu = useCallback(() => {
-        const rect = botonMenuRef.current?.getBoundingClientRect();
-        if (rect) {
-            setMenuPos({ x: rect.right, y: rect.bottom + 6 });
-        }
+    const abrirMenu = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setMenuPos({ x: rect.right, y: rect.bottom + 6 });
         setMenuAbierto(true);
     }, []);
 
@@ -412,17 +408,15 @@ export function VentanaSincPanel(): JSX.Element {
 
                 <div className="sincPanelMinimalDrag" />
 
-                <div ref={botonMenuRef} style={{ display: 'contents' }}>
                     <BotonBase
                         variante="ghost"
                         className="sincPanelMinimalMenu"
                         type="button"
                         aria-label="Opciones"
-                        onClick={() => (menuAbierto ? setMenuAbierto(false) : abrirMenu())}
+                        onClick={(e) => (menuAbierto ? setMenuAbierto(false) : abrirMenu(e))}
                     >
                         <EllipsisVertical size={14} />
                     </BotonBase>
-                </div>
 
                 <MenuContextual
                     abierto={menuAbierto}
@@ -475,12 +469,6 @@ export function VentanaSincPanel(): JSX.Element {
                                 <div className="sincPanelHistorialEstadoFinal">
                                     {iconoEstadoSample(entrada.estado as EstadoSampleHistorial)}
                                 </div>
-
-                                {entrada.rutaLocal && (
-                                    <div className="sincPanelHistorialNavegar">
-                                        <ArrowRight size={12} />
-                                    </div>
-                                )}
                             </div>
                         ))
                     )}

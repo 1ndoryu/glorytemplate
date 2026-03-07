@@ -149,6 +149,8 @@ class SamplesUploadController
         $esPremium = \filter_var($request->get_param('es_premium') ?? false, \FILTER_VALIDATE_BOOLEAN);
         /* C220: Toggle de visibilidad en comunidad */
         $mostrarEnComunidad = \filter_var($request->get_param('mostrar_en_comunidad') ?? true, \FILTER_VALIDATE_BOOLEAN);
+        /* F2: Origen de subida (ruta local) se guarda en metadata, no en descripción pública */
+        $origenSubida = \sanitize_text_field($request->get_param('origen_subida') ?? '');
         $precio = $request->get_param('precio');
         $precio = $precio !== null ? (float) $precio : null;
         /* S31 fix: Validar rango de precio */
@@ -226,6 +228,20 @@ class SamplesUploadController
                 UsuariosExtRepository::incrementarCreditosBonus($userId);
             } catch (\Exception $e) {
                 KamplesLogger::warning('No se pudo sumar crédito bonus al publicar sample', ['error' => $e->getMessage()]);
+            }
+        }
+
+        /* F2: Guardar origen_subida en metadata JSONB, no en descripción pública */
+        if ($sampleId && $origenSubida !== '') {
+            try {
+                $metaCol = SamplesCols::METADATA;
+                SamplesRepository::actualizarCampos($sampleId, [
+                    "{$metaCol} = COALESCE({$metaCol}, '{}'::jsonb) || :origen_json::jsonb",
+                ], [
+                    'origen_json' => \wp_json_encode(['origen_subida' => $origenSubida]),
+                ]);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('No se pudo guardar origen_subida en metadata', ['error' => $e->getMessage()]);
             }
         }
 

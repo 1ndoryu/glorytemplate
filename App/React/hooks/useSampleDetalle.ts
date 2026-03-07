@@ -4,7 +4,8 @@
  */
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { obtenerSample, listarSamples } from '@app/services/apiSamples';
+import { obtenerSample } from '@app/services/apiSamples';
+import { obtenerSimilares } from '@app/services/apiReproduciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
 import { etiquetaBpm } from '@app/services/bpmUtils';
@@ -82,16 +83,14 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
                     setLiked(Boolean(respuesta.data.liked));
                     setReaccionActual(respuesta.data.reaccion ?? null);
 
-                    const tipoSample = respuesta.data.metadata?.tipo;
-                    if (tipoSample) {
-                        const resSimilares = await listarSamples({ tipo: tipoSample, perPage: 5 });
-                        if (controller.signal.aborted) return;
-                        if (resSimilares.ok && resSimilares.data) {
-                            const listaSimilares = Array.isArray(resSimilares.data)
-                                ? resSimilares.data
-                                : (resSimilares.data.data ?? []);
-                            setSimilares(listaSimilares.filter((s) => s.id !== respuesta.data!.id));
-                        }
+                    /* F10: Usar endpoint dedicado con scoring (tags/BPM/key/tipo) */
+                    const resSimilares = await obtenerSimilares(respuesta.data.id, 5);
+                    if (controller.signal.aborted) return;
+                    if (resSimilares.ok && resSimilares.data) {
+                        const listaSimilares = Array.isArray(resSimilares.data)
+                            ? resSimilares.data
+                            : [];
+                        setSimilares(listaSimilares);
                     }
                 } else {
                     setError(respuesta.error ?? 'Error al cargar el sample.');

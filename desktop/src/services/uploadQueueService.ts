@@ -77,10 +77,11 @@ type OnProgresoUploadFn = (progreso: ProgresoUpload) => void;
 let cola: ItemUploadCola[] = [];
 let hashesConocidos = new Set<string>();
 /*
- * C6: Mapa hash → ruta para poder verificar si un hash corresponde a un archivo
+ * C6: Mapa hash → rutas para poder verificar si un hash corresponde a un archivo
  * activo en tracking (no borrado del servidor). Permite dedup cross-carpeta correcta.
+ * 1:N porque un mismo contenido puede existir en múltiples rutas (copias).
  */
-let hashARuta = new Map<string, string>();
+let hashARutas = new Map<string, Set<string>>();
 let procesando = false;
 let callbackProgreso: OnProgresoUploadFn | null = null;
 
@@ -135,15 +136,17 @@ function hashSimpleTexto(texto: string): string {
 
 /*
  * C6: Verifica si existe al menos un archivo activo en tracking que fue
- * subido con el hash dado. Usa hashARuta para obtener la ruta original
- * y luego verifica en tracking que el archivo sigue activo (no borrado).
- * Si hashARuta no tiene la entrada, recorre la cola completada como fallback.
+ * subido con el hash dado. Usa hashARutas (1:N) para obtener todas las rutas
+ * asociadas y verifica en tracking que alguna sigue activa (no borrada).
+ * Si ninguna ruta está activa, recorre la cola completada como fallback.
  */
 function existeArchivoActivoConHash(hash: string): boolean {
-    const ruta = hashARuta.get(hash);
-    if (ruta && estado.trackingModule) {
-        const enTracking = estado.trackingModule.buscarArchivoPorRuta(ruta);
-        if (enTracking && !enTracking.syncDeshabilitado) return true;
+    const rutas = hashARutas.get(hash);
+    if (rutas && rutas.size > 0 && estado.trackingModule) {
+        for (const ruta of rutas) {
+            const enTracking = estado.trackingModule.buscarArchivoPorRuta(ruta);
+            if (enTracking && !enTracking.syncDeshabilitado) return true;
+        }
     }
     /* Fallback: verificar si algún item completado en cola tiene este hash */
     return cola.some(i => i.hashParcial === hash && i.estado === 'completado');
@@ -237,10 +240,13 @@ export async function inicializarUploadQueue(): Promise<void> {
         if (hashesGuardados) {
             hashesConocidos = new Set(hashesGuardados);
         }
-        /* C6: Restaurar mapa hash→ruta para dedup cross-carpeta */
-        const mapaGuardado = await store.get<Record<string, string>>('hash_a_ruta');
+        /* C6: Restaurar mapa hash→rutas (1:N) para dedup cross-carpeta */
+        const mapaGuardado = await store.get<Record<string, string | string[]>>('hash_a_ruta');
         if (mapaGuardado) {
-            hashARuta = new Map(Object.entries(mapaGuardado));
+            hashARutas = new Map();
+            for (const [h, v] of Object.entries(mapaGuardado)) {
+                hashARutas.set(h, new Set(Array.isArray(v) ? v : [v]));
+            }
         }
     } catch {
         /* Store no disponible — usar cola en memoria */
@@ -549,7 +555,10 @@ async function procesarItemUpload(
         item.estado = 'completado';
         if (item.hashParcial) {
             hashesConocidos.add(item.hashParcial);
-            hashARuta.set(item.hashParcial, normalizarRutaCola(item.rutaArchivo));
+            const rutaNorm = normalizarRutaCola(item.rutaArchivo);
+            const existentes = hashARutas.get(item.hashParcial) ?? new Set<string>();
+            existentes.add(rutaNorm);
+            hashARutas.set(item.hashParcial, existentes);
             /* Persistir hash inmediatamente para que uploads paralelos lo vean.
              * No esperar al fin de procesarCola — previene duplicados por race condition. */
             guardarHashes().catch(() => {});
@@ -728,7 +737,8 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         const formData = new FormData();
         formData.append('audio', blob, item.nombreArchivo);
         formData.append('titulo', titulo);
-        formData.append('contenido', `Subido automáticamente desde ${metaRuta.carpetas.join(' / ')}`);
+        formData.append('contenido', '');
+        formData.append('origen_subida', metaRuta.carpetas.join(' / '));
         formData.append('tags', JSON.stringify(tags));
         formData.append('permitir_descarga', 'true');
         formData.append('licencia_libre', 'false');
@@ -1174,9 +1184,9 @@ async function guardarHashes(): Promise<void> {
         /* Limitar a últimos 5000 hashes para no crecer indefinidamente */
         const hashesArray = Array.from(hashesConocidos).slice(-5000);
         await store.set(STORE_KEY_HASHES, hashesArray);
-        /* C6: Persistir mapa hash→ruta para dedup cross-carpeta entre reinicios */
-        const mapaObj: Record<string, string> = {};
-        for (const [h, r] of hashARuta) mapaObj[h] = r;
+        /* C6: Persistir mapa hash→rutas (1:N) para dedup cross-carpeta entre reinicios */
+        const mapaObj: Record<string, string[]> = {};
+        for (const [h, rutas] of hashARutas) mapaObj[h] = Array.from(rutas);
         await store.set('hash_a_ruta', mapaObj);
         await store.save();
     } catch {
@@ -1300,7 +1310,7 @@ export async function limpiarCompletados(): Promise<void> {
  */
 export async function limpiarHashesConocidos(): Promise<void> {
     hashesConocidos.clear();
-    hashARuta.clear();
+    hashARutas.clear();
     await guardarHashes();
 }
 

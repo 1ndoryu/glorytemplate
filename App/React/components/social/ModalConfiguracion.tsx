@@ -122,6 +122,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         <div className="configSeccion">
                             <label className="configLabel">Nombre visible</label>
                             <CampoTexto
+                                variante="desnudo"
                                 className="configInput"
                                 value={nombreVisible}
                                 onChange={(e) => setNombreVisible(e.target.value)}
@@ -136,6 +137,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                             <div className="configInputConPrefijo">
                                 <span className="configPrefijo">@</span>
                                 <CampoTexto
+                                    variante="desnudo"
                                     className="configInput"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
@@ -149,6 +151,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         <div className="configSeccion">
                             <label className="configLabel">Descripción / Bio</label>
                             <CampoTexto multilínea
+                                variante="desnudo"
                                 className="configTextarea"
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
@@ -169,6 +172,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                             <label className="configLabel">Email</label>
                             <CampoTexto
                                 type="email"
+                                variante="desnudo"
                                 className="configInput"
                                 value={usuario?.email ?? ''}
                                 disabled

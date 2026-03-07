@@ -2,6 +2,7 @@
  * Sub-componente: FormularioEditarSample — Kamples
  * Formulario de edicion de sample, extraido de ModalEditar (SRP + limite-lineas).
  * D8: MetadataChips eliminados, imagen de portada editable, SelectorBase → SelectorMenu.
+ * F3: Imagen clickeable para cambiar, X en esquina, imagen de colors no eliminable.
  */
 
 import { CampoTexto } from '@app/components/ui/CampoTexto';
@@ -37,6 +38,12 @@ export const FormularioEditarSample = ({
     /* La imagen a mostrar: preview local si hay archivo nuevo, sino la existente */
     const imagenVisible = imagenPreview ?? formulario.imagenUrl;
 
+    /*
+     * F3: La imagen original del servidor (colors) no se puede eliminar.
+     * Solo se puede eliminar una imagen nueva (preview) que se haya seleccionado.
+     */
+    const esImagenNueva = Boolean(imagenPreview);
+
     const manejarSeleccionImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
         const archivo = e.target.files?.[0];
         if (archivo) onSeleccionarImagen(archivo);
@@ -46,38 +53,34 @@ export const FormularioEditarSample = ({
 
     return (
         <>
-            {/* D8: Preview de imagen + botón cambiar */}
+            {/* F3: Click en imagen para cambiar, X en esquina solo si hay preview nueva */}
             <div className="editarImagenPortada">
                 {imagenVisible ? (
                     <div className="editarImagenContenedor">
                         <img
                             src={imagenVisible}
                             alt={formulario.titulo || 'Portada del sample'}
-                            className="editarImagenPreview"
+                            className="editarImagenPreview editarImagenClickeable"
+                            onClick={() => inputImagenRef.current?.click()}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') inputImagenRef.current?.click();
+                            }}
                         />
-                        <div className="editarImagenAcciones">
+                        {esImagenNueva && (
                             <BotonBase
-                                variante="secundario"
+                                variante="ghost"
                                 tamano="sm"
-                                onClick={() => inputImagenRef.current?.click()}
+                                soloIcono
+                                onClick={onLimpiarImagen}
                                 type="button"
+                                aria-label="Quitar imagen nueva"
+                                className="editarImagenQuitar"
                             >
-                                <ImageIcon size={14} />
-                                Cambiar
+                                <X size={14} />
                             </BotonBase>
-                            {imagenPreview && (
-                                <BotonBase
-                                    variante="ghost"
-                                    tamano="sm"
-                                    soloIcono
-                                    onClick={onLimpiarImagen}
-                                    type="button"
-                                    aria-label="Quitar imagen nueva"
-                                >
-                                    <X size={14} />
-                                </BotonBase>
-                            )}
-                        </div>
+                        )}
                     </div>
                 ) : (
                     <BotonBase

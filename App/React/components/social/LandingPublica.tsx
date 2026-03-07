@@ -10,7 +10,6 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { LogoKamples } from '@app/components/ui/LogoKamples';
 import { Input } from '@app/components/ui/Input';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { SeccionCaracteristicas } from '@app/components/social/landing/SeccionCaracteristicas';
 import { useLandingPublica } from '@app/hooks/useLandingPublica';
 import '../../styles/componentes/landingPublica.css';
 

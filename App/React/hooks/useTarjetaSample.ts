@@ -259,9 +259,9 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         requestAnimationFrame(() => document.body.removeChild(preview));
     }, [sample]);
 
-    /* Comentar: wrapper para marcar como comentado al disparar la accion */
+    /* Comentar: solo abrir panel, sin marcar como comentado prematuramente.
+     * El estado comentado se actualiza via EVENTO_SAMPLE_COMENTADO al enviar un comentario real. */
     const manejarComentar = useCallback((sampleId: number) => {
-        setComentado(true);
         onComentar?.(sampleId);
     }, [onComentar]);
 

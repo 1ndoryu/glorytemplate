@@ -195,6 +195,36 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 
 ---
 
+## Sprint F — Fixes UX + Sync + UI
+
+> ✅ Completado — AG-FIX
+
+F1. ✅ [AG-FIX] Fix detección duplicados cross-carpeta: hashARutas 1:N Map + verificación de paths activos en tracking.
+F2. ✅ [AG-FIX] Ocultar ruta subida: contenido vacío + origen_subida en metadata JSONB.
+F3. ✅ [AG-FIX] Modal editar sample: imagen clickeable, X en esquina con overlay, imagen colors no borrable.
+F4. ✅ [AG-FIX] Quitar icono sincPanelHistorialNavegar innecesario.
+F5. ✅ [AG-FIX] Sync thumbnail: ya implementado (compara URLs, rehidrata en cada ciclo).
+F6. ✅ [AG-FIX] Menú contextual: eliminado display:contents, usar e.currentTarget.getBoundingClientRect().
+F7. ✅ [AG-FIX] Eliminada página explorador del nav sidebar + import FolderOpen.
+F8. ✅ [AG-FIX] Rename carpeta → colección: ya implementado (evento nativo + patrón delete+create con grace period).
+F9. ✅ [AG-FIX] Botón comentar: eliminado setComentado(true) prematuro, usa evento EVENTO_SAMPLE_COMENTADO.
+F10. ✅ [AG-FIX] Similares optimizado: WP transient cache 15min + endpoint dedicado obtenerSimilares con scoring.
+F11. ✅ [AG-FIX] Skeleton: layout con sidebar/topbar durante cargandoAuth + SkeletonColeccionDetalle nuevo.
+F12. ✅ [AG-FIX] Coleccionados: creador ve sus samples sin importar estado (pendiente/activo).
+F13. ✅ [AG-FIX] Borrado optimista publicaciones con rollback en error.
+F14. ✅ [AG-FIX] Iconos desktop regenerados desde favicon.svg (todas resoluciones + plataformas).
+F15. ✅ [AG-FIX] Modal config: CampoTexto variante="desnudo" elimina clases base conflictivas.
+
+### Lecciones Sprint F
+- [Sync]: hashARutas debe ser 1:N (Set) para detectar duplicados cross-carpeta. 1:1 Map pierde paths cuando el original se mueve.
+- [Upload]: Nunca usar `descripcion` para datos internos de tracking. Campos de metadata JSONB son el lugar correcto.
+- [CSS]: display:contents rompe getBoundingClientRect() (retorna zeros). Evitar en elementos que necesiten positioning.
+- [Auth]: Durante cargandoAuth, mostrar layout completo (sidebar+topbar) con skeleton en contenido. No mostrar layout público.
+- [BD]: Queries de "mis items" deben distinguir owner vs otros. Owner ve sus items en cualquier estado.
+- [CampoTexto]: Variante 'desnudo' (sin clases base) es necesaria cuando un contexto override tiene estilos propios completos.
+
+---
+
 ## Auditoría de sistema de subidas — Plan (C367)
 
 > Origen: Sprint Bugs Sync Desktop

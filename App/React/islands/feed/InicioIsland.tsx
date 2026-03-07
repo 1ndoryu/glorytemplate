@@ -31,6 +31,8 @@ export const InicioIsland = (): JSX.Element => {
     const autenticado = useAuthStore(s => s.autenticado);
     const cargando = useAuthStore(s => s.cargando);
 
+    /* F11: El skeleton se muestra solo en la zona de contenido, no en toda la página.
+     * El layout (sidebar/topbar) ya está visible gracias a LayoutPrincipal. */
     if (cargando) {
         return (
             <div className="inicioContenedor" id="seccionInicio">

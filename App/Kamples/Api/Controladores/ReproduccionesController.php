@@ -141,6 +141,13 @@ class ReproduccionesController
         $sampleId = (int) $request->get_param('id');
         $limite = (int) $request->get_param('limite');
 
+        /* F10: Cache de similares por sample — evita recalcular en cada apertura de detalle */
+        $cacheKey = "kamples_similares_{$sampleId}_{$limite}";
+        $cached = \get_transient($cacheKey);
+        if ($cached !== false) {
+            return new \WP_REST_Response(['data' => $cached], 200);
+        }
+
         $sample = SamplesRepository::buscarMetadataParaSimilares($sampleId);
 
         if (!$sample) {
@@ -153,8 +160,12 @@ class ReproduccionesController
         $tipo = $sample[SamplesCols::TIPO] ?? 'one shot';
 
         $similares = SamplesRepository::buscarSimilares($sampleId, $tags, $bpm, $key, $tipo, $limite);
+        $resultado = NormalizadorSample::normalizarLista($similares);
 
-        return new \WP_REST_Response(['data' => NormalizadorSample::normalizarLista($similares)], 200);
+        /* Cache 15 minutos — los similares no cambian frecuentemente */
+        \set_transient($cacheKey, $resultado, 15 * MINUTE_IN_SECONDS);
+
+        return new \WP_REST_Response(['data' => $resultado], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('ReproduccionesController::similares error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
