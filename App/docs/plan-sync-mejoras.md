@@ -9,61 +9,68 @@
 
 ### 1.1 Cómo funcionan los mejores sync (Google Drive, Dropbox, OneDrive)
 
-**Google Drive** usa un modelo de *change tokens* (cursores):
-- El cliente pide un `startPageToken` que representa el estado actual del servidor.
-- En cada poll, envía el token y recibe solo los cambios desde ese punto (*delta sync*).
-- El servidor mantiene un *changelog* ordenado cronológicamente — nunca se pierden cambios.
-- Soporta *push notifications* (webhooks) para evitar polling innecesario: el servidor notifica "hay cambios", el cliente los pide.
-- Conflictos: si dos clientes editan el mismo archivo, se guarda como *revisión* separada. El usuario decide cuál mantener.
+**Google Drive** usa un modelo de _change tokens_ (cursores):
 
-**Dropbox** usa un modelo de *content-addressed storage*:
+- El cliente pide un `startPageToken` que representa el estado actual del servidor.
+- En cada poll, envía el token y recibe solo los cambios desde ese punto (_delta sync_).
+- El servidor mantiene un _changelog_ ordenado cronológicamente — nunca se pierden cambios.
+- Soporta _push notifications_ (webhooks) para evitar polling innecesario: el servidor notifica "hay cambios", el cliente los pide.
+- Conflictos: si dos clientes editan el mismo archivo, se guarda como _revisión_ separada. El usuario decide cuál mantener.
+
+**Dropbox** usa un modelo de _content-addressed storage_:
+
 - Cada archivo se divide en bloques de 4MB, cada bloque tiene un hash SHA-256.
-- El servidor mantiene un *journal* (log inmutable) de todas las operaciones realizadas: crear, mover, renombrar, eliminar.
+- El servidor mantiene un _journal_ (log inmutable) de todas las operaciones realizadas: crear, mover, renombrar, eliminar.
 - El cliente mantiene un cursor que apunta a la posición actual en el journal. En cada sync, pide "dame todo desde mi cursor".
-- *Delta sync*: solo se transfieren los bloques que cambiaron, no el archivo completo.
-- Detección de conflictos por *version vector*: cada archivo tiene un `rev` (revision hash). Si el cliente intenta actualizar con un `rev` que no coincide con el servidor, es un conflicto.
-- El cliente tiene una *base de datos local SQLite* que actúa como *source of truth* local, no archivos JSON planos.
+- _Delta sync_: solo se transfieren los bloques que cambiaron, no el archivo completo.
+- Detección de conflictos por _version vector_: cada archivo tiene un `rev` (revision hash). Si el cliente intenta actualizar con un `rev` que no coincide con el servidor, es un conflicto.
+- El cliente tiene una _base de datos local SQLite_ que actúa como _source of truth_ local, no archivos JSON planos.
 
 **OneDrive** usa un modelo similar a Google Drive:
-- *Delta query* (`/delta`) retorna cambios incrementales desde un token.
+
+- _Delta query_ (`/delta`) retorna cambios incrementales desde un token.
 - Push via webhooks + polling como fallback.
 - Conflictos por `eTag`/`cTag` (entity tag / content tag): si cambió el eTag entre lectura y escritura, es conflicto.
 
 ### 1.2 Patrones universales de los sistemas confiables
 
-| Patrón | Qué resuelve | Estado en Kamples |
-|---|---|---|
-| **Delta sync (cursores/tokens)** | Evita re-procesar todo el estado cada vez | No implementado — polling completo cada ciclo |
-| **Journal/WAL (Write-Ahead Log)** | Garantiza que ninguna operación se pierde, incluso si el proceso muere a mitad | No implementado — Tauri Store puede corromperse |
-| **Content hashing (checksum)** | Detecta cambios reales vs. falsos positivos del watcher | Parcial — hash parcial solo en upload, no en sync |
-| **Operaciones atómicas** | Multi-step (rename = move + update tracking + PUT server) o todas pasan o ninguna | No implementado — pasos pueden fallar independientemente |
-| **Clasificación de errores** | Diferenciar error transitorio (red) de permanente (404) de conflicto (409) | Mínimo — offlineQueue no diferencia 429 de 500 |
-| **Base de datos local robusta** | Persistencia confiable con transacciones ACID | No — Tauri Store es JSON plano sin transacciones |
-| **Exponential backoff + jitter** | Evitar thundering herd en errores masivos | Parcial — upload sí, offlineQueue no |
-| **Reconciliación incremental** | Después de un crash, reconstruir estado sin re-descargar todo | Parcial — reconstruye índices pero no valida integridad de archivos |
-| **Idempotencia server-side** | Retry seguro sin duplicados | Parcial — idempotency key en upload, no en crear colección ni en mover |
+| Patrón                            | Qué resuelve                                                                      | Estado en Kamples                                                      |
+| --------------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Delta sync (cursores/tokens)**  | Evita re-procesar todo el estado cada vez                                         | No implementado — polling completo cada ciclo                          |
+| **Journal/WAL (Write-Ahead Log)** | Garantiza que ninguna operación se pierde, incluso si el proceso muere a mitad    | No implementado — Tauri Store puede corromperse                        |
+| **Content hashing (checksum)**    | Detecta cambios reales vs. falsos positivos del watcher                           | Parcial — hash parcial solo en upload, no en sync                      |
+| **Operaciones atómicas**          | Multi-step (rename = move + update tracking + PUT server) o todas pasan o ninguna | No implementado — pasos pueden fallar independientemente               |
+| **Clasificación de errores**      | Diferenciar error transitorio (red) de permanente (404) de conflicto (409)        | Mínimo — offlineQueue no diferencia 429 de 500                         |
+| **Base de datos local robusta**   | Persistencia confiable con transacciones ACID                                     | No — Tauri Store es JSON plano sin transacciones                       |
+| **Exponential backoff + jitter**  | Evitar thundering herd en errores masivos                                         | Parcial — upload sí, offlineQueue no                                   |
+| **Reconciliación incremental**    | Después de un crash, reconstruir estado sin re-descargar todo                     | Parcial — reconstruye índices pero no valida integridad de archivos    |
+| **Idempotencia server-side**      | Retry seguro sin duplicados                                                       | Parcial — idempotency key en upload, no en crear colección ni en mover |
 
 ### 1.3 Debilidades concretas del sistema actual (auditoría de 10 archivos)
 
 **Categoría A — Pérdida silenciosa de datos:**
+
 - A1. Tauri Store (`sync-config.json`) es JSON plano. Si el proceso muere durante una escritura, el archivo se corrompe. No hay WAL ni backup.
 - A2. `historialSamples` puede tener race condition entre ventanas (sync panel vs main window). Fusión eventual, pero sin garantía de consistencia.
 - A3. Upload que falla por archivo inexistente retorna `true` (completado) → el archivo nunca se sube y el usuario no se entera.
 - A4. `offlineQueueService` detiene procesamiento al primer error de red, dejando operaciones posteriores sin procesar indefinidamente.
 
 **Categoría B — Rendimiento y escalabilidad:**
+
 - B1. Cada ciclo de sync descarga el estado completo del servidor (`GET /me/sync/colecciones`). Con 1000 samples en 50 colecciones, esto es ~500KB de JSON cada 60 segundos.
 - B2. Reconstrucción de índices es O(n) en cada persistencia — no hay invalidación granular.
 - B3. `hashesConocidos` crece hasta 5000 entries sin LRU — potencial memoria en sesiones largas.
 - B4. `MAX_HISTORIAL_SAMPLES=100` sin purga automática — acumulación en largo plazo.
 
 **Categoría C — Detección y resolución de conflictos:**
+
 - C1. Rename de carpeta detectado por patrón `DELETE+CREATE` con timeout de 3-5s — si el sistema está lento, puede interpretarse como "borrar + crear nueva" en vez de "rename".
 - C2. No hay versioning de archivos. Si servidor y local divergen, no hay forma de detectarlo excepto por nombre.
 - C3. `buscarColeccionHuerfana` hace import dinámico → si falla el import, toda la cadena de rename cae al fallback de "crear nueva".
 - C4. Creaciones "en vuelo" (`creacionesColeccionEnVuelo` Map) sin TTL — si la creación nunca completa, el Map crece indefinidamente.
 
 **Categoría D — Robustez operacional:**
+
 - D1. Lock de sync es primitivo (boolean flag) — no soporta prioridad ni timeout.
 - D2. Token sync en memoria — se pierde si la app se reinicia a mitad de operación.
 - D3. Guards de descarga/movimiento usan `setTimeout` — si el timer se acumula (1000 descargas), posible memory leak.
@@ -84,6 +91,7 @@
 **Problema:** Tauri Store escribe JSON completo en cada guardado. Si el proceso muere a mitad de escritura, el JSON se corrompe y se pierde todo el estado de tracking.
 
 **Solución arquitectónica:**
+
 ```
 Antes:
   operación → modificar objeto en memoria → JSON.stringify(todo) → writeFile(sync-config.json)
@@ -93,10 +101,11 @@ Después:
 ```
 
 **Implementación:**
+
 - Crear `syncJournal.ts` — servicio de journaling ligero:
-  - `appendOperacion(op: OperacionJournal)` → append-only a `sync-journal.jsonl` (1 JSON por línea).
-  - `checkpoint()` → escribir estado completo a `sync-config.json` + truncar journal.
-  - `recuperar()` → al iniciar, si existe journal, re-aplicar operaciones sobre último checkpoint.
+    - `appendOperacion(op: OperacionJournal)` → append-only a `sync-journal.jsonl` (1 JSON por línea).
+    - `checkpoint()` → escribir estado completo a `sync-config.json` + truncar journal.
+    - `recuperar()` → al iniciar, si existe journal, re-aplicar operaciones sobre último checkpoint.
 - Tipos de operación: `TRACK_FILE`, `UNTRACK_FILE`, `UPDATE_FILE`, `ADD_COLLECTION`, `RENAME_COLLECTION`, `DELETE_COLLECTION`, `MOVE_FILE`.
 - Checkpoint automático cada 50 operaciones o 30 segundos (lo que ocurra primero).
 - En `syncTrackingService.ts`, reemplazar escrituras directas a Store por `appendOperacion()`.
@@ -110,6 +119,7 @@ Después:
 **Problema:** Si `sync-config.json` se corrompe (Tauri Store bug, disco, OneDrive conflict), se pierde todo.
 
 **Solución:**
+
 - Antes de cada checkpoint, copiar `sync-config.json` → `sync-config.backup-{N}.json` (rotar 3 copias).
 - En `recuperar()`, si el JSON principal falla, intentar backups en orden inverso.
 - Verificar integridad con hash SHA-256 al final del archivo (última línea).
@@ -121,6 +131,7 @@ Después:
 **Problema:** `offline-queue.json` y `upload-queue.json` son también JSON planos vulnerables.
 
 **Solución:**
+
 - Las 3 colas (tracking, offline, upload) comparten el mismo mecanismo de journal.
 - Cada cola tiene su propio archivo de journal pero usa la misma clase base `JournalPersistente<T>`.
 - Esto es una abstracción reutilizable, no código duplicado.
@@ -138,6 +149,7 @@ Después:
 **Problema:** Cada ciclo de sync descarga TODAS las colecciones con TODOS los samples. Esto es O(total) cuando debería ser O(cambios).
 
 **Solución backend:**
+
 ```sql
 /* Nueva tabla: sync_changelog */
 CREATE TABLE sync_changelog (
@@ -152,6 +164,7 @@ CREATE INDEX idx_sync_changelog_usuario ON sync_changelog(usuario_id, id);
 ```
 
 **Endpoint nuevo:**
+
 ```
 GET /me/sync/delta?cursor={last_id}
 Response: {
@@ -162,6 +175,7 @@ Response: {
 ```
 
 **Implementación desktop:**
+
 - Guardar `ultimoCursor` en syncState.
 - En cada ciclo: `GET /me/sync/delta?cursor={ultimoCursor}`.
 - Si `cursor === 0` (primera vez), hacer sync completo como ahora.
@@ -177,19 +191,20 @@ Response: {
 **Problema:** Polling cada 60 segundos es fijo. Si no hay cambios, es tráfico innecesario. Si hay mucha actividad, es demasiado lento.
 
 **Solución — Adaptive polling:**
+
 ```typescript
-const POLLING_MIN_MS = 15_000;   // 15s cuando hay actividad reciente
-const POLLING_MAX_MS = 300_000;  // 5min en reposo
+const POLLING_MIN_MS = 15_000; // 15s cuando hay actividad reciente
+const POLLING_MAX_MS = 300_000; // 5min en reposo
 const POLLING_NORMAL_MS = 60_000; // 1min normal
 
 let intervaloActual = POLLING_NORMAL_MS;
 
 function ajustarIntervaloPolling(huboCambios: boolean) {
-  if (huboCambios) {
-    intervaloActual = POLLING_MIN_MS; // Acelerar
-  } else {
-    intervaloActual = Math.min(intervaloActual * 1.5, POLLING_MAX_MS); // Desacelerar gradualmente
-  }
+    if (huboCambios) {
+        intervaloActual = POLLING_MIN_MS; // Acelerar
+    } else {
+        intervaloActual = Math.min(intervaloActual * 1.5, POLLING_MAX_MS); // Desacelerar gradualmente
+    }
 }
 ```
 
@@ -208,18 +223,22 @@ function ajustarIntervaloPolling(huboCambios: boolean) {
 **Problema:** El watcher emite eventos por cualquier modificación del FS (touch, metadata change, antivirus scan). No hay forma de saber si el contenido realmente cambió.
 
 **Solución:**
+
 - Calcular hash SHA-256 completo de archivos al descargar y al encolar uploads.
 - Almacenar hash en `ArchivoTracking.hashCompleto`.
 - En eventos del watcher, recalcular hash y comparar con el almacenado. Si es igual, ignorar.
 - Usar `Web Crypto API` (disponible en Tauri WebView) para hashing eficiente, no SHA manual.
 
 **Implementación:**
+
 ```typescript
 /* hashService.ts — nuevo */
 async function calcularHashArchivo(ruta: string): Promise<string> {
-  const datos = await readFile(ruta); // Tauri FS
-  const buffer = await crypto.subtle.digest('SHA-256', datos);
-  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const datos = await readFile(ruta); // Tauri FS
+    const buffer = await crypto.subtle.digest('SHA-256', datos);
+    return Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 }
 ```
 
@@ -233,6 +252,7 @@ async function calcularHashArchivo(ruta: string): Promise<string> {
 **Problema:** Después de un crash, no hay forma de saber si el estado de tracking refleja la realidad del disco.
 
 **Solución — Reconciliación semanal:**
+
 ```
 1. Listar todos los archivos en carpeta sync (FS real)
 2. Listar todos los archivos en tracking
@@ -251,11 +271,12 @@ async function calcularHashArchivo(ruta: string): Promise<string> {
 **Problema:** Un archivo descargado podría estar truncado (red cortada, disco lleno).
 
 **Solución:**
+
 - Backend incluye `tamano` y `hashSha256` (o al menos `tamano`) en el payload de sync.
 - Después de descargar, verificar:
-  1. Archivo existe.
-  2. Tamaño coincide (±0 bytes).
-  3. (Opcional fase futura) Hash coincide.
+    1. Archivo existe.
+    2. Tamaño coincide (±0 bytes).
+    3. (Opcional fase futura) Hash coincide.
 - Si falla verificación, reintentar descarga (max 2 veces). Si sigue fallando, marcar como `error_descarga` en tracking.
 
 **Archivos a modificar:** `syncCollectionService.ts` (descargarSample), `SyncRepository.php` (incluir tamano en payload).
@@ -271,9 +292,10 @@ async function calcularHashArchivo(ruta: string): Promise<string> {
 **Problema:** `offlineQueueService` trata todos los errores HTTP igual. Un 429 (rate limit) necesita esperar, un 404 necesita abortar, un 500 necesita reintentar con backoff.
 
 **Solución — Error taxonomy:**
+
 ```typescript
 /* errorSync.ts — nuevo */
-type CategoriaError = 
+type CategoriaError =
   | 'transitorio'   // 502, 503, timeout, error red → reintentar con backoff
   | 'rate_limit'     // 429 → respetar Retry-After, o backoff agresivo
   | 'conflicto'      // 409 → resolver conflicto (puede ser éxito implícito)
@@ -293,12 +315,13 @@ function obtenerEstrategia(cat: CategoriaError): { reintentar: boolean, delayMs:
 **Problema:** `offlineQueueService` reintenta sin backoff. Si el servidor está caído, martillea cada vez que sincroniza.
 
 **Solución:**
+
 ```typescript
 function calcularDelay(intento: number): number {
-  const base = 2000; // 2s
-  const delay = base * Math.pow(2, intento); // 2s, 4s, 8s, 16s, 32s
-  const jitter = Math.random() * delay * 0.3; // ±30% jitter
-  return Math.min(delay + jitter, 300_000); // Cap 5 min
+    const base = 2000; // 2s
+    const delay = base * Math.pow(2, intento); // 2s, 4s, 8s, 16s, 32s
+    const jitter = Math.random() * delay * 0.3; // ±30% jitter
+    return Math.min(delay + jitter, 300_000); // Cap 5 min
 }
 ```
 
@@ -309,6 +332,7 @@ function calcularDelay(intento: number): number {
 **Problema:** Si el servidor está caído, cada operación individual intenta su propia conexión. Con 50 archivos pendientes, son 50 timeouts.
 
 **Solución — Circuit breaker patrón:**
+
 ```
 Estados: CERRADO (normal) → ABIERTO (fallo detectado) → SEMI-ABIERTO (probando)
 
@@ -339,49 +363,55 @@ SEMI-ABIERTO: Intentar 1 operación.
 **Problema:** "Renombrar colección" implica: 1) actualizar tracking local, 2) renombrar carpeta, 3) PUT al servidor. Si paso 3 falla, tracking y carpeta ya están cambiados pero el servidor no.
 
 **Solución — Transacción local:**
+
 ```typescript
 /* transaccionSync.ts — nuevo */
 class TransaccionSync {
-  private pasos: Array<{ ejecutar: () => Promise<void>, revertir: () => Promise<void> }> = [];
-  
-  agregar(ejecutar: () => Promise<void>, revertir: () => Promise<void>) {
-    this.pasos.push({ ejecutar, revertir });
-  }
-  
-  async ejecutar(): Promise<boolean> {
-    const completados: number[] = [];
-    for (let i = 0; i < this.pasos.length; i++) {
-      try {
-        await this.pasos[i].ejecutar();
-        completados.push(i);
-      } catch (error) {
-        // Revertir en orden inverso
-        for (const idx of completados.reverse()) {
-          try { await this.pasos[idx].revertir(); } catch { /* log */ }
-        }
-        return false;
-      }
+    private pasos: Array<{ejecutar: () => Promise<void>; revertir: () => Promise<void>}> = [];
+
+    agregar(ejecutar: () => Promise<void>, revertir: () => Promise<void>) {
+        this.pasos.push({ejecutar, revertir});
     }
-    return true;
-  }
+
+    async ejecutar(): Promise<boolean> {
+        const completados: number[] = [];
+        for (let i = 0; i < this.pasos.length; i++) {
+            try {
+                await this.pasos[i].ejecutar();
+                completados.push(i);
+            } catch (error) {
+                // Revertir en orden inverso
+                for (const idx of completados.reverse()) {
+                    try {
+                        await this.pasos[idx].revertir();
+                    } catch {
+                        /* log */
+                    }
+                }
+                return false;
+            }
+        }
+        return true;
+    }
 }
 ```
 
 **Uso en rename:**
+
 ```typescript
 const tx = new TransaccionSync();
 const nombreAnterior = coleccion.nombre;
 tx.agregar(
-  () => actualizarTrackingLocal(colId, nuevoNombre),
-  () => actualizarTrackingLocal(colId, nombreAnterior) // rollback
+    () => actualizarTrackingLocal(colId, nuevoNombre),
+    () => actualizarTrackingLocal(colId, nombreAnterior) // rollback
 );
 tx.agregar(
-  () => renombrarCarpetaLocal(rutaVieja, rutaNueva),
-  () => renombrarCarpetaLocal(rutaNueva, rutaVieja) // rollback
+    () => renombrarCarpetaLocal(rutaVieja, rutaNueva),
+    () => renombrarCarpetaLocal(rutaNueva, rutaVieja) // rollback
 );
 tx.agregar(
-  () => putRenombrarServidor(colId, nuevoNombre),
-  () => putRenombrarServidor(colId, nombreAnterior) // rollback
+    () => putRenombrarServidor(colId, nuevoNombre),
+    () => putRenombrarServidor(colId, nombreAnterior) // rollback
 );
 await tx.ejecutar();
 ```
@@ -394,11 +424,12 @@ await tx.ejecutar();
 **Problema:** Si el usuario renombra una colección en la web y en el escritorio simultáneamente, no hay forma de detectar el conflicto.
 
 **Solución:**
+
 - Backend retorna `version` (campo integer auto-incremento) en cada colección.
 - Desktop almacena `version` en `ColeccionLocal`.
 - Al hacer PUT, enviar `version` actual. Backend verifica:
-  - Si `version` del request === `version` en BD → aplicar cambio, incrementar version.
-  - Si difiere → 409 Conflict. Desktop debe re-sync y aplicar la versión del servidor.
+    - Si `version` del request === `version` en BD → aplicar cambio, incrementar version.
+    - Si difiere → 409 Conflict. Desktop debe re-sync y aplicar la versión del servidor.
 
 **Archivos a modificar:** Migración SQL (campo `version`), `ColeccionesCrudController.php`, `SyncRepository.php`, `syncTrackingService.ts`, `syncCollectionService.ts`.
 
@@ -413,6 +444,7 @@ await tx.ejecutar();
 **Problema:** Los logs actuales son `console.log`/`console.error` dispersos. No hay forma de activar logs detallados para debugging sin tocar código.
 
 **Solución:**
+
 ```typescript
 /* syncLogger.ts — nuevo */
 type NivelLog = 'debug' | 'info' | 'warn' | 'error';
@@ -440,6 +472,7 @@ const logSync = {
 **Problema:** El usuario no tiene visibilidad de qué está pasando internamente en el sync.
 
 **Solución — Panel expandible en sync UI:**
+
 - Estado actual: `sincronizado | sincronizando | error | offline | pausa`.
 - Último sync: timestamp + resultado + duración.
 - Cola de subida: N pendientes, N en error (con detalle expandible).
@@ -453,14 +486,14 @@ const logSync = {
 
 ## 3. Matriz de Impacto y Prioridad
 
-| Fase | Impacto | Riesgo | Esfuerzo | Prioridad |
-|---|---|---|---|---|
-| **F1: Persistencia (WAL)** | Crítico — elimina corrupción de datos | Bajo — es additive | Medio (~3-4 sesiones) | **1 — MÁXIMA** |
-| **F2: Delta sync** | Alto — reduce carga 50-100x | Medio — requiere migración BD | Alto (~4-5 sesiones) | **2 — ALTA** |
-| **F3: Integridad** | Alto — detecta/previene divergencia | Bajo — es additive | Medio (~2-3 sesiones) | **3 — MEDIA** |
-| **F4: Errores inteligentes** | Medio — mejor UX en fallos | Bajo — refactor interno | Bajo (~2 sesiones) | **4 — MEDIA** |
-| **F5: Atomicidad** | Medio — previene estados inconsistentes | Medio — cambia flujos core | Medio (~2-3 sesiones) | **5 — MEDIA-BAJA** |
-| **F6: Observabilidad** | Alto para debugging | Mínimo — solo lectura | Bajo (~1-2 sesiones) | **6 — BAJA** |
+| Fase                         | Impacto                                 | Riesgo                        | Esfuerzo              | Prioridad          |
+| ---------------------------- | --------------------------------------- | ----------------------------- | --------------------- | ------------------ |
+| **F1: Persistencia (WAL)**   | Crítico — elimina corrupción de datos   | Bajo — es additive            | Medio (~3-4 sesiones) | **1 — MÁXIMA**     |
+| **F2: Delta sync**           | Alto — reduce carga 50-100x             | Medio — requiere migración BD | Alto (~4-5 sesiones)  | **2 — ALTA**       |
+| **F3: Integridad**           | Alto — detecta/previene divergencia     | Bajo — es additive            | Medio (~2-3 sesiones) | **3 — MEDIA**      |
+| **F4: Errores inteligentes** | Medio — mejor UX en fallos              | Bajo — refactor interno       | Bajo (~2 sesiones)    | **4 — MEDIA**      |
+| **F5: Atomicidad**           | Medio — previene estados inconsistentes | Medio — cambia flujos core    | Medio (~2-3 sesiones) | **5 — MEDIA-BAJA** |
+| **F6: Observabilidad**       | Alto para debugging                     | Mínimo — solo lectura         | Bajo (~1-2 sesiones)  | **6 — BAJA**       |
 
 ### Orden de implementación recomendado
 
@@ -486,49 +519,49 @@ F6.2 (Panel diagnóstico)  ← UI, puede hacerse en cualquier momento
 
 ## 4. Archivos Nuevos a Crear
 
-| Archivo | Responsabilidad | Fase |
-|---|---|---|
-| `desktop/src/services/syncJournal.ts` | WAL/journal append-only + checkpoint + recovery | F1.1 |
-| `desktop/src/services/JournalPersistente.ts` | Clase base genérica para journaling | F1.3 |
-| `desktop/src/services/hashService.ts` | SHA-256 de archivos via Web Crypto | F3.1 |
-| `desktop/src/services/syncReconciliacion.ts` | Reconciliación disco vs tracking | F3.2 |
-| `desktop/src/services/errorSync.ts` | Taxonomía de errores + estrategias | F4.1 |
-| `desktop/src/services/circuitBreaker.ts` | Circuit breaker para operaciones de red | F4.3 |
-| `desktop/src/services/transaccionSync.ts` | Operaciones compuestas con rollback | F5.1 |
-| `desktop/src/services/syncLogger.ts` | Logger estructurado con rotación | F6.1 |
-| `v023_sync_changelog.sql` | Migración tabla changelog para delta sync | F2.1 |
-| `App/Kamples/Database/SyncChangelogRepository.php` | Queries para changelog | F2.1 |
+| Archivo                                            | Responsabilidad                                 | Fase |
+| -------------------------------------------------- | ----------------------------------------------- | ---- |
+| `desktop/src/services/syncJournal.ts`              | WAL/journal append-only + checkpoint + recovery | F1.1 |
+| `desktop/src/services/JournalPersistente.ts`       | Clase base genérica para journaling             | F1.3 |
+| `desktop/src/services/hashService.ts`              | SHA-256 de archivos via Web Crypto              | F3.1 |
+| `desktop/src/services/syncReconciliacion.ts`       | Reconciliación disco vs tracking                | F3.2 |
+| `desktop/src/services/errorSync.ts`                | Taxonomía de errores + estrategias              | F4.1 |
+| `desktop/src/services/circuitBreaker.ts`           | Circuit breaker para operaciones de red         | F4.3 |
+| `desktop/src/services/transaccionSync.ts`          | Operaciones compuestas con rollback             | F5.1 |
+| `desktop/src/services/syncLogger.ts`               | Logger estructurado con rotación                | F6.1 |
+| `v023_sync_changelog.sql`                          | Migración tabla changelog para delta sync       | F2.1 |
+| `App/Kamples/Database/SyncChangelogRepository.php` | Queries para changelog                          | F2.1 |
 
 ## 5. Archivos Existentes a Modificar
 
-| Archivo | Cambios | Fase |
-|---|---|---|
-| `syncTrackingService.ts` | WAL integration, hashCompleto, version | F1.1, F3.1, F5.2 |
-| `syncState.ts` | Persistir cursor delta, config logger | F2.1, F6.1 |
-| `syncService.ts` | Delta sync loop, adaptive polling, circuit breaker | F2.1, F2.2, F4.3 |
-| `syncCollectionService.ts` | Verificación post-descarga, transacciones, error clasif. | F3.3, F4.1, F5.1 |
-| `syncWatcherSetup.ts` | Trigger reconciliación, transacciones rename | F3.2, F5.1 |
-| `fileWatcherService.ts` | Hash validation antes de emitir eventos | F3.1 |
-| `uploadQueueService.ts` | WAL queue, hash completo, error clasif. | F1.3, F3.1, F4.1 |
-| `offlineQueueService.ts` | WAL queue, backoff, error clasif. | F1.3, F4.1, F4.2 |
-| `syncGuards.ts` | Circuit breaker integration | F4.3 |
-| `SyncController.php` | Endpoint delta, incluir version/tamano | F2.1, F3.3 |
-| `SyncRepository.php` | Query changelog, version en payload | F2.1, F5.2 |
-| `ColeccionesCrudController.php` | Optimistic locking por version | F5.2 |
+| Archivo                         | Cambios                                                  | Fase             |
+| ------------------------------- | -------------------------------------------------------- | ---------------- |
+| `syncTrackingService.ts`        | WAL integration, hashCompleto, version                   | F1.1, F3.1, F5.2 |
+| `syncState.ts`                  | Persistir cursor delta, config logger                    | F2.1, F6.1       |
+| `syncService.ts`                | Delta sync loop, adaptive polling, circuit breaker       | F2.1, F2.2, F4.3 |
+| `syncCollectionService.ts`      | Verificación post-descarga, transacciones, error clasif. | F3.3, F4.1, F5.1 |
+| `syncWatcherSetup.ts`           | Trigger reconciliación, transacciones rename             | F3.2, F5.1       |
+| `fileWatcherService.ts`         | Hash validation antes de emitir eventos                  | F3.1             |
+| `uploadQueueService.ts`         | WAL queue, hash completo, error clasif.                  | F1.3, F3.1, F4.1 |
+| `offlineQueueService.ts`        | WAL queue, backoff, error clasif.                        | F1.3, F4.1, F4.2 |
+| `syncGuards.ts`                 | Circuit breaker integration                              | F4.3             |
+| `SyncController.php`            | Endpoint delta, incluir version/tamano                   | F2.1, F3.3       |
+| `SyncRepository.php`            | Query changelog, version en payload                      | F2.1, F5.2       |
+| `ColeccionesCrudController.php` | Optimistic locking por version                           | F5.2             |
 
 ---
 
 ## 6. Métricas de Éxito
 
-| Métrica | Estado actual (estimado) | Objetivo post-mejoras |
-|---|---|---|
-| Pérdida de tracking por corrupción | Posible en cada crash | 0 (WAL + backup) |
-| Payload por ciclo sync (1000 samples) | ~500KB | ~2KB (delta) |
-| Tiempo detección servidor caído | 50 timeouts × 30s = 25 min | 3 intentos × 5s = 15s (CB) |
-| Falsos positivos watcher | Frecuentes (antivirus, touch) | Eliminados (hash verify) |
-| Reintentos innecesarios en 429 | Inmediatos, sin backoff | Respetar Retry-After + backoff |
-| Visibilidad para debugging | console.log disperso | Logs exportables por usuario |
-| Divergencia disco vs tracking | Silenciosa, indefinida | Detectada semanalmente (reconcil.) |
+| Métrica                               | Estado actual (estimado)      | Objetivo post-mejoras              |
+| ------------------------------------- | ----------------------------- | ---------------------------------- |
+| Pérdida de tracking por corrupción    | Posible en cada crash         | 0 (WAL + backup)                   |
+| Payload por ciclo sync (1000 samples) | ~500KB                        | ~2KB (delta)                       |
+| Tiempo detección servidor caído       | 50 timeouts × 30s = 25 min    | 3 intentos × 5s = 15s (CB)         |
+| Falsos positivos watcher              | Frecuentes (antivirus, touch) | Eliminados (hash verify)           |
+| Reintentos innecesarios en 429        | Inmediatos, sin backoff       | Respetar Retry-After + backoff     |
+| Visibilidad para debugging            | console.log disperso          | Logs exportables por usuario       |
+| Divergencia disco vs tracking         | Silenciosa, indefinida        | Detectada semanalmente (reconcil.) |
 
 ---
 
@@ -553,5 +586,5 @@ F6.2 (Panel diagnóstico)  ← UI, puede hacerse en cualquier momento
 
 ---
 
-*Última actualización: 2026-03-07*
-*Referencia: Auditoría de 10 archivos sync (~7200 LOC) + investigación Google Drive API, Dropbox Sync Engine, OneDrive Delta API, Unison, rsync, patterns Circuit Breaker/WAL/Optimistic Replication*
+_Última actualización: 2026-03-07_
+_Referencia: Auditoría de 10 archivos sync (~7200 LOC) + investigación Google Drive API, Dropbox Sync Engine, OneDrive Delta API, Unison, rsync, patterns Circuit Breaker/WAL/Optimistic Replication_
