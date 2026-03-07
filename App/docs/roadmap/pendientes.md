@@ -393,11 +393,20 @@ C285. ✅ [AG-FIX] Fix file lock os error 32 + 403 collection ownership cleanup:
 - syncWatcherSetup: tras fallo rename por 403, crea colección nueva en lugar de actualizar entrada fantasma.
 - Fix `logSync.warning` → `logSync.warn` (typo de sesión anterior en SEC-A3).
 
-### Lecciones C282-C285
+C286. ✅ [AG-FIX] Tracking scoped por usuario — solución arquitectónica contaminación cross-usuario:
+- **Causa raíz:** El tracking local (Tauri Store) no tenía noción de qué usuario era dueño de los datos. Al cambiar de sesión/cuenta, colecciones del usuario anterior permanecían → `crearColeccionDesdeLocal()` las encontraba y devolvía su ID ajeno → 403 en cascada.
+- **BaseSyncLocal.userId:** Nuevo campo que identifica al dueño del tracking.
+- **inicializarTracking(userIdActual):** Recibe userId del auth. Si el tracking pertenece a otro usuario, limpia TODO automáticamente.
+- **cerrarSesionDesktop:** Ahora llama `resetearTracking()` para limpiar datos al logout.
+- **Retrocompatible:** Tracking sin userId (pre-C286) se adopta como del usuario actual.
+
+### Lecciones C282-C286
 - [File Lock]: Windows mantiene lock exclusivo durante copy/write. El file watcher emite CREATE inmediatamente. Esperar con backoff corto (300ms-5s) es más eficiente que desperdiciar un retry completo de la cola (2s+ backoff).
 - [403 Ownership]: Colecciones en tracking local que no pertenecen al usuario actual generan 403 en loop. Solución: delink inmediato del tracking + crear nueva colección si necesario.
 - [Logger TS vs PHP]: TypeScript syncLogger usa `warn`, PHP KamplesLogger usa `warning`. No confundir.
 - [Schema]: npx glory php:check es útil para validar antes de commit masivo PHP.
+- [Tracking Scoping]: El tracking de sync DEBE estar scoped por userId. Sin esto, cambiar de cuenta contamina el tracking con colecciones ajenas → 403 en cascada. La solución es almacenar userId en BaseSyncLocal y verificar en inicialización. También limpiar tracking en logout.
+- [Contaminación cross-usuario]: `crearColeccionDesdeLocal()` confiaba en el tracking local para decidir "ya existe". Si el tracking tenía colecciones de otro usuario, devolvía su ID ajeno sin verificar con el servidor. El userId scoping previene esto limpiando datos ajenos al inicializar.
 
 ### Lecciones C278
 - [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.
