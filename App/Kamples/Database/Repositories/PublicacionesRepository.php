@@ -18,6 +18,7 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\FollowsCols;
 
 class PublicacionesRepository extends BaseRepository
@@ -116,7 +117,8 @@ class PublicacionesRepository extends BaseRepository
         $tabla = PublicacionesCols::TABLA;
         $colEstado = PublicacionesCols::MODERACION_ESTADO;
 
-        $stmt = static::ejecutar(
+        /* ejecutar() devuelve int (filas afectadas), no PDOStatement */
+        return static::ejecutar(
             "UPDATE {$tabla} SET {$colEstado} = :rechazado WHERE {$colEstado} IN (:pendiente, :revision)",
             [
                 'rechazado' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
@@ -124,8 +126,6 @@ class PublicacionesRepository extends BaseRepository
                 'revision' => PublicacionesEnums::MODERACION_ESTADO_REVISION,
             ]
         );
-
-        return $stmt->rowCount();
     }
 
     /*
@@ -527,14 +527,14 @@ class PublicacionesRepository extends BaseRepository
         $tabla = PublicacionesCols::TABLA;
 
         static::ejecutar(
-            "DELETE FROM {$tl} WHERE " . LikesCols::TIPO . " = 'publicacion' AND "
+            "DELETE FROM {$tl} WHERE " . LikesCols::TIPO . " = :tipoLike AND "
             . LikesCols::TARGET_ID . " = :id",
-            ['id' => $id]
+            ['id' => $id, 'tipoLike' => LikesEnums::TIPO_PUBLICACION]
         );
         static::ejecutar(
-            "DELETE FROM {$tc} WHERE " . ComentariosCols::TIPO . " = 'publicacion' AND "
+            "DELETE FROM {$tc} WHERE " . ComentariosCols::TIPO . " = :tipoComentario AND "
             . ComentariosCols::TARGET_ID . " = :id",
-            ['id' => $id]
+            ['id' => $id, 'tipoComentario' => ComentariosEnums::TIPO_PUBLICACION]
         );
         static::ejecutar(
             "DELETE FROM {$tabla} WHERE " . PublicacionesCols::ID . " = :id",
@@ -553,9 +553,9 @@ class PublicacionesRepository extends BaseRepository
         static::ejecutar(
             "UPDATE {$tabla} SET " . PublicacionesCols::TOTAL_COMENTARIOS
             . " = (SELECT COUNT(*) FROM {$tc} WHERE " . ComentariosCols::TIPO
-            . " = 'publicacion' AND " . ComentariosCols::TARGET_ID . " = :id)"
+            . " = :tipo AND " . ComentariosCols::TARGET_ID . " = :id)"
             . " WHERE " . PublicacionesCols::ID . " = :id",
-            ['id' => $id]
+            ['id' => $id, 'tipo' => ComentariosEnums::TIPO_PUBLICACION]
         );
     }
 

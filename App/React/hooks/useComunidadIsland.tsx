@@ -1,10 +1,10 @@
 /*
  * Hook: useComunidadIsland — Kamples
- * Lógica del feed de comunidad: carga, filtro, likes, reposts, menú contextual.
+ * Lógica del feed de comunidad: carga, filtro, likes, reposts, menú contextual, scroll infinito.
  * Extraído de ComunidadIsland (SRP).
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
@@ -17,11 +17,21 @@ import type { TipoReaccion, Publicacion } from '@app/types';
 
 export type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
 
+/* Debe coincidir con el limit del backend (PublicacionesController::listar) */
+const PAGE_SIZE = 20;
+
 export function useComunidadIsland() {
     const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
     const [filtro, setFiltro] = useState<FiltroComunidad>('todos');
     const [cargando, setCargando] = useState(true);
+    const [cargandoMas, setCargandoMas] = useState(false);
+    const [hayMas, setHayMas] = useState(true);
     const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
+
+    /* paginaRef evita stale closure en el observer sin recrearlo con cada página */
+    const paginaRef = useRef(1);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
     const navegar = useNavigationStore(s => s.navegar);
     const usuario = useAuthStore(s => s.usuario);
 
@@ -48,17 +58,21 @@ export function useComunidadIsland() {
         return () => window.removeEventListener(EVENTO_ENTIDAD_ACTUALIZADA, manejarActualizacion);
     }, []);
 
-    /* Cargar publicaciones con cleanup */
+    /* Cargar página 1 al cambiar filtro — resetea todo el estado de paginación */
     useEffect(() => {
         let activo = true;
         setCargando(true);
+        setHayMas(true);
+        paginaRef.current = 1;
 
         const cargar = async () => {
             try {
-                const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro });
+                const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro, page: 1 });
                 if (!activo) return;
                 const lista = resp.data?.data ?? resp.data ?? [];
-                setPublicaciones(Array.isArray(lista) ? lista : []);
+                const arr = Array.isArray(lista) ? lista : [];
+                setPublicaciones(arr);
+                setHayMas(arr.length >= PAGE_SIZE);
             } catch {
                 if (activo) setPublicaciones([]);
             } finally {
@@ -70,12 +84,46 @@ export function useComunidadIsland() {
         return () => { activo = false; };
     }, [filtro]);
 
-    /* Callback para recargar feed tras publicar */
-    const recargarFeed = useCallback(async () => {
+    /* cargarMas — appends la siguiente página al feed */
+    const cargarMas = useCallback(async () => {
+        if (cargandoMas || !hayMas) return;
+        const nuevaPagina = paginaRef.current + 1;
+        setCargandoMas(true);
         try {
-            const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro });
+            const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro, page: nuevaPagina });
             const lista = resp.data?.data ?? resp.data ?? [];
-            setPublicaciones(Array.isArray(lista) ? lista : []);
+            const arr = Array.isArray(lista) ? lista : [];
+            setPublicaciones(prev => [...prev, ...arr]);
+            paginaRef.current = nuevaPagina;
+            setHayMas(arr.length >= PAGE_SIZE);
+        } catch { /* sin-op */ } finally {
+            setCargandoMas(false);
+        }
+    }, [cargandoMas, hayMas, filtro]);
+
+    /* IntersectionObserver: dispara cargarMas cuando el sentinel entra en viewport */
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel || !hayMas) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) cargarMas(); },
+            { rootMargin: '300px' }
+        );
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [cargarMas, hayMas]);
+
+    /* Callback para recargar feed tras publicar — resetea paginación */
+    const recargarFeed = useCallback(async () => {
+        paginaRef.current = 1;
+        setHayMas(true);
+        try {
+            const resp = await apiGet<{ data: Publicacion[] }>('/publicaciones', { filtro, page: 1 });
+            const lista = resp.data?.data ?? resp.data ?? [];
+            const arr = Array.isArray(lista) ? lista : [];
+            setPublicaciones(arr);
+            setHayMas(arr.length >= PAGE_SIZE);
         } catch { /* sin-op */ }
     }, [filtro]);
 
@@ -182,9 +230,9 @@ export function useComunidadIsland() {
     }, []);
 
     return {
-        publicaciones, filtro, setFiltro, cargando,
+        publicaciones, filtro, setFiltro, cargando, cargandoMas, hayMas,
         comentariosAbiertos, navegar, usuario,
-        menuSample, menuPublicacion,
+        menuSample, menuPublicacion, sentinelRef,
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
     };
 }

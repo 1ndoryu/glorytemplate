@@ -87,12 +87,12 @@ class PublicacionesEscrituraController
                 try {
                     $resultado = ServicioModeracionIA::moderarPublicacion($pubId, $textoMod, $imgsMod);
 
-                    if ($adminFlag && ($resultado['nivel'] ?? '') !== PublicacionesEnums::MODERACION_APROBADO) {
+                    if ($adminFlag && ($resultado['nivel'] ?? '') !== PublicacionesEnums::MODERACION_ESTADO_APROBADO) {
                         KamplesLogger::info('ModeracionIA: Post admin forzado a aprobado', [
                             'publicacionId' => $pubId,
                             'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
                         ], 'moderacion');
-                        PublicacionesRepository::forzarModeracion($pubId, PublicacionesEnums::MODERACION_APROBADO, 'admin_auto');
+                        PublicacionesRepository::forzarModeracion($pubId, PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'admin_auto');
                     }
                 } catch (\Throwable $e) {
                     KamplesLogger::error('Error en moderación de publicación', [
@@ -100,7 +100,7 @@ class PublicacionesEscrituraController
                         'error' => $e->getMessage(),
                     ], 'moderacion');
                     if ($adminFlag) {
-                        PublicacionesRepository::forzarModeracion($pubId, 'aprobado');
+                        PublicacionesRepository::forzarModeracion($pubId, PublicacionesEnums::MODERACION_ESTADO_APROBADO);
                     }
                 }
 
@@ -197,10 +197,10 @@ class PublicacionesEscrituraController
         /* Solo admin puede cambiar estado de moderación */
         if (isset($body['moderacionEstado']) && $esAdmin) {
             $estadosValidos = [
-                PublicacionesEnums::MODERACION_PENDIENTE,
-                PublicacionesEnums::MODERACION_APROBADO,
-                PublicacionesEnums::MODERACION_REVISION,
-                PublicacionesEnums::MODERACION_RECHAZADO,
+                PublicacionesEnums::MODERACION_ESTADO_PENDIENTE,
+                PublicacionesEnums::MODERACION_ESTADO_APROBADO,
+                PublicacionesEnums::MODERACION_ESTADO_REVISION,
+                PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
             ];
             if (\in_array($body['moderacionEstado'], $estadosValidos, true)) {
                 $campos[] = PublicacionesCols::MODERACION_ESTADO . ' = :modEstado';

@@ -51,9 +51,9 @@ const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] 
 
 const ComunidadBase = (): JSX.Element => {
     const {
-        publicaciones, filtro, setFiltro, cargando,
+        publicaciones, filtro, setFiltro, cargando, cargandoMas, hayMas,
         comentariosAbiertos, navegar, usuario,
-        menuSample, menuPublicacion,
+        menuSample, menuPublicacion, sentinelRef,
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
     } = useComunidadIsland();
 
@@ -129,6 +129,17 @@ const ComunidadBase = (): JSX.Element => {
                             )}
                         </TarjetaPublicacion>
                     ))
+                )}
+
+                {/* Sentinel para IntersectionObserver — scroll infinito */}
+                {!cargando && hayMas && (
+                    <div ref={sentinelRef} className="comunidadSentinel" aria-hidden="true" />
+                )}
+                {cargandoMas && (
+                    <>
+                        <SkeletonTarjetaPublicacion />
+                        <SkeletonTarjetaPublicacion />
+                    </>
                 )}
             </div>
 
