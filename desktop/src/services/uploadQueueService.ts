@@ -63,6 +63,57 @@ const STORE_KEY_HASHES = 'upload_hashes_procesados';
 const MAX_REINTENTOS = 3;
 const BACKOFF_BASE_MS = 2000;
 
+/*
+ * Espera a que un archivo sea legible (no bloqueado por otro proceso).
+ *
+ * En Windows, los file watchers emiten CREATE antes de que la escritura finalice.
+ * OneDrive y operaciones de copia mantienen un lock exclusivo hasta completar.
+ * Intentar readFile inmediatamente causa "os error 32: being used by another process".
+ *
+ * Usa backoff exponencial corto: 300ms, 600ms, 1.2s, 2.4s, 4.8s (~9.3s total).
+ * Si tras 5 intentos sigue bloqueado, retorna false para que el flujo
+ * normal de reintentos de la cola lo maneje.
+ */
+const READINESS_MAX_INTENTOS = 5;
+const READINESS_DELAY_MS = 300;
+
+async function esperarArchivoDisponible(rutaArchivo: string): Promise<boolean> {
+    const { stat } = await import('@tauri-apps/plugin-fs');
+
+    for (let intento = 0; intento < READINESS_MAX_INTENTOS; intento++) {
+        try {
+            const info = await stat(rutaArchivo);
+            /*
+             * stat() puede funcionar en archivos locked (solo lee metadata del FS).
+             * Pero si el tamanio es 0, el archivo aun no tiene contenido visible.
+             * Un tamanio > 0 es condicion necesaria (no suficiente) para readability.
+             */
+            if (info.size && info.size > 0) {
+                /*
+                 * Intentar lectura minima (1 byte) para confirmar que el lock de escritura
+                 * se ha liberado. Esto es lo que realmente falla con os error 32.
+                 */
+                try {
+                    const { readFile } = await import('@tauri-apps/plugin-fs');
+                    await readFile(rutaArchivo, { offset: 0, length: 1 } as Parameters<typeof readFile>[1]);
+                    return true;
+                } catch {
+                    /* Lock sigue activo, continuar esperando */
+                }
+            }
+        } catch {
+            /* Archivo no existe o inaccesible */
+        }
+
+        if (intento < READINESS_MAX_INTENTOS - 1) {
+            const delay = READINESS_DELAY_MS * Math.pow(2, intento);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+
+    return false;
+}
+
 /* Estado de cada item en la cola */
 export type EstadoUpload = 'pendiente' | 'subiendo' | 'completado' | 'error' | 'duplicado';
 
@@ -362,7 +413,7 @@ export async function encolarArchivo(
 
     /* SEC-A3: Rechazar archivos que no sean audio — solo extensiones validas */
     if (!esExtensionAudioValida(nombreArchivo)) {
-        logSync.warning('uploadQueue', `Archivo ignorado (no audio): ${nombreArchivo}`);
+        logSync.warn('uploadQueue', `Archivo ignorado (no audio): ${nombreArchivo}`);
         return false;
     }
 
@@ -772,6 +823,20 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             }).catch(() => {});
             console.warn('[UploadQueue] Archivo no existe, descartando permanentemente:', item.rutaArchivo);
             return true; /* true = completado/descartado, no reintentar */
+        }
+
+        /*
+         * Esperar a que el archivo esté disponible para lectura.
+         * En Windows, el watcher emite CREATE antes de que la copia finalice.
+         * Sin esta espera, readFile falla con "os error 32" (file locked).
+         * El backoff corto (~9s max) evita consumir un reintento de cola por
+         * una condicion temporal que se resuelve en milisegundos.
+         */
+        const disponible = await esperarArchivoDisponible(item.rutaArchivo);
+        if (!disponible) {
+            item.ultimoError = 'Archivo bloqueado por otro proceso (copia en curso o OneDrive sync)';
+            logSync.warn('uploadQueue', `Archivo no disponible tras espera, reintentando via cola: ${item.nombreArchivo}`);
+            return false; /* false = reintentar via backoff normal de la cola */
         }
 
         /* Leer el archivo de audio del disco */

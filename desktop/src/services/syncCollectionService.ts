@@ -946,6 +946,22 @@ export async function agregarSampleAColeccion(
         if (!resp.ok) {
             const body = await resp.json().catch(() => ({}));
             console.error('[SyncCollection] Error agregando sample a colección:', coleccionId, sampleId, resp.status, body);
+
+            /*
+             * 403: la colección no pertenece al usuario.
+             * Desvincular del tracking para evitar intentos repetidos.
+             * El upload flow creará una colección nueva si es necesario.
+             */
+            if (resp.status === 403) {
+                logSync.warn('SyncCollection', `Colección #${coleccionId} no pertenece al usuario. Desvinculando.`);
+                try {
+                    const tracking = (await import('./syncTrackingService'));
+                    await tracking.eliminarColeccion(coleccionId);
+                } catch (cleanupErr) {
+                    console.error('[SyncCollection] Error desvinculando colección:', cleanupErr);
+                }
+            }
+
             return false;
         }
 
@@ -1107,6 +1123,23 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
             /* F5.2: Conflicto de version — forzar re-sync en el proximo ciclo */
             if (resp.status === 409) {
                 logSync.warn('SyncCollection', `Conflicto de versión al renombrar col #${coleccionId}. Se re-sincronizará.`);
+                return false;
+            }
+
+            /*
+             * 403 no_autorizado: la colección no pertenece al usuario actual.
+             * Esto ocurre cuando el tracking local tiene colecciones de otra sesión
+             * o cuenta. Desvincular del tracking evita que la detección de huérfanas
+             * intente renombrarla en cada escaneo (loop infinito de 403s).
+             */
+            if (resp.status === 403) {
+                logSync.warn('SyncCollection', `Colección #${coleccionId} no pertenece al usuario. Desvinculando del tracking local.`);
+                try {
+                    const tracking = (await import('./syncTrackingService'));
+                    await tracking.eliminarColeccion(coleccionId);
+                } catch (cleanupErr) {
+                    console.error('[SyncCollection] Error desvinculando colección del tracking:', cleanupErr);
+                }
                 return false;
             }
 

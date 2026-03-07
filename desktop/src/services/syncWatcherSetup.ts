@@ -802,7 +802,18 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                                 console.info('[Sync] Carpeta nueva detectada como posible rename (huérfana encontrada):', huerfana.id, huerfana.nombre, '→', nombre);
                                 const exito = await colMod.renombrarColeccionEnServidor(huerfana.id, nombre);
                                 if (!exito && trackingModule) {
-                                    await trackingModule.actualizarNombreColeccion(huerfana.id, nombre, nombre);
+                                    /*
+                                     * Si la colección aún existe en tracking (fallo por red/conflict),
+                                     * actualizar nombre local como fallback optimista.
+                                     * Si ya no existe (403 → desvinculada), crear una nueva.
+                                     */
+                                    const aunExiste = trackingModule.obtenerColeccion(huerfana.id);
+                                    if (aunExiste) {
+                                        await trackingModule.actualizarNombreColeccion(huerfana.id, nombre, nombre);
+                                    } else {
+                                        console.info('[Sync] Colección huérfana desvinculada (403), creando nueva para:', nombre);
+                                        await colMod.crearColeccionDesdeLocal(nombre);
+                                    }
                                 }
                                 return;
                             }
