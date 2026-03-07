@@ -32,3 +32,13 @@
 - **Fix:** Bypass periódico del delta. Variable `ultimaSyncConDescargas` trackea cuándo fue la última sync completa. Si han pasado >5 min (`RECONCILIACION_DESCARGAS_MS`) sin una sync con descargas, se fuerza full sync independientemente de delta. `descargarSiNecesario()` es idempotente (retorna 'existente' si el sample ya está en tracking), así que el overhead es mínimo.
 - **Archivo:** `syncWatcherSetup.ts` — `sincronizarEstructuraCarpetas()`
 - **Aprendizaje:** El delta es una *optimización*, no una *fuente de verdad*. Siempre debe existir un mecanismo de reconciliación periódica que compare estado real del servidor vs local, independiente de eventos incrementales.
+
+## Bug 7: Tracking fantasma impide re-descarga (C289c — RESUELTO)
+- **Síntoma:** Sample existía en el servidor y en una colección local. Tras rename de colección, el watcher lo detectó como archivo nuevo → hash duplicado → movido a "duplicados/". El archivo ya no existe en la carpeta de la colección, pero la reconciliación periódica (C289b) no lo repara.
+- **Causa raíz:** `descargarSiNecesario()` verifica si el sample existe en **tracking** (`obtenerArchivo`), NO en **disco**. Si el tracking dice que existe (aunque el archivo fue movido/borrado), retorna `'existente'` sin verificar. Lo mismo aplica al check cross-colección (`buscarArchivoPorSampleId`): si otra entrada tracking apunta a un archivo que ya no está, se registra tracking nuevo apuntando a nada.
+- **Fix:** Agregar verificación `exists()` (Tauri FS) en ambos checkpoints de `descargarSiNecesario()`:
+  1. Si tracking tiene el sample pero el archivo NO existe en `rutaLocal` → limpiar entrada corrupta (`eliminarArchivo`) + continuar a descarga.
+  2. Si otro tracking cross-colección tiene el sample pero el archivo NO existe → limpiar entrada corrupta + continuar a descarga.
+  3. Solo retornar 'existente' si el archivo **realmente existe en disco**.
+- **Archivo:** `syncCollectionService.ts` — `descargarSiNecesario()`
+- **Aprendizaje:** En un sistema de sync, el tracking es una *caché* del estado del disco, no la fuente de verdad. Cualquier decisión basada en tracking DEBE verificarse contra disco si la consecuencia de un falso positivo es omitir una operación crítica (como descargar un archivo faltante).

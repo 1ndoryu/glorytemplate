@@ -189,7 +189,9 @@
   - Bug 4: Cache client-side 10s para obtenerColeccionesDelServidor (reduce 429).
   - Bug 5: Rate limits PHP aumentados (sync_colecciones 120/60s, sync_delta 200/60s).
   - Bug 6 (C289b): Reconciliación periódica de descargas cada 5 min — bypass del delta para reintento de samples pre-existentes o con descarga fallida.
+  - Bug 7 (C289c): `descargarSiNecesario` verifica existencia en disco, no solo tracking. Limpia entradas fantasma + re-descarga si el archivo no existe realmente.
 - **Aprendizajes:**
   - [Delta]: El delta sync es una *optimización*, no fuente de verdad. Siempre debe existir reconciliación periódica que compare servidor vs local independiente de eventos incrementales.
   - [Rename]: Al renombrar colección, hay que actualizar rutaLocal de TODOS los archivos hijos, no solo la colección. Si no, el watcher los ve como archivos nuevos.
   - [Cache]: Múltiples callers de un mismo endpoint sin coordinación → 429. Cache client con TTL corto (10s) es suficiente para polling sin perder freshness.
+  - [Tracking vs disco]: El tracking es caché del estado del disco, no fuente de verdad. Cualquier decisión que omita operaciones críticas (descarga) basándose en tracking DEBE verificar disco con `exists()`.

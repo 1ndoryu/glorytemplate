@@ -94,6 +94,7 @@
 - [fileWatcher carpetas]: RENAME directorio = DELETE+CREATE secuencial. Grace 3s con Map. Solo first-level dirs (sin extensión audio + hijos directos de carpetaBase). `procesarEventoCarpeta` antes de `procesarEvento` audio.
 - [Delta vs reconciliación]: Delta sync es SOLO optimización, no fuente de verdad. Si el cursor ya pasó un evento (sample existía antes de activar sync, o descarga falló), el delta NUNCA lo reportará de nuevo. Siempre debe existir reconciliación periódica (bypass delta) que compare servidor vs tracking. `RECONCILIACION_DESCARGAS_MS=5min` en `syncWatcherSetup.ts`. `descargarSiNecesario()` es idempotente (retorna 'existente' si ya está).
 - [Rename colecciones]: Al renombrar colección, `actualizarNombreColeccion` DEBE actualizar `rutaLocal` + `indiceRuta` de TODOS los archivos hijos y subcolecciones. Si no, watcher ve archivos en ruta nueva como "nuevos" → re-upload → duplicados.
+- [Tracking vs disco]: El tracking es una *caché*, no fuente de verdad del disco. `descargarSiNecesario` DEBE verificar `exists()` en disco cuando tracking dice que el archivo existe. Si el archivo fue movido a duplicados, borrado externamente, etc., la entrada de tracking se limpia y se re-descarga. Sin esto, archivos perdidos NUNCA se reparan.
 
 ### Build y Entorno
 - [Build WDAC]: OneDrive sincroniza `target/` → WDAC bloquea build-script-build.exe (os error 4551). Fix: `.cargo/config.toml` con `target-dir = "C:\\cargo-target\\kamples"` redirige fuera de OneDrive. Bundles en `C:\cargo-target\kamples\release\bundle\`.

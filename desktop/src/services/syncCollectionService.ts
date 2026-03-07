@@ -733,6 +733,8 @@ async function descargarSiNecesario(
     actual: number,
     total: number,
 ): Promise<'nuevo' | 'existente' | 'omitido' | 'error'> {
+    const { exists: existeEnDisco } = await import('@tauri-apps/plugin-fs');
+
     /* Verificar si ya existe en tracking */
     const existente = obtenerArchivo(sample.id, coleccionId);
     if (existente) {
@@ -740,30 +742,52 @@ async function descargarSiNecesario(
             onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'omitido' });
             return 'omitido';
         }
-        onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
-        return 'existente';
+
+        /*
+         * C289c: Verificar existencia real en disco.
+         * Si el tracking dice que el archivo existe pero NO está en disco
+         * (movido a duplicados, borrado externamente, etc.), limpiar la
+         * entrada corrupta y continuar a la fase de descarga.
+         */
+        const archivoExisteEnDisco = await existeEnDisco(existente.rutaLocal);
+        if (archivoExisteEnDisco) {
+            onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
+            return 'existente';
+        }
+
+        logSync.warn('collectionSync', `Tracking inconsistente: sample ${sample.id} registrado en "${existente.rutaLocal}" pero no existe en disco. Limpiando y re-descargando.`);
+        await eliminarArchivo(existente.sampleId, existente.coleccionId);
     }
 
     /* Verificar si existe en otra colección (archivo ya descargado, solo necesita tracking) */
     const enOtraCol = buscarArchivoPorSampleId(sample.id);
     if (enOtraCol && !enOtraCol.syncDeshabilitado) {
         /*
-         * El archivo ya existe en disco por otra colección.
-         * Registrar nuevo tracking para esta colección apuntando al mismo archivo.
-         * TO-DO: Copiar archivo a la carpeta de la nueva colección (hardlink/copy).
+         * C289c: Verificar que el archivo de la otra colección también exista en disco.
+         * Sin esto, una entrada fantasma en otra colección bloquea la descarga real.
          */
-        await registrarArchivo({
-            sampleId: sample.id,
-            coleccionId,
-            rutaLocal: enOtraCol.rutaLocal,
-            nombreLocal: enOtraCol.nombreLocal,
-            nombreServidor: enOtraCol.nombreServidor,
-            descargadoEn: enOtraCol.descargadoEn,
-            tamano: enOtraCol.tamano,
-            syncDeshabilitado: false,
-        });
-        onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
-        return 'existente';
+        const otraExisteEnDisco = await existeEnDisco(enOtraCol.rutaLocal);
+        if (otraExisteEnDisco) {
+            /*
+             * El archivo ya existe en disco por otra colección.
+             * Registrar nuevo tracking para esta colección apuntando al mismo archivo.
+             */
+            await registrarArchivo({
+                sampleId: sample.id,
+                coleccionId,
+                rutaLocal: enOtraCol.rutaLocal,
+                nombreLocal: enOtraCol.nombreLocal,
+                nombreServidor: enOtraCol.nombreServidor,
+                descargadoEn: enOtraCol.descargadoEn,
+                tamano: enOtraCol.tamano,
+                syncDeshabilitado: false,
+            });
+            onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
+            return 'existente';
+        }
+
+        logSync.warn('collectionSync', `Tracking inconsistente cross-colección: sample ${sample.id} registrado en "${enOtraCol.rutaLocal}" pero no existe en disco. Limpiando.`);
+        await eliminarArchivo(enOtraCol.sampleId, enOtraCol.coleccionId);
     }
 
     /* Descargar desde el servidor */
