@@ -295,3 +295,15 @@ C276. ✅ [AG-SYN] Auth sync 403 — solución arquitectónica multi-capa:
 - [FK Cascade]: WordPress no soporta FK constraints nativos. Toda tabla con referencias cruzadas requiere cascada manual en DELETE (limpiar hijos antes que padre).
 - [Auth nginx]: nginx + PHP-FPM puede no pasar `$_SERVER['HTTP_AUTHORIZATION']` (depende de `fastcgi_params` config). Headers custom (`X-Kamples-Auth`) SÍ se pasan siempre. Doble vía = auth robusta cross-entorno.
 - [Sync fetch]: NUNCA depender solo del interceptor global de `window.fetch` para auth en servicios críticos. Headers explícitos + token dedicado (setter pattern en módulo sin dependencias) evita problemas de init order y context isolation (MPA windows).
+
+C277. ✅ [AG-SYN] Plan de mejoras sync — arquitectura de confianza:
+- Auditoría completa de 10 archivos sync (~7200 LOC): syncService, syncCollectionService, syncTrackingService, syncWatcherSetup, fileWatcherService, uploadQueueService, offlineQueueService, papeleraService, syncGuards, syncState.
+- Investigación de patrones: Google Drive (change tokens/delta), Dropbox (WAL/journal/content-addressed), OneDrive (eTag/delta query), Unison (reconciliación 3-way), rsync (verificación pre-transfer), Circuit Breaker (Nygard).
+- Plan creado en `App/docs/plan-sync-mejoras.md` con 6 fases priorizadas:
+  - F1: Persistencia confiable (WAL + backup rotativo) — PRIORIDAD MÁXIMA
+  - F2: Delta sync (cursor + adaptive polling) — ALTA
+  - F3: Integridad (content hashing + reconciliación + verificación post-descarga) — MEDIA
+  - F4: Errores inteligentes (taxonomía + backoff + circuit breaker) — MEDIA
+  - F5: Operaciones atómicas (transacciones con rollback + versioning) — MEDIA-BAJA
+  - F6: Observabilidad (logger estructurado + panel diagnóstico) — BAJA
+- 10 archivos nuevos planificados, 12 existentes a modificar.
