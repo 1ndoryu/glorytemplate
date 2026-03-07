@@ -38,7 +38,7 @@ class JsonRepairer
     public static function parsearRespuestaGroq(string $respuestaRaw): ?array
     {
         $respuesta = \json_decode($respuestaRaw, true);
-        if (!$respuesta) {
+        if (\json_last_error() !== \JSON_ERROR_NONE || !$respuesta) {
             KamplesLogger::error('JsonRepairer: Respuesta Groq no es JSON válido', [
                 'respuesta_raw' => \mb_substr($respuestaRaw, 0, 1000),
             ]);

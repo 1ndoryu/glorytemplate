@@ -144,7 +144,7 @@ class SamplesUploadController
         $titulo = \sanitize_text_field($request->get_param('titulo') ?? $audio['name']);
         $contenido = \sanitize_textarea_field($request->get_param('contenido') ?? '');
         $tagsRaw = $request->get_param('tags');
-        $tags = \is_string($tagsRaw) ? \json_decode($tagsRaw, true) ?? [] : (array) ($tagsRaw ?? []);
+        $tags = \is_string($tagsRaw) ? \App\Helpers\JsonHelper::decodeOrDefault($tagsRaw, []) : (array) ($tagsRaw ?? []);
         $permitirDescarga = \filter_var($request->get_param('permitir_descarga') ?? true, \FILTER_VALIDATE_BOOLEAN);
         $licenciaLibre = \filter_var($request->get_param('licencia_libre') ?? false, \FILTER_VALIDATE_BOOLEAN);
         $esPremium = \filter_var($request->get_param('es_premium') ?? false, \FILTER_VALIDATE_BOOLEAN);

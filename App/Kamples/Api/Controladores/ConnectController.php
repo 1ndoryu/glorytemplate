@@ -23,9 +23,11 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class ConnectController
 {
-    /* Estados semánticos derivados de la API de Stripe Connect */
-    private const ESTADO_ACTIVO = 'activo';
-    private const ESTADO_PENDIENTE = 'pendiente';
+    /* Estados de cuenta Stripe Connect — valores propios de la API de Stripe,
+     * no son estados de la aplicacion (SamplesEnums, etc.).
+     * sentinel-disable hardcoded-enum-value */
+    private const ESTADO_ACTIVO      = 'activo';
+    private const ESTADO_PENDIENTE   = 'pendiente';
     private const ESTADO_RESTRINGIDO = 'restringido';
 
     public static function registrarRutas(string $namespace): void

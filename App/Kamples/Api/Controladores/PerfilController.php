@@ -17,6 +17,7 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\KamplesLogger;
@@ -142,7 +143,7 @@ class PerfilController
          */
         $wpUserObj = \get_userdata($wpUser['wp_user_id']);
         if ($wpUserObj && \in_array('administrator', $wpUserObj->roles, true)) {
-            $datos['rol'] = 'admin';
+            $datos['rol'] = UsuariosExtEnums::ROL_ADMIN;
         }
 
         $normalizado = self::normalizarUsuario($datos);

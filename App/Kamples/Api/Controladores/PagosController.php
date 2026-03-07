@@ -156,7 +156,11 @@ class PagosController
             return new \WP_REST_Response(['error' => 'Firma inválida'], 400);
         }
 
-        $evento = json_decode($payload, true);
+        $evento = \json_decode($payload, true);
+        if (\json_last_error() !== \JSON_ERROR_NONE || !\is_array($evento)) {
+            KamplesLogger::warning('Webhook Stripe: payload JSON invalido', ['error' => \json_last_error_msg()]);
+            return new \WP_REST_Response(['error' => 'Payload invalido'], 400);
+        }
         $tipo = $evento['type'] ?? '';
         $datos = $evento['data']['object'] ?? [];
 

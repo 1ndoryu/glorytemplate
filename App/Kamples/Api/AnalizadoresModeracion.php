@@ -225,7 +225,7 @@ class AnalizadoresModeracion
         }
 
         $json = \json_decode($respuesta, true);
-        if ($json === null) {
+        if (\json_last_error() !== \JSON_ERROR_NONE || $json === null) {
             if (\preg_match('/\{[^}]+\}/', $respuesta, $matches)) {
                 $json = \json_decode($matches[0], true);
             }
@@ -295,6 +295,7 @@ class AnalizadoresModeracion
         if ($respuesta === null) return null;
 
         $data = \json_decode($respuesta, true);
+        if (\json_last_error() !== \JSON_ERROR_NONE) { return null; }
         return $data['choices'][0]['message']['content'] ?? null;
     }
 }

@@ -36,7 +36,7 @@ class AlgoritmoEstadoRepository extends BaseRepository
         $col = AlgoritmoEstadoCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . AlgoritmoEstadoCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . AlgoritmoEstadoCols::USUARIO_ID . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }

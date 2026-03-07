@@ -245,7 +245,7 @@ class PipelineAudio
              * Marca ia_pendiente para que el frontend/sync sepan que falta el analisis creativo.
              * El ProcesadorColaIA actualizara esta metadata cuando se reprocese.
              */
-            $actualizaciones['tipo'] = 'oneshot';
+            $actualizaciones['tipo'] = SamplesEnums::TIPO_ONESHOT;
             $actualizaciones['metadata'] = \json_encode([
                 'ia_pendiente' => true,
                 'ia_encolada_at' => \date('Y-m-d H:i:s'),

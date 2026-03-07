@@ -237,7 +237,7 @@ class ProcesadorColaIA
         $actualizaciones['tipo'] = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : 'oneshot';
 
         /* Preservar confianza tecnica existente si hay */
-        $metadataExistente = \json_decode($sample[SamplesCols::METADATA] ?? '{}', true) ?: [];
+        $metadataExistente = \App\Helpers\JsonHelper::decodeOrDefault($sample[SamplesCols::METADATA] ?? '{}', []);
         $bpmConfianza = $metadataExistente['bpm_confianza'] ?? ($contextoTecnico['bpm_confianza'] ?? null);
         $keyConfianza = $metadataExistente['key_confianza'] ?? ($contextoTecnico['key_confianza'] ?? null);
 

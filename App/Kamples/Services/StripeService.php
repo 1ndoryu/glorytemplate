@@ -17,6 +17,7 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Helpers\JsonHelper;
 
 class StripeService
 {
@@ -151,7 +152,7 @@ class StripeService
                     return ['error' => 'Error de conexión con Stripe: ' . $curlError];
                 }
 
-                $data = json_decode($response, true) ?? [];
+                $data = JsonHelper::decodeOrDefault($response, []);
 
                 /* HTTP 5xx — error transitorio del servidor, reintentar */
                 if ($httpCode >= 500) {
