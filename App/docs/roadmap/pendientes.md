@@ -194,6 +194,7 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 - [x] **S8** ✅ [AG-SEN] 8 reglas PHP nuevas implementadas y registradas: toctou-select-insert, lock-sin-finally, catch-critico-solo-log, mime-type-cliente, cadena-isset-update, query-doble-verificacion, json-sin-limite-bd, retorno-ignorado-repo.
 - [x] **S9** ✅ [AG-SEN] 5 reglas TS nuevas + 3 enhancements + fix falsos positivos desktop. listen-sin-cleanup, status-http-generico, handler-sin-trycatch, cola-sin-limite, objeto-mutable-exportado. Mejoras: json-decode-inseguro (detecta ?:/??), return-void-critico (sin hint + return check), limite-lineas (desktop/ habilitado).
 - [x] **S10** ✅ [AG-SEN] Tests: 205 passing (0 failing). sprint89Rules.test.ts cubre todas las reglas nuevas (2+ tests por regla).
+- [x] **S11** ✅ [AG-SEN] Regla `undefined-class-constant`: phpConstantIndexer.ts indexa todas las clases PHP del workspace + herencia. gloryConstantRules.ts resuelve self::/static::/parent::/ClassName:: via use statements. 221 tests passing. Detecta constantes como `CARPETA_DEFAULT` sin necesidad de abrir el archivo.
 
 ---
 
@@ -377,3 +378,45 @@ C281. ✅ [AG-SYN] Fix 500 sync/colecciones + Tauri journal permissions:
 - [Delta]: cursor=0 o cursor purgado → fullSyncRequired=true. El cliente hace full sync normal y recibe el cursor actual.
 - [Delta]: Los changelog triggers van en los controllers (punto de escritura), no en los repositories (podrían llamarse desde contextos sin usuario).
 - [fileWatcher]: Template literals (`${}`) son más legibles que console.info con args separados por coma para logSync.
+
+C282. ✅ [AG-SEC] Fix errores PHP runtime + constantes enum + schema regen (28 archivos, +129/-62):
+- **Errores corregidos:** `warn()`→`warning()` en 3 controllers (KamplesLogger no tiene `warn`), `MODERACION_APROBADO`→`MODERACION_ESTADO_APROBADO` en 4 archivos (ServicioModeracionIA, AnalizadoresModeracion, AdminModeracionController, PublicacionesRepository), `TIPOS_VALIDOS`→`TODOS_TIPO` en SyncChangelogRepository, `CARPETA_DEFAULT` recreada en SamplesRepository, `GROQ_API_KEY`→`\GROQ_API_KEY` (global scope), `'publicacion'`→enums en ComentariosRepository, `'free'`→enums en UsuariosExtRepository.
+- **Schema fix:** ComentariosSchema `tipo_contenido` sin check constraint → agregada `['texto','imagen','audio']` + regenerado → ComentariosEnums ahora tiene `TIPO_CONTENIDO_*`.
+- **Hardcoded strings:** 15+ strings en AnalizadoresModeracion + 10 en ServicioModeracionIA + IN clause en PublicacionesRepository → todos parametrizados con enums.
+- **CLI nuevo:** `npx glory php:check` — verifica sintaxis de 268 archivos PHP.
+
+C283. ✅ [AG-SEC] Sprint Seguridad 1 — plan-sync-mejoras-v3 (6 archivos):
+- **SEC-C1:** INTERVAL interpolation en `purgar()` → `MAKE_INTERVAL(days => :dias)` parametrizado.
+- **SEC-C2:** Hardcoded fallback secret en DescargasStreamController eliminado → RuntimeException si AUTH_SALT no definido.
+- **SEC-A3:** Filtro extensión audio client-side en uploadQueueService (`esExtensionAudioValida()` + guard en `encolarArchivo()`).
+- **SEC-M2:** Rate limit sync endpoints — 60 req/min colecciones, 120 req/min delta (RateLimiter::verificarUsuario).
+- **SEC-M4:** `shell:allow-open` en Tauri restringido a regex `kamples.com` (era unrestricted).
+- **BOM fix:** ManejadorGit.php tenía BOM UTF-8 → eliminado (268/268 PHP clean).
+- **Plan completo:** `App/docs/plan-sync-mejoras-v3.md` — auditoría seguridad sync (2 CRITICAL, 4 HIGH, 4 MEDIUM, 3 LOW).
+
+### Lecciones C282-C283
+- [Schema Generator]: Si una columna no tiene `check` constraint en el Schema, el generador NO crea enums para sus valores. Agregar check constraint primero.
+- [KamplesLogger]: Métodos disponibles son `debug`, `info`, `warning`, `error`, `critical`. NO existe `warn`.
+- [Enums]: Después de regenerar schemas con el generador, los nombres de constantes usan el nombre de columna. `moderacion_estado` → `MODERACION_ESTADO_*` (no `MODERACION_*`).
+- [BOM]: Archivos PHP con BOM (EF BB BF) causan "Namespace declaration must be first statement". `php -l` los detecta.
+- [INTERVAL PostgreSQL]: Aunque `$diasRetencion` esté en whitelist, `INTERVAL '{$var} days'` es interpolación de string en SQL. Usar `MAKE_INTERVAL(days => :param)` como parámetro PDO.
+- [Rate Limit]: Endpoints de lectura sync también necesitan rate limit — un scraper podría enumerar colecciones/samples de un usuario.
+- [Tauri shell]: `shell:allow-open` sin scope permite abrir CUALQUIER URL/programa. Restringir siempre con regex en capabilities.
+
+---
+
+## Sprint Seguridad — Pendientes plan-sync-mejoras-v3
+
+> **Plan completo:** `App/docs/plan-sync-mejoras-v3.md`
+
+### Sprint 2 — Hardening (pendiente)
+- [ ] **SEC-A1** Client-side MIME validation en uploadQueueService.ts (magic bytes buffer read).
+- [ ] **SEC-A2** Logs de audit trail para operaciones de escritura sync (IP + user agent).
+- [ ] **SEC-B1** Scope FS restrictivo en Tauri (`fs:scope-home-recursive` → carpeta sync + appdata).
+- [ ] **SEC-B2** Información sensible en panel diagnóstico (sanitizar antes de export).
+
+### Sprint 3 — Integridad (pendiente)
+- [ ] **SEC-M1** Content-Type validation server-side doble (extension + magic bytes ya existe, verificar consistencia).
+- [ ] **SEC-M3** Download token expiry timestamp (actualmente HMAC sin TTL).
+- [ ] **SEC-B3** CORS específico para desktop origin (`tauri://localhost`).
+- [ ] **SEC-B4** Exponer metadata mínima en API (filtrar campos sensibles de respuestas sync).

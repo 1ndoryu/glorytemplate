@@ -18,6 +18,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 - `App/docs/algoritmo.md` -- Algoritmo de descubrimiento (changelog de auditorias)
 - `App/docs/plan-sync-optimizacion.md` -- Plan de optimizacion sync (fases completadas)
+- `App/docs/plan-sync-mejoras-v3.md` -- Auditoria de seguridad sync (v3)
 - `App/docs/moderacion.md` -- Sistema de moderacion IA
 - `App/docs/monetizacion.md` -- Modelo de monetizacion y revenue share
 - `App/docs/plan-daw-channelrack-mixer.md` -- Plan DAW (Channel Rack + Mixer)
