@@ -1,31 +1,102 @@
 /*
- * landingCaracteristicas.css — Grid de 9 bloques de features.
- * Layout grid 3x4 basado en diseño original, con overlay al hover.
+ * landingCaracteristicas.css — Grid 9 bloques de features Kamples.
+ * Replica estructura exacta del diseño original (temp/estilos.css .ADEEDE/.OSFED).
+ * El grid necesita height fija para que los 1fr rows tengan dimensión real.
+ * Overlay .tinfo-style con backdrop-filter en esquina inferior izquierda.
  */
 
 .landingCaracteristicas {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: var(--espacioXl);
-}
-
-.landingCaracteristicasTitulo {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .landingCaracteristicasGrid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    gap: var(--espacioSm);
+    /* gap: 10px — valor literal del original (temp/estilos.css .ADEEDE), sin variable equivalente en el sistema */
+    gap: 10px;
     width: 100%;
+    height: 900px;
+    max-width: 1250px;
+    box-sizing: border-box;
 }
 
-/* Posiciones de bloques — réplica del grid original */
+/* Base del bloque — réplica de .ADEEDE .bloque del original */
+.landingBloque {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    /* #060606 — color de fondo específico del diseño original, entre --fondoBase (#050505) y --fondoElevado1 (#070707) */
+    background: #060606;
+    border-radius: var(--radioMd);
+}
+
+/* SVG como <img>: object-fit:contain replica el comportamiento del inline SVG
+   original (escala al viewBox sin recortar, fondo #060606 visible en huecos) */
+.landingBloqueImg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Placeholder para bloque 2 (sin SVG disponible) */
+.landingBloqueIaPlaceholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%);
+}
+
+/* Padding por bloque — réplica exacta del original (.div3.bloque, .div5.bloque…) */
+.landingBloque3 { padding: 5px 65px; }
+.landingBloque4 { padding: 10px; }
+.landingBloque5 { padding: 50px; }
+.landingBloque6 { padding: 15px 50px; }
+
+/* div7: imagen anclada al fondo — réplica de .div7 .lazy-svg { margin-top: auto } */
+.landingBloque7 .landingBloqueImg {
+    margin-top: auto;
+    height: auto;
+}
+
+/* Overlay descriptivo — réplica del .tinfo original:
+   position absolute, bottom-left, backdrop-filter blur, bg semitransparente */
+.landingBloqueOverlay {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    text-align: start;
+    backdrop-filter: blur(10px);
+    /* rgba(17,17,17,0.7) — overlay específico del .tinfo original, sin variable equivalente */
+    background: rgba(17, 17, 17, 0.7);
+    /* 15px/20px — padding del .tinfo original, sin variables exactas en el sistema */
+    padding: 15px 20px;
+    border-radius: var(--radioMd);
+    max-width: 80%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.landingBloque:hover .landingBloqueOverlay {
+    opacity: 1;
+}
+
+.landingBloqueOverlay p {
+    font-size: var(--fuenteXs);
+    /* rgba(255,255,255,0.9) — texto overlay del .tinfo original, sin variable equivalente */
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Grid areas — réplica exacta del original */
 .landingBloque1 { grid-area: 1 / 1 / 2 / 3; }
 .landingBloque2 { grid-area: 1 / 3 / 2 / 4; }
 .landingBloque3 { grid-area: 2 / 1 / 4 / 2; }
@@ -36,77 +107,17 @@
 .landingBloque8 { grid-area: 4 / 2 / 5 / 3; }
 .landingBloque9 { grid-area: 4 / 3 / 5 / 4; }
 
-.landingBloque {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: var(--espacioSm);
-    padding: var(--espacioXl);
-    background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    overflow: hidden;
-    min-height: 160px;
-    transition: border-color var(--transicionBase);
-}
-
-.landingBloque:hover {
-    border-color: var(--bordeActivo);
-}
-
-.landingBloqueIcono {
-    color: var(--textoSecundario);
-    transition: color var(--transicionBase);
-}
-
-.landingBloque:hover .landingBloqueIcono {
-    color: var(--textoPrimario);
-}
-
-.landingBloqueTitulo {
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedio);
-    color: var(--textoPrimario);
-    margin: 0;
-}
-
-/* Overlay descriptivo — visible al hover */
-.landingBloqueOverlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-end;
-    padding: var(--espacioLg);
-    background: linear-gradient(to top, var(--fondoElevado1) 40%, transparent);
-    opacity: 0;
-    transition: opacity var(--transicionBase);
-    pointer-events: none;
-}
-
-.landingBloque:hover .landingBloqueOverlay {
-    opacity: 1;
-}
-
-.landingBloqueOverlay p {
-    font-size: var(--fuenteXs);
-    color: var(--textoSecundario);
-    line-height: 1.5;
-    margin: 0;
-    text-align: left;
-}
-
-/* Responsive: 2 columnas en tablet */
+/* Tablet — réplica exacta del @media (max-width: 1020px) original */
 @media (max-width: 1020px) {
     .landingCaracteristicasGrid {
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(6, 1fr);
+        height: 1100px;
+        padding: var(--espacioXl);
     }
     .landingBloque1 { grid-area: 1 / 1 / 2 / 3; }
     .landingBloque2 { grid-area: 5 / 2 / 6 / 3; }
-    .landingBloque3 { grid-area: 2 / 1 / 4 / 2; }
+    .landingBloque3 { grid-area: 2 / 1 / 4 / 2; padding: 5px 75px; }
     .landingBloque4 { grid-area: 2 / 2 / 3 / 3; }
     .landingBloque5 { grid-area: 3 / 2 / 4 / 3; }
     .landingBloque6 { grid-area: 4 / 1 / 5 / 3; }
@@ -115,24 +126,22 @@
     .landingBloque9 { grid-area: 6 / 2 / 7 / 3; }
 }
 
-/* Responsive: 1 columna en móvil */
+/* Móvil — réplica del @media (max-width: 640px) original */
 @media (max-width: 640px) {
     .landingCaracteristicasGrid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto;
+        grid-template-rows: repeat(9, 1fr);
+        height: 1800px;
+        padding: var(--espacioMd);
     }
-    .landingBloque1,
-    .landingBloque2,
-    .landingBloque3,
-    .landingBloque4,
-    .landingBloque5,
-    .landingBloque6,
-    .landingBloque7,
-    .landingBloque8,
-    .landingBloque9 {
-        grid-area: auto;
-    }
-    .landingBloque {
-        min-height: 120px;
-    }
+    .landingBloque1 { grid-area: 1 / 1 / 2 / 2; }
+    /* div2 oculto en móvil, igual que en el original */
+    .landingBloque2 { display: none; }
+    .landingBloque3 { grid-area: 2 / 1 / 4 / 2; padding: 5px 75px; }
+    .landingBloque4 { grid-area: 4 / 1 / 5 / 2; padding: 10px; }
+    .landingBloque5 { grid-area: 5 / 1 / 6 / 2; padding: 50px; }
+    .landingBloque6 { grid-area: 6 / 1 / 7 / 2; padding: 15px 50px; }
+    .landingBloque7 { grid-area: 7 / 1 / 8 / 2; }
+    .landingBloque8 { grid-area: 8 / 1 / 9 / 2; }
+    .landingBloque9 { grid-area: 9 / 1 / 10 / 2; }
 }

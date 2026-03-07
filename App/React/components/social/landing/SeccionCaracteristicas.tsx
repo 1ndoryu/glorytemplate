@@ -1,97 +1,79 @@
 /*
  * SeccionCaracteristicas — Grid de 9 bloques de features Kamples.
  * Layout: grid responsivo 3x4 basado en el diseño original (temp/inicio.php).
- * Cada bloque muestra icono + overlay descriptivo al hover.
- * TO-DO: Reemplazar iconos Lucide por SVGs custom cuando estén disponibles.
+ * Los SVGs (div-1 al div-9, excepto div-2) llenan cada bloque.
+ * Overlay con descripción visible al hover.
  */
 
-import {
-    Lightbulb,
-    Brain,
-    Users,
-    FolderSync,
-    Library,
-    Sparkles,
-    Globe,
-    DollarSign,
-    Palette,
-} from 'lucide-react';
-import '../../styles/componentes/landingCaracteristicas.css';
+import '../../../styles/componentes/landingCaracteristicas.css';
 
-interface Caracteristica {
-    id: string;
-    icono: JSX.Element;
-    titulo: string;
+const BASE_SVG = '/wp-content/themes/glorytemplate/App/Assets/images/svgs';
+
+interface Bloque {
+    clase: string;
+    svg: string | null;
     descripcion: string;
 }
 
-const CARACTERISTICAS: Caracteristica[] = [
+const BLOQUES: Bloque[] = [
     {
-        id: 'bloquePlataforma',
-        icono: <Lightbulb size={40} />,
-        titulo: 'Todo en un solo lugar',
+        clase: 'landingBloque1',
+        svg: `${BASE_SVG}/div-1.svg`,
         descripcion: 'Kamples centraliza herramientas de producción musical dispersas en una sola plataforma optimizada para cada etapa del proceso creativo.',
     },
     {
-        id: 'bloqueIA',
-        icono: <Brain size={32} />,
-        titulo: 'Inteligencia artificial',
+        clase: 'landingBloque2',
+        svg: null,
         descripcion: 'Usamos inteligencia artificial para reconocimiento de patrones, mejora de algoritmos y supervisión. Kamples aprende de los usuarios para mejorar continuamente.',
     },
     {
-        id: 'bloqueSocial',
-        icono: <Users size={32} />,
-        titulo: 'Enfoque social',
-        descripcion: 'Plataforma optimizada para la comunicación entre productores, artistas y fans, ofreciendo una experiencia que facilita los procesos creativos y la colaboración.',
+        clase: 'landingBloque3',
+        svg: `${BASE_SVG}/div-3.svg`,
+        descripcion: 'Plataforma optimizada para la comunicación entre productores, artistas y fans, facilitando colaboraciones y procesos creativos.',
     },
     {
-        id: 'bloqueSync',
-        icono: <FolderSync size={32} />,
-        titulo: 'Sync automático',
-        descripcion: 'Herramienta de escritorio que sincroniza y organiza tus samples automáticamente. Accede a ellos fácilmente cuando los necesites desde cualquier dispositivo.',
+        clase: 'landingBloque4',
+        svg: `${BASE_SVG}/div-4.svg`,
+        descripcion: 'Herramienta de escritorio que sincroniza y organiza tus samples automáticamente. Accede a ellos cuando los necesites desde cualquier dispositivo.',
     },
     {
-        id: 'bloqueColecciones',
-        icono: <Library size={32} />,
-        titulo: 'Colecciones',
-        descripcion: 'Organiza tus recursos musicales en colecciones personalizables. Compártelas con la comunidad o de forma privada y descubre nuevas colecciones.',
+        clase: 'landingBloque5',
+        svg: `${BASE_SVG}/div-5.svg`,
+        descripcion: 'Organiza tus recursos musicales en colecciones personalizables. Compártelas con la comunidad o de forma privada.',
     },
     {
-        id: 'bloqueAlgoritmo',
-        icono: <Sparkles size={32} />,
-        titulo: 'Recomendaciones',
-        descripcion: 'Algoritmos inteligentes de recomendación: Kamples entiende tus gustos, te ayuda a organizar ideas y recomienda recursos apropiados para ti.',
+        clase: 'landingBloque6',
+        svg: `${BASE_SVG}/div-6.svg`,
+        descripcion: 'Algoritmos inteligentes de recomendación: Kamples entiende tus gustos y recomienda recursos apropiados para ti y tus proyectos.',
     },
     {
-        id: 'bloqueRed',
-        icono: <Globe size={32} />,
-        titulo: 'Red de creadores',
+        clase: 'landingBloque7',
+        svg: `${BASE_SVG}/div-7.svg`,
         descripcion: 'Comparte tus creaciones, colabora con otros artistas, descubre oportunidades y sigue la trayectoria de tus productores favoritos.',
     },
     {
-        id: 'bloqueIngresos',
-        icono: <DollarSign size={32} />,
-        titulo: 'Monetización',
+        clase: 'landingBloque8',
+        svg: `${BASE_SVG}/div-8.svg`,
         descripcion: 'Múltiples fuentes de ingresos con algoritmos inteligentes que compensan tu esfuerzo. Revenue share, suscripciones y servicios en un solo lugar.',
     },
     {
-        id: 'bloqueExpresion',
-        icono: <Palette size={32} />,
-        titulo: 'Múltiples formatos',
+        clase: 'landingBloque9',
+        svg: `${BASE_SVG}/div-9.svg`,
         descripcion: 'Exprésate a través de música, samples, kits, posts y colaboraciones. Kamples comprende que el arte tiene múltiples formas de expresión.',
     },
 ];
 
 export const SeccionCaracteristicas = (): JSX.Element => (
     <section className="landingCaracteristicas" id="landingCaracteristicas">
-        <h2 className="landingCaracteristicasTitulo">Todo lo que necesitas para producir</h2>
         <div className="landingCaracteristicasGrid">
-            {CARACTERISTICAS.map((c, i) => (
-                <div key={c.id} className={`landingBloque landingBloque${i + 1}`}>
-                    <div className="landingBloqueIcono">{c.icono}</div>
-                    <h3 className="landingBloqueTitulo">{c.titulo}</h3>
+            {BLOQUES.map((b) => (
+                <div key={b.clase} className={`landingBloque ${b.clase}`}>
+                    {b.svg
+                        ? <img src={b.svg} alt="" className="landingBloqueImg" loading="lazy" />
+                        : <div className="landingBloqueIaPlaceholder" />
+                    }
                     <div className="landingBloqueOverlay">
-                        <p>{c.descripcion}</p>
+                        <p>{b.descripcion}</p>
                     </div>
                 </div>
             ))}

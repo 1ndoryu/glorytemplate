@@ -1,14 +1,11 @@
 /*
  * Componente: LandingPublica — Kamples
  * Página de bienvenida para usuarios no autenticados.
- * Composición de secciones: Hero, Características, Trending, Comparativa, Planes, Footer.
+ * Secciones: Hero con buscador, Grid features SVG, Trending, Tabla comparativa.
  * Lógica extraída a useLandingPublica.
  */
 
-import {
-    ArrowRight,
-    Search,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { LogoKamples } from '@app/components/ui/LogoKamples';
 import { Input } from '@app/components/ui/Input';
@@ -85,7 +82,6 @@ export const LandingPublica = (): JSX.Element => {
                 <div className="landingHeroAcciones">
                     <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>
                         Crear cuenta gratis
-                        <ArrowRight size={16} />
                     </BotonBase>
                     <BotonBase variante="ghost" onClick={() => navegar('/explorar/')}>
                         Explorar samples
@@ -124,55 +120,6 @@ export const LandingPublica = (): JSX.Element => {
             )}
 
             <TablaComparativa />
-
-            {/* Planes preview */}
-            <section className="landingPlanes">
-                <h2>Empieza gratis, crece sin límites</h2>
-                <div className="landingPlanesGrid">
-                    <div className="landingPlan">
-                        <h3>Free</h3>
-                        <span className="landingPlanPrecio">$0</span>
-                        <ul>
-                            <li>5 descargas/día</li>
-                            <li>Calidad WAV original</li>
-                            <li>Explora y descubre</li>
-                        </ul>
-                        <BotonBase variante="ghost" onClick={() => abrirAuth('registro')}>Empezar</BotonBase>
-                    </div>
-                    <div className="landingPlan landingPlanDestacado">
-                        <Badge>Popular</Badge>
-                        <h3>Pro</h3>
-                        <span className="landingPlanPrecio">$5<small>/mes</small></span>
-                        <ul>
-                            <li>50 descargas/día</li>
-                            <li>Calidad WAV original</li>
-                            <li>Monetiza tus samples</li>
-                            <li>Analytics avanzados</li>
-                        </ul>
-                        <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>Elegir Pro</BotonBase>
-                    </div>
-                    <div className="landingPlan">
-                        <h3>Premium</h3>
-                        <span className="landingPlanPrecio">$19.99<small>/mes</small></span>
-                        <ul>
-                            <li>Descargas ilimitadas</li>
-                            <li>Todo lo de Pro</li>
-                            <li>Revenue share 80/20</li>
-                            <li>Soporte dedicado</li>
-                        </ul>
-                        <BotonBase variante="ghost" onClick={() => abrirAuth('registro')}>Elegir Premium</BotonBase>
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer CTA */}
-            <section className="landingFooterCta">
-                <h2>Únete a la comunidad de productores</h2>
-                <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>
-                    Crear cuenta gratis
-                    <ArrowRight size={16} />
-                </BotonBase>
-            </section>
         </div>
     );
 };

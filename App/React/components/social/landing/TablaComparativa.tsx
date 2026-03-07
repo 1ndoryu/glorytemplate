@@ -4,7 +4,7 @@
  */
 
 import { Check, X, Minus } from 'lucide-react';
-import '../../styles/componentes/landingComparativa.css';
+import '../../../styles/componentes/landingComparativa.css';
 
 type Soporte = 'si' | 'no' | 'parcial';
 
