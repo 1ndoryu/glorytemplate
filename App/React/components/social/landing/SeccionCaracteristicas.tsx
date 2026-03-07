@@ -1,64 +1,76 @@
 /*
  * SeccionCaracteristicas — Grid de 9 bloques de features Kamples.
- * Layout: grid responsivo 3x4 basado en el diseño original (temp/inicio.php).
- * Los SVGs (div-1 al div-9, excepto div-2) llenan cada bloque.
- * Overlay con descripción visible al hover.
+ * Layout: grid responsivo 3x4 — réplica exacta de temp/inicio.php (.ADEEDE/.OSFED).
+ *
+ * Los SVGs se importan como strings ?raw (Vite built-in) y se inyectan inline
+ * con dangerouslySetInnerHTML, replicando exactamente el comportamiento del
+ * .lazy-svg original que hacía innerHTML del SVG descargado.
+ * - Archivos locales en build time → sin riesgo XSS.
+ * - SVG inline → el elemento <svg> es DOM real, se escala por viewBox sin object-fit.
  */
 
 import '../../../styles/componentes/landingCaracteristicas.css';
 
-const BASE_SVG = '/wp-content/themes/glorytemplate/App/Assets/images/svgs';
+/* Imports ?raw — Vite incluye el texto SVG directamente en el bundle */
+import div1Raw from '../../../../Assets/images/svgs/div-1.svg?raw';
+import div3Raw from '../../../../Assets/images/svgs/div-3.svg?raw';
+import div4Raw from '../../../../Assets/images/svgs/div-4.svg?raw';
+import div5Raw from '../../../../Assets/images/svgs/div-5.svg?raw';
+import div6Raw from '../../../../Assets/images/svgs/div-6.svg?raw';
+import div7Raw from '../../../../Assets/images/svgs/div-7.svg?raw';
+import div8Raw from '../../../../Assets/images/svgs/div-8.svg?raw';
+import div9Raw from '../../../../Assets/images/svgs/div-9.svg?raw';
 
 interface Bloque {
     clase: string;
-    svg: string | null;
+    svgHTML: string | null;
     descripcion: string;
 }
 
 const BLOQUES: Bloque[] = [
     {
         clase: 'landingBloque1',
-        svg: `${BASE_SVG}/div-1.svg`,
+        svgHTML: div1Raw,
         descripcion: 'Kamples centraliza herramientas de producción musical dispersas en una sola plataforma optimizada para cada etapa del proceso creativo.',
     },
     {
         clase: 'landingBloque2',
-        svg: null,
+        svgHTML: null,
         descripcion: 'Usamos inteligencia artificial para reconocimiento de patrones, mejora de algoritmos y supervisión. Kamples aprende de los usuarios para mejorar continuamente.',
     },
     {
         clase: 'landingBloque3',
-        svg: `${BASE_SVG}/div-3.svg`,
+        svgHTML: div3Raw,
         descripcion: 'Plataforma optimizada para la comunicación entre productores, artistas y fans, facilitando colaboraciones y procesos creativos.',
     },
     {
         clase: 'landingBloque4',
-        svg: `${BASE_SVG}/div-4.svg`,
+        svgHTML: div4Raw,
         descripcion: 'Herramienta de escritorio que sincroniza y organiza tus samples automáticamente. Accede a ellos cuando los necesites desde cualquier dispositivo.',
     },
     {
         clase: 'landingBloque5',
-        svg: `${BASE_SVG}/div-5.svg`,
+        svgHTML: div5Raw,
         descripcion: 'Organiza tus recursos musicales en colecciones personalizables. Compártelas con la comunidad o de forma privada.',
     },
     {
         clase: 'landingBloque6',
-        svg: `${BASE_SVG}/div-6.svg`,
+        svgHTML: div6Raw,
         descripcion: 'Algoritmos inteligentes de recomendación: Kamples entiende tus gustos y recomienda recursos apropiados para ti y tus proyectos.',
     },
     {
         clase: 'landingBloque7',
-        svg: `${BASE_SVG}/div-7.svg`,
+        svgHTML: div7Raw,
         descripcion: 'Comparte tus creaciones, colabora con otros artistas, descubre oportunidades y sigue la trayectoria de tus productores favoritos.',
     },
     {
         clase: 'landingBloque8',
-        svg: `${BASE_SVG}/div-8.svg`,
+        svgHTML: div8Raw,
         descripcion: 'Múltiples fuentes de ingresos con algoritmos inteligentes que compensan tu esfuerzo. Revenue share, suscripciones y servicios en un solo lugar.',
     },
     {
         clase: 'landingBloque9',
-        svg: `${BASE_SVG}/div-9.svg`,
+        svgHTML: div9Raw,
         descripcion: 'Exprésate a través de música, samples, kits, posts y colaboraciones. Kamples comprende que el arte tiene múltiples formas de expresión.',
     },
 ];
@@ -68,8 +80,13 @@ export const SeccionCaracteristicas = (): JSX.Element => (
         <div className="landingCaracteristicasGrid">
             {BLOQUES.map((b) => (
                 <div key={b.clase} className={`landingBloque ${b.clase}`}>
-                    {b.svg
-                        ? <img src={b.svg} alt="" className="landingBloqueImg" loading="lazy" />
+                    {b.svgHTML !== null
+                        ? (
+                            <div
+                                className="landingBloqueSvg"
+                                dangerouslySetInnerHTML={{ __html: b.svgHTML }}
+                            />
+                        )
                         : <div className="landingBloqueIaPlaceholder" />
                     }
                     <div className="landingBloqueOverlay">

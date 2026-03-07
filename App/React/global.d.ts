@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /*
  * Extensiones de Window para globals inyectados por el tema (Glory) y desktop/main.tsx.
  * Necesario para hooks que acceden a window.__KAMPLES_* y GLORY_CONTEXT sin (window as any).
