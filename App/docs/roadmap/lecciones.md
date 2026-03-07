@@ -42,6 +42,9 @@
 - [Comunidad]: Feed 'todos' usa scoring CTE 2 niveles (listarFeedPuntuado). 'populares'/'siguiendo'/autor siguen con ORDER BY simple. Config en algoritmoPesos['comunidad'].
 - [Búsqueda]: ts_rank con plainto_tsquery('spanish', ...) para stemming. ILIKE se mantiene en WHERE para filtrado, ts_rank se usa solo para ORDER BY. PDO EMULATE_PREPARES=false exige nombres únicos (:busquedaRank, :busquedaTituloRank, :busquedaTagLike).
 - [PublicacionesEnums]: Schema no tenía check constraint para moderacion_estado → enums no se autogeneraban. Fix: agregar check en schema + constantes manuales en Enums.
+- [EnumsNaming]: Los enums generados usan `MODERACION_ESTADO_APROBADO` (prefijo con ESTADO_). El controller usaba `MODERACION_APROBADO` (sin ESTADO_) → PHP silencia constants no definidas como null → comparación siempre falla. Verificar SIEMPRE contra el archivo generado al usar enums.
+- [BaseRepository]: `ejecutar()` + `insertar()` devuelven `int`/`?int`, NO PDOStatement. NUNCA llamar `->rowCount()` sobre el retorno. Usar directamente el int retornado.
+- [ScrollInfinito]: Patrón recomendado: `sentinelRef` + `IntersectionObserver` en el hook (`rootMargin: '300px'`). `paginaRef = useRef(1)` para evitar stale closure en el observer. Reset en cambio de filtro: `paginaRef.current = 1; setHayMas(true)`. Backend retorna array vacío (length < PAGE_SIZE) para indicar no hay más.
 - [Social]: URLs repost: `/publicaciones/${id}/repost`. Lightbox timer 220ms. EVENTO_ENTIDAD_ACTUALIZADA constante. Rollback: snapshot previo. SIEMPRE TarjetaPublicacion para posts. `utils/tiempo.ts` centralizado.
 - [HTML]: NUNCA anidar `<a>` en `<a>` ni `<button>` en `<a>`. Patrón: div wrapper + enlace subzona + menú fuera del `<a>`.
 - [GloryContext]: declaration merging `global.d.ts` SOLO campos nuevos opcionales. PROHIBIDO re-declarar existentes. devMode: `=== true`.

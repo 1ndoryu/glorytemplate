@@ -259,6 +259,13 @@ Q14/Q15. ✅ [AG-FIX] ComentariosEnums: MODERACION_RECHAZADO → MODERACION_ESTA
 Q16. ✅ [AG-FIX] Groq vision: añadido -instruct suffix a llama-4-maverick + scout.
 Q17. ✅ Ya implementado — TarjetaPublicacion muestra BadgeModeracion si esAutor|esAdmin.
 
+### Bugfixes post Sprint G
+
+C270. ✅ [AG-FIX] Parser error ComentariosRepository: formatter movió AND-filters a col 0 + `)` extra cerraba consultar() prematuramente. Fix: restaurar indentación + eliminar `)` duplicado.
+C271. ✅ [AG-FIX] rechazarTodosPendientes: BaseRepository::ejecutar() devuelve int, NO PDOStatement. Eliminado `$stmt` intermedio + `->rowCount()`. También eliminados strings 'publicacion' hardcodeados en eliminarConCascada/recalcularComentarios → ComentariosEnums::TIPO_PUBLICACION / LikesEnums::TIPO_PUBLICACION.
+C272. ✅ [AG-FIX] Enum constants MODERACION_ESTADO_*: PublicacionesEscrituraController usaba MODERACION_APROBADO sin prefijo ESTADO_. Corregidas 4 referencias en crear() y actualizar().
+C273. ✅ [AG-FIX] Scroll infinito comunidad: useComunidadIsland no paginaba jamás (siempre page 1 sin IntersectionObserver). Implementado: sentinelRef + observer rootMargin 300px + paginaRef para evitar stale closure. ComunidadIsland añade div sentinel + SkeletonLoader cuando cargandoMas.
+
 ### Lecciones Sprint G
 - [Cola IA]: Backend retorna snake_case (completados_hoy, en_reintento). Frontend TS debe coincidir exactamente. NaN silencioso por undefined + operador aritmético.
 - [Groq]: Modelos vision Llama 4 requieren sufijo `-instruct`. Guard model (llama-guard-4-12b) NO lo requiere.
