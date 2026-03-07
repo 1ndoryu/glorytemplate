@@ -25,6 +25,7 @@ use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Config\Schema\_generated\ColaProcesamientoIaEnums;
 use App\Config\Schema\_generated\ColaProcesamientoIaCols;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Helpers\JsonHelper;
 use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\Api\ServicioIA;
 use App\Kamples\Api\ServicioModeracionIA;

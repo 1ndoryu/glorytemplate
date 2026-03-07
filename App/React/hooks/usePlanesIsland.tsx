@@ -25,6 +25,7 @@ export interface PlanInfo {
     caracteristicas: { texto: string; incluido: boolean }[];
 }
 
+// sentinel-disable-next-line objeto-mutable-exportado — configuracion estatica UI, no se muta en runtime
 export const PLANES: PlanInfo[] = [
     {
         id: 'free',

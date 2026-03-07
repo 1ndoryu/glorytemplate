@@ -32,6 +32,7 @@ use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\ServicioModeracionIA;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Kamples\Database\Repositories\ComentariosRepository;
+use App\Helpers\JsonHelper;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;

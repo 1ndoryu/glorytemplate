@@ -228,6 +228,7 @@ class AnalizadoresModeracion
         if (\json_last_error() !== \JSON_ERROR_NONE || $json === null) {
             if (\preg_match('/\{[^}]+\}/', $respuesta, $matches)) {
                 $json = \json_decode($matches[0], true);
+                if (\json_last_error() !== \JSON_ERROR_NONE) { $json = null; }
             }
         }
 

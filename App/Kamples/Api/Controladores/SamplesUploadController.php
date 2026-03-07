@@ -21,6 +21,7 @@ use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\PipelineAudio;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Helpers\JsonHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;

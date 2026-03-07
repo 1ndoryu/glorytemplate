@@ -28,6 +28,7 @@ export interface MetadataSample {
     esPremium: boolean;
 }
 
+// sentinel-disable-next-line objeto-mutable-exportado — valor inicial de formulario, los callers lo clonan con spread
 export const metadataInicial: MetadataSample = {
     titulo: '',
     descripcion: '',

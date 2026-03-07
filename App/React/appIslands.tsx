@@ -54,8 +54,8 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> = ({ 
  * App Islands Registry
  * Provide your island components here.
  * La clave es el nombre usado en PHP (PageManager::reactPage)
- * sentinel-disable objeto-mutable-exportado — registry de islands, es intencionalmente mutable
  */
+// sentinel-disable-next-line objeto-mutable-exportado — registry de islands intencional; se puebla desde PHP
 export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
     BienvenidaIsland: BienvenidaIsland as React.ComponentType<Record<string, unknown>>,
     LoginIsland: LoginIsland as React.ComponentType<Record<string, unknown>>,

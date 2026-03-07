@@ -116,6 +116,7 @@ const DashboardIslandBase = (): JSX.Element => {
 
             {cargando ? (
                 <div className="dashboardStatsGrid">
+                    {/* sentinel-disable-next-line key-index-lista — array estatico de longitud fija, index es clave valida */}
                     {Array.from({ length: 4 }).map((_, i) => (
                         <Skeleton key={i} alto={100} />
                     ))}
