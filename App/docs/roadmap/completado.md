@@ -173,3 +173,23 @@
   - [Landing]: InputBusqueda tiene debounce (filtrado real-time), Input wrapper es mejor para submit-on-action (landing search).
   - [Tags feed]: metadata JSONB con COALESCE + || (concat arrays) permite extraer múltiples keys IA sin UNNEST de tags manuales.
   - [Favicon WP]: wp_head() puede inyectar su propio favicon. Poner `<link rel="icon">` después de wp_head() lo sobreescribe.
+
+---
+
+## Completado — Sprint Sync Bugs Desktop (C285-C289b)
+
+- **C285** ✅ File lock os error 32 fix + 403 cleanup.
+- **C286** ✅ userId scoping para tracking.
+- **C287** ✅ TC1 merge guard, carpeta nueva skip, unpaired rename buffer.
+- **C288** ✅ Journal recovery version sync + reconciliación periódica carpetas cada 15s.
+- **C289** ✅ 6 bugs de sync corregidos (ver `App/docs/roadmap/c289-bugs-sync.md`):
+  - Bug 1: Purga de 47 colecciones fantasma en tracking.
+  - Bug 2: Actualización de rutaLocal+indiceRuta de archivos al renombrar colección (evita re-upload→duplicados).
+  - Bug 3: Polling con soloEstructura=false para descargar samples del servidor.
+  - Bug 4: Cache client-side 10s para obtenerColeccionesDelServidor (reduce 429).
+  - Bug 5: Rate limits PHP aumentados (sync_colecciones 120/60s, sync_delta 200/60s).
+  - Bug 6 (C289b): Reconciliación periódica de descargas cada 5 min — bypass del delta para reintento de samples pre-existentes o con descarga fallida.
+- **Aprendizajes:**
+  - [Delta]: El delta sync es una *optimización*, no fuente de verdad. Siempre debe existir reconciliación periódica que compare servidor vs local independiente de eventos incrementales.
+  - [Rename]: Al renombrar colección, hay que actualizar rutaLocal de TODOS los archivos hijos, no solo la colección. Si no, el watcher los ve como archivos nuevos.
+  - [Cache]: Múltiples callers de un mismo endpoint sin coordinación → 429. Cache client con TTL corto (10s) es suficiente para polling sin perder freshness.

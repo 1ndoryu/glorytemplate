@@ -570,9 +570,21 @@ async function consultarDeltaSync(): Promise<boolean> {
 }
 
 /*
+ * C289b: Reconciliación periódica de descargas.
+ * Cada RECONCILIACION_DESCARGAS_MS (5 min), forzar full sync con descargas
+ * aunque delta diga "sin cambios". Resuelve:
+ * - Samples que existían en el servidor antes de activar sync
+ * - Descargas que fallaron y nunca se reintentaron
+ * - Cualquier divergencia servidor→local silenciosa
+ */
+const RECONCILIACION_DESCARGAS_MS = 5 * 60 * 1000;
+let ultimaSyncConDescargas = 0;
+
+/*
  * Sincroniza la estructura de carpetas del servidor a disco local.
  * F2.1: Consulta delta primero para evitar full sync innecesarios.
  * C289: Sync completo (con descargas) cuando delta detecta cambios.
+ * C289b: Bypass periódico del delta para reconciliar descargas faltantes.
  * v1: crea carpetas basadas en metadata IA.
  * Retorna true si hubo cambios para ajustar el intervalo de polling.
  */
@@ -586,7 +598,21 @@ async function sincronizarEstructuraCarpetas(): Promise<boolean> {
     /* F2.1: Consultar delta antes de ejecutar full sync.
      * Si el cursor ya está inicializado (>0), usamos delta para ahorrar ancho de banda.
      * Si cursor=0 (primera vez), el delta retornará fullSyncRequired=true. */
-    const necesitaSync = await consultarDeltaSync();
+    let necesitaSync = await consultarDeltaSync();
+
+    /*
+     * C289b: Bypass periódico — si no hay cambios delta pero ha pasado suficiente
+     * tiempo desde la última sync completa con descargas, forzar full sync.
+     * Esto garantiza que samples pre-existentes o con descarga fallida se reintenten.
+     * descargarSiNecesario() es idempotente: si el sample ya existe en tracking,
+     * retorna 'existente' sin re-descargar.
+     */
+    const tiempoSinReconciliacion = Date.now() - ultimaSyncConDescargas;
+    if (!necesitaSync && tiempoSinReconciliacion > RECONCILIACION_DESCARGAS_MS) {
+        logSync.info('syncWatcher', `Reconciliación de descargas: ${Math.round(tiempoSinReconciliacion / 1000)}s sin sync completa, forzando`);
+        necesitaSync = true;
+    }
+
     if (!necesitaSync) return false;
 
     if (collectionModule) {
@@ -598,6 +624,8 @@ async function sincronizarEstructuraCarpetas(): Promise<boolean> {
              * verificación de existencia) que evitan re-descargas y conflictos.
              */
             const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, false);
+            /* C289b: Actualizar timestamp de última sync completa con descargas */
+            ultimaSyncConDescargas = Date.now();
             /* Hubo cambios si se descargaron nuevos archivos o se crearon carpetas */
             return resultado.nuevos > 0;
         } catch (err) {

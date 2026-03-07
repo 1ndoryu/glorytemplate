@@ -25,3 +25,10 @@
 - **Síntoma:** 429 en operaciones normales de testing.
 - **Causa raíz:** `sync_colecciones` tiene limit 60/60s. Con múltiples callers y polling frecuente, se agota rápido.
 - **Fix:** Aumentar `sync_colecciones` a 120/60s y `sync_delta` a 200/60s.
+
+## Bug 6: Samples pre-existentes nunca se descargan (C289b — RESUELTO)
+- **Síntoma:** Sample que ya existía en una colección del servidor antes de activar sync nunca se descarga. Descargas fallidas tampoco se reintentan.
+- **Causa raíz:** `sincronizarEstructuraCarpetas()` solo llama a `sincronizarColecciones()` (que ejecuta descargas) cuando `consultarDeltaSync()` retorna `true` (cambios nuevos). Si el cursor delta ya pasó el momento en que se creó el sample, delta retorna "sin cambios" y la fase de descarga NUNCA se ejecuta. Esto crea un agujero permanente: todo lo que existía antes del cursor actual, o que falló al descargarse, queda perdido.
+- **Fix:** Bypass periódico del delta. Variable `ultimaSyncConDescargas` trackea cuándo fue la última sync completa. Si han pasado >5 min (`RECONCILIACION_DESCARGAS_MS`) sin una sync con descargas, se fuerza full sync independientemente de delta. `descargarSiNecesario()` es idempotente (retorna 'existente' si el sample ya está en tracking), así que el overhead es mínimo.
+- **Archivo:** `syncWatcherSetup.ts` — `sincronizarEstructuraCarpetas()`
+- **Aprendizaje:** El delta es una *optimización*, no una *fuente de verdad*. Siempre debe existir un mecanismo de reconciliación periódica que compare estado real del servidor vs local, independiente de eventos incrementales.

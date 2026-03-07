@@ -92,6 +92,8 @@
 - [Sync v2]: Tracking key format `"{sampleId}_{coleccionId}"` (coleccionId=0 si null). Tauri Store type assertion: `{ get, set, save }` interfaz explícita (no ReturnType). syncService expone todo via `window.__KAMPLES_SYNC__` — nunca import directo desde web.
 - [Tray→Panel]: `Emitter` trait necesario en import Rust para `app.emit()`. `TrayIconEvent::Click` requiere `MouseButton::Left` + `MouseButtonState::Up`. Listener frontend: `useSyncStore.getState().abrirPanel()` accede al store Zustand fuera de React.
 - [fileWatcher carpetas]: RENAME directorio = DELETE+CREATE secuencial. Grace 3s con Map. Solo first-level dirs (sin extensión audio + hijos directos de carpetaBase). `procesarEventoCarpeta` antes de `procesarEvento` audio.
+- [Delta vs reconciliación]: Delta sync es SOLO optimización, no fuente de verdad. Si el cursor ya pasó un evento (sample existía antes de activar sync, o descarga falló), el delta NUNCA lo reportará de nuevo. Siempre debe existir reconciliación periódica (bypass delta) que compare servidor vs tracking. `RECONCILIACION_DESCARGAS_MS=5min` en `syncWatcherSetup.ts`. `descargarSiNecesario()` es idempotente (retorna 'existente' si ya está).
+- [Rename colecciones]: Al renombrar colección, `actualizarNombreColeccion` DEBE actualizar `rutaLocal` + `indiceRuta` de TODOS los archivos hijos y subcolecciones. Si no, watcher ve archivos en ruta nueva como "nuevos" → re-upload → duplicados.
 
 ### Build y Entorno
 - [Build WDAC]: OneDrive sincroniza `target/` → WDAC bloquea build-script-build.exe (os error 4551). Fix: `.cargo/config.toml` con `target-dir = "C:\\cargo-target\\kamples"` redirige fuera de OneDrive. Bundles en `C:\cargo-target\kamples\release\bundle\`.
