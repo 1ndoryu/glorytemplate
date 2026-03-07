@@ -8,6 +8,7 @@
  *
  * Endpoints:
  *   GET /me/sync/colecciones — Colecciones del usuario con samples (para sync completo)
+ *   GET /me/sync/delta       — Cambios incrementales desde cursor (para delta sync)
  *
  * @package Kamples
  */
@@ -17,6 +18,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Database\Repositories\SyncRepository;
+use App\Kamples\Database\Repositories\SyncChangelogRepository;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\KamplesLogger;
 
@@ -27,6 +29,12 @@ class SyncController
         register_rest_route($namespace, '/me/sync/colecciones', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'coleccionesParaSync'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/me/sync/delta', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'delta'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
     }
@@ -98,6 +106,51 @@ class SyncController
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en SyncController::coleccionesParaSync', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response([
+                'code'    => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    /**
+     * GET /me/sync/delta?cursor={last_id}
+     *
+     * Retorna cambios incrementales desde el cursor dado.
+     * Si cursor=0 o cursor invalido (purgado), retorna fullSyncRequired=true
+     * y el cliente debe hacer full sync con /me/sync/colecciones.
+     *
+     * Respuesta:
+     * {
+     *   cambios: [{ id, tipo, entidadId, metadata, createdAt }],
+     *   cursor: number,
+     *   hayMas: boolean,
+     *   fullSyncRequired: boolean
+     * }
+     */
+    public static function delta(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
+
+            $cursor = (int) ($request->get_param('cursor') ?? 0);
+            $limite = (int) ($request->get_param('limite') ?? 100);
+
+            /* Acotar limite entre 1 y 500 para evitar abusos */
+            $limite = max(1, min(500, $limite));
+
+            $resultado = SyncChangelogRepository::obtenerDelta($userId, $cursor, $limite);
+
+            return new \WP_REST_Response([
+                'data' => $resultado,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en SyncController::delta', [
                 'error' => $e->getMessage(),
             ]);
             return new \WP_REST_Response([

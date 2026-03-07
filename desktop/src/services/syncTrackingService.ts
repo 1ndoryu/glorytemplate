@@ -10,6 +10,18 @@
  */
 
 import { esDesktop } from './desktopService';
+import { logSync } from './syncLogger';
+import {
+    appendOperacion,
+    registrarAplicador,
+    recuperar,
+    checkpoint as journalCheckpoint,
+    iniciarCheckpointPeriodico,
+    establecerEstado,
+    registrarCallbackCheckpoint,
+    type OperacionJournal,
+    type TipoOperacionJournal,
+} from './syncJournal';
 
 const STORE_FILE = 'sync-config.json';
 
@@ -128,6 +140,110 @@ let enLote = false;
 /* eslint-disable @typescript-eslint/no-explicit-any -- Tauri Store typing requires flexible interface */
 let storeCache: { get: <T>(key: string) => Promise<T | null>; set: (key: string, val: unknown) => Promise<void>; save: () => Promise<void> } | null = null;
 
+/* WAL (Write-Ahead Log): flag que indica si el journal está activo */
+let journalActivo = false;
+
+/**
+ * Aplicador de operaciones del journal. Usado durante recuperación (startup)
+ * para re-aplicar operaciones pendientes sobre el último checkpoint.
+ * Cada operación modifica el estado mutándolo in-place.
+ */
+function aplicadorRecuperacion(op: OperacionJournal, estado: unknown): unknown {
+    const s = estado as BaseSyncLocal;
+    const d = op.datos as Record<string, unknown>;
+
+    switch (op.tipo) {
+        case 'TRACK_FILE': {
+            s.archivos[d.clave as string] = d.archivo as ArchivoTracking;
+            break;
+        }
+        case 'UNTRACK_FILE': {
+            delete s.archivos[d.clave as string];
+            break;
+        }
+        case 'ADD_COLLECTION': {
+            const col = d.coleccion as ColeccionLocal;
+            s.colecciones[col.id] = col;
+            break;
+        }
+        case 'RENAME_COLLECTION': {
+            const col = s.colecciones[d.id as number];
+            if (col) {
+                col.nombre = d.nombre as string;
+                col.carpetaLocal = d.carpetaLocal as string;
+            }
+            break;
+        }
+        case 'DELETE_COLLECTION': {
+            delete s.colecciones[d.id as number];
+            break;
+        }
+        case 'MARK_DISABLED': {
+            const archivo = s.archivos[d.clave as string];
+            if (archivo) archivo.syncDeshabilitado = true;
+            break;
+        }
+        case 'MARK_ENABLED': {
+            const sampleId = d.sampleId as number;
+            for (const [clave, arch] of Object.entries(s.archivos)) {
+                if (arch.sampleId === sampleId) delete s.archivos[clave];
+            }
+            break;
+        }
+        case 'MOVE_FILE': {
+            if (d.accion === 'agregarSinColeccion') {
+                const sid = d.sampleId as number;
+                if (!s.sinColeccion.includes(sid)) s.sinColeccion.push(sid);
+            } else if (d.accion === 'quitarSinColeccion') {
+                s.sinColeccion = s.sinColeccion.filter(id => id !== (d.sampleId as number));
+            }
+            break;
+        }
+        case 'UPDATE_HISTORIAL': {
+            if (d.historialSamples !== undefined) {
+                s.historialSamples = d.historialSamples as EntradaHistorialSample[];
+            }
+            if (d.historial !== undefined) {
+                s.historial = d.historial as AccionHistorial[];
+            }
+            break;
+        }
+        case 'UPDATE_FILE': {
+            /* Operación genérica — reservada para extensiones futuras */
+            break;
+        }
+    }
+
+    return s;
+}
+
+/**
+ * Registra una operación en el journal WAL (solo escritura, sin re-aplicar).
+ * Durante modo lote se omite — el checkpoint se hace en finalizarLote().
+ */
+async function registrarEnJournal(tipo: TipoOperacionJournal, datosOp: unknown): Promise<void> {
+    if (enLote || !journalActivo) return;
+    try {
+        await appendOperacion({ tipo, datos: datosOp }, true);
+    } catch {
+        /* Error de journal no bloquea la operación — datos en memoria se persisten en próximo checkpoint */
+    }
+}
+
+/**
+ * Escribe el estado completo al Tauri Store (para acceso cross-window).
+ * Incluye fusión de historialSamples para mantener coherencia entre ventanas.
+ */
+async function escribirEnStore(): Promise<void> {
+    if (!storeCache) return;
+    const almacenado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+    if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
+        fusionarHistorialSamplesPersistidos(datos.historialSamples, almacenado.historialSamples);
+    }
+    await storeCache.set(STORE_KEY_TRACKING, datos);
+    await storeCache.save();
+}
+
 /* Inicialización */
 
 export async function inicializarTracking(): Promise<void> {
@@ -137,17 +253,52 @@ export async function inicializarTracking(): Promise<void> {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
         storeCache = store as typeof storeCache;
-
-        const guardado = await storeCache!.get<BaseSyncLocal>(STORE_KEY_TRACKING);
-        if (guardado) {
-            /* Migrar estructura: añadir historialSamples si no existe en datos almacenados */
-            datos = { ...guardado, historialSamples: guardado.historialSamples ?? [] };
-            reconstruirIndices();
-            reconstruirIndiceSampleHistorial();
-        }
     } catch {
-        /* Store no disponible — usar defaults */
+        /* Store no disponible */
     }
+
+    /* Configurar journal WAL para persistencia confiable contra crashes */
+    const estadoVacio: BaseSyncLocal = {
+        archivos: {}, colecciones: {}, sinColeccion: [], historial: [], historialSamples: [],
+    };
+    registrarAplicador(aplicadorRecuperacion, estadoVacio);
+    registrarCallbackCheckpoint(async () => {
+        try {
+            await escribirEnStore();
+        } catch (err) {
+            logSync.warn('tracking', 'Error escribiendo en Store durante checkpoint', {
+                error: err instanceof Error ? err.message : String(err)
+            });
+        }
+    });
+
+    /* Intentar recuperación desde journal (protege contra crashes) */
+    const recuperado = await recuperar<BaseSyncLocal>();
+
+    if (recuperado && (Object.keys(recuperado.archivos).length > 0 || Object.keys(recuperado.colecciones).length > 0)) {
+        datos = { ...recuperado, historialSamples: recuperado.historialSamples ?? [] };
+        logSync.info('tracking', 'Estado recuperado desde journal');
+    } else if (storeCache) {
+        /* Fallback: cargar desde Tauri Store (caso normal sin crash previo) */
+        try {
+            const guardado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+            if (guardado) {
+                datos = { ...guardado, historialSamples: guardado.historialSamples ?? [] };
+            }
+        } catch {
+            /* Store no disponible — usar defaults vacíos */
+        }
+    }
+
+    /* Sincronizar estado del journal con datos cargados */
+    establecerEstado(datos);
+    journalActivo = true;
+
+    reconstruirIndices();
+    reconstruirIndiceSampleHistorial();
+
+    /* Iniciar checkpoint periódico WAL (cada 30s si hay operaciones pendientes) */
+    iniciarCheckpointPeriodico();
 
     /*
      * Listener cross-window: cuando otra ventana limpia el historial,
@@ -167,17 +318,17 @@ export async function inicializarTracking(): Promise<void> {
 }
 
 async function persistir(): Promise<void> {
-    if (enLote || !storeCache) return;
+    if (enLote) return;
     try {
-        const almacenado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
-        if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
-            fusionarHistorialSamplesPersistidos(datos.historialSamples, almacenado.historialSamples);
+        if (journalActivo) {
+            /* WAL activo: forzar checkpoint (escribe checkpoint file + callback a Store) */
+            await journalCheckpoint();
+        } else if (storeCache) {
+            /* Fallback sin journal (pre-inicialización o entorno sin fs) */
+            await escribirEnStore();
         }
-
-        await storeCache.set(STORE_KEY_TRACKING, datos);
-        await storeCache.save();
     } catch (err) {
-        console.error('[SyncTracking] Error persistiendo datos:', err);
+        logSync.error('tracking', 'Error persistiendo datos', { error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -322,7 +473,7 @@ export async function registrarArchivo(archivo: ArchivoTracking): Promise<void> 
         indiceNombre.set(nombre, existentes);
     }
 
-    await persistir();
+    await registrarEnJournal('TRACK_FILE', { clave, archivo });
 }
 
 export async function eliminarArchivo(sampleId: number, coleccionId: number | null): Promise<void> {
@@ -343,7 +494,7 @@ export async function eliminarArchivo(sampleId: number, coleccionId: number | nu
     }
 
     delete datos.archivos[clave];
-    await persistir();
+    await registrarEnJournal('UNTRACK_FILE', { clave });
 }
 
 export async function marcarSyncDeshabilitado(sampleId: number, coleccionId: number | null): Promise<boolean> {
@@ -352,7 +503,7 @@ export async function marcarSyncDeshabilitado(sampleId: number, coleccionId: num
     if (!archivo) return false;
 
     archivo.syncDeshabilitado = true;
-    await persistir();
+    await registrarEnJournal('MARK_DISABLED', { clave });
     return true;
 }
 
@@ -365,7 +516,7 @@ export async function reactivarSync(sampleId: number): Promise<boolean> {
             encontrado = true;
         }
     }
-    if (encontrado) await persistir();
+    if (encontrado) await registrarEnJournal('MARK_ENABLED', { sampleId });
     return encontrado;
 }
 
@@ -397,12 +548,12 @@ export function todasLasColecciones(): ColeccionLocal[] {
 
 export async function registrarColeccion(coleccion: ColeccionLocal): Promise<void> {
     datos.colecciones[coleccion.id] = coleccion;
-    await persistir();
+    await registrarEnJournal('ADD_COLLECTION', { coleccion });
 }
 
 export async function eliminarColeccion(id: number): Promise<void> {
     delete datos.colecciones[id];
-    await persistir();
+    await registrarEnJournal('DELETE_COLLECTION', { id });
 }
 
 /*
@@ -432,7 +583,7 @@ export async function actualizarNombreColeccion(id: number, nombre: string, carp
     if (!col) return;
     col.nombre = nombre;
     col.carpetaLocal = carpetaLocal;
-    await persistir();
+    await registrarEnJournal('RENAME_COLLECTION', { id, nombre, carpetaLocal });
 }
 
 export function buscarColeccionPorCarpeta(carpetaLocal: string): ColeccionLocal | null {
@@ -461,14 +612,14 @@ export async function agregarSinColeccion(sampleId: number): Promise<void> {
     if (!sinColeccionSet.has(sampleId)) {
         sinColeccionSet.add(sampleId);
         datos.sinColeccion.push(sampleId);
-        await persistir();
+        await registrarEnJournal('MOVE_FILE', { accion: 'agregarSinColeccion', sampleId });
     }
 }
 
 export async function quitarSinColeccion(sampleId: number): Promise<void> {
     sinColeccionSet.delete(sampleId);
     datos.sinColeccion = datos.sinColeccion.filter(id => id !== sampleId);
-    await persistir();
+    await registrarEnJournal('MOVE_FILE', { accion: 'quitarSinColeccion', sampleId });
 }
 
 export function totalSinColeccion(): number {
@@ -558,7 +709,7 @@ export async function actualizarEstadoSample(entrada: {
         reconstruirIndiceSampleHistorial();
     }
 
-    await persistir();
+    await registrarEnJournal('UPDATE_HISTORIAL', { historialSamples: datos.historialSamples });
 }
 
 /**
@@ -634,7 +785,7 @@ export async function registrarAccion(accion: Omit<AccionHistorial, 'timestamp'>
         datos.historial = datos.historial.slice(0, MAX_HISTORIAL);
     }
 
-    await persistir();
+    await registrarEnJournal('UPDATE_HISTORIAL', { historial: datos.historial });
 }
 
 export function obtenerHistorial(limite = 50): AccionHistorial[] {

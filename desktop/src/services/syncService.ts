@@ -26,7 +26,9 @@ import {
     registrarSyncActiva,
     liberarLockSync,
     esSyncEnCurso,
+    circuitoSync,
 } from './syncGuards';
+import { logSync } from './syncLogger';
 import {
     estado,
     guardarConfig,
@@ -85,6 +87,11 @@ export async function inicializarSyncService(
     if (!esDesktop()) return;
     const { soloLectura = false } = opciones;
 
+    /* F6.1: Inicializar logger estructurado antes de cualquier operación */
+    const { inicializarSyncLogger } = await import('./syncLogger');
+    await inicializarSyncLogger();
+    logSync.info('syncService', 'Inicializando sync service', { soloLectura });
+
     try {
         const { load } = await import('@tauri-apps/plugin-store');
         const store = await load(STORE_FILE);
@@ -104,6 +111,10 @@ export async function inicializarSyncService(
     /* Cargar configuración avanzada (paralelismo, throttle, papelera) */
     await cargarConfigAvanzada();
 
+    /* F2.1: Cargar cursor delta para continuar desde donde quedó */
+    const { cargarCursorDelta } = await import('./syncState');
+    await cargarCursorDelta();
+
     /* C355: Inicializar tracking v2 y migrar datos v1 si es primera vez */
     try {
         estado.trackingModule = await import('./syncTrackingService');
@@ -113,11 +124,11 @@ export async function inicializarSyncService(
         if (estado.trackingModule.totalArchivos() === 0 && estado.indiceArchivos.length > 0) {
             const migrado = await estado.trackingModule.migrarDesdeV1();
             if (migrado) {
-                console.info('[Sync] Migración v1→v2 completada automáticamente');
+                logSync.info('syncService', 'Migración v1→v2 completada automáticamente');
             }
         }
     } catch (err) {
-        console.error('[Sync] Error inicializando tracking v2:', err);
+        logSync.error('syncService', 'Error inicializando tracking v2', { error: err instanceof Error ? err.message : String(err) });
     }
 
     /*
@@ -138,7 +149,7 @@ export async function inicializarSyncService(
             await cargarConfigAvanzada();
         });
     } catch (err) {
-        console.error('[Sync] Error registrando listener de config:', err);
+        logSync.error('syncService', 'Error registrando listener de config', { error: err instanceof Error ? err.message : String(err) });
     }
 
     /* Rehidratar imágenes de portada de samples ya sincronizados que no las tienen.
@@ -165,7 +176,7 @@ export async function elegirCarpetaSync(): Promise<string | null> {
             return carpeta;
         }
     } catch (err) {
-        console.error('[Sync] Error eligiendo carpeta:', err);
+        logSync.error('syncService', 'Error eligiendo carpeta', { error: err instanceof Error ? err.message : String(err) });
     }
 
     return null;
@@ -193,7 +204,7 @@ export async function abrirCarpetaSync(): Promise<boolean> {
         await invoke('abrir_carpeta', { ruta: estado.config.carpetaLocal });
         return true;
     } catch (err) {
-        console.error('[Sync] Error abriendo carpeta local:', err);
+        logSync.error('syncService', 'Error abriendo carpeta local', { error: err instanceof Error ? err.message : String(err) });
         return false;
     }
 }
@@ -420,7 +431,7 @@ export async function sincronizarConServidor(
     /* Lock concurrente: si ya hay sync en curso, retornar misma Promise */
     const lock = adquirirLockSync();
     if (!lock.adquirido) {
-        console.info('[Sync] Sync ya en curso, esperando resultado existente...');
+        logSync.debug('syncService', 'Sync ya en curso, esperando resultado existente');
         return lock.promesaExistente as Promise<{ nuevos: number; eliminados: number }>;
     }
 
@@ -550,7 +561,7 @@ async function ejecutarSync(
         await emit('reintentar-errores-offline', {});
         await emit('escanear-subidas-local', {});
     } catch (e) {
-        console.warn('[Sync] No se pudo reintentar colas de subida/offline antes de sync:', e);
+        logSync.warn('syncService', 'No se pudo reintentar colas de subida/offline antes de sync', { error: e instanceof Error ? e.message : String(e) });
     }
 
     if (collectionModule) {
@@ -579,7 +590,7 @@ async function ejecutarSync(
 
             return { nuevos: resultado.nuevos, eliminados: 0 };
         } catch (err) {
-            console.error('[Sync] Error en sync v2 (colecciones):', err);
+            logSync.error('syncService', 'Error en sync v2 (colecciones)', { error: err instanceof Error ? err.message : String(err) });
             throw err;
         }
     }
@@ -912,6 +923,6 @@ async function rehidratarImagenesPendientes(): Promise<void> {
             console.info(`[Sync] Reconciliadas ${actualizadas} imágenes de samples en historial`);
         }
     } catch (err) {
-        console.error('[Sync] Error rehidratando imágenes pendientes:', err);
+        logSync.error('syncService', 'Error rehidratando imágenes pendientes', { error: err instanceof Error ? err.message : String(err) });
     }
 }

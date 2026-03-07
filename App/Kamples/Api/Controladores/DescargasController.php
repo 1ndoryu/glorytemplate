@@ -17,6 +17,7 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\TransaccionesRepository;
+use App\Kamples\Database\Repositories\SyncChangelogRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Api\Helpers\UsuarioHelper;
@@ -24,6 +25,7 @@ use App\Kamples\Services\StripeService;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
+use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
 
 class DescargasController
@@ -164,6 +166,14 @@ class DescargasController
             DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
             SamplesRepository::incrementarDescargas($sampleId);
             UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID]);
+
+            /* F2.1: Nuevo sample disponible para sync desktop */
+            SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+                $sampleId,
+                ['titulo' => $sample[SamplesCols::TITULO] ?? '', 'formato' => $calidad]
+            );
         }
 
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');

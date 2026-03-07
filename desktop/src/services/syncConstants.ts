@@ -89,4 +89,5 @@ export const STORE_FILE = 'sync-config.json';
 export const STORE_KEY_CONFIG = 'sync_config';
 export const STORE_KEY_INDICE = 'sync_indice';
 export const STORE_KEY_CONFIG_AVANZADA = 'sync_config_avanzada';
+export const STORE_KEY_CURSOR_DELTA = 'sync_cursor_delta';
 export const POLLING_CARPETAS_MS = 60_000;

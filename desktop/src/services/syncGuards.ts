@@ -216,3 +216,11 @@ export async function extraerErrorRespuesta(resp: Response): Promise<string> {
         return `HTTP ${resp.status}`;
     }
 }
+
+/*
+ * Re-exports de circuit breaker para acceso centralizado desde servicios de sync.
+ * El estado del circuito se consulta antes de operaciones de red para evitar
+ * martillear un servidor caído.
+ */
+export { circuitoSync, circuitoUpload, CircuitoBiertoError } from './circuitBreaker';
+export type { CircuitBreaker } from './circuitBreaker';

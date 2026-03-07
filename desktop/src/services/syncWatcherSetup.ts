@@ -13,18 +13,21 @@
  */
 
 import { estaOnline } from './desktopService';
-import { esDescargaEnCurso, esMovimientoInterno, obtenerBaseUrlSync, esSyncEnCurso } from './syncGuards';
+import { esDescargaEnCurso, esMovimientoInterno, obtenerBaseUrlSync, esSyncEnCurso, obtenerHeadersSyncGet } from './syncGuards';
+import { clasificarError, esErrorDeRed } from './errorSync';
 import { encolarOperacion } from './offlineQueueService';
 import {
     estado,
     guardarIndice,
     buscarEnIndicePorRuta,
     actualizarIndiceArchivo,
+    guardarCursorDelta,
     POLLING_CARPETAS_MS,
     type ArchivoLocal,
 } from './syncState';
 import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
 import { inicializarPapelera, purgarExpirados } from './papeleraService';
+import { logSync } from './syncLogger';
 
 /* Carpetas locales del sistema que NO deben crear colecciones en el servidor. */
 const CARPETAS_SISTEMA_SYNC = new Set([
@@ -462,28 +465,144 @@ async function manejarMoveLocal(
 /* Polling de estructura de carpetas */
 
 /*
+ * F2.2: Polling adaptivo — Ajusta intervalo según actividad.
+ * - Con cambios recientes: 15s (feedback rápido)
+ * - Normal: 60s (default)
+ * - Sin cambios por mucho tiempo: gradualmente hasta 5min
+ */
+const POLLING_MIN_MS = 15_000;
+const POLLING_MAX_MS = 300_000;
+
+let pollingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function ajustarIntervaloPolling(huboCambios: boolean): void {
+    if (huboCambios) {
+        estado.intervaloPollingMs = POLLING_MIN_MS;
+    } else {
+        estado.intervaloPollingMs = Math.min(
+            Math.round(estado.intervaloPollingMs * 1.5),
+            POLLING_MAX_MS,
+        );
+    }
+}
+
+function programarProximoPolling(): void {
+    if (pollingTimeout) clearTimeout(pollingTimeout);
+    pollingTimeout = setTimeout(async () => {
+        try {
+            const resultado = await sincronizarEstructuraCarpetas();
+            ajustarIntervaloPolling(resultado);
+        } catch {
+            /* Error ya logueado en sincronizarEstructuraCarpetas */
+        }
+        programarProximoPolling();
+    }, estado.intervaloPollingMs);
+}
+
+/*
+ * F2.1: Consulta delta sync al servidor.
+ * Retorna true si hay cambios pendientes (el caller debe ejecutar full sync).
+ * Retorna false si no hay cambios (no hace falta full sync → ahorra ancho de banda).
+ * En caso de error, retorna true para forzar full sync como fallback seguro.
+ */
+async function consultarDeltaSync(): Promise<boolean> {
+    const baseUrl = obtenerBaseUrlSync();
+    const cursor = estado.ultimoCursorDelta;
+
+    try {
+        const resp = await fetch(
+            `${baseUrl}/kamples/v1/me/sync/delta?cursor=${cursor}`,
+            { headers: obtenerHeadersSyncGet() },
+        );
+
+        if (!resp.ok) {
+            const cat = clasificarError(resp.status);
+            logSync.warn('syncWatcher', 'Delta endpoint respondió con error', { status: resp.status, categoria: cat });
+            /* En error de autenticación, no forzar full sync (no tiene sentido) */
+            return cat !== 'autenticacion';
+        }
+
+        const json = await resp.json() as {
+            data: {
+                cambios: Array<{ id: number; tipo: string; entidadId: number; metadata: Record<string, unknown> }>;
+                cursor: number;
+                hayMas: boolean;
+                fullSyncRequired: boolean;
+            };
+        };
+
+        const { cambios, cursor: nuevoCursor, hayMas, fullSyncRequired } = json.data;
+
+        /* Actualizar cursor siempre que recibimos uno válido */
+        if (nuevoCursor > 0) {
+            estado.ultimoCursorDelta = nuevoCursor;
+            guardarCursorDelta().catch(() => {});
+        }
+
+        /* Primera sync o cursor purgado: necesita full sync */
+        if (fullSyncRequired) {
+            logSync.info('syncWatcher', 'Delta indica full sync requerido', { cursor, nuevoCursor });
+            return true;
+        }
+
+        /* Hay cambios concretos: necesita full sync para aplicarlos */
+        if (cambios.length > 0 || hayMas) {
+            logSync.info('syncWatcher', 'Delta detectó cambios pendientes', {
+                cambios: cambios.length,
+                hayMas,
+                tipos: [...new Set(cambios.map(c => c.tipo))],
+            });
+            return true;
+        }
+
+        /* Sin cambios: no hace falta full sync */
+        logSync.debug('syncWatcher', 'Delta sin cambios, omitiendo full sync');
+        return false;
+    } catch (err) {
+        if (esErrorDeRed(err)) {
+            logSync.warn('syncWatcher', 'Error de red consultando delta, omitiendo ciclo');
+            return false;
+        }
+        logSync.error('syncWatcher', 'Error consultando delta sync', { error: err instanceof Error ? err.message : String(err) });
+        /* En error desconocido, forzar full sync como fallback seguro */
+        return true;
+    }
+}
+
+/*
  * Sincroniza la estructura de carpetas del servidor a disco local.
+ * F2.1: Consulta delta primero para evitar full sync innecesarios.
  * v2: delega a collectionModule (soloEstructura=true, no descarga).
  * v1: crea carpetas basadas en metadata IA.
+ * Retorna true si hubo cambios para ajustar el intervalo de polling.
  */
-async function sincronizarEstructuraCarpetas(): Promise<void> {
+async function sincronizarEstructuraCarpetas(): Promise<boolean> {
     const { config, collectionModule } = estado;
-    if (!config.carpetaLocal || !estaOnline()) return;
+    if (!config.carpetaLocal || !estaOnline()) return false;
 
     /* No ejecutar polling si hay una sync completa en curso (evita race conditions) */
-    if (esSyncEnCurso()) return;
+    if (esSyncEnCurso()) return false;
+
+    /* F2.1: Consultar delta antes de ejecutar full sync.
+     * Si el cursor ya está inicializado (>0), usamos delta para ahorrar ancho de banda.
+     * Si cursor=0 (primera vez), el delta retornará fullSyncRequired=true. */
+    const necesitaSync = await consultarDeltaSync();
+    if (!necesitaSync) return false;
 
     if (collectionModule) {
         try {
-            await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, true);
+            const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, true);
+            /* Hubo cambios si se descargaron nuevos archivos o se crearon carpetas */
+            return resultado.nuevos > 0;
         } catch (err) {
-            console.error('[Sync] Error en polling de colecciones v2:', err);
+            logSync.error('syncWatcher', 'Error en polling de colecciones v2', { error: err instanceof Error ? err.message : String(err) });
         }
-        return;
+        return false;
     }
 
     /* v1 fallback */
     await sincronizarEstructuraCarpetasV1();
+    return false;
 }
 
 /* Borrado local → papelera + borrado en servidor si configurado */
@@ -891,11 +1010,63 @@ export async function inicializarSyncBidireccional(): Promise<void> {
             /* Entorno sin Tauri — ignorar */
         }
 
-        estado.pollingCarpetasInterval = setInterval(() => {
-            sincronizarEstructuraCarpetas();
-        }, POLLING_CARPETAS_MS);
+        /* F2.2: Usar polling adaptivo en vez de intervalo fijo */
+        programarProximoPolling();
+
+        /* F3.2: Reconciliación periódica de integridad.
+         * Cada 7 días, verificar que disco y tracking estén sincronizados.
+         * Detecta divergencias silenciosas (archivos borrados externamente, etc.) */
+        const RECONCILIACION_INTERVALO_MS = 7 * 24 * 60 * 60 * 1000;
+        setInterval(() => {
+            ejecutarReconciliacion().catch(err => {
+                logSync.warn('syncWatcher', 'Error en reconciliación periódica', {
+                    error: err instanceof Error ? err.message : String(err),
+                });
+            });
+        }, RECONCILIACION_INTERVALO_MS);
+
     } catch (err) {
-        console.error('[Sync] Error inicializando sync bidireccional:', err);
+        logSync.error('syncWatcher', 'Error inicializando sync bidireccional', { error: err instanceof Error ? err.message : String(err) });
+    }
+}
+
+/*
+ * F3.2: Reconciliación — compara disco vs tracking para detectar divergencias.
+ * Exportado para que el panel de sync pueda ejecutarla bajo demanda.
+ */
+export async function ejecutarReconciliacion(): Promise<void> {
+    const { config, trackingModule } = estado;
+    if (!config.carpetaLocal || !trackingModule) return;
+
+    const { detectarDivergencias } = await import('./syncReconciliacion');
+
+    const todosArchivos = trackingModule.todosLosArchivos();
+    const archivosParaReconciliar = Object.values(todosArchivos).map(a => ({
+        ruta: a.rutaLocal,
+        sampleId: a.sampleId,
+        tamano: a.tamano,
+        coleccionId: a.coleccionId,
+    }));
+
+    const colecciones = trackingModule.todasLasColecciones().map(c => ({
+        id: c.id,
+        carpetaLocal: c.carpetaLocal,
+    }));
+
+    const resultado = await detectarDivergencias(
+        config.carpetaLocal,
+        archivosParaReconciliar,
+        colecciones,
+    );
+
+    if (resultado.divergencias.length > 0) {
+        logSync.warn('syncWatcher', `Reconciliación: ${resultado.divergencias.length} divergencias detectadas`, {
+            tiempoMs: resultado.duracionMs,
+            enDisco: resultado.archivosEnDisco,
+            enTracking: resultado.archivosEnTracking,
+        });
+    } else {
+        logSync.info('syncWatcher', `Reconciliación OK: ${resultado.archivosEnDisco} archivos verificados en ${resultado.duracionMs}ms`);
     }
 }
 
@@ -906,6 +1077,10 @@ export async function detenerSyncBidireccional(): Promise<void> {
     if (estado.pollingCarpetasInterval) {
         clearInterval(estado.pollingCarpetasInterval);
         estado.pollingCarpetasInterval = null;
+    }
+    if (pollingTimeout) {
+        clearTimeout(pollingTimeout);
+        pollingTimeout = null;
     }
     try {
         const { detenerObservacion } = await import('./fileWatcherService');

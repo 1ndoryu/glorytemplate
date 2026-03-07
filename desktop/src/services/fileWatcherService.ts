@@ -22,6 +22,7 @@
 
 import { esDesktop } from './desktopService';
 import { obtenerConfigSync } from './syncService';
+import { logSync } from './syncLogger';
 
 const EXTENSIONES_AUDIO = new Set([
     'wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg',
@@ -242,10 +243,10 @@ export async function iniciarObservacion(): Promise<boolean> {
 
         observando = true;
         iniciarPurgaPeriodica();
-        console.info('[FileWatcher] Observando carpeta:', config.carpetaLocal);
+        logSync.info('watcher', `Observando carpeta: ${config.carpetaLocal}`);
         return true;
     } catch (err) {
-        console.error('[FileWatcher] Error iniciando observación:', err);
+        logSync.error('watcher', 'Error iniciando observación', { error: err instanceof Error ? err.message : String(err) });
         return false;
     }
 }
@@ -292,7 +293,7 @@ export async function detenerObservacion(): Promise<void> {
     subcarpetasEliminadasPendientes.clear();
     subcarpetasRecientes.clear();
 
-    console.info('[FileWatcher] Observación detenida');
+    logSync.info('watcher', 'Observación detenida');
 }
 
 /*
@@ -363,10 +364,10 @@ function procesarEvento(
             if (pendiente) {
                 clearTimeout(pendiente.timeout);
                 carpetasPendientesCreacion.delete(claveOrigen);
-                console.info('[FileWatcher] Creacion cancelada por rename:', nombreOrigen, '→', nombreNueva);
+                logSync.info('watcher', `Creacion cancelada por rename: ${nombreOrigen} → ${nombreNueva}`);
             }
 
-            console.info('[FileWatcher] Rename carpeta (evento name):', nombreOrigen, '→', nombreNueva);
+            logSync.info('watcher', `Rename carpeta (evento name): ${nombreOrigen} → ${nombreNueva}`);
             if (onCarpetaRenombrada) {
                 onCarpetaRenombrada(nombreOrigen, nombreNueva, rutaDestino);
             }
@@ -397,10 +398,10 @@ function procesarEvento(
             if (pendienteSub) {
                 clearTimeout(pendienteSub.timeout);
                 subcarpetasPendientesCreacion.delete(claveSubOrigen);
-                console.info('[FileWatcher] Creacion subcarpeta cancelada por rename:', subOrigen, '→', subNuevo);
+                logSync.info('watcher', `Creacion subcarpeta cancelada por rename: ${subOrigen} → ${subNuevo}`);
             }
 
-            console.info('[FileWatcher] Rename subcarpeta (evento name):', subOrigen, '→', subNuevo, 'en', carpetaPadre);
+            logSync.info('watcher', `Rename subcarpeta (evento name): ${subOrigen} → ${subNuevo} en ${carpetaPadre}`);
             if (onSubcarpetaRenombrada) {
                 onSubcarpetaRenombrada(subOrigen, subNuevo, carpetaPadre, rutaDestino);
             }
@@ -412,7 +413,7 @@ function procesarEvento(
             const partesDestino = relativaDestino.split('/');
             const nombreArchivo = partesDestino.pop() ?? nombreDestino;
             const carpetas = partesDestino.slice(0, 3);
-            console.info('[FileWatcher] Move archivo (evento name):', rutaOrigen, '→', rutaDestino);
+            logSync.info('watcher', `Move archivo (evento name): ${rutaOrigen} → ${rutaDestino}`);
             if (onArchivoMovido) {
                 onArchivoMovido(rutaOrigen, rutaDestino, nombreArchivo, carpetas);
                 return;
@@ -558,7 +559,7 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
      * de la carpeta base. Este guard protege ante llamadas directas o cambios futuros.
      */
     if (!relativa) {
-        console.warn('[FileWatcher] manejarArchivoNuevo: ruta fuera de carpeta base ignorada:', rutaNormalizada, '(base:', carpetaBase, ')');
+        logSync.warn('watcher', `Ruta fuera de carpeta base ignorada: ${rutaNormalizada} (base: ${carpetaBase})`);
         return;
     }
 
@@ -576,7 +577,7 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
         clearTimeout(pendiente.timeout);
         eliminacionesPendientes.delete(clave);
 
-        console.info('[FileWatcher] Move detectado:', pendiente.ruta, '→', rutaOriginal);
+        logSync.info('watcher', `Move detectado: ${pendiente.ruta} → ${rutaOriginal}`);
 
         if (onArchivoMovido) {
             onArchivoMovido(pendiente.ruta, rutaOriginal, nombreArchivo, carpetas);
@@ -584,7 +585,7 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
         return;
     }
 
-    console.info('[FileWatcher] Archivo nuevo detectado:', nombreArchivo, 'carpetas:', carpetas);
+    logSync.info('watcher', `Archivo nuevo detectado: ${nombreArchivo} carpetas: ${carpetas.join('/')}`);
 
     if (onArchivoNuevo) {
         onArchivoNuevo(rutaOriginal, nombreArchivo, carpetas);
@@ -607,11 +608,11 @@ function manejarArchivoEliminado(rutaOriginal: string): void {
         clearTimeout(existente.timeout);
     }
 
-    console.info('[FileWatcher] Eliminación detectada (esperando', GRACIA_MOVE_MS, 'ms por posible move):', rutaOriginal);
+    logSync.info('watcher', `Eliminación detectada (esperando ${GRACIA_MOVE_MS}ms por posible move): ${rutaOriginal}`);
 
     const timeout = setTimeout(() => {
         eliminacionesPendientes.delete(clave);
-        console.info('[FileWatcher] Eliminación confirmada (no fue move):', rutaOriginal);
+        logSync.info('watcher', `Eliminación confirmada (no fue move): ${rutaOriginal}`);
         if (onArchivoEliminado) {
             onArchivoEliminado(rutaOriginal);
         }
@@ -651,10 +652,10 @@ function procesarEventoCarpeta(
             if (creacionPendiente) {
                 clearTimeout(creacionPendiente.timeout);
                 carpetasPendientesCreacion.delete(clavePendiente);
-                console.info('[FileWatcher] Creacion cancelada por rename (delete+create):', pendiente.nombre);
+                logSync.info('watcher', `Creacion cancelada por rename (delete+create): ${pendiente.nombre}`);
             }
 
-            console.info('[FileWatcher] Rename de carpeta detectado:', pendiente.nombre, '→', nombreCarpeta);
+            logSync.info('watcher', `Rename de carpeta detectado: ${pendiente.nombre} → ${nombreCarpeta}`);
 
             if (onCarpetaRenombrada) {
                 onCarpetaRenombrada(pendiente.nombre, nombreCarpeta, rutaCompleta);
@@ -670,7 +671,7 @@ function procesarEventoCarpeta(
         if (ultimoProcesada && (ahora - ultimoProcesada) < DEBOUNCE_CARPETA_MS) return;
         carpetasRecientes.set(claveCarpeta, ahora);
 
-        console.info('[FileWatcher] Carpeta nueva detectada, esperando rename:', nombreCarpeta);
+        logSync.info('watcher', `Carpeta nueva detectada, esperando rename: ${nombreCarpeta}`);
 
         /* Delay la creacion para dar tiempo a que Windows complete el rename.
          * Sin esto, "Nueva carpeta" se envia al servidor antes de que el usuario
@@ -689,10 +690,10 @@ function procesarEventoCarpeta(
         const timeoutCreacion = setTimeout(() => {
             carpetasPendientesCreacion.delete(claveCreacion);
             if (esTemporal) {
-                console.info('[FileWatcher] Carpeta temporal ignorada (no renombrada a tiempo):', nombreCarpeta);
+                logSync.info('watcher', `Carpeta temporal ignorada (no renombrada a tiempo): ${nombreCarpeta}`);
                 return;
             }
-            console.info('[FileWatcher] Carpeta nueva confirmada (sin rename):', nombreCarpeta);
+            logSync.info('watcher', `Carpeta nueva confirmada (sin rename): ${nombreCarpeta}`);
             if (onCarpetaNueva) {
                 onCarpetaNueva(nombreCarpeta, rutaCompleta);
             }
@@ -714,7 +715,7 @@ function procesarEventoCarpeta(
             carpetasEliminadasPendientes.delete(nombreCarpeta);
             /* Eliminación confirmada — la carpeta fue borrada, no renombrada.
              * No sincronizamos borrado de carpeta al servidor (podría ser limpieza local). */
-            console.info('[FileWatcher] Carpeta eliminada (no fue rename):', nombreCarpeta);
+            logSync.info('watcher', `Carpeta eliminada (no fue rename): ${nombreCarpeta}`);
         }, GRACIA_RENAME_CARPETA_MS);
 
         carpetasEliminadasPendientes.set(nombreCarpeta, {
@@ -770,7 +771,7 @@ function procesarEventoSubcarpeta(
                 subcarpetasPendientesCreacion.delete(claveCreacionVieja);
             }
 
-            console.info('[FileWatcher] Rename subcarpeta detectado:', pendiente.nombre, '→', nombreSubcarpeta, 'en', carpetaPadre);
+            logSync.info('watcher', `Rename subcarpeta detectado: ${pendiente.nombre} → ${nombreSubcarpeta} en ${carpetaPadre}`);
 
             if (onSubcarpetaRenombrada) {
                 onSubcarpetaRenombrada(pendiente.nombre, nombreSubcarpeta, carpetaPadre, rutaCompleta);
@@ -784,7 +785,7 @@ function procesarEventoSubcarpeta(
         if (ultimoProcesada && (ahora - ultimoProcesada) < DEBOUNCE_CARPETA_MS) return;
         subcarpetasRecientes.set(claveCompuesta, ahora);
 
-        console.info('[FileWatcher] Subcarpeta nueva detectada, esperando rename:', nombreSubcarpeta, 'en', carpetaPadre);
+        logSync.info('watcher', `Subcarpeta nueva detectada, esperando rename: ${nombreSubcarpeta} en ${carpetaPadre}`);
 
         /* Delay para dar tiempo a rename de Windows ("Nueva carpeta" → nombre real)
          * C1: Misma lógica de carpetas temporales aplicada a subcarpetas. */
@@ -799,10 +800,10 @@ function procesarEventoSubcarpeta(
         const timeoutCreacion = setTimeout(() => {
             subcarpetasPendientesCreacion.delete(claveCompuesta);
             if (esTemporalSub) {
-                console.info('[FileWatcher] Subcarpeta temporal ignorada:', nombreSubcarpeta, 'en', carpetaPadre);
+                logSync.info('watcher', `Subcarpeta temporal ignorada: ${nombreSubcarpeta} en ${carpetaPadre}`);
                 return;
             }
-            console.info('[FileWatcher] Subcarpeta nueva confirmada (sin rename):', nombreSubcarpeta, 'en', carpetaPadre);
+            logSync.info('watcher', `Subcarpeta nueva confirmada (sin rename): ${nombreSubcarpeta} en ${carpetaPadre}`);
             if (onSubcarpetaNueva) {
                 onSubcarpetaNueva(nombreSubcarpeta, carpetaPadre, rutaCompleta);
             }
@@ -823,7 +824,7 @@ function procesarEventoSubcarpeta(
 
         const timeout = setTimeout(() => {
             subcarpetasEliminadasPendientes.delete(claveCompuesta);
-            console.info('[FileWatcher] Subcarpeta eliminada (no fue rename):', nombreSubcarpeta, 'en', carpetaPadre);
+            logSync.info('watcher', `Subcarpeta eliminada (no fue rename): ${nombreSubcarpeta} en ${carpetaPadre}`);
         }, GRACIA_RENAME_CARPETA_MS);
 
         subcarpetasEliminadasPendientes.set(claveCompuesta, {

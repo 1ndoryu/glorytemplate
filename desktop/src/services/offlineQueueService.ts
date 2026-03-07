@@ -10,6 +10,8 @@
  */
 
 import { esDesktop, estaOnline } from './desktopService';
+import { clasificarError, obtenerEstrategia, extraerRetryAfterMs, esErrorDeRed } from './errorSync';
+import { logSync } from './syncLogger';
 
 /* Tipos extensibles de operacion. Agregar aqui nuevos tipos sin modificar logica base. */
 type TipoOperacion = 'reproduccion' | 'like' | 'follow' | 'descarga' | 'mover_carpeta' | 'soft_delete' | 'crear_coleccion' | 'agregar_sample_coleccion' | 'renombrar_coleccion';
@@ -24,6 +26,10 @@ export interface OperacionPendiente {
     /* Clave opcional para deduplicacion. Si dos operaciones comparten clave, la mas reciente reemplaza. */
     claveDuplicacion?: string;
     intentos: number;
+    /** Categoría del último error para estrategia de retry inteligente */
+    ultimaCategoria?: string;
+    /** Timestamp del próximo retry permitido (backoff exponencial) */
+    noReintentarAntesDe?: number;
 }
 
 const STORE_FILE = 'offline-queue.json';
@@ -133,8 +139,11 @@ export async function encolarOperacion(
 
 /*
  * Sincroniza todas las operaciones pendientes con el servidor.
- * Ejecuta en orden FIFO. Si una falla por red, se detiene.
- * Si falla por respuesta (4xx/5xx), incrementa intentos y continua.
+ * Ejecuta en orden FIFO con clasificación inteligente de errores:
+ * - Errores transitorios (502, 503, red): backoff exponencial + jitter
+ * - Rate limit (429): respeta Retry-After header
+ * - Errores permanentes (404, 400): descarta sin reintentar
+ * - Errores de autenticación (401, 403): detiene procesamiento
  */
 export async function sincronizarCola(): Promise<void> {
     if (sincronizando || cola.length === 0) return;
@@ -142,12 +151,25 @@ export async function sincronizarCola(): Promise<void> {
 
     const exitosas = new Set<string>();
     const descartadas = new Set<string>();
+    const ahora = Date.now();
 
     try {
         for (const op of cola) {
+            /* Respetar backoff: si la operación tiene un delay pendiente, saltar */
+            if (op.noReintentarAntesDe && ahora < op.noReintentarAntesDe) {
+                continue;
+            }
+
             /* Descartar operaciones que excedieron reintentos */
             if (op.intentos >= MAX_INTENTOS) {
-                console.warn('[OfflineQueue] Descartando operacion tras', MAX_INTENTOS, 'intentos:', op.tipo, op.id);
+                logSync.warn('offlineQueue', `Descartando operación tras ${MAX_INTENTOS} intentos: ${op.tipo} ${op.id}`);
+                descartadas.add(op.id);
+                continue;
+            }
+
+            /* Descartar operaciones con error permanente clasificado */
+            if (op.ultimaCategoria === 'permanente') {
+                logSync.info('offlineQueue', `Descartando operación con error permanente: ${op.tipo} ${op.id}`);
                 descartadas.add(op.id);
                 continue;
             }
@@ -160,17 +182,44 @@ export async function sincronizarCola(): Promise<void> {
                 });
 
                 if (response.ok || response.status === 409) {
-                    /* 409 = conflicto (ya existe) — considerar exitoso */
                     exitosas.add(op.id);
                 } else {
-                    /* Error de servidor — incrementar intentos y continuar con la siguiente */
+                    /* Clasificar error y aplicar estrategia correspondiente */
+                    const categoria = clasificarError(response.status);
+                    const retryAfterMs = extraerRetryAfterMs(response.headers);
+                    const estrategia = obtenerEstrategia(categoria, retryAfterMs);
+
                     op.intentos++;
-                    console.warn('[OfflineQueue] Error', response.status, 'en operacion:', op.tipo, op.id, '- intento', op.intentos);
+                    op.ultimaCategoria = categoria;
+
+                    if (!estrategia.reintentar || op.intentos >= estrategia.maxReintentos) {
+                        logSync.warn('offlineQueue', `Error ${response.status} (${categoria}) — descartando: ${op.tipo} ${op.id}`);
+                        descartadas.add(op.id);
+                    } else {
+                        const delay = estrategia.calcularDelay(op.intentos);
+                        op.noReintentarAntesDe = Date.now() + delay;
+                        logSync.info('offlineQueue', `Error ${response.status} (${categoria}) — retry en ${Math.round(delay / 1000)}s: ${op.tipo} ${op.id}`);
+                    }
+
+                    /* Autenticación: detener toda la cola para evitar cascada de 401s */
+                    if (categoria === 'autenticacion') {
+                        logSync.warn('offlineQueue', 'Error de autenticación, deteniendo procesamiento de cola');
+                        break;
+                    }
                 }
             } catch (err) {
-                /* Sin conexion o error de red — detener procesamiento */
-                console.warn('[OfflineQueue] Error de red, deteniendo procesamiento:', err);
-                break;
+                if (esErrorDeRed(err)) {
+                    /* Sin conexión — detener procesamiento, reintentar al reconectar */
+                    logSync.warn('offlineQueue', 'Error de red, deteniendo procesamiento');
+                    break;
+                }
+                /* Error inesperado — incrementar y continuar */
+                op.intentos++;
+                const delay = 2000 * Math.pow(2, op.intentos);
+                op.noReintentarAntesDe = Date.now() + Math.min(delay, 300_000);
+                logSync.error('offlineQueue', `Error inesperado en ${op.tipo} ${op.id}`, {
+                    error: err instanceof Error ? err.message : String(err),
+                });
             }
         }
     } finally {
@@ -194,7 +243,7 @@ async function guardarCola(): Promise<void> {
         await storeCache.set(STORE_KEY, cola);
         await storeCache.save();
     } catch (err) {
-        console.error('[OfflineQueue] Error persistiendo cola:', err);
+        logSync.error('offlineQueue', 'Error persistiendo cola', { error: err instanceof Error ? err.message : String(err) });
     }
 }
 

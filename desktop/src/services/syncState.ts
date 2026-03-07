@@ -13,6 +13,7 @@
 
 import { esDesktop } from './desktopService';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
+import { logSync } from './syncLogger';
 
 /* Re-exportar tipos y constantes desde módulo sin dependencias */
 export type {
@@ -32,6 +33,7 @@ export {
     STORE_KEY_CONFIG,
     STORE_KEY_INDICE,
     STORE_KEY_CONFIG_AVANZADA,
+    STORE_KEY_CURSOR_DELTA,
     POLLING_CARPETAS_MS,
 } from './syncConstants';
 
@@ -46,6 +48,7 @@ import {
     STORE_KEY_CONFIG,
     STORE_KEY_INDICE,
     STORE_KEY_CONFIG_AVANZADA,
+    STORE_KEY_CURSOR_DELTA,
     POLLING_CARPETAS_MS,
 } from './syncConstants';
 
@@ -78,6 +81,13 @@ export const estado = {
 
     /* Intervalo para polling de estructura de carpetas del servidor */
     pollingCarpetasInterval: null as ReturnType<typeof setInterval> | null,
+
+    /* F2.1: Cursor delta sync — posición actual en el changelog del servidor.
+     * 0 = primera sync (descarga completa). >0 = delta incremental desde ese punto. */
+    ultimoCursorDelta: 0,
+
+    /* F2.2: Intervalo adaptivo de polling basado en actividad */
+    intervaloPollingMs: POLLING_CARPETAS_MS,
 };
 
 /* Persistencia */
@@ -90,7 +100,7 @@ export async function guardarConfig(): Promise<void> {
         await store.set(STORE_KEY_CONFIG, estado.config);
         await store.save();
     } catch (err) {
-        console.error('[SyncState] Error guardando config:', err);
+        logSync.error('syncState', 'Error guardando config', { error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -127,7 +137,7 @@ export async function guardarConfigAvanzada(): Promise<void> {
         await store.set(STORE_KEY_CONFIG_AVANZADA, estado.configAvanzada);
         await store.save();
     } catch (err) {
-        console.error('[SyncState] Error guardando config avanzada:', err);
+        logSync.error('syncState', 'Error guardando config avanzada', { error: err instanceof Error ? err.message : String(err) });
     }
 }
 
@@ -151,6 +161,34 @@ export async function cargarConfigAvanzada(): Promise<SyncConfigAvanzada> {
     }
 
     return { ...estado.configAvanzada };
+}
+
+/* F2.1: Persistencia del cursor delta para delta sync */
+
+export async function cargarCursorDelta(): Promise<void> {
+    if (!esDesktop()) return;
+    try {
+        const { load } = await import('@tauri-apps/plugin-store');
+        const store = await load(STORE_FILE);
+        const cursor = await store.get<number>(STORE_KEY_CURSOR_DELTA);
+        if (typeof cursor === 'number' && cursor > 0) {
+            estado.ultimoCursorDelta = cursor;
+        }
+    } catch {
+        /* Cursor no disponible — arranca desde 0 (full sync) */
+    }
+}
+
+export async function guardarCursorDelta(): Promise<void> {
+    if (!esDesktop() || estado.ultimoCursorDelta <= 0) return;
+    try {
+        const { load } = await import('@tauri-apps/plugin-store');
+        const store = await load(STORE_FILE);
+        await store.set(STORE_KEY_CURSOR_DELTA, estado.ultimoCursorDelta);
+        await store.save();
+    } catch (err) {
+        logSync.error('syncState', 'Error guardando cursor delta', { error: err instanceof Error ? err.message : String(err) });
+    }
 }
 
 /* Índices secundarios O(1) */

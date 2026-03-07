@@ -16,10 +16,12 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
+use App\Kamples\Database\Repositories\SyncChangelogRepository;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
 
 class ColeccionesCrudController
@@ -59,6 +61,16 @@ class ColeccionesCrudController
                 'code' => 'parent_invalido',
                 'message' => 'El padre no existe, no pertenece al usuario o excede la profundidad máxima (2 niveles)',
             ], 400);
+        }
+
+        /* F2.1: Registrar en changelog para delta sync */
+        if ($id !== null) {
+            SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_COLLECTION_CREATED,
+                $id,
+                ['nombre' => $nombre, 'parentId' => $parentId]
+            );
         }
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
@@ -113,6 +125,16 @@ class ColeccionesCrudController
 
         ColeccionesRepository::actualizarCampos($id, $campos, $params);
 
+        /* F2.1: Registrar rename en changelog si cambio el nombre */
+        if (isset($params['nombre'])) {
+            SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_COLLECTION_RENAMED,
+                $id,
+                ['nombreAnterior' => $coleccion[ColeccionesCols::NOMBRE] ?? '', 'nombreNuevo' => $params['nombre']]
+            );
+        }
+
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::actualizar', ['error' => $e->getMessage()]);
@@ -133,6 +155,15 @@ class ColeccionesCrudController
             $rows = ColeccionesRepository::eliminarConSamples($id);
         } else {
             $rows = ColeccionesRepository::eliminarDelUsuario($id, $userId);
+        }
+
+        /* F2.1: Registrar eliminacion en changelog */
+        if ($rows > 0) {
+            SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_COLLECTION_DELETED,
+                $id
+            );
         }
 
         return new \WP_REST_Response(['ok' => $rows > 0], $rows > 0 ? 200 : 404);
@@ -230,6 +261,14 @@ class ColeccionesCrudController
         ColeccionSamplesRepository::agregar($colId, $sampleId, $nextPos);
         ColeccionesRepository::tocarTimestamp($colId);
 
+        /* F2.1: Registrar sample agregado en changelog */
+        SyncChangelogRepository::registrar(
+            $userId,
+            SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+            $sampleId,
+            ['coleccionId' => $colId]
+        );
+
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::agregarSample', ['error' => $e->getMessage()]);
@@ -253,6 +292,14 @@ class ColeccionesCrudController
         }
 
         ColeccionSamplesRepository::quitar($colId, $sampleId);
+
+        /* F2.1: Registrar sample quitado en changelog */
+        SyncChangelogRepository::registrar(
+            $userId,
+            SyncChangelogEnums::TIPO_SAMPLE_REMOVED,
+            $sampleId,
+            ['coleccionId' => $colId]
+        );
 
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {

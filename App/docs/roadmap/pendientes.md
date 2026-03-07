@@ -307,3 +307,28 @@ C277. ✅ [AG-SYN] Plan de mejoras sync — arquitectura de confianza:
   - F5: Operaciones atómicas (transacciones con rollback + versioning) — MEDIA-BAJA
   - F6: Observabilidad (logger estructurado + panel diagnóstico) — BAJA
 - 10 archivos nuevos planificados, 12 existentes a modificar.
+
+C278. ✅ [AG-SYN] Implementación plan sync mejoras — Fases F1-F6 (parcial):
+- **F1 — WAL/Persistencia confiable:**
+  - syncJournal.ts: checkpoint file renombrado (evita conflicto Tauri Store), soloRegistrar param, callback checkpoint.
+  - syncTrackingService.ts: journal integrado — aplicadorRecuperacion (10 tipos de operación), registrarEnJournal (append-only sin re-aplicar), escribirEnStore (extraído de persistir), inicializarTracking con recuperación journal + fallback Store, 11 CRUD methods migrados de persistir() a journal append, 5 admin methods mantienen persistir() directo (reset, limpiar, migración, finalizarLote).
+  - Backup rotativo: 3 copias rotan antes de cada checkpoint, intentarBackups() en recuperación.
+- **F2 — Delta sync E2E:**
+  - Backend: SyncChangelogSchema.php + SyncChangelogCols.php + SyncChangelogEnums.php. SyncChangelogRepository.php (registrar, obtenerDelta, purgar). v024_sync_changelog.sql (tabla + índices). SyncController.php endpoint GET /me/sync/delta.
+  - Triggers: ColeccionesCrudController (5 ops) + DescargasController (first download).
+  - Frontend: consultarDeltaSync() en syncWatcherSetup, cursor persistence via Tauri Store, polling optimizado (skip full sync si no hay cambios).
+  - Adaptive polling: POLLING_MIN_MS=15s, MAX=5min, recursive setTimeout.
+- **F3 — Integridad:** verificarTamano post-descarga, ejecutarReconciliacion periódica (7 días).
+- **F4 — Errores:** errorSync.ts (taxonomía 6 categorías), backoff exponencial en offlineQueue/uploadQueue, circuitBreaker.ts integrado.
+- **F5 — Atómico:** TransaccionSync en rename colección (rollback automático).
+- **F6 — Observabilidad:** syncLogger.ts (logger estructurado con rotación), logSync integrado en 9 files incluido fileWatcherService (24 console calls migrados).
+- **Pendiente F5.2:** Versioning (campo version en colecciones, optimistic locking).
+- **Pendiente F6.2:** Panel diagnóstico UI.
+
+### Lecciones C278
+- [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.
+- [WAL]: Para evitar doble aplicación (mutación directa + aplicador), appendOperacion acepta soloRegistrar=true que solo escribe al archivo sin re-aplicar en memoria.
+- [WAL]: El checkpoint file (sync-checkpoint.json) DEBE diferir del STORE_FILE (sync-config.json). Son formatos distintos: Tauri Store maneja múltiples keys internamente, el checkpoint es {meta, estado}.
+- [Delta]: cursor=0 o cursor purgado → fullSyncRequired=true. El cliente hace full sync normal y recibe el cursor actual.
+- [Delta]: Los changelog triggers van en los controllers (punto de escritura), no en los repositories (podrían llamarse desde contextos sin usuario).
+- [fileWatcher]: Template literals (`${}`) son más legibles que console.info con args separados por coma para logSync.

@@ -26,6 +26,9 @@ import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 import { estado } from './syncState';
 import { esRutaPapelera, normalizarNombreParaDedup } from './normalizarNombreArchivo';
+import { clasificarError, obtenerEstrategia, esErrorDeRed } from './errorSync';
+import { circuitoUpload, CircuitoBiertoError } from './circuitBreaker';
+import { logSync } from './syncLogger';
 
 const STORE_FILE = 'upload-queue.json';
 
@@ -471,6 +474,13 @@ async function encolarArchivoInterno(
  */
 async function procesarCola(): Promise<void> {
     if (procesando || !estaOnline()) return;
+
+    /* Circuit breaker: si el servidor está caído, no intentar uploads */
+    if (!circuitoUpload.puedeEjecutar()) {
+        logSync.debug('uploadQueue', 'Circuit breaker abierto, posponiendo procesamiento');
+        return;
+    }
+
     procesando = true;
 
     const configAvanzada = estado.configAvanzada;
@@ -757,10 +767,35 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
 
         if (!respuesta.ok) {
             const errorBody = await respuesta.json().catch(() => ({}));
-            item.ultimoError = (errorBody as { error?: string }).error ?? `HTTP ${respuesta.status}`;
-            console.error('[UploadQueue] Error del servidor:', item.ultimoError);
+            const errorMsg = (errorBody as { error?: string }).error ?? `HTTP ${respuesta.status}`;
+            item.ultimoError = errorMsg;
+
+            /* Clasificar error para estrategia de retry inteligente */
+            const categoria = clasificarError(respuesta.status);
+            const estrategia = obtenerEstrategia(categoria);
+
+            if (categoria === 'permanente') {
+                /* Errores permanentes (400, 404, 422): no reintentar */
+                logSync.warn('uploadQueue', `Error permanente (${respuesta.status}), descartando: ${item.nombreArchivo}`, { error: errorMsg });
+                item.intentos = MAX_REINTENTOS;
+                return false;
+            }
+
+            if (categoria === 'autenticacion') {
+                logSync.warn('uploadQueue', `Error de autenticación (${respuesta.status}): ${item.nombreArchivo}`);
+            }
+
+            /* Registrar fallo en circuit breaker para errores de servidor */
+            if (categoria === 'transitorio' || categoria === 'rate_limit') {
+                circuitoUpload.registrarFallo();
+            }
+
+            logSync.info('uploadQueue', `Error ${respuesta.status} (${categoria}): ${item.nombreArchivo}`, { intentos: item.intentos });
             return false;
         }
+
+        /* Upload exitoso — registrar en circuit breaker */
+        circuitoUpload.registrarExito();
 
         const resultado = await respuesta.json() as {
             ok: boolean;
@@ -910,7 +945,20 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         return true;
     } catch (err) {
         item.ultimoError = err instanceof Error ? err.message : String(err);
-        console.error('[UploadQueue] Error subiendo archivo:', item.nombreArchivo, err);
+
+        if (err instanceof CircuitoBiertoError) {
+            logSync.info('uploadQueue', `Circuit breaker abierto, posponiendo: ${item.nombreArchivo}`);
+            return false;
+        }
+
+        if (esErrorDeRed(err)) {
+            circuitoUpload.registrarFallo();
+            logSync.warn('uploadQueue', `Error de red subiendo: ${item.nombreArchivo}`);
+        } else {
+            logSync.error('uploadQueue', `Error subiendo: ${item.nombreArchivo}`, {
+                error: item.ultimoError,
+            });
+        }
         return false;
     } finally {
         /* Liberar guards en vuelo siempre, éxito o fallo */

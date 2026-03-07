@@ -14,11 +14,14 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
+import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta, circuitoSync } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
 import { moverAPapelera } from './papeleraService';
+import { clasificarError, obtenerEstrategia, esErrorDeRed } from './errorSync';
+import { logSync } from './syncLogger';
+import { verificarTamano } from './hashService';
 import {
     obtenerArchivo,
     buscarArchivoPorSampleId,
@@ -718,6 +721,17 @@ async function descargarSiNecesario(
 
         await writeFile(rutaArchivo, new Uint8Array(buffer));
 
+        /* F3.3: Verificación post-descarga — confirmar que el archivo no está truncado */
+        const tamanoEsperado = tamano || buffer.byteLength;
+        if (tamanoEsperado > 0) {
+            const tamanoOk = await verificarTamano(rutaArchivo, tamanoEsperado);
+            if (!tamanoOk) {
+                logSync.warn('syncCollection', `Archivo truncado post-descarga: ${nombreArchivo} (esperado: ${tamanoEsperado})`);
+                /* Reintentar la descarga (retry simple: tirar excepción para que el caller reintente) */
+                throw new Error(`Archivo truncado post-descarga: esperado ${tamanoEsperado} bytes`);
+            }
+        }
+
         /* Registrar en tracking */
         await registrarArchivo({
             sampleId: sample.id,
@@ -740,44 +754,74 @@ async function descargarSiNecesario(
         onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: nombreArchivo, estado: 'descargado' });
         return 'nuevo';
     } catch (err) {
-        console.error(`[SyncCollection] Error descargando sample ${sample.id}:`, err);
+        logSync.error('syncCollection', `Error descargando sample ${sample.id}`, { error: err instanceof Error ? err.message : String(err) });
         onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'error' });
         return 'error';
     }
 }
 
-/* Renombre de colección */
+/* Renombre de colección — Operación atómica con rollback (F5.1) */
 
 async function manejarRenombreColeccion(
     carpetaBase: string,
     colLocal: ColeccionLocal,
     nuevoNombreServer: string,
 ): Promise<void> {
-    try {
-        const { rename, exists } = await import('@tauri-apps/plugin-fs');
-        const { join } = await import('@tauri-apps/api/path');
+    const { TransaccionSync } = await import('./transaccionSync');
 
-        const nuevaCarpeta = sanitizarNombreCarpeta(nuevoNombreServer);
-        const rutaAnterior = await join(carpetaBase, colLocal.carpetaLocal);
-        const rutaNueva = await join(carpetaBase, nuevaCarpeta);
+    const nuevaCarpeta = sanitizarNombreCarpeta(nuevoNombreServer);
+    const nombreAnterior = colLocal.nombre;
+    const carpetaAnterior = colLocal.carpetaLocal;
 
-        /* Verificar que la carpeta anterior existe antes de renombrar */
-        const existeAnterior = await exists(rutaAnterior);
-        if (existeAnterior) {
-            await rename(rutaAnterior, rutaNueva);
-        }
+    const tx = new TransaccionSync(`rename-col-${colLocal.id}`);
 
-        await actualizarNombreColeccion(colLocal.id, nuevoNombreServer, nuevaCarpeta);
+    /* Paso 1: Renombrar carpeta en disco */
+    tx.agregar(
+        'renombrar-carpeta-disco',
+        async () => {
+            const { rename, exists } = await import('@tauri-apps/plugin-fs');
+            const { join } = await import('@tauri-apps/api/path');
+            const rutaAnterior = await join(carpetaBase, carpetaAnterior);
+            const rutaNueva = await join(carpetaBase, nuevaCarpeta);
+            const existeAnterior = await exists(rutaAnterior);
+            if (existeAnterior) {
+                await rename(rutaAnterior, rutaNueva);
+            }
+        },
+        async () => {
+            const { rename, exists } = await import('@tauri-apps/plugin-fs');
+            const { join } = await import('@tauri-apps/api/path');
+            const rutaNueva = await join(carpetaBase, nuevaCarpeta);
+            const rutaAnterior = await join(carpetaBase, carpetaAnterior);
+            const existeNueva = await exists(rutaNueva);
+            if (existeNueva) {
+                await rename(rutaNueva, rutaAnterior);
+            }
+        },
+    );
 
+    /* Paso 2: Actualizar tracking local */
+    tx.agregar(
+        'actualizar-tracking',
+        async () => {
+            await actualizarNombreColeccion(colLocal.id, nuevoNombreServer, nuevaCarpeta);
+        },
+        async () => {
+            await actualizarNombreColeccion(colLocal.id, nombreAnterior, carpetaAnterior);
+        },
+    );
+
+    const exito = await tx.ejecutar();
+
+    if (exito) {
         await registrarAccion({
             tipo: 'renombrado',
-            descripcion: `Colección renombrada: "${colLocal.nombre}" → "${nuevoNombreServer}"`,
+            descripcion: `Colección renombrada: "${nombreAnterior}" → "${nuevoNombreServer}"`,
             coleccionId: colLocal.id,
         });
-
-        console.info(`[SyncCollection] Colección ${colLocal.id} renombrada: ${colLocal.carpetaLocal} → ${nuevaCarpeta}`);
-    } catch (err) {
-        console.error(`[SyncCollection] Error renombrando colección ${colLocal.id}:`, err);
+        logSync.info('syncCollection', `Colección ${colLocal.id} renombrada: ${carpetaAnterior} → ${nuevaCarpeta}`);
+    } else {
+        logSync.error('syncCollection', `Error renombrando colección ${colLocal.id} — rollback ejecutado`);
     }
 }
 
