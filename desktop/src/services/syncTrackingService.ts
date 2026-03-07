@@ -108,6 +108,14 @@ export interface BaseSyncLocal {
      * Se incrementa en cada escribirEnStore(). Si al leer del Store la versión es mayor
      * que la local, significa que otra ventana escribió — merger obligatorio antes de write. */
     checkpointVersion?: number;
+    /*
+     * C286: ID del usuario dueño de estos datos de tracking.
+     * Al inicializar, si el userId almacenado no coincide con el usuario actual,
+     * se limpia todo el tracking (los datos pertenecen a otra cuenta).
+     * Sin este campo, colecciones de sesiones anteriores con otro usuario
+     * contaminan el tracking → 403 en cascada al intentar operar sobre ellas.
+     */
+    userId?: number;
 }
 
 /* Estado interno */
@@ -294,7 +302,16 @@ async function escribirEnStore(): Promise<void> {
 
 /* Inicialización */
 
-export async function inicializarTracking(): Promise<void> {
+/**
+ * Inicializa el tracking de sync.
+ *
+ * @param userIdActual ID del usuario autenticado actualmente.
+ *   Si el tracking almacenado pertenece a un usuario diferente,
+ *   se limpia completamente para evitar operar sobre recursos ajenos (403).
+ *   Si no se proporciona (undefined), se omite la verificación de propiedad
+ *   (backward-compatible para ventanas secundarias sin contexto de auth).
+ */
+export async function inicializarTracking(userIdActual?: number): Promise<void> {
     if (!esDesktop()) return;
 
     try {
@@ -337,6 +354,36 @@ export async function inicializarTracking(): Promise<void> {
             }
         } catch {
             /* Store no disponible — usar defaults vacíos */
+        }
+    }
+
+    /*
+     * C286: Verificación de propiedad por usuario.
+     * Si el tracking almacenado pertenece a un usuario diferente al actual,
+     * limpiar TODOS los datos. Colecciones/archivos de otro usuario generan
+     * 403 en cascada (el servidor verifica propiedad por JWT).
+     *
+     * Caso retrocompatible: tracking sin userId (pre-C286) → se adopta
+     * como del usuario actual y se marca con su ID en el próximo checkpoint.
+     */
+    if (userIdActual !== undefined && userIdActual > 0) {
+        const userIdAlmacenado = datos.userId;
+
+        if (userIdAlmacenado !== undefined && userIdAlmacenado !== userIdActual) {
+            logSync.warn('tracking',
+                `Tracking pertenece a usuario #${userIdAlmacenado}, pero el usuario actual es #${userIdActual}. Limpiando datos ajenos.`);
+
+            datos = {
+                archivos: {},
+                colecciones: {},
+                sinColeccion: [],
+                historial: [],
+                historialSamples: [],
+                userId: userIdActual,
+            };
+        } else {
+            /* Marcar userId si no existía (migración from pre-C286 tracking) */
+            datos.userId = userIdActual;
         }
     }
 
@@ -933,12 +980,14 @@ export async function migrarDesdeV1(): Promise<boolean> {
 /* Reset completo */
 
 export async function resetearTracking(): Promise<void> {
+    const userIdActual = datos.userId;
     datos = {
         archivos: {},
         colecciones: {},
         sinColeccion: [],
         historial: [],
         historialSamples: [],
+        userId: userIdActual,
     };
     indiceRuta.clear();
     indiceNombre.clear();

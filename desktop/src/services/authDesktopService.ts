@@ -119,12 +119,22 @@ export async function obtenerUsuarioGuardado(): Promise<Record<string, unknown> 
 }
 
 /*
- * Cierra la sesión: limpia token de memoria, store y fetch interceptor.
+ * Cierra la sesión: limpia token de memoria, store, fetch interceptor y tracking de sync.
+ * C286: Al cerrar sesión, limpiar el tracking de sync para que al loguearse
+ * con otra cuenta no se operen sobre colecciones/archivos ajenos (403).
  */
 export async function cerrarSesionDesktop(): Promise<void> {
     tokenEnMemoria = null;
     limpiarAuthApi();
     establecerTokenSync(null);
+
+    /* C286: Limpiar tracking sync para evitar contaminación cross-usuario */
+    try {
+        const { resetearTracking } = await import('./syncTrackingService');
+        await resetearTracking();
+    } catch {
+        /* Tracking no inicializado — nada que limpiar */
+    }
 
     if (!esDesktop()) return;
 

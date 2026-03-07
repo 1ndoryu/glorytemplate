@@ -70,7 +70,17 @@ export async function inicializarSyncService(
     try {
         estado.trackingModule = await import('./syncTrackingService');
         estado.collectionModule = await import('./syncCollectionService');
-        await estado.trackingModule.inicializarTracking();
+
+        /*
+         * C286: Obtener userId del usuario autenticado para scoping del tracking.
+         * inicializarAuthDesktop() ya corrió antes y pobló GLORY_CONTEXT.userId.
+         * Si no hay usuario (no autenticado), se pasa undefined y el tracking
+         * se inicializa sin verificación de propiedad.
+         */
+        const ctx = window.GLORY_CONTEXT as { userId?: number } | undefined;
+        const userIdActual = ctx?.userId ? Number(ctx.userId) : undefined;
+
+        await estado.trackingModule.inicializarTracking(userIdActual);
 
         if (estado.trackingModule.totalArchivos() === 0 && estado.indiceArchivos.length > 0) {
             /* TA5: Verificar flag de migración en Store para evitar duplicación cross-window */
