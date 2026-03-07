@@ -348,6 +348,18 @@ C279. ✅ [AG-SYN] F5.2 + F6.2 + Auditoría profunda v2:
 - [Panel diagnóstico]: Refresh con setInterval 3s es razonable — datos de diagnóstico no necesitan ser real-time. Export logs como JSON facilita debugging offline.
 - [Auditoría]: v024_sync_changelog.sql ya tenía los índices creados — el subagente de auditoría no leyó la migración y reportó falso positivo. Siempre verificar hallazgos de auditoría contra el código fuente real.
 
+C280. ✅ [AG-SYN] Hardening sync — plan-sync-mejoras-v2 implementado (20 archivos, +1237/-847):
+- **PHP (7 archivos):** C1 INSERT atómico posición (ON CONFLICT), C2+A2 advisory lock session-level try/finally, C3 revenue share retorna bool + caller verifica, A1 MIME server-side, A5 obtenerDelta 2→1 query, A6 $limite validado en repo, A7 solo ESTADO_ACTIVO en sync, A8 metadata JSONB 10KB límite, M1 _jsonError flag, M4 5+1 changelog calls verificados, M5 enum validation, M6 documentación purga.
+- **TypeScript (13 archivos):** TC1 checkpointVersion + merge cross-window, TC2 hashesPendientesEncola dedup race, TA1 unlisten memory leak, TA2 409 body inspection, TA3 journal checkpoint reorder (callback antes truncación), TA4 rename try-catch, TA5 v1_migracion_completada flag multi-window, TA6 split syncService.ts 834→208 LOC (4 módulos: syncInitService, syncOrchestratorService, syncRegistroService, syncRehidratacionService), TM1 per-sample error boundaries descarga, TM5 MAX_COLA_SIZE=500 FIFO, TB2 circuitBreaker auto-reset 30min TTL, TM2 documentación concurrencia.
+- **Diferidos:** A3+A4 service layer PHP (TO-DO en código), TM3 completar migración v1→v2 (~30 refs indiceArchivos), TM4 hash post-descarga (requiere endpoint backend).
+
+### Lecciones C280
+- [Advisory Locks]: pg_advisory_xact_lock no sirve con PDO autocommit — cada query es su propia transacción, lock se libera al terminar. Usar pg_advisory_lock (session-level) + pg_advisory_unlock explícito en finally.
+- [Journal]: Orden de operaciones en checkpoint importa: callback ANTES de truncar journal. Si callback falla, journal permanece intacto para recovery.
+- [Race Dedup]: Un Set con hashes "en proceso de encolado" cierra la ventana entre await calcularHash() y cola.push(). Marcar sincrónicamente post-await, limpiar en finally.
+- [Cross-Window]: checkpointVersion monotónico + merge antes de write es el patrón correcto para Store compartido.
+- [Split Facade]: Mantener syncService.ts como re-export facade permite split sin cambiar ningún importador. Dependencias circulares se rompen con logic inline o dynamic import.
+
 ### Lecciones C278
 - [WAL]: El journal NO reemplaza el Tauri Store — lo complementa. Store necesario para acceso cross-window (MPA). Journal = crash recovery. Checkpoint escribe a ambos.
 - [WAL]: Para evitar doble aplicación (mutación directa + aplicador), appendOperacion acepta soloRegistrar=true que solo escribe al archivo sin re-aplicar en memoria.

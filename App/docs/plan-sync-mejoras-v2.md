@@ -338,6 +338,63 @@ La implementación C278 (sync mejoras F1-F6) + C279 (F5.2 versioning + F6.2 pane
 
 - **C367 (Auditoría subidas):** Items 367a-367f siguen pendientes. TC2 (dedup race) y TM4 (hash post-descarga) cubren parcialmente 367b y 367e.
 - **C277 (Plan sync mejoras v1):** Todas las fases F1-F6 implementadas en C278. Este plan v2 es la revisión de calidad post-implementación.
+
+---
+
+## SECCIÓN F — Estado de Implementación (C280)
+
+> **Commit:** 278c2c1b | **Fecha:** 07/03/2026 | **Agente:** AG-SYN
+
+### Completados (20 archivos, +1237/-847 líneas)
+
+| Item | Estado | Notas |
+|------|--------|-------|
+| C1 — INSERT atómico posición | ✅ | agregarAtomico() con INSERT...SELECT MAX+1 ON CONFLICT |
+| C2+A2 — Advisory lock try/finally | ✅ | pg_advisory_lock session-level + explicit unlock |
+| C3 — Revenue share retorna bool | ✅ | Caller verifica + logs critical + TO-DO reintentos |
+| A1 — MIME server-side | ✅ | mime_content_type + filesize en tmp_name |
+| A5 — obtenerDelta 1 query | ✅ | Intenta cambios primero, verifica cursor solo si vacío |
+| A6 — $limite validado | ✅ | max(1, min(500, $limite)) en repositorio |
+| A7 — Solo ESTADO_ACTIVO en sync | ✅ | Removidos PROCESANDO y EN_SUPERVISION |
+| A8 — metadata JSONB 10KB | ✅ | Truncación con flag _truncado |
+| M1 — _jsonError en response | ✅ | Flag computado antes de error handling |
+| M2 — Re-verify antes INSERT | ✅ | Incluido en DescargasController |
+| M3 — incrementarDescargas verificado | ✅ | Retorno bool + log |
+| M4 — Changelog sin retorno | ✅ | 5+1 calls verificados con KamplesLogger::critical |
+| M5 — Whitelist vs enums | ✅ | Validación contra SamplesEnums::TODOS_ESTADOS |
+| M6 — Documentar purga | ✅ | Docblock con política completa |
+| B1-B5 — Bajos PHP | ✅ | Verificados/documentados |
+| TC1 — Cross-window version gate | ✅ | checkpointVersion + merge archivos/colecciones/sinColeccion |
+| TC2 — Dedup race uploadQueue | ✅ | hashesPendientesEncola Set + try/finally |
+| TA1 — Memory leak listener | ✅ | limpiarHistorialUnlisten stored + cleaned |
+| TA2 — 409 body inspection | ✅ | Solo conflicto_version = éxito |
+| TA3 — Journal checkpoint order | ✅ | Callback ANTES de truncación |
+| TA4 — Rename try-catch | ✅ | Bloque completo envuelto |
+| TA5 — Multi-window init lock | ✅ | Flag v1_migracion_completada en Store |
+| TA6 — Split syncService.ts | ✅ | 834→208 LOC (4 módulos extraídos) |
+| TM1 — Per-sample error boundaries | ✅ | catch por sample en download loop |
+| TM5 — Queue size limit | ✅ | MAX_COLA_SIZE=500 con FIFO eviction |
+| TM6 — Global semaphore | ✅ | Ya estaba cubierto (semaforoUpload a nivel módulo) |
+| TB2 — Auto-reset por inactividad | ✅ | ttlInactividadMs 30min en circuitBreaker |
+| TM2 — Estado concurrencia | ✅ | Documentado: journal serializa v2, v1 deprecated |
+
+### Diferidos
+
+| Item | Razón | TO-DO |
+|------|-------|-------|
+| A3+A4 — Service layer PHP | Refactor alto riesgo (~4-6h) | TO-DO en ColeccionesCrudController.php |
+| TM3 — Completar migración v1→v2 | ~30 refs a indiceArchivos, alto riesgo regresión | Cuando se desactive v1 |
+| TM4 — Hash post-descarga | Requiere endpoint backend nuevo | Fase posterior |
+| TB1 — TypedStore wrapper | Low priority | Mejora progresiva |
+| TB3 — DIP syncWatcherSetup | Long-term architecture | Mejora eventual |
+
+### Lecciones Aprendidas
+
+- [Advisory Locks]: `pg_advisory_xact_lock` no sirve con PDO autocommit — cada query es su propia transacción, lock se libera al terminar. Usar `pg_advisory_lock` (session-level) + `pg_advisory_unlock` explícito en finally.
+- [Journal]: El orden de operaciones en checkpoint importa: callback ANTES de truncar journal. Si callback falla, el journal permanece intacto para recovery.
+- [Race Dedup]: Un Set con los hashes "en proceso de encolado" cierra la ventana entre `await calcularHash()` y `cola.push()`. Debe marcarse sincrónico post-await y limpiarse en finally.
+- [Cross-Window]: checkpointVersion monotónico + merge antes de write es el patrón correcto para Store compartido. Version gate detecta escrituras de otras ventanas.
+- [Split Facade]: Mantener syncService.ts como re-export facade permite TA6 sin cambiar ningún importador (7 archivos). Las dependencias circulares se rompen con logic inline o dynamic import.
 - **Sprint F/G bugs:** Lecciones aplicadas. No hay regresiones detectadas.
 
 ---
