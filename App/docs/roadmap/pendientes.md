@@ -185,6 +185,18 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 
 ---
 
+## Glory Sentinel v3 — Nuevas detecciones + Eliminación IA
+
+> **Plan completo:** `.agent/code-sentinel/PLAN_V3_DETECCIONES_Y_DEPRECACION_IA.md`
+> **Origen:** Auditoría plan-sync-mejoras-v2.md reveló 22 hallazgos que Sentinel no detectó.
+
+- [ ] **S7** Eliminación completa IA: borrar aiAnalyzer.ts + prompts.ts, limpiar types/extension/provider/debounce/cache/package.json. ~500 LOC eliminadas.
+- [ ] **S8** 8 reglas PHP nuevas: toctou-select-insert, lock-sin-finally, catch-critico-solo-log, mime-type-cliente, cadena-isset-update, query-doble-verificacion, json-sin-limite-bd, retorno-ignorado-repo.
+- [ ] **S9** 5 reglas TS nuevas + 3 enhancements: listen-sin-cleanup, status-http-generico, handler-sin-trycatch, cola-sin-limite, objeto-mutable-exportado. Mejoras: json-decode-inseguro (?:[]), return-void-critico (sin hint), limite-lineas (desktop/).
+- [ ] **S10** Tests + validación + bump 0.2.0: 2 tests/regla, smoke test workspace, actualizar rules.md/README.md/CHANGELOG.md.
+
+---
+
 ## Pendientes sueltos
 
 358b. ✅ [AG-THM] Historial sync panel refleja la imagen actual del sample tras generacion pipeline o edicion manual. Reconciliacion de `imagenUrl` extendida a entradas ya persistidas + merge cross-window del historial + invalidacion controlada del `src` en `sincPanelHistorialThumb`.
