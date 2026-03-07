@@ -52,31 +52,23 @@ class ColeccionSamplesRepository extends BaseRepository
     }
 
     /*
-     * Obtener siguiente posición disponible en una colección.
+     * Agregar sample a colección con posición atómica (INSERT...SELECT MAX+1).
+     * ON CONFLICT DO NOTHING para idempotencia si el par (colId, sampleId) ya existe.
+     * La posición se calcula en la misma query para evitar race conditions.
      */
-    public static function siguientePosicion(int $colId): int
+    public static function agregarAtomico(int $colId, int $sampleId): void
     {
         $t = ColeccionSamplesCols::TABLA;
-
-        $row = static::consultarUno(
-            "SELECT COALESCE(MAX(" . ColeccionSamplesCols::POSICION . "), 0) + 1 as next FROM {$t} WHERE " . ColeccionSamplesCols::COLECCION_ID . " = :colId",
-            ['colId' => $colId]
-        );
-
-        return $row ? (int) $row['next'] : 1;
-    }
-
-    /*
-     * Agregar sample a colección (ON CONFLICT DO NOTHING para idempotencia).
-     */
-    public static function agregar(int $colId, int $sampleId, int $posicion): void
-    {
-        $t = ColeccionSamplesCols::TABLA;
+        $colIdCol = ColeccionSamplesCols::COLECCION_ID;
+        $sampleIdCol = ColeccionSamplesCols::SAMPLE_ID;
+        $posCol = ColeccionSamplesCols::POSICION;
 
         static::ejecutar(
-            "INSERT INTO {$t} (" . ColeccionSamplesCols::COLECCION_ID . ", " . ColeccionSamplesCols::SAMPLE_ID . ", " . ColeccionSamplesCols::POSICION . ")
-             VALUES (:colId, :sampleId, :pos) ON CONFLICT DO NOTHING",
-            ['colId' => $colId, 'sampleId' => $sampleId, 'pos' => $posicion]
+            "INSERT INTO {$t} ({$colIdCol}, {$sampleIdCol}, {$posCol})
+             SELECT :colId, :sampleId, COALESCE(MAX({$posCol}), 0) + 1
+             FROM {$t} WHERE {$colIdCol} = :colIdMax
+             ON CONFLICT DO NOTHING",
+            ['colId' => $colId, 'sampleId' => $sampleId, 'colIdMax' => $colId]
         );
     }
 

@@ -56,6 +56,12 @@ import {
  * Estado global mutable del sync.
  * Objeto compartido por referencia entre todos los módulos sync.
  * Esto evita problemas con re-exports de variables mutables en ESM.
+ *
+ * TM2: En JavaScript single-threaded las mutaciones no son verdaderamente concurrentes,
+ * pero pueden intercalarse en puntos de `await`. Las operaciones críticas de tracking v2
+ * pasan por el journal (syncJournal.ts) que serializa escrituras. El indiceArchivos legacy
+ * (v1) puede recibir mutaciones intercaladas pero está en deprecación progresiva.
+ * TO-DO: Eliminar indiceArchivos y estado.indiceArchivosPor* una vez que v1 esté deshabilitado.
  */
 export const estado = {
     config: {

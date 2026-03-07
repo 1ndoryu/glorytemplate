@@ -33,16 +33,24 @@ class SyncRepository extends BaseRepository
 
     /**
      * Estados visibles para sync desktop.
-     * Incluye estados transitorios para evitar falsos "borrados" mientras
-     * el pipeline async termina (procesando/en_supervision).
+     * Solo ESTADO_ACTIVO: estados transitorios (procesando/en_supervision) se sincronizan
+     * cuando el sample pasa a activo via delta changelog. Incluir estados transitorios
+     * causaba que Desktop sincronizara archivos que podian desaparecer o cambiar.
+     *
+     * Valida contra SamplesEnums::TODOS_ESTADOS para detectar desincronizaciones schema vs codigo.
      */
     private static function sqlEstadosVisiblesSync(): string
     {
         $estados = [
             SamplesEnums::ESTADO_ACTIVO,
-            SamplesEnums::ESTADO_PROCESANDO,
-            SamplesEnums::ESTADO_EN_SUPERVISION,
         ];
+
+        /* M5: Validar que cada estado existe en el enum del schema */
+        foreach ($estados as $estado) {
+            if (!\in_array($estado, SamplesEnums::TODOS_ESTADOS, true)) {
+                throw new \RuntimeException("Estado sync invalido: {$estado} no existe en SamplesEnums::TODOS_ESTADOS");
+            }
+        }
 
         return "'" . \implode("','", \array_map('strval', $estados)) . "'";
     }

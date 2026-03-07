@@ -636,6 +636,15 @@ export async function sincronizarColecciones(
                     }
                 }
                 if (resultado === 'error') errores++;
+            } catch (err) {
+                /* TM1: Per-sample error boundary — un fallo no detiene el resto del batch.
+                 * Sin esto, una excepción inesperada en descargarSiNecesario (FS error,
+                 * permiso denegado, disco lleno) deja contadores inconsistentes. */
+                errores++;
+                logSync.error('collectionSync', `Error descargando sample ${tarea.sample.id}`, {
+                    error: err instanceof Error ? err.message : String(err),
+                    coleccionId: tarea.coleccionId,
+                });
             } finally {
                 semaforoDescargas.liberar();
             }

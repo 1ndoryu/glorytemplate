@@ -61,6 +61,14 @@ class SyncChangelogRepository extends BaseRepository
             $metadataJson = '{}';
         }
 
+        /* A8: Limitar tamaño de metadata para evitar crecimiento descontrolado de la tabla */
+        if (strlen($metadataJson) > 10240) {
+            KamplesLogger::warn('SyncChangelogRepository: metadata demasiado grande, truncando', [
+                'tamano' => strlen($metadataJson),
+            ]);
+            $metadataJson = json_encode(['_truncado' => true, 'tamano_original' => strlen($metadataJson)]);
+        }
+
         $sql = "INSERT INTO " . SyncChangelogCols::TABLA . " ("
             . SyncChangelogCols::USUARIO_ID . ", "
             . SyncChangelogCols::TIPO . ", "
@@ -90,6 +98,9 @@ class SyncChangelogRepository extends BaseRepository
      */
     public static function obtenerDelta(int $usuarioId, int $cursor, int $limite = 100): array
     {
+        /* A6: Defensa en profundidad — acotar limite aunque el caller ya lo valide */
+        $limite = max(1, min(500, $limite));
+
         /* Primera conexion: cursor=0, requiere full sync */
         if ($cursor <= 0) {
             $ultimoId = static::obtenerUltimoCursor($usuarioId);
@@ -101,26 +112,11 @@ class SyncChangelogRepository extends BaseRepository
             ];
         }
 
-        /* Verificar que el cursor aun es valido (no fue purgado) */
-        $existe = static::consultarUno(
-            "SELECT 1 FROM " . SyncChangelogCols::TABLA
-            . " WHERE " . SyncChangelogCols::ID . " = :cursor"
-            . " AND " . SyncChangelogCols::USUARIO_ID . " = :usuarioId",
-            ['cursor' => $cursor, 'usuarioId' => $usuarioId]
-        );
-
-        if ($existe === null) {
-            /* El cursor fue purgado: forzar full sync */
-            $ultimoId = static::obtenerUltimoCursor($usuarioId);
-            return [
-                'cambios'          => [],
-                'cursor'           => $ultimoId ?? 0,
-                'hayMas'           => false,
-                'fullSyncRequired' => true,
-            ];
-        }
-
-        /* Obtener limite+1 para saber si hay mas paginas */
+        /*
+         * A5: Intentar obtener cambios directamente sin verificar cursor por separado.
+         * Si cursor ya no existe (purgado) y no hay resultados con id > cursor,
+         * verificar si hay registros más antiguos — si sí, cursor fue purgado → fullSync.
+         */
         $sql = "SELECT "
             . SyncChangelogCols::ID . ", "
             . SyncChangelogCols::TIPO . ", "
@@ -138,6 +134,35 @@ class SyncChangelogRepository extends BaseRepository
             'cursor'    => $cursor,
             'limite'    => $limite + 1,
         ]);
+
+        /* Si no hay resultados, verificar si el cursor fue purgado o simplemente no hay cambios */
+        if (empty($rows)) {
+            $minId = static::consultarUno(
+                "SELECT MIN(" . SyncChangelogCols::ID . ") as min_id FROM " . SyncChangelogCols::TABLA
+                . " WHERE " . SyncChangelogCols::USUARIO_ID . " = :usuarioId",
+                ['usuarioId' => $usuarioId]
+            );
+            $minExistente = $minId && $minId['min_id'] !== null ? (int) $minId['min_id'] : null;
+
+            if ($minExistente !== null && $cursor < $minExistente) {
+                /* Cursor fue purgado: forzar full sync */
+                $ultimoId = static::obtenerUltimoCursor($usuarioId);
+                return [
+                    'cambios'          => [],
+                    'cursor'           => $ultimoId ?? 0,
+                    'hayMas'           => false,
+                    'fullSyncRequired' => true,
+                ];
+            }
+
+            /* No hay cambios nuevos */
+            return [
+                'cambios'          => [],
+                'cursor'           => $cursor,
+                'hayMas'           => false,
+                'fullSyncRequired' => false,
+            ];
+        }
 
         $hayMas = count($rows) > $limite;
         if ($hayMas) {
@@ -191,7 +216,15 @@ class SyncChangelogRepository extends BaseRepository
 
     /**
      * Purgar registros antiguos del changelog.
-     * Llamar desde un cron periodico para evitar crecimiento indefinido.
+     *
+     * POLITICA DE PURGA (M6):
+     * - Ejecutar via cron periodico (recomendado: diario o semanal).
+     * - Retiene los ultimos $diasRetencion dias de changelog.
+     * - Si un cliente tiene un cursor anterior a la purga (cursor < MIN(id)),
+     *   obtenerDelta() retorna fullSyncRequired=true para forzar re-sync completo.
+     * - El cron debe configurarse en wp-cron o crontab del sistema:
+     *   SyncChangelogRepository::purgar(90); // Conservar 90 dias
+     * - Valores validos: 30, 60, 90, 180, 365 dias. Otros se normalizan a 90.
      *
      * @param int $diasRetencion Dias a conservar (default 90)
      * @return int Filas eliminadas

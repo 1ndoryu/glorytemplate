@@ -35,6 +35,9 @@ export interface OperacionPendiente {
 const STORE_FILE = 'offline-queue.json';
 const STORE_KEY = 'operaciones_pendientes';
 const MAX_INTENTOS = 5;
+/* TM5: Límite de tamaño de cola para prevenir crecimiento sin control
+ * bajo condiciones patológicas (servidor caído por días). FIFO eviction. */
+const MAX_COLA_SIZE = 500;
 
 let cola: OperacionPendiente[] = [];
 let sincronizando = false;
@@ -129,6 +132,13 @@ export async function encolarOperacion(
     };
 
     cola.push(operacion);
+
+    /* TM5: Evicción FIFO si la cola excede el límite */
+    if (cola.length > MAX_COLA_SIZE) {
+        const descartadas = cola.splice(0, cola.length - MAX_COLA_SIZE);
+        logSync.warn('offlineQueue', `Cola excede ${MAX_COLA_SIZE}, descartadas ${descartadas.length} operaciones antiguas (FIFO)`);
+    }
+
     await guardarCola();
 
     /* Si estamos online, intentar sincronizar inmediatamente */
@@ -181,8 +191,29 @@ export async function sincronizarCola(): Promise<void> {
                     body: op.body ? JSON.stringify(op.body) : undefined,
                 });
 
-                if (response.ok || response.status === 409) {
+                if (response.ok) {
                     exitosas.add(op.id);
+                } else if (response.status === 409) {
+                    /* TA2: No todo 409 es conflicto de versión benigno.
+                     * Solo marcar como éxito si el body confirma conflicto_version.
+                     * Otros 409 (auth disfrazada, permisos) deben re-encolarse. */
+                    let esConflictoVersion = false;
+                    try {
+                        const body409 = await response.json() as { code?: string };
+                        esConflictoVersion = body409.code === 'conflicto_version';
+                    } catch {
+                        /* Si no se puede parsear body, asumir conflicto benigno por retrocompat */
+                        esConflictoVersion = true;
+                    }
+                    if (esConflictoVersion) {
+                        exitosas.add(op.id);
+                    } else {
+                        logSync.warn('offlineQueue', `409 no-conflicto para ${op.tipo} ${op.id}, re-encolando`);
+                        op.intentos++;
+                        op.ultimaCategoria = 'transitorio';
+                        const delay = 5000 * Math.pow(2, op.intentos - 1);
+                        op.noReintentarAntesDe = Date.now() + delay;
+                    }
                 } else {
                     /* Clasificar error y aplicar estrategia correspondiente */
                     const categoria = clasificarError(response.status);

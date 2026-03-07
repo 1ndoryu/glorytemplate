@@ -1,14 +1,14 @@
 /*
  * Servicio: syncService — Fachada pública del sistema de sincronización.
  *
- * Orquesta la inicialización y expone la API pública consumida por:
- * - desktop/src/main.tsx (window.__KAMPLES_SYNC__)
- * - uploadQueueService (registrarDescarga, moverSampleEnServidorPublico, etc.)
- * - fileWatcherService (obtenerConfigSync)
- * - audioLocalService (obtenerRutaLocal)
- * - desktopService (inicializarSyncService)
+ * TA6: Refactorizado como fachada slim. La lógica se distribuyó en:
+ * - syncInitService.ts: inicialización, config, migración v1→v2
+ * - syncOrchestratorService.ts: sync principal, individual, resync
+ * - syncRegistroService.ts: registro de descargas/subidas, movimiento de archivos
+ * - syncRehidratacionService.ts: rehidratación de imágenes de portada
  *
- * Arquitectura interna (módulos):
+ * Todos los importadores externos siguen apuntando a este archivo (fachada).
+ * Los módulos internos adicionales se mantienen:
  * - syncState.ts: estado compartido + persistencia
  * - syncDownloadV1.ts: lógica legacy v1
  * - syncWatcherSetup.ts: watcher bidireccional + operaciones locales
@@ -17,35 +17,15 @@
  * - syncGuards.ts: guards de descarga + base URL centralizada
  */
 
-import { esDesktop, estaOnline } from './desktopService';
-import {
-    marcarDescargaEnCurso,
-    marcarMovimientoInterno,
-    obtenerBaseUrlSync,
-    adquirirLockSync,
-    registrarSyncActiva,
-    liberarLockSync,
-    esSyncEnCurso,
-    circuitoSync,
-} from './syncGuards';
+import { esDesktop } from './desktopService';
+import { esSyncEnCurso } from './syncGuards';
 import { logSync } from './syncLogger';
 import {
     estado,
     guardarConfig,
-    guardarIndice,
-    cargarConfigAvanzada,
-    reconstruirIndicesArchivos,
-    STORE_FILE,
-    STORE_KEY_CONFIG,
-    STORE_KEY_INDICE,
     type SyncConfig,
-    type ArchivoLocal,
-    type ResultadoDescargaApi,
-    type ProgressCallback,
 } from './syncState';
-import { sincronizarConServidorV1 } from './syncDownloadV1';
 import {
-    inicializarSyncBidireccional,
     detenerSyncBidireccional as detenerBidireccional,
     marcarNoSincronizar as _marcarNoSincronizar,
     marcarNoSincronizarPorId as _marcarNoSincronizarPorId,
@@ -55,8 +35,27 @@ import {
     moverSampleEnServidorPublico as _moverSampleEnServidorPublico,
 } from './syncWatcherSetup';
 
-/* Re-exports para mantener API pública sin romper importadores */
+/* Re-exports de tipos para mantener API pública sin romper importadores */
 export { type ProgresoSync, type ProgressCallback, type SyncConfig } from './syncState';
+
+/* Re-exports de módulos extraídos */
+export { inicializarSyncService } from './syncInitService';
+export {
+    sincronizarConServidor,
+    sincronizarSampleIndividual,
+    forzarResync,
+} from './syncOrchestratorService';
+export {
+    registrarDescarga,
+    registrarAccionHistorial,
+    registrarSubidaLocal,
+    moverArchivoASinColeccion,
+    actualizarEstadoSampleHistorial,
+} from './syncRegistroService';
+export {
+    rehidratarImagenesPendientesSync,
+    rehidratarImagenesPendientesForzadoSync,
+} from './syncRehidratacionService';
 
 /* Re-exports de operaciones del watcher */
 export const marcarNoSincronizar = _marcarNoSincronizar;
@@ -66,96 +65,6 @@ export const obtenerEstadoSync = _obtenerEstadoSync;
 export const obtenerSamplesNoSincronizados = _obtenerSamplesNoSincronizados;
 export const moverSampleEnServidorPublico = _moverSampleEnServidorPublico;
 export const detenerSyncBidireccional = detenerBidireccional;
-
-/* Inicialización */
-
-/*
- * Inicializa el servicio de sync: carga config, tracking v2 y migra si necesario.
- */
-/**
- * Inicializa el servicio de sincronización.
- *
- * @param opciones.soloLectura Si true, solo inicializa tracking y collectionModule
- *   para lectura (historial, colecciones). NO arranca watcher, upload queue ni polling.
- *   Usado por ventanas secundarias MPA (sync-panel) que solo muestran datos.
- *   Sin esto, cada ventana MPA duplica watchers y upload queues causando
- *   race conditions en tracking, imagenUrl sobreescrito y uploads duplicados.
- */
-export async function inicializarSyncService(
-    opciones: { soloLectura?: boolean } = {},
-): Promise<void> {
-    if (!esDesktop()) return;
-    const { soloLectura = false } = opciones;
-
-    /* F6.1: Inicializar logger estructurado antes de cualquier operación */
-    const { inicializarSyncLogger } = await import('./syncLogger');
-    await inicializarSyncLogger();
-    logSync.info('syncService', 'Inicializando sync service', { soloLectura });
-
-    try {
-        const { load } = await import('@tauri-apps/plugin-store');
-        const store = await load(STORE_FILE);
-
-        const configGuardada = await store.get<SyncConfig>(STORE_KEY_CONFIG);
-        if (configGuardada) estado.config = configGuardada;
-
-        const indiceGuardado = await store.get<ArchivoLocal[]>(STORE_KEY_INDICE);
-        if (indiceGuardado) estado.indiceArchivos = indiceGuardado;
-    } catch {
-        /* Config no disponible — usar defaults */
-    }
-
-    /* Reconstruir índices O(1) para lookups rápidos del watcher */
-    reconstruirIndicesArchivos();
-
-    /* Cargar configuración avanzada (paralelismo, throttle, papelera) */
-    await cargarConfigAvanzada();
-
-    /* F2.1: Cargar cursor delta para continuar desde donde quedó */
-    const { cargarCursorDelta } = await import('./syncState');
-    await cargarCursorDelta();
-
-    /* C355: Inicializar tracking v2 y migrar datos v1 si es primera vez */
-    try {
-        estado.trackingModule = await import('./syncTrackingService');
-        estado.collectionModule = await import('./syncCollectionService');
-        await estado.trackingModule.inicializarTracking();
-
-        if (estado.trackingModule.totalArchivos() === 0 && estado.indiceArchivos.length > 0) {
-            const migrado = await estado.trackingModule.migrarDesdeV1();
-            if (migrado) {
-                logSync.info('syncService', 'Migración v1→v2 completada automáticamente');
-            }
-        }
-    } catch (err) {
-        logSync.error('syncService', 'Error inicializando tracking v2', { error: err instanceof Error ? err.message : String(err) });
-    }
-
-    /*
-     * Modo solo-lectura: la ventana solo necesita leer historial/colecciones.
-     * NO arrancar watcher, upload queue ni polling — eso lo hace la ventana principal.
-     * Arrancar duplicados causa: watchers dobles, uploads duplicados, race conditions
-     * en persistir() que borran imagenUrl de otras ventanas.
-     */
-    if (!soloLectura) {
-        await inicializarSyncBidireccional();
-    }
-
-    /* Escuchar evento de la ventana config-sync para refrescar config en memoria */
-    try {
-        const { listen } = await import('@tauri-apps/api/event');
-        await listen('config-sync-actualizada', async () => {
-            console.info('[Sync] Config actualizada desde ventana independiente, recargando...');
-            await cargarConfigAvanzada();
-        });
-    } catch (err) {
-        logSync.error('syncService', 'Error registrando listener de config', { error: err instanceof Error ? err.message : String(err) });
-    }
-
-    /* Rehidratar imágenes de portada de samples ya sincronizados que no las tienen.
-     * Se lanza en background (no bloquea inicialización). */
-    rehidratarImagenesPendientes().catch(() => {});
-}
 
 /* Configuración */
 
@@ -227,459 +136,6 @@ export function obtenerRutaLocal(sampleId: number): string | null {
     return archivo?.ruta ?? null;
 }
 
-/* Registro de descargas */
-
-/*
- * Registra un archivo descargado en tracking v2 + índice v1 legacy.
- */
-export async function registrarDescarga(
-    sampleId: number,
-    ruta: string,
-    nombreOriginal: string,
-    nombreServidor: string,
-    coleccionId?: number | null,
-): Promise<void> {
-    const { trackingModule } = estado;
-
-    if (trackingModule) {
-        await trackingModule.registrarArchivo({
-            sampleId,
-            coleccionId: coleccionId ?? null,
-            rutaLocal: ruta,
-            nombreLocal: nombreServidor,
-            nombreServidor,
-            descargadoEn: Date.now(),
-            tamano: 0,
-            syncDeshabilitado: false,
-        });
-    }
-
-    estado.indiceArchivos = estado.indiceArchivos.filter(a => a.sampleId !== sampleId);
-    estado.indiceArchivos.push({
-        ruta,
-        nombre: nombreOriginal,
-        sampleId,
-        hash: '',
-        descargadoEn: Date.now(),
-        nombreOriginal,
-        nombreServidor,
-    });
-
-    await guardarIndice();
-}
-
-/* Historial de acciones (wrapper público) */
-
-/*
- * Registra una acción en el historial del panel de sync.
- * Wrapper público de trackingModule.registrarAccion() para que otros servicios
- * (uploadQueueService) puedan escribir historial sin acceso directo al tracking.
- */
-export async function registrarAccionHistorial(datos: {
-    tipo: string;
-    descripcion: string;
-    sampleId?: number;
-    coleccionId?: number;
-}): Promise<void> {
-    const { trackingModule } = estado;
-    if (!trackingModule) return;
-    /* El tipo se valida por TipoAccionHistorial en el tracking module.
-     * Hacemos cast seguro porque los callers internos usan tipos conocidos. */
-    await trackingModule.registrarAccion(datos as Omit<import('./syncTrackingService').AccionHistorial, 'timestamp'>);
-}
-
-/* Registro de subidas locales */
-
-/*
- * Registra un archivo subido desde carpeta local:
- * - actualiza índice/tracking igual que una descarga
- * - agrega entrada de historial tipo "subida" para feedback persistente en panel
- */
-export async function registrarSubidaLocal(
-    sampleId: number,
-    ruta: string,
-    nombreArchivo: string,
-    coleccionId?: number | null,
-): Promise<void> {
-    await registrarDescarga(sampleId, ruta, nombreArchivo, nombreArchivo, coleccionId);
-
-    const { trackingModule } = estado;
-    if (!trackingModule) return;
-
-    await trackingModule.registrarAccion({
-        tipo: 'subida',
-        descripcion: `Archivo subido: "${nombreArchivo}"`,
-        sampleId,
-        coleccionId: coleccionId ?? undefined,
-    });
-
-    /* Historial per-sample v2: marcar como sincronizado */
-    if (trackingModule.actualizarEstadoSample) {
-        await trackingModule.actualizarEstadoSample({
-            sampleId,
-            nombreArchivo,
-            estado: 'sincronizado',
-            rutaLocal: ruta,
-        });
-    }
-}
-
-/* Operaciones de archivo */
-
-/*
- * Mueve un archivo de la raíz de sync a la carpeta "Sin colección" y actualiza tracking.
- */
-export async function moverArchivoASinColeccion(
-    rutaActual: string,
-    nombreArchivo: string,
-    sampleId: number,
-): Promise<string | null> {
-    if (!estado.config.carpetaLocal) return null;
-
-    try {
-        const { mkdir, rename } = await import('@tauri-apps/plugin-fs');
-        const { join } = await import('@tauri-apps/api/path');
-        const { trackingModule } = estado;
-
-        const carpetaSinCol = await join(estado.config.carpetaLocal, 'Sin colección');
-        await mkdir(carpetaSinCol, { recursive: true }).catch(() => { /* ya existe */ });
-
-        const nuevaRuta = await join(carpetaSinCol, nombreArchivo);
-
-        /*
-         * FIX: Marcar la nueva ruta como "descarga en curso" ANTES del rename.
-         * El rename produce un evento CREATE en el watcher que, sin este guard,
-         * genera una subida duplicada por race condition:
-         * el watcher detecta el CREATE antes de que el tracking se actualice.
-         *
-         * También marcar la ruta ORIGINAL como movimiento interno para que
-         * el evento DELETE no dispare manejarBorradoLocal → softDeleteEnServidor
-         * si la actualización de tracking falla.
-         */
-        marcarDescargaEnCurso(nuevaRuta);
-        marcarMovimientoInterno(rutaActual);
-
-        await rename(rutaActual, nuevaRuta);
-
-        if (trackingModule) {
-            const archivo = trackingModule.buscarArchivoPorSampleId(sampleId);
-            if (archivo) {
-                await trackingModule.registrarArchivo({
-                    ...archivo,
-                    rutaLocal: nuevaRuta,
-                    coleccionId: null,
-                });
-            }
-            await trackingModule.agregarSinColeccion(sampleId);
-            await trackingModule.registrarAccion({
-                tipo: 'movido',
-                descripcion: `${nombreArchivo} → Sin colección`,
-                sampleId,
-            });
-
-            /* Historial per-sample v2: actualizar ruta tras mover */
-            if (trackingModule.actualizarEstadoSample) {
-                await trackingModule.actualizarEstadoSample({
-                    sampleId,
-                    nombreArchivo,
-                    estado: 'sincronizado',
-                    rutaLocal: nuevaRuta,
-                    coleccionNombre: 'Sin colección',
-                });
-            }
-        }
-
-        const archivoV1 = estado.indiceArchivos.find(a => a.sampleId === sampleId);
-        if (archivoV1) {
-            archivoV1.ruta = nuevaRuta;
-            await guardarIndice();
-        }
-
-        console.info('[Sync] Archivo movido a Sin colección:', nombreArchivo);
-        return nuevaRuta;
-    } catch (err) {
-        console.error('[Sync] Error moviendo archivo a Sin colección:', err);
-        return null;
-    }
-}
-
-/* Sincronización principal */
-
-/*
- * Sincroniza la carpeta local con el servidor.
- * v2: delega a syncCollectionService. v1: fallback a syncDownloadV1.
- *
- * Lock concurrente: si ya hay una sync activa, retorna su resultado
- * en vez de ejecutar una segunda en paralelo (evita race conditions + IO duplicado).
- */
-export async function sincronizarConServidor(
-    onProgreso?: ProgressCallback,
-    opciones?: { forzar?: boolean },
-): Promise<{ nuevos: number; eliminados: number }> {
-    const { config, collectionModule } = estado;
-    const esForzado = opciones?.forzar ?? false;
-
-    if (!config.carpetaLocal || !estaOnline()) {
-        return { nuevos: 0, eliminados: 0 };
-    }
-
-    /* Si auto-sync está desactivada Y no es forzado, no ejecutar */
-    if (!config.sincronizacionActiva && !esForzado) {
-        return { nuevos: 0, eliminados: 0 };
-    }
-
-    /* Lock concurrente: si ya hay sync en curso, retornar misma Promise */
-    const lock = adquirirLockSync();
-    if (!lock.adquirido) {
-        logSync.debug('syncService', 'Sync ya en curso, esperando resultado existente');
-        return lock.promesaExistente as Promise<{ nuevos: number; eliminados: number }>;
-    }
-
-    const promesaSync = ejecutarSync(collectionModule, onProgreso);
-    registrarSyncActiva(promesaSync);
-
-    try {
-        return await promesaSync;
-    } finally {
-        liberarLockSync();
-    }
-}
-
-/*
- * Lógica interna de sync, separada del lock para claridad.
- */
-async function ejecutarSync(
-    collectionModule: typeof estado.collectionModule,
-    onProgreso?: ProgressCallback,
-): Promise<{ nuevos: number; eliminados: number }> {
-    const carpetaLocal = estado.config.carpetaLocal;
-    if (!carpetaLocal) return { nuevos: 0, eliminados: 0 };
-
-    /* C378: Forzar retry de items con error en la cola de uploads.
-     *
-     * Arquitectura multi-ventana Tauri: el sync panel (sync.html) ejecuta este código
-     * pero la cola real de uploads vive en la ventana principal (index.html).
-     * Los módulos importados aquí operan sobre instancias locales con cola vacía.
-     *
-     * Solución: accedemos directamente al Tauri Store compartido (fuente de verdad)
-     * y reseteamos los items en error. Además emitimos eventos para que la ventana
-     * principal refresque su cola en memoria y procese los items. */
-    try {
-        const { load } = await import('@tauri-apps/plugin-store');
-
-        /* 1. Resetear errores en upload-queue.json (cola de subida de archivos) */
-        const uploadStore = await load('upload-queue.json');
-        const uploadCola = await uploadStore.get<Array<{
-            id: string;
-            estado: string;
-            intentos: number;
-            ultimoError?: string;
-            timestampActualizado: number;
-            rutaArchivo: string;
-            [k: string]: unknown;
-        }>>('upload_cola');
-
-        if (uploadCola) {
-            let uploadCambios = false;
-            for (const item of uploadCola) {
-                if (item.estado === 'error') {
-                    item.estado = 'pendiente';
-                    item.intentos = 0;
-                    item.ultimoError = undefined;
-                    item.timestampActualizado = Date.now();
-                    uploadCambios = true;
-                }
-            }
-            if (uploadCambios) {
-                await uploadStore.set('upload_cola', uploadCola);
-                await uploadStore.save();
-                console.info('[Sync] Reseteados items con error en upload-queue.json (Store directo)');
-            }
-        }
-
-        /* 2. Resetear errores en offline-queue.json (cola de operaciones API) */
-        const offlineStore = await load('offline-queue.json');
-        const offlineCola = await offlineStore.get<Array<{
-            id: string;
-            intentos: number;
-            [k: string]: unknown;
-        }>>('operaciones_pendientes');
-
-        if (offlineCola) {
-            let offlineCambios = false;
-            for (const op of offlineCola) {
-                if (op.intentos > 0) {
-                    op.intentos = 0;
-                    offlineCambios = true;
-                }
-            }
-            if (offlineCambios) {
-                await offlineStore.set('operaciones_pendientes', offlineCola);
-                await offlineStore.save();
-                console.info('[Sync] Reseteados intentos en offline-queue.json (Store directo)');
-            }
-        }
-
-        /* 3. Resetear entradas del tracking historial (sync-config.json) que están en 'error'
-         *    para que la UI del panel muestre el estado correcto. */
-        const trackingStore = await load('sync-config.json');
-        const tracking = await trackingStore.get<{
-            historialSamples?: Array<{
-                estado: string;
-                error?: string;
-                timestampActualizado: number;
-                nombreArchivo: string;
-                [k: string]: unknown;
-            }>;
-            [k: string]: unknown;
-        }>('sync_tracking_v2');
-
-        if (tracking?.historialSamples) {
-            let trackingCambios = false;
-            for (const sample of tracking.historialSamples) {
-                if (sample.estado === 'error') {
-                    sample.estado = 'subiendo';
-                    sample.error = undefined;
-                    sample.timestampActualizado = Date.now();
-                    trackingCambios = true;
-                }
-            }
-            if (trackingCambios) {
-                await trackingStore.set('sync_tracking_v2', tracking);
-                await trackingStore.save();
-                console.info('[Sync] Reseteadas entradas de error en tracking historial (Store directo)');
-            }
-        }
-
-        /* 4. Emitir eventos Tauri para que la ventana principal recargue su cola
-         *    en memoria desde el Store ya actualizado y procese los items.
-         *    C385: escanear-subidas-local hace que la ventana principal escanee la
-         *    carpeta local y encole archivos que el watcher no detectó (startup,
-         *    archivos copiados mientras la app estaba cerrada). */
-        const { emit } = await import('@tauri-apps/api/event');
-        await emit('reintentar-errores-upload', {});
-        await emit('reintentar-errores-offline', {});
-        await emit('escanear-subidas-local', {});
-    } catch (e) {
-        logSync.warn('syncService', 'No se pudo reintentar colas de subida/offline antes de sync', { error: e instanceof Error ? e.message : String(e) });
-    }
-
-    if (collectionModule) {
-        try {
-            const resultado = await collectionModule.sincronizarColecciones(
-                carpetaLocal,
-                onProgreso ? (progreso) => {
-                    onProgreso({
-                        actual: progreso.actual,
-                        total: progreso.total,
-                        sampleId: progreso.sampleId ?? 0,
-                        nombre: progreso.nombre ?? '',
-                        estado: progreso.estado === 'omitido' ? 'descargado' : (progreso.estado ?? 'descargando'),
-                    });
-                } : undefined,
-            );
-
-            estado.config.ultimaSync = Date.now();
-            await guardarConfig();
-
-            /* Rehidratar imágenes de samples que aún no las tengan.
-             * El pipeline del backend genera imágenes async (~30-60s post-upload).
-             * Al ejecutar esto en cada ciclo de sync, convergemos eventualmente
-             * sin depender de timing del pipeline. */
-            rehidratarImagenesPendientes().catch(() => {});
-
-            return { nuevos: resultado.nuevos, eliminados: 0 };
-        } catch (err) {
-            logSync.error('syncService', 'Error en sync v2 (colecciones)', { error: err instanceof Error ? err.message : String(err) });
-            throw err;
-        }
-    }
-
-    return sincronizarConServidorV1(onProgreso);
-}
-
-/*
- * Sincroniza un sample individual a la carpeta local.
- */
-export async function sincronizarSampleIndividual(
-    sampleId: number,
-    carpetaPrimaria?: string,
-    carpetaSecundaria?: string,
-    coleccionId?: number,
-): Promise<string | null> {
-    if (!esDesktop() || !estaOnline()) return null;
-    if (!estado.config.carpetaLocal || !estado.config.sincronizacionActiva) return null;
-
-    const existente = obtenerRutaLocal(sampleId);
-    if (existente) return existente;
-
-    try {
-        const { mkdir, writeFile } = await import('@tauri-apps/plugin-fs');
-        const { join } = await import('@tauri-apps/api/path');
-        const baseUrl = obtenerBaseUrlSync();
-        const { trackingModule } = estado;
-
-        const { obtenerHeadersSyncGet } = await import('./syncGuards');
-        const respDescarga = await fetch(
-            `${baseUrl}/kamples/v1/samples/${sampleId}/descargar`,
-            { method: 'POST', headers: obtenerHeadersSyncGet() },
-        );
-        if (!respDescarga.ok) {
-            console.error(`[SyncIndividual] No se pudo obtener URL de descarga: ${respDescarga.status}`);
-            return null;
-        }
-        const { url: audioUrl, nombre, formato }: ResultadoDescargaApi =
-            await respDescarga.json();
-
-        const audioResp = await fetch(audioUrl);
-        if (!audioResp.ok) {
-            console.error(`[SyncIndividual] Error al descargar audio: ${audioResp.status}`);
-            return null;
-        }
-        const buffer = await audioResp.arrayBuffer();
-
-        const nombreArchivo = nombre.includes('.') ? nombre : `${nombre}.${formato}`;
-        const carpetaBase = estado.config.carpetaLocal;
-
-        let rutaDestino: string;
-        const coleccionLocal = coleccionId && trackingModule
-            ? trackingModule.obtenerColeccion(coleccionId)
-            : null;
-
-        if (coleccionLocal) {
-            rutaDestino = await join(carpetaBase, coleccionLocal.carpetaLocal);
-            try {
-                await mkdir(rutaDestino, { recursive: true });
-            } catch { /* puede existir */ }
-        } else {
-            const primaria = carpetaPrimaria || 'General';
-            rutaDestino = await join(carpetaBase, primaria);
-            try {
-                await mkdir(rutaDestino, { recursive: true });
-            } catch { /* puede existir */ }
-
-            if (carpetaSecundaria) {
-                rutaDestino = await join(rutaDestino, carpetaSecundaria);
-                try {
-                    await mkdir(rutaDestino, { recursive: true });
-                } catch { /* puede existir */ }
-            }
-        }
-
-        const rutaArchivo = await join(rutaDestino, nombreArchivo);
-        marcarDescargaEnCurso(rutaArchivo);
-
-        await writeFile(rutaArchivo, new Uint8Array(buffer));
-        await registrarDescarga(sampleId, rutaArchivo, nombre, nombreArchivo, coleccionId ?? null);
-
-        console.info(`[SyncIndividual] Sample ${sampleId} descargado a: ${rutaArchivo}`);
-        return rutaArchivo;
-    } catch (err) {
-        console.error(`[SyncIndividual] Error sincronizando sample ${sampleId}:`, err);
-        return null;
-    }
-}
-
 /* Utilidades */
 
 /*
@@ -701,7 +157,7 @@ export function extraerMetadataDeRuta(rutaCompleta: string): {
     return { carpetas, nombreArchivo, extension };
 }
 
-/* C358: Historial y colecciones */
+/* Historial y colecciones */
 
 export function obtenerHistorialSync(limite = 50): Array<{
     tipo: string;
@@ -733,26 +189,6 @@ export function obtenerHistorialSamplesSync(limite = 50): Array<{
     return estado.trackingModule.obtenerHistorialSamples(limite);
 }
 
-/**
- * Upsert en historial per-sample: actualiza el estado de un sample existente
- * o crea nueva entrada. Un sample = una fila, estado mutable.
- */
-export async function actualizarEstadoSampleHistorial(datos: {
-    sampleId: number;
-    nombreArchivo: string;
-    estado: string;
-    imagenUrl?: string | null;
-    rutaLocal?: string | null;
-    coleccionNombre?: string;
-    error?: string;
-}): Promise<void> {
-    const { trackingModule } = estado;
-    if (!trackingModule?.actualizarEstadoSample) return;
-    await trackingModule.actualizarEstadoSample(
-        datos as Parameters<typeof trackingModule.actualizarEstadoSample>[0],
-    );
-}
-
 export async function limpiarHistorialSync(): Promise<void> {
     if (!estado.trackingModule) return;
     await estado.trackingModule.limpiarHistorial();
@@ -770,35 +206,6 @@ export async function limpiarHistorialSync(): Promise<void> {
 export async function recargarHistorialDesdeStore(): Promise<void> {
     if (!estado.trackingModule?.recargarHistorialDesdeStore) return;
     await estado.trackingModule.recargarHistorialDesdeStore();
-}
-
-/* C7: Reducido de 15s a 5s para que imágenes asignadas via web se muestren más rápido */
-const REHIDRATAR_IMAGENES_INTERVALO_MS = 5_000;
-let ultimaRehidratacionImagenes = 0;
-
-function normalizarUrlImagenHistorial(url: string | null | undefined): string | null {
-    if (!url) return null;
-    return url.trim() || null;
-}
-
-/**
- * Rehidratación periódica de portadas para entradas del historial.
- * Si la URL cambió en el servidor, reemplaza también la portada ya persistida.
- * Diseñada para ser llamada frecuentemente (ej: polling UI); tiene throttle interno.
- */
-export async function rehidratarImagenesPendientesSync(): Promise<void> {
-    const ahora = Date.now();
-    if (ahora - ultimaRehidratacionImagenes < REHIDRATAR_IMAGENES_INTERVALO_MS) return;
-    ultimaRehidratacionImagenes = ahora;
-    await rehidratarImagenesPendientes();
-}
-
-export async function rehidratarImagenesPendientesForzadoSync(): Promise<void> {
-    const ahora = Date.now();
-    /* Forzado: permite rehidratación inmediata tras upload exitoso,
-     * pero actualiza marca temporal para evitar tormenta de requests. */
-    ultimaRehidratacionImagenes = ahora;
-    await rehidratarImagenesPendientes();
 }
 
 export function obtenerColeccionesSync(): Array<{
@@ -831,98 +238,3 @@ export function obtenerColeccionesSync(): Array<{
     return resultado;
 }
 
-export async function forzarResync(
-    onProgreso?: ProgressCallback,
-): Promise<{ nuevos: number; eliminados: number }> {
-    const { trackingModule } = estado;
-
-    if (trackingModule) {
-        await trackingModule.resetearTracking();
-        await trackingModule.registrarAccion({
-            tipo: 'creado',
-            descripcion: 'Re-sync forzada por el usuario',
-        });
-    }
-
-    /*
-     * Limpiar hashes de uploads conocidos: sin esto, archivos previamente subidos
-     * se rechazan como duplicados incluso después de resetear tracking.
-     * hashesConocidos es write-only por diseño (monotónico), así que necesita
-     * limpieza explícita cuando el tracking se resetea.
-     */
-    try {
-        const { limpiarHashesConocidos } = await import('./uploadQueueService');
-        await limpiarHashesConocidos();
-    } catch {
-        /* uploadQueueService no disponible — continuar sin limpiar hashes */
-    }
-
-    estado.indiceArchivos = [];
-    await guardarIndice();
-
-    return sincronizarConServidor(onProgreso);
-}
-
-/*
- * Rehidrata imágenes de portada para entradas del historial que no las tienen.
- * Usa batch fetch: GET /samples?creador=username para obtener todas las imágenes
- * del usuario en una sola request, luego mapea sampleId → imagenUrl.
- *
- * Se lanza en background al inicializar el sync service. No bloquea el flujo.
- * Reconciliación eventual: corrige tanto imágenes ausentes como imágenes reemplazadas
- * en el servidor.
- */
-async function rehidratarImagenesPendientes(): Promise<void> {
-    const { trackingModule, collectionModule } = estado;
-    if (!trackingModule?.obtenerHistorialSamples || !trackingModule?.actualizarEstadoSample) return;
-    if (!collectionModule?.obtenerColeccionesDelServidor) return;
-    if (!estaOnline()) return;
-
-    const historial = trackingModule.obtenerHistorialSamples(100);
-    const historialConSample = historial.filter(e => e.sampleId > 0);
-    if (historialConSample.length === 0) return;
-
-    try {
-        const datos = await collectionModule.obtenerColeccionesDelServidor();
-        if (!datos) return;
-
-        /* Construir mapa sampleId → imagenUrl para O(1) lookup desde snapshot de sync. */
-        const mapaImagenes = new Map<number, string>();
-        for (const coleccion of datos.colecciones) {
-            for (const sample of coleccion.samples) {
-                const imagen = sample.imagenUrl ?? sample.imagen_url ?? null;
-                if (sample.id && imagen) {
-                    mapaImagenes.set(sample.id, imagen);
-                }
-            }
-        }
-        for (const sample of datos.sinColeccion) {
-            const imagen = sample.imagenUrl ?? sample.imagen_url ?? null;
-            if (sample.id && imagen) {
-                mapaImagenes.set(sample.id, imagen);
-            }
-        }
-
-        /* Reconciliar entradas cuyo snapshot remoto ya tiene portada disponible. */
-        let actualizadas = 0;
-        for (const entrada of historialConSample) {
-            const urlImagen = normalizarUrlImagenHistorial(mapaImagenes.get(entrada.sampleId));
-            const urlActual = normalizarUrlImagenHistorial(entrada.imagenUrl);
-            if (urlImagen && urlImagen !== urlActual) {
-                await trackingModule.actualizarEstadoSample({
-                    sampleId: entrada.sampleId,
-                    nombreArchivo: entrada.nombreArchivo,
-                    estado: entrada.estado,
-                    imagenUrl: urlImagen,
-                });
-                actualizadas++;
-            }
-        }
-
-        if (actualizadas > 0) {
-            console.info(`[Sync] Reconciliadas ${actualizadas} imágenes de samples en historial`);
-        }
-    } catch (err) {
-        logSync.error('syncService', 'Error rehidratando imágenes pendientes', { error: err instanceof Error ? err.message : String(err) });
-    }
-}

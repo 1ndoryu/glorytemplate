@@ -320,8 +320,10 @@ function procesarEvento(
      * Manejo explícito de rename/move nativo del FS.
      * Algunos proveedores emiten modify.kind = 'name' con 2 paths (origen, destino)
      * en vez de remove+create. Si no lo manejamos aquí, el move se pierde.
+     * TA4: try-catch para evitar que un fallo en callbacks detenga el watcher loop.
      */
     if (esEventoRename(tipo) && evento.paths.length >= 2) {
+      try {
         const rutaOrigen = evento.paths[0] ?? '';
         const rutaDestino = evento.paths[1] ?? '';
         const origenNorm = rutaOrigen.replace(/\\/g, '/');
@@ -423,6 +425,11 @@ function procesarEvento(
                 return;
             }
         }
+      } catch (err) {
+        logSync.error('watcher', 'Error procesando evento rename', {
+            error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     for (const ruta of evento.paths) {

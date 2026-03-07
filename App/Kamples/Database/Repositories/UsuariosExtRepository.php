@@ -96,11 +96,22 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
-     * Adquirir advisory lock para operaciones TOCTOU.
+     * Adquirir advisory lock de sesión para operaciones TOCTOU.
+     * Usar pg_advisory_lock (session-level) en vez de pg_advisory_xact_lock
+     * porque con PDO autocommit cada query es su propia transacción.
+     * DEBE llamarse advisoryUnlock() al terminar (idealmente en bloque finally).
      */
     public static function advisoryLock(int $userId): void
     {
-        static::ejecutar("SELECT pg_advisory_xact_lock(:lockId)", ['lockId' => $userId]);
+        static::ejecutar("SELECT pg_advisory_lock(:lockId)", ['lockId' => $userId]);
+    }
+
+    /*
+     * Liberar advisory lock de sesión adquirido con advisoryLock().
+     */
+    public static function advisoryUnlock(int $userId): void
+    {
+        static::ejecutar("SELECT pg_advisory_unlock(:lockId)", ['lockId' => $userId]);
     }
 
     /*

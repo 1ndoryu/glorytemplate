@@ -24,6 +24,17 @@ use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
 
+/*
+ * TO-DO [A3+A4]: Extraer lógica de negocio a ColeccionesService.php
+ * Este controller excede 300 LOC y mezcla validación, lógica de negocio y respuesta HTTP.
+ * Refactor propuesto:
+ *   - A3: Crear App\Kamples\Services\ColeccionesService con métodos:
+ *     crearColeccion(), actualizarColeccion(), eliminarColeccion(), listarSamples(), etc.
+ *   - A4: Strategy pattern para campos de actualizar(): cada campo (nombre, imagen, orden)
+ *     se valida y aplica con un handler independiente. Hoy el switch/if es frágil.
+ *   - El controller queda como delegador: validar request → llamar service → responder.
+ *   - Prioridad: MEDIA. No hay bug, pero dificulta testing y crece con cada feature.
+ */
 class ColeccionesCrudController
 {
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
@@ -63,14 +74,17 @@ class ColeccionesCrudController
             ], 400);
         }
 
-        /* F2.1: Registrar en changelog para delta sync */
+        /* F2.1: Registrar en changelog para delta sync (M4: verificar retorno) */
         if ($id !== null) {
-            SyncChangelogRepository::registrar(
+            $changelogId = SyncChangelogRepository::registrar(
                 $userId,
                 SyncChangelogEnums::TIPO_COLLECTION_CREATED,
                 $id,
                 ['nombre' => $nombre, 'parentId' => $parentId]
             );
+            if ($changelogId === null) {
+                KamplesLogger::critical('Fallo registrar changelog crear coleccion', ['userId' => $userId, 'colId' => $id]);
+            }
         }
 
         return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
@@ -136,14 +150,17 @@ class ColeccionesCrudController
             ], 409);
         }
 
-        /* F2.1: Registrar rename en changelog si cambio el nombre */
+        /* F2.1: Registrar rename en changelog si cambio el nombre (M4: verificar retorno) */
         if (isset($params['nombre'])) {
-            SyncChangelogRepository::registrar(
+            $changelogId = SyncChangelogRepository::registrar(
                 $userId,
                 SyncChangelogEnums::TIPO_COLLECTION_RENAMED,
                 $id,
                 ['nombreAnterior' => $coleccion[ColeccionesCols::NOMBRE] ?? '', 'nombreNuevo' => $params['nombre']]
             );
+            if ($changelogId === null) {
+                KamplesLogger::critical('Fallo registrar changelog rename coleccion', ['userId' => $userId, 'colId' => $id]);
+            }
         }
 
         return new \WP_REST_Response(['ok' => true], 200);
@@ -168,13 +185,16 @@ class ColeccionesCrudController
             $rows = ColeccionesRepository::eliminarDelUsuario($id, $userId);
         }
 
-        /* F2.1: Registrar eliminacion en changelog */
+        /* F2.1: Registrar eliminacion en changelog (M4: verificar retorno) */
         if ($rows > 0) {
-            SyncChangelogRepository::registrar(
+            $changelogId = SyncChangelogRepository::registrar(
                 $userId,
                 SyncChangelogEnums::TIPO_COLLECTION_DELETED,
                 $id
             );
+            if ($changelogId === null) {
+                KamplesLogger::critical('Fallo registrar changelog eliminar coleccion', ['userId' => $userId, 'colId' => $id]);
+            }
         }
 
         return new \WP_REST_Response(['ok' => $rows > 0], $rows > 0 ? 200 : 404);
@@ -208,14 +228,16 @@ class ColeccionesCrudController
 
             $archivo = $files['imagen'];
 
-            /* Validar tipo MIME — solo imágenes */
+            /* A1: Validar tipo MIME desde el archivo real del servidor (no del header HTTP del cliente) */
             $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-            if (!in_array($archivo['type'], $tiposPermitidos, true)) {
+            $tipoReal = \function_exists('mime_content_type') ? \mime_content_type($archivo['tmp_name']) : $archivo['type'];
+            if (!in_array($tipoReal, $tiposPermitidos, true)) {
                 return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => 'Solo se permiten imágenes JPG, PNG, WebP o GIF'], 400);
             }
 
-            /* Validar tamaño: máx 5 MB */
-            if ($archivo['size'] > 5 * 1024 * 1024) {
+            /* Validar tamaño desde el archivo real del servidor: máx 5 MB */
+            $tamanoReal = \filesize($archivo['tmp_name']);
+            if ($tamanoReal === false || $tamanoReal > 5 * 1024 * 1024) {
                 return new \WP_REST_Response(['code' => 'archivo_muy_grande', 'message' => 'La imagen no puede superar 5MB'], 400);
             }
 
@@ -268,17 +290,19 @@ class ColeccionesCrudController
             return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
         }
 
-        $nextPos = ColeccionSamplesRepository::siguientePosicion($colId);
-        ColeccionSamplesRepository::agregar($colId, $sampleId, $nextPos);
+        ColeccionSamplesRepository::agregarAtomico($colId, $sampleId);
         ColeccionesRepository::tocarTimestamp($colId);
 
-        /* F2.1: Registrar sample agregado en changelog */
-        SyncChangelogRepository::registrar(
+        /* F2.1: Registrar sample agregado en changelog (M4: verificar retorno) */
+        $changelogId = SyncChangelogRepository::registrar(
             $userId,
             SyncChangelogEnums::TIPO_SAMPLE_ADDED,
             $sampleId,
             ['coleccionId' => $colId]
         );
+        if ($changelogId === null) {
+            KamplesLogger::critical('Fallo registrar changelog agregar sample', ['userId' => $userId, 'sampleId' => $sampleId, 'colId' => $colId]);
+        }
 
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
@@ -304,13 +328,16 @@ class ColeccionesCrudController
 
         ColeccionSamplesRepository::quitar($colId, $sampleId);
 
-        /* F2.1: Registrar sample quitado en changelog */
-        SyncChangelogRepository::registrar(
+        /* F2.1: Registrar sample quitado en changelog (M4: verificar retorno) */
+        $changelogId = SyncChangelogRepository::registrar(
             $userId,
             SyncChangelogEnums::TIPO_SAMPLE_REMOVED,
             $sampleId,
             ['coleccionId' => $colId]
         );
+        if ($changelogId === null) {
+            KamplesLogger::critical('Fallo registrar changelog quitar sample', ['userId' => $userId, 'sampleId' => $sampleId, 'colId' => $colId]);
+        }
 
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {

@@ -18,18 +18,25 @@ interface ConfigCircuitBreaker {
     umbralFallos: number;
     tiempoRecuperacionMs: number;
     nombre: string;
+    /* TB2: TTL de inactividad — si no hay actividad (ni éxitos ni fallos) por este
+     * tiempo, el circuito se resetea automáticamente a cerrado. Previene que un
+     * circuito abierto por un error puntual bloquee operaciones indefinidamente
+     * si nadie ejecuta puedeEjecutar() durante un periodo largo (app idle). */
+    ttlInactividadMs: number;
 }
 
 const CONFIG_DEFAULT: ConfigCircuitBreaker = {
     umbralFallos: 3,
     tiempoRecuperacionMs: 30_000,
     nombre: 'sync',
+    ttlInactividadMs: 30 * 60 * 1000, /* 30 minutos */
 };
 
 export class CircuitBreaker {
     private estado: EstadoCircuito = 'cerrado';
     private fallosConsecutivos = 0;
     private ultimoFallo = 0;
+    private ultimaActividad = Date.now();
     private config: ConfigCircuitBreaker;
 
     constructor(config?: Partial<ConfigCircuitBreaker>) {
@@ -39,8 +46,20 @@ export class CircuitBreaker {
     /**
      * Verifica si el circuito permite ejecutar operaciones.
      * En estado abierto, verifica si ya pasó el tiempo de recuperación.
+     * TB2: Si no hay actividad por ttlInactividadMs, resetea a cerrado.
      */
     puedeEjecutar(): boolean {
+        /* TB2: Auto-reset por inactividad */
+        if (this.estado !== 'cerrado') {
+            const tiempoSinActividad = Date.now() - this.ultimaActividad;
+            if (tiempoSinActividad >= this.config.ttlInactividadMs) {
+                logSync.info('circuitBreaker', `[${this.config.nombre}] Auto-reset por inactividad (${Math.round(tiempoSinActividad / 60000)}min sin actividad)`);
+                this.estado = 'cerrado';
+                this.fallosConsecutivos = 0;
+                return true;
+            }
+        }
+
         if (this.estado === 'cerrado') return true;
 
         if (this.estado === 'abierto') {
@@ -62,6 +81,7 @@ export class CircuitBreaker {
      * En semi-abierto, cierra el circuito (recuperación confirmada).
      */
     registrarExito(): void {
+        this.ultimaActividad = Date.now();
         if (this.estado === 'semi_abierto') {
             logSync.info('circuitBreaker', `[${this.config.nombre}] Transición SEMI-ABIERTO → CERRADO (recuperado)`);
         }
@@ -76,6 +96,7 @@ export class CircuitBreaker {
     registrarFallo(): void {
         this.fallosConsecutivos++;
         this.ultimoFallo = Date.now();
+        this.ultimaActividad = Date.now();
 
         if (this.estado === 'semi_abierto') {
             this.estado = 'abierto';

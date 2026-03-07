@@ -104,6 +104,10 @@ export interface BaseSyncLocal {
      * Indexado como mapa para O(1) lookup, serializado como array para persistencia.
      */
     historialSamples: EntradaHistorialSample[];
+    /* TC1: Versión monotónica para detección de escrituras concurrentes cross-window.
+     * Se incrementa en cada escribirEnStore(). Si al leer del Store la versión es mayor
+     * que la local, significa que otra ventana escribió — merger obligatorio antes de write. */
+    checkpointVersion?: number;
 }
 
 /* Estado interno */
@@ -137,6 +141,12 @@ const sinColeccionSet = new Set<number>();
 
 /* Modo lote: suspende persistencia hasta finalizarLote(). Evita 100+ escrituras en sync masiva. */
 let enLote = false;
+
+/* TA1: Referencia al unlisten del listener cross-window para cleanup en reinicialización */
+let limpiarHistorialUnlisten: (() => void) | null = null;
+
+/* TC1: Versión local conocida del Store. Se compara con la del Store antes de escribir. */
+let versionLocalConocida = 0;
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- Tauri Store typing requires flexible interface */
 let storeCache: { get: <T>(key: string) => Promise<T | null>; set: (key: string, val: unknown) => Promise<void>; save: () => Promise<void> } | null = null;
@@ -233,14 +243,51 @@ async function registrarEnJournal(tipo: TipoOperacionJournal, datosOp: unknown):
 
 /**
  * Escribe el estado completo al Tauri Store (para acceso cross-window).
- * Incluye fusión de historialSamples para mantener coherencia entre ventanas.
+ * TC1: Incluye version gate — si otra ventana escribió una versión más nueva,
+ * re-leer y fusionar antes de escribir para evitar sobrescribir datos.
  */
 async function escribirEnStore(): Promise<void> {
     if (!storeCache) return;
+
     const almacenado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+    const versionStore = almacenado?.checkpointVersion ?? 0;
+
+    /* TC1: Si la versión del Store es mayor que la nuestra, otra ventana escribió.
+     * Re-leer el estado completo del Store antes de mergear historial. */
+    if (versionStore > versionLocalConocida && almacenado) {
+        logSync.info('tracking', `TC1: Versión Store (${versionStore}) > local (${versionLocalConocida}), fusionando datos cross-window`);
+
+        /* Fusionar archivos: preferir datos locales (nuestra ventana es la que hizo cambios),
+         * pero importar archivos que la otra ventana añadió y nosotros no tenemos */
+        for (const [clave, archivoRemoto] of Object.entries(almacenado.archivos)) {
+            if (!datos.archivos[clave]) {
+                datos.archivos[clave] = archivoRemoto;
+            }
+        }
+
+        /* Fusionar colecciones: importar las que no tenemos */
+        for (const [idStr, colRemota] of Object.entries(almacenado.colecciones)) {
+            const id = Number(idStr);
+            if (!datos.colecciones[id]) {
+                datos.colecciones[id] = colRemota;
+            }
+        }
+
+        /* Fusionar sinColeccion: unión de sets */
+        const sinColSet = new Set([...datos.sinColeccion, ...almacenado.sinColeccion]);
+        datos.sinColeccion = Array.from(sinColSet);
+
+        reconstruirIndices();
+    }
+
     if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
         fusionarHistorialSamplesPersistidos(datos.historialSamples, almacenado.historialSamples);
     }
+
+    /* TC1: Incrementar versión y escribir */
+    versionLocalConocida = versionStore + 1;
+    datos.checkpointVersion = versionLocalConocida;
+
     await storeCache.set(STORE_KEY_TRACKING, datos);
     await storeCache.save();
 }
@@ -285,6 +332,8 @@ export async function inicializarTracking(): Promise<void> {
             const guardado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
             if (guardado) {
                 datos = { ...guardado, historialSamples: guardado.historialSamples ?? [] };
+                /* TC1: Sincronizar versión local con la del Store */
+                versionLocalConocida = guardado.checkpointVersion ?? 0;
             }
         } catch {
             /* Store no disponible — usar defaults vacíos */
@@ -305,10 +354,15 @@ export async function inicializarTracking(): Promise<void> {
      * Listener cross-window: cuando otra ventana limpia el historial,
      * actualizar la copia in-memory para que el próximo persistir()
      * no sobreescriba el Store con datos viejos.
+     * TA1: Guardar unlisten para prevenir acumulación de listeners en reinicializaciones.
      */
     try {
+        if (limpiarHistorialUnlisten) {
+            limpiarHistorialUnlisten();
+            limpiarHistorialUnlisten = null;
+        }
         const { listen } = await import('@tauri-apps/api/event');
-        void listen('limpiar-historial-samples', () => {
+        limpiarHistorialUnlisten = await listen('limpiar-historial-samples', () => {
             datos.historialSamples = [];
             indiceSampleHistorial.clear();
             indiceNombreSampleHistorial.clear();

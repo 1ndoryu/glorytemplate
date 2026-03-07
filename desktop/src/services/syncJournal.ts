@@ -128,23 +128,20 @@ export async function checkpoint(): Promise<void> {
         const payload = JSON.stringify({ meta, estado: estadoActual });
         await writeTextFile(CHECKPOINT_FILE, payload, { baseDir: BaseDirectory.AppData });
 
-        /* Truncar journal */
+        /* TA3: Notificar al consumidor ANTES de truncar el journal.
+         * Si el callback falla, el journal permanece intacto para recovery.
+         * Sin esto, un fallo en la persistencia del Store deja datos stale
+         * y sin journal para re-aplicar al reiniciar. */
+        if (onCheckpointCallback) {
+            await onCheckpointCallback(estadoActual);
+        }
+
+        /* Truncar journal DESPUÉS de que el callback confirme éxito */
         await writeTextFile(JOURNAL_FILE, '', { baseDir: BaseDirectory.AppData });
 
         operacionesPendientes = [];
         operacionesSinCheckpoint = 0;
         ultimoCheckpoint = Date.now();
-
-        /* Notificar al consumidor para persistencia adicional (ej: Tauri Store) */
-        if (onCheckpointCallback) {
-            try {
-                await onCheckpointCallback(estadoActual);
-            } catch (err) {
-                logSync.warn('journal', 'Error en callback de checkpoint', {
-                    error: err instanceof Error ? err.message : String(err)
-                });
-            }
-        }
 
         logSync.debug('journal', `Checkpoint completado (${meta.totalOperaciones} ops consolidadas)`);
     } catch (error) {

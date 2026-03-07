@@ -120,67 +120,124 @@ class DescargasController
          */
         if ($consumeCredito) {
             $limite = $configPlan['descargas_dia'] ?? 5;
-            /* O14: Advisory lock para evitar race condition TOCTOU */
+            /* O14: Advisory lock para evitar race condition TOCTOU — try/finally garantiza unlock */
+            $lockAdquirido = false;
             if ($limite > 0) {
                 UsuariosExtRepository::advisoryLock($userId);
+                $lockAdquirido = true;
 
-                /* C198: Sumar creditos_bonus al límite diario */
-                $creditosBonus = UsuariosExtRepository::obtenerCreditosBonus($userId);
-                $limiteEfectivo = $limite + $creditosBonus;
+                try {
+                    /* C198: Sumar creditos_bonus al límite diario */
+                    $creditosBonus = UsuariosExtRepository::obtenerCreditosBonus($userId);
+                    $limiteEfectivo = $limite + $creditosBonus;
 
-                $descargasHoy = DescargasRepository::contarHoy($userId);
+                    $descargasHoy = DescargasRepository::contarHoy($userId);
 
-                if ($descargasHoy >= $limiteEfectivo) {
-                    return new \WP_REST_Response([
-                        'ok' => false,
-                        'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias.",
-                        'limite' => $limiteEfectivo,
-                        'usadas' => $descargasHoy,
-                        'sinCredito' => true,
-                    ], 429);
+                    if ($descargasHoy >= $limiteEfectivo) {
+                        return new \WP_REST_Response([
+                            'ok' => false,
+                            'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias.",
+                            'limite' => $limiteEfectivo,
+                            'usadas' => $descargasHoy,
+                            'sinCredito' => true,
+                        ], 429);
+                    }
+
+                    /* Verificar límite de transferencia mensual (GB) */
+                    $limiteGb = $configPlan['transferencia_gb'] ?? 1;
+                    if ($limiteGb > 0 && $rutaArchivo) {
+                        $tamanoArchivo = \is_readable($rutaArchivo) ? \filesize($rutaArchivo) : 0;
+                        $totalBytes = DescargasRepository::transferidoMesBytes($userId);
+                        $limiteBytes = $limiteGb * 1073741824;
+                        if (($totalBytes + $tamanoArchivo) > $limiteBytes) {
+                            $usadoGb = \round($totalBytes / 1073741824, 2);
+                            return new \WP_REST_Response([
+                                'ok' => false,
+                                'error' => "Límite de {$limiteGb} GB de transferencia mensual alcanzado ({$usadoGb} GB usados).",
+                                'limiteGb' => $limiteGb,
+                                'usadoGb' => $usadoGb,
+                            ], 429);
+                        }
+                    }
+
+                    /* Registrar descarga DENTRO del lock para atomicidad */
+                    $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
+
+                    DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
+                } finally {
+                    UsuariosExtRepository::advisoryUnlock($userId);
+                    $lockAdquirido = false;
+                }
+
+                /* Re-verificar permiso de descarga justo después del registro (M2: anti race condition estado) */
+                $sampleActualizado = SamplesRepository::buscarParaDescarga($sampleId);
+                if (!$sampleActualizado || (!(bool) $sampleActualizado[SamplesCols::PERMITIR_DESCARGA] && !$esPropietario)) {
+                    KamplesLogger::warn('Sample cambió de estado durante descarga', ['sampleId' => $sampleId]);
+                }
+
+                /* Incrementar contadores con verificación de retorno (M3) */
+                if (!SamplesRepository::incrementarDescargas($sampleId)) {
+                    KamplesLogger::warn('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
+                }
+                if (!UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID])) {
+                    KamplesLogger::warn('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
+                }
+
+                /* F2.1: Nuevo sample disponible para sync desktop */
+                $changelogId = SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+                    $sampleId,
+                    ['titulo' => $sample[SamplesCols::TITULO] ?? '', 'formato' => $calidad]
+                );
+                if ($changelogId === null) {
+                    KamplesLogger::critical('Fallo registrar changelog sync descarga', [
+                        'userId' => $userId, 'sampleId' => $sampleId,
+                    ]);
+                }
+            } else {
+                /* Límite deshabilitado (-1 = ilimitado): registrar sin lock */
+                $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
+
+                DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
+
+                if (!SamplesRepository::incrementarDescargas($sampleId)) {
+                    KamplesLogger::warn('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
+                }
+                if (!UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID])) {
+                    KamplesLogger::warn('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
+                }
+
+                $changelogId = SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+                    $sampleId,
+                    ['titulo' => $sample[SamplesCols::TITULO] ?? '', 'formato' => $calidad]
+                );
+                if ($changelogId === null) {
+                    KamplesLogger::critical('Fallo registrar changelog sync descarga', [
+                        'userId' => $userId, 'sampleId' => $sampleId,
+                    ]);
                 }
             }
-
-            /* Verificar límite de transferencia mensual (GB) */
-            $limiteGb = $configPlan['transferencia_gb'] ?? 1;
-            if ($limiteGb > 0 && $rutaArchivo) {
-                $tamanoArchivo = @\filesize($rutaArchivo) ?: 0;
-                $totalBytes = DescargasRepository::transferidoMesBytes($userId);
-                $limiteBytes = $limiteGb * 1073741824;
-                if (($totalBytes + $tamanoArchivo) > $limiteBytes) {
-                    $usadoGb = \round($totalBytes / 1073741824, 2);
-                    return new \WP_REST_Response([
-                        'ok' => false,
-                        'error' => "Límite de {$limiteGb} GB de transferencia mensual alcanzado ({$usadoGb} GB usados).",
-                        'limiteGb' => $limiteGb,
-                        'usadoGb' => $usadoGb,
-                    ], 429);
-                }
-            }
-        }
-
-        $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
-
-        /* Registrar descarga si consume crédito */
-        if ($consumeCredito) {
-            DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
-            SamplesRepository::incrementarDescargas($sampleId);
-            UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID]);
-
-            /* F2.1: Nuevo sample disponible para sync desktop */
-            SyncChangelogRepository::registrar(
-                $userId,
-                SyncChangelogEnums::TIPO_SAMPLE_ADDED,
-                $sampleId,
-                ['titulo' => $sample[SamplesCols::TITULO] ?? '', 'formato' => $calidad]
-            );
+        } else {
+            $tamanoBytes = ($rutaArchivo && \file_exists($rutaArchivo)) ? \filesize($rutaArchivo) : 0;
         }
 
         PlanificadorAlgoritmo::registrarInteraccion($userId, 'descarga');
 
-        /* Revenue share si descargador tiene plan de pago */
+        /* C3: Revenue share — si falla, encolar retry (la descarga ya se registró, creador debe recibir pago) */
         if ($plan !== UsuariosExtEnums::PLAN_FREE && (int) $sample[SamplesCols::CREADOR_ID] !== $userId) {
-            self::registrarTransaccionRevenueShare($userId, (int) $sample[SamplesCols::CREADOR_ID], $sampleId, $plan);
+            $revenueOk = self::registrarTransaccionRevenueShare($userId, (int) $sample[SamplesCols::CREADOR_ID], $sampleId, $plan);
+            if (!$revenueOk) {
+                KamplesLogger::critical('Revenue share fallido — encolar retry', [
+                    'compradorId' => $userId,
+                    'creadorId' => (int) $sample[SamplesCols::CREADOR_ID],
+                    'sampleId' => $sampleId,
+                    'plan' => $plan,
+                ]);
+                /* TO-DO: wp_schedule_single_event() para reintentar revenue share en background */
+            }
         }
 
         /* C202: Generar token firmado temporal (30 min) para streaming seguro */
@@ -263,6 +320,7 @@ class DescargasController
 
     /**
      * Registra transacción de revenue share al descargar un sample.
+     * Retorna true si la transacción se registró, false si falló.
      * Usado también por DescargasZipController.
      */
     public static function registrarTransaccionRevenueShare(
@@ -270,15 +328,15 @@ class DescargasController
         int $creadorId,
         int $sampleId,
         string $plan
-    ): void {
+    ): bool {
         try {
         $configPlan = StripeService::obtenerConfigPlan($plan);
         $precioMensual = $configPlan['precio_mensual'] ?? 0;
         $revenueShare = $configPlan['revenue_share'] ?? 0;
 
-        if ($precioMensual <= 0 || $revenueShare <= 0) return;
+        if ($precioMensual <= 0 || $revenueShare <= 0) return true;
 
-        /* Modelo: fracción del precio mensual / 200 descargas estimadas × revenue share */
+        /* Modelo: fracción del precio mensual / 200 descargas estimadas x revenue share */
         $descargasBaseEstimadas = 200;
         $montoPorDescarga = $precioMensual / $descargasBaseEstimadas;
         $pagoCreador = \round($montoPorDescarga * $revenueShare, 4);
@@ -288,6 +346,7 @@ class DescargasController
             $compradorId, $creadorId, $sampleId,
             \round($montoPorDescarga, 4), $pagoCreador, $comisionPlataforma
         );
+        return true;
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en registrarTransaccionRevenueShare', [
                 'compradorId' => $compradorId,
@@ -295,6 +354,7 @@ class DescargasController
                 'sampleId' => $sampleId,
                 'error' => $e->getMessage(),
             ]);
+            return false;
         }
     }
 }

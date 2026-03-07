@@ -66,6 +66,7 @@ class SyncController
             $colecciones = array_map(function (array $col): array {
                 $samplesJson = $col['samples_json'] ?? '[]';
                 $samples = is_string($samplesJson) ? json_decode($samplesJson, true) : $samplesJson;
+                $jsonError = false;
 
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     KamplesLogger::error('SyncController: Error parseando samples_json', [
@@ -73,9 +74,10 @@ class SyncController
                         'json_error'   => json_last_error_msg(),
                     ]);
                     $samples = [];
+                    $jsonError = true;
                 }
 
-                return [
+                $resultado = [
                     'id'        => (int) $col['id'],
                     'nombre'    => $col['nombre'],
                     'parent_id' => isset($col[ColeccionesCols::PARENT_ID]) ? (int) $col[ColeccionesCols::PARENT_ID] : null,
@@ -88,6 +90,12 @@ class SyncController
                         'imagen_url' => $s['imagen_url'] ?? null,
                     ], $samples ?? []),
                 ];
+
+                if ($jsonError) {
+                    $resultado['_jsonError'] = true;
+                }
+
+                return $resultado;
             }, $coleccionesRaw);
 
             /* Normalizar sinColeccion (ya viene plano del repo) */

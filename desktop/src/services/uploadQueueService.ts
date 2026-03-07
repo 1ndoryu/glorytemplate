@@ -120,6 +120,15 @@ const hashesEnVuelo = new Set<string>();
  */
 const rutasEnVuelo = new Set<string>();
 
+/*
+ * TC2: Guard de hash pendiente para encolarArchivoInterno.
+ * Problema: dos llamados concurrentes a encolarArchivoInterno calculan hash en paralelo
+ * (await calcularHashParcial). Ambos pueden pasar hashesConocidos.has() y cola.some()
+ * porque ninguno ha terminado de encolar aún. Este Set se marca SÍNCRONAMENTE después
+ * del await del hash y antes de cola.push, cerrando la ventana de race.
+ */
+const hashesPendientesEncola = new Set<string>();
+
 function normalizarRutaCola(ruta: string): string {
     return ruta.replace(/\\/g, '/');
 }
@@ -391,6 +400,19 @@ async function encolarArchivoInterno(
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
 
+    /* TC2: Verificar si otro encolarArchivoInterno concurrente już reservó este hash.
+     * Este check es síncrono e inmediatamente después del await, cerrando la ventana
+     * de race entre dos llamados que calculan hash en paralelo. */
+    if (hash && hashesPendientesEncola.has(hash)) {
+        console.info('[UploadQueue] Duplicado: hash ya reservado por encola concurrente, moviendo a duplicados/:', nombreNormalizado);
+        await moverADuplicados(rutaArchivo, carpetas);
+        return false;
+    }
+    /* Reservar hash síncronamente para que el siguiente llamado concurrente lo vea */
+    if (hash) hashesPendientesEncola.add(hash);
+
+    try {
+
     /* Verificar también si otro item en cola ya tiene este hash (race entre encolas). */
     if (hash && cola.some(i => i.hashParcial === hash && i.estado !== 'error' && i.estado !== 'completado')) {
         console.info('[UploadQueue] Duplicado detectado: hash ya encolado, moviendo a duplicados/:', nombreNormalizado);
@@ -465,6 +487,12 @@ async function encolarArchivoInterno(
     }
 
     return true;
+
+    } finally {
+        /* TC2: Liberar hash reservado ahora que el item ya está en cola
+         * (rutasEnCola lo cubre a partir de aquí) o se rechazó/falló. */
+        if (hash) hashesPendientesEncola.delete(hash);
+    }
 }
 
 /*
