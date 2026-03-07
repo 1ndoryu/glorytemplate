@@ -132,7 +132,7 @@ export function usePanelDetalleSample(sample: SampleResumen) {
         return audio;
     }, [sample.rutaPreview]);
 
-    /* Limpiar audio al desmontar */
+    /* Limpiar audio al desmontar o al cambiar de sample */
     useEffect(() => {
         return () => {
             if (audioRef.current) {
@@ -140,8 +140,10 @@ export function usePanelDetalleSample(sample: SampleResumen) {
                 audioRef.current.src = '';
                 audioRef.current = null;
             }
+            setReproduciendo(false);
+            setProgresoAudio(0);
         };
-    }, []);
+    }, [sample.rutaPreview]);
 
     /* Play/pause al click en waveform */
     const manejarClickWaveform = useCallback(() => {

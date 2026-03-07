@@ -39,6 +39,8 @@
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
     border-bottom: 1px solid var(--bordeSutil);
+    min-height: 40px;
+    position: relative;
 }
 
 .seleccionColeccionBuscadorIcono {
@@ -53,6 +55,7 @@
     color: var(--textoPrimario);
     font-size: var(--fuenteSm);
     outline: none;
+    padding-right: 24px;
 }
 
 .seleccionColeccionInput::placeholder {
@@ -65,6 +68,10 @@
 }
 
 .seleccionColeccionLimpiar {
+    position: absolute;
+    right: var(--espacioSm);
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -126,7 +126,7 @@ class ComentariosRepository extends BaseRepository
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::TIPO . " = :tipo AND c." . ComentariosCols::TARGET_ID . " = :targetId"
             . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
-            . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_RECHAZADO . "')"
+. " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')")
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
             ['tipo' => $tipo, 'targetId' => $targetId, 'limit' => $limit, 'offset' => $offset]
         );
@@ -152,7 +152,7 @@ class ComentariosRepository extends BaseRepository
             . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::PARENT_ID . " = :parentId"
-            . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_RECHAZADO . "')"
+. " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')")
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit",
             ['parentId' => $parentId, 'limit' => $limit]
         );

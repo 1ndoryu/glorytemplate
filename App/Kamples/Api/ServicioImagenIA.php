@@ -6,7 +6,7 @@
  * Analiza imágenes adjuntas a publicaciones para generar metadata automática:
  * tags visuales, descripción, contenido, sentimiento, y moderación básica.
  *
- * Modelos: Llama 4 Maverick (visión) → Llama 4 Scout (fallback visión)
+ * Modelos: Llama 4 Scout (visión instruct) — único modelo vision disponible en Groq.
  * Las imágenes se envían como URLs (ya alojadas en WordPress uploads).
  *
  * Proceso no bloqueante: se ejecuta en shutdown hook después de responder al usuario.
@@ -21,10 +21,12 @@ use App\Kamples\Api\GroqHttpClient;
 
 class ServicioImagenIA
 {
-    /* Modelos Groq con soporte de visión, en orden de preferencia */
+    /* Modelos Groq con soporte de visión, en orden de preferencia.
+     * Ambos requieren el sufijo -instruct (junio 2025).
+     * Maverick: mayor capacidad. Scout: fallback más rápido/barato. */
     private const MODELOS_VISION = [
-        'meta-llama/llama-4-maverick-17b-128e',
-        'meta-llama/llama-4-scout-17b-16e',
+        'meta-llama/llama-4-maverick-17b-128e-instruct',
+        'meta-llama/llama-4-scout-17b-16e-instruct',
     ];
 
     private const TIMEOUT = 30;

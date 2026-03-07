@@ -16,6 +16,7 @@ import {
     moderarContenido,
     resolverReporte,
     obtenerHistorialModeracion,
+    rechazarTodosPendientes,
     type KpisAdmin,
     type DatosActividad,
     type UsuarioAdmin,
@@ -171,6 +172,22 @@ export function useAdminPanel() {
         }
     }, [cargarModeracion]);
 
+    /* Rechazar todas las publicaciones pendientes de moderación */
+    const manejarRechazarTodosPendientes = useCallback(async () => {
+        try {
+            const res = await rechazarTodosPendientes();
+            if (res.ok) {
+                await cargarModeracion();
+                const resKpis = await obtenerResumenAdmin();
+                if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
+            }
+            return res.ok;
+        } catch (err) {
+            log.error('Error rechazando pendientes en masa', err);
+            return false;
+        }
+    }, [cargarModeracion]);
+
     return {
         /* Datos */
         kpis,
@@ -194,6 +211,7 @@ export function useAdminPanel() {
         actualizarUsuario,
         moderar,
         manejarResolverReporte,
+        manejarRechazarTodosPendientes,
         cargarUsuarios,
     };
 }

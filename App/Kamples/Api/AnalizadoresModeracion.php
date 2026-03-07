@@ -18,7 +18,7 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 class AnalizadoresModeracion
 {
     private const MODELO_GUARD = 'meta-llama/llama-guard-4-12b';
-    private const MODELO_VISION = 'meta-llama/llama-4-scout-17b-16e';
+    private const MODELO_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct';
     private const MODELO_CONTEXTUAL = 'openai/gpt-oss-120b';
     private const TIMEOUT = 25;
 

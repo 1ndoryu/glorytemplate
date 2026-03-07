@@ -55,6 +55,12 @@ class AdminModeracionController
             'callback' => [self::class, 'historialModeracion'],
             'permission_callback' => $admin,
         ]);
+
+        register_rest_route($namespace, '/admin/moderacion/rechazar-pendientes', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'rechazarTodosPendientes'],
+            'permission_callback' => $admin,
+        ]);
     }
 
     /*
@@ -196,6 +202,21 @@ class AdminModeracionController
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminModeracionController::historialModeracion fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/moderacion/rechazar-pendientes
+     * Rechaza todas las publicaciones pendientes/revisión de golpe.
+     */
+    public static function rechazarTodosPendientes(): \WP_REST_Response
+    {
+        try {
+            $afectados = PublicacionesRepository::rechazarTodosPendientes();
+            return new \WP_REST_Response(['ok' => true, 'afectados' => $afectados], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::rechazarTodosPendientes fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

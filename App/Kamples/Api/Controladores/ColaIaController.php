@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\ColaProcesamientoIaRepository;
 use App\Config\Schema\_generated\ColaProcesamientoIaEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Services\ProcesadorColaIA;
+use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\KamplesLogger;
 
 class ColaIaController
@@ -66,6 +67,13 @@ class ColaIaController
         register_rest_route($namespace, '/admin/cola-ia/procesar', [
             'methods' => 'POST',
             'callback' => [self::class, 'procesarAhora'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* Cuota de Groq (rate limits) */
+        register_rest_route($namespace, '/admin/cola-ia/cuota-groq', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'cuotaGroq'],
             'permission_callback' => $admin,
         ]);
     }
@@ -190,6 +198,81 @@ class ColaIaController
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('ColaIaController::procesarAhora fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /admin/cola-ia/cuota-groq
+     * Consulta la cuota actual de Groq haciendo un GET ligero al endpoint de modelos.
+     * Retorna headers x-ratelimit-* capturados por GroqHttpClient.
+     */
+    public static function cuotaGroq(): \WP_REST_Response
+    {
+        try {
+            $apiKey = \defined('GROQ_API_KEY') ? GROQ_API_KEY : (\getenv('GROQ_API_KEY') ?: '');
+            if (empty($apiKey)) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => 'API key de Groq no configurada',
+                ], 200);
+            }
+
+            /* GET ligero al endpoint de modelos para capturar headers de cuota */
+            $ch = \curl_init('https://api.groq.com/openai/v1/models');
+            if ($ch === false) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'curl_init failed'], 500);
+            }
+
+            $headersCapturados = [];
+            $headerCallback = static function ($curl, string $linea) use (&$headersCapturados): int {
+                $len = \strlen($linea);
+                $partes = \explode(':', $linea, 2);
+                if (\count($partes) === 2) {
+                    $nombre = \strtolower(\trim($partes[0]));
+                    $valor = \trim($partes[1]);
+                    if (\str_starts_with($nombre, 'x-ratelimit-')) {
+                        $headersCapturados[$nombre] = $valor;
+                    }
+                }
+                return $len;
+            };
+
+            \curl_setopt_array($ch, [
+                CURLOPT_HTTPHEADER     => ["Authorization: Bearer {$apiKey}"],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_HEADERFUNCTION => $headerCallback,
+            ]);
+
+            $respuesta = \curl_exec($ch);
+            $httpCode = \curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = \curl_error($ch);
+            \curl_close($ch);
+
+            if ($curlError) {
+                return new \WP_REST_Response(['ok' => false, 'error' => $curlError], 200);
+            }
+
+            $cuota = [
+                'limitRequests' => (int) ($headersCapturados['x-ratelimit-limit-requests'] ?? 0),
+                'remainingRequests' => (int) ($headersCapturados['x-ratelimit-remaining-requests'] ?? 0),
+                'limitTokens' => (int) ($headersCapturados['x-ratelimit-limit-tokens'] ?? 0),
+                'remainingTokens' => (int) ($headersCapturados['x-ratelimit-remaining-tokens'] ?? 0),
+                'resetRequests' => $headersCapturados['x-ratelimit-reset-requests'] ?? '',
+                'resetTokens' => $headersCapturados['x-ratelimit-reset-tokens'] ?? '',
+            ];
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'cuota' => $cuota,
+                'httpCode' => $httpCode,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ColaIaController::cuotaGroq fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

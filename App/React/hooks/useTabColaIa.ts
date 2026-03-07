@@ -5,19 +5,21 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import type { ItemColaIa, EstadisticasColaIa, ResultadoProcesamiento } from '../services/apiColaIa';
+import type { ItemColaIa, EstadisticasColaIa, ResultadoProcesamiento, CuotaGroq } from '../services/apiColaIa';
 import {
     listarColaIa,
     obtenerEstadisticasColaIa,
     reintentarItemColaIa,
     reintentarTodosColaIa,
     procesarColaIaAhora,
+    obtenerCuotaGroq,
 } from '../services/apiColaIa';
 
 interface UseTabColaIaReturn {
     /* Datos */
     items: ItemColaIa[];
     estadisticas: EstadisticasColaIa | null;
+    cuotaGroq: CuotaGroq | null;
     cargando: boolean;
     procesando: boolean;
 
@@ -48,13 +50,15 @@ export function useTabColaIa(): UseTabColaIaReturn {
     const [filtroTipo, setFiltroTipo] = useState('');
     const [pagina, setPagina] = useState(1);
     const [ultimoResultado, setUltimoResultado] = useState<ResultadoProcesamiento | null>(null);
+    const [cuotaGroq, setCuotaGroq] = useState<CuotaGroq | null>(null);
 
     const cargarDatos = useCallback(async () => {
         setCargando(true);
         try {
-            const [respItems, respStats] = await Promise.all([
+            const [respItems, respStats, respCuota] = await Promise.all([
                 listarColaIa(pagina, 20, filtroEstado || undefined, filtroTipo || undefined),
                 obtenerEstadisticasColaIa(),
+                obtenerCuotaGroq(),
             ]);
 
             if (respItems.ok && respItems.data) {
@@ -62,6 +66,9 @@ export function useTabColaIa(): UseTabColaIaReturn {
             }
             if (respStats.ok && respStats.data) {
                 setEstadisticas(respStats.data);
+            }
+            if (respCuota.ok && respCuota.data?.ok && respCuota.data.cuota) {
+                setCuotaGroq(respCuota.data.cuota);
             }
         } finally {
             setCargando(false);
@@ -115,6 +122,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
     return {
         items,
         estadisticas,
+        cuotaGroq,
         cargando,
         procesando,
         filtroEstado,

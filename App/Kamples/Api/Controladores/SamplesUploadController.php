@@ -24,6 +24,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Config\Schema\_generated\PublicacionesEnums;
 
 class SamplesUploadController
 {
@@ -208,7 +209,9 @@ class SamplesUploadController
                     $userId,
                     $contenido,
                     '{}',
-                    $samplesAdjuntosPg
+                    $samplesAdjuntosPg,
+                    PublicacionesEnums::TIPO_SAMPLE,
+                    PublicacionesEnums::MODERACION_ESTADO_APROBADO
                 );
                 KamplesLogger::info('Publicación de comunidad creada para sample', [
                     'sampleId' => $sampleId,

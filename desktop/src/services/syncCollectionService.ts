@@ -173,6 +173,49 @@ async function registrarColeccionNuevaLocal(id: number, nombreNormalizado: strin
 /* Utilidades */
 
 /**
+ * Busca una colección en tracking cuya carpeta ya NO existe en disco (huérfana).
+ * Esto ocurre cuando una carpeta fue renombrada pero el tracking todavía tiene
+ * el nombre viejo. Se usa como último recurso en el fallback de rename para
+ * evitar crear colecciones duplicadas.
+ *
+ * Solo retorna colecciones raíz (parentId === null por defecto)
+ * y excluye la carpeta nueva que sabemos existe.
+ */
+export async function buscarColeccionHuerfana(
+    carpetaNuevaExcluir: string,
+    parentId: number | null = null,
+): Promise<ColeccionLocal | null> {
+    try {
+        const { exists } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const { obtenerConfigSync } = await import('./desktopService');
+
+        const config = obtenerConfigSync();
+        if (!config?.carpetaLocal) return null;
+
+        const colecciones = todasLasColecciones().filter(c => c.parentId === parentId);
+        const excluirLower = carpetaNuevaExcluir.toLowerCase();
+
+        for (const col of colecciones) {
+            /* No considerar la colección que coincide con la nueva carpeta */
+            if (col.carpetaLocal.toLowerCase() === excluirLower
+                || col.nombre.toLowerCase() === excluirLower) continue;
+
+            const rutaCarpeta = await join(config.carpetaLocal, col.carpetaLocal);
+            const encontrada = await exists(rutaCarpeta);
+            if (!encontrada) {
+                console.info('[SyncCollection] Colección huérfana encontrada:', col.id, col.nombre, '→ carpeta no existe:', col.carpetaLocal);
+                return col;
+            }
+        }
+        return null;
+    } catch (err) {
+        console.error('[SyncCollection] Error buscando colección huérfana:', err);
+        return null;
+    }
+}
+
+/**
  * Sanitiza un nombre de colección para usarlo como nombre de carpeta.
  * Reemplaza caracteres inválidos y recorta espacios.
  */

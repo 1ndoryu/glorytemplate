@@ -82,6 +82,7 @@ const AdminPanelBase = (): JSX.Element => {
                     historialModeracion={admin.historialModeracion}
                     onModerar={admin.moderar}
                     onResolverReporte={admin.manejarResolverReporte}
+                    onRechazarTodosPendientes={admin.manejarRechazarTodosPendientes}
                 />
             )}
 

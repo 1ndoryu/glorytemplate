@@ -28,9 +28,10 @@ export interface EstadisticasColaIa {
     total: number;
     pendientes: number;
     procesando: number;
-    completados: number;
-    error_reintento: number;
-    error_final: number;
+    completados_hoy: number;
+    en_reintento: number;
+    errores: number;
+    encolados_hoy: number;
 }
 
 export interface ResultadoProcesamiento {
@@ -68,4 +69,17 @@ export const reintentarTodosColaIa = async (): Promise<RespuestaApi<{ ok: boolea
 
 export const procesarColaIaAhora = async (): Promise<RespuestaApi<{ ok: boolean; resultado: ResultadoProcesamiento }>> => {
     return apiPost<{ ok: boolean; resultado: ResultadoProcesamiento }>('/admin/cola-ia/procesar', {});
+};
+
+export interface CuotaGroq {
+    limitRequests: number;
+    remainingRequests: number;
+    limitTokens: number;
+    remainingTokens: number;
+    resetRequests: string;
+    resetTokens: string;
+}
+
+export const obtenerCuotaGroq = async (): Promise<RespuestaApi<{ ok: boolean; cuota: CuotaGroq }>> => {
+    return apiGet<{ ok: boolean; cuota: CuotaGroq }>('/admin/cola-ia/cuota-groq');
 };

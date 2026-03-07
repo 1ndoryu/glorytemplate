@@ -11,7 +11,7 @@ import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabColaIa } from '../../hooks/useTabColaIa';
-import type { ItemColaIa, EstadisticasColaIa } from '../../services/apiColaIa';
+import type { ItemColaIa, EstadisticasColaIa, CuotaGroq } from '../../services/apiColaIa';
 import '../../styles/componentes/colaIaAdmin.css';
 
 /* Mapa de colores para badges de estado */
@@ -56,6 +56,9 @@ export const TabColaIaAdmin = (): JSX.Element => {
         <div className="tabColaIa">
             {/* Estadisticas resumidas */}
             {cola.estadisticas && <EstadisticasResumen stats={cola.estadisticas} />}
+
+            {/* Cuota Groq */}
+            {cola.cuotaGroq && <CuotaGroqResumen cuota={cola.cuotaGroq} />}
 
             {/* Barra de acciones */}
             <div className="colaIaAcciones">
@@ -202,15 +205,50 @@ const EstadisticasResumen = ({ stats }: { stats: EstadisticasColaIa }): JSX.Elem
             <span className="colaIaStatLabel">Procesando</span>
         </div>
         <div className="colaIaStat colaIaStatExito">
-            <span className="colaIaStatNumero">{stats.completados}</span>
-            <span className="colaIaStatLabel">Completados</span>
+            <span className="colaIaStatNumero">{stats.completados_hoy}</span>
+            <span className="colaIaStatLabel">Completados hoy</span>
         </div>
         <div className="colaIaStat colaIaStatError">
-            <span className="colaIaStatNumero">{stats.error_reintento + stats.error_final}</span>
+            <span className="colaIaStatNumero">{stats.errores + stats.en_reintento}</span>
             <span className="colaIaStatLabel">Errores</span>
         </div>
     </div>
 );
+
+/* Subcomponente: Cuota de Groq */
+const CuotaGroqResumen = ({ cuota }: { cuota: CuotaGroq }): JSX.Element => {
+    const pctRequests = cuota.limitRequests > 0
+        ? Math.round((cuota.remainingRequests / cuota.limitRequests) * 100)
+        : 0;
+    const pctTokens = cuota.limitTokens > 0
+        ? Math.round((cuota.remainingTokens / cuota.limitTokens) * 100)
+        : 0;
+
+    const clasePctReq = pctRequests <= 10 ? 'colaIaStatError' : pctRequests <= 30 ? 'colaIaStatPendiente' : '';
+    const clasePctTok = pctTokens <= 10 ? 'colaIaStatError' : pctTokens <= 30 ? 'colaIaStatPendiente' : '';
+
+    return (
+        <div className="colaIaCuotaGroq">
+            <span className="colaIaCuotaTitulo">Cuota Groq</span>
+            <div className="colaIaEstadisticas">
+                <div className={`colaIaStat ${clasePctReq}`}>
+                    <span className="colaIaStatNumero">{cuota.remainingRequests.toLocaleString()}/{cuota.limitRequests.toLocaleString()}</span>
+                    <span className="colaIaStatLabel">Requests ({pctRequests}%)</span>
+                </div>
+                <div className={`colaIaStat ${clasePctTok}`}>
+                    <span className="colaIaStatNumero">{cuota.remainingTokens.toLocaleString()}/{cuota.limitTokens.toLocaleString()}</span>
+                    <span className="colaIaStatLabel">Tokens ({pctTokens}%)</span>
+                </div>
+                {cuota.resetRequests && (
+                    <div className="colaIaStat">
+                        <span className="colaIaStatNumero">{cuota.resetRequests}</span>
+                        <span className="colaIaStatLabel">Reset requests</span>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 /* Subcomponente: Fila de item en la tabla */
 const FilaItem = ({

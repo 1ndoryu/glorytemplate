@@ -15,6 +15,7 @@ interface TabModeracionAdminProps {
     historialModeracion: PublicacionModeracion[];
     onModerar: (tipo: 'publicacion' | 'comentario', id: number, accion: 'aprobar' | 'rechazar') => Promise<boolean>;
     onResolverReporte: (id: number, accion: 'resolver' | 'descartar') => Promise<boolean>;
+    onRechazarTodosPendientes: () => Promise<boolean>;
 }
 
 /* Formatear fecha relativa sencilla */
@@ -79,6 +80,7 @@ export const TabModeracionAdmin = ({
     historialModeracion,
     onModerar,
     onResolverReporte,
+    onRechazarTodosPendientes,
 }: TabModeracionAdminProps): JSX.Element => {
     if (!moderacion) {
         return (
@@ -110,6 +112,15 @@ export const TabModeracionAdmin = ({
                     <div className="adminSeccionTitulo">
                         <AlertTriangle size={16} />
                         Publicaciones pendientes ({publicaciones.length})
+                        <BotonBase variante="ghost"
+                            className="adminModeracionBotonRechazar"
+                            onClick={onRechazarTodosPendientes}
+                            type="button"
+                            title="Rechazar todas las publicaciones pendientes"
+                        >
+                            <Trash2 size={14} />
+                            Rechazar todos
+                        </BotonBase>
                     </div>
                     <div className="adminModeracionLista">
                         {publicaciones.map((pub) => (

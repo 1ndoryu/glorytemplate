@@ -311,7 +311,7 @@ return [
             'engagement_factor_reposts'    => 1.5,
 
             /* Máximo de publicaciones del mismo autor en un feed page */
-            'max_por_autor'                => 3,
+            'max_por_autor'                => 5,
 
             /* Umbral mínimo de horas para normalizar velocity (evita division-by-near-zero) */
             'velocity_min_horas'           => 1,

@@ -68,11 +68,14 @@
 .colaIaFiltros {
     display: flex;
     gap: var(--espacioSm);
+    flex: 1;
+    min-width: 0;
 }
 
 .colaIaBotones {
     display: flex;
     gap: var(--espacioSm);
+    flex-shrink: 0;
 }
 
 /* Resultado del procesamiento */
@@ -187,4 +190,23 @@
     .colaIaBotones {
         flex-wrap: wrap;
     }
+}
+
+/* Cuota Groq */
+.colaIaCuotaGroq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.colaIaCuotaTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.colaIaCuotaGroq .colaIaEstadisticas {
+    grid-template-columns: repeat(3, 1fr);
 }

@@ -108,6 +108,27 @@ class PublicacionesRepository extends BaseRepository
     }
 
     /*
+     * Rechazar en masa todas las publicaciones pendientes de moderación.
+     * Retorna la cantidad de publicaciones afectadas.
+     */
+    public static function rechazarTodosPendientes(): int
+    {
+        $tabla = PublicacionesCols::TABLA;
+        $colEstado = PublicacionesCols::MODERACION_ESTADO;
+
+        $stmt = static::ejecutar(
+            "UPDATE {$tabla} SET {$colEstado} = :rechazado WHERE {$colEstado} IN (:pendiente, :revision)",
+            [
+                'rechazado' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
+                'pendiente' => PublicacionesEnums::MODERACION_ESTADO_PENDIENTE,
+                'revision' => PublicacionesEnums::MODERACION_ESTADO_REVISION,
+            ]
+        );
+
+        return $stmt->rowCount();
+    }
+
+    /*
      * Listar publicaciones moderadas recientemente (historial IA).
      * Incluye TODAS las publicaciones de los últimos N días con cualquier estado de moderación.
      * Permite a admins revisar decisiones de la IA.
@@ -255,6 +276,17 @@ class PublicacionesRepository extends BaseRepository
         /* Score compuesto: 3 señales ponderadas */
         $sqlScore = "({$pesoF} * {$sqlFrescura} + {$pesoE} * {$sqlEngagement} + {$pesoS} * {$sqlSocial})";
 
+        /*
+         * Score base (no personalizado): solo frescura + engagement.
+         * Se usa para el cap de diversidad (ROW_NUMBER) para que TODOS
+         * los usuarios vean los MISMOS posts por autor. El score personalizado
+         * (con social boost) se aplica solo al ORDER BY final.
+         * Esto evita que dos usuarios vean posts distintos del mismo autor
+         * solo porque uno sigue al autor y otro no.
+         */
+        $sqlScoreBase = "({$pesoF} * {$sqlFrescura} + {$pesoE} * {$sqlEngagement})";
+
+
         /* Subquery liked (reacción del usuario actual) */
         $tl = LikesCols::TABLA;
         $likedSubquery = isset($params['current_user'])
@@ -285,12 +317,13 @@ class PublicacionesRepository extends BaseRepository
             . ", u_orig." . UsuariosExtCols::VERIFICADO . " AS orig_verificado"
             . ", u_orig." . UsuariosExtCols::WP_USER_ID . " AS orig_wp_user_id"
             . ", {$sqlScore} AS _score"
+            . ", {$sqlScoreBase} AS _score_base"
             . " FROM {$tp} p JOIN {$tu} u ON p.{$pAutorId} = u." . UsuariosExtCols::ID
             . " LEFT JOIN {$tp} orig ON p.{$pRepostId} = orig.{$pId}"
             . " LEFT JOIN {$tu} u_orig ON orig.{$pAutorId} = u_orig." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde}"
             . "), diversified AS ("
-            . " SELECT *, ROW_NUMBER() OVER (PARTITION BY {$pAutorId} ORDER BY _score DESC) AS _rn_autor"
+            . " SELECT *, ROW_NUMBER() OVER (PARTITION BY {$pAutorId} ORDER BY _score_base DESC) AS _rn_autor"
             . " FROM base"
             . ") SELECT * FROM diversified WHERE _rn_autor <= {$maxAutor}"
             . " ORDER BY _score DESC LIMIT :limit OFFSET :offset";
@@ -382,16 +415,43 @@ class PublicacionesRepository extends BaseRepository
 
     /*
      * Crear publicación nueva. Retorna ID generado.
+     * $tipo y $moderacionEstado son opcionales: si no se pasan, la BD aplica defaults.
      */
-    public static function crearPublicacion(int $autorId, string $contenido, string $imagenes, string $samplesAdjuntos): int
-    {
+    public static function crearPublicacion(
+        int $autorId,
+        string $contenido,
+        string $imagenes,
+        string $samplesAdjuntos,
+        ?string $tipo = null,
+        ?string $moderacionEstado = null
+    ): int {
         $tabla = PublicacionesCols::TABLA;
 
+        $columnas = PublicacionesCols::AUTOR_ID . ', ' . PublicacionesCols::CONTENIDO
+            . ', ' . PublicacionesCols::IMAGENES . ', ' . PublicacionesCols::SAMPLES_ADJUNTOS;
+        $valores = ':autor, :' . PublicacionesCols::CONTENIDO . ', :' . PublicacionesCols::IMAGENES . ', :samples';
+        $params = [
+            'autor' => $autorId,
+            PublicacionesCols::CONTENIDO => $contenido,
+            PublicacionesCols::IMAGENES => $imagenes,
+            'samples' => $samplesAdjuntos,
+        ];
+
+        if ($tipo !== null) {
+            $columnas .= ', ' . PublicacionesCols::TIPO;
+            $valores .= ', :tipo';
+            $params['tipo'] = $tipo;
+        }
+
+        if ($moderacionEstado !== null) {
+            $columnas .= ', ' . PublicacionesCols::MODERACION_ESTADO;
+            $valores .= ', :modEstado';
+            $params['modEstado'] = $moderacionEstado;
+        }
+
         return static::insertar(
-            "INSERT INTO {$tabla} (" . PublicacionesCols::AUTOR_ID . ", " . PublicacionesCols::CONTENIDO
-            . ", " . PublicacionesCols::IMAGENES . ", " . PublicacionesCols::SAMPLES_ADJUNTOS
-            . ") VALUES (:autor, :" . PublicacionesCols::CONTENIDO . ", :" . PublicacionesCols::IMAGENES . ", :samples) RETURNING " . PublicacionesCols::ID,
-            ['autor' => $autorId, PublicacionesCols::CONTENIDO => $contenido, PublicacionesCols::IMAGENES => $imagenes, 'samples' => $samplesAdjuntos]
+            "INSERT INTO {$tabla} ({$columnas}) VALUES ({$valores}) RETURNING " . PublicacionesCols::ID,
+            $params
         );
     }
 

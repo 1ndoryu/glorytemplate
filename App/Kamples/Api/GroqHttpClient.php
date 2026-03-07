@@ -35,6 +35,15 @@ class GroqHttpClient
     private static bool $rateLimitDetectado = false;
     private static float $retryAfterSegundos = 0.0;
 
+    /*
+     * Cuota de rate limit capturada de los headers x-ratelimit-* de Groq.
+     * Se actualiza en cada petición exitosa o fallida (429).
+     * Formato: [limitRequests, remainingRequests, limitTokens, remainingTokens, resetRequests, resetTokens]
+     *
+     * @var array{limitRequests: int, remainingRequests: int, limitTokens: int, remainingTokens: int, resetRequests: string, resetTokens: string}|null
+     */
+    private static ?array $ultimaCuota = null;
+
     /**
      * C356: Indica si se detecto rate limit (429) durante el request actual.
      */
@@ -59,6 +68,17 @@ class GroqHttpClient
     {
         self::$rateLimitDetectado = false;
         self::$retryAfterSegundos = 0.0;
+    }
+
+    /**
+     * Cuota de rate limit capturada de los headers de la última petición a Groq.
+     * Retorna null si aún no se ha hecho ninguna petición en este request PHP.
+     *
+     * @return array{limitRequests: int, remainingRequests: int, limitTokens: int, remainingTokens: int, resetRequests: string, resetTokens: string}|null
+     */
+    public static function obtenerUltimaCuota(): ?array
+    {
+        return self::$ultimaCuota;
     }
 
     /**
@@ -151,6 +171,21 @@ class GroqHttpClient
                 return self::resultadoError('curl_init failed');
             }
 
+            /* Capturar headers de respuesta para x-ratelimit-* */
+            $headersCapturados = [];
+            $headerCallback = static function ($curl, string $linea) use (&$headersCapturados): int {
+                $len = \strlen($linea);
+                $partes = \explode(':', $linea, 2);
+                if (\count($partes) === 2) {
+                    $nombre = \strtolower(\trim($partes[0]));
+                    $valor = \trim($partes[1]);
+                    if (\str_starts_with($nombre, 'x-ratelimit-')) {
+                        $headersCapturados[$nombre] = $valor;
+                    }
+                }
+                return $len;
+            };
+
             \curl_setopt_array($ch, [
                 CURLOPT_POST           => true,
                 CURLOPT_POSTFIELDS     => $json,
@@ -160,6 +195,7 @@ class GroqHttpClient
                 CURLOPT_TIMEOUT        => $timeout > 0 ? $timeout : self::TIMEOUT,
                 CURLOPT_SSL_VERIFYPEER => true,
                 CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_HEADERFUNCTION => $headerCallback,
             ]);
 
             $respuesta = \curl_exec($ch);
@@ -171,6 +207,18 @@ class GroqHttpClient
             if ($curlError) {
                 KamplesLogger::error("GroqHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
                 return self::resultadoError($curlError);
+            }
+
+            /* Actualizar cuota desde headers x-ratelimit-* (presentes en toda respuesta, no solo 429) */
+            if (!empty($headersCapturados)) {
+                self::$ultimaCuota = [
+                    'limitRequests' => (int) ($headersCapturados['x-ratelimit-limit-requests'] ?? 0),
+                    'remainingRequests' => (int) ($headersCapturados['x-ratelimit-remaining-requests'] ?? 0),
+                    'limitTokens' => (int) ($headersCapturados['x-ratelimit-limit-tokens'] ?? 0),
+                    'remainingTokens' => (int) ($headersCapturados['x-ratelimit-remaining-tokens'] ?? 0),
+                    'resetRequests' => $headersCapturados['x-ratelimit-reset-requests'] ?? '',
+                    'resetTokens' => $headersCapturados['x-ratelimit-reset-tokens'] ?? '',
+                ];
             }
 
             if ($httpCode !== 200) {

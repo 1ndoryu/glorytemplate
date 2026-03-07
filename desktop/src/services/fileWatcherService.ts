@@ -43,6 +43,7 @@ const PATRONES_TEMPORALES = [
  */
 const CARPETAS_EXCLUIDAS_TOTAL = new Set([
     '.papelera',
+    'duplicados',
 ]);
 const CARPETAS_SOLO_DELETE = new Set([
     'sin colecci\u00f3n',

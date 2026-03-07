@@ -141,6 +141,10 @@ export const obtenerHistorialModeracion = async (dias = 2): Promise<RespuestaApi
     return apiGet<DatosHistorialModeracion>('/admin/moderacion/historial', { dias });
 };
 
+export const rechazarTodosPendientes = async (): Promise<RespuestaApi<{ ok: boolean; afectados: number }>> => {
+    return apiPost<{ ok: boolean; afectados: number }>('/admin/moderacion/rechazar-pendientes', {});
+};
+
 /* Herramienta de dev: eliminación masiva de samples */
 
 export interface ResultadoBorradoMasivo {

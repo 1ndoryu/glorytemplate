@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useAuthModalStore } from '../stores/authModalStore';
 import { obtenerUsuarioActual, login, registrar as apiRegistrar } from '../services/apiAuth';
 import { crearLogger } from '../services/logger';
 import { useNavigationStore } from '@/core/router/navigationStore';
@@ -85,6 +86,9 @@ export const useAuth = () => {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
+                /* Cerrar modal de auth antes de navegar */
+                useAuthModalStore.getState().cerrar();
+
                 /* Navegar via router SPA (sin recarga completa).
                  * En desktop (Tauri), window.location.href causa re-init
                  * y pierde el estado de auth antes de persistirlo. */
@@ -122,6 +126,9 @@ export const useAuth = () => {
                 if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
+
+                /* Cerrar modal de auth antes de navegar */
+                useAuthModalStore.getState().cerrar();
 
                 useNavigationStore.getState().navegar('/');
             } else {
