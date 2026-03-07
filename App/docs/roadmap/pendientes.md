@@ -429,3 +429,17 @@ C288. ✅ [AG-FIX] Fix TC1 journal recovery + reconciliación periódica de carp
 - [Delta]: cursor=0 o cursor purgado → fullSyncRequired=true. El cliente hace full sync normal y recibe el cursor actual.
 - [Delta]: Los changelog triggers van en los controllers (punto de escritura), no en los repositories (podrían llamarse desde contextos sin usuario).
 - [fileWatcher]: Template literals (`${}`) son más legibles que console.info con args separados por coma para logSync.
+
+C289. ✅ [AG-FIX] 5 bugs sync — colecciones fantasma, paths tras rename, server→local download, caché, rate limit:
+- **Bug 1 — Colecciones fantasma:** `sincronizarColecciones` purgaba samples pero NUNCA colecciones. Colecciones borradas del servidor persisten en tracking → 403 cascada. Fix: purga comparando tracking vs servidor.
+- **Bug 2 — Re-upload + duplicados tras rename:** `actualizarNombreColeccion` no actualizaba `rutaLocal` de archivos. Tras rename, watcher los veía como nuevos → re-upload → duplicados. Fix: actualizar rutaLocal + indiceRuta de archivos de la colección + subcollecciones.
+- **Bug 3 — Server→local no descarga:** Polling usaba `soloEstructura=true` siempre. Fix: cambiar a `false` cuando delta detecta cambios.
+- **Bug 4 — Cache colecciones:** obtenerColeccionesDelServidor sin caché → 429. Fix: caché TTL 10s + invalidación tras create/rename.
+- **Bug 5 — Rate limit PHP:** sync_colecciones 60→120/min, sync_delta 120→200/min.
+
+### Lecciones C289
+- [Tracking]: Purgar colecciones es tan importante como purgar samples. Sin purga, tracking acumula fantasmas indefinidamente.
+- [Rename paths]: Al renombrar colección, TODOS los archivos dentro necesitan actualización de rutaLocal + reindexado. Sin esto, watcher los trata como nuevos.
+- [Polling]: soloEstructura=true impedía server→local para samples. Polling DEBE hacer sync completo cuando delta detecta cambios.
+- [Cache]: Sin caché, obtenerColeccionesDelServidor se llama 3-4 veces por ciclo. Cache TTL 10s reduce calls drásticamente.
+- [Regex path]: Para reemplazar segmento de carpeta en paths, `([/\\])FOLDER([/\\])` es seguro (requiere separadores a ambos lados, evita matches parciales como as1 en as11).

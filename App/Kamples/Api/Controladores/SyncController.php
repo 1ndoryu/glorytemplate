@@ -60,8 +60,8 @@ class SyncController
                 return UsuarioHelper::respuestaNoEncontrado();
             }
 
-            /* SEC-M2: Rate limit — 60 req/min por usuario (full sync es costoso) */
-            $rl = RateLimiter::verificarUsuario($userId, 'sync_colecciones', 60, 60);
+            /* SEC-M2: Rate limit — 120 req/min por usuario (C289: aumentado de 60, el cache client-side reduce calls reales) */
+            $rl = RateLimiter::verificarUsuario($userId, 'sync_colecciones', 120, 60);
             if ($rl) return $rl;
 
             $coleccionesRaw = SyncRepository::coleccionesConSamples($userId);
@@ -152,8 +152,8 @@ class SyncController
                 return UsuarioHelper::respuestaNoEncontrado();
             }
 
-            /* SEC-M2: Rate limit — 120 req/min por usuario (delta es mas ligero) */
-            $rl = RateLimiter::verificarUsuario($userId, 'sync_delta', 120, 60);
+            /* SEC-M2: Rate limit — 200 req/min por usuario (C289: aumentado de 120, delta es ligero y se consulta frecuentemente) */
+            $rl = RateLimiter::verificarUsuario($userId, 'sync_delta', 200, 60);
             if ($rl) return $rl;
 
             $cursor = (int) ($request->get_param('cursor') ?? 0);

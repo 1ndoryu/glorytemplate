@@ -747,8 +747,40 @@ export function subcoleccionesDePadre(parentId: number): ColeccionLocal[] {
 export async function actualizarNombreColeccion(id: number, nombre: string, carpetaLocal: string): Promise<void> {
     const col = datos.colecciones[id];
     if (!col) return;
+
+    const carpetaAnterior = col.carpetaLocal;
     col.nombre = nombre;
     col.carpetaLocal = carpetaLocal;
+
+    /*
+     * C289: Actualizar rutaLocal e indiceRuta de archivos tras rename.
+     * Sin esto, los archivos mantienen la ruta vieja → el watcher los ve como
+     * archivos nuevos en la nueva ruta → re-upload → duplicados.
+     * Se actualizan archivos de la colección directa + subcollecciones hijas.
+     */
+    if (carpetaAnterior !== carpetaLocal) {
+        const idsAfectadas = new Set<number>([id]);
+        for (const sub of Object.values(datos.colecciones)) {
+            if (sub.parentId === id) idsAfectadas.add(sub.id);
+        }
+
+        const escapedOld = carpetaAnterior.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const patronReemplazo = new RegExp(`([/\\\\])${escapedOld}([/\\\\])`, 'i');
+
+        for (const [clave, archivo] of Object.entries(datos.archivos)) {
+            if (archivo.coleccionId === null || !idsAfectadas.has(archivo.coleccionId)) continue;
+
+            const nuevaRuta = archivo.rutaLocal.replace(patronReemplazo, `$1${carpetaLocal}$2`);
+            if (nuevaRuta !== archivo.rutaLocal) {
+                const rutaNormAnterior = archivo.rutaLocal.replace(/\\/g, '/');
+                indiceRuta.delete(rutaNormAnterior);
+                archivo.rutaLocal = nuevaRuta;
+                const rutaNormNueva = nuevaRuta.replace(/\\/g, '/');
+                indiceRuta.set(rutaNormNueva, clave);
+            }
+        }
+    }
+
     await registrarEnJournal('RENAME_COLLECTION', { id, nombre, carpetaLocal });
 }
 

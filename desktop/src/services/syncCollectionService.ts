@@ -37,6 +37,7 @@ import {
     finalizarLote,
     todosLosArchivos,
     eliminarArchivo,
+    eliminarColeccion,
     type ArchivoTracking,
     type ColeccionLocal,
 } from './syncTrackingService';
@@ -255,12 +256,32 @@ function normalizarNombreColeccion(nombre: string): string {
 
 /* Fetch de colecciones */
 
+/*
+ * C289: Cache client-side para evitar 429.
+ * obtenerColeccionesDelServidor se llama desde múltiples puntos
+ * (sincronizarColecciones, rehidratacion, buscarColeccionServidorPorNombre).
+ * Sin caché, cada call es un roundtrip → agota rate limit rápidamente.
+ */
+const CACHE_COLECCIONES_TTL_MS = 10_000;
+let cacheColecciones: { datos: RespuestaSyncColecciones; timestamp: number } | null = null;
+
+/** Invalida el caché manualmente (ej: después de crear/renombrar colección). */
+export function invalidarCacheColecciones(): void {
+    cacheColecciones = null;
+}
+
 /**
  * Obtiene las colecciones con samples del servidor para sync.
  * Usa el nuevo endpoint optimizado GET /me/sync/colecciones.
+ * C289: Con caché TTL de 10s para evitar 429 por llamadas concurrentes.
  */
 export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncColecciones | null> {
     if (!estaOnline()) return null;
+
+    /* C289: Retornar caché si es suficientemente fresca */
+    if (cacheColecciones && (Date.now() - cacheColecciones.timestamp) < CACHE_COLECCIONES_TTL_MS) {
+        return cacheColecciones.datos;
+    }
 
     try {
         const baseUrl = obtenerBaseUrlSync();
@@ -279,10 +300,15 @@ export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncCole
         /* PHP retorna { data: { colecciones, sinColeccion } } */
         const data = json?.data ?? json;
 
-        return {
+        const resultado: RespuestaSyncColecciones = {
             colecciones: data?.colecciones ?? [],
             sinColeccion: data?.sinColeccion ?? [],
         };
+
+        /* C289: Guardar en caché */
+        cacheColecciones = { datos: resultado, timestamp: Date.now() };
+
+        return resultado;
     } catch (err) {
         console.error('[SyncCollection] Error en fetch colecciones:', err);
         return null;
@@ -381,6 +407,38 @@ export async function sincronizarColecciones(
                     console.info('[SyncCollection] Eliminado de tracking (ya no existe en servidor):', archivo.nombreLocal, '(id:', archivo.sampleId, ')');
                 }
             }
+        }
+    }
+
+    /*
+     * C289: Purga de colecciones fantasma del tracking.
+     * Si una colección existe en tracking local pero NO existe en el servidor,
+     * eliminarla del tracking. Esto resuelve colecciones borradas del servidor
+     * que persisten en tracking y causan 403 en renames, huérfanas y reconciliación.
+     *
+     * Protección: si el servidor retornó 0 colecciones pero localmente hay >3,
+     * posible fallo de auth/red parcial — no purgar para evitar data loss.
+     */
+    const idsColeccionesServidor = new Set<number>();
+    for (const col of datosServidor.colecciones) {
+        idsColeccionesServidor.add(col.id);
+    }
+
+    const coleccionesLocales = todasLasColecciones();
+    const purgaColeccionesSegura = idsColeccionesServidor.size > 0 || coleccionesLocales.length <= 3;
+
+    if (purgaColeccionesSegura) {
+        let colPurgadas = 0;
+        for (const colLocal of coleccionesLocales) {
+            if (!idsColeccionesServidor.has(colLocal.id)) {
+                logSync.info('syncCollection',
+                    `Purgando colección fantasma: #${colLocal.id} "${colLocal.nombre}" (ausente en servidor)`);
+                await eliminarColeccion(colLocal.id);
+                colPurgadas++;
+            }
+        }
+        if (colPurgadas > 0) {
+            logSync.info('syncCollection', `${colPurgadas} colección(es) fantasma eliminadas del tracking`);
         }
     }
 
@@ -1028,6 +1086,8 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
                     if (id) {
                         const idNum = Number(id);
                         await registrarColeccionNuevaLocal(idNum, nombreNormalizado, parentId);
+                        /* C289: Invalidar caché para que la próxima consulta incluya la nueva colección */
+                        invalidarCacheColecciones();
                         return idNum;
                     }
                     return null;
@@ -1161,6 +1221,9 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
 
         const carpetaNueva = sanitizarNombreCarpeta(nombreNormalizado);
         await actualizarNombreColeccion(coleccionId, nombreNormalizado, carpetaNueva);
+
+        /* C289: Invalidar caché para que la próxima consulta refleje el rename */
+        invalidarCacheColecciones();
 
         await registrarAccion({
             tipo: 'renombrado',

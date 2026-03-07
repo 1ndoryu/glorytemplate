@@ -572,7 +572,7 @@ async function consultarDeltaSync(): Promise<boolean> {
 /*
  * Sincroniza la estructura de carpetas del servidor a disco local.
  * F2.1: Consulta delta primero para evitar full sync innecesarios.
- * v2: delega a collectionModule (soloEstructura=true, no descarga).
+ * C289: Sync completo (con descargas) cuando delta detecta cambios.
  * v1: crea carpetas basadas en metadata IA.
  * Retorna true si hubo cambios para ajustar el intervalo de polling.
  */
@@ -591,7 +591,13 @@ async function sincronizarEstructuraCarpetas(): Promise<boolean> {
 
     if (collectionModule) {
         try {
-            const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, true);
+            /*
+             * C289: soloEstructura=false → descarga samples nuevos del servidor.
+             * Antes siempre era true, lo que impedía descargar samples publicados
+             * desde la web. La lógica de descarga tiene guards (esDescargaEnCurso,
+             * verificación de existencia) que evitan re-descargas y conflictos.
+             */
+            const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, false);
             /* Hubo cambios si se descargaron nuevos archivos o se crearon carpetas */
             return resultado.nuevos > 0;
         } catch (err) {
