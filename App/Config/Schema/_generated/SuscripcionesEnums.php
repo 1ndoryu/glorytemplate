@@ -12,4 +12,6 @@ final class SuscripcionesEnums
     const ESTADO_CANCELADA = 'cancelada';
     const ESTADO_VENCIDA = 'vencida';
     const ESTADO_PERIODO_PRUEBA = 'periodo_prueba';
+
+    const TODOS_ESTADO = [self::ESTADO_ACTIVA, self::ESTADO_CANCELADA, self::ESTADO_VENCIDA, self::ESTADO_PERIODO_PRUEBA];
 }

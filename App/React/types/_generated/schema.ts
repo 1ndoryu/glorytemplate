@@ -48,6 +48,7 @@ export interface IColecciones {
   createdAt: string
   updatedAt: string
   portadaUrl: string | null
+  version: number
 }
 
 export interface IColeccionSamples {
@@ -232,6 +233,15 @@ export interface ISuscripciones {
   createdAt: string
 }
 
+export interface ISyncChangelog {
+  id: unknown
+  usuarioId: number
+  tipo: 'sample_added' | 'sample_removed' | 'sample_updated' | 'collection_created' | 'collection_renamed' | 'collection_deleted'
+  entidadId: number
+  metadata: unknown
+  createdAt: string
+}
+
 export interface ITransacciones {
   id: number
   compradorId: number
@@ -324,7 +334,8 @@ export const ColeccionesCols = {
   TOTAL_SAMPLES: 'total_samples',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at',
-  PORTADA_URL: 'portada_url'
+  PORTADA_URL: 'portada_url',
+  VERSION: 'version'
 } as const
 
 export const ColeccionSamplesCols = {
@@ -523,6 +534,16 @@ export const SuscripcionesCols = {
   CREATED_AT: 'created_at'
 } as const
 
+export const SyncChangelogCols = {
+  TABLA: 'sync_changelog',
+  ID: 'id',
+  USUARIO_ID: 'usuario_id',
+  TIPO: 'tipo',
+  ENTIDAD_ID: 'entidad_id',
+  METADATA: 'metadata',
+  CREATED_AT: 'created_at'
+} as const
+
 export const TransaccionesCols = {
   TABLA: 'transacciones',
   ID: 'id',
@@ -632,6 +653,15 @@ export const SuscripcionesEnums = {
   ESTADO_CANCELADA: 'cancelada',
   ESTADO_VENCIDA: 'vencida',
   ESTADO_PERIODO_PRUEBA: 'periodo_prueba'
+} as const
+
+export const SyncChangelogEnums = {
+  TIPO_SAMPLE_ADDED: 'sample_added',
+  TIPO_SAMPLE_REMOVED: 'sample_removed',
+  TIPO_SAMPLE_UPDATED: 'sample_updated',
+  TIPO_COLLECTION_CREATED: 'collection_created',
+  TIPO_COLLECTION_RENAMED: 'collection_renamed',
+  TIPO_COLLECTION_DELETED: 'collection_deleted'
 } as const
 
 export const TransaccionesEnums = {

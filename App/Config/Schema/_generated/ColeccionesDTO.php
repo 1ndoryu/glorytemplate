@@ -18,7 +18,8 @@ final class ColeccionesDTO
         public readonly int $totalSamples,
         public readonly string $createdAt,
         public readonly string $updatedAt,
-        public readonly ?string $portadaUrl
+        public readonly ?string $portadaUrl,
+        public readonly int $version
     ) {}
 
     /**
@@ -38,7 +39,8 @@ final class ColeccionesDTO
             totalSamples: (int) ($row['total_samples'] ?? 0),
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s')),
-            portadaUrl: isset($row['portada_url']) ? $row['portada_url'] : null
+            portadaUrl: isset($row['portada_url']) ? $row['portada_url'] : null,
+            version: (int) ($row['version'] ?? 1)
         );
     }
 
@@ -66,6 +68,7 @@ final class ColeccionesDTO
             'total_samples' => $this->totalSamples,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
-            'portada_url' => $this->portadaUrl];
+            'portada_url' => $this->portadaUrl,
+            'version' => $this->version];
     }
 }

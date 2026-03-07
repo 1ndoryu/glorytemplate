@@ -16,6 +16,6 @@ final class SyncChangelogCols
     const METADATA = 'metadata';
     const CREATED_AT = 'created_at';
 
-    /* Lista completa de columnas para validacion */
+    /* Lista completa de columnas para validación */
     const TODAS = ['id', 'usuario_id', 'tipo', 'entidad_id', 'metadata', 'created_at'];
 }

@@ -14,7 +14,11 @@ final class SamplesEnums
     const ESTADO_ELIMINADO = 'eliminado';
     const ESTADO_EN_SUPERVISION = 'en_supervision';
 
+    const TODOS_ESTADO = [self::ESTADO_PROCESANDO, self::ESTADO_ACTIVO, self::ESTADO_INACTIVO, self::ESTADO_ELIMINADO, self::ESTADO_EN_SUPERVISION];
+
     /* Valores para columna "tipo" */
     const TIPO_LOOP = 'loop';
     const TIPO_ONESHOT = 'oneshot';
+
+    const TODOS_TIPO = [self::TIPO_LOOP, self::TIPO_ONESHOT];
 }

@@ -37,7 +37,7 @@ class SyncRepository extends BaseRepository
      * cuando el sample pasa a activo via delta changelog. Incluir estados transitorios
      * causaba que Desktop sincronizara archivos que podian desaparecer o cambiar.
      *
-     * Valida contra SamplesEnums::TODOS_ESTADOS para detectar desincronizaciones schema vs codigo.
+     * Valida contra SamplesEnums::TODOS_ESTADO para detectar desincronizaciones schema vs codigo.
      */
     private static function sqlEstadosVisiblesSync(): string
     {
@@ -47,8 +47,8 @@ class SyncRepository extends BaseRepository
 
         /* M5: Validar que cada estado existe en el enum del schema */
         foreach ($estados as $estado) {
-            if (!\in_array($estado, SamplesEnums::TODOS_ESTADOS, true)) {
-                throw new \RuntimeException("Estado sync invalido: {$estado} no existe en SamplesEnums::TODOS_ESTADOS");
+            if (!\in_array($estado, SamplesEnums::TODOS_ESTADO, true)) {
+                throw new \RuntimeException("Estado sync invalido: {$estado} no existe en SamplesEnums::TODOS_ESTADO");
             }
         }
 

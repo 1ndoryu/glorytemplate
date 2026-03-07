@@ -12,8 +12,12 @@ final class LikesEnums
     const TIPO_PUBLICACION = 'publicacion';
     const TIPO_COMENTARIO = 'comentario';
 
+    const TODOS_TIPO = [self::TIPO_SAMPLE, self::TIPO_PUBLICACION, self::TIPO_COMENTARIO];
+
     /* Valores para columna "reaccion" */
     const REACCION_LIKE = 'like';
     const REACCION_DISLIKE = 'dislike';
     const REACCION_ENCANTA = 'encanta';
+
+    const TODOS_REACCION = [self::REACCION_LIKE, self::REACCION_DISLIKE, self::REACCION_ENCANTA];
 }
