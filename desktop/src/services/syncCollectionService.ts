@@ -14,7 +14,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, obtenerBaseUrlSync } from './syncGuards';
+import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
@@ -262,11 +262,12 @@ export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncCole
         const baseUrl = obtenerBaseUrlSync();
         /* C7: Cache-busting + no-cache para que imágenes recién asignadas se obtengan frescas */
         const resp = await fetch(`${baseUrl}/kamples/v1/me/sync/colecciones?_t=${Date.now()}`, {
-            headers: { 'Cache-Control': 'no-cache' },
+            headers: { ...obtenerHeadersSyncGet(), 'Cache-Control': 'no-cache' },
         });
 
         if (!resp.ok) {
-            console.error('[SyncCollection] Error obteniendo colecciones:', resp.status);
+            const detalle = await extraerErrorRespuesta(resp);
+            console.error('[SyncCollection] Error obteniendo colecciones:', resp.status, detalle);
             return null;
         }
 
@@ -691,7 +692,10 @@ async function descargarSiNecesario(
         const baseUrl = obtenerBaseUrlSync();
 
         /* Obtener URL firmada de descarga */
-        const respDescarga = await fetch(`${baseUrl}/kamples/v1/samples/${sample.id}/descargar`, { method: 'POST' });
+        const respDescarga = await fetch(`${baseUrl}/kamples/v1/samples/${sample.id}/descargar`, {
+            method: 'POST',
+            headers: obtenerHeadersSyncGet(),
+        });
         if (!respDescarga.ok) {
             throw new Error(`No se pudo obtener URL de descarga: ${respDescarga.status}`);
         }
@@ -799,12 +803,13 @@ export async function moverSampleEntreColecciones(
                 `${baseUrl}/kamples/v1/colecciones/${coleccionOrigenId}/samples`,
                 {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: obtenerHeadersSync(),
                     body: JSON.stringify({ sample_id: sampleId }),
                 },
             );
             if (!respQuitar.ok) {
-                console.error('[SyncCollection] Error quitando sample de colección origen:', respQuitar.status);
+                const detalle = await extraerErrorRespuesta(respQuitar);
+                console.error('[SyncCollection] Error quitando sample de colección origen:', respQuitar.status, detalle);
             }
         }
 
@@ -814,12 +819,13 @@ export async function moverSampleEntreColecciones(
                 `${baseUrl}/kamples/v1/colecciones/${coleccionDestinoId}/samples`,
                 {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: obtenerHeadersSync(),
                     body: JSON.stringify({ sample_id: sampleId }),
                 },
             );
             if (!respAgregar.ok) {
-                console.error('[SyncCollection] Error agregando sample a colección destino:', respAgregar.status);
+                const detalle = await extraerErrorRespuesta(respAgregar);
+                console.error('[SyncCollection] Error agregando sample a colección destino:', respAgregar.status, detalle);
                 return false;
             }
         }
@@ -867,7 +873,7 @@ export async function agregarSampleAColeccion(
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}/samples`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: obtenerHeadersSync(),
             body: JSON.stringify({ sampleId }),
         });
 
@@ -930,7 +936,7 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
             for (let intento = 1; intento <= MAX_REINTENTOS_CREAR_COLECCION; intento++) {
                 const resp = await fetch(`${baseUrl}/kamples/v1/colecciones`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: obtenerHeadersSync(),
                     body: JSON.stringify(bodyCrear),
                 });
 
@@ -1017,12 +1023,13 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
         const baseUrl = obtenerBaseUrlSync();
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: obtenerHeadersSync(),
             body: JSON.stringify({ nombre: nombreNormalizado }),
         });
 
         if (!resp.ok) {
-            console.error('[SyncCollection] Error renombrando colección en servidor:', resp.status);
+            const detalle = await extraerErrorRespuesta(resp);
+            console.error('[SyncCollection] Error renombrando colección en servidor:', resp.status, detalle);
             /*
              * Error transitorio (500, 429, timeout): encolar para reintento.
              * Solo fallos permanentes (400, 404) se descartan definitivamente.

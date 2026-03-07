@@ -170,11 +170,18 @@ class AuthMiddleware
     }
 
     /**
-     * Extrae el token del header Authorization: Bearer {token}.
+     * Extrae el token JWT del request.
+     *
+     * Busca en múltiples fuentes porque algunos servidores (nginx + PHP-FPM,
+     * Local by Flywheel) no pasan el header Authorization a $_SERVER.
+     * Orden de prioridad:
+     *   1. $_SERVER['HTTP_AUTHORIZATION'] (estándar)
+     *   2. $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] (Apache mod_rewrite)
+     *   3. $_SERVER['HTTP_X_KAMPLES_AUTH'] (header custom — siempre pasa en nginx)
+     *   4. getallheaders() / apache_request_headers() (PHP 8+ en todos los SAPIs)
      */
     private static function obtenerBearerToken(): ?string
     {
-        /* WordPress REST API: leer del header directamente */
         $authHeader = '';
 
         if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -182,9 +189,21 @@ class AuthMiddleware
         } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             /* Apache con mod_rewrite a veces mueve el header aquí */
             $authHeader = sanitize_text_field($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
-        } elseif (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        } elseif (!empty($_SERVER['HTTP_X_KAMPLES_AUTH'])) {
+            /* Header custom del desktop — nginx no filtra headers custom,
+             * solo Authorization puede ser problemático en ciertos entornos.
+             * Este es el fallback fiable para Tauri + Local by Flywheel. */
+            $authHeader = sanitize_text_field($_SERVER['HTTP_X_KAMPLES_AUTH']);
+        }
+
+        /* Último recurso: getallheaders (PHP 8+ funciona en todos los SAPIs) */
+        if (empty($authHeader) && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            /* Normalizar claves a lowercase para comparación robusta */
+            $headersLower = array_change_key_case($headers, CASE_LOWER);
+            $authHeader = $headersLower['authorization']
+                ?? $headersLower['x-kamples-auth']
+                ?? '';
         }
 
         if (empty($authHeader)) {

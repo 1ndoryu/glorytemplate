@@ -608,9 +608,10 @@ export async function sincronizarSampleIndividual(
         const baseUrl = obtenerBaseUrlSync();
         const { trackingModule } = estado;
 
+        const { obtenerHeadersSyncGet } = await import('./syncGuards');
         const respDescarga = await fetch(
             `${baseUrl}/kamples/v1/samples/${sampleId}/descargar`,
-            { method: 'POST' },
+            { method: 'POST', headers: obtenerHeadersSyncGet() },
         );
         if (!respDescarga.ok) {
             console.error(`[SyncIndividual] No se pudo obtener URL de descarga: ${respDescarga.status}`);

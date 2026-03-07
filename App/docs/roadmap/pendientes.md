@@ -282,7 +282,16 @@ C275. ✅ [AG-SYN] Sync rename broken + ColeccionDetalle crash:
 - **buscarColeccionHuerfana import roto:** `import('./desktopService')` → `import('./syncService')` en syncCollectionService.ts. obtenerConfigSync solo existe en syncService.ts. Sin este fix, toda la cadena rename-via-orphan fallaba → creaba colección nueva en vez de renombrar.
 - **ColeccionDetalleIsland .length crash:** useModalColeccion.ts pasaba `resp.data` (={ok:true}) del PUT a `manejarGuardarEdicion` → `setColeccion({ok:true})` → `coleccion.samples` undefined → crash. Fix: construir objeto fusionado desde colección existente + campos editados del formulario, preservando samples/tags/likes.
 
-### Lecciones C274-C275
+C276. ✅ [AG-SYN] Auth sync 403 — solución arquitectónica multi-capa:
+- **Causa raíz:** El header `Authorization` puede no llegar a PHP-FPM en ciertos entornos nginx (Local by Flywheel). `$_SERVER['HTTP_AUTHORIZATION']` vacío + `getallheaders()` lee de `$_SERVER` → ambos fallan.
+- **Capa 1 — PHP:** `AuthMiddleware::obtenerBearerToken()` ahora busca en 4 fuentes: `HTTP_AUTHORIZATION`, `REDIRECT_HTTP_AUTHORIZATION`, `HTTP_X_KAMPLES_AUTH` (custom header), `getallheaders()` con normalización case-insensitive.
+- **Capa 2 — Desktop interceptor:** `apiDesktopAdapter` envía DOBLE header: `Authorization` + `X-Kamples-Auth`. nginx no filtra headers custom.
+- **Capa 3 — Sync headers explícitos:** Nuevo sistema `obtenerHeadersSync()`/`obtenerHeadersSyncGet()` en `syncGuards.ts` con token dedicado (`establecerTokenSync`). Todos los sync fetch calls (8 total en syncCollectionService + syncService) usan headers explícitos con JWT por doble vía, independiente del interceptor global.
+- **Capa 4 — Diagnósticos:** `extraerErrorRespuesta()` para logging de response body en errores (antes solo se logueaba status code).
+
+### Lecciones C274-C276
 - [Sync]: imports dinámicos (`await import('./x')`) no dan error de tipo en build — solo fallan en runtime. Verificar siempre que el export existe en el módulo target.
 - [API PUT]: Si el backend retorna solo `{ok:true}` sin el recurso completo, el frontend debe fusionar campos conocidos con el estado existente, no reemplazar el objeto entero. Alternativa: hacer que el PUT retorne el recurso actualizado (REST convencional).
 - [FK Cascade]: WordPress no soporta FK constraints nativos. Toda tabla con referencias cruzadas requiere cascada manual en DELETE (limpiar hijos antes que padre).
+- [Auth nginx]: nginx + PHP-FPM puede no pasar `$_SERVER['HTTP_AUTHORIZATION']` (depende de `fastcgi_params` config). Headers custom (`X-Kamples-Auth`) SÍ se pasan siempre. Doble vía = auth robusta cross-entorno.
+- [Sync fetch]: NUNCA depender solo del interceptor global de `window.fetch` para auth en servicios críticos. Headers explícitos + token dedicado (setter pattern en módulo sin dependencias) evita problemas de init order y context isolation (MPA windows).

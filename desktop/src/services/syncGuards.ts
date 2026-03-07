@@ -146,3 +146,73 @@ export function obtenerBaseUrlSync(): string {
     const ctx = window.GLORY_CONTEXT as { apiUrl?: string } | undefined;
     return ctx?.apiUrl ?? '/wp-json';
 }
+
+/* Headers de autenticación para sync API */
+
+/*
+ * Token JWT en memoria para sync API calls.
+ * Se establece durante la inicialización (desde authDesktopService)
+ * para evitar dependencia circular: syncGuards ← syncService ← authDesktop.
+ * Es la misma fuente que usa el interceptor global de fetch, pero explícita.
+ */
+let tokenSync: string | null = null;
+
+/**
+ * Establece el token JWT para peticiones autenticadas del sync service.
+ * Llamado desde inicializarSyncService() o authDesktopService
+ * después de restaurar/renovar el token.
+ */
+export function establecerTokenSync(token: string | null): void {
+    tokenSync = token;
+}
+
+/**
+ * Construye headers autenticados para peticiones del sync service.
+ *
+ * Envía el JWT por DOBLE vía:
+ *   - Authorization: Bearer {token} (estándar RFC 6750)
+ *   - X-Kamples-Auth: Bearer {token} (fallback — nginx y Local by Flywheel
+ *     a veces no pasan el header Authorization a PHP-FPM, pero SÍ pasan
+ *     headers custom sin filtrar)
+ *
+ * Esto es independiente del interceptor global de fetch (apiDesktopAdapter).
+ * Si el interceptor funciona, el header Authorization se envía dos veces (sin efecto).
+ * Si el interceptor no está activo (edge case en inicialización), el header
+ * explícito aquí garantiza que la auth siempre llega.
+ */
+export function obtenerHeadersSync(incluirContentType = true): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (incluirContentType) {
+        headers['Content-Type'] = 'application/json';
+    }
+    if (tokenSync) {
+        headers['Authorization'] = `Bearer ${tokenSync}`;
+        headers['X-Kamples-Auth'] = `Bearer ${tokenSync}`;
+    }
+    return headers;
+}
+
+/**
+ * Construye headers de auth SIN Content-Type (para GET o requests sin body).
+ */
+export function obtenerHeadersSyncGet(): Record<string, string> {
+    return obtenerHeadersSync(false);
+}
+
+/**
+ * Extrae información de error del response body de una petición fallida.
+ * Intenta parsear JSON, si falla retorna texto plano truncado.
+ */
+export async function extraerErrorRespuesta(resp: Response): Promise<string> {
+    try {
+        const texto = await resp.text();
+        try {
+            const json = JSON.parse(texto);
+            return json?.message ?? json?.code ?? texto.slice(0, 200);
+        } catch {
+            return texto.slice(0, 200);
+        }
+    } catch {
+        return `HTTP ${resp.status}`;
+    }
+}

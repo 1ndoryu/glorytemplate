@@ -121,6 +121,8 @@ export function inyectarAuthHeader(token: string): void {
         /* Inyectar auth en peticiones a la API Kamples */
         if (url.includes('/wp-json/')) {
             headers.set('Authorization', `Bearer ${token}`);
+            /* Fallback para nginx/LocalWP que no pasan Authorization a PHP-FPM */
+            headers.set('X-Kamples-Auth', `Bearer ${token}`);
         }
 
         const response = await fetchOriginal(input, {

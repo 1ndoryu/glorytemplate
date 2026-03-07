@@ -12,6 +12,7 @@
 
 import { esDesktop } from './desktopService';
 import { actualizarTokenApi, limpiarAuthApi } from './apiDesktopAdapter';
+import { establecerTokenSync } from './syncGuards';
 
 /* Clave del store seguro de Tauri */
 const STORE_KEY_TOKEN = 'auth_token';
@@ -44,6 +45,7 @@ export async function inicializarAuthDesktop(): Promise<void> {
         if (token) {
             tokenEnMemoria = token;
             actualizarTokenApi(token);
+            establecerTokenSync(token);
 
             /* Leer usuario cacheado y poblar authStore ANTES de que React monte.
              * Esto elimina el flash de "no autenticado" (el roundtrip a /me tardaba ~300ms+). */
@@ -71,6 +73,7 @@ export async function inicializarAuthDesktop(): Promise<void> {
 export async function guardarToken(token: string): Promise<void> {
     tokenEnMemoria = token;
     actualizarTokenApi(token);
+    establecerTokenSync(token);
 
     if (!esDesktop()) return;
 
@@ -121,6 +124,7 @@ export async function obtenerUsuarioGuardado(): Promise<Record<string, unknown> 
 export async function cerrarSesionDesktop(): Promise<void> {
     tokenEnMemoria = null;
     limpiarAuthApi();
+    establecerTokenSync(null);
 
     if (!esDesktop()) return;
 
