@@ -495,14 +495,30 @@ class ColeccionesRepository extends BaseRepository
 
     /*
      * Eliminar colección solo si pertenece al usuario.
+     * Cascada manual: borra coleccion_samples primero para evitar FK constraint violation.
      */
     public static function eliminarDelUsuario(int $id, int $userId): int
     {
         $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+
+        /* Verificar propiedad antes de borrar samples (previene escalada de privilegios) */
+        $col = static::consultarUno(
+            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE "
+            . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
+            ['id' => $id, 'userId' => $userId]
+        );
+
+        if (!$col) return 0;
+
+        static::ejecutar(
+            "DELETE FROM {$tcs} WHERE " . ColeccionSamplesCols::COLECCION_ID . " = :id",
+            ['id' => $id]
+        );
 
         return static::ejecutar(
-            "DELETE FROM {$t} WHERE " . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
-            ['id' => $id, 'userId' => $userId]
+            "DELETE FROM {$t} WHERE " . ColeccionesCols::ID . " = :id",
+            ['id' => $id]
         );
     }
 
