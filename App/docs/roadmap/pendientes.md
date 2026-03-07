@@ -235,3 +235,34 @@ F15. ✅ [AG-FIX] Modal config: CampoTexto variante="desnudo" elimina clases bas
 - [ ] **367d** Upload queue edge cases: Qué pasa con archivos >100MB (timeout?), archivos de 0 bytes (debería rechazar), archivos corruptos (header WAV inválido), nombres con emojis/unicode especial.
 - [ ] **367e** Server-side dedup: Considerar endpoint `POST /samples/check-duplicate` (hash parcial) consultado antes del upload. Alternativa: backend retorna `already_exists` con `sample_id` existente si hash coincide. TO-DO para implementar.
 - [ ] **367f** Constraint UNIQUE: Agregar `UNIQUE (usuario_id, LOWER(nombre))` a tabla colecciones para dedup atómico (actual: check-then-insert con race window mínima).
+
+---
+
+## Sprint G — Testing Batch Bugfixes (commit 6bed9ab9)
+
+> ✅ Completado — AG-FIX
+
+Q1. ✅ [AG-FIX] Excluir carpeta 'duplicados' de sync watcher (fileWatcherService + syncWatcherSetup).
+Q2. ✅ [AG-FIX] Detección colecciones huérfanas en rename carpetas: buscarColeccionHuerfana() + fallback en onCarpetaNueva y rename.
+Q3. ✅ [AG-FIX] Auto-posts: tipo=TIPO_SAMPLE + moderacion_estado=APROBADO. crearPublicacion() extendida con params opcionales.
+Q4. ✅ No problema — desktop reutiliza exactamente el mismo IMAGENES_COLOR array que server.
+Q5. ✅ [AG-FIX] Selector colección: botón X absoluto para evitar reflow del buscador.
+Q6. ✅ [AG-FIX] Audio cleanup en cambio de sample: deps [sample.rutaPreview] en useEffect.
+Q7. ✅ [AG-FIX] Stats Cola IA: interfaz TS alineada con backend (completados_hoy, en_reintento, errores, encolados_hoy).
+Q8. ✅ Sin errores — Mezclador type-check limpio.
+Q9. ✅ [AG-FIX] Cuota Groq: captura x-ratelimit-* headers en GroqHttpClient + endpoint + UI CuotaGroqResumen.
+Q10. ✅ [AG-FIX] CSS Cola IA: flex:1 en filtros, flex-shrink:0 en botones. NaN resuelto con Q7.
+Q11. ✅ [AG-FIX] Rechazo masivo moderación: rechazarTodosPendientes() repo + endpoint + API + UI botón.
+Q12. ✅ [AG-FIX] Auth modal cierra tras login/registro: useAuthModalStore.getState().cerrar().
+Q13. ✅ [AG-FIX] Feed diversidad: _score_base (sin social) para ROW_NUMBER, _score (con social) para ORDER BY. max_por_autor 3→5.
+Q14/Q15. ✅ [AG-FIX] ComentariosEnums: MODERACION_RECHAZADO → MODERACION_ESTADO_RECHAZADO (2 refs).
+Q16. ✅ [AG-FIX] Groq vision: añadido -instruct suffix a llama-4-maverick + scout.
+Q17. ✅ Ya implementado — TarjetaPublicacion muestra BadgeModeracion si esAutor|esAdmin.
+
+### Lecciones Sprint G
+- [Cola IA]: Backend retorna snake_case (completados_hoy, en_reintento). Frontend TS debe coincidir exactamente. NaN silencioso por undefined + operador aritmético.
+- [Groq]: Modelos vision Llama 4 requieren sufijo `-instruct`. Guard model (llama-guard-4-12b) NO lo requiere.
+- [Sync]: Carpetas de sistema (papelera, duplicados) deben excluirse en AMBOS sets: CARPETAS_EXCLUIDAS_TOTAL y CARPETAS_SISTEMA_SYNC.
+- [Auth]: authStore (datos usuario) y authModalStore (UI modal) son stores separados. Cerrar modal requiere acceder al store correcto.
+- [Feed]: Para diversidad justa, el scoring de ROW_NUMBER (cap por autor) no debe incluir señales personalizadas (social boost). Solo métricas objetivas (frescura + engagement).
+- [CSS]: Botones condicionales (X para limpiar) causan reflow. Usar position:absolute para elementos toggle.
