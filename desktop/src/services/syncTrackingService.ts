@@ -356,6 +356,35 @@ export async function inicializarTracking(userIdActual?: number): Promise<void> 
     if (recuperado && (Object.keys(recuperado.archivos).length > 0 || Object.keys(recuperado.colecciones).length > 0)) {
         datos = { ...recuperado, historialSamples: recuperado.historialSamples ?? [] };
         logSync.info('tracking', 'Estado recuperado desde journal');
+
+        /*
+         * C288: Tras journal recovery, sincronizar versionLocalConocida y userId desde Store.
+         * Sin esto:
+         * - versionLocalConocida queda en 0 (journal no la persiste)
+         * - Store tiene version N (escrita por checkpoints anteriores)
+         * - El primer escribirEnStore() ve Store(N)>local(0) → TC1 merge
+         *   re-importa datos viejos (posiblemente de otro usuario).
+         *
+         * También leer userId del Store: el journal puede tener datos sin userId
+         * (pre-C286) o con userId de otro usuario. El Store es la fuente de verdad
+         * porque fue el último en recibir un checkpoint con userId correcto.
+         */
+        if (storeCache) {
+            try {
+                const storeData = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
+                if (storeData) {
+                    versionLocalConocida = storeData.checkpointVersion ?? 0;
+
+                    /* Si el journal no tiene userId pero el Store sí, adoptar el del Store
+                     * para que el ownership check posterior funcione correctamente */
+                    if (datos.userId === undefined && storeData.userId !== undefined) {
+                        datos.userId = storeData.userId;
+                    }
+                }
+            } catch {
+                /* Store no disponible — TC1 merge podría dispararse pero es mejor que fallar */
+            }
+        }
     } else if (storeCache) {
         /* Fallback: cargar desde Tauri Store (caso normal sin crash previo) */
         try {
