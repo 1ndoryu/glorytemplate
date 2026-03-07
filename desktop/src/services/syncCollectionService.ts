@@ -14,12 +14,11 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta, circuitoSync } from './syncGuards';
+import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
 import { moverAPapelera } from './papeleraService';
-import { clasificarError, obtenerEstrategia, esErrorDeRed } from './errorSync';
 import { logSync } from './syncLogger';
 import { verificarTamano } from './hashService';
 import {
@@ -57,6 +56,7 @@ export interface ColeccionSync {
     id: number;
     nombre: string;
     parent_id: number | null;
+    version: number;
     samples: SampleSync[];
 }
 
@@ -164,6 +164,7 @@ async function registrarColeccionNuevaLocal(id: number, nombreNormalizado: strin
         carpetaLocal: sanitizarNombreCarpeta(nombreNormalizado),
         creadaLocalmente: true,
         parentId,
+        version: 0,
     });
 
     await registrarAccion({
@@ -421,6 +422,11 @@ export async function sincronizarColecciones(
             if (colLocal.nombre !== colServer.nombre) {
                 await manejarRenombreColeccion(carpetaBase, colLocal, colServer.nombre);
             }
+            /* F5.2: Actualizar version local desde servidor */
+            const versionServidor = colServer.version ?? 1;
+            if ((colLocal.version ?? 0) !== versionServidor) {
+                await registrarColeccion({ ...colLocal, version: versionServidor });
+            }
             nombresUsados.add(colLocal.carpetaLocal);
         } else {
             /* Colección nueva del servidor — crear carpeta local */
@@ -439,6 +445,7 @@ export async function sincronizarColecciones(
                 carpetaLocal: nombreFinal,
                 creadaLocalmente: false,
                 parentId: null,
+                version: colServer.version ?? 1,
             });
 
             await registrarAccion({
@@ -466,6 +473,11 @@ export async function sincronizarColecciones(
                 const carpetaPadre = await join(carpetaBase, padreLocal.carpetaLocal);
                 await manejarRenombreColeccion(carpetaPadre, subLocal, subServer.nombre);
             }
+            /* F5.2: Actualizar version local desde servidor */
+            const versionSub = subServer.version ?? 1;
+            if ((subLocal.version ?? 0) !== versionSub) {
+                await registrarColeccion({ ...subLocal, version: versionSub });
+            }
         } else {
             /* Subcolección nueva — crear subcarpeta dentro de la carpeta padre */
             const nombreCarpeta = sanitizarNombreCarpeta(nombreNormalizado);
@@ -482,6 +494,7 @@ export async function sincronizarColecciones(
                 carpetaLocal: nombreCarpeta,
                 creadaLocalmente: false,
                 parentId: subServer.parent_id!,
+                version: subServer.version ?? 1,
             });
 
             await registrarAccion({
@@ -1047,6 +1060,13 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
 export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNombre: string): Promise<boolean> {
     const nombreNormalizado = normalizarNombreColeccion(nuevoNombre);
 
+    /* F5.2: Enviar version actual para optimistic locking */
+    const colLocal = obtenerColeccion(coleccionId);
+    const bodyRename: Record<string, unknown> = { nombre: nombreNormalizado };
+    if (colLocal?.version) {
+        bodyRename.version = colLocal.version;
+    }
+
     if (!estaOnline()) {
         /*
          * Encolar para reintento cuando se recupere conexión.
@@ -1056,7 +1076,7 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
             tipo: 'renombrar_coleccion',
             endpoint: `${obtenerBaseUrlSync()}/kamples/v1/colecciones/${coleccionId}`,
             method: 'PUT',
-            body: { nombre: nombreNormalizado },
+            body: bodyRename,
             claveDuplicacion: `rename-col-${coleccionId}`,
         });
         console.info('[SyncCollection] Rename encolado (offline):', coleccionId, '→', nombreNormalizado);
@@ -1068,12 +1088,19 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
         const resp = await fetch(`${baseUrl}/kamples/v1/colecciones/${coleccionId}`, {
             method: 'PUT',
             headers: obtenerHeadersSync(),
-            body: JSON.stringify({ nombre: nombreNormalizado }),
+            body: JSON.stringify(bodyRename),
         });
 
         if (!resp.ok) {
             const detalle = await extraerErrorRespuesta(resp);
             console.error('[SyncCollection] Error renombrando colección en servidor:', resp.status, detalle);
+
+            /* F5.2: Conflicto de version — forzar re-sync en el proximo ciclo */
+            if (resp.status === 409) {
+                logSync.warn('SyncCollection', `Conflicto de versión al renombrar col #${coleccionId}. Se re-sincronizará.`);
+                return false;
+            }
+
             /*
              * Error transitorio (500, 429, timeout): encolar para reintento.
              * Solo fallos permanentes (400, 404) se descartan definitivamente.
@@ -1083,7 +1110,7 @@ export async function renombrarColeccionEnServidor(coleccionId: number, nuevoNom
                     tipo: 'renombrar_coleccion',
                     endpoint: `${baseUrl}/kamples/v1/colecciones/${coleccionId}`,
                     method: 'PUT',
-                    body: { nombre: nombreNormalizado },
+                    body: bodyRename,
                     claveDuplicacion: `rename-col-${coleccionId}`,
                 });
             }

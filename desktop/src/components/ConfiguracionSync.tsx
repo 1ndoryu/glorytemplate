@@ -13,6 +13,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { X, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Checkbox } from '@app/components/ui/Checkbox';
+import { Input } from '@app/components/ui/Input';
 import { useConfiguracionSync } from '../hooks/useConfiguracionSync';
 import '@app/styles/componentes/configuracionSync.css';
 
@@ -63,6 +65,7 @@ export function ConfiguracionSync({ abierto, onCerrar }: ConfiguracionSyncProps)
     if (!abierto) return null;
 
     return (
+        /* sentinel-disable-next-line componente-artesanal — Modal usa createPortal al body; aquí necesitamos overlay inline dentro del panel Tauri */
         <div className="configSyncOverlay" onClick={manejarClickOverlay} role="dialog" aria-modal="true">
             <div className="configSyncPanel" ref={panelRef}>
                 <div className="configSyncCabecera">
@@ -82,6 +85,7 @@ export function ConfiguracionSync({ abierto, onCerrar }: ConfiguracionSyncProps)
                             Límite de velocidad en Mbps. 0 = sin límite.
                         </span>
                         <div className="configSyncInputGrupo">
+                            {/* sentinel-disable-next-line html-nativo-en-vez-de-componente — No existe componente Slider; range nativo */}
                             <input
                                 id="configVelocidad"
                                 type="range"
@@ -109,6 +113,7 @@ export function ConfiguracionSync({ abierto, onCerrar }: ConfiguracionSyncProps)
                             Número de archivos que se suben/descargan simultáneamente.
                         </span>
                         <div className="configSyncInputGrupo">
+                            {/* sentinel-disable-next-line html-nativo-en-vez-de-componente — No existe componente Slider; range nativo */}
                             <input
                                 id="configParalelos"
                                 type="range"
@@ -129,30 +134,20 @@ export function ConfiguracionSync({ abierto, onCerrar }: ConfiguracionSyncProps)
                     <div className="configSyncSeccion">
                         <span className="configSyncLabel">Borrado bidireccional</span>
                         <div className="configSyncToggleGrupo">
-                            <label className="configSyncToggleLabel" htmlFor="configBorrarServidor">
-                                <input
-                                    id="configBorrarServidor"
-                                    type="checkbox"
-                                    className="configSyncCheckbox"
-                                    checked={config.borrarEnServidorAlBorrarLocal}
-                                    onChange={(e) => setBorrarEnServidorAlBorrarLocal(e.target.checked)}
-                                />
-                                <span>
-                                    Al borrar en local, borrar en el servidor
-                                </span>
-                            </label>
-                            <label className="configSyncToggleLabel" htmlFor="configBorrarLocal">
-                                <input
-                                    id="configBorrarLocal"
-                                    type="checkbox"
-                                    className="configSyncCheckbox"
-                                    checked={config.borrarEnLocalAlBorrarEnServidor}
-                                    onChange={(e) => setBorrarEnLocalAlBorrarEnServidor(e.target.checked)}
-                                />
-                                <span>
-                                    Al borrar en el servidor, borrar en local
-                                </span>
-                            </label>
+                            <Checkbox
+                                id="configBorrarServidor"
+                                className="configSyncToggleLabel"
+                                label="Al borrar en local, borrar en el servidor"
+                                checked={config.borrarEnServidorAlBorrarLocal}
+                                onChange={(e) => setBorrarEnServidorAlBorrarLocal(e.target.checked)}
+                            />
+                            <Checkbox
+                                id="configBorrarLocal"
+                                className="configSyncToggleLabel"
+                                label="Al borrar en el servidor, borrar en local"
+                                checked={config.borrarEnLocalAlBorrarEnServidor}
+                                onChange={(e) => setBorrarEnLocalAlBorrarEnServidor(e.target.checked)}
+                            />
                         </div>
                     </div>
 
@@ -160,25 +155,20 @@ export function ConfiguracionSync({ abierto, onCerrar }: ConfiguracionSyncProps)
                     <div className="configSyncSeccion">
                         <span className="configSyncLabel">Papelera</span>
                         <div className="configSyncToggleGrupo">
-                            <label className="configSyncToggleLabel" htmlFor="configPapelera">
-                                <input
-                                    id="configPapelera"
-                                    type="checkbox"
-                                    className="configSyncCheckbox"
-                                    checked={config.papeleraActiva}
-                                    onChange={(e) => setPapeleraActiva(e.target.checked)}
-                                />
-                                <span>
-                                    Activar papelera (los archivos borrados se retienen antes de eliminarse)
-                                </span>
-                            </label>
+                            <Checkbox
+                                id="configPapelera"
+                                className="configSyncToggleLabel"
+                                label="Activar papelera (los archivos borrados se retienen antes de eliminarse)"
+                                checked={config.papeleraActiva}
+                                onChange={(e) => setPapeleraActiva(e.target.checked)}
+                            />
                         </div>
                         {config.papeleraActiva && (
                             <div className="configSyncInputGrupo configSyncInputGrupoIndentado">
                                 <label className="configSyncDescripcion" htmlFor="configPapeleraDias">
                                     Días de retención:
                                 </label>
-                                <input
+                                <Input
                                     id="configPapeleraDias"
                                     type="number"
                                     className="configSyncInputNumero"

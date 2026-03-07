@@ -30,6 +30,9 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\GeneradorEmbeddings;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\LogAlgoritmo;
 
 class ConstructorSenales
 {
@@ -417,6 +420,7 @@ class ConstructorSenales
         /* @codeSentinel-ignore INTERVAL — misma whitelist líneas 370-373 */
         $descargas7d = "COALESCE((SELECT COUNT(*) FROM {$td} WHERE {$dSid} = s.{$sId} AND {$dCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
+        /* @codeSentinel-ignore INTERVAL — misma whitelist líneas 370-373 */
         $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
 
         /*
@@ -687,12 +691,12 @@ class ConstructorSenales
         $pctUmbral = (float) ($satConfig['percentil_umbral'] ?? 0.75);
         $pctEscala = (float) ($satConfig['percentil_escala'] ?? 0.95);
         $sEstado = SamplesCols::ESTADO;
-        $eActivo = \App\Config\Schema\_generated\SamplesEnums::ESTADO_ACTIVO;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
         $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
         $ts = SamplesCols::TABLA;
 
         try {
-            $resultado = \App\Kamples\Database\Repositories\SamplesRepository::consultar(
+            $resultado = SamplesRepository::consultar(
                 "SELECT 
                     COALESCE(PERCENTILE_CONT({$pctUmbral}) WITHIN GROUP (ORDER BY {$sTotDesc}), 0)::int AS p_umbral,
                     COALESCE(PERCENTILE_CONT({$pctEscala}) WITHIN GROUP (ORDER BY {$sTotDesc}), 0)::int AS p_escala
@@ -718,8 +722,8 @@ class ConstructorSenales
             }
         } catch (\Throwable $e) {
             /* Fallo silencioso: usar fallback fijo y loguear */
-            if (\class_exists(\App\Kamples\LogAlgoritmo::class)) {
-                \App\Kamples\LogAlgoritmo::debug('Saturación dinámica: fallo al calcular percentiles, usando fallback', [
+            if (\class_exists(LogAlgoritmo::class)) {
+                LogAlgoritmo::debug('Saturación dinámica: fallo al calcular percentiles, usando fallback', [
                     'error' => $e->getMessage(),
                 ]);
             }

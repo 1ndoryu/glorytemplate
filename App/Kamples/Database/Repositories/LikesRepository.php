@@ -41,7 +41,7 @@ class LikesRepository extends BaseRepository
         $col = LikesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . LikesCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -162,7 +162,7 @@ class LikesRepository extends BaseRepository
 
         static::ejecutar(
             "DELETE FROM {$tabla} WHERE " . LikesCols::USUARIO_ID . " = :userId"
-            . " AND " . LikesCols::TIPO . " = 'comentario' AND " . LikesCols::TARGET_ID . " = :targetId",
+            . " AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_COMENTARIO . "' AND " . LikesCols::TARGET_ID . " = :targetId",
             ['userId' => $userId, 'targetId' => $targetId]
         );
     }
@@ -177,7 +177,7 @@ class LikesRepository extends BaseRepository
         $tc = ComentariosCols::TABLA;
 
         $row = static::consultarUno(
-            "SELECT COUNT(*) as total FROM {$tl} WHERE " . LikesCols::TIPO . " = 'comentario' AND " . LikesCols::TARGET_ID . " = :id",
+            "SELECT COUNT(*) as total FROM {$tl} WHERE " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_COMENTARIO . "' AND " . LikesCols::TARGET_ID . " = :id",
             ['id' => $comentarioId]
         );
         $total = (int) ($row['total'] ?? 0);
@@ -204,7 +204,7 @@ class LikesRepository extends BaseRepository
 
         $likes = static::consultar(
             "SELECT " . LikesCols::TARGET_ID . " FROM {$tabla}"
-            . " WHERE " . LikesCols::USUARIO_ID . " = ? AND " . LikesCols::TIPO . " = 'comentario'"
+            . " WHERE " . LikesCols::USUARIO_ID . " = ? AND " . LikesCols::TIPO . " = '" . LikesEnums::TIPO_COMENTARIO . "'"
             . " AND " . LikesCols::TARGET_ID . " IN ({$placeholders})",
             $params
         );

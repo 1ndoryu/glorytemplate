@@ -110,10 +110,14 @@ class PublicacionesController
 
         $currentUserId = UsuarioHelper::obtenerIdPg();
         if ($currentUserId) {
-            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado' OR ((p.{$pModEstado} = 'revision' OR p.{$pModEstado} = 'pendiente') AND p.{$pAutorId} = :currentUser))";
+            $eAprobado = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
+            $eRevision = PublicacionesEnums::MODERACION_ESTADO_REVISION;
+            $ePendiente = PublicacionesEnums::MODERACION_ESTADO_PENDIENTE;
+            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = '{$eAprobado}' OR ((p.{$pModEstado} = '{$eRevision}' OR p.{$pModEstado} = '{$ePendiente}') AND p.{$pAutorId} = :currentUser))";
             $params['currentUser'] = $currentUserId;
         } else {
-            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = 'aprobado')";
+            $eAprobado = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
+            $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = '{$eAprobado}')";
         }
 
         if ($filtro === 'siguiendo') {
@@ -198,7 +202,7 @@ class PublicacionesController
          * Solo el autor puede ver sus propias publicaciones rechazadas.
          */
         $estado = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
-        if ($estado === PublicacionesEnums::MODERACION_RECHAZADO) {
+        if ($estado === PublicacionesEnums::MODERACION_ESTADO_RECHAZADO) {
             if (!$currentUserId || $currentUserId !== (int) $pub[PublicacionesCols::AUTOR_ID]) {
                 return new \WP_REST_Response(['code' => 'publicacion_no_encontrada'], 404);
             }

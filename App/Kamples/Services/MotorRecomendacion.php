@@ -31,6 +31,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\PerfilUsuario;
+use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
@@ -604,9 +605,9 @@ class MotorRecomendacion
         }
 
         /* Fallback sin pgvector: random de calidad que el usuario no ha reproducido mucho */
-        $trep = \App\Config\Schema\_generated\ReproduccionesCols::TABLA;
-        $trUid = \App\Config\Schema\_generated\ReproduccionesCols::USUARIO_ID;
-        $trSid = \App\Config\Schema\_generated\ReproduccionesCols::SAMPLE_ID;
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
             . " WHERE s.{$sEstado} = '{$eActivo}'"
