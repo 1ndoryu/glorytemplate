@@ -57,7 +57,7 @@ class DescargasRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+            
 
     /*
      * Verificar si el usuario ya descargó un sample.

@@ -56,7 +56,7 @@ class NotificacionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+            
 
     /*
      * Listar notificaciones del usuario con datos del actor (JOIN usuarios_ext).

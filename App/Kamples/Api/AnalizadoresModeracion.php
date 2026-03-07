@@ -42,7 +42,7 @@ class AnalizadoresModeracion
         $respuesta = self::llamarGroq($apiKey, self::MODELO_GUARD, $prompt);
 
         if ($respuesta === null) {
-            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_GUARD, 'error' => 'timeout'];
         }
 
         $respuestaLimpia = \strtolower(\trim($respuesta));
@@ -51,14 +51,14 @@ class AnalizadoresModeracion
             $partes = \explode(',', $respuestaLimpia, 2);
             $categoria = isset($partes[1]) ? \trim($partes[1]) : 'spam';
             return [
-                'nivel' => 'rechazado',
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
                 'modelo' => self::MODELO_GUARD,
                 'categoria' => $categoria,
                 'raw' => $respuestaLimpia,
             ];
         }
 
-        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_GUARD];
     }
 
     /**
@@ -94,7 +94,7 @@ class AnalizadoresModeracion
         $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
 
         if ($respuesta === null) {
-            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_VISION, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_VISION, 'error' => 'timeout'];
         }
 
         $respuestaLimpia = \strtolower(\trim($respuesta));
@@ -103,13 +103,13 @@ class AnalizadoresModeracion
             $partes = \explode(',', $respuestaLimpia, 2);
             $categoria = isset($partes[1]) ? \trim($partes[1]) : 'sexual';
             return [
-                'nivel' => 'rechazado',
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
                 'modelo' => self::MODELO_VISION,
                 'categoria' => $categoria,
             ];
         }
 
-        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_VISION];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_VISION];
     }
 
     /**
@@ -125,7 +125,7 @@ class AnalizadoresModeracion
         $respuesta = self::llamarGroq($apiKey, self::MODELO_GUARD, $prompt);
 
         if ($respuesta === null) {
-            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_GUARD, 'error' => 'timeout'];
         }
 
         $respuestaLimpia = \strtolower(\trim($respuesta));
@@ -134,14 +134,14 @@ class AnalizadoresModeracion
             $partes = \explode(',', $respuestaLimpia, 2);
             $categoria = isset($partes[1]) ? \trim($partes[1]) : 'desconocida';
             return [
-                'nivel' => 'rechazado',
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
                 'modelo' => self::MODELO_GUARD,
                 'categoria' => $categoria,
                 'raw' => $respuestaLimpia,
             ];
         }
 
-        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_GUARD];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_GUARD];
     }
 
     /**
@@ -149,7 +149,7 @@ class AnalizadoresModeracion
      */
     public static function analizarImagenes(string $apiKey, array $imagenes): array
     {
-        $peorNivel = PublicacionesEnums::MODERACION_APROBADO;
+        $peorNivel = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
         $detalles = [];
 
         foreach ($imagenes as $url) {
@@ -176,7 +176,7 @@ class AnalizadoresModeracion
             $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
 
             if ($respuesta === null) {
-                $detalles[] = ['url' => $url, 'nivel' => 'aprobado', 'error' => 'timeout'];
+                $detalles[] = ['url' => $url, 'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'error' => 'timeout'];
                 continue;
             }
 
@@ -185,10 +185,10 @@ class AnalizadoresModeracion
             if (\str_starts_with($respuestaLimpia, 'unsafe')) {
                 $partes = \explode(',', $respuestaLimpia, 2);
                 $categoria = isset($partes[1]) ? \trim($partes[1]) : 'desconocida';
-                $detalles[] = ['url' => $url, 'nivel' => 'rechazado', 'categoria' => $categoria];
-                $peorNivel = PublicacionesEnums::MODERACION_RECHAZADO;
+                $detalles[] = ['url' => $url, 'nivel' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO, 'categoria' => $categoria];
+                $peorNivel = PublicacionesEnums::MODERACION_ESTADO_RECHAZADO;
             } else {
-                $detalles[] = ['url' => $url, 'nivel' => 'aprobado'];
+                $detalles[] = ['url' => $url, 'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO];
             }
         }
 
@@ -221,7 +221,7 @@ class AnalizadoresModeracion
         $respuesta = self::llamarGroq($apiKey, self::MODELO_CONTEXTUAL, $prompt);
 
         if ($respuesta === null) {
-            return ['nivel' => 'aprobado', 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'timeout'];
         }
 
         $json = \json_decode($respuesta, true);
@@ -235,20 +235,20 @@ class AnalizadoresModeracion
             if (!$json['safe']) {
                 $confianza = (float) ($json['confidence'] ?? 0.5);
                 return [
-                    'nivel' => $confianza >= 0.8 ? 'rechazado' : 'revision',
+                    'nivel' => $confianza >= 0.8 ? PublicacionesEnums::MODERACION_ESTADO_RECHAZADO : PublicacionesEnums::MODERACION_ESTADO_REVISION,
                     'modelo' => self::MODELO_CONTEXTUAL,
                     'razon' => $json['reason'] ?? '',
                     'confianza' => $confianza,
                 ];
             }
             return [
-                'nivel' => 'aprobado',
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
                 'modelo' => self::MODELO_CONTEXTUAL,
                 'confianza' => (float) ($json['confidence'] ?? 0.95),
             ];
         }
 
-        return ['nivel' => 'aprobado', 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'parse_failed'];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'parse_failed'];
     }
 
     /**

@@ -13,6 +13,13 @@ final class ComentariosEnums
 
     const TODOS_TIPO = [self::TIPO_SAMPLE, self::TIPO_PUBLICACION];
 
+    /* Valores para columna "tipo_contenido" */
+    const TIPO_CONTENIDO_TEXTO = 'texto';
+    const TIPO_CONTENIDO_IMAGEN = 'imagen';
+    const TIPO_CONTENIDO_AUDIO = 'audio';
+
+    const TODOS_TIPO_CONTENIDO = [self::TIPO_CONTENIDO_TEXTO, self::TIPO_CONTENIDO_IMAGEN, self::TIPO_CONTENIDO_AUDIO];
+
     /* Valores para columna "moderacion_estado" */
     const MODERACION_ESTADO_PENDIENTE = 'pendiente';
     const MODERACION_ESTADO_REVISION = 'revision';

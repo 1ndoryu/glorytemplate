@@ -64,6 +64,10 @@ class PublicacionesRepository extends BaseRepository
 
     
 
+    
+
+    
+
     /*
      * Listar publicaciones pendientes de moderación con datos del autor.
      */
@@ -86,9 +90,9 @@ class PublicacionesRepository extends BaseRepository
             . ", u." . UsuariosExtCols::WP_USER_ID
             . ", 'publicacion' as tipo_contenido"
             . " FROM {$tp} p JOIN {$tu} u ON p." . PublicacionesCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
-            . " WHERE p." . PublicacionesCols::MODERACION_ESTADO . " IN ('pendiente', 'revision')"
+            . " WHERE p." . PublicacionesCols::MODERACION_ESTADO . " IN (:estado_pendiente, :estado_revision)"
             . " ORDER BY p." . PublicacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
-            ['limit' => $limit, 'offset' => $offset]
+            ['limit' => $limit, 'offset' => $offset, 'estado_pendiente' => PublicacionesEnums::MODERACION_ESTADO_PENDIENTE, 'estado_revision' => PublicacionesEnums::MODERACION_ESTADO_REVISION]
         );
     }
 

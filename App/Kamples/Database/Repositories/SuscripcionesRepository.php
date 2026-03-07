@@ -56,7 +56,7 @@ class SuscripcionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+            
 
     /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
 }

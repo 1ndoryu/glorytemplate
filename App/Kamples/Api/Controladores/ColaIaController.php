@@ -210,7 +210,7 @@ class ColaIaController
     public static function cuotaGroq(): \WP_REST_Response
     {
         try {
-            $apiKey = \defined('GROQ_API_KEY') ? GROQ_API_KEY : (\getenv('GROQ_API_KEY') ?: '');
+            $apiKey = \defined('GROQ_API_KEY') ? \GROQ_API_KEY : (\getenv('GROQ_API_KEY') ?: '');
             if (empty($apiKey)) {
                 return new \WP_REST_Response([
                     'ok' => false,

@@ -121,7 +121,7 @@ class AdminModeracionController
                 return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'Parámetros inválidos'], 400);
             }
 
-            $estado = $accion === 'aprobar' ? PublicacionesEnums::MODERACION_APROBADO : PublicacionesEnums::MODERACION_RECHAZADO;
+            $estado = $accion === 'aprobar' ? PublicacionesEnums::MODERACION_ESTADO_APROBADO : PublicacionesEnums::MODERACION_ESTADO_RECHAZADO;
 
             $existe = match ($tipo) {
                 ComentariosEnums::TIPO_PUBLICACION => PublicacionesRepository::actualizarEstadoModeracion($id, $estado),

@@ -43,7 +43,7 @@ class AlgoritmoEstadoRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+            
 
     /*
      * Asegurar que existe un registro para el usuario (INSERT ON CONFLICT DO NOTHING).

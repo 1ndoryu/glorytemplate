@@ -20,7 +20,7 @@ class ComentariosSchema extends TableSchema
             'target_id'          => ['tipo' => 'int'],
             'contenido'          => ['tipo' => 'text', 'nullable' => true],
             'created_at'         => ['tipo' => 'datetime', 'default' => 'NOW()'],
-            'tipo_contenido'     => ['tipo' => 'string', 'max' => 20, 'default' => 'texto'],
+            'tipo_contenido'     => ['tipo' => 'string', 'max' => 20, 'default' => 'texto', 'check' => ['texto', 'imagen', 'audio']],
             'media_url'          => ['tipo' => 'text', 'nullable' => true],
             'media_metadata'     => ['tipo' => 'json', 'nullable' => true],
             'moderacion_estado'  => ['tipo' => 'string', 'max' => 20, 'default' => 'aprobado', 'check' => ['pendiente', 'revision', 'aprobado', 'rechazado']],

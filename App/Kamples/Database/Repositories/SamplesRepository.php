@@ -30,8 +30,6 @@ use App\Kamples\Database\Repositories\DescargasRepository;
 
 class SamplesRepository extends BaseRepository
 {
-    const CARPETA_DEFAULT = 'General';
-
     protected static function tabla(): string
     {
         return SamplesCols::TABLA;
@@ -88,6 +86,11 @@ class SamplesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
+
+    /* Carpeta por defecto para samples sin carpeta_primaria en metadata */
+    const CARPETA_DEFAULT = 'General';
 
     /*
      * Buscar samples por un array de IDs.

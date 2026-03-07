@@ -172,15 +172,15 @@ class DescargasController
                 /* Re-verificar permiso de descarga justo después del registro (M2: anti race condition estado) */
                 $sampleActualizado = SamplesRepository::buscarParaDescarga($sampleId);
                 if (!$sampleActualizado || (!(bool) $sampleActualizado[SamplesCols::PERMITIR_DESCARGA] && !$esPropietario)) {
-                    KamplesLogger::warn('Sample cambió de estado durante descarga', ['sampleId' => $sampleId]);
+                    KamplesLogger::warning('Sample cambió de estado durante descarga', ['sampleId' => $sampleId]);
                 }
 
                 /* Incrementar contadores con verificación de retorno (M3) */
                 if (!SamplesRepository::incrementarDescargas($sampleId)) {
-                    KamplesLogger::warn('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
+                    KamplesLogger::warning('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
                 }
                 if (!UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID])) {
-                    KamplesLogger::warn('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
+                    KamplesLogger::warning('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
                 }
 
                 /* F2.1: Nuevo sample disponible para sync desktop */
@@ -202,10 +202,10 @@ class DescargasController
                 DescargasRepository::registrar($userId, $sampleId, $calidad, $tamanoBytes);
 
                 if (!SamplesRepository::incrementarDescargas($sampleId)) {
-                    KamplesLogger::warn('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
+                    KamplesLogger::warning('Fallo incrementar descargas sample', ['sampleId' => $sampleId]);
                 }
                 if (!UsuariosExtRepository::incrementarDescargas((int) $sample[SamplesCols::CREADOR_ID])) {
-                    KamplesLogger::warn('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
+                    KamplesLogger::warning('Fallo incrementar descargas creador', ['creadorId' => (int) $sample[SamplesCols::CREADOR_ID]]);
                 }
 
                 $changelogId = SyncChangelogRepository::registrar(

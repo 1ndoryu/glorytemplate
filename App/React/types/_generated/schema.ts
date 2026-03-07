@@ -65,7 +65,7 @@ export interface IComentarios {
   targetId: number
   contenido: string | null
   createdAt: string
-  tipoContenido: string
+  tipoContenido: 'texto' | 'imagen' | 'audio'
   mediaUrl: string | null
   mediaMetadata: Record<string, unknown> | null
   moderacionEstado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado'
@@ -607,6 +607,9 @@ export const ColaProcesamientoIaEnums = {
 export const ComentariosEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_PUBLICACION: 'publicacion',
+  TIPO_CONTENIDO_TEXTO: 'texto',
+  TIPO_CONTENIDO_IMAGEN: 'imagen',
+  TIPO_CONTENIDO_AUDIO: 'audio',
   MODERACION_ESTADO_PENDIENTE: 'pendiente',
   MODERACION_ESTADO_REVISION: 'revision',
   MODERACION_ESTADO_APROBADO: 'aprobado',

@@ -61,6 +61,10 @@ class ComentariosRepository extends BaseRepository
 
     
 
+    
+
+    
+
     /*
      * Actualizar estado de moderación de un comentario.
      * Retorna true si el comentario existía.
@@ -97,7 +101,7 @@ class ComentariosRepository extends BaseRepository
             . ", u." . UsuariosExtCols::WP_USER_ID
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID
             . " = u." . UsuariosExtCols::ID
-            . " WHERE c." . ComentariosCols::TIPO . " = 'publicacion'"
+            . " WHERE c." . ComentariosCols::TIPO . " = '" . ComentariosEnums::TIPO_PUBLICACION . "'"
             . " AND c." . ComentariosCols::TARGET_ID . " = :pubId"
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
             ['pubId' => $pubId, 'limit' => $limit, 'offset' => $offset]

@@ -50,6 +50,10 @@ class UsuariosExtRepository extends BaseRepository
 
     
 
+    
+
+    
+
     /*
      * Actualizar campos arbitrarios de un usuario (admin).
      * Recibe array de cláusulas SET ya armadas y parámetros.
@@ -287,7 +291,7 @@ class UsuariosExtRepository extends BaseRepository
         $tabla = UsuariosExtCols::TABLA;
 
         return static::ejecutar(
-            "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = 'free', "
+            "UPDATE {$tabla} SET " . UsuariosExtCols::PLAN . " = '" . UsuariosExtEnums::PLAN_FREE . "', "
             . UsuariosExtCols::STRIPE_SUBSCRIPTION_ID . " = NULL WHERE " . UsuariosExtCols::ID . " = :id",
             ['id' => $id]
         );

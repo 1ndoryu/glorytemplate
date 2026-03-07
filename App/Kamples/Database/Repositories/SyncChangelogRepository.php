@@ -1,11 +1,10 @@
 <?php
 
 /**
- * SyncChangelogRepository — Registro y consulta de cambios para delta sync.
+ * SyncChangelogRepository — Acceso a datos para tabla 'sync_changelog'.
  *
- * Cada operacion que modifica el estado de sync de un usuario (crear/renombrar/eliminar
- * coleccion, agregar/quitar sample) inserta un registro aqui. El desktop consulta
- * con cursor (ultimo id conocido) para obtener solo los cambios pendientes.
+ * SECCION AUTO-GENERADA: Los metodos base se regeneran con schema:generate.
+ * SECCION CUSTOM: Todo debajo de la marca CUSTOM se preserva al regenerar.
  *
  * @package Kamples
  */
@@ -14,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\SyncChangelogCols;
 use App\Config\Schema\_generated\SyncChangelogEnums;
+use App\Config\Schema\_generated\SyncChangelogDTO;
 use App\Kamples\KamplesLogger;
 
 class SyncChangelogRepository extends BaseRepository
@@ -28,7 +28,38 @@ class SyncChangelogRepository extends BaseRepository
         return SyncChangelogCols::ID;
     }
 
+    /*
+     * Buscar registros del usuario dado.
+     */
+    public static function buscarPorUsuario(int $usuarioId, int $limit = 20, int $offset = 0): array
+    {
+        $tabla = SyncChangelogCols::TABLA;
+        $col = SyncChangelogCols::USUARIO_ID;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . SyncChangelogCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
+
+    /*
+     * Buscar registros mas recientes.
+     */
+    public static function buscarRecientes(int $limit = 20): array
+    {
+        $tabla = SyncChangelogCols::TABLA;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla} ORDER BY " . SyncChangelogCols::CREATED_AT . " DESC LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
+
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
+
+    
 
     /**
      * Registrar un cambio en el changelog de sync.
@@ -45,10 +76,10 @@ class SyncChangelogRepository extends BaseRepository
         int $entidadId,
         array $metadata = []
     ): ?int {
-        if (!in_array($tipo, SyncChangelogEnums::TIPOS_VALIDOS, true)) {
+        if (!in_array($tipo, SyncChangelogEnums::TODOS_TIPO, true)) {
             KamplesLogger::error('SyncChangelogRepository: tipo invalido', [
                 'tipo' => $tipo,
-                'validos' => SyncChangelogEnums::TIPOS_VALIDOS,
+                'validos' => SyncChangelogEnums::TODOS_TIPO,
             ]);
             return null;
         }
@@ -63,7 +94,7 @@ class SyncChangelogRepository extends BaseRepository
 
         /* A8: Limitar tamaño de metadata para evitar crecimiento descontrolado de la tabla */
         if (strlen($metadataJson) > 10240) {
-            KamplesLogger::warn('SyncChangelogRepository: metadata demasiado grande, truncando', [
+            KamplesLogger::warning('SyncChangelogRepository: metadata demasiado grande, truncando', [
                 'tamano' => strlen($metadataJson),
             ]);
             $metadataJson = json_encode(['_truncado' => true, 'tamano_original' => strlen($metadataJson)]);

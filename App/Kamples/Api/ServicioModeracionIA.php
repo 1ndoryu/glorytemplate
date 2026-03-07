@@ -49,7 +49,7 @@ class ServicioModeracionIA
             KamplesLogger::error('ModeracionIA: API key de Groq NO configurada — TODO EL CONTENIDO SE APRUEBA SIN REVISIÓN', [
                 'publicacionId' => $publicacionId,
             ]);
-            return ['nivel' => 'aprobado', 'razon' => 'sin_api_key', 'detalles' => []];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'razon' => 'sin_api_key', 'detalles' => []];
         }
 
         $resultados = [];
@@ -103,7 +103,7 @@ class ServicioModeracionIA
 
             /* Forzar veredicto a 'revision' en vez de aprobar por defecto */
             $veredictoRateLimit = [
-                'nivel' => PublicacionesEnums::MODERACION_REVISION,
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_REVISION,
                 'razon' => 'rate_limit_ia',
                 'detalles' => ['motivo' => 'Groq rate limit 429, encolado para reproceso'],
             ];
@@ -130,7 +130,7 @@ class ServicioModeracionIA
          */
         if (empty($resultados)) {
             $resultados['sin_contenido_analizable'] = [
-                'nivel' => PublicacionesEnums::MODERACION_APROBADO,
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
                 'razon' => 'audio_sin_analisis',
                 'nota' => 'Post sin texto ni imágenes — contenido de audio no analizable por IA',
             ];
@@ -181,7 +181,7 @@ class ServicioModeracionIA
             KamplesLogger::error('ModeracionIA: API key NO configurada — comentario aprobado sin revisión', [
                 'comentarioId' => $comentarioId,
             ]);
-            return ['nivel' => 'aprobado', 'razon' => 'sin_api_key', 'detalles' => []];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'razon' => 'sin_api_key', 'detalles' => []];
         }
 
         $resultados = [];
@@ -230,7 +230,7 @@ class ServicioModeracionIA
             }
 
             $veredictoRateLimit = [
-                'nivel' => PublicacionesEnums::MODERACION_REVISION,
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_REVISION,
                 'razon' => 'rate_limit_ia',
                 'detalles' => ['motivo' => 'Groq rate limit 429, encolado para reproceso'],
             ];
@@ -274,7 +274,7 @@ class ServicioModeracionIA
         }
 
         /* C132: Si rechazado, registrar violación y posible ban */
-        if ($veredicto['nivel'] === PublicacionesEnums::MODERACION_RECHAZADO) {
+        if ($veredicto['nivel'] === PublicacionesEnums::MODERACION_ESTADO_RECHAZADO) {
             ServicioBan::registrarViolacion($autorId, $veredicto['razon'], 'comentario');
         }
 
@@ -288,15 +288,15 @@ class ServicioModeracionIA
     private static function determinarVeredicto(array $resultados): array
     {
         $prioridad = [
-            PublicacionesEnums::MODERACION_RECHAZADO => 3,
-            PublicacionesEnums::MODERACION_REVISION => 2,
-            PublicacionesEnums::MODERACION_APROBADO => 1,
+            PublicacionesEnums::MODERACION_ESTADO_RECHAZADO => 3,
+            PublicacionesEnums::MODERACION_ESTADO_REVISION => 2,
+            PublicacionesEnums::MODERACION_ESTADO_APROBADO => 1,
         ];
-        $nivelFinal = PublicacionesEnums::MODERACION_APROBADO;
+        $nivelFinal = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
         $razonFinal = '';
 
         foreach ($resultados as $capa => $resultado) {
-            $nivel = $resultado['nivel'] ?? PublicacionesEnums::MODERACION_APROBADO;
+            $nivel = $resultado['nivel'] ?? PublicacionesEnums::MODERACION_ESTADO_APROBADO;
             if (($prioridad[$nivel] ?? 0) > ($prioridad[$nivelFinal] ?? 0)) {
                 $nivelFinal = $nivel;
                 $razonFinal = $resultado['categoria'] ?? $resultado['razon'] ?? $capa;

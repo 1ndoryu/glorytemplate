@@ -42,7 +42,7 @@ class ConversacionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+            
 
     /*
      * Listar conversaciones de un usuario con ID del otro participante.
