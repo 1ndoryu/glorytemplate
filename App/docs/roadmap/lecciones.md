@@ -201,6 +201,12 @@
 - `sentinel-disable-file` en docblock, `sentinel-disable-next-line` línea inmediatamente anterior.
 - PS WriteAllLines corrompe template literals. CTEs excluidas de `repository-sin-whitelist`. BaseRepository excluido globalmente.
 - `usestate-excesivo`: 3 × numComponentes. Hooks: 300 lín máx. Brace counting bug: `} catch (e) {`. Tests: `npx mocha --grep`.
+- [lock-sin-finally]: La regla debe detectar LLAMADAS (`::advisoryLock(` o `->advisoryLock(`) no definiciones ni comentarios. Regex: `/(->|::)advisory[Ll]ock\s*\(/`.
+- [query-doble-verificacion]: La regex extrae el último `\w+` de la línea — cuando el SQL usa `ColName::CONST`, captura el nombre de la clase (ej. `'likescols'`). Fix: excluir palabras que terminan en `cols|enums|dto|schema` y la palabra `tabla`.
+- [hardcoded-sql-column]: JSONB path `metadata->'tags'` detectado como columna hardcoded. Fix: excluir si precedido por `->'` o `->>'`. También excluir claves PDO `$params['col']` (contexto `\[['"]?$`).
+- [undefined-class-constant]: Si la clase está en el índice pero no tiene la constante → es error real. LikesCols y AlgoritmoEstadoCols no tienen `ID` — tablas con PK compuesta o `usuario_id` como PK.
+- [schema generator]: `buscarPorUsuario` y `buscarActivos` usaban `::ID` en ORDER BY. Para tablas sin columna `id`, debe usarse `static::colId()` que retorna dinámicamente la PK correcta.
+- [JsonHelper]: Clase `App\Helpers\JsonHelper` centraliza `json_decode` + `json_last_error`. Usar `::decode()` para obtener null en error, `::decodeOrDefault($default)` para fallback explícito sin enmascarar el error.
 
 ---
 
