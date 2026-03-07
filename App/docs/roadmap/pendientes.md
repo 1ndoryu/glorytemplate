@@ -195,6 +195,7 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 - [x] **S9** ✅ [AG-SEN] 5 reglas TS nuevas + 3 enhancements + fix falsos positivos desktop. listen-sin-cleanup, status-http-generico, handler-sin-trycatch, cola-sin-limite, objeto-mutable-exportado. Mejoras: json-decode-inseguro (detecta ?:/??), return-void-critico (sin hint + return check), limite-lineas (desktop/ habilitado).
 - [x] **S10** ✅ [AG-SEN] Tests: 205 passing (0 failing). sprint89Rules.test.ts cubre todas las reglas nuevas (2+ tests por regla).
 - [x] **S11** ✅ [AG-SEN] Regla `undefined-class-constant`: phpConstantIndexer.ts indexa todas las clases PHP del workspace + herencia. gloryConstantRules.ts resuelve self::/static::/parent::/ClassName:: via use statements. 221 tests passing. Detecta constantes como `CARPETA_DEFAULT` sin necesidad de abrir el archivo.
+- [x] **S12** ✅ [AG-SEN] Fix falsos positivos reporte (43→~10 violaciones reales): VENTANA_WHITELIST 40→60 (interval-sin-whitelist), JSONB precede2 fix (hardcoded-sql-column), enum const declarations skip, promise-sin-catch window 6→20, type="file" input exclusion, query-doble-verificacion alias PHP var detection, retorno-ignorado-repo excluye Glory framework. FQN inline + json_decode recovery + sentinel-disable-next-line objetos/keys. 221 tests passing, VSIX 450.26KB.
 
 ---
 

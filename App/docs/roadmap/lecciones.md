@@ -206,7 +206,14 @@
 - [hardcoded-sql-column]: JSONB path `metadata->'tags'` detectado como columna hardcoded. Fix: excluir si precedido por `->'` o `->>'`. También excluir claves PDO `$params['col']` (contexto `\[['"]?$`).
 - [undefined-class-constant]: Si la clase está en el índice pero no tiene la constante → es error real. LikesCols y AlgoritmoEstadoCols no tienen `ID` — tablas con PK compuesta o `usuario_id` como PK.
 - [schema generator]: `buscarPorUsuario` y `buscarActivos` usaban `::ID` en ORDER BY. Para tablas sin columna `id`, debe usarse `static::colId()` que retorna dinámicamente la PK correcta.
-- [JsonHelper]: Clase `App\Helpers\JsonHelper` centraliza `json_decode` + `json_last_error`. Usar `::decode()` para obtener null en error, `::decodeOrDefault($default)` para fallback explícito sin enmascarar el error.
+- [JsonHelper]: Clase `App\Helpers\JsonHelper` centraliza `json_decode` + `json_last_error`. Usar `::decode()` para null en error, `::decodeOrDefault($default)` para fallback. Siempre añadir `use App\Helpers\JsonHelper;` — NO usar FQN inline (`\App\Helpers\JsonHelper::`).
+- [interval-sin-whitelist]: VENTANA_WHITELIST=40 insuficiente si in_array está >40 líneas antes. Ampliada a 60. `@codeSentinel-ignore INTERVAL` NO es el formato correcto — usar `// sentinel-disable-next-line interval-sin-whitelist`.
+- [hardcoded-enum-value]: `private const ESTADO_ACTIVO = 'activo'` son definiciones de constante, no hardcoded values. Fix en regla: saltar líneas con `const [A-Z_][A-Z0-9_]+ =` (UPPER_CASE).
+- [retorno-ignorado-repo]: Framework Glory usa métodos orquestación void. Excluir archivos en `/Glory/` pasando rutaArchivo opcional a verificarRetornoIgnoradoRepo().
+- [tieneSentinelDisable]: Requiere `sentinel-disable-next-line <reglaId>` en línea INMEDIATAMENTE anterior. NUNCA dentro de JSDoc multilínea — línea i-1 es `*/`, no el texto del comentario.
+- [promise-sin-catch]: Ventana de 6 líneas es muy estricta para cadenas .then() multilinea. Ampliada a 20.
+- [html-nativo-en-vez-de-componente]: `<input type="file">` es excepción válida — se usa con ref para file picker. Excluir junto con `type="hidden"`.
+- [hardcoded-sql-column JSONB fix]: match.index apunta al `'` de apertura. Los 2 chars antes son `->`. Fix: `substring(match.index-2, match.index) === '->'`. Error previo: checked `->('|")$` pero precede3 no contiene la comilla de apertura — es el texto ANTES de ella.
 
 ---
 
