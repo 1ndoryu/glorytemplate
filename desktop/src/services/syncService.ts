@@ -764,8 +764,14 @@ export async function recargarHistorialDesdeStore(): Promise<void> {
 const REHIDRATAR_IMAGENES_INTERVALO_MS = 5_000;
 let ultimaRehidratacionImagenes = 0;
 
+function normalizarUrlImagenHistorial(url: string | null | undefined): string | null {
+    if (!url) return null;
+    return url.trim() || null;
+}
+
 /**
- * Rehidratación periódica de portadas para entradas del historial sin imagen.
+ * Rehidratación periódica de portadas para entradas del historial.
+ * Si la URL cambió en el servidor, reemplaza también la portada ya persistida.
  * Diseñada para ser llamada frecuentemente (ej: polling UI); tiene throttle interno.
  */
 export async function rehidratarImagenesPendientesSync(): Promise<void> {
@@ -851,7 +857,8 @@ export async function forzarResync(
  * del usuario en una sola request, luego mapea sampleId → imagenUrl.
  *
  * Se lanza en background al inicializar el sync service. No bloquea el flujo.
- * Solo procesa entradas con sampleId > 0 y imagenUrl === null.
+ * Reconciliación eventual: corrige tanto imágenes ausentes como imágenes reemplazadas
+ * en el servidor.
  */
 async function rehidratarImagenesPendientes(): Promise<void> {
     const { trackingModule, collectionModule } = estado;
@@ -860,8 +867,8 @@ async function rehidratarImagenesPendientes(): Promise<void> {
     if (!estaOnline()) return;
 
     const historial = trackingModule.obtenerHistorialSamples(100);
-    const sinImagen = historial.filter(e => e.sampleId > 0 && !e.imagenUrl);
-    if (sinImagen.length === 0) return;
+    const historialConSample = historial.filter(e => e.sampleId > 0);
+    if (historialConSample.length === 0) return;
 
     try {
         const datos = await collectionModule.obtenerColeccionesDelServidor();
@@ -884,11 +891,12 @@ async function rehidratarImagenesPendientes(): Promise<void> {
             }
         }
 
-        /* Actualizar entradas sin imagen que encontramos en el batch */
+        /* Reconciliar entradas cuyo snapshot remoto ya tiene portada disponible. */
         let actualizadas = 0;
-        for (const entrada of sinImagen) {
-            const urlImagen = mapaImagenes.get(entrada.sampleId);
-            if (urlImagen) {
+        for (const entrada of historialConSample) {
+            const urlImagen = normalizarUrlImagenHistorial(mapaImagenes.get(entrada.sampleId));
+            const urlActual = normalizarUrlImagenHistorial(entrada.imagenUrl);
+            if (urlImagen && urlImagen !== urlActual) {
                 await trackingModule.actualizarEstadoSample({
                     sampleId: entrada.sampleId,
                     nombreArchivo: entrada.nombreArchivo,
@@ -900,7 +908,7 @@ async function rehidratarImagenesPendientes(): Promise<void> {
         }
 
         if (actualizadas > 0) {
-            console.info(`[Sync] Rehidratadas ${actualizadas} imágenes de samples en historial`);
+            console.info(`[Sync] Reconciliadas ${actualizadas} imágenes de samples en historial`);
         }
     } catch (err) {
         console.error('[Sync] Error rehidratando imágenes pendientes:', err);

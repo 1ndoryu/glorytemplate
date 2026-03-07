@@ -57,6 +57,8 @@
 - [Skeleton]: `--colorBorde` no existe en variables.css → skeletons invisibles. Siempre verificar existencia de CSS vars antes de usar.
 - [Favicon]: `wp_head()` puede inyectar su propio `<link rel="icon">`. Poner el `<link>` personalizado DESPUÉS de wp_head() para override.
 - [z-index]: Portal dropdowns que aparecen sobre modales necesitan z-index mayor que --zModal. Solución: --zMenuPortal:1100.
+- [Landing branding]: Para medidas exactas del home público usar variables específicas en `variables.css`; dejar `@font-face` solo en `landingPublica.css` evita cargar Junicode/Bricolage en el resto de la app.
+- [Tarjetas overlay]: Si el texto debe vivir dentro de la portada, usar overlay absoluto sobre la imagen y revelar metadatos secundarios con `hover` y `focus-visible`; así se mantiene legibilidad y accesibilidad sin ensuciar la grilla.
 
 ---
 
@@ -174,6 +176,8 @@
 - [Sync rutasEnVuelo null hash]: Cuando `calcularHashParcial` retorna null (OneDrive cloud-only, FS error), las capas de dedup por hash (2+3) se bypasean completamente. Sin guard por ruta, el mismo archivo puede subirse N veces en paralelo. Fix: `rutasEnVuelo` Set (path-based) en `subirArchivo()` — add antes del POST, delete en finally.
 - [Sync portada desktop]: `imagenUrl` puede venir relativa (`/wp-content/...`). En ventana Tauri/MPA debe resolverse contra el origen del servidor; si no, `<img>` apunta al origen local de la app y no carga.
 - [Sync portada tardía]: Si la imagen se genera después de los retries post-upload, queda `null` indefinidamente. Requiere rehidratación periódica con throttle + parse defensivo `imagenUrl|imagen_url`.
+- [Sync portada reemplazada]: Rehidratar solo entradas con `imagenUrl=null` no alcanza. Si el historial ya tenía una URL vieja, la portada editada nunca converge. La reconciliación debe comparar `sampleId -> imagenUrl` contra el snapshot remoto y el render desktop debe invalidar caché del `src` con una versión acotada porque algunos flujos reutilizan la misma ruta pública.
+- [Sync portada fallback]: El endpoint `/me/sync/colecciones` puede devolver samples válidos con `imagen_url = null`. El panel sync no debe caer a icono vacío si el resto de la app usa `obtenerImagenColor(sampleId)` como fallback visual. Alinear el render entre surfaces evita falsos "no hay imagen" aunque la portada propia aún no exista.
 - [Sync contract]: Un endpoint de sync no puede ocultar estados transitorios (`procesando`) si el cliente usa snapshot para purgar locales. Debe exponer estados visibles para consistencia eventual.
 - [Sync purge safety]: Antes de mover a papelera por "ausente en servidor", aplicar ventana de gracia para evitar falsos positivos por latencia pipeline/cache.
 - [Sync upload→coleccion]: `moverSampleEnServidorPublico` (PUT /me/coleccionados/{id}/carpeta) solo actualiza `samples.metadata.carpeta_primaria` — NO inserta en `coleccion_samples`. Para que un sample aparezca dentro de una colección en sync/web, se DEBE hacer POST `/colecciones/{colId}/samples` (`ColeccionesCrudController::agregarSample`). Sin ambas llamadas, el sample queda en `sinColeccion` en el siguiente sync.

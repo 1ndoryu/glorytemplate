@@ -25,10 +25,16 @@ import {
     Settings,
 } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { ContenedorToasts } from '@app/components/ui/ContenedorToasts';
+import { MenuContextual, type MenuItemDef } from '@app/components/ui/MenuContextual';
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
+import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useSyncStore } from '@app/stores/syncStore';
+import { toast } from '@app/stores/toastStore';
 import type { EntradaHistorialSample, EstadoSampleHistorial } from '@app/stores/syncStore';
 import '@app/styles/componentes/sincronizacion.css';
+
+const VERSION_PORTADA_INTERVALO_MS = 15_000;
 
 function formatearTiempoRelativo(timestamp: number): string {
     const seg = Math.floor((Date.now() - timestamp) / 1000);
@@ -102,21 +108,49 @@ function obtenerOrigenServidorSync(): string | null {
     return null;
 }
 
-function resolverUrlPortada(url: string | null | undefined): string | null {
+function anexarVersionPortada(url: string, version: number): string {
+    try {
+        const urlNormalizada = new URL(url, window.location.href);
+        urlNormalizada.searchParams.set('_sv', String(version));
+        return urlNormalizada.toString();
+    } catch {
+        const separador = url.includes('?') ? '&' : '?';
+        return `${url}${separador}_sv=${version}`;
+    }
+}
+
+function resolverUrlPortada(
+    url: string | null | undefined,
+    timestampActualizado?: number,
+): string | null {
     if (!url) return null;
 
-    if (/^https?:\/\//i.test(url)) return url;
-    if (url.startsWith('//')) return `${window.location.protocol}${url}`;
+    const versionPortada = Math.max(
+        timestampActualizado ?? 0,
+        Math.floor(Date.now() / VERSION_PORTADA_INTERVALO_MS) * VERSION_PORTADA_INTERVALO_MS,
+    );
+
+    if (/^https?:\/\//i.test(url)) return anexarVersionPortada(url, versionPortada);
+    if (url.startsWith('//')) return anexarVersionPortada(`${window.location.protocol}${url}`, versionPortada);
 
     const origen = obtenerOrigenServidorSync();
 
     if (url.startsWith('/')) {
-        if (origen) return `${origen}${url}`;
-        return url;
+        if (origen) return anexarVersionPortada(`${origen}${url}`, versionPortada);
+        return anexarVersionPortada(url, versionPortada);
     }
 
-    if (origen) return `${origen}/${url.replace(/^\/+/, '')}`;
-    return url;
+    if (origen) return anexarVersionPortada(`${origen}/${url.replace(/^\/+/, '')}`, versionPortada);
+    return anexarVersionPortada(url, versionPortada);
+}
+
+function resolverMiniaturaHistorial(entrada: EntradaHistorialSample): string | null {
+    const portadaReal = resolverUrlPortada(entrada.imagenUrl, entrada.timestampActualizado);
+    if (portadaReal) return portadaReal;
+    if (entrada.sampleId > 0) {
+        return resolverUrlPortada(obtenerImagenColor(entrada.sampleId), entrada.timestampActualizado);
+    }
+    return null;
 }
 
 /* Helpers para el historial per-sample */
@@ -180,6 +214,7 @@ async function abrirVentanaConfig(): Promise<void> {
         await invoke('mostrar_ventana_config');
     } catch (err) {
         console.error('[ConfigSync] Error abriendo ventana de configuracion:', err);
+        toast.error('No se pudo abrir la configuración de sync');
     }
 }
 
@@ -197,8 +232,8 @@ export function VentanaSincPanel(): JSX.Element {
     } = usePanelSincronizacion();
 
     const [menuAbierto, setMenuAbierto] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
     const botonMenuRef = useRef<HTMLDivElement>(null);
+    const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
     const [perfilDesktop, setPerfilDesktop] = useState<{
         nombre: string;
         avatarUrl: string | null;
@@ -227,21 +262,67 @@ export function VentanaSincPanel(): JSX.Element {
 
     const estadoVisible = capitalizarPrimera(repararMojibake(mensajeEstado || estadoLabel(estado)));
 
-    /* Cerrar menú al hacer click fuera (delegado al documento) */
-    useEffect(() => {
-        if (!menuAbierto) return;
-        const cerrarMenu = (e: MouseEvent) => {
-            const target = e.target as Node;
-            if (
-                menuRef.current && !menuRef.current.contains(target) &&
-                botonMenuRef.current && !botonMenuRef.current.contains(target)
-            ) {
-                setMenuAbierto(false);
-            }
-        };
-        document.addEventListener('mousedown', cerrarMenu);
-        return () => document.removeEventListener('mousedown', cerrarMenu);
-    }, [menuAbierto]);
+    const abrirMenu = useCallback(() => {
+        const rect = botonMenuRef.current?.getBoundingClientRect();
+        if (rect) {
+            setMenuPos({ x: rect.right, y: rect.bottom + 6 });
+        }
+        setMenuAbierto(true);
+    }, []);
+
+    const menuItems = useMemo<MenuItemDef[]>(() => [
+        {
+            id: 'sincronizar',
+            etiqueta: 'Sincronizar ahora',
+            icono: <FolderSync size={14} />,
+            onClick: sincronizarAhora,
+        },
+        {
+            id: 'elegir-carpeta',
+            etiqueta: 'Elegir carpeta',
+            icono: <FolderOpen size={14} />,
+            onClick: elegirCarpeta,
+        },
+        {
+            id: 'abrir-carpeta',
+            etiqueta: 'Abrir carpeta',
+            icono: <FolderOpen size={14} />,
+            onClick: abrirCarpetaSincronizacion,
+        },
+        {
+            id: 'toggle-sync',
+            etiqueta: sincronizacionActiva ? 'Pausar sync' : 'Activar sync',
+            icono: <PauseCircle size={14} />,
+            onClick: alternarSincronizacion,
+        },
+        {
+            id: 'configuracion',
+            etiqueta: 'Configuración',
+            icono: <Settings size={14} />,
+            onClick: () => { void abrirVentanaConfig(); },
+        },
+        {
+            id: 'limpiar-historial',
+            etiqueta: 'Limpiar historial',
+            icono: <Trash2 size={14} />,
+            peligro: true,
+            onClick: limpiarHistorialLocal,
+        },
+        {
+            id: 'ocultar',
+            etiqueta: 'Ocultar panel',
+            icono: <EyeOff size={14} />,
+            onClick: () => { void ocultarVentana(); },
+        },
+    ], [
+        abrirCarpetaSincronizacion,
+        alternarSincronizacion,
+        elegirCarpeta,
+        limpiarHistorialLocal,
+        ocultarVentana,
+        sincronizacionActiva,
+        sincronizarAhora,
+    ]);
 
     /* Sincronizar estado del store y auto-hide al perder foco.
      * El backend Rust tiene un handler equivalente con 220ms delay.
@@ -315,7 +396,8 @@ export function VentanaSincPanel(): JSX.Element {
     }, []);
 
     return (
-        <div className="ventanaSincPanel ventanaSincPanelMinimal">
+        <>
+            <div className="ventanaSincPanel ventanaSincPanelMinimal">
             <div className="sincPanelMinimalTop" data-tauri-drag-region>
                 <div className="sincPanelPerfilBloque">
                     {avatarUsuario ? (
@@ -336,44 +418,20 @@ export function VentanaSincPanel(): JSX.Element {
                         className="sincPanelMinimalMenu"
                         type="button"
                         aria-label="Opciones"
-                        onClick={() => setMenuAbierto(v => !v)}
+                        onClick={() => (menuAbierto ? setMenuAbierto(false) : abrirMenu())}
                     >
                         <EllipsisVertical size={14} />
                     </BotonBase>
                 </div>
 
-                {menuAbierto && (
-                    <div className="sincPanelMinimalMenuLista" ref={menuRef}>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={sincronizarAhora} type="button">
-                            <FolderSync size={14} />
-                            Sincronizar ahora
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={elegirCarpeta} type="button">
-                            <FolderOpen size={14} />
-                            Elegir carpeta
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={abrirCarpetaSincronizacion} type="button">
-                            <FolderOpen size={14} />
-                            Abrir carpeta
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={alternarSincronizacion} type="button">
-                            <PauseCircle size={14} />
-                            {sincronizacionActiva ? 'Pausar sync' : 'Activar sync'}
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={() => { setMenuAbierto(false); abrirVentanaConfig(); }} type="button">
-                            <Settings size={14} />
-                            Configuración
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem sincPanelMinimalMenuItemPeligro" onClick={limpiarHistorialLocal} type="button">
-                            <Trash2 size={14} />
-                            Limpiar historial
-                        </BotonBase>
-                        <BotonBase variante="ghost" className="sincPanelMinimalMenuItem" onClick={ocultarVentana} type="button">
-                            <EyeOff size={14} />
-                            Ocultar panel
-                        </BotonBase>
-                    </div>
-                )}
+                <MenuContextual
+                    abierto={menuAbierto}
+                    onCerrar={() => setMenuAbierto(false)}
+                    items={menuItems}
+                    x={menuPos.x}
+                    y={menuPos.y}
+                    alinearDerecha
+                />
             </div>
 
             <div className="ventanaSincPanelContenido sincPanelMinimalContenido">
@@ -391,10 +449,10 @@ export function VentanaSincPanel(): JSX.Element {
                                 onKeyDown={entrada.rutaLocal ? (e) => { if (e.key === 'Enter') abrirArchivoEnExplorador(entrada.rutaLocal!); } : undefined}
                             >
                                 <div className="sincPanelHistorialMedia">
-                                    {resolverUrlPortada(entrada.imagenUrl) ? (
+                                    {resolverMiniaturaHistorial(entrada) ? (
                                         <img
                                             className="sincPanelHistorialThumb"
-                                            src={resolverUrlPortada(entrada.imagenUrl) ?? undefined}
+                                            src={resolverMiniaturaHistorial(entrada) ?? undefined}
                                             alt={repararMojibake(entrada.nombreArchivo)}
                                         />
                                     ) : (
@@ -444,6 +502,8 @@ export function VentanaSincPanel(): JSX.Element {
                     <FolderOpen size={15} />
                 </BotonBase>
             </div>
-        </div>
+            </div>
+            <ContenedorToasts />
+        </>
     );
 }

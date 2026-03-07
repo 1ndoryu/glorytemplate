@@ -80,6 +80,32 @@
     --altoReproductor: 56px;
     --anchoMaximoContenido: 1200px;
     --anchoPanelLateral: 340px;
+    --landingAnchoMaximo: 98.4615rem;
+    --landingTituloPrincipal: 8rem;
+    --landingTituloTablet: 7.3846rem;
+    --landingTituloMovil: 5.5385rem;
+    --landingTituloMini: 3.6923rem;
+    --landingSubtitulo: 1.2308rem;
+    --landingTextoUi: 1rem;
+    --landingEspacioSeccion: 3rem;
+    --landingEspacioHero: 1.5rem;
+    --landingEspacioBuscador: 0.75rem;
+    --landingEspacioAcciones: 1rem;
+    --landingPaddingSuperior: 3rem;
+    --landingPaddingHorizontal: 2rem;
+    --landingPaddingHorizontalCompacto: 1.25rem;
+    --landingPaddingInferior: 4rem;
+    --landingPaddingInferiorCompacto: 3rem;
+    --landingPaddingHeroSuperior: 4rem;
+    --landingPaddingBuscadorY: 0.5rem;
+    --landingPaddingBuscadorX: 1.25rem;
+    --landingPaddingBuscadorCompacto: 0.75rem;
+    --landingPaddingInputY: 0.75rem;
+    --landingPaddingBotonY: 0.875rem;
+    --landingPaddingBotonX: 1.5rem;
+    --landingAltoBotonBuscador: 3.25rem;
+    --landingFuenteTitulo: 'Junicode Landing', 'Times New Roman', serif;
+    --landingFuenteSubtitulo: 'Bricolage Landing', var(--fuentePrincipal);
 }
 
 :root[data-theme='light'] {

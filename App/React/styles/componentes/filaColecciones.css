@@ -5,7 +5,7 @@
 
 .filaColecciones {
     display: flex;
-    gap: var(--espacioSm);
+    gap: var(--espacioLg);
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -18,43 +18,100 @@
 
 .filaColeccionChip {
     display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
-    background-color: var(--fondoElevado2);
-    border: 1px solid var(--bordeSutil);
+    position: relative;
+    overflow: hidden;
     border-radius: var(--radioLg);
     cursor: pointer;
-    white-space: nowrap;
     flex-shrink: 0;
-    transition: background-color var(--transicionRapida), border-color var(--transicionRapida);
+    transition: transform var(--transicionRapida), border-color var(--transicionRapida);
     color: var(--textoPrimario);
     font-family: var(--fuentePrincipal);
     font-size: var(--fuenteSm);
+    align-items: stretch;
+    width: 200px;
+    height: 160px;
+    background-color: var(--fondoElevado2);
 }
 
 .filaColeccionChip:hover {
-    background-color: var(--fondoElevado2);
+    transform: translateY(calc(var(--espacio2xs) * -1));
     border-color: var(--bordeActivo);
 }
 
 .filaColeccionImg {
-    width: 24px;
-    height: 24px;
-    border-radius: var(--radioSm);
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
     object-fit: cover;
     flex-shrink: 0;
+    transition: transform var(--transicionNormal), filter var(--transicionNormal);
+}
+
+.filaColeccionChip:hover .filaColeccionImg,
+.filaColeccionChip:focus-visible .filaColeccionImg {
+    transform: scale(1.04);
+    filter: brightness(0.72);
+}
+
+.filaColeccionOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd);
+    background: linear-gradient(to top, var(--overlayOscuro) 0%, rgba(0, 0, 0, 0.55) 36%, rgba(0, 0, 0, 0.08) 100%);
+}
+
+.filaColeccionAutor {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    opacity: 0;
+    transform: translateY(var(--espacioSm));
+    transition: opacity var(--transicionRapida), transform var(--transicionRapida);
+}
+
+.filaColeccionChip:hover .filaColeccionAutor,
+.filaColeccionChip:focus-visible .filaColeccionAutor {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.filaColeccionAutorAvatar.avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.filaColeccionAutorNombre,
+.filaColeccionNombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.filaColeccionAutorNombre {
+    font-size: var(--fuenteXs);
+    color: var(--blanco);
+    -webkit-line-clamp: 1;
 }
 
 .filaColeccionNombre {
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoMedio);
+    color: var(--blanco);
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
 }
 
-.filaColeccionMeta {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-    flex-shrink: 0;
+@media (max-width: 48rem) {
+    .filaColeccionChip {
+        width: 160px;
+        height: 160px;
+    }
 }

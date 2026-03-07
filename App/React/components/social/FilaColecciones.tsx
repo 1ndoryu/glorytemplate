@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { listarColeccionesPublicas } from '@app/services/apiColecciones';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import type { Coleccion } from '@app/types';
+import { Avatar } from '../ui/Avatar';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/filaColecciones.css';
 
@@ -49,10 +50,20 @@ export const FilaColecciones = (): JSX.Element | null => {
                         alt=""
                         loading="lazy"
                     />
-                    <span className="filaColeccionNombre">{col.nombre}</span>
-                    <span className="filaColeccionMeta">
-                        {col.totalSamples ?? 0}
-                    </span>
+                    <div className="filaColeccionOverlay">
+                        <div className="filaColeccionAutor">
+                            <Avatar
+                                src={col.usuario?.avatarUrl}
+                                nombre={col.usuario?.nombreVisible ?? col.usuario?.username ?? 'Autor'}
+                                tamano="xs"
+                                className="filaColeccionAutorAvatar"
+                            />
+                            <span className="filaColeccionAutorNombre">
+                                {col.usuario?.nombreVisible ?? col.usuario?.username ?? 'Autor'}
+                            </span>
+                        </div>
+                        <span className="filaColeccionNombre">{col.nombre}</span>
+                    </div>
                 </EnlaceNavegacion>
             ))}
         </div>

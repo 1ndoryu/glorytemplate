@@ -6,7 +6,7 @@
 .inicioContenedor {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioXl);
+    gap: var(--espacioLg);
     padding: var(--espacioLg);
     /* max-width: var(--anchoMaximoContenido); */
     margin: 0 auto;

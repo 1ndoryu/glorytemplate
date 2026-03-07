@@ -88,7 +88,7 @@ class PipelineAudioHelpers
             SamplesCols::DURACION, SamplesCols::BPM, SamplesCols::KEY, SamplesCols::ESCALA,
             SamplesCols::TIPO, SamplesCols::METADATA, SamplesCols::RUTA_ORIGINAL,
             SamplesCols::RUTA_WAVEFORM, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW,
-            SamplesCols::ESTADO, SamplesCols::PUBLICADO_AT, SamplesCols::TITULO,
+            SamplesCols::IMAGEN_URL, SamplesCols::ESTADO, SamplesCols::PUBLICADO_AT, SamplesCols::TITULO,
             SamplesCols::SLUG, SamplesCols::TAGS, 'nombre_archivo', SamplesCols::FORMATO,
             'waveform_peaks',
         ];

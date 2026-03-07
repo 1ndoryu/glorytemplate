@@ -168,6 +168,10 @@ D9. ✅ [AG-SPD] **Skeleton loading system:** 6 componentes base (Skeleton, Skel
 
 ## Sprint E — Fixes + Landing (completado)
 
+E10. ✅ [AG-LND] FilaColecciones hover card: nombre dentro de la portada y autor (avatar + nombre) visible solo en hover.
+
+E9. ✅ [AG-LND] Branding home público deslogueado: Junicode para título, Bricolage para subtítulos, subtítulos a 16px en rem, ancho 1280px, header integrado sin fondo fijo y buscador redondeado.
+
 E1. ✅ [AG-SPE] Landing page rediseñada con hero+buscador, 9 feature blocks grid, tabla comparativa.
 E2. ✅ [AG-SPE] 6 log fixes (NormalizadorSample, AdminRepo, ReportesRepo, ServicioIA, ReproduccionesRepo, BD migration).
 E3. ✅ [AG-SPE] Logo a Sidebar + favicon override wp_head.
@@ -182,6 +186,8 @@ E8. ✅ [AG-SPE] Sentinel exclusiones expandidas.
 ---
 
 ## Pendientes sueltos
+
+358b. ✅ [AG-THM] Historial sync panel refleja la imagen actual del sample tras generacion pipeline o edicion manual. Reconciliacion de `imagenUrl` extendida a entradas ya persistidas + merge cross-window del historial + invalidacion controlada del `src` en `sincPanelHistorialThumb`.
 
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar credito.

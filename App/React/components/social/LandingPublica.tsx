@@ -10,10 +10,8 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { LogoKamples } from '@app/components/ui/LogoKamples';
 import { Input } from '@app/components/ui/Input';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { Badge } from '@app/components/ui/Badge';
+import { SeccionCaracteristicas } from '@app/components/social/landing/SeccionCaracteristicas';
 import { useLandingPublica } from '@app/hooks/useLandingPublica';
-import { SeccionCaracteristicas } from './landing/SeccionCaracteristicas';
-import { TablaComparativa } from './landing/TablaComparativa';
 import '../../styles/componentes/landingPublica.css';
 
 export const LandingPublica = (): JSX.Element => {
@@ -36,10 +34,10 @@ export const LandingPublica = (): JSX.Element => {
                     <span className="landingNavLogo">Kamples</span>
                 </div>
                 <div className="landingNavDerecha">
-                    <BotonBase variante="ghost" tamano="sm" onClick={() => abrirAuth('login')}>
+                    <BotonBase variante="ghost" tamano="md" onClick={() => abrirAuth('login')}>
                         Iniciar sesión
                     </BotonBase>
-                    <BotonBase variante="primario" tamano="sm" onClick={() => abrirAuth('registro')}>
+                    <BotonBase variante="primario" tamano="md" onClick={() => abrirAuth('registro')}>
                         Crear cuenta
                     </BotonBase>
                 </div>
@@ -79,25 +77,12 @@ export const LandingPublica = (): JSX.Element => {
                         Buscar
                     </BotonBase>
                 </div>
-                <div className="landingHeroAcciones">
-                    <BotonBase variante="primario" onClick={() => abrirAuth('registro')}>
-                        Crear cuenta gratis
-                    </BotonBase>
-                    <BotonBase variante="ghost" onClick={() => navegar('/explorar/')}>
-                        Explorar samples
-                    </BotonBase>
-                </div>
             </section>
 
-            <SeccionCaracteristicas />
 
             {/* Trending preview */}
             {trending.length > 0 && (
-                <section className="landingTrending">
-                    <div className="landingTrendingHeader">
-                        <h2>Trending ahora</h2>
-                        <Badge>En vivo</Badge>
-                    </div>
+                <section className="landingTrending" style={{ display: 'none' }}>
                     <div className="landingTrendingLista">
                         {trending.map((sample) => (
                             <TarjetaSample
@@ -111,15 +96,10 @@ export const LandingPublica = (): JSX.Element => {
                             />
                         ))}
                     </div>
-                    <div className="landingTrendingCta">
-                        <BotonBase variante="secundario" onClick={() => navegar('/explorar/')}>
-                            Ver todos los samples
-                        </BotonBase>
-                    </div>
                 </section>
             )}
 
-            <TablaComparativa />
+
         </div>
     );
 };

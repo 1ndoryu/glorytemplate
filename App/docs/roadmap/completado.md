@@ -81,6 +81,7 @@
 - **C384** Fix uploads fantasma + move sin colección. (1) `exists()` en restauración store. (2) `crearColeccionDesdeLocal` idempotente cuando coleccionIdResuelta null. `manejarMoveLocal` asegura colección destino.
 - **C384b** Fix ciclo infinito reintentos. Retornar `true` (completado) cuando archivo no existe. Listener solo resetea `intentos < MAX_REINTENTOS`. Filter al cargar store.
 - **C385** Escaneo local en "Sincronizar ahora". `escanearCarpetaYEncolar()` scan readDir 2 niveles, skip carpetas sistema. Se invoca en startup + listener Tauri `escanear-subidas-local`.
+- **C387** ✅ Historial sync panel converge a la portada actual del sample. `syncService.ts` ahora reconcilia `imagenUrl` contra el snapshot completo de `/me/sync/colecciones` aunque la entrada ya tuviera imagen persistida; `syncTrackingService.ts` fusiona historial cross-window sin perder la portada más nueva; `VentanaSincPanel.tsx` añade versión `_sv` controlada al `src` y además usa el mismo fallback determinista `colors/` del resto de la app cuando el backend sync todavía devuelve `imagen_url = null`; `PipelineAudioHelpers.php` deja de filtrar `imagen_url` fuera de la whitelist de actualización.
 
 ---
 
@@ -153,6 +154,8 @@
 
 ## Completado — Sprint E Fixes + Landing (E1-E8)
 
+- **E10** ✅ FilaColecciones hover card: cada colección ahora usa overlay interno con el nombre dentro de la portada; avatar + nombre del autor aparecen solo en hover/focus para mantener la fila limpia sin perder contexto.
+- **E9** ✅ Branding home público deslogueado: `landingPublica.css` carga Junicode/Bricolage desde `App/Assets/fonts`, título principal a 128px en rem, subtítulos a 16px en rem, ancho máximo 1280px, header sin fijado/fondo y buscador con radio full en wrapper+botón.
 - **E1** ✅ Landing page rediseñada: hero con buscador (busca en /explorar/?q=), 9 feature blocks en grid 3x4 (SeccionCaracteristicas.tsx) con overlay hover, tabla comparativa vs 4 competidores (TablaComparativa.tsx). Lógica extraída a useLandingPublica.ts. Nav con LogoKamples. CSS responsivo (3→2→1 columnas).
 - **E2** ✅ 6 fixes de log: NormalizadorSample +3 cols (publicado_at, created_at, total_comentarios), AdminRepo MODERACION_ESTADO_PENDIENTE, ReportesRepo +import ReportesEnums, ServicioIA max_tokens 1500→2500, ReproduccionesRepository void→bool con try-catch FK, BD +moderacion_razon TEXT.
 - **E3** ✅ Logo movido de TopBar a Sidebar (LogoKamples tamano=22, click→home). Favicon `<link>` después de `wp_head()` para override.
@@ -165,6 +168,7 @@
 - **E8** ✅ Sentinel ruleLoader.ts: exclusiones expandidas (+desktop, +Mezclador, +temp, +.vscode-test).
 - **Aprendizajes:**
   - [CSS vars]: Siempre verificar que una variable CSS existe en variables.css antes de usarla. `--colorBorde` era fantasma.
+  - [Landing branding]: Las medidas exactas del home público conviene guardarlas en `variables.css` y consumirlas desde `landingPublica.css`; las `@font-face` pueden quedar locales al landing para no cargar Junicode/Bricolage fuera del home deslogueado.
   - [Sentinel]: La detección de tipo de archivo en lineCounter.ts retorna `null` para archivos sin handler → 0 diagnósticos. Cualquier nueva extensión necesita handler explícito.
   - [Landing]: InputBusqueda tiene debounce (filtrado real-time), Input wrapper es mejor para submit-on-action (landing search).
   - [Tags feed]: metadata JSONB con COALESCE + || (concat arrays) permite extraer múltiples keys IA sin UNNEST de tags manuales.

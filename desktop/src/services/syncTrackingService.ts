@@ -169,34 +169,60 @@ export async function inicializarTracking(): Promise<void> {
 async function persistir(): Promise<void> {
     if (enLote || !storeCache) return;
     try {
-        /*
-         * Merge cross-window: preservar imagenUrl de entradas que otra ventana actualizó.
-         * En Tauri MPA, cada ventana tiene su propia copia de `datos` en memoria.
-         * Si la ventana main escribió imagenUrl via rehidratarImagenesPendientes y luego
-         * la ventana sync-panel persiste su copia (sin imagenUrl), se pierde la imagen.
-         * Solución: leer el Store antes de escribir y mergear campos que solo la otra
-         * ventana pudo haber actualizado.
-         */
         const almacenado = await storeCache.get<BaseSyncLocal>(STORE_KEY_TRACKING);
         if (almacenado?.historialSamples && datos.historialSamples.length > 0) {
-            const mapaImagenes = new Map<number, string>();
-            for (const e of almacenado.historialSamples) {
-                if (e.sampleId > 0 && e.imagenUrl) {
-                    mapaImagenes.set(e.sampleId, e.imagenUrl);
-                }
-            }
-            for (const e of datos.historialSamples) {
-                if (e.sampleId > 0 && !e.imagenUrl) {
-                    const url = mapaImagenes.get(e.sampleId);
-                    if (url) e.imagenUrl = url;
-                }
-            }
+            fusionarHistorialSamplesPersistidos(datos.historialSamples, almacenado.historialSamples);
         }
 
         await storeCache.set(STORE_KEY_TRACKING, datos);
         await storeCache.save();
     } catch (err) {
         console.error('[SyncTracking] Error persistiendo datos:', err);
+    }
+}
+
+function obtenerClaveHistorialSample(entrada: Pick<EntradaHistorialSample, 'sampleId' | 'nombreArchivo'>): string {
+    if (entrada.sampleId > 0) return `sample:${entrada.sampleId}`;
+    return `nombre:${entrada.nombreArchivo.toLowerCase()}`;
+}
+
+function fusionarHistorialSamplesPersistidos(
+    historialLocal: EntradaHistorialSample[],
+    historialPersistido: EntradaHistorialSample[],
+): void {
+    const mapaPersistido = new Map<string, EntradaHistorialSample>();
+    for (const entrada of historialPersistido) {
+        mapaPersistido.set(obtenerClaveHistorialSample(entrada), entrada);
+    }
+
+    for (const entradaLocal of historialLocal) {
+        const entradaPersistida = mapaPersistido.get(obtenerClaveHistorialSample(entradaLocal));
+        if (!entradaPersistida) continue;
+
+        if (entradaLocal.sampleId === 0 && entradaPersistida.sampleId > 0) {
+            entradaLocal.sampleId = entradaPersistida.sampleId;
+        }
+
+        const persistidaMasReciente = entradaPersistida.timestampActualizado > entradaLocal.timestampActualizado;
+        if (entradaPersistida.imagenUrl && (!entradaLocal.imagenUrl || persistidaMasReciente)) {
+            entradaLocal.imagenUrl = entradaPersistida.imagenUrl;
+            entradaLocal.timestampActualizado = Math.max(
+                entradaLocal.timestampActualizado,
+                entradaPersistida.timestampActualizado,
+            );
+        }
+
+        if (persistidaMasReciente) {
+            if (!entradaLocal.rutaLocal && entradaPersistida.rutaLocal) {
+                entradaLocal.rutaLocal = entradaPersistida.rutaLocal;
+            }
+            if (!entradaLocal.coleccionNombre && entradaPersistida.coleccionNombre) {
+                entradaLocal.coleccionNombre = entradaPersistida.coleccionNombre;
+            }
+            if (!entradaLocal.error && entradaPersistida.error) {
+                entradaLocal.error = entradaPersistida.error;
+            }
+        }
     }
 }
 
@@ -502,8 +528,11 @@ export async function actualizarEstadoSample(entrada: {
 
         /* Mover al inicio para que aparezca primero (más reciente) */
         if (idxExistente > 0) {
-            datos.historialSamples.splice(idxExistente, 1);
-            datos.historialSamples.unshift(existente);
+            datos.historialSamples = [
+                existente,
+                ...datos.historialSamples.slice(0, idxExistente),
+                ...datos.historialSamples.slice(idxExistente + 1),
+            ];
             reconstruirIndiceSampleHistorial();
         }
     } else {
