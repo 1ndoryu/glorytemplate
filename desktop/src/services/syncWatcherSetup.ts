@@ -290,6 +290,72 @@ export function obtenerSamplesNoSincronizados(): Array<{ sampleId: number; nombr
 /* Operaciones de movimiento local ↔ servidor */
 
 /*
+ * Resuelve la colección destino desde las carpetas del move y actualiza
+ * tanto coleccion_samples en el servidor como coleccionId en el tracking.
+ *
+ * Problema original: manejarMoveLocal solo usaba PUT /me/coleccionados/{id}/carpeta
+ * (actualiza metadata) sin tocar coleccion_samples. Resultado: el sample se "movía"
+ * a nivel metadata pero nunca aparecía en la colección en la web/API.
+ */
+async function actualizarColeccionEnMovimiento(
+    sampleId: number,
+    carpetas: string[],
+    archivoTracking: { sampleId: number; coleccionId: number | null; rutaLocal: string; nombreLocal: string; nombreServidor: string; descargadoEn: number; tamano: number; syncDeshabilitado: boolean } | null,
+): Promise<void> {
+    const { trackingModule } = estado;
+    if (!trackingModule) return;
+
+    const primaria = carpetas[0] || '';
+    const esSinColeccion = !primaria || CARPETAS_SISTEMA_SYNC.has(primaria.toLowerCase());
+
+    /* Resolver coleccionId destino */
+    let coleccionDestinoId: number | null = null;
+    if (!esSinColeccion) {
+        /* Buscar colección padre */
+        const colPadre = trackingModule.buscarColeccionPorCarpeta(primaria);
+        if (colPadre) {
+            coleccionDestinoId = colPadre.id;
+
+            /* Si hay subcolección, resolver */
+            if (carpetas[1]) {
+                const todasCols = trackingModule.todasLasColecciones();
+                const sub = todasCols.find(
+                    c => c.parentId === colPadre.id
+                        && c.carpetaLocal.toLowerCase() === carpetas[1].toLowerCase(),
+                );
+                if (sub) coleccionDestinoId = sub.id;
+            }
+        }
+    }
+
+    /* Actualizar coleccion_samples en el servidor */
+    try {
+        const { agregarSampleAColeccion, invalidarCacheColecciones } = await import('./syncCollectionService');
+
+        if (coleccionDestinoId !== null) {
+            /* Move a una colección real → INSERT/UPDATE en coleccion_samples */
+            await agregarSampleAColeccion(coleccionDestinoId, sampleId);
+            invalidarCacheColecciones();
+        }
+        /* Para "sin coleccion" el PUT /me/coleccionados ya maneja la metadata;
+         * el endpoint de quitar necesita el coleccionId origen que puede no estar
+         * disponible de forma fiable. El delta sync reconciliará si es necesario. */
+    } catch (err) {
+        console.error('[Sync] Error actualizando coleccion_samples en move:', sampleId, err);
+    }
+
+    /* Actualizar coleccionId en tracking v2 */
+    if (archivoTracking && archivoTracking.coleccionId !== coleccionDestinoId) {
+        /* Clave tracking = sampleId_coleccionId → hay que eliminar entry vieja y crear nueva */
+        await trackingModule.eliminarArchivo(archivoTracking.sampleId, archivoTracking.coleccionId);
+        await trackingModule.registrarArchivo({
+            ...archivoTracking,
+            coleccionId: coleccionDestinoId,
+        });
+    }
+}
+
+/*
  * Llama al endpoint PUT /me/coleccionados/{id}/carpeta para mover
  * un sample a otra carpeta en el servidor.
  */
@@ -395,6 +461,8 @@ async function manejarMoveLocal(
                 }
 
                 await moverSampleEnServidor(archivoV2.sampleId, primaria, secundaria);
+                /* Actualizar coleccion_samples en servidor + coleccionId en tracking */
+                await actualizarColeccionEnMovimiento(archivoV2.sampleId, carpetas, archivoV2);
                 console.info('[Sync] Move procesado (solo v2): sample', archivoV2.sampleId, '→', primaria, secundaria || '(raíz)');
                 return;
             }
@@ -427,6 +495,7 @@ async function manejarMoveLocal(
     guardarIndice();
 
     /* v2: actualizar tracking si existe */
+    let archivoTrackingRef: { sampleId: number; coleccionId: number | null; rutaLocal: string; nombreLocal: string; nombreServidor: string; descargadoEn: number; tamano: number; syncDeshabilitado: boolean } | null = null;
     if (trackingModule) {
         const archivoTracking = trackingModule.buscarArchivoPorSampleId(archivo.sampleId);
         if (archivoTracking) {
@@ -438,6 +507,7 @@ async function manejarMoveLocal(
                 descripcion: `Movido a ${carpetas[0] || 'General'}${carpetas[1] ? '/' + carpetas[1] : ''}`,
                 sampleId: archivo.sampleId,
             });
+            archivoTrackingRef = archivoTracking;
         }
     }
 
@@ -458,6 +528,8 @@ async function manejarMoveLocal(
     }
 
     await moverSampleEnServidor(archivo.sampleId, primaria, secundaria);
+    /* Actualizar coleccion_samples en servidor + coleccionId en tracking */
+    await actualizarColeccionEnMovimiento(archivo.sampleId, carpetas, archivoTrackingRef);
 
     console.info('[Sync] Move procesado: sample', archivo.sampleId, '→', primaria, secundaria || '(raíz)');
 }
