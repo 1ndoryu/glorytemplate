@@ -213,6 +213,12 @@ class ColeccionSamplesRepository extends BaseRepository
     {
         $t = ColeccionSamplesCols::TABLA;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csPos = ColeccionSamplesCols::POSICION;
+        $csAdded = ColeccionSamplesCols::ADDED_AT;
+        $sId = SamplesCols::ID;
+        $sEstado = SamplesCols::ESTADO;
 
         /* Combinar coleccion padre + hijas */
         $todosIds = \array_merge([$colId], $subcoleccionIds);
@@ -225,12 +231,16 @@ class ColeccionSamplesRepository extends BaseRepository
         }
         $inClause = \implode(', ', $placeholders);
 
+        /*
+         * sqlSelectSamples retorna "SELECT ... FROM samples s LEFT JOIN usuarios_ext u ON ..."
+         * Concatenar columnas extra (cs.coleccion_id) con coma despues del FROM rompe el SQL.
+         * Solucion: JOIN coleccion_samples PRIMERO, luego filtrar por estado en WHERE.
+         */
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . ", cs." . ColeccionSamplesCols::COLECCION_ID . " as coleccion_origen"
-             . " JOIN {$t} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
-             . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " IN ({$inClause})"
-             . " AND s." . SamplesCols::ESTADO . " = '{$estadoActivo}'"
-             . " ORDER BY cs." . ColeccionSamplesCols::POSICION . " ASC, cs." . ColeccionSamplesCols::ADDED_AT . " DESC";
+             . " JOIN {$t} cs ON cs.{$csSampleId} = s.{$sId}"
+             . " WHERE cs.{$csColId} IN ({$inClause})"
+             . " AND s.{$sEstado} = '{$estadoActivo}'"
+             . " ORDER BY cs.{$csPos} ASC, cs.{$csAdded} DESC";
 
         return static::consultar($sql, $params);
     }
