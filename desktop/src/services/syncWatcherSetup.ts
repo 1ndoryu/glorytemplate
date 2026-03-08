@@ -308,22 +308,25 @@ async function actualizarColeccionEnMovimiento(
     const primaria = carpetas[0] || '';
     const esSinColeccion = !primaria || CARPETAS_SISTEMA_SYNC.has(primaria.toLowerCase());
 
-    /* Resolver coleccionId destino */
+    /* Resolver coleccionId destino — caminar N niveles de subcollections */
     let coleccionDestinoId: number | null = null;
     if (!esSinColeccion) {
-        /* Buscar colección padre */
         const colPadre = trackingModule.buscarColeccionPorCarpeta(primaria);
         if (colPadre) {
             coleccionDestinoId = colPadre.id;
 
-            /* Si hay subcolección, resolver */
-            if (carpetas[1]) {
-                const todasCols = trackingModule.todasLasColecciones();
+            /* Caminar carpetas[1..N] buscando subcollections anidadas */
+            const todasCols = trackingModule.todasLasColecciones();
+            let padreActual = colPadre.id;
+            for (let i = 1; i < carpetas.length; i++) {
+                if (!carpetas[i]) break;
                 const sub = todasCols.find(
-                    c => c.parentId === colPadre.id
-                        && c.carpetaLocal.toLowerCase() === carpetas[1].toLowerCase(),
+                    c => c.parentId === padreActual
+                        && c.carpetaLocal.toLowerCase() === carpetas[i].toLowerCase(),
                 );
-                if (sub) coleccionDestinoId = sub.id;
+                if (!sub) break;
+                coleccionDestinoId = sub.id;
+                padreActual = sub.id;
             }
         }
     }

@@ -365,17 +365,21 @@ async function reconciliarRutasConColecciones(carpetaBase: string): Promise<numb
             coleccionIdEsperado = colPadre.id;
 
             /*
-             * Subcollection: si el path tiene 3+ niveles (padre/sub/archivo),
-             * el archivo pertenece a la subcarpeta, no al padre.
-             * Ej: k1/k4/sample.wav → partes[1]="k4" es la subcollection.
+             * Subcollections N niveles: caminar cada carpeta intermedia
+             * del path (excluyendo la primera y el archivo final) buscando
+             * subcollections anidadas. La más profunda que resuelve gana.
+             * Ej: k1/k4/k5/sample.wav → k1 → k4 (sub de k1) → k5 (sub de k4)
              */
-            if (partes.length >= 3) {
-                const carpetaSub = partes[1];
+            let padreActual = colPadre.id;
+            for (let nivel = 1; nivel < partes.length - 1; nivel++) {
+                const carpetaNivel = partes[nivel];
                 const sub = coleccionesLocales.find(
-                    c => c.parentId === colPadre.id
-                        && c.carpetaLocal.toLowerCase() === carpetaSub.toLowerCase(),
+                    c => c.parentId === padreActual
+                        && c.carpetaLocal.toLowerCase() === carpetaNivel.toLowerCase(),
                 );
-                if (sub) coleccionIdEsperado = sub.id;
+                if (!sub) break;
+                coleccionIdEsperado = sub.id;
+                padreActual = sub.id;
             }
         }
 
