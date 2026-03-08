@@ -760,10 +760,57 @@ async function descargarSiNecesario(
     }
 
     /*
-     * D4: Con constraint UNIQUE(sample_id) en coleccion_samples, cada sample
-     * pertenece a exactamente UNA coleccion. No se necesita buscar en otras colecciones.
-     * Si el sample fue movido, el delta sync lo detecta y lo re-descarga en la nueva.
+     * D4.2: Antes de descargar, verificar si el archivo existe localmente en
+     * otra coleccion (sample movido server-side). Si existe en disco, mover
+     * en vez de re-descargar para ahorrar ancho de banda.
      */
+    const archivoEnOtraCol = buscarArchivoPorSampleId(sample.id);
+    if (archivoEnOtraCol && archivoEnOtraCol.coleccionId !== coleccionId) {
+        const { exists: existeEnDisco, rename: renombrarArchivo } = await import('@tauri-apps/plugin-fs');
+        const { join } = await import('@tauri-apps/api/path');
+        const existeLocal = await existeEnDisco(archivoEnOtraCol.rutaLocal);
+
+        if (existeLocal) {
+            try {
+                const nombreArchivo = archivoEnOtraCol.nombreLocal || archivoEnOtraCol.nombreServidor;
+                const rutaNueva = await join(carpetaDestino, nombreArchivo);
+
+                marcarDescargaEnCurso(rutaNueva);
+                await renombrarArchivo(archivoEnOtraCol.rutaLocal, rutaNueva);
+
+                /* Limpiar tracking viejo y registrar nuevo */
+                await eliminarArchivo(archivoEnOtraCol.sampleId, archivoEnOtraCol.coleccionId);
+                await registrarArchivo({
+                    sampleId: sample.id,
+                    coleccionId,
+                    rutaLocal: rutaNueva,
+                    nombreLocal: nombreArchivo,
+                    nombreServidor: archivoEnOtraCol.nombreServidor,
+                    descargadoEn: archivoEnOtraCol.descargadoEn,
+                    tamano: archivoEnOtraCol.tamano,
+                    syncDeshabilitado: false,
+                });
+                await registrarAccion({
+                    tipo: 'movido',
+                    descripcion: `Sample "${sample.titulo}" movido localmente entre colecciones`,
+                    sampleId: sample.id,
+                    coleccionId: coleccionId ?? undefined,
+                });
+
+                logSync.info('collectionSync', `Sample ${sample.id} movido localmente (evitada re-descarga)`);
+                onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: nombreArchivo, estado: 'descargado' });
+                return 'nuevo';
+            } catch (err) {
+                logSync.warn('collectionSync', `No se pudo mover sample ${sample.id} localmente, se descargara`, {
+                    error: err instanceof Error ? err.message : String(err),
+                });
+                /* Fallthrough a descarga normal */
+            }
+        } else {
+            /* Archivo no existe en disco, limpiar tracking corrupto */
+            await eliminarArchivo(archivoEnOtraCol.sampleId, archivoEnOtraCol.coleccionId);
+        }
+    }
 
     /* Descargar desde el servidor */
     try {

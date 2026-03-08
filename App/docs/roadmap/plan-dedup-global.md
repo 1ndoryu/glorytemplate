@@ -708,10 +708,10 @@ D5 (Panel moderacion)          ← Puede desarrollarse en paralelo con D2-D4, pe
 - [x] **D2.2** — SQL limpieza duplicados en coleccion_samples (per-user partitioned)
 - [x] **D2.3** — Constraint UNIQUE(usuario_id, sample_id) en coleccion_samples (**corregido: per-user, no global**)
 - [x] **D2.4** — Endpoint `mover-sample` en controlador de colecciones
-- [ ] **D3.1** — Query de herencia virtual en colecciones padre (web API)
-- [ ] **D3.2** — Parametro `incluirSubcolecciones` en endpoint de coleccion
+- [x] **D3.1** — Query de herencia virtual en colecciones padre (web API) (**ya existia: samplesConSubcolecciones()**)
+- [x] **D3.2** — Parametro `incluirSubcolecciones` en endpoint de coleccion (**ya existia en ColeccionesController**)
 - [x] **D4.1** — Simplificar `descargarSiNecesario()` (eliminar cross-collection)
-- [ ] **D4.2** — Logica de move local (detectar sample movido entre colecciones)
+- [x] **D4.2** — Logica de move local (detectar sample movido entre colecciones, mover archivo en vez de re-descargar)
 - [x] **D4.3** — Pre-check `check-duplicate` en uploadQueueService
 - [x] **D5.1** — Tabla `duplicados_pendientes` + Repository
 - [x] **D5.2** — Controller admin con endpoints (listar, fusionar, aprobar, rechazar)
@@ -738,7 +738,10 @@ D5 (Panel moderacion)          ← Puede desarrollarse en paralelo con D2-D4, pe
 - [BUG FIX]: fusionar() usaba LikesCols::SAMPLE_ID (no existe) → corregido a LikesCols::TARGET_ID con filtro tipo = TIPO_SAMPLE.
 - [BUG FIX]: fusionar() usaba ON CONFLICT DO NOTHING en UPDATE (invalido SQL) → corregido con NOT EXISTS per-user y DELETE cleanup.
 
-# Dudas y problemas notados
+- [D4.2]: descargarSiNecesario ahora busca archivo en otra coleccion local (buscarArchivoPorSampleId) antes de descargar. Si existe en disco, hace rename local (evita re-descarga). Fallback a descarga si rename falla.
+- [D3]: samplesConSubcolecciones() y param incluirSubcolecciones ya existian en ColeccionesController — D3 estaba implementado sin estar marcado.
+
+# Dudas y problemas notados — RESUELTAS
 
 Estas dudas fueron agregadas despues de ejecutar el plan.
 
@@ -761,3 +764,15 @@ App\Config\Schema\_generated\UsuariosExtCols
 final class UsuariosExtCols { }
 
 Undefined method 'obtenerIdExterno'.
+
+---
+
+## Respuestas a las dudas (AG-DDP)
+
+**1. Likes y descargas:** NO se rompen. Likes usa su propia tabla `likes` con UNIQUE(usuario_id, tipo, target_id) y descargas usa `descargas` con FK a samples(id). Ambas son independientes de coleccion_samples.
+
+**2. Colecciones per-user (Pinterest model):** CORREGIDO. El constraint es UNIQUE(usuario_id, sample_id) — NO UNIQUE(sample_id) global. Carlos y Carolina pueden coleccionar el mismo sample "calipso" en sus propias colecciones sin conflicto. Dentro de las colecciones de un mismo usuario, el sample solo puede estar en una coleccion. Se agrego la columna usuario_id denormalizada a coleccion_samples para soportar esto.
+
+**2.1 Samples propios en /descargas/:** CORREGIDO. useDescargasPagina ahora usa /me/coleccionados (que ya incluye propios + descargados) en vez de /me/descargas.
+
+**3. Errores de constantes:** CORREGIDOS. NOMBRE_DISPLAY → NOMBRE_VISIBLE, obtenerIdExterno → obtenerIdPg.
