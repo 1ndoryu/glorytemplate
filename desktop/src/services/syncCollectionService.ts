@@ -775,6 +775,32 @@ async function descargarSiNecesario(
                 const nombreArchivo = archivoEnOtraCol.nombreLocal || archivoEnOtraCol.nombreServidor;
                 const rutaNueva = await join(carpetaDestino, nombreArchivo);
 
+                /*
+                 * Guard noop: si el archivo ya está en la ruta de destino
+                 * (mismo path normalizado), no mover — solo actualizar tracking.
+                 * Esto previene moves espurios cuando el tracking tiene un
+                 * coleccionId obsoleto pero el archivo físico ya está correcto.
+                 */
+                const rutaActualNorm = archivoEnOtraCol.rutaLocal.replace(/\\/g, '/');
+                const rutaNuevaNorm = rutaNueva.replace(/\\/g, '/');
+                if (rutaActualNorm === rutaNuevaNorm) {
+                    /* Solo re-registrar con coleccionId correcto */
+                    await eliminarArchivo(archivoEnOtraCol.sampleId, archivoEnOtraCol.coleccionId);
+                    await registrarArchivo({
+                        sampleId: sample.id,
+                        coleccionId,
+                        rutaLocal: archivoEnOtraCol.rutaLocal,
+                        nombreLocal: nombreArchivo,
+                        nombreServidor: archivoEnOtraCol.nombreServidor,
+                        descargadoEn: archivoEnOtraCol.descargadoEn,
+                        tamano: archivoEnOtraCol.tamano,
+                        syncDeshabilitado: false,
+                    });
+                    logSync.info('collectionSync', `Sample ${sample.id} re-registrado en colección ${coleccionId} (archivo ya en ruta correcta)`);
+                    onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: nombreArchivo, estado: 'descargado' });
+                    return 'existente';
+                }
+
                 marcarDescargaEnCurso(rutaNueva);
                 await renombrarArchivo(archivoEnOtraCol.rutaLocal, rutaNueva);
 

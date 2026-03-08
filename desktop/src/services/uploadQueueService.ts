@@ -1022,15 +1022,14 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         });
 
         /*
-         * Asignar sample a colección(es) en el servidor.
+         * Asignar sample a la colección correspondiente en el servidor.
          *
-         * B2: Asignar a AMBAS (padre + subcolección) para que el sample
-         * aparezca al navegar la colección padre y se pueda filtrar por sub.
+         * Con UNIQUE(usuario_id, sample_id), un sample solo puede estar en UNA
+         * colección por usuario. Se asigna a la más específica: subcolección si
+         * existe, padre si no. agregarSampleAColeccion usa ON CONFLICT DO UPDATE
+         * que MUEVE el sample si ya estaba en otra colección.
          *
-         * Si hay colección conocida en tracking:
-         * 1. POST /colecciones/{id}/samples → inserta en coleccion_samples (asociación real).
-         * 2. Si hay subcolección, también POST para esa.
-         * 3. PUT /me/coleccionados/{id}/carpeta → actualiza metadata.carpeta_primaria.
+         * PUT /me/coleccionados/{id}/carpeta actualiza metadata (no coleccion_samples).
          *
          * C384: Si hay carpeta pero NO colección en tracking, crearla ahora.
          * crearColeccionDesdeLocal es idempotente.
@@ -1049,7 +1048,7 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
                 }
             }
 
-            /* B2: Resolver/crear subcolección si hay segundo nivel */
+            /* Resolver/crear subcolección si hay segundo nivel */
             if (!subcoleccionIdResuelta && item.carpetas[1] && coleccionIdResuelta) {
                 try {
                     const { crearColeccionDesdeLocal } = await import('./syncCollectionService');
@@ -1063,23 +1062,19 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
                 }
             }
 
-            /* Asignar a colección padre */
-            if (coleccionIdResuelta) {
+            /*
+             * Asignar a la colección más específica (sub > padre).
+             * UNIQUE(usuario_id, sample_id) impide estar en ambas; asignar a
+             * ambas causaba un MOVE implícito server-side y changelogs espurios
+             * que disparaban D4.2 local moves incorrectos.
+             */
+            const coleccionFinal = subcoleccionIdResuelta ?? coleccionIdResuelta;
+            if (coleccionFinal) {
                 try {
                     const { agregarSampleAColeccion } = await import('./syncCollectionService');
-                    await agregarSampleAColeccion(coleccionIdResuelta, resultado.sample_id);
+                    await agregarSampleAColeccion(coleccionFinal, resultado.sample_id);
                 } catch (err) {
-                    console.error('[UploadQueue] Error agregando sample a colección padre:', err);
-                }
-            }
-
-            /* B2: Asignar también a subcolección */
-            if (subcoleccionIdResuelta) {
-                try {
-                    const { agregarSampleAColeccion } = await import('./syncCollectionService');
-                    await agregarSampleAColeccion(subcoleccionIdResuelta, resultado.sample_id);
-                } catch (err) {
-                    console.error('[UploadQueue] Error agregando sample a subcolección:', err);
+                    console.error('[UploadQueue] Error agregando sample a colección:', err);
                 }
             }
 
