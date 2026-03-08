@@ -17,6 +17,8 @@ import {
     resolverReporte,
     obtenerHistorialModeracion,
     rechazarTodosPendientes,
+    banearUsuarioAdmin,
+    rechazarPublicacionesDeUsuarioAdmin,
     type KpisAdmin,
     type DatosActividad,
     type UsuarioAdmin,
@@ -188,6 +190,33 @@ export function useAdminPanel() {
         }
     }, [cargarModeracion]);
 
+    /* Banear un usuario manualmente desde el panel de moderación */
+    const banear = useCallback(async (
+        usuarioId: number,
+        duracion: '1h' | '24h' | '7d' | '30d',
+        razon: string
+    ) => {
+        try {
+            const res = await banearUsuarioAdmin(usuarioId, duracion, razon);
+            return res.ok;
+        } catch (err) {
+            log.error('Error baneando usuario', err);
+            return false;
+        }
+    }, []);
+
+    /* Rechazar todas las publicaciones de un usuario específico */
+    const rechazarTodasDeUsuario = useCallback(async (autorId: number) => {
+        try {
+            const res = await rechazarPublicacionesDeUsuarioAdmin(autorId);
+            if (res.ok) await cargarModeracion();
+            return res.ok;
+        } catch (err) {
+            log.error('Error rechazando publicaciones de usuario', err);
+            return false;
+        }
+    }, [cargarModeracion]);
+
     return {
         /* Datos */
         kpis,
@@ -212,6 +241,8 @@ export function useAdminPanel() {
         moderar,
         manejarResolverReporte,
         manejarRechazarTodosPendientes,
+        banear,
+        rechazarTodasDeUsuario,
         cargarUsuarios,
     };
 }

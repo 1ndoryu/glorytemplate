@@ -111,6 +111,44 @@ class ServicioBan
     }
 
     /**
+     * Aplica ban manual desde el panel de admin (sin incrementar violaciones).
+     * Duración válida: '1h', '24h', '7d', '30d'.
+     */
+    public static function aplicarBanManual(int $userId, string $duracion, string $razon): void
+    {
+        $horasMap = ['1h' => 1, '24h' => 24, '7d' => 168, '30d' => 720];
+        if (!array_key_exists($duracion, $horasMap)) {
+            $duracion = '24h';
+        }
+        $horas   = $horasMap[$duracion];
+        $banHasta = date('c', time() + ($horas * 3600));
+        $razonLimpia = sanitize_text_field($razon);
+        $banRazon = "Ban manual por equipo de moderaci\u00f3n. Raz\u00f3n: {$razonLimpia}";
+
+        UsuariosExtRepository::aplicarBan($userId, $banHasta, $banRazon);
+
+        /* Notificar al usuario */
+        $dias    = round($horas / 24);
+        $etiqueta = $dias >= 1 ? "{$dias} d\u00eda(s)" : "{$horas} hora(s)";
+        $mensaje  = "Tu cuenta fue suspendida por {$etiqueta} por el equipo de moderaci\u00f3n. Raz\u00f3n: {$razonLimpia}.";
+
+        ServicioNotificaciones::crear(
+            $userId,
+            'moderacion',
+            $mensaje,
+            ['razon' => $razonLimpia, 'horas' => $horas],
+            null,
+            'Cuenta suspendida'
+        );
+
+        KamplesLogger::warning('Ban manual aplicado por admin', [
+            'userId'   => $userId,
+            'duracion' => $duracion,
+            'razon'    => $razonLimpia,
+        ]);
+    }
+
+    /**
      * Crea notificación de moderación para el usuario afectado.
      */
     private static function notificarModeracion(int $userId, string $razon, string $tipo, int $horasBan): void

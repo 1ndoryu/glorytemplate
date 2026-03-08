@@ -61,6 +61,7 @@ export interface PublicacionModeracion {
     nombre_visible: string;
     avatar_url: string | null;
     tipo_contenido: string;
+    autor_id: number;
 }
 
 export interface ReporteAdmin {
@@ -143,6 +144,20 @@ export const obtenerHistorialModeracion = async (dias = 2): Promise<RespuestaApi
 
 export const rechazarTodosPendientes = async (): Promise<RespuestaApi<{ ok: boolean; afectados: number }>> => {
     return apiPost<{ ok: boolean; afectados: number }>('/admin/moderacion/rechazar-pendientes', {});
+};
+
+export const banearUsuarioAdmin = async (
+    usuarioId: number,
+    duracion: '1h' | '24h' | '7d' | '30d',
+    razon: string
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>('/admin/moderacion/banear-usuario', { usuario_id: usuarioId, duracion, razon });
+};
+
+export const rechazarPublicacionesDeUsuarioAdmin = async (
+    autorId: number
+): Promise<RespuestaApi<{ ok: boolean; afectados: number }>> => {
+    return apiPost<{ ok: boolean; afectados: number }>('/admin/moderacion/rechazar-usuario-publicaciones', { autor_id: autorId });
 };
 
 /* Duplicados pendientes (D5) */

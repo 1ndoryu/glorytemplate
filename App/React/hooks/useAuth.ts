@@ -89,10 +89,16 @@ export const useAuth = () => {
                 /* Cerrar modal de auth antes de navegar */
                 useAuthModalStore.getState().cerrar();
 
-                /* Navegar via router SPA (sin recarga completa).
-                 * En desktop (Tauri), window.location.href causa re-init
-                 * y pierde el estado de auth antes de persistirlo. */
-                useNavigationStore.getState().navegar('/');
+                /* Web: recarga completa para obtener nuevo nonce en GLORY_CONTEXT.
+                 * Sin recarga, el nonce del guest queda obsoleto y las peticiones al
+                 * feed fallan auth justo después del login (bug 523).
+                 * Desktop (Tauri): SPA navigation — window.location.href causa re-init
+                 * y pierde el token antes de persistirlo. */
+                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    useNavigationStore.getState().navegar('/');
+                } else {
+                    window.location.href = '/';
+                }
             } else {
                 setError(resp.error ?? 'Credenciales incorrectas');
             }
@@ -130,7 +136,12 @@ export const useAuth = () => {
                 /* Cerrar modal de auth antes de navegar */
                 useAuthModalStore.getState().cerrar();
 
-                useNavigationStore.getState().navegar('/');
+                /* Mismo patrón que iniciarSesion: recarga en web para nonce fresco */
+                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    useNavigationStore.getState().navegar('/');
+                } else {
+                    window.location.href = '/';
+                }
             } else {
                 setError(resp.error ?? 'Error al crear la cuenta');
             }

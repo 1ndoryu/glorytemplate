@@ -4,10 +4,12 @@
  * AdminModeracionController — Moderación de contenido (extraído de AdminController)
  *
  * Endpoints admin-only para moderar contenido de la plataforma:
- *   GET  /admin/moderacion            — Publicaciones pendientes + reportes
- *   POST /admin/moderar               — Aprobar/Rechazar contenido
- *   POST /admin/reportes/resolver     — Resolver o descartar un reporte
- *   GET  /admin/moderacion/historial  — Contenido auto-moderado por IA
+ *   GET  /admin/moderacion                              — Publicaciones pendientes + reportes
+ *   POST /admin/moderar                                 — Aprobar/Rechazar contenido (envia notif al rechazar)
+ *   POST /admin/reportes/resolver                       — Resolver o descartar un reporte
+ *   GET  /admin/moderacion/historial                    — Contenido auto-moderado por IA
+ *   POST /admin/moderacion/banear-usuario               — Banear usuario manualmente
+ *   POST /admin/moderacion/rechazar-usuario-publicaciones — Rechazar todas las pubs de un usuario
  *
  * @package Kamples
  */
@@ -23,6 +25,8 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Services\ServicioBan;
+use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\KamplesLogger;
 
@@ -59,6 +63,18 @@ class AdminModeracionController
         register_rest_route($namespace, '/admin/moderacion/rechazar-pendientes', [
             'methods' => 'POST',
             'callback' => [self::class, 'rechazarTodosPendientes'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/moderacion/banear-usuario', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'banearUsuario'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/moderacion/rechazar-usuario-publicaciones', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'rechazarPublicacionesUsuario'],
             'permission_callback' => $admin,
         ]);
     }
@@ -108,6 +124,7 @@ class AdminModeracionController
     /*
      * POST /admin/moderar — Aprobar/Rechazar contenido
      * Body: { tipo: 'publicacion'|'comentario', id: number, accion: 'aprobar'|'rechazar' }
+     * Al rechazar una publicación, se notifica al autor.
      */
     public static function moderar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -133,9 +150,85 @@ class AdminModeracionController
                 return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Contenido no encontrado'], 404);
             }
 
+            /* Notificar al autor si es rechazo manual de publicación */
+            if ($accion === 'rechazar' && $tipo === ComentariosEnums::TIPO_PUBLICACION) {
+                $autorId = PublicacionesRepository::obtenerAutorId($id);
+                if ($autorId) {
+                    ServicioNotificaciones::crear(
+                        $autorId,
+                        'moderacion',
+                        'Tu publicación fue revisada y rechazada por el equipo de moderación.',
+                        ['razon' => 'revision_manual'],
+                        null,
+                        'Publicación rechazada'
+                    );
+                }
+            }
+
             return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminModeracionController::moderar fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/moderacion/banear-usuario
+     * Body: { usuario_id: number, duracion: '1h'|'24h'|'7d'|'30d', razon: string }
+     */
+    public static function banearUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $body     = $request->get_json_params();
+            $userId   = (int) ($body['usuario_id'] ?? 0);
+            $duracion = \sanitize_text_field($body['duracion'] ?? '24h');
+            $razon    = \sanitize_text_field($body['razon'] ?? 'Revisión manual');
+
+            if (!$userId) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'usuario_id requerido'], 400);
+            }
+
+            ServicioBan::aplicarBanManual($userId, $duracion, $razon);
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::banearUsuario fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/moderacion/rechazar-usuario-publicaciones
+     * Body: { autor_id: number }
+     * Rechaza todas las publicaciones no rechazadas de un usuario.
+     */
+    public static function rechazarPublicacionesUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $body    = $request->get_json_params();
+            $autorId = (int) ($body['autor_id'] ?? 0);
+
+            if (!$autorId) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'autor_id requerido'], 400);
+            }
+
+            $afectados = PublicacionesRepository::rechazarPublicacionesDeUsuario($autorId);
+
+            /* Notificar al usuario que sus publicaciones fueron rechazadas masivamente */
+            if ($afectados > 0) {
+                ServicioNotificaciones::crear(
+                    $autorId,
+                    'moderacion',
+                    "Se han rechazado {$afectados} de tus publicaciones tras una revisión del equipo de moderación.",
+                    ['razon' => 'rechazo_masivo', 'afectados' => $afectados],
+                    null,
+                    'Publicaciones rechazadas'
+                );
+            }
+
+            return new \WP_REST_Response(['ok' => true, 'afectados' => $afectados], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::rechazarPublicacionesUsuario fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

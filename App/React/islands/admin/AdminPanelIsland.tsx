@@ -86,6 +86,8 @@ const AdminPanelBase = (): JSX.Element => {
                     onModerar={admin.moderar}
                     onResolverReporte={admin.manejarResolverReporte}
                     onRechazarTodosPendientes={admin.manejarRechazarTodosPendientes}
+                    onBanear={admin.banear}
+                    onRechazarTodasDeUsuario={admin.rechazarTodasDeUsuario}
                 />
             )}
 

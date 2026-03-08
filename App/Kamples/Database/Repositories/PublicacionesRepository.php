@@ -156,6 +156,7 @@ class PublicacionesRepository extends BaseRepository
             . ", p." . PublicacionesCols::MODERACION_DETALLE
             . ", p." . PublicacionesCols::MODERACION_RAZON
             . ", p." . PublicacionesCols::CREATED_AT
+            . ", p." . PublicacionesCols::AUTOR_ID
             . ", u." . UsuariosExtCols::USERNAME
             . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
             . ", u." . UsuariosExtCols::AVATAR_URL
@@ -166,6 +167,28 @@ class PublicacionesRepository extends BaseRepository
             . " AND p." . PublicacionesCols::MODERACION_ESTADO . " IS NOT NULL"
             . " ORDER BY p." . PublicacionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
+        );
+    }
+
+    /*
+     * Rechazar todas las publicaciones no rechazadas de un usuario.
+     * Usado por admin para acción masiva desde el panel de moderación.
+     */
+    public static function rechazarPublicacionesDeUsuario(int $autorId): int
+    {
+        $tabla    = PublicacionesCols::TABLA;
+        $colEstado = PublicacionesCols::MODERACION_ESTADO;
+        $colAutor  = PublicacionesCols::AUTOR_ID;
+
+        return static::ejecutar(
+            "UPDATE {$tabla} SET {$colEstado} = :rechazado
+             WHERE {$colAutor} = :autorId
+               AND {$colEstado} <> :rechazado2",
+            [
+                'rechazado'  => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
+                'rechazado2' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
+                'autorId'    => $autorId,
+            ]
         );
     }
 
