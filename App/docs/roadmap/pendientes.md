@@ -79,6 +79,9 @@
 320. Tab Reportes: ReportesController::listar()/resolver(), tabla `reportes`
 321. Tab Monetización: ingresos Stripe por período, top creadores, desglose por plan
 
+> ✅ C523 [AG-MOD]: Fix nonce SPA post-login — `useAuth.ts` fuerza `window.location.href='/'` en web (no desktop) para regenerar `GLORY_CONTEXT.nonce` autenticado.  
+> ✅ C524 [AG-MOD]: Rediseño panel moderación historial IA — grid 3 cols auto-fill, acordeón JSON `<details>`, `MenuContextual` sistema UI (coords getBoundingClientRect), Modal ban con `SelectorBase`+`Input`, notificaciones rechazo, endpoint ban+rechazar-todas, `autor_id` en historial query.
+
 ---
 
 ## Sprint — Revisión + UI pendiente
@@ -101,7 +104,7 @@
 350. Rediseño gráfica admin "Actividad últimos 14 días": Barras CSS-only o canvas. Tooltips hover, eje X fechas cortas, responsive.
     - Archivos: `TabResumenAdmin.tsx`, `useAdminPanel.ts`, CSS admin
 
-351. Moderación: (a) Log sin razón — verificar campo `razon` en servicio. (b) Posts con audio quedan en revisión — manejar audio adjunto. (c) Imágenes no salen en panel moderación.
+351. [EN CURSO — AG-GRQ] Moderación: (a) Log sin razón — verificar campo `razon` en servicio. (b) Posts con audio quedan en revisión — manejar audio adjunto. (c) Imágenes no salen en panel moderación. **Estado:** subpunto (a) corregido con fallback de razón y envío Groq de imágenes locales vía data URL; pendientes audio y panel.
     - Archivos: `ServicioModeracionIA.php`, `AnalizadoresModeracion.php`, `LogModeracion.php`, `TabResumenAdmin.tsx`
 
 352. Créditos sin límite visible: Mostrar solo "Créditos: 5" (no "5/5"). Al límite: "Créditos: 0".

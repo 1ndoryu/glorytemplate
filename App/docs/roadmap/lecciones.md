@@ -15,6 +15,8 @@
 - Colecciones imagen: `imagen_url` (canónica), `portada_url` (legacy). Todo write → `imagen_url`. Frontend: `imagenUrl`.
 - PG credenciales: EXIGE `KAMPLES_PG_USER`/`KAMPLES_PG_PASSWORD` en .env. LogModeracion: solo 2 args. Cache Feed: transients → `invalidarCacheGlobal()`. Créditos = COUNT hoy vs límite + `creditos_bonus`.
 - `wp_handle_upload()` solo wp-admin → require `includes/file.php` en REST.
+- [Groq vision local]: Groq no puede resolver hosts locales como `glory.local` en `image_url`. Para uploads locales, resolver `wp-content/uploads` a ruta física y enviar la imagen como `data:image/...;base64,...`.
+- [Moderación razón]: `determinarVeredicto()` debe poblar `razon` también en aprobados o errores parciales; si se deja vacía, los logs y el panel pierden trazabilidad.
 
 ---
 
@@ -48,6 +50,9 @@
 - [Social]: URLs repost: `/publicaciones/${id}/repost`. Lightbox timer 220ms. EVENTO_ENTIDAD_ACTUALIZADA constante. Rollback: snapshot previo. SIEMPRE TarjetaPublicacion para posts. `utils/tiempo.ts` centralizado.
 - [HTML]: NUNCA anidar `<a>` en `<a>` ni `<button>` en `<a>`. Patrón: div wrapper + enlace subzona + menú fuera del `<a>`.
 - [GloryContext]: declaration merging `global.d.ts` SOLO campos nuevos opcionales. PROHIBIDO re-declarar existentes. devMode: `=== true`.
+- [Clipboard adjuntos]: El pegado de imágenes/audios debe pasar por el mismo pipeline de adjuntos que input y drag-drop. Normalizar nombres de archivos del portapapeles evita blobs sin nombre que rompen validación o UX.
+- [Nonce SPA post-login]: `window.GLORY_CONTEXT.nonce` se genera al renderizar la página PHP para el usuario guest. Tras login SPA, el nonce es obsoleto → las llamadas REST fallan silenciosamente (`ok: false`, feed devuelve `[]`). Fix: `window.location.href = '/'` fuerza full-reload para regenerar el nonce del usuario autenticado. Solo desktop (Tauri) puede mantener navegación SPA porque usa JWT Token en vez de nonce.
+- [MenuContextual modo historial]: `MenuContextual` del sistema requiere coordenadas absolutas `{x, y}` del evento `e.clientX/Y`. Para multi-tarjeta (grid) usar estado compartido en el padre + un único `<MenuContextual>` renderizado fuera del grid. Patrón: `onAbrirMenu(e, item)` pasado a cada tarjeta. Si el menu necesita UI compleja (formulario ban), abrir un `<Modal>` secundario — no inline en el dropdown.
 
 ---
 
