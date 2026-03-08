@@ -14,7 +14,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
+import { marcarDescargaEnCurso, marcarMovimientoInterno, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
@@ -766,6 +766,23 @@ async function descargarSiNecesario(
      */
     const archivoEnOtraCol = buscarArchivoPorSampleId(sample.id);
     if (archivoEnOtraCol && archivoEnOtraCol.coleccionId !== coleccionId) {
+        /*
+         * Grace period: si el archivo fue registrado recientemente (upload o descarga
+         * reciente), confiar en el tracking sobre los datos del servidor que pueden
+         * ser stale. Esto previene la race condition donde:
+         * 1. Upload → registrarSubidaLocal(sampleId, ruta, colId=85)
+         * 2. sincronizarColecciones usa cache stale → sample aparece en sinColeccion
+         * 3. D4.2 intenta mover de col 85 → sin-coleccion (INCORRECTO)
+         * El tracking del upload es más reciente y confiable que el cache del servidor.
+         */
+        const GRACIA_UPLOAD_RECIENTE_MS = 60_000;
+        const esRegistroReciente = (Date.now() - (archivoEnOtraCol.descargadoEn ?? 0)) < GRACIA_UPLOAD_RECIENTE_MS;
+        if (esRegistroReciente) {
+            logSync.info('collectionSync', `Sample ${sample.id} registrado hace <60s en col ${archivoEnOtraCol.coleccionId}, omitiendo D4.2 move a col ${coleccionId} (posible cache stale)`);
+            onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
+            return 'existente';
+        }
+
         const { exists: existeEnDisco, rename: renombrarArchivo } = await import('@tauri-apps/plugin-fs');
         const { join } = await import('@tauri-apps/api/path');
         const existeLocal = await existeEnDisco(archivoEnOtraCol.rutaLocal);
@@ -802,6 +819,13 @@ async function descargarSiNecesario(
                 }
 
                 marcarDescargaEnCurso(rutaNueva);
+                /*
+                 * Marcar ruta ORIGEN como movimiento interno para que el watcher
+                 * ignore el evento DELETE generado por el rename. Sin esto,
+                 * manejarBorradoLocal procesa el DELETE y puede disparar
+                 * softDeleteEnServidor → borra el sample del servidor.
+                 */
+                marcarMovimientoInterno(archivoEnOtraCol.rutaLocal);
                 await renombrarArchivo(archivoEnOtraCol.rutaLocal, rutaNueva);
 
                 /* Limpiar tracking viejo y registrar nuevo */
@@ -1096,6 +1120,11 @@ export async function agregarSampleAColeccion(
         }
 
         console.info('[SyncCollection] Sample agregado a colección:', sampleId, '→ col:', coleccionId);
+        /* Invalidar cache para que la próxima sincronización obtenga datos frescos.
+         * Sin esto, delta sync puede usar datos stale donde el sample aparece en
+         * sinColeccion (fue creado por upload antes de ser asignado a colección),
+         * causando que D4.2 mueva archivos recién subidos a la carpeta equivocada. */
+        invalidarCacheColecciones();
         return true;
     } catch (err) {
         console.error('[SyncCollection] Error en request agregar sample a colección:', err);
