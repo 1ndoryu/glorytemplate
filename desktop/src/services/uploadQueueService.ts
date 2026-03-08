@@ -224,8 +224,10 @@ function existeArchivoActivoConHash(hash: string): boolean {
             if (enTracking && !enTracking.syncDeshabilitado) return true;
         }
     }
-    /* Fallback: verificar si algún item completado en cola tiene este hash */
-    return cola.some(i => i.hashParcial === hash && i.estado === 'completado');
+    /* Fallback: verificar si algún item realmente subido en cola tiene este hash.
+     * Requiere sampleIdServidor para descartar items marcados 'completado' por
+     * falso positivo de dedup (no tienen server ID, no son uploads reales). */
+    return cola.some(i => i.hashParcial === hash && i.estado === 'completado' && !!i.sampleIdServidor);
 }
 
 function crearIdempotencyKeyDeterministica(rutaArchivo: string, nombreArchivo: string, hashParcial?: string): string {
@@ -803,10 +805,26 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
             }
         }
 
-        /* Re-verificar hash por si otro upload paralelo lo añadió */
+        /* Re-verificar hash por si otro upload paralelo lo añadió.
+         * Incluye evicción de hashes stale: si el sample fue borrado del servidor
+         * y localmente, hashesConocidos aún retiene el hash fantasma. Verificar
+         * que exista un archivo activo real antes de declarar duplicado. */
         if (item.hashParcial && hashesConocidos.has(item.hashParcial)) {
-            console.info('[UploadQueue] Duplicado por hash detectado pre-upload:', item.nombreArchivo);
-            return true;
+            if (estado.trackingModule) {
+                const hayActivo = existeArchivoActivoConHash(item.hashParcial);
+                if (!hayActivo) {
+                    console.info('[UploadQueue] Hash stale en pre-upload (sin archivo activo), evictando:', item.nombreArchivo);
+                    hashesConocidos.delete(item.hashParcial);
+                    guardarHashes().catch(() => {});
+                    /* Continuar con upload normal */
+                } else {
+                    console.info('[UploadQueue] Duplicado por hash detectado pre-upload:', item.nombreArchivo);
+                    return true;
+                }
+            } else {
+                console.info('[UploadQueue] Duplicado por hash detectado pre-upload (sin tracking):', item.nombreArchivo);
+                return true;
+            }
         }
 
         /*
