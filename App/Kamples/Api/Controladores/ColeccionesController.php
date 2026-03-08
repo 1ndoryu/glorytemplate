@@ -81,6 +81,12 @@ class ColeccionesController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
+        /* D2: Mover sample a esta colección (atomico, registra changelog para ambas colecciones) */
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/mover-sample', [
+            'methods' => 'POST', 'callback' => [ColeccionesCrudController::class, 'moverSample'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)/sugerencias', [
             'methods' => 'GET', 'callback' => [self::class, 'sugerencias'],
             'permission_callback' => '__return_true',
@@ -194,13 +200,26 @@ class ColeccionesController
         }
 
         /* Samples de la colección via repository */
-        $samples = ColeccionSamplesRepository::samplesDeColeccion($id);
+        $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
+        $incluirSub = \filter_var($request->get_param('incluirSubcolecciones') ?? 'false', FILTER_VALIDATE_BOOLEAN);
+        $userId = UsuarioHelper::obtenerIdPg();
+
+        if ($incluirSub && $parentId === null) {
+            /* D3: Vista virtual — incluir samples de subcolecciones */
+            $subIds = ColeccionesRepository::idsSubcolecciones($id);
+            if (!empty($subIds)) {
+                $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId);
+            } else {
+                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+            }
+        } else {
+            $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+        }
 
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
         $coleccion['total_items'] = \count($samples);
 
         /* Subcolecciones (solo para colecciones raíz) */
-        $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
         if ($parentId === null) {
             $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
         } else {

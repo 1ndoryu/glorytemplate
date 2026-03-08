@@ -759,36 +759,11 @@ async function descargarSiNecesario(
         await eliminarArchivo(existente.sampleId, existente.coleccionId);
     }
 
-    /* Verificar si existe en otra colección (archivo ya descargado, solo necesita tracking) */
-    const enOtraCol = buscarArchivoPorSampleId(sample.id);
-    if (enOtraCol && !enOtraCol.syncDeshabilitado) {
-        /*
-         * C289c: Verificar que el archivo de la otra colección también exista en disco.
-         * Sin esto, una entrada fantasma en otra colección bloquea la descarga real.
-         */
-        const otraExisteEnDisco = await existeEnDisco(enOtraCol.rutaLocal);
-        if (otraExisteEnDisco) {
-            /*
-             * El archivo ya existe en disco por otra colección.
-             * Registrar nuevo tracking para esta colección apuntando al mismo archivo.
-             */
-            await registrarArchivo({
-                sampleId: sample.id,
-                coleccionId,
-                rutaLocal: enOtraCol.rutaLocal,
-                nombreLocal: enOtraCol.nombreLocal,
-                nombreServidor: enOtraCol.nombreServidor,
-                descargadoEn: enOtraCol.descargadoEn,
-                tamano: enOtraCol.tamano,
-                syncDeshabilitado: false,
-            });
-            onProgreso?.({ fase: 'descarga', actual, total, sampleId: sample.id, nombre: sample.titulo, estado: 'descargado' });
-            return 'existente';
-        }
-
-        logSync.warn('collectionSync', `Tracking inconsistente cross-colección: sample ${sample.id} registrado en "${enOtraCol.rutaLocal}" pero no existe en disco. Limpiando.`);
-        await eliminarArchivo(enOtraCol.sampleId, enOtraCol.coleccionId);
-    }
+    /*
+     * D4: Con constraint UNIQUE(sample_id) en coleccion_samples, cada sample
+     * pertenece a exactamente UNA coleccion. No se necesita buscar en otras colecciones.
+     * Si el sample fue movido, el delta sync lo detecta y lo re-descarga en la nueva.
+     */
 
     /* Descargar desde el servidor */
     try {

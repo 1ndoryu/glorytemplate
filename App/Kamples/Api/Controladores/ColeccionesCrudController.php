@@ -290,8 +290,29 @@ class ColeccionesCrudController
             return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
         }
 
-        ColeccionSamplesRepository::agregarAtomico($colId, $sampleId);
+        /*
+         * D2: moverAColeccion maneja atomicamente el INSERT + posible UPDATE si
+         * el sample ya estaba en otra coleccion (constraint UNIQUE(usuario_id, sample_id)).
+         */
+        $resultado = ColeccionSamplesRepository::moverAColeccion($colId, $sampleId, $userId);
         ColeccionesRepository::tocarTimestamp($colId);
+
+        $colAnterior = $resultado['coleccionAnterior'] ?? null;
+
+        if ($colAnterior !== null) {
+            /* Registrar removal de la coleccion anterior */
+            $clRemoved = SyncChangelogRepository::registrar(
+                $userId,
+                SyncChangelogEnums::TIPO_SAMPLE_REMOVED,
+                $sampleId,
+                ['coleccionId' => $colAnterior]
+            );
+            if ($clRemoved === null) {
+                KamplesLogger::critical('Fallo registrar changelog mover sample (removed)', [
+                    'userId' => $userId, 'sampleId' => $sampleId, 'colAnterior' => $colAnterior,
+                ]);
+            }
+        }
 
         /* F2.1: Registrar sample agregado en changelog (M4: verificar retorno) */
         $changelogId = SyncChangelogRepository::registrar(
@@ -342,6 +363,67 @@ class ColeccionesCrudController
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::quitarSample', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * POST /colecciones/{id}/mover-sample — Mover sample a esta coleccion (D2).
+     *
+     * Si el sample ya esta en otra coleccion, lo mueve atomicamente.
+     * Registra changelog para ambas colecciones (removal + added).
+     */
+    public static function moverSample(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $colId = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $sampleId = (int) ($body['sampleId'] ?? 0);
+
+            if ($sampleId <= 0) {
+                return new \WP_REST_Response(['code' => 'sample_id_requerido'], 400);
+            }
+
+            $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            }
+
+            $resultado = ColeccionSamplesRepository::moverAColeccion($colId, $sampleId, $userId);
+            ColeccionesRepository::tocarTimestamp($colId);
+
+            $colAnterior = $resultado['coleccionAnterior'] ?? null;
+
+            /* Registrar changelog de movimiento */
+            if ($colAnterior !== null) {
+                SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_REMOVED,
+                    $sampleId,
+                    ['coleccionId' => $colAnterior]
+                );
+            }
+
+            if ($resultado['accion'] !== 'ya_en_coleccion') {
+                SyncChangelogRepository::registrar(
+                    $userId,
+                    SyncChangelogEnums::TIPO_SAMPLE_ADDED,
+                    $sampleId,
+                    ['coleccionId' => $colId]
+                );
+            }
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'accion' => $resultado['accion'],
+                'coleccionAnterior' => $colAnterior,
+                'coleccionNueva' => $colId,
+            ]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesCrudController::moverSample', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

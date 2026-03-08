@@ -1099,4 +1099,68 @@ class SamplesRepository extends BaseRepository
         $row = static::consultarUno($sql, ['sid' => $sampleId, 'uid' => $userId, 'uid2' => $userId]);
         return $row !== null;
     }
+
+    /*
+     * Marcar sample como eliminado (D1: duplicado mismo usuario detectado en pipeline).
+     */
+    public static function marcarEliminado(int $id): void
+    {
+        $ts = SamplesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$ts} SET " . SamplesCols::ESTADO . " = :estado WHERE " . SamplesCols::ID . " = :id",
+            ['estado' => SamplesEnums::ESTADO_ELIMINADO, 'id' => $id]
+        );
+    }
+
+    /*
+     * Obtener batch de samples sin audio_hash para backfill.
+     */
+    public static function sinHash(int $limite = 100): array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID . ", " . SamplesCols::RUTA_ORIGINAL
+            . " FROM {$ts}"
+            . " WHERE " . SamplesCols::AUDIO_HASH . " IS NULL"
+            . " AND " . SamplesCols::ESTADO . " = :estado"
+            . " LIMIT :limite",
+            ['estado' => SamplesEnums::ESTADO_ACTIVO, 'limite' => $limite]
+        );
+    }
+
+    /*
+     * Buscar sample por hash parcial (pre-verificacion en upload desde desktop).
+     * Incluye creador_id para distinguir mismo usuario vs otro.
+     */
+    public static function buscarPorHashParcial(string $hashParcial): ?array
+    {
+        $ts = SamplesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID . ", " . SamplesCols::TITULO
+            . " FROM {$ts}"
+            . " WHERE " . SamplesCols::HASH_PARCIAL . " = :hash"
+            . " AND " . SamplesCols::ESTADO . " IN (:activo, :supervision)",
+            [
+                'hash' => $hashParcial,
+                'activo' => SamplesEnums::ESTADO_ACTIVO,
+                'supervision' => SamplesEnums::ESTADO_EN_SUPERVISION,
+            ]
+        );
+    }
+
+    /*
+     * Guardar hash parcial de un sample (calculado desde desktop: first 8KB + last 8KB + size).
+     */
+    public static function actualizarHashParcial(int $id, string $hashParcial): void
+    {
+        $ts = SamplesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$ts} SET " . SamplesCols::HASH_PARCIAL . " = :hash WHERE " . SamplesCols::ID . " = :id",
+            ['hash' => $hashParcial, 'id' => $id]
+        );
+    }
 }

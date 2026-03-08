@@ -699,25 +699,25 @@ D5 (Panel moderacion)          ← Puede desarrollarse en paralelo con D2-D4, pe
 
 ### Checklist de implementacion
 
-- [ ] **D1.1** — Hash SHA-256 sincrono en PipelineAudio + verificacion duplicado pre-activacion
-- [ ] **D1.2** — Indice unico parcial `idx_samples_audio_hash_unique`
-- [ ] **D1.3** — Endpoint `check-duplicate` (pre-verificacion parcial)
-- [ ] **D1.4** — Tabla `samples_hash_parcial` (o columna en `samples`)
-- [ ] **D1.5** — Script CLI backfill hashes existentes
-- [ ] **D2.1** — Metodo `moverAColeccion()` en ColeccionSamplesRepository
-- [ ] **D2.2** — SQL limpieza duplicados en coleccion_samples
-- [ ] **D2.3** — Constraint UNIQUE(sample_id) en coleccion_samples
-- [ ] **D2.4** — Endpoint `mover-sample` en controlador de colecciones
+- [x] **D1.1** — Hash SHA-256 sincrono en PipelineAudio + verificacion duplicado pre-activacion
+- [x] **D1.2** — Indice unico parcial `idx_samples_audio_hash_unique`
+- [x] **D1.3** — Endpoint `check-duplicate` (pre-verificacion parcial)
+- [x] **D1.4** — Columna `hash_parcial` en `samples`
+- [x] **D1.5** — BackfillHashService (cron + manual trigger)
+- [x] **D2.1** — Metodo `moverAColeccion()` en ColeccionSamplesRepository
+- [x] **D2.2** — SQL limpieza duplicados en coleccion_samples (per-user partitioned)
+- [x] **D2.3** — Constraint UNIQUE(usuario_id, sample_id) en coleccion_samples (**corregido: per-user, no global**)
+- [x] **D2.4** — Endpoint `mover-sample` en controlador de colecciones
 - [ ] **D3.1** — Query de herencia virtual en colecciones padre (web API)
 - [ ] **D3.2** — Parametro `incluirSubcolecciones` en endpoint de coleccion
-- [ ] **D4.1** — Simplificar `descargarSiNecesario()` (eliminar cross-collection)
+- [x] **D4.1** — Simplificar `descargarSiNecesario()` (eliminar cross-collection)
 - [ ] **D4.2** — Logica de move local (detectar sample movido entre colecciones)
-- [ ] **D4.3** — Pre-check `check-duplicate` en uploadQueueService
-- [ ] **D5.1** — Tabla `duplicados_pendientes` + Repository
-- [ ] **D5.2** — Controller admin con endpoints (listar, fusionar, aprobar, rechazar)
-- [ ] **D5.3** — PanelDuplicados.tsx + TarjetaDuplicado.tsx + hook
-- [ ] **D5.4** — Logica de fusion con transferencia de relaciones
-- [ ] **D5.5** — Logica de resolucion automatica (mismo usuario = auto-link)
+- [x] **D4.3** — Pre-check `check-duplicate` en uploadQueueService
+- [x] **D5.1** — Tabla `duplicados_pendientes` + Repository
+- [x] **D5.2** — Controller admin con endpoints (listar, fusionar, aprobar, rechazar)
+- [x] **D5.3** — PanelDuplicados.tsx + TarjetaDuplicado.tsx + hook
+- [x] **D5.4** — Logica de fusion con transferencia de relaciones (**corregido: per-user scope**)
+- [x] **D5.5** — Logica de resolucion automatica (mismo usuario = auto-link)
 
 ---
 
@@ -729,5 +729,35 @@ D5 (Panel moderacion)          ← Puede desarrollarse en paralelo con D2-D4, pe
 - [Desktop]: `buscarArchivoPorSampleId()` crea tracking entries duplicadas apuntando al mismo archivo fisico — complejidad innecesaria que se elimina con constraint 1:1
 - [Upload]: Idempotencia por `X-Idempotency-Key` ya funciona — protege contra re-upload accidental en misma sesion pero no contra duplicados reales
 - [Upload desktop]: Hash parcial (SHA-256 first 8KB + last 8KB + size) ya existe en `uploadQueueService.ts` variable `J` — reutilizable para check-duplicate
-- [Servidor]: `agregarAtomico()` usa ON CONFLICT DO NOTHING por PK — no detecta que el sample ya esta en OTRA coleccion
+- [Servidor]: `agregarAtomico()` usa ON CONFLICT (usuario_id, sample_id) — un usuario solo puede tener un sample en una coleccion, diferente usuarios pueden coleccionar el mismo sample
 - [Subcolecciones]: parent_id en colecciones establece jerarquia. Desktop crea subcarpetas fisicas dentro de carpeta padre. Server retorna flat list con parent_id para que el cliente reconstruya el arbol.
+- [CORRECCION CRITICA]: El constraint UNIQUE(sample_id) global era INCORRECTO — impedia que diferentes usuarios coleccionaran el mismo sample. Cambiado a UNIQUE(usuario_id, sample_id) que es per-user. Se agrego columna usuario_id denormalizada a coleccion_samples.
+- [BUG FIX]: UsuariosExtCols::NOMBRE_DISPLAY no existe → es NOMBRE_VISIBLE. Corregido en DuplicadosPendientesRepository.
+- [BUG FIX]: UsuarioHelper::obtenerIdExterno() no existe → es obtenerIdPg(). Corregido en SamplesUploadController.
+- [BUG FIX]: /descargas/ no mostraba samples propios → useDescargasPagina ahora usa /me/coleccionados (que ya incluye propios + descargados) en vez de /me/descargas.
+- [BUG FIX]: fusionar() usaba LikesCols::SAMPLE_ID (no existe) → corregido a LikesCols::TARGET_ID con filtro tipo = TIPO_SAMPLE.
+- [BUG FIX]: fusionar() usaba ON CONFLICT DO NOTHING en UPDATE (invalido SQL) → corregido con NOT EXISTS per-user y DELETE cleanup.
+
+# Dudas y problemas notados
+
+Estas dudas fueron agregadas despues de ejecutar el plan.
+
+1. Espero que aplicando el plan no se rompa que los usuarios puedan ver la lista de samples que le gustas y que hayan descargado.
+2. Espero que si un usuario, tiene un sample descargado de otro usuario, este se sincronice con las colecciones personales de los usuarios. Hay algo que puede que no explique, si, los samples deben existir una sola vez, pero las colecciones son personales de cada usuario, esto significa lo siguiente. Supongamos que tengo sample "calipso", "calipso" lo subio "carlos", carlos tiene una coleccion done esta el sample "calipso", bien, otra usuaria "carolina" debería poder coleccionar su sample en una nueva coleccion si quiere, se que esto es contradictorio a lo que se planifico pero es algo importante de lo que me di cuenta a ultima ahora.
+
+Aunque las colecciones son publicas y accesibles en la web para diferentes usuarios, es cierto que por usuario un sample solo se puede coleccionar una vez por coleccion, pero debe poder coleccionar en distintos usuarios (no duplicarse fisicamente en el servidor), sino que distintos usuarios puedan tener sus colecciones propias, asi es como logicamente el sync va a trabajar tambien, cuando descargo o sincronizo el sample de otro usuario, este se descarga en "sin colecciones" si es que no lo he guardo en una coleccion, si el sync esta activo y logicamente aparecera en /descargas/ en (Mis Coleccionados)
+
+En esencia es algo igual a pinterest con el agregado de que esta vez no se podra duplicar contenido en las colecciones propias, los usuarios deberan pensar dos veces en donde coleccionar su sample y despues si quieren, moverlo a otra coleccion
+
+2.1 Por cierto acabo de notar un bug y es que los sample que subo no aparecen en /descargas/ deberían de aparecer pues, son mis samples y cada usuario debe ver alli los sampels que les pertenece
+
+3. Veo errores tipo 
+
+Constante indefinida: UsuariosExtCols::NOMBRE_DISPLAY
+Sugerencia: Verificar que NOMBRE_DISPLAY esta definida en UsuariosExtCols. Si es nueva, crearla antes de referenciarla.Code Sentinel(undefined-class-constant)
+App\Config\Schema\_generated\UsuariosExtCols
+
+<?php
+final class UsuariosExtCols { }
+
+Undefined method 'obtenerIdExterno'.

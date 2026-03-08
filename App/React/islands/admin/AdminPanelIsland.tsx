@@ -1,7 +1,8 @@
 /*
  * Isla: AdminPanelIsland — Kamples (FASE 13)
- * Panel de administración principal con tabs: Resumen, Usuarios, Moderación, Cola IA.
+ * Panel de administración principal con tabs: Resumen, Usuarios, Moderación, Cola IA, Duplicados.
  * D4: Tabs migradas al TopBar global via useTabsIsla (consistencia con otras islas).
+ * D5: Tab Duplicados para moderación de samples duplicados.
  * Protegido por conAutenticacion + guard rol admin.
  */
 
@@ -11,6 +12,7 @@ import { TabResumenAdmin } from '@app/components/admin/TabResumenAdmin';
 import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
 import { TabColaIaAdmin } from '@app/components/admin/TabColaIaAdmin';
+import { TabDuplicadosAdmin } from '@app/components/admin/TabDuplicadosAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
@@ -23,6 +25,7 @@ const TABS_ADMIN = [
     { id: 'usuarios', etiqueta: 'Usuarios' },
     { id: 'moderacion', etiqueta: 'Moderación' },
     { id: 'cola-ia', etiqueta: 'Cola IA' },
+    { id: 'duplicados', etiqueta: 'Duplicados' },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -88,6 +91,10 @@ const AdminPanelBase = (): JSX.Element => {
 
             {admin.tabActiva === 'cola-ia' && (
                 <TabColaIaAdmin />
+            )}
+
+            {admin.tabActiva === 'duplicados' && (
+                <TabDuplicadosAdmin />
             )}
         </div>
     );

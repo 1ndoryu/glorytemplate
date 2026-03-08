@@ -17,6 +17,7 @@ use App\Kamples\Api\KamplesController;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
+use App\Kamples\Services\BackfillHashService;
 
 class KamplesInit
 {
@@ -48,6 +49,9 @@ class KamplesInit
 
         /* C356: Cron para reprocesar cola IA (rate limit 429) cada 15 min */
         ProcesadorColaIA::registrarCron();
+
+        /* D1.5: Cron para backfill de hashes SHA-256 en samples existentes */
+        BackfillHashService::registrarCron();
     }
 
     /*

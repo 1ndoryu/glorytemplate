@@ -16,6 +16,7 @@ class ColeccionSamplesSchema extends TableSchema
         return [
             'coleccion_id' => ['tipo' => 'int', 'ref' => 'colecciones(id)'],
             'sample_id'    => ['tipo' => 'int', 'ref' => 'samples(id)'],
+            'usuario_id'   => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
             'posicion'     => ['tipo' => 'int', 'default' => 0],
             'added_at'     => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];

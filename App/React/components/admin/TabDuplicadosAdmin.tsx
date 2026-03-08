@@ -1,0 +1,152 @@
+/*
+ * Componente: TabDuplicadosAdmin — D5
+ * Tab del panel admin para moderar samples duplicados.
+ * Muestra lista paginada con filtros de estado y tipo, y tarjetas de comparacion.
+ * Solo vista — logica delegada a usePanelDuplicados.
+ */
+
+import { RefreshCw, Loader2, CheckCircle, Hash } from 'lucide-react';
+import { BotonBase } from '../ui/BotonBase';
+import { SelectorMenu } from '../ui/SelectorMenu';
+import { EstadoVacio } from '../ui/EstadoVacio';
+import { TarjetaDuplicado } from './TarjetaDuplicado';
+import { usePanelDuplicados } from '../../hooks/usePanelDuplicados';
+import '../../styles/componentes/duplicadosAdmin.css';
+
+/* Opciones de filtro */
+const OPCIONES_ESTADO = [
+    { valor: 'pendiente', etiqueta: 'Pendientes' },
+    { valor: 'aprobado', etiqueta: 'Aprobados' },
+    { valor: 'rechazado', etiqueta: 'Rechazados' },
+    { valor: 'fusionado', etiqueta: 'Fusionados' },
+];
+
+const OPCIONES_TIPO = [
+    { valor: '', etiqueta: 'Todos los tipos' },
+    { valor: 'cross_usuario', etiqueta: 'Cross-usuario' },
+    { valor: 'mismo_usuario', etiqueta: 'Mismo usuario' },
+    { valor: 'backfill', etiqueta: 'Backfill' },
+];
+
+export const TabDuplicadosAdmin = (): JSX.Element => {
+    const dup = usePanelDuplicados();
+
+    return (
+        <div className="tabDuplicados">
+            {/* Contador resumen */}
+            <div className="dupResumen">
+                <span className="dupResumenNumero">{dup.total}</span>
+                <span className="dupResumenLabel">duplicados pendientes de revisión</span>
+            </div>
+
+            {/* Barra de filtros y acciones */}
+            <div className="dupBarraFiltros">
+                <div className="dupFiltros">
+                    <SelectorMenu
+                        opciones={OPCIONES_ESTADO}
+                        valor={dup.filtroEstado}
+                        onChange={dup.setFiltroEstado}
+                    />
+                    <SelectorMenu
+                        opciones={OPCIONES_TIPO}
+                        valor={dup.filtroTipo}
+                        onChange={dup.setFiltroTipo}
+                    />
+                </div>
+
+                <div className="dupBotonesAccion">
+                    <BotonBase
+                        onClick={dup.ejecutarBackfill}
+                        variante="secundario"
+                        tamano="sm"
+                        disabled={dup.backfillEnCurso}
+                        title="Calcular hashes SHA-256 para samples sin hash (batch 100)"
+                    >
+                        {dup.backfillEnCurso
+                            ? <Loader2 size={14} className="adminSpinner" />
+                            : <Hash size={14} />}
+                        Backfill hashes
+                    </BotonBase>
+
+                    <BotonBase
+                        onClick={dup.recargar}
+                        variante="secundario"
+                        tamano="sm"
+                        disabled={dup.cargando}
+                        title="Recargar lista"
+                    >
+                        <RefreshCw size={14} />
+                        Recargar
+                    </BotonBase>
+                </div>
+            </div>
+
+            {/* Resultado del backfill */}
+            {dup.backfillStats && (
+                <div className="dupBackfillResultado">
+                    <CheckCircle size={14} />
+                    <span>
+                        Procesados: {dup.backfillStats.procesados} |
+                        Hasheados: {dup.backfillStats.hasheados} |
+                        Duplicados: {dup.backfillStats.duplicados} |
+                        Sin archivo: {dup.backfillStats.sin_archivo}
+                    </span>
+                </div>
+            )}
+
+            {/* Loading */}
+            {dup.cargando && (
+                <div className="dupCargando">
+                    <Loader2 size={20} className="adminSpinner" />
+                </div>
+            )}
+
+            {/* Sin resultados */}
+            {!dup.cargando && dup.duplicados.length === 0 && (
+                <EstadoVacio
+                    mensaje="No hay duplicados con los filtros seleccionados."
+                    icono={<CheckCircle size={24} />}
+                />
+            )}
+
+            {/* Lista de tarjetas */}
+            {!dup.cargando && dup.duplicados.length > 0 && (
+                <div className="dupLista">
+                    {dup.duplicados.map(d => (
+                        <TarjetaDuplicado
+                            key={d.id}
+                            duplicado={d}
+                            procesando={dup.procesandoId === d.id}
+                            onAccion={dup.ejecutarAccion}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {/* Paginacion */}
+            {!dup.cargando && dup.duplicados.length > 0 && (
+                <div className="dupPaginacion">
+                    <BotonBase
+                        onClick={() => dup.setPagina(Math.max(1, dup.pagina - 1))}
+                        variante="secundario"
+                        tamano="sm"
+                        disabled={dup.pagina <= 1}
+                    >
+                        Anterior
+                    </BotonBase>
+                    <span className="dupPaginaActual">
+                        Página {dup.pagina} — {dup.total} total
+                    </span>
+                    <BotonBase
+                        onClick={() => dup.setPagina(dup.pagina + 1)}
+                        variante="secundario"
+                        tamano="sm"
+                        disabled={dup.duplicados.length < 20}
+                    >
+                        Siguiente
+                    </BotonBase>
+                </div>
+            )}
+        </div>
+    );
+};

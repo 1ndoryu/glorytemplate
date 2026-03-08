@@ -1,0 +1,223 @@
+/*
+ * Estilos: Tab Duplicados Admin — D5
+ * Layout para moderacion de samples duplicados: tarjetas de comparacion,
+ * filtros, paginacion y acciones de resolucion.
+ */
+
+/* Contenedor principal */
+.tabDuplicados {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Resumen superior */
+.dupResumen {
+    display: flex;
+    align-items: baseline;
+    gap: var(--espacioSm);
+}
+
+.dupResumenNumero {
+    font-size: var(--fuente2xl);
+    font-weight: 700;
+    color: var(--acento);
+    line-height: 1;
+}
+
+.dupResumenLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Barra de filtros */
+.dupBarraFiltros {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.dupFiltros {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.dupBotonesAccion {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+/* Resultado de backfill */
+.dupBackfillResultado {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoExito);
+    border: 1px solid var(--bordeExito);
+    border-radius: var(--radioSm);
+    font-size: var(--fuenteXs);
+    color: var(--textoExito);
+}
+
+/* Loading */
+.dupCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioXl);
+}
+
+/* Lista de tarjetas */
+.dupLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+/* Tarjeta individual de duplicado */
+.dupTarjeta {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.dupTarjeta:hover {
+    border-color: var(--bordeFuerte);
+}
+
+/* Cabecera de tarjeta */
+.dupCabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dupFecha {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+/* Comparacion lado a lado */
+.dupComparacion {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: var(--espacioMd);
+    align-items: center;
+}
+
+.dupLado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding: var(--espacioMd);
+    background: var(--fondoElevado2);
+    border-radius: var(--radioSm);
+}
+
+.dupLadoEtiqueta {
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dupLadoTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dupLadoMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.dupLadoMeta strong {
+    color: var(--textoPrimario);
+}
+
+.dupLadoId {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    font-family: var(--fuenteMono);
+}
+
+/* Separador VS */
+.dupSeparador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    min-width: 40px;
+}
+
+.dupSeparadorLinea {
+    width: 1px;
+    height: 16px;
+    background: var(--bordeSutil);
+}
+
+.dupSeparadorTexto {
+    font-size: var(--fuenteXs);
+    font-weight: 700;
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+}
+
+/* Acciones */
+.dupAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    padding-top: var(--espacioSm);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+/* Paginacion */
+.dupPaginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.dupPaginaActual {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Responsivo: en pantallas pequeñas, comparacion en columna */
+@media (max-width: 640px) {
+    .dupComparacion {
+        grid-template-columns: 1fr;
+    }
+
+    .dupSeparador {
+        flex-direction: row;
+        min-width: unset;
+    }
+
+    .dupSeparadorLinea {
+        width: 16px;
+        height: 1px;
+    }
+
+    .dupAcciones {
+        justify-content: stretch;
+    }
+
+    .dupAcciones > * {
+        flex: 1;
+    }
+}

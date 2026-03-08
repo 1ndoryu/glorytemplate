@@ -42,6 +42,12 @@ class SamplesUploadController
             'callback'            => [self::class, 'subir'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        \register_rest_route($namespace, '/samples/check-duplicate', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'verificarDuplicado'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -332,6 +338,67 @@ class SamplesUploadController
                 'contexto' => $contexto,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * POST /samples/check-duplicate — Pre-verificacion de duplicado por hash parcial.
+     *
+     * El desktop calcula SHA-256 de (first 8KB + last 8KB + filesize) y consulta
+     * antes de subir. Si hay match del mismo usuario, el cliente puede vincular
+     * el sample existente sin re-subir.
+     */
+    public static function verificarDuplicado(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+
+            if (!$userId) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => 'Usuario no identificado',
+                ], 401);
+            }
+
+            $hashParcial = \sanitize_text_field($request->get_param('hashParcial') ?? '');
+            $tamano = (int) ($request->get_param('tamano') ?? 0);
+
+            if (empty($hashParcial) || \strlen($hashParcial) !== 64) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'error' => 'hashParcial requerido (SHA-256, 64 chars)',
+                ], 400);
+            }
+
+            $existente = SamplesRepository::buscarPorHashParcial($hashParcial);
+
+            if (!$existente) {
+                return new \WP_REST_Response([
+                    'ok' => true,
+                    'posibleDuplicado' => false,
+                ]);
+            }
+
+            $esMismoUsuario = ((int) $existente[SamplesCols::CREADOR_ID]) === $userId;
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'posibleDuplicado' => true,
+                'sampleId' => (int) $existente[SamplesCols::ID],
+                'esMismoUsuario' => $esMismoUsuario,
+                'titulo' => $existente[SamplesCols::TITULO] ?? '',
+                'mensaje' => $esMismoUsuario
+                    ? 'Ya tienes este sample subido. Se vinculara automaticamente.'
+                    : 'Posible duplicado de otro usuario. Sube normalmente para verificacion completa.',
+            ]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesUploadController: Error en verificarDuplicado', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response([
+                'ok' => false,
+                'error' => 'Error interno verificando duplicado',
+            ], 500);
         }
     }
 }

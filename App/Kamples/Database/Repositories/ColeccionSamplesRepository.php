@@ -55,23 +55,63 @@ class ColeccionSamplesRepository extends BaseRepository
 
     /*
      * Agregar sample a colección con posición atómica (INSERT...SELECT MAX+1).
-     * ON CONFLICT DO NOTHING para idempotencia si el par (colId, sampleId) ya existe.
+     * D2: ON CONFLICT (usuario_id, sample_id) hace MOVE atomico si ya existe en otra coleccion del mismo usuario.
+     * Diferentes usuarios pueden tener el mismo sample en sus propias colecciones.
      * La posición se calcula en la misma query para evitar race conditions.
      */
-    public static function agregarAtomico(int $colId, int $sampleId): void
+    public static function agregarAtomico(int $colId, int $sampleId, int $userId): void
     {
         $t = ColeccionSamplesCols::TABLA;
         $colIdCol = ColeccionSamplesCols::COLECCION_ID;
         $sampleIdCol = ColeccionSamplesCols::SAMPLE_ID;
+        $userIdCol = ColeccionSamplesCols::USUARIO_ID;
         $posCol = ColeccionSamplesCols::POSICION;
 
         static::ejecutar(
-            "INSERT INTO {$t} ({$colIdCol}, {$sampleIdCol}, {$posCol})
-             SELECT :colId, :sampleId, COALESCE(MAX({$posCol}), 0) + 1
+            "INSERT INTO {$t} ({$colIdCol}, {$sampleIdCol}, {$userIdCol}, {$posCol})
+             SELECT :colId, :sampleId, :userId, COALESCE(MAX({$posCol}), 0) + 1
              FROM {$t} WHERE {$colIdCol} = :colIdMax
-             ON CONFLICT DO NOTHING",
-            ['colId' => $colId, 'sampleId' => $sampleId, 'colIdMax' => $colId]
+             ON CONFLICT ({$userIdCol}, {$sampleIdCol}) DO UPDATE
+             SET {$colIdCol} = EXCLUDED.{$colIdCol},
+                 {$posCol} = EXCLUDED.{$posCol},
+                 " . ColeccionSamplesCols::ADDED_AT . " = NOW()",
+            ['colId' => $colId, 'sampleId' => $sampleId, 'userId' => $userId, 'colIdMax' => $colId]
         );
+    }
+
+    /*
+     * D2: Mover sample a una coleccion. Retorna estado de la operacion.
+     * Scoped al usuario: solo verifica colecciones del mismo usuario.
+     * 'ya_en_coleccion' -> idempotente, 'movido' -> estaba en otra, 'agregado' -> no estaba en ninguna.
+     */
+    public static function moverAColeccion(int $colId, int $sampleId, int $userId): array
+    {
+        $t = ColeccionSamplesCols::TABLA;
+
+        /* Verificar coleccion actual de este usuario para este sample */
+        $actual = static::consultarUno(
+            "SELECT " . ColeccionSamplesCols::COLECCION_ID
+            . " FROM {$t} WHERE " . ColeccionSamplesCols::SAMPLE_ID . " = :sid"
+            . " AND " . ColeccionSamplesCols::USUARIO_ID . " = :uid",
+            ['sid' => $sampleId, 'uid' => $userId]
+        );
+
+        if ($actual) {
+            $colActual = (int) $actual[ColeccionSamplesCols::COLECCION_ID];
+            if ($colActual === $colId) {
+                return ['accion' => 'ya_en_coleccion', 'coleccionAnterior' => null];
+            }
+        }
+
+        $colAnterior = $actual ? (int) $actual[ColeccionSamplesCols::COLECCION_ID] : null;
+
+        /* agregarAtomico maneja ON CONFLICT (usuario_id, sample_id) DO UPDATE */
+        self::agregarAtomico($colId, $sampleId, $userId);
+
+        return [
+            'accion' => $actual ? 'movido' : 'agregado',
+            'coleccionAnterior' => $colAnterior,
+        ];
     }
 
     /*
@@ -145,5 +185,53 @@ class ColeccionSamplesRepository extends BaseRepository
             "DELETE FROM {$t} WHERE " . ColeccionSamplesCols::SAMPLE_ID . " = :id",
             ['id' => $sampleId]
         );
+    }
+
+    /*
+     * D2: Obtener coleccion actual de un sample para un usuario.
+     * Retorna null si el usuario no tiene este sample en ninguna coleccion.
+     */
+    public static function coleccionDeSample(int $sampleId, int $userId): ?int
+    {
+        $t = ColeccionSamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . ColeccionSamplesCols::COLECCION_ID
+            . " FROM {$t} WHERE " . ColeccionSamplesCols::SAMPLE_ID . " = :sid"
+            . " AND " . ColeccionSamplesCols::USUARIO_ID . " = :uid",
+            ['sid' => $sampleId, 'uid' => $userId]
+        );
+
+        return $row ? (int) $row[ColeccionSamplesCols::COLECCION_ID] : null;
+    }
+
+    /*
+     * D3: Obtener samples de una coleccion padre incluyendo sus subcolecciones.
+     * Agrega el campo 'coleccion_origen' para que el frontend distinga heredados.
+     */
+    public static function samplesConSubcolecciones(int $colId, array $subcoleccionIds, ?int $userId = null): array
+    {
+        $t = ColeccionSamplesCols::TABLA;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        /* Combinar coleccion padre + hijas */
+        $todosIds = \array_merge([$colId], $subcoleccionIds);
+        $placeholders = [];
+        $params = [];
+        foreach ($todosIds as $i => $id) {
+            $key = "col{$i}";
+            $placeholders[] = ":{$key}";
+            $params[$key] = (int) $id;
+        }
+        $inClause = \implode(', ', $placeholders);
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+             . ", cs." . ColeccionSamplesCols::COLECCION_ID . " as coleccion_origen"
+             . " JOIN {$t} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+             . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " IN ({$inClause})"
+             . " AND s." . SamplesCols::ESTADO . " = '{$estadoActivo}'"
+             . " ORDER BY cs." . ColeccionSamplesCols::POSICION . " ASC, cs." . ColeccionSamplesCols::ADDED_AT . " DESC";
+
+        return static::consultar($sql, $params);
     }
 }

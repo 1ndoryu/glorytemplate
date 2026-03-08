@@ -90,7 +90,7 @@ class PipelineAudioHelpers
             SamplesCols::RUTA_WAVEFORM, SamplesCols::RUTA_OPTIMIZADA, SamplesCols::RUTA_PREVIEW,
             SamplesCols::IMAGEN_URL, SamplesCols::ESTADO, SamplesCols::PUBLICADO_AT, SamplesCols::TITULO,
             SamplesCols::SLUG, SamplesCols::TAGS, 'nombre_archivo', SamplesCols::FORMATO,
-            'waveform_peaks',
+            'waveform_peaks', SamplesCols::AUDIO_HASH,
         ];
         $columnasJsonb = [SamplesCols::METADATA, 'media_metadata', 'tags_ia'];
         $setClauses = [];
@@ -124,5 +124,37 @@ class PipelineAudioHelpers
                 'sql' => $sql,
             ]);
         }
+    }
+
+    /**
+     * Limpia archivos generados por el pipeline para un sample rechazado/duplicado.
+     * Elimina: original, mp3, preview, waveform en el directorio dado.
+     */
+    public static function limpiarArchivosSample(int $sampleId, string $directorio, string $idCorto): void
+    {
+        $patrones = [
+            $directorio . '/' . $idCorto . '_optimizado.mp3',
+            $directorio . '/' . $idCorto . '_preview.mp3',
+            $directorio . '/' . $idCorto . '_waveform.json',
+        ];
+
+        foreach ($patrones as $ruta) {
+            if (\file_exists($ruta)) {
+                try {
+                    \unlink($ruta);
+                } catch (\Throwable $e) {
+                    KamplesLogger::warning('Pipeline: No se pudo eliminar archivo generado', [
+                        'ruta' => $ruta,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        /* El archivo original se conserva temporalmente por si se necesita auditoria */
+        KamplesLogger::info('Pipeline: Archivos generados limpiados', [
+            'sampleId' => $sampleId,
+            'directorio' => $directorio,
+        ]);
     }
 }

@@ -1,11 +1,11 @@
 /*
  * Hook: useDescargasPagina — Kamples (C140)
- * Lógica de la página /descargas: carga lista, límites y provee sugerencias.
- * Separado del componente para cumplir SRP.
+ * Lógica de la página /descargas: carga lista completa (propios + descargados),
+ * límites y provee sugerencias. Separado del componente para cumplir SRP.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { obtenerMisDescargas } from '@app/services/apiSamples';
+import { obtenerColeccionados } from '@app/services/apiExplorador';
 import { obtenerLimites, type LimitesDescarga } from '@app/services/apiDescargas';
 import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
 import { darLike, quitarLike } from '@app/services/apiSocial';
@@ -34,7 +34,7 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
             setCargando(true);
             try {
                 const [respDescargas, respLimites] = await Promise.all([
-                    obtenerMisDescargas(1, 30),
+                    obtenerColeccionados(1, 30),
                     obtenerLimites(),
                 ]);
                 if (respDescargas.ok && respDescargas.data) {

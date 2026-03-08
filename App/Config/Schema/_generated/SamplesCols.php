@@ -42,10 +42,11 @@ final class SamplesCols
     const PERMITIR_DESCARGA = 'permitir_descarga';
     const LICENCIA_LIBRE = 'licencia_libre';
     const AUDIO_HASH = 'audio_hash';
+    const HASH_PARCIAL = 'hash_parcial';
     const TOTAL_COMENTARIOS = 'total_comentarios';
     const VERIFICADO = 'verificado';
     const MOSTRAR_EN_COMUNIDAD = 'mostrar_en_comunidad';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'creador_id', 'titulo', 'slug', 'descripcion', 'bpm', 'key', 'escala', 'duracion', 'formato', 'tamano', 'metadata', 'tags', 'estado', 'tipo', 'es_premium', 'precio', 'ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform', 'imagen_url', 'embedding', 'total_descargas', 'total_likes', 'total_reproducciones', 'publicado_at', 'created_at', 'updated_at', 'id_corto', 'permitir_descarga', 'licencia_libre', 'audio_hash', 'total_comentarios', 'verificado', 'mostrar_en_comunidad'];
+    const TODAS = ['id', 'creador_id', 'titulo', 'slug', 'descripcion', 'bpm', 'key', 'escala', 'duracion', 'formato', 'tamano', 'metadata', 'tags', 'estado', 'tipo', 'es_premium', 'precio', 'ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform', 'imagen_url', 'embedding', 'total_descargas', 'total_likes', 'total_reproducciones', 'publicado_at', 'created_at', 'updated_at', 'id_corto', 'permitir_descarga', 'licencia_libre', 'audio_hash', 'hash_parcial', 'total_comentarios', 'verificado', 'mostrar_en_comunidad'];
 }

@@ -617,4 +617,19 @@ class ColeccionesRepository extends BaseRepository
             ['coleccionId' => $coleccionId]
         );
     }
+
+    /*
+     * D3: IDs de subcolecciones de un padre. Para vista virtual que agrega samples heredados.
+     */
+    public static function idsSubcolecciones(int $parentId): array
+    {
+        $t = ColeccionesCols::TABLA;
+
+        $rows = static::consultar(
+            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::PARENT_ID . " = :parentId",
+            ['parentId' => $parentId]
+        );
+
+        return \array_map(fn($r) => (int) $r[ColeccionesCols::ID], $rows);
+    }
 }

@@ -47,6 +47,7 @@ class SamplesSchema extends TableSchema
             'permitir_descarga'    => ['tipo' => 'bool', 'default' => true],
             'licencia_libre'       => ['tipo' => 'bool', 'default' => false],
             'audio_hash'           => ['tipo' => 'string', 'max' => 64, 'nullable' => true],
+            'hash_parcial'         => ['tipo' => 'string', 'max' => 64, 'nullable' => true],
             'total_comentarios'    => ['tipo' => 'int', 'default' => 0],
             'verificado'           => ['tipo' => 'bool', 'default' => false],
             'mostrar_en_comunidad' => ['tipo' => 'bool', 'default' => true],

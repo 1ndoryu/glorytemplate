@@ -145,6 +145,71 @@ export const rechazarTodosPendientes = async (): Promise<RespuestaApi<{ ok: bool
     return apiPost<{ ok: boolean; afectados: number }>('/admin/moderacion/rechazar-pendientes', {});
 };
 
+/* Duplicados pendientes (D5) */
+
+export interface DuplicadoAdmin {
+    id: number;
+    tipo: string;
+    estado: string;
+    created_at: string;
+    original_id: number;
+    original_titulo: string;
+    original_subido_at: string;
+    original_creador: string;
+    original_creador_id: number;
+    duplicado_id: number;
+    duplicado_titulo: string;
+    duplicado_subido_at: string;
+    duplicado_creador: string;
+    duplicado_creador_id: number;
+}
+
+export interface ListaDuplicados {
+    duplicados: DuplicadoAdmin[];
+    total: number;
+    pagina: number;
+    porPagina: number;
+}
+
+export const listarDuplicados = async (
+    estado = 'pendiente',
+    tipo?: string,
+    pagina = 1
+): Promise<RespuestaApi<ListaDuplicados>> => {
+    return apiGet<ListaDuplicados>('/admin/duplicados', { estado, tipo, pagina });
+};
+
+export const contarDuplicados = async (): Promise<RespuestaApi<{ total: number }>> => {
+    return apiGet<{ total: number }>('/admin/duplicados/contar');
+};
+
+export const fusionarDuplicado = async (id: number): Promise<RespuestaApi<{ ok: boolean; accion: string }>> => {
+    return apiPost<{ ok: boolean; accion: string }>(`/admin/duplicados/${id}/fusionar`, {});
+};
+
+export const aprobarDuplicado = async (id: number): Promise<RespuestaApi<{ ok: boolean; accion: string }>> => {
+    return apiPost<{ ok: boolean; accion: string }>(`/admin/duplicados/${id}/aprobar`, {});
+};
+
+export const rechazarDuplicado = async (id: number): Promise<RespuestaApi<{ ok: boolean; accion: string }>> => {
+    return apiPost<{ ok: boolean; accion: string }>(`/admin/duplicados/${id}/rechazar`, {});
+};
+
+export const intercambiarDuplicado = async (id: number): Promise<RespuestaApi<{ ok: boolean; accion: string }>> => {
+    return apiPost<{ ok: boolean; accion: string }>(`/admin/duplicados/${id}/intercambiar`, {});
+};
+
+export interface StatsBackfill {
+    procesados: number;
+    hasheados: number;
+    duplicados: number;
+    sin_archivo: number;
+}
+
+export const ejecutarBackfillHash = async (batch = 100): Promise<RespuestaApi<{ stats: StatsBackfill }>> => {
+    return apiPost<{ stats: StatsBackfill }>('/admin/duplicados/backfill', { batch });
+};
+
 /* Herramienta de dev: eliminación masiva de samples */
 
 export interface ResultadoBorradoMasivo {

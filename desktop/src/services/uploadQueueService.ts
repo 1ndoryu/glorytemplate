@@ -21,7 +21,7 @@
 
 import { esDesktop, estaOnline } from './desktopService';
 import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync, obtenerConfigSync } from './syncService';
-import { obtenerBaseUrlSync, marcarDescargaEnCurso, marcarMovimientoInterno } from './syncGuards';
+import { obtenerBaseUrlSync, marcarDescargaEnCurso, marcarMovimientoInterno, obtenerHeadersSyncGet } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 import { estado } from './syncState';
@@ -469,6 +469,41 @@ async function encolarArchivoInterno(
 
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
+
+    /*
+     * D4: Pre-check contra servidor — verificar si el sample ya existe.
+     * Si es duplicado del mismo usuario, no subir: vincular sample existente via mover-sample.
+     * Si es duplicado de otro usuario, subir normalmente (pipeline decide en_supervision).
+     * Si el check falla (offline, error), continuar con encolamiento normal.
+     */
+    if (hash && estaOnline()) {
+        try {
+            const baseUrl = obtenerBaseUrlSync();
+            const resp = await fetch(`${baseUrl}/kamples/v1/samples/check-duplicate`, {
+                method: 'POST',
+                headers: {
+                    ...obtenerHeadersSyncGet(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ hashParcial: hash, tamano: 0 }),
+            });
+            if (resp.ok) {
+                const data = await resp.json() as { ok: boolean; posibleDuplicado?: boolean; esMismoUsuario?: boolean; sampleId?: number };
+                if (data.ok && data.posibleDuplicado && data.esMismoUsuario && data.sampleId) {
+                    /*
+                     * Duplicado del mismo usuario: vincular sin re-subir.
+                     * Mover el sample existente a la coleccion de destino via endpoint.
+                     */
+                    logSync.info('uploadQueue', `Duplicado mismo usuario detectado por servidor. Sample ${data.sampleId} ya existe. Vinculando sin subir: ${nombreArchivo}`);
+                    await moverADuplicados(rutaArchivo, carpetas);
+                    return false;
+                }
+            }
+        } catch {
+            /* Pre-check no critico: si falla, subir normalmente */
+            logSync.debug('uploadQueue', `Pre-check duplicado falló para ${nombreArchivo}, continuando upload normal`);
+        }
+    }
 
     /* TC2: Verificar si otro encolarArchivoInterno concurrente już reservó este hash.
      * Este check es síncrono e inmediatamente después del await, cerrando la ventana
