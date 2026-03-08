@@ -585,7 +585,13 @@ class MotorRecomendacion
         if (self::pgvectorActivo()) {
             $perfil = GeneradorEmbeddings::perfilUsuario($userId);
             if ($perfil !== null) {
-                $params['discoveryVector'] = GeneradorEmbeddings::vectorAString($perfil);
+                /*
+                 * Params para pgvector: NO incluye :userId (no está en este SQL).
+                 * Cada query recibe solo los params que referencia para evitar HY093.
+                 */
+                $paramsVector = $params;
+                unset($paramsVector['userId']);
+                $paramsVector['discoveryVector'] = GeneradorEmbeddings::vectorAString($perfil);
 
                 /*
                  * Distancia coseno entre perfil y candidato BETWEEN min y max.
@@ -599,7 +605,7 @@ class MotorRecomendacion
                     . " ORDER BY RANDOM()"
                     . " LIMIT :limit";
 
-                $candidatos = SamplesRepository::consultar($sql, $params);
+                $candidatos = SamplesRepository::consultar($sql, $paramsVector);
                 if (!empty($candidatos)) return $candidatos;
             }
         }
@@ -616,7 +622,11 @@ class MotorRecomendacion
             . " ORDER BY RANDOM()"
             . " LIMIT :limit";
 
-        return SamplesRepository::consultar($sql, $params);
+        /* Fallback NO usa :discoveryVector — pasar solo params relevantes */
+        $paramsFallback = $params;
+        unset($paramsFallback['discoveryVector']);
+
+        return SamplesRepository::consultar($sql, $paramsFallback);
     }
 
     /*
