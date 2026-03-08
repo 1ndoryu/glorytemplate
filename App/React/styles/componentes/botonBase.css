@@ -90,7 +90,6 @@
     cursor: not-allowed;
     pointer-events: none;
     background: unset;
-    border: 1px solid var(--bordeActivo);
     color: var(--acento-blanco);
 }
 

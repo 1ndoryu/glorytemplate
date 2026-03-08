@@ -4,7 +4,7 @@
  * Lógica de VentanaChat extraída a useVentanaChat (SRP).
  */
 
-import { X, Minus, Send, Maximize2, Paperclip, MoreVertical, User, ShieldAlert, Flag } from 'lucide-react';
+import { X, Minus, Send, Maximize2, Paperclip, MoreVertical, User, ShieldAlert, Flag, Loader2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
@@ -17,7 +17,7 @@ import { Input } from '../ui/Input';
 /* Ventana individual de chat */
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     const {
-        mensajes, texto, setTexto, enviando, menuAbierto, miId,
+        mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
         mensajesRef, inputRef, archivoRef,
         cerrarChat, minimizarChat, restaurarChat,
         manejarEnviar, manejarArchivo, manejarKeyDown,
@@ -83,7 +83,11 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
             </div>
 
             <div className="chatFlotanteMensajes" ref={mensajesRef}>
-                {mensajes.length === 0 ? (
+                {cargando ? (
+                    <div className="chatFlotanteVacio">
+                        <Loader2 size={20} className="adminSpinner" />
+                    </div>
+                ) : mensajes.length === 0 ? (
                     <div className="chatFlotanteVacio">Inicia la conversación</div>
                 ) : mensajes.map(msg => (
                     <BurbujaMensaje key={msg.id} mensaje={msg} esMio={msg.remitenteId === miId} compacto />

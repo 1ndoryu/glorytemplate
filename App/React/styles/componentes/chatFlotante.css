@@ -24,7 +24,6 @@
 /* Ventana individual de chat */
 .chatFlotanteVentana {
     width: 320px;
-    max-height: 420px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -113,12 +112,13 @@
 /* Burbujas de mensaje */
 .chatFlotanteBurbuja {
     max-width: 80%;
-    padding: var(--espacioXs) var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
     border-radius: var(--radioMd);
     font-size: var(--fuenteSm);
     line-height: 1.4;
     word-break: break-word;
 }
+
 
 .chatFlotanteBurbuja p {
     margin: 0;
@@ -134,6 +134,7 @@
     align-self: flex-start;
     background-color: var(--fondoElevado3);
     color: var(--textoPrimario);
+    border: 1px solid var(--bordeSutil);
 }
 
 /* Input de mensaje */
@@ -219,6 +220,7 @@
 .chatFlotanteMenuItem {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: var(--espacioSm);
     width: 100%;
     padding: var(--espacioXs) var(--espacioSm);
@@ -242,4 +244,9 @@
 .chatFlotanteMenuItemPeligro:hover {
     background-color: color-mix(in srgb, var(--error) 10%, transparent);
     color: var(--error);
+}
+
+/* Boton de adjunto — sin padding para iconos compactos */
+.chatFlotanteAdjuntarBtn {
+    padding: 0;
 }

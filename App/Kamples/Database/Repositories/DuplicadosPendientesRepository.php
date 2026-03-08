@@ -96,11 +96,13 @@ class DuplicadosPendientesRepository extends BaseRepository
                 so." . SamplesCols::ID . " as original_id,
                 so." . SamplesCols::TITULO . " as original_titulo,
                 so." . SamplesCols::CREATED_AT . " as original_subido_at,
+                so." . SamplesCols::RUTA_PREVIEW . " as original_ruta_preview,
                 uo." . UsuariosExtCols::NOMBRE_VISIBLE . " as original_creador,
                 uo." . UsuariosExtCols::ID . " as original_creador_id,
                 sd." . SamplesCols::ID . " as duplicado_id,
                 sd." . SamplesCols::TITULO . " as duplicado_titulo,
                 sd." . SamplesCols::CREATED_AT . " as duplicado_subido_at,
+                sd." . SamplesCols::RUTA_PREVIEW . " as duplicado_ruta_preview,
                 ud." . UsuariosExtCols::NOMBRE_VISIBLE . " as duplicado_creador,
                 ud." . UsuariosExtCols::ID . " as duplicado_creador_id
             FROM {$t} d

@@ -26,6 +26,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     const [mensajes, setMensajes] = useState<Mensaje[]>([]);
     const [texto, setTexto] = useState('');
     const [enviando, setEnviando] = useState(false);
+    const [cargando, setCargando] = useState(true);
     const [menuAbierto, setMenuAbierto] = useState(false);
 
     const mensajesRef = useRef<HTMLDivElement>(null);
@@ -37,12 +38,15 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     /* Cargar mensajes al abrir — con cleanup */
     useEffect(() => {
         let activo = true;
+        setCargando(true);
         const cargar = async () => {
             try {
                 const resp = await obtenerMensajes(chat.conversacionId);
                 if (activo && resp.ok && resp.data) setMensajes(resp.data);
             } catch {
                 /* Error de red al cargar mensajes — se muestra chat vacío */
+            } finally {
+                if (activo) setCargando(false);
             }
         };
         cargar();
@@ -155,7 +159,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     }, []);
 
     return {
-        mensajes, texto, setTexto, enviando, menuAbierto, miId,
+        mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
         mensajesRef, inputRef, archivoRef,
         cerrarChat, minimizarChat, restaurarChat,
         manejarEnviar, manejarArchivo, manejarKeyDown,

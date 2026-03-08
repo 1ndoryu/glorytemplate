@@ -8,7 +8,6 @@
 import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard } from 'lucide-react';
 import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
 import '../../styles/componentes/dropdownPanel.css';
-import { BotonBase } from './BotonBase';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
     like: <Heart size={16} />,
@@ -43,8 +42,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
     const {
         notificaciones,
         cargando,
-        noLeidas,
-        irANotificaciones,
+        notificacionesCargadas,
         manejarClickNotif,
     } = useDropdownNotificaciones({ onCerrar });
 
@@ -52,19 +50,10 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
         <>
             <div className="dropdownOverlay" onClick={onCerrar} />
             <div className="dropdownPanel">
-                <div className="dropdownPanelCabecera">
-                    <span className="dropdownPanelTitulo">
-                        Notificaciones {noLeidas > 0 && `(${noLeidas})`}
-                    </span>
-                    <BotonBase variante="ghost" className="dropdownPanelEnlace" onClick={irANotificaciones} type="button">
-                        Ver todas
-                    </BotonBase>
-                </div>
-
                 <div className="dropdownPanelLista">
-                    {cargando ? (
+                    {cargando && !notificacionesCargadas ? (
                         <div className="dropdownPanelVacio">
-                            <Loader2 size={28} className="animacionGirar" />
+                            <Loader2 size={28} className="adminSpinner" />
                             <p>Cargando...</p>
                         </div>
                     ) : notificaciones.length === 0 ? (
@@ -74,11 +63,18 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                         </div>
                     ) : (
                         notificaciones.map((noti) => (
-                            <BotonBase variante="ghost"
+                            <div
                                 key={noti.id}
                                 className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
                                 onClick={() => manejarClickNotif(noti)}
-                                type="button"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        manejarClickNotif(noti);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
                             >
                                 <div className="dropdownItemIcono">
                                     {ICONOS_NOTIFICACION[noti.tipo] ?? <Bell size={16} />}
@@ -90,7 +86,7 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                                     </span>
                                 </div>
                                 {!noti.leida && <div className="dropdownItemPunto" />}
-                            </BotonBase>
+                            </div>
                         ))
                     )}
                 </div>

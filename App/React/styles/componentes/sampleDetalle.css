@@ -219,13 +219,14 @@
 .detalleAccionPlano {
     display: inline-flex;
     align-items: center;
-    gap: var(--espacioXs);
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: none;
     background: none;
-    padding: var(--espacioXs);
     color: var(--textoSecundario);
     cursor: pointer;
-    font-size: var(--fuenteSm);
     transition: color var(--transicionRapida), transform var(--transicionRapida);
 }
 
@@ -310,6 +311,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--espacioMd);
+    width: 100%;
 }
 
 .detalleSeccionTitulo {

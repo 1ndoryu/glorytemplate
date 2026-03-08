@@ -4,7 +4,7 @@
  * Maneja: carga, filtros, paginacion y acciones de resolucion.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
     listarDuplicados,
     contarDuplicados,
@@ -36,18 +36,18 @@ export interface UsePanelDuplicadosReturn {
     total: number;
     cargando: boolean;
     procesandoId: number | null;
+    hayMas: boolean;
 
     /* Filtros */
     filtroEstado: string;
     filtroTipo: string;
-    pagina: number;
     setFiltroEstado: (v: string) => void;
     setFiltroTipo: (v: string) => void;
-    setPagina: (p: number) => void;
 
     /* Acciones */
     ejecutarAccion: (id: number, accion: AccionDuplicado) => Promise<void>;
     recargar: () => Promise<void>;
+    cargarMas: () => Promise<void>;
     ejecutarBackfill: () => Promise<void>;
     backfillStats: StatsBackfill | null;
     backfillEnCurso: boolean;
@@ -60,23 +60,32 @@ export function usePanelDuplicados(): UsePanelDuplicadosReturn {
     const [procesandoId, setProcesandoId] = useState<number | null>(null);
     const [filtroEstado, setFiltroEstado] = useState('pendiente');
     const [filtroTipo, setFiltroTipo] = useState('');
-    const [pagina, setPagina] = useState(1);
+    const [hayMas, setHayMas] = useState(false);
     const [backfillStats, setBackfillStats] = useState<StatsBackfill | null>(null);
     const [backfillEnCurso, setBackfillEnCurso] = useState(false);
+    /* Pagina interna — controlada por scroll, no expuesta */
+    const paginaRef = useRef(1);
+    const cargandoMasRef = useRef(false);
 
-    const cargarDatos = useCallback(async () => {
+    const cargarDatos = useCallback(async (reiniciar = true) => {
+        if (reiniciar) {
+            paginaRef.current = 1;
+        }
         setCargando(true);
         try {
             const [resList, resTotal] = await Promise.all([
-                listarDuplicados(filtroEstado, filtroTipo || undefined, pagina),
+                listarDuplicados(filtroEstado, filtroTipo || undefined, paginaRef.current),
                 contarDuplicados(),
             ]);
 
             if (resList.ok && resList.data) {
-                setDuplicados(resList.data.duplicados ?? []);
+                const nuevos = resList.data.duplicados ?? [];
+                setDuplicados(reiniciar ? nuevos : prev => [...prev, ...nuevos]);
+                setHayMas(nuevos.length >= 20);
             } else {
                 log.error('Error cargando duplicados', resList.error);
-                setDuplicados([]);
+                if (reiniciar) setDuplicados([]);
+                setHayMas(false);
             }
 
             if (resTotal.ok && resTotal.data) {
@@ -84,25 +93,32 @@ export function usePanelDuplicados(): UsePanelDuplicadosReturn {
             }
         } catch (err) {
             log.error('Error inesperado cargando duplicados', err);
-            setDuplicados([]);
+            if (reiniciar) setDuplicados([]);
+            setHayMas(false);
         }
         setCargando(false);
-    }, [filtroEstado, filtroTipo, pagina]);
+    }, [filtroEstado, filtroTipo]);
 
     useEffect(() => {
         cargarDatos();
     }, [cargarDatos]);
 
-    /* Reset pagina al cambiar filtros */
+    /* Reset a primera pagina al cambiar filtros */
     const cambiarFiltroEstado = useCallback((v: string) => {
         setFiltroEstado(v);
-        setPagina(1);
     }, []);
 
     const cambiarFiltroTipo = useCallback((v: string) => {
         setFiltroTipo(v);
-        setPagina(1);
     }, []);
+
+    const cargarMas = useCallback(async () => {
+        if (cargandoMasRef.current || !hayMas) return;
+        cargandoMasRef.current = true;
+        paginaRef.current += 1;
+        await cargarDatos(false);
+        cargandoMasRef.current = false;
+    }, [hayMas, cargarDatos]);
 
     const ejecutarAccion = useCallback(async (id: number, accion: AccionDuplicado) => {
         const handler = ACCIONES[accion];
@@ -147,14 +163,14 @@ export function usePanelDuplicados(): UsePanelDuplicadosReturn {
         total,
         cargando,
         procesandoId,
+        hayMas,
         filtroEstado,
         filtroTipo,
-        pagina,
         setFiltroEstado: cambiarFiltroEstado,
         setFiltroTipo: cambiarFiltroTipo,
-        setPagina,
         ejecutarAccion,
         recargar: cargarDatos,
+        cargarMas,
         ejecutarBackfill,
         backfillStats,
         backfillEnCurso,

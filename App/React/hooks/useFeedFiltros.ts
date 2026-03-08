@@ -23,6 +23,7 @@ interface UseFeedFiltrosOpciones {
 export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }: UseFeedFiltrosOpciones) {
     const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
     const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
+    const busqueda = useFiltrosStore(s => s.busqueda);
     const bpmMin = useFiltrosStore(s => s.bpmMin);
     const bpmMax = useFiltrosStore(s => s.bpmMax);
     const filtroPrecio = useFiltrosStore(s => s.filtroPrecio);
@@ -90,6 +91,16 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
             resultado = resultado.filter(s => s.esPremium);
         }
 
+        if (busqueda && busqueda.trim() !== '') {
+            const termino = busqueda.toLowerCase().trim();
+            resultado = resultado.filter(s => {
+                const tituloCoincide = s.titulo.toLowerCase().includes(termino);
+                const tagsSample = extraerTagsMetadata(s);
+                const tagsCoinciden = tagsSample.some(t => t.toLowerCase().includes(termino));
+                return tituloCoincide || tagsCoinciden;
+            });
+        }
+
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
 
         return resultado.filter(s => {
@@ -97,7 +108,7 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
             return tagsIncluidos.every(t => tagsSample.includes(t))
                 && tagsExcluidos.every(t => !tagsSample.includes(t));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, busqueda, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
 
     const manejarIncluirTag = useCallback((tag: string) => incluirTag(tag), [incluirTag]);
     const manejarExcluirTag = useCallback((tag: string) => excluirTag(tag), [excluirTag]);

@@ -46,7 +46,7 @@ export function SampleDetalleAcciones({
                     onReaccionar={onReaccionar}
                     onQuitar={onQuitarReaccion}
                 >
-                    <BotonBase variante="ghost"
+                    <BotonBase variante="ghost" tamano="ninguno"
                         className={`detalleAccionPlano ${liked ? 'detalleAccionPlanoActivo' : ''} ${
                             reaccionActual === 'encanta' ? 'reaccionPrincipalEncanta' :
                             reaccionActual === 'dislike' ? 'reaccionPrincipalDislike' : ''
@@ -59,7 +59,7 @@ export function SampleDetalleAcciones({
                     </BotonBase>
                 </TooltipReacciones>
 
-                <BotonBase variante="ghost"
+                <BotonBase variante="ghost" tamano="ninguno"
                     className="detalleAccionPlano"
                     onClick={onToggleComentarios}
                     type="button"
@@ -68,7 +68,7 @@ export function SampleDetalleAcciones({
                     <MessageCircle size={18} />
                 </BotonBase>
 
-                <BotonBase variante="ghost"
+                <BotonBase variante="ghost" tamano="ninguno"
                     className={`detalleAccionPlano ${descargado ? 'detalleAccionPlanoDescargado' : ''}`}
                     onClick={onDescargar}
                     type="button"
@@ -78,7 +78,7 @@ export function SampleDetalleAcciones({
                 </BotonBase>
 
                 {esPremiumBloqueado && (
-                    <BotonBase variante="ghost"
+                    <BotonBase variante="ghost" tamano="ninguno"
                         className="detalleAccionPlano detalleAccionPlanoActivo"
                         onClick={onAbrirPlanes}
                         type="button"
@@ -89,7 +89,7 @@ export function SampleDetalleAcciones({
                 )}
 
                 {/* C127: Menú de 3 puntos para el sample principal */}
-                <BotonBase variante="ghost"
+                <BotonBase variante="ghost" tamano="ninguno"
                     className="detalleAccionPlano"
                     onClick={(e) => onAbrirMenu(e as React.MouseEvent, sample)}
                     type="button"

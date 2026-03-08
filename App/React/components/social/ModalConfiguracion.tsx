@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import { Camera, ImagePlus, Save, Bell, BellOff, User, Shield, Palette, X, PanelRight } from 'lucide-react';
+import { ImagePlus, Save, Bell, BellOff, User, Shield, Palette, PanelRight } from 'lucide-react';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -61,26 +61,23 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             case 'perfil':
                 return (
                     <>
-                        <h2 className="configSeccionTitulo">Perfil</h2>
-
                         {/* Portada / Cover */}
                         <div className="configSeccion">
                             <label className="configLabel">Portada</label>
-                            <div className="configPortadaContenedor">
+                            <div
+                                className="configPortadaContenedor"
+                                onClick={() => inputPortadaRef.current?.click()}
+                                role="button"
+                                aria-label="Cambiar portada"
+                            >
                                 <img
                                     src={portadaPreview || usuario?.portadaUrl || obtenerImagenColor((usuario?.id ?? 0) + 100)}
                                     alt="Portada"
                                     className="configPortadaImg"
                                 />
-                                <BotonBase variante="ghost"
-                                    className="configPortadaBtn"
-                                    onClick={() => inputPortadaRef.current?.click()}
-                                    type="button"
-                                    aria-label="Cambiar portada"
-                                >
-                                    <ImagePlus size={16} />
-                                    Cambiar portada
-                                </BotonBase>
+                                <div className="configPortadaOverlay">
+                                    <ImagePlus size={24} />
+                                </div>
                                 <Input
                                     ref={inputPortadaRef}
                                     type="file"
@@ -94,20 +91,17 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         {/* Foto de perfil */}
                         <div className="configSeccion">
                             <label className="configLabel">Foto de perfil</label>
-                            <div className="configFotoContenedor">
+                            <div
+                                className="configFotoContenedor"
+                                onClick={() => inputFotoRef.current?.click()}
+                                role="button"
+                                aria-label="Cambiar foto de perfil"
+                            >
                                 <Avatar
                                     src={avatarActual}
                                     nombre={nombreVisible || 'U'}
                                     tamano="lg"
                                 />
-                                <BotonBase variante="ghost"
-                                    className="configFotoBtn"
-                                    onClick={() => inputFotoRef.current?.click()}
-                                    type="button"
-                                    aria-label="Cambiar foto"
-                                >
-                                    <Camera size={16} />
-                                </BotonBase>
                                 <Input
                                     ref={inputFotoRef}
                                     type="file"
@@ -167,7 +161,6 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             case 'cuenta':
                 return (
                     <>
-                        <h2 className="configSeccionTitulo">Cuenta</h2>
                         <div className="configSeccion">
                             <label className="configLabel">Email</label>
                             <CampoTexto
@@ -198,7 +191,6 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             case 'notificaciones':
                 return (
                     <>
-                        <h2 className="configSeccionTitulo">Notificaciones</h2>
                         <div className="configSeccion configSeccionHorizontal">
                             <div className="configSeccionInfo">
                                 <span className="configLabel">Likes y comentarios</span>
@@ -242,7 +234,6 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             case 'apariencia':
                 return (
                     <>
-                        <h2 className="configSeccionTitulo">Apariencia</h2>
                         <div className="configSeccion">
                             <label className="configLabel">Tema</label>
                             <span className="configSubtexto">Elige cómo quieres ver la interfaz.</span>
@@ -298,15 +289,6 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
                 {/* Contenido de la sección */}
                 <div className="configContenido">
-                    <BotonBase variante="ghost"
-                        className="configCerrarBtn"
-                        onClick={manejarCerrar}
-                        type="button"
-                        aria-label="Cerrar"
-                    >
-                        <X size={18} />
-                    </BotonBase>
-
                     <div className="configSeccionContenido">
                         {renderizarSeccion()}
                     </div>

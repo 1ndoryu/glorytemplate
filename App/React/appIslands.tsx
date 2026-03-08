@@ -22,7 +22,6 @@ import {DescargasIsland} from './islands/libreria/DescargasIsland';
 import {FavoritosIsland} from './islands/libreria/FavoritosIsland';
 import {ReproductorIsland} from './islands/player/ReproductorIsland';
 import {DescubrirIsland} from './islands/discover/DescubrirIsland';
-import {NotificacionesIsland} from './islands/notificaciones/NotificacionesIsland';
 import {MensajesIsland} from './islands/mensajes/MensajesIsland';
 import {ChatIsland} from './islands/mensajes/ChatIsland';
 import {DashboardCreadorIsland} from './islands/admin/DashboardCreadorIsland';
@@ -70,7 +69,6 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     FavoritosIsland: FavoritosIsland as React.ComponentType<Record<string, unknown>>,
     ReproductorIsland: ReproductorIsland as React.ComponentType<Record<string, unknown>>,
     DescubrirIsland: DescubrirIsland as React.ComponentType<Record<string, unknown>>,
-    NotificacionesIsland: NotificacionesIsland as React.ComponentType<Record<string, unknown>>,
     MensajesIsland: MensajesIsland as React.ComponentType<Record<string, unknown>>,
     ChatIsland: ChatIsland as React.ComponentType<Record<string, unknown>>,
     DashboardCreadorIsland: DashboardCreadorIsland as React.ComponentType<Record<string, unknown>>,

@@ -69,7 +69,7 @@
     display: flex;
     align-items: flex-start;
     gap: var(--espacioSm);
-    padding: var(--espacioSm) var(--espacioLg);
+    padding: var(--espacioMd) var(--espacioLg) var(--espacioLg) var(--espacioSm);
     cursor: pointer;
     transition: background-color var(--transicionRapida);
     border: none;

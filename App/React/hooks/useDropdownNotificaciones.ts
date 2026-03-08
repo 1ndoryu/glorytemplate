@@ -4,9 +4,11 @@
  * Extraído de DropdownNotificaciones para cumplir SRP.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigationStore } from '@/core/router';
-import { obtenerNotificaciones, type Notificacion } from '@app/services/apiNotificaciones';
+import { marcarLeida, obtenerNotificaciones } from '@app/services/apiNotificaciones';
+import { useNotificacionesStore } from '@app/stores/notificacionesStore';
+import type { NotificacionUI } from '@app/types/notificaciones';
 
 interface UseDropdownNotificacionesParams {
     onCerrar: () => void;
@@ -14,28 +16,40 @@ interface UseDropdownNotificacionesParams {
 
 export const useDropdownNotificaciones = ({ onCerrar }: UseDropdownNotificacionesParams) => {
     const navegar = useNavigationStore(s => s.navegar);
-    const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
-    const [cargando, setCargando] = useState(true);
+    const notificaciones = useNotificacionesStore(s => s.notificaciones);
+    const cargando = useNotificacionesStore(s => s.cargandoVisible);
+    const notificacionesCargadas = useNotificacionesStore(s => s.notificacionesCargadas);
+    const hidratarNotificaciones = useNotificacionesStore(s => s.hidratarNotificaciones);
+    const setCargandoVisible = useNotificacionesStore(s => s.setCargandoVisible);
+    const marcarLeidaLocal = useNotificacionesStore(s => s.marcarLeidaLocal);
+    const necesitaRefrescar = useNotificacionesStore(s => s.necesitaRefrescar);
 
     useEffect(() => {
         let cancelado = false;
+        const debeRefrescar = necesitaRefrescar();
+        if (!debeRefrescar) return;
+
+        if (!notificacionesCargadas) {
+            setCargandoVisible(true);
+        }
+
         obtenerNotificaciones().then((resp) => {
             if (!cancelado && resp.ok && resp.data) {
-                setNotificaciones(resp.data);
+                hidratarNotificaciones(resp.data);
             }
-            if (!cancelado) setCargando(false);
+            if (!cancelado) setCargandoVisible(false);
         }).catch(() => {
-            if (!cancelado) setCargando(false);
+            if (!cancelado) setCargandoVisible(false);
         });
         return () => { cancelado = true; };
-    }, []);
+    }, [hidratarNotificaciones, necesitaRefrescar, notificacionesCargadas, setCargandoVisible]);
 
-    const irANotificaciones = useCallback(() => {
-        navegar('/notificaciones');
-        onCerrar();
-    }, [navegar, onCerrar]);
+    const manejarClickNotif = useCallback((noti: NotificacionUI) => {
+        if (!noti.leida) {
+            marcarLeidaLocal(noti.id);
+            void marcarLeida(noti.id);
+        }
 
-    const manejarClickNotif = useCallback((noti: Notificacion) => {
         if (noti.enlace) {
             navegar(noti.enlace);
             onCerrar();
@@ -43,15 +57,12 @@ export const useDropdownNotificaciones = ({ onCerrar }: UseDropdownNotificacione
             navegar(`/sample/${noti.datos.sampleSlug}/`);
             onCerrar();
         }
-    }, [navegar, onCerrar]);
-
-    const noLeidas = notificaciones.filter((n) => !n.leida).length;
+    }, [marcarLeidaLocal, navegar, onCerrar]);
 
     return {
         notificaciones,
         cargando,
-        noLeidas,
-        irANotificaciones,
+        notificacionesCargadas,
         manejarClickNotif,
     };
 };

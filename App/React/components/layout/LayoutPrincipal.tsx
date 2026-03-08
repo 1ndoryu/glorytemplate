@@ -22,6 +22,7 @@ import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
 import { ModalAuth } from '../auth/ModalAuth';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
+import { NotificacionesToastBridge } from '../ui/NotificacionesToastBridge';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { useDevToolsStore } from '@app/stores/devToolsStore';
@@ -103,6 +104,7 @@ export const LayoutPrincipal = ({
                 </main>
                 {/* Dev tools siempre visible para admin real */}
                 <ModalAuth />
+                <NotificacionesToastBridge />
                 <ContenedorToasts />
                 <BotonDevTools />
             </div>
@@ -155,6 +157,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal de auth (login/registro) */}
             <ModalAuth />
+
+            {/* Puente store -> toast para nuevas notificaciones */}
+            <NotificacionesToastBridge />
 
             {/* Toast notifications — esquina inferior derecha */}
             <ContenedorToasts />

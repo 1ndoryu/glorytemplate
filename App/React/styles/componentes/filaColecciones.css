@@ -7,9 +7,13 @@
     display: flex;
     gap: var(--espacioLg);
     overflow-x: auto;
+    /* Explicit hidden en Y para que el scroll vertical de la pagina no quede bloqueado */
+    overflow-y: hidden;
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding-bottom: var(--espacioXs);
+    /* En touch, permitir scroll vertical de la pagina sobre este elemento */
+    touch-action: pan-y;
 }
 
 .filaColecciones::-webkit-scrollbar {

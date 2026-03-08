@@ -14,6 +14,10 @@ import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
 import { obtenerLimites } from '@app/services/apiDescargas';
+import { useMensajesStore } from '@app/stores/mensajesStore';
+import { useNotificacionesStore } from '@app/stores/notificacionesStore';
+import { obtenerConversaciones } from '@app/services/apiMensajes';
+import { marcarTodasLeidas, obtenerNotificaciones } from '@app/services/apiNotificaciones';
 
 export const useTopBar = () => {
     const tabs = useTabsTopBarStore(s => s.tabs);
@@ -30,6 +34,12 @@ export const useTopBar = () => {
     const modoPanelLateral = usePanelLateralStore(s => s.modo);
     const abrirMezclador = usePanelLateralStore(s => s.abrirMezclador);
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
+
+    const setConversaciones = useMensajesStore(s => s.setConversaciones);
+    const hidratarNotificaciones = useNotificacionesStore(s => s.hidratarNotificaciones);
+    const setCargandoSilenciosoNotificaciones = useNotificacionesStore(s => s.setCargandoSilencioso);
+    const marcarTodasLeidasLocal = useNotificacionesStore(s => s.marcarTodasLeidasLocal);
+    const totalNotificacionesNoLeidas = useNotificacionesStore(s => s.totalNoLeidas());
 
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -53,6 +63,24 @@ export const useTopBar = () => {
                         ilimitado: resp.data.ilimitado,
                     });
                 }
+                
+                /* Precargar notificaciones y mensajes silenciosamente en background */
+                obtenerConversaciones().then(respConv => {
+                    if (!controller.signal.aborted && respConv.ok && respConv.data) {
+                        setConversaciones(respConv.data);
+                    }
+                });
+                
+                setCargandoSilenciosoNotificaciones(true);
+                obtenerNotificaciones().then(respNoti => {
+                    if (!controller.signal.aborted && respNoti.ok && respNoti.data) {
+                        hidratarNotificaciones(respNoti.data, true);
+                    }
+                    if (!controller.signal.aborted) setCargandoSilenciosoNotificaciones(false);
+                }).catch(() => {
+                    if (!controller.signal.aborted) setCargandoSilenciosoNotificaciones(false);
+                });
+
             } catch {
                 /* Error de red cargando créditos — se reintenta en el siguiente intervalo */
             }
@@ -63,7 +91,7 @@ export const useTopBar = () => {
             controller.abort();
             clearInterval(intervalo);
         };
-    }, [autenticado]);
+    }, [autenticado, hidratarNotificaciones, setConversaciones, setCargandoSilenciosoNotificaciones]);
 
     const manejarBusqueda = useCallback((valor: string) => {
         setBusqueda(valor);
@@ -90,8 +118,17 @@ export const useTopBar = () => {
 
     const alternarNotificaciones = useCallback(() => {
         setMensajesAbiertos(false);
-        setNotificacionesAbiertas(prev => !prev);
-    }, []);
+        setNotificacionesAbiertas((prev) => {
+            const siguiente = !prev;
+
+            if (siguiente && totalNotificacionesNoLeidas > 0) {
+                marcarTodasLeidasLocal();
+                void marcarTodasLeidas();
+            }
+
+            return siguiente;
+        });
+    }, [marcarTodasLeidasLocal, totalNotificacionesNoLeidas]);
 
     const alternarMensajes = useCallback(() => {
         setNotificacionesAbiertas(false);
@@ -134,6 +171,7 @@ export const useTopBar = () => {
         cerrarMensajes,
         busquedaModalAbierta,
         setBusquedaModalAbierta,
+        totalNotificacionesNoLeidas,
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,

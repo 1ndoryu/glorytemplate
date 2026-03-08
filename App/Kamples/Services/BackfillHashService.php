@@ -34,12 +34,21 @@ class BackfillHashService
     /* Batch por ejecucion cron */
     private const BATCH_CRON = 100;
 
+    /* Nombre de la opcion WP que indica que el backfill ya termino */
+    private const OPCION_COMPLETADO = 'kamples_backfill_hash_completado';
+
     /**
      * Registra el hook de WP Cron para backfill automatico.
      * Se auto-desactiva cuando no quedan samples sin hash.
+     * Una vez completado, la opcion OPCION_COMPLETADO evita que se re-programe.
      */
     public static function registrarCron(): void
     {
+        /* Si el backfill ya termino en una ejecucion anterior, no re-agendar */
+        if (get_option(self::OPCION_COMPLETADO)) {
+            return;
+        }
+
         add_filter('cron_schedules', function (array $schedules): array {
             if (!isset($schedules[self::CRON_INTERVALO])) {
                 $schedules[self::CRON_INTERVALO] = [
@@ -71,12 +80,13 @@ class BackfillHashService
             $pendientes = SamplesRepository::sinHash($limite);
 
             if (empty($pendientes)) {
-                /* No quedan samples sin hash — desactivar cron */
+                /* No quedan samples sin hash — marcar como completado y desactivar cron */
+                update_option(self::OPCION_COMPLETADO, true);
                 $nextRun = wp_next_scheduled(self::CRON_HOOK);
                 if ($nextRun) {
                     wp_unschedule_event($nextRun, self::CRON_HOOK);
                 }
-                KamplesLogger::info('BackfillHash: completado, cron desactivado');
+                KamplesLogger::info('BackfillHash: completado permanentemente, cron desactivado');
                 return $stats;
             }
 

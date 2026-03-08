@@ -48,6 +48,7 @@ export const TopBar = (): JSX.Element => {
         cerrarMensajes,
         busquedaModalAbierta,
         setBusquedaModalAbierta,
+        totalNotificacionesNoLeidas,
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,
@@ -211,6 +212,7 @@ export const TopBar = (): JSX.Element => {
                             soloIcono
                             onClick={alternarNotificaciones}
                             aria-label="Notificaciones"
+                            className={totalNotificacionesNoLeidas > 0 ? 'topbarBotonNotificacionesPendientes' : ''}
                         >
                             <Bell size={18} />
                         </BotonBase>

@@ -117,7 +117,8 @@ nav.configNavLista button {
     padding: var(--espacioLg) var(--espacioXl);
     display: flex;
     flex-direction: column;
-    gap: var(--espacioLg);
+    gap: 0;
+}
 }
 
 .configSeccionTitulo {
@@ -127,11 +128,17 @@ nav.configNavLista button {
     margin: 0;
 }
 
-/* Secciones */
+/* Secciones — con separador y padding para jerarquía visual */
 .configSeccion {
     display: flex;
     flex-direction: column;
     gap: var(--espacioXs);
+    padding: var(--espacioMd) 0;
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.configSeccion:last-child {
+    border-bottom: none;
 }
 
 .configSeccionHorizontal {
@@ -167,35 +174,21 @@ nav.configNavLista button {
     gap: var(--espacioSm);
 }
 
-/* Foto de perfil */
+/* Foto de perfil — contenedor clickeable */
 .configFotoContenedor {
     position: relative;
     display: inline-flex;
     align-self: center;
-}
-
-.configFotoBtn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--fondoElevado3);
-    border: 2px solid var(--fondoBase);
-    border-radius: var(--radioFull);
-    color: var(--textoPrimario);
     cursor: pointer;
-    transition: background-color var(--transicionRapida);
+    border-radius: var(--radioFull);
+    transition: opacity var(--transicionRapida);
 }
 
-.configFotoBtn:hover {
-    background-color: var(--acento-blanco);
+.configFotoContenedor:hover {
+    opacity: 0.85;
 }
 
-/* Portada / Cover photo */
+/* Portada / Cover photo — contenedor clickeable con overlay hover */
 .configPortadaContenedor {
     position: relative;
     width: 100%;
@@ -203,6 +196,7 @@ nav.configNavLista button {
     border-radius: var(--radioMd);
     overflow: hidden;
     background-color: var(--fondoElevado2);
+    cursor: pointer;
 }
 
 .configPortadaImg {
@@ -211,26 +205,21 @@ nav.configNavLista button {
     object-fit: cover;
 }
 
-.configPortadaBtn {
+/* Overlay translucido que aparece al hacer hover */
+.configPortadaOverlay {
     position: absolute;
-    bottom: var(--espacioSm);
-    right: var(--espacioSm);
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
     display: flex;
     align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
-    background-color: var(--overlayOscuro);
-    backdrop-filter: blur(4px);
-    border: none;
-    border-radius: var(--radioSm);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteXs);
-    cursor: pointer;
-    transition: background-color var(--transicionRapida);
+    justify-content: center;
+    color: var(--blanco);
+    opacity: 0;
+    transition: opacity var(--transicionRapida);
 }
 
-.configPortadaBtn:hover {
-    background-color: var(--overlayOscuro);
+.configPortadaContenedor:hover .configPortadaOverlay {
+    opacity: 1;
 }
 
 /* Input genérico */

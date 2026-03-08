@@ -4,9 +4,13 @@
  */
 
 .topbar {
-    display: flex;
+    display: grid;
+    /*
+     * 3 columnas: tabs (izq), busqueda (centro), acciones (der).
+     * 1fr en cada extremo garantiza que la busqueda siempre queda centrada.
+     */
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    position: relative;
     width: 100%;
     height: 100%;
     gap: var(--espacioLg);
@@ -27,29 +31,31 @@
     color: var(--acento);
 }
 
-/* Tabs de navegación interna (centro) */
+/* Tabs de navegación — columna izquierda, scroll horizontal si hay muchas */
 .topbarTabs {
     display: flex;
     align-items: center;
-    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+    min-width: 0;
 }
 
-/* Zona de búsqueda — centrada en la pantalla */
+.topbarTabs::-webkit-scrollbar {
+    display: none;
+}
+
+/* Zona de búsqueda — columna central, siempre centrada */
 .topbarBusqueda {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(420px, calc(100vw - 520px));
+    width: min(420px, 100%);
     min-width: 220px;
 }
 
-/* Acciones derecha */
+/* Acciones derecha — columna derecha, alineadas a la derecha */
 .topbarAcciones {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    flex-shrink: 0;
-    margin-left: auto;
+    justify-self: end;
 }
 
 
@@ -61,6 +67,11 @@
 /* Wrapper para posicionar dropdown relativo al botón */
 .topbarIconoWrapper {
     position: relative;
+}
+
+.topbarBotonNotificacionesPendientes {
+    color: var(--error) !important;
+    background: color-mix(in srgb, var(--error) 10%, transparent) !important;
 }
 
 /* Tab individual */
@@ -116,6 +127,10 @@
 
     .topbarBusquedaMovil {
         display: flex;
+    }
+
+    .topbar {
+        grid-template-columns: minmax(0, 1fr) auto;
     }
 }
 

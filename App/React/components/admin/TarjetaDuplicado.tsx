@@ -39,12 +39,13 @@ const formatoFecha = (iso: string): string => {
     }
 };
 
-const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId }: {
+const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview }: {
     etiqueta: string;
     titulo: string;
     creador: string;
     fecha: string;
     sampleId: number;
+    rutaPreview: string | null;
 }): JSX.Element => (
     <div className="dupLado">
         <span className="dupLadoEtiqueta">{etiqueta}</span>
@@ -53,6 +54,15 @@ const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId }: {
             por <strong>{creador}</strong> — {formatoFecha(fecha)}
         </span>
         <span className="dupLadoId">#{sampleId}</span>
+        {rutaPreview && (
+            /* sentinel-disable-next-line html-nativo-en-vez-de-componente — audio nativo para preview admin */
+            <audio
+                className="dupAudioPreview"
+                src={rutaPreview}
+                controls
+                preload="none"
+            />
+        )}
     </div>
 );
 
@@ -77,6 +87,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     creador={d.original_creador}
                     fecha={d.original_subido_at}
                     sampleId={d.original_id}
+                    rutaPreview={d.original_ruta_preview}
                 />
                 <div className="dupSeparador">
                     <span className="dupSeparadorLinea" />
@@ -89,6 +100,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     creador={d.duplicado_creador}
                     fecha={d.duplicado_subido_at}
                     sampleId={d.duplicado_id}
+                    rutaPreview={d.duplicado_ruta_preview}
                 />
             </div>
 

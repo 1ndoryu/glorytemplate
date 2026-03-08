@@ -30,7 +30,6 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         conversaciones,
         cargando,
         conversacionesCargadas,
-        sinLeer,
         abrirConversacion,
     } = useDropdownMensajes({ onCerrar });
 
@@ -38,16 +37,10 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         <>
             <div className="dropdownOverlay" onClick={onCerrar} />
             <div className="dropdownPanel">
-                <div className="dropdownPanelCabecera">
-                    <span className="dropdownPanelTitulo">
-                        Mensajes {sinLeer > 0 && `(${sinLeer})`}
-                    </span>
-                </div>
-
                 <div className="dropdownPanelLista">
                     {cargando && !conversacionesCargadas ? (
                         <div className="dropdownPanelVacio">
-                            <Loader2 size={28} className="animacionGirar" />
+                            <Loader2 size={28} className="adminSpinner" />
                             <p>Cargando...</p>
                         </div>
                     ) : conversaciones.length === 0 ? (

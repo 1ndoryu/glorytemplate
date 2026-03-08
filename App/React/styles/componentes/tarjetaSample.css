@@ -129,12 +129,11 @@
 /* C344: Badge clickable para filtrar por metadata — hover blanco */
 .tarjetaMetaBadgeClickable {
     cursor: pointer;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    transition: color 0.15s ease;
 }
 
-.tarjetaMetaBadgeClickable:hover {
+.tarjetaMeta .badge:hover {
     color: var(--blanco);
-    background: #161616;
 }
 
 .tarjetaMetaItem {

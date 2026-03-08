@@ -1,10 +1,10 @@
 /*
  * Componente: TabDuplicadosAdmin — D5
  * Tab del panel admin para moderar samples duplicados.
- * Muestra lista paginada con filtros de estado y tipo, y tarjetas de comparacion.
- * Solo vista — logica delegada a usePanelDuplicados.
+ * Carga incremental por scroll — logica delegada a usePanelDuplicados.
  */
 
+import { useRef, useEffect } from 'react';
 import { RefreshCw, Loader2, CheckCircle, Hash } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
@@ -30,6 +30,21 @@ const OPCIONES_TIPO = [
 
 export const TabDuplicadosAdmin = (): JSX.Element => {
     const dup = usePanelDuplicados();
+    const sentinelaRef = useRef<HTMLDivElement>(null);
+    /* Siempre ref a la ultima version de cargarMas para el observer */
+    const cargarMasRef = useRef(dup.cargarMas);
+    useEffect(() => { cargarMasRef.current = dup.cargarMas; }, [dup.cargarMas]);
+
+    useEffect(() => {
+        const el = sentinelaRef.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+            entries => { if (entries[0]?.isIntersecting) void cargarMasRef.current(); },
+            { rootMargin: '300px' }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, []);
 
     return (
         <div className="tabDuplicados">
@@ -123,30 +138,12 @@ export const TabDuplicadosAdmin = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Paginacion */}
-            {!dup.cargando && dup.duplicados.length > 0 && (
-                <div className="dupPaginacion">
-                    <BotonBase
-                        onClick={() => dup.setPagina(Math.max(1, dup.pagina - 1))}
-                        variante="secundario"
-                        tamano="sm"
-                        disabled={dup.pagina <= 1}
-                    >
-                        Anterior
-                    </BotonBase>
-                    <span className="dupPaginaActual">
-                        Página {dup.pagina} — {dup.total} total
-                    </span>
-                    <BotonBase
-                        onClick={() => dup.setPagina(dup.pagina + 1)}
-                        variante="secundario"
-                        tamano="sm"
-                        disabled={dup.duplicados.length < 20}
-                    >
-                        Siguiente
-                    </BotonBase>
-                </div>
-            )}
+            {/* Sentinel de scroll infinito */}
+            <div ref={sentinelaRef} className="dupSentinela" aria-hidden="true">
+                {!dup.cargando && dup.hayMas && (
+                    <Loader2 size={16} className="adminSpinner" />
+                )}
+            </div>
         </div>
     );
 };

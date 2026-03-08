@@ -155,11 +155,13 @@ export interface DuplicadoAdmin {
     original_id: number;
     original_titulo: string;
     original_subido_at: string;
+    original_ruta_preview: string | null;
     original_creador: string;
     original_creador_id: number;
     duplicado_id: number;
     duplicado_titulo: string;
     duplicado_subido_at: string;
+    duplicado_ruta_preview: string | null;
     duplicado_creador: string;
     duplicado_creador_id: number;
 }
