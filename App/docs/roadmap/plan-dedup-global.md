@@ -741,6 +741,9 @@ D5 (Panel moderacion)          ← Puede desarrollarse en paralelo con D2-D4, pe
 - [D4.2]: descargarSiNecesario ahora busca archivo en otra coleccion local (buscarArchivoPorSampleId) antes de descargar. Si existe en disco, hace rename local (evita re-descarga). Fallback a descarga si rename falla.
 - [D3]: samplesConSubcolecciones() y param incluirSubcolecciones ya existian en ColeccionesController — D3 estaba implementado sin estar marcado.
 - [BUG FIX]: hashesConocidos persistia hashes de samples borrados del servidor (stale). procesarItem confiaba ciegamente sin verificar si habia archivo activo en tracking. Fix: eviccion de hash stale en procesarItem (misma logica que encolarArchivo). Tambien corregido fallback de existeArchivoActivoConHash para no contar items 'completado' sin sampleIdServidor (falsos positivos de dedup).
+- [BUG FIX]: B2 (asignar a padre+hija) era incompatible con UNIQUE(usuario_id, sample_id). El segundo POST hacia ON CONFLICT DO UPDATE moviendo el sample entre colecciones, generando changelogs espurios que disparaban D4.2 moves incorrectos. Fix: asignar solo a la coleccion mas especifica (sub > padre).
+- [BUG FIX]: D4.2 move local no tenia guard de noop — movia archivos que ya estaban en la ruta correcta pero con coleccionId obsoleto en tracking. Fix: comparar rutas normalizadas y solo re-registrar tracking si coinciden.
+- [BUG FIX]: Samples de colecciones borradas quedaban con coleccionId viejo en tracking pero el servidor los devolvia en sinColeccion (colId null). obtenerArchivo(id, null) no encontraba la entry (clave diferente), D4.2 los movia a carpeta sinColeccion. El noop guard previene esto cuando el archivo ya esta donde debe estar.
 
 # Dudas y problemas notados — RESUELTAS
 
