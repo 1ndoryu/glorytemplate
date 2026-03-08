@@ -341,6 +341,7 @@ export type CallbackProgresoColecciones = (progreso: ProgresoSyncColecciones) =>
  */
 async function reconciliarRutasConColecciones(carpetaBase: string): Promise<number> {
     const archivos = todosLosArchivos();
+    const coleccionesLocales = todasLasColecciones();
     const baseNorm = carpetaBase.replace(/\\/g, '/').replace(/\/+$/, '');
     let corregidos = 0;
 
@@ -356,12 +357,27 @@ async function reconciliarRutasConColecciones(carpetaBase: string): Promise<numb
         const esSinCol = carpetaPrimaria === CARPETA_SIN_COLECCION
             || carpetaPrimaria === CARPETA_SIN_COLECCION_LEGACY;
 
-        const coleccionIdEsperado = esSinCol
-            ? null
-            : (buscarColeccionPorCarpeta(carpetaPrimaria)?.id ?? null);
+        let coleccionIdEsperado: number | null = null;
 
-        /* Si no se pudo resolver la carpeta a una colección, no hacer nada */
-        if (!esSinCol && coleccionIdEsperado === null) continue;
+        if (!esSinCol) {
+            const colPadre = buscarColeccionPorCarpeta(carpetaPrimaria);
+            if (!colPadre) continue;
+            coleccionIdEsperado = colPadre.id;
+
+            /*
+             * Subcollection: si el path tiene 3+ niveles (padre/sub/archivo),
+             * el archivo pertenece a la subcarpeta, no al padre.
+             * Ej: k1/k4/sample.wav → partes[1]="k4" es la subcollection.
+             */
+            if (partes.length >= 3) {
+                const carpetaSub = partes[1];
+                const sub = coleccionesLocales.find(
+                    c => c.parentId === colPadre.id
+                        && c.carpetaLocal.toLowerCase() === carpetaSub.toLowerCase(),
+                );
+                if (sub) coleccionIdEsperado = sub.id;
+            }
+        }
 
         /* Verificar si hay discrepancia */
         if (archivo.coleccionId === coleccionIdEsperado) continue;
@@ -381,7 +397,7 @@ async function reconciliarRutasConColecciones(carpetaBase: string): Promise<numb
 
             corregidos++;
             logSync.info('collectionSync',
-                `Reconciliación: sample ${archivo.sampleId} — tracking col ${archivo.coleccionId} → col ${coleccionIdEsperado} (carpeta: ${carpetaPrimaria})`);
+                `Reconciliación: sample ${archivo.sampleId} — tracking col ${archivo.coleccionId} → col ${coleccionIdEsperado} (ruta: ${relativa})`);
         } catch (err) {
             logSync.warn('collectionSync',
                 `Error reconciliando sample ${archivo.sampleId}`,
