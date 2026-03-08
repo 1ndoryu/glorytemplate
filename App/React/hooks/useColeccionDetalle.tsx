@@ -76,7 +76,8 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         return idx >= 0 && partes[idx + 1] ? parseInt(partes[idx + 1], 10) : null;
     }, [propId, rutaActual]);
 
-    /* Cargar coleccion con AbortController */
+    /* Cargar coleccion con AbortController.
+     * incluirSubcolecciones=true para que "Todos" muestre samples de subs. */
     useEffect(() => {
         if (!id) return;
         const controller = new AbortController();
@@ -84,7 +85,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         const cargar = async () => {
             setCargando(true);
             try {
-                const resp = await obtenerColeccion(id);
+                const resp = await obtenerColeccion(id, { incluirSubcolecciones: true });
                 if (controller.signal.aborted) return;
                 if (resp.ok && resp.data) setColeccion(resp.data);
             } catch {

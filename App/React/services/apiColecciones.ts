@@ -136,8 +136,12 @@ export const listarColeccionesPublicas = async (
 };
 
 /* Detalle de una colección */
-export const obtenerColeccion = async (id: number): Promise<RespuestaApi<Coleccion>> => {
-    const resp = await apiGet<Coleccion>(`/colecciones/${id}`);
+export const obtenerColeccion = async (
+    id: number,
+    opciones?: { incluirSubcolecciones?: boolean },
+): Promise<RespuestaApi<Coleccion>> => {
+    const params = opciones?.incluirSubcolecciones ? '?incluirSubcolecciones=1' : '';
+    const resp = await apiGet<Coleccion>(`/colecciones/${id}${params}`);
     if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
     return resp;
 };

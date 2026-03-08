@@ -329,6 +329,70 @@ export interface ProgresoSyncColecciones {
 export type CallbackProgresoColecciones = (progreso: ProgresoSyncColecciones) => void;
 
 /**
+ * Reconciliación local→servidor: detecta samples cuya ruta física en disco
+ * pertenece a una carpeta de colección diferente a la registrada en tracking.
+ *
+ * Causa típica: un move local fue procesado por el watcher pero no se
+ * actualizó coleccion_samples en el servidor (bug pre-actualizarColeccionEnMovimiento).
+ * El tracking actualizó rutaLocal pero no coleccionId.
+ *
+ * Para cada discrepancia: actualiza coleccion_samples en servidor + re-registra
+ * el tracking entry con el coleccionId correcto.
+ */
+async function reconciliarRutasConColecciones(carpetaBase: string): Promise<number> {
+    const archivos = todosLosArchivos();
+    const baseNorm = carpetaBase.replace(/\\/g, '/').replace(/\/+$/, '');
+    let corregidos = 0;
+
+    for (const archivo of archivos) {
+        const rutaNorm = archivo.rutaLocal.replace(/\\/g, '/');
+        if (!rutaNorm.startsWith(baseNorm + '/')) continue;
+
+        const relativa = rutaNorm.slice(baseNorm.length + 1);
+        const partes = relativa.split('/');
+        if (partes.length < 2) continue;
+
+        const carpetaPrimaria = partes[0];
+        const esSinCol = carpetaPrimaria === CARPETA_SIN_COLECCION
+            || carpetaPrimaria === CARPETA_SIN_COLECCION_LEGACY;
+
+        const coleccionIdEsperado = esSinCol
+            ? null
+            : (buscarColeccionPorCarpeta(carpetaPrimaria)?.id ?? null);
+
+        /* Si no se pudo resolver la carpeta a una colección, no hacer nada */
+        if (!esSinCol && coleccionIdEsperado === null) continue;
+
+        /* Verificar si hay discrepancia */
+        if (archivo.coleccionId === coleccionIdEsperado) continue;
+
+        try {
+            /* Actualizar servidor: agregar a colección destino real */
+            if (coleccionIdEsperado !== null) {
+                await agregarSampleAColeccion(coleccionIdEsperado, archivo.sampleId);
+            }
+
+            /* Re-registrar tracking con coleccionId correcto */
+            await eliminarArchivo(archivo.sampleId, archivo.coleccionId);
+            await registrarArchivo({
+                ...archivo,
+                coleccionId: coleccionIdEsperado,
+            });
+
+            corregidos++;
+            logSync.info('collectionSync',
+                `Reconciliación: sample ${archivo.sampleId} — tracking col ${archivo.coleccionId} → col ${coleccionIdEsperado} (carpeta: ${carpetaPrimaria})`);
+        } catch (err) {
+            logSync.warn('collectionSync',
+                `Error reconciliando sample ${archivo.sampleId}`,
+                { error: err instanceof Error ? err.message : String(err) });
+        }
+    }
+
+    return corregidos;
+}
+
+/**
  * Sincronización completa basada en colecciones.
  * 1. Obtiene colecciones del servidor
  * 2. Crea/actualiza carpetas locales por colección
@@ -715,6 +779,19 @@ export async function sincronizarColecciones(
 
     /* Finalizar modo lote: persistir todo de una vez */
     await finalizarLote();
+
+    /*
+     * Reconciliación local→servidor: detectar samples cuya ruta física
+     * no coincide con su coleccionId en tracking. Esto ocurre cuando un
+     * move local fue procesado por el watcher pero no se actualizó
+     * coleccion_samples en el servidor (bug pre-fix actualizarColeccionEnMovimiento).
+     * Recorre todos los archivos tracked, infiere la colección real desde
+     * la ruta y corrige tanto tracking como servidor si hay discrepancia.
+     */
+    const corregidos = await reconciliarRutasConColecciones(carpetaBase);
+    if (corregidos > 0) {
+        logSync.info('collectionSync', `Reconciliación local→servidor: ${corregidos} sample(s) corregidos`);
+    }
 
     return { nuevos, errores };
 }
