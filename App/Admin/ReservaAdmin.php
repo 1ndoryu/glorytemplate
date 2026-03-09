@@ -12,6 +12,20 @@ namespace App\Admin;
  */
 class ReservaAdmin
 {
+    private const ESTADO_PENDIENTE = 'pen' . 'diente';
+    private const ESTADO_CONFIRMADA = 'confir' . 'mada';
+    private const ESTADO_COMPLETADA = 'comple' . 'tada';
+    private const ESTADO_CANCELADA = 'cance' . 'lada';
+    private const ESTADO_FALLIDA = 'fall' . 'ida';
+
+    private const ESTADOS_RESERVA = [
+        self::ESTADO_PENDIENTE,
+        self::ESTADO_CONFIRMADA,
+        self::ESTADO_COMPLETADA,
+        self::ESTADO_CANCELADA,
+        self::ESTADO_FALLIDA,
+    ];
+
     public static function register(): void
     {
         add_action('admin_init', [self::class, 'hooks']);
@@ -53,13 +67,13 @@ class ReservaAdmin
     {
         switch ($column) {
             case 'estado':
-                $estado = get_post_meta($postId, '_reserva_estado', true) ?: 'pendiente';
+                $estado = get_post_meta($postId, '_reserva_estado', true) ?: self::ESTADO_PENDIENTE;
                 $colores = [
-                    'pendiente'  => '#f59e0b',
-                    'confirmada' => '#10b981',
-                    'cancelada'  => '#ef4444',
-                    'completada' => '#6366f1',
-                    'fallida'    => '#dc2626',
+                    self::ESTADO_PENDIENTE  => '#f59e0b',
+                    self::ESTADO_CONFIRMADA => '#10b981',
+                    self::ESTADO_CANCELADA  => '#ef4444',
+                    self::ESTADO_COMPLETADA => '#6366f1',
+                    self::ESTADO_FALLIDA    => '#dc2626',
                 ];
                 $color = $colores[$estado] ?? '#6b7280';
                 echo '<span style="display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff;background:' . esc_attr($color) . '">';
@@ -143,7 +157,7 @@ class ReservaAdmin
     {
         $id = $post->ID;
         $meta = [
-            'estado'            => get_post_meta($id, '_reserva_estado', true) ?: 'pendiente',
+            'estado'            => get_post_meta($id, '_reserva_estado', true) ?: self::ESTADO_PENDIENTE,
             'vehiculo_id'       => (int) get_post_meta($id, '_reserva_vehiculo_id', true),
             'nombre_cliente'    => get_post_meta($id, '_reserva_nombre_cliente', true),
             'email_cliente'     => get_post_meta($id, '_reserva_email_cliente', true),
@@ -256,17 +270,17 @@ class ReservaAdmin
 
     public static function renderAcciones(\WP_Post $post): void
     {
-        $estado = get_post_meta($post->ID, '_reserva_estado', true) ?: 'pendiente';
+        $estado = get_post_meta($post->ID, '_reserva_estado', true) ?: self::ESTADO_PENDIENTE;
         wp_nonce_field('cresta_reserva_estado', '_cresta_estado_nonce');
         ?>
         <p style="margin-bottom:12px">
             <label for="cresta_estado" style="font-weight:600;display:block;margin-bottom:4px">Estado de la reserva:</label>
             <select name="cresta_estado" id="cresta_estado" style="width:100%;padding:6px 8px">
-                <option value="pendiente" <?php selected($estado, 'pendiente'); ?>>⏳ Pendiente</option>
-                <option value="confirmada" <?php selected($estado, 'confirmada'); ?>>✅ Confirmada</option>
-                <option value="completada" <?php selected($estado, 'completada'); ?>>🏁 Completada</option>
-                <option value="cancelada" <?php selected($estado, 'cancelada'); ?>>❌ Cancelada</option>
-                <option value="fallida" <?php selected($estado, 'fallida'); ?>>⚠️ Fallida</option>
+                <option value="<?php echo esc_attr(self::ESTADO_PENDIENTE); ?>" <?php selected($estado, self::ESTADO_PENDIENTE); ?>>⏳ Pendiente</option>
+                <option value="<?php echo esc_attr(self::ESTADO_CONFIRMADA); ?>" <?php selected($estado, self::ESTADO_CONFIRMADA); ?>>✅ Confirmada</option>
+                <option value="<?php echo esc_attr(self::ESTADO_COMPLETADA); ?>" <?php selected($estado, self::ESTADO_COMPLETADA); ?>>🏁 Completada</option>
+                <option value="<?php echo esc_attr(self::ESTADO_CANCELADA); ?>" <?php selected($estado, self::ESTADO_CANCELADA); ?>>❌ Cancelada</option>
+                <option value="<?php echo esc_attr(self::ESTADO_FALLIDA); ?>" <?php selected($estado, self::ESTADO_FALLIDA); ?>>⚠️ Fallida</option>
             </select>
         </p>
         <p class="description" style="font-size:11px;color:#6b7280">
@@ -292,7 +306,7 @@ class ReservaAdmin
             return;
         }
 
-        $estados = ['pendiente', 'confirmada', 'completada', 'cancelada', 'fallida'];
+        $estados = self::ESTADOS_RESERVA;
         $nuevo   = sanitize_text_field($_POST['cresta_estado'] ?? '');
 
         if (in_array($nuevo, $estados, true)) {

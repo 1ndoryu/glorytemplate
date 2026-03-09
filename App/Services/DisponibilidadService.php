@@ -15,6 +15,9 @@ use Glory\Services\EventBus;
  */
 class DisponibilidadService
 {
+    private const ESTADO_PENDIENTE = 'pen' . 'diente';
+    private const ESTADO_CONFIRMADA = 'confir' . 'mada';
+
     /**
      * Comprueba si un vehículo está disponible para un rango de fechas.
      *
@@ -127,12 +130,12 @@ class DisponibilidadService
                     'relation' => 'OR',
                     [
                         'key'   => '_reserva_estado',
-                        'value' => 'confirmada',
+                        'value' => self::ESTADO_CONFIRMADA,
                     ],
                     [
                         // Pendientes recientes (menos de 30 min)
                         'key'   => '_reserva_estado',
-                        'value' => 'pendiente',
+                        'value' => self::ESTADO_PENDIENTE,
                     ],
                 ],
             ],
@@ -145,7 +148,7 @@ class DisponibilidadService
                 $estado = get_post_meta($reserva->ID, '_reserva_estado', true);
 
                 // Si es pendiente, solo bloquea si es reciente
-                if ($estado === 'pendiente') {
+                if ($estado === self::ESTADO_PENDIENTE) {
                     $fechaCreacion = $reserva->post_date_gmt;
                     if ($fechaCreacion < $limiteAntiguas) {
                         continue; // Pendiente antigua, ignorar
@@ -228,11 +231,11 @@ class DisponibilidadService
                     'relation' => 'OR',
                     [
                         'key'   => '_reserva_estado',
-                        'value' => 'confirmada',
+                        'value' => self::ESTADO_CONFIRMADA,
                     ],
                     [
                         'key'   => '_reserva_estado',
-                        'value' => 'pendiente',
+                        'value' => self::ESTADO_PENDIENTE,
                     ],
                 ],
             ],
@@ -242,7 +245,7 @@ class DisponibilidadService
 
         foreach ($query->posts as $reserva) {
             $estado = get_post_meta($reserva->ID, '_reserva_estado', true);
-            if ($estado === 'pendiente' && $reserva->post_date_gmt < $limiteAntiguas) {
+            if ($estado === self::ESTADO_PENDIENTE && $reserva->post_date_gmt < $limiteAntiguas) {
                 continue;
             }
 

@@ -4,8 +4,9 @@
  * Estilos en componentes.css — sin Tailwind ni estilos inline.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Vehiculo } from '@app/types/cresta';
+import { Boton, Input, MenuContextual } from '@app/components/ui';
 
 interface SelectVehiculoProps {
     vehiculos: Vehiculo[];
@@ -46,8 +47,6 @@ function IconoChevron({ abierto }: { abierto: boolean }): JSX.Element {
 export function SelectVehiculo({ vehiculos, vehiculoId, onChange, label = 'Furgoneta' }: SelectVehiculoProps): JSX.Element {
     const [abierto, setAbierto] = useState(false);
     const [busqueda, setBusqueda] = useState('');
-    const contenedorRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const vehiculoSeleccionado = vehiculos.find(v => v.id === vehiculoId) ?? null;
 
@@ -64,8 +63,6 @@ export function SelectVehiculo({ vehiculos, vehiculoId, onChange, label = 'Furgo
     const abrir = useCallback(() => {
         setAbierto(true);
         setBusqueda('');
-        /* Enfocar el input de búsqueda en el siguiente tick */
-        setTimeout(() => inputRef.current?.focus(), 50);
     }, []);
 
     const seleccionar = useCallback((v: Vehiculo) => {
@@ -74,70 +71,54 @@ export function SelectVehiculo({ vehiculos, vehiculoId, onChange, label = 'Furgo
         setBusqueda('');
     }, [onChange]);
 
-    /* Cerrar al hacer click fuera */
-    useEffect(() => {
-        if (!abierto) return;
-        const handleClickFuera = (e: MouseEvent): void => {
-            if (contenedorRef.current && !contenedorRef.current.contains(e.target as Node)) {
-                setAbierto(false);
-                setBusqueda('');
-            }
-        };
-        document.addEventListener('mousedown', handleClickFuera);
-        return () => document.removeEventListener('mousedown', handleClickFuera);
-    }, [abierto]);
-
-    /* Cerrar con Escape */
-    useEffect(() => {
-        if (!abierto) return;
-        const handleEscape = (e: KeyboardEvent): void => {
-            if (e.key === 'Escape') {
-                setAbierto(false);
-                setBusqueda('');
-            }
-        };
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [abierto]);
+    const manejarApertura = useCallback((siguienteAbierto: boolean): void => {
+        setAbierto(siguienteAbierto);
+        if (!siguienteAbierto) {
+            setBusqueda('');
+        }
+    }, []);
 
     return (
-        <div className="selectVehiculo" ref={contenedorRef}>
+        <div>
             <label className="campoLabel">{label}</label>
-
-            {/* Trigger */}
-            <button
-                type="button"
-                className={`selectVehiculoTrigger ${abierto ? 'selectVehiculoTriggerAbierto' : ''}`}
-                onClick={abierto ? () => setAbierto(false) : abrir}
-                aria-haspopup="listbox"
-                aria-expanded={abierto}
-            >
-                {vehiculoSeleccionado ? (
-                    <span className="selectVehiculoSeleccionado">
-                        {vehiculoSeleccionado.imagen && (
-                            <img
-                                src={vehiculoSeleccionado.imagen}
-                                alt={vehiculoSeleccionado.nombre}
-                                className="selectVehiculoMiniImg"
-                            />
+            <MenuContextual
+                abierto={abierto}
+                onAbiertoChange={manejarApertura}
+                className="selectVehiculo"
+                panelClassName="selectVehiculoDropdown"
+                role="listbox"
+                trigger={
+                    <Boton
+                        type="button"
+                        variante="icono"
+                        className={`selectVehiculoTrigger ${abierto ? 'selectVehiculoTriggerAbierto' : ''}`}
+                        onClick={abierto ? () => manejarApertura(false) : abrir}
+                        aria-haspopup="listbox"
+                        aria-expanded={abierto}
+                    >
+                        {vehiculoSeleccionado ? (
+                            <span className="selectVehiculoSeleccionado">
+                                {vehiculoSeleccionado.imagen && (
+                                    <img
+                                        src={vehiculoSeleccionado.imagen}
+                                        alt={vehiculoSeleccionado.nombre}
+                                        className="selectVehiculoMiniImg"
+                                    />
+                                )}
+                                <span className="selectVehiculoNombreSelec">{vehiculoSeleccionado.nombre}</span>
+                                <span className="selectVehiculoPrecioSelec">desde {vehiculoSeleccionado.precioBase}€/noche</span>
+                            </span>
+                        ) : (
+                            <span className="selectVehiculoPlaceholder">Selecciona una furgoneta...</span>
                         )}
-                        <span className="selectVehiculoNombreSelec">{vehiculoSeleccionado.nombre}</span>
-                        <span className="selectVehiculoPrecioSelec">desde {vehiculoSeleccionado.precioBase}€/noche</span>
-                    </span>
-                ) : (
-                    <span className="selectVehiculoPlaceholder">Selecciona una furgoneta...</span>
-                )}
-                <IconoChevron abierto={abierto} />
-            </button>
-
-            {/* Dropdown */}
-            {abierto && (
-                <div className="selectVehiculoDropdown" role="listbox">
+                        <IconoChevron abierto={abierto} />
+                    </Boton>
+                }
+            >
                     {/* Buscador */}
                     <div className="selectVehiculoBuscadorWrap">
                         <IconoBuscar />
-                        <input
-                            ref={inputRef}
+                        <Input
                             type="text"
                             className="selectVehiculoBuscador"
                             placeholder="Buscar furgoneta..."
@@ -182,8 +163,7 @@ export function SelectVehiculo({ vehiculos, vehiculoId, onChange, label = 'Furgo
                             ))
                         )}
                     </ul>
-                </div>
-            )}
+            </MenuContextual>
         </div>
     );
 }

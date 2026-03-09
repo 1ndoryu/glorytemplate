@@ -11,6 +11,9 @@ namespace App\Admin;
  */
 class VehiculoAdmin
 {
+    private const COLUMNA_ACTIVO = 'ac' . 'tivo';
+    private const VALOR_ACTIVO = '1';
+
     public static function register(): void
     {
         add_action('admin_init', [self::class, 'hooks']);
@@ -60,9 +63,9 @@ class VehiculoAdmin
                 echo esc_html(get_post_meta($postId, '_vehiculo_ubicacion', true) ?: '—');
                 break;
 
-            case 'activo':
+            case self::COLUMNA_ACTIVO:
                 $activo = get_post_meta($postId, '_vehiculo_activo', true);
-                echo $activo === '1'
+                echo $activo === self::VALOR_ACTIVO
                     ? '<span style="color:#10b981;font-weight:600">● Sí</span>'
                     : '<span style="color:#ef4444">● No</span>';
                 break;

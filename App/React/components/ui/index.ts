@@ -7,3 +7,5 @@ export { CampoFechaPersonalizado } from './CampoFechaPersonalizado';
 export { CalendarioPopup } from './CalendarioPopup';
 export { CampoRadio } from './CampoRadio';
 export { Modal } from './Modal';
+export { Input } from './Input';
+export { MenuContextual } from './MenuContextual';

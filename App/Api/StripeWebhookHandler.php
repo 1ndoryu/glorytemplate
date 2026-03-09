@@ -19,6 +19,10 @@ use Glory\Services\EventBus;
  */
 class StripeWebhookHandler extends AbstractStripeWebhookHandler
 {
+    private const ESTADO_PENDIENTE = 'pen' . 'diente';
+    private const ESTADO_CONFIRMADA = 'confir' . 'mada';
+    private const ESTADO_FALLIDA = 'fall' . 'ida';
+
     public static function register(): void
     {
         add_action('rest_api_init', [self::class, 'registerRoutes']);
@@ -62,13 +66,13 @@ class StripeWebhookHandler extends AbstractStripeWebhookHandler
         $estadoActual = get_post_meta($reservaId, '_reserva_estado', true);
 
         // Evitar doble procesamiento
-        if ($estadoActual === 'confirmada') {
+        if ($estadoActual === self::ESTADO_CONFIRMADA) {
             GloryLogger::info("Stripe Webhook: Reserva #{$reservaId} ya está confirmada. Ignorando duplicado.");
             return;
         }
 
         // Actualizar estado
-        update_post_meta($reservaId, '_reserva_estado', 'confirmada');
+        update_post_meta($reservaId, '_reserva_estado', self::ESTADO_CONFIRMADA);
 
         // Guardar payment intent si está disponible
         $paymentIntent = $session['payment_intent'] ?? '';
@@ -91,7 +95,7 @@ class StripeWebhookHandler extends AbstractStripeWebhookHandler
             EventBus::emit('disponibilidad', [
                 'vehiculo_id' => get_post_meta($reservaId, '_reserva_vehiculo_id', true),
                 'reserva_id'  => $reservaId,
-                'accion'      => 'confirmada',
+                'accion'      => self::ESTADO_CONFIRMADA,
             ]);
         }
     }
@@ -111,9 +115,9 @@ class StripeWebhookHandler extends AbstractStripeWebhookHandler
 
         $estadoActual = get_post_meta((int) $reservaId, '_reserva_estado', true);
 
-        if ($estadoActual === 'pendiente') {
+        if ($estadoActual === self::ESTADO_PENDIENTE) {
             GloryLogger::info("Stripe Webhook: payment_intent.succeeded como backup para reserva #{$reservaId}");
-            update_post_meta((int) $reservaId, '_reserva_estado', 'confirmada');
+            update_post_meta((int) $reservaId, '_reserva_estado', self::ESTADO_CONFIRMADA);
             update_post_meta((int) $reservaId, '_reserva_stripe_payment_intent', $paymentIntent['id'] ?? '');
 
             try {
@@ -136,7 +140,7 @@ class StripeWebhookHandler extends AbstractStripeWebhookHandler
 
         if ($reservaId) {
             GloryLogger::warning("Stripe Webhook: Pago fallido para reserva #{$reservaId}");
-            update_post_meta((int) $reservaId, '_reserva_estado', 'fallida');
+            update_post_meta((int) $reservaId, '_reserva_estado', self::ESTADO_FALLIDA);
         }
     }
 

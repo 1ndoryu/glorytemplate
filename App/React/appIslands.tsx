@@ -21,6 +21,7 @@ import {PrivacidadIsland} from './islands/PrivacidadIsland';
 import {AvisoLegalIsland} from './islands/AvisoLegalIsland';
 import {CookiesIsland} from './islands/CookiesIsland';
 import {PanelIsland} from './islands/PanelIsland';
+import {BienvenidaIsland} from './islands/BienvenidaIsland';
 
 registerAppBlocks();
 
@@ -31,7 +32,7 @@ export const AppProvider: React.ComponentType<{children: React.ReactNode}> | und
  * Provide your island components here.
  * La clave es el nombre usado en PHP (PageManager::reactPage)
  */
-export const appIslands: Record<string, React.ComponentType<Record<string, unknown>>> = {
+export const appIslands: Readonly<Record<string, React.ComponentType<Record<string, unknown>>>> = Object.freeze({
     HomeIsland: HomeIsland as React.ComponentType<Record<string, unknown>>,
     FlotaIsland: FlotaIsland as React.ComponentType<Record<string, unknown>>,
     VehiculoDetalleIsland: VehiculoDetalleIsland as React.ComponentType<Record<string, unknown>>,
@@ -44,6 +45,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     AvisoLegalIsland: AvisoLegalIsland as React.ComponentType<Record<string, unknown>>,
     CookiesIsland: CookiesIsland as React.ComponentType<Record<string, unknown>>,
     PanelIsland: PanelIsland as React.ComponentType<Record<string, unknown>>,
-};
+    BienvenidaIsland: BienvenidaIsland as React.ComponentType<Record<string, unknown>>,
+});
 
 export default appIslands;

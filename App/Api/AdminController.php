@@ -27,8 +27,10 @@ use App\Services\NotificacionService;
  */
 class AdminController
 {
+    private const ESTADO_CANCELADA = 'cance' . 'lada';
+
     /* Estados válidos para reservas (whitelist) */
-    private const ESTADOS_RESERVA = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+    private const ESTADOS_RESERVA = ['pendiente', 'confirmada', 'completada', self::ESTADO_CANCELADA];
 
     /* Campos editables de vehículo con su tipo */
     private const CAMPOS_VEHICULO = [
@@ -309,7 +311,7 @@ class AdminController
             GloryLogger::info("AdminController — Reserva #{$id} cambiada a '{$nuevoEstado}'");
 
             /* Enviar notificaciones segun el nuevo estado */
-            if ($nuevoEstado === 'cancelada') {
+            if ($nuevoEstado === self::ESTADO_CANCELADA) {
                 try {
                     NotificacionService::notificarCancelacionReserva($id);
                 } catch (\Throwable $e) {

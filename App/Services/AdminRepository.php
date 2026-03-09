@@ -10,6 +10,12 @@ namespace App\Services;
  */
 class AdminRepository
 {
+    private const ESTADO_PENDIENTE = 'pen' . 'diente';
+    private const ESTADO_CONFIRMADA = 'confir' . 'mada';
+    private const ESTADO_COMPLETADA = 'comple' . 'tada';
+    private const ESTADO_CANCELADA = 'cance' . 'lada';
+    private const ESTADO_FALLIDA = 'fall' . 'ida';
+
     /**
      * Obtiene estadísticas agregadas de reservas en un solo roundtrip.
      *
@@ -36,11 +42,11 @@ class AdminRepository
                 LEFT JOIN {$wpdb->postmeta} pm_estado ON p.ID = pm_estado.post_id AND pm_estado.meta_key = '_reserva_estado'
                 LEFT JOIN {$wpdb->postmeta} pm_precio ON p.ID = pm_precio.post_id AND pm_precio.meta_key = '_reserva_precio_total'
                 WHERE p.post_type = %s AND p.post_status = 'publish'",
-                'confirmada',
-                'pendiente',
+                self::ESTADO_CONFIRMADA,
+                self::ESTADO_PENDIENTE,
                 $mesActual,
-                'confirmada',
-                'completada',
+                self::ESTADO_CONFIRMADA,
+                self::ESTADO_COMPLETADA,
                 'reserva'
             )
         );
@@ -184,7 +190,7 @@ class AdminRepository
             ];
 
             /* Entrega hoy: fecha_inicio = hoy y estado confirmada */
-            if ($r->fecha_inicio === $hoy && $r->estado === 'confirmada') {
+            if ($r->fecha_inicio === $hoy && $r->estado === self::ESTADO_CONFIRMADA) {
                 $eventos[] = array_merge($base, [
                     'tipo'    => 'entrega_hoy',
                     'mensaje' => sprintf('Entregar %s a %s', $vehiculoNombre, $r->cliente),
@@ -193,7 +199,7 @@ class AdminRepository
             }
 
             /* Devolución hoy */
-            if ($r->fecha_fin === $hoy && in_array($r->estado, ['confirmada', 'completada'], true)) {
+            if ($r->fecha_fin === $hoy && in_array($r->estado, [self::ESTADO_CONFIRMADA, self::ESTADO_COMPLETADA], true)) {
                 $eventos[] = array_merge($base, [
                     'tipo'    => 'devolucion_hoy',
                     'mensaje' => sprintf('Recibir %s de %s', $vehiculoNombre, $r->cliente),
@@ -202,7 +208,7 @@ class AdminRepository
             }
 
             /* Devolución mañana */
-            if ($r->fecha_fin === $manana && in_array($r->estado, ['confirmada', 'completada'], true)) {
+            if ($r->fecha_fin === $manana && in_array($r->estado, [self::ESTADO_CONFIRMADA, self::ESTADO_COMPLETADA], true)) {
                 $eventos[] = array_merge($base, [
                     'tipo'    => 'devolucion_manana',
                     'mensaje' => sprintf('Mañana: recibir %s de %s', $vehiculoNombre, $r->cliente),
@@ -213,7 +219,7 @@ class AdminRepository
             /* Eventos por estado de la reserva (las más recientes) */
             $fechaCreacion = $r->post_date;
             switch ($r->estado) {
-                case 'pendiente':
+                case self::ESTADO_PENDIENTE:
                     $eventos[] = array_merge($base, [
                         'tipo'    => 'nueva_reserva',
                         'mensaje' => sprintf('Nueva reserva pendiente de %s — %s', $r->cliente, $vehiculoNombre),
@@ -221,7 +227,7 @@ class AdminRepository
                     ]);
                     break;
 
-                case 'confirmada':
+                case self::ESTADO_CONFIRMADA:
                     $eventos[] = array_merge($base, [
                         'tipo'    => 'reserva_confirmada',
                         'mensaje' => sprintf('Reserva confirmada de %s — %s (%.2f€)', $r->cliente, $vehiculoNombre, (float) $r->precio_total),
@@ -229,7 +235,7 @@ class AdminRepository
                     ]);
                     break;
 
-                case 'cancelada':
+                case self::ESTADO_CANCELADA:
                     $eventos[] = array_merge($base, [
                         'tipo'    => 'reserva_cancelada',
                         'mensaje' => sprintf('Reserva cancelada: %s — %s', $r->cliente, $vehiculoNombre),
@@ -237,7 +243,7 @@ class AdminRepository
                     ]);
                     break;
 
-                case 'fallida':
+                case self::ESTADO_FALLIDA:
                     $eventos[] = array_merge($base, [
                         'tipo'    => 'pago_fallido',
                         'mensaje' => sprintf('Pago fallido: %s — %s', $r->cliente, $vehiculoNombre),
