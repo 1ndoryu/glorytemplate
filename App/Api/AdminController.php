@@ -610,8 +610,8 @@ class AdminController
             $eventos = AdminRepository::obtenerActividadReciente();
 
             return new WP_REST_Response([
-                'success'  => true,
-                'eventos'  => $eventos,
+                'success'   => true,
+                'actividad' => $eventos,
             ], 200);
         } catch (\Throwable $e) {
             GloryLogger::error('AdminController::obtenerActividad — ' . $e->getMessage());

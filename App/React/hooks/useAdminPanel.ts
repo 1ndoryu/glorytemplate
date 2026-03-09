@@ -158,7 +158,7 @@ export function useAdminPanel(): UseAdminPanelResult {
         if (esModoPreview) { setActividad(MOCK_ACTIVIDAD); return; }
         setLoadingActividad(true);
         const data = await fetchAdmin<{ success: boolean; actividad: EventoActividad[] }>('actividad');
-        if (data) setActividad(data.actividad);
+        if (data) setActividad(data.actividad ?? []);
         else setActividad([]);
         setLoadingActividad(false);
     }, [fetchAdmin, esModoPreview]);
@@ -176,8 +176,8 @@ export function useAdminPanel(): UseAdminPanelResult {
         const filtro = filtroEstadoReserva !== 'todas' ? `?estado=${filtroEstadoReserva}` : '';
         const data = await fetchAdmin<{ success: boolean; reservas: AdminReserva[] }>(`reservas${filtro}`);
         if (data) {
-            /* Si no hay datos reales aún, mostrar mocks como previsualización */
-            setReservas(data.reservas.length > 0 ? data.reservas : MOCK_RESERVAS);
+            const lista = data.reservas ?? [];
+            setReservas(lista.length > 0 ? lista : MOCK_RESERVAS);
         }
         setLoadingReservas(false);
     }, [fetchAdmin, filtroEstadoReserva, esModoPreview]);
@@ -200,7 +200,7 @@ export function useAdminPanel(): UseAdminPanelResult {
         if (esModoPreview) { setVehiculos(MOCK_VEHICULOS); return; }
         setLoadingVehiculos(true);
         const data = await fetchAdmin<{ success: boolean; vehiculos: AdminVehiculoEditable[] }>('vehiculos');
-        if (data) setVehiculos(data.vehiculos);
+        if (data) setVehiculos(data.vehiculos ?? []);
         setLoadingVehiculos(false);
     }, [fetchAdmin, esModoPreview]);
 
@@ -255,8 +255,8 @@ export function useAdminPanel(): UseAdminPanelResult {
         setLoadingClientes(true);
         const data = await fetchAdmin<{ success: boolean; clientes: AdminCliente[] }>('clientes');
         if (data) {
-            /* Si no hay datos reales aún, mostrar mocks como previsualización */
-            setClientes(data.clientes.length > 0 ? data.clientes : MOCK_CLIENTES);
+            const lista = data.clientes ?? [];
+            setClientes(lista.length > 0 ? lista : MOCK_CLIENTES);
         }
         setLoadingClientes(false);
     }, [fetchAdmin, esModoPreview]);
