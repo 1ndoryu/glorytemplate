@@ -268,7 +268,7 @@ class CancionesController
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'relaciones_por_tipo' => $porTipo,
+                    'relacionesPorTipo' => $porTipo,
                 ],
             ]);
         } catch (\Throwable $e) {

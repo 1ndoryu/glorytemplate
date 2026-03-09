@@ -96,7 +96,7 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         <div className="explorarCancionesContenedor" id="seccionExplorarCanciones">
 
             {/* Estadísticas resumen */}
-            {estadisticas && (
+            {estadisticas && Array.isArray(estadisticas.relacionesPorTipo) && estadisticas.relacionesPorTipo.length > 0 && (
                 <div className="explorarCancionesEstadisticas">
                     {estadisticas.relacionesPorTipo.map((stat) => (
                         <div key={stat.tipoRelacion} className="explorarCancionesEstadistica">
