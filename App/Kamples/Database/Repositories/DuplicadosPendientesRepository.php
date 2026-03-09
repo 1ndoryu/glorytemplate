@@ -12,6 +12,7 @@
 namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\DuplicadosPendientesCols;
+use App\Config\Schema\_generated\DuplicadosPendientesEnums;
 use App\Config\Schema\_generated\DuplicadosPendientesDTO;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
@@ -48,5 +49,5 @@ class DuplicadosPendientesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
+        /* Agregar metodos custom aqui (queries complejas, JOINs, CTEs, etc.) */
 }

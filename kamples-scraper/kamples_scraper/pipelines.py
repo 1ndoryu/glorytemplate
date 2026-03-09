@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 class DeduplicacionPipeline:
     """Descarta items cuyo whosampled_id ya existe en BD."""
 
-    def open_spider(self, spider):
+    def open_spider(self):
         self.ids_vistos = set()
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         if not isinstance(item, RelacionItem):
             return item
 
@@ -51,7 +51,7 @@ class PostgresPipeline:
     4. Insertar relacion sample (ON CONFLICT DO NOTHING)
     """
 
-    def open_spider(self, spider):
+    def open_spider(self):
         try:
             self.conn = get_connection()
             self.conn.autocommit = False
@@ -60,12 +60,12 @@ class PostgresPipeline:
             logger.exception("PostgresPipeline: error abriendo conexion")
             raise
 
-    def close_spider(self, spider):
+    def close_spider(self):
         if hasattr(self, "conn") and self.conn and not self.conn.closed:
             self.conn.close()
             logger.info("PostgresPipeline: conexion cerrada")
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         if not isinstance(item, RelacionItem):
             return item
 

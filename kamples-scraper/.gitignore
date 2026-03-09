@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.env
+*.wav
+*.mp3
+*.m4a
+*.opus
+/audio_tmp/
+.venv/
+.pytest_cache/

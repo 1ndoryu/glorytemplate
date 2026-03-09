@@ -41,7 +41,7 @@ class CancionesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /**
+        /**
      * Buscar canción por URL de WhoSampled (dedup en scraping).
      */
     public static function buscarPorWhosampled(string $url): ?array

@@ -35,6 +35,13 @@ wp-config-sample.php
 # Nano save file
 *.swp
 
+# Archivos temporales de scraping/debug
+estructura.html
+
+# Python
+.venv/
+.pytest_cache/
+
 # Node.js
 node_modules/
 

@@ -21,7 +21,7 @@ class ReportesSchema extends TableSchema
             'reportado_id'   => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],
             'razon'          => ['tipo' => 'text'],
             'detalles'       => ['tipo' => 'text', 'nullable' => true],
-            'estado'         => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente'],
+            'estado'         => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente', 'check' => ['pendiente', 'resuelto', 'descartado']],
             'resuelto_por'   => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],
             'resuelto_at'    => ['tipo' => 'datetime', 'nullable' => true],
             'created_at'     => ['tipo' => 'datetime', 'default' => 'NOW()'],

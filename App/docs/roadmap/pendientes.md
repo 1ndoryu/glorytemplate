@@ -201,7 +201,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 ### S1 — Infraestructura BD
 - [x] **S1.1** Schemas PHP: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples ✅
 - [x] **S1.2** Generator: Cols, DTO, Enums, schema.ts generados ✅
-- [ ] **S1.3** Migraciones (tablas + índices) — ejecutar manualmente o vía Glory CLI
+- [x] **S1.3** Migraciones (tablas + índices) — ejecutadas via psql (v023_sample_discovery.sql: 6 tablas + 14 índices) ✅
 - [x] **S1.4** Repositorios PHP con métodos custom (6 repos: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples) ✅
 - [ ] **S1.5** API endpoints REST básicos
 

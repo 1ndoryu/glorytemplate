@@ -259,7 +259,7 @@ export interface IReportes {
   reportadoId: number | null
   razon: string
   detalles: string | null
-  estado: string
+  estado: 'pendiente' | 'resuelto' | 'descartado'
   resueltoPor: number | null
   resueltoAt: string | null
   createdAt: string
@@ -847,6 +847,16 @@ export const ComentariosEnums = {
   MODERACION_ESTADO_RECHAZADO: 'rechazado'
 } as const
 
+export const DuplicadosPendientesEnums = {
+  TIPO_CROSS_USUARIO: 'cross_usuario',
+  TIPO_MISMO_USUARIO: 'mismo_usuario',
+  TIPO_BACKFILL: 'backfill',
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_APROBADO: 'aprobado',
+  ESTADO_RECHAZADO: 'rechazado',
+  ESTADO_FUSIONADO: 'fusionado'
+} as const
+
 export const LikesEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_PUBLICACION: 'publicacion',
@@ -889,6 +899,12 @@ export const ReportesDuplicadosEnums = {
   ESTADO_EN_REVISION: 'en_revision',
   ESTADO_RESUELTO: 'resuelto',
   ESTADO_RECHAZADO: 'rechazado'
+} as const
+
+export const ReportesEnums = {
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_RESUELTO: 'resuelto',
+  ESTADO_DESCARTADO: 'descartado'
 } as const
 
 export const SamplesEnums = {

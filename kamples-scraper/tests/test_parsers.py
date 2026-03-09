@@ -46,7 +46,7 @@ class TestNormalizarUrl:
     def test_con_dominio(self):
         url = "https://www.whosampled.com/Ol%27-Dirty-Bastard/Brooklyn-Zoo/"
         resultado = normalizar_url(url)
-        assert resultado == "/ol' dirty bastard/brooklyn zoo"
+        assert resultado == "/ol'-dirty-bastard/brooklyn-zoo"
 
     def test_ruta_relativa(self):
         assert normalizar_url("/Eddie-Harris/Exodus/") == "/eddie-harris/exodus"

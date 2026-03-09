@@ -42,7 +42,7 @@ class RelacionesSampleRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /**
+        /**
      * Verificar si una relación de WhoSampled ya existe (dedup).
      */
     public static function buscarPorWhosampledId(int $wsId): ?array

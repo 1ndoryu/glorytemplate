@@ -12,6 +12,7 @@
 namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\MensajesCols;
+use App\Config\Schema\_generated\MensajesEnums;
 use App\Config\Schema\_generated\MensajesDTO;
 
 class MensajesRepository extends BaseRepository
@@ -55,7 +56,7 @@ class MensajesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+        
 
             
 

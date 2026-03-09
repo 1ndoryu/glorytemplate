@@ -1,42 +1,84 @@
 """
 Kamples Scraper — Middlewares.
 
-DataImpulseProxyMiddleware: inyecta proxy residencial en cada request.
+CurlCffiDownloaderMiddleware: usa curl_cffi para TLS fingerprinting (bypass Cloudflare).
 BandwidthTrackerMiddleware: registra bytes consumidos y alerta al 80%.
 """
 
 import logging
+
 from scrapy import signals
+from scrapy.http import HtmlResponse
+from twisted.internet import threads
+
+from curl_cffi import requests as curl_requests
 
 logger = logging.getLogger(__name__)
 
 
-class DataImpulseProxyMiddleware:
+class CurlCffiDownloaderMiddleware:
     """
-    Inyecta proxy DataImpulse en cada request.
-    Lee config de settings.py (PROXY_HOST, PROXY_PORT, etc.)
+    Middleware que reemplaza el downloader HTTP estándar de Scrapy
+    con curl_cffi para emular TLS fingerprint de Chrome.
+
+    Resuelve el bloqueo de Cloudflare (403 "Just a moment...").
+    Lee proxy de settings; si no hay proxy, request directo.
     """
 
     @classmethod
     def from_crawler(cls, crawler):
         middleware = cls()
-        middleware.proxy_host = crawler.settings.get("PROXY_HOST", "")
-        middleware.proxy_port = crawler.settings.get("PROXY_PORT", "823")
-        middleware.proxy_user = crawler.settings.get("PROXY_USER", "")
-        middleware.proxy_password = crawler.settings.get("PROXY_PASSWORD", "")
+        host = crawler.settings.get("PROXY_HOST", "")
+        port = crawler.settings.get("PROXY_PORT", "823")
+        user = crawler.settings.get("PROXY_USER", "")
+        password = crawler.settings.get("PROXY_PASSWORD", "")
+
+        if user and password and host:
+            proxy_url = f"http://{user}:{password}@{host}:{port}"
+            middleware.proxies = {"https": proxy_url, "http": proxy_url}
+        else:
+            middleware.proxies = None
+
+        middleware.session = curl_requests.Session(impersonate="chrome")
         return middleware
 
-    def process_request(self, request, spider):
-        if not self.proxy_user or not self.proxy_password:
-            logger.debug("Proxy no configurado, request directo")
-            return None
+    def process_request(self, request):
+        """
+        Intercepta cada request, lo ejecuta con curl_cffi y retorna
+        un HtmlResponse directamente (Scrapy no usa su downloader).
+        Ejecutado en thread para no bloquear el reactor Twisted.
+        """
+        d = threads.deferToThread(self._fetch, request)
+        return d
 
-        proxy_url = (
-            f"http://{self.proxy_user}:{self.proxy_password}"
-            f"@{self.proxy_host}:{self.proxy_port}"
-        )
-        request.meta["proxy"] = proxy_url
-        return None
+    def _fetch(self, request):
+        """Ejecutar request con curl_cffi (sync, en thread separado)."""
+        try:
+            resp = self.session.get(
+                request.url,
+                headers=dict(request.headers.to_unicode_dict()),
+                proxies=self.proxies,
+                timeout=30,
+                allow_redirects=True,
+            )
+
+            # curl_cffi ya descomprime brotli/gzip, pero deja el header
+            # Content-Encoding intacto. Scrapy's HttpCompressionMiddleware
+            # intentaría descomprimir de nuevo y fallaría.
+            headers = dict(resp.headers)
+            headers.pop("Content-Encoding", None)
+            headers.pop("content-encoding", None)
+
+            return HtmlResponse(
+                url=str(resp.url),
+                status=resp.status_code,
+                headers=headers,
+                body=resp.content,
+                request=request,
+            )
+        except Exception:
+            logger.exception("curl_cffi error fetching %s", request.url)
+            raise
 
 
 class BandwidthTrackerMiddleware:
@@ -57,7 +99,7 @@ class BandwidthTrackerMiddleware:
         crawler.signals.connect(middleware.spider_closed, signal=signals.spider_closed)
         return middleware
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request, response):
         body_size = len(response.body) if response.body else 0
         self.total_bytes += body_size
 

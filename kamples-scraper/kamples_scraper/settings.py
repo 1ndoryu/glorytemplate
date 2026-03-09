@@ -23,11 +23,20 @@ AUTOTHROTTLE_START_DELAY = 3
 AUTOTHROTTLE_MAX_DELAY = 10
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
-# --- Headers (parecer navegador real) ---
+# --- Headers (parecer navegador real — Cloudflare detection bypass) ---
 DEFAULT_REQUEST_HEADERS = {
-    "Accept": "text/html,application/xhtml+xml",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Encoding": "gzip, deflate, br",
     "Accept-Language": "en-US,en;q=0.9",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Sec-Ch-Ua": '"Chromium";v="125", "Not.A/Brand";v="24"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Upgrade-Insecure-Requests": "1",
+    "Cache-Control": "max-age=0",
 }
 
 USER_AGENT = (
@@ -38,7 +47,10 @@ USER_AGENT = (
 
 # --- Middlewares ---
 DOWNLOADER_MIDDLEWARES = {
-    "kamples_scraper.middlewares.DataImpulseProxyMiddleware": 350,
+    # Desactivar el HttpProxyMiddleware estándar (curl_cffi maneja proxy internamente)
+    "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
+    # curl_cffi con TLS fingerprint Chrome (bypass Cloudflare)
+    "kamples_scraper.middlewares.CurlCffiDownloaderMiddleware": 1,
     "kamples_scraper.middlewares.BandwidthTrackerMiddleware": 400,
 }
 
