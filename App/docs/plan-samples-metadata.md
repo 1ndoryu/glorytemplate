@@ -1,6 +1,6 @@
 # Plan: Adquisición de Samples y Metadata Musical — Kamples
 
-> **Versión:** 1.1 | **Fecha:** 09/03/2026 | **Estado:** S1-S3 implementados  
+> **Versión:** 1.2 | **Fecha:** 09/03/2026 | **Estado:** S1-S4 implementados  
 > **Módulo:** Sample Discovery & Metadata Engine  
 > **Dependencias:** PostgreSQL, pgvector, yt-dlp, librosa/essentia, Scrapy, DataImpulse proxy
 
@@ -11,6 +11,7 @@
 Preservar y democratizar la información sobre relaciones entre samples musicales. WhoSampled (adquirida por Spotify) concentra ~1.3M de canciones documentadas con relaciones sample-canción-timing. Spotify ha demostrado un patrón consistente de cerrar accesos (API pública deprecada, integraciones eliminadas). Esta información — contribuida por miles de personas durante 17+ años — corre riesgo real de desaparecer o quedar encerrada tras un paywall corporativo.
 
 **Kamples asume la responsabilidad de:**
+
 1. Preservar esta información como bien cultural abierto
 2. Enriquecerla con samples descargables recortados por IA + revisión humana
 3. Integrarla con un marketplace de samples (competencia Splice + WhoSampled fusionados)
@@ -23,20 +24,21 @@ Preservar y democratizar la información sobre relaciones entre samples musicale
 ## Visión de Producto
 
 Imaginar Splice y WhoSampled fusionados en un solo producto:
+
 - **Splice:** Descarga samples, drag-to-DAW, suscripción, marketplace creadores
 - **WhoSampled:** Relaciones entre canciones, "quién sampleó a quién", timings, cadenas de samples
 - **Kamples:** Todo lo anterior + samples extraídos automáticamente + búsqueda por audio + contribución comunitaria
 
 ### Diferenciadores vs WhoSampled
 
-| WhoSampled | Kamples |
-|---|---|
-| Solo muestra relaciones | Sample descargable del fragmento exacto |
-| Solo texto + YouTube embed | Waveform interactivo del sample |
-| Búsqueda solo textual | Búsqueda por audio (fingerprinting) + textual |
-| Web only | Desktop (Tauri) con drag-to-DAW |
-| Sin marketplace | Marketplace integrado (samples propios + extraídos) |
-| Cerrado (Spotify) | Contribución comunitaria abierta |
+| WhoSampled                 | Kamples                                             |
+| -------------------------- | --------------------------------------------------- |
+| Solo muestra relaciones    | Sample descargable del fragmento exacto             |
+| Solo texto + YouTube embed | Waveform interactivo del sample                     |
+| Búsqueda solo textual      | Búsqueda por audio (fingerprinting) + textual       |
+| Web only                   | Desktop (Tauri) con drag-to-DAW                     |
+| Sin marketplace            | Marketplace integrado (samples propios + extraídos) |
+| Cerrado (Spotify)          | Contribución comunitaria abierta                    |
 
 ---
 
@@ -52,12 +54,12 @@ Imaginar Splice y WhoSampled fusionados en un solo producto:
 
 ### Meta realista
 
-| Período | Meta | Estrategia |
-|---|---|---|
-| Mes 1-3 | ~5,000 relaciones | Hot samples + top artistas hip-hop/electrónica |
-| Mes 4-6 | ~15,000 relaciones | Expansión por cadenas de samples |
-| Mes 7-12 | ~50,000-100,000 relaciones | Browse sistemático + contribución early users |
-| Año 2+ | 200,000+ | Contribución comunitaria + scraping continuo |
+| Período  | Meta                       | Estrategia                                     |
+| -------- | -------------------------- | ---------------------------------------------- |
+| Mes 1-3  | ~5,000 relaciones          | Hot samples + top artistas hip-hop/electrónica |
+| Mes 4-6  | ~15,000 relaciones         | Expansión por cadenas de samples               |
+| Mes 7-12 | ~50,000-100,000 relaciones | Browse sistemático + contribución early users  |
+| Año 2+   | 200,000+                   | Contribución comunitaria + scraping continuo   |
 
 ### Presupuesto de Ancho de Banda
 
@@ -66,20 +68,22 @@ Imaginar Splice y WhoSampled fusionados en un solo producto:
 
 **Cálculo de rendimiento:**
 
-| Elemento | Tamaño estimado | Optimización |
-|---|---|---|
-| Página HTML WhoSampled (completa) | ~80-120 KB | Solo HTML, sin assets |
-| Página HTML (comprimida gzip) | ~15-25 KB | Accept-Encoding: gzip |
-| Página de detalle sample | ~20 KB (gzip) | Solo lo necesario |
-| Página hot-samples | ~15 KB (gzip) | 1 request/día |
-| Página artista (lista tracks) | ~20 KB (gzip) | Cache, no repetir |
+| Elemento                          | Tamaño estimado | Optimización          |
+| --------------------------------- | --------------- | --------------------- |
+| Página HTML WhoSampled (completa) | ~80-120 KB      | Solo HTML, sin assets |
+| Página HTML (comprimida gzip)     | ~15-25 KB       | Accept-Encoding: gzip |
+| Página de detalle sample          | ~20 KB (gzip)   | Solo lo necesario     |
+| Página hot-samples                | ~15 KB (gzip)   | 1 request/día         |
+| Página artista (lista tracks)     | ~20 KB (gzip)   | Cache, no repetir     |
 
 **Con 5 GB y ~20 KB/página promedio (gzip):**
+
 - ~250,000 páginas posibles
 - Cada relación sample requiere ~2-3 páginas (lista + detalle + source)
 - **~80,000-120,000 relaciones con $5** ✓
 
 **Estrategias de ahorro de ancho de banda:**
+
 - Headers `Accept-Encoding: gzip, deflate, br` obligatorios
 - No descargar imágenes, JS, CSS — solo HTML
 - Cache local de páginas ya visitadas (dedup por URL)
@@ -93,6 +97,7 @@ Imaginar Splice y WhoSampled fusionados en un solo producto:
 ### Principio fundamental: Sin discrepancias
 
 Las relaciones son **bidireccionales por diseño**. Cuando se registra "Brooklyn Zoo samplea Exodus":
+
 - La canción "Brooklyn Zoo" tiene en sus registros: "samplea Exodus en 0:04"
 - La canción "Exodus" tiene en sus registros: "sampleada por Brooklyn Zoo desde 0:30"
 - El sample extraído apunta a ambas canciones
@@ -128,7 +133,7 @@ CREATE INDEX idx_artistas_ws_slug ON artistas_musicales(whosampled_slug);
    CANCIONES
    Canciones referenciadas en relaciones de samples.
    NO son samples de Kamples — son canciones publicadas comercialmente.
-   
+
    NOTA artistas: artista_id = artista principal (obligatorio).
    Featuring artists van en canciones_artistas con rol='featuring'.
    Ejemplo: "Jay-Z feat. The Notorious B.I.G."
@@ -182,16 +187,16 @@ CREATE INDEX idx_ca_artista ON canciones_artistas(artista_id);
 
 /* ============================================================
    RELACIONES DE SAMPLE (TABLA CENTRAL — FUENTE DE VERDAD)
-   
+
    Una fila = una relación entre dos canciones.
    cancion_destino = la canción que USA el sample (ej: Brooklyn Zoo)
    cancion_fuente  = la canción de DONDE VIENE el sample (ej: Exodus)
-   
+
    Para consultar "qué samples usa Brooklyn Zoo":
      WHERE cancion_destino_id = brooklyn_zoo_id
    Para consultar "quién sampleó Exodus":
      WHERE cancion_fuente_id = exodus_id
-   
+
    NOTA timings: JSON arrays porque una canción puede samplear
    la misma fuente en múltiples puntos. WhoSampled usa
    data-timing-index para enumerar timings múltiples.
@@ -200,17 +205,17 @@ CREATE TABLE relaciones_sample (
     id                  SERIAL PRIMARY KEY,
     cancion_destino_id  INT NOT NULL REFERENCES canciones(id),
     cancion_fuente_id   INT NOT NULL REFERENCES canciones(id),
-    
+
     /* ID numérico de WhoSampled: /sample/1425265/ → 1425265
        Clave para dedup entre ejecuciones del scraper */
     whosampled_id       INT UNIQUE,
-    
+
     /* Tipo de relación — incluye interpolation (WhoSampled lo distingue) */
     tipo_relacion       VARCHAR(20) NOT NULL DEFAULT 'sample'
                         CHECK (tipo_relacion IN (
                             'sample', 'cover', 'remix', 'interpolation'
                         )),
-    
+
     /* Subtipo del elemento sampleado (solo aplica a tipo=sample/interpolation)
        Valores extraídos del header: "Direct Sample of Hook / Riff"
        NOTA: 'soundtrack' NO va aquí (es género, no tipo de elemento) */
@@ -220,30 +225,30 @@ CREATE TABLE relaciones_sample (
                             'bass', 'keys_synth', 'sound_effect',
                             'multiple_elements', 'other'
                         )),
-    
+
     /* Timings en segundos — arrays JSON porque puede haber múltiples
        Ej: [4, 30, 120] → sample aparece en los segundos 4, 30 y 120
        WhoSampled: data-timings="4" (uno) o data-timings="4,30,120" (varios) */
     timings_destino     JSONB DEFAULT '[]',    -- segundos en canción destino
     timings_fuente      JSONB DEFAULT '[]',    -- segundos en canción fuente
     aparece_en_todo     BOOLEAN DEFAULT FALSE,  -- "(and throughout)"
-    
+
     /* Referencia al sample extraído en Kamples (NULL si no se extrae) */
     sample_id           INT REFERENCES samples(id) ON DELETE SET NULL,
-    
+
     /* Votación comunitaria (1-5) — rating parseado del overlay */
     votos_total         INT DEFAULT 0,
     votos_promedio      DECIMAL(2,1) DEFAULT 0,
-    
+
     /* Origen de la información */
     fuente              VARCHAR(20) DEFAULT 'scraping'
                         CHECK (fuente IN ('scraping', 'comunidad', 'musicbrainz', 'import')),
     contribuidor_id     INT REFERENCES usuarios_ext(id),
     verificada          BOOLEAN DEFAULT FALSE,
-    
+
     /* Dedup: misma relación destino+fuente+tipo = imposible dos veces */
     UNIQUE (cancion_destino_id, cancion_fuente_id, tipo_relacion),
-    
+
     created_at          TIMESTAMPTZ DEFAULT NOW(),
     updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
@@ -295,13 +300,13 @@ CREATE TABLE cola_extraccion_samples (
     relacion_id         INT NOT NULL REFERENCES relaciones_sample(id),
     youtube_id          VARCHAR(20) NOT NULL,
     timing_inicio_seg   SMALLINT NOT NULL,
-    
+
     /* Resultado del análisis de BPM/compás */
     bpm_detectado       SMALLINT,
     duracion_compas_seg DECIMAL(5,2),
     compas_inicio_seg   DECIMAL(5,2),
     compas_fin_seg      DECIMAL(5,2),
-    
+
     /* Estado del pipeline */
     estado              VARCHAR(20) DEFAULT 'pendiente'
                         CHECK (estado IN (
@@ -352,6 +357,7 @@ Los samples extraídos se insertan en la tabla `samples` existente como cualquie
 ```
 
 **Campos del sample extraído:**
+
 - `creador_id` → cuenta sistema de Kamples (bot/sistema)
 - `titulo` → "{Artista} - {Canción} [Sample: {tipo_elemento}]"
 - `tags` → generados desde metadata: género, década, tipo elemento, artista
@@ -368,7 +374,7 @@ artistas_musicales ──1:N──> canciones
 
 canciones ──1:N──> relaciones_sample (como destino)
           ──1:N──> relaciones_sample (como fuente)
-          
+
 relaciones_sample ──1:1──> samples (sample extraído, opcional)
                   ──1:1──> cola_extraccion_samples (pipeline)
 
@@ -420,7 +426,7 @@ WHERE rs.cancion_fuente_id = :exodus_id;
    → Encontrar el beat más cercano al segundo 30
    → Retroceder 1 compás (margen de seguridad)
    → Avanzar 8 compases desde el inicio real del sample
-   
+
    Ejemplo con BPM=95:
    - 1 compás = (60/95) × 4 = 2.526 seg
    - Beat más cercano a 30s = 29.68s
@@ -457,25 +463,25 @@ def calcular_recorte(timing_fuente_seg, bpm, beats):
     beats: array de timestamps de cada beat detectado por librosa
     """
     duracion_compas = (60.0 / bpm) * 4  # asumimos 4/4
-    
+
     # Encontrar el beat más cercano al timing indicado
     beat_cercano = min(beats, key=lambda b: abs(b - timing_fuente_seg))
-    
+
     # Buscar el inicio del compás que contiene ese beat
     # (el downbeat más cercano hacia atrás)
     idx_beat = beats.index(beat_cercano)
     idx_downbeat = idx_beat - (idx_beat % 4)  # primer beat del compás
     inicio_compas = beats[idx_downbeat]
-    
+
     # Retroceder 1 compás completo (margen de seguridad)
     if idx_downbeat >= 4:
         inicio_recorte = beats[idx_downbeat - 4]
     else:
         inicio_recorte = max(0, inicio_compas - duracion_compas)
-    
+
     # Avanzar 8 compases desde el inicio
     fin_recorte = inicio_recorte + (duracion_compas * 8)
-    
+
     return {
         'inicio': inicio_recorte,
         'fin': fin_recorte,
@@ -489,14 +495,14 @@ def calcular_recorte(timing_fuente_seg, bpm, beats):
 
 ### Casos especiales
 
-| Caso | Solución |
-|---|---|
+| Caso                           | Solución                                                         |
+| ------------------------------ | ---------------------------------------------------------------- |
 | BPM no detectado con confianza | Recorte simple: timing - 5s a timing + 25s. Marcar para revisión |
-| Canción no en 4/4 (3/4, 6/8) | Librosa detecta time signature. Ajustar fórmula compás |
-| YouTube video no disponible | Marcar en cola como 'error', skip, intentar más tarde |
-| Sample aparece "throughout" | Recortar desde el primer timing indicado, 8 compases |
-| Duración resultante > 30s | Limitar a 30s máximo (fair use) |
-| Duración resultante < 3s | Extender a 2 compases extra |
+| Canción no en 4/4 (3/4, 6/8)   | Librosa detecta time signature. Ajustar fórmula compás           |
+| YouTube video no disponible    | Marcar en cola como 'error', skip, intentar más tarde            |
+| Sample aparece "throughout"    | Recortar desde el primer timing indicado, 8 compases             |
+| Duración resultante > 30s      | Limitar a 30s máximo (fair use)                                  |
+| Duración resultante < 3s       | Extender a 2 compases extra                                      |
 
 ---
 
@@ -504,15 +510,15 @@ def calcular_recorte(timing_fuente_seg, bpm, beats):
 
 ### Stack tecnológico
 
-| Componente | Tecnología | Justificación |
-|---|---|---|
-| Scraper | **Python + Scrapy** | Framework industrial para scraping, middleware de proxy integrado, pipelines de datos, respeto a robots.txt configurable |
-| Proxy | **DataImpulse** (residencial) | $1/GB, rotación automática, headers realistas |
-| Parser | **BeautifulSoup4** (dentro de Scrapy) | Parsing robusto del HTML de WhoSampled |
-| Audio download | **yt-dlp** | Descarga audio YouTube, no requiere proxy |
-| Audio análisis | **librosa** + **ffmpeg** | BPM detection, beat tracking, recorte |
-| BD | **PostgreSQL** (existente) | Misma instancia que Kamples |
-| Dedup | **scraping_log** tabla + UNIQUE constraints | Zero duplicados garantizado |
+| Componente     | Tecnología                                  | Justificación                                                                                                            |
+| -------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Scraper        | **Python + Scrapy**                         | Framework industrial para scraping, middleware de proxy integrado, pipelines de datos, respeto a robots.txt configurable |
+| Proxy          | **DataImpulse** (residencial)               | $1/GB, rotación automática, headers realistas                                                                            |
+| Parser         | **BeautifulSoup4** (dentro de Scrapy)       | Parsing robusto del HTML de WhoSampled                                                                                   |
+| Audio download | **yt-dlp**                                  | Descarga audio YouTube, no requiere proxy                                                                                |
+| Audio análisis | **librosa** + **ffmpeg**                    | BPM detection, beat tracking, recorte                                                                                    |
+| BD             | **PostgreSQL** (existente)                  | Misma instancia que Kamples                                                                                              |
+| Dedup          | **scraping_log** tabla + UNIQUE constraints | Zero duplicados garantizado                                                                                              |
 
 ### Estructura del scraper
 
@@ -604,7 +610,7 @@ class HotSamplesSpider(scrapy.Spider):
         'https://www.whosampled.com/hot-covers/',
         'https://www.whosampled.com/hot-remixes/',
     ]
-    
+
     def parse(self, response):
         # Cada entry en hot-samples/covers/remixes:
         # <li class="listEntry sampleEntry chartsEntry">
@@ -616,12 +622,12 @@ class HotSamplesSpider(scrapy.Spider):
                 url_completa = response.urljoin(link)
                 if not self.ya_procesada(url_completa):
                     yield scrapy.Request(url_completa, callback=self.parse_detail)
-        
+
         # Paginación (máx 5 páginas por lista)
         next_page = response.css('.next a::attr(href)').get()
         if next_page:
             yield scrapy.Request(response.urljoin(next_page), callback=self.parse)
-    
+
     def parse_detail(self, response):
         # Extraer toda la info del HTML (ver sección Parsing abajo)
         ...
@@ -703,14 +709,14 @@ votos_text = response.css('.ratingCount::text').get('')  # "50 Votes"
 for subsection in response.css('.subsection'):
     header_text = subsection.css('.section-header-title').get('')
     rows = subsection.css('tr')
-    
+
     for row in rows:
         related_link = row.css('.tdata__td2 a::attr(href)').get()
         related_name = row.css('.tdata__td2 a::text').get()
         related_artist = row.css('.tdata__td3 a::text').get()
         related_year = row.css('.tdata__td3::text').getall()  # el año está en un td sin link
         related_badge = row.css('.tdata__badge::text').get()   # "Vocals / Lyrics", "Multiple Elements"
-        
+
         # NOTA: related_badge aquí es tipo_elemento, NO género
         # Pero en covers/remixes el badge es género: "Hip-Hop / Rap / R&B", "Jazz / Blues"
 ```
@@ -722,10 +728,10 @@ for subsection in response.css('.subsection'):
 for entry in response.css('li.listEntry'):
     # Posición en el chart
     position = entry.css('.chartCount::text').get()              # "1", "2", etc.
-    
+
     # Link al detalle (en el <a> de la imagen Y en sampleLink)
     detail_url = entry.css('span.sampleLink a::attr(href)').get()  # "/sample/1425265/..."
-    
+
     # Textos (no siempre parseables sin ir al detalle)
     dest_track = entry.css('.destTrackName::text').get()         # "Ol' Dirty Bastard's Brooklyn Zoo"
     source_track = entry.css('.sourceTrackName::text').get()     # " Eddie Harris's Exodus"
@@ -767,6 +773,7 @@ LIMIT 20;
 ```
 
 **Integración con pgvector existente:**
+
 - Los embeddings de audio ya existen en `samples.embedding` (128d)
 - Para canciones: generar embedding del fragmento sampleado y guardarlo
 - Búsqueda por similaridad coseno con pgvector HNSW
@@ -792,13 +799,13 @@ LIMIT 20;
 
 ### Gamificación
 
-| Acción | Cred |
-|---|---|
-| Contribución aprobada | +10 |
-| Contribución rechazada | -2 |
-| Verificar timing preciso | +5 |
-| Revisar recorte de sample | +3 |
-| Primer contribuidor de artista nuevo | +20 |
+| Acción                               | Cred |
+| ------------------------------------ | ---- |
+| Contribución aprobada                | +10  |
+| Contribución rechazada               | -2   |
+| Verificar timing preciso             | +5   |
+| Revisar recorte de sample            | +3   |
+| Primer contribuidor de artista nuevo | +20  |
 
 ---
 
@@ -806,41 +813,41 @@ LIMIT 20;
 
 ### FASE S1 — Infraestructura de datos (BD + Schema)
 
-- [ ] **S1.1** Crear schemas PHP: `ArtistasMusicalesSchema`, `CancionesSchema`, `RelacionesSampleSchema`, `CancionesProductoresSchema`, `ScrapingLogSchema`, `ColaExtraccionSchema`
-- [ ] **S1.2** Generar enums con Schema Generator existente
-- [ ] **S1.3** Ejecutar migraciones (crear tablas + índices)
-- [ ] **S1.4** Crear repositorios PHP: `ArtistasMusicalesRepository`, `CancionesRepository`, `RelacionesSampleRepository`
-- [x] **S1.5** API endpoints REST: CancionesController 7 endpoints (listar, buscar, top, detalle cancion+artista, estadisticas) ✅
+- [x] **S1.1** Crear schemas PHP: `ArtistasMusicalesSchema`, `CancionesSchema`, `RelacionesSampleSchema`, `CancionesArtistasSchema`, `ScrapingLogSchema`, `ColaExtraccionSchema` ✅
+- [x] **S1.2** Generar enums con Schema Generator existente ✅
+- [x] **S1.3** Ejecutar migraciones (crear tablas + índices) ✅
+- [x] **S1.4** Crear repositorios PHP: `ArtistasMusicalesRepository`, `CancionesRepository`, `RelacionesSampleRepository` + 3 más ✅
+- [x] **S1.5** API endpoints REST: CancionesController 7+2 endpoints (listar, buscar, top, detalle cancion+artista, estadisticas, relacion-por-sample, cadena) ✅
 
 ### FASE S2 — Scraper core (Python + Scrapy)
 
-- [ ] **S2.1** Setup proyecto Python: `kamples-scraper/`, requirements, scrapy.cfg
-- [ ] **S2.2** Configurar middleware DataImpulse (proxy residencial, rotación, headers)
-- [ ] **S2.3** Spider `hot_samples`: parsear /hot-samples, seguir links a detalles
-- [ ] **S2.4** Spider `sample_detail`: extraer canción destino, fuente, timings, tipo, productores, related
-- [ ] **S2.5** Pipeline PostgreSQL: insertar artistas, canciones, relaciones con dedup completo
-- [ ] **S2.6** Tracking de bandwidth: log de bytes consumidos, alertas al 80% del presupuesto
-- [ ] **S2.7** Script `run_daily.sh` para cron diario de hot-samples
-- [ ] **S2.8** Tests locales con HTML guardado (sin gastar proxy)
+- [x] **S2.1** Setup proyecto Python: `kamples-scraper/`, requirements, scrapy.cfg ✅
+- [x] **S2.2** Configurar middleware DataImpulse (proxy residencial, rotación, headers) ✅
+- [x] **S2.3** Spider `hot_samples`: parsear /hot-samples, seguir links a detalles ✅
+- [x] **S2.4** Spider `sample_detail`: extraer canción destino, fuente, timings, tipo, productores, related ✅
+- [x] **S2.5** Pipeline PostgreSQL: insertar artistas, canciones, relaciones con dedup completo ✅
+- [x] **S2.6** Tracking de bandwidth: log de bytes consumidos, alertas al 80% del presupuesto ✅
+- [x] **S2.7** Script `run_daily.sh` para cron diario de hot-samples ✅
+- [x] **S2.8** Tests locales con HTML guardado (sin gastar proxy) ✅
 
 ### FASE S3 — Pipeline de extracción de audio
 
-- [ ] **S3.1** Módulo `audio_download.py`: wrapper yt-dlp, descarga audio → WAV temporal
-- [ ] **S3.2** Módulo `bpm_analyzer.py`: librosa beat tracking + BPM + time signature
-- [ ] **S3.3** Módulo `sample_cutter.py`: lógica de recorte por compás (1 antes + 8 compases)
-- [ ] **S3.4** Módulo `kamples_inserter.py`: crear sample en BD Kamples con metadata enriched
-- [ ] **S3.5** Orquestador `pipeline.py`: procesar cola_extraccion_samples
+- [x] **S3.1** Módulo `audio_download.py`: wrapper yt-dlp, descarga audio → WAV temporal ✅
+- [x] **S3.2** Módulo `bpm_analyzer.py`: librosa beat tracking + BPM + time signature ✅
+- [x] **S3.3** Módulo `sample_cutter.py`: lógica de recorte por compás (1 antes + 8 compases) ✅
+- [x] **S3.4** Módulo `kamples_inserter.py`: crear sample en BD Kamples con metadata enriched ✅
+- [x] **S3.5** Orquestador `pipeline.py`: procesar cola_extraccion_samples ✅
 - [x] **S3.6** waveform_generator.py (librosa → 120 peaks → JSON compatible PHP) ✅
 - [x] **S3.7** Cron batch: scripts sh (lock file) + cron_runner.py cross-platform ✅
 
 ### FASE S4 — UI en Kamples (React Islands)
 
-- [ ] **S4.1** Página `/cancion/{slug}`: detalle de canción con relaciones (samples que usa, quién la samplea)
-- [ ] **S4.2** Componente `RelacionSample`: muestra par de canciones + timing + player + sample descargable
-- [ ] **S4.3** Página `/explorar/canciones`: browse por género, década, más sampleadas
-- [ ] **S4.4** Integración en `SampleDetalleIsland`: si el sample viene de extracción, mostrar info de canción fuente/destino
-- [ ] **S4.5** Widget "Cadena de samples": visualizar A sampleó B que sampleó C
-- [ ] **S4.6** Búsqueda textual de canciones integrada en búsqueda global
+- [x] **S4.1** Página `/cancion/{slug}`: CancionDetalleIsland + useCancionDetalle (portada, artistas, YouTube embed, relaciones sampling) ✅
+- [x] **S4.2** Componente `TarjetaRelacionSample`: tarjeta reutilizable relación origen/destino con badges tipo/elemento ✅
+- [x] **S4.3** Página `/explorar/canciones`: ExplorarCancionesIsland + useExplorarCanciones (tabs recientes/top/buscar, grid, estadísticas) ✅
+- [x] **S4.4** Integración en `SampleDetalleIsland`: SeccionSampleDiscovery + useRelacionDiscovery (enlace canción fuente/destino) ✅
+- [x] **S4.5** Widget `CadenaSamples`: visualización cadena A→B→C (endpoint recursivo, integrado en CancionDetalle) ✅
+- [x] **S4.6** Búsqueda textual: TopBar enlace "Buscar canciones", URL param q preload, placeholder dinámico ✅
 
 ### FASE S5 — Expansión del scraper
 
@@ -871,28 +878,28 @@ LIMIT 20;
 
 ## Cronograma sugerido
 
-| Período | Fase | Entregable |
-|---|---|---|
-| Semana 1-2 | S1 | BD lista, repos PHP, endpoints básicos |
-| Semana 3-4 | S2 | Scraper funcionando en local, primeros 500 registros |
-| Semana 5-6 | S3 | Pipeline de extracción de audio, primeros 100 samples recortados |
-| Semana 7-10 | S4 | UI de canciones y relaciones visible en Kamples |
-| Mes 3-6 | S5 | Expansión scraper, 15,000+ relaciones |
-| Mes 6-12 | S6-S7 | Audio search, contribución, revisión humana |
+| Período     | Fase  | Entregable                                                       |
+| ----------- | ----- | ---------------------------------------------------------------- |
+| Semana 1-2  | S1    | BD lista, repos PHP, endpoints básicos                           |
+| Semana 3-4  | S2    | Scraper funcionando en local, primeros 500 registros             |
+| Semana 5-6  | S3    | Pipeline de extracción de audio, primeros 100 samples recortados |
+| Semana 7-10 | S4    | UI de canciones y relaciones visible en Kamples                  |
+| Mes 3-6     | S5    | Expansión scraper, 15,000+ relaciones                            |
+| Mes 6-12    | S6-S7 | Audio search, contribución, revisión humana                      |
 
 ---
 
 ## Riesgos y Mitigaciones
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| WhoSampled cambia HTML/estructura | Scraper se rompe | Parsers modulares, tests con HTML guardado, alertas en errores |
-| Rate limiting / ban IP | Scraping se detiene | Rate limit conservador (3s delay), proxy residencial rotativo, user-agent realista |
-| YouTube video no disponible | No se puede extraer audio | Marcar como pendiente, reintentar periódicamente, fuentes alternativas |
-| BPM detectado incorrecto | Recorte desalineado | Flag para revisión humana, múltiples algoritmos (librosa + essentia) |
-| WhoSampled cierra completamente | Fuente de datos muere | Velocidad: priorizar data más valiosa primero + contribución propia |
-| Cambio de TOS DataImpulse | Sin proxy | Alternativas: ScraperAPI, BrightData, proxy propio en VPS |
-| Recortes de baja calidad | Mala experiencia de usuario | Todo sample inicia en `en_supervision`, requiere aprobación |
+| Riesgo                            | Impacto                     | Mitigación                                                                         |
+| --------------------------------- | --------------------------- | ---------------------------------------------------------------------------------- |
+| WhoSampled cambia HTML/estructura | Scraper se rompe            | Parsers modulares, tests con HTML guardado, alertas en errores                     |
+| Rate limiting / ban IP            | Scraping se detiene         | Rate limit conservador (3s delay), proxy residencial rotativo, user-agent realista |
+| YouTube video no disponible       | No se puede extraer audio   | Marcar como pendiente, reintentar periódicamente, fuentes alternativas             |
+| BPM detectado incorrecto          | Recorte desalineado         | Flag para revisión humana, múltiples algoritmos (librosa + essentia)               |
+| WhoSampled cierra completamente   | Fuente de datos muere       | Velocidad: priorizar data más valiosa primero + contribución propia                |
+| Cambio de TOS DataImpulse         | Sin proxy                   | Alternativas: ScraperAPI, BrightData, proxy propio en VPS                          |
+| Recortes de baja calidad          | Mala experiencia de usuario | Todo sample inicia en `en_supervision`, requiere aprobación                        |
 
 ---
 
@@ -918,3 +925,16 @@ LIMIT 20;
 - [Proxy budget]: Con gzip, ~20KB/página. $5 = ~250K páginas = suficiente para >80K relaciones
 - [Audio no proxy]: Las descargas de YouTube van directo, no consumen presupuesto de proxy
 - [canciones_productores eliminada]: Reemplazada por `canciones_artistas` con `rol='producer'`. Tabla unificada para principal + featuring + producer
+
+### Lecciones S4 — UI React Islands (C604)
+
+- [Navigation store]: Import correcto es `import { useNavigationStore } from '@/core/router'` — NO `@app/stores/navigationStore`
+- [UI components]: Lint exige `<BotonBase>` sobre `<button>` y `<CampoTexto>` sobre `<input>`. Imports desde `@app/components/ui/`
+- [Badge variantes]: Solo válidas: neutro|acento|exito|error|advertencia|info|premium. NO existe "ghost"
+- [BotonBase ghost+ninguno]: Para botones con estilo custom (navegación, links), usar `variante="ghost" tamano="ninguno"` para evitar padding/height forzado. `className` se concatena
+- [CampoTexto wrapper]: CampoTexto envuelve el input en `<div className="contenedorCampoTexto {className}">`. Para CSS, apuntar al input con `.miClaseWrapper input` en vez de clase directa en el input. `variante="desnudo"` quita clases del input
+- [useCancionDetalle irACancion]: La función `irACancion` del hook no se necesita en el island porque TarjetaRelacionSample maneja su propia navegación internamente
+- [RelacionSample integración]: La relación Sample → Canción pasa por `relaciones_sample.sample_id` FK. Se necesita un hook separado (useRelacionDiscovery) porque el sample no tiene cancionId directo
+- [Cadena traversal PHP]: Implementar como método recursivo en el repositorio con depth limit (10) y set de visitados para evitar ciclos
+- [Rutas dinámicas]: Para slugs como `/cancion/{slug}` usar `PageManager::registrarRutaDinamica('cancion/{slug}', 'CancionDetalleIsland')` además de `reactPage()`
+- [TopBar placeholder]: Agregar `islaActual` al return de useTopBar para dinamizar el placeholder del buscador según la isla activa

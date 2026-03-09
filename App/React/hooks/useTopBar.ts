@@ -99,7 +99,12 @@ export const useTopBar = () => {
 
     /* C169: Placeholder dinámico según la isla actual */
     const islaActual = useNavigationStore(s => s.islaActual);
-    const placeholderBusqueda = islaActual === 'LibreriaIsland' ? 'Buscar en librería...' : 'Buscar samples...';
+    const placeholdersPorIsla: Record<string, string> = {
+        LibreriaIsland: 'Buscar en librería...',
+        ExplorarCancionesIsland: 'Buscar canciones o artistas...',
+        CancionDetalleIsland: 'Buscar canciones o artistas...',
+    };
+    const placeholderBusqueda = placeholdersPorIsla[islaActual ?? ''] ?? 'Buscar samples...';
 
     const manejarClickAvatar = useCallback((e?: MouseEvent) => {
         if (!e) return;
@@ -175,5 +180,6 @@ export const useTopBar = () => {
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,
+        islaActual,
     };
 };

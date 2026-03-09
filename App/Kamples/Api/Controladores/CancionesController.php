@@ -10,6 +10,7 @@
  * GET  /artistas/{slug}                — Detalle artista con canciones
  * GET  /artistas/top                   — Top artistas por canciones
  * GET  /sample-discovery/estadisticas  — Estadísticas generales
+ * GET  /sample-discovery/relacion/{id} — Relación vinculada a un sample de Kamples
  *
  * Todos los endpoints son públicos (información cultural abierta).
  *
@@ -87,6 +88,25 @@ class CancionesController
             'methods'             => 'GET',
             'callback'            => [self::class, 'estadisticas'],
             'permission_callback' => '__return_true',
+        ]);
+
+        \register_rest_route($namespace, '/sample-discovery/relacion/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'relacionPorSampleId'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'id' => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)/cadena', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'cadena'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'slug'        => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+                'profundidad' => ['type' => 'integer', 'default' => 5, 'minimum' => 1, 'maximum' => 10],
+            ],
         ]);
     }
 
@@ -253,6 +273,62 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::estadisticas] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /sample-discovery/relacion/{id} — Relación vinculada a un sample de Kamples.
+     *
+     * Retorna info de canción fuente y destino si el sample tiene relación.
+     */
+    public static function relacionPorSampleId(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $sampleId = (int) $request->get_param('id');
+            $relacion = RelacionesSampleRepository::porSampleId($sampleId);
+
+            if (!$relacion) {
+                return new \WP_REST_Response(['ok' => true, 'data' => null]);
+            }
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $relacion,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::relacionPorSampleId] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/{slug}/cadena — Cadena de samples (A sampleó B sampleó C...).
+     *
+     * Explora relaciones recursivas hasta profundidad configurada.
+     */
+    public static function cadena(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $slug = (string) $request->get_param('slug');
+            $profundidad = (int) $request->get_param('profundidad');
+            $cancion = CancionesRepository::buscarPorSlug($slug);
+
+            if (!$cancion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Canción no encontrada'], 404);
+            }
+
+            $cadena = RelacionesSampleRepository::cadena((int) $cancion['id'], $profundidad);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'cancion_raiz' => $cancion,
+                    'cadena'       => $cadena,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::cadena] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }

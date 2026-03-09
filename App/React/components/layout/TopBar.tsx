@@ -53,6 +53,7 @@ export const TopBar = (): JSX.Element => {
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,
+        islaActual,
     } = useTopBar();
 
     const {
@@ -334,6 +335,22 @@ export const TopBar = (): JSX.Element => {
                                 onChange={manejarBusqueda}
                                 autoFocus
                             />
+                            {/* S4.6: Enlace rápido a búsqueda de canciones si no estás en isla de canciones */}
+                            {busqueda.trim().length >= 2
+                                && islaActual !== 'ExplorarCancionesIsland'
+                                && islaActual !== 'CancionDetalleIsland' && (
+                                <button
+                                    type="button"
+                                    className="topbarEnlaceBusquedaCanciones"
+                                    onClick={() => {
+                                        setBusquedaModalAbierta(false);
+                                        navegar(`/explorar/canciones?q=${encodeURIComponent(busqueda.trim())}`);
+                                    }}
+                                >
+                                    <Music2 size={14} />
+                                    Buscar canciones: &quot;{busqueda.trim()}&quot;
+                                </button>
+                            )}
                         </div>
                     </Modal>
                 </div>

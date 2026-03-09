@@ -1,0 +1,196 @@
+/*
+ * CancionDetalleIsland — Kamples
+ * Página de detalle de una canción: metadata, artistas, relaciones de sampling.
+ * Lógica extraída a useCancionDetalle (SRP).
+ */
+
+import { Music, AlertCircle } from 'lucide-react';
+import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
+import { TarjetaRelacionSample } from '@app/components/samples/TarjetaRelacionSample';
+import { CadenaSamples } from '@app/components/samples/CadenaSamples';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
+import { ETIQUETAS_ROL } from '@app/types/cancion';
+import '../../styles/componentes/cancionDetalle.css';
+
+const TABS_CANCION = [{ id: 'cancion', etiqueta: 'Canción' }];
+
+interface CancionDetalleProps {
+    slug?: string;
+}
+
+/* Extrae el ID de YouTube para embed seguro (whitelist de formatos válidos) */
+const construirEmbedUrl = (youtubeId: string): string | null => {
+    if (!/^[a-zA-Z0-9_-]{11}$/.test(youtubeId)) return null;
+    return `https://www.youtube-nocookie.com/embed/${youtubeId}`;
+};
+
+export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element => {
+    const {
+        detalle,
+        cargando,
+        error,
+        irAArtista,
+    } = useCancionDetalle({ slug });
+
+    useTabsIsla('CancionDetalleIsland', TABS_CANCION, 'cancion');
+
+    if (cargando) {
+        return (
+            <div className="cancionDetalleContenedor" id="seccionCancionDetalle">
+                <div className="cancionDetalleTarjeta">
+                    <div className="cancionDetalleCabecera">
+                        <Skeleton alto={160} ancho={160} />
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--espacioSm)' }}>
+                            <Skeleton alto={28} />
+                            <Skeleton alto={20} ancho={200} />
+                            <Skeleton alto={16} ancho={120} />
+                        </div>
+                    </div>
+                    <SkeletonFeed cantidad={3} />
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !detalle) {
+        return (
+            <div className="cancionDetalleContenedor" id="seccionCancionDetalle">
+                <div className="cancionDetalleError">
+                    <AlertCircle size={40} />
+                    <p>{error || 'Canción no encontrada.'}</p>
+                    <BotonBase variante="ghost" onClick={() => window.history.back()}>
+                        Volver
+                    </BotonBase>
+                </div>
+            </div>
+        );
+    }
+
+    const { cancion, artistas, samplesDe, sampleadaEn } = detalle;
+    const embedUrl = cancion.youtubeId ? construirEmbedUrl(cancion.youtubeId) : null;
+
+    return (
+        <div className="cancionDetalleContenedor" id="seccionCancionDetalle">
+            <div className="cancionDetalleTarjeta">
+                {/* Cabecera: portada + info */}
+                <div className="cancionDetalleCabecera">
+                    <div className="cancionDetallePortada">
+                        {cancion.imagenUrl ? (
+                            <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
+                        ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                <Music size={48} color="var(--textoTerciario)" />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="cancionDetalleInfo">
+                        <h1 className="cancionDetalleTitulo">{cancion.titulo}</h1>
+
+                        <div className="cancionDetalleArtistas">
+                            {artistas.map((a) => (
+                                <BotonBase
+                                    key={a.artistaId}
+                                    variante="ghost"
+                                    tamano="ninguno"
+                                    className="cancionDetalleArtista"
+                                    onClick={() => irAArtista(a.slug)}
+                                >
+                                    {a.nombre}
+                                    {a.rol !== 'principal' && (
+                                        <> ({ETIQUETAS_ROL[a.rol]})</>
+                                    )}
+                                </BotonBase>
+                            ))}
+                        </div>
+
+                        {cancion.anio && (
+                            <span className="cancionDetalleAnio">{cancion.anio}</span>
+                        )}
+
+                        <div className="cancionDetalleMeta">
+                            {cancion.genero && (
+                                <Badge variante="neutro" tamano="sm">{cancion.genero}</Badge>
+                            )}
+                            {cancion.bpm && (
+                                <Badge variante="neutro" tamano="sm">{cancion.bpm} BPM</Badge>
+                            )}
+                            {cancion.tonalidad && (
+                                <Badge variante="neutro" tamano="sm">{cancion.tonalidad}</Badge>
+                            )}
+                            {cancion.album && (
+                                <Badge variante="neutro" tamano="sm">{cancion.album}</Badge>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* YouTube embed */}
+                {embedUrl && (
+                    <div className="cancionDetalleYoutube">
+                        <iframe
+                            src={embedUrl}
+                            title={`${cancion.titulo} - YouTube`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Sección: esta canción samplea a... */}
+            {samplesDe.length > 0 && (
+                <div className="cancionDetalleSeccion">
+                    <h2 className="cancionDetalleSeccionTitulo">
+                        Samplea a
+                        <span className="cancionDetalleSeccionContador">({samplesDe.length})</span>
+                    </h2>
+                    <div className="cancionDetalleRelaciones">
+                        {samplesDe.map((rel) => (
+                            <TarjetaRelacionSample
+                                key={rel.id}
+                                relacion={rel}
+                                direccion="destino"
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Sección: sampleada por... */}
+            {sampleadaEn.length > 0 && (
+                <div className="cancionDetalleSeccion">
+                    <h2 className="cancionDetalleSeccionTitulo">
+                        Sampleada por
+                        <span className="cancionDetalleSeccionContador">({sampleadaEn.length})</span>
+                    </h2>
+                    <div className="cancionDetalleRelaciones">
+                        {sampleadaEn.map((rel) => (
+                            <TarjetaRelacionSample
+                                key={rel.id}
+                                relacion={rel}
+                                direccion="origen"
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Sin relaciones */}
+            {samplesDe.length === 0 && sampleadaEn.length === 0 && (
+                <div className="cancionDetalleVacio">
+                    <Music size={32} />
+                    <p>Aún no se han identificado relaciones de sampling para esta canción.</p>
+                </div>
+            )}
+
+            {/* S4.5: Widget cadena de samples */}
+            {slug && (samplesDe.length > 0 || sampleadaEn.length > 0) && (
+                <CadenaSamples slug={slug} titulo={cancion.titulo} />
+            )}
+        </div>
+    );
+};

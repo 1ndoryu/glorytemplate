@@ -384,3 +384,86 @@
         gap: var(--espacioSm);
     }
 }
+
+/* SeccionSampleDiscovery — Info de canción fuente/destino */
+.discoverySeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+}
+
+.discoveryTitulo {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--acento);
+}
+
+.discoveryContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.discoveryBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.discoveryCanciones {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.discoveryFila {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteSm);
+}
+
+.discoveryEtiqueta {
+    color: var(--textoTerciario);
+    font-weight: var(--pesoSemibold);
+    min-width: 56px;
+}
+
+.discoveryEnlaceCancion {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    font-size: var(--fuenteSm);
+    transition: color var(--transicionNormal);
+}
+
+.discoveryEnlaceCancion:hover {
+    color: var(--acento);
+}
+
+.discoveryEnlaceTitulo {
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.discoveryEnlaceArtista {
+    color: var(--textoSecundario);
+}
+
+.discoveryEnlaceAnio {
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}

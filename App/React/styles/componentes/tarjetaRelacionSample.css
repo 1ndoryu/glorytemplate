@@ -1,0 +1,103 @@
+/*
+ * tarjetaRelacionSample.css — Kamples
+ * Tarjeta compacta que muestra relación de sampling entre canciones.
+ */
+
+.tarjetaRelacion {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    cursor: pointer;
+    transition: background var(--transicionNormal), border-color var(--transicionNormal);
+}
+
+.tarjetaRelacion:hover {
+    background: var(--fondoElevado2);
+    border-color: var(--bordeSutil);
+}
+
+.tarjetaRelacionImagen {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    border-radius: var(--radioSm);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+}
+
+.tarjetaRelacionImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tarjetaRelacionCuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+    min-width: 0;
+    flex: 1;
+}
+
+.tarjetaRelacionTitulo {
+    margin: 0;
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tarjetaRelacionArtista {
+    margin: 0;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.tarjetaRelacionArtista:hover {
+    color: var(--acento);
+    text-decoration: underline;
+}
+
+.tarjetaRelacionBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--espacioXs) / 2);
+    align-items: center;
+}
+
+.tarjetaRelacionTiming {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.tarjetaRelacionMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: calc(var(--espacioXs) / 2);
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .tarjetaRelacion {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tarjetaRelacionMeta {
+        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}

@@ -17,7 +17,6 @@ import '../../styles/componentes/landingPublica.css';
 const SVG_KAMPLES = '/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg';
 const SVG_SYNC = '/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg';
 const MINI_DAW = '/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg';
-const IMAGEN_HERO = '/wp-content/themes/glorytemplate/App/Assets/images/pawel-czerwinski-nM7T4zTP3GQ-unsplash.jpg';
 
 export const LandingPublica = (): JSX.Element => {
     const {trending, navegar, setSample, sampleActual, reproduciendo, progreso, abrirAuth} = useLandingPublica();

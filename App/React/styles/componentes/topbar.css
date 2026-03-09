@@ -122,6 +122,30 @@
 
 .topbarBusquedaModalContenido {
     padding-top: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* S4.6: Enlace rápido a búsqueda de canciones */
+.topbarEnlaceBusquedaCanciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: background var(--transicionNormal), color var(--transicionNormal);
+}
+
+.topbarEnlaceBusquedaCanciones:hover {
+    background: var(--acento);
+    color: var(--acentoTexto);
+    border-color: var(--acento);
 }
 
 @media (max-width: 980px) {

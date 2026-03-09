@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Music, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useAuth } from '../../hooks/useAuth';

@@ -225,7 +225,12 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S3.7** Cron batch: run_daily.sh + run_extraction.sh (lock file) + cron_runner.py cross-platform (Windows Task Scheduler + Linux cron) ✅ [AG-SMD]
 
 ### S4 — UI React Islands
-- [ ] **S4.1-S4.6** Página canción, RelacionSample component, explorar canciones, cadena de samples, búsqueda textual
+- [x] **S4.1** CancionDetalleIsland + useCancionDetalle (detalle canción, portada, artistas, YouTube embed, relaciones) ✅ [AG-SMD]
+- [x] **S4.2** TarjetaRelacionSample component (tarjeta reutilizable origen/destino, badges tipo/elemento) ✅ [AG-SMD]
+- [x] **S4.3** ExplorarCancionesIsland + useExplorarCanciones (tabs recientes/top/buscar, grid, estadísticas) ✅ [AG-SMD]
+- [x] **S4.4** SeccionSampleDiscovery + useRelacionDiscovery (integración en SampleDetalleIsland, enlace canción fuente/destino) ✅ [AG-SMD]
+- [x] **S4.5** CadenaSamples widget (visualización cadena A→B→C, endpoint recursive, integrado en CancionDetalle) ✅ [AG-SMD]
+- [x] **S4.6** Búsqueda textual (TopBar enlace "Buscar canciones", URL param q, placeholder dinámico) ✅ [AG-SMD]
 
 ### S5 — Expansión Scraper
 - [ ] **S5.1-S5.6** Spiders artistas/tracks, covers/remixes, productores

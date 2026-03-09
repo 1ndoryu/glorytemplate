@@ -24,6 +24,7 @@ import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { SampleDetalleAcciones } from '@app/components/samples/SampleDetalleAcciones';
+import { SeccionSampleDiscovery } from '@app/components/samples/SeccionSampleDiscovery';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -219,6 +220,9 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 </div>
 
             </article>
+
+            {/* S4.4: Sample Discovery — muestra canción fuente/destino si existe */}
+            <SeccionSampleDiscovery sampleId={sample.id} />
 
             {/* C156: Samples similares ocultos por defecto, toggled via menu 3 puntos */}
             {mostrarSimilares && similares.length > 0 && (

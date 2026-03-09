@@ -59,6 +59,27 @@ export type {
     ColeccionResumen,
 } from './coleccion';
 
+export type {
+    Cancion,
+    CancionResumen,
+    ArtistaMusicale,
+    RelacionSample,
+    CancionArtista,
+    CancionDetalle,
+    ArtistaDetalle,
+    EstadisticaRelaciones,
+    TipoRelacion,
+    TipoElemento,
+    FuenteRelacion,
+    RolCancionArtista,
+} from './cancion';
+
+export {
+    ETIQUETAS_TIPO_RELACION,
+    ETIQUETAS_TIPO_ELEMENTO,
+    ETIQUETAS_ROL,
+} from './cancion';
+
 /* Schema generado — interfaces DB crudas y constantes de columna */
 export type {
     IAlgoritmoEstado,

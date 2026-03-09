@@ -131,6 +131,18 @@ PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
     return ['slug' => sanitize_text_field($slug)];
 });
 
+/* Paginas Kamples — Sample Discovery (Canciones) */
+PageManager::reactPage('explorar/canciones', 'ExplorarCancionesIsland');
+
+PageManager::reactPage('cancion', 'CancionDetalleIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $slug = end($partes);
+    return ['slug' => sanitize_text_field($slug)];
+});
+
+PageManager::registrarRutaDinamica('cancion');
+
 /* DEV — Showcase de componentes (solo desarrollo) */
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
