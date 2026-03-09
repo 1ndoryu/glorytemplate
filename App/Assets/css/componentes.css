@@ -113,8 +113,8 @@
 .campoFechaPersonalizadoChevron {
     flex-shrink: 0;
     color: var(--cresta-gris400);
-    font-size: var(--cresta-textoLg);
-    line-height: 1;
+    display: flex;
+    align-items: center;
     transition: transform var(--cresta-transicion);
 }
 .campoFechaPersonalizadoAbierto .campoFechaPersonalizadoChevron {

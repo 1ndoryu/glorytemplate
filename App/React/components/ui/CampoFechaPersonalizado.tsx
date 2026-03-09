@@ -9,6 +9,7 @@ import { CalendarioPopup } from './CalendarioPopup';
 import { Boton } from './Boton';
 import { useClickFuera } from '@app/hooks/useClickFuera';
 import { useTeclaEscape } from '@app/hooks/useTeclaEscape';
+import { ChevronDown } from 'lucide-react';
 
 interface CampoFechaPersonalizadoProps {
     value: string;
@@ -103,7 +104,7 @@ export function CampoFechaPersonalizado({
                     {value ? formatearFecha(value) : placeholder}
                 </span>
                 <span className="campoFechaPersonalizadoChevron" aria-hidden="true">
-                    &#8964;
+                    <ChevronDown size={16} strokeWidth={2} />
                 </span>
             </Boton>
 
