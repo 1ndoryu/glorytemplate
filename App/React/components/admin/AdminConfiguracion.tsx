@@ -6,6 +6,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Boton } from '@app/components/ui/Boton';
 import { CampoTexto } from '@app/components/ui/CampoTexto';
+import { CampoSelect } from '@app/components/ui/CampoSelect';
 import type { AdminConfiguracion as ConfigTipo } from '@app/types/cresta';
 
 interface AdminConfiguracionProps {
@@ -208,12 +209,14 @@ export function AdminConfiguracion({ configuracion, loading, onGuardar }: AdminC
                     Los valores enmascarados (sk_test_...) indican claves ya guardadas.
                 </p>
                 <div className="adminFormGrid">
-                    <CampoTexto
+                    <CampoSelect
                         label="Modo"
                         value={form.stripeMode}
                         onChange={v => actualizar('stripeMode', v)}
-                        placeholder="test"
-                    />
+                    >
+                        <option value="test">Test</option>
+                        <option value="live">Live (Producción)</option>
+                    </CampoSelect>
                     <CampoTexto
                         label="Publishable Key"
                         value={form.stripePublishableKey}
