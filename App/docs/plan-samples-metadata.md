@@ -1,6 +1,6 @@
 # Plan: Adquisición de Samples y Metadata Musical — Kamples
 
-> **Versión:** 1.2 | **Fecha:** 09/03/2026 | **Estado:** S1-S4 implementados  
+> **Versión:** 1.3 | **Fecha:** 09/03/2026 | **Estado:** S1-S5 implementados  
 > **Módulo:** Sample Discovery & Metadata Engine  
 > **Dependencias:** PostgreSQL, pgvector, yt-dlp, librosa/essentia, Scrapy, DataImpulse proxy
 

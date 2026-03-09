@@ -233,7 +233,17 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S4.6** Búsqueda textual (TopBar enlace "Buscar canciones", URL param q, placeholder dinámico) ✅ [AG-SMD]
 
 ### S5 — Expansión Scraper
-- [ ] **S5.1-S5.6** Spiders artistas/tracks, covers/remixes, productores
+- [x] **S5.1** ArtistSpider (artist.py: scrapea /most-sampled-artists/, sigue a tracks, delega detalles a SampleDetailSpider) ✅ [AG-SMD]
+- [x] **S5.2** TrackSpider — /samples/ (track.py: listas paginadas de samples de un track, delega a SampleDetailSpider) ✅ [AG-SMD]
+- [x] **S5.3** TrackSpider — /sampled/ (track.py: listas paginadas de canciones que samplearon un track) ✅ [AG-SMD]
+- [x] **S5.4** BrowseYearSpider (browse_year.py: cobertura sistemática por año/década, categorías samples/covered/remixed) ✅ [AG-SMD]
+- [x] **S5.5** Covers/remixes parsing ya cubierto por SampleDetailSpider._seguir_related() desde S2 ✅ [AG-SMD]
+- [x] **S5.6** Productores N:N ya cubierto por PostgresPipeline (canciones_artistas rol='producer') desde S2 ✅ [AG-SMD]
+
+### S5-UI — Página Música
+- [x] **S5-UI.1** Ruta `/musica` registrada en pages.php (reutiliza ExplorarCancionesIsland) ✅ [AG-SMD]
+- [x] **S5-UI.2** Sidebar: ítem "Música" con icono Music agregado a la navegación principal ✅ [AG-SMD]
+- [x] **S5-UI.3** Ruta antigua `/explorar/canciones` reemplazada por `/musica` ✅ [AG-SMD]
 
 ### S6 — Audio Search + Contribución Comunitaria
 - [ ] **S6.1-S6.6** Chromaprint fingerprinting, búsqueda por audio, UI contribución, moderación, sistema Cred

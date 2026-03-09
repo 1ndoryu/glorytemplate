@@ -132,7 +132,7 @@ PageManager::reactPage('sample', 'SampleDetalleIsland', function($pageId) {
 });
 
 /* Paginas Kamples — Sample Discovery (Canciones) */
-PageManager::reactPage('explorar/canciones', 'ExplorarCancionesIsland');
+PageManager::reactPage('musica', 'ExplorarCancionesIsland');
 
 PageManager::reactPage('cancion', 'CancionDetalleIsland', function($pageId) {
     $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
