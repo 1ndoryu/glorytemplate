@@ -1163,4 +1163,36 @@ class SamplesRepository extends BaseRepository
             ['hash' => $hashParcial, 'id' => $id]
         );
     }
+
+    /**
+     * Lista samples activos para el sitemap XML.
+     * Retorna solo los campos minimos necesarios (slug, updated_at, publicado_at).
+     */
+    public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
+    {
+        $ts = SamplesCols::TABLA;
+        $sql = "SELECT " . SamplesCols::SLUG . ", " . SamplesCols::UPDATED_AT . ", " . SamplesCols::PUBLICADO_AT
+             . " FROM {$ts}"
+             . " WHERE " . SamplesCols::ESTADO . " = :estado"
+             . " ORDER BY " . SamplesCols::PUBLICADO_AT . " DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, [
+            'estado' => SamplesEnums::ESTADO_ACTIVO,
+            'limit'  => $limit,
+            'offset' => $offset,
+        ]);
+    }
+
+    /**
+     * Cuenta total de samples activos para paginacion del sitemap.
+     */
+    public static function contarParaSitemap(): int
+    {
+        $ts = SamplesCols::TABLA;
+        $sql = "SELECT COUNT(*) FROM {$ts} WHERE " . SamplesCols::ESTADO . " = :estado";
+
+        $resultado = static::consultarValor($sql, ['estado' => SamplesEnums::ESTADO_ACTIVO]);
+        return (int) ($resultado ?? 0);
+    }
 }

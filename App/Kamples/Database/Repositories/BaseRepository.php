@@ -45,6 +45,19 @@ abstract class BaseRepository
     }
 
     /*
+     * Ejecuta SELECT y retorna un valor escalar (primera columna de la primera fila).
+     * Util para COUNT, SUM, MAX, etc.
+     */
+    public static function consultarValor(string $sql, array $params = []): mixed
+    {
+        $fila = PostgresService::consultarUno($sql, $params);
+        if ($fila === null || empty($fila)) {
+            return null;
+        }
+        return reset($fila);
+    }
+
+    /*
      * Ejecuta INSERT/UPDATE/DELETE y retorna filas afectadas (-1 si falla).
      */
     public static function ejecutar(string $sql, array $params = []): int

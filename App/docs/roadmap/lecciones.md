@@ -227,6 +227,18 @@
 
 ---
 
+## SEO / Glory Renderers
+
+- [wp_head timing]: wp_head() se ejecuta ANTES del callable de páginas (renderReactIsland). Para SEO dinámico, hay que hookear en acción `wp` (prioridad > 1 ya que resolverRutaDinamica es prioridad 1). RuntimeSeoData es el puente.
+- [canonical obligatorio]: Al remover `rel_canonical` del core WP con `remove_action('wp_head', 'rel_canonical')`, MetaTagRenderer::printCanonical DEBE siempre emitir un canonical — fallback a get_permalink() si no hay override.
+- [WP_Sitemaps_Provider signatures]: Los métodos abstractos (`get_url_list`, `get_max_num_pages`) no tienen type hints en los stubs. Overrides con type hints causan incompatibilidad. Omitir type hints y castear internamente.
+- [JSON-LD escaping]: Usar `JSON_UNESCAPED_SLASHES` en json_encode para URLs limpias en scripts JSON-LD. `JSON_UNESCAPED_UNICODE` para caracteres españoles.
+- [og:audio Twitter Cards]: Cuando hay og:audio disponible, usar `twitter:card = player` en vez de `summary_large_image`. Permite embedding de audio en Twitter.
+- [RuntimeSeoData vs update_post_meta]: No usar update_post_meta para SEO dinámico porque todas las rutas /sample/* comparten el mismo WP post ID — sobreescribiría para todos. RuntimeSeoData (static, request-scoped) es la solución correcta.
+- [BaseRepository consultarValor]: Método nuevo para queries escalares (COUNT, SUM, MAX). Retorna `reset($fila)` de consultarUno. Necesario para contarParaSitemap.
+
+---
+
 ## Terminología y Patrones
 
 - **"Coleccionar" (+):** = descargar. Crédito. Tabla `descargas`. Desktop: sync. Campo: `yaColeccionado` (o `esMio`).

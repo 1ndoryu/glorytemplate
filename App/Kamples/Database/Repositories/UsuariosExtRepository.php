@@ -637,4 +637,32 @@ class UsuariosExtRepository extends BaseRepository
             ['customerId' => $customerId, 'id' => $userId]
         );
     }
+
+    /**
+     * Lista perfiles para el sitemap XML.
+     * Solo usuarios con al menos 1 sample publicado.
+     */
+    public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $sql = "SELECT " . UsuariosExtCols::USERNAME . ", " . UsuariosExtCols::UPDATED_AT . ", " . UsuariosExtCols::CREATED_AT
+             . " FROM {$tabla}"
+             . " WHERE " . UsuariosExtCols::TOTAL_SAMPLES . " > 0"
+             . " ORDER BY " . UsuariosExtCols::TOTAL_SAMPLES . " DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);
+    }
+
+    /**
+     * Cuenta total de perfiles indexables para paginacion del sitemap.
+     */
+    public static function contarParaSitemap(): int
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $sql = "SELECT COUNT(*) FROM {$tabla} WHERE " . UsuariosExtCols::TOTAL_SAMPLES . " > 0";
+
+        $resultado = static::consultarValor($sql, []);
+        return (int) ($resultado ?? 0);
+    }
 }

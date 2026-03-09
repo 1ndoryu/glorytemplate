@@ -632,4 +632,34 @@ class ColeccionesRepository extends BaseRepository
 
         return \array_map(fn($r) => (int) $r[ColeccionesCols::ID], $rows);
     }
+
+    /**
+     * Lista colecciones publicas para el sitemap XML.
+     */
+    public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
+    {
+        $t = ColeccionesCols::TABLA;
+        $sql = "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::UPDATED_AT . ", " . ColeccionesCols::CREATED_AT
+             . " FROM {$t}"
+             . " WHERE " . ColeccionesCols::PUBLICA . " = true"
+             . " AND " . ColeccionesCols::TOTAL_SAMPLES . " > 0"
+             . " ORDER BY " . ColeccionesCols::UPDATED_AT . " DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);
+    }
+
+    /**
+     * Cuenta total de colecciones publicas indexables para paginacion del sitemap.
+     */
+    public static function contarParaSitemap(): int
+    {
+        $t = ColeccionesCols::TABLA;
+        $sql = "SELECT COUNT(*) FROM {$t}"
+             . " WHERE " . ColeccionesCols::PUBLICA . " = true"
+             . " AND " . ColeccionesCols::TOTAL_SAMPLES . " > 0";
+
+        $resultado = static::consultarValor($sql, []);
+        return (int) ($resultado ?? 0);
+    }
 }

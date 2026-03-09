@@ -196,3 +196,21 @@
   - [Rename]: Al renombrar colección, hay que actualizar rutaLocal de TODOS los archivos hijos, no solo la colección. Si no, el watcher los ve como archivos nuevos.
   - [Cache]: Múltiples callers de un mismo endpoint sin coordinación → 429. Cache client con TTL corto (10s) es suficiente para polling sin perder freshness.
   - [Tracking vs disco]: El tracking es caché del estado del disco, no fuente de verdad. Cualquier decisión que omita operaciones críticas (descarga) basándose en tracking DEBE verificar disco con `exists()`.
+
+---
+
+## Completado — FASE 12 SEO Dinámico [AG-SEO]
+
+- **12.1** ✅ SEO dinámico para páginas React Islands: RuntimeSeoData (store request-scoped), DynamicSeoResolver (hook framework `wp` prioridad 5), SeoKamples (resolvers para /sample/, /perfil/, /coleccion/).
+- **12.2** ✅ JSON-LD completo: MusicRecording con AudioObject+InteractionCounter+Offer, Person con FollowAction, MusicPlaylist, BreadcrumbList dinámico, FAQPage para home+planes.
+- **12.10** ✅ Sitemap XML: 3 providers WordPress nativos (samples activos, perfiles con samples, colecciones públicas). Paginación 2000/página.
+- **SEO defaults**: Títulos y descriptions optimizados para home, descubrir, comunidad, planes, registro. Meta robots noindex para librería, favoritos, descargas, mensajes, auth/login, panel admin.
+- **Meta tags**: Open Graph (og:type dinámico music.song/profile/music.playlist, og:audio para previews, og:image cascada), Twitter Cards (player card para audio), canonical dinámico, meta robots, meta keywords.
+- **Archivos creados**: `Glory/src/Seo/RuntimeSeoData.php`, `Glory/src/Seo/DynamicSeoResolver.php`, `App/Kamples/Services/SeoKamples.php`, `App/Kamples/Services/SeoSitemapProvider.php`, `App/Config/seo.php`, `App/docs/plan-seo.md`.
+- **Archivos modificados**: MetaTagRenderer, OpenGraphRenderer, JsonLdRenderer, SeoFrontendRenderer, SamplesRepository, UsuariosExtRepository, ColeccionesRepository, BaseRepository.
+- **Aprendizajes:**
+  - [SEO-WP]: wp_head() se ejecuta ANTES de renderReactIsland(). El callable de pages.php no puede inyectar SEO dinámico. Solución: hook en acción `wp` (antes de wp_head) con RuntimeSeoData estático.
+  - [SEO-DIP]: Glory framework no debe depender de App. DynamicSeoResolver acepta callables registrados; SeoKamples (App) registra resolvers. Limpia separación framework/app.
+  - [SEO-canonical]: Al remover `rel_canonical` del core WP, printCanonical DEBE tener fallback a get_permalink() para páginas sin canonical explícito.
+  - [SEO-WP-Sitemaps]: WP_Sitemaps_Provider::get_url_list() y get_max_num_pages() no tienen type hints en stubs. Overrides DEBEN omitir type hints para compatibilidad PHP.
+  - [SEO-consultarValor]: BaseRepository no tenía método para scalar queries (COUNT/SUM). Añadido consultarValor() que retorna primera columna de primera fila.

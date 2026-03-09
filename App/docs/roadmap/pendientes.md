@@ -61,9 +61,10 @@
 ## FASE 12 — SEO/Performance/Hardening
 
 > Glory tiene MetaTagRenderer+OpenGraphRenderer+JsonLdRenderer+SeoMetabox. RateLimiter en 5 endpoints. Sin CSP, sin tests, sin code splitting.
+> **SEO dinámico completado:** RuntimeSeoData, DynamicSeoResolver, SeoKamples (sample/perfil/coleccion), OpenGraph + Twitter Cards + JSON-LD (MusicRecording/Person/MusicPlaylist), Sitemap XML custom (3 providers), SEO defaults para todas las páginas estáticas, canonical dinamico, meta robots noindex para páginas privadas. Ver `App/docs/plan-seo.md`.
 
-- [ ] **12.1** SEO dinámico islands — meta tags samples/perfiles/colecciones, OG images
-- [ ] **12.2** JSON-LD — Product, Person, MusicRecording, BreadcrumbList
+- [x] **12.1** SEO dinámico islands — meta tags samples/perfiles/colecciones, OG images ✅ [AG-SEO]
+- [x] **12.2** JSON-LD — MusicRecording, Person, MusicPlaylist, BreadcrumbList, FAQPage ✅ [AG-SEO]
 - [ ] **12.3** Code splitting — React.lazy+Suspense para Mezclador/PianoRoll
 - [ ] **12.4** Compresión — Brotli/Gzip, cache headers agresivos
 - [ ] **12.5** CSP — nonces, restrict script/style/connect/media/frame-src
@@ -71,6 +72,10 @@
 - [ ] **12.7** Tests unitarios — PHPUnit repos/servicios, Vitest hooks React
 - [ ] **12.8** Tests E2E — Playwright flujos críticos
 - [ ] **12.9** Performance monitoring — Core Web Vitals, Lighthouse CI, budget <200KB
+- [ ] **12.10** Sitemap XML dinámico — registrado ✅ [AG-SEO], validar en producción con Google Search Console
+- [ ] **12.11** Páginas programáticas SEO — /explorar/genero/{genre}/, /explorar/bpm/{range}/ (ver plan-seo.md Fase 4)
+- [ ] **12.12** robots.txt + crawl budget — optimizar para indexación eficiente
+- [ ] **12.13** SSR/content injection para crawlers — renderizar contenido SEO para bots (plan-seo.md Fase 5)
 
 ---
 
