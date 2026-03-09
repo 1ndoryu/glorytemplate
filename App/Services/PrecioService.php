@@ -157,7 +157,7 @@ class PrecioService
 
         foreach ($temporadas as $temp) {
             $mult = self::obtenerMultiplicador($temp);
-            $tabla[$temp] = [
+            $tabla[] = [
                 'temporada'    => $temp,
                 'multiplicador'=> $mult,
                 'precioNoche'  => round($precioBase * $mult, 2),

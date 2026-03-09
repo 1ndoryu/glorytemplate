@@ -178,16 +178,21 @@ class DisponibilidadService
     {
         $primerDia  = new \DateTime("{$anio}-{$mes}-01");
         $ultimoDia  = (clone $primerDia)->modify('last day of this month');
+        $hoy        = new \DateTime('today');
         $calendario = [];
 
         // Obtener todas las reservas del mes
         $reservas = self::obtenerReservasMes($vehiculoId, $primerDia->format('Y-m-d'), $ultimoDia->format('Y-m-d'));
 
-        // Generar mapa
+        // Generar array indexado de objetos {dia, disponible, pasado}
         $dia = clone $primerDia;
         while ($dia <= $ultimoDia) {
             $fecha = $dia->format('Y-m-d');
-            $calendario[$fecha] = !isset($reservas[$fecha]);
+            $calendario[] = [
+                'dia'        => (int) $dia->format('j'),
+                'disponible' => !isset($reservas[$fecha]),
+                'pasado'     => $dia < $hoy,
+            ];
             $dia->modify('+1 day');
         }
 
