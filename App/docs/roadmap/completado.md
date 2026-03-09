@@ -214,3 +214,62 @@
   - [SEO-canonical]: Al remover `rel_canonical` del core WP, printCanonical DEBE tener fallback a get_permalink() para páginas sin canonical explícito.
   - [SEO-WP-Sitemaps]: WP_Sitemaps_Provider::get_url_list() y get_max_num_pages() no tienen type hints en stubs. Overrides DEBEN omitir type hints para compatibilidad PHP.
   - [SEO-consultarValor]: BaseRepository no tenía método para scalar queries (COUNT/SUM). Añadido consultarValor() que retorna primera columna de primera fila.
+
+---
+
+## Completado — FASE S: Sample Discovery & Metadata Engine (C601) [AG-SMD]
+
+> Plan completo: `App/docs/plan-samples-metadata.md` (v1.1)
+> Proyecto scraper: `kamples-scraper/` (Python/Scrapy)
+> Misión: Preservar relaciones de samples musicales (WhoSampled) como bien cultural abierto.
+
+### S1 — Infraestructura BD
+- **S1.1** ✅ 6 Schemas PHP: ArtistasMusicalesSchema, CancionesSchema, CancionesArtistasSchema (composite PK), RelacionesSampleSchema (uniqueCompuestos), ScrapingLogSchema, ColaExtraccionSamplesSchema.
+- **S1.2** ✅ Generator ejecutado: 6 Cols, 6 DTO, 5 Enums nuevos, schema.ts actualizado.
+- **S1.4** ✅ 6 Repositorios PHP con métodos custom: upsert ON CONFLICT, JOINs multi-tabla, fulltext search (tsquery), estadísticas agrupadas, batch queries.
+
+### S2 — Scraper Core
+- **S2.1-S2.2** ✅ Proyecto Python (requirements, scrapy.cfg, .env). DataImpulse middleware (proxy residencial $1/GB, bandwidth tracking, budget cutoff 80%/100%).
+- **S2.3-S2.4** ✅ HotSamplesSpider (3 fuentes: hot-samples/covers/remixes, 5 pages, delegates SampleDetailSpider). SampleDetailSpider (parsing con selectores verificados contra HTML real).
+- **S2.5** ✅ PostgresPipeline: upsert flow artista→canción→cancion_artista→relación (ON CONFLICT en cada paso).
+- **S2.6-S2.7** ✅ Bandwidth tracking, scripts cron (run_daily.sh, run_extraction.sh, stats.py).
+- **S2.8** ✅ Tests: 30+ unit tests (test_parsers.py) con fixture HTML real. Cobertura: normalizar_url, whosampled_id, timings, duración ISO, tipo_relacion, rating, slugs, subsecciones, extracción canción/productores/featuring/YouTube IDs.
+
+### S3 — Pipeline Extracción Audio
+- **S3.1** ✅ audio_download.py: yt-dlp wrapper (WAV, 300s timeout, cache, sin proxy).
+- **S3.2** ✅ bpm_analyzer.py: librosa onset_strength + beat_track, dataclass AnalisisBpm, time signature estimation (autocorrelation 3/4 vs 4/4).
+- **S3.3** ✅ sample_cutter.py: recorte alineado a compás (-1 margen + 8 compases, max 30s, fallback baja confianza), ffmpeg fade 50ms.
+- **S3.4** ✅ kamples_inserter.py: INSERT samples con metadata JSONB enriquecida, vinculación relación→sample, actualización cola, auto-tags/slug.
+- **S3.5** ✅ pipeline.py: orquestador completo (cola→descargar→analizar→recortar→insertar), --limit arg, estado por paso.
+
+### Estructura de archivos creados
+```
+App/Config/Schema/
+  ArtistasMusicalesSchema.php, CancionesSchema.php, CancionesArtistasSchema.php,
+  RelacionesSampleSchema.php, ScrapingLogSchema.php, ColaExtraccionSamplesSchema.php
+App/Kamples/Database/Repositories/
+  ArtistasMusicalesRepository.php, CancionesRepository.php, CancionesArtistasRepository.php,
+  RelacionesSampleRepository.php, ScrapingLogRepository.php, ColaExtraccionSamplesRepository.php
+kamples-scraper/
+  scrapy.cfg, requirements.txt, .env.example, .gitignore
+  kamples_scraper/ (settings, items, middlewares, pipelines, utils/, spiders/)
+  extractor/ (audio_download, bpm_analyzer, sample_cutter, kamples_inserter, pipeline)
+  tests/ (test_parsers.py, fixtures/sample_detail_page.html)
+  scripts/ (run_daily.sh, run_extraction.sh, stats.py)
+```
+
+### Aprendizajes
+- [Schema-CompositePK]: CancionesArtistas no tiene columna `id` — composite PK (cancion_id, artista_id, rol). El `colId()` del repo debe retornar una columna del composite.
+- [WS-Selectors]: Nunca parsear subsecciones por índice — el número y orden varía por canción. Usar texto del header (`identificar_subseccion`).
+- [WS-URL]: whosampled_url es el deduplificador principal para canciones. whosampled_id (numérico de la URL) para relaciones.
+- [Rating]: Rating overlay width/25 = promedio (ej: 125px = 5.0). Los votos están en `.ratingCount`.
+- [Timings]: Atributo `data-timings` en `<strong>`, no en `<span>`. Pueden ser comma-separated para múltiples apariciones.
+- [YouTube]: ID en `.embed-placeholder::attr(data-id)`. Separados en `.embed-dest` y `.embed-source`.
+- [Librosa]: `beat_track` puede tener baja confianza. Fallback a timing_inicio + duración fija cuando confianza < 0.3.
+- [yt-dlp]: No necesita proxy (YouTube no bloquea). Formato WAV para análisis, timeout 300s.
+
+### Pendientes S inmediatos
+- S1.3: Ejecutar migraciones (CREATE TABLE) — manual o vía Glory CLI
+- S1.5: API endpoints REST para consultar relaciones desde React
+- S3.6: Waveform generation para UI
+- S3.7: Cron batch de extracción

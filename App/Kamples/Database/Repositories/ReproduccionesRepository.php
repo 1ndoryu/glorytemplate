@@ -40,7 +40,7 @@ class ReproduccionesRepository extends BaseRepository
         $col = ReproduccionesCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . ReproduccionesCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -59,6 +59,8 @@ class ReproduccionesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
         
 

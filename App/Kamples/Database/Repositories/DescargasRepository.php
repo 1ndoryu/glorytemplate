@@ -37,7 +37,7 @@ class DescargasRepository extends BaseRepository
         $col = DescargasCols::USUARIO_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . DescargasCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
             ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -56,6 +56,8 @@ class DescargasRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
             
 

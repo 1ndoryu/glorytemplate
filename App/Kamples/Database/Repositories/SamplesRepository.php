@@ -49,7 +49,7 @@ class SamplesRepository extends BaseRepository
         $colEstado = SamplesCols::ESTADO;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$colEstado} = :estado ORDER BY " . SamplesCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$colEstado} = :estado ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
             [
                 'estado' => SamplesEnums::ESTADO_ACTIVO,
                 'limit' => $limit,
@@ -67,7 +67,7 @@ class SamplesRepository extends BaseRepository
         $col = SamplesCols::CREADOR_ID;
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY " . SamplesCols::ID . " DESC LIMIT :limit OFFSET :offset",
+            "SELECT * FROM {$tabla} WHERE {$col} = :creadorId ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
             ['creadorId' => $creadorId, 'limit' => $limit, 'offset' => $offset]
         );
     }
@@ -86,6 +86,8 @@ class SamplesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
     /* Carpeta por defecto para samples sin carpeta_primaria en metadata */
     const CARPETA_DEFAULT = 'General';

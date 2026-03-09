@@ -19,6 +19,6 @@ final class DuplicadosPendientesCols
     const NOTAS = 'notas';
     const CREATED_AT = 'created_at';
 
-    /* Lista completa de columnas para validacion */
+    /* Lista completa de columnas para validación */
     const TODAS = ['id', 'sample_original_id', 'sample_duplicado_id', 'tipo', 'estado', 'resuelto_por', 'resuelto_at', 'notas', 'created_at'];
 }

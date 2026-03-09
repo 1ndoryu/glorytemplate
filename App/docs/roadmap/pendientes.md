@@ -191,3 +191,44 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [INTERVAL SQL]: Usar whitelist en repositorio para valores de intervalo, nunca interpolar directo. Ver regla SEC-C1.
 
 ---
+
+## FASE S — Sample Discovery & Metadata Engine (C601)
+
+> Plan completo en `App/docs/plan-samples-metadata.md`  
+> Misión: Preservar relaciones de samples musicales (WhoSampled en riesgo por adquisición Spotify). Scraping diario hot-samples + extracción de audio por compás + integración con catálogo Kamples.  
+> Meta: 100K relaciones en 1 año. Diferenciador: Splice + WhoSampled fusionados.
+
+### S1 — Infraestructura BD
+- [x] **S1.1** Schemas PHP: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples ✅
+- [x] **S1.2** Generator: Cols, DTO, Enums, schema.ts generados ✅
+- [ ] **S1.3** Migraciones (tablas + índices) — ejecutar manualmente o vía Glory CLI
+- [x] **S1.4** Repositorios PHP con métodos custom (6 repos: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples) ✅
+- [ ] **S1.5** API endpoints REST básicos
+
+### S2 — Scraper Core (Python/Scrapy + DataImpulse)
+- [x] **S2.1** Proyecto Python: requirements.txt, scrapy.cfg, .env, .gitignore ✅
+- [x] **S2.2** DataImpulse middleware (proxy + bandwidth tracking + budget cutoff) ✅
+- [x] **S2.3** HotSamplesSpider (hot-samples + hot-covers + hot-remixes, 5 pages max) ✅
+- [x] **S2.4** SampleDetailSpider (parsing completo con selectores verificados) ✅
+- [x] **S2.5** PostgresPipeline (upsert artista→canción→cancion_artista→relación) ✅
+- [x] **S2.6** Bandwidth tracking + presupuesto ✅
+- [x] **S2.7** Scripts cron: run_daily.sh, run_extraction.sh, stats.py ✅
+- [x] **S2.8** Tests con fixture HTML real (test_parsers.py, 30+ tests) ✅
+
+### S3 — Pipeline Extracción Audio
+- [x] **S3.1** audio_download.py (yt-dlp wrapper, WAV, cache, 300s timeout) ✅
+- [x] **S3.2** bpm_analyzer.py (librosa beat tracking, time signature, confianza) ✅
+- [x] **S3.3** sample_cutter.py (recorte alineado a compás: -1 + 8 compases, ffmpeg fade) ✅
+- [x] **S3.4** kamples_inserter.py (inserción en BD, tags auto, vinculación relación) ✅
+- [x] **S3.5** pipeline.py (orquestador: cola→descargar→analizar→recortar→insertar) ✅
+- [ ] **S3.6** Waveform generation (pendiente — necesario para UI)
+- [ ] **S3.7** Cron batch de extracción
+
+### S4 — UI React Islands
+- [ ] **S4.1-S4.6** Página canción, RelacionSample component, explorar canciones, cadena de samples, búsqueda textual
+
+### S5 — Expansión Scraper
+- [ ] **S5.1-S5.6** Spiders artistas/tracks, covers/remixes, productores
+
+### S6 — Audio Search + Contribución Comunitaria
+- [ ] **S6.1-S6.6** Chromaprint fingerprinting, búsqueda por audio, UI contribución, moderación, sistema Cred

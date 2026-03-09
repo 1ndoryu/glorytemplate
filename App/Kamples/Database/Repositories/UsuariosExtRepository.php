@@ -54,6 +54,8 @@ class UsuariosExtRepository extends BaseRepository
 
     
 
+    
+
     /*
      * Actualizar campos arbitrarios de un usuario (admin).
      * Recibe array de cláusulas SET ya armadas y parámetros.

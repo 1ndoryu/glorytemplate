@@ -41,6 +41,7 @@ final class SamplesDTO
         public readonly bool $permitirDescarga,
         public readonly bool $licenciaLibre,
         public readonly ?string $audioHash,
+        public readonly ?string $hashParcial,
         public readonly int $totalComentarios,
         public readonly bool $verificado,
         public readonly bool $mostrarEnComunidad
@@ -86,6 +87,7 @@ final class SamplesDTO
             permitirDescarga: (bool) ($row['permitir_descarga'] ?? true),
             licenciaLibre: (bool) ($row['licencia_libre'] ?? false),
             audioHash: isset($row['audio_hash']) ? $row['audio_hash'] : null,
+            hashParcial: isset($row['hash_parcial']) ? $row['hash_parcial'] : null,
             totalComentarios: (int) ($row['total_comentarios'] ?? 0),
             verificado: (bool) ($row['verificado'] ?? false),
             mostrarEnComunidad: (bool) ($row['mostrar_en_comunidad'] ?? true)
@@ -139,6 +141,7 @@ final class SamplesDTO
             'permitir_descarga' => $this->permitirDescarga,
             'licencia_libre' => $this->licenciaLibre,
             'audio_hash' => $this->audioHash,
+            'hash_parcial' => $this->hashParcial,
             'total_comentarios' => $this->totalComentarios,
             'verificado' => $this->verificado,
             'mostrar_en_comunidad' => $this->mostrarEnComunidad];

@@ -10,6 +10,7 @@ final class ColeccionSamplesDTO
     public function __construct(
         public readonly int $coleccionId,
         public readonly int $sampleId,
+        public readonly int $usuarioId,
         public readonly int $posicion,
         public readonly string $addedAt
     ) {}
@@ -23,6 +24,7 @@ final class ColeccionSamplesDTO
         return new self(
             coleccionId: (int) ($row['coleccion_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'coleccion_id' ausente en coleccion_samples", 'coleccion_samples', 'coleccion_id')),
             sampleId: (int) ($row['sample_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'sample_id' ausente en coleccion_samples", 'coleccion_samples', 'sample_id')),
+            usuarioId: (int) ($row['usuario_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'usuario_id' ausente en coleccion_samples", 'coleccion_samples', 'usuario_id')),
             posicion: (int) ($row['posicion'] ?? 0),
             addedAt: ($row['added_at'] ?? date('Y-m-d H:i:s'))
         );
@@ -44,6 +46,7 @@ final class ColeccionSamplesDTO
         return [
             'coleccion_id' => $this->coleccionId,
             'sample_id' => $this->sampleId,
+            'usuario_id' => $this->usuarioId,
             'posicion' => $this->posicion,
             'added_at' => $this->addedAt];
     }

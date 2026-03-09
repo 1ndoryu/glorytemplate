@@ -13,7 +13,6 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\ReportesCols;
 use App\Config\Schema\_generated\ReportesDTO;
-use App\Config\Schema\_generated\ReportesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ReportesRepository extends BaseRepository
@@ -42,6 +41,8 @@ class ReportesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
         
 

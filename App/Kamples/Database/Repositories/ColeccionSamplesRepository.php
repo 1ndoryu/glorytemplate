@@ -30,8 +30,23 @@ class ColeccionSamplesRepository extends BaseRepository
         return ColeccionSamplesCols::COLECCION_ID;
     }
 
+    /*
+     * Buscar registros del usuario dado.
+     */
+    public static function buscarPorUsuario(int $usuarioId, int $limit = 20, int $offset = 0): array
+    {
+        $tabla = ColeccionSamplesCols::TABLA;
+        $col = ColeccionSamplesCols::USUARIO_ID;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla} WHERE {$col} = :usuarioId ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
+            ['usuarioId' => $usuarioId, 'limit' => $limit, 'offset' => $offset]
+        );
+    }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
         
 

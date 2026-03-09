@@ -26,6 +26,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - `App/docs/plan-piano-roll.md` -- Plan Piano Roll
 - `App/solid-seguridad-optimizacion.md` -- SOLID, seguridad y optimizacion
 - `App/docs/roadmap/plan-dedup-global.md` -- Plan de deduplicacion global (1 sample = 1 existencia)
+- `App/docs/plan-samples-metadata.md` -- Plan Sample Discovery & Metadata Engine (scraping + extraccion audio + whosampled data)
 
 ---
 

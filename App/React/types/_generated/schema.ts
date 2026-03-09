@@ -21,6 +21,64 @@ export interface IAlgoritmoEstado {
   versionPerfil: number
 }
 
+export interface IArtistasMusicales {
+  id: number
+  nombre: string
+  slug: string
+  imagenUrl: string | null
+  whosampledSlug: string | null
+  musicbrainzId: string | null
+  metadata: Record<string, unknown>
+  totalCanciones: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ICancionesArtistas {
+  cancionId: number
+  artistaId: number
+  rol: 'principal' | 'featuring' | 'producer'
+}
+
+export interface ICanciones {
+  id: number
+  titulo: string
+  slug: string
+  artistaId: number
+  album: string | null
+  sello: string | null
+  anio: number | null
+  duracionSegundos: number | null
+  genero: string | null
+  youtubeId: string | null
+  imagenUrl: string | null
+  whosampledUrl: string | null
+  bpm: number | null
+  tonalidad: string | null
+  metadata: Record<string, unknown>
+  totalSampleada: number
+  totalSamplea: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface IColaExtraccionSamples {
+  id: number
+  relacionId: number
+  youtubeId: string
+  timingInicioSeg: number
+  bpmDetectado: number | null
+  duracionCompasSeg: number | null
+  compasInicioSeg: number | null
+  compasFinSeg: number | null
+  estado: 'pendiente' | 'descargando' | 'analizando' | 'recortando' | 'completado' | 'error' | 'revision_humana'
+  sampleId: number | null
+  errorMensaje: string | null
+  intentos: number
+  procesadoAt: string | null
+  createdAt: string
+}
+
 export interface IColaProcesamientoIa {
   id: number
   tipo: 'sample' | 'comentario' | 'publicacion'
@@ -54,6 +112,7 @@ export interface IColecciones {
 export interface IColeccionSamples {
   coleccionId: number
   sampleId: number
+  usuarioId: number
   posicion: number
   addedAt: string
 }
@@ -89,6 +148,18 @@ export interface IDescargas {
   calidad: string
   createdAt: string
   tamanoBytes: number
+}
+
+export interface IDuplicadosPendientes {
+  id: unknown
+  sampleOriginalId: number
+  sampleDuplicadoId: number
+  tipo: unknown
+  estado: unknown
+  resueltoPor: number | null
+  resueltoAt: string | null
+  notas: string | null
+  createdAt: string
 }
 
 export interface IFollows {
@@ -146,6 +217,26 @@ export interface IPublicaciones {
   moderacionEstado: 'pendiente' | 'revision' | 'aprobado' | 'rechazado'
   moderacionDetalle: Record<string, unknown>
   moderacionRazon: string | null
+  updatedAt: string
+}
+
+export interface IRelacionesSample {
+  id: number
+  cancionDestinoId: number
+  cancionFuenteId: number
+  whosampledId: number | null
+  tipoRelacion: 'sample' | 'cover' | 'remix' | 'interpolation'
+  tipoElemento: 'hook_riff' | 'vocals_lyrics' | 'drums' | 'bass' | 'keys_synth' | 'sound_effect' | 'multiple_elements' | 'other'
+  timingsDestino: Record<string, unknown>
+  timingsFuente: Record<string, unknown>
+  apareceEnTodo: boolean
+  sampleId: number | null
+  votosTotal: number
+  votosPromedio: number
+  fuente: 'scraping' | 'comunidad' | 'musicbrainz' | 'import'
+  contribuidorId: number | null
+  verificada: boolean
+  createdAt: string
   updatedAt: string
 }
 
@@ -217,9 +308,22 @@ export interface ISamples {
   permitirDescarga: boolean
   licenciaLibre: boolean
   audioHash: string | null
+  hashParcial: string | null
   totalComentarios: number
   verificado: boolean
   mostrarEnComunidad: boolean
+}
+
+export interface IScrapingLog {
+  id: number
+  url: string
+  tipoPagina: 'hot_samples' | 'hot_covers' | 'hot_remixes' | 'sample_detail' | 'cover_detail' | 'remix_detail' | 'artist' | 'track' | 'track_samples' | 'track_sampled' | 'browse_year' | 'browse_genre'
+  estado: 'pendiente' | 'procesado' | 'error' | 'skip'
+  intentos: number
+  bytesDescargados: number
+  errorMensaje: string | null
+  procesadoAt: string | null
+  createdAt: string
 }
 
 export interface ISuscripciones {
@@ -306,6 +410,68 @@ export const AlgoritmoEstadoCols = {
   VERSION_PERFIL: 'version_perfil'
 } as const
 
+export const ArtistasMusicalesCols = {
+  TABLA: 'artistas_musicales',
+  ID: 'id',
+  NOMBRE: 'nombre',
+  SLUG: 'slug',
+  IMAGEN_URL: 'imagen_url',
+  WHOSAMPLED_SLUG: 'whosampled_slug',
+  MUSICBRAINZ_ID: 'musicbrainz_id',
+  METADATA: 'metadata',
+  TOTAL_CANCIONES: 'total_canciones',
+  CREATED_AT: 'created_at',
+  UPDATED_AT: 'updated_at'
+} as const
+
+export const CancionesArtistasCols = {
+  TABLA: 'canciones_artistas',
+  CANCION_ID: 'cancion_id',
+  ARTISTA_ID: 'artista_id',
+  ROL: 'rol'
+} as const
+
+export const CancionesCols = {
+  TABLA: 'canciones',
+  ID: 'id',
+  TITULO: 'titulo',
+  SLUG: 'slug',
+  ARTISTA_ID: 'artista_id',
+  ALBUM: 'album',
+  SELLO: 'sello',
+  ANIO: 'anio',
+  DURACION_SEGUNDOS: 'duracion_segundos',
+  GENERO: 'genero',
+  YOUTUBE_ID: 'youtube_id',
+  IMAGEN_URL: 'imagen_url',
+  WHOSAMPLED_URL: 'whosampled_url',
+  BPM: 'bpm',
+  TONALIDAD: 'tonalidad',
+  METADATA: 'metadata',
+  TOTAL_SAMPLEADA: 'total_sampleada',
+  TOTAL_SAMPLEA: 'total_samplea',
+  CREATED_AT: 'created_at',
+  UPDATED_AT: 'updated_at'
+} as const
+
+export const ColaExtraccionSamplesCols = {
+  TABLA: 'cola_extraccion_samples',
+  ID: 'id',
+  RELACION_ID: 'relacion_id',
+  YOUTUBE_ID: 'youtube_id',
+  TIMING_INICIO_SEG: 'timing_inicio_seg',
+  BPM_DETECTADO: 'bpm_detectado',
+  DURACION_COMPAS_SEG: 'duracion_compas_seg',
+  COMPAS_INICIO_SEG: 'compas_inicio_seg',
+  COMPAS_FIN_SEG: 'compas_fin_seg',
+  ESTADO: 'estado',
+  SAMPLE_ID: 'sample_id',
+  ERROR_MENSAJE: 'error_mensaje',
+  INTENTOS: 'intentos',
+  PROCESADO_AT: 'procesado_at',
+  CREATED_AT: 'created_at'
+} as const
+
 export const ColaProcesamientoIaCols = {
   TABLA: 'cola_procesamiento_ia',
   ID: 'id',
@@ -342,6 +508,7 @@ export const ColeccionSamplesCols = {
   TABLA: 'coleccion_samples',
   COLECCION_ID: 'coleccion_id',
   SAMPLE_ID: 'sample_id',
+  USUARIO_ID: 'usuario_id',
   POSICION: 'posicion',
   ADDED_AT: 'added_at'
 } as const
@@ -380,6 +547,19 @@ export const DescargasCols = {
   CALIDAD: 'calidad',
   CREATED_AT: 'created_at',
   TAMANO_BYTES: 'tamano_bytes'
+} as const
+
+export const DuplicadosPendientesCols = {
+  TABLA: 'duplicados_pendientes',
+  ID: 'id',
+  SAMPLE_ORIGINAL_ID: 'sample_original_id',
+  SAMPLE_DUPLICADO_ID: 'sample_duplicado_id',
+  TIPO: 'tipo',
+  ESTADO: 'estado',
+  RESUELTO_POR: 'resuelto_por',
+  RESUELTO_AT: 'resuelto_at',
+  NOTAS: 'notas',
+  CREATED_AT: 'created_at'
 } as const
 
 export const FollowsCols = {
@@ -442,6 +622,27 @@ export const PublicacionesCols = {
   MODERACION_ESTADO: 'moderacion_estado',
   MODERACION_DETALLE: 'moderacion_detalle',
   MODERACION_RAZON: 'moderacion_razon',
+  UPDATED_AT: 'updated_at'
+} as const
+
+export const RelacionesSampleCols = {
+  TABLA: 'relaciones_sample',
+  ID: 'id',
+  CANCION_DESTINO_ID: 'cancion_destino_id',
+  CANCION_FUENTE_ID: 'cancion_fuente_id',
+  WHOSAMPLED_ID: 'whosampled_id',
+  TIPO_RELACION: 'tipo_relacion',
+  TIPO_ELEMENTO: 'tipo_elemento',
+  TIMINGS_DESTINO: 'timings_destino',
+  TIMINGS_FUENTE: 'timings_fuente',
+  APARECE_EN_TODO: 'aparece_en_todo',
+  SAMPLE_ID: 'sample_id',
+  VOTOS_TOTAL: 'votos_total',
+  VOTOS_PROMEDIO: 'votos_promedio',
+  FUENTE: 'fuente',
+  CONTRIBUIDOR_ID: 'contribuidor_id',
+  VERIFICADA: 'verificada',
+  CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
 } as const
 
@@ -517,9 +718,23 @@ export const SamplesCols = {
   PERMITIR_DESCARGA: 'permitir_descarga',
   LICENCIA_LIBRE: 'licencia_libre',
   AUDIO_HASH: 'audio_hash',
+  HASH_PARCIAL: 'hash_parcial',
   TOTAL_COMENTARIOS: 'total_comentarios',
   VERIFICADO: 'verificado',
   MOSTRAR_EN_COMUNIDAD: 'mostrar_en_comunidad'
+} as const
+
+export const ScrapingLogCols = {
+  TABLA: 'scraping_log',
+  ID: 'id',
+  URL: 'url',
+  TIPO_PAGINA: 'tipo_pagina',
+  ESTADO: 'estado',
+  INTENTOS: 'intentos',
+  BYTES_DESCARGADOS: 'bytes_descargados',
+  ERROR_MENSAJE: 'error_mensaje',
+  PROCESADO_AT: 'procesado_at',
+  CREATED_AT: 'created_at'
 } as const
 
 export const SuscripcionesCols = {
@@ -589,6 +804,22 @@ export const UsuariosExtCols = {
 } as const
 
 /* Constantes de valores enum/check (mirror de PHP) */
+export const CancionesArtistasEnums = {
+  ROL_PRINCIPAL: 'principal',
+  ROL_FEATURING: 'featuring',
+  ROL_PRODUCER: 'producer'
+} as const
+
+export const ColaExtraccionSamplesEnums = {
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_DESCARGANDO: 'descargando',
+  ESTADO_ANALIZANDO: 'analizando',
+  ESTADO_RECORTANDO: 'recortando',
+  ESTADO_COMPLETADO: 'completado',
+  ESTADO_ERROR: 'error',
+  ESTADO_REVISION_HUMANA: 'revision_humana'
+} as const
+
 export const ColaProcesamientoIaEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_COMENTARIO: 'comentario',
@@ -634,6 +865,25 @@ export const PublicacionesEnums = {
   MODERACION_ESTADO_RECHAZADO: 'rechazado'
 } as const
 
+export const RelacionesSampleEnums = {
+  TIPO_RELACION_SAMPLE: 'sample',
+  TIPO_RELACION_COVER: 'cover',
+  TIPO_RELACION_REMIX: 'remix',
+  TIPO_RELACION_INTERPOLATION: 'interpolation',
+  TIPO_ELEMENTO_HOOK_RIFF: 'hook_riff',
+  TIPO_ELEMENTO_VOCALS_LYRICS: 'vocals_lyrics',
+  TIPO_ELEMENTO_DRUMS: 'drums',
+  TIPO_ELEMENTO_BASS: 'bass',
+  TIPO_ELEMENTO_KEYS_SYNTH: 'keys_synth',
+  TIPO_ELEMENTO_SOUND_EFFECT: 'sound_effect',
+  TIPO_ELEMENTO_MULTIPLE_ELEMENTS: 'multiple_elements',
+  TIPO_ELEMENTO_OTHER: 'other',
+  FUENTE_SCRAPING: 'scraping',
+  FUENTE_COMUNIDAD: 'comunidad',
+  FUENTE_MUSICBRAINZ: 'musicbrainz',
+  FUENTE_IMPORT: 'import'
+} as const
+
 export const ReportesDuplicadosEnums = {
   ESTADO_REPORTADO: 'reportado',
   ESTADO_EN_REVISION: 'en_revision',
@@ -649,6 +899,25 @@ export const SamplesEnums = {
   ESTADO_EN_SUPERVISION: 'en_supervision',
   TIPO_LOOP: 'loop',
   TIPO_ONESHOT: 'oneshot'
+} as const
+
+export const ScrapingLogEnums = {
+  TIPO_PAGINA_HOT_SAMPLES: 'hot_samples',
+  TIPO_PAGINA_HOT_COVERS: 'hot_covers',
+  TIPO_PAGINA_HOT_REMIXES: 'hot_remixes',
+  TIPO_PAGINA_SAMPLE_DETAIL: 'sample_detail',
+  TIPO_PAGINA_COVER_DETAIL: 'cover_detail',
+  TIPO_PAGINA_REMIX_DETAIL: 'remix_detail',
+  TIPO_PAGINA_ARTIST: 'artist',
+  TIPO_PAGINA_TRACK: 'track',
+  TIPO_PAGINA_TRACK_SAMPLES: 'track_samples',
+  TIPO_PAGINA_TRACK_SAMPLED: 'track_sampled',
+  TIPO_PAGINA_BROWSE_YEAR: 'browse_year',
+  TIPO_PAGINA_BROWSE_GENRE: 'browse_genre',
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_PROCESADO: 'procesado',
+  ESTADO_ERROR: 'error',
+  ESTADO_SKIP: 'skip'
 } as const
 
 export const SuscripcionesEnums = {
