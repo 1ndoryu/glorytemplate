@@ -59,9 +59,10 @@
 }
 
 .dropdownPanelLista {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
 }
 
 /* Item genérico de dropdown */
@@ -69,7 +70,6 @@
     display: flex;
     align-items: flex-start;
     gap: var(--espacioSm);
-    padding: var(--espacioMd) var(--espacioLg) var(--espacioLg) var(--espacioSm);
     cursor: pointer;
     transition: background-color var(--transicionRapida);
     border: none;
@@ -149,4 +149,17 @@
     position: fixed;
     inset: 0;
     z-index: calc(var(--zModal) - 1);
+}
+
+/* En móvil los dropdowns se centran y son fixed para no salirse de pantalla */
+@media (max-width: 768px) {
+    .dropdownPanel {
+        position: fixed;
+        top: calc(var(--altoTopbar, 56px) + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        width: calc(100vw - 48px);
+        max-width: 400px;
+    }
 }

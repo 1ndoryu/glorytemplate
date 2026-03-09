@@ -5,7 +5,7 @@
  * Lógica extraída a useTarjetaSample (SRP).
  */
 
-import { type MouseEvent } from 'react';
+import { useRef, type MouseEvent } from 'react';
 import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark } from 'lucide-react';
 import type { SampleResumen, TipoReaccion } from '../../types';
 import { WaveformPlayer } from './WaveformPlayer';
@@ -44,8 +44,45 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         manejarDragStart, navegar, onClickTitulo, manejarComentar,
     } = useTarjetaSample(props);
 
+    /* Long press en mobile para abrir menú contextual (500ms) */
+    const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const touchMovido = useRef(false);
+
+    const iniciarLongPress = (e: React.TouchEvent) => {
+        touchMovido.current = false;
+        const touch = e.touches[0];
+        longPressTimer.current = setTimeout(() => {
+            if (touchMovido.current) return;
+            const fake = {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                preventDefault: () => {},
+                stopPropagation: () => {},
+            } as MouseEvent;
+            manejarMenu(fake);
+        }, 500);
+    };
+
+    const cancelarLongPress = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    };
+
     return (
-        <div className={clases} onContextMenu={manejarMenu} onClick={manejarPlayPause} role="button" tabIndex={0} draggable onDragStart={manejarDragStart}>
+        <div
+            className={clases}
+            onContextMenu={manejarMenu}
+            onClick={manejarPlayPause}
+            role="button"
+            tabIndex={0}
+            draggable
+            onDragStart={manejarDragStart}
+            onTouchStart={iniciarLongPress}
+            onTouchEnd={cancelarLongPress}
+            onTouchMove={() => { touchMovido.current = true; cancelarLongPress(); }}
+        >
             {/* Portada con overlay play/pause */}
             <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
                 <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />
@@ -119,11 +156,11 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     </BotonBase>
                 </TooltipReacciones>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionGuardarBtn ${guardado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarGuardar} type="button" aria-label="Guardar en colección">
                     <Bookmark size={18} fill={guardado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${comentado ? 'tarjetaAccionLiked' : ''}`} onClick={(e) => { e.stopPropagation(); manejarComentar(sample.id); }} type="button" aria-label="Comentar">
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn tarjetaAccionComentarBtn ${comentado ? 'tarjetaAccionLiked' : ''}`} onClick={(e) => { e.stopPropagation(); manejarComentar(sample.id); }} type="button" aria-label="Comentar">
                     <MessageCircle size={18} fill={comentado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
@@ -131,7 +168,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     <Plus size={18} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion" onClick={manejarMenu} type="button" aria-label="Más opciones">
+                <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion tarjetaMenuBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">
                     <MoreHorizontal size={18} />
                 </BotonBase>
             </div>

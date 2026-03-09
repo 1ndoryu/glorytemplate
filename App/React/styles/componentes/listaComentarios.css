@@ -18,7 +18,7 @@
 /* Cada comentario */
 .comentarioItem {
     display: flex;
-    gap: var(--espacioSm);
+    gap: var(--espacioMd);
     align-items: flex-start;
 }
 
@@ -400,12 +400,12 @@
     align-items: center;
     gap: var(--espacioSm);
     margin-top: calc(var(--espacioXs) / 2);
+    padding: var(--espacioSm) 0;
 }
 
 .comentarioAccionBtn {
     display: flex;
     align-items: center;
-    gap: calc(var(--espacioXs) / 2);
     background: none;
     border: none;
     color: var(--textoTerciario);

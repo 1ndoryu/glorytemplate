@@ -4,14 +4,14 @@
  * Lógica extraída a useComentarioItem (SRP).
  */
 
-import { Heart, MessageCircle, MoreHorizontal, Send } from 'lucide-react';
-import { Avatar } from '@app/components/ui/Avatar';
-import { MenuContextual } from '@app/components/ui/MenuContextual';
-import { useComentarioItem } from '@app/hooks/useComentarioItem';
-import type { Comentario } from '@app/types/publicacion';
+import {Heart, MessageCircle, MoreHorizontal, Send} from 'lucide-react';
+import {Avatar} from '@app/components/ui/Avatar';
+import {MenuContextual} from '@app/components/ui/MenuContextual';
+import {useComentarioItem} from '@app/hooks/useComentarioItem';
+import type {Comentario} from '@app/types/publicacion';
 import '../../styles/componentes/listaComentarios.css';
-import { BotonBase } from '../ui/BotonBase';
-import { CampoTexto } from '../ui/CampoTexto';
+import {BotonBase} from '../ui/BotonBase';
+import {CampoTexto} from '../ui/CampoTexto';
 
 /* Formatear fecha relativa */
 const formatearTiempoComentario = (fecha: string): string => {
@@ -23,7 +23,7 @@ const formatearTiempoComentario = (fecha: string): string => {
     if (hrs < 24) return `${hrs}h`;
     const dias = Math.floor(hrs / 24);
     if (dias < 30) return `${dias}d`;
-    return new Date(fecha).toLocaleDateString('es', { day: 'numeric', month: 'short' });
+    return new Date(fecha).toLocaleDateString('es', {day: 'numeric', month: 'short'});
 };
 
 export interface ComentarioAcciones {
@@ -49,33 +49,17 @@ interface ComentarioItemProps {
 
 const MAX_NIVEL = 2;
 
-export const ComentarioItem = ({
-    comentario,
-    acciones,
-    onClickAutor,
-    renderMediaComentario,
-    nivel = 0,
-}: ComentarioItemProps): JSX.Element => {
-    const {
-        menuPos, menuItems, abrirMenu, cerrarMenu,
-        textoEdicion, setTextoEdicion, textoRespuesta, setTextoRespuesta,
-        respuestasVisibles, enviandoRespuesta,
-        inputRespuestaRef, inputEdicionRef,
-        editando, respondiendo, tieneRespuestas,
-        iniciarRespuesta, enviarRespuesta, confirmarEdicion,
-        toggleRespuestas, manejarKeyEdicion, manejarKeyRespuesta,
-    } = useComentarioItem({ comentario, acciones });
+export const ComentarioItem = ({comentario, acciones, onClickAutor, renderMediaComentario, nivel = 0}: ComentarioItemProps): JSX.Element => {
+    const {menuPos, menuItems, abrirMenu, cerrarMenu, textoEdicion, setTextoEdicion, textoRespuesta, setTextoRespuesta, respuestasVisibles, enviandoRespuesta, inputRespuestaRef, inputEdicionRef, editando, respondiendo, tieneRespuestas, iniciarRespuesta, enviarRespuesta, confirmarEdicion, toggleRespuestas, manejarKeyEdicion, manejarKeyRespuesta} = useComentarioItem({comentario, acciones});
 
     return (
         <div className={`comentarioItem ${nivel > 0 ? 'comentarioRespuesta' : ''}`}>
-            <div className="comentarioAutor" onClick={() => onClickAutor?.(comentario.autor.username)}
-                role="link" tabIndex={0}>
+            <div className="comentarioAutor" onClick={() => onClickAutor?.(comentario.autor.username)} role="link" tabIndex={0}>
                 <Avatar src={comentario.autor.avatarUrl} nombre={comentario.autor.nombreVisible} tamano="xs" />
             </div>
             <div className="comentarioCuerpo">
                 <div className="comentarioCabeceraLinea">
-                    <span className="comentarioNombre" onClick={() => onClickAutor?.(comentario.autor.username)}
-                        role="link" tabIndex={0}>
+                    <span className="comentarioNombre" onClick={() => onClickAutor?.(comentario.autor.username)} role="link" tabIndex={0}>
                         {comentario.autor.nombreVisible}
                     </span>
                     <span className="comentarioTiempo">{formatearTiempoComentario(comentario.creadoAt)}</span>
@@ -85,7 +69,7 @@ export const ComentarioItem = ({
                         </span>
                     )}
                     {menuItems.length > 0 && (
-                        <BotonBase variante="ghost" className="comentarioMenuBtn" onClick={abrirMenu} type="button" aria-label="Más opciones">
+                        <BotonBase variante="ghost" tamano="ninguno" className="comentarioMenuBtn" onClick={abrirMenu} type="button" aria-label="Más opciones">
                             <MoreHorizontal size={14} />
                         </BotonBase>
                     )}
@@ -95,12 +79,14 @@ export const ComentarioItem = ({
 
                 {editando ? (
                     <div className="comentarioEdicion">
-                        <CampoTexto ref={inputEdicionRef}  value={textoEdicion}
-                            onChange={e => setTextoEdicion(e.target.value)} onKeyDown={manejarKeyEdicion}
-                            maxLength={300} autoFocus />
+                        <CampoTexto ref={inputEdicionRef} value={textoEdicion} onChange={e => setTextoEdicion(e.target.value)} onKeyDown={manejarKeyEdicion} maxLength={300} autoFocus />
                         <div className="comentarioEdicionBotones">
-                            <BotonBase variante="ghost" type="button" onClick={() => acciones?.setEditandoId?.(null)}>Cancelar</BotonBase>
-                            <BotonBase variante="ghost" type="button" onClick={confirmarEdicion} className="comentarioEdicionGuardar">Guardar</BotonBase>
+                            <BotonBase variante="ghost" type="button" onClick={() => acciones?.setEditandoId?.(null)}>
+                                Cancelar
+                            </BotonBase>
+                            <BotonBase variante="ghost" type="button" onClick={confirmarEdicion} className="comentarioEdicionGuardar">
+                                Guardar
+                            </BotonBase>
                         </div>
                     </div>
                 ) : (
@@ -110,19 +96,15 @@ export const ComentarioItem = ({
                 {acciones && (
                     <div className="comentarioAcciones">
                         {acciones.onToggleLike && (
-                            <BotonBase variante="ghost" className={`comentarioAccionBtn ${comentario.liked ? 'comentarioLiked' : ''}`}
-                                onClick={() => acciones.onToggleLike!(comentario.id, !!comentario.liked)}
-                                type="button" aria-label={comentario.liked ? 'Quitar like' : 'Dar like'}>
-                                <Heart size={13} fill={comentario.liked ? 'currentColor' : 'none'} />
-                                {(comentario.totalLikes ?? 0) > 0 && (
-                                    <span className="comentarioAccionConteo">{comentario.totalLikes}</span>
-                                )}
+                            <BotonBase variante="ghost" tamano="ninguno" className={`comentarioAccionBtn ${comentario.liked ? 'comentarioLiked' : ''}`} onClick={() => acciones.onToggleLike!(comentario.id, !!comentario.liked)} type="button" aria-label={comentario.liked ? 'Quitar like' : 'Dar like'}>
+                                <Heart size={16} fill={comentario.liked ? 'currentColor' : 'none'} />
+                                {(comentario.totalLikes ?? 0) > 0 && <span className="comentarioAccionConteo">{comentario.totalLikes}</span>}
                             </BotonBase>
                         )}
                         {acciones.onResponder && nivel < MAX_NIVEL && (
-                            <BotonBase variante="ghost" className="comentarioAccionBtn" onClick={iniciarRespuesta}
-                                type="button" aria-label="Responder">
-                                <MessageCircle size={13} /><span>Responder</span>
+                            <BotonBase variante="ghost" className="comentarioAccionBtn" tamano="ninguno" onClick={iniciarRespuesta} type="button" aria-label="Responder">
+                                <MessageCircle size={16} />
+                                <span>Responder</span>
                             </BotonBase>
                         )}
                     </div>
@@ -130,12 +112,8 @@ export const ComentarioItem = ({
 
                 {respondiendo && (
                     <div className="comentarioRespuestaInput">
-                        <CampoTexto ref={inputRespuestaRef} 
-                            placeholder={`Responder a ${comentario.autor.nombreVisible}...`}
-                            value={textoRespuesta} onChange={e => setTextoRespuesta(e.target.value)}
-                            onKeyDown={manejarKeyRespuesta} maxLength={300} disabled={enviandoRespuesta} />
-                        <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={enviarRespuesta} type="button"
-                            disabled={!textoRespuesta.trim() || enviandoRespuesta} aria-label="Enviar respuesta">
+                        <CampoTexto ref={inputRespuestaRef} placeholder={`Responder a ${comentario.autor.nombreVisible}...`} value={textoRespuesta} onChange={e => setTextoRespuesta(e.target.value)} onKeyDown={manejarKeyRespuesta} maxLength={300} disabled={enviandoRespuesta} />
+                        <BotonBase variante="ghost" className="comentarioEnviarBtn" onClick={enviarRespuesta} type="button" disabled={!textoRespuesta.trim() || enviandoRespuesta} aria-label="Enviar respuesta">
                             <Send size={13} />
                         </BotonBase>
                     </div>
@@ -143,25 +121,20 @@ export const ComentarioItem = ({
 
                 {tieneRespuestas && (
                     <BotonBase variante="ghost" className="comentarioVerRespuestas" onClick={toggleRespuestas} type="button">
-                        {respuestasVisibles
-                            ? 'Ocultar respuestas'
-                            : `Ver ${comentario.totalRespuestas} respuesta${(comentario.totalRespuestas ?? 0) > 1 ? 's' : ''}`}
+                        {respuestasVisibles ? 'Ocultar respuestas' : `Ver ${comentario.totalRespuestas} respuesta${(comentario.totalRespuestas ?? 0) > 1 ? 's' : ''}`}
                     </BotonBase>
                 )}
 
                 {respuestasVisibles && comentario.respuestas && comentario.respuestas.length > 0 && (
                     <div className="comentarioRespuestasLista">
                         {comentario.respuestas.map(resp => (
-                            <ComentarioItem key={resp.id} comentario={resp} acciones={acciones}
-                                onClickAutor={onClickAutor} renderMediaComentario={renderMediaComentario}
-                                nivel={nivel + 1} />
+                            <ComentarioItem key={resp.id} comentario={resp} acciones={acciones} onClickAutor={onClickAutor} renderMediaComentario={renderMediaComentario} nivel={nivel + 1} />
                         ))}
                     </div>
                 )}
             </div>
 
-            <MenuContextual abierto={menuPos.abierto} onCerrar={cerrarMenu} items={menuItems}
-                x={menuPos.x} y={menuPos.y} alinearDerecha />
+            <MenuContextual abierto={menuPos.abierto} onCerrar={cerrarMenu} items={menuItems} x={menuPos.x} y={menuPos.y} alinearDerecha />
         </div>
     );
 };

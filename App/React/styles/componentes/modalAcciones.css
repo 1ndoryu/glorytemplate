@@ -7,8 +7,6 @@
 .modalAcciones {
     display: flex;
     gap: var(--espacioSm);
-    padding-top: var(--espacioMd);
-    border-top: 1px solid var(--bordeSutil);
 }
 
 /* Cada botón dentro de la barra de acciones ocupa espacio igual */

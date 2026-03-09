@@ -5,7 +5,8 @@
  * El avatar abre un menú contextual (perfil, config, cerrar sesión).
  */
 
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -59,6 +60,40 @@ export const TopBar = (): JSX.Element => {
         pedirConfirmacionBorrarTodos,
         cargando: cargandoEliminar,
     } = useEliminarSamples();
+
+    const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false);
+    const [hamburguesaPos, setHamburguesaPos] = useState({ x: 0, y: 0 });
+
+    const hamburguesaItems: MenuItemDef[] = [
+        {
+            id: 'hb-crear',
+            etiqueta: 'Crear',
+            icono: <Plus size={14} />,
+            onClick: () => {
+                abrirCrear();
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-mezclador',
+            etiqueta: 'Mezclador',
+            icono: <Music2 size={14} />,
+            onClick: () => {
+                alternarMezclador();
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-mensajes',
+            etiqueta: 'Mensajes',
+            icono: <Mail size={14} />,
+            separadorDespues: false,
+            onClick: () => {
+                alternarMensajes();
+                setHamburguesaAbierta(false);
+            },
+        },
+    ];
 
     const esAdmin = usuario?.rol === 'admin';
     const mostrarHerramientasDev = esAdmin && devModeActivo;
@@ -138,6 +173,7 @@ export const TopBar = (): JSX.Element => {
                     <BotonBase variante="ghost"
                         key={tab.id}
                         className={`topbarTab ${activa === tab.id ? 'topbarTabActiva' : ''}`}
+                        tamano="ninguno"
                         onClick={() => setActiva(tab.id)}
                         type="button"
                     >
@@ -156,8 +192,9 @@ export const TopBar = (): JSX.Element => {
 
             {autenticado && (
                 <div className="topbarAcciones">
-                    {/* Badge de plan — primero a la izquierda */}
+                    {/* Badge de plan — primero a la izquierda; oculto en móvil (hamburguesa) */}
                     <Badge
+                        className="topbarAccionesBadge"
                         variante={usuario?.plan === 'premium' ? 'premium' : usuario?.plan === 'pro' ? 'acento' : 'neutro'}
                         interactivo
                         onClick={abrirPlanes}
@@ -187,6 +224,7 @@ export const TopBar = (): JSX.Element => {
                         variante="ghost"
                         tamano="md"
                         soloIcono
+                        className="topbarBtnCrear"
                         onClick={() => abrirCrear()}
                         aria-label="Crear"
                     >
@@ -200,7 +238,7 @@ export const TopBar = (): JSX.Element => {
                         soloIcono
                         onClick={alternarMezclador}
                         aria-label="Mezclador"
-                        className={modoPanelLateral === 'mezclador' ? 'topbarBotonActivo' : ''}
+                        className={`topbarBtnMezclador${modoPanelLateral === 'mezclador' ? ' topbarBotonActivo' : ''}`}
                     >
                         <Music2 size={18} />
                     </BotonBase>
@@ -221,7 +259,7 @@ export const TopBar = (): JSX.Element => {
                         )}
                     </div>
 
-                    <div className="topbarIconoWrapper">
+                    <div className="topbarIconoWrapper topbarIconoMensajes">
                         <BotonBase
                             variante="ghost"
                             tamano="md"
@@ -235,6 +273,22 @@ export const TopBar = (): JSX.Element => {
                             <DropdownMensajes onCerrar={cerrarMensajes} />
                         )}
                     </div>
+
+                    {/* Hamburguesa — visible solo en móvil, agrupa crear/mezclador/mensajes */}
+                    <BotonBase
+                        variante="ghost"
+                        tamano="md"
+                        soloIcono
+                        className="topbarHamburguesa"
+                        onClick={(e) => {
+                            const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                            setHamburguesaPos({ x: rect.right, y: rect.bottom });
+                            setHamburguesaAbierta((prev) => !prev);
+                        }}
+                        aria-label="Más opciones"
+                    >
+                        <Menu size={20} />
+                    </BotonBase>
 
                     <div
                         className="topbarAvatarWrapper"
@@ -258,10 +312,19 @@ export const TopBar = (): JSX.Element => {
                         alinearDerecha
                     />
 
+                    {/* Menu hamburguesa móvil */}
+                    <MenuContextual
+                        abierto={hamburguesaAbierta}
+                        onCerrar={() => setHamburguesaAbierta(false)}
+                        items={hamburguesaItems}
+                        x={hamburguesaPos.x}
+                        y={hamburguesaPos.y}
+                        alinearDerecha
+                    />
+
                     <Modal
                         abierto={busquedaModalAbierta}
                         onCerrar={() => setBusquedaModalAbierta(false)}
-                        titulo="Buscar"
                         tamano="pequeno"
                     >
                         <div className="topbarBusquedaModalContenido">

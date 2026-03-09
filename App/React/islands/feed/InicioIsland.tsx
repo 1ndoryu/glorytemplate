@@ -178,6 +178,7 @@ const FeedUnificado = (): JSX.Element => {
                     <BotonBase variante="ghost"
                         className="inicioFiltrosBtn"
                         onClick={() => setFiltrosAbierto(true)}
+                        tamano="ninguno"
                         type="button"
                         aria-label="Filtros"
                     >

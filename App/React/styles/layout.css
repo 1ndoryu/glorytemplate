@@ -84,26 +84,44 @@
     pointer-events: none;
 }
 
-/* Responsive - ocultar sidebar en mobile */
+/* Responsive - sidebar como nav inferior en mobile */
 @media (max-width: 768px) {
     .layoutPrincipal {
         grid-template-columns: 1fr;
+        grid-template-rows: var(--altoTopbar) 1fr;
         grid-template-areas:
             "topbar"
             "contenido";
     }
 
+    /* Sidebar se convierte en barra fija inferior */
     .areaSidebar {
-        display: none;
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--altoNavMobile, 56px);
+        width: 100%;
+        flex-direction: row;
+        border-right: none;
+        border-top: 1px solid var(--bordeSutil);
+        padding: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background-color: var(--fondoElevado1);
+        z-index: var(--zMenu);
+        overflow: visible;
     }
 
+    /* El contenido tiene padding inferior para no quedar bajo el nav */
     .areaContenido {
-        padding: var(--espacioLg);
+        padding-bottom: calc(var(--altoNavMobile, 56px) + env(safe-area-inset-bottom, 0px));
     }
 
+    /* Reproductor flotante sube por encima del nav inferior */
     .areaReproductor {
+        bottom: calc(var(--altoNavMobile, 56px) + var(--espacioMd) + env(safe-area-inset-bottom, 0px));
         left: 50%;
-        bottom: var(--espacioMd);
     }
 }
 

@@ -226,3 +226,16 @@
     color: var(--textoTerciario);
     font-size: var(--fuenteMd);
 }
+
+/* En móvil el chat cubre toda la pantalla (topbar y nav quedan tapados) */
+@media (max-width: 768px) {
+    .chatIsland {
+        position: fixed;
+        inset: 0;
+        height: 100dvh;
+        max-width: 100%;
+        margin: 0;
+        z-index: calc(var(--zModal) - 1);
+        background-color: var(--fondoBase);
+    }
+}

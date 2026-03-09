@@ -5,7 +5,7 @@
  */
 
 :root {
-    --fondoBase: #050505;
+    --fondoBase: #070707;
     --fondoElevado1: #070707;
     --fondoElevado2: #070707;
     --fondoElevado3: #070707;
@@ -40,6 +40,8 @@
     --espacio2xl: 32px;
     --espacio3xl: 48px;
     --espacio4xl: 64px;
+    --espacio5xl: 80px;
+    --espacio6xl: 96px;
     --fuenteXs: 11px;
     --fuenteSm: 12px;
     --fuenteMd: 13px;

@@ -65,7 +65,7 @@
     flex-direction: column;
     gap: var(--landingEspacioSeccion);
     width: min(100%, var(--landingAnchoMaximo));
-    padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) var(--landingPaddingInferior);
+    padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0;
     margin: 0 auto;
 }
 
@@ -202,6 +202,106 @@
     padding-top: var(--espacioMd);
 }
 
+/* Sección visual: SVG Kamples superpuesto sobre la imagen de ambiente */
+.landingHeroVisual {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: var(--radioLg);
+    overflow: hidden;
+    margin-top: var(--espacio2xl);
+}
+
+.titleSeccion {
+    font-family: var(--landingFuenteSubtitulo);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--textoPrimario);
+}
+
+.seccionEstandar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xl);
+    padding: var(--espacio6xl) 0 var(--espacio2xl);
+}
+
+.subtitleSeccion {
+    font-family: var(--landingFuenteSubtitulo);
+    font-size: var(--landingSubtitulo);
+    font-weight: 400;
+    color: var(--textoSecundario);
+}
+
+.landingHeroImagen {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radioLg);
+    object-fit: cover;
+    aspect-ratio: 16 / 10;
+}
+
+.landingHeroSvg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: var(--espacio4xl) var(--espacioLg);
+}
+
+/* SVG Sync — ancho completo, con fondo propio (no overlay) */
+.landingSeccionSync {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radioLg);
+}
+
+/* Footer */
+.landingFooter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl) 0 var(--espacio2xl);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.landingFooterTexto {
+    font-family: var(--landingFuenteSubtitulo);
+    font-size: var(--landingTextoUi);
+    color: var(--textoSecundario);
+    margin: 0;
+    text-align: center;
+}
+
+.landingFooterEnlace {
+    color: var(--textoPrimario);
+    text-decoration: none;
+}
+
+.landingFooterEnlace:hover {
+    text-decoration: underline;
+}
+
+.landingFooterNav {
+    display: flex;
+    gap: var(--espacioMd);
+}
+
+.landingFooterNavEnlace {
+    font-family: var(--landingFuenteSubtitulo);
+    font-size: var(--landingTextoUi);
+    color: var(--textoTerciario);
+    text-decoration: none;
+}
+
+.landingFooterNavEnlace:hover {
+    color: var(--textoPrimario);
+}
+
 .landingPlanes {
     display: flex;
     flex-direction: column;
@@ -298,18 +398,20 @@
     }
 
     .landingNav {
-        gap: var(--landingEspacioAcciones);
-        flex-direction: column;
-        align-items: flex-start;
+        gap: var(--espacioSm);
+        flex-direction: row;
+        align-items: center;
     }
 
-    .landingNavDerecha,
+    .landingNavDerecha {
+        gap: var(--espacioXs);
+    }
+
     .landingHeroAcciones,
     .landingHeroBuscador {
         width: 100%;
     }
 
-    .landingNavDerecha,
     .landingHeroAcciones {
         flex-wrap: wrap;
     }
@@ -322,9 +424,12 @@
         flex-wrap: wrap;
         padding: var(--landingPaddingBuscadorCompacto);
     }
+}
 
-    .landingHeroBuscador .botonBase {
-        width: 100%;
+@media (max-width: 30rem) {
+    /* En pantallas muy pequeñas ocultar el botón ghost y dejar solo "Crear cuenta" */
+    .landingNavDerecha .botonBase:first-child {
+        display: none;
     }
 }
 

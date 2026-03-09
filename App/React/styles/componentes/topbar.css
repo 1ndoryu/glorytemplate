@@ -71,7 +71,6 @@
 
 .topbarBotonNotificacionesPendientes {
     color: var(--error) !important;
-    background: color-mix(in srgb, var(--error) 10%, transparent) !important;
 }
 
 /* Tab individual */
@@ -116,6 +115,11 @@
     display: none;
 }
 
+/* Hamburguesa móvil — oculta en escritorio */
+.topbarHamburguesa {
+    display: none;
+}
+
 .topbarBusquedaModalContenido {
     padding-top: var(--espacioXs);
 }
@@ -131,6 +135,35 @@
 
     .topbar {
         grid-template-columns: minmax(0, 1fr) auto;
+    }
+}
+
+/* En móvil: agrupar acciones en hamburguesa */
+@media (max-width: 768px) {
+    .topbarAccionesBadge,
+    .topbarBtnCrear,
+    .topbarBtnMezclador {
+        display: none;
+    }
+
+    /*
+     * Sacamos el wrapper del flujo con position: absolute (0 espacio en layout).
+     * overflow: visible permite que el DropdownMensajes (position: fixed) sea visible.
+     * El botón Mail se oculta; el dropdown lo abre la hamburguesa via alternarMensajes().
+     */
+    .topbarIconoMensajes {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: visible;
+    }
+
+    .topbarIconoMensajes > button {
+        display: none;
+    }
+
+    .topbarHamburguesa {
+        display: flex;
     }
 }
 

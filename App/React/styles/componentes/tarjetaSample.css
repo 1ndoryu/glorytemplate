@@ -290,3 +290,27 @@
     pointer-events: none;
     z-index: 99999;
 }
+
+/* Responsive mobile: ocultar waveform y botones secundarios */
+@media (max-width: 640px) {
+    .tarjetaSample {
+        grid-template-columns: 40px 1fr auto;
+    }
+
+    /* Ocultar waveform */
+    .tarjetaWaveform {
+        display: none;
+    }
+
+    /* Ocultar Guardar/Comentar/3puntos — disponibles via long press → menú contextual */
+    .tarjetaAccionGuardarBtn,
+    .tarjetaAccionComentarBtn,
+    .tarjetaMenuBtn {
+        display: none;
+    }
+
+    /* Reducir gap de acciones */
+    .tarjetaAcciones {
+        gap: var(--espacioSm);
+    }
+}

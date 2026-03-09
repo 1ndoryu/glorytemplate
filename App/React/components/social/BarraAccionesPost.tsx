@@ -74,7 +74,7 @@ export default function BarraAccionesPost({
             type="button"
             aria-label={p.liked ? 'Quitar like' : 'Dar like'}
         >
-            <Heart size={16} fill={p.liked ? 'currentColor' : 'none'} />
+            <Heart size={20} fill={p.liked ? 'currentColor' : 'none'} />
             {(mostrarCeroConteo || p.totalLikes > 0) && (
                 <span>{formatearConteo(p.totalLikes)}</span>
             )}
@@ -101,7 +101,7 @@ export default function BarraAccionesPost({
                 type="button"
                 aria-label="Comentar"
             >
-                <MessageCircle size={16} />
+                <MessageCircle size={20} />
                 {(mostrarCeroConteo || p.totalComentarios > 0) && (
                     <span>{formatearConteo(p.totalComentarios)}</span>
                 )}
@@ -113,7 +113,7 @@ export default function BarraAccionesPost({
                 type="button"
                 aria-label={p.reposteado ? 'Quitar repost' : 'Repostear'}
             >
-                <Repeat2 size={16} />
+                <Repeat2 size={20} />
                 {(mostrarCeroConteo || p.totalReposts > 0) && (
                     <span>{formatearConteo(p.totalReposts)}</span>
                 )}

@@ -1,19 +1,21 @@
 /*
  * Componente: ModalAuth
- * Modal unificado de login y registro con layout de imagen lateral.
- * Reutiliza la estructura visual de PlanesIsland (.planesLayoutEspecial).
+ * Modal full-screen de login y registro.
+ * Layout: imagen en mitad izquierda, formulario en mitad derecha.
+ * Renderiza su propio portal (no usa Modal base) para tener control total
+ * del layout sin restricciones de max-width ni border-radius.
  */
 
-import { useState, type FormEvent } from 'react';
-import { Music } from 'lucide-react';
-import { Modal } from '../ui/Modal';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { Music, X } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useAuth } from '../../hooks/useAuth';
 import { useModalAuth } from '../../hooks/useModalAuth';
 import '../../styles/componentes/authModal.css';
 
-const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
+const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/2.jpg';
 
 /* Formulario de Login */
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
@@ -28,13 +30,7 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
 
     return (
         <div className="authFormContenedor">
-            <div className="authLogo">
-                <Music size={28} />
-                <span className="authLogoTexto">Kamples</span>
-            </div>
-
             <h2 className="authTitulo">Inicia sesion</h2>
-            <p className="authSubtitulo">Descubre los mejores samples del mundo</p>
 
             {error && <div className="authError">{error}</div>}
 
@@ -91,13 +87,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 
     return (
         <div className="authFormContenedor">
-            <div className="authLogo">
-                <Music size={28} />
-                <span className="authLogoTexto">Kamples</span>
-            </div>
-
             <h2 className="authTitulo">Crea tu cuenta</h2>
-            <p className="authSubtitulo">Empieza a descubrir y compartir samples</p>
 
             {error && <div className="authError">{error}</div>}
 
@@ -151,21 +141,44 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 export const ModalAuth = (): JSX.Element | null => {
     const { abierto, vista, cerrar, cambiarALogin, cambiarARegistro } = useModalAuth();
 
+    const manejarEscape = useCallback(
+        (e: KeyboardEvent) => { if (e.key === 'Escape') cerrar(); },
+        [cerrar]
+    );
+
+    useEffect(() => {
+        if (!abierto) return;
+        document.addEventListener('keydown', manejarEscape);
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', manejarEscape);
+            document.body.style.overflow = '';
+        };
+    }, [abierto, manejarEscape]);
+
     if (!abierto) return null;
 
-    return (
-        <Modal abierto={abierto} onCerrar={cerrar} tamano="grande" className="modalAuthEspecial">
-            <div className="authLayoutEspecial">
-                <aside className="authPanelImagen">
-                    <img src={imagenAuth} alt="Kamples" className="authImagen" loading="lazy" />
-                </aside>
-                <section className="authPanelContenido">
-                    {vista === 'login'
-                        ? <FormularioLogin onCambiar={cambiarARegistro} />
-                        : <FormularioRegistro onCambiar={cambiarALogin} />
-                    }
-                </section>
-            </div>
-        </Modal>
+    return createPortal(
+        <div className="authPantallaCompleta" role="dialog" aria-modal="true">
+            <aside className="authPanelImagen">
+                <img src={imagenAuth} alt="Kamples" className="authImagen" loading="lazy" />
+            </aside>
+            <section className="authPanelContenido">
+                <BotonBase
+                    variante="ghost"
+                    className="authBtnCerrar"
+                    onClick={cerrar}
+                    aria-label="Cerrar"
+                    type="button"
+                >
+                    <X size={20} />
+                </BotonBase>
+                {vista === 'login'
+                    ? <FormularioLogin onCambiar={cambiarARegistro} />
+                    : <FormularioRegistro onCambiar={cambiarALogin} />
+                }
+            </section>
+        </div>,
+        document.body
     );
 };
