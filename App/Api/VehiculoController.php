@@ -218,7 +218,14 @@ class VehiculoController
             // Equipamiento
             $equipJson = get_post_meta($id, '_vehiculo_equipamiento', true);
             $equipDecoded = is_string($equipJson) ? json_decode($equipJson, true) : null;
-            $data['equipamiento'] = is_array($equipDecoded) ? $equipDecoded : [];
+            if (!is_array($equipDecoded)) {
+                $equipDecoded = [];
+            }
+            // Corregir valores con escapes Unicode literales (ej: "\u00f3" almacenado como texto)
+            $data['equipamiento'] = array_map(function ($item) {
+                $decoded = json_decode('"' . str_replace('"', '\\"', $item) . '"', true);
+                return ($decoded !== null) ? $decoded : $item;
+            }, $equipDecoded);
 
             // Galería
             $galeriaJson = get_post_meta($id, '_vehiculo_galeria', true);
@@ -231,6 +238,16 @@ class VehiculoController
                     'alt' => get_post_meta((int) $attId, '_wp_attachment_image_alt', true) ?: '',
                 ];
             }, $galeriaIds);
+
+            // Si la galería está vacía, usar la imagen destacada como fallback
+            if (empty($data['galeria']) && $thumbnail) {
+                $thumbId = (int) get_post_thumbnail_id($id);
+                $data['galeria'] = [[
+                    'id'  => $thumbId,
+                    'url' => $thumbnail,
+                    'alt' => get_post_meta($thumbId, '_wp_attachment_image_alt', true) ?: $data['nombre'],
+                ]];
+            }
 
             // Tabla de precios
             $data['precios'] = PrecioService::tablaPreciosVehiculo($data['precioBase']);

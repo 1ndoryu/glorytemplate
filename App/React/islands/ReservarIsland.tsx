@@ -15,6 +15,7 @@ import { CampoTextarea } from '@app/components/ui/CampoTextarea';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
 import { useReservarFlujo } from '@app/hooks/useReservarFlujo';
+import { Check } from 'lucide-react';
 
 export function ReservarIsland(): JSX.Element {
     const {
@@ -53,7 +54,7 @@ export function ReservarIsland(): JSX.Element {
                         {[1, 2, 3, 4].map(p => (
                             <div key={p} className={`progressPaso${p === 4 ? ' progressPasoFinal' : ''}`}>
                                 <div className={`progressCirculo ${p <= paso ? 'progressCirculoActivo' : 'progressCirculoInactivo'}`}>
-                                    {p < paso ? '✓' : p}
+                                    {p < paso ? <Check size={16} /> : p}
                                 </div>
                                 {p < 4 && <div className={`progressLinea ${p < paso ? 'progressLineaActiva' : 'progressLineaInactiva'}`} />}
                             </div>

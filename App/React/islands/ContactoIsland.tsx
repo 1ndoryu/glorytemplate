@@ -9,6 +9,7 @@ import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { CampoTextarea } from '@app/components/ui/CampoTextarea';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export function ContactoIsland(): JSX.Element {
     const {
@@ -38,7 +39,7 @@ export function ContactoIsland(): JSX.Element {
                         <div>
                             {enviado ? (
                                 <div className="mensajeExito">
-                                    <div className="mensajeExitoIcono">✉️</div>
+                                    <div className="mensajeExitoIcono"><Mail size={32} /></div>
                                     <h2 className="mensajeExitoTitulo">¡Mensaje enviado!</h2>
                                     <p className="mensajeExitoTexto">
                                         Hemos recibido tu mensaje. Te responderemos lo antes posible.
@@ -95,7 +96,7 @@ export function ContactoIsland(): JSX.Element {
                                 <div className="contactoInfoLista">
                                     {empresa.email && (
                                         <div className="contactoInfoItem">
-                                            <span className="contactoInfoIcono">📧</span>
+                                            <Mail size={20} className="contactoInfoIcono" />
                                             <div>
                                                 <p className="contactoInfoLabel">Email</p>
                                                 <a href={`mailto:${empresa.email}`} className="contactoInfoValor">
@@ -106,7 +107,7 @@ export function ContactoIsland(): JSX.Element {
                                     )}
                                     {empresa.telefono && (
                                         <div className="contactoInfoItem">
-                                            <span className="contactoInfoIcono">📞</span>
+                                            <Phone size={20} className="contactoInfoIcono" />
                                             <div>
                                                 <p className="contactoInfoLabel">Teléfono</p>
                                                 <a href={`tel:${empresa.telefono}`} className="contactoInfoValor">
@@ -117,7 +118,7 @@ export function ContactoIsland(): JSX.Element {
                                     )}
                                     {empresa.direccion && (
                                         <div className="contactoInfoItem">
-                                            <span className="contactoInfoIcono">📍</span>
+                                            <MapPin size={20} className="contactoInfoIcono" />
                                             <div>
                                                 <p className="contactoInfoLabel">Dirección</p>
                                                 <p className="contactoInfoValor">{empresa.direccion}</p>

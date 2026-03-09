@@ -213,7 +213,7 @@ class VehiculoAdmin
         // Equipamiento (texto → JSON)
         if (isset($datos['equipamiento'])) {
             $lineas = array_filter(array_map('trim', explode("\n", $datos['equipamiento'])));
-            update_post_meta($postId, '_vehiculo_equipamiento', wp_json_encode(array_values($lineas)));
+            update_post_meta($postId, '_vehiculo_equipamiento', wp_json_encode(array_values($lineas), JSON_UNESCAPED_UNICODE));
         }
     }
 }

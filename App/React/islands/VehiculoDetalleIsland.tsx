@@ -3,7 +3,7 @@
  * Galería, especificaciones, calendario, precios, CTA reservar.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useWordPressApi, useNavigation } from '@/hooks';
 import { useIslandProps } from '@/hooks';
 import { Galeria } from '@app/components/Galeria';
@@ -14,6 +14,7 @@ import { useDisponibilidad } from '@app/hooks/useDisponibilidad';
 import { Boton } from '@app/components/ui/Boton';
 import { Header } from '@app/components/Header';
 import { Footer } from '@app/components/Footer';
+import { BedDouble, Armchair, Fuel, Cog, Route, IdCard, MapPin, Check, X } from 'lucide-react';
 import type { VehiculoDetalleResponse, NombreTemporada } from '@app/types/cresta';
 
 interface VehiculoDetalleIslandProps {
@@ -122,7 +123,7 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                             <div>
                                 <h1 className="detalleTitulo">{vehiculo.nombre}</h1>
                                 {vehiculo.ubicacion && (
-                                    <p className="detalleUbicacion">📍 {vehiculo.ubicacion}</p>
+                                    <p className="detalleUbicacion"><MapPin size={16} className="detalleUbicacionIcono" /> {vehiculo.ubicacion}</p>
                                 )}
                             </div>
 
@@ -130,12 +131,12 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                             <div className="panelBlanco">
                                 <h2 className="panelTitulo">Especificaciones</h2>
                                 <div className="specsGrid">
-                                    <Spec label="Plazas para dormir" value={`${vehiculo.capacidad}`} icon="🛏️" />
-                                    <Spec label="Plazas de viaje" value={`${vehiculo.plazasViaje}`} icon="💺" />
-                                    <Spec label="Combustible" value={vehiculo.combustible} icon="⛽" />
-                                    <Spec label="Transmisión" value={vehiculo.transmision} icon="⚙️" />
-                                    <Spec label="Km incluidos/día" value={vehiculo.kmIncluidos === 0 ? 'Ilimitados' : `${vehiculo.kmIncluidos} km`} icon="🛣️" />
-                                    <Spec label="Edad mínima" value={`${vehiculo.edadMinima} años`} icon="🪪" />
+                                    <Spec label="Plazas para dormir" value={`${vehiculo.capacidad}`} icon={<BedDouble size={20} />} />
+                                    <Spec label="Plazas de viaje" value={`${vehiculo.plazasViaje}`} icon={<Armchair size={20} />} />
+                                    <Spec label="Combustible" value={vehiculo.combustible} icon={<Fuel size={20} />} />
+                                    <Spec label="Transmisión" value={vehiculo.transmision} icon={<Cog size={20} />} />
+                                    <Spec label="Km incluidos/día" value={vehiculo.kmIncluidos === 0 ? 'Ilimitados' : `${vehiculo.kmIncluidos} km`} icon={<Route size={20} />} />
+                                    <Spec label="Edad mínima" value={`${vehiculo.edadMinima} años`} icon={<IdCard size={20} />} />
                                 </div>
                             </div>
 
@@ -146,7 +147,7 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                                     <div className="equipamientoGrid">
                                         {vehiculo.equipamiento.map(item => (
                                             <div key={item} className="equipamientoItem">
-                                                <span className="equipamientoCheck">✓</span>
+                                                <Check size={16} className="equipamientoCheck" />
                                                 {item}
                                             </div>
                                         ))}
@@ -217,9 +218,9 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
                             {disponible !== null && (
                                 <div className={disponible ? 'alertaExito' : 'alertaError'}>
                                     {disponible ? (
-                                        <span>✓ Disponible para las fechas seleccionadas</span>
+                                        <span><Check size={16} /> Disponible para las fechas seleccionadas</span>
                                     ) : (
-                                        <span>✗ {motivo ?? 'No disponible'}</span>
+                                        <span><X size={16} /> {motivo ?? 'No disponible'}</span>
                                     )}
                                 </div>
                             )}
@@ -257,7 +258,7 @@ export function VehiculoDetalleIsland(rawProps: Record<string, unknown>): JSX.El
     );
 }
 
-function Spec({ label, value, icon }: { label: string; value: string; icon: string }): JSX.Element {
+function Spec({ label, value, icon }: { label: string; value: string; icon: ReactNode }): JSX.Element {
     return (
         <div className="specItem">
             <span className="specIcono">{icon}</span>

@@ -6,6 +6,7 @@
 
 import { useCalendarioDisponibilidad } from '@app/hooks/useCalendarioDisponibilidad';
 import { Boton } from '@app/components/ui';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarioDisponibilidadProps {
     vehiculoId: number;
@@ -49,7 +50,7 @@ export function CalendarioDisponibilidad({
                     className="calendarioFlecha"
                     aria-label="Mes anterior"
                 >
-                    ◀
+                    <ChevronLeft size={20} />
                 </Boton>
                 <h3 className="calendarioMes">
                     {MESES[mes - 1]} {anio}
@@ -60,7 +61,7 @@ export function CalendarioDisponibilidad({
                     className="calendarioFlecha"
                     aria-label="Mes siguiente"
                 >
-                    ▶
+                    <ChevronRight size={20} />
                 </Boton>
             </div>
 

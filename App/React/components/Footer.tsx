@@ -5,6 +5,7 @@
 
 import { GloryLink } from '@/core/router/GloryLink';
 import { useGloryOptions } from '@/hooks';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer(): JSX.Element {
     const { get } = useGloryOptions();
@@ -58,16 +59,21 @@ export function Footer(): JSX.Element {
                     <ul className="pieSeccionLista pieContacto">
                         {email && (
                             <li className="pieContactoItem">
+                                <Mail size={16} className="pieContactoIcono" />
                                 <a href={`mailto:${email}`} className="pieEnlace">{email}</a>
                             </li>
                         )}
                         {telefono && (
                             <li className="pieContactoItem">
+                                <Phone size={16} className="pieContactoIcono" />
                                 <a href={`tel:${telefono}`} className="pieEnlace">{telefono}</a>
                             </li>
                         )}
                         {direccion && (
-                            <li className="pieContactoItem pieContactoDireccion">{direccion}</li>
+                            <li className="pieContactoItem pieContactoDireccion">
+                                <MapPin size={16} className="pieContactoIcono" />
+                                {direccion}
+                            </li>
                         )}
                     </ul>
                 </div>

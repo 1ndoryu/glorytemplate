@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react';
 import type { GaleriaItem } from '@app/types/cresta';
 import { Boton } from '@app/components/ui';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface GaleriaProps {
     imagenes: GaleriaItem[];
@@ -63,7 +64,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                             className="galeriaFlechaIzq"
                             aria-label="Anterior"
                         >
-                            ◀
+                            <ChevronLeft size={24} />
                         </Boton>
                         <Boton
                             variante="icono"
@@ -71,7 +72,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                             className="galeriaFlechaDer"
                             aria-label="Siguiente"
                         >
-                            ▶
+                            <ChevronRight size={24} />
                         </Boton>
                     </>
                 )}
@@ -105,7 +106,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                         className="galeriaLightboxCerrar"
                         aria-label="Cerrar"
                     >
-                        ✕
+                        <X size={24} />
                     </Boton>
 
                     <div className="galeriaLightboxContenido" onClick={e => e.stopPropagation()}>
@@ -123,7 +124,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                                     className="galeriaLightboxFlechaIzq"
                                     aria-label="Anterior"
                                 >
-                                    ◀
+                                    <ChevronLeft size={28} />
                                 </Boton>
                                 <Boton
                                     variante="icono"
@@ -131,7 +132,7 @@ export function Galeria({ imagenes, className = '' }: GaleriaProps): JSX.Element
                                     className="galeriaLightboxFlechaDer"
                                     aria-label="Siguiente"
                                 >
-                                    ▶
+                                    <ChevronRight size={28} />
                                 </Boton>
                             </>
                         )}
