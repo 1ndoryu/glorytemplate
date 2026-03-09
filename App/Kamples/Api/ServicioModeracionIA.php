@@ -297,10 +297,23 @@ class ServicioModeracionIA
 
         foreach ($resultados as $capa => $resultado) {
             $nivel = $resultado['nivel'] ?? PublicacionesEnums::MODERACION_ESTADO_APROBADO;
+            $razonCandidata = self::resolverRazonResultado($capa, $resultado);
+
             if (($prioridad[$nivel] ?? 0) > ($prioridad[$nivelFinal] ?? 0)) {
                 $nivelFinal = $nivel;
-                $razonFinal = $resultado['categoria'] ?? $resultado['razon'] ?? $capa;
+                $razonFinal = $razonCandidata;
+                continue;
             }
+
+            if ($nivel === $nivelFinal && $razonFinal === '' && $razonCandidata !== '') {
+                $razonFinal = $razonCandidata;
+            }
+        }
+
+        if ($razonFinal === '') {
+            $razonFinal = $nivelFinal === PublicacionesEnums::MODERACION_ESTADO_APROBADO
+                ? 'sin_hallazgos'
+                : ($nivelFinal === PublicacionesEnums::MODERACION_ESTADO_REVISION ? 'revision_manual' : 'desconocida');
         }
 
         return [
@@ -308,5 +321,23 @@ class ServicioModeracionIA
             'razon' => $razonFinal,
             'detalles' => $resultados,
         ];
+    }
+
+    private static function resolverRazonResultado(string $capa, array $resultado): string
+    {
+        foreach (['categoria', 'razon', 'error', 'nota'] as $campo) {
+            $valor = $resultado[$campo] ?? '';
+            if (\is_string($valor) && \trim($valor) !== '') {
+                return \sanitize_key($valor);
+            }
+        }
+
+        return match ($capa) {
+            'guard_texto' => 'texto_seguro',
+            'guard_imagen', 'guard_imagenes' => 'imagenes_seguras',
+            'contextual' => 'sin_hallazgos',
+            'sin_contenido_analizable' => 'audio_sin_analisis',
+            default => \sanitize_key($capa),
+        };
     }
 }

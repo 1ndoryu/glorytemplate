@@ -33,7 +33,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
         errorSubida, setErrorSubida, exitoSubida,
         audioPreviewRef, textareaRef,
         tags, caracteresPendientes, tagsInsuficientes, puedePublicar,
-        togglePreview, manejarCambioTexto, manejarKeyDown, manejarPublicar,
+        togglePreview, manejarCambioTexto, manejarPegar, manejarKeyDown, manejarPublicar,
         audioAdjunto, imagenes, arrastrando,
         inputAudioRef, inputImagenRef,
         manejarInputAudio, manejarInputImagen,
@@ -63,6 +63,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 placeholder={placeholder ?? '¿Qué estás creando? Usa # para agregar tags'}
                 value={contenido}
                 onChange={manejarCambioTexto}
+                onPaste={manejarPegar}
                 onKeyDown={manejarKeyDown}
                 rows={1}
                 autoFocus={autoFocus}

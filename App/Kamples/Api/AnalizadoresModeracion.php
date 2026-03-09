@@ -14,6 +14,7 @@ namespace App\Kamples\Api;
 
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Config\Schema\_generated\PublicacionesEnums;
+use App\Kamples\Api\Helpers\GroqVisionInputHelper;
 
 class AnalizadoresModeracion
 {
@@ -68,6 +69,15 @@ class AnalizadoresModeracion
      */
     public static function analizarImagenComentario(string $apiKey, string $url): array
     {
+        $bloqueImagen = GroqVisionInputHelper::construirBloqueContenido($url, 'ModeracionIA/ImagenComentario');
+        if ($bloqueImagen === null) {
+            return [
+                'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
+                'modelo' => self::MODELO_VISION,
+                'error' => 'imagen_no_accesible_para_groq',
+            ];
+        }
+
         $mensajes = [
             [
                 'role' => 'user',
@@ -83,10 +93,7 @@ class AnalizadoresModeracion
                             . "Suggestive, artistic, or provocative images that could be album covers are SAFE.\n"
                             . "Respond with EXACTLY one word: 'safe' or 'unsafe'. If unsafe, add comma and reason: sexual, violence, illegal."
                     ],
-                    [
-                        'type' => 'image_url',
-                        'image_url' => ['url' => $url],
-                    ],
+                    $bloqueImagen,
                 ],
             ],
         ];
@@ -151,9 +158,21 @@ class AnalizadoresModeracion
     {
         $peorNivel = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
         $detalles = [];
+        $huboErrores = false;
 
         foreach ($imagenes as $url) {
             if (empty($url)) continue;
+
+            $bloqueImagen = GroqVisionInputHelper::construirBloqueContenido($url, 'ModeracionIA/Imagenes');
+            if ($bloqueImagen === null) {
+                $huboErrores = true;
+                $detalles[] = [
+                    'url' => $url,
+                    'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
+                    'error' => 'imagen_no_accesible_para_groq',
+                ];
+                continue;
+            }
 
             $mensajes = [
                 [
@@ -165,10 +184,7 @@ class AnalizadoresModeracion
                                 . "Respond with EXACTLY one word: 'safe' or 'unsafe'. "
                                 . "If unsafe, add a comma and the reason: violence, sexual, hate, harmful, illegal."
                         ],
-                        [
-                            'type' => 'image_url',
-                            'image_url' => ['url' => $url],
-                        ],
+                        $bloqueImagen,
                     ],
                 ],
             ];
@@ -176,6 +192,7 @@ class AnalizadoresModeracion
             $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
 
             if ($respuesta === null) {
+                $huboErrores = true;
                 $detalles[] = ['url' => $url, 'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'error' => 'timeout'];
                 continue;
             }
@@ -192,7 +209,12 @@ class AnalizadoresModeracion
             }
         }
 
-        return ['nivel' => $peorNivel, 'modelo' => self::MODELO_VISION, 'imagenes' => $detalles];
+        return [
+            'nivel' => $peorNivel,
+            'modelo' => self::MODELO_VISION,
+            'imagenes' => $detalles,
+            'error' => $huboErrores ? 'analisis_imagen_incompleto' : '',
+        ];
     }
 
     /**

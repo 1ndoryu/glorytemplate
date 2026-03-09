@@ -18,6 +18,7 @@ namespace App\Kamples\Api;
 
 use App\Kamples\KamplesLogger;
 use App\Kamples\Api\GroqHttpClient;
+use App\Kamples\Api\Helpers\GroqVisionInputHelper;
 
 class ServicioImagenIA
 {
@@ -32,8 +33,8 @@ class ServicioImagenIA
     private const TIMEOUT = 30;
 
     /*
-     * Analiza una imagen por URL y retorna metadata descriptiva.
-     * La imagen ya está alojada en WP uploads, se envía la URL a Groq.
+     * Analiza una imagen por referencia y retorna metadata descriptiva.
+     * Si la URL no es accesible externamente, se envía a Groq como data URL base64.
      *
      * @param string $urlImagen URL pública de la imagen
      * @return array|null Metadata extraída o null si falla
@@ -86,6 +87,11 @@ class ServicioImagenIA
     private static function llamarGroqVision(string $modelo, string $apiKey, string $urlImagen): ?array
     {
         $url = 'https://api.groq.com/openai/v1/chat/completions';
+        $bloqueImagen = GroqVisionInputHelper::construirBloqueContenido($urlImagen, 'ServicioImagenIA');
+
+        if ($bloqueImagen === null) {
+            return null;
+        }
 
         $payload = [
             'model'    => $modelo,
@@ -101,12 +107,7 @@ class ServicioImagenIA
                             'type' => 'text',
                             'text' => self::construirPrompt(),
                         ],
-                        [
-                            'type'      => 'image_url',
-                            'image_url' => [
-                                'url' => $urlImagen,
-                            ],
-                        ],
+                        $bloqueImagen,
                     ],
                 ],
             ],

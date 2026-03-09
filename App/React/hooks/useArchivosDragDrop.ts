@@ -5,28 +5,15 @@
  */
 
 import { useState, useCallback, useRef, type ChangeEvent, type DragEvent } from 'react';
-
-const FORMATOS_AUDIO = ['.wav', '.mp3', '.flac', '.aiff', '.aif'];
-const MAX_IMAGENES = 4;
-const MAX_MB = 100;
-
-export interface ArchivoAudio {
-    archivo: File;
-    nombre: string;
-    tamano: string;
-    formato: string;
-}
-
-export interface ImagenPreview {
-    archivo: File;
-    url: string;
-}
-
-const formatearTamano = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
+import {
+    FORMATOS_AUDIO_PUBLICACION,
+    MAX_IMAGENES_PUBLICACION,
+    crearAudioAdjuntoPublicacion,
+    crearImagenesPreviewPublicacion,
+    esArchivoAudioPublicacion,
+    type ArchivoAudioPublicacion as ArchivoAudio,
+    type ImagenPreviewPublicacion as ImagenPreview,
+} from '@app/services/publicacionAdjuntos';
 
 export const useArchivosDragDrop = () => {
     const [audioAdjunto, setAudioAdjunto] = useState<ArchivoAudio | null>(null);
@@ -39,19 +26,34 @@ export const useArchivosDragDrop = () => {
 
     /* Adjuntar audio desde archivos */
     const manejarAudio = useCallback((archivos: File[]) => {
-        const audio = archivos.find((f) => {
-            const ext = '.' + f.name.split('.').pop()?.toLowerCase();
-            return FORMATOS_AUDIO.includes(ext) && f.size <= MAX_MB * 1024 * 1024;
-        });
+        const audio = archivos.find(esArchivoAudioPublicacion);
         if (audio) {
-            setAudioAdjunto({
-                archivo: audio,
-                nombre: audio.name,
-                tamano: formatearTamano(audio.size),
-                formato: audio.name.split('.').pop()?.toUpperCase() ?? '',
-            });
+            setAudioAdjunto(crearAudioAdjuntoPublicacion(audio));
         }
     }, []);
+
+    const agregarImagenes = useCallback((archivos: File[]) => {
+        const disponibles = MAX_IMAGENES_PUBLICACION - imagenes.length;
+        if (disponibles <= 0) {
+            return;
+        }
+
+        const nuevas = crearImagenesPreviewPublicacion(archivos, disponibles);
+        setImagenes((prev) => [...prev, ...nuevas]);
+    }, [imagenes.length]);
+
+    const adjuntarArchivos = useCallback((archivos: File[]) => {
+        if (archivos.length === 0) {
+            return;
+        }
+
+        const audios = archivos.filter(esArchivoAudioPublicacion);
+        if (audios.length > 0) {
+            manejarAudio(audios);
+        }
+
+        agregarImagenes(archivos);
+    }, [agregarImagenes, manejarAudio]);
 
     const manejarInputAudio = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) manejarAudio(Array.from(e.target.files));
@@ -60,15 +62,9 @@ export const useArchivosDragDrop = () => {
 
     /* Adjuntar imágenes */
     const manejarInputImagen = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const archivos = Array.from(e.target.files ?? []);
-        const disponibles = MAX_IMAGENES - imagenes.length;
-        const nuevas = archivos.slice(0, disponibles).map((f) => ({
-            archivo: f,
-            url: URL.createObjectURL(f),
-        }));
-        setImagenes((prev) => [...prev, ...nuevas]);
+        agregarImagenes(Array.from(e.target.files ?? []));
         if (inputImagenRef.current) inputImagenRef.current.value = '';
-    }, [imagenes.length]);
+    }, [agregarImagenes]);
 
     const quitarImagen = useCallback((i: number) => {
         setImagenes((prev) => {
@@ -90,13 +86,7 @@ export const useArchivosDragDrop = () => {
      */
     const setAudioExterno = useCallback((archivo: File) => {
         if (!archivo?.name) return;
-        const nombre = archivo.name;
-        setAudioAdjunto({
-            archivo,
-            nombre,
-            tamano: formatearTamano(archivo.size ?? 0),
-            formato: nombre.split('.').pop()?.toUpperCase() ?? 'WAV',
-        });
+        setAudioAdjunto(crearAudioAdjuntoPublicacion(archivo));
     }, []);
 
     /* Eventos de drag & drop */
@@ -118,22 +108,8 @@ export const useArchivosDragDrop = () => {
         e.preventDefault();
         contadorDrag.current = 0;
         setArrastrando(false);
-        const archivos = Array.from(e.dataTransfer.files);
-        const audios = archivos.filter((f) => {
-            const ext = '.' + f.name.split('.').pop()?.toLowerCase();
-            return FORMATOS_AUDIO.includes(ext);
-        });
-        const imgs = archivos.filter((f) => f.type.startsWith('image/'));
-        if (audios.length > 0) manejarAudio(audios);
-        if (imgs.length > 0) {
-            const disponibles = MAX_IMAGENES - imagenes.length;
-            const nuevas = imgs.slice(0, disponibles).map((f) => ({
-                archivo: f,
-                url: URL.createObjectURL(f),
-            }));
-            setImagenes((prev) => [...prev, ...nuevas]);
-        }
-    }, [manejarAudio, imagenes.length]);
+        adjuntarArchivos(Array.from(e.dataTransfer.files));
+    }, [adjuntarArchivos]);
 
     /* Resetear todo */
     const resetear = useCallback(() => {
@@ -155,12 +131,13 @@ export const useArchivosDragDrop = () => {
         quitarImagen,
         quitarAudio,
         setAudioExterno,
+        adjuntarArchivos,
         manejarDragEnter,
         manejarDragLeave,
         manejarDragOver,
         manejarDrop,
         resetear,
-        formatosAudio: FORMATOS_AUDIO,
-        maxImagenes: MAX_IMAGENES,
+        formatosAudio: FORMATOS_AUDIO_PUBLICACION,
+        maxImagenes: MAX_IMAGENES_PUBLICACION,
     };
 };

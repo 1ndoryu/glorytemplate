@@ -5,7 +5,7 @@
  * Gestiona: texto, audio, imágenes, waveform, condiciones, publicación.
  */
 
-import { useState, useCallback, useRef, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
+import { useState, useCallback, useRef, useEffect, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { useArchivosDragDrop } from '@app/hooks/useArchivosDragDrop';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { subirSample } from '@app/services/apiSamples';
@@ -13,6 +13,7 @@ import { crearPublicacion, subirImagenPublicacion } from '@app/services/apiSocia
 import { EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import { extraerArchivosClipboard } from '@app/services/clipboardArchivos';
 
 const log = crearLogger('useCrearContenido');
 
@@ -144,6 +145,17 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         ajustarAltura();
     }, [ajustarAltura]);
 
+    const manejarPegar = useCallback((e: ClipboardEvent<HTMLTextAreaElement>) => {
+        const archivosPegados = extraerArchivosClipboard(e.clipboardData);
+        if (archivosPegados.length === 0) {
+            return;
+        }
+
+        e.preventDefault();
+        archivos.adjuntarArchivos(archivosPegados);
+        setErrorSubida(null);
+    }, [archivos, setErrorSubida]);
+
     /* Publicar contenido (sample con audio o publicación texto/imágenes) */
     const manejarPublicar = useCallback(async () => {
         if (publicando) return;
@@ -245,7 +257,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         errorSubida, setErrorSubida, exitoSubida,
         audioPreviewRef, textareaRef,
         tags, caracteresPendientes, tagsInsuficientes, puedePublicar,
-        togglePreview, manejarCambioTexto, manejarKeyDown, manejarPublicar, resetear,
+        togglePreview, manejarCambioTexto, manejarPegar, manejarKeyDown, manejarPublicar, resetear,
         /* Delegados de useArchivosDragDrop (sin resetear, usamos el propio) */
         audioAdjunto: archivos.audioAdjunto,
         imagenes: archivos.imagenes,
@@ -254,6 +266,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         inputImagenRef: archivos.inputImagenRef,
         manejarInputAudio: archivos.manejarInputAudio,
         manejarInputImagen: archivos.manejarInputImagen,
+        adjuntarArchivos: archivos.adjuntarArchivos,
         quitarImagen: archivos.quitarImagen,
         quitarAudio: archivos.quitarAudio,
         manejarDragEnter: archivos.manejarDragEnter,
