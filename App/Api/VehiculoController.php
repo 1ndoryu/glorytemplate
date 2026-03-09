@@ -217,15 +217,14 @@ class VehiculoController
 
             // Equipamiento
             $equipJson = get_post_meta($id, '_vehiculo_equipamiento', true);
-            $equipDecoded = is_string($equipJson) ? json_decode($equipJson, true) : null;
-            if (!is_array($equipDecoded)) {
-                $equipDecoded = [];
+            if (is_string($equipJson)) {
+                // Reparar escapes Unicode corruptos: el backslash fue eliminado al guardar
+                // "fogu00f3n" → "fog\u00f3n" → json_decode → "fogón"
+                // El lookbehind (?<!\\) evita doblar los \u que ya estén bien
+                $equipJson = preg_replace('/(?<!\\\\)u([0-9a-fA-F]{4})/', '\\\\u$1', $equipJson);
             }
-            // Corregir valores con escapes Unicode literales (ej: "\u00f3" almacenado como texto)
-            $data['equipamiento'] = array_map(function ($item) {
-                $decoded = json_decode('"' . str_replace('"', '\\"', $item) . '"', true);
-                return ($decoded !== null) ? $decoded : $item;
-            }, $equipDecoded);
+            $equipDecoded = is_string($equipJson) ? json_decode($equipJson, true) : null;
+            $data['equipamiento'] = is_array($equipDecoded) ? $equipDecoded : [];
 
             // Galería
             $galeriaJson = get_post_meta($id, '_vehiculo_galeria', true);
