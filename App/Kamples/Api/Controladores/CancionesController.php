@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * CancionesController — API REST para Sample Discovery.
+ *
+ * GET  /canciones                      — Listar canciones recientes
+ * GET  /canciones/buscar               — Buscar canciones por texto
+ * GET  /canciones/top                  — Canciones más sampleadas
+ * GET  /canciones/{slug}               — Detalle canción con relaciones
+ * GET  /artistas/{slug}                — Detalle artista con canciones
+ * GET  /artistas/top                   — Top artistas por canciones
+ * GET  /sample-discovery/estadisticas  — Estadísticas generales
+ *
+ * Todos los endpoints son públicos (información cultural abierta).
+ *
+ * @package Kamples
+ */
+
+namespace App\Kamples\Api\Controladores;
+
+use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
+use App\Kamples\Database\Repositories\RelacionesSampleRepository;
+use App\Kamples\Database\Repositories\CancionesArtistasRepository;
+
+class CancionesController
+{
+    public static function registrarRutas(string $namespace): void
+    {
+        \register_rest_route($namespace, '/canciones', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listar'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'page'     => ['type' => 'integer', 'default' => 1, 'minimum' => 1],
+                'per_page' => ['type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/canciones/buscar', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'buscar'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'q'        => ['type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_text_field'],
+                'per_page' => ['type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 100],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/canciones/top', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'topSampleadas'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'limit' => ['type' => 'integer', 'default' => 50, 'minimum' => 1, 'maximum' => 100],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'detalle'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/artistas/top', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'topArtistas'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'limit' => ['type' => 'integer', 'default' => 50, 'minimum' => 1, 'maximum' => 100],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/artistas/(?P<slug>[a-zA-Z0-9_-]+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'detalleArtista'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'slug' => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/sample-discovery/estadisticas', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'estadisticas'],
+            'permission_callback' => '__return_true',
+        ]);
+    }
+
+    /**
+     * GET /canciones — Canciones recientes con artista.
+     */
+    public static function listar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $perPage = (int) $request->get_param('per_page');
+            $canciones = CancionesRepository::buscarRecientes($perPage);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $canciones,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::listar] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/buscar?q=texto — Búsqueda fulltext.
+     */
+    public static function buscar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $query = (string) $request->get_param('q');
+            $perPage = (int) $request->get_param('per_page');
+
+            if (\strlen($query) < 2) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Búsqueda mínimo 2 caracteres'], 400);
+            }
+
+            $resultados = CancionesRepository::buscarTexto($query, $perPage);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $resultados,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::buscar] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/top — Canciones más sampleadas.
+     */
+    public static function topSampleadas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $limit = (int) $request->get_param('limit');
+            $canciones = CancionesRepository::masSampleadas($limit);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $canciones,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::topSampleadas] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/{slug} — Detalle canción con relaciones sample.
+     *
+     * Retorna: canción, artistas (principal+featuring+producers),
+     * samples que usa (samplesDe) y dónde fue sampleada (sampleadaEn).
+     */
+    public static function detalle(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $slug = (string) $request->get_param('slug');
+            $cancion = CancionesRepository::buscarPorSlug($slug);
+
+            if (!$cancion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Canción no encontrada'], 404);
+            }
+
+            $cancionId = (int) $cancion['id'];
+
+            $artistas = CancionesArtistasRepository::artistasDeCancion($cancionId);
+            $samplesDe = RelacionesSampleRepository::samplesDe($cancionId);
+            $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'cancion'      => $cancion,
+                    'artistas'     => $artistas,
+                    'samples_de'   => $samplesDe,
+                    'sampleada_en' => $sampleadaEn,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::detalle] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /artistas/{slug} — Detalle artista con canciones.
+     */
+    public static function detalleArtista(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $slug = (string) $request->get_param('slug');
+            $artista = ArtistasMusicalesRepository::buscarPorSlug($slug);
+
+            if (!$artista) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Artista no encontrado'], 404);
+            }
+
+            $canciones = CancionesArtistasRepository::cancionesDeArtista((int) $artista['id']);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'artista'   => $artista,
+                    'canciones' => $canciones,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::detalleArtista] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /artistas/top — Top artistas por cantidad de canciones.
+     */
+    public static function topArtistas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $limit = (int) $request->get_param('limit');
+            $artistas = ArtistasMusicalesRepository::topPorCanciones($limit);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $artistas,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::topArtistas] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /sample-discovery/estadisticas — Stats generales del módulo.
+     */
+    public static function estadisticas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $porTipo = RelacionesSampleRepository::estadisticasPorTipo();
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'relaciones_por_tipo' => $porTipo,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::estadisticas] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+}

@@ -20,6 +20,7 @@ def insertar_sample(
     recorte: ResultadoRecorte,
     wav_path: str,
     metadata_cancion: dict,
+    waveform_path: str | None = None,
 ) -> int | None:
     """
     Insertar sample extraído en tabla `samples` e vincular con la relación.
@@ -29,6 +30,7 @@ def insertar_sample(
         recorte: ResultadoRecorte del corte.
         wav_path: ruta al archivo WAV recortado.
         metadata_cancion: dict con info de canción fuente/destino.
+        waveform_path: ruta al JSON de peaks waveform (opcional).
 
     Returns:
         ID del sample creado, o None si falla.
@@ -72,9 +74,9 @@ def insertar_sample(
                 "INSERT INTO samples "
                 "(creador_id, titulo, slug, bpm, duracion, formato, tamano, "
                 "metadata, tags, estado, tipo, licencia_libre, permitir_descarga, "
-                "ruta_original, verificado, mostrar_en_comunidad) "
+                "ruta_original, ruta_waveform, verificado, mostrar_en_comunidad) "
                 "VALUES (0, %s, %s, %s, %s, 'wav', %s, %s, %s, "
-                "'en_supervision', %s, false, true, %s, false, true) "
+                "'en_supervision', %s, false, true, %s, %s, false, true) "
                 "RETURNING id",
                 (
                     titulo[:200],
@@ -86,6 +88,7 @@ def insertar_sample(
                     tags,
                     tipo,
                     wav_path,
+                    waveform_path,
                 ),
             )
 

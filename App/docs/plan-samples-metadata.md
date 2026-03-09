@@ -810,7 +810,7 @@ LIMIT 20;
 - [ ] **S1.2** Generar enums con Schema Generator existente
 - [ ] **S1.3** Ejecutar migraciones (crear tablas + índices)
 - [ ] **S1.4** Crear repositorios PHP: `ArtistasMusicalesRepository`, `CancionesRepository`, `RelacionesSampleRepository`
-- [ ] **S1.5** API endpoints básicos: listar canciones, buscar, detalle canción con relaciones
+- [x] **S1.5** API endpoints REST: CancionesController 7 endpoints (listar, buscar, top, detalle cancion+artista, estadisticas) ✅
 
 ### FASE S2 — Scraper core (Python + Scrapy)
 
@@ -830,8 +830,8 @@ LIMIT 20;
 - [ ] **S3.3** Módulo `sample_cutter.py`: lógica de recorte por compás (1 antes + 8 compases)
 - [ ] **S3.4** Módulo `kamples_inserter.py`: crear sample en BD Kamples con metadata enriched
 - [ ] **S3.5** Orquestador `pipeline.py`: procesar cola_extraccion_samples
-- [ ] **S3.6** Generación de waveform + preview (integrar con pipeline existente de Kamples)
-- [ ] **S3.7** Cron de extracción: batch processing de la cola
+- [x] **S3.6** waveform_generator.py (librosa → 120 peaks → JSON compatible PHP) ✅
+- [x] **S3.7** Cron batch: scripts sh (lock file) + cron_runner.py cross-platform ✅
 
 ### FASE S4 — UI en Kamples (React Islands)
 

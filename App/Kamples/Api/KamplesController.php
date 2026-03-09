@@ -33,6 +33,7 @@ use App\Kamples\Api\Controladores\AdminController;
 use App\Kamples\Api\Controladores\DuplicadosController;
 use App\Kamples\Api\Controladores\ColaIaController;
 use App\Kamples\Api\Controladores\SyncController;
+use App\Kamples\Api\Controladores\CancionesController;
 
 class KamplesController
 {
@@ -77,5 +78,6 @@ class KamplesController
         DuplicadosController::registrarRutas($ns);
         ColaIaController::registrarRutas($ns);
         SyncController::registrarRutas($ns);
+        CancionesController::registrarRutas($ns);
     }
 }

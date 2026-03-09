@@ -201,9 +201,9 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 ### S1 — Infraestructura BD
 - [x] **S1.1** Schemas PHP: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples ✅
 - [x] **S1.2** Generator: Cols, DTO, Enums, schema.ts generados ✅
-- [x] **S1.3** Migraciones (tablas + índices) — ejecutadas via psql (v023_sample_discovery.sql: 6 tablas + 14 índices) ✅
+- [x] **S1.3** Migraciones (tablas + índices) — ejecutadas via psql (v027_sample_discovery.sql: 6 tablas + 14 índices) ✅
 - [x] **S1.4** Repositorios PHP con métodos custom (6 repos: ArtistasMusicales, Canciones, CancionesArtistas, RelacionesSample, ScrapingLog, ColaExtraccionSamples) ✅
-- [ ] **S1.5** API endpoints REST básicos
+- [x] **S1.5** API endpoints REST: CancionesController con 7 endpoints (listar, buscar, top, detalle cancion, detalle artista, top artistas, estadisticas) ✅ [AG-SMD]
 
 ### S2 — Scraper Core (Python/Scrapy + DataImpulse)
 - [x] **S2.1** Proyecto Python: requirements.txt, scrapy.cfg, .env, .gitignore ✅
@@ -219,10 +219,10 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S3.1** audio_download.py (yt-dlp wrapper, WAV, cache, 300s timeout) ✅
 - [x] **S3.2** bpm_analyzer.py (librosa beat tracking, time signature, confianza) ✅
 - [x] **S3.3** sample_cutter.py (recorte alineado a compás: -1 + 8 compases, ffmpeg fade) ✅
-- [x] **S3.4** kamples_inserter.py (inserción en BD, tags auto, vinculación relación) ✅
-- [x] **S3.5** pipeline.py (orquestador: cola→descargar→analizar→recortar→insertar) ✅
-- [ ] **S3.6** Waveform generation (pendiente — necesario para UI)
-- [ ] **S3.7** Cron batch de extracción
+- [x] **S3.4** kamples_inserter.py (inserción en BD, tags auto, vinculación relación, ruta_waveform) ✅
+- [x] **S3.5** pipeline.py (orquestador: cola→descargar→analizar→recortar→waveform→insertar) ✅
+- [x] **S3.6** waveform_generator.py (librosa → 120 peaks normalizados → JSON compatible con ProcesadorFFmpeg.php) ✅ [AG-SMD]
+- [x] **S3.7** Cron batch: run_daily.sh + run_extraction.sh (lock file) + cron_runner.py cross-platform (Windows Task Scheduler + Linux cron) ✅ [AG-SMD]
 
 ### S4 — UI React Islands
 - [ ] **S4.1-S4.6** Página canción, RelacionSample component, explorar canciones, cadena de samples, búsqueda textual

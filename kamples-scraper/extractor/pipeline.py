@@ -24,6 +24,7 @@ from extractor.audio_download import descargar_audio, limpiar_audio
 from extractor.bpm_analyzer import analizar_bpm
 from extractor.sample_cutter import calcular_recorte, recortar_audio
 from extractor.kamples_inserter import insertar_sample
+from extractor.waveform_generator import generar_waveform
 
 logging.basicConfig(
     level=logging.INFO,
@@ -129,7 +130,10 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             actualizar_estado_cola(cola_id, "error", "Recorte de audio fallido")
             return False
 
-        # 5. Insertar en Kamples
+        # 5. Generar waveform (peaks JSON compatibles con ProcesadorFFmpeg.php)
+        waveform_path = generar_waveform(recorte_path)
+
+        # 6. Insertar en Kamples
         metadata_cancion = {
             "fuente_titulo": item.get("fuente_titulo", ""),
             "fuente_artista": item.get("fuente_artista", ""),
@@ -143,6 +147,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             recorte=recorte,
             wav_path=recorte_path,
             metadata_cancion=metadata_cancion,
+            waveform_path=waveform_path,
         )
 
         if sample_id:
