@@ -592,33 +592,30 @@ class DevController
             /* sentinel-disable-next-line exec-sin-escapeshellarg — proc_open con array no pasa por shell */
             $proceso = \proc_open($cmdArray, $descriptores, $pipes, $scraperDir, $env);
 
-            if ($proceso === false) {
-                return new \WP_REST_Response([
-                    'ok'        => true,
-                    'mensaje'   => 'Encolados ' . \count($ids) . ' lados, pero no se pudo iniciar el pipeline.',
-                    'encolados' => \count($ids),
-                ], 200);
+            $pid = null;
+            if ($proceso !== false) {
+                $estado = \proc_get_status($proceso);
+                $pid    = $estado['pid'] ?? null;
+                /* No llamar proc_close — dejar que Python corra en background.
+                 * WP Cron se encarga de publicar cuando el pipeline termine (~3min). */
             }
 
-            /* Esperar a que Python termine antes de publicar */
-            \proc_close($proceso);
+            /* Programar publicacion via WP Cron: se dispara 3 minutos despues
+             * para dar tiempo a que Python descargue y corte el audio. */
+            \wp_schedule_single_event(\time() + 180, 'kamples_publicar_extracciones', [\count($ids)]);
 
-            /* Publicar extracciones listas a traves del flujo estandar (PipelineAudio) */
-            $publicacion = PublicadorExtraccion::publicarPendientes(\count($ids));
-
-            KamplesLogger::info('[DEV] Recorte + publicacion completados', [
+            KamplesLogger::info('[DEV] Recorte encolado + pipeline iniciado en background', [
                 'relacion_id' => $relacionId,
                 'encolados'   => \count($ids),
-                'publicados'  => $publicacion['publicados'],
-                'errores'     => $publicacion['errores'],
+                'pid'         => $pid,
+                'publicar_en' => date('H:i:s', \time() + 180),
             ]);
 
             return new \WP_REST_Response([
                 'ok'        => true,
-                'mensaje'   => 'Recorte generado y publicado.',
+                'mensaje'   => 'Pipeline iniciado. Publicacion programada en ~3 minutos.',
                 'encolados' => \count($ids),
-                'publicados' => $publicacion['publicados'],
-                'errores'   => $publicacion['errores'],
+                'pid'       => $pid,
                 'log'       => 'App/logs/extractor-output-' . date('Y-m-d') . '.log',
             ], 200);
 

@@ -29,7 +29,8 @@ export const useDevAccionesRelacion = (relacionId: number): DevAccionesRelacion 
             if (d.publicados != null && d.publicados > 0) {
                 partes.push(`${d.publicados} publicados${(d.errores ?? 0) > 0 ? ` (${d.errores} err)` : ''}`);
             }
-            setRecorteMensaje(partes.length > 0 ? partes.join(' · ') : (d.mensaje ?? 'Listo'));
+            const base = partes.length > 0 ? partes.join(' · ') : (d.mensaje ?? 'Listo');
+            setRecorteMensaje(base + (d.encolados > 0 && d.publicados == null ? ' · publicación en ~3min' : ''));
         } else {
             setRecorteMensaje(resp.error ?? 'Error al generar recorte');
         }

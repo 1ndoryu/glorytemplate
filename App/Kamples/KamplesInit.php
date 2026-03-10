@@ -18,6 +18,7 @@ use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
 use App\Kamples\Services\BackfillHashService;
+use App\Kamples\Services\PublicadorExtraccion;
 
 class KamplesInit
 {
@@ -52,6 +53,16 @@ class KamplesInit
 
         /* D1.5: Cron para backfill de hashes SHA-256 en samples existentes */
         BackfillHashService::registrarCron();
+
+        /* Hook de WP Cron para publicar extracciones de audio via PipelineAudio */
+        \add_action('kamples_publicar_extracciones', function (int $limit = 10): void {
+            try {
+                $resultado = PublicadorExtraccion::publicarPendientes($limit);
+                KamplesLogger::info('[CRON] Extracciones publicadas', $resultado);
+            } catch (\Throwable $e) {
+                KamplesLogger::error('[CRON] Error publicando extracciones', ['error' => $e->getMessage()]);
+            }
+        });
     }
 
     /*
