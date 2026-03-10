@@ -34,6 +34,10 @@ class TrackSpider(scrapy.Spider):
     # Sin este warm-up, un request directo a un track específico recibe 403.
     WARMUP_URL = "https://www.whosampled.com/"
 
+    # Profundidad máxima de seguimiento cuando se usa con start_url específica.
+    # 2 = track → detalle de relacion. Evita explotar el grafo completo de samples.
+    DEPTH_LIMIT_TRACK = 2
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.modo = getattr(self, "modo", "ambos")

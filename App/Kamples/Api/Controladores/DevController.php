@@ -186,6 +186,10 @@ class DevController
                 /* -a start_url pasa la URL directamente al spider track */
                 $cmdArray[] = '-a';
                 $cmdArray[] = 'start_url=' . $url;
+                /* Limitar profundidad a 2 para tracks específicos: track → detalle.
+                 * Sin límite, el spider sigue el grafo completo de samples/sampled. */
+                $cmdArray[] = '-s';
+                $cmdArray[] = 'DEPTH_LIMIT=2';
             }
             if ($limit > 0) {
                 $cmdArray[] = '-s';
