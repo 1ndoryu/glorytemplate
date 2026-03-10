@@ -8,11 +8,12 @@ import { Heart } from 'lucide-react';
 import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { useBotonLike } from '@app/hooks/useBotonLike';
 import type { TipoReaccion } from '@app/types';
+import type { TipoLikeable } from '@app/services/apiSocial';
 import '../../styles/componentes/botonLike.css';
 import { BotonBase } from '../ui/BotonBase';
 
 interface BotonLikeProps {
-    tipo: 'sample' | 'publicacion';
+    tipo: TipoLikeable;
     targetId: number;
     liked?: boolean;
     reaccion?: TipoReaccion | null;

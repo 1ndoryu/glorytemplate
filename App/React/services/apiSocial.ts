@@ -23,10 +23,14 @@ export const obtenerMisSeguidos = async (): Promise<RespuestaApi<{ id: number }[
     return apiGet<{ id: number }[]>('/me/seguidos');
 };
 
+/* Tipos de contenido que soportan likes y comentarios */
+export type TipoLikeable = 'sample' | 'publicacion' | 'cancion' | 'relacion';
+export type TipoComentable = 'sample' | 'publicacion' | 'cancion' | 'relacion';
+
 /* Likes / Reacciones */
 
 export const darLike = async (
-    tipo: 'sample' | 'publicacion',
+    tipo: TipoLikeable,
     targetId: number,
     reaccion: TipoReaccion = 'like'
 ): Promise<RespuestaApi<{ liked: boolean; reaccion: TipoReaccion }>> => {
@@ -35,7 +39,7 @@ export const darLike = async (
 };
 
 export const quitarLike = async (
-    tipo: 'sample' | 'publicacion',
+    tipo: TipoLikeable,
     targetId: number
 ): Promise<RespuestaApi<{ liked: boolean; reaccion: null }>> => {
     /* DELETE /like espera body con tipo y target_id (snake_case) */
@@ -68,7 +72,7 @@ export const obtenerFeedInicio = async (page = 1): Promise<RespuestaApi<Publicac
 /* Comentarios */
 
 export const obtenerComentarios = async (
-    tipo: 'sample' | 'publicacion',
+    tipo: TipoComentable,
     targetId: number,
     page = 1
 ): Promise<RespuestaApi<Comentario[]>> => {
@@ -76,7 +80,7 @@ export const obtenerComentarios = async (
 };
 
 export const crearComentario = async (
-    tipo: 'sample' | 'publicacion',
+    tipo: TipoComentable,
     targetId: number,
     contenido: string,
     parentId?: number
@@ -91,7 +95,7 @@ export const crearComentario = async (
  * Envía FormData con el archivo + contenido opcional (caption).
  */
 export const crearComentarioMultimedia = async (
-    tipo: 'sample' | 'publicacion',
+    tipo: TipoComentable,
     targetId: number,
     tipoContenido: 'imagen' | 'audio',
     archivo: File,

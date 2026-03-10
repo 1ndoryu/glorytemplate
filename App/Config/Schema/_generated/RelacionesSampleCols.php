@@ -24,9 +24,11 @@ final class RelacionesSampleCols
     const FUENTE = 'fuente';
     const CONTRIBUIDOR_ID = 'contribuidor_id';
     const VERIFICADA = 'verificada';
+    const TOTAL_LIKES = 'total_likes';
+    const TOTAL_COMENTARIOS = 'total_comentarios';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'cancion_destino_id', 'cancion_fuente_id', 'whosampled_id', 'tipo_relacion', 'tipo_elemento', 'timings_destino', 'timings_fuente', 'aparece_en_todo', 'sample_id', 'votos_total', 'votos_promedio', 'fuente', 'contribuidor_id', 'verificada', 'created_at', 'updated_at'];
+    const TODAS = ['id', 'cancion_destino_id', 'cancion_fuente_id', 'whosampled_id', 'tipo_relacion', 'tipo_elemento', 'timings_destino', 'timings_fuente', 'aparece_en_todo', 'sample_id', 'votos_total', 'votos_promedio', 'fuente', 'contribuidor_id', 'verificada', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
 }

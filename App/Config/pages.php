@@ -144,10 +144,12 @@ PageManager::reactPage('cancion', 'CancionDetalleIsland', function($pageId) {
 PageManager::registrarRutaDinamica('cancion');
 
 /* Paginas Kamples — Detalle de relación de sampleo */
+/* URL SEO: /sampleo/{id}/{slug-descriptivo} o /sampleo/{id} (retrocompat) */
 PageManager::reactPage('sampleo', 'RelacionDetalleIsland', function($pageId) {
     $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
     $partes = explode('/', $path);
-    $id = end($partes);
+    /* partes[0]='sampleo', partes[1]=id numérico, partes[2]=slug (opcional) */
+    $id = isset($partes[1]) && is_numeric($partes[1]) ? $partes[1] : end($partes);
     return ['id' => sanitize_text_field($id)];
 });
 

@@ -9,7 +9,7 @@ import { Music } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { useNavigationStore } from '@/core/router';
 import type { RelacionSample } from '@app/types/cancion';
-import { ETIQUETAS_TIPO_ELEMENTO } from '@app/types/cancion';
+import { ETIQUETAS_TIPO_ELEMENTO, construirUrlSampleo } from '@app/types/cancion';
 import '../../styles/componentes/tablaRelaciones.css';
 
 const formatearTimings = (timings: number[]): string => {
@@ -56,11 +56,11 @@ export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps)
                             className="tablaRelacionesFila"
                             role="button"
                             tabIndex={0}
-                            onClick={() => navegar(`/sampleo/${rel.id}`)}
+                            onClick={() => navegar(construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo))}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    navegar(`/sampleo/${rel.id}`);
+                                    navegar(construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo));
                                 }
                             }}
                         >

@@ -17,6 +17,8 @@ use App\Config\Schema\_generated\ComentariosDTO;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\PublicacionesCols;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 
 class ComentariosRepository extends BaseRepository
 {
@@ -271,14 +273,22 @@ class ComentariosRepository extends BaseRepository
     }
 
     /*
-     * Recalcular total_comentarios en la tabla destino (samples o publicaciones).
+     * Recalcular total_comentarios en la tabla destino (samples, publicaciones, canciones o relaciones).
      */
     public static function recalcularTotalEnTarget(string $tipo, int $targetId): void
     {
         $tc = ComentariosCols::TABLA;
-        $tablaDestino = $tipo === ComentariosEnums::TIPO_PUBLICACION ? PublicacionesCols::TABLA : SamplesCols::TABLA;
-        $colId = $tipo === ComentariosEnums::TIPO_PUBLICACION ? PublicacionesCols::ID : SamplesCols::ID;
-        $colTotal = $tipo === ComentariosEnums::TIPO_PUBLICACION ? PublicacionesCols::TOTAL_COMENTARIOS : SamplesCols::TOTAL_COMENTARIOS;
+
+        $mapaTablas = [
+            ComentariosEnums::TIPO_PUBLICACION => [PublicacionesCols::TABLA, PublicacionesCols::ID, PublicacionesCols::TOTAL_COMENTARIOS],
+            ComentariosEnums::TIPO_SAMPLE      => [SamplesCols::TABLA, SamplesCols::ID, SamplesCols::TOTAL_COMENTARIOS],
+            ComentariosEnums::TIPO_CANCION     => [CancionesCols::TABLA, CancionesCols::ID, CancionesCols::TOTAL_COMENTARIOS],
+            ComentariosEnums::TIPO_RELACION    => [RelacionesSampleCols::TABLA, RelacionesSampleCols::ID, RelacionesSampleCols::TOTAL_COMENTARIOS],
+        ];
+
+        if (!isset($mapaTablas[$tipo])) return;
+
+        [$tablaDestino, $colId, $colTotal] = $mapaTablas[$tipo];
 
         static::ejecutar(
             "UPDATE {$tablaDestino} SET {$colTotal} = ("

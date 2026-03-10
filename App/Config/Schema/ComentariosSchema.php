@@ -16,7 +16,7 @@ class ComentariosSchema extends TableSchema
         return [
             'id'                 => ['tipo' => 'int', 'pk' => true],
             'autor_id'           => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
-            'tipo'               => ['tipo' => 'string', 'max' => 20, 'check' => ['sample', 'publicacion']],
+            'tipo'               => ['tipo' => 'string', 'max' => 20, 'check' => ['sample', 'publicacion', 'cancion', 'relacion']],
             'target_id'          => ['tipo' => 'int'],
             'contenido'          => ['tipo' => 'text', 'nullable' => true],
             'created_at'         => ['tipo' => 'datetime', 'default' => 'NOW()'],

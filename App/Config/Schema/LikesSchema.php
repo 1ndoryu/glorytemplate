@@ -15,7 +15,7 @@ class LikesSchema extends TableSchema
     {
         return [
             'usuario_id' => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
-            'tipo'       => ['tipo' => 'string', 'max' => 20, 'check' => ['sample', 'publicacion', 'comentario']],
+            'tipo'       => ['tipo' => 'string', 'max' => 20, 'check' => ['sample', 'publicacion', 'comentario', 'cancion', 'relacion']],
             'target_id'  => ['tipo' => 'int'],
             'created_at' => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'reaccion'   => ['tipo' => 'string', 'max' => 20, 'default' => 'like', 'check' => ['like', 'dislike', 'encanta']],

@@ -13,12 +13,13 @@ import {
 } from '@app/services/apiSocial';
 import { crearLogger } from '@app/services/logger';
 import type { Comentario } from '@app/types';
+import type { TipoComentable } from '@app/services/apiSocial';
 
 const log = crearLogger('useComentarios');
 export const EVENTO_SAMPLE_COMENTADO = 'kamples:sample-comentado';
 
 interface UseComentariosOpciones {
-    tipo: 'sample' | 'publicacion';
+    tipo: TipoComentable;
     targetId: number;
     cargarAlAbrir?: boolean;
 }

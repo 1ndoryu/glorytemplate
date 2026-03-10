@@ -12,6 +12,7 @@ import type { RelacionSample } from '@app/types/cancion';
 import {
     ETIQUETAS_TIPO_RELACION,
     ETIQUETAS_TIPO_ELEMENTO,
+    construirUrlSampleo,
 } from '@app/types/cancion';
 import '../../styles/componentes/tarjetaRelacionSample.css';
 
@@ -42,7 +43,7 @@ export const TarjetaRelacionSample = ({
     const navegar = useNavigationStore((s) => s.navegar);
 
     const handleClickRelacion = () => {
-        navegar(`/sampleo/${relacion.id}`);
+        navegar(construirUrlSampleo(relacion.id, relacion.artistaNombre, relacion.cancionTitulo));
     };
 
     const handleClickCancion = (e: React.MouseEvent) => {
@@ -126,8 +127,8 @@ export const TarjetaRelacionSample = ({
                         </span>
                     )}
                     {relacion.apareceEnTodo && (
-                        <span className="tarjetaRelacionThroughout">
-                            y en toda la canción
+                        <span className="tarjetaRelacionThroughout" style={{ display: 'none' }}>
+                           
                         </span>
                     )}
                     {relacion.verificada && (

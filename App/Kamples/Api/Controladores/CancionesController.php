@@ -23,7 +23,10 @@ use App\Kamples\Database\Repositories\CancionesRepository;
 use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\CancionesArtistasRepository;
+use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Api\Helpers\NormalizadorCancion;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Kamples\Auth\UsuarioHelper;
 
 class CancionesController
 {
@@ -360,7 +363,8 @@ class CancionesController
      * GET /relaciones/{id} — Detalle completo de una relación de sampleo.
      *
      * Retorna relación + info completa de canción fuente y destino (títulos,
-     * artistas, imágenes, youtubeIds) para la vista de comparación lado a lado.
+     * artistas, imágenes, youtubeIds) + relaciones adicionales de ambas
+     * canciones (otros samples, covers, remixes) para contexto enriquecido.
      */
     public static function detalleRelacion(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -372,9 +376,43 @@ class CancionesController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada'], 404);
             }
 
+            $destinoId = (int) $relacion['cancion_destino_id'];
+            $fuenteId  = (int) $relacion['cancion_fuente_id'];
+
+            /* Related songs: otras relaciones de cada canción (excluye la actual) */
+            $destinoSamplesDe  = RelacionesSampleRepository::samplesDe($destinoId, 20);
+            $destinoSampleadaEn = RelacionesSampleRepository::sampleadaEn($destinoId, 20);
+            $fuenteSamplesDe   = RelacionesSampleRepository::samplesDe($fuenteId, 20);
+            $fuenteSampleadaEn  = RelacionesSampleRepository::sampleadaEn($fuenteId, 20);
+
+            /* Excluir la relación actual de los resultados */
+            $filtrar = fn(array $rels) => array_values(array_filter(
+                $rels,
+                fn($r) => (int) $r['id'] !== $id
+            ));
+
+            $data = NormalizadorCancion::relacionCompleta($relacion);
+            $data['destinoSamplesDe']   = array_map([NormalizadorCancion::class, 'relacion'], $filtrar($destinoSamplesDe));
+            $data['destinoSampleadaEn'] = array_map([NormalizadorCancion::class, 'relacion'], $filtrar($destinoSampleadaEn));
+            $data['fuenteSamplesDe']    = array_map([NormalizadorCancion::class, 'relacion'], $filtrar($fuenteSamplesDe));
+            $data['fuenteSampleadaEn']  = array_map([NormalizadorCancion::class, 'relacion'], $filtrar($fuenteSampleadaEn));
+
+            /* Estado de like del usuario actual (si está autenticado) */
+            $data['liked']    = false;
+            $data['reaccion'] = null;
+
+            $userId = UsuarioHelper::obtenerIdPg();
+            if ($userId) {
+                $reaccionUsuario = LikesRepository::obtenerReaccionUsuario($userId, LikesEnums::TIPO_RELACION, $id);
+                if ($reaccionUsuario) {
+                    $data['liked']    = true;
+                    $data['reaccion'] = $reaccionUsuario;
+                }
+            }
+
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => NormalizadorCancion::relacionCompleta($relacion),
+                'data' => $data,
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::detalleRelacion] ' . $e->getMessage());

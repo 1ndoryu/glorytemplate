@@ -26,9 +26,11 @@ final class CancionesCols
     const METADATA = 'metadata';
     const TOTAL_SAMPLEADA = 'total_sampleada';
     const TOTAL_SAMPLEA = 'total_samplea';
+    const TOTAL_LIKES = 'total_likes';
+    const TOTAL_COMENTARIOS = 'total_comentarios';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'titulo', 'slug', 'artista_id', 'album', 'sello', 'anio', 'duracion_segundos', 'genero', 'youtube_id', 'imagen_url', 'whosampled_url', 'bpm', 'tonalidad', 'metadata', 'total_sampleada', 'total_samplea', 'created_at', 'updated_at'];
+    const TODAS = ['id', 'titulo', 'slug', 'artista_id', 'album', 'sello', 'anio', 'duracion_segundos', 'genero', 'youtube_id', 'imagen_url', 'whosampled_url', 'bpm', 'tonalidad', 'metadata', 'total_sampleada', 'total_samplea', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
 }

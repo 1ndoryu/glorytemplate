@@ -35,11 +35,11 @@ use App\Kamples\KamplesLogger;
 
 class ComentariosController
 {
-    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION];
+    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION, ComentariosEnums::TIPO_CANCION, ComentariosEnums::TIPO_RELACION];
 
     public static function registrarRutas(string $namespace): void
     {
-        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion|cancion|relacion)/(?P<targetId>\d+)', [
             'methods' => 'GET',
             'callback' => [self::class, 'listar'],
             'permission_callback' => '__return_true',
@@ -48,7 +48,7 @@ class ComentariosController
             ],
         ]);
 
-        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion)/(?P<targetId>\d+)', [
+        \register_rest_route($namespace, '/comentarios/(?P<tipo>sample|publicacion|cancion|relacion)/(?P<targetId>\d+)', [
             'methods' => 'POST',
             'callback' => [ComentariosEscrituraController::class, 'crear'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],

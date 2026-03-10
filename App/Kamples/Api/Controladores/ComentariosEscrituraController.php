@@ -40,7 +40,7 @@ use App\Kamples\KamplesLogger as LogGeneral;
 
 class ComentariosEscrituraController
 {
-    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION];
+    private const TIPOS_VALIDOS = [ComentariosEnums::TIPO_SAMPLE, ComentariosEnums::TIPO_PUBLICACION, ComentariosEnums::TIPO_CANCION, ComentariosEnums::TIPO_RELACION];
 
     public static function crear(\WP_REST_Request $request): \WP_REST_Response
     {

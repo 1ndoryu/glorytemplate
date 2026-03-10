@@ -1,16 +1,25 @@
 /*
  * RelacionDetalleIsland — Kamples
  * Vista de detalle de una relación de sampleo: dos canciones lado a lado
- * con sus videos de YouTube, tipo de relación y metadata.
+ * con sus videos de YouTube, tipo de relación, metadata, relaciones
+ * adicionales de cada canción, likes y comentarios.
  * Lógica extraída a useRelacionDetalle (SRP).
+ * Tarjeta de lado extraída a LadoCancionRelacion (SRP).
  */
 
-import { Music, AlertCircle, ArrowRight } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { AlertCircle } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { BotonLike } from '@app/components/social/BotonLike';
+import { ListaComentarios } from '@app/components/social/ListaComentarios';
+import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
+import { LadoCancionRelacion } from '@app/components/canciones/LadoCancionRelacion';
 import { Skeleton } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useRelacionDetalle } from '@app/hooks/useRelacionDetalle';
+import { useComentarios } from '@app/hooks/useComentarios';
+import { useNavigationStore } from '@/core/router';
 import {
     ETIQUETAS_TIPO_RELACION,
     ETIQUETAS_TIPO_ELEMENTO,
@@ -21,7 +30,6 @@ const TABS_RELACION = [{ id: 'relacion', etiqueta: 'Sampleo' }];
 
 interface RelacionDetalleProps {
     id?: string;
-    /* El SPA router extrae segmentos dinámicos como 'slug' — se acepta como alias de id */
     slug?: string;
 }
 
@@ -31,46 +39,37 @@ const construirEmbedUrl = (youtubeId: string): string | null => {
     return `https://www.youtube-nocookie.com/embed/${youtubeId}`;
 };
 
-const formatearTimings = (timings: number[]): string => {
-    if (!timings || timings.length === 0) return '';
-    return timings
-        .map((t) => {
-            const min = Math.floor(t / 60);
-            const seg = t % 60;
-            return `${min}:${String(seg).padStart(2, '0')}`;
-        })
-        .join(', ');
-};
-
 export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.Element => {
-    /* SPA navigation pasa 'slug' para segmentos dinámicos (/sampleo/260 → slug='260') */
     const idEfectivo = id ?? slug;
-    const {
-        relacion,
-        cargando,
-        error,
-        irACancion,
-        irAArtista,
-    } = useRelacionDetalle({ id: idEfectivo });
+    const { relacion, cargando, error, irACancion, irAArtista } = useRelacionDetalle({ id: idEfectivo });
+    const navegar = useNavigationStore((s) => s.navegar);
+
+    const relacionId = relacion?.id ?? 0;
+    const [comentariosVisibles, setComentariosVisibles] = useState(false);
+    const seccionComentarios = useComentarios({ tipo: 'relacion', targetId: relacionId });
+
+    const manejarToggleComentarios = useCallback(() => {
+        setComentariosVisibles(prev => {
+            const siguiente = !prev;
+            if (siguiente && seccionComentarios.comentarios.length === 0) {
+                seccionComentarios.cargar(1);
+            }
+            return siguiente;
+        });
+    }, [seccionComentarios]);
 
     useTabsIsla('RelacionDetalleIsland', TABS_RELACION, 'relacion');
 
     if (cargando) {
         return (
             <div className="relacionDetalleContenedor" id="seccionRelacionDetalle">
-                <div className="relacionDetalleCabecera">
-                    <Skeleton alto={24} ancho={200} />
-                </div>
+                <div className="relacionDetalleCabecera"><Skeleton alto={24} ancho={200} /></div>
                 <div className="relacionDetalleGrid">
                     <div className="relacionDetalleLado">
-                        <Skeleton alto={200} />
-                        <Skeleton alto={20} />
-                        <Skeleton alto={16} ancho={120} />
+                        <Skeleton alto={200} /><Skeleton alto={20} /><Skeleton alto={16} ancho={120} />
                     </div>
                     <div className="relacionDetalleLado">
-                        <Skeleton alto={200} />
-                        <Skeleton alto={20} />
-                        <Skeleton alto={16} ancho={120} />
+                        <Skeleton alto={200} /><Skeleton alto={20} /><Skeleton alto={16} ancho={120} />
                     </div>
                 </div>
             </div>
@@ -83,187 +82,143 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                 <div className="relacionDetalleError">
                     <AlertCircle size={40} />
                     <p>{error || 'Relación no encontrada.'}</p>
-                    <BotonBase variante="ghost" onClick={() => window.history.back()}>
-                        Volver
-                    </BotonBase>
+                    <BotonBase variante="ghost" onClick={() => window.history.back()}>Volver</BotonBase>
                 </div>
             </div>
         );
     }
 
-    const embedDestino = relacion.destino_youtubeId
-        ? construirEmbedUrl(relacion.destino_youtubeId)
-        : null;
-    const embedFuente = relacion.fuente_youtubeId
-        ? construirEmbedUrl(relacion.fuente_youtubeId)
-        : null;
+    const embedDestino = relacion.destino_youtubeId ? construirEmbedUrl(relacion.destino_youtubeId) : null;
+    const embedFuente = relacion.fuente_youtubeId ? construirEmbedUrl(relacion.fuente_youtubeId) : null;
+    const tieneRelacionesDestino = (relacion.destinoSamplesDe?.length ?? 0) > 0 || (relacion.destinoSampleadaEn?.length ?? 0) > 0;
+    const tieneRelacionesFuente = (relacion.fuenteSamplesDe?.length ?? 0) > 0 || (relacion.fuenteSampleadaEn?.length ?? 0) > 0;
 
     return (
         <div className="relacionDetalleContenedor" id="seccionRelacionDetalle">
-            {/* Cabecera: tipo de relación + metadata */}
+            {/* Cabecera */}
             <div className="relacionDetalleCabecera">
-                <h1 className="relacionDetalleTipo">
-                    {ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}
-                </h1>
+                <h1 className="relacionDetalleTipo">{ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}</h1>
                 <div className="relacionDetalleMeta">
                     {relacion.tipoElemento && (
-                        <Badge variante="neutro" tamano="sm">
-                            {ETIQUETAS_TIPO_ELEMENTO[relacion.tipoElemento]}
-                        </Badge>
+                        <Badge variante="neutro" tamano="sm">{ETIQUETAS_TIPO_ELEMENTO[relacion.tipoElemento]}</Badge>
                     )}
-                    {relacion.verificada && (
-                        <Badge variante="exito" tamano="sm">Verificada</Badge>
-                    )}
-                    {relacion.votosTotal > 0 && (
-                        <Badge variante="neutro" tamano="sm">
-                            {relacion.votosTotal} votos
-                        </Badge>
-                    )}
-                    {relacion.apareceEnTodo && (
-                        <Badge variante="neutro" tamano="sm">
-                            En toda la canción
-                        </Badge>
-                    )}
+                    {relacion.verificada && <Badge variante="exito" tamano="sm">Verificada</Badge>}
+                    {relacion.apareceEnTodo && <Badge variante="neutro" tamano="sm">En toda la canción</Badge>}
                 </div>
+                <BotonLike
+                    tipo="relacion"
+                    targetId={relacion.id}
+                    liked={relacion.liked}
+                    reaccion={relacion.reaccion as 'like' | 'encanta' | 'dislike' | null}
+                    totalLikes={relacion.totalLikes}
+                />
             </div>
 
-            {/* Grid: canción destino (samplea) → canción fuente (sampleada) */}
+            {/* Grid: destino (samplea) → fuente (sampleada) */}
             <div className="relacionDetalleGrid">
-                {/* Lado izquierdo: canción destino (la que samplea) */}
-                <div className="relacionDetalleLado">
-                    <span className="relacionDetalleLadoEtiqueta">Samplea</span>
+                <LadoCancionRelacion
+                    etiqueta="Samplea"
+                    imagen={relacion.destino_imagen}
+                    titulo={relacion.destino_titulo}
+                    artista={relacion.destino_artista}
+                    slug={relacion.destino_slug}
+                    artistaSlug={relacion.destino_artistaSlug}
+                    anio={relacion.destino_anio}
+                    genero={relacion.destino_genero}
+                    album={relacion.destino_album}
+                    timings={relacion.timingsDestino}
+                    embedUrl={embedDestino}
+                    onClickCancion={irACancion}
+                    onClickArtista={irAArtista}
+                />
+                <LadoCancionRelacion
+                    etiqueta="Sampleada"
+                    imagen={relacion.fuente_imagen}
+                    titulo={relacion.fuente_titulo}
+                    artista={relacion.fuente_artista}
+                    slug={relacion.fuente_slug}
+                    artistaSlug={relacion.fuente_artistaSlug}
+                    anio={relacion.fuente_anio}
+                    genero={relacion.fuente_genero}
+                    album={relacion.fuente_album}
+                    timings={relacion.timingsFuente}
+                    embedUrl={embedFuente}
+                    onClickCancion={irACancion}
+                    onClickArtista={irAArtista}
+                />
+            </div>
 
-                    <div className="relacionDetallePortada">
-                        {relacion.destino_imagen ? (
-                            <img
-                                src={relacion.destino_imagen}
-                                alt={relacion.destino_titulo ?? ''}
-                                loading="lazy"
-                            />
-                        ) : (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                <Music size={48} color="var(--textoTerciario)" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relacionDetalleLadoInfo">
-                        <BotonBase
-                            variante="ghost"
-                            tamano="ninguno"
-                            className="relacionDetalleLadoTitulo"
-                            onClick={() => relacion.destino_slug && irACancion(relacion.destino_slug)}
-                        >
-                            {relacion.destino_titulo ?? 'Canción desconocida'}
-                        </BotonBase>
-                        {relacion.destino_artista && (
-                            <BotonBase
-                                variante="ghost"
-                                tamano="ninguno"
-                                className="relacionDetalleLadoArtista"
-                                onClick={() => relacion.destino_artistaSlug && irAArtista(relacion.destino_artistaSlug)}
-                            >
-                                {relacion.destino_artista}
-                            </BotonBase>
-                        )}
-                        <div className="relacionDetalleLadoMeta">
-                            {relacion.destino_anio && (
-                                <span className="relacionDetalleLadoAnio">{relacion.destino_anio}</span>
-                            )}
-                            {relacion.destino_genero && (
-                                <Badge variante="neutro" tamano="xs">{relacion.destino_genero}</Badge>
-                            )}
-                            {relacion.destino_album && (
-                                <Badge variante="neutro" tamano="xs">{relacion.destino_album}</Badge>
-                            )}
+            {/* Relaciones adicionales de la canción destino */}
+            {tieneRelacionesDestino && (
+                <div className="relacionDetalleSeccion">
+                    <h2 className="relacionDetalleSeccionTitulo">
+                        Más sobre {relacion.destino_titulo ?? 'esta canción'}
+                    </h2>
+                    {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (
+                        <div className="relacionDetalleSubseccion">
+                            <h3 className="relacionDetalleSubtitulo">Samples que usa</h3>
+                            <TablaRelaciones relaciones={relacion.destinoSamplesDe!} direccion="destino" />
                         </div>
-                        {relacion.timingsDestino.length > 0 && (
-                            <div className="relacionDetalleTiming">
-                                <ArrowRight size={14} />
-                                {formatearTimings(relacion.timingsDestino)}
-                            </div>
-                        )}
-                    </div>
-
-                    {embedDestino && (
-                        <div className="relacionDetalleYoutube">
-                            <iframe
-                                src={embedDestino}
-                                title={`${relacion.destino_titulo} - YouTube`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
+                    )}
+                    {(relacion.destinoSampleadaEn?.length ?? 0) > 0 && (
+                        <div className="relacionDetalleSubseccion">
+                            <h3 className="relacionDetalleSubtitulo">Fue sampleada en</h3>
+                            <TablaRelaciones relaciones={relacion.destinoSampleadaEn!} direccion="origen" />
                         </div>
                     )}
                 </div>
+            )}
 
-                {/* Lado derecho: canción fuente (la sampleada) */}
-                <div className="relacionDetalleLado">
-                    <span className="relacionDetalleLadoEtiqueta">Sampleada</span>
-
-                    <div className="relacionDetallePortada">
-                        {relacion.fuente_imagen ? (
-                            <img
-                                src={relacion.fuente_imagen}
-                                alt={relacion.fuente_titulo ?? ''}
-                                loading="lazy"
-                            />
-                        ) : (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                <Music size={48} color="var(--textoTerciario)" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="relacionDetalleLadoInfo">
-                        <BotonBase
-                            variante="ghost"
-                            tamano="ninguno"
-                            className="relacionDetalleLadoTitulo"
-                            onClick={() => relacion.fuente_slug && irACancion(relacion.fuente_slug)}
-                        >
-                            {relacion.fuente_titulo ?? 'Canción desconocida'}
-                        </BotonBase>
-                        {relacion.fuente_artista && (
-                            <BotonBase
-                                variante="ghost"
-                                tamano="ninguno"
-                                className="relacionDetalleLadoArtista"
-                                onClick={() => relacion.fuente_artistaSlug && irAArtista(relacion.fuente_artistaSlug)}
-                            >
-                                {relacion.fuente_artista}
-                            </BotonBase>
-                        )}
-                        <div className="relacionDetalleLadoMeta">
-                            {relacion.fuente_anio && (
-                                <span className="relacionDetalleLadoAnio">{relacion.fuente_anio}</span>
-                            )}
-                            {relacion.fuente_genero && (
-                                <Badge variante="neutro" tamano="xs">{relacion.fuente_genero}</Badge>
-                            )}
-                            {relacion.fuente_album && (
-                                <Badge variante="neutro" tamano="xs">{relacion.fuente_album}</Badge>
-                            )}
+            {/* Relaciones adicionales de la canción fuente */}
+            {tieneRelacionesFuente && (
+                <div className="relacionDetalleSeccion">
+                    <h2 className="relacionDetalleSeccionTitulo">
+                        Más sobre {relacion.fuente_titulo ?? 'esta canción'}
+                    </h2>
+                    {(relacion.fuenteSamplesDe?.length ?? 0) > 0 && (
+                        <div className="relacionDetalleSubseccion">
+                            <h3 className="relacionDetalleSubtitulo">Samples que usa</h3>
+                            <TablaRelaciones relaciones={relacion.fuenteSamplesDe!} direccion="destino" />
                         </div>
-                        {relacion.timingsFuente.length > 0 && (
-                            <div className="relacionDetalleTiming">
-                                <ArrowRight size={14} />
-                                {formatearTimings(relacion.timingsFuente)}
-                            </div>
-                        )}
-                    </div>
-
-                    {embedFuente && (
-                        <div className="relacionDetalleYoutube">
-                            <iframe
-                                src={embedFuente}
-                                title={`${relacion.fuente_titulo} - YouTube`}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
+                    )}
+                    {(relacion.fuenteSampleadaEn?.length ?? 0) > 0 && (
+                        <div className="relacionDetalleSubseccion">
+                            <h3 className="relacionDetalleSubtitulo">Fue sampleada en</h3>
+                            <TablaRelaciones relaciones={relacion.fuenteSampleadaEn!} direccion="origen" />
                         </div>
                     )}
                 </div>
+            )}
+
+            {/* Comentarios */}
+            <div className="relacionDetalleSeccion">
+                <BotonBase
+                    variante="ghost"
+                    className="relacionDetalleToggleComentarios"
+                    onClick={manejarToggleComentarios}
+                >
+                    {comentariosVisibles ? 'Ocultar comentarios' : `Comentarios (${relacion.totalComentarios})`}
+                </BotonBase>
+                {comentariosVisibles && (
+                    <ListaComentarios
+                        comentarios={seccionComentarios.comentarios}
+                        cargando={seccionComentarios.cargando}
+                        onEnviar={seccionComentarios.enviar}
+                        onEnviarMultimedia={seccionComentarios.enviarMultimedia}
+                        onClickAutor={(u) => navegar(`/perfil/${u}`)}
+                        onCargarMas={seccionComentarios.cargarMas}
+                        hayMasPaginas={seccionComentarios.hayMas}
+                        onEditar={seccionComentarios.editar}
+                        onEliminar={seccionComentarios.eliminar}
+                        onReportar={seccionComentarios.reportar}
+                        onToggleLike={seccionComentarios.toggleLike}
+                        onCargarRespuestas={seccionComentarios.cargarRespuestas}
+                        editandoId={seccionComentarios.editandoId}
+                        setEditandoId={seccionComentarios.setEditandoId}
+                        respondendoAId={seccionComentarios.respondendoAId}
+                        setRespondendoAId={seccionComentarios.setRespondendoAId}
+                    />
+                )}
             </div>
         </div>
     );

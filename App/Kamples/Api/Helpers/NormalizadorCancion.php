@@ -141,6 +141,8 @@ class NormalizadorCancion
             'fuente'           => $row['fuente'] ?? 'scraping',
             'verificada'       => (bool) ($row['verificada'] ?? false),
             'creadoAt'         => $row['created_at'] ?? '',
+            'totalLikes'       => (int) ($row['total_likes'] ?? 0),
+            'totalComentarios' => (int) ($row['total_comentarios'] ?? 0),
             /* Canción fuente (sampleada) */
             'fuente_titulo'        => $row['fuente_titulo'] ?? null,
             'fuente_slug'          => $row['fuente_slug'] ?? null,

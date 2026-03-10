@@ -22,6 +22,9 @@ use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\RelacionesSampleRepository;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\KamplesLogger;
 
 class SocialController
@@ -45,7 +48,7 @@ class SocialController
             'callback'            => [self::class, 'darLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             'args'                => [
-                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION]],
+                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION, LikesEnums::TIPO_CANCION, LikesEnums::TIPO_RELACION]],
                 'target_id' => ['required' => true, 'type' => 'integer'],
                 'reaccion'  => ['required' => false, 'type' => 'string', 'enum' => [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_DISLIKE, LikesEnums::REACCION_ENCANTA], 'default' => LikesEnums::REACCION_LIKE],
             ],
@@ -56,7 +59,7 @@ class SocialController
             'callback'            => [self::class, 'quitarLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             'args'                => [
-                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION]],
+                'tipo'      => ['required' => true, 'type' => 'string', 'enum' => [LikesEnums::TIPO_SAMPLE, LikesEnums::TIPO_PUBLICACION, LikesEnums::TIPO_CANCION, LikesEnums::TIPO_RELACION]],
                 'target_id' => ['required' => true, 'type' => 'integer'],
             ],
         ]);
@@ -164,24 +167,27 @@ class SocialController
             }
 
             /* Verificar que el target existe antes de crear la reacción */
-            $targetExiste = $tipo === LikesEnums::TIPO_PUBLICACION
-                ? PublicacionesRepository::existe(['id' => $targetId])
-                : SamplesRepository::existe(['id' => $targetId]);
+            $targetExiste = match ($tipo) {
+                LikesEnums::TIPO_PUBLICACION => PublicacionesRepository::existe(['id' => $targetId]),
+                LikesEnums::TIPO_CANCION     => \App\Kamples\Database\Repositories\CancionesRepository::existe(['id' => $targetId]),
+                LikesEnums::TIPO_RELACION    => RelacionesSampleRepository::existe(['id' => $targetId]),
+                default                      => SamplesRepository::existe(['id' => $targetId]),
+            };
 
             if (!$targetExiste) {
                 return new \WP_REST_Response(['code' => 'target_no_encontrado', 'message' => 'El contenido no existe'], 404);
             }
 
             /*
-         * C144/C145: UPSERT — si ya existe una reacción, la actualiza.
-         * Un usuario solo puede tener UNA reacción por target.
-         */
+             * C144/C145: UPSERT — si ya existe una reacción, la actualiza.
+             * Un usuario solo puede tener UNA reacción por target.
+             */
             LikesRepository::upsertReaccion($userId, $tipo, $targetId, $reaccion);
 
             /*
-         * Recalcular total_likes: solo cuenta 'like' y 'encanta', NO 'dislike'.
-         * Los dislikes no tienen contador público (C144).
-         */
+             * Recalcular total_likes: solo cuenta 'like' y 'encanta', NO 'dislike'.
+             * Los dislikes no tienen contador público (C144).
+             */
             if ($tipo === LikesEnums::TIPO_SAMPLE) {
                 LikesRepository::recalcularTotalSample($targetId);
 
@@ -214,6 +220,10 @@ class SocialController
                         );
                     }
                 }
+            } elseif ($tipo === LikesEnums::TIPO_CANCION) {
+                LikesRepository::recalcularTotalCancion($targetId);
+            } elseif ($tipo === LikesEnums::TIPO_RELACION) {
+                LikesRepository::recalcularTotalRelacion($targetId);
             }
 
             /* Invalidar cache del feed para que el algoritmo recalcule */
@@ -245,6 +255,10 @@ class SocialController
                 LikesRepository::recalcularTotalSample($targetId);
             } elseif ($tipo === LikesEnums::TIPO_PUBLICACION) {
                 LikesRepository::recalcularTotalPublicacion($targetId);
+            } elseif ($tipo === LikesEnums::TIPO_CANCION) {
+                LikesRepository::recalcularTotalCancion($targetId);
+            } elseif ($tipo === LikesEnums::TIPO_RELACION) {
+                LikesRepository::recalcularTotalRelacion($targetId);
             }
 
             /* Invalidar cache del feed para que el algoritmo recalcule */

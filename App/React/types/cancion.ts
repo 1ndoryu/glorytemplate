@@ -115,6 +115,10 @@ export interface RelacionDetalleCompleta {
     fuente: FuenteRelacion;
     verificada: boolean;
     creadoAt: string;
+    totalLikes: number;
+    totalComentarios: number;
+    liked?: boolean;
+    reaccion?: string | null;
     /* Canción fuente (sampleada) */
     fuente_titulo: string | null;
     fuente_slug: string | null;
@@ -135,6 +139,11 @@ export interface RelacionDetalleCompleta {
     destino_genero: string | null;
     destino_artista: string | null;
     destino_artistaSlug: string | null;
+    /* Relaciones adicionales de cada canción (enriquecimiento) */
+    destinoSamplesDe?: RelacionSample[];
+    destinoSampleadaEn?: RelacionSample[];
+    fuenteSamplesDe?: RelacionSample[];
+    fuenteSampleadaEn?: RelacionSample[];
 }
 
 /* Detalle de artista con canciones */
@@ -191,4 +200,31 @@ export const ETIQUETAS_ROL: Record<RolCancionArtista, string> = {
     principal: 'Principal',
     featuring: 'Feat.',
     producer: 'Productor',
+};
+
+/*
+ * Construye slug descriptivo para URLs SEO de sampleos.
+ * Formato: /sampleo/{id}/{artista-titulo-samplea-artista-titulo}
+ * Solo usa caracteres URL-safe; trunca a 80 chars para evitar URLs excesivas.
+ */
+const slugificar = (texto: string): string =>
+    texto
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+export const construirUrlSampleo = (
+    id: number,
+    destinoArtista?: string | null,
+    destinoTitulo?: string | null,
+    fuenteArtista?: string | null,
+    fuenteTitulo?: string | null,
+): string => {
+    const partes = [
+        destinoArtista, destinoTitulo, 'samplea', fuenteArtista, fuenteTitulo,
+    ].filter(Boolean).map(p => slugificar(p as string));
+
+    const slugSeo = partes.join('-').slice(0, 80).replace(/-+$/, '');
+    return slugSeo ? `/sampleo/${id}/${slugSeo}` : `/sampleo/${id}`;
 };

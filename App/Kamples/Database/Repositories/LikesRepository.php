@@ -18,6 +18,8 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 
 class LikesRepository extends BaseRepository
 {
@@ -192,6 +194,54 @@ class LikesRepository extends BaseRepository
         );
 
         return $total;
+    }
+
+    /*
+     * Recalcular total_likes de una canción (solo like+encanta, NO dislike).
+     */
+    public static function recalcularTotalCancion(int $cancionId): void
+    {
+        $tl = LikesCols::TABLA;
+        $tc = CancionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tc} SET " . CancionesCols::TOTAL_LIKES . " = (
+                SELECT COUNT(*) FROM {$tl} WHERE " . LikesCols::TIPO . " = :tipo AND " . LikesCols::TARGET_ID . " = :id AND " . LikesCols::REACCION . " IN (:r1, :r2)
+            ) WHERE " . CancionesCols::ID . " = :id",
+            ['tipo' => LikesEnums::TIPO_CANCION, 'id' => $cancionId, 'r1' => LikesEnums::REACCION_LIKE, 'r2' => LikesEnums::REACCION_ENCANTA]
+        );
+    }
+
+    /*
+     * Recalcular total_likes de una relación de sampleo (solo like+encanta, NO dislike).
+     */
+    public static function recalcularTotalRelacion(int $relacionId): void
+    {
+        $tl = LikesCols::TABLA;
+        $tr = RelacionesSampleCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tr} SET " . RelacionesSampleCols::TOTAL_LIKES . " = (
+                SELECT COUNT(*) FROM {$tl} WHERE " . LikesCols::TIPO . " = :tipo AND " . LikesCols::TARGET_ID . " = :id AND " . LikesCols::REACCION . " IN (:r1, :r2)
+            ) WHERE " . RelacionesSampleCols::ID . " = :id",
+            ['tipo' => LikesEnums::TIPO_RELACION, 'id' => $relacionId, 'r1' => LikesEnums::REACCION_LIKE, 'r2' => LikesEnums::REACCION_ENCANTA]
+        );
+    }
+
+    /*
+     * Obtener la reacción de un usuario sobre un target específico.
+     * Retorna null si no hay reacción, o el string de reacción ('like', 'encanta', 'dislike').
+     */
+    public static function obtenerReaccionUsuario(int $userId, string $tipo, int $targetId): ?string
+    {
+        $tabla = LikesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . LikesCols::REACCION . " FROM {$tabla} WHERE " . LikesCols::USUARIO_ID . " = :usuario AND " . LikesCols::TIPO . " = :tipo AND " . LikesCols::TARGET_ID . " = :target",
+            ['usuario' => $userId, 'tipo' => $tipo, 'target' => $targetId]
+        );
+
+        return $row ? ($row[LikesCols::REACCION] ?? null) : null;
     }
 
     /*

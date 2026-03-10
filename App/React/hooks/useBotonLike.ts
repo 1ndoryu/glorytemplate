@@ -6,10 +6,11 @@
 
 import { useState, useCallback } from 'react';
 import { darLike, quitarLike } from '@app/services/apiSocial';
+import type { TipoLikeable } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
 
 interface UseBotonLikeParams {
-    tipo: 'sample' | 'publicacion';
+    tipo: TipoLikeable;
     targetId: number;
     liked?: boolean;
     reaccion?: TipoReaccion | null;

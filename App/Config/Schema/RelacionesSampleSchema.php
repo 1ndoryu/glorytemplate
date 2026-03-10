@@ -34,6 +34,8 @@ class RelacionesSampleSchema extends TableSchema
             'fuente'             => ['tipo' => 'string', 'max' => 20, 'default' => 'scraping', 'check' => ['scraping', 'comunidad', 'musicbrainz', 'import']],
             'contribuidor_id'    => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],
             'verificada'         => ['tipo' => 'bool', 'default' => false],
+            'total_likes'        => ['tipo' => 'int', 'default' => 0],
+            'total_comentarios'  => ['tipo' => 'int', 'default' => 0],
             'created_at'         => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'updated_at'         => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];
