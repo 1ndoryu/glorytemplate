@@ -20,6 +20,11 @@
 - [Sentinel regexes PHP]: Los controllers Kamples usan `\register_rest_route($namespace, ...)` y `new \WP_REST_Response([`. El indexer esperaba namespace como string literal y `WP_REST_Response` sin `\` FQN → CERO endpoints indexados. Fix: regex soporta `$variable` como 1er arg y backslash opcional en WP_REST_Response. También: extension `.ts` en gloryAnalyzer para services, `payloadClaves` nivel 2 para sub-claves dentro de `data:{}`, pattern `apiGet<Tipo>()` para helpers Kamples.
 - [Sentinel ROOT CAUSE .ts]: `diagnosticProvider.ts::ejecutarAnalisisEstatico()` y `analizarWorkspace()` tenían `if php / else if tsx|jsx` pero **sin `else if ts`**. Los archivos `.ts` de servicio (ej: `apiCanciones.ts`) NUNCA eran analizados con `analizarGlory()`. Solución: agregar `else if (tipo === 'ts') { violaciones.push(...analizarGlory(doc)); }` en AMBOS handlers.
 - [Sentinel install VSIX]: `code --install-extension ... --force` en PowerShell no produce output y a veces no actualiza los archivos. Verificar con `Select-String` sobre el archivo instalado. Si no tiene los cambios, copiar `out/` directamente a `%USERPROFILE%\.vscode\extensions\publisher.name-version\out\`.
+- [Sentinel falsos positivos api-response-mismatch]: 4 causas raíz encontradas y corregidas:
+  - (1) Wildcard matching: TS `:id` matcheaba literales PHP (ej: `mensajes/:id` → `mensajes/nueva`). Fix: TS `:id` solo matchea PHP `:id`, no segmentos literales.
+  - (2) regexClave single-match: el indexer solo extraía la PRIMERA clave `'key' =>` por línea. Fix: `matchAll` global extrae todas las claves por línea (nivel 1 y 2).
+  - (3) Campos opcionales: TS `campo?: Tipo` generaba mismatch aunque PHP correctamente no lo devuelve. Fix: `CampoTipo.opcional` + skip en verificación.
+  - (4) Overlap cero = wrong contract: cuando mismo endpoint tiene GET (lista) y POST (crear), el indexer almacena solo uno. Si TS usa `apiPost<Coleccion>('/colecciones')` pero el contrato indexado es GET `{colecciones, tags_frecuentes}`, hay 0% overlap con los campos de `Coleccion`. Fix: si >3 campos obligatorios y 0% overlap, skip.
 
 ---
 
