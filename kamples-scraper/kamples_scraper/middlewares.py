@@ -43,6 +43,7 @@ class CurlCffiDownloaderMiddleware:
         # descargar assets con las mismas cookies activas de la sesion.
         middleware.session = curl_requests.Session(impersonate="chrome")
         crawler._curl_session = middleware.session
+        crawler._curl_proxies = middleware.proxies  # None si no hay proxy configurado
         return middleware
 
     def process_request(self, request):

@@ -113,8 +113,11 @@ class ImageDescargaPipeline:
             self.session = curl_requests.Session(impersonate="chrome124")
             logger.warning("ImageDescargaPipeline: session compartida no disponible, usando sesión propia")
 
+        # Proxy: mismo que usan las pages (IP residencial, evita bloqueos de CDN)
+        self.proxies = getattr(self._crawler, "_curl_proxies", None)
+
         self.session.headers.update(self._HEADERS)
-        logger.info("ImageDescargaPipeline: almacenando en %s", store_path)
+        logger.info("ImageDescargaPipeline: almacenando en %s (proxy=%s)", store_path, bool(self.proxies))
 
     def close_spider(self):
         if hasattr(self, "session") and self.session:
@@ -148,7 +151,7 @@ class ImageDescargaPipeline:
             return url_local
 
         try:
-            resp = self.session.get(url, timeout=15)
+            resp = self.session.get(url, proxies=self.proxies, timeout=15)
             resp.raise_for_status()
             archivo.write_bytes(resp.content)
             logger.debug("Imagen descargada: %s → %s", url, archivo.name)
