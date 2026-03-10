@@ -25,7 +25,7 @@ final class ColaExtraccionSamplesDTO
         public readonly string $lado,
         public readonly ?string $spotifyId,
         public readonly ?string $rutaAudioExtraido,
-        public readonly ?mixed $metadataExtraccion
+        public readonly mixed $metadataExtraccion
     ) {}
 
     /**

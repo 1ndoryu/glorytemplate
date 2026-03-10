@@ -20,6 +20,7 @@ use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\ScrapingLogRepository;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\PublicadorExtraccion;
 use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ScrapingLogEnums;
 
@@ -591,26 +592,34 @@ class DevController
             /* sentinel-disable-next-line exec-sin-escapeshellarg — proc_open con array no pasa por shell */
             $proceso = \proc_open($cmdArray, $descriptores, $pipes, $scraperDir, $env);
 
-            $pid = null;
-            if ($proceso !== false) {
-                $estado = \proc_get_status($proceso);
-                $pid = $estado['pid'] ?? null;
+            if ($proceso === false) {
+                return new \WP_REST_Response([
+                    'ok'        => true,
+                    'mensaje'   => 'Encolados ' . \count($ids) . ' lados, pero no se pudo iniciar el pipeline.',
+                    'encolados' => \count($ids),
+                ], 200);
             }
 
-            KamplesLogger::info('[DEV] Recorte bilateral encolado + pipeline iniciado', [
+            /* Esperar a que Python termine antes de publicar */
+            \proc_close($proceso);
+
+            /* Publicar extracciones listas a traves del flujo estandar (PipelineAudio) */
+            $publicacion = PublicadorExtraccion::publicarPendientes(\count($ids));
+
+            KamplesLogger::info('[DEV] Recorte + publicacion completados', [
                 'relacion_id' => $relacionId,
                 'encolados'   => \count($ids),
-                'cola_ids'    => $ids,
-                'pid'         => $pid,
+                'publicados'  => $publicacion['publicados'],
+                'errores'     => $publicacion['errores'],
             ]);
 
             return new \WP_REST_Response([
-                'ok'       => true,
-                'mensaje'  => 'Encolados ' . \count($ids) . ' lados. Pipeline iniciado.',
+                'ok'        => true,
+                'mensaje'   => 'Recorte generado y publicado.',
                 'encolados' => \count($ids),
-                'cola_ids' => $ids,
-                'pid'      => $pid,
-                'log'      => 'App/logs/extractor-output-' . date('Y-m-d') . '.log',
+                'publicados' => $publicacion['publicados'],
+                'errores'   => $publicacion['errores'],
+                'log'       => 'App/logs/extractor-output-' . date('Y-m-d') . '.log',
             ], 200);
 
         } catch (\Throwable $e) {

@@ -137,13 +137,13 @@ interface RespuestaCola {
 export const devProcesarDeCola = (): Promise<RespuestaApi<RespuestaCola>> =>
     apiPost<RespuestaCola>('/dev/scraper/cola', {});
 
-/* Encolar extracción bilateral + lanzar pipeline para una relación */
+/* Encolar extracción bilateral + lanzar pipeline + publicar para una relación */
 interface RespuestaRecorte {
     ok: boolean;
     mensaje: string;
     encolados: number;
-    cola_ids?: number[];
-    pid?: number;
+    publicados?: number;
+    errores?: number;
     log?: string;
 }
 
