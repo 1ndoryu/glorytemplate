@@ -384,3 +384,35 @@
         gap: var(--espacioSm);
     }
 }
+
+/* Indicador visual de discovery: muestra de qué canción se extrajo */
+.discoveryIndicadorOrigen {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--superficieElevada);
+    border-left: 3px solid var(--acento);
+    border-radius: var(--radioSm);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    flex-wrap: wrap;
+    margin-bottom: var(--espacioSm);
+}
+
+.discoveryIndicadorEtiqueta {
+    font-weight: var(--pesoSemibold);
+    color: var(--acento);
+    text-transform: uppercase;
+    font-size: var(--fuenteXs);
+    letter-spacing: 0.05em;
+}
+
+.discoveryIndicadorCancion {
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.discoveryIndicadorConector {
+    color: var(--textoTerciario);
+}

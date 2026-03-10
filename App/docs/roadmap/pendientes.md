@@ -309,3 +309,17 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 - [x] **S-E.3** Índices compuestos: `(dest_id, tipo_relacion)`, `(fuente_id, tipo_relacion)`, `(verificada, created_at DESC)` ✅ [AG-NAV]
 - [x] **S-E.4** Re-scraping strategy: `proximo_rescrape` en scraping_log, rescraping automático para tracks/artists ✅ [AG-NAV]
 > Implementado en migración v029. Detalle en `completado.md` → C704.
+
+### S-UI — Mejoras UI/SEO Sample Discovery — ✅ [AG-SDI]
+
+- [x] **S-UI.1** Relaciones completas en sample detail: `relacionPorSampleId()` enriquecido con `samplesDe/sampleadaEn` de ambas canciones + `ladoExtraccion` ✅
+- [x] **S-UI.2** Indicador visual fuente/destino: `SeccionSampleDiscovery` muestra "Extraído de {canción}" con conector + todas las relaciones adicionales ✅
+- [x] **S-UI.3** Imagen portada desde canción: `PublicadorExtraccion::publicarItem()` hereda `imagen_url` de la canción origen al sample ✅
+- [x] **S-UI.4** URLs SEO correctas: `construirUrlSampleo()` callers corregidos — `TablaRelaciones` y `TarjetaRelacionSample` pasan datos en posiciones correctas, con soporte both-sides via `RelacionSample.destinoTitulo/fuenteTitulo/destinoArtista/fuenteArtista` ✅
+- [x] **S-UI.5** SEO title en RelacionDetalleIsland: h1 descriptivo `"{destino} samplea a {fuente}"` + `document.title` dinámico ✅
+
+> Lecciones:
+> - [URL SEO]: `construirUrlSampleo()` necesita 5 params (destArtista, destTitulo, fuenteArtista, fuenteTitulo). Callers con datos de un solo lado deben usar `urlSampleo()` helper que posiciona según `direccion`.
+> - [Tipo RelacionSample]: Agregar campos opcionales del otro lado (`destinoTitulo`, `fuenteArtista`, etc.) permite URLs completas sin cambiar las queries PHP.
+> - [imagen portada]: `CancionesRepository::buscarConArtista()` retorna `imagen_url` — usar para heredar a samples generados.
+> - [ladoExtraccion]: Comparar `sample_fuente_id === sampleId` en PHP para determinar lado, enviar al frontend como `ladoExtraccion`.

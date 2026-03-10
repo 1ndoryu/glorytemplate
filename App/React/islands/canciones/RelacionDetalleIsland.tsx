@@ -7,8 +7,8 @@
  * Tarjeta de lado extraída a LadoCancionRelacion (SRP).
  */
 
-import { useState, useCallback } from 'react';
-import { AlertCircle, Scissors, Upload } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { AlertCircle, Scissors } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
@@ -73,6 +73,18 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
 
     useTabsIsla('RelacionDetalleIsland', TABS_RELACION, 'relacion');
 
+    /* Título SEO descriptivo para el document.title */
+    const tituloSeo = relacion
+        ? `${relacion.destino_artista ?? ''} - ${relacion.destino_titulo ?? ''} samplea a ${relacion.fuente_artista ?? ''} - ${relacion.fuente_titulo ?? ''}`
+            .replace(/\s{2,}/g, ' ').trim()
+        : '';
+
+    useEffect(() => {
+        if (tituloSeo) {
+            document.title = `${tituloSeo} | Kamples`;
+        }
+    }, [tituloSeo]);
+
     if (cargando) {
         return (
             <div className="relacionDetalleContenedor" id="seccionRelacionDetalle">
@@ -128,7 +140,11 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
         <div className="relacionDetalleContenedor" id="seccionRelacionDetalle">
             {/* Cabecera */}
             <div className="relacionDetalleCabecera">
-                <h1 className="relacionDetalleTipo">{ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}</h1>
+                <h1 className="relacionDetalleTipo">
+                    {relacion.destino_titulo && relacion.fuente_titulo
+                        ? `${relacion.destino_titulo} samplea a ${relacion.fuente_titulo}`
+                        : ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}
+                </h1>
                 <div className="relacionDetalleMeta">
                     {relacion.tipoElemento && (
                         <Badge variante="neutro" tamano="sm">{ETIQUETAS_TIPO_ELEMENTO[relacion.tipoElemento]}</Badge>
@@ -154,17 +170,7 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                             <Scissors size={14} />
                             {devAcciones.recorteCargando ? 'Generando...' : 'Generar recorte'}
                         </BotonBase>
-                        <BotonBase
-                            variante="ghost"
-                            tamano="sm"
-                            onClick={devAcciones.manejarPublicarExtracciones}
-                            disabled={devAcciones.publicarCargando}
-                        >
-                            <Upload size={14} />
-                            {devAcciones.publicarCargando ? 'Publicando...' : 'Publicar extracciones'}
-                        </BotonBase>
                         {devAcciones.recorteMensaje && <span className="relacionDetalleDevMsg">{devAcciones.recorteMensaje}</span>}
-                        {devAcciones.publicarMensaje && <span className="relacionDetalleDevMsg">{devAcciones.publicarMensaje}</span>}
                     </div>
                 )}
             </div>

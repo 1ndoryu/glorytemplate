@@ -1,16 +1,17 @@
 /*
  * Componente: SeccionSampleDiscovery — Kamples
- * Si el sample fue extraído del pipeline, muestra el sampleo de origen
- * y sus dos canciones en el mismo formato de tabla que CancionDetalleIsland.
+ * Si el sample fue extraído del pipeline, muestra la relación principal
+ * con indicador visual (fuente/destino) + todas las relaciones adicionales
+ * de ambas canciones involucradas.
  */
 
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { useRelacionDiscovery } from '@app/hooks/useRelacionDiscovery';
-import type { RelacionSample } from '@app/types/cancion';
-import type { RelacionDetalleCompleta } from '@app/types/cancion';
+import type { RelacionSample, RelacionDetalleCompleta } from '@app/types/cancion';
 import '../../styles/componentes/seccionRelaciones.css';
 import '../../styles/componentes/tablaRelaciones.css';
+import '../../styles/componentes/sampleDetalle.css';
 
 interface SeccionSampleDiscoveryProps {
     sampleId: number;
@@ -42,6 +43,11 @@ const construirFila = (
     artistaSlug:      lado === 'fuente' ? (relacion.fuente_artistaSlug ?? undefined) : (relacion.destino_artistaSlug ?? undefined),
     cancionAnio:      lado === 'fuente' ? relacion.fuente_anio : relacion.destino_anio,
     cancionImagenUrl: lado === 'fuente' ? relacion.fuente_imagen : relacion.destino_imagen,
+    /* Ambos lados para URLs SEO completas */
+    destinoTitulo:  relacion.destino_titulo,
+    destinoArtista: relacion.destino_artista,
+    fuenteTitulo:   relacion.fuente_titulo,
+    fuenteArtista:  relacion.fuente_artista,
 });
 
 export const SeccionSampleDiscovery = ({ sampleId }: SeccionSampleDiscoveryProps): JSX.Element | null => {
@@ -54,10 +60,38 @@ export const SeccionSampleDiscovery = ({ sampleId }: SeccionSampleDiscoveryProps
 
     if (!tieneFuente && !tieneDestino) return null;
 
+    /* Nombre legible para indicar origen del sample */
+    const esFuente = relacion.ladoExtraccion === 'fuente';
+    const cancionOrigen = esFuente
+        ? relacion.fuente_titulo
+        : relacion.destino_titulo;
+    const cancionRelacionada = esFuente
+        ? relacion.destino_titulo
+        : relacion.fuente_titulo;
+    const etiquetaOrigen = esFuente ? 'Canción sampleada (origen)' : 'Samplea a (origen)';
+    const etiquetaRelacion = esFuente ? 'Sampleada en' : 'Canción sampleada';
+
     return (
         <>
+            {/* Indicador visual: de dónde se extrajo este sample */}
+            {cancionOrigen && (
+                <div className="discoveryIndicadorOrigen">
+                    <span className="discoveryIndicadorEtiqueta">Extraído de</span>
+                    <span className="discoveryIndicadorCancion">{cancionOrigen}</span>
+                    {cancionRelacionada && (
+                        <>
+                            <span className="discoveryIndicadorConector">
+                                {esFuente ? ' — sampleada por ' : ' — samplea a '}
+                            </span>
+                            <span className="discoveryIndicadorCancion">{cancionRelacionada}</span>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* Relación principal: la extracción directa */}
             {tieneFuente && (
-                <SeccionRelaciones titulo="Canción sampleada">
+                <SeccionRelaciones titulo={etiquetaOrigen}>
                     <TablaRelaciones
                         relaciones={[construirFila(relacion, 'fuente')]}
                         direccion="origen"
@@ -65,11 +99,47 @@ export const SeccionSampleDiscovery = ({ sampleId }: SeccionSampleDiscoveryProps
                 </SeccionRelaciones>
             )}
             {tieneDestino && (
-                <SeccionRelaciones titulo="Sampleada en">
+                <SeccionRelaciones titulo={etiquetaRelacion}>
                     <TablaRelaciones
                         relaciones={[construirFila(relacion, 'destino')]}
                         direccion="destino"
                     />
+                </SeccionRelaciones>
+            )}
+
+            {/* Relaciones adicionales de la canción destino */}
+            {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.destino_titulo ?? 'Canción'} también samplea a`}
+                    contador={relacion.destinoSamplesDe!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.destinoSamplesDe!} direccion="destino" />
+                </SeccionRelaciones>
+            )}
+            {(relacion.destinoSampleadaEn?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.destino_titulo ?? 'Canción'} fue sampleada en`}
+                    contador={relacion.destinoSampleadaEn!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.destinoSampleadaEn!} direccion="origen" />
+                </SeccionRelaciones>
+            )}
+
+            {/* Relaciones adicionales de la canción fuente */}
+            {(relacion.fuenteSamplesDe?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.fuente_titulo ?? 'Canción'} también samplea a`}
+                    contador={relacion.fuenteSamplesDe!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.fuenteSamplesDe!} direccion="destino" />
+                </SeccionRelaciones>
+            )}
+            {(relacion.fuenteSampleadaEn?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.fuente_titulo ?? 'Canción'} fue sampleada en`}
+                    contador={relacion.fuenteSampleadaEn!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.fuenteSampleadaEn!} direccion="origen" />
                 </SeccionRelaciones>
             )}
         </>

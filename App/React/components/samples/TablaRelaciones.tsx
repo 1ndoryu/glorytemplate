@@ -30,6 +30,22 @@ interface TablaRelacionesProps {
     direccion: 'origen' | 'destino';
 }
 
+/*
+ * Construye URL SEO correcta para un sampleo.
+ * Si la relación tiene datos de ambos lados (enriquecida), genera URL completa.
+ * Si solo tiene un lado (lista simple), usa el lado disponible según dirección.
+ */
+const urlSampleo = (rel: RelacionSample, direccion: 'origen' | 'destino'): string => {
+    if (rel.destinoArtista || rel.fuenteArtista) {
+        return construirUrlSampleo(rel.id, rel.destinoArtista, rel.destinoTitulo, rel.fuenteArtista, rel.fuenteTitulo);
+    }
+    /* Fallback: datos de un solo lado en la posición correcta */
+    if (direccion === 'destino') {
+        return construirUrlSampleo(rel.id, undefined, undefined, rel.artistaNombre, rel.cancionTitulo);
+    }
+    return construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo);
+};
+
 export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
 
@@ -56,11 +72,11 @@ export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps)
                             className="tablaRelacionesFila"
                             role="button"
                             tabIndex={0}
-                            onClick={() => navegar(construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo))}
+                            onClick={() => navegar(urlSampleo(rel, direccion))}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();
-                                    navegar(construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo));
+                                    navegar(urlSampleo(rel, direccion));
                                 }
                             }}
                         >

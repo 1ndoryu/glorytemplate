@@ -35,6 +35,17 @@ const formatearTimings = (timings: number[]): string => {
         .join(', ');
 };
 
+/* Construye URL SEO para un sampleo con datos disponibles */
+const urlSampleo = (rel: RelacionSample, direccion: 'origen' | 'destino'): string => {
+    if (rel.destinoArtista || rel.fuenteArtista) {
+        return construirUrlSampleo(rel.id, rel.destinoArtista, rel.destinoTitulo, rel.fuenteArtista, rel.fuenteTitulo);
+    }
+    if (direccion === 'destino') {
+        return construirUrlSampleo(rel.id, undefined, undefined, rel.artistaNombre, rel.cancionTitulo);
+    }
+    return construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo);
+};
+
 export const TarjetaRelacionSample = ({
     relacion,
     direccion,
@@ -43,7 +54,7 @@ export const TarjetaRelacionSample = ({
     const navegar = useNavigationStore((s) => s.navegar);
 
     const handleClickRelacion = () => {
-        navegar(construirUrlSampleo(relacion.id, relacion.artistaNombre, relacion.cancionTitulo));
+        navegar(urlSampleo(relacion, direccion));
     };
 
     const handleClickCancion = (e: React.MouseEvent) => {

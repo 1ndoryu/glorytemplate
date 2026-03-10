@@ -15,10 +15,12 @@ namespace App\Kamples\Services;
 use App\Kamples\Api\GeneradorIdCorto;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\PipelineAudio;
+use App\Kamples\Database\Repositories\CancionesRepository;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Config\Schema\_generated\RelacionesSampleCols;
@@ -127,6 +129,21 @@ class PublicadorExtraccion
                 SamplesRepository::actualizarCampos($sampleId, [
                     SamplesCols::CANCION_ORIGEN_ID . " = :cancion_id",
                 ], ['cancion_id' => (int) $cancionOrigenId]);
+
+                /* Heredar imagen de portada de la canción origen al sample */
+                try {
+                    $cancionOrigen = CancionesRepository::buscarConArtista((int) $cancionOrigenId);
+                    $imagenCancion = $cancionOrigen[CancionesCols::IMAGEN_URL] ?? null;
+                    if ($imagenCancion) {
+                        SamplesRepository::actualizarCampos($sampleId, [
+                            SamplesCols::IMAGEN_URL . " = :imagen_url",
+                        ], ['imagen_url' => $imagenCancion]);
+                    }
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('[PUB-EXTRACCION] Error al heredar imagen de cancion', [
+                        'sampleId' => $sampleId, 'cancionId' => $cancionOrigenId, 'error' => $e->getMessage(),
+                    ]);
+                }
             }
 
             /* Vincular sample a la relacion (sample_fuente_id o sample_destino_id) */

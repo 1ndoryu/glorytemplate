@@ -344,9 +344,31 @@ class CancionesController
                 return new \WP_REST_Response(['ok' => true, 'data' => null]);
             }
 
+            $data = NormalizadorCancion::relacionCompleta($relacion);
+
+            /* Determinar de qué lado se extrajo este sample */
+            $esFuente  = ((int) ($relacion['sample_fuente_id'] ?? 0)) === $sampleId;
+            $esDestino = ((int) ($relacion['sample_destino_id'] ?? 0)) === $sampleId;
+            $data['ladoExtraccion'] = $esFuente ? 'fuente' : ($esDestino ? 'destino' : null);
+
+            /* Enriquecer con relaciones adicionales de ambas canciones */
+            $destinoId = (int) $relacion['cancion_destino_id'];
+            $fuenteId  = (int) $relacion['cancion_fuente_id'];
+            $relacionId = (int) $relacion['id'];
+
+            $filtrar = fn(array $rels) => array_values(array_filter(
+                $rels,
+                fn($r) => (int) $r['id'] !== $relacionId
+            ));
+
+            $data['destinoSamplesDe']   = array_map([NormalizadorCancion::class, 'relacion'], $filtrar(RelacionesSampleRepository::samplesDe($destinoId, 20)));
+            $data['destinoSampleadaEn'] = array_map([NormalizadorCancion::class, 'relacion'], $filtrar(RelacionesSampleRepository::sampleadaEn($destinoId, 20)));
+            $data['fuenteSamplesDe']    = array_map([NormalizadorCancion::class, 'relacion'], $filtrar(RelacionesSampleRepository::samplesDe($fuenteId, 20)));
+            $data['fuenteSampleadaEn']  = array_map([NormalizadorCancion::class, 'relacion'], $filtrar(RelacionesSampleRepository::sampleadaEn($fuenteId, 20)));
+
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => NormalizadorCancion::relacionCompleta($relacion),
+                'data' => $data,
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::relacionPorSampleId] ' . $e->getMessage());

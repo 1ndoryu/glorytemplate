@@ -74,13 +74,18 @@ export interface RelacionSample {
     fuente: FuenteRelacion;
     verificada: boolean;
     creadoAt: string;
-    /* Joins opcionales */
+    /* Joins opcionales — datos del lado mostrado */
     cancionTitulo?: string;
     cancionSlug?: string;
     artistaNombre?: string;
     artistaSlug?: string;
     cancionAnio?: number | null;
     cancionImagenUrl?: string | null;
+    /* Datos del lado opuesto para construir URLs SEO completas */
+    destinoTitulo?: string | null;
+    destinoArtista?: string | null;
+    fuenteTitulo?: string | null;
+    fuenteArtista?: string | null;
 }
 
 /* Artista asociado a canción con rol */
@@ -147,6 +152,8 @@ export interface RelacionDetalleCompleta {
     destinoSampleadaEn?: RelacionSample[];
     fuenteSamplesDe?: RelacionSample[];
     fuenteSampleadaEn?: RelacionSample[];
+    /* Lado del que se extrajo el sample (solo en respuesta de relacionPorSampleId) */
+    ladoExtraccion?: 'fuente' | 'destino' | null;
 }
 
 /* Detalle de artista con canciones, relaciones y estadísticas */
