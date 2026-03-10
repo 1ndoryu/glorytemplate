@@ -1,0 +1,131 @@
+/*
+ * tablaRelaciones.css — Kamples
+ * Tabla HTML de relaciones de sampling: portada | canción | año | elemento | timing.
+ */
+
+.tablaRelaciones {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* Cabecera */
+.tablaRelaciones thead tr {
+    border-bottom: 2px solid var(--bordeSutil);
+}
+
+.tablaRelaciones thead th {
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoTerciario);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* Anchos de columnas: imagen fija, cancion flexible, resto compactos */
+.tablaRelacionesColImagen   { width: 52px; }
+.tablaRelacionesColCancion  { width: auto; }
+.tablaRelacionesColAnio     { width: 52px; }
+.tablaRelacionesColElemento { width: 130px; }
+.tablaRelacionesColTiming   { width: 76px; }
+
+/* Filas */
+.tablaRelacionesFila {
+    cursor: pointer;
+    border-bottom: 1px solid var(--bordeSutil);
+    transition: background var(--transicionNormal);
+}
+
+.tablaRelacionesFila:last-child {
+    border-bottom: none;
+}
+
+.tablaRelacionesFila:hover {
+    background: var(--fondoElevado2);
+}
+
+.tablaRelacionesFila:focus-visible {
+    outline: 2px solid var(--acento);
+    outline-offset: -2px;
+}
+
+.tablaRelaciones tbody td {
+    padding: var(--espacioSm) var(--espacioMd);
+    vertical-align: middle;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Columna imagen */
+.tablaRelacionesImagen {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    display: block;
+}
+
+.tablaRelacionesImagenVacia {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+}
+
+/* Columna canción: título en negrita arriba, artista abajo */
+.tablaRelacionesColCancion {
+    overflow: hidden;
+}
+
+.tablaRelacionesTitulo {
+    display: block;
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tablaRelacionesArtista {
+    display: block;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* Timing */
+.tablaRelacionesColTiming {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Año */
+.tablaRelacionesColAnio {
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+/* Elemento */
+.tablaRelacionesColElemento {
+    text-align: left;
+}
+
+@media (max-width: 540px) {
+    .tablaRelacionesColAnio,
+    .tablaRelacionesColElemento {
+        display: none;
+    }
+    .tablaRelacionesColTiming { width: 60px; }
+}

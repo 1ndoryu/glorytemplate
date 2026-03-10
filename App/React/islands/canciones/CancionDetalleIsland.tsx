@@ -8,7 +8,7 @@ import { Music, AlertCircle } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
-import { TarjetaRelacionSample } from '@app/components/samples/TarjetaRelacionSample';
+import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { CadenaSamples } from '@app/components/samples/CadenaSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
@@ -166,16 +166,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         Samplea a
                         <span className="cancionDetalleSeccionContador">({samplesDe.length})</span>
                     </h2>
-                    <div className="cancionDetalleRelaciones">
-                        {samplesDe.map((rel) => (
-                            <TarjetaRelacionSample
-                                key={rel.id}
-                                relacion={rel}
-                                direccion="destino"
-                                mostrarEncabezado={false}
-                            />
-                        ))}
-                    </div>
+                    <TablaRelaciones relaciones={samplesDe} direccion="destino" />
                 </div>
             )}
 
@@ -186,16 +177,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         Sampleada por
                         <span className="cancionDetalleSeccionContador">({sampleadaEn.length})</span>
                     </h2>
-                    <div className="cancionDetalleRelaciones">
-                        {sampleadaEn.map((rel) => (
-                            <TarjetaRelacionSample
-                                key={rel.id}
-                                relacion={rel}
-                                direccion="origen"
-                                mostrarEncabezado={false}
-                            />
-                        ))}
-                    </div>
+                    <TablaRelaciones relaciones={sampleadaEn} direccion="origen" />
                 </div>
             )}
 
