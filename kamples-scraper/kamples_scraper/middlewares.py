@@ -39,7 +39,10 @@ class CurlCffiDownloaderMiddleware:
         else:
             middleware.proxies = None
 
+        # Sesion compartida: el pipeline de imagenes la reutiliza para
+        # descargar assets con las mismas cookies activas de la sesion.
         middleware.session = curl_requests.Session(impersonate="chrome")
+        crawler._curl_session = middleware.session
         return middleware
 
     def process_request(self, request):

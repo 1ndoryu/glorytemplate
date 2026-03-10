@@ -9,12 +9,11 @@ PostgresPipeline: inserta RelacionItem en BD con todas las entidades.
 import hashlib
 import logging
 import os
-import urllib.error
-import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
 
 import psycopg2
+from curl_cffi import requests as curl_requests
 from scrapy.exceptions import DropItem
 
 from kamples_scraper.items import RelacionItem
@@ -57,7 +56,8 @@ class ImageDescargaPipeline:
     ya esté resuelta al hacer el INSERT de canciones.
 
     Dedup por SHA256 de la URL externa: si el archivo ya existe no re-descarga.
-    Las imágenes se descargan directamente sin proxy (CDN estático).
+    Reutiliza la sesión curl_cffi del CurlCffiDownloaderMiddleware (con cookies
+    activas de WhoSampled) registrada en crawler._curl_session.
 
     Requiere en .env:
         IMAGES_STORE_PATH — ruta absoluta al directorio local de almacenamiento
@@ -76,6 +76,12 @@ class ImageDescargaPipeline:
         "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
         "Referer": "https://www.whosampled.com/",
     }
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline._crawler = crawler
+        return pipeline
 
     def open_spider(self):
         store_path = os.getenv("IMAGES_STORE_PATH", "")
@@ -100,7 +106,19 @@ class ImageDescargaPipeline:
             self.store_path = None
             return
 
+        # Reutilizar la sesión del middleware (tiene cookies activas de WhoSampled).
+        # Si el middleware no está disponible (tests/otros entornos), crear sesión propia.
+        self.session = getattr(self._crawler, "_curl_session", None)
+        if self.session is None:
+            self.session = curl_requests.Session(impersonate="chrome124")
+            logger.warning("ImageDescargaPipeline: session compartida no disponible, usando sesión propia")
+
+        self.session.headers.update(self._HEADERS)
         logger.info("ImageDescargaPipeline: almacenando en %s", store_path)
+
+    def close_spider(self):
+        if hasattr(self, "session") and self.session:
+            self.session.close()
 
     def process_item(self, item):
         if not isinstance(item, RelacionItem) or self.store_path is None:
@@ -129,14 +147,13 @@ class ImageDescargaPipeline:
         if archivo.exists():
             return url_local
 
-        # urllib.request es suficiente para CDN estático (sin Cloudflare)
-        req = urllib.request.Request(url, headers=self._HEADERS)
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                archivo.write_bytes(resp.read())
+            resp = self.session.get(url, timeout=15)
+            resp.raise_for_status()
+            archivo.write_bytes(resp.content)
             logger.debug("Imagen descargada: %s → %s", url, archivo.name)
             return url_local
-        except (urllib.error.URLError, OSError) as exc:
+        except Exception as exc:
             logger.warning("Error descargando imagen %s: %s", url, exc)
             return None
 
