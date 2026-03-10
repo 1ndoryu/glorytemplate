@@ -64,11 +64,11 @@ class CancionesArtistasRepository extends BaseRepository
         $tc = CancionesCols::TABLA;
 
         return static::consultar(
-            "SELECT c.*, ca." . CancionesArtistasCols::ROL . " AS rol
+            "SELECT DISTINCT ON (c.id) c.*, ca." . CancionesArtistasCols::ROL . " AS rol
              FROM {$tr} ca
              JOIN {$tc} c ON ca." . CancionesArtistasCols::CANCION_ID . " = c.id
              WHERE ca." . CancionesArtistasCols::ARTISTA_ID . " = :artista_id
-             ORDER BY c.anio DESC NULLS LAST
+             ORDER BY c.id, c.anio DESC NULLS LAST
              LIMIT :limit",
             ['artista_id' => $artistaId, 'limit' => $limit]
         );

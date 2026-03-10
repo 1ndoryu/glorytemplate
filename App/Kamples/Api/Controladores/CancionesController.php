@@ -247,11 +247,22 @@ class CancionesController
             $canciones = CancionesArtistasRepository::cancionesDeArtista($artistaId);
             $cancionIds = \array_map(fn($c) => (int) $c['id'], $canciones);
 
-            /* Relaciones donde canciones del artista son FUENTE (otros lo samplearon) */
-            $sampleadoPor = RelacionesSampleRepository::relacionesDeCancionesFuente($cancionIds);
+            /* Relaciones donde canciones del artista son FUENTE (otros lo samplearon)
+             * Se normaliza para que TablaRelaciones reciba los campos de la canción DESTINO
+             * (quién sampleó al artista) en el formato canсion_titulo/artista_nombre. */
+            $sampleadoPorRaw = RelacionesSampleRepository::relacionesDeCancionesFuente($cancionIds);
+            $sampleadoPor = \array_map(
+                fn(array $r) => self::_relacionBilateralAUnilateral($r, 'destino'),
+                $sampleadoPorRaw
+            );
 
-            /* Relaciones donde canciones del artista son DESTINO (el artista sampleó) */
-            $sampleaA = RelacionesSampleRepository::relacionesDeCancionesDestino($cancionIds);
+            /* Relaciones donde canciones del artista son DESTINO (el artista sampleó)
+             * Se normaliza mostrando la canción FUENTE (a quién sampleó). */
+            $sampleaARaw = RelacionesSampleRepository::relacionesDeCancionesDestino($cancionIds);
+            $sampleaA = \array_map(
+                fn(array $r) => self::_relacionBilateralAUnilateral($r, 'fuente'),
+                $sampleaARaw
+            );
 
             /* Géneros predominantes (top 5 por frecuencia) */
             $generos = CancionesRepository::generosPorArtista($artistaId, 5);
@@ -436,6 +447,23 @@ class CancionesController
             \error_log('[CancionesController::detalleRelacion] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
+    }
+
+    /*
+     * Transforma una fila bilateral (fuente_/destino_) al formato unilateral
+     * que espera NormalizadorCancion::relacion() (cancion_titulo, artista_nombre).
+     * $lado indica qué lado mostrar: 'destino' o 'fuente'.
+     */
+    private static function _relacionBilateralAUnilateral(array $row, string $lado): array
+    {
+        $row['cancion_titulo']     = $row["{$lado}_titulo"] ?? null;
+        $row['cancion_slug']       = $row["{$lado}_slug"] ?? null;
+        $row['cancion_anio']       = $row["{$lado}_anio"] ?? null;
+        $row['cancion_imagen_url'] = $row["{$lado}_imagen"] ?? null;
+        $row['artista_nombre']     = $row["{$lado}_artista"] ?? null;
+        $row['artista_slug']       = $row["{$lado}_artista_slug"] ?? null;
+
+        return $row;
     }
 }
 

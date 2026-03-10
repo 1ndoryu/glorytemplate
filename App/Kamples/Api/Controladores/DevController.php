@@ -145,16 +145,17 @@ class DevController
         try {
             $pendiente = ScrapingLogRepository::pendienteUno();
 
-            /* Cola vacía: caer en hot_samples como fuente de nuevos descubrimientos. */
+            /* Cola vacía: caer en hot_samples como fuente de nuevos descubrimientos.
+             * modoCola=true limita a 1 página para no correr indefinidamente. */
             if ($pendiente === null) {
-                [$spider, $extraArgs] = [ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES, []];
                 $urlRelativa = '/hot-samples/';
                 $tipo        = ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES;
+                [$spider, $extraArgs] = self::_spiderParaTipo($tipo, '', true);
             } else {
                 $urlRelativa = (string) ($pendiente[ScrapingLogCols::URL] ?? '');
                 $tipo        = (string) ($pendiente[ScrapingLogCols::TIPO_PAGINA] ?? '');
                 $urlCompleta = 'https://www.whosampled.com' . $urlRelativa;
-                [$spider, $extraArgs] = self::_spiderParaTipo($tipo, $urlCompleta);
+                [$spider, $extraArgs] = self::_spiderParaTipo($tipo, $urlCompleta, true);
             }
 
             if ($spider === null) {
@@ -243,7 +244,13 @@ class DevController
      * Mapea tipo_pagina de scraping_log al nombre del spider y argumentos extra.
      * Retorna [spider_name|null, extra_args_array].
      */
-    private static function _spiderParaTipo(string $tipo, string $urlCompleta): array
+    /*
+     * Mapea tipo_pagina a [spider, args].
+     * IMPORTANTE: en modo cola (procesar 1), cada spider lleva DEPTH_LIMIT=0
+     * para que no siga links mas alla de la URL dada. El caller agrega
+     * CLOSESPIDER_ITEMCOUNT si necesita limitar items procesados.
+     */
+    private static function _spiderParaTipo(string $tipo, string $urlCompleta, bool $modoCola = false): array
     {
         $tiposTrack   = [
             ScrapingLogEnums::TIPO_PAGINA_TRACK,
@@ -256,17 +263,21 @@ class DevController
             ScrapingLogEnums::TIPO_PAGINA_REMIX_DETAIL,
         ];
 
+        /* En modo cola: profundidad 0 para no seguir links adicionales */
+        $depth = $modoCola ? '0' : '2';
+
         if (\in_array($tipo, $tiposTrack, true)) {
-            return ['track', ['-a', 'start_url=' . $urlCompleta, '-s', 'DEPTH_LIMIT=2']];
+            return ['track', ['-a', 'start_url=' . $urlCompleta, '-s', 'DEPTH_LIMIT=' . $depth]];
         }
         if (\in_array($tipo, $tiposDetalle, true)) {
-            return ['sample_detail', ['-a', 'urls=' . $urlCompleta]];
+            return ['sample_detail', ['-a', 'urls=' . $urlCompleta, '-s', 'DEPTH_LIMIT=' . $depth]];
         }
         if ($tipo === ScrapingLogEnums::TIPO_PAGINA_ARTIST) {
-            return ['artist', ['-a', 'start_url=' . $urlCompleta]];
+            return ['artist', ['-a', 'start_url=' . $urlCompleta, '-s', 'DEPTH_LIMIT=' . $depth]];
         }
         if ($tipo === ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES) {
-            return [ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES, []];
+            /* hot_samples como fallback: limitar a 1 pagina */
+            return [ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES, $modoCola ? ['-s', 'CLOSESPIDER_PAGECOUNT=1'] : []];
         }
         if ($tipo === ScrapingLogEnums::TIPO_PAGINA_BROWSE_YEAR) {
             return [ScrapingLogEnums::TIPO_PAGINA_BROWSE_YEAR, []];
