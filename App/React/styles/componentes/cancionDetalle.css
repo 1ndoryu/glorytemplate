@@ -122,7 +122,7 @@
     font-weight: var(--pesoNormal);
 }
 
-/* Filas de relaciones sin bordes individuales (tabla limpia) */
+/* Tabla de relaciones: filas separadas por línea horizontal */
 .cancionDetalleRelaciones {
     display: flex;
     flex-direction: column;
@@ -142,6 +142,38 @@
 
 .cancionDetalleRelaciones .tarjetaRelacion:hover {
     background: var(--fondoElevado2);
+}
+
+/*
+ * Grid de 3 columnas para alinear imagen | info | meta en todas las filas.
+ * Las columnas son consistentes entre filas = efecto tabla.
+ * El grid-column explícito garantiza la posición aunque la imagen esté ausente.
+ */
+.cancionDetalleRelaciones .tarjetaRelacionCuerpo {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    column-gap: var(--espacioMd);
+    align-items: center;
+    width: 100%;
+}
+
+.cancionDetalleRelaciones .tarjetaRelacionImagen {
+    grid-column: 1;
+    grid-row: 1;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+}
+
+.cancionDetalleRelaciones .tarjetaRelacionInfo {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.cancionDetalleRelaciones .tarjetaRelacionMeta {
+    grid-column: 3;
+    grid-row: 1;
+    align-items: flex-end;
 }
 
 /* YouTube embed */

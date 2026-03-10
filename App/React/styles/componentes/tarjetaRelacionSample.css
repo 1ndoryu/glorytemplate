@@ -74,6 +74,11 @@
     text-decoration: underline;
 }
 
+.tarjetaRelacionAnio {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
 .tarjetaRelacionBadges {
     display: flex;
     flex-wrap: wrap;
