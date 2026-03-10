@@ -12,6 +12,7 @@ import type {
     ArtistaDetalle,
     EstadisticaRelaciones,
     RelacionSample,
+    RelacionDetalleCompleta,
 } from '@app/types/cancion';
 
 /* Listar canciones recientes */
@@ -61,6 +62,12 @@ export const obtenerRelacionPorSampleId = (
     sampleId: number
 ): Promise<RespuestaApi<RelacionSample | null>> =>
     apiGet<RelacionSample | null>(`/sample-discovery/relacion/${sampleId}`);
+
+/* Detalle completo de una relación de sampleo (ambas canciones + metadata) */
+export const obtenerRelacionDetalle = (
+    id: number
+): Promise<RespuestaApi<RelacionDetalleCompleta>> =>
+    apiGet<RelacionDetalleCompleta>(`/relaciones/${id}`);
 
 /* Cadena de samples: A sampleó B sampleó C... (S4.5) */
 export interface CadenaSamplesResp {

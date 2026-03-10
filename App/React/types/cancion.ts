@@ -98,6 +98,45 @@ export interface CancionDetalle {
     sampleadaEn: RelacionSample[];
 }
 
+/* Detalle completo de una relación con info de ambas canciones */
+export interface RelacionDetalleCompleta {
+    id: number;
+    cancionDestinoId: number;
+    cancionFuenteId: number;
+    whosampledId: number | null;
+    tipoRelacion: TipoRelacion;
+    tipoElemento: TipoElemento | null;
+    timingsDestino: number[];
+    timingsFuente: number[];
+    apareceEnTodo: boolean;
+    sampleId: number | null;
+    votosTotal: number;
+    votosPromedio: number;
+    fuente: FuenteRelacion;
+    verificada: boolean;
+    creadoAt: string;
+    /* Canción fuente (sampleada) */
+    fuente_titulo: string | null;
+    fuente_slug: string | null;
+    fuente_anio: number | null;
+    fuente_imagen: string | null;
+    fuente_youtubeId: string | null;
+    fuente_album: string | null;
+    fuente_genero: string | null;
+    fuente_artista: string | null;
+    fuente_artistaSlug: string | null;
+    /* Canción destino (que samplea) */
+    destino_titulo: string | null;
+    destino_slug: string | null;
+    destino_anio: number | null;
+    destino_imagen: string | null;
+    destino_youtubeId: string | null;
+    destino_album: string | null;
+    destino_genero: string | null;
+    destino_artista: string | null;
+    destino_artistaSlug: string | null;
+}
+
 /* Detalle de artista con canciones */
 export interface ArtistaDetalle {
     artista: ArtistaMusicale;

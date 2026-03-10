@@ -19,6 +19,8 @@ interface TarjetaRelacionSampleProps {
     relacion: RelacionSample;
     /* Dirección visual: 'origen' muestra "sampled by", 'destino' muestra "samples" */
     direccion: 'origen' | 'destino';
+    /* Oculta encabezado con badges de tipo cuando se agrupa en sección */
+    mostrarEncabezado?: boolean;
 }
 
 const formatearTimings = (timings: number[]): string => {
@@ -35,16 +37,23 @@ const formatearTimings = (timings: number[]): string => {
 export const TarjetaRelacionSample = ({
     relacion,
     direccion,
+    mostrarEncabezado = true,
 }: TarjetaRelacionSampleProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
 
-    const handleClickCancion = () => {
+    const handleClickRelacion = () => {
+        navegar(`/sampleo/${relacion.id}`);
+    };
+
+    const handleClickCancion = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (relacion.cancionSlug) {
             navegar(`/cancion/${relacion.cancionSlug}`);
         }
     };
 
-    const handleClickArtista = () => {
+    const handleClickArtista = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (relacion.artistaSlug) {
             navegar(`/artista/${relacion.artistaSlug}`);
         }
@@ -59,20 +68,22 @@ export const TarjetaRelacionSample = ({
         direccion === 'destino' ? 'Samplea a' : 'Sampleada por';
 
     return (
-        <div className="tarjetaRelacion" role="article">
-            <div className="tarjetaRelacionEncabezado">
-                <Badge variante="acento" tamano="xs">
-                    {ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}
-                </Badge>
-                {relacion.tipoElemento && (
-                    <Badge variante="neutro" tamano="xs">
-                        {ETIQUETAS_TIPO_ELEMENTO[relacion.tipoElemento]}
+        <div className="tarjetaRelacion" role="article" onClick={handleClickRelacion}>
+            {mostrarEncabezado && (
+                <div className="tarjetaRelacionEncabezado">
+                    <Badge variante="acento" tamano="xs">
+                        {ETIQUETAS_TIPO_RELACION[relacion.tipoRelacion]}
                     </Badge>
-                )}
-                <span className="tarjetaRelacionDireccion">
-                    {etiquetaDireccion}
-                </span>
-            </div>
+                    {relacion.tipoElemento && (
+                        <Badge variante="neutro" tamano="xs">
+                            {ETIQUETAS_TIPO_ELEMENTO[relacion.tipoElemento]}
+                        </Badge>
+                    )}
+                    <span className="tarjetaRelacionDireccion">
+                        {etiquetaDireccion}
+                    </span>
+                </div>
+            )}
 
             <div className="tarjetaRelacionCuerpo">
                 {relacion.cancionImagenUrl && (

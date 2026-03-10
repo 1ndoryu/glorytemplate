@@ -1,0 +1,171 @@
+/*
+ * relacionDetalle.css — Kamples
+ * Vista de detalle de una relación de sampleo: dos canciones lado a lado.
+ */
+
+.relacionDetalleContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioLg);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Cabecera con tipo de relación y metadata */
+.relacionDetalleCabecera {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    align-items: center;
+    text-align: center;
+    padding: var(--espacioMd);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+}
+
+.relacionDetalleTipo {
+    margin: 0;
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.relacionDetalleMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
+    justify-content: center;
+    align-items: center;
+}
+
+/* Grid de dos canciones lado a lado */
+.relacionDetalleGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioMd);
+}
+
+/* Cada tarjeta de canción dentro de la comparación */
+.relacionDetalleLado {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    padding: var(--espacioMd);
+}
+
+.relacionDetalleLadoEtiqueta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.relacionDetallePortada {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+}
+
+.relacionDetallePortada img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.relacionDetalleLadoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.relacionDetalleLadoTitulo {
+    margin: 0;
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    cursor: pointer;
+    transition: color var(--transicionNormal);
+}
+
+.relacionDetalleLadoTitulo:hover {
+    color: var(--acento);
+}
+
+.relacionDetalleLadoArtista {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: color var(--transicionNormal);
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+}
+
+.relacionDetalleLadoArtista:hover {
+    color: var(--acento);
+    text-decoration: underline;
+}
+
+.relacionDetalleLadoAnio {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.relacionDetalleLadoMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--espacioXs) / 2);
+    align-items: center;
+}
+
+/* YouTube embed dentro de cada lado */
+.relacionDetalleYoutube {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+}
+
+.relacionDetalleYoutube iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Timing visual */
+.relacionDetalleTiming {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Error/vacío */
+.relacionDetalleError {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXl) var(--espacioLg);
+    color: var(--textoSecundario);
+    text-align: center;
+    min-height: 300px;
+}
+
+@media (max-width: 600px) {
+    .relacionDetalleGrid {
+        grid-template-columns: 1fr;
+    }
+}

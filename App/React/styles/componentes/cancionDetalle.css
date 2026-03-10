@@ -94,11 +94,14 @@
     align-items: center;
 }
 
-/* Sección de relaciones */
+/* Sección de relaciones — contenedor tipo tarjeta */
 .cancionDetalleSeccion {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioSm);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    overflow: hidden;
 }
 
 .cancionDetalleSeccionTitulo {
@@ -109,6 +112,8 @@
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
+    padding: var(--espacioMd) var(--espacioLg);
+    border-bottom: 1px solid var(--bordeSutil);
 }
 
 .cancionDetalleSeccionContador {
@@ -117,10 +122,26 @@
     font-weight: var(--pesoNormal);
 }
 
+/* Filas de relaciones sin bordes individuales (tabla limpia) */
 .cancionDetalleRelaciones {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioSm);
+}
+
+.cancionDetalleRelaciones .tarjetaRelacion {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--bordeSutil);
+    padding: var(--espacioSm) var(--espacioLg);
+}
+
+.cancionDetalleRelaciones .tarjetaRelacion:last-child {
+    border-bottom: none;
+}
+
+.cancionDetalleRelaciones .tarjetaRelacion:hover {
+    background: var(--fondoElevado2);
 }
 
 /* YouTube embed */

@@ -143,6 +143,16 @@ PageManager::reactPage('cancion', 'CancionDetalleIsland', function($pageId) {
 
 PageManager::registrarRutaDinamica('cancion');
 
+/* Paginas Kamples — Detalle de relación de sampleo */
+PageManager::reactPage('sampleo', 'RelacionDetalleIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    $id = end($partes);
+    return ['id' => sanitize_text_field($id)];
+});
+
+PageManager::registrarRutaDinamica('sampleo');
+
 /* DEV — Showcase de componentes (solo desarrollo) */
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');

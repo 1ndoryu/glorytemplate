@@ -71,9 +71,9 @@ class RelacionesSampleRepository extends BaseRepository
         $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
-            "SELECT r.*, c.titulo AS fuente_titulo, c.slug AS fuente_slug,
-                    c.anio AS fuente_anio, c.imagen_url AS fuente_imagen,
-                    a.nombre AS fuente_artista
+            "SELECT r.*, c.titulo AS cancion_titulo, c.slug AS cancion_slug,
+                    c.anio AS cancion_anio, c.imagen_url AS cancion_imagen_url,
+                    a.nombre AS artista_nombre, a.slug AS artista_slug
              FROM {$tr} r
              JOIN {$tc} c ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = c.id
              JOIN {$ta} a ON c.artista_id = a.id
@@ -95,9 +95,9 @@ class RelacionesSampleRepository extends BaseRepository
         $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
-            "SELECT r.*, c.titulo AS destino_titulo, c.slug AS destino_slug,
-                    c.anio AS destino_anio, c.imagen_url AS destino_imagen,
-                    a.nombre AS destino_artista
+            "SELECT r.*, c.titulo AS cancion_titulo, c.slug AS cancion_slug,
+                    c.anio AS cancion_anio, c.imagen_url AS cancion_imagen_url,
+                    a.nombre AS artista_nombre, a.slug AS artista_slug
              FROM {$tr} r
              JOIN {$tc} c ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = c.id
              JOIN {$ta} a ON c.artista_id = a.id
@@ -152,6 +152,47 @@ class RelacionesSampleRepository extends BaseRepository
              JOIN {$ta} ad ON cd.artista_id = ad.id
              WHERE r." . RelacionesSampleCols::SAMPLE_ID . " = :sample_id",
             ['sample_id' => $sampleId]
+        );
+    }
+
+    /**
+     * Detalle completo de una relación por su ID.
+     * Incluye info de canción fuente, destino, artistas y youtubeId.
+     * Se usa para la vista de detalle de sampleo (/sampleo/{id}).
+     */
+    public static function porRelacionId(int $id): ?array
+    {
+        $tr = RelacionesSampleCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT r.*,
+                    cf." . CancionesCols::TITULO . " AS fuente_titulo,
+                    cf." . CancionesCols::SLUG . " AS fuente_slug,
+                    cf." . CancionesCols::ANIO . " AS fuente_anio,
+                    cf." . CancionesCols::IMAGEN_URL . " AS fuente_imagen,
+                    cf." . CancionesCols::YOUTUBE_ID . " AS fuente_youtube_id,
+                    cf." . CancionesCols::ALBUM . " AS fuente_album,
+                    cf." . CancionesCols::GENERO . " AS fuente_genero,
+                    af." . ArtistasMusicalesCols::NOMBRE . " AS fuente_artista,
+                    af." . ArtistasMusicalesCols::SLUG . " AS fuente_artista_slug,
+                    cd." . CancionesCols::TITULO . " AS destino_titulo,
+                    cd." . CancionesCols::SLUG . " AS destino_slug,
+                    cd." . CancionesCols::ANIO . " AS destino_anio,
+                    cd." . CancionesCols::IMAGEN_URL . " AS destino_imagen,
+                    cd." . CancionesCols::YOUTUBE_ID . " AS destino_youtube_id,
+                    cd." . CancionesCols::ALBUM . " AS destino_album,
+                    cd." . CancionesCols::GENERO . " AS destino_genero,
+                    ad." . ArtistasMusicalesCols::NOMBRE . " AS destino_artista,
+                    ad." . ArtistasMusicalesCols::SLUG . " AS destino_artista_slug
+             FROM {$tr} r
+             JOIN {$tc} cf ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = cf.id
+             JOIN {$ta} af ON cf.artista_id = af.id
+             JOIN {$tc} cd ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = cd.id
+             JOIN {$ta} ad ON cd.artista_id = ad.id
+             WHERE r." . RelacionesSampleCols::ID . " = :id",
+            ['id' => $id]
         );
     }
 

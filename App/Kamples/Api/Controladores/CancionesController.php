@@ -23,6 +23,7 @@ use App\Kamples\Database\Repositories\CancionesRepository;
 use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\CancionesArtistasRepository;
+use App\Kamples\Api\Helpers\NormalizadorCancion;
 
 class CancionesController
 {
@@ -108,6 +109,15 @@ class CancionesController
                 'profundidad' => ['type' => 'integer', 'default' => 5, 'minimum' => 1, 'maximum' => 10],
             ],
         ]);
+
+        \register_rest_route($namespace, '/relaciones/(?P<id>\d+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'detalleRelacion'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'id' => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+            ],
+        ]);
     }
 
     /**
@@ -121,7 +131,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $canciones,
+                'data' => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::listar] ' . $e->getMessage());
@@ -146,7 +156,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $resultados,
+                'data' => \array_map([NormalizadorCancion::class, 'cancion'], $resultados),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::buscar] ' . $e->getMessage());
@@ -165,7 +175,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $canciones,
+                'data' => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::topSampleadas] ' . $e->getMessage());
@@ -191,17 +201,17 @@ class CancionesController
 
             $cancionId = (int) $cancion['id'];
 
-            $artistas = CancionesArtistasRepository::artistasDeCancion($cancionId);
-            $samplesDe = RelacionesSampleRepository::samplesDe($cancionId);
+            $artistas    = CancionesArtistasRepository::artistasDeCancion($cancionId);
+            $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
             $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
 
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'cancion'     => $cancion,
-                    'artistas'    => $artistas,
-                    'samplesDe'   => $samplesDe,
-                    'sampleadaEn' => $sampleadaEn,
+                    'cancion'     => NormalizadorCancion::cancion($cancion),
+                    'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
+                    'samplesDe'   => \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe),
+                    'sampleadaEn' => \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn),
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -228,8 +238,8 @@ class CancionesController
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'artista'   => $artista,
-                    'canciones' => $canciones,
+                    'artista'   => NormalizadorCancion::artista($artista),
+                    'canciones' => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -249,7 +259,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $artistas,
+                'data' => \array_map([NormalizadorCancion::class, 'artista'], $artistas),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::topArtistas] ' . $e->getMessage());
@@ -265,10 +275,13 @@ class CancionesController
         try {
             $porTipo = RelacionesSampleRepository::estadisticasPorTipo();
 
+            /* Normalizar: SQL retorna 'tipo', frontend espera 'tipoRelacion' */
+            $relacionesPorTipo = \array_map([NormalizadorCancion::class, 'estadisticaTipo'], $porTipo);
+
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'relacionesPorTipo' => $porTipo,
+                    'relacionesPorTipo' => $relacionesPorTipo,
                 ],
             ]);
         } catch (\Throwable $e) {
@@ -294,7 +307,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => $relacion,
+                'data' => NormalizadorCancion::relacion($relacion),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::relacionPorSampleId] ' . $e->getMessage());
@@ -323,13 +336,43 @@ class CancionesController
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'cancion_raiz' => $cancion,
+                    'cancion_raiz' => NormalizadorCancion::cancion($cancion),
                     'cadena'       => $cadena,
                 ],
             ]);
         } catch (\Throwable $e) {
-            \error_log('[CancionesController::cadena] ' . $e->getMessage());
+            \App\Kamples\KamplesLogger::error('[CancionesController::cadena] ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /relaciones/{id} — Detalle completo de una relación de sampleo.
+     *
+     * Retorna relación + info completa de canción fuente y destino (títulos,
+     * artistas, imágenes, youtubeIds) para la vista de comparación lado a lado.
+     */
+    public static function detalleRelacion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $id = (int) $request->get_param('id');
+            $relacion = RelacionesSampleRepository::porRelacionId($id);
+
+            if (!$relacion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada'], 404);
+            }
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => NormalizadorCancion::relacionCompleta($relacion),
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::detalleRelacion] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
 }
+

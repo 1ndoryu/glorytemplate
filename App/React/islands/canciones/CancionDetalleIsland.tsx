@@ -27,6 +27,17 @@ const construirEmbedUrl = (youtubeId: string): string | null => {
     return `https://www.youtube-nocookie.com/embed/${youtubeId}`;
 };
 
+/* Filtra tags de metadata omitiendo "WhoSampled #N" */
+const PATRON_WHOSAMPLED_NUM = /^whosampled\s*#\d+$/i;
+
+const extraerTags = (metadata: Record<string, unknown>): string[] => {
+    const tags = metadata?.tags;
+    if (!Array.isArray(tags)) return [];
+    return tags.filter(
+        (t): t is string => typeof t === 'string' && !PATRON_WHOSAMPLED_NUM.test(t)
+    );
+};
+
 export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element => {
     const {
         detalle,
@@ -71,6 +82,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
 
     const { cancion, artistas, samplesDe, sampleadaEn } = detalle;
     const embedUrl = cancion.youtubeId ? construirEmbedUrl(cancion.youtubeId) : null;
+    const tags = extraerTags(cancion.metadata);
 
     return (
         <div className="cancionDetalleContenedor" id="seccionCancionDetalle">
@@ -124,6 +136,12 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                             {cancion.album && (
                                 <Badge variante="neutro" tamano="sm">{cancion.album}</Badge>
                             )}
+                            {cancion.sello && (
+                                <Badge variante="neutro" tamano="sm">{cancion.sello}</Badge>
+                            )}
+                            {tags.map((tag) => (
+                                <Badge key={tag} variante="neutro" tamano="sm">{tag}</Badge>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -154,6 +172,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                                 key={rel.id}
                                 relacion={rel}
                                 direccion="destino"
+                                mostrarEncabezado={false}
                             />
                         ))}
                     </div>
@@ -173,6 +192,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                                 key={rel.id}
                                 relacion={rel}
                                 direccion="origen"
+                                mostrarEncabezado={false}
                             />
                         ))}
                     </div>
