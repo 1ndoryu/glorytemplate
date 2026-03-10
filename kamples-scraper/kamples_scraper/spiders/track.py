@@ -30,13 +30,19 @@ class TrackSpider(scrapy.Spider):
 
     MAX_PAGES = 10
 
+    # Homepage de WhoSampled: primer request para establecer cookies de Cloudflare.
+    # Sin este warm-up, un request directo a un track específico recibe 403.
+    WARMUP_URL = "https://www.whosampled.com/"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.modo = getattr(self, "modo", "ambos")
 
-    def start_requests(self):
+    async def start(self):
         """
-        Punto de entrada.
+        Punto de entrada (Scrapy 2.13+ — reemplaza start_requests() deprecated).
+        Emite primero un warm-up a la homepage para establecer cookies de Cloudflare;
+        luego sigue al track objetivo.
         - start_url: URL del track (/{Artista}/{Track}/)
         - modo: 'samples', 'sampled', o 'ambos' (default)
         """
@@ -45,14 +51,32 @@ class TrackSpider(scrapy.Spider):
             logger.error("Se requiere start_url para el spider 'track'")
             return
 
-        # Si la URL ya apunta a /samples/ o /sampled/, ir directo
-        if start_url.rstrip("/").endswith("/samples"):
-            yield scrapy.Request(start_url, callback=self.parse_list, cb_kwargs={"tipo": "track_samples"})
-        elif start_url.rstrip("/").endswith("/sampled"):
-            yield scrapy.Request(start_url, callback=self.parse_list, cb_kwargs={"tipo": "track_sampled"})
+        # Warm-up: homepage primero para obtener cookies de sesion de Cloudflare.
+        # El callback determina qué sub-página del track visitar despues.
+        yield scrapy.Request(
+            self.WARMUP_URL,
+            callback=self.parse_warmup,
+            cb_kwargs={"target_url": start_url},
+            dont_filter=True,
+        )
+
+    def parse_warmup(self, response, target_url):
+        """
+        Tras obtener cookies de la homepage, emitir el request al track objetivo.
+        El warm-up establece la sesion curl_cffi con cookies validas de Cloudflare.
+        """
+        logger.info(
+            "Warm-up completado (status=%d) — yendo a: %s",
+            response.status,
+            target_url,
+        )
+
+        if target_url.rstrip("/").endswith("/samples"):
+            yield scrapy.Request(target_url, callback=self.parse_list, cb_kwargs={"tipo": "track_samples"})
+        elif target_url.rstrip("/").endswith("/sampled"):
+            yield scrapy.Request(target_url, callback=self.parse_list, cb_kwargs={"tipo": "track_sampled"})
         else:
-            # URL de track base: generar requests a sub-páginas
-            yield scrapy.Request(start_url, callback=self.parse_track_overview)
+            yield scrapy.Request(target_url, callback=self.parse_track_overview)
 
     def parse_track_overview(self, response):
         """
