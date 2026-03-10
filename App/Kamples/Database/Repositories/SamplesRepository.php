@@ -120,7 +120,53 @@ class SamplesRepository extends BaseRepository
         return static::consultar($sql, $params);
     }
 
-    
+    /*
+     * Samples vinculados a una relación de sampleo (sample_fuente_id y sample_destino_id).
+     * Retorna los samples activos asignados a ambos lados de la relación.
+     */
+    public static function buscarPorRelacionId(int $relacionId, ?int $userId = null): array
+    {
+        $rsTabla = 'relaciones_sample';
+        $colFuente  = 'sample_fuente_id';
+        $colDestino = 'sample_destino_id';
+        $colEstado  = SamplesCols::ESTADO;
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+             . " WHERE s." . SamplesCols::ID . " IN (
+                   SELECT {$colFuente}  FROM {$rsTabla} WHERE id = :id AND {$colFuente}  IS NOT NULL
+                   UNION
+                   SELECT {$colDestino} FROM {$rsTabla} WHERE id = :id2 AND {$colDestino} IS NOT NULL
+               )
+               AND s.{$colEstado} = :estado
+               ORDER BY s." . SamplesCols::ID;
+
+        return static::consultar($sql, [
+            'id'     => $relacionId,
+            'id2'    => $relacionId,
+            'estado' => SamplesEnums::ESTADO_ACTIVO,
+        ]);
+    }
+
+    /*
+     * Samples publicados cuya canción de origen coincide con la canción dada (por ID).
+     * Usa cancion_origen_id para localizar samples extraídos del pipeline.
+     */
+    public static function buscarPorCancionOrigenId(int $cancionId, ?int $userId = null, int $limit = 20): array
+    {
+        $colCancionOrigen = SamplesCols::CANCION_ORIGEN_ID;
+        $colEstado        = SamplesCols::ESTADO;
+
+        $sql = NormalizadorSample::sqlSelectSamples($userId)
+             . " WHERE s.{$colCancionOrigen} = :cancionId
+               AND s.{$colEstado} = :estado
+               ORDER BY s." . SamplesCols::ID . " LIMIT :limit";
+
+        return static::consultar($sql, [
+            'cancionId' => $cancionId,
+            'estado'    => SamplesEnums::ESTADO_ACTIVO,
+            'limit'     => $limit,
+        ]);
+    }
 
     /*
      * Obtener solo las tags de un sample.

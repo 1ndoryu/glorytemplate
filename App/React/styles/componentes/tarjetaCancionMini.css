@@ -4,21 +4,13 @@
  * Diseño: imagen cuadrada pequeña + título + artista/año.
  */
 
-.tarjetaCancionMiniContenedor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.tarjetaCancionMiniEtiqueta {
+.tarjetaCancionMiniEtiquetaInline {
     font-size: var(--fuenteXs);
-    font-weight: var(--pesoSemibold);
-    color: var(--textoSecundario);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: 400;
+    color: var(--textoTerciario);
 }
 
-.tarjetaCancionMiniEtiquetaOrigen {
+.tarjetaCancionMiniEtiquetaInlineOrigen {
     color: var(--acento);
 }
 

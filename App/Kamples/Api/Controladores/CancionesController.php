@@ -121,6 +121,27 @@ class CancionesController
                 'id' => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
             ],
         ]);
+
+        /* Samples publicados vinculados a una relación de sampleo */
+        \register_rest_route($namespace, '/relaciones/(?P<id>\d+)/samples', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'samplesDeRelacion'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'id' => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+            ],
+        ]);
+
+        /* Samples publicados extraídos de una canción concreta */
+        \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)/samples', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'samplesDeCancion'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'slug'  => ['required' => true, 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field'],
+                'limit' => ['type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 50],
+            ],
+        ]);
     }
 
     /**
@@ -467,6 +488,59 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::detalleRelacion] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /relaciones/{id}/samples — Samples publicados de una relación.
+     *
+     * Retorna los samples activos vinculados via sample_fuente_id/sample_destino_id.
+     */
+    public static function samplesDeRelacion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $relacionId = (int) $request->get_param('id');
+            $userId     = UsuarioHelper::obtenerIdPg();
+            $filas      = \App\Kamples\Database\Repositories\SamplesRepository::buscarPorRelacionId($relacionId, $userId);
+            $normalizados = \App\Kamples\Api\Helpers\NormalizadorSample::normalizarLista($filas);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $normalizados,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::samplesDeRelacion] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/{slug}/samples — Samples extraídos de una canción.
+     *
+     * Busca por cancion_origen_id del sample, identificando la canción via slug.
+     */
+    public static function samplesDeCancion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $slug   = (string) $request->get_param('slug');
+            $limit  = (int) $request->get_param('limit');
+            $userId = UsuarioHelper::obtenerIdPg();
+
+            $cancion = CancionesRepository::buscarPorSlug($slug);
+            if (!$cancion) {
+                return new \WP_REST_Response(['ok' => true, 'data' => []]);
+            }
+
+            $filas        = \App\Kamples\Database\Repositories\SamplesRepository::buscarPorCancionOrigenId((int) $cancion['id'], $userId, $limit);
+            $normalizados = \App\Kamples\Api\Helpers\NormalizadorSample::normalizarLista($filas);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $normalizados,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::samplesDeCancion] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }

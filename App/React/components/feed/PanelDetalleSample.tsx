@@ -144,7 +144,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                                 slug={relacionDiscovery.fuente_slug}
                                 imagen={relacionDiscovery.fuente_imagen}
                                 anio={relacionDiscovery.fuente_anio}
-                                etiqueta="Canción sampleada"
+                                etiqueta="origen"
                                 esOrigen={relacionDiscovery.ladoExtraccion === 'fuente'}
                             />
                         )}
@@ -155,7 +155,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                                 slug={relacionDiscovery.destino_slug}
                                 imagen={relacionDiscovery.destino_imagen}
                                 anio={relacionDiscovery.destino_anio}
-                                etiqueta="Sampleada en"
+                                etiqueta="sampleo"
                                 esOrigen={relacionDiscovery.ladoExtraccion === 'destino'}
                             />
                         )}

@@ -11,8 +11,11 @@ import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { CadenaSamples } from '@app/components/samples/CadenaSamples';
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
+import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
+import { useCallback } from 'react';
+import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import '../../styles/componentes/cancionDetalle.css';
 import '../../styles/componentes/seccionRelaciones.css';
@@ -47,6 +50,13 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
         error,
         irAArtista,
     } = useCancionDetalle({ slug });
+
+    /* Proveedor de samples extraídos de esta canción (cancion_origen_id) */
+    const proveedorSamples = useCallback(
+        (_pagina: number) =>
+            obtenerSamplesDeCancion(slug ?? '').then((r) => (r.ok && r.data ? r.data : [])),
+        [slug]
+    );
 
     useTabsIsla('CancionDetalleIsland', TABS_CANCION, 'cancion');
 
@@ -158,6 +168,18 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                             allowFullScreen
                         />
                     </div>
+                )}
+
+                {/* Samples publicados extraídos de esta canción (pipeline) */}
+                {slug && (
+                    <FeedSamples
+                        proveedor={proveedorSamples}
+                        claveCache={`cancion-samples-${slug}`}
+                        mostrarTags={false}
+                        infiniteScroll={false}
+                        virtualizar={false}
+                        mensajeVacio=""
+                    />
                 )}
             </div>
 

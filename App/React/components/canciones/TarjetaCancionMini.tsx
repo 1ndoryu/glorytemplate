@@ -31,45 +31,45 @@ export const TarjetaCancionMini = ({
     };
 
     return (
-        <div className="tarjetaCancionMiniContenedor">
-            {etiqueta && (
-                <span className={`tarjetaCancionMiniEtiqueta${esOrigen ? ' tarjetaCancionMiniEtiquetaOrigen' : ''}`}>
-                    {etiqueta}
-                </span>
-            )}
-            <div
-                className={`tarjetaCancionMini${slug ? ' tarjetaCancionMiniClickable' : ''}`}
-                role={slug ? 'button' : undefined}
-                tabIndex={slug ? 0 : undefined}
-                onClick={handleClick}
-                onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && slug) {
-                        e.preventDefault();
-                        handleClick();
-                    }
-                }}
-            >
-                <div className="tarjetaCancionMiniPortada">
-                    {imagen ? (
-                        <img
-                            src={imagen}
-                            alt=""
-                            className="tarjetaCancionMiniImagen"
-                            loading="lazy"
-                        />
-                    ) : (
-                        <div className="tarjetaCancionMiniImagenVacia">
-                            <Music size={18} />
-                        </div>
+        <div
+            className={`tarjetaCancionMini${slug ? ' tarjetaCancionMiniClickable' : ''}`}
+            role={slug ? 'button' : undefined}
+            tabIndex={slug ? 0 : undefined}
+            onClick={handleClick}
+            onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && slug) {
+                    e.preventDefault();
+                    handleClick();
+                }
+            }}
+        >
+            <div className="tarjetaCancionMiniPortada">
+                {imagen ? (
+                    <img
+                        src={imagen}
+                        alt=""
+                        className="tarjetaCancionMiniImagen"
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className="tarjetaCancionMiniImagenVacia">
+                        <Music size={18} />
+                    </div>
+                )}
+            </div>
+            <div className="tarjetaCancionMiniInfo">
+                <span className="tarjetaCancionMiniTitulo">
+                    {titulo ?? '—'}
+                    {etiqueta && (
+                        <span className={`tarjetaCancionMiniEtiquetaInline${esOrigen ? ' tarjetaCancionMiniEtiquetaInlineOrigen' : ''}`}>
+                            {' — '}{etiqueta}
+                        </span>
                     )}
-                </div>
-                <div className="tarjetaCancionMiniInfo">
-                    <span className="tarjetaCancionMiniTitulo">{titulo ?? '—'}</span>
-                    <span className="tarjetaCancionMiniArtista">
-                        {artista ?? '—'}
-                        {anio ? <span className="tarjetaCancionMiniAnio"> · {anio}</span> : null}
-                    </span>
-                </div>
+                </span>
+                <span className="tarjetaCancionMiniArtista">
+                    {artista ?? '—'}
+                    {anio ? <span className="tarjetaCancionMiniAnio"> · {anio}</span> : null}
+                </span>
             </div>
         </div>
     );

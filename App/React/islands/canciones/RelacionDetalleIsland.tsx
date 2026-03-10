@@ -16,6 +16,7 @@ import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { LadoCancionRelacion } from '@app/components/canciones/LadoCancionRelacion';
+import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { Skeleton } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useRelacionDetalle } from '@app/hooks/useRelacionDetalle';
@@ -23,6 +24,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useNavigationStore } from '@/core/router';
 import { useDevAccionesRelacion } from '@app/hooks/useDevAccionesRelacion';
 import { useAuthStore } from '@app/stores/authStore';
+import { obtenerSamplesDeRelacion } from '@app/services/apiSamples';
 import {
     ETIQUETAS_TIPO_RELACION,
     ETIQUETAS_TIPO_ELEMENTO,
@@ -57,6 +59,13 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
     const relacionId = relacion?.id ?? 0;
     const [comentariosVisibles, setComentariosVisibles] = useState(false);
     const seccionComentarios = useComentarios({ tipo: 'relacion', targetId: relacionId });
+
+    /* Proveedor de samples vinculados a esta relación (sample_fuente_id / sample_destino_id) */
+    const proveedorSamplesRelacion = useCallback(
+        (_pagina: number) =>
+            obtenerSamplesDeRelacion(relacionId).then((r) => (r.ok && r.data ? r.data : [])),
+        [relacionId]
+    );
 
     const esAdmin = useAuthStore((s) => s.usuario?.rol === 'admin');
     const devAcciones = useDevAccionesRelacion(relacionId);
@@ -210,6 +219,16 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     onClickArtista={irAArtista}
                 />
             </div>
+
+            {/* Samples publicados generados desde esta relación */}
+            <FeedSamples
+                proveedor={proveedorSamplesRelacion}
+                claveCache={`relacion-samples-${relacionId}`}
+                mostrarTags={false}
+                infiniteScroll={false}
+                virtualizar={false}
+                mensajeVacio=""
+            />
 
             {/* Relaciones adicionales de la canción destino */}
             {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (

@@ -184,6 +184,24 @@ export const actualizarSample = async (
 };
 
 /*
+ * Samples publicados vinculados a una relación de sampleo (sample_fuente_id / sample_destino_id).
+ * Usados en RelacionDetalleIsland para mostrar los samples generados.
+ */
+export const obtenerSamplesDeRelacion = async (
+    relacionId: number
+): Promise<RespuestaApi<SampleResumen[]>> =>
+    apiGet<SampleResumen[]>(`/relaciones/${relacionId}/samples`);
+
+/*
+ * Samples publicados extraídos de una canción concreta (cancion_origen_id = cancion.id).
+ * Usados en CancionDetalleIsland para mostrar los samples generados del pipeline.
+ */
+export const obtenerSamplesDeCancion = async (
+    slug: string
+): Promise<RespuestaApi<SampleResumen[]>> =>
+    apiGet<SampleResumen[]>(`/canciones/${encodeURIComponent(slug)}/samples`);
+
+/*
  * C87: Obtiene los samples favoritos (liked) del usuario autenticado.
  */
 export const obtenerMisFavoritos = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
