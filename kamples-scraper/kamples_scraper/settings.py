@@ -56,6 +56,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 ITEM_PIPELINES = {
     "kamples_scraper.pipelines.DeduplicacionPipeline": 100,
+    # ImageDescargaPipeline corre antes de Postgres para reemplazar URLs externas
+    # con rutas locales antes del INSERT. Requiere IMAGES_STORE_PATH + IMAGES_BASE_URL.
+    "kamples_scraper.pipelines.ImageDescargaPipeline": 200,
     "kamples_scraper.pipelines.PostgresPipeline": 300,
 }
 
@@ -75,6 +78,12 @@ PROXY_PORT = os.getenv("PROXY_PORT", "823")
 PROXY_USER = os.getenv("PROXY_USER", "")
 PROXY_PASSWORD = os.getenv("PROXY_PASSWORD", "")
 PROXY_BUDGET_BYTES = int(os.getenv("PROXY_BUDGET_BYTES", "5368709120"))
+
+# --- Imágenes: descarga local para preservación ---
+# IMAGES_STORE_PATH: ruta absoluta al directorio donde se guardan las imágenes
+# IMAGES_BASE_URL: URL HTTP equivalente a ese directorio (sin slash final)
+IMAGES_STORE_PATH = os.getenv("IMAGES_STORE_PATH", "")
+IMAGES_BASE_URL = os.getenv("IMAGES_BASE_URL", "")
 
 # --- DB config ---
 DB_HOST = os.getenv("DB_HOST", "localhost")

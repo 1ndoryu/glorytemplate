@@ -2,12 +2,18 @@
 Kamples Scraper — Pipelines.
 
 DeduplicacionPipeline: descarta items duplicados (por whosampled_id).
+ImageDescargaPipeline: descarga imágenes del CDN a wp-content/uploads/kamples/portadas/.
 PostgresPipeline: inserta RelacionItem en BD con todas las entidades.
 """
 
+import hashlib
 import logging
+import os
+from pathlib import Path
+from urllib.parse import urlparse
 
 import psycopg2
+from curl_cffi import requests as curl_requests
 from scrapy.exceptions import DropItem
 
 from kamples_scraper.items import RelacionItem
@@ -39,6 +45,105 @@ class DeduplicacionPipeline:
             self.ids_vistos.add(ws_id)
 
         return item
+
+
+class ImageDescargaPipeline:
+    """
+    Descarga imágenes del CDN de WhoSampled y las preserva localmente
+    en wp-content/uploads/kamples/portadas/.
+
+    Corre antes de PostgresPipeline (prioridad 200) para que la URL local
+    ya esté resuelta al hacer el INSERT de canciones.
+
+    Dedup por SHA256 de la URL externa: si el archivo ya existe no re-descarga.
+    Las imágenes se descargan directamente sin proxy (CDN estático).
+
+    Requiere en .env:
+        IMAGES_STORE_PATH — ruta absoluta al directorio local de almacenamiento
+        IMAGES_BASE_URL   — URL HTTP base del mismo directorio
+    """
+
+    # Extensiones aceptadas como imagen
+    _EXTENSIONES_VALIDAS = (".jpg", ".jpeg", ".png", ".webp", ".gif")
+
+    _HEADERS = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/125.0.0.0 Safari/537.36"
+        ),
+        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+        "Referer": "https://www.whosampled.com/",
+    }
+
+    def open_spider(self, spider):
+        store_path = os.getenv("IMAGES_STORE_PATH", "")
+        self.base_url = os.getenv("IMAGES_BASE_URL", "").rstrip("/")
+
+        if not store_path or not self.base_url:
+            logger.warning(
+                "ImageDescargaPipeline: IMAGES_STORE_PATH o IMAGES_BASE_URL "
+                "no configurados — imágenes se guardarán como URLs externas."
+            )
+            self.store_path = None
+            return
+
+        self.store_path = Path(store_path)
+        try:
+            self.store_path.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            logger.error(
+                "ImageDescargaPipeline: no se pudo crear directorio %s: %s",
+                store_path, exc,
+            )
+            self.store_path = None
+            return
+
+        # curl_cffi como requests — impersona Chrome para CDNs con protección
+        self.session = curl_requests.Session(impersonate="chrome125")
+        self.session.headers.update(self._HEADERS)
+        logger.info("ImageDescargaPipeline: almacenando en %s", store_path)
+
+    def close_spider(self, spider):
+        if hasattr(self, "session"):
+            self.session.close()
+
+    def process_item(self, item, spider):
+        if not isinstance(item, RelacionItem) or self.store_path is None:
+            return item
+
+        for clave in ("cancion_destino", "cancion_fuente"):
+            datos = item.get(clave)
+            if datos and datos.get("imagen_url"):
+                url_local = self._descargar(datos["imagen_url"])
+                if url_local:
+                    datos["imagen_url"] = url_local
+
+        return item
+
+    def _descargar(self, url: str) -> str | None:
+        """Descarga imagen y retorna URL local. Retorna None si falla."""
+        nombre = hashlib.sha256(url.encode()).hexdigest()[:40]
+        ext = Path(urlparse(url).path).suffix.lower()
+        if ext not in self._EXTENSIONES_VALIDAS:
+            ext = ".jpg"
+
+        archivo = self.store_path / f"{nombre}{ext}"
+        url_local = f"{self.base_url}/{nombre}{ext}"
+
+        # Dedup: si ya existe en disco, reusar
+        if archivo.exists():
+            return url_local
+
+        try:
+            resp = self.session.get(url, timeout=15)
+            resp.raise_for_status()
+            archivo.write_bytes(resp.content)
+            logger.debug("Imagen descargada: %s → %s", url, archivo.name)
+            return url_local
+        except Exception as exc:
+            logger.warning("Error descargando imagen %s: %s", url, exc)
+            return None
 
 
 class PostgresPipeline:
