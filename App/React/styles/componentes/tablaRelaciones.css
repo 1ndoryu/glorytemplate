@@ -26,7 +26,7 @@
 }
 
 /* Anchos de columnas: imagen fija, cancion flexible, resto compactos */
-.tablaRelacionesColImagen   { width: 52px; }
+.tablaRelacionesColImagen   { width: 74px; }
 .tablaRelacionesColCancion  { width: auto; }
 .tablaRelacionesColAnio     { width: 52px; }
 .tablaRelacionesColElemento { width: 130px; }

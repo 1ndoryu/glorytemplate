@@ -135,11 +135,13 @@
 /* Contenedor agrupado para meta + timing */
 .relacionDetalleLadoExtra {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: calc(var(--espacioXs) / 2);
-    padding: var(--espacioSm);
+    /* padding: var(--espacioSm); */
     background: var(--fondoElevado2);
     border-radius: var(--radioSm);
+    justify-content: space-between;
+    width: 100%;
 }
 
 .relacionDetalleLadoMeta {
