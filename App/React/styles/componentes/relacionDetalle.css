@@ -173,35 +173,11 @@
     color: var(--textoSecundario);
 }
 
-/* Secciones de relaciones adicionales y comentarios */
-.relacionDetalleSeccion {
+/* Contenedor de comentarios (toggle + lista) */
+.relacionDetalleComentarios {
     display: flex;
     flex-direction: column;
     gap: var(--espacioSm);
-    padding: var(--espacioMd);
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
-}
-
-.relacionDetalleSeccionTitulo {
-    margin: 0;
-    font-size: var(--fuenteMd);
-    font-weight: var(--pesoSemibold);
-    color: var(--textoPrimario);
-}
-
-.relacionDetalleSubseccion {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
-}
-
-.relacionDetalleSubtitulo {
-    margin: 0;
-    font-size: var(--fuenteSm);
-    font-weight: var(--pesoMedium);
-    color: var(--textoSecundario);
 }
 
 /* Botón toggle de comentarios */

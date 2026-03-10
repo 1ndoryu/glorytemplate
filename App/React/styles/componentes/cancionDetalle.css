@@ -94,34 +94,6 @@
     align-items: center;
 }
 
-/* Sección de relaciones — contenedor tipo tarjeta */
-.cancionDetalleSeccion {
-    display: flex;
-    flex-direction: column;
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
-    overflow: hidden;
-}
-
-.cancionDetalleSeccionTitulo {
-    margin: 0;
-    font-size: var(--fuenteMd);
-    font-weight: var(--pesoSemibold);
-    color: var(--textoPrimario);
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-    padding: var(--espacioMd) var(--espacioLg);
-    border-bottom: 1px solid var(--bordeSutil);
-}
-
-.cancionDetalleSeccionContador {
-    font-size: var(--fuenteSm);
-    color: var(--textoTerciario);
-    font-weight: var(--pesoNormal);
-}
-
 /* Tabla de relaciones: filas separadas por línea horizontal */
 .cancionDetalleRelaciones {
     display: flex;

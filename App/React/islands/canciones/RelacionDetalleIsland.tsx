@@ -14,6 +14,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
+import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { LadoCancionRelacion } from '@app/components/canciones/LadoCancionRelacion';
 import { Skeleton } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
@@ -25,6 +26,7 @@ import {
     ETIQUETAS_TIPO_ELEMENTO,
 } from '@app/types/cancion';
 import '../../styles/componentes/relacionDetalle.css';
+import '../../styles/componentes/seccionRelaciones.css';
 
 const TABS_RELACION = [{ id: 'relacion', etiqueta: 'Sampleo' }];
 
@@ -90,8 +92,7 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
 
     const embedDestino = relacion.destino_youtubeId ? construirEmbedUrl(relacion.destino_youtubeId) : null;
     const embedFuente = relacion.fuente_youtubeId ? construirEmbedUrl(relacion.fuente_youtubeId) : null;
-    const tieneRelacionesDestino = (relacion.destinoSamplesDe?.length ?? 0) > 0 || (relacion.destinoSampleadaEn?.length ?? 0) > 0;
-    const tieneRelacionesFuente = (relacion.fuenteSamplesDe?.length ?? 0) > 0 || (relacion.fuenteSampleadaEn?.length ?? 0) > 0;
+
 
     return (
         <div className="relacionDetalleContenedor" id="seccionRelacionDetalle">
@@ -149,49 +150,43 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
             </div>
 
             {/* Relaciones adicionales de la canción destino */}
-            {tieneRelacionesDestino && (
-                <div className="relacionDetalleSeccion">
-                    <h2 className="relacionDetalleSeccionTitulo">
-                        Más sobre {relacion.destino_titulo ?? 'esta canción'}
-                    </h2>
-                    {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (
-                        <div className="relacionDetalleSubseccion">
-                            <h3 className="relacionDetalleSubtitulo">Samples que usa</h3>
-                            <TablaRelaciones relaciones={relacion.destinoSamplesDe!} direccion="destino" />
-                        </div>
-                    )}
-                    {(relacion.destinoSampleadaEn?.length ?? 0) > 0 && (
-                        <div className="relacionDetalleSubseccion">
-                            <h3 className="relacionDetalleSubtitulo">Fue sampleada en</h3>
-                            <TablaRelaciones relaciones={relacion.destinoSampleadaEn!} direccion="origen" />
-                        </div>
-                    )}
-                </div>
+            {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.destino_titulo ?? 'Canción'} samplea a`}
+                    contador={relacion.destinoSamplesDe!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.destinoSamplesDe!} direccion="destino" />
+                </SeccionRelaciones>
+            )}
+            {(relacion.destinoSampleadaEn?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.destino_titulo ?? 'Canción'} fue sampleada en`}
+                    contador={relacion.destinoSampleadaEn!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.destinoSampleadaEn!} direccion="origen" />
+                </SeccionRelaciones>
             )}
 
             {/* Relaciones adicionales de la canción fuente */}
-            {tieneRelacionesFuente && (
-                <div className="relacionDetalleSeccion">
-                    <h2 className="relacionDetalleSeccionTitulo">
-                        Más sobre {relacion.fuente_titulo ?? 'esta canción'}
-                    </h2>
-                    {(relacion.fuenteSamplesDe?.length ?? 0) > 0 && (
-                        <div className="relacionDetalleSubseccion">
-                            <h3 className="relacionDetalleSubtitulo">Samples que usa</h3>
-                            <TablaRelaciones relaciones={relacion.fuenteSamplesDe!} direccion="destino" />
-                        </div>
-                    )}
-                    {(relacion.fuenteSampleadaEn?.length ?? 0) > 0 && (
-                        <div className="relacionDetalleSubseccion">
-                            <h3 className="relacionDetalleSubtitulo">Fue sampleada en</h3>
-                            <TablaRelaciones relaciones={relacion.fuenteSampleadaEn!} direccion="origen" />
-                        </div>
-                    )}
-                </div>
+            {(relacion.fuenteSamplesDe?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.fuente_titulo ?? 'Canción'} samplea a`}
+                    contador={relacion.fuenteSamplesDe!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.fuenteSamplesDe!} direccion="destino" />
+                </SeccionRelaciones>
+            )}
+            {(relacion.fuenteSampleadaEn?.length ?? 0) > 0 && (
+                <SeccionRelaciones
+                    titulo={`${relacion.fuente_titulo ?? 'Canción'} fue sampleada en`}
+                    contador={relacion.fuenteSampleadaEn!.length}
+                >
+                    <TablaRelaciones relaciones={relacion.fuenteSampleadaEn!} direccion="origen" />
+                </SeccionRelaciones>
             )}
 
             {/* Comentarios */}
-            <div className="relacionDetalleSeccion">
+            <div className="relacionDetalleComentarios">
                 <BotonBase
                     variante="ghost"
                     className="relacionDetalleToggleComentarios"

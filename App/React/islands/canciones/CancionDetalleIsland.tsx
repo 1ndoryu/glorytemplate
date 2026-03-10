@@ -10,10 +10,12 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { CadenaSamples } from '@app/components/samples/CadenaSamples';
+import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import '../../styles/componentes/cancionDetalle.css';
+import '../../styles/componentes/seccionRelaciones.css';
 
 const TABS_CANCION = [{ id: 'cancion', etiqueta: 'Canción' }];
 
@@ -159,26 +161,16 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                 )}
             </div>
 
-            {/* Sección: esta canción samplea a... */}
             {samplesDe.length > 0 && (
-                <div className="cancionDetalleSeccion">
-                    <h2 className="cancionDetalleSeccionTitulo">
-                        Samplea a
-                        <span className="cancionDetalleSeccionContador">({samplesDe.length})</span>
-                    </h2>
+                <SeccionRelaciones titulo="Samplea a" contador={samplesDe.length}>
                     <TablaRelaciones relaciones={samplesDe} direccion="destino" />
-                </div>
+                </SeccionRelaciones>
             )}
 
-            {/* Sección: sampleada por... */}
             {sampleadaEn.length > 0 && (
-                <div className="cancionDetalleSeccion">
-                    <h2 className="cancionDetalleSeccionTitulo">
-                        Sampleada por
-                        <span className="cancionDetalleSeccionContador">({sampleadaEn.length})</span>
-                    </h2>
+                <SeccionRelaciones titulo="Sampleada por" contador={sampleadaEn.length}>
                     <TablaRelaciones relaciones={sampleadaEn} direccion="origen" />
-                </div>
+                </SeccionRelaciones>
             )}
 
             {/* Sin relaciones */}
