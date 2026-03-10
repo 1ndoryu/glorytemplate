@@ -245,5 +245,13 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S5-UI.2** Sidebar: ítem "Música" con icono Music agregado a la navegación principal ✅ [AG-SMD]
 - [x] **S5-UI.3** Ruta antigua `/explorar/canciones` reemplazada por `/musica` ✅ [AG-SMD]
 
+### S5-FIX — Scraper metadata pipeline
+- [x] **S5-FIX.1** TrackMetadataItem: nuevo item con genre/tags/youtube_id extraídos de track overview ✅ [AG-SCR]
+- [x] **S5-FIX.2** `extraer_metadata_track_overview()` parser con selectores `span[itemprop="genre"]`, `span[itemprop="keywords"]`, `.track-embed .embed-placeholder` ✅ [AG-SCR]
+- [x] **S5-FIX.3** Pipeline: `_upsert_cancion` persiste youtube_id+genero en INSERT/ON CONFLICT ✅ [AG-SCR]
+- [x] **S5-FIX.4** Pipeline: handler TrackMetadataItem actualiza cancion existente con genre/youtube_id/tags(JSONB metadata) ✅ [AG-SCR]
+- [x] **S5-FIX.5** Pipeline: featuring artists insertados como rol "featuring" en canciones_artistas ✅ [AG-SCR]
+- [x] **S5-FIX.6** Filtro tags: omite "WhoSampled #N" automáticamente (PATRON_WHOSAMPLED_NUM) ✅ [AG-SCR]
+
 ### S6 — Audio Search + Contribución Comunitaria
 - [ ] **S6.1-S6.6** Chromaprint fingerprinting, búsqueda por audio, UI contribución, moderación, sistema Cred
