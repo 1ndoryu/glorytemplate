@@ -16,20 +16,20 @@ use Glory\Manager\PageManager;
 use App\Kamples\Services\SeoKamples;
 use App\Kamples\Services\SeoSitemapProvider;
 
-/* =====================================================
+/*
  * RESOLVERS DINAMICOS
  * Cada resolver se ejecuta en hook `wp` cuando la ruta
  * coincide con el prefijo registrado.
- * ===================================================== */
+ */
 
 DynamicSeoResolver::registerResolver('sample', [SeoKamples::class, 'resolverSample']);
 DynamicSeoResolver::registerResolver('perfil', [SeoKamples::class, 'resolverPerfil']);
 DynamicSeoResolver::registerResolver('coleccion', [SeoKamples::class, 'resolverColeccion']);
 
-/* =====================================================
+/*
  * SEO DEFAULTS — PAGINAS ESTATICAS
  * title, desc, robots para paginas que no son dinamicas.
- * ===================================================== */
+ */
 
 PageManager::setDefaultSeoMap([
     'home' => [
@@ -132,9 +132,9 @@ PageManager::setDefaultSeoMap([
     ],
 ]);
 
-/* =====================================================
+/*
  * SITEMAP
  * Registra proveedores de sitemap para contenido dinamico
- * ===================================================== */
+ */
 
 SeoSitemapProvider::register();

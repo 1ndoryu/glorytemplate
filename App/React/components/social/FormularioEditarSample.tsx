@@ -94,6 +94,7 @@ export const FormularioEditarSample = ({
                         Agregar imagen
                     </BotonBase>
                 )}
+                {/* sentinel-disable-next-line html-nativo-en-vez-de-componente — input type=file oculto activado programaticamente, CampoTexto no soporta file inputs */}
                 <input
                     ref={inputImagenRef}
                     type="file"

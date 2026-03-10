@@ -1,4 +1,5 @@
 <?php
+/* sentinel-disable-file limite-lineas — fragmentos SQL de scoring cohesivos, comparten config/pesos; TO-DO: extraer senal por dominio */
 
 /**
  * ConstructorSenales — Genera fragmentos SQL de scoring para el motor de recomendación.
@@ -28,6 +29,7 @@ use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Kamples\Services\GeneradorEmbeddings;
 use App\Config\Schema\_generated\SamplesEnums;
@@ -57,14 +59,16 @@ class ConstructorSenales
          * ARRAY_AGG + UNNEST para aplicar LOWER a cada elemento individual.
          * Filtra NULLs y strings vacíos para evitar ruido en comparaciones.
          */
+        $gKey = CancionesCols::GENERO;
+
         return "(SELECT COALESCE(ARRAY_AGG(LOWER(t)), ARRAY[]::text[]) FROM UNNEST(
             COALESCE({$alias}.tags, ARRAY[]::text[])
             || COALESCE(
                 CASE
-                    WHEN jsonb_typeof({$alias}.metadata->'genero') = 'array'
-                    THEN ARRAY(SELECT jsonb_array_elements_text({$alias}.metadata->'genero'))
-                    WHEN {$alias}.metadata->>'genero' IS NOT NULL AND {$alias}.metadata->>'genero' != ''
-                    THEN ARRAY[{$alias}.metadata->>'genero']
+                    WHEN jsonb_typeof({$alias}.metadata->'{$gKey}') = 'array'
+                    THEN ARRAY(SELECT jsonb_array_elements_text({$alias}.metadata->'{$gKey}'))
+                    WHEN {$alias}.metadata->>'{$gKey}' IS NOT NULL AND {$alias}.metadata->>'{$gKey}' != ''
+                    THEN ARRAY[{$alias}.metadata->>'{$gKey}']
                     ELSE ARRAY[]::text[]
                 END, ARRAY[]::text[]
             )

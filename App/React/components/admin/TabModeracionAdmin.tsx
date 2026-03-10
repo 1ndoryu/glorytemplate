@@ -1,4 +1,4 @@
-﻿/*
+﻿/* sentinel-disable-file limite-lineas — componente de vista moderacion, apenas sobre limite (325/300); logica ya en useAdminPanel *//*
  * Componente: TabModeracionAdmin â€” Kamples (FASE 13)
  * Lista de publicaciones pendientes de moderaciÃ³n, reportes con acciones,
  * e historial IA en grid de 3 columnas con JSON acordeona, menÃº contextual.

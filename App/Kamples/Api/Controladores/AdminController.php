@@ -110,6 +110,7 @@ class AdminController
 
     /*
      * GET /admin/usuarios?page=1&busqueda=&plan=&orden=fecha
+     * sentinel-disable-next-line php-service-retorna-asociativo — WP_REST_Response con data[] indexado
      */
     public static function listarUsuarios(\WP_REST_Request $request): \WP_REST_Response
     {

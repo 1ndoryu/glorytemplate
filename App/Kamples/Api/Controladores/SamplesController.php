@@ -31,6 +31,7 @@ use App\Kamples\Services\MotorRecomendacion;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\CancionesCols;
 
 class SamplesController
 {
@@ -134,7 +135,8 @@ class SamplesController
 
         $genero = $request->get_param('genero');
         if (!empty($genero)) {
-            $where[]  = "s.{$sMeta}->'genero' ? :genero";
+            $gKey = CancionesCols::GENERO;
+            $where[]  = "s.{$sMeta}->'{$gKey}' ? :genero";
             $params['genero'] = $genero;
         }
 
@@ -363,9 +365,8 @@ class SamplesController
 
             $genero = $request->get_param('genero');
             if (!empty($genero)) {
-                $where[]  = "s.{$sMeta}->'genero' ? :genero";
-                $params['genero'] = $genero;
-            }
+            $gKey = CancionesCols::GENERO;
+            $where[]  = "s.{$sMeta}->'{$gKey}' ? :genero";
 
             $bpmMin = $request->get_param('bpm_min');
             if ($bpmMin !== null) {

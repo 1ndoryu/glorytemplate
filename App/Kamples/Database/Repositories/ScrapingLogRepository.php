@@ -60,7 +60,7 @@ class ScrapingLogRepository extends BaseRepository
     /**
      * Registrar URL en el log (ignore si ya existe).
      */
-    public static function registrarUrl(string $url, string $tipoPagina, string $estado = 'pendiente'): ?int
+    public static function registrarUrl(string $url, string $tipoPagina, string $estado = ScrapingLogEnums::ESTADO_PENDIENTE): ?int
     {
         $tabla = ScrapingLogCols::TABLA;
 
@@ -80,9 +80,10 @@ class ScrapingLogRepository extends BaseRepository
     public static function pendientes(string $tipoPagina, int $limit = 50): array
     {
         $tabla = ScrapingLogCols::TABLA;
+        $cols = implode(', ', ScrapingLogCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE "
+            "SELECT {$cols} FROM {$tabla} WHERE "
             . ScrapingLogCols::TIPO_PAGINA . " = :tipo AND "
             . ScrapingLogCols::ESTADO . " = :estado "
             . "ORDER BY " . ScrapingLogCols::CREATED_AT . " ASC LIMIT :limit",

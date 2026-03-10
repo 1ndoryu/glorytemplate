@@ -87,6 +87,7 @@ class PublicacionesController
         ]);
     }
 
+    /* sentinel-disable-next-line php-service-retorna-asociativo — WP_REST_Response con data[] indexado */
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
@@ -228,6 +229,7 @@ class PublicacionesController
         }
     }
 
+    /* sentinel-disable-next-line php-service-retorna-asociativo — WP_REST_Response con data[] indexado */
     public static function listarComentarios(\WP_REST_Request $request): \WP_REST_Response
     {
         try {

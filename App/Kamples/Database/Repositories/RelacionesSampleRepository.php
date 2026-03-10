@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\RelacionesSampleDTO;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\ArtistasMusicalesCols;
 
 class RelacionesSampleRepository extends BaseRepository
 {
@@ -34,8 +36,10 @@ class RelacionesSampleRepository extends BaseRepository
     {
         $tabla = RelacionesSampleCols::TABLA;
 
+        $cols = implode(', ', RelacionesSampleCols::TODAS);
+
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY " . RelacionesSampleCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT {$cols} FROM {$tabla} ORDER BY " . RelacionesSampleCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -47,8 +51,10 @@ class RelacionesSampleRepository extends BaseRepository
      */
     public static function buscarPorWhosampledId(int $wsId): ?array
     {
+        $cols = implode(', ', RelacionesSampleCols::TODAS);
+
         return static::consultarUno(
-            "SELECT * FROM " . RelacionesSampleCols::TABLA
+            "SELECT {$cols} FROM " . RelacionesSampleCols::TABLA
             . " WHERE " . RelacionesSampleCols::WHOSAMPLED_ID . " = :ws_id",
             ['ws_id' => $wsId]
         );
@@ -61,8 +67,8 @@ class RelacionesSampleRepository extends BaseRepository
     public static function samplesDe(int $cancionDestinoId, int $limit = 50): array
     {
         $tr = RelacionesSampleCols::TABLA;
-        $tc = \App\Config\Schema\_generated\CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
             "SELECT r.*, c.titulo AS fuente_titulo, c.slug AS fuente_slug,
@@ -85,8 +91,8 @@ class RelacionesSampleRepository extends BaseRepository
     public static function sampleadaEn(int $cancionFuenteId, int $limit = 50): array
     {
         $tr = RelacionesSampleCols::TABLA;
-        $tc = \App\Config\Schema\_generated\CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
             "SELECT r.*, c.titulo AS destino_titulo, c.slug AS destino_slug,
@@ -128,8 +134,8 @@ class RelacionesSampleRepository extends BaseRepository
     public static function porSampleId(int $sampleId): ?array
     {
         $tr = RelacionesSampleCols::TABLA;
-        $tc = \App\Config\Schema\_generated\CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultarUno(
             "SELECT r.*,
@@ -172,8 +178,9 @@ class RelacionesSampleRepository extends BaseRepository
     public static function cadena(int $cancionId, int $profundidad = 5): array
     {
         $tr = RelacionesSampleCols::TABLA;
-        $tc = \App\Config\Schema\_generated\CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+        $tipoSample = RelacionesSampleEnums::TIPO_RELACION_SAMPLE;
 
         /* CTE recursivo: seguir relaciones fuente → destino (quién sampleó a quién) */
         $sql = "
@@ -182,7 +189,7 @@ class RelacionesSampleRepository extends BaseRepository
                        r.tipo_relacion, 1 AS nivel
                 FROM {$tr} r
                 WHERE r.cancion_fuente_id = :cancion_id
-                  AND r.tipo_relacion = 'sample'
+                  AND r.tipo_relacion = '{$tipoSample}'
 
                 UNION ALL
 
@@ -191,7 +198,7 @@ class RelacionesSampleRepository extends BaseRepository
                 FROM {$tr} r
                 JOIN cadena c ON r.cancion_fuente_id = c.cancion_destino_id
                 WHERE c.nivel < :profundidad
-                  AND r.tipo_relacion = 'sample'
+                  AND r.tipo_relacion = '{$tipoSample}'
             )
             SELECT DISTINCT ON (ca.cancion_destino_id)
                    ca.id, ca.cancion_fuente_id, ca.cancion_destino_id,

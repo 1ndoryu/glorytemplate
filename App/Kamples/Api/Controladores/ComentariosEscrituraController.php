@@ -180,7 +180,7 @@ class ComentariosEscrituraController
                 'contenido' => $contenido ?? '',
                 'tipoContenido' => $tipoContenido,
                 'mediaUrl' => $mediaUrl,
-                'mediaMetadata' => $mediaMetadata ? \App\Helpers\JsonHelper::decode($mediaMetadata) : null,
+                'mediaMetadata' => $mediaMetadata ? JsonHelper::decode($mediaMetadata) : null,
                 'creadoAt' => \date('c'),
                 'parentId' => $parentId,
                 'totalLikes' => 0,

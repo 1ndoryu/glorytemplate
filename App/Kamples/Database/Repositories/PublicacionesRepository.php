@@ -247,6 +247,7 @@ class PublicacionesRepository extends BaseRepository
      *
      * CTE 2 niveles: base (score) → diversified (ROW_NUMBER) → SELECT final.
      * Pesos y parámetros vienen de algoritmoPesos['comunidad'].
+     * sentinel-disable-next-line php-service-retorna-asociativo — fetchAll() retorna array indexado, JSON serializa como []
      */
     public static function listarFeedPuntuado(
         string $donde,

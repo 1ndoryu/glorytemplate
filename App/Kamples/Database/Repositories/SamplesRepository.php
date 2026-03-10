@@ -22,6 +22,7 @@ use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\CancionesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
@@ -142,13 +143,14 @@ class SamplesRepository extends BaseRepository
         $sMeta = SamplesCols::METADATA;
         $sTags = SamplesCols::TAGS;
         $sTipo = SamplesCols::TIPO;
+        $gKey = CancionesCols::GENERO;
 
         $baseFrom = "FROM {$tabla} s WHERE {$whereSQL}";
 
         /* Genero: extraer array JSONB metadata->'genero' */
         $sqlGenero = "SELECT g.val AS tag, COUNT(*) AS conteo
-            FROM {$tabla} s, LATERAL jsonb_array_elements_text(s.{$sMeta}->'genero') AS g(val)
-            WHERE {$whereSQL} AND s.{$sMeta}->'genero' IS NOT NULL AND jsonb_typeof(s.{$sMeta}->'genero') = 'array'
+            FROM {$tabla} s, LATERAL jsonb_array_elements_text(s.{$sMeta}->'{$gKey}') AS g(val)
+            WHERE {$whereSQL} AND s.{$sMeta}->'{$gKey}' IS NOT NULL AND jsonb_typeof(s.{$sMeta}->'{$gKey}') = 'array'
             GROUP BY g.val ORDER BY conteo DESC LIMIT :lim_genero";
 
         /* Instrumento: extraer array JSONB metadata->'instrumentos' */
@@ -178,7 +180,7 @@ class SamplesRepository extends BaseRepository
             GROUP BY t.val ORDER BY conteo DESC LIMIT :lim_otro";
 
         $resultado = [
-            'genero' => [],
+            $gKey => [],
             'instrumento' => [],
             'sentimiento' => [],
             'tipo' => [],
@@ -188,7 +190,7 @@ class SamplesRepository extends BaseRepository
         try {
             $pGenero = $params;
             $pGenero['lim_genero'] = $limite;
-            $resultado['genero'] = static::consultar($sqlGenero, $pGenero);
+            $resultado[$gKey] = static::consultar($sqlGenero, $pGenero);
         } catch (\Throwable $e) {
             /* best-effort: si la metadata no tiene formato esperado */
         }
@@ -739,6 +741,7 @@ class SamplesRepository extends BaseRepository
 
     /*
      * Listar samples con filtros dinámicos usando NormalizadorSample.
+     * sentinel-disable-next-line php-service-retorna-asociativo — fetchAll() retorna array indexado, JSON serializa como []
      */
     public static function listarConFiltros(
         ?int $userId,

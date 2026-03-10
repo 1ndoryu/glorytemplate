@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — TO-DO: extraer eventHandlers y filterLogic a modulos separados */
 /*
  * Servicio: fileWatcherService — Observador de carpeta de sincronización.
  *

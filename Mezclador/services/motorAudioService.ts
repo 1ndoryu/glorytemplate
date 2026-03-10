@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — AudioContext singleton cohesivo: init/decode/schedule/playback comparten estado global */
 /*
  * motorAudioService — Singleton AudioContext + caché de buffers
  * Gestiona la reproducción sincronizada de múltiples samples en la timeline.

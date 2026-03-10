@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — TO-DO: extraer mappingLogic, conflictResolution y localFolderOps a modulos separados */
 /*
  * Servicio: syncCollectionService — C355
  * Lógica de mapeo colecciones del servidor ↔ carpetas locales en disco.

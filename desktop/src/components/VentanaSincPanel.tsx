@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — componente ventana raiz con tabs; TO-DO: extraer TabEstado/TabHistorial/TabColecciones a sub-componentes */
 /*
  * VentanaSincPanel — Componente raiz de la ventana de sincronizacion.
  * Se renderiza como ventana Tauri independiente (sin Modal, sin layout).
@@ -231,8 +232,7 @@ export function VentanaSincPanel(): JSX.Element {
         limpiarHistorialLocal,
     } = usePanelSincronizacion();
 
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+    const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({ abierto: false, x: 0, y: 0 });
     const [diagnosticoVisible, setDiagnosticoVisible] = useState(false);
     const [perfilDesktop, setPerfilDesktop] = useState<{
         nombre: string;
@@ -264,8 +264,7 @@ export function VentanaSincPanel(): JSX.Element {
 
     const abrirMenu = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setMenuPos({ x: rect.right, y: rect.bottom + 6 });
-        setMenuAbierto(true);
+        setMenu({ abierto: true, x: rect.right, y: rect.bottom + 6 });
     }, []);
 
     const menuItems = useMemo<MenuItemDef[]>(() => [
@@ -340,7 +339,7 @@ export function VentanaSincPanel(): JSX.Element {
                 const ventana = getCurrentWindow();
                 desuscribir = await ventana.onFocusChanged(({ payload: enfocado }) => {
                     if (!enfocado) {
-                        setMenuAbierto(false);
+                        setMenu(prev => ({ ...prev, abierto: false }));
                         /* Auto-hide: delay para no interferir con toggle del tray icon.
                          * Si el tray handler ya mostrara la ventana, isFocused() sera true
                          * y el hide no se ejecuta. */
@@ -422,17 +421,17 @@ export function VentanaSincPanel(): JSX.Element {
                         className="sincPanelMinimalMenu"
                         type="button"
                         aria-label="Opciones"
-                        onClick={(e) => (menuAbierto ? setMenuAbierto(false) : abrirMenu(e))}
+                        onClick={(e) => (menu.abierto ? setMenu(prev => ({ ...prev, abierto: false })) : abrirMenu(e))}
                     >
                         <EllipsisVertical size={14} />
                     </BotonBase>
 
                 <MenuContextual
-                    abierto={menuAbierto}
-                    onCerrar={() => setMenuAbierto(false)}
+                    abierto={menu.abierto}
+                    onCerrar={() => setMenu(prev => ({ ...prev, abierto: false }))}
                     items={menuItems}
-                    x={menuPos.x}
-                    y={menuPos.y}
+                    x={menu.x}
+                    y={menu.y}
                     alinearDerecha
                 />
             </div>

@@ -33,9 +33,10 @@ class ColaExtraccionSamplesRepository extends BaseRepository
     public static function buscarRecientes(int $limit = 20): array
     {
         $tabla = ColaExtraccionSamplesCols::TABLA;
+        $cols = implode(', ', ColaExtraccionSamplesCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT {$cols} FROM {$tabla} ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -48,9 +49,10 @@ class ColaExtraccionSamplesRepository extends BaseRepository
     public static function pendientes(int $limit = 10): array
     {
         $tabla = ColaExtraccionSamplesCols::TABLA;
+        $cols = implode(', ', ColaExtraccionSamplesCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla} WHERE "
+            "SELECT {$cols} FROM {$tabla} WHERE "
             . ColaExtraccionSamplesCols::ESTADO . " = :estado AND "
             . ColaExtraccionSamplesCols::INTENTOS . " < 3 "
             . "ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " ASC "

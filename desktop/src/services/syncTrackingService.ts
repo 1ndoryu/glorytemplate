@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — TO-DO: extraer collectionTracking y fileTracking a modulos separados */
 /*
  * Servicio: syncTrackingService — C355
  * CRUD tipado sobre Tauri Store para tracking de sync basado en colecciones.

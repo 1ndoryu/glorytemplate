@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\CancionesArtistasCols;
 use App\Config\Schema\_generated\CancionesArtistasEnums;
 use App\Config\Schema\_generated\CancionesArtistasDTO;
+use App\Config\Schema\_generated\ArtistasMusicalesCols;
+use App\Config\Schema\_generated\CancionesCols;
 
 class CancionesArtistasRepository extends BaseRepository
 {
@@ -37,7 +39,7 @@ class CancionesArtistasRepository extends BaseRepository
     public static function artistasDeCancion(int $cancionId): array
     {
         $tr = CancionesArtistasCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
             "SELECT ca.*, a.nombre AS artista_nombre, a.slug AS artista_slug
@@ -45,9 +47,9 @@ class CancionesArtistasRepository extends BaseRepository
              JOIN {$ta} a ON ca." . CancionesArtistasCols::ARTISTA_ID . " = a.id
              WHERE ca." . CancionesArtistasCols::CANCION_ID . " = :cancion_id
              ORDER BY CASE ca." . CancionesArtistasCols::ROL . "
-                WHEN 'principal' THEN 1
-                WHEN 'featuring' THEN 2
-                WHEN 'producer' THEN 3
+                WHEN '" . CancionesArtistasEnums::ROL_PRINCIPAL . "' THEN 1
+                WHEN '" . CancionesArtistasEnums::ROL_FEATURING . "' THEN 2
+                WHEN '" . CancionesArtistasEnums::ROL_PRODUCER . "' THEN 3
              END",
             ['cancion_id' => $cancionId]
         );
@@ -59,7 +61,7 @@ class CancionesArtistasRepository extends BaseRepository
     public static function cancionesDeArtista(int $artistaId, int $limit = 50): array
     {
         $tr = CancionesArtistasCols::TABLA;
-        $tc = \App\Config\Schema\_generated\CancionesCols::TABLA;
+        $tc = CancionesCols::TABLA;
 
         return static::consultar(
             "SELECT c.*, ca." . CancionesArtistasCols::ROL . " AS rol
@@ -75,7 +77,7 @@ class CancionesArtistasRepository extends BaseRepository
     /**
      * Insertar relación canción-artista ignorando duplicados (PK compuesta).
      */
-    public static function insertarSiNoExiste(int $cancionId, int $artistaId, string $rol = 'principal'): int
+    public static function insertarSiNoExiste(int $cancionId, int $artistaId, string $rol = CancionesArtistasEnums::ROL_PRINCIPAL): int
     {
         $tabla = CancionesArtistasCols::TABLA;
 

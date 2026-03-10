@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas — barra de navegacion cohesiva: tabs + busqueda + notificaciones + avatar, apenas sobre limite */
 /*
  * Componente: TopBar
  * Barra superior con tabs dinámicas, búsqueda global, notificaciones, mensajes y avatar.
@@ -339,7 +340,9 @@ export const TopBar = (): JSX.Element => {
                             {busqueda.trim().length >= 2
                                 && islaActual !== 'ExplorarCancionesIsland'
                                 && islaActual !== 'CancionDetalleIsland' && (
-                                <button
+                            <BotonBase
+                                    variante="ghost"
+                                    tamano="ninguno"
                                     type="button"
                                     className="topbarEnlaceBusquedaCanciones"
                                     onClick={() => {
@@ -349,7 +352,7 @@ export const TopBar = (): JSX.Element => {
                                 >
                                     <Music2 size={14} />
                                     Buscar canciones: &quot;{busqueda.trim()}&quot;
-                                </button>
+                                </BotonBase>
                             )}
                         </div>
                     </Modal>

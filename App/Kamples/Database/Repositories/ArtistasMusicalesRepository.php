@@ -32,9 +32,10 @@ class ArtistasMusicalesRepository extends BaseRepository
     public static function buscarRecientes(int $limit = 20): array
     {
         $tabla = ArtistasMusicalesCols::TABLA;
+        $cols = implode(', ', ArtistasMusicalesCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY " . ArtistasMusicalesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT {$cols} FROM {$tabla} ORDER BY " . ArtistasMusicalesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -46,8 +47,10 @@ class ArtistasMusicalesRepository extends BaseRepository
      */
     public static function buscarPorSlugWhosampled(string $slug): ?array
     {
+        $cols = implode(', ', ArtistasMusicalesCols::TODAS);
+
         return static::consultarUno(
-            "SELECT * FROM " . ArtistasMusicalesCols::TABLA
+            "SELECT {$cols} FROM " . ArtistasMusicalesCols::TABLA
             . " WHERE " . ArtistasMusicalesCols::WHOSAMPLED_SLUG . " = :slug",
             ['slug' => $slug]
         );
@@ -58,8 +61,10 @@ class ArtistasMusicalesRepository extends BaseRepository
      */
     public static function buscarPorSlug(string $slug): ?array
     {
+        $cols = implode(', ', ArtistasMusicalesCols::TODAS);
+
         return static::consultarUno(
-            "SELECT * FROM " . ArtistasMusicalesCols::TABLA
+            "SELECT {$cols} FROM " . ArtistasMusicalesCols::TABLA
             . " WHERE " . ArtistasMusicalesCols::SLUG . " = :slug",
             ['slug' => $slug]
         );
@@ -88,9 +93,10 @@ class ArtistasMusicalesRepository extends BaseRepository
     public static function topPorCanciones(int $limit = 50): array
     {
         $tabla = ArtistasMusicalesCols::TABLA;
+        $cols = implode(', ', ArtistasMusicalesCols::TODAS);
 
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY "
+            "SELECT {$cols} FROM {$tabla} ORDER BY "
             . ArtistasMusicalesCols::TOTAL_CANCIONES . " DESC LIMIT :limit",
             ['limit' => $limit]
         );

@@ -81,6 +81,7 @@ class AdminRepository
     /*
      * Lista paginada de usuarios con estadísticas (samples activos, descargas).
      * Construye WHERE dinámico según filtros.
+     * sentinel-disable-next-line php-service-retorna-asociativo — retorna ['data' => [], 'total' => int], data es indexado
      */
     public static function listarUsuariosConEstadisticas(
         string $busqueda,

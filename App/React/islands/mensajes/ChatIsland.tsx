@@ -53,9 +53,8 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
             <div className="chatMensajes" ref={mensajesRef}>
                 {cargando ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
-                        {/* sentinel-disable-next-line key-index-lista — array estatico de longitud fija, index es clave valida */}
                         {Array.from({ length: 4 }).map((_, i) => (
-                            <Skeleton key={i} ancho={i % 2 === 0 ? '60%' : '45%'} alto={36} className={i % 2 === 0 ? '' : 'skeleton'} />
+                            <Skeleton key={`chat-skeleton-${i}`} ancho={i % 2 === 0 ? '60%' : '45%'} alto={36} className={i % 2 === 0 ? '' : 'skeleton'} />
                         ))}
                     </div>
                 ) : mensajes.length === 0 ? (

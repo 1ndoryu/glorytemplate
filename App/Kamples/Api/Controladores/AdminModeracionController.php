@@ -82,6 +82,7 @@ class AdminModeracionController
     /*
      * GET /admin/moderacion?page=1&reportes_page=1 — Publicaciones pendientes + reportes
      * OPT05: Reportes ahora soportan paginacion independiente.
+     * sentinel-disable-next-line php-service-retorna-asociativo — WP_REST_Response con arrays indexados
      */
     public static function listarModeracion(\WP_REST_Request $request): \WP_REST_Response
     {

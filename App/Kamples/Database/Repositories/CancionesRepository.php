@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\CancionesDTO;
+use App\Config\Schema\_generated\ArtistasMusicalesCols;
 
 class CancionesRepository extends BaseRepository
 {
@@ -33,8 +34,10 @@ class CancionesRepository extends BaseRepository
     {
         $tabla = CancionesCols::TABLA;
 
+        $cols = implode(', ', CancionesCols::TODAS);
+
         return static::consultar(
-            "SELECT * FROM {$tabla} ORDER BY " . CancionesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT {$cols} FROM {$tabla} ORDER BY " . CancionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -46,8 +49,10 @@ class CancionesRepository extends BaseRepository
      */
     public static function buscarPorWhosampled(string $url): ?array
     {
+        $cols = implode(', ', CancionesCols::TODAS);
+
         return static::consultarUno(
-            "SELECT * FROM " . CancionesCols::TABLA
+            "SELECT {$cols} FROM " . CancionesCols::TABLA
             . " WHERE " . CancionesCols::WHOSAMPLED_URL . " = :url",
             ['url' => $url]
         );
@@ -71,13 +76,13 @@ class CancionesRepository extends BaseRepository
     public static function buscarConArtista(int $id): ?array
     {
         $tc = CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultarUno(
-            "SELECT c.*, a." . \App\Config\Schema\_generated\ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
-                    a." . \App\Config\Schema\_generated\ArtistasMusicalesCols::SLUG . " AS artista_slug
+            "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
+                    a." . ArtistasMusicalesCols::SLUG . " AS artista_slug
              FROM {$tc} c
-             JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . \App\Config\Schema\_generated\ArtistasMusicalesCols::ID . "
+             JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
              WHERE c." . CancionesCols::ID . " = :id",
             ['id' => $id]
         );
@@ -89,7 +94,7 @@ class CancionesRepository extends BaseRepository
     public static function buscarTexto(string $query, int $limit = 20): array
     {
         $tc = CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
             "SELECT c.*, a.nombre AS artista_nombre
@@ -109,7 +114,7 @@ class CancionesRepository extends BaseRepository
     public static function masSampleadas(int $limit = 50): array
     {
         $tc = CancionesCols::TABLA;
-        $ta = \App\Config\Schema\_generated\ArtistasMusicalesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
             "SELECT c.*, a.nombre AS artista_nombre
