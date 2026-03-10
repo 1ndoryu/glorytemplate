@@ -273,3 +273,18 @@ kamples-scraper/
 - S1.5: API endpoints REST para consultar relaciones desde React
 - S3.6: Waveform generation para UI
 - S3.7: Cron batch de extracción
+
+---
+
+## Social — Likes + Comentarios para Canciones/Relaciones + UI Mejoras [AG-RDI]
+
+> Commit: `5f1f3223` — 27 archivos, +609/-232
+
+### Resumen
+- **Migration v028:** CHECK constraints `likes.tipo` + `comentarios.tipo` extendidos con 'cancion'/'relacion'. Columnas `total_likes`/`total_comentarios` en `canciones` y `relaciones_sample`.
+- **Schema + Generated:** 4 schemas source + 4 _generated (Cols/Enums) actualizados.
+- **Backend PHP:** LikesRepository (3 nuevos métodos: obtenerReaccionUsuario, recalcularTotalCancion, recalcularTotalRelacion), SocialController extendido, ComentariosController+EscrituraController TIPOS_VALIDOS, ComentariosRepository mapaTablas, CancionesController detalleRelacion enriquecido (4 arrays relaciones + liked status), NormalizadorCancion totalLikes/totalComentarios.
+- **Frontend:** RelacionDetalleIsland reescritura completa (BotonLike, ListaComentarios, 4 secciones TablaRelaciones, portada 1:1, meta/timing en div propio, votos removidos). LadoCancionRelacion extraído SRP. useComentarios/useBotonLike tipos ampliados. apiSocial TipoLikeable/TipoComentable.
+- **SEO URLs:** `construirUrlSampleo()` + `slugificar()` en cancion.ts, pages.php retrocompat, TablaRelaciones/TarjetaRelacionSample actualizados.
+- **CSS:** relacionDetalle.css con portadaVacia, ladoExtra, secciones, toggle comentarios.
+- **Pendiente:** Ejecutar migration v028 en producción.

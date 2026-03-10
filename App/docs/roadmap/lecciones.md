@@ -75,6 +75,10 @@
 - [z-index]: Portal dropdowns que aparecen sobre modales necesitan z-index mayor que --zModal. Solución: --zMenuPortal:1100.
 - [Landing branding]: Para medidas exactas del home público usar variables específicas en `variables.css`; dejar `@font-face` solo en `landingPublica.css` evita cargar Junicode/Bricolage en el resto de la app.
 - [Tarjetas overlay]: Si el texto debe vivir dentro de la portada, usar overlay absoluto sobre la imagen y revelar metadatos secundarios con `hover` y `focus-visible`; así se mantiene legibilidad y accesibilidad sin ensuciar la grilla.
+- [Likes/Comentarios extensión]: Al extender CHECK constraints de `likes.tipo`/`comentarios.tipo`, actualizar: migration SQL, Schema source, _generated Enums, Repository recalcular*, Controller TIPOS_VALIDOS, apiSocial.ts (TipoLikeable/TipoComentable), useComentarios tipo, useBotonLike tipo. Patrón: LikesRepository::obtenerReaccionUsuario() para enriquecer respuestas con estado liked del usuario actual.
+- [SEO URLs retrocompat]: Extraer ID de `partes[1]` si numérico, fallback a `end($partes)` para URLs antiguas `/sampleo/{id}`. El slug SEO va después del ID y se ignora en el backend. `slugificar()` usa NFD normalize + strip diacritics.
+- [RelacionDetalleCompleta]: `NormalizadorCancion::relacionCompleta()` debe incluir `totalLikes`/`totalComentarios` del row. `CancionesController::detalleRelacion()` agrega `liked`/`reaccion` desde LikesRepository. 4 arrays de relaciones (muestreos, cubiertaPor, remixeadaPor, referenciadaPor) vienen del backend separados.
+- [Componentes >300 líneas]: Extraer sub-componente dedicado (ej: LadoCancionRelacion) para cumplir límite. Pasar props mínimas. El componente padre queda como orquestador.
 
 ---
 
