@@ -1,6 +1,6 @@
 # Plan: Adquisición de Samples y Metadata Musical — Kamples
 
-> **Versión:** 1.3 | **Fecha:** 09/03/2026 | **Estado:** S1-S5 implementados  
+> **Versión:** 1.4 | **Fecha:** 10/03/2026 | **Estado:** S1-S5 implementados  
 > **Módulo:** Sample Discovery & Metadata Engine  
 > **Dependencias:** PostgreSQL, pgvector, yt-dlp, librosa/essentia, Scrapy, DataImpulse proxy
 
@@ -851,12 +851,12 @@ LIMIT 20;
 
 ### FASE S5 — Expansión del scraper
 
-- [ ] **S5.1** Spider `artist`: scrapear top artistas por género (más sampleados)
-- [ ] **S5.2** Spider `track_samples`: "all samples in {track}" (paginado)
-- [ ] **S5.3** Spider `track_sampled`: "all songs that sampled {track}" (paginado)
-- [ ] **S5.4** Spider `browse_year`: browse por década/año para cobertura amplia
-- [ ] **S5.5** Covers y remixes: parsear secciones adicionales del HTML de detalle
-- [ ] **S5.6** Productores: tabla N:N con artistas_musicales
+- [x] **S5.1** Spider `artist`: scrapear top artistas por género (más sampleados) ✅
+- [x] **S5.2** Spider `track_samples`: "all samples in {track}" (paginado) ✅
+- [x] **S5.3** Spider `track_sampled`: "all songs that sampled {track}" (paginado) ✅
+- [x] **S5.4** Spider `browse_year`: browse por década/año para cobertura amplia ✅
+- [x] **S5.5** Covers y remixes: parsear secciones adicionales del HTML de detalle ✅
+- [x] **S5.6** Productores: tabla N:N con artistas_musicales ✅
 
 ### FASE S6 — Búsqueda por audio y contribución
 
@@ -938,3 +938,22 @@ LIMIT 20;
 - [Cadena traversal PHP]: Implementar como método recursivo en el repositorio con depth limit (10) y set de visitados para evitar ciclos
 - [Rutas dinámicas]: Para slugs como `/cancion/{slug}` usar `PageManager::registrarRutaDinamica('cancion/{slug}', 'CancionDetalleIsland')` además de `reactPage()`
 - [TopBar placeholder]: Agregar `islaActual` al return de useTopBar para dinamizar el placeholder del buscador según la isla activa
+
+### Lecciones S5 — Normalización API (10/03/2026)
+
+- [snake_case vs camelCase]: CancionesController devolvía filas BD crudas (snake_case). Frontend espera camelCase. Fix: `NormalizadorCancion` helper extraído a `App/Kamples/Api/Helpers/NormalizadorCancion.php` (patrón `NormalizadorSample`). Usar en todo endpoint que retorne canciones/artistas/relaciones.
+- [estadísticasPorTipo alias]: SQL usa `AS tipo` pero frontend esperaba `tipoRelacion`. Fix en `NormalizadorCancion::estadisticaTipo()`.
+- [tagsAgregados if abierto]: `SamplesController::tagsAgregados` tenía `if (!empty($genero)) {` sin cerrar — faltaba `$params['genero'] = $genero;` y `}`. Causaba PHP Parse error sintaxis inesperada en catch.
+- [json_decode timings]: No usar `?? []` como fallback directo. Verificar `json_last_error()` primero. Ver `NormalizadorCancion::decodeTimings()` como patrón correcto.
+
+### Lecciones Sesión 6 — SPA routing y dev tools (10/03/2026)
+
+- [SPA props + rutas dinámicas]: Bug en `initializeSPA` (hydration.tsx): al buscar `/cancion/slug/` en el routes map, fallaba el merge de props del servidor porque el mapa solo tiene `/cancion/` (rutas callable no se serializan). Fix: pasar `propsEvaluados` como 3er argumento a `inicializar()` en navigationStore, que usa `buscarRutaEnMapa` (soporta prefijo) y los mergea. Afecta a cualquier ruta dinámica `/padre/slug`.
+- [DevController WP_DEBUG guard]: El controller NO se registra en producción. Usar `if (!defined('WP_DEBUG') || !WP_DEBUG) return;` al inicio de `registrarRutas`. Nunca comentarlo ni sacarlo.
+- [proc_open array vs string]: Para llamar binarios externos sin inyección, usar `proc_open(array $cmdArray, ...)` en lugar de string con operadores shell. El OS pasa los args directamente al proceso sin shell intermediario. Mantenemos el proceso vivo sin llamar `proc_close()` para background real.
+- [CancionesRepository::purgarModulo]: TRUNCATE con CASCADE pertenece al repositorio, no al controller (SOLID). El cascade resuelve FKs; listar tablas de dependencias es documentación, no necesidad técnica.
+- [BotonBase props]: `variante` acepta 'primario'|'secundario'|'ghost'|'peligro'. NO existe 'destructivo'. La prop se llama `tamano` (sin tilde en n), no `tamanio`. No existe prop `icono` — poner íconos dentro de `children`.
+- [imagen_url siempre null]: WhoSampled devuelve URLs relativas en `meta[itemprop='image']` (`/static/images/...`). El scraper las descartaba por no empezar con `http`. Fix: prefijar `https://www.whosampled.com` si empieza con `/`.
+- [ON CONFLICT DO UPDATE imagen]: El upsert de canciones solo actualizaba `titulo`. Registros existentes con `imagen_url=NULL` nunca se actualizaban al re-scrapear. Fix: agregar `imagen_url = COALESCE(EXCLUDED.imagen_url, canciones.imagen_url)` para que re-scraping rellene huecos sin pisar datos válidos.
+- [buscarRecientes sin artista]: `CancionesRepository::buscarRecientes` usaba `CancionesCols::TODAS` sin JOIN. La respuesta lista siempre tenía `artistaNombre/artistaSlug = null`. Fix: LEFT JOIN artistas_musicales como hacen `masSampleadas` y `buscarTexto`.
+- [SQL alias cross-file bug]: Si un Repository devuelve alias `artista_nombre` pero NormalizadorCancion lee `nombre`, los datos llegan null silenciosamente — sin error. Sentinel no detecta esto (requiere análisis de flujo inter-archivo). Auditar aliases manualmente al crear nuevos repos.
