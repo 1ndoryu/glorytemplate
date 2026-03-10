@@ -195,7 +195,8 @@ class PublicadorExtraccion
             return $contribuidorId;
         }
 
-        $sistemaId = (int)\getenv('KAMPLES_SISTEMA_USUARIO_ID');
+        /* Dotenv::createImmutable() popula $_ENV, no putenv(). Usar patron $_ENV ?? getenv(). */
+        $sistemaId = (int)($_ENV['KAMPLES_SISTEMA_USUARIO_ID'] ?? \getenv('KAMPLES_SISTEMA_USUARIO_ID') ?? 0);
         return $sistemaId > 0 ? $sistemaId : 7;
     }
 

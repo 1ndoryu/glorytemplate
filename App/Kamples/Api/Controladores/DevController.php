@@ -488,8 +488,9 @@ class DevController
             return false;
         }
 
-        $secretEsperado = \getenv('KAMPLES_CRON_SECRET');
-        if ($secretEsperado === false || $secretEsperado === '') {
+        /* Dotenv::createImmutable() popula $_ENV, no putenv(). Usar patron $_ENV ?? getenv(). */
+        $secretEsperado = $_ENV['KAMPLES_CRON_SECRET'] ?? \getenv('KAMPLES_CRON_SECRET') ?? '';
+        if ($secretEsperado === '') {
             return false;
         }
 
