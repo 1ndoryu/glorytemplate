@@ -264,6 +264,14 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S5.5.5** API: NormalizadorCancion expone spotifyId, fuente_spotifyId, destino_spotifyId ✅ [AG-NAV]
 - [x] **S5.5.6** Frontend: embed Spotify como fallback en LadoCancionRelacion + RelacionDetalleIsland ✅ [AG-NAV]
 
+### S-ARTISTA — Página de artista (/artista/{slug}) — PENDIENTE
+> Plan completo en `App/docs/plan-samples-metadata.md` → Fase S-ARTISTA
+- [ ] **S-A1** Ampliar endpoint GET /artistas/{slug}: agregar sampleadoPor, sampleaA, estadísticas (géneros predominantes)
+- [ ] **S-A2** Nuevos métodos repo: relacionesDeCancionesFuente(), relacionesDeCancionesDestino()
+- [ ] **S-A3** Hook useArtistaDetalle.ts
+- [ ] **S-A4** ArtistaDetalleIsland.tsx + CSS (cabecera, tabs: canciones/sampleado por/samplea a)
+- [ ] **S-A5** Ruta en pages.php para /artista/{slug}
+
 ### S-RECORTE — Generación automática de samples desde sampleos — PENDIENTE
 > Plan completo en `App/docs/plan-samples-metadata.md` → Fase S-RECORTE
 - [ ] **S-R1** Migración v031: cola bilateral (campo `lado`, `spotify_id`), `sample_fuente_id`/`sample_destino_id` en relaciones, `cancion_origen_id` en samples

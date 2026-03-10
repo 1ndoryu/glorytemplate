@@ -83,6 +83,151 @@ relaciones_sample --1:1--> samples (sample extraido, opcional)
 
 ---
 
+## FASE S-ARTISTA: Pagina de Artista (/artista/{slug})
+
+> **Estado:** Diseñado | **Prioridad:** Alta
+> **Objetivo:** Pagina dedicada por artista que agregue toda la informacion ya recopilada: canciones, sampleos (quien sampleo al artista y a quien sampleo), generos, y samples extraidos.
+
+### Estado actual del backend
+
+**Ya existe y funciona:**
+- Schema `artistas_musicales`: id, nombre, slug (UNIQUE), imagen_url, whosampled_slug (UNIQUE), musicbrainz_id, metadata (JSONB), total_canciones
+- `ArtistasMusicalesRepository`: buscarPorSlug, buscarPorSlugWhosampled, upsertPorWhosampled, topPorCanciones
+- `CancionesArtistasRepository`: cancionesDeArtista (JOIN), artistasDeCancion, insertarSiNoExiste
+- Endpoint `GET /artistas/{slug}` en CancionesController → retorna `{artista, canciones}`
+- Endpoint `GET /artistas/top` → top artistas por total_canciones
+- `NormalizadorCancion::artista()` y `::artistaConRol()` — normalizacion a camelCase
+- Tipos TS: `ArtistaMusicale`, `CancionArtista`, `ArtistaDetalle`
+- Service: `apiCanciones.obtenerArtistaDetalle(slug)` → GET /artistas/{slug}
+
+**Gap (falta frontend):**
+- No existe `ArtistaDetalleIsland.tsx`
+- No existe `useArtistaDetalle.ts` hook
+- No existe ruta en `pages.php` para `/artista/{slug}`
+- Multiples componentes navegan a `/artista/{slug}` pero llega a pagina vacia
+
+### Desambiguacion de artistas con mismo nombre
+
+WhoSampled ya resuelve esto: cada artista tiene un `whosampled_slug` unico (ej: `/mike-jones/` vs `/mike-jones-2/`). Nuestro `slug` interno hereda de ese slug de WhoSampled al momento del scraping.
+
+**Estrategia adoptada:**
+1. **slug UNIQUE** en BD ya previene colisiones. Si llega un artista con nombre "Mike Jones" y su whosampled_slug es `/mike-jones-2/`, nuestro slug sera `mike-jones-2`.
+2. **musicbrainz_id** (nullable, ya en schema) para futura desambiguacion autoritativa. MusicBrainz asigna IDs unicos por artista a nivel mundial.
+3. **whosampled_slug como fuente de verdad** para dedup en scraping. Es la clave UNIQUE que previene duplicados.
+4. **Si se agrega contribucion comunitaria (S6):** Validar contra MusicBrainz API antes de crear artista nuevo. Si existe candidate con mismo nombre, mostrar opciones al usuario: "Es este artista? O es otro?"
+5. **UI: No mostrar slug al usuario**, mostrar solo el nombre. El slug es para URLs, no para display. Si hay homonimos, se distinguen por su catalogo de canciones.
+
+### Secciones de la pagina de artista
+
+```
+/artista/{slug}
+┌──────────────────────────────────────────────┐
+│ CABECERA                                     │
+│ [Imagen]  Nombre del Artista                 │
+│           Total canciones | Total sampleos   │
+│           Generos predominantes              │
+└──────────────────────────────────────────────┘
+│ TABS: Canciones | Sampleado por | Samplea a  │
+├──────────────────────────────────────────────┤
+│ TAB 1: CANCIONES (default)                   │
+│ Lista/grid de canciones del artista          │
+│ Ordenadas por anio DESC                      │
+│ Cada tarjeta: titulo, anio, album, genero,   │
+│ total_sampleada, total_samplea               │
+│ Click → /cancion/{slug}                      │
+├──────────────────────────────────────────────┤
+│ TAB 2: SAMPLEADO POR (quien usa sus samples) │
+│ Lista de relaciones donde canciones del      │
+│ artista son FUENTE (otros lo samplearon)     │
+│ Query: relaciones_sample WHERE               │
+│   cancion_fuente_id IN (canciones_del_artista)│
+│ Cada fila: "Cancion X de Artista Y           │
+│   sampleo [tipo] de Cancion Z (del artista)" │
+├──────────────────────────────────────────────┤
+│ TAB 3: SAMPLEA A (a quien sampleo)           │
+│ Lista de relaciones donde canciones del      │
+│ artista son DESTINO (el artista sampleo)     │
+│ Query: relaciones_sample WHERE               │
+│   cancion_destino_id IN (canciones_del_artista)│
+│ Cada fila: "Cancion X (del artista) sampleo  │
+│   [tipo] de Cancion Y de Artista Z"          │
+└──────────────────────────────────────────────┘
+```
+
+### Implementacion paso a paso
+
+**S-A1: Endpoint API ampliado**
+
+El endpoint `GET /artistas/{slug}` actual retorna `{artista, canciones}`. Ampliar para incluir relaciones:
+
+```php
+// CancionesController::detalleArtista()
+$cancionIds = array_map(fn($c) => $c['id'], $canciones);
+
+// Canciones de este artista que fueron sampleadas por otros
+$sampleadoPor = RelacionesSampleRepository::relacionesDeCancionesFuente($cancionIds);
+
+// Canciones de este artista que samplearon a otros
+$sampleaA = RelacionesSampleRepository::relacionesDeCancionesDestino($cancionIds);
+
+return {
+    artista, canciones,
+    sampleadoPor,  // array de relaciones normalizadas
+    sampleaA,      // array de relaciones normalizadas
+    estadisticas: { totalSampleadoPor, totalSampleaA, generos }
+}
+```
+
+**S-A2: Nuevos metodos en RelacionesSampleRepository:**
+
+```php
+// Relaciones donde las canciones del artista son FUENTE (otros lo samplearon)
+public static function relacionesDeCancionesFuente(array $cancionIds, int $limit = 50): array
+
+// Relaciones donde las canciones del artista son DESTINO (el artista sampleo)
+public static function relacionesDeCancionesDestino(array $cancionIds, int $limit = 50): array
+```
+
+Queries con JOIN para traer nombres de cancion/artista de ambos lados. Reutilizar la misma query base de `porRelacionId` pero con `WHERE cancion_fuente_id = ANY($1)`.
+
+**S-A3: Hook `useArtistaDetalle.ts`**
+
+```typescript
+// Llama a obtenerArtistaDetalle(slug)
+// Retorna { artista, canciones, sampleadoPor, sampleaA, cargando, error }
+// Tab activa controlada por estado local (no URL)
+```
+
+**S-A4: Island `ArtistaDetalleIsland.tsx`**
+
+- Cabecera con imagen (si existe), nombre, estadisticas
+- Tabs: Canciones | Sampleado por | Samplea a
+- Tab Canciones: reutilizar TarjetaCancion existente
+- Tab Sampleado por / Samplea a: reutilizar TarjetaRelacionSample existente
+- Componentes existentes que se reutilizan: `Badge`, `Skeleton`, `TabsIsla` (mismos tabs que se usan en otras islands)
+
+**S-A5: Ruta en pages.php**
+
+```php
+PageManager::reactPage('artista', 'ArtistaDetalleIsland', ['slug']);
+// Registra /artista/{slug} como ruta dinamica SPA
+```
+
+### Generos predominantes (estadistica derivada)
+
+No hay campo "genero" en `artistas_musicales`. Se calcula al vuelo: `SELECT genero, COUNT(*) FROM canciones WHERE artista_id = ? AND genero IS NOT NULL GROUP BY genero ORDER BY COUNT(*) DESC LIMIT 3`. Esto se hace en el endpoint una vez, no se cachea. Con <100 canciones por artista es trivial.
+
+### Orden de implementacion
+
+| Paso | Tarea | Complejidad |
+|------|-------|-------------|
+| 1 | S-A1+S-A2: Ampliar endpoint + nuevos metodos repo | Media |
+| 2 | S-A3: Hook useArtistaDetalle | Baja |
+| 3 | S-A4: ArtistaDetalleIsland + CSS | Media |
+| 4 | S-A5: Ruta en pages.php | Trivial |
+
+---
+
 ## FASE S-RECORTE: Generacion Automatica de Samples desde Sampleos
 
 > **Estado:** Diseñado | **Prioridad:** Alta (siguiente fase activa)
@@ -426,13 +571,13 @@ Esto se genera en `kamples_inserter.py` y se guarda en `samples.descripcion`.
 
 ---
 
-### Preguntas abiertas / Decisiones pendientes
+### Decisiones tomadas
 
-1. **spotdl calidad:** spotdl puede encontrar matches incorrectos (otra version de la cancion). Aceptamos ese riesgo para testing? En revision humana (S7) se puede corregir.
-2. **Donde almacenar WAVs recortados:** Actualmente en `wp-content/uploads/kamples/`. Agregar subdirectorio `extraidos/` para separar uploads de usuarios vs. auto-generados?
-3. **Limite de tamaño:** Los WAV de 8 compases ~ 1-5MB. Con 100K relaciones = 200K samples = ~500GB. Considerar MP3/OGG para auto-generados? O WAV solo para "aprobados"?
-4. **Estado inicial:** `en_supervision` (actual) vs. `activo` directo para testing. En produccion sera `en_supervision` hasta revision humana.
-5. **Preview vs full:** Generar solo preview (~15s) o sample completo? Preview = mas rapido y ligero.
+1. **spotdl calidad:** Aceptado. spotdl puede encontrar matches incorrectos (otra version), pero la revision humana (S7) lo corrige. Para testing es suficiente. Si spotdl no encuentra nada, estado='error'. El embed de Spotify se muestra igualmente como preview visual.
+2. **Donde almacenar WAVs recortados:** Subdirectorio `extraidos/` dentro de `wp-content/uploads/kamples/`. Separa uploads de usuarios vs. auto-generados.
+3. **Formato de salida:** MP3 (no WAV). Los audios de YouTube ya vienen comprimidos (AAC/Opus ~128-256kbps), convertirlos a WAV no agrega calidad y multiplica el tamaño x5-10. Pipeline: `yt-dlp → WAV temporal (para librosa/BPM) → recorte → MP3 final (320kbps)`. El WAV temporal se elimina tras el recorte. Solo se persiste el MP3. Cambio en `sample_cutter.py`: output como MP3 320kbps via ffmpeg `-c:a libmp3lame -b:a 320k`.
+4. **Estado inicial:** `activo` directo en local para testing inmediato. En produccion sera `en_supervision` hasta revision humana.
+5. **Duracion del recorte:** 8 compases con maximo basado en BPM real de la cancion. A 120 BPM con 4/4: 1 compas = 4 beats × 0.5s/beat = 2s → 8 compases = 16s. A 80 BPM: 1 compas = 3s → 8 compases = 24s. Maximo absoluto: 30s (ya configurado en `sample_cutter.py` como `MAX_DURACION_SEG`). La logica actual ya hace esto correctamente: calcula `duracion_compas` desde BPM y recorta 8 compases.
 
 ---
 
