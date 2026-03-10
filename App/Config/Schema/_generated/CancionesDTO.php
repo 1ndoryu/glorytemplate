@@ -26,6 +26,8 @@ final class CancionesDTO
         public readonly array $metadata,
         public readonly int $totalSampleada,
         public readonly int $totalSamplea,
+        public readonly int $totalLikes,
+        public readonly int $totalComentarios,
         public readonly string $createdAt,
         public readonly string $updatedAt
     ) {}
@@ -55,6 +57,8 @@ final class CancionesDTO
             metadata: isset($row['metadata']) ? (is_string($row['metadata']) ? json_decode($row['metadata'], true) ?? [] : $row['metadata']) : [],
             totalSampleada: (int) ($row['total_sampleada'] ?? 0),
             totalSamplea: (int) ($row['total_samplea'] ?? 0),
+            totalLikes: (int) ($row['total_likes'] ?? 0),
+            totalComentarios: (int) ($row['total_comentarios'] ?? 0),
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s'))
         );
@@ -92,6 +96,8 @@ final class CancionesDTO
             'metadata' => $this->metadata,
             'total_sampleada' => $this->totalSampleada,
             'total_samplea' => $this->totalSamplea,
+            'total_likes' => $this->totalLikes,
+            'total_comentarios' => $this->totalComentarios,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt];
     }

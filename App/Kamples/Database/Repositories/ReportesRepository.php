@@ -47,6 +47,8 @@ class ReportesRepository extends BaseRepository
 
     
 
+    
+
         
 
     

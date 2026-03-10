@@ -33,7 +33,7 @@ class CancionesArtistasRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-        /**
+            /**
      * Artistas de una canción con sus roles.
      */
     public static function artistasDeCancion(int $cancionId): array

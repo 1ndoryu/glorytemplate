@@ -32,17 +32,16 @@ class ArtistasMusicalesRepository extends BaseRepository
     public static function buscarRecientes(int $limit = 20): array
     {
         $tabla = ArtistasMusicalesCols::TABLA;
-        $cols = implode(', ', ArtistasMusicalesCols::TODAS);
 
         return static::consultar(
-            "SELECT {$cols} FROM {$tabla} ORDER BY " . ArtistasMusicalesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . ArtistasMusicalesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-        /**
+            /**
      * Buscar artista por slug de WhoSampled (dedup en scraping).
      */
     public static function buscarPorSlugWhosampled(string $slug): ?array

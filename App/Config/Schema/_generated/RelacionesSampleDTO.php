@@ -18,11 +18,15 @@ final class RelacionesSampleDTO
         public readonly array $timingsFuente,
         public readonly bool $apareceEnTodo,
         public readonly ?int $sampleId,
+        public readonly ?int $sampleFuenteId,
+        public readonly ?int $sampleDestinoId,
         public readonly int $votosTotal,
         public readonly float $votosPromedio,
         public readonly string $fuente,
         public readonly ?int $contribuidorId,
         public readonly bool $verificada,
+        public readonly int $totalLikes,
+        public readonly int $totalComentarios,
         public readonly string $createdAt,
         public readonly string $updatedAt
     ) {}
@@ -44,11 +48,15 @@ final class RelacionesSampleDTO
             timingsFuente: isset($row['timings_fuente']) ? (is_string($row['timings_fuente']) ? json_decode($row['timings_fuente'], true) ?? [] : $row['timings_fuente']) : [],
             apareceEnTodo: (bool) ($row['aparece_en_todo'] ?? false),
             sampleId: isset($row['sample_id']) ? (int) $row['sample_id'] : null,
+            sampleFuenteId: isset($row['sample_fuente_id']) ? (int) $row['sample_fuente_id'] : null,
+            sampleDestinoId: isset($row['sample_destino_id']) ? (int) $row['sample_destino_id'] : null,
             votosTotal: (int) ($row['votos_total'] ?? 0),
             votosPromedio: (float) ($row['votos_promedio'] ?? 0),
             fuente: ($row['fuente'] ?? 'scraping'),
             contribuidorId: isset($row['contribuidor_id']) ? (int) $row['contribuidor_id'] : null,
             verificada: (bool) ($row['verificada'] ?? false),
+            totalLikes: (int) ($row['total_likes'] ?? 0),
+            totalComentarios: (int) ($row['total_comentarios'] ?? 0),
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s'))
         );
@@ -78,11 +86,15 @@ final class RelacionesSampleDTO
             'timings_fuente' => $this->timingsFuente,
             'aparece_en_todo' => $this->apareceEnTodo,
             'sample_id' => $this->sampleId,
+            'sample_fuente_id' => $this->sampleFuenteId,
+            'sample_destino_id' => $this->sampleDestinoId,
             'votos_total' => $this->votosTotal,
             'votos_promedio' => $this->votosPromedio,
             'fuente' => $this->fuente,
             'contribuidor_id' => $this->contribuidorId,
             'verificada' => $this->verificada,
+            'total_likes' => $this->totalLikes,
+            'total_comentarios' => $this->totalComentarios,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt];
     }

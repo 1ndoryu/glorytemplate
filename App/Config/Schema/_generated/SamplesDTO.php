@@ -44,7 +44,8 @@ final class SamplesDTO
         public readonly ?string $hashParcial,
         public readonly int $totalComentarios,
         public readonly bool $verificado,
-        public readonly bool $mostrarEnComunidad
+        public readonly bool $mostrarEnComunidad,
+        public readonly ?int $cancionOrigenId
     ) {}
 
     /**
@@ -90,7 +91,8 @@ final class SamplesDTO
             hashParcial: isset($row['hash_parcial']) ? $row['hash_parcial'] : null,
             totalComentarios: (int) ($row['total_comentarios'] ?? 0),
             verificado: (bool) ($row['verificado'] ?? false),
-            mostrarEnComunidad: (bool) ($row['mostrar_en_comunidad'] ?? true)
+            mostrarEnComunidad: (bool) ($row['mostrar_en_comunidad'] ?? true),
+            cancionOrigenId: isset($row['cancion_origen_id']) ? (int) $row['cancion_origen_id'] : null
         );
     }
 
@@ -144,6 +146,7 @@ final class SamplesDTO
             'hash_parcial' => $this->hashParcial,
             'total_comentarios' => $this->totalComentarios,
             'verificado' => $this->verificado,
-            'mostrar_en_comunidad' => $this->mostrarEnComunidad];
+            'mostrar_en_comunidad' => $this->mostrarEnComunidad,
+            'cancion_origen_id' => $this->cancionOrigenId];
     }
 }

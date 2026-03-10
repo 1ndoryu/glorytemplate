@@ -59,7 +59,10 @@
     color: var(--textoSecundario);
     font-size: var(--fuenteMd);
     cursor: pointer;
-    transition: color var(--transicionNormal), border-color var(--transicionNormal);
+    transition:
+        color var(--transicionNormal),
+        border-color var(--transicionNormal);
+    border-radius: unset;
 }
 
 .explorarCancionesTab:hover {
@@ -88,7 +91,10 @@
     border-radius: var(--radioMd);
     overflow: hidden;
     cursor: pointer;
-    transition: background var(--transicionNormal), border-color var(--transicionNormal), transform var(--transicionRapida);
+    transition:
+        background var(--transicionNormal),
+        border-color var(--transicionNormal),
+        transform var(--transicionRapida);
 }
 
 .tarjetaCancion:hover {

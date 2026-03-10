@@ -1,4 +1,4 @@
-﻿# Plan: Adquisicion de Samples y Metadata Musical -- Kamples
+# Plan: Adquisicion de Samples y Metadata Musical -- Kamples
 
 > **Version:** 3.0 | **Fecha:** 10/03/2026 | **Estado:** S1-S5 implementados, S5.5 (spotify_id) en commit, S-RECORTE diseñado, S6-S7 pendientes
 > **Modulo:** Sample Discovery & Metadata Engine
@@ -655,6 +655,10 @@ kamples-scraper/
 - [json_decode timings]: Verificar `json_last_error()`, no usar `?? []` directo.
 - [SQL alias cross-file]: Si Repository devuelve alias `artista_nombre` pero Normalizador lee `nombre`, llega null silenciosamente.
 - [proc_open array]: Para binarios externos, usar array sin shell intermediario.
+
+### Scraping / Descarga Audio
+- [yt-dlp / spotdl venv]: `subprocess.run(["yt-dlp"])` falla si el intérprete Python no ha inicializado el entorno en el PATH global en producción/cron. Solución: Resolver ruta con `sys.executable` (ej. `os.path.join(os.path.dirname(sys.executable), "yt-dlp.exe")`).
+- [yt-dlp youtube bot-check DPAPI]: YouTube emite bloqueos "Sign in to confirm you're not a bot". Al intentar `--cookies-from-browser chrome`, falla con "Failed to decrypt with DPAPI" por el App-Bound Encryption agregado desde Chrome v114+ que impide a scripts externos leer la BD de cookies sin el consentimiento guiado del usuario. Única solución funcional a gran escala: Colocar un archivo `cookies.txt` exportado vía extensión del navegador en la carpeta temporal o base del scraper.
 
 ### UI / SPA
 - [Navigation store]: Import `useNavigationStore` desde `@/core/router`.

@@ -28,27 +28,21 @@ class CancionesRepository extends BaseRepository
     }
 
     /*
-     * Buscar registros mas recientes con info del artista principal.
+     * Buscar registros mas recientes.
      */
     public static function buscarRecientes(int $limit = 20): array
     {
-        $tc = CancionesCols::TABLA;
-        $ta = ArtistasMusicalesCols::TABLA;
+        $tabla = CancionesCols::TABLA;
 
         return static::consultar(
-            "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
-                    a." . ArtistasMusicalesCols::SLUG . " AS artista_slug
-             FROM {$tc} c
-             LEFT JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
-             ORDER BY c." . CancionesCols::CREATED_AT . " DESC
-             LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . CancionesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-        /**
+            /**
      * Buscar canción por URL de WhoSampled (dedup en scraping).
      */
     public static function buscarPorWhosampled(string $url): ?array
