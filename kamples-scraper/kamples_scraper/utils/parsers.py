@@ -199,6 +199,13 @@ def extraer_cancion_de_box(response, box_id: str) -> dict:
     anio_raw = response.css(f"{box_id} span[itemprop='datePublished']::text").get()
     duracion_iso = response.css(f"{box_id} meta[itemprop='duration']::attr(content)").get()
     imagen = response.css(f"{box_id} meta[itemprop='image']::attr(content)").get()
+    # WhoSampled sirve rutas relativas (/static/images/...) — convertir a URL absoluta.
+    # Descartar solo si el valor está vacío o es claramente inválido.
+    if imagen:
+        if imagen.startswith("/"):
+            imagen = f"https://www.whosampled.com{imagen}"
+        elif not (imagen.startswith("http://") or imagen.startswith("https://")):
+            imagen = None
     track_url = response.css(f"{box_id} .trackName::attr(href)").get("")
 
     anio = None

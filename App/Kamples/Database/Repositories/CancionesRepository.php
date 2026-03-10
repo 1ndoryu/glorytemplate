@@ -28,16 +28,20 @@ class CancionesRepository extends BaseRepository
     }
 
     /*
-     * Buscar registros mas recientes.
+     * Buscar registros mas recientes con info del artista principal.
      */
     public static function buscarRecientes(int $limit = 20): array
     {
-        $tabla = CancionesCols::TABLA;
-
-        $cols = implode(', ', CancionesCols::TODAS);
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
-            "SELECT {$cols} FROM {$tabla} ORDER BY " . CancionesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
+                    a." . ArtistasMusicalesCols::SLUG . " AS artista_slug
+             FROM {$tc} c
+             LEFT JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
+             ORDER BY c." . CancionesCols::CREATED_AT . " DESC
+             LIMIT :limit",
             ['limit' => $limit]
         );
     }
@@ -137,5 +141,24 @@ class CancionesRepository extends BaseRepository
         }
 
         return static::insertarRegistro($datos);
+    }
+
+    /**
+     * Trunca (con CASCADE) todas las tablas del módulo Sample Discovery.
+     * Exclusivo para entornos de desarrollo; DevController verifica WP_DEBUG antes de llamarlo.
+     */
+    public static function purgarModulo(): void
+    {
+        /* Orden: dependencias primero para documentación, CASCADE lo resuelve de todas formas */
+        $tablas = implode(', ', [
+            \App\Config\Schema\_generated\RelacionesSampleCols::TABLA,
+            \App\Config\Schema\_generated\CancionesArtistasCols::TABLA,
+            CancionesCols::TABLA,
+            ArtistasMusicalesCols::TABLA,
+            \App\Config\Schema\_generated\ScrapingLogCols::TABLA,
+            \App\Config\Schema\_generated\ColaExtraccionSamplesCols::TABLA,
+        ]);
+
+        static::ejecutar("TRUNCATE {$tablas} CASCADE");
     }
 }

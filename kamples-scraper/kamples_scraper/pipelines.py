@@ -179,7 +179,9 @@ class PostgresPipeline:
             "(titulo, slug, artista_id, album, sello, anio, "
             "duracion_segundos, imagen_url, whosampled_url) "
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
-            "ON CONFLICT (whosampled_url) DO UPDATE SET titulo = EXCLUDED.titulo "
+            "ON CONFLICT (whosampled_url) DO UPDATE SET "
+            "titulo = EXCLUDED.titulo, "
+            "imagen_url = COALESCE(EXCLUDED.imagen_url, canciones.imagen_url) "
             "RETURNING id",
             (
                 data.get("nombre", ""),
