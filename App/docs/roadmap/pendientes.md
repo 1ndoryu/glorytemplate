@@ -256,9 +256,9 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 ### S6 — Audio Search + Contribución Comunitaria
 - [ ] **S6.1-S6.6** Chromaprint fingerprinting, búsqueda por audio, UI contribución, moderación, sistema Cred
 
-### S-ESCALA — Escalabilidad relacional (C703)
-- [ ] **S-E.1** Trigger PostgreSQL: `total_sampleada`/`total_samplea` auto-update en INSERT/DELETE de `relaciones_sample`
-- [ ] **S-E.2** Pipeline cambiar `ON CONFLICT DO NOTHING` → `DO UPDATE` para timings/votos en relaciones re-encontradas
-- [ ] **S-E.3** Índices compuestos: `(dest_id, tipo_relacion)`, `(fuente_id, tipo_relacion)`, `(verificada, created_at DESC)`
-- [ ] **S-E.4** Re-scraping strategy: `proximo_rescrape` en scraping_log, rescraping mensual tracks populares
-> Plan completo en `App/docs/plan-samples-metadata.md` sección "Plan de Escalabilidad Relacional"
+### S-ESCALA — Escalabilidad relacional (C703) — ✅ COMPLETADO C704
+- [x] **S-E.1** Trigger PostgreSQL: `total_sampleada`/`total_samplea` auto-update en INSERT/DELETE de `relaciones_sample` ✅ [AG-NAV]
+- [x] **S-E.2** Pipeline cambiar `ON CONFLICT DO NOTHING` → `DO UPDATE` para timings/votos en relaciones re-encontradas ✅ [AG-NAV]
+- [x] **S-E.3** Índices compuestos: `(dest_id, tipo_relacion)`, `(fuente_id, tipo_relacion)`, `(verificada, created_at DESC)` ✅ [AG-NAV]
+- [x] **S-E.4** Re-scraping strategy: `proximo_rescrape` en scraping_log, rescraping automático para tracks/artists ✅ [AG-NAV]
+> Implementado en migración v029. Detalle en `completado.md` → C704.

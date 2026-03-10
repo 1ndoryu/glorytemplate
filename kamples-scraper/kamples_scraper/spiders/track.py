@@ -125,7 +125,7 @@ class TrackSpider(scrapy.Spider):
                     registrar_url(sampled_norm, "track_sampled", "pendiente")
                     yield scrapy.Request(sampled_url, callback=self.parse_list, cb_kwargs={"tipo": "track_sampled"})
 
-            marcar_procesada(url_norm, body_size)
+            marcar_procesada(url_norm, body_size, tipo_pagina="track")
 
         except Exception as e:
             logger.exception("Error parseando track overview %s", response.url)
@@ -170,7 +170,7 @@ class TrackSpider(scrapy.Spider):
                 )
 
             logger.info("Track list %s — %d entradas encontradas (pag %d)", response.url, entries_found, pagina)
-            marcar_procesada(url_norm, body_size)
+            marcar_procesada(url_norm, body_size, tipo_pagina=tipo)
 
         except Exception as e:
             logger.exception("Error parseando lista de track %s", response.url)

@@ -109,18 +109,36 @@ class RelacionesSampleRepository extends BaseRepository
     }
 
     /**
-     * Insertar relación ignorando si ya existe (UNIQUE constraint).
-     * Retorna ID si se insertó, null si ya existía.
+     * Insertar relación o actualizar timings/votos si ya existe (whosampled_id).
+     * Retorna ID insertado o actualizado, null solo si falla.
      */
-    public static function insertarSiNoExiste(array $datos): ?int
+    public static function insertarOActualizar(array $datos): ?int
     {
         $tabla = RelacionesSampleCols::TABLA;
         $columnas = array_keys($datos);
         $placeholders = array_map(fn($c) => ':' . $c, $columnas);
 
+        $camposActualizables = [
+            RelacionesSampleCols::TIMINGS_DESTINO,
+            RelacionesSampleCols::TIMINGS_FUENTE,
+            RelacionesSampleCols::VOTOS_TOTAL,
+            RelacionesSampleCols::VOTOS_PROMEDIO,
+            RelacionesSampleCols::TIPO_ELEMENTO,
+            RelacionesSampleCols::APARECE_EN_TODO,
+        ];
+
+        $setClausulas = [];
+        foreach ($camposActualizables as $campo) {
+            if (array_key_exists($campo, $datos)) {
+                $setClausulas[] = "{$campo} = EXCLUDED.{$campo}";
+            }
+        }
+        $setClausulas[] = RelacionesSampleCols::UPDATED_AT . " = NOW()";
+
         $sql = "INSERT INTO {$tabla} (" . implode(', ', $columnas) . ") "
              . "VALUES (" . implode(', ', $placeholders) . ") "
-             . "ON CONFLICT (" . RelacionesSampleCols::WHOSAMPLED_ID . ") DO NOTHING "
+             . "ON CONFLICT (" . RelacionesSampleCols::WHOSAMPLED_ID . ") DO UPDATE SET "
+             . implode(', ', $setClausulas) . " "
              . "RETURNING " . RelacionesSampleCols::ID;
 
         return static::insertar($sql, $datos);

@@ -228,15 +228,22 @@ class PostgresPipeline:
                     feat_id = self._upsert_artista(cur, feat["nombre"], feat.get("whosampled_slug", ""))
                     self._upsert_cancion_artista(cur, fuente_cancion_id, feat_id, "featuring")
 
-                # 4. Insertar relación sample
+                # 4. Insertar relación sample (DO UPDATE actualiza timings/votos si re-encontrada)
                 cur.execute(
                     "INSERT INTO relaciones_sample "
                     "(cancion_destino_id, cancion_fuente_id, whosampled_id, "
                     "tipo_relacion, tipo_elemento, timings_destino, timings_fuente, "
                     "aparece_en_todo, votos_total, votos_promedio, fuente) "
                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'scraping') "
-                    "ON CONFLICT (whosampled_id) DO NOTHING "
-                    "RETURNING id",
+                    "ON CONFLICT (whosampled_id) DO UPDATE SET "
+                    "timings_destino = EXCLUDED.timings_destino, "
+                    "timings_fuente = EXCLUDED.timings_fuente, "
+                    "votos_total = EXCLUDED.votos_total, "
+                    "votos_promedio = EXCLUDED.votos_promedio, "
+                    "tipo_elemento = EXCLUDED.tipo_elemento, "
+                    "aparece_en_todo = EXCLUDED.aparece_en_todo, "
+                    "updated_at = NOW() "
+                    "RETURNING id, (xmax = 0) AS insertado",
                     (
                         dest_cancion_id,
                         fuente_cancion_id,
@@ -255,9 +262,8 @@ class PostgresPipeline:
 
                 row = cur.fetchone()
                 if row:
-                    logger.info("Relacion insertada: id=%d ws_id=%s", row[0], item.get("whosampled_id"))
-                else:
-                    logger.debug("Relacion ya existia: ws_id=%s", item.get("whosampled_id"))
+                    accion = "insertada" if row[1] else "actualizada"
+                    logger.info("Relacion %s: id=%d ws_id=%s", accion, row[0], item.get("whosampled_id"))
 
         except psycopg2.Error:
             self.conn.rollback()

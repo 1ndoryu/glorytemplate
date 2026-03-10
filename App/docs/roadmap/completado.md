@@ -310,3 +310,19 @@ kamples-scraper/
 **Escalabilidad plan:** Auditoria detecta 4 problemas para escala: contadores a 0 (sin triggers), relaciones re-encontradas ignoradas (DO NOTHING), indices compuestos faltantes, sin re-scraping strategy. Plan documentado en plan-samples-metadata.md seccion "Plan de Escalabilidad Relacional".
 
 > Archivos: Glory/{PageRenderer.tsx, navigationStore.ts, glory.ts, PageDefinition.php, PageManager.php, PageTemplateInterceptor.php}, App/{pages.php, plan-samples-metadata.md, pendientes.md, completado.md}
+
+---
+
+### C704 — S-ESCALA: Escalabilidad Relacional implementada [AG-NAV]
+
+**Migración v029:** Trigger + índices + columnas rescraping ejecutados en PostgreSQL.
+
+**S-E.1 Trigger contadores:** Función `trg_actualizar_contadores_relacion()` en PostgreSQL auto-incrementa `total_sampleada`/`total_samplea` en `canciones` al INSERT/DELETE en `relaciones_sample` (solo tipo `sample`). Batch update inicial recalculó contadores existentes desde cero.
+
+**S-E.2 DO UPDATE pipeline:** Pipeline Python (`pipelines.py`) cambió de `ON CONFLICT DO NOTHING` a `DO UPDATE SET timings_destino, timings_fuente, votos_total, votos_promedio, tipo_elemento, aparece_en_todo, updated_at`. Usa `xmax = 0` para distinguir insert vs update en logs. PHP `RelacionesSampleRepository::insertarOActualizar()` también actualizado (antes era `insertarSiNoExiste` con DO NOTHING).
+
+**S-E.3 Índices compuestos:** 3 nuevos índices: `idx_rel_destino_tipo (cancion_destino_id, tipo_relacion)`, `idx_rel_fuente_tipo (cancion_fuente_id, tipo_relacion)`, `idx_rel_verificada_reciente (verificada, created_at DESC) WHERE verificada = TRUE`.
+
+**S-E.4 Re-scraping:** 3 columnas nuevas en `scraping_log` (`re_scrapeable`, `proximo_rescrape`, `veces_rescrapeado`). URLs de tipo track/artist se marcan automáticamente para revisita con intervalo creciente (30d * N). `dedup.py::url_ya_procesada()` ahora permite revisita de URLs vencidas. `ScrapingLogRepository` con métodos `pendientesRescrape()`, `marcarRescrapeada()`, `marcarReScrapeable()`. Schema/Cols/DTO actualizados.
+
+> Archivos: v029_escalabilidad_relacional.sql, pipelines.py, dedup.py, track.py, artist.py, RelacionesSampleRepository.php, ScrapingLogRepository.php, ScrapingLogSchema.php, ScrapingLogCols.php, ScrapingLogDTO.php

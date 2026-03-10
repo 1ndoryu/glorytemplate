@@ -132,4 +132,62 @@ class ScrapingLogRepository extends BaseRepository
             . "FROM " . ScrapingLogCols::TABLA . " GROUP BY " . ScrapingLogCols::ESTADO
         );
     }
+
+    /**
+     * URLs que necesitan rescrape (proximo_rescrape ya pasó).
+     * Retorna ordenadas por prioridad (más antiguas primero).
+     */
+    public static function pendientesRescrape(int $limit = 50): array
+    {
+        $tabla = ScrapingLogCols::TABLA;
+        $cols = implode(', ', ScrapingLogCols::TODAS);
+
+        return static::consultar(
+            "SELECT {$cols} FROM {$tabla} WHERE "
+            . ScrapingLogCols::RE_SCRAPEABLE . " = TRUE AND "
+            . ScrapingLogCols::PROXIMO_RESCRAPE . " <= NOW() "
+            . "ORDER BY " . ScrapingLogCols::PROXIMO_RESCRAPE . " ASC "
+            . "LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
+
+    /**
+     * Marcar URL como rescrapeada: incrementar contador, programar próximo rescrape.
+     * Intervalo entre rescrapes crece con cada iteración (30d, 60d, 90d...).
+     */
+    public static function marcarRescrapeada(int $id): bool
+    {
+        $tabla = ScrapingLogCols::TABLA;
+
+        $afectadas = static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . ScrapingLogCols::VECES_RESCRAPEADO . " = " . ScrapingLogCols::VECES_RESCRAPEADO . " + 1, "
+            . ScrapingLogCols::PROXIMO_RESCRAPE . " = NOW() + ((" . ScrapingLogCols::VECES_RESCRAPEADO . " + 1) * INTERVAL '30 days'), "
+            . ScrapingLogCols::PROCESADO_AT . " = NOW() "
+            . "WHERE " . ScrapingLogCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        return $afectadas > 0;
+    }
+
+    /**
+     * Marcar URL como re-scrapeable con próximo rescrape en N días.
+     */
+    public static function marcarReScrapeable(int $id, int $diasHastaRescrape = 30): bool
+    {
+        $tabla = ScrapingLogCols::TABLA;
+        $intervalo = max(1, $diasHastaRescrape);
+
+        $afectadas = static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . ScrapingLogCols::RE_SCRAPEABLE . " = TRUE, "
+            . ScrapingLogCols::PROXIMO_RESCRAPE . " = NOW() + (:dias * INTERVAL '1 day') "
+            . "WHERE " . ScrapingLogCols::ID . " = :id",
+            ['dias' => $intervalo, 'id' => $id]
+        );
+
+        return $afectadas > 0;
+    }
 }

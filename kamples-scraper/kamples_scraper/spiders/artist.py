@@ -85,7 +85,7 @@ class ArtistSpider(scrapy.Spider):
         if next_page and pagina < self.MAX_ARTIST_PAGES and self.artists_scraped < self.max_artists:
             yield scrapy.Request(response.urljoin(next_page), callback=self.parse_artist_list)
 
-        marcar_procesada(url_norm, body_size)
+        marcar_procesada(url_norm, body_size, tipo_pagina="artist")
 
     def parse_artist(self, response):
         """
@@ -122,7 +122,7 @@ class ArtistSpider(scrapy.Spider):
                         registrar_url(full_norm, tipo, "pendiente")
                         yield scrapy.Request(full_url, callback=self.parse_track_list)
 
-            marcar_procesada(url_norm, body_size)
+            marcar_procesada(url_norm, body_size, tipo_pagina="artist")
 
         except Exception as e:
             logger.exception("Error parseando artista %s", response.url)
@@ -146,7 +146,7 @@ class ArtistSpider(scrapy.Spider):
         if next_page and pagina < self.MAX_TRACK_PAGES:
             yield scrapy.Request(response.urljoin(next_page), callback=self.parse_track_list)
 
-        marcar_procesada(url_norm, body_size)
+        marcar_procesada(url_norm, body_size, tipo_pagina="track")
 
     def _extraer_tracks_de_seccion(self, response, section):
         """Extraer links a tracks de una sección del artista."""
@@ -214,7 +214,7 @@ class ArtistSpider(scrapy.Spider):
                     registrar_url(sub_norm, tipo, "pendiente")
                     yield scrapy.Request(sub_url, callback=self.parse_track_list)
 
-            marcar_procesada(url_norm, body_size)
+            marcar_procesada(url_norm, body_size, tipo_pagina="track")
 
         except Exception as e:
             logger.exception("Error parseando track %s", response.url)

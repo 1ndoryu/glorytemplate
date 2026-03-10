@@ -15,6 +15,9 @@ final class ScrapingLogDTO
         public readonly int $intentos,
         public readonly int $bytesDescargados,
         public readonly ?string $errorMensaje,
+        public readonly bool $reScrapeable,
+        public readonly ?string $proximoRescrape,
+        public readonly int $vecesRescrapeado,
         public readonly ?string $procesadoAt,
         public readonly string $createdAt
     ) {}
@@ -33,6 +36,9 @@ final class ScrapingLogDTO
             intentos: (int) ($row['intentos'] ?? 0),
             bytesDescargados: (int) ($row['bytes_descargados'] ?? 0),
             errorMensaje: isset($row['error_mensaje']) ? $row['error_mensaje'] : null,
+            reScrapeable: (bool) ($row['re_scrapeable'] ?? false),
+            proximoRescrape: isset($row['proximo_rescrape']) ? $row['proximo_rescrape'] : null,
+            vecesRescrapeado: (int) ($row['veces_rescrapeado'] ?? 0),
             procesadoAt: isset($row['procesado_at']) ? $row['procesado_at'] : null,
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
@@ -59,6 +65,9 @@ final class ScrapingLogDTO
             'intentos' => $this->intentos,
             'bytes_descargados' => $this->bytesDescargados,
             'error_mensaje' => $this->errorMensaje,
+            're_scrapeable' => $this->reScrapeable,
+            'proximo_rescrape' => $this->proximoRescrape,
+            'veces_rescrapeado' => $this->vecesRescrapeado,
             'procesado_at' => $this->procesadoAt,
             'created_at' => $this->createdAt];
     }

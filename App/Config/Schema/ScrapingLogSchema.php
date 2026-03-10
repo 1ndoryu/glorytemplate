@@ -25,6 +25,9 @@ class ScrapingLogSchema extends TableSchema
             'intentos'          => ['tipo' => 'int', 'default' => 0],
             'bytes_descargados' => ['tipo' => 'int', 'default' => 0],
             'error_mensaje'     => ['tipo' => 'text', 'nullable' => true],
+            're_scrapeable'     => ['tipo' => 'bool', 'default' => false],
+            'proximo_rescrape'  => ['tipo' => 'datetime', 'nullable' => true],
+            'veces_rescrapeado' => ['tipo' => 'int', 'default' => 0],
             'procesado_at'      => ['tipo' => 'datetime', 'nullable' => true],
             'created_at'        => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];

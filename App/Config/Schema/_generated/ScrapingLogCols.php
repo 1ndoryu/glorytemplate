@@ -16,9 +16,12 @@ final class ScrapingLogCols
     const INTENTOS = 'intentos';
     const BYTES_DESCARGADOS = 'bytes_descargados';
     const ERROR_MENSAJE = 'error_mensaje';
+    const RE_SCRAPEABLE = 're_scrapeable';
+    const PROXIMO_RESCRAPE = 'proximo_rescrape';
+    const VECES_RESCRAPEADO = 'veces_rescrapeado';
     const PROCESADO_AT = 'procesado_at';
     const CREATED_AT = 'created_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'url', 'tipo_pagina', 'estado', 'intentos', 'bytes_descargados', 'error_mensaje', 'procesado_at', 'created_at'];
+    const TODAS = ['id', 'url', 'tipo_pagina', 'estado', 'intentos', 'bytes_descargados', 'error_mensaje', 're_scrapeable', 'proximo_rescrape', 'veces_rescrapeado', 'procesado_at', 'created_at'];
 }
