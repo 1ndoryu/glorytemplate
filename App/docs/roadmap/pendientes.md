@@ -264,24 +264,22 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S5.5.5** API: NormalizadorCancion expone spotifyId, fuente_spotifyId, destino_spotifyId ✅ [AG-NAV]
 - [x] **S5.5.6** Frontend: embed Spotify como fallback en LadoCancionRelacion + RelacionDetalleIsland ✅ [AG-NAV]
 
-### S-ARTISTA — Página de artista (/artista/{slug}) — PENDIENTE
-> Plan completo en `App/docs/plan-samples-metadata.md` → Fase S-ARTISTA
-- [ ] **S-A1** Ampliar endpoint GET /artistas/{slug}: agregar sampleadoPor, sampleaA, estadísticas (géneros predominantes)
-- [ ] **S-A2** Nuevos métodos repo: relacionesDeCancionesFuente(), relacionesDeCancionesDestino()
-- [ ] **S-A3** Hook useArtistaDetalle.ts
-- [ ] **S-A4** ArtistaDetalleIsland.tsx + CSS (cabecera, tabs: canciones/sampleado por/samplea a)
-- [ ] **S-A5** Ruta en pages.php para /artista/{slug}
+### S-ARTISTA — Página de artista (/artista/{slug}) — ✅ COMPLETADO C708
+- [x] **S-A1** Ampliar endpoint GET /artistas/{slug}: sampleadoPor, sampleaA, estadísticas genus ✅ [AG-REC]
+- [x] **S-A2** relacionesDeCancionesFuente(), relacionesDeCancionesDestino() en RelacionesSampleRepository + generosPorArtista en CancionesRepository ✅ [AG-REC]
+- [x] **S-A3** Hook useArtistaDetalle.ts ✅ [AG-REC]
+- [x] **S-A4** ArtistaDetalleIsland.tsx + artistaDetalle.css (tabs: canciones/sampleado por/samplea a) ✅ [AG-REC]
+- [x] **S-A5** Ruta /artista/:slug en pages.php + registro en appIslands.tsx ✅ [AG-REC]
 
-### S-RECORTE — Generación automática de samples desde sampleos — PENDIENTE
-> Plan completo en `App/docs/plan-samples-metadata.md` → Fase S-RECORTE
-- [ ] **S-R1** Migración v031: cola bilateral (campo `lado`, `spotify_id`), `sample_fuente_id`/`sample_destino_id` en relaciones, `cancion_origen_id` en samples
-- [ ] **S-R2** Encolado bilateral: 2 entradas por relación (fuente + destino)
-- [ ] **S-R3** Pipeline ampliado: soporte Spotify via `spotdl`, prioridad YouTube > Spotify
-- [ ] **S-R4** Inserción bilateral: vincular sample al lado correcto de la relación
-- [ ] **S-R5** Botón dev: `POST /dev/recorte/generar` + UI en panel dev
-- [ ] **S-R6** Navegación cruzada: sample→canción→sampleo en UI
-- [ ] **S-R7** Encolado automático post-scraping en producción
-- [ ] **S-R8** Descripción auto-generada desde metadata
+### S-RECORTE — Generación automática de samples desde sampleos — ✅ COMPLETADO C709
+- [x] **S-R1** Migración v031: campo `lado`/`spotify_id` en cola, `sample_fuente_id`/`sample_destino_id` en relaciones, `cancion_origen_id` en samples ✅ [AG-REC]
+- [x] **S-R2** encolarBilateral() en ColaExtraccionSamplesRepository ✅ [AG-REC]
+- [x] **S-R3** audio_download.py: soporte spotdl como fallback Spotify ✅ [AG-REC]
+- [x] **S-R4** kamples_inserter.py + pipeline.py: bilateral, MP3 320kbps, cancion_origen_id ✅ [AG-REC]
+- [x] **S-R5** DevController: POST /dev/recorte/generar + botón en RelacionDetalleIsland ✅ [AG-REC]
+- [ ] **S-R6** Navegación cruzada: sample→canción→sampleo en UI (pendiente)
+- [x] **S-R7** Auto-enqueue en PostgresPipeline Scrapy post-inserción relación ✅ [AG-REC]
+- [ ] **S-R8** Descripción auto-generada desde metadata (pendiente)
 
 ### S-ESCALA — Escalabilidad relacional (C703) — ✅ COMPLETADO C704
 - [x] **S-E.1** Trigger PostgreSQL: `total_sampleada`/`total_samplea` auto-update en INSERT/DELETE de `relaciones_sample` ✅ [AG-NAV]
