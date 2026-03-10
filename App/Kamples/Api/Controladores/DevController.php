@@ -16,7 +16,9 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Database\Repositories\ScrapingLogRepository;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ScrapingLogEnums;
 
 class DevController
@@ -46,6 +48,12 @@ class DevController
         \register_rest_route($namespace, '/dev/canciones', [
             'methods'             => 'DELETE',
             'callback'            => [self::class, 'purgarCanciones'],
+            'permission_callback' => $admin,
+        ]);
+
+        \register_rest_route($namespace, '/dev/scraper/cola', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'procesarSiguienteDeCola'],
             'permission_callback' => $admin,
         ]);
 
@@ -111,6 +119,147 @@ class DevController
             KamplesLogger::error('[DEV] Error al truncar tablas', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error al truncar tablas.'], 500);
         }
+    }
+
+    /**
+     * Toma la URL pendiente más antigua de scraping_log y lanza el spider adecuado.
+     * Si la cola está vacía, retorna ok=true con cola_vacia=true.
+     */
+    public static function procesarSiguienteDeCola(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $pendiente = ScrapingLogRepository::pendienteUno();
+
+            if ($pendiente === null) {
+                return new \WP_REST_Response([
+                    'ok'        => true,
+                    'cola_vacia' => true,
+                    'mensaje'   => 'No hay URLs pendientes en la cola.',
+                ], 200);
+            }
+
+            $urlRelativa = (string) ($pendiente[ScrapingLogCols::URL] ?? '');
+            $tipo        = (string) ($pendiente[ScrapingLogCols::TIPO_PAGINA] ?? '');
+            $urlCompleta = 'https://www.whosampled.com' . $urlRelativa;
+
+            [$spider, $extraArgs] = self::_spiderParaTipo($tipo, $urlCompleta);
+
+            if ($spider === null) {
+                KamplesLogger::warning('[DEV] Cola: tipo de página sin spider mapeado', ['tipo' => $tipo, 'url' => $urlRelativa], 'scraper');
+                return new \WP_REST_Response([
+                    'ok'    => false,
+                    'error' => "Tipo '{$tipo}' sin spider configurado. Revisa la tabla scraping_log.",
+                ], 422);
+            }
+
+            $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
+            $python     = self::detectarPython();
+
+            if ($python === null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Python no encontrado.'], 500);
+            }
+
+            $logsAppDir = \get_template_directory() . '/App/logs';
+            if (!\is_dir($logsAppDir)) {
+                \wp_mkdir_p($logsAppDir);
+            }
+            $logOutput = $logsAppDir . '/scraper-output-' . date('Y-m-d') . '.log';
+
+            $cmdArray = array_merge([$python, '-m', 'scrapy', 'crawl', $spider], $extraArgs);
+
+            $cabecera = "\n" . str_repeat('-', 60) . "\n[" . date('Y-m-d H:i:s') . "] COLA spider={$spider} tipo={$tipo}\n" . str_repeat('-', 60) . "\n";
+            file_put_contents($logOutput, $cabecera, FILE_APPEND | LOCK_EX);
+
+            $env = \getenv() ?: [];
+            if (empty($env['USERPROFILE']) || !\is_dir((string) $env['USERPROFILE'])) {
+                $excluidos = ['Public', 'Default', 'All Users', 'Default User'];
+                $perfiles  = \is_dir('C:\\Users') ? (\glob('C:\\Users\\*', GLOB_ONLYDIR) ?: []) : [];
+                foreach ($perfiles as $perfil) {
+                    $nombre = \basename($perfil);
+                    if (!\in_array($nombre, $excluidos, true) && \is_dir($perfil)) {
+                        $env['USERPROFILE'] = $perfil;
+                        $env['HOMEDRIVE']   = 'C:';
+                        $env['HOMEPATH']    = '\\Users\\' . $nombre;
+                        $env['HOME']        = $perfil;
+                        break;
+                    }
+                }
+            }
+
+            $descriptores = [
+                0 => ['file', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null', 'r'],
+                1 => ['file', $logOutput, 'a'],
+                2 => ['file', $logOutput, 'a'],
+            ];
+
+            $pipes = [];
+            /* sentinel-disable-next-line exec-sin-escapeshellarg — proc_open con array no pasa por shell */
+            $proceso = \proc_open($cmdArray, $descriptores, $pipes, $scraperDir, $env);
+
+            if ($proceso === false) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No se pudo iniciar el proceso del scraper.'], 500);
+            }
+
+            $estado = \proc_get_status($proceso);
+            $pid    = $estado['pid'] ?? null;
+
+            KamplesLogger::info('[DEV] Cola: spider iniciado', [
+                'spider' => $spider,
+                'tipo'   => $tipo,
+                'url'    => $urlRelativa,
+                'pid'    => $pid,
+            ], 'scraper');
+
+            return new \WP_REST_Response([
+                'ok'      => true,
+                'cola_vacia' => false,
+                'mensaje' => "Procesando: [{$tipo}] {$urlRelativa}",
+                'url'     => $urlRelativa,
+                'tipo'    => $tipo,
+                'spider'  => $spider,
+                'pid'     => $pid,
+            ], 200);
+
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error al procesar cola', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Mapea tipo_pagina de scraping_log al nombre del spider y argumentos extra.
+     * Retorna [spider_name|null, extra_args_array].
+     */
+    private static function _spiderParaTipo(string $tipo, string $urlCompleta): array
+    {
+        $tiposTrack   = [
+            ScrapingLogEnums::TIPO_PAGINA_TRACK,
+            ScrapingLogEnums::TIPO_PAGINA_TRACK_SAMPLES,
+            ScrapingLogEnums::TIPO_PAGINA_TRACK_SAMPLED,
+        ];
+        $tiposDetalle = [
+            ScrapingLogEnums::TIPO_PAGINA_SAMPLE_DETAIL,
+            ScrapingLogEnums::TIPO_PAGINA_COVER_DETAIL,
+            ScrapingLogEnums::TIPO_PAGINA_REMIX_DETAIL,
+        ];
+
+        if (\in_array($tipo, $tiposTrack, true)) {
+            return ['track', ['-a', 'start_url=' . $urlCompleta, '-s', 'DEPTH_LIMIT=2']];
+        }
+        if (\in_array($tipo, $tiposDetalle, true)) {
+            return ['sample_detail', ['-a', 'urls=' . $urlCompleta]];
+        }
+        if ($tipo === ScrapingLogEnums::TIPO_PAGINA_ARTIST) {
+            return ['artist', ['-a', 'start_url=' . $urlCompleta]];
+        }
+        if ($tipo === ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES) {
+            return [ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES, []];
+        }
+        if ($tipo === ScrapingLogEnums::TIPO_PAGINA_BROWSE_YEAR) {
+            return [ScrapingLogEnums::TIPO_PAGINA_BROWSE_YEAR, []];
+        }
+
+        return [null, []];
     }
 
     /**

@@ -122,3 +122,17 @@ export const devEjecutarScraper = (
     url = ''
 ): Promise<RespuestaApi<RespuestaScraper>> =>
     apiPost<RespuestaScraper>('/dev/scraper/run', { spider, limit, ...(url ? { url } : {}) });
+
+interface RespuestaCola {
+    ok: boolean;
+    cola_vacia: boolean;
+    mensaje: string;
+    url?: string;
+    tipo?: string;
+    spider?: string;
+    pid?: number;
+}
+
+/* Toma la URL pendiente más antigua de la cola y lanza el spider correspondiente. */
+export const devProcesarDeCola = (): Promise<RespuestaApi<RespuestaCola>> =>
+    apiPost<RespuestaCola>('/dev/scraper/cola', {});

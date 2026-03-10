@@ -92,6 +92,23 @@ class ScrapingLogRepository extends BaseRepository
     }
 
     /**
+     * Obtener la URL pendiente más antigua de la cola (cualquier tipo).
+     * Retorna id, url y tipo_pagina, o null si no hay pendientes.
+     */
+    public static function pendienteUno(): ?array
+    {
+        $tabla = ScrapingLogCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . ScrapingLogCols::ID . ", " . ScrapingLogCols::URL . ", " . ScrapingLogCols::TIPO_PAGINA
+            . " FROM {$tabla}"
+            . " WHERE " . ScrapingLogCols::ESTADO . " = :estado"
+            . " ORDER BY " . ScrapingLogCols::CREATED_AT . " ASC LIMIT 1",
+            ['estado' => ScrapingLogEnums::ESTADO_PENDIENTE]
+        );
+    }
+
+    /**
      * Marcar URL como procesada con bytes consumidos.
      */
     public static function marcarProcesada(int $id, int $bytes = 0): bool

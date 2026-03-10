@@ -9,33 +9,29 @@
  */
 
 import { useState } from 'react';
-import { Trash2, Play, AlertTriangle, Link } from 'lucide-react';
+import { Trash2, Play, AlertTriangle } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { Input } from '@app/components/ui/Input';
-import { devPurgarCanciones, devEjecutarScraper } from '@app/services/apiCanciones';
+import { devPurgarCanciones, devProcesarDeCola } from '@app/services/apiCanciones';
 
-type EstadoAccion = 'idle' | 'loading' | 'ok' | 'error';
+type EstadoAccion = 'idle' | 'loading' | 'ok' | 'error' | 'vacio';
 
 interface EstadoPanel {
     purga: EstadoAccion;
-    scraper: EstadoAccion;
+    cola: EstadoAccion;
     mensajePurga: string;
-    mensajeScraper: string;
+    mensajeCola: string;
 }
 
 const ESTADO_INICIAL: EstadoPanel = {
     purga: 'idle',
-    scraper: 'idle',
+    cola: 'idle',
     mensajePurga: '',
-    mensajeScraper: '',
+    mensajeCola: '',
 };
-
-const URL_DEFAULT = 'https://www.whosampled.com/Ol%27-Dirty-Bastard/Brooklyn-Zoo/';
 
 export const PanelDevCanciones = (): JSX.Element => {
     const [estado, setEstado] = useState<EstadoPanel>(ESTADO_INICIAL);
     const [confirmarPurga, setConfirmarPurga] = useState(false);
-    const [urlTrack, setUrlTrack] = useState(URL_DEFAULT);
 
     const handlePurgar = async (): Promise<void> => {
         if (!confirmarPurga) {
@@ -63,32 +59,34 @@ export const PanelDevCanciones = (): JSX.Element => {
         }
     };
 
-    const handleScraper = async (): Promise<void> => {
-        setEstado(prev => ({ ...prev, scraper: 'loading', mensajeScraper: '' }));
+    const handleProcesarCola = async (): Promise<void> => {
+        setEstado(prev => ({ ...prev, cola: 'loading', mensajeCola: '' }));
 
-        /* Si hay URL en el input, usar spider 'track' con esa URL */
-        const url = urlTrack.trim();
-        const resp = url
-            ? await devEjecutarScraper('track', 0, url)
-            : await devEjecutarScraper('hot_samples', 5);
+        const resp = await devProcesarDeCola();
 
-        if (resp.ok && resp.data) {
+        if (!resp.ok) {
             setEstado(prev => ({
                 ...prev,
-                scraper: 'ok',
-                mensajeScraper: `${resp.data!.mensaje} (PID: ${resp.data!.pid ?? '?'})`,
+                cola: 'error',
+                mensajeCola: resp.error ?? 'Error al procesar cola.',
             }));
-        } else {
-            setEstado(prev => ({
-                ...prev,
-                scraper: 'error',
-                mensajeScraper: resp.error ?? 'Error al iniciar scraper.',
-            }));
+            return;
         }
+
+        if (resp.data?.cola_vacia) {
+            setEstado(prev => ({ ...prev, cola: 'vacio', mensajeCola: 'Cola vacía — no hay URLs pendientes.' }));
+            return;
+        }
+
+        setEstado(prev => ({
+            ...prev,
+            cola: 'ok',
+            mensajeCola: resp.data?.mensaje ?? 'Procesando...',
+        }));
     };
 
     const cargandoPurga = estado.purga === 'loading';
-    const cargandoScraper = estado.scraper === 'loading';
+    const cargandoCola  = estado.cola === 'loading';
 
     return (
         <section className="panelDevCanciones" role="region" aria-label="Herramientas de desarrollo">
@@ -103,7 +101,7 @@ export const PanelDevCanciones = (): JSX.Element => {
                         variante="peligro"
                         tamano="sm"
                         cargando={cargandoPurga}
-                        disabled={cargandoPurga || cargandoScraper}
+                        disabled={cargandoPurga || cargandoCola}
                         onClick={() => { void handlePurgar(); }}
                     >
                         <Trash2 size={14} />
@@ -117,32 +115,19 @@ export const PanelDevCanciones = (): JSX.Element => {
                 </div>
 
                 <div className="panelDevAccion">
-                    <label className="panelDevLabel" htmlFor="inputUrlTrack">
-                        <Link size={12} />
-                        URL de WhoSampled a scrapear:
-                    </label>
-                    <Input
-                        id="inputUrlTrack"
-                        className="panelDevInputUrl"
-                        type="url"
-                        value={urlTrack}
-                        onChange={e => { setUrlTrack(e.target.value); }}
-                        placeholder="https://www.whosampled.com/Artista/Cancion/"
-                        disabled={cargandoScraper || cargandoPurga}
-                    />
                     <BotonBase
                         variante="secundario"
                         tamano="sm"
-                        cargando={cargandoScraper}
-                        disabled={cargandoScraper || cargandoPurga}
-                        onClick={() => { void handleScraper(); }}
+                        cargando={cargandoCola}
+                        disabled={cargandoCola || cargandoPurga}
+                        onClick={() => { void handleProcesarCola(); }}
                     >
                         <Play size={14} />
-                        {urlTrack.trim() ? 'Scrapear track' : 'Ejecutar scraper (5 items)'}
+                        Procesar 1 de cola
                     </BotonBase>
-                    {estado.mensajeScraper && (
-                        <span className={`panelDevMensaje panelDevMensaje--${estado.scraper}`}>
-                            {estado.mensajeScraper}
+                    {estado.mensajeCola && (
+                        <span className={`panelDevMensaje panelDevMensaje--${estado.cola === 'vacio' ? 'idle' : estado.cola}`}>
+                            {estado.mensajeCola}
                         </span>
                     )}
                 </div>
