@@ -10,9 +10,11 @@ import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { TarjetaCancionMini } from '@app/components/canciones/TarjetaCancionMini';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { usePanelDetalleSample } from '@app/hooks/usePanelDetalleSample';
+import { useRelacionDiscovery } from '@app/hooks/useRelacionDiscovery';
 import type { SampleResumen } from '@app/types';
 
 interface PanelDetalleSampleProps {
@@ -26,6 +28,8 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
         picosAudio, progresoAudio,
         manejarClickWaveform, manejarSeek, manejarLike, badges,
     } = usePanelDetalleSample(sample);
+
+    const { relacion: relacionDiscovery } = useRelacionDiscovery(sample.id);
 
     const {
         comentarios, cargando: cargandoComentarios, enviar: enviarComentario,
@@ -127,6 +131,37 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     Ver completo
                 </BotonBase>
             </div>
+
+            {/* Discovery: canción de origen si el sample fue extraído del pipeline */}
+            {relacionDiscovery && (relacionDiscovery.fuente_slug || relacionDiscovery.destino_slug) && (
+                <div className="panelDetalleDiscovery">
+                    <h4 className="panelDetalleSubtitulo">Origen del sample</h4>
+                    <div className="panelDetalleDiscoveryTarjetas">
+                        {relacionDiscovery.fuente_slug && (
+                            <TarjetaCancionMini
+                                titulo={relacionDiscovery.fuente_titulo}
+                                artista={relacionDiscovery.fuente_artista}
+                                slug={relacionDiscovery.fuente_slug}
+                                imagen={relacionDiscovery.fuente_imagen}
+                                anio={relacionDiscovery.fuente_anio}
+                                etiqueta="Canción sampleada"
+                                esOrigen={relacionDiscovery.ladoExtraccion === 'fuente'}
+                            />
+                        )}
+                        {relacionDiscovery.destino_slug && (
+                            <TarjetaCancionMini
+                                titulo={relacionDiscovery.destino_titulo}
+                                artista={relacionDiscovery.destino_artista}
+                                slug={relacionDiscovery.destino_slug}
+                                imagen={relacionDiscovery.destino_imagen}
+                                anio={relacionDiscovery.destino_anio}
+                                etiqueta="Sampleada en"
+                                esOrigen={relacionDiscovery.ladoExtraccion === 'destino'}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* C154: Comentarios ocultos por defecto, se abren con boton */}
             {comentariosVisibles && (

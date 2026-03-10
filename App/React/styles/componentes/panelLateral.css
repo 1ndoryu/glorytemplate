@@ -125,6 +125,16 @@
     padding-top: var(--espacioMd);
 }
 
+.panelDetalleDiscovery {
+    padding-top: var(--espacioMd);
+}
+
+.panelDetalleDiscoveryTarjetas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
 .panelDetalleSimilares {
     padding-top: var(--espacioMd);
 }

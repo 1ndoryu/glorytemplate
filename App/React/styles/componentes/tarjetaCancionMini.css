@@ -1,0 +1,98 @@
+/*
+ * tarjetaCancionMini.css — Kamples
+ * Tarjeta compacta para mostrar canciones musicales en el panel lateral.
+ * Diseño: imagen cuadrada pequeña + título + artista/año.
+ */
+
+.tarjetaCancionMiniContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.tarjetaCancionMiniEtiqueta {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tarjetaCancionMiniEtiquetaOrigen {
+    color: var(--acento);
+}
+
+.tarjetaCancionMini {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm);
+    background: var(--fondoElevado2);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+    overflow: hidden;
+}
+
+.tarjetaCancionMiniClickable {
+    cursor: pointer;
+    transition: background var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.tarjetaCancionMiniClickable:hover {
+    background: var(--fondoElevado3);
+    border-color: var(--bordeActivo);
+}
+
+.tarjetaCancionMiniPortada {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radioXs);
+    overflow: hidden;
+}
+
+.tarjetaCancionMiniImagen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tarjetaCancionMiniImagenVacia {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--fondoElevado3);
+    color: var(--textoTerciario);
+}
+
+.tarjetaCancionMiniInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.tarjetaCancionMiniTitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.tarjetaCancionMiniArtista {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tarjetaCancionMiniAnio {
+    color: var(--textoTerciario);
+}

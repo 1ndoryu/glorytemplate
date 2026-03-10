@@ -111,6 +111,19 @@
     text-align: right;
 }
 
+/* Fila marcada como origen de la extracción */
+.tablaRelacionesFilaOrigen {
+    border-left: 2px solid var(--acento);
+}
+
+/* Marcador de punto de color al lado del título */
+.tablaRelacionesOrigenMarker {
+    color: var(--acento);
+    font-size: 0.6em;
+    margin-right: var(--espacioXs);
+    vertical-align: middle;
+}
+
 /* Año */
 .tablaRelacionesColAnio {
     color: var(--textoTerciario);

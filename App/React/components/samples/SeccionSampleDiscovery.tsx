@@ -60,41 +60,20 @@ export const SeccionSampleDiscovery = ({ sampleId }: SeccionSampleDiscoveryProps
 
     if (!tieneFuente && !tieneDestino) return null;
 
-    /* Nombre legible para indicar origen del sample */
+    /* Determinar el lado de extracción para el marcador de origen */
     const esFuente = relacion.ladoExtraccion === 'fuente';
-    const cancionOrigen = esFuente
-        ? relacion.fuente_titulo
-        : relacion.destino_titulo;
-    const cancionRelacionada = esFuente
-        ? relacion.destino_titulo
-        : relacion.fuente_titulo;
     const etiquetaOrigen = esFuente ? 'Canción sampleada (origen)' : 'Samplea a (origen)';
     const etiquetaRelacion = esFuente ? 'Sampleada en' : 'Canción sampleada';
 
     return (
         <>
-            {/* Indicador visual: de dónde se extrajo este sample */}
-            {cancionOrigen && (
-                <div className="discoveryIndicadorOrigen">
-                    <span className="discoveryIndicadorEtiqueta">Extraído de</span>
-                    <span className="discoveryIndicadorCancion">{cancionOrigen}</span>
-                    {cancionRelacionada && (
-                        <>
-                            <span className="discoveryIndicadorConector">
-                                {esFuente ? ' — sampleada por ' : ' — samplea a '}
-                            </span>
-                            <span className="discoveryIndicadorCancion">{cancionRelacionada}</span>
-                        </>
-                    )}
-                </div>
-            )}
-
             {/* Relación principal: la extracción directa */}
             {tieneFuente && (
                 <SeccionRelaciones titulo={etiquetaOrigen}>
                     <TablaRelaciones
                         relaciones={[construirFila(relacion, 'fuente')]}
                         direccion="origen"
+                        marcarOrigen={esFuente}
                     />
                 </SeccionRelaciones>
             )}
@@ -103,6 +82,7 @@ export const SeccionSampleDiscovery = ({ sampleId }: SeccionSampleDiscoveryProps
                     <TablaRelaciones
                         relaciones={[construirFila(relacion, 'destino')]}
                         direccion="destino"
+                        marcarOrigen={!esFuente}
                     />
                 </SeccionRelaciones>
             )}

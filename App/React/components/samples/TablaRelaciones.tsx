@@ -28,6 +28,8 @@ interface TablaRelacionesProps {
     /* 'destino': la fila muestra la canción fuente (de donde samplea).
      * 'origen': la fila muestra la canción destino (que la sampleó). */
     direccion: 'origen' | 'destino';
+    /* Marca la primera fila como el origen de la extracción del sample */
+    marcarOrigen?: boolean;
 }
 
 /*
@@ -46,7 +48,7 @@ const urlSampleo = (rel: RelacionSample, direccion: 'origen' | 'destino'): strin
     return construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo);
 };
 
-export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps): JSX.Element => {
+export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen }: TablaRelacionesProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
 
     return (
@@ -61,15 +63,16 @@ export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps)
                 </tr>
             </thead>
             <tbody>
-                {relaciones.map((rel) => {
+                {relaciones.map((rel, idx) => {
                     const timings = direccion === 'destino'
                         ? rel.timingsDestino
                         : rel.timingsFuente;
+                    const esOrigenFila = marcarOrigen && idx === 0;
 
                     return (
                         <tr
                             key={rel.id}
-                            className="tablaRelacionesFila"
+                            className={`tablaRelacionesFila${esOrigenFila ? ' tablaRelacionesFilaOrigen' : ''}`}
                             role="button"
                             tabIndex={0}
                             onClick={() => navegar(urlSampleo(rel, direccion))}
@@ -96,6 +99,9 @@ export const TablaRelaciones = ({ relaciones, direccion }: TablaRelacionesProps)
                             </td>
                             <td className="tablaRelacionesColCancion">
                                 <span className="tablaRelacionesTitulo">
+                                    {esOrigenFila && (
+                                        <span className="tablaRelacionesOrigenMarker" title="Sample extraído de esta canción">●</span>
+                                    )}
                                     {rel.cancionTitulo ?? '—'}
                                 </span>
                                 {rel.artistaNombre && (
