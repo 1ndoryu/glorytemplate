@@ -85,7 +85,7 @@
 /* Responsive: tabla más compacta en móvil */
 @media (max-width: 640px) {
     .landingComparativaTabla {
-        font-size: 10px;
+        font-size: var(--fuenteXs);
     }
     .landingComparativaTabla th,
     .landingComparativaTabla td {

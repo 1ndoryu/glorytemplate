@@ -28,7 +28,7 @@ class KamplesLogger
     private const DIAS_RETENCION = 7;
 
     /* Canales válidos — cada uno escribe a su propio archivo */
-    private const CANALES_VALIDOS = ['ia', 'algoritmo', 'moderacion'];
+    private const CANALES_VALIDOS = ['ia', 'algoritmo', 'moderacion', 'scraper'];
 
     /* Niveles de log */
     private const NIVEL_DEBUG    = 'DEBUG';

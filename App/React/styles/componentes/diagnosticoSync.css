@@ -48,25 +48,25 @@
 
 /* Indicadores de estado con color semantico */
 .diagSyncEstado--cerrado {
-    color: var(--colorExito);
+    color: var(--exito);
 }
 
 .diagSyncEstado--abierto {
-    color: var(--colorError);
+    color: var(--error);
 }
 
 .diagSyncEstado--semiAbierto {
-    color: var(--colorAdvertencia);
+    color: var(--advertencia);
 }
 
 /* Log viewer minimalista */
 .diagSyncLogs {
     font-family: var(--fuenteMono, monospace);
-    font-size: 11px;
+    font-size: var(--fuenteXs);
     line-height: 1.4;
     max-height: 180px;
     overflow-y: auto;
-    background: var(--fondoTerciario, rgba(0, 0, 0, 0.2));
+    background: var(--fondoBase);
     border-radius: var(--radioSm);
     padding: var(--espacioSm);
 }
@@ -78,11 +78,11 @@
 }
 
 .diagSyncLogEntrada--error {
-    color: var(--colorError);
+    color: var(--error);
 }
 
 .diagSyncLogEntrada--warn {
-    color: var(--colorAdvertencia);
+    color: var(--advertencia);
 }
 
 .diagSyncLogEntrada--info {
@@ -102,25 +102,25 @@
 }
 
 .diagSyncBoton {
-    font-size: 11px;
+    font-size: var(--fuenteXs);
     padding: 3px 8px;
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
-    background: var(--fondoSecundario);
+    background: var(--fondoElevado1);
     color: var(--textoSecundario);
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .diagSyncBoton:hover {
-    background: var(--fondoHover);
+    background: var(--fondoElevado2);
     color: var(--textoPrimario);
 }
 
 /* Cola offline detalle */
 .diagSyncCola {
     font-family: var(--fuenteMono, monospace);
-    font-size: 11px;
+    font-size: var(--fuenteXs);
     max-height: 100px;
     overflow-y: auto;
 }

@@ -29,6 +29,7 @@
 .badge.badgeNeutro {
     background-color: var(--fondoElevado3);
     color: var(--textoSecundario);
+    border: 1px solid var(--bordeSutil);
 }
 
 .badge.badgeAcento {

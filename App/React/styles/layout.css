@@ -101,7 +101,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        height: var(--altoNavMobile, 56px);
+        height: var(--altoNavMobile);
         width: 100%;
         flex-direction: row;
         border-right: none;
@@ -115,12 +115,12 @@
 
     /* El contenido tiene padding inferior para no quedar bajo el nav */
     .areaContenido {
-        padding-bottom: calc(var(--altoNavMobile, 56px) + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(var(--altoNavMobile) + env(safe-area-inset-bottom, 0px));
     }
 
     /* Reproductor flotante sube por encima del nav inferior */
     .areaReproductor {
-        bottom: calc(var(--altoNavMobile, 56px) + var(--espacioMd) + env(safe-area-inset-bottom, 0px));
+        bottom: calc(var(--altoNavMobile) + var(--espacioMd) + env(safe-area-inset-bottom, 0px));
         left: 50%;
     }
 }

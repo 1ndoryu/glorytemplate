@@ -5,7 +5,7 @@
 
 .filtroSubcolecciones {
     display: flex;
-    gap: var(--espaciado-xs);
+    gap: var(--espacioXs);
     flex-wrap: wrap;
-    padding: var(--espaciado-xs) 0;
+    padding: var(--espacioXs) 0;
 }

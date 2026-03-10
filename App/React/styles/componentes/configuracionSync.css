@@ -189,7 +189,7 @@
 }
 
 .configSyncCheckbox {
-    margin-top: 2px;
+    margin-top: var(--espacio2xs);
     accent-color: var(--acento);
     cursor: pointer;
     flex-shrink: 0;

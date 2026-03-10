@@ -12,6 +12,8 @@ import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useExplorarCanciones } from '@app/hooks/useExplorarCanciones';
+import { useAuthStore } from '@app/stores/authStore';
+import { PanelDevCanciones } from '@app/components/canciones/PanelDevCanciones';
 import type { TabExplorar } from '@app/hooks/useExplorarCanciones';
 import type { CancionResumen } from '@app/types/cancion';
 import '../../styles/componentes/explorarCanciones.css';
@@ -83,6 +85,8 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         irACancion,
     } = useExplorarCanciones();
 
+    const usuario = useAuthStore(s => s.usuario);
+    const esAdmin = usuario?.rol === 'admin';
     const [inputBusqueda, setInputBusqueda] = useState(queryBusqueda);
 
     useTabsIsla('ExplorarCancionesIsland', TABS_EXPLORAR, 'canciones');
@@ -94,6 +98,9 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
 
     return (
         <div className="explorarCancionesContenedor" id="seccionExplorarCanciones">
+
+            {/* Panel de desarrollo — solo visible para admins */}
+            {esAdmin && <PanelDevCanciones />}
 
             {/* Estadísticas resumen */}
             {estadisticas && Array.isArray(estadisticas.relacionesPorTipo) && estadisticas.relacionesPorTipo.length > 0 && (

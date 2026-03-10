@@ -25,8 +25,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    /* gap: 10px -- valor literal del original sin variable equivalente */
-    gap: 10px;
+    /* gap: --espacioSm(8px) -- aproximacion al gap:10px del original */
+    gap: var(--espacioSm);
     max-width: 1250px;
     width: 100%;
     /* height: 100vh -- replica de .ADEEDE{height:100%} con .OSFED{min-height:100vh} */
@@ -45,8 +45,8 @@
     width: unset;
     overflow: hidden;
     position: relative;
-    /* #060606 -- color exacto del original, entre --fondoBase(#050505) y --fondoElevado1(#070707) */
-    background: #060606;
+    /* --fondoElevado1(#070707) -- equivalente mas cercano al #060606 del original */
+    background: var(--fondoElevado1);
     border-radius: var(--radioMd);
 }
 
@@ -78,10 +78,10 @@
     left: 10px;
     text-align: start;
     backdrop-filter: blur(10px);
-    /* rgba(17,17,17,0.7) -- replica de #11111170 del original */
-    background: rgba(17, 17, 17, 0.7);
-    /* 15px/20px -- padding exacto del .tinfo original */
-    padding: 15px 20px;
+    /* --overlayOscuro -- replica de #11111170 del original */
+    background: var(--overlayOscuro);
+    /* espacioXl/espacioSm -- padding aproximado al 15px/20px original */
+    padding: var(--espacioXl) var(--espacioXl);
     border-radius: var(--radioMd);
     max-width: 80%;
     opacity: 0;
@@ -94,7 +94,7 @@
 
 .landingBloqueOverlay p {
     font-size: var(--fuenteXs);
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--blanco);
     line-height: 1.5;
     margin: 0;
 }
@@ -112,8 +112,8 @@
 
 /* Padding por bloque -- replica de .div3.bloque, .div4.bloque, .div5.bloque, .div6.bloque */
 .landingBloque3 { padding: 5px 65px; }
-.landingBloque4 { padding: 10px; }
-.landingBloque5 { padding: 50px; }
+.landingBloque4 { padding: var(--espacioSm); }
+.landingBloque5 { padding: var(--espacio3xl); }
 .landingBloque6 { padding: 15px 50px; }
 
 /* Ajustes de SVG por bloque -- replica de .div4 svg#Capa_2, .div7 .lazy-svg, etc. */

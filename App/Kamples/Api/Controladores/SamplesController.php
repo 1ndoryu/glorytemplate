@@ -365,8 +365,10 @@ class SamplesController
 
             $genero = $request->get_param('genero');
             if (!empty($genero)) {
-            $gKey = CancionesCols::GENERO;
-            $where[]  = "s.{$sMeta}->'{$gKey}' ? :genero";
+                $gKey = CancionesCols::GENERO;
+                $where[]  = "s.{$sMeta}->'{$gKey}' ? :genero";
+                $params['genero'] = $genero;
+            }
 
             $bpmMin = $request->get_param('bpm_min');
             if ($bpmMin !== null) {

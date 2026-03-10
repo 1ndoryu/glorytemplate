@@ -155,7 +155,7 @@
 @media (max-width: 768px) {
     .dropdownPanel {
         position: fixed;
-        top: calc(var(--altoTopbar, 56px) + 8px);
+        top: var(--altoTopbar);
         left: 50%;
         transform: translateX(-50%);
         right: auto;

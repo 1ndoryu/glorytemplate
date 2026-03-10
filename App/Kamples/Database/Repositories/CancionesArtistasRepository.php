@@ -42,7 +42,7 @@ class CancionesArtistasRepository extends BaseRepository
         $ta = ArtistasMusicalesCols::TABLA;
 
         return static::consultar(
-            "SELECT ca.*, a.nombre AS artista_nombre, a.slug AS artista_slug
+            "SELECT ca.*, a.nombre AS nombre, a.slug AS slug
              FROM {$tr} ca
              JOIN {$ta} a ON ca." . CancionesArtistasCols::ARTISTA_ID . " = a.id
              WHERE ca." . CancionesArtistasCols::CANCION_ID . " = :cancion_id

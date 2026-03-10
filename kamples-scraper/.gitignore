@@ -9,3 +9,5 @@ __pycache__/
 /audio_tmp/
 .venv/
 .pytest_cache/
+%SystemDrive%/
+caches/

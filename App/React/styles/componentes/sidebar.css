@@ -151,7 +151,7 @@
         min-height: 48px;
         border-radius: 0;
         flex-direction: column;
-        gap: 2px;
+        gap: var(--espacio2xs);
         font-size: var(--fuenteXs);
         color: var(--textoSecundario);
     }

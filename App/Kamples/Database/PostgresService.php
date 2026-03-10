@@ -344,9 +344,10 @@ class PostgresService
             return;
         }
 
-        /* Extraer nombres de CTEs definidos con WITH para ignorarlos como tablas */
+        /* Extraer nombres de CTEs definidos con WITH para ignorarlos como tablas.
+         * Soporta: WITH cte AS (...) y WITH RECURSIVE cte AS (...) */
         $ctes = [];
-        if (preg_match_all('/\bWITH\s+([a-z_]+)\s+AS\s*\(/i', $sql, $cteMatches)) {
+        if (preg_match_all('/\bWITH\s+(?:RECURSIVE\s+)?([a-z_]+)\s+AS\s*\(/i', $sql, $cteMatches)) {
             $ctes = array_map('strtolower', $cteMatches[1]);
         }
         /* Soporte para CTEs encadenados: WITH cte1 AS (...), cte2 AS (...) */

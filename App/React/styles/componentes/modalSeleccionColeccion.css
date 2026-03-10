@@ -55,7 +55,7 @@
     color: var(--textoPrimario);
     font-size: var(--fuenteSm);
     outline: none;
-    padding-right: 24px;
+    padding-right: var(--espacio2xl);
 }
 
 .seleccionColeccionInput::placeholder {

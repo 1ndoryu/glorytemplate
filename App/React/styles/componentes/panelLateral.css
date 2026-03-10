@@ -240,7 +240,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    font-size: 0.875rem;
+    font-size: var(--fuenteSm);
     font-weight: 600;
     color: var(--textoPrimario);
     margin: 0;
@@ -251,7 +251,7 @@
     border: none;
     color: var(--textoTerciario);
     cursor: pointer;
-    padding: 4px;
+    padding: var(--espacioXs);
     border-radius: var(--radioSm);
     display: flex;
     align-items: center;
@@ -273,9 +273,9 @@
 .panelLibreriaTab {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    font-size: 0.75rem;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    font-size: var(--fuenteSm);
     background: none;
     border: none;
     border-radius: var(--radioSm);
@@ -331,5 +331,5 @@
     padding: var(--espacioXl);
     color: var(--textoTerciario);
     text-align: center;
-    font-size: 0.8125rem;
+    font-size: var(--fuenteMd);
 }

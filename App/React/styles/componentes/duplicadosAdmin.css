@@ -55,11 +55,11 @@
     align-items: center;
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
-    background: var(--fondoExito);
-    border: 1px solid var(--bordeExito);
+    background: var(--exitoMuted);
+    border: 1px solid var(--exito);
     border-radius: var(--radioSm);
     font-size: var(--fuenteXs);
-    color: var(--textoExito);
+    color: var(--exito);
 }
 
 /* Loading */
@@ -88,7 +88,7 @@
 }
 
 .dupTarjeta:hover {
-    border-color: var(--bordeFuerte);
+    border-color: var(--bordeActivo);
 }
 
 /* Cabecera de tarjeta */

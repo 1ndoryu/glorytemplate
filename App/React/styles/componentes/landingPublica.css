@@ -214,7 +214,7 @@
 
 .titleSeccion {
     font-family: var(--landingFuenteSubtitulo);
-    font-size: 18px;
+    font-size: var(--fuenteLg);
     font-weight: 500;
     color: var(--textoPrimario);
 }

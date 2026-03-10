@@ -316,7 +316,7 @@
 
 /* El input de búsqueda necesita padding-left para la lupa */
 .adminUsuariosBusqueda .campTextoInput {
-    padding-left: 2rem;
+    padding-left: var(--espacio2xl);
 }
 
 .adminTablaUsuarios {
@@ -729,8 +729,7 @@
 .historialUsuarioInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    min-width: 0;
+    gap: var(--espacio2xs);
 }
 
 .historialNombre {
@@ -790,7 +789,7 @@
 .historialExpanderTrigger {
     cursor: pointer;
     font-size: var(--fuenteXs);
-    color: var(--acentoSecundario);
+    color: var(--textoSecundario);
     list-style: none;
     padding: 0;
     user-select: none;
@@ -882,7 +881,7 @@
     border-radius: var(--radioMd);
     cursor: pointer;
     padding: 0.25rem 0.55rem;
-    font-size: 1rem;
+    font-size: var(--fuenteLg);
     color: var(--textoTerciario);
     line-height: 1;
     transition:

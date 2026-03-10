@@ -84,7 +84,7 @@
     align-items: center;
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
-    background: rgba(16, 185, 129, 0.1);
+    background: var(--exitoMuted);
     border: 1px solid rgba(16, 185, 129, 0.2);
     border-radius: var(--radioMd);
     font-size: var(--fuenteSm);
@@ -152,7 +152,7 @@
 .colaIaErrorTexto {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
     color: var(--error);
     font-size: var(--fuenteXs);
 }

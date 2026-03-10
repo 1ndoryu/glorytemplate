@@ -14,7 +14,7 @@
 
 /* Variante circular (avatares) */
 .skeletonCirculo {
-    border-radius: 50%;
+    border-radius: var(--radioFull);
 }
 
 /* Variante de texto — lineas con alturas predefinidas */
@@ -49,7 +49,7 @@
 .skeletonTarjetaSampleContenido {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--espacioXs);
     min-width: 0;
 }
 
@@ -72,7 +72,7 @@
 .skeletonTarjetaSampleAccionItem {
     width: 20px;
     height: 20px;
-    border-radius: 50%;
+    border-radius: var(--radioFull);
 }
 
 /* Tarjeta Coleccion — Flex column con portada aspect-ratio */
@@ -92,7 +92,7 @@
 .skeletonTarjetaColeccionInfo {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--espacioXs);
     padding: var(--espacioSm) var(--espacioXs);
 }
 
@@ -160,7 +160,7 @@
 .skeletonTarjetaPubAutor {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--espacioXs);
     flex: 1;
 }
 
@@ -177,7 +177,7 @@
 .skeletonTarjetaPubContenido {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--espacioXs);
 }
 
 .skeletonTarjetaPubLineaTexto {
