@@ -18,6 +18,8 @@
 - [Groq vision local]: Groq no puede resolver hosts locales como `glory.local` en `image_url`. Para uploads locales, resolver `wp-content/uploads` a ruta física y enviar la imagen como `data:image/...;base64,...`.
 - [Moderación razón]: `determinarVeredicto()` debe poblar `razon` también en aprobados o errores parciales; si se deja vacía, los logs y el panel pierden trazabilidad.
 - [Sentinel regexes PHP]: Los controllers Kamples usan `\register_rest_route($namespace, ...)` y `new \WP_REST_Response([`. El indexer esperaba namespace como string literal y `WP_REST_Response` sin `\` FQN → CERO endpoints indexados. Fix: regex soporta `$variable` como 1er arg y backslash opcional en WP_REST_Response. También: extension `.ts` en gloryAnalyzer para services, `payloadClaves` nivel 2 para sub-claves dentro de `data:{}`, pattern `apiGet<Tipo>()` para helpers Kamples.
+- [Sentinel ROOT CAUSE .ts]: `diagnosticProvider.ts::ejecutarAnalisisEstatico()` y `analizarWorkspace()` tenían `if php / else if tsx|jsx` pero **sin `else if ts`**. Los archivos `.ts` de servicio (ej: `apiCanciones.ts`) NUNCA eran analizados con `analizarGlory()`. Solución: agregar `else if (tipo === 'ts') { violaciones.push(...analizarGlory(doc)); }` en AMBOS handlers.
+- [Sentinel install VSIX]: `code --install-extension ... --force` en PowerShell no produce output y a veces no actualiza los archivos. Verificar con `Select-String` sobre el archivo instalado. Si no tiene los cambios, copiar `out/` directamente a `%USERPROFILE%\.vscode\extensions\publisher.name-version\out\`.
 
 ---
 
