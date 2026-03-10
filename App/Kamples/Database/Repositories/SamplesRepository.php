@@ -24,6 +24,7 @@ use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\ReproduccionesRepository;
@@ -87,6 +88,8 @@ class SamplesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
         
 
@@ -383,6 +386,9 @@ class SamplesRepository extends BaseRepository
      */
     public static function eliminarConCascada(int $sampleId): void
     {
+        /* Desreferenciar de cola de extracción para evitar FK violation */
+        ColaExtraccionSamplesRepository::desvincularSampleId($sampleId);
+
         LikesRepository::eliminarPorSample($sampleId);
         ColeccionSamplesRepository::eliminarPorSample($sampleId);
         ReproduccionesRepository::eliminarPorSample($sampleId);

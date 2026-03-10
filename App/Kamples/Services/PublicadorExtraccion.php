@@ -93,9 +93,12 @@ class PublicadorExtraccion
             $tagsNormalizados = NormalizadorSample::normalizarTags($tags);
             $tagsPostgres = NormalizadorSample::phpArrayToPg($tagsNormalizados);
 
+            /* Resolver creador: contribuidor de la relacion o usuario sistema */
+            $creadorId = self::resolverCreadorId($item);
+
             /* Insertar via el mismo SamplesRepository que usa el upload web */
             $sampleId = SamplesRepository::insertarSample([
-                'creadorId'    => 0,
+                'creadorId'    => $creadorId,
                 'titulo'       => $titulo,
                 'slug'         => $slug,
                 'idCorto'      => $idCorto,
@@ -179,6 +182,21 @@ class PublicadorExtraccion
     {
         ColaExtraccionSamplesRepository::actualizarEstado($colaId, 'error', $msg);
         return ['cola_id' => $colaId, 'ok' => false, 'error' => $msg];
+    }
+
+    /**
+     * Resuelve el ID del creador para el sample extraido.
+     * Prioridad: contribuidor_id de la relacion > KAMPLES_SISTEMA_USUARIO_ID en .env > fallback 7.
+     */
+    private static function resolverCreadorId(array $item): int
+    {
+        $contribuidorId = (int)($item['contribuidor_id'] ?? 0);
+        if ($contribuidorId > 0) {
+            return $contribuidorId;
+        }
+
+        $sistemaId = (int)\getenv('KAMPLES_SISTEMA_USUARIO_ID');
+        return $sistemaId > 0 ? $sistemaId : 7;
     }
 
     /**

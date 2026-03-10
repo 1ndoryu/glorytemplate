@@ -142,19 +142,39 @@ class ColaExtraccionSamplesRepository extends BaseRepository
      */
     public static function extraidos(int $limit = 10): array
     {
-        $tabla = ColaExtraccionSamplesCols::TABLA;
+        $tabla    = ColaExtraccionSamplesCols::TABLA;
+        $tablaRs  = \App\Config\Schema\_generated\RelacionesSampleCols::TABLA;
+        $colFuente = \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_FUENTE_ID;
+        $colDest   = \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_DESTINO_ID;
+        $colContrib = \App\Config\Schema\_generated\RelacionesSampleCols::CONTRIBUIDOR_ID;
+        $colRsId   = \App\Config\Schema\_generated\RelacionesSampleCols::ID;
 
         return static::consultar(
             "SELECT ce.*, "
-            . "rs." . \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_FUENTE_ID . ", "
-            . "rs." . \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_DESTINO_ID . " "
+            . "rs.{$colFuente}, "
+            . "rs.{$colDest}, "
+            . "rs.{$colContrib} "
             . "FROM {$tabla} ce "
-            . "JOIN " . \App\Config\Schema\_generated\RelacionesSampleCols::TABLA . " rs "
-            . "ON ce." . ColaExtraccionSamplesCols::RELACION_ID . " = rs." . \App\Config\Schema\_generated\RelacionesSampleCols::ID . " "
+            . "JOIN {$tablaRs} rs "
+            . "ON ce." . ColaExtraccionSamplesCols::RELACION_ID . " = rs.{$colRsId} "
             . "WHERE ce." . ColaExtraccionSamplesCols::ESTADO . " = :estado "
             . "ORDER BY ce." . ColaExtraccionSamplesCols::CREATED_AT . " ASC "
             . "LIMIT :limit",
             ['estado' => ColaExtraccionSamplesEnums::ESTADO_EXTRAIDO, 'limit' => $limit]
+        );
+    }
+
+    /**
+     * Desvincula sample_id de las entradas de cola que lo referencian.
+     * Debe llamarse ANTES de eliminar el sample para evitar FK violation.
+     */
+    public static function desvincularSampleId(int $sampleId): void
+    {
+        static::ejecutar(
+            "UPDATE " . ColaExtraccionSamplesCols::TABLA
+            . " SET " . ColaExtraccionSamplesCols::SAMPLE_ID . " = NULL"
+            . " WHERE " . ColaExtraccionSamplesCols::SAMPLE_ID . " = :sid",
+            ['sid' => $sampleId]
         );
     }
 
