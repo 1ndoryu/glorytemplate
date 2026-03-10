@@ -281,6 +281,13 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S-R7** Auto-enqueue en PostgresPipeline Scrapy post-inserción relación ✅ [AG-REC]
 - [ ] **S-R8** Descripción auto-generada desde metadata (pendiente)
 
+### S-FIX — Bugfixes artista + cola + logging — ✅ COMPLETADO C710 [AG-REC]
+- [x] **S-FIX.1** DISTINCT ON (c.id) en cancionesDeArtista() para eliminar duplicados por roles múltiples ✅
+- [x] **S-FIX.2** Mapeo bilateral→unilateral en detalleArtista(): _relacionBilateralAUnilateral() convierte fuente_*/destino_* a cancion_titulo/artista_nombre para NormalizadorCancion ✅
+- [x] **S-FIX.3** modoCola flag en _spiderParaTipo(): DEPTH_LIMIT=0 + CLOSESPIDER_PAGECOUNT=1 al procesar cola ✅
+- [x] **S-FIX.4** Logs detallados pipeline: timing por paso (6 pasos), tamaños archivos, BPM/beats, ruta salida ✅
+> Lecciones: bilateral queries (fuente_titulo/destino_titulo) NO son compatibles directas con NormalizadorCancion::relacion() que espera cancion_titulo. Siempre transformar antes de normalizar. Scrapy DEPTH_LIMIT=0 previene follow links.
+
 ### S-ESCALA — Escalabilidad relacional (C703) — ✅ COMPLETADO C704
 - [x] **S-E.1** Trigger PostgreSQL: `total_sampleada`/`total_samplea` auto-update en INSERT/DELETE de `relaciones_sample` ✅ [AG-NAV]
 - [x] **S-E.2** Pipeline cambiar `ON CONFLICT DO NOTHING` → `DO UPDATE` para timings/votos en relaciones re-encontradas ✅ [AG-NAV]
