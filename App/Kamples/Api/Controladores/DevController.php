@@ -130,19 +130,17 @@ class DevController
         try {
             $pendiente = ScrapingLogRepository::pendienteUno();
 
+            /* Cola vacía: caer en hot_samples como fuente de nuevos descubrimientos. */
             if ($pendiente === null) {
-                return new \WP_REST_Response([
-                    'ok'        => true,
-                    'cola_vacia' => true,
-                    'mensaje'   => 'No hay URLs pendientes en la cola.',
-                ], 200);
+                [$spider, $extraArgs] = [ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES, []];
+                $urlRelativa = '/hot-samples/';
+                $tipo        = ScrapingLogEnums::TIPO_PAGINA_HOT_SAMPLES;
+            } else {
+                $urlRelativa = (string) ($pendiente[ScrapingLogCols::URL] ?? '');
+                $tipo        = (string) ($pendiente[ScrapingLogCols::TIPO_PAGINA] ?? '');
+                $urlCompleta = 'https://www.whosampled.com' . $urlRelativa;
+                [$spider, $extraArgs] = self::_spiderParaTipo($tipo, $urlCompleta);
             }
-
-            $urlRelativa = (string) ($pendiente[ScrapingLogCols::URL] ?? '');
-            $tipo        = (string) ($pendiente[ScrapingLogCols::TIPO_PAGINA] ?? '');
-            $urlCompleta = 'https://www.whosampled.com' . $urlRelativa;
-
-            [$spider, $extraArgs] = self::_spiderParaTipo($tipo, $urlCompleta);
 
             if ($spider === null) {
                 KamplesLogger::warning('[DEV] Cola: tipo de página sin spider mapeado', ['tipo' => $tipo, 'url' => $urlRelativa], 'scraper');

@@ -13,7 +13,7 @@ import { Trash2, Play, AlertTriangle } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { devPurgarCanciones, devProcesarDeCola } from '@app/services/apiCanciones';
 
-type EstadoAccion = 'idle' | 'loading' | 'ok' | 'error' | 'vacio';
+type EstadoAccion = 'idle' | 'loading' | 'ok' | 'error';
 
 interface EstadoPanel {
     purga: EstadoAccion;
@@ -73,11 +73,6 @@ export const PanelDevCanciones = (): JSX.Element => {
             return;
         }
 
-        if (resp.data?.cola_vacia) {
-            setEstado(prev => ({ ...prev, cola: 'vacio', mensajeCola: 'Cola vacía — no hay URLs pendientes.' }));
-            return;
-        }
-
         setEstado(prev => ({
             ...prev,
             cola: 'ok',
@@ -126,7 +121,7 @@ export const PanelDevCanciones = (): JSX.Element => {
                         Procesar 1 de cola
                     </BotonBase>
                     {estado.mensajeCola && (
-                        <span className={`panelDevMensaje panelDevMensaje--${estado.cola === 'vacio' ? 'idle' : estado.cola}`}>
+                        <span className={`panelDevMensaje panelDevMensaje--${estado.cola}`}>
                             {estado.mensajeCola}
                         </span>
                     )}
