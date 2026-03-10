@@ -107,7 +107,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         <div className="cancionDetalleArtistas">
                             {artistas.map((a) => (
                                 <BotonBase
-                                    key={a.artistaId}
+                                    key={`${a.artistaId}-${a.rol}`}
                                     variante="ghost"
                                     tamano="ninguno"
                                     className="cancionDetalleArtista"
