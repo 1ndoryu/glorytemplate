@@ -151,3 +151,23 @@ export const devGenerarRecorte = (
     relacionId: number
 ): Promise<RespuestaApi<RespuestaRecorte>> =>
     apiPost<RespuestaRecorte>('/dev/recorte/generar', { relacion_id: relacionId });
+
+/* Publicar samples extraidos a traves del flujo estandar (PipelineAudio) */
+interface RespuestaPublicacion {
+    ok: boolean;
+    publicados: number;
+    errores: number;
+    mensaje?: string;
+    resultados?: Array<{
+        cola_id: number;
+        ok: boolean;
+        sample_id?: number;
+        id_corto?: string;
+        error?: string;
+    }>;
+}
+
+export const devPublicarExtracciones = (
+    limit = 10
+): Promise<RespuestaApi<RespuestaPublicacion>> =>
+    apiPost<RespuestaPublicacion>('/dev/extraccion/publicar', { limit });

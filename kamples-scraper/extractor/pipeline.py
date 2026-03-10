@@ -1,14 +1,12 @@
 """
-Orquestador del pipeline de extracción de audio.
+Orquestador del pipeline de extraccion de audio.
 
-Flujo completo:
-1. Leer cola_extraccion_samples (pendientes)
-2. Por cada entrada:
-   a. Descargar audio de YouTube (yt-dlp)
-   b. Analizar BPM y beats (librosa)
-   c. Calcular y ejecutar recorte alineado a compás
-   d. Insertar sample en BD Kamples
-3. Actualizar estado en la cola
+Flujo unificado (dos fases):
+1. Python: descargar audio -> analizar BPM -> recortar -> guardar MP3
+2. PHP: publicar via PipelineAudio estandar (waveform, preview, IA, hash, embedding)
+
+Python solo marca la cola como 'extraido' con la ruta del archivo.
+PHP (DevController::publicarExtracciones) se encarga de la publicacion real.
 
 Ejecutar: python -m extractor.pipeline --limit 20
 """
@@ -24,8 +22,7 @@ from kamples_scraper.utils.db import get_connection
 from extractor.audio_download import descargar_audio, limpiar_audio
 from extractor.bpm_analyzer import analizar_bpm
 from extractor.sample_cutter import calcular_recorte, recortar_audio
-from extractor.kamples_inserter import insertar_sample
-from extractor.waveform_generator import generar_waveform
+from extractor.kamples_inserter import registrar_extraccion
 
 logging.basicConfig(
     level=logging.INFO,
@@ -126,7 +123,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             return False
         size_mb = os.path.getsize(wav_path) / (1024 * 1024) if os.path.exists(wav_path) else 0
         logger.info(
-            "[cola=%d] Paso 1/6 Descarga: %.1fs, archivo=%s (%.1f MB)",
+            "[cola=%d] Paso 1/5 Descarga: %.1fs, archivo=%s (%.1f MB)",
             cola_id, time.monotonic() - t0, wav_path, size_mb,
         )
 
@@ -135,7 +132,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         t0 = time.monotonic()
         analisis = analizar_bpm(wav_path)
         logger.info(
-            "[cola=%d] Paso 2/6 BPM: %.1fs, bpm=%.0f, confianza=%.2f, beats=%d",
+            "[cola=%d] Paso 2/5 BPM: %.1fs, bpm=%.0f, confianza=%.2f, beats=%d",
             cola_id, time.monotonic() - t0,
             analisis.bpm if analisis else 0,
             analisis.confianza if analisis else 0,
@@ -147,7 +144,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         t0 = time.monotonic()
         recorte = calcular_recorte(timing, analisis)
         logger.info(
-            "[cola=%d] Paso 3/6 Calculo recorte: %.1fs, inicio=%.2f fin=%.2f dur=%.1fs alineado=%s",
+            "[cola=%d] Paso 3/5 Calculo recorte: %.1fs, inicio=%.2f fin=%.2f dur=%.1fs alineado=%s",
             cola_id, time.monotonic() - t0,
             recorte.inicio, recorte.fin, recorte.duracion, recorte.recorte_por_compas,
         )
@@ -164,19 +161,11 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             return False
         size_kb = os.path.getsize(recorte_path) / 1024 if os.path.exists(recorte_path) else 0
         logger.info(
-            "[cola=%d] Paso 4/6 Recorte ffmpeg: %.1fs, salida=%s (%.0f KB)",
+            "[cola=%d] Paso 4/5 Recorte ffmpeg: %.1fs, salida=%s (%.0f KB)",
             cola_id, time.monotonic() - t0, recorte_path, size_kb,
         )
 
-        # 5. Generar waveform (peaks JSON compatibles con ProcesadorFFmpeg.php)
-        t0 = time.monotonic()
-        waveform_path = generar_waveform(recorte_path)
-        logger.info(
-            "[cola=%d] Paso 5/6 Waveform: %.1fs, archivo=%s",
-            cola_id, time.monotonic() - t0, waveform_path or "FALLO",
-        )
-
-        # 6. Insertar en Kamples (con metadata bilateral)
+        # 5. Registrar extraccion (marca cola como 'extraido', PHP publica via PipelineAudio)
         metadata_cancion = {
             "fuente_titulo": item.get("fuente_titulo", ""),
             "fuente_artista": item.get("fuente_artista", ""),
@@ -189,29 +178,29 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         }
 
         t0 = time.monotonic()
-        sample_id = insertar_sample(
+        ok = registrar_extraccion(
+            cola_id=cola_id,
             relacion_id=item["relacion_id"],
             recorte=recorte,
-            wav_path=recorte_path,
+            audio_path=recorte_path,
             metadata_cancion=metadata_cancion,
-            waveform_path=waveform_path,
             lado=lado,
         )
 
-        if sample_id:
+        if ok:
             elapsed_total = time.monotonic() - t_total
             logger.info(
-                "[cola=%d] Paso 6/6 Insert BD: %.1fs, sample_id=%d",
-                cola_id, time.monotonic() - t0, sample_id,
+                "[cola=%d] Paso 5/5 Registro: %.1fs",
+                cola_id, time.monotonic() - t0,
             )
             logger.info(
-                "COMPLETADO cola=%d lado=%s sample=%d | total=%.1fs | dur=%.1fs BPM=%.0f alineado=%s",
-                cola_id, lado, sample_id, elapsed_total,
+                "EXTRAIDO cola=%d lado=%s | total=%.1fs | dur=%.1fs BPM=%.0f alineado=%s",
+                cola_id, lado, elapsed_total,
                 recorte.duracion, recorte.bpm, recorte.recorte_por_compas,
             )
             return True
         else:
-            actualizar_estado_cola(cola_id, "error", "Insercion en BD fallida")
+            actualizar_estado_cola(cola_id, "error", "Registro de extraccion fallido")
             return False
 
     except Exception as e:

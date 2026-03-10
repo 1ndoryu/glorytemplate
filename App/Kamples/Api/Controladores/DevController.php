@@ -23,6 +23,10 @@ use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ScrapingLogEnums;
 
+/* TO-DO: Extraer logica de scraper/Python (ejecutarScraper, procesarSiguienteDeCola,
+ * detectarPython, verificarBinarioPython) a un servicio dedicado ScraperRunner
+ * para cumplir el limite de 300 lineas. El controlador quedaria solo con registrarRutas
+ * y callbacks delegando a servicios. */
 class DevController
 {
     /* Ruta relativa al directorio del scraper dentro del tema */
@@ -103,6 +107,20 @@ class DevController
                     'type'     => 'integer',
                     'required' => true,
                     'minimum'  => 1,
+                ],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/dev/extraccion/publicar', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'publicarExtracciones'],
+            'permission_callback' => $admin,
+            'args'                => [
+                'limit' => [
+                    'type'    => 'integer',
+                    'default' => 10,
+                    'minimum' => 1,
+                    'maximum' => 50,
                 ],
             ],
         ]);
@@ -453,6 +471,52 @@ class DevController
     }
 
     /**
+     * Publica samples extraidos (estado='extraido') a traves del flujo estandar.
+     * Delega en PublicadorExtraccion (SRP).
+     * POST /dev/extraccion/publicar { limit?: int }
+     */
+    public static function publicarExtracciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $limit = (int) ($request->get_param('limit') ?: 10);
+            $resultado = \App\Kamples\Services\PublicadorExtraccion::publicarPendientes($limit);
+
+            if ($resultado['publicados'] === 0 && $resultado['errores'] === 0) {
+                return new \WP_REST_Response([
+                    'ok' => true, 'mensaje' => 'Sin extracciones pendientes de publicar.', 'publicados' => 0,
+                ], 200);
+            }
+
+            return new \WP_REST_Response([
+                'ok'         => true,
+                'publicados' => $resultado['publicados'],
+                'errores'    => $resultado['errores'],
+                'resultados' => \array_values($resultado['resultados']),
+            ], 200);
+
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error global en publicarExtracciones', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Staging dir donde Python guarda el audio extraido antes de publicar.
+     * Separado de uploads finales para no mezclar archivos temporales con publicados.
+     */
+    private static function directorioStagingExtraccion(): string
+    {
+        $uploadsDir = \wp_upload_dir();
+        $staging = $uploadsDir['basedir'] . '/kamples/extracciones';
+
+        if (!\is_dir($staging)) {
+            \wp_mkdir_p($staging);
+        }
+
+        return $staging;
+    }
+
+    /**
      * Encola extracción bilateral y lanza el pipeline Python para una relación.
      * POST /dev/recorte/generar { relacion_id: int }
      */
@@ -496,7 +560,7 @@ class DevController
             }
             $logOutput = $logsAppDir . '/extractor-output-' . date('Y-m-d') . '.log';
 
-            $cmdArray = [$python, '-m', 'extractor.pipeline', '--limit', (string) \count($ids)];
+            $cmdArray = [$python, '-m', 'extractor.pipeline', '--limit', (string) \count($ids), '--output-dir', self::directorioStagingExtraccion()];
 
             $cabecera = "\n" . str_repeat('-', 60) . "\n[" . date('Y-m-d H:i:s') . "] RECORTE relacion_id={$relacionId} encolados=" . \count($ids) . "\n" . str_repeat('-', 60) . "\n";
             file_put_contents($logOutput, $cabecera, FILE_APPEND | LOCK_EX);

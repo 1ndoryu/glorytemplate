@@ -51,6 +51,7 @@ export interface ICanciones {
   duracionSegundos: number | null
   genero: string | null
   youtubeId: string | null
+  spotifyId: string | null
   imagenUrl: string | null
   whosampledUrl: string | null
   bpm: number | null
@@ -58,6 +59,8 @@ export interface ICanciones {
   metadata: Record<string, unknown>
   totalSampleada: number
   totalSamplea: number
+  totalLikes: number
+  totalComentarios: number
   createdAt: string
   updatedAt: string
 }
@@ -65,18 +68,22 @@ export interface ICanciones {
 export interface IColaExtraccionSamples {
   id: number
   relacionId: number
-  youtubeId: string
+  youtubeId: string | null
   timingInicioSeg: number
   bpmDetectado: number | null
   duracionCompasSeg: number | null
   compasInicioSeg: number | null
   compasFinSeg: number | null
-  estado: 'pendiente' | 'descargando' | 'analizando' | 'recortando' | 'completado' | 'error' | 'revision_humana'
+  estado: 'pendiente' | 'descargando' | 'analizando' | 'recortando' | 'extraido' | 'completado' | 'error' | 'revision_humana'
   sampleId: number | null
   errorMensaje: string | null
   intentos: number
   procesadoAt: string | null
   createdAt: string
+  lado: 'fuente' | 'destino'
+  spotifyId: string | null
+  rutaAudioExtraido: string | null
+  metadataExtraccion: unknown | null
 }
 
 export interface IColaProcesamientoIa {
@@ -120,7 +127,7 @@ export interface IColeccionSamples {
 export interface IComentarios {
   id: number
   autorId: number
-  tipo: 'sample' | 'publicacion'
+  tipo: 'sample' | 'publicacion' | 'cancion' | 'relacion'
   targetId: number
   contenido: string | null
   createdAt: string
@@ -170,7 +177,7 @@ export interface IFollows {
 
 export interface ILikes {
   usuarioId: number
-  tipo: 'sample' | 'publicacion' | 'comentario'
+  tipo: 'sample' | 'publicacion' | 'comentario' | 'cancion' | 'relacion'
   targetId: number
   createdAt: string
   reaccion: 'like' | 'dislike' | 'encanta'
@@ -231,11 +238,15 @@ export interface IRelacionesSample {
   timingsFuente: Record<string, unknown>
   apareceEnTodo: boolean
   sampleId: number | null
+  sampleFuenteId: number | null
+  sampleDestinoId: number | null
   votosTotal: number
   votosPromedio: number
   fuente: 'scraping' | 'comunidad' | 'musicbrainz' | 'import'
   contribuidorId: number | null
   verificada: boolean
+  totalLikes: number
+  totalComentarios: number
   createdAt: string
   updatedAt: string
 }
@@ -312,6 +323,7 @@ export interface ISamples {
   totalComentarios: number
   verificado: boolean
   mostrarEnComunidad: boolean
+  cancionOrigenId: number | null
 }
 
 export interface IScrapingLog {
@@ -322,6 +334,9 @@ export interface IScrapingLog {
   intentos: number
   bytesDescargados: number
   errorMensaje: string | null
+  reScrapeable: boolean
+  proximoRescrape: string | null
+  vecesRescrapeado: number
   procesadoAt: string | null
   createdAt: string
 }
@@ -443,6 +458,7 @@ export const CancionesCols = {
   DURACION_SEGUNDOS: 'duracion_segundos',
   GENERO: 'genero',
   YOUTUBE_ID: 'youtube_id',
+  SPOTIFY_ID: 'spotify_id',
   IMAGEN_URL: 'imagen_url',
   WHOSAMPLED_URL: 'whosampled_url',
   BPM: 'bpm',
@@ -450,6 +466,8 @@ export const CancionesCols = {
   METADATA: 'metadata',
   TOTAL_SAMPLEADA: 'total_sampleada',
   TOTAL_SAMPLEA: 'total_samplea',
+  TOTAL_LIKES: 'total_likes',
+  TOTAL_COMENTARIOS: 'total_comentarios',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
 } as const
@@ -469,7 +487,11 @@ export const ColaExtraccionSamplesCols = {
   ERROR_MENSAJE: 'error_mensaje',
   INTENTOS: 'intentos',
   PROCESADO_AT: 'procesado_at',
-  CREATED_AT: 'created_at'
+  CREATED_AT: 'created_at',
+  LADO: 'lado',
+  SPOTIFY_ID: 'spotify_id',
+  RUTA_AUDIO_EXTRAIDO: 'ruta_audio_extraido',
+  METADATA_EXTRACCION: 'metadata_extraccion'
 } as const
 
 export const ColaProcesamientoIaCols = {
@@ -637,11 +659,15 @@ export const RelacionesSampleCols = {
   TIMINGS_FUENTE: 'timings_fuente',
   APARECE_EN_TODO: 'aparece_en_todo',
   SAMPLE_ID: 'sample_id',
+  SAMPLE_FUENTE_ID: 'sample_fuente_id',
+  SAMPLE_DESTINO_ID: 'sample_destino_id',
   VOTOS_TOTAL: 'votos_total',
   VOTOS_PROMEDIO: 'votos_promedio',
   FUENTE: 'fuente',
   CONTRIBUIDOR_ID: 'contribuidor_id',
   VERIFICADA: 'verificada',
+  TOTAL_LIKES: 'total_likes',
+  TOTAL_COMENTARIOS: 'total_comentarios',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
 } as const
@@ -721,7 +747,8 @@ export const SamplesCols = {
   HASH_PARCIAL: 'hash_parcial',
   TOTAL_COMENTARIOS: 'total_comentarios',
   VERIFICADO: 'verificado',
-  MOSTRAR_EN_COMUNIDAD: 'mostrar_en_comunidad'
+  MOSTRAR_EN_COMUNIDAD: 'mostrar_en_comunidad',
+  CANCION_ORIGEN_ID: 'cancion_origen_id'
 } as const
 
 export const ScrapingLogCols = {
@@ -733,6 +760,9 @@ export const ScrapingLogCols = {
   INTENTOS: 'intentos',
   BYTES_DESCARGADOS: 'bytes_descargados',
   ERROR_MENSAJE: 'error_mensaje',
+  RE_SCRAPEABLE: 're_scrapeable',
+  PROXIMO_RESCRAPE: 'proximo_rescrape',
+  VECES_RESCRAPEADO: 'veces_rescrapeado',
   PROCESADO_AT: 'procesado_at',
   CREATED_AT: 'created_at'
 } as const
@@ -815,9 +845,12 @@ export const ColaExtraccionSamplesEnums = {
   ESTADO_DESCARGANDO: 'descargando',
   ESTADO_ANALIZANDO: 'analizando',
   ESTADO_RECORTANDO: 'recortando',
+  ESTADO_EXTRAIDO: 'extraido',
   ESTADO_COMPLETADO: 'completado',
   ESTADO_ERROR: 'error',
-  ESTADO_REVISION_HUMANA: 'revision_humana'
+  ESTADO_REVISION_HUMANA: 'revision_humana',
+  LADO_FUENTE: 'fuente',
+  LADO_DESTINO: 'destino'
 } as const
 
 export const ColaProcesamientoIaEnums = {
@@ -838,6 +871,8 @@ export const ColaProcesamientoIaEnums = {
 export const ComentariosEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_PUBLICACION: 'publicacion',
+  TIPO_CANCION: 'cancion',
+  TIPO_RELACION: 'relacion',
   TIPO_CONTENIDO_TEXTO: 'texto',
   TIPO_CONTENIDO_IMAGEN: 'imagen',
   TIPO_CONTENIDO_AUDIO: 'audio',
@@ -861,6 +896,8 @@ export const LikesEnums = {
   TIPO_SAMPLE: 'sample',
   TIPO_PUBLICACION: 'publicacion',
   TIPO_COMENTARIO: 'comentario',
+  TIPO_CANCION: 'cancion',
+  TIPO_RELACION: 'relacion',
   REACCION_LIKE: 'like',
   REACCION_DISLIKE: 'dislike',
   REACCION_ENCANTA: 'encanta'

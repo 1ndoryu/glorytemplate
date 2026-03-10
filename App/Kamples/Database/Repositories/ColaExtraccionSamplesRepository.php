@@ -33,17 +33,16 @@ class ColaExtraccionSamplesRepository extends BaseRepository
     public static function buscarRecientes(int $limit = 20): array
     {
         $tabla = ColaExtraccionSamplesCols::TABLA;
-        $cols = implode(', ', ColaExtraccionSamplesCols::TODAS);
 
         return static::consultar(
-            "SELECT {$cols} FROM {$tabla} ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-        /**
+            /**
      * Obtener elementos pendientes de la cola (para el pipeline de extracción).
      */
     public static function pendientes(int $limit = 10): array
@@ -136,6 +135,27 @@ class ColaExtraccionSamplesRepository extends BaseRepository
         );
 
         return $afectadas > 0;
+    }
+
+    /**
+     * Items con audio extraido listos para publicar via PipelineAudio PHP.
+     */
+    public static function extraidos(int $limit = 10): array
+    {
+        $tabla = ColaExtraccionSamplesCols::TABLA;
+
+        return static::consultar(
+            "SELECT ce.*, "
+            . "rs." . \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_FUENTE_ID . ", "
+            . "rs." . \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_DESTINO_ID . " "
+            . "FROM {$tabla} ce "
+            . "JOIN " . \App\Config\Schema\_generated\RelacionesSampleCols::TABLA . " rs "
+            . "ON ce." . ColaExtraccionSamplesCols::RELACION_ID . " = rs." . \App\Config\Schema\_generated\RelacionesSampleCols::ID . " "
+            . "WHERE ce." . ColaExtraccionSamplesCols::ESTADO . " = :estado "
+            . "ORDER BY ce." . ColaExtraccionSamplesCols::CREATED_AT . " ASC "
+            . "LIMIT :limit",
+            ['estado' => ColaExtraccionSamplesEnums::ESTADO_EXTRAIDO, 'limit' => $limit]
+        );
     }
 
     /**

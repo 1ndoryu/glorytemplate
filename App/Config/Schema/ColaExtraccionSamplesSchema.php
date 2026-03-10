@@ -26,7 +26,7 @@ class ColaExtraccionSamplesSchema extends TableSchema
             'duracion_compas_seg' => ['tipo' => 'decimal', 'nullable' => true],
             'compas_inicio_seg'   => ['tipo' => 'decimal', 'nullable' => true],
             'compas_fin_seg'      => ['tipo' => 'decimal', 'nullable' => true],
-            'estado'              => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente', 'check' => ['pendiente', 'descargando', 'analizando', 'recortando', 'completado', 'error', 'revision_humana']],
+            'estado'              => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente', 'check' => ['pendiente', 'descargando', 'analizando', 'recortando', 'extraido', 'completado', 'error', 'revision_humana']],
             'sample_id'           => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
             'error_mensaje'       => ['tipo' => 'text', 'nullable' => true],
             'intentos'            => ['tipo' => 'int', 'default' => 0],
@@ -34,6 +34,8 @@ class ColaExtraccionSamplesSchema extends TableSchema
             'created_at'          => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'lado'                => ['tipo' => 'string', 'max' => 10, 'default' => 'fuente', 'check' => ['fuente', 'destino']],
             'spotify_id'          => ['tipo' => 'string', 'max' => 30, 'nullable' => true],
+            'ruta_audio_extraido' => ['tipo' => 'text', 'nullable' => true],
+            'metadata_extraccion' => ['tipo' => 'jsonb', 'nullable' => true],
         ];
     }
 }

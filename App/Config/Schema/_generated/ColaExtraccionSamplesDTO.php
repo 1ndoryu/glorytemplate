@@ -10,7 +10,7 @@ final class ColaExtraccionSamplesDTO
     public function __construct(
         public readonly int $id,
         public readonly int $relacionId,
-        public readonly string $youtubeId,
+        public readonly ?string $youtubeId,
         public readonly int $timingInicioSeg,
         public readonly ?int $bpmDetectado,
         public readonly ?float $duracionCompasSeg,
@@ -21,7 +21,11 @@ final class ColaExtraccionSamplesDTO
         public readonly ?string $errorMensaje,
         public readonly int $intentos,
         public readonly ?string $procesadoAt,
-        public readonly string $createdAt
+        public readonly string $createdAt,
+        public readonly string $lado,
+        public readonly ?string $spotifyId,
+        public readonly ?string $rutaAudioExtraido,
+        public readonly ?mixed $metadataExtraccion
     ) {}
 
     /**
@@ -33,7 +37,7 @@ final class ColaExtraccionSamplesDTO
         return new self(
             id: (int) ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en cola_extraccion_samples", 'cola_extraccion_samples', 'id')),
             relacionId: (int) ($row['relacion_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'relacion_id' ausente en cola_extraccion_samples", 'cola_extraccion_samples', 'relacion_id')),
-            youtubeId: ($row['youtube_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'youtube_id' ausente en cola_extraccion_samples", 'cola_extraccion_samples', 'youtube_id')),
+            youtubeId: isset($row['youtube_id']) ? $row['youtube_id'] : null,
             timingInicioSeg: (int) ($row['timing_inicio_seg'] ?? throw new \Glory\Exception\SchemaException("Columna 'timing_inicio_seg' ausente en cola_extraccion_samples", 'cola_extraccion_samples', 'timing_inicio_seg')),
             bpmDetectado: isset($row['bpm_detectado']) ? (int) $row['bpm_detectado'] : null,
             duracionCompasSeg: isset($row['duracion_compas_seg']) ? (float) $row['duracion_compas_seg'] : null,
@@ -44,7 +48,11 @@ final class ColaExtraccionSamplesDTO
             errorMensaje: isset($row['error_mensaje']) ? $row['error_mensaje'] : null,
             intentos: (int) ($row['intentos'] ?? 0),
             procesadoAt: isset($row['procesado_at']) ? $row['procesado_at'] : null,
-            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
+            createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
+            lado: ($row['lado'] ?? 'fuente'),
+            spotifyId: isset($row['spotify_id']) ? $row['spotify_id'] : null,
+            rutaAudioExtraido: isset($row['ruta_audio_extraido']) ? $row['ruta_audio_extraido'] : null,
+            metadataExtraccion: isset($row['metadata_extraccion']) ? $row['metadata_extraccion'] : null
         );
     }
 
@@ -75,6 +83,10 @@ final class ColaExtraccionSamplesDTO
             'error_mensaje' => $this->errorMensaje,
             'intentos' => $this->intentos,
             'procesado_at' => $this->procesadoAt,
-            'created_at' => $this->createdAt];
+            'created_at' => $this->createdAt,
+            'lado' => $this->lado,
+            'spotify_id' => $this->spotifyId,
+            'ruta_audio_extraido' => $this->rutaAudioExtraido,
+            'metadata_extraccion' => $this->metadataExtraccion];
     }
 }
