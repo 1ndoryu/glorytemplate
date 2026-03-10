@@ -208,6 +208,7 @@ class ColaExtraccionSamplesRepository extends BaseRepository
                 : ($datos['timings'] ?: []);
             $timing = !empty($timings) ? (int) $timings[0] : 0;
 
+            /* ON CONFLICT: resetear a pendiente para permitir reprocesamiento */
             $id = static::insertar(
                 "INSERT INTO {$tabla} ("
                 . ColaExtraccionSamplesCols::RELACION_ID . ", "
@@ -216,7 +217,12 @@ class ColaExtraccionSamplesRepository extends BaseRepository
                 . ColaExtraccionSamplesCols::TIMING_INICIO_SEG . ", "
                 . ColaExtraccionSamplesCols::LADO
                 . ") VALUES (:relacion_id, :youtube_id, :spotify_id, :timing, :lado) "
-                . "ON CONFLICT (" . ColaExtraccionSamplesCols::RELACION_ID . ", " . ColaExtraccionSamplesCols::LADO . ") DO NOTHING "
+                . "ON CONFLICT (" . ColaExtraccionSamplesCols::RELACION_ID . ", " . ColaExtraccionSamplesCols::LADO . ") DO UPDATE SET "
+                . ColaExtraccionSamplesCols::ESTADO . " = '" . ColaExtraccionSamplesEnums::ESTADO_PENDIENTE . "', "
+                . ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO . " = NULL, "
+                . ColaExtraccionSamplesCols::METADATA_EXTRACCION . " = NULL, "
+                . ColaExtraccionSamplesCols::INTENTOS . " = 0, "
+                . ColaExtraccionSamplesCols::ERROR_MENSAJE . " = NULL "
                 . "RETURNING " . ColaExtraccionSamplesCols::ID,
                 [
                     'relacion_id' => (int) $relacion['id'],
