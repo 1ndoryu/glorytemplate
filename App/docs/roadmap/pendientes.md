@@ -323,3 +323,15 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 > - [Tipo RelacionSample]: Agregar campos opcionales del otro lado (`destinoTitulo`, `fuenteArtista`, etc.) permite URLs completas sin cambiar las queries PHP.
 > - [imagen portada]: `CancionesRepository::buscarConArtista()` retorna `imagen_url` — usar para heredar a samples generados.
 > - [ladoExtraccion]: Comparar `sample_fuente_id === sampleId` en PHP para determinar lado, enviar al frontend como `ladoExtraccion`.
+
+### S-UI2 — Panel lateral Discovery + Origin marker ✅ [AG-UI] C712
+
+- [x] **S-UI2.1** Panel lateral discovery: `TarjetaCancionMini` (nuevo componente) muestra canción fuente/destino en PanelDetalleSample cuando el sample tiene relación — título + artista + portada + etiqueta ✅
+- [x] **S-UI2.2** discoveryIndicadorOrigen eliminado: reemplazado por marcador `●` en la fila de origen dentro de `TablaRelaciones` (clase `tablaRelacionesFilaOrigen` + border-left acento) ✅
+- [x] **S-UI2.3** Retroactive imagen_url: 4 samples existentes (148-151) sin imagen actualizados via UPDATE FROM canciones WHERE cancion_origen_id IS NOT NULL AND imagen_url IS NULL ✅
+
+> Lecciones S-UI2:
+> - [Panel hooks]: `useRelacionDiscovery` acepta `sampleId?: number | null` — se puede llamar en PanelDetalleSample pasando `sample.id` directamente sin hook adicional.
+> - [CSS vars]: `--superficieElevada` y `--bordeInteractivo` NO existen. Usar `--fondoElevado1/2/3` y `--bordeActivo` respectivamente.
+> - [Retroactive data]: Samples generados antes de S-UI.3 tienen `imagen_url = NULL`. Fix: `UPDATE samples SET imagen_url = c.imagen_url FROM canciones c WHERE s.cancion_origen_id = c.id AND s.imagen_url IS NULL`.
+> - [TablaRelaciones origin marker]: `marcarOrigen={esFuente}` en fuente, `marcarOrigen={!esFuente}` en destino. Marca solo `idx === 0` (primera fila = canción origen directa).
