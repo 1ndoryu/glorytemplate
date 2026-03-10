@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 # Tipos de página cuyas URLs evolucionan y necesitan revisita periódica
 TIPOS_RE_SCRAPEABLES = frozenset({"track", "track_samples", "track_sampled", "artist"})
 
-# Intervalo base entre rescrapes (días). Crece con cada iteración.
-INTERVALO_RESCRAPE_DIAS = 30
+# Intervalo base entre rescrapes (días). Crece con cada iteración: 180d, 360d, 540d...
+# Mínimo 6 meses — las páginas de track/artist no cambian con frecuencia.
+INTERVALO_RESCRAPE_DIAS = 180
 
 
 def url_ya_procesada(url: str) -> bool:

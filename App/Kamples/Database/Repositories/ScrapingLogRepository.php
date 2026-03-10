@@ -154,7 +154,7 @@ class ScrapingLogRepository extends BaseRepository
 
     /**
      * Marcar URL como rescrapeada: incrementar contador, programar próximo rescrape.
-     * Intervalo entre rescrapes crece con cada iteración (30d, 60d, 90d...).
+     * Intervalo base 180 días (6 meses). Crece con cada iteración: 180d, 360d, 540d...
      */
     public static function marcarRescrapeada(int $id): bool
     {
@@ -163,7 +163,7 @@ class ScrapingLogRepository extends BaseRepository
         $afectadas = static::ejecutar(
             "UPDATE {$tabla} SET "
             . ScrapingLogCols::VECES_RESCRAPEADO . " = " . ScrapingLogCols::VECES_RESCRAPEADO . " + 1, "
-            . ScrapingLogCols::PROXIMO_RESCRAPE . " = NOW() + ((" . ScrapingLogCols::VECES_RESCRAPEADO . " + 1) * INTERVAL '30 days'), "
+            . ScrapingLogCols::PROXIMO_RESCRAPE . " = NOW() + ((" . ScrapingLogCols::VECES_RESCRAPEADO . " + 1) * INTERVAL '180 days'), "
             . ScrapingLogCols::PROCESADO_AT . " = NOW() "
             . "WHERE " . ScrapingLogCols::ID . " = :id",
             ['id' => $id]
@@ -175,7 +175,7 @@ class ScrapingLogRepository extends BaseRepository
     /**
      * Marcar URL como re-scrapeable con próximo rescrape en N días.
      */
-    public static function marcarReScrapeable(int $id, int $diasHastaRescrape = 30): bool
+    public static function marcarReScrapeable(int $id, int $diasHastaRescrape = 180): bool
     {
         $tabla = ScrapingLogCols::TABLA;
         $intervalo = max(1, $diasHastaRescrape);
