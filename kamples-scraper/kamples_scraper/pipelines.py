@@ -7,6 +7,7 @@ PostgresPipeline: inserta RelacionItem en BD con todas las entidades.
 """
 
 import hashlib
+import json
 import logging
 import os
 from pathlib import Path
@@ -16,7 +17,7 @@ import psycopg2
 from curl_cffi import requests as curl_requests
 from scrapy.exceptions import DropItem
 
-from kamples_scraper.items import RelacionItem
+from kamples_scraper.items import RelacionItem, TrackMetadataItem
 from kamples_scraper.utils.db import get_connection
 from kamples_scraper.utils.parsers import (
     generar_slug,
@@ -186,6 +187,9 @@ class PostgresPipeline:
             logger.info("PostgresPipeline: conexion cerrada")
 
     def process_item(self, item):
+        if isinstance(item, TrackMetadataItem):
+            return self._procesar_track_metadata(item)
+
         if not isinstance(item, RelacionItem):
             return item
 
@@ -215,8 +219,16 @@ class PostgresPipeline:
                     prod_id = self._upsert_artista(cur, prod["nombre"], prod.get("whosampled_slug", ""))
                     self._upsert_cancion_artista(cur, fuente_cancion_id, prod_id, "producer")
 
+                # Featuring artists
+                for feat in dest_data.get("featuring", []):
+                    feat_id = self._upsert_artista(cur, feat["nombre"], feat.get("whosampled_slug", ""))
+                    self._upsert_cancion_artista(cur, dest_cancion_id, feat_id, "featuring")
+
+                for feat in fuente_data.get("featuring", []):
+                    feat_id = self._upsert_artista(cur, feat["nombre"], feat.get("whosampled_slug", ""))
+                    self._upsert_cancion_artista(cur, fuente_cancion_id, feat_id, "featuring")
+
                 # 4. Insertar relación sample
-                import json
                 cur.execute(
                     "INSERT INTO relaciones_sample "
                     "(cancion_destino_id, cancion_fuente_id, whosampled_id, "
@@ -297,11 +309,13 @@ class PostgresPipeline:
         cur.execute(
             "INSERT INTO canciones "
             "(titulo, slug, artista_id, album, sello, anio, "
-            "duracion_segundos, imagen_url, whosampled_url) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "duracion_segundos, imagen_url, whosampled_url, youtube_id, genero) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (whosampled_url) DO UPDATE SET "
             "titulo = EXCLUDED.titulo, "
-            "imagen_url = COALESCE(EXCLUDED.imagen_url, canciones.imagen_url) "
+            "imagen_url = COALESCE(EXCLUDED.imagen_url, canciones.imagen_url), "
+            "youtube_id = COALESCE(EXCLUDED.youtube_id, canciones.youtube_id), "
+            "genero = COALESCE(EXCLUDED.genero, canciones.genero) "
             "RETURNING id",
             (
                 data.get("nombre", ""),
@@ -313,6 +327,8 @@ class PostgresPipeline:
                 data.get("duracion_segundos"),
                 data.get("imagen_url"),
                 ws_url or slug,
+                data.get("youtube_id"),
+                data.get("genero"),
             ),
         )
         return cur.fetchone()[0]
@@ -325,3 +341,63 @@ class PostgresPipeline:
             "ON CONFLICT (cancion_id, artista_id, rol) DO NOTHING",
             (cancion_id, artista_id, rol),
         )
+
+    def _procesar_track_metadata(self, item) -> "TrackMetadataItem":
+        """
+        Actualiza una canción existente con metadata del track overview:
+        genero, youtube_id, y tags (almacenados en metadata JSONB).
+        """
+        ws_url = item.get("whosampled_url", "")
+        if not ws_url:
+            logger.warning("TrackMetadataItem sin whosampled_url — ignorado")
+            return item
+
+        try:
+            with self.conn.cursor() as cur:
+                # Construir SET dinámico solo con campos que tengan valor
+                sets = []
+                params = []
+
+                genero = item.get("genero")
+                if genero:
+                    sets.append("genero = COALESCE(%s, canciones.genero)")
+                    params.append(genero)
+
+                youtube_id = item.get("youtube_id")
+                if youtube_id:
+                    sets.append("youtube_id = COALESCE(%s, canciones.youtube_id)")
+                    params.append(youtube_id)
+
+                tags = item.get("tags")
+                if tags:
+                    # Merge tags en metadata JSONB sin sobreescribir otros campos
+                    sets.append(
+                        "metadata = COALESCE(canciones.metadata, '{}'::jsonb) || %s::jsonb"
+                    )
+                    params.append(json.dumps({"tags": tags}))
+
+                if not sets:
+                    logger.debug("TrackMetadataItem sin datos útiles para %s", ws_url)
+                    return item
+
+                params.append(ws_url)
+                cur.execute(
+                    f"UPDATE canciones SET {', '.join(sets)} WHERE whosampled_url = %s",
+                    params,
+                )
+
+                self.conn.commit()
+
+                if cur.rowcount > 0:
+                    logger.info("Metadata actualizada para cancion: %s", ws_url)
+                else:
+                    logger.debug("Cancion no encontrada para metadata: %s", ws_url)
+
+        except psycopg2.Error:
+            self.conn.rollback()
+            logger.exception("Error actualizando metadata para %s", ws_url)
+        except Exception:
+            self.conn.rollback()
+            logger.exception("Error inesperado en _procesar_track_metadata")
+
+        return item

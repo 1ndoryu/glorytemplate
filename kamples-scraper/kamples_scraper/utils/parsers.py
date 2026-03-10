@@ -263,6 +263,41 @@ def extraer_featuring_artists(response, box_id: str) -> list[dict]:
     return artistas
 
 
+""" Regex para filtrar tags tipo "WhoSampled #1", "WhoSampled #123" """
+PATRON_WHOSAMPLED_NUM = re.compile(r"^whosampled\s*#\d+$", re.IGNORECASE)
+
+
+def extraer_metadata_track_overview(response) -> dict:
+    """
+    Extraer genre, tags y youtube_id de la pagina overview de un track.
+    Selectores basados en estructura.html (WhoSampled public HTML).
+    """
+    genero = response.css('span[itemprop="genre"]::text').get("")
+    genero = genero.strip() if genero else None
+
+    tags_raw = response.css('span[itemprop="keywords"] a::text').getall()
+    tags = [
+        t.strip()
+        for t in tags_raw
+        if t.strip() and not PATRON_WHOSAMPLED_NUM.match(t.strip())
+    ]
+
+    youtube_id = response.css(
+        '.track-embed .embed-placeholder::attr(data-id), '
+        '.media-container .embed-placeholder::attr(data-id)'
+    ).get()
+
+    # Construir ruta normalizada del track desde la URL del response
+    whosampled_url = normalizar_url(response.url)
+
+    return {
+        "genero": genero,
+        "youtube_id": youtube_id,
+        "tags": tags,
+        "whosampled_url": whosampled_url,
+    }
+
+
 def identificar_subseccion(header_text: str) -> str | None:
     """
     Identificar tipo de subsección por texto del header.

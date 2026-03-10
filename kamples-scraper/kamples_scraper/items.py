@@ -29,6 +29,14 @@ class CancionItem(scrapy.Item):
     productores = scrapy.Field()      # lista de ArtistaItem
 
 
+class TrackMetadataItem(scrapy.Item):
+    """Metadata adicional extraída de la página overview del track."""
+    whosampled_url = scrapy.Field()   # ruta relativa normalizada (clave dedup)
+    genero = scrapy.Field()           # str: "Hip-Hop / Rap / R&B"
+    youtube_id = scrapy.Field()       # str: "81VrSMrS5F8"
+    tags = scrapy.Field()             # list[str]: ["East Coast Hip-Hop", "Hip-Hop"]
+
+
 class RelacionItem(scrapy.Item):
     """Una relación sample/cover/remix/interpolation entre dos canciones."""
     cancion_destino = scrapy.Field()  # CancionItem

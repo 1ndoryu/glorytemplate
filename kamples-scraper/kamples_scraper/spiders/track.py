@@ -18,8 +18,9 @@ import logging
 
 import scrapy
 
+from kamples_scraper.items import TrackMetadataItem
 from kamples_scraper.utils.dedup import url_ya_procesada, registrar_url, marcar_procesada, marcar_error
-from kamples_scraper.utils.parsers import normalizar_url
+from kamples_scraper.utils.parsers import normalizar_url, extraer_metadata_track_overview
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,7 @@ class TrackSpider(scrapy.Spider):
     def parse_track_overview(self, response):
         """
         Parsear la página overview de un track: /{Artista}/{Track}/
+        Emite TrackMetadataItem con genre/tags/youtube_id para enriquecer la cancion.
         Genera requests a /samples/ y /sampled/ según el modo configurado.
         """
         url_norm = normalizar_url(response.url)
@@ -94,6 +96,16 @@ class TrackSpider(scrapy.Spider):
         base_url = response.url.rstrip("/")
 
         try:
+            # Extraer metadata del track overview (genre, tags, youtube_id)
+            meta = extraer_metadata_track_overview(response)
+            if meta["genero"] or meta["youtube_id"] or meta["tags"]:
+                yield TrackMetadataItem(
+                    whosampled_url=meta["whosampled_url"],
+                    genero=meta["genero"],
+                    youtube_id=meta["youtube_id"],
+                    tags=meta["tags"],
+                )
+
             # Links directos a detalles de relación visibles en el overview
             for row in response.css("table.tdata tr"):
                 yield from self._extraer_detail_links(response, row)
