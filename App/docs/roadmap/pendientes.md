@@ -144,6 +144,22 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar crédito.
 
+### C800-C801 — Verificación y corrección samples extraídos [EN CURSO — AG-COR]
+
+800. [EN CURSO — AG-COR] Sistema de corrección de metadata IA en samples extraídos: botón "Corregir IA" en menú contextual → modal con input de instrucciones → endpoint backend que corrige metadata (título, nombre archivo, tags, etc.)
+801. [EN CURSO — AG-COR] Enlace "Ver en YouTube" en menú contextual de samples extraídos — usa youtube_id de la relación discovery.
+
+### C802 — Legal Shield + Community Contributions ✅ [AG-SEC]
+
+> Completado: migracion v033, seed users (SeedUsuarios + SeedConfig + DevController endpoints), ContribucionesService + ContribucionesController, ReporteLegalController (POST /reportar-legal sin auth + GET /admin/reportes/legales), frontend completo (BuscadorCanciones, ModalContribucion, BotonReporteLegal, ModalReporteLegal, useContribucion, useReporteLegal, apiContribuciones, apiReporteLegal), TarjetaRelacionSample con contrib display, fix descripciones auto-generadas, endpoint retroactivo sincronizar-descripciones.
+
+**Pendiente C802 (siguiente iteracion):**
+- [ ] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones)
+- [ ] **C802b** Integrar BuscadorCanciones en modal publicacion/edicion sample (L5.5)
+- [ ] **C802c** Boton "Subir sample de esta cancion" en pagina cancion (L5.6)
+- [ ] **C802d** Edicion de contribuciones pendientes por el propio usuario (L5.8)
+- [ ] **C802e** Pagina estatica /politica-dmca (L4)
+
 ---
 
 ## Sprint F — Fixes UX + Sync + UI
