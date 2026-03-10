@@ -475,14 +475,22 @@ class DevController
      * Publica samples extraidos (estado='extraido') a traves del flujo estandar.
      * Delega en PublicadorExtraccion (SRP).
      * POST /dev/extraccion/publicar { limit?: int }
+     *
+     * TO-DO: DevController supera 300 lineas. Separar en DevRecorteController + DevPublicacionController.
      */
     public static function publicarExtracciones(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
             $limit = (int) ($request->get_param('limit') ?: 10);
-            $resultado = \App\Kamples\Services\PublicadorExtraccion::publicarPendientes($limit);
 
-            if ($resultado['publicados'] === 0 && $resultado['errores'] === 0) {
+            /* Desestructurar explicitamente para que Sentinel entienda los tipos */
+            [
+                'publicados' => $publicados,
+                'errores'    => $errores,
+                'resultados' => $resultadosArray,
+            ] = \App\Kamples\Services\PublicadorExtraccion::publicarPendientes($limit);
+
+            if ($publicados === 0 && $errores === 0) {
                 return new \WP_REST_Response([
                     'ok' => true, 'mensaje' => 'Sin extracciones pendientes de publicar.', 'publicados' => 0,
                 ], 200);
@@ -490,9 +498,9 @@ class DevController
 
             return new \WP_REST_Response([
                 'ok'         => true,
-                'publicados' => $resultado['publicados'],
-                'errores'    => $resultado['errores'],
-                'resultados' => \array_values($resultado['resultados']),
+                'publicados' => $publicados,
+                'errores'    => $errores,
+                'resultados' => \array_values($resultadosArray),
             ], 200);
 
         } catch (\Throwable $e) {
@@ -600,20 +608,20 @@ class DevController
                  * WP Cron se encarga de publicar cuando el pipeline termine (~3min). */
             }
 
-            /* Programar publicacion via WP Cron: se dispara 3 minutos despues
-             * para dar tiempo a que Python descargue y corte el audio. */
-            \wp_schedule_single_event(\time() + 180, 'kamples_publicar_extracciones', [\count($ids)]);
+            /* Programar publicacion via WP Cron con timestamp inmediato.
+             * Python notifica a wp-cron.php cuando termina — garantiza disparo
+             * exactamente cuando el audio esta listo, sin depender de trafico. */
+            \wp_schedule_single_event(\time(), 'kamples_publicar_extracciones', [\count($ids)]);
 
             KamplesLogger::info('[DEV] Recorte encolado + pipeline iniciado en background', [
                 'relacion_id' => $relacionId,
                 'encolados'   => \count($ids),
                 'pid'         => $pid,
-                'publicar_en' => date('H:i:s', \time() + 180),
             ]);
 
             return new \WP_REST_Response([
                 'ok'        => true,
-                'mensaje'   => 'Pipeline iniciado. Publicacion programada en ~3 minutos.',
+                'mensaje'   => 'Pipeline iniciado. Publicacion automatica cuando el audio este listo.',
                 'encolados' => \count($ids),
                 'pid'       => $pid,
                 'log'       => 'App/logs/extractor-output-' . date('Y-m-d') . '.log',

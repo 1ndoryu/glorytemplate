@@ -17,6 +17,7 @@ import os
 import sys
 import tempfile
 import time
+import urllib.request
 
 from kamples_scraper.utils.db import get_connection
 from extractor.audio_download import descargar_audio, limpiar_audio
@@ -213,6 +214,33 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             limpiar_audio(wav_path)
 
 
+def notificar_wp_cron(exitosos: int) -> None:
+    """
+    Dispara wp-cron.php para que WP procese los eventos pendientes.
+    Esto activa kamples_publicar_extracciones que PHP programo con time(),
+    garantizando publicacion inmediata sin depender de trafico web.
+    """
+    if exitosos == 0:
+        return
+
+    site_url = os.getenv("KAMPLES_SITE_URL", "").rstrip("/")
+    if not site_url:
+        logger.warning("KAMPLES_SITE_URL no configurado — WP Cron no notificado. Publicacion diferida.")
+        return
+
+    cron_url = f"{site_url}/wp-cron.php?doing_wp_cron=1"
+    try:
+        req = urllib.request.Request(cron_url, method="GET")
+        req.add_header("User-Agent", "Kamples-Pipeline/1.0")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            logger.info(
+                "WP Cron notificado [%s] — publicacion de %d item(s) en curso",
+                resp.status, exitosos,
+            )
+    except Exception as e:
+        logger.warning("No se pudo notificar a WP Cron: %s — publicacion diferida", e)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pipeline de extraccion de audio Kamples")
     parser.add_argument("--limit", type=int, default=10, help="Maximo de items a procesar")
@@ -242,6 +270,8 @@ def main():
         "Pipeline completado: %d exitosos, %d fallidos de %d total",
         exitosos, fallidos, len(pendientes),
     )
+
+    notificar_wp_cron(exitosos)
 
 
 if __name__ == "__main__":
