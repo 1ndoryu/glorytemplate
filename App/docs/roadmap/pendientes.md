@@ -281,19 +281,20 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **S-R7** Auto-enqueue en PostgresPipeline Scrapy post-inserción relación ✅ [AG-REC]
 - [ ] **S-R8** Descripción auto-generada desde metadata (pendiente)
 
-### S-FIX-2 — Pipeline publicacion: creadorId + FK delete + WP Cron ✅ [AG-PUB] C711
+### S-FIX-2 — Pipeline publicacion: creadorId + FK delete + WP Cron ✅ [AG-FIX] C711-C218
 
-Commits: `79f586db`, `fc3db49f`
+Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 
 - [x] **S-FIX2.1** Fix FK violation al borrar sample: `SamplesRepository::eliminarConCascada()` llama `ColaExtraccionSamplesRepository::desvincularSampleId()` antes de DELETE ✅
 - [x] **S-FIX2.2** Fix creadorId=0 en PublicadorExtraccion: `resolverCreadorId()` usa `contribuidor_id` de relacion (JOIN en `extraidos()`), fallback a `KAMPLES_SISTEMA_USUARIO_ID` en .env (default usuario 7 admin) ✅
-- [x] **S-FIX2.3** Fix WP Cron local dev: evento programado en `time()` (inmediato), Python llama `wp-cron.php` al terminar pipeline — garantia de publicacion sin depender de trafico HTTP ✅
+- [x] **S-FIX2.3** Fix WP Cron race condition: reemplazado WP Cron por endpoint REST directo `POST /dev/extraccion/publicar-auto`. Python notifica tras terminar extraccion. Autenticacion via `X-Kamples-Secret`. ✅
 - [x] **S-FIX2.4** Refactor `publicarExtracciones()` en DevController: desestructuración explícita de return para Sentinel ✅
-- [x] **S-FIX2.5** KAMPLES_SITE_URL añadida a kamples-scraper/.env ✅
-- [x] **S-FIX2.6** Cola 5,6 (relacion 182) reseteadas a estado `extraido` para retry con el fix aplicado ✅
+- [x] **S-FIX2.5** KAMPLES_SITE_URL + KAMPLES_CRON_SECRET añadidas a kamples-scraper/.env ✅
+- [x] **S-FIX2.6** Cola 5,6 (relacion 182) reseteadas a estado `extraido` y publicadas — pipeline end-to-end verificado ✅
+- [x] **S-FIX2.7** Fix 401 en publicar-auto: `getenv()` → `$_ENV ?? getenv()` en `verificarSecretCron()` y `resolverCreadorId()`. Dotenv::createImmutable() popula solo `$_ENV`, no `putenv()`. ✅
 
 > TO-DO: DevController supera 300 lineas (539). Separar en DevRecorteController + DevPublicacionController. Marcar como tarea pendiente de sprint.
-> Lecciones: [WP Cron] No depender de tráfico para cron en dev — Python notifica wp-cron.php directamente. [creadorId] Resolver desde contribuidor_id de la relación (JOIN en extraidos()), no hardcodear. [FK delete] SIEMPRE desreferenciar FKs en tablas secundarias antes de DELETE en tabla fuente.
+> Lecciones: [WP Cron] No depender de tráfico para cron en dev — usar endpoint REST directo con secret. [creadorId] Resolver desde contribuidor_id de la relación (JOIN en extraidos()), no hardcodear. [FK delete] SIEMPRE desreferenciar FKs en tablas secundarias antes de DELETE en tabla fuente. [Dotenv] Dotenv::createImmutable() popula SOLO $_ENV. NUNCA usar getenv() sin fallback $_ENV. Patron correcto: `$_ENV['KEY'] ?? getenv('KEY') ?? ''`.
 
 ### S-FIX — Bugfixes artista + cola + logging — ✅ COMPLETADO C710 [AG-REC]
 - [x] **S-FIX.1** DISTINCT ON (c.id) en cancionesDeArtista() para eliminar duplicados por roles múltiples ✅
