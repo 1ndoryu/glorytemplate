@@ -225,6 +225,8 @@
 - [promise-sin-catch]: Ventana de 6 líneas es muy estricta para cadenas .then() multilinea. Ampliada a 20.
 - [html-nativo-en-vez-de-componente]: `<input type="file">` es excepción válida — se usa con ref para file picker. Excluir junto con `type="hidden"`.
 - [hardcoded-sql-column JSONB fix]: match.index apunta al `'` de apertura. Los 2 chars antes son `->`. Fix: `substring(match.index-2, match.index) === '->'`. Error previo: checked `->('|")$` pero precede3 no contiene la comilla de apertura — es el texto ANTES de ella.
+- [php-service-retorna-asociativo]: Falso positivo en métodos `listar*` que retornan array indexado via `fetchAll()`. PDO::FETCH_ASSOC hace filas asociativas pero fetchAll() retorna array indexado. JSON serializa como `[]` no `{}`. Usar sentinel-disable con justificación.
+- [limite-lineas masivos desktop]: Archivos sync desktop (1030, 966, 934, 722, 596 líneas) necesitan split futuro. TO-DOs dejados en sentinel-disable-file: extraer helpers/subfunciones a módulos separados.
 
 ---
 
