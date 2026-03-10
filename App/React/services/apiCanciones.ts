@@ -4,7 +4,7 @@
  * Los endpoints son públicos (información cultural abierta).
  */
 
-import { apiGet } from './apiCliente';
+import { apiGet, apiDelete, apiPost } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type {
     Cancion,
@@ -87,3 +87,31 @@ export const obtenerCadenaSamples = (
     profundidad = 5
 ): Promise<RespuestaApi<CadenaSamplesResp>> =>
     apiGet<CadenaSamplesResp>(`/canciones/${encodeURIComponent(slug)}/cadena`, { profundidad });
+
+/* ── Endpoints de desarrollo (solo disponibles con WP_DEBUG = true) ── */
+
+interface RespuestaPurga {
+    ok: boolean;
+    mensaje: string;
+    tablas: string[];
+}
+
+interface RespuestaScraper {
+    ok: boolean;
+    mensaje: string;
+    pid?: number;
+    log?: string;
+}
+
+/* Trunca todas las tablas del módulo Sample Discovery */
+export const devPurgarCanciones = (): Promise<RespuestaApi<RespuestaPurga>> =>
+    apiDelete<RespuestaPurga>('/dev/canciones');
+
+/* Lanza el spider indicado en segundo plano.
+ * Si se pasa url (URL de WhoSampled), se usa el spider 'track' automáticamente. */
+export const devEjecutarScraper = (
+    spider: 'hot_samples' | 'browse_year' | 'track' = 'hot_samples',
+    limit = 0,
+    url = ''
+): Promise<RespuestaApi<RespuestaScraper>> =>
+    apiPost<RespuestaScraper>('/dev/scraper/run', { spider, limit, ...(url ? { url } : {}) });

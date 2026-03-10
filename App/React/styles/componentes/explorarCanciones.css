@@ -173,6 +173,80 @@
     color: var(--textoPrimario);
 }
 
+/* Panel de herramientas de desarrollo */
+.panelDevCanciones {
+    border: 1px dashed var(--error);
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--errorMuted);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.panelDevCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoBold);
+    color: var(--error);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.panelDevAcciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
+    align-items: flex-start;
+}
+
+.panelDevAccion {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.panelDevMensaje {
+    font-size: var(--fuenteXs);
+    padding: 2px var(--espacioXs);
+    border-radius: var(--radioSm);
+}
+
+.panelDevMensaje--ok {
+    color: var(--exito);
+    background: var(--exitoMuted);
+}
+
+.panelDevMensaje--error {
+    color: var(--error);
+    background: var(--errorMuted);
+}
+
+.panelDevMensaje--loading {
+    color: var(--textoSecundario);
+}
+
+.panelDevLabel {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.panelDevInputUrl {
+    font-size: var(--fuenteXs);
+    padding: 4px var(--espacioXs);
+    border: 1px solid var(--borde);
+    border-radius: var(--radioSm);
+    background: var(--fondo);
+    color: var(--texto);
+    width: 340px;
+    max-width: 100%;
+}
+
 .explorarCancionesEstadisticaEtiqueta {
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
