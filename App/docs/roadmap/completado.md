@@ -288,3 +288,25 @@ kamples-scraper/
 - **SEO URLs:** `construirUrlSampleo()` + `slugificar()` en cancion.ts, pages.php retrocompat, TablaRelaciones/TarjetaRelacionSample actualizados.
 - **CSS:** relacionDetalle.css con portadaVacia, ladoExtra, secciones, toggle comentarios.
 - **Pendiente:** Ejecutar migration v028 en producción.
+
+---
+
+### C703  Bug SPA misma isla + route params + escalabilidad relacional [AG-NAV]
+
+**Bug diagnosticado:** Navegacion SPA entre paginas de la misma isla (ej: /sampleo/169 -> /sampleo/168) no actualizaba props porque:
+1. PageRenderer keep-alive solo actualizaba cache cuando `islaActual` cambiaba (distinta isla), no cuando props cambiaban para la misma isla
+2. Router SPA no extraia params nombrados de la URL  todo iba como `slug` generico
+3. PHP `resolverRutaDinamica` rechazaba URLs multi-segmento (ej: `/sampleo/168/seo-slug/`) con 404
+
+**Fixes:**
+- **PageRenderer.tsx:** Isla activa usa `propsActuales` del store (live), no del cache. Islas ocultas (keep-alive) mantienen props cacheados.
+- **navigationStore.ts:** Nueva funcion `extraerParamsDeUrl()` que parsea patrones como `:id/:slug?` y extrae params nombrados de la URL.
+- **PageDefinition.php:** `registrarRutaDinamica()` ahora acepta patron de params (2do argumento, default `:slug`). `getReactPageRoutes()` incluye `params` en el mapa enviado al cliente.
+- **PageTemplateInterceptor.php:** `resolverRutaDinamica()` y `forzarResolucionDinamica()` ahora permiten multi-segmento para rutas que lo declaran.
+- **pages.php:** Rutas actualizadas con patrones: `sampleo(`:id/:slug?`), perfil(`:username`), publicacion(`:publicacionId`), coleccion(`:coleccionId`)`.
+
+**Compactacion:** `plan-samples-metadata.md` reducido de ~1010 a ~200 lineas (S1-S5 compactados, S6-S7 y lecciones preservados).
+
+**Escalabilidad plan:** Auditoria detecta 4 problemas para escala: contadores a 0 (sin triggers), relaciones re-encontradas ignoradas (DO NOTHING), indices compuestos faltantes, sin re-scraping strategy. Plan documentado en plan-samples-metadata.md seccion "Plan de Escalabilidad Relacional".
+
+> Archivos: Glory/{PageRenderer.tsx, navigationStore.ts, glory.ts, PageDefinition.php, PageManager.php, PageTemplateInterceptor.php}, App/{pages.php, plan-samples-metadata.md, pendientes.md, completado.md}

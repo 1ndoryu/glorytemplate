@@ -59,7 +59,7 @@ PageManager::reactPage('perfil', 'PerfilIsland', function($pageId) {
 });
 
 /* Rutas dinámicas: /perfil/{username} y /sample/{slug} resuelven a su página padre */
-PageManager::registrarRutaDinamica('perfil');
+PageManager::registrarRutaDinamica('perfil', ':username');
 PageManager::registrarRutaDinamica('sample');
 
 PageManager::reactPage('perfil/editar', 'EditarPerfilIsland');
@@ -83,7 +83,7 @@ PageManager::reactPage('publicacion', 'PublicacionIsland', function($pageId) {
     return ['publicacionId' => sanitize_text_field($pubId)];
 });
 
-PageManager::registrarRutaDinamica('publicacion');
+PageManager::registrarRutaDinamica('publicacion', ':publicacionId');
 
 /*
  * C353: Explorador desactivado temporalmente.
@@ -104,8 +104,8 @@ PageManager::reactPage('coleccion', 'ColeccionDetalleIsland', function($pageId) 
     return ['coleccionId' => sanitize_text_field($coleccionId)];
 });
 
-/* Ruta dinámica: /coleccion/{slug} */
-PageManager::registrarRutaDinamica('coleccion');
+/* Ruta dinámica: /coleccion/{id} */
+PageManager::registrarRutaDinamica('coleccion', ':coleccionId');
 
 /* Paginas Kamples — Mensajeria (Fase 7) */
 PageManager::reactPage('mensajes', 'MensajesIsland');
@@ -142,6 +142,7 @@ PageManager::reactPage('cancion', 'CancionDetalleIsland', function($pageId) {
 });
 
 PageManager::registrarRutaDinamica('cancion');
+/* cancion usa :slug por defecto, no necesita declaración explícita */
 
 /* Paginas Kamples — Detalle de relación de sampleo */
 /* URL SEO: /sampleo/{id}/{slug-descriptivo} o /sampleo/{id} (retrocompat) */
@@ -153,7 +154,7 @@ PageManager::reactPage('sampleo', 'RelacionDetalleIsland', function($pageId) {
     return ['id' => sanitize_text_field($id)];
 });
 
-PageManager::registrarRutaDinamica('sampleo');
+PageManager::registrarRutaDinamica('sampleo', ':id/:slug?');
 
 /* DEV — Showcase de componentes (solo desarrollo) */
 PageManager::reactPage('componentes', 'ShowcaseIsland');
