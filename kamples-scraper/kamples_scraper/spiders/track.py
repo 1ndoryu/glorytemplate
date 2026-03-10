@@ -96,13 +96,14 @@ class TrackSpider(scrapy.Spider):
         base_url = response.url.rstrip("/")
 
         try:
-            # Extraer metadata del track overview (genre, tags, youtube_id)
+            # Extraer metadata del track overview (genre, tags, youtube_id, spotify_id)
             meta = extraer_metadata_track_overview(response)
-            if meta["genero"] or meta["youtube_id"] or meta["tags"]:
+            if meta["genero"] or meta["youtube_id"] or meta["spotify_id"] or meta["tags"]:
                 yield TrackMetadataItem(
                     whosampled_url=meta["whosampled_url"],
                     genero=meta["genero"],
                     youtube_id=meta["youtube_id"],
+                    spotify_id=meta["spotify_id"],
                     tags=meta["tags"],
                 )
 

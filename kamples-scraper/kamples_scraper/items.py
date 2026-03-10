@@ -34,6 +34,7 @@ class TrackMetadataItem(scrapy.Item):
     whosampled_url = scrapy.Field()   # ruta relativa normalizada (clave dedup)
     genero = scrapy.Field()           # str: "Hip-Hop / Rap / R&B"
     youtube_id = scrapy.Field()       # str: "81VrSMrS5F8"
+    spotify_id = scrapy.Field()       # str: "7aheCJTgZydWp7D0BWgrpc" (alternativa a YT)
     tags = scrapy.Field()             # list[str]: ["East Coast Hip-Hop", "Hip-Hop"]
 
 

@@ -41,6 +41,12 @@ const construirEmbedUrl = (youtubeId: string): string | null => {
     return `https://www.youtube-nocookie.com/embed/${youtubeId}`;
 };
 
+/* Valida formato Spotify Track ID y construye URL de embed segura */
+const construirSpotifyEmbedUrl = (spotifyId: string): string | null => {
+    if (!/^[A-Za-z0-9]{10,30}$/.test(spotifyId)) return null;
+    return `https://open.spotify.com/embed/track/${spotifyId}`;
+};
+
 export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.Element => {
     const idEfectivo = id ?? slug;
     const { relacion, cargando, error, irACancion, irAArtista } = useRelacionDetalle({ id: idEfectivo });
@@ -90,8 +96,27 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
         );
     }
 
-    const embedDestino = relacion.destino_youtubeId ? construirEmbedUrl(relacion.destino_youtubeId) : null;
-    const embedFuente = relacion.fuente_youtubeId ? construirEmbedUrl(relacion.fuente_youtubeId) : null;
+    const embedDestino = relacion.destino_youtubeId
+        ? construirEmbedUrl(relacion.destino_youtubeId)
+        : relacion.destino_spotifyId
+            ? construirSpotifyEmbedUrl(relacion.destino_spotifyId)
+            : null;
+    const embedDestinoTipo: 'youtube' | 'spotify' | null = relacion.destino_youtubeId
+        ? 'youtube'
+        : relacion.destino_spotifyId
+            ? 'spotify'
+            : null;
+
+    const embedFuente = relacion.fuente_youtubeId
+        ? construirEmbedUrl(relacion.fuente_youtubeId)
+        : relacion.fuente_spotifyId
+            ? construirSpotifyEmbedUrl(relacion.fuente_spotifyId)
+            : null;
+    const embedFuenteTipo: 'youtube' | 'spotify' | null = relacion.fuente_youtubeId
+        ? 'youtube'
+        : relacion.fuente_spotifyId
+            ? 'spotify'
+            : null;
 
 
     return (
@@ -129,6 +154,7 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     album={relacion.destino_album}
                     timings={relacion.timingsDestino}
                     embedUrl={embedDestino}
+                    embedTipo={embedDestinoTipo}
                     onClickCancion={irACancion}
                     onClickArtista={irAArtista}
                 />
@@ -144,6 +170,7 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     album={relacion.fuente_album}
                     timings={relacion.timingsFuente}
                     embedUrl={embedFuente}
+                    embedTipo={embedFuenteTipo}
                     onClickCancion={irACancion}
                     onClickArtista={irAArtista}
                 />

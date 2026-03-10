@@ -315,12 +315,13 @@ class PostgresPipeline:
         cur.execute(
             "INSERT INTO canciones "
             "(titulo, slug, artista_id, album, sello, anio, "
-            "duracion_segundos, imagen_url, whosampled_url, youtube_id, genero) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+            "duracion_segundos, imagen_url, whosampled_url, youtube_id, spotify_id, genero) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
             "ON CONFLICT (whosampled_url) DO UPDATE SET "
             "titulo = EXCLUDED.titulo, "
             "imagen_url = COALESCE(EXCLUDED.imagen_url, canciones.imagen_url), "
             "youtube_id = COALESCE(EXCLUDED.youtube_id, canciones.youtube_id), "
+            "spotify_id = COALESCE(EXCLUDED.spotify_id, canciones.spotify_id), "
             "genero = COALESCE(EXCLUDED.genero, canciones.genero) "
             "RETURNING id",
             (
@@ -334,6 +335,7 @@ class PostgresPipeline:
                 data.get("imagen_url"),
                 ws_url or slug,
                 data.get("youtube_id"),
+                data.get("spotify_id"),
                 data.get("genero"),
             ),
         )
@@ -373,6 +375,11 @@ class PostgresPipeline:
                 if youtube_id:
                     sets.append("youtube_id = COALESCE(%s, canciones.youtube_id)")
                     params.append(youtube_id)
+
+                spotify_id = item.get("spotify_id")
+                if spotify_id:
+                    sets.append("spotify_id = COALESCE(%s, canciones.spotify_id)")
+                    params.append(spotify_id)
 
                 tags = item.get("tags")
                 if tags:

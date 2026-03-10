@@ -16,6 +16,7 @@ export interface Cancion {
     duracionSegundos: number | null;
     genero: string | null;
     youtubeId: string | null;
+    spotifyId: string | null;
     imagenUrl: string | null;
     whosampledUrl: string | null;
     bpm: number | null;
@@ -125,6 +126,7 @@ export interface RelacionDetalleCompleta {
     fuente_anio: number | null;
     fuente_imagen: string | null;
     fuente_youtubeId: string | null;
+    fuente_spotifyId: string | null;
     fuente_album: string | null;
     fuente_genero: string | null;
     fuente_artista: string | null;
@@ -135,6 +137,7 @@ export interface RelacionDetalleCompleta {
     destino_anio: number | null;
     destino_imagen: string | null;
     destino_youtubeId: string | null;
+    destino_spotifyId: string | null;
     destino_album: string | null;
     destino_genero: string | null;
     destino_artista: string | null;

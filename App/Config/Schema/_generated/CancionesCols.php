@@ -19,6 +19,7 @@ final class CancionesCols
     const DURACION_SEGUNDOS = 'duracion_segundos';
     const GENERO = 'genero';
     const YOUTUBE_ID = 'youtube_id';
+    const SPOTIFY_ID = 'spotify_id';
     const IMAGEN_URL = 'imagen_url';
     const WHOSAMPLED_URL = 'whosampled_url';
     const BPM = 'bpm';
@@ -32,5 +33,5 @@ final class CancionesCols
     const UPDATED_AT = 'updated_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'titulo', 'slug', 'artista_id', 'album', 'sello', 'anio', 'duracion_segundos', 'genero', 'youtube_id', 'imagen_url', 'whosampled_url', 'bpm', 'tonalidad', 'metadata', 'total_sampleada', 'total_samplea', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
+    const TODAS = ['id', 'titulo', 'slug', 'artista_id', 'album', 'sello', 'anio', 'duracion_segundos', 'genero', 'youtube_id', 'spotify_id', 'imagen_url', 'whosampled_url', 'bpm', 'tonalidad', 'metadata', 'total_sampleada', 'total_samplea', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
 }

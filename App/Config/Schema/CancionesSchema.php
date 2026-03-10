@@ -24,6 +24,7 @@ class CancionesSchema extends TableSchema
             'duracion_segundos' => ['tipo' => 'int', 'nullable' => true],
             'genero'            => ['tipo' => 'string', 'max' => 100, 'nullable' => true],
             'youtube_id'        => ['tipo' => 'string', 'max' => 20, 'nullable' => true],
+            'spotify_id'        => ['tipo' => 'string', 'max' => 30, 'nullable' => true],
             'imagen_url'        => ['tipo' => 'text', 'nullable' => true],
             'whosampled_url'    => ['tipo' => 'string', 'max' => 500, 'unico' => true, 'nullable' => true],
             'bpm'               => ['tipo' => 'int', 'nullable' => true],

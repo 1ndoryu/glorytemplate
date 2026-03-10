@@ -186,6 +186,32 @@ def generar_slug_artista(nombre: str) -> str:
     return text.strip("-")[:350]
 
 
+def _extraer_spotify_id_de_embed(response, lado: str | None) -> str | None:
+    """
+    Extraer el track ID de Spotify del iframe embed de WhoSampled.
+    lado: 'dest', 'source', o None (busca cualquier embed de Spotify en la página).
+    Selector: div.media-container.spotify.embed-{lado} iframe[src*='spotify']
+    Retorna el ID del track (ej: '7aheCJTgZydWp7D0BWgrpc') o None.
+    """
+    if lado:
+        selector = f".media-container.spotify.embed-{lado} iframe[src*='open.spotify.com']::attr(src)"
+    else:
+        selector = ".media-container.spotify iframe[src*='open.spotify.com']::attr(src)"
+
+    src = response.css(selector).get()
+    if not src:
+        return None
+
+    # URL formato: https://open.spotify.com/embed/track/TRACK_ID
+    partes = src.split("/track/")
+    if len(partes) < 2:
+        return None
+
+    track_id = partes[1].split("?")[0].strip()
+    # Spotify track IDs son 22 chars alfanuméricos
+    return track_id if re.match(r"^[A-Za-z0-9]{10,30}$", track_id) else None
+
+
 def extraer_cancion_de_box(response, box_id: str) -> dict:
     """
     Extraer datos de una canción de un sampleEntryBox.
@@ -208,6 +234,11 @@ def extraer_cancion_de_box(response, box_id: str) -> dict:
             imagen = None
     track_url = response.css(f"{box_id} .trackName::attr(href)").get("")
 
+    # Identificar la clase de embed correspondiente al lado (dest/source) para Spotify.
+    # #sampleWrap_dest → embed-dest; #sampleWrap_source → embed-source.
+    lado_embed = "dest" if "dest" in box_id else "source"
+    spotify_id = _extraer_spotify_id_de_embed(response, lado_embed)
+
     anio = None
     if anio_raw:
         anio_match = re.search(r"\d{4}", anio_raw)
@@ -224,6 +255,7 @@ def extraer_cancion_de_box(response, box_id: str) -> dict:
         "duracion_segundos": parsear_duracion_iso(duracion_iso),
         "imagen_url": imagen,
         "whosampled_url": normalizar_url(track_url),
+        "spotify_id": spotify_id,
     }
 
 
@@ -269,7 +301,7 @@ PATRON_WHOSAMPLED_NUM = re.compile(r"^whosampled\s*#\d+$", re.IGNORECASE)
 
 def extraer_metadata_track_overview(response) -> dict:
     """
-    Extraer genre, tags y youtube_id de la pagina overview de un track.
+    Extraer genre, tags, youtube_id y spotify_id de la pagina overview de un track.
     Selectores basados en estructura.html (WhoSampled public HTML).
     """
     genero = response.css('span[itemprop="genre"]::text').get("")
@@ -287,12 +319,16 @@ def extraer_metadata_track_overview(response) -> dict:
         '.media-container .embed-placeholder::attr(data-id)'
     ).get()
 
+    # En la overview el embed no tiene clase dest/source: buscar directo.
+    spotify_id = _extraer_spotify_id_de_embed(response, None)
+
     # Construir ruta normalizada del track desde la URL del response
     whosampled_url = normalizar_url(response.url)
 
     return {
         "genero": genero,
         "youtube_id": youtube_id,
+        "spotify_id": spotify_id,
         "tags": tags,
         "whosampled_url": whosampled_url,
     }

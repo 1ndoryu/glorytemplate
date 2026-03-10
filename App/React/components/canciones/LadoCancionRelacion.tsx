@@ -1,7 +1,7 @@
 /*
  * LadoCancionRelacion — Kamples
  * Tarjeta de un lado (destino o fuente) en la vista de detalle de relación.
- * Muestra portada, título, artista, metadata, timing y embed de YouTube.
+ * Muestra portada, título, artista, metadata, timing y embed de YouTube o Spotify.
  * Extraído de RelacionDetalleIsland para cumplir limite de líneas (SRP).
  */
 
@@ -21,6 +21,7 @@ interface LadoCancionRelacionProps {
     album: string | null;
     timings: number[];
     embedUrl: string | null;
+    embedTipo: 'youtube' | 'spotify' | null;
     onClickCancion: (slug: string) => void;
     onClickArtista: (slug: string) => void;
 }
@@ -48,6 +49,7 @@ export const LadoCancionRelacion = ({
     album,
     timings,
     embedUrl,
+    embedTipo,
     onClickCancion,
     onClickArtista,
 }: LadoCancionRelacionProps): JSX.Element => (
@@ -102,8 +104,12 @@ export const LadoCancionRelacion = ({
             <div className="relacionDetalleYoutube">
                 <iframe
                     src={embedUrl}
-                    title={`${titulo} - YouTube`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    title={`${titulo} - ${embedTipo === 'spotify' ? 'Spotify' : 'YouTube'}`}
+                    allow={
+                        embedTipo === 'spotify'
+                            ? 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture'
+                            : 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                    }
                     allowFullScreen
                 />
             </div>
