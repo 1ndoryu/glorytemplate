@@ -214,31 +214,37 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             limpiar_audio(wav_path)
 
 
-def notificar_wp_cron(exitosos: int) -> None:
+def notificar_publicacion(exitosos: int) -> None:
     """
-    Dispara wp-cron.php para que WP procese los eventos pendientes.
-    Esto activa kamples_publicar_extracciones que PHP programo con time(),
-    garantizando publicacion inmediata sin depender de trafico web.
+    Llama al endpoint REST de publicacion automatica cuando Python termina la extraccion.
+    Usa X-Kamples-Secret para autenticarse sin sesion WordPress.
+    Esto garantiza que la publicacion ocurre DESPUES de que los items esten en 'extraido'.
     """
     if exitosos == 0:
         return
 
     site_url = os.getenv("KAMPLES_SITE_URL", "").rstrip("/")
-    if not site_url:
-        logger.warning("KAMPLES_SITE_URL no configurado — WP Cron no notificado. Publicacion diferida.")
+    secret = os.getenv("KAMPLES_CRON_SECRET", "")
+
+    if not site_url or not secret:
+        logger.warning(
+            "KAMPLES_SITE_URL o KAMPLES_CRON_SECRET no configurados — publicacion manual requerida."
+        )
         return
 
-    cron_url = f"{site_url}/wp-cron.php?doing_wp_cron=1"
+    endpoint = f"{site_url}/wp-json/kamples/v1/dev/extraccion/publicar-auto"
     try:
-        req = urllib.request.Request(cron_url, method="GET")
-        req.add_header("User-Agent", "Kamples-Pipeline/1.0")
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        req = urllib.request.Request(endpoint, method="POST", data=b"")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Kamples-Secret", secret)
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
             logger.info(
-                "WP Cron notificado [%s] — publicacion de %d item(s) en curso",
-                resp.status, exitosos,
+                "Publicacion automatica disparada [HTTP %s]: %s",
+                resp.status, body[:200],
             )
     except Exception as e:
-        logger.warning("No se pudo notificar a WP Cron: %s — publicacion diferida", e)
+        logger.warning("No se pudo llamar al endpoint de publicacion: %s", e)
 
 
 def main():
@@ -271,7 +277,7 @@ def main():
         exitosos, fallidos, len(pendientes),
     )
 
-    notificar_wp_cron(exitosos)
+    notificar_publicacion(exitosos)
 
 
 if __name__ == "__main__":

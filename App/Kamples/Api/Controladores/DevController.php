@@ -125,6 +125,13 @@ class DevController
                 ],
             ],
         ]);
+
+        /* Endpoint llamado por Python al terminar la extraccion (secret token, no sesion WP) */
+        \register_rest_route($namespace, '/dev/extraccion/publicar-auto', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'publicarExtraccionesAuto'],
+            'permission_callback' => [self::class, 'verificarSecretCron'],
+        ]);
     }
 
     /**
@@ -472,6 +479,60 @@ class DevController
     }
 
     /**
+     * Verifica el secret token compartido con el pipeline Python.
+     * Solo activo en dev (WP_DEBUG). El secret viene del header X-Kamples-Secret.
+     */
+    public static function verificarSecretCron(): bool
+    {
+        if (!\defined('WP_DEBUG') || !WP_DEBUG) {
+            return false;
+        }
+
+        $secretEsperado = \getenv('KAMPLES_CRON_SECRET');
+        if ($secretEsperado === false || $secretEsperado === '') {
+            return false;
+        }
+
+        $headerRecibido = \sanitize_text_field(
+            $_SERVER['HTTP_X_KAMPLES_SECRET'] ?? ''
+        );
+
+        return \hash_equals($secretEsperado, $headerRecibido);
+    }
+
+    /**
+     * Publicacion automatica llamada por Python al terminar la extraccion.
+     * Autenticacion: header X-Kamples-Secret (no sesion WP).
+     * POST /dev/extraccion/publicar-auto
+     */
+    public static function publicarExtraccionesAuto(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            [
+                'publicados' => $publicados,
+                'errores'    => $errores,
+                'resultados' => $resultadosArray,
+            ] = \App\Kamples\Services\PublicadorExtraccion::publicarPendientes(20);
+
+            KamplesLogger::info('[AUTO] Extracciones publicadas por pipeline Python', [
+                'publicados' => $publicados,
+                'errores'    => $errores,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'         => true,
+                'publicados' => $publicados,
+                'errores'    => $errores,
+                'resultados' => \array_values($resultadosArray),
+            ], 200);
+
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[AUTO] Error publicando extracciones', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Publica samples extraidos (estado='extraido') a traves del flujo estandar.
      * Delega en PublicadorExtraccion (SRP).
      * POST /dev/extraccion/publicar { limit?: int }
@@ -611,7 +672,8 @@ class DevController
             /* Programar publicacion via WP Cron con timestamp inmediato.
              * Python notifica a wp-cron.php cuando termina — garantiza disparo
              * exactamente cuando el audio esta listo, sin depender de trafico. */
-            \wp_schedule_single_event(\time(), 'kamples_publicar_extracciones', [\count($ids)]);
+            /* DESACTIVADO: python llama /dev/extraccion/publicar-auto directamente
+             * al terminar. wp_schedule se disparaba antes que Python terminara. */
 
             KamplesLogger::info('[DEV] Recorte encolado + pipeline iniciado en background', [
                 'relacion_id' => $relacionId,
