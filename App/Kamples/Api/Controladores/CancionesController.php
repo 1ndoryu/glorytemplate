@@ -198,10 +198,10 @@ class CancionesController
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'cancion'      => $cancion,
-                    'artistas'     => $artistas,
-                    'samples_de'   => $samplesDe,
-                    'sampleada_en' => $sampleadaEn,
+                    'cancion'     => $cancion,
+                    'artistas'    => $artistas,
+                    'samplesDe'   => $samplesDe,
+                    'sampleadaEn' => $sampleadaEn,
                 ],
             ]);
         } catch (\Throwable $e) {
