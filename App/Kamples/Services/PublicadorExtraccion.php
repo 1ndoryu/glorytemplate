@@ -146,6 +146,25 @@ class PublicadorExtraccion
                 }
             }
 
+            /*
+             * C801: Guardar youtube_id en metadata del sample para enlace directo
+             * desde el menu contextual ("Ver en YouTube"). El youtube_id viene de la cola.
+             */
+            $youtubeId = $item[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
+            if ($youtubeId) {
+                try {
+                    SamplesRepository::agregarMetadata($sampleId, [
+                        'youtube_id' => $youtubeId,
+                        'lado_extraccion' => $lado,
+                        'relacion_id' => $relacionId,
+                    ]);
+                } catch (\Throwable $e) {
+                    KamplesLogger::warning('[PUB-EXTRACCION] No se pudo guardar youtube_id en metadata', [
+                        'sampleId' => $sampleId, 'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             /* Vincular sample a la relacion (sample_fuente_id o sample_destino_id) */
             $colVinculo = $lado === ColaExtraccionSamplesEnums::LADO_FUENTE
                 ? RelacionesSampleCols::SAMPLE_FUENTE_ID
@@ -284,15 +303,12 @@ class PublicadorExtraccion
 
     private static function generarDescripcion(array $meta, string $lado): string
     {
-        $fuente = \trim(($meta['fuente_artista'] ?? '') . ' - ' . ($meta['fuente_titulo'] ?? ''), ' -');
-        $destino = \trim(($meta['destino_artista'] ?? '') . ' - ' . ($meta['destino_titulo'] ?? ''), ' -');
         $tipo = $meta['tipo_elemento'] ?? 'sample';
 
-        if ($fuente !== '' && $destino !== '') {
-            return "Extraccion automatica [{$tipo}]: {$fuente} -> {$destino}";
-        }
-
-        return "Sample extraido automaticamente [{$tipo}]";
+        /* Descripcion generica sin nombres de canciones/artistas.
+         * La descripcion real (con creditos) la genera ProcesadorColaIA
+         * a partir de la IA y se escribe en samples.descripcion. */
+        return "Sample [{$tipo}]";
     }
 
     /**

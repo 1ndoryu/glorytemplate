@@ -43,7 +43,7 @@ class ReportesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    
+        
 
     
 
@@ -152,5 +152,81 @@ class ReportesRepository extends BaseRepository
         );
 
         return $filasAfectadas > 0;
+    }
+
+    /*
+     * Crear reporte legal (DMCA/derechos) sin requerir usuario registrado.
+     * Los datos del reclamante se almacenan en la columna JSONB 'detalles'.
+     * Retorna el ID generado o null en fallo.
+     */
+    public static function crearReporteLegal(
+        string $tipo,
+        int $targetId,
+        string $razon,
+        array $detalles
+    ): ?int {
+        $tabla = ReportesCols::TABLA;
+
+        $detallesJson = json_encode($detalles, JSON_UNESCAPED_UNICODE);
+        if ($detallesJson === false) {
+            return null;
+        }
+
+        return static::insertar(
+            "INSERT INTO {$tabla} ("
+            . ReportesCols::TIPO . ", "
+            . ReportesCols::TARGET_ID . ", "
+            . ReportesCols::RAZON . ", "
+            . ReportesCols::DETALLES . ", "
+            . ReportesCols::ESTADO
+            . ") VALUES (:tipo, :targetId, :razon, :detalles::jsonb, :estado)"
+            . " RETURNING " . ReportesCols::ID,
+            [
+                'tipo'     => $tipo,
+                'targetId' => $targetId,
+                'razon'    => $razon,
+                'detalles' => $detallesJson,
+                'estado'   => ReportesEnums::ESTADO_PENDIENTE,
+            ]
+        );
+    }
+
+    /*
+     * Listar reportes legales pendientes (legal_sample | legal_relacion).
+     * Incluye info del sample/relacion para que el moderador pueda actuar.
+     */
+    public static function listarLegalesPendientes(int $limit = 20, int $offset = 0): array
+    {
+        $tabla = ReportesCols::TABLA;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " IN ('legal_sample', 'legal_relacion')"
+            . "   AND " . ReportesCols::ESTADO . " = :estado"
+            . " ORDER BY " . ReportesCols::CREATED_AT . " DESC"
+            . " LIMIT :limit OFFSET :offset",
+            [
+                'estado' => ReportesEnums::ESTADO_PENDIENTE,
+                'limit'  => $limit,
+                'offset' => $offset,
+            ]
+        );
+    }
+
+    /*
+     * Contar reportes legales pendientes (para paginacion admin).
+     */
+    public static function contarLegalesPendientes(): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " IN ('legal_sample', 'legal_relacion')"
+            . "   AND " . ReportesCols::ESTADO . " = :estado",
+            ['estado' => ReportesEnums::ESTADO_PENDIENTE]
+        );
+
+        return $row ? (int) $row['total'] : 0;
     }
 }

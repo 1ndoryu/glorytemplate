@@ -23,6 +23,7 @@ use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
@@ -88,6 +89,8 @@ class SamplesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+
+    
 
     
 
@@ -388,6 +391,27 @@ class SamplesRepository extends BaseRepository
         static::ejecutar(
             "UPDATE {$tabla} SET " . implode(', ', $campos) . ", " . SamplesCols::UPDATED_AT . " = NOW() WHERE " . SamplesCols::ID . " = :id",
             $params
+        );
+    }
+
+    /**
+     * Agrega pares clave/valor al JSONB metadata del sample (merge, no reemplaza).
+     * Uso: guardar youtube_id, lado_extraccion, etc. post-publicacion.
+     */
+    public static function agregarMetadata(int $id, array $datos): void
+    {
+        $tabla = SamplesCols::TABLA;
+        $colMeta = SamplesCols::METADATA;
+
+        $json = \json_encode($datos);
+        if ($json === false || \json_last_error() !== JSON_ERROR_NONE) {
+            throw new \RuntimeException('agregarMetadata: json_encode fallo — ' . \json_last_error_msg());
+        }
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET {$colMeta} = COALESCE({$colMeta}, '{}'::jsonb) || :datos::jsonb, "
+            . SamplesCols::UPDATED_AT . " = NOW() WHERE " . SamplesCols::ID . " = :id",
+            ['datos' => $json, 'id' => $id]
         );
     }
 
@@ -1251,5 +1275,56 @@ class SamplesRepository extends BaseRepository
 
         $resultado = static::consultarValor($sql, ['estado' => SamplesEnums::ESTADO_ACTIVO]);
         return (int) ($resultado ?? 0);
+    }
+
+    /* --- Metodos de seed (atribucion legal retroactiva) --- */
+
+    /*
+     * Reasigna creador_id de samples auto-extraidos al seed user que contribuyo la relacion.
+     * Hace UPDATE masivo con JOIN: samples donde cancion_origen_id IS NOT NULL
+     * y cuya relacion vinculada ya tiene contribuidor_id asignado.
+     *
+     * Retorna numero de filas actualizadas.
+     */
+    public static function reasignarCreadorSeedBatch(int $sistemaUserId): int
+    {
+        $ts = SamplesCols::TABLA;
+        $tr = RelacionesSampleCols::TABLA;
+
+        return static::ejecutar(
+            "UPDATE {$ts} s SET "
+            . SamplesCols::CREADOR_ID . " = r." . RelacionesSampleCols::CONTRIBUIDOR_ID
+            . " FROM {$tr} r"
+            . " WHERE (r." . RelacionesSampleCols::SAMPLE_FUENTE_ID . " = s." . SamplesCols::ID
+            . "    OR r." . RelacionesSampleCols::SAMPLE_DESTINO_ID . " = s." . SamplesCols::ID . ")"
+            . " AND r." . RelacionesSampleCols::CONTRIBUIDOR_ID . " IS NOT NULL"
+            . " AND s." . SamplesCols::CANCION_ORIGEN_ID . " IS NOT NULL"
+            . " AND s." . SamplesCols::CREADOR_ID . " = :sistemaId",
+            ['sistemaId' => $sistemaUserId]
+        );
+    }
+
+    /*
+     * Desactivar un sample por reclamación DMCA/legal.
+     * Cambia estado a 'en_supervision' para revisión manual del admin.
+     * Retorna true si el sample existía y fue actualizado.
+     */
+    public static function desactivarPorDMCA(int $sampleId): bool
+    {
+        $tabla = SamplesCols::TABLA;
+
+        $filasAfectadas = static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . SamplesCols::ESTADO . " = :estado"
+            . " WHERE " . SamplesCols::ID . " = :id"
+            . " AND " . SamplesCols::ESTADO . " = :estadoActivo",
+            [
+                'estado'      => SamplesEnums::ESTADO_EN_SUPERVISION,
+                'id'          => $sampleId,
+                'estadoActivo' => SamplesEnums::ESTADO_ACTIVO,
+            ]
+        );
+
+        return $filasAfectadas > 0;
     }
 }

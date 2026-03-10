@@ -44,7 +44,7 @@ class RelacionesSampleRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-            /**
+                /**
      * Verificar si una relación de WhoSampled ya existe (dedup).
      */
     public static function buscarPorWhosampledId(int $wsId): ?array
@@ -367,6 +367,48 @@ class RelacionesSampleRepository extends BaseRepository
              ORDER BY r." . RelacionesSampleCols::VOTOS_TOTAL . " DESC NULLS LAST
              LIMIT :limit",
             ['limit' => $limit]
+        );
+    }
+
+    /* --- Metodos de seed (atribucion legal retroactiva) --- */
+
+    /*
+     * Retorna array de IDs de relaciones sin contribuidor_id asignado.
+     * Solo relaciones con fuente='scraping' (no tocar contribuciones reales).
+     */
+    public static function listarIdsSinContribuidor(): array
+    {
+        $tabla = RelacionesSampleCols::TABLA;
+
+        $filas = static::consultar(
+            "SELECT " . RelacionesSampleCols::ID . " FROM {$tabla}"
+            . " WHERE " . RelacionesSampleCols::CONTRIBUIDOR_ID . " IS NULL"
+            . " AND " . RelacionesSampleCols::FUENTE . " = :fuente",
+            ['fuente' => RelacionesSampleEnums::FUENTE_SCRAPING]
+        );
+
+        return \array_column($filas, RelacionesSampleCols::ID);
+    }
+
+    /*
+     * Asigna contribuidor_id a una relacion sin contribuidor y cambia fuente a 'comunidad'.
+     * Solo actua si contribuidor_id sigue NULL (idempotente).
+     */
+    public static function asignarContribuidorSeed(int $relacionId, int $seedUserId): void
+    {
+        $tabla = RelacionesSampleCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . RelacionesSampleCols::CONTRIBUIDOR_ID . " = :userId, "
+            . RelacionesSampleCols::FUENTE . " = :fuente "
+            . "WHERE " . RelacionesSampleCols::ID . " = :id "
+            . "AND " . RelacionesSampleCols::CONTRIBUIDOR_ID . " IS NULL",
+            [
+                'userId' => $seedUserId,
+                'fuente' => RelacionesSampleEnums::FUENTE_COMUNIDAD,
+                'id'     => $relacionId,
+            ]
         );
     }
 }

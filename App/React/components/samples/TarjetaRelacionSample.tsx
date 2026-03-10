@@ -14,6 +14,7 @@ import {
     ETIQUETAS_TIPO_ELEMENTO,
     construirUrlSampleo,
 } from '@app/types/cancion';
+import { BotonReporteLegal } from './BotonReporteLegal';
 import '../../styles/componentes/tarjetaRelacionSample.css';
 
 interface TarjetaRelacionSampleProps {
@@ -147,7 +148,20 @@ export const TarjetaRelacionSample = ({
                             Verificada
                         </Badge>
                     )}
+                    {relacion.contribuidorUsername && (
+                        <span className="tarjetaRelacionContribuidor" title="Contribuido por la comunidad">
+                            contrib. {relacion.contribuidorUsername}
+                        </span>
+                    )}
                 </div>
+            </div>
+
+            <div className="tarjetaRelacionPie" onClick={(e) => e.stopPropagation()}>
+                <BotonReporteLegal
+                    tipo="legal_relacion"
+                    targetId={relacion.id}
+                    descripcion={`Relacion #${relacion.id}: ${relacion.fuenteTitulo ?? ''} → ${relacion.destinoTitulo ?? ''}`}
+                />
             </div>
         </div>
     );

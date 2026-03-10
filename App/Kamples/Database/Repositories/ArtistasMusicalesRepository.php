@@ -41,7 +41,7 @@ class ArtistasMusicalesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-            /**
+                /**
      * Buscar artista por slug de WhoSampled (dedup en scraping).
      */
     public static function buscarPorSlugWhosampled(string $slug): ?array
@@ -99,5 +99,30 @@ class ArtistasMusicalesRepository extends BaseRepository
             . ArtistasMusicalesCols::TOTAL_CANCIONES . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
+    }
+
+    /**
+     * Upsert artista por nombre (contribuciones manuales).
+     * Busca por slug normalizado; si no existe lo crea.
+     * Retorna el ID del artista o null si falla.
+     */
+    public static function upsertPorNombre(string $nombre, string $slug): ?int
+    {
+        $tabla = ArtistasMusicalesCols::TABLA;
+
+        /* Buscar por slug (nombre normalizado) */
+        $existente = static::consultarUno(
+            "SELECT " . ArtistasMusicalesCols::ID . " FROM {$tabla} WHERE " . ArtistasMusicalesCols::SLUG . " = :slug LIMIT 1",
+            ['slug' => $slug]
+        );
+
+        if ($existente) {
+            return (int) $existente[ArtistasMusicalesCols::ID];
+        }
+
+        return static::insertarRegistro([
+            ArtistasMusicalesCols::NOMBRE => $nombre,
+            ArtistasMusicalesCols::SLUG   => $slug,
+        ]);
     }
 }

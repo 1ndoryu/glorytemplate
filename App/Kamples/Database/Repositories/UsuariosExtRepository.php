@@ -48,7 +48,7 @@ class UsuariosExtRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-            
+                
 
     
 
@@ -666,5 +666,70 @@ class UsuariosExtRepository extends BaseRepository
 
         $resultado = static::consultarValor($sql, []);
         return (int) ($resultado ?? 0);
+    }
+
+    /* --- Metodos de seed users (sistema de atribucion legal) --- */
+
+    /*
+     * Crear usuario seed en usuarios_ext.
+     * Recibe wp_user_id (obligatorio), username, nombre_visible, email.
+     * Retorna el id generado o 0 si falla.
+     */
+    public static function crearSeedUser(array $datos): int
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        try {
+            $id = static::insertar(
+                "INSERT INTO {$tabla} ("
+                . UsuariosExtCols::WP_USER_ID . ", "
+                . UsuariosExtCols::USERNAME . ", "
+                . UsuariosExtCols::NOMBRE_VISIBLE . ", "
+                . UsuariosExtCols::EMAIL . ", "
+                . UsuariosExtCols::ES_SEED . ", "
+                . UsuariosExtCols::PLAN . ", "
+                . UsuariosExtCols::ROL
+                . ") VALUES (:wpId, :username, :nombre, :email, true, 'free', 'usuario')"
+                . " RETURNING " . UsuariosExtCols::ID,
+                [
+                    'wpId'     => $datos['wp_user_id'],
+                    'username' => $datos['username'],
+                    'nombre'   => $datos['nombre_visible'],
+                    'email'    => $datos['email'],
+                ]
+            );
+
+            return $id ?? 0;
+        } catch (\Throwable $e) {
+            return 0;
+        }
+    }
+
+    /*
+     * Contar seed users existentes.
+     */
+    public static function contarSeedUsers(): int
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla} WHERE " . UsuariosExtCols::ES_SEED . " = true",
+            []
+        );
+
+        return $row ? (int) $row['total'] : 0;
+    }
+
+    /*
+     * Listar IDs de todos los seed users (para distribucion Pareto).
+     */
+    public static function listarSeedUsers(): array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        return static::consultar(
+            "SELECT " . UsuariosExtCols::ID . " FROM {$tabla} WHERE " . UsuariosExtCols::ES_SEED . " = true ORDER BY " . UsuariosExtCols::ID,
+            []
+        );
     }
 }

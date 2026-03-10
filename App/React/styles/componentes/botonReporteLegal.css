@@ -1,0 +1,34 @@
+/*
+ * Estilos: BotonReporteLegal
+ * Boton discreto de reclamacion DMCA para tarjetas de relaciones/samples.
+ */
+
+.botonReporteLegal {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--textoTerciario);
+    font-size: 0.75rem;
+    border-radius: var(--radio);
+    transition: color 0.15s, background 0.15s;
+}
+
+.botonReporteLegal:hover {
+    color: var(--error);
+    background: var(--errorMuted);
+}
+
+.botonReporteLegalTexto {
+    /* Visible solo en dispositivos no tactiles */
+    display: none;
+}
+
+@media (hover: hover) {
+    .botonReporteLegalTexto {
+        display: inline;
+    }
+}

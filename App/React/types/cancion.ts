@@ -86,6 +86,9 @@ export interface RelacionSample {
     destinoArtista?: string | null;
     fuenteTitulo?: string | null;
     fuenteArtista?: string | null;
+    /* Contribuidor que propuso la relacion (seed o comunidad) */
+    contribuidorId?: number | null;
+    contribuidorUsername?: string | null;
 }
 
 /* Artista asociado a canción con rol */

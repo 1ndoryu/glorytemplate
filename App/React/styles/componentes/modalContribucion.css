@@ -1,0 +1,161 @@
+/*
+ * Estilos: ModalContribucion
+ * Formulario de contribucion comunitaria de relaciones sample.
+ */
+
+.modalContribucionForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.modalContribucionPie {
+    display: flex;
+    gap: var(--espacioSm);
+    justify-content: flex-end;
+}
+
+.modalContribucionFieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.modalContribucionLeyenda {
+    font-size: 0.88rem;
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacioSm);
+    display: block;
+}
+
+.modalContribucionLeyenda strong {
+    color: var(--textoPrimario);
+}
+
+.modalContribucionModos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalContribucionModo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--textoSecundario);
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.modalContribucionModo.activo {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+    background: var(--acentoMuted);
+}
+
+.modalContribucionModo input[type="radio"] {
+    accent-color: var(--acento);
+}
+
+.modalContribucionCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalContribucionLabel {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--textoSecundario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.modalContribucionNueva {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd);
+    background: var(--acentoMuted);
+    border: 1px dashed var(--bordeActivo);
+    border-radius: var(--radio);
+}
+
+.modalContribucionNuevaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--textoPrimario);
+}
+
+.modalContribucionOpciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioXs);
+}
+
+.modalContribucionOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    font-size: 0.82rem;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.modalContribucionOpcion.activo {
+    border-color: var(--bordeActivo);
+    color: var(--textoPrimario);
+    background: var(--acentoMuted);
+}
+
+.modalContribucionOpcion input[type="radio"] {
+    display: none;
+}
+
+.modalContribucionSelect {
+    background: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    color: var(--textoPrimario);
+    font-size: 0.88rem;
+    padding: var(--espacioSm) var(--espacioMd);
+    width: 100%;
+    cursor: pointer;
+}
+
+.modalContribucionSelect:focus {
+    outline: none;
+    border-color: var(--bordeActivo);
+}
+
+.modalContribucionError {
+    color: var(--error);
+    font-size: 0.83rem;
+    padding: var(--espacioXs) 0;
+}
+
+.modalContribucionExito {
+    text-align: center;
+    padding: var(--espacio2xl) var(--espacioLg);
+    color: var(--exito);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.modalContribucionExitoSub {
+    color: var(--textoSecundario);
+    font-size: 0.85rem;
+    font-weight: 400;
+    margin-top: var(--espacioSm);
+}

@@ -1,0 +1,138 @@
+/*
+ * Estilos: ModalReporteLegal
+ * Formulario DMCA / reclamacion de derechos de autor.
+ */
+
+.modalReporteLegalForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.modalReporteLegalPie {
+    display: flex;
+    gap: var(--espacioSm);
+    justify-content: flex-end;
+}
+
+.modalReporteLegalTarget {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--acentoMuted);
+    border-radius: var(--radio);
+    border-left: 3px solid var(--error);
+}
+
+.modalReporteLegalTargetLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--textoSecundario);
+}
+
+.modalReporteLegalTargetValor {
+    font-size: 0.88rem;
+    color: var(--textoPrimario);
+    font-weight: 500;
+}
+
+.modalReporteLegalAviso {
+    font-size: 0.8rem;
+    color: var(--advertencia);
+    background: var(--advertenciaMuted);
+    border: 1px solid var(--advertencia);
+    border-radius: var(--radio);
+    padding: var(--espacioSm) var(--espacioMd);
+    line-height: 1.5;
+}
+
+.modalReporteLegalSeccion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.modalReporteLegalSeccionTitulo {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--textoTerciario);
+    font-weight: 600;
+}
+
+.modalReporteLegalCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalReporteLegalLabel {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--textoSecundario);
+}
+
+.modalReporteLegalSelect {
+    background: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    color: var(--textoPrimario);
+    font-size: 0.88rem;
+    padding: var(--espacioSm) var(--espacioMd);
+    width: 100%;
+    cursor: pointer;
+}
+
+.modalReporteLegalSelect:focus {
+    outline: none;
+    border-color: var(--bordeActivo);
+}
+
+.modalReporteLegalTextarea {
+    background: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    color: var(--textoPrimario);
+    font-size: 0.88rem;
+    padding: var(--espacioSm) var(--espacioMd);
+    width: 100%;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.modalReporteLegalTextarea:focus {
+    outline: none;
+    border-color: var(--bordeActivo);
+}
+
+.modalReporteLegalError {
+    color: var(--error);
+    font-size: 0.83rem;
+}
+
+.modalReporteLegalExito {
+    text-align: center;
+    padding: var(--espacio2xl) var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioMd);
+    color: var(--exito);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.modalReporteLegalExitoSub {
+    color: var(--textoSecundario);
+    font-size: 0.85rem;
+    font-weight: 400;
+    max-width: 360px;
+    line-height: 1.6;
+}
+
+.modalReporteLegalCerrar {
+    margin-top: var(--espacioSm);
+}

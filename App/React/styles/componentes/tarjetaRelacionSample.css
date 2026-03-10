@@ -5,7 +5,7 @@
 
 .tarjetaRelacion {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: var(--espacioMd);
     padding: var(--espacioMd);
     background: var(--fondoElevado1);
@@ -46,7 +46,7 @@
     flex-direction: column;
     min-width: 0;
     flex: 1;
-    gap: 2px;
+    gap: var(--espacio2xs);
 }
 
 .tarjetaRelacionTitulo {
@@ -110,4 +110,19 @@
         flex-direction: row;
         flex-wrap: wrap;
     }
+}
+
+.tarjetaRelacionContribuidor {
+    font-size: 0.72rem;
+    color: var(--textoTerciario);
+    font-style: italic;
+}
+
+.tarjetaRelacionPie {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--espacioXs);
+    border-top: 1px solid var(--bordeSutil);
+    margin-top: calc(-1 * var(--espacioXs)); /* compensar gap del flex parent */
+    width: 100%;
 }

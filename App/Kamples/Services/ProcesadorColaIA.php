@@ -287,6 +287,13 @@ class ProcesadorColaIA
             $actualizaciones[SamplesCols::SLUG] = \sanitize_title($tituloIA) . '-' . $idCorto;
         }
 
+        /* Propagar descripcion_corta_es al campo descripcion visible del sample.
+         * Esto reemplaza el placeholder generado por PublicadorExtraccion. */
+        $descripcionIA = $metadataIA['descripcion_corta_es'] ?? ($metadataIA['descripcion_es'] ?? '');
+        if ($descripcionIA !== '') {
+            $actualizaciones[SamplesCols::DESCRIPCION] = $descripcionIA;
+        }
+
         /* Aplicar actualizaciones via query directa (reutilizar patron de PipelineAudio) */
         try {
             $columnasJsonb = [SamplesCols::METADATA];

@@ -133,6 +133,35 @@ class DevController
             'callback'            => [self::class, 'publicarExtraccionesAuto'],
             'permission_callback' => [self::class, 'verificarSecretCron'],
         ]);
+
+        /* Endpoints del sistema de seed users (atribucion legal retroactiva) */
+        \register_rest_route($namespace, '/dev/seed/generar-usuarios', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'generarSeedUsuarios'],
+            'permission_callback' => $admin,
+            'args'                => [
+                'cantidad' => [
+                    'type'    => 'integer',
+                    'default' => 0,
+                    'minimum' => 0,
+                    'maximum' => 500,
+                ],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/dev/seed/atribuir', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'atribuirSeedContribuciones'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* Sincroniza samples.descripcion desde metadata->descripcion_corta_es para
+         * samples con descripcion generada por el placeholder viejo. */
+        \register_rest_route($namespace, '/dev/samples/sincronizar-descripciones', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'sincronizarDescripciones'],
+            'permission_callback' => $admin,
+        ]);
     }
 
     /**
@@ -808,6 +837,95 @@ class DevController
         }
 
         return null;
+    }
+
+    /**
+     * POST /dev/seed/generar-usuarios
+     * Genera seed users (cantidad = 0 → calcula automaticamente segun relaciones).
+     */
+    public static function generarSeedUsuarios(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $cantidad = (int) $request->get_param('cantidad');
+
+            if ($cantidad === 0) {
+                $cantidad = \App\Kamples\Services\SeedUsuarios::calcularCantidadNecesaria();
+            }
+
+            $resultado = \App\Kamples\Services\SeedUsuarios::generarUsuarios($cantidad);
+
+            KamplesLogger::info('[DEV] Seed usuarios generados', $resultado);
+
+            return new \WP_REST_Response(['ok' => true, 'resultado' => $resultado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error generando seed users', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error generando seed users.'], 500);
+        }
+    }
+
+    /**
+     * POST /dev/seed/atribuir
+     * Distribuye relaciones y samples entre seed users (batch completo).
+     */
+    public static function atribuirSeedContribuciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $relaciones = \App\Kamples\Services\SeedUsuarios::atribuirRelaciones();
+            $samples    = \App\Kamples\Services\SeedUsuarios::atribuirSamples();
+
+            KamplesLogger::info('[DEV] Seed atribucion completada', [
+                'relaciones' => $relaciones,
+                'samples'    => $samples,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'        => true,
+                'relaciones' => $relaciones,
+                'samples'   => $samples,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error en atribucion seed', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error en atribucion seed.'], 500);
+        }
+    }
+
+    /*
+     * Sincroniza retroactivamente samples.descripcion desde la metadata IA.
+     * Solo afecta samples con descripcion placeholder (empieza con "Sample [")
+     * o con el placeholder anterior ("Extraccion automatica") y que YA tengan
+     * metadata->>'descripcion_corta_es' generada por ProcesadorColaIA.
+     */
+    public static function sincronizarDescripciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $tabla       = \App\Config\Schema\_generated\SamplesCols::TABLA;
+            $colDesc     = \App\Config\Schema\_generated\SamplesCols::DESCRIPCION;
+            $colMetadata = \App\Config\Schema\_generated\SamplesCols::METADATA;
+
+            $actualizados = \App\Kamples\Database\Repositories\SamplesRepository::ejecutar(
+                "UPDATE {$tabla}
+                 SET {$colDesc} = {$colMetadata}->>'descripcion_corta_es'
+                 WHERE (
+                     {$colDesc} LIKE 'Sample [%]'
+                     OR {$colDesc} LIKE 'Extraccion automatica%'
+                 )
+                 AND {$colMetadata}->>'descripcion_corta_es' IS NOT NULL
+                 AND {$colMetadata}->>'descripcion_corta_es' <> ''",
+                []
+            );
+
+            KamplesLogger::info('[DEV] Descripciones sincronizadas desde metadata IA', [
+                'actualizados' => $actualizados,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'          => true,
+                'actualizados' => $actualizados,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error sincronizando descripciones', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error al sincronizar.'], 500);
+        }
     }
 }
 

@@ -1,0 +1,162 @@
+<?php
+
+/**
+ * ContribucionesService — Logica de negocio del sistema de contribuciones.
+ *
+ * Separa la logica compleja de aprobacion del controlador HTTP (SRP).
+ * Al aprobar una contribucion:
+ *   1. Si hay cancion nueva en la contribucion → crear artista (upsert) + crear cancion.
+ *   2. Insertar relacion en relaciones_sample con fuente='comunidad'.
+ *   3. Opcional: encolar para extraccion de audio.
+ *   4. Marcar contribucion como aprobada con relacion_creada_id.
+ *
+ * @package Kamples
+ */
+
+namespace App\Kamples\Services;
+
+use App\Kamples\Database\Repositories\ContribucionesPendientesRepository;
+use App\Kamples\Database\Repositories\RelacionesSampleRepository;
+use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
+use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
+use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\ContribucionesPendientesCols;
+use App\Config\Schema\_generated\ContribucionesPendientesEnums;
+use App\Config\Schema\_generated\RelacionesSampleCols;
+use App\Config\Schema\_generated\RelacionesSampleEnums;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\ArtistasMusicalesCols;
+
+class ContribucionesService
+{
+    /**
+     * Aprobar una contribucion:
+     * - Crea cancion nueva si la contribucion la especifica.
+     * - Inserta la relacion en relaciones_sample.
+     * - Encola extraccion de audio si aplica.
+     * - Marca la contribucion como aprobada.
+     *
+     * @return array{ok: bool, relacion_id?: int, error?: string}
+     */
+    public static function aprobar(array $contribucion, int $moderadorId, ?string $nota): array
+    {
+        $contribucionId = (int) $contribucion[ContribucionesPendientesCols::ID];
+        $destinoId      = $contribucion[ContribucionesPendientesCols::CANCION_DESTINO_ID] ?? null;
+        $fuenteId       = $contribucion[ContribucionesPendientesCols::CANCION_FUENTE_ID] ?? null;
+        $lado           = $contribucion[ContribucionesPendientesCols::CANCION_NUEVA_LADO] ?? null;
+        $tipoRelacion   = $contribucion[ContribucionesPendientesCols::TIPO_RELACION];
+        $tipoElemento   = $contribucion[ContribucionesPendientesCols::TIPO_ELEMENTO];
+        $contribuidorId = (int) $contribucion[ContribucionesPendientesCols::CONTRIBUIDOR_ID];
+
+        try {
+            /* Si hay cancion nueva que crear */
+            if ($contribucion[ContribucionesPendientesCols::CANCION_NUEVA_TITULO] ?? null) {
+                $nuevaCancionId = self::crearCancionDesdeContribucion($contribucion);
+                if ($nuevaCancionId === null) {
+                    return ['ok' => false, 'error' => 'No se pudo crear la cancion nueva.'];
+                }
+
+                if ($lado === ContribucionesPendientesEnums::CANCION_NUEVA_LADO_DESTINO) {
+                    $destinoId = $nuevaCancionId;
+                } else {
+                    $fuenteId = $nuevaCancionId;
+                }
+            }
+
+            if (!$destinoId || !$fuenteId) {
+                return ['ok' => false, 'error' => 'Faltan referencias de canciones para crear la relacion.'];
+            }
+
+            /* Insertar relacion */
+            $relacionId = RelacionesSampleRepository::insertarRegistro([
+                RelacionesSampleCols::CANCION_DESTINO_ID => (int) $destinoId,
+                RelacionesSampleCols::CANCION_FUENTE_ID  => (int) $fuenteId,
+                RelacionesSampleCols::TIPO_RELACION      => $tipoRelacion,
+                RelacionesSampleCols::TIPO_ELEMENTO      => $tipoElemento,
+                RelacionesSampleCols::FUENTE             => RelacionesSampleEnums::FUENTE_COMUNIDAD,
+                RelacionesSampleCols::CONTRIBUIDOR_ID    => $contribuidorId,
+                RelacionesSampleCols::VERIFICADA         => false,
+            ]);
+
+            if (!$relacionId) {
+                return ['ok' => false, 'error' => 'No se pudo insertar la relacion.'];
+            }
+
+            /* Encolar extraccion solo para relaciones de tipo sample */
+            if ($tipoRelacion === RelacionesSampleEnums::TIPO_RELACION_SAMPLE) {
+                try {
+                    /* Construimos el array minimo que encolarBilateral necesita */
+                    $relacionData = RelacionesSampleRepository::buscarPorId((int) $relacionId);
+                    if ($relacionData) {
+                        ColaExtraccionSamplesRepository::encolarBilateral($relacionData);
+                    }
+                } catch (\Throwable $e) {
+                    /* No fatal: la extraccion puede encolarse manualmente despues */
+                    KamplesLogger::warning('ContribucionesService: no se pudo encolar extraccion', [
+                        'relacion_id' => $relacionId,
+                        'error'       => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            /* Marcar contribucion como aprobada */
+            ContribucionesPendientesRepository::moderar(
+                $contribucionId,
+                ContribucionesPendientesEnums::ESTADO_APROBADA,
+                $moderadorId,
+                $nota,
+                (int) $relacionId
+            );
+
+            KamplesLogger::info('ContribucionesService: contribucion aprobada', [
+                'contribucion_id' => $contribucionId,
+                'relacion_id'     => $relacionId,
+            ]);
+
+            return ['ok' => true, 'relacion_id' => (int) $relacionId];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ContribucionesService: error al aprobar contribucion', [
+                'contribucion_id' => $contribucionId,
+                'error'           => $e->getMessage(),
+            ]);
+            return ['ok' => false, 'error' => 'Error interno al aprobar la contribucion.'];
+        }
+    }
+
+    /**
+     * Crear cancion + artista desde los datos de cancion_nueva_* de la contribucion.
+     * Retorna el ID de la cancion creada o null si falla.
+     */
+    private static function crearCancionDesdeContribucion(array $contribucion): ?int
+    {
+        $titulo  = \sanitize_text_field($contribucion[ContribucionesPendientesCols::CANCION_NUEVA_TITULO] ?? '');
+        $artista = \sanitize_text_field($contribucion[ContribucionesPendientesCols::CANCION_NUEVA_ARTISTA] ?? '');
+
+        if (!$titulo || !$artista) {
+            return null;
+        }
+
+        /* Upsert artista por nombre (slugificado manualmente) */
+        $slug = \sanitize_title($artista);
+        $artistaId = ArtistasMusicalesRepository::upsertPorNombre($artista, $slug);
+        if (!$artistaId) {
+            return null;
+        }
+
+        /* Extraer youtube_id si se provee URL */
+        $youtubeUrl = $contribucion[ContribucionesPendientesCols::CANCION_NUEVA_YOUTUBE_URL] ?? null;
+        $youtubeId  = null;
+        if ($youtubeUrl) {
+            \preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $youtubeUrl, $m);
+            $youtubeId = $m[1] ?? null;
+        }
+
+        return CancionesRepository::insertarRegistro([
+            CancionesCols::TITULO     => $titulo,
+            CancionesCols::SLUG       => \sanitize_title($titulo . '-' . $artista),
+            CancionesCols::ARTISTA_ID => $artistaId,
+            CancionesCols::YOUTUBE_ID => $youtubeId,
+        ]);
+    }
+}

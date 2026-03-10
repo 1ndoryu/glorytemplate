@@ -1,0 +1,129 @@
+/*
+ * Estilos: BuscadorCanciones
+ * Dropdown de busqueda con lista de resultados y opcion de agregar nueva.
+ */
+
+.buscadorCanciones {
+    position: relative;
+    width: 100%;
+}
+
+.buscadorCancionSeleccionada {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--acentoMuted);
+    border: 1px solid var(--bordeActivo);
+    border-radius: var(--radio);
+    margin-bottom: var(--espacioSm);
+    font-size: 0.85rem;
+}
+
+.buscadorCancionTitulo {
+    color: var(--textoPrimario);
+    font-weight: 600;
+}
+
+.buscadorCancionArtista {
+    color: var(--textoSecundario);
+}
+
+.buscadorCancionAnio {
+    color: var(--textoTerciario);
+    font-size: 0.78rem;
+}
+
+.buscadorCargando {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    color: var(--textoSecundario);
+    font-size: 0.82rem;
+}
+
+.buscadorResultados {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    list-style: none;
+    margin: 2px 0 0;
+    padding: 0;
+    background: var(--fondoElevado3);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radio);
+    max-height: 260px;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.buscadorResultadoItem + .buscadorResultadoItem {
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.buscadorResultadoBoton {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--textoPrimario);
+    transition: background 0.15s;
+}
+
+.buscadorResultadoBoton:hover,
+.buscadorResultadoBoton:focus-visible {
+    background: var(--acentoMuted);
+    outline: none;
+}
+
+.buscadorResultadoTitulo {
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.buscadorResultadoArtista {
+    font-size: 0.8rem;
+    color: var(--textoSecundario);
+}
+
+.buscadorResultadoAnio {
+    font-size: 0.75rem;
+    color: var(--textoTerciario);
+    margin-left: auto;
+}
+
+.buscadorSinResultados {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    padding: var(--espacioMd);
+    color: var(--textoSecundario);
+    font-size: 0.83rem;
+}
+
+.buscadorBotonNueva {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    background: var(--acentoMuted);
+    border: 1px dashed var(--bordeActivo);
+    border-radius: var(--radio);
+    color: var(--acento-blanco);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.buscadorBotonNueva:hover {
+    background: var(--bordeActivo);
+    color: var(--textoPrimarioInverso);
+}

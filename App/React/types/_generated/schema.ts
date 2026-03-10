@@ -142,6 +142,25 @@ export interface IComentarios {
   updatedAt: string | null
 }
 
+export interface IContribucionesPendientes {
+  id: number
+  contribuidorId: number
+  cancionDestinoId: number | null
+  cancionFuenteId: number | null
+  cancionNuevaTitulo: string | null
+  cancionNuevaArtista: string | null
+  cancionNuevaYoutubeUrl: string | null
+  cancionNuevaLado: 'destino' | 'fuente' | null
+  tipoRelacion: 'sample' | 'cover' | 'remix' | 'interpolation'
+  tipoElemento: 'hook_riff' | 'vocals_lyrics' | 'drums' | 'bass' | 'keys_synth' | 'sound_effect' | 'multiple_elements' | 'other'
+  estado: 'pendiente' | 'aprobada' | 'rechazada'
+  moderadorId: number | null
+  moderadorNota: string | null
+  relacionCreadaId: number | null
+  createdAt: string
+  resueltoAt: string | null
+}
+
 export interface IConversaciones {
   id: number
   ultimoMensajeAt: string
@@ -401,6 +420,7 @@ export interface IUsuariosExt {
   banRazon: string | null
   creditosBonus: number
   stripeSubscriptionId: string | null
+  esSeed: boolean
 }
 
 /* Constantes de columna (mirror de PHP) */
@@ -552,6 +572,26 @@ export const ComentariosCols = {
   TOTAL_RESPUESTAS: 'total_respuestas',
   TOTAL_LIKES: 'total_likes',
   UPDATED_AT: 'updated_at'
+} as const
+
+export const ContribucionesPendientesCols = {
+  TABLA: 'contribuciones_pendientes',
+  ID: 'id',
+  CONTRIBUIDOR_ID: 'contribuidor_id',
+  CANCION_DESTINO_ID: 'cancion_destino_id',
+  CANCION_FUENTE_ID: 'cancion_fuente_id',
+  CANCION_NUEVA_TITULO: 'cancion_nueva_titulo',
+  CANCION_NUEVA_ARTISTA: 'cancion_nueva_artista',
+  CANCION_NUEVA_YOUTUBE_URL: 'cancion_nueva_youtube_url',
+  CANCION_NUEVA_LADO: 'cancion_nueva_lado',
+  TIPO_RELACION: 'tipo_relacion',
+  TIPO_ELEMENTO: 'tipo_elemento',
+  ESTADO: 'estado',
+  MODERADOR_ID: 'moderador_id',
+  MODERADOR_NOTA: 'moderador_nota',
+  RELACION_CREADA_ID: 'relacion_creada_id',
+  CREATED_AT: 'created_at',
+  RESUELTO_AT: 'resuelto_at'
 } as const
 
 export const ConversacionesCols = {
@@ -830,7 +870,8 @@ export const UsuariosExtCols = {
   BANEADO_HASTA: 'baneado_hasta',
   BAN_RAZON: 'ban_razon',
   CREDITOS_BONUS: 'creditos_bonus',
-  STRIPE_SUBSCRIPTION_ID: 'stripe_subscription_id'
+  STRIPE_SUBSCRIPTION_ID: 'stripe_subscription_id',
+  ES_SEED: 'es_seed'
 } as const
 
 /* Constantes de valores enum/check (mirror de PHP) */
@@ -880,6 +921,26 @@ export const ComentariosEnums = {
   MODERACION_ESTADO_REVISION: 'revision',
   MODERACION_ESTADO_APROBADO: 'aprobado',
   MODERACION_ESTADO_RECHAZADO: 'rechazado'
+} as const
+
+export const ContribucionesPendientesEnums = {
+  CANCION_NUEVA_LADO_DESTINO: 'destino',
+  CANCION_NUEVA_LADO_FUENTE: 'fuente',
+  TIPO_RELACION_SAMPLE: 'sample',
+  TIPO_RELACION_COVER: 'cover',
+  TIPO_RELACION_REMIX: 'remix',
+  TIPO_RELACION_INTERPOLATION: 'interpolation',
+  TIPO_ELEMENTO_HOOK_RIFF: 'hook_riff',
+  TIPO_ELEMENTO_VOCALS_LYRICS: 'vocals_lyrics',
+  TIPO_ELEMENTO_DRUMS: 'drums',
+  TIPO_ELEMENTO_BASS: 'bass',
+  TIPO_ELEMENTO_KEYS_SYNTH: 'keys_synth',
+  TIPO_ELEMENTO_SOUND_EFFECT: 'sound_effect',
+  TIPO_ELEMENTO_MULTIPLE_ELEMENTS: 'multiple_elements',
+  TIPO_ELEMENTO_OTHER: 'other',
+  ESTADO_PENDIENTE: 'pendiente',
+  ESTADO_APROBADA: 'aprobada',
+  ESTADO_RECHAZADA: 'rechazada'
 } as const
 
 export const DuplicadosPendientesEnums = {

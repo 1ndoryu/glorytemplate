@@ -31,7 +31,8 @@ final class UsuariosExtDTO
         public readonly ?string $baneadoHasta,
         public readonly ?string $banRazon,
         public readonly int $creditosBonus,
-        public readonly ?string $stripeSubscriptionId
+        public readonly ?string $stripeSubscriptionId,
+        public readonly bool $esSeed
     ) {}
 
     /**
@@ -64,7 +65,8 @@ final class UsuariosExtDTO
             baneadoHasta: isset($row['baneado_hasta']) ? $row['baneado_hasta'] : null,
             banRazon: isset($row['ban_razon']) ? $row['ban_razon'] : null,
             creditosBonus: (int) ($row['creditos_bonus'] ?? 0),
-            stripeSubscriptionId: isset($row['stripe_subscription_id']) ? $row['stripe_subscription_id'] : null
+            stripeSubscriptionId: isset($row['stripe_subscription_id']) ? $row['stripe_subscription_id'] : null,
+            esSeed: (bool) ($row['es_seed'] ?? false)
         );
     }
 
@@ -105,6 +107,7 @@ final class UsuariosExtDTO
             'baneado_hasta' => $this->baneadoHasta,
             'ban_razon' => $this->banRazon,
             'creditos_bonus' => $this->creditosBonus,
-            'stripe_subscription_id' => $this->stripeSubscriptionId];
+            'stripe_subscription_id' => $this->stripeSubscriptionId,
+            'es_seed' => $this->esSeed];
     }
 }
