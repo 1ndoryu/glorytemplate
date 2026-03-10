@@ -9,11 +9,12 @@ PostgresPipeline: inserta RelacionItem en BD con todas las entidades.
 import hashlib
 import logging
 import os
+import urllib.error
+import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse
 
 import psycopg2
-from curl_cffi import requests as curl_requests
 from scrapy.exceptions import DropItem
 
 from kamples_scraper.items import RelacionItem
@@ -76,7 +77,7 @@ class ImageDescargaPipeline:
         "Referer": "https://www.whosampled.com/",
     }
 
-    def open_spider(self, spider):
+    def open_spider(self):
         store_path = os.getenv("IMAGES_STORE_PATH", "")
         self.base_url = os.getenv("IMAGES_BASE_URL", "").rstrip("/")
 
@@ -99,16 +100,9 @@ class ImageDescargaPipeline:
             self.store_path = None
             return
 
-        # curl_cffi como requests — impersona Chrome para CDNs con protección
-        self.session = curl_requests.Session(impersonate="chrome125")
-        self.session.headers.update(self._HEADERS)
         logger.info("ImageDescargaPipeline: almacenando en %s", store_path)
 
-    def close_spider(self, spider):
-        if hasattr(self, "session"):
-            self.session.close()
-
-    def process_item(self, item, spider):
+    def process_item(self, item):
         if not isinstance(item, RelacionItem) or self.store_path is None:
             return item
 
@@ -135,13 +129,14 @@ class ImageDescargaPipeline:
         if archivo.exists():
             return url_local
 
+        # urllib.request es suficiente para CDN estático (sin Cloudflare)
+        req = urllib.request.Request(url, headers=self._HEADERS)
         try:
-            resp = self.session.get(url, timeout=15)
-            resp.raise_for_status()
-            archivo.write_bytes(resp.content)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                archivo.write_bytes(resp.read())
             logger.debug("Imagen descargada: %s → %s", url, archivo.name)
             return url_local
-        except Exception as exc:
+        except (urllib.error.URLError, OSError) as exc:
             logger.warning("Error descargando imagen %s: %s", url, exc)
             return None
 
