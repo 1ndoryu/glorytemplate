@@ -36,17 +36,15 @@ class RelacionesSampleRepository extends BaseRepository
     {
         $tabla = RelacionesSampleCols::TABLA;
 
-        $cols = implode(', ', RelacionesSampleCols::TODAS);
-
         return static::consultar(
-            "SELECT {$cols} FROM {$tabla} ORDER BY " . RelacionesSampleCols::CREATED_AT . " DESC LIMIT :limit",
+            "SELECT * FROM {$tabla} ORDER BY " . RelacionesSampleCols::CREATED_AT . " DESC LIMIT :limit",
             ['limit' => $limit]
         );
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-        /**
+            /**
      * Verificar si una relación de WhoSampled ya existe (dedup).
      */
     public static function buscarPorWhosampledId(int $wsId): ?array
@@ -168,7 +166,10 @@ class RelacionesSampleRepository extends BaseRepository
              JOIN {$ta} af ON cf.artista_id = af.id
              JOIN {$tc} cd ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = cd.id
              JOIN {$ta} ad ON cd.artista_id = ad.id
-             WHERE r." . RelacionesSampleCols::SAMPLE_ID . " = :sample_id",
+             WHERE r." . RelacionesSampleCols::SAMPLE_ID . " = :sample_id
+                OR r." . RelacionesSampleCols::SAMPLE_FUENTE_ID . " = :sample_id
+                OR r." . RelacionesSampleCols::SAMPLE_DESTINO_ID . " = :sample_id
+             LIMIT 1",
             ['sample_id' => $sampleId]
         );
     }

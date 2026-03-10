@@ -11,7 +11,6 @@ import type {
     CancionDetalle,
     ArtistaDetalle,
     EstadisticaRelaciones,
-    RelacionSample,
     RelacionDetalleCompleta,
 } from '@app/types/cancion';
 
@@ -60,8 +59,8 @@ export const obtenerEstadisticasRelaciones = (): Promise<RespuestaApi<Estadistic
  */
 export const obtenerRelacionPorSampleId = (
     sampleId: number
-): Promise<RespuestaApi<RelacionSample | null>> =>
-    apiGet<RelacionSample | null>(`/sample-discovery/relacion/${sampleId}`);
+): Promise<RespuestaApi<RelacionDetalleCompleta | null>> =>
+    apiGet<RelacionDetalleCompleta | null>(`/sample-discovery/relacion/${sampleId}`);
 
 /* Detalle completo de una relación de sampleo (ambas canciones + metadata) */
 export const obtenerRelacionDetalle = (

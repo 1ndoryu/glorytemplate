@@ -346,7 +346,7 @@ class CancionesController
 
             return new \WP_REST_Response([
                 'ok'   => true,
-                'data' => NormalizadorCancion::relacion($relacion),
+                'data' => NormalizadorCancion::relacionCompleta($relacion),
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::relacionPorSampleId] ' . $e->getMessage());

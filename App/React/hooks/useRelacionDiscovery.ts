@@ -7,10 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { obtenerRelacionPorSampleId } from '@app/services/apiCanciones';
-import type { RelacionSample } from '@app/types/cancion';
+import type { RelacionDetalleCompleta } from '@app/types/cancion';
 
 export function useRelacionDiscovery(sampleId: number | null | undefined) {
-    const [relacion, setRelacion] = useState<RelacionSample | null>(null);
+    const [relacion, setRelacion] = useState<RelacionDetalleCompleta | null>(null);
     const [cargando, setCargando] = useState(false);
 
     useEffect(() => {
