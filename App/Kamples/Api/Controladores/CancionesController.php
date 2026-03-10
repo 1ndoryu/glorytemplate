@@ -26,7 +26,7 @@ use App\Kamples\Database\Repositories\CancionesArtistasRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Api\Helpers\NormalizadorCancion;
 use App\Config\Schema\_generated\LikesEnums;
-use App\Kamples\Auth\UsuarioHelper;
+use App\Kamples\Api\Helpers\UsuarioHelper;
 
 class CancionesController
 {
