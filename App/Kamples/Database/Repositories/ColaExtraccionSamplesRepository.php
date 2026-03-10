@@ -223,6 +223,12 @@ class ColaExtraccionSamplesRepository extends BaseRepository
                 continue;
             }
 
+            /* Si ya existe un sample publicado para este lado, no re-extraer */
+            $campoSample = $lado === ColaExtraccionSamplesEnums::LADO_FUENTE ? 'sample_fuente_id' : 'sample_destino_id';
+            if (!empty($relacion[$campoSample])) {
+                continue;
+            }
+
             $timings = \is_string($datos['timings'])
                 ? (\json_decode($datos['timings'], true) ?: [])
                 : ($datos['timings'] ?: []);

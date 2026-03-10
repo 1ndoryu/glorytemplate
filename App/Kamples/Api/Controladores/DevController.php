@@ -21,6 +21,7 @@ use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\ScrapingLogRepository;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\PublicadorExtraccion;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ScrapingLogEnums;
 
@@ -602,14 +603,21 @@ class DevController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada.'], 404);
             }
 
-            /* Encolar bilateral (fuente + destino) */
+            /* Encolar bilateral (fuente + destino), omitiendo lados ya publicados */
             $ids = ColaExtraccionSamplesRepository::encolarBilateral($relacion);
 
             if (empty($ids)) {
+                $sampleFuenteId = $relacion[RelacionesSampleCols::SAMPLE_FUENTE_ID] ?? null;
+                $sampleDestinoId = $relacion[RelacionesSampleCols::SAMPLE_DESTINO_ID] ?? null;
+                $mensaje = ($sampleFuenteId && $sampleDestinoId)
+                    ? 'Samples ya generados para ambos lados (fuente=' . $sampleFuenteId . ', destino=' . $sampleDestinoId . ').'
+                    : 'Ambos lados sin fuente de audio disponible (sin YouTube ID ni Spotify ID).';
                 return new \WP_REST_Response([
-                    'ok'      => true,
-                    'mensaje' => 'Ambos lados ya estaban encolados o sin fuente de audio.',
-                    'encolados' => 0,
+                    'ok'              => true,
+                    'mensaje'         => $mensaje,
+                    'encolados'       => 0,
+                    'sample_fuente_id'  => $sampleFuenteId,
+                    'sample_destino_id' => $sampleDestinoId,
                 ], 200);
             }
 
