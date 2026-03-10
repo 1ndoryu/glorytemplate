@@ -256,6 +256,25 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 ### S6 — Audio Search + Contribución Comunitaria
 - [ ] **S6.1-S6.6** Chromaprint fingerprinting, búsqueda por audio, UI contribución, moderación, sistema Cred
 
+### S5.5 — Spotify ID support — ✅ COMPLETADO C706
+- [x] **S5.5.1** Migración v030: columna `spotify_id` en `canciones` ✅ [AG-NAV]
+- [x] **S5.5.2** Schema + Cols + DTO actualizados para spotify_id ✅ [AG-NAV]
+- [x] **S5.5.3** Scraper: `_extraer_spotify_id_de_embed()` en parsers.py (ambos lados + overview) ✅ [AG-NAV]
+- [x] **S5.5.4** Pipeline: spotify_id en INSERT/UPDATE de canciones + TrackMetadataItem ✅ [AG-NAV]
+- [x] **S5.5.5** API: NormalizadorCancion expone spotifyId, fuente_spotifyId, destino_spotifyId ✅ [AG-NAV]
+- [x] **S5.5.6** Frontend: embed Spotify como fallback en LadoCancionRelacion + RelacionDetalleIsland ✅ [AG-NAV]
+
+### S-RECORTE — Generación automática de samples desde sampleos — PENDIENTE
+> Plan completo en `App/docs/plan-samples-metadata.md` → Fase S-RECORTE
+- [ ] **S-R1** Migración v031: cola bilateral (campo `lado`, `spotify_id`), `sample_fuente_id`/`sample_destino_id` en relaciones, `cancion_origen_id` en samples
+- [ ] **S-R2** Encolado bilateral: 2 entradas por relación (fuente + destino)
+- [ ] **S-R3** Pipeline ampliado: soporte Spotify via `spotdl`, prioridad YouTube > Spotify
+- [ ] **S-R4** Inserción bilateral: vincular sample al lado correcto de la relación
+- [ ] **S-R5** Botón dev: `POST /dev/recorte/generar` + UI en panel dev
+- [ ] **S-R6** Navegación cruzada: sample→canción→sampleo en UI
+- [ ] **S-R7** Encolado automático post-scraping en producción
+- [ ] **S-R8** Descripción auto-generada desde metadata
+
 ### S-ESCALA — Escalabilidad relacional (C703) — ✅ COMPLETADO C704
 - [x] **S-E.1** Trigger PostgreSQL: `total_sampleada`/`total_samplea` auto-update en INSERT/DELETE de `relaciones_sample` ✅ [AG-NAV]
 - [x] **S-E.2** Pipeline cambiar `ON CONFLICT DO NOTHING` → `DO UPDATE` para timings/votos en relaciones re-encontradas ✅ [AG-NAV]
