@@ -17,6 +17,7 @@
 - `wp_handle_upload()` solo wp-admin → require `includes/file.php` en REST.
 - [Groq vision local]: Groq no puede resolver hosts locales como `glory.local` en `image_url`. Para uploads locales, resolver `wp-content/uploads` a ruta física y enviar la imagen como `data:image/...;base64,...`.
 - [Moderación razón]: `determinarVeredicto()` debe poblar `razon` también en aprobados o errores parciales; si se deja vacía, los logs y el panel pierden trazabilidad.
+- [Sentinel regexes PHP]: Los controllers Kamples usan `\register_rest_route($namespace, ...)` y `new \WP_REST_Response([`. El indexer esperaba namespace como string literal y `WP_REST_Response` sin `\` FQN → CERO endpoints indexados. Fix: regex soporta `$variable` como 1er arg y backslash opcional en WP_REST_Response. También: extension `.ts` en gloryAnalyzer para services, `payloadClaves` nivel 2 para sub-claves dentro de `data:{}`, pattern `apiGet<Tipo>()` para helpers Kamples.
 
 ---
 
