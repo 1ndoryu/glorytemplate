@@ -134,6 +134,10 @@ def recortar_audio(
         fade_seg = FADE_MS / 1000.0
         duracion = recorte.duracion
 
+        # Salida MP3 320kbps (YouTube/Spotify ya vienen comprimidos, WAV innecesario)
+        es_mp3 = output_path.lower().endswith(".mp3")
+        codec_args = ["-c:a", "libmp3lame", "-b:a", "320k"] if es_mp3 else []
+
         cmd = [
             "ffmpeg",
             "-y",
@@ -143,6 +147,7 @@ def recortar_audio(
             "-af", f"afade=t=in:st=0:d={fade_seg},afade=t=out:st={duracion - fade_seg}:d={fade_seg}",
             "-ar", "44100",
             "-ac", "1",
+            *codec_args,
             output_path,
         ]
 

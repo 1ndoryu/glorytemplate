@@ -19,6 +19,8 @@ final class RelacionesSampleCols
     const TIMINGS_FUENTE = 'timings_fuente';
     const APARECE_EN_TODO = 'aparece_en_todo';
     const SAMPLE_ID = 'sample_id';
+    const SAMPLE_FUENTE_ID = 'sample_fuente_id';
+    const SAMPLE_DESTINO_ID = 'sample_destino_id';
     const VOTOS_TOTAL = 'votos_total';
     const VOTOS_PROMEDIO = 'votos_promedio';
     const FUENTE = 'fuente';
@@ -30,5 +32,5 @@ final class RelacionesSampleCols
     const UPDATED_AT = 'updated_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'cancion_destino_id', 'cancion_fuente_id', 'whosampled_id', 'tipo_relacion', 'tipo_elemento', 'timings_destino', 'timings_fuente', 'aparece_en_todo', 'sample_id', 'votos_total', 'votos_promedio', 'fuente', 'contribuidor_id', 'verificada', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
+    const TODAS = ['id', 'cancion_destino_id', 'cancion_fuente_id', 'whosampled_id', 'tipo_relacion', 'tipo_elemento', 'timings_destino', 'timings_fuente', 'aparece_en_todo', 'sample_id', 'sample_fuente_id', 'sample_destino_id', 'votos_total', 'votos_promedio', 'fuente', 'contribuidor_id', 'verificada', 'total_likes', 'total_comentarios', 'created_at', 'updated_at'];
 }

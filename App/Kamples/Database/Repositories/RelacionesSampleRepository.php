@@ -281,4 +281,91 @@ class RelacionesSampleRepository extends BaseRepository
             'profundidad' => $profundidad,
         ]);
     }
+
+    /**
+     * Relaciones donde un conjunto de canciones son FUENTE (sampleadas por otras).
+     * Incluye info de canción destino y artista — muestra "Quién sampleó al artista".
+     */
+    public static function relacionesDeCancionesFuente(array $cancionIds, int $limit = 100): array
+    {
+        if (empty($cancionIds)) {
+            return [];
+        }
+
+        $tr = RelacionesSampleCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+
+        /* array_values para reindexar, cast a int para seguridad */
+        $idsLimpios = \array_values(\array_map('intval', $cancionIds));
+        $placeholders = \implode(',', $idsLimpios);
+
+        return static::consultar(
+            "SELECT r.*,
+                    cf." . CancionesCols::TITULO . " AS fuente_titulo,
+                    cf." . CancionesCols::SLUG . " AS fuente_slug,
+                    cf." . CancionesCols::ANIO . " AS fuente_anio,
+                    cf." . CancionesCols::IMAGEN_URL . " AS fuente_imagen,
+                    af." . ArtistasMusicalesCols::NOMBRE . " AS fuente_artista,
+                    af." . ArtistasMusicalesCols::SLUG . " AS fuente_artista_slug,
+                    cd." . CancionesCols::TITULO . " AS destino_titulo,
+                    cd." . CancionesCols::SLUG . " AS destino_slug,
+                    cd." . CancionesCols::ANIO . " AS destino_anio,
+                    cd." . CancionesCols::IMAGEN_URL . " AS destino_imagen,
+                    ad." . ArtistasMusicalesCols::NOMBRE . " AS destino_artista,
+                    ad." . ArtistasMusicalesCols::SLUG . " AS destino_artista_slug
+             FROM {$tr} r
+             JOIN {$tc} cf ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = cf.id
+             JOIN {$ta} af ON cf.artista_id = af.id
+             JOIN {$tc} cd ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = cd.id
+             JOIN {$ta} ad ON cd.artista_id = ad.id
+             WHERE r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = ANY(ARRAY[{$placeholders}]::int[])
+             ORDER BY r." . RelacionesSampleCols::VOTOS_TOTAL . " DESC NULLS LAST
+             LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
+
+    /**
+     * Relaciones donde un conjunto de canciones son DESTINO (el artista sampleó a otros).
+     * Incluye info de canción fuente y artista — muestra "A quién sampleó el artista".
+     */
+    public static function relacionesDeCancionesDestino(array $cancionIds, int $limit = 100): array
+    {
+        if (empty($cancionIds)) {
+            return [];
+        }
+
+        $tr = RelacionesSampleCols::TABLA;
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+
+        $idsLimpios = \array_values(\array_map('intval', $cancionIds));
+        $placeholders = \implode(',', $idsLimpios);
+
+        return static::consultar(
+            "SELECT r.*,
+                    cf." . CancionesCols::TITULO . " AS fuente_titulo,
+                    cf." . CancionesCols::SLUG . " AS fuente_slug,
+                    cf." . CancionesCols::ANIO . " AS fuente_anio,
+                    cf." . CancionesCols::IMAGEN_URL . " AS fuente_imagen,
+                    af." . ArtistasMusicalesCols::NOMBRE . " AS fuente_artista,
+                    af." . ArtistasMusicalesCols::SLUG . " AS fuente_artista_slug,
+                    cd." . CancionesCols::TITULO . " AS destino_titulo,
+                    cd." . CancionesCols::SLUG . " AS destino_slug,
+                    cd." . CancionesCols::ANIO . " AS destino_anio,
+                    cd." . CancionesCols::IMAGEN_URL . " AS destino_imagen,
+                    ad." . ArtistasMusicalesCols::NOMBRE . " AS destino_artista,
+                    ad." . ArtistasMusicalesCols::SLUG . " AS destino_artista_slug
+             FROM {$tr} r
+             JOIN {$tc} cf ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = cf.id
+             JOIN {$ta} af ON cf.artista_id = af.id
+             JOIN {$tc} cd ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = cd.id
+             JOIN {$ta} ad ON cd.artista_id = ad.id
+             WHERE r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = ANY(ARRAY[{$placeholders}]::int[])
+             ORDER BY r." . RelacionesSampleCols::VOTOS_TOTAL . " DESC NULLS LAST
+             LIMIT :limit",
+            ['limit' => $limit]
+        );
+    }
 }

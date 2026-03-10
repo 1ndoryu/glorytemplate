@@ -156,6 +156,20 @@ PageManager::reactPage('sampleo', 'RelacionDetalleIsland', function($pageId) {
 
 PageManager::registrarRutaDinamica('sampleo', ':id/:slug?');
 
+/* Paginas Kamples — Artista detalle */
+PageManager::reactPage('artista', 'ArtistaDetalleIsland', function($pageId) {
+    $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+    $partes = explode('/', $path);
+    /* /artista/{slug} → slug es el último segmento */
+    $slug = end($partes);
+    if ($slug === 'artista') {
+        return ['slug' => ''];
+    }
+    return ['slug' => sanitize_text_field($slug)];
+});
+
+PageManager::registrarRutaDinamica('artista', ':slug');
+
 /* DEV — Showcase de componentes (solo desarrollo) */
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');

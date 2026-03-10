@@ -262,8 +262,17 @@ class PostgresPipeline:
 
                 row = cur.fetchone()
                 if row:
-                    accion = "insertada" if row[1] else "actualizada"
-                    logger.info("Relacion %s: id=%d ws_id=%s", accion, row[0], item.get("whosampled_id"))
+                    relacion_id = row[0]
+                    es_nueva = row[1]
+                    accion = "insertada" if es_nueva else "actualizada"
+                    logger.info("Relacion %s: id=%d ws_id=%s", accion, relacion_id, item.get("whosampled_id"))
+
+                    # Auto-encolar extracción bilateral para relaciones nuevas
+                    if es_nueva:
+                        self._encolar_extraccion(
+                            cur, relacion_id, dest_data, fuente_data, item
+                        )
+                        self.conn.commit()
 
         except psycopg2.Error:
             self.conn.rollback()
@@ -414,3 +423,63 @@ class PostgresPipeline:
             logger.exception("Error inesperado en _procesar_track_metadata")
 
         return item
+
+    def _encolar_extraccion(
+        self, cur, relacion_id: int, dest_data: dict, fuente_data: dict, item
+    ) -> None:
+        """
+        Encola extracción bilateral (fuente + destino) para una relación recién insertada.
+        Crea hasta 2 entradas en cola_extraccion_samples con ON CONFLICT DO NOTHING
+        para dedup por (relacion_id, lado).
+        """
+        lados = {
+            "fuente": {
+                "youtube_id": fuente_data.get("youtube_id"),
+                "spotify_id": fuente_data.get("spotify_id"),
+                "timings": item.get("timings_fuente", []),
+            },
+            "destino": {
+                "youtube_id": dest_data.get("youtube_id"),
+                "spotify_id": dest_data.get("spotify_id"),
+                "timings": item.get("timings_destino", []),
+            },
+        }
+
+        encolados = 0
+        for lado, datos in lados.items():
+            yt_id = datos["youtube_id"]
+            sp_id = datos["spotify_id"]
+
+            if not yt_id and not sp_id:
+                continue
+
+            timings = datos["timings"]
+            if isinstance(timings, str):
+                try:
+                    timings = json.loads(timings)
+                except (json.JSONDecodeError, TypeError):
+                    timings = []
+
+            timing = int(timings[0]) if timings else 0
+
+            try:
+                cur.execute(
+                    "INSERT INTO cola_extraccion_samples "
+                    "(relacion_id, youtube_id, spotify_id, timing_inicio_seg, lado) "
+                    "VALUES (%s, %s, %s, %s, %s) "
+                    "ON CONFLICT (relacion_id, lado) DO NOTHING",
+                    (relacion_id, yt_id, sp_id, timing, lado),
+                )
+                if cur.rowcount > 0:
+                    encolados += 1
+            except psycopg2.Error:
+                logger.warning(
+                    "Error encolando extraccion relacion=%d lado=%s",
+                    relacion_id, lado, exc_info=True,
+                )
+
+        if encolados > 0:
+            logger.info(
+                "Auto-encolado: relacion=%d, %d lados encolados para extraccion",
+                relacion_id, encolados,
+            )

@@ -23,7 +23,9 @@ final class ColaExtraccionSamplesCols
     const INTENTOS = 'intentos';
     const PROCESADO_AT = 'procesado_at';
     const CREATED_AT = 'created_at';
+    const LADO = 'lado';
+    const SPOTIFY_ID = 'spotify_id';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'relacion_id', 'youtube_id', 'timing_inicio_seg', 'bpm_detectado', 'duracion_compas_seg', 'compas_inicio_seg', 'compas_fin_seg', 'estado', 'sample_id', 'error_mensaje', 'intentos', 'procesado_at', 'created_at'];
+    const TODAS = ['id', 'relacion_id', 'youtube_id', 'timing_inicio_seg', 'bpm_detectado', 'duracion_compas_seg', 'compas_inicio_seg', 'compas_fin_seg', 'estado', 'sample_id', 'error_mensaje', 'intentos', 'procesado_at', 'created_at', 'lado', 'spotify_id'];
 }

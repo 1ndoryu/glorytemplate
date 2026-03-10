@@ -51,6 +51,7 @@ class SamplesSchema extends TableSchema
             'total_comentarios'    => ['tipo' => 'int', 'default' => 0],
             'verificado'           => ['tipo' => 'bool', 'default' => false],
             'mostrar_en_comunidad' => ['tipo' => 'bool', 'default' => true],
+            'cancion_origen_id'   => ['tipo' => 'int', 'nullable' => true, 'ref' => 'canciones(id)'],
         ];
     }
 }

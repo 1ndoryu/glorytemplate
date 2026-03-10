@@ -34,6 +34,7 @@ import {ExploradorIsland} from './islands/explorador/ExploradorIsland';
 import {CancionDetalleIsland} from './islands/canciones/CancionDetalleIsland';
 import {ExplorarCancionesIsland} from './islands/canciones/ExplorarCancionesIsland';
 import {RelacionDetalleIsland} from './islands/canciones/RelacionDetalleIsland';
+import {ArtistaDetalleIsland} from './islands/canciones/ArtistaDetalleIsland';
 import {LayoutPrincipal} from '@app/components/layout/LayoutPrincipal';
 import {InicializadorAuth} from '@app/components/auth/InicializadorAuth';
 
@@ -84,6 +85,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     CancionDetalleIsland: CancionDetalleIsland as React.ComponentType<Record<string, unknown>>,
     ExplorarCancionesIsland: ExplorarCancionesIsland as React.ComponentType<Record<string, unknown>>,
     RelacionDetalleIsland: RelacionDetalleIsland as React.ComponentType<Record<string, unknown>>,
+    ArtistaDetalleIsland: ArtistaDetalleIsland as React.ComponentType<Record<string, unknown>>,
 };
 
 export default appIslands;

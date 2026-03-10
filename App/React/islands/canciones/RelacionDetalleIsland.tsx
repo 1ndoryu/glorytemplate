@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Scissors } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
@@ -21,6 +21,8 @@ import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useRelacionDetalle } from '@app/hooks/useRelacionDetalle';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useNavigationStore } from '@/core/router';
+import { devGenerarRecorte } from '@app/services/apiCanciones';
+import { useAuthStore } from '@app/stores/authStore';
 import {
     ETIQUETAS_TIPO_RELACION,
     ETIQUETAS_TIPO_ELEMENTO,
@@ -55,6 +57,23 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
     const relacionId = relacion?.id ?? 0;
     const [comentariosVisibles, setComentariosVisibles] = useState(false);
     const seccionComentarios = useComentarios({ tipo: 'relacion', targetId: relacionId });
+
+    const esAdmin = useAuthStore((s) => s.usuario?.rol === 'admin');
+    const [recorteCargando, setRecorteCargando] = useState(false);
+    const [recorteMensaje, setRecorteMensaje] = useState<string | null>(null);
+
+    const manejarGenerarRecorte = useCallback(async () => {
+        if (!relacionId || recorteCargando) return;
+        setRecorteCargando(true);
+        setRecorteMensaje(null);
+        const resp = await devGenerarRecorte(relacionId);
+        setRecorteCargando(false);
+        if (resp.ok && resp.data) {
+            setRecorteMensaje(`${resp.data.mensaje} (${resp.data.encolados} lados)`);
+        } else {
+            setRecorteMensaje(resp.error ?? 'Error al generar recorte');
+        }
+    }, [relacionId, recorteCargando]);
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => {
@@ -138,6 +157,20 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     reaccion={relacion.reaccion as 'like' | 'encanta' | 'dislike' | null}
                     totalLikes={relacion.totalLikes}
                 />
+                {esAdmin && (
+                    <div className="relacionDetalleDevAcciones">
+                        <BotonBase
+                            variante="ghost"
+                            tamano="sm"
+                            onClick={manejarGenerarRecorte}
+                            disabled={recorteCargando}
+                        >
+                            <Scissors size={14} />
+                            {recorteCargando ? 'Generando...' : 'Generar recorte'}
+                        </BotonBase>
+                        {recorteMensaje && <span className="relacionDetalleDevMsg">{recorteMensaje}</span>}
+                    </div>
+                )}
             </div>
 
             {/* Grid: destino (samplea) → fuente (sampleada) */}

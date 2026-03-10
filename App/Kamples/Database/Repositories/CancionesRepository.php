@@ -161,4 +161,29 @@ class CancionesRepository extends BaseRepository
 
         static::ejecutar("TRUNCATE {$tablas} CASCADE");
     }
+
+    /**
+     * Géneros predominantes de un artista (top N por frecuencia).
+     * Se calcula al vuelo: con <100 canciones por artista es trivial.
+     *
+     * @return array<string> Lista de géneros ordenados por frecuencia DESC.
+     */
+    public static function generosPorArtista(int $artistaId, int $limit = 5): array
+    {
+        $tc = CancionesCols::TABLA;
+
+        $rows = static::consultar(
+            "SELECT " . CancionesCols::GENERO . " AS genero, COUNT(*) AS total
+             FROM {$tc}
+             WHERE " . CancionesCols::ARTISTA_ID . " = :artista_id
+               AND " . CancionesCols::GENERO . " IS NOT NULL
+               AND " . CancionesCols::GENERO . " != ''
+             GROUP BY " . CancionesCols::GENERO . "
+             ORDER BY total DESC
+             LIMIT :limit",
+            ['artista_id' => $artistaId, 'limit' => $limit]
+        );
+
+        return \array_map(fn($r) => $r['genero'], $rows);
+    }
 }

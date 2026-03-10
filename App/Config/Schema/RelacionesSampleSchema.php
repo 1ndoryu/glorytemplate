@@ -29,6 +29,8 @@ class RelacionesSampleSchema extends TableSchema
             'timings_fuente'     => ['tipo' => 'json', 'default' => '[]'],
             'aparece_en_todo'    => ['tipo' => 'bool', 'default' => false],
             'sample_id'          => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
+            'sample_fuente_id'   => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
+            'sample_destino_id'  => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
             'votos_total'        => ['tipo' => 'int', 'default' => 0],
             'votos_promedio'     => ['tipo' => 'decimal', 'default' => 0],
             'fuente'             => ['tipo' => 'string', 'max' => 20, 'default' => 'scraping', 'check' => ['scraping', 'comunidad', 'musicbrainz', 'import']],

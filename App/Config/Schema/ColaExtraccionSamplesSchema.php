@@ -20,7 +20,7 @@ class ColaExtraccionSamplesSchema extends TableSchema
         return [
             'id'                  => ['tipo' => 'int', 'pk' => true],
             'relacion_id'         => ['tipo' => 'int', 'ref' => 'relaciones_sample(id)'],
-            'youtube_id'          => ['tipo' => 'string', 'max' => 20],
+            'youtube_id'          => ['tipo' => 'string', 'max' => 20, 'nullable' => true],
             'timing_inicio_seg'   => ['tipo' => 'int'],
             'bpm_detectado'       => ['tipo' => 'int', 'nullable' => true],
             'duracion_compas_seg' => ['tipo' => 'decimal', 'nullable' => true],
@@ -32,6 +32,8 @@ class ColaExtraccionSamplesSchema extends TableSchema
             'intentos'            => ['tipo' => 'int', 'default' => 0],
             'procesado_at'        => ['tipo' => 'datetime', 'nullable' => true],
             'created_at'          => ['tipo' => 'datetime', 'default' => 'NOW()'],
+            'lado'                => ['tipo' => 'string', 'max' => 10, 'default' => 'fuente', 'check' => ['fuente', 'destino']],
+            'spotify_id'          => ['tipo' => 'string', 'max' => 30, 'nullable' => true],
         ];
     }
 }

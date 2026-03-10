@@ -1,0 +1,185 @@
+/*
+ * ArtistaDetalleIsland — Kamples
+ * Página de detalle de un artista: cabecera, canciones, relaciones (sampleado por / samplea a).
+ * Lógica extraída a useArtistaDetalle (SRP).
+ */
+
+import { AlertCircle, Music, User } from 'lucide-react';
+import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
+import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
+import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useArtistaDetalle } from '@app/hooks/useArtistaDetalle';
+import type { Cancion } from '@app/types/cancion';
+import '../../styles/componentes/artistaDetalle.css';
+import '../../styles/componentes/seccionRelaciones.css';
+
+const TABS_ARTISTA = [
+    { id: 'canciones', etiqueta: 'Canciones' },
+    { id: 'sampleadoPor', etiqueta: 'Sampleado por' },
+    { id: 'sampleaA', etiqueta: 'Samplea a' },
+];
+
+interface ArtistaDetalleProps {
+    slug?: string;
+}
+
+export const ArtistaDetalleIsland = ({ slug }: ArtistaDetalleProps): JSX.Element => {
+    const { datos, cargando, error, irACancion } = useArtistaDetalle({ slug });
+    useTabsIsla('ArtistaDetalleIsland', TABS_ARTISTA, 'canciones');
+    const tabActiva = useTabsTopBarStore((s) => s.activa) ?? 'canciones';
+
+    if (cargando) {
+        return (
+            <div className="artistaDetalleContenedor" id="seccionArtistaDetalle">
+                <div className="artistaDetalleCabecera">
+                    <Skeleton alto={120} ancho={120} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--espacioSm)' }}>
+                        <Skeleton alto={28} ancho={250} />
+                        <Skeleton alto={16} ancho={180} />
+                    </div>
+                </div>
+                <SkeletonFeed cantidad={4} />
+            </div>
+        );
+    }
+
+    if (error || !datos) {
+        return (
+            <div className="artistaDetalleContenedor" id="seccionArtistaDetalle">
+                <div className="artistaDetalleError">
+                    <AlertCircle size={40} />
+                    <p>{error || 'Artista no encontrado.'}</p>
+                    <BotonBase variante="ghost" onClick={() => window.history.back()}>Volver</BotonBase>
+                </div>
+            </div>
+        );
+    }
+
+    const { artista, canciones, sampleadoPor, sampleaA, estadisticas } = datos;
+
+    return (
+        <div className="artistaDetalleContenedor" id="seccionArtistaDetalle">
+            {/* Cabecera */}
+            <div className="artistaDetalleCabecera">
+                <div className="artistaDetalleImagen">
+                    {artista.imagenUrl ? (
+                        <img src={artista.imagenUrl} alt={artista.nombre} loading="lazy" />
+                    ) : (
+                        <User size={48} color="var(--textoTerciario)" />
+                    )}
+                </div>
+                <div className="artistaDetalleInfo">
+                    <h1 className="artistaDetalleNombre">{artista.nombre}</h1>
+                    <div className="artistaDetalleStats">
+                        <Badge variante="neutro" tamano="sm">
+                            {canciones.length} canciones
+                        </Badge>
+                        {estadisticas.totalSampleadoPor > 0 && (
+                            <Badge variante="neutro" tamano="sm">
+                                Sampleado {estadisticas.totalSampleadoPor} veces
+                            </Badge>
+                        )}
+                        {estadisticas.totalSampleaA > 0 && (
+                            <Badge variante="neutro" tamano="sm">
+                                Samplea a {estadisticas.totalSampleaA}
+                            </Badge>
+                        )}
+                    </div>
+                    {estadisticas.generos.length > 0 && (
+                        <div className="artistaDetalleGeneros">
+                            {estadisticas.generos.map((g) => (
+                                <Badge key={g} variante="neutro" tamano="sm">{g}</Badge>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Tab: Canciones */}
+            {tabActiva === 'canciones' && (
+                <div className="artistaDetalleCanciones">
+                    {canciones.length === 0 ? (
+                        <p className="artistaDetalleSinDatos">Sin canciones registradas.</p>
+                    ) : (
+                        <div className="artistaDetalleListaCanciones">
+                            {canciones.map((c: Cancion) => (
+                                <BotonBase
+                                    key={c.id}
+                                    variante="ghost"
+                                    tamano="ninguno"
+                                    anchoCompleto
+                                    className="artistaDetalleCancionFila"
+                                    onClick={() => irACancion(c.slug)}
+                                >
+                                    <div className="artistaDetalleCancionPortada">
+                                        {c.imagenUrl ? (
+                                            <img src={c.imagenUrl} alt={c.titulo} loading="lazy" />
+                                        ) : (
+                                            <Music size={20} color="var(--textoTerciario)" />
+                                        )}
+                                    </div>
+                                    <div className="artistaDetalleCancionInfo">
+                                        <span className="artistaDetalleCancionTitulo">{c.titulo}</span>
+                                        <span className="artistaDetalleCancionMeta">
+                                            {c.anio && <span>{c.anio}</span>}
+                                            {c.album && <span>{c.album}</span>}
+                                            {c.genero && <span>{c.genero}</span>}
+                                        </span>
+                                    </div>
+                                    <div className="artistaDetalleCancionStats">
+                                        {c.totalSampleada > 0 && (
+                                            <Badge variante="neutro" tamano="sm">
+                                                Sampleada {c.totalSampleada}
+                                            </Badge>
+                                        )}
+                                        {c.totalSamplea > 0 && (
+                                            <Badge variante="neutro" tamano="sm">
+                                                Samplea {c.totalSamplea}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </BotonBase>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Tab: Sampleado por */}
+            {tabActiva === 'sampleadoPor' && (
+                <div className="artistaDetalleRelaciones">
+                    {sampleadoPor.length === 0 ? (
+                        <p className="artistaDetalleSinDatos">Nadie ha sampleado a este artista (aún).</p>
+                    ) : (
+                        <SeccionRelaciones
+                            titulo={`${artista.nombre} fue sampleado por`}
+                            contador={sampleadoPor.length}
+                        >
+                            <TablaRelaciones relaciones={sampleadoPor} direccion="origen" />
+                        </SeccionRelaciones>
+                    )}
+                </div>
+            )}
+
+            {/* Tab: Samplea a */}
+            {tabActiva === 'sampleaA' && (
+                <div className="artistaDetalleRelaciones">
+                    {sampleaA.length === 0 ? (
+                        <p className="artistaDetalleSinDatos">Este artista no ha sampleado a otros (registrado).</p>
+                    ) : (
+                        <SeccionRelaciones
+                            titulo={`${artista.nombre} samplea a`}
+                            contador={sampleaA.length}
+                        >
+                            <TablaRelaciones relaciones={sampleaA} direccion="destino" />
+                        </SeccionRelaciones>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};

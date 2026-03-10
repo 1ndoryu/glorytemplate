@@ -136,3 +136,18 @@ interface RespuestaCola {
 /* Toma la URL pendiente más antigua de la cola y lanza el spider correspondiente. */
 export const devProcesarDeCola = (): Promise<RespuestaApi<RespuestaCola>> =>
     apiPost<RespuestaCola>('/dev/scraper/cola', {});
+
+/* Encolar extracción bilateral + lanzar pipeline para una relación */
+interface RespuestaRecorte {
+    ok: boolean;
+    mensaje: string;
+    encolados: number;
+    cola_ids?: number[];
+    pid?: number;
+    log?: string;
+}
+
+export const devGenerarRecorte = (
+    relacionId: number
+): Promise<RespuestaApi<RespuestaRecorte>> =>
+    apiPost<RespuestaRecorte>('/dev/recorte/generar', { relacion_id: relacionId });

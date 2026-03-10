@@ -149,4 +149,69 @@ class ColaExtraccionSamplesRepository extends BaseRepository
             . " GROUP BY " . ColaExtraccionSamplesCols::ESTADO
         );
     }
+
+    /**
+     * Encolar extracción bilateral para una relación.
+     * Crea hasta 2 entradas (fuente + destino) con dedup por UNIQUE(relacion_id, lado).
+     *
+     * @return array IDs de las entradas creadas en la cola.
+     */
+    public static function encolarBilateral(array $relacion): array
+    {
+        $tabla = ColaExtraccionSamplesCols::TABLA;
+        $ids = [];
+
+        $lados = [
+            'fuente' => [
+                'youtube_id'  => $relacion['fuente_youtube_id'] ?? null,
+                'spotify_id'  => $relacion['fuente_spotify_id'] ?? null,
+                'timings'     => $relacion['timings_fuente'] ?? [],
+            ],
+            'destino' => [
+                'youtube_id'  => $relacion['destino_youtube_id'] ?? null,
+                'spotify_id'  => $relacion['destino_spotify_id'] ?? null,
+                'timings'     => $relacion['timings_destino'] ?? [],
+            ],
+        ];
+
+        foreach ($lados as $lado => $datos) {
+            $ytId = $datos['youtube_id'];
+            $spId = $datos['spotify_id'];
+
+            /* Sin fuente de audio, no se puede extraer */
+            if (!$ytId && !$spId) {
+                continue;
+            }
+
+            $timings = \is_string($datos['timings'])
+                ? (\json_decode($datos['timings'], true) ?: [])
+                : ($datos['timings'] ?: []);
+            $timing = !empty($timings) ? (int) $timings[0] : 0;
+
+            $id = static::insertar(
+                "INSERT INTO {$tabla} ("
+                . ColaExtraccionSamplesCols::RELACION_ID . ", "
+                . ColaExtraccionSamplesCols::YOUTUBE_ID . ", "
+                . ColaExtraccionSamplesCols::SPOTIFY_ID . ", "
+                . ColaExtraccionSamplesCols::TIMING_INICIO_SEG . ", "
+                . ColaExtraccionSamplesCols::LADO
+                . ") VALUES (:relacion_id, :youtube_id, :spotify_id, :timing, :lado) "
+                . "ON CONFLICT (" . ColaExtraccionSamplesCols::RELACION_ID . ", " . ColaExtraccionSamplesCols::LADO . ") DO NOTHING "
+                . "RETURNING " . ColaExtraccionSamplesCols::ID,
+                [
+                    'relacion_id' => (int) $relacion['id'],
+                    'youtube_id'  => $ytId,
+                    'spotify_id'  => $spId,
+                    'timing'      => $timing,
+                    'lado'        => $lado,
+                ]
+            );
+
+            if ($id) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
 }

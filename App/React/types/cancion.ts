@@ -149,10 +149,17 @@ export interface RelacionDetalleCompleta {
     fuenteSampleadaEn?: RelacionSample[];
 }
 
-/* Detalle de artista con canciones */
+/* Detalle de artista con canciones, relaciones y estadísticas */
 export interface ArtistaDetalle {
     artista: ArtistaMusicale;
     canciones: Cancion[];
+    sampleadoPor: RelacionSample[];
+    sampleaA: RelacionSample[];
+    estadisticas: {
+        totalSampleadoPor: number;
+        totalSampleaA: number;
+        generos: string[];
+    };
 }
 
 /* Estadísticas de relaciones por tipo */

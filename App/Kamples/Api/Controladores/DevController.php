@@ -16,6 +16,8 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
+use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\ScrapingLogRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\ScrapingLogCols;
@@ -88,6 +90,19 @@ class DevController
                         $host = \parse_url($v, PHP_URL_HOST);
                         return \is_string($host) && \str_contains($host, self::URL_DOMINIO_PERMITIDO);
                     },
+                ],
+            ],
+        ]);
+
+        \register_rest_route($namespace, '/dev/recorte/generar', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'generarRecorte'],
+            'permission_callback' => $admin,
+            'args'                => [
+                'relacion_id' => [
+                    'type'     => 'integer',
+                    'required' => true,
+                    'minimum'  => 1,
                 ],
             ],
         ]);
@@ -422,6 +437,109 @@ class DevController
                 'line'  => $e->getLine(),
             ], 'scraper');
             KamplesLogger::error('[DEV] Error al ejecutar scraper', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Encola extracción bilateral y lanza el pipeline Python para una relación.
+     * POST /dev/recorte/generar { relacion_id: int }
+     */
+    public static function generarRecorte(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $relacionId = (int) $request->get_param('relacion_id');
+
+            /* Verificar existencia de la relación con datos completos (youtube_id, spotify_id, timings) */
+            $relacion = RelacionesSampleRepository::porRelacionId($relacionId);
+            if ($relacion === null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada.'], 404);
+            }
+
+            /* Encolar bilateral (fuente + destino) */
+            $ids = ColaExtraccionSamplesRepository::encolarBilateral($relacion);
+
+            if (empty($ids)) {
+                return new \WP_REST_Response([
+                    'ok'      => true,
+                    'mensaje' => 'Ambos lados ya estaban encolados o sin fuente de audio.',
+                    'encolados' => 0,
+                ], 200);
+            }
+
+            /* Lanzar pipeline Python en background */
+            $python = self::detectarPython();
+            if ($python === null) {
+                return new \WP_REST_Response([
+                    'ok'      => true,
+                    'mensaje' => 'Encolados ' . \count($ids) . ' lados, pero Python no disponible para ejecutar pipeline.',
+                    'encolados' => \count($ids),
+                    'cola_ids' => $ids,
+                ], 200);
+            }
+
+            $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
+            $logsAppDir = \get_template_directory() . '/App/logs';
+            if (!\is_dir($logsAppDir)) {
+                \wp_mkdir_p($logsAppDir);
+            }
+            $logOutput = $logsAppDir . '/extractor-output-' . date('Y-m-d') . '.log';
+
+            $cmdArray = [$python, '-m', 'extractor.pipeline', '--limit', (string) \count($ids)];
+
+            $cabecera = "\n" . str_repeat('-', 60) . "\n[" . date('Y-m-d H:i:s') . "] RECORTE relacion_id={$relacionId} encolados=" . \count($ids) . "\n" . str_repeat('-', 60) . "\n";
+            file_put_contents($logOutput, $cabecera, FILE_APPEND | LOCK_EX);
+
+            $env = \getenv() ?: [];
+            if (empty($env['USERPROFILE']) || !\is_dir((string) $env['USERPROFILE'])) {
+                $excluidos = ['Public', 'Default', 'All Users', 'Default User'];
+                $perfiles  = \is_dir('C:\\Users') ? (\glob('C:\\Users\\*', GLOB_ONLYDIR) ?: []) : [];
+                foreach ($perfiles as $perfil) {
+                    $nombre = \basename($perfil);
+                    if (!\in_array($nombre, $excluidos, true) && \is_dir($perfil)) {
+                        $env['USERPROFILE'] = $perfil;
+                        $env['HOMEDRIVE']   = 'C:';
+                        $env['HOMEPATH']    = '\\Users\\' . $nombre;
+                        $env['HOME']        = $perfil;
+                        break;
+                    }
+                }
+            }
+
+            $descriptores = [
+                0 => ['file', \PHP_OS_FAMILY === 'Windows' ? 'nul' : '/dev/null', 'r'],
+                1 => ['file', $logOutput, 'a'],
+                2 => ['file', $logOutput, 'a'],
+            ];
+
+            $pipes = [];
+            /* sentinel-disable-next-line exec-sin-escapeshellarg — proc_open con array no pasa por shell */
+            $proceso = \proc_open($cmdArray, $descriptores, $pipes, $scraperDir, $env);
+
+            $pid = null;
+            if ($proceso !== false) {
+                $estado = \proc_get_status($proceso);
+                $pid = $estado['pid'] ?? null;
+            }
+
+            KamplesLogger::info('[DEV] Recorte bilateral encolado + pipeline iniciado', [
+                'relacion_id' => $relacionId,
+                'encolados'   => \count($ids),
+                'cola_ids'    => $ids,
+                'pid'         => $pid,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'       => true,
+                'mensaje'  => 'Encolados ' . \count($ids) . ' lados. Pipeline iniciado.',
+                'encolados' => \count($ids),
+                'cola_ids' => $ids,
+                'pid'      => $pid,
+                'log'      => 'App/logs/extractor-output-' . date('Y-m-d') . '.log',
+            ], 200);
+
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error al generar recorte', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
         }
     }

@@ -34,17 +34,20 @@ logger = logging.getLogger(__name__)
 
 
 def obtener_pendientes(limit: int = 10) -> list[dict]:
-    """Obtener elementos pendientes de la cola de extracción."""
+    """Obtener elementos pendientes de la cola de extracción (bilateral)."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT ce.id, ce.relacion_id, ce.youtube_id, ce.timing_inicio_seg, "
+                "SELECT ce.id, ce.relacion_id, ce.youtube_id, ce.spotify_id, "
+                "       ce.timing_inicio_seg, ce.lado, "
                 "       rs.tipo_relacion, rs.tipo_elemento, "
+                "       rs.cancion_destino_id, rs.cancion_fuente_id, "
                 "       c_dest.titulo AS destino_titulo, "
                 "       a_dest.nombre AS destino_artista, "
                 "       c_fuente.titulo AS fuente_titulo, "
-                "       a_fuente.nombre AS fuente_artista "
+                "       a_fuente.nombre AS fuente_artista, "
+                "       rs.votos_total "
                 "FROM cola_extraccion_samples ce "
                 "JOIN relaciones_sample rs ON ce.relacion_id = rs.id "
                 "JOIN canciones c_dest ON rs.cancion_destino_id = c_dest.id "
@@ -89,30 +92,34 @@ def actualizar_estado_cola(cola_id: int, estado: str, error: str | None = None) 
 
 def procesar_elemento(item: dict, output_dir: str) -> bool:
     """
-    Procesar un elemento de la cola: descargar → analizar → recortar → insertar.
+    Procesar un elemento de la cola: descargar -> analizar -> recortar -> insertar.
+    Soporta bilateral (fuente/destino) y Spotify como fuente de audio alternativa.
     """
     cola_id = item["id"]
-    youtube_id = item["youtube_id"]
+    youtube_id = item.get("youtube_id")
+    spotify_id = item.get("spotify_id")
     timing = item["timing_inicio_seg"]
+    lado = item.get("lado", "fuente")
 
     logger.info(
-        "Procesando cola_id=%d: %s - %s [timing=%ds] yt=%s",
-        cola_id,
+        "Procesando cola_id=%d lado=%s: %s - %s [timing=%ds] yt=%s spotify=%s",
+        cola_id, lado,
         item.get("fuente_artista", ""),
         item.get("fuente_titulo", ""),
         timing,
-        youtube_id,
+        youtube_id or "N/A",
+        spotify_id or "N/A",
     )
 
     wav_path = None
     recorte_path = None
 
     try:
-        # 1. Descargar audio
+        # 1. Descargar audio (YouTube prioritario, fallback Spotify)
         actualizar_estado_cola(cola_id, "descargando")
-        wav_path = descargar_audio(youtube_id, output_dir)
+        wav_path = descargar_audio(youtube_id, output_dir, spotify_id=spotify_id)
         if not wav_path:
-            actualizar_estado_cola(cola_id, "error", "Descarga de YouTube fallida")
+            actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (YT + Spotify)")
             return False
 
         # 2. Analizar BPM
@@ -123,8 +130,11 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         actualizar_estado_cola(cola_id, "recortando")
         recorte = calcular_recorte(timing, analisis)
 
-        # 4. Ejecutar recorte
-        recorte_path = os.path.join(output_dir, f"sample_{cola_id}_{youtube_id}.wav")
+        # 4. Ejecutar recorte (MP3 320kbps)
+        recorte_path = os.path.join(
+            output_dir,
+            f"sample_{cola_id}_{lado}_{youtube_id or spotify_id or 'unknown'}.mp3",
+        )
         exito = recortar_audio(wav_path, recorte, recorte_path)
         if not exito:
             actualizar_estado_cola(cola_id, "error", "Recorte de audio fallido")
@@ -133,13 +143,16 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         # 5. Generar waveform (peaks JSON compatibles con ProcesadorFFmpeg.php)
         waveform_path = generar_waveform(recorte_path)
 
-        # 6. Insertar en Kamples
+        # 6. Insertar en Kamples (con metadata bilateral)
         metadata_cancion = {
             "fuente_titulo": item.get("fuente_titulo", ""),
             "fuente_artista": item.get("fuente_artista", ""),
             "destino_titulo": item.get("destino_titulo", ""),
             "destino_artista": item.get("destino_artista", ""),
             "tipo_elemento": item.get("tipo_elemento", ""),
+            "votos_total": item.get("votos_total", 0),
+            "cancion_fuente_id": item.get("cancion_fuente_id"),
+            "cancion_destino_id": item.get("cancion_destino_id"),
         }
 
         sample_id = insertar_sample(
@@ -148,12 +161,13 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             wav_path=recorte_path,
             metadata_cancion=metadata_cancion,
             waveform_path=waveform_path,
+            lado=lado,
         )
 
         if sample_id:
             logger.info(
-                "Extraccion completada: cola=%d sample=%d (%.1fs, BPM=%.0f, alineado=%s)",
-                cola_id, sample_id, recorte.duracion, recorte.bpm, recorte.recorte_por_compas,
+                "Extraccion completada: cola=%d lado=%s sample=%d (%.1fs, BPM=%.0f, alineado=%s)",
+                cola_id, lado, sample_id, recorte.duracion, recorte.bpm, recorte.recorte_por_compas,
             )
             return True
         else:
@@ -161,11 +175,11 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             return False
 
     except Exception as e:
-        logger.exception("Error procesando cola_id=%d", cola_id)
+        logger.exception("Error procesando cola_id=%d lado=%s", cola_id, lado)
         actualizar_estado_cola(cola_id, "error", str(e)[:1000])
         return False
     finally:
-        # Limpiar WAV completo (no el recortado, ese se guarda)
+        # Limpiar archivo descargado completo (no el recortado, ese se guarda)
         if wav_path and wav_path != recorte_path:
             limpiar_audio(wav_path)
 

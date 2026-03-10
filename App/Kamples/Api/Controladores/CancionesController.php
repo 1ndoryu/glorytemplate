@@ -231,7 +231,7 @@ class CancionesController
     }
 
     /**
-     * GET /artistas/{slug} — Detalle artista con canciones.
+     * GET /artistas/{slug} — Detalle artista con canciones, relaciones y estadísticas.
      */
     public static function detalleArtista(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -243,13 +243,31 @@ class CancionesController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Artista no encontrado'], 404);
             }
 
-            $canciones = CancionesArtistasRepository::cancionesDeArtista((int) $artista['id']);
+            $artistaId = (int) $artista['id'];
+            $canciones = CancionesArtistasRepository::cancionesDeArtista($artistaId);
+            $cancionIds = \array_map(fn($c) => (int) $c['id'], $canciones);
+
+            /* Relaciones donde canciones del artista son FUENTE (otros lo samplearon) */
+            $sampleadoPor = RelacionesSampleRepository::relacionesDeCancionesFuente($cancionIds);
+
+            /* Relaciones donde canciones del artista son DESTINO (el artista sampleó) */
+            $sampleaA = RelacionesSampleRepository::relacionesDeCancionesDestino($cancionIds);
+
+            /* Géneros predominantes (top 5 por frecuencia) */
+            $generos = CancionesRepository::generosPorArtista($artistaId, 5);
 
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
-                    'artista'   => NormalizadorCancion::artista($artista),
-                    'canciones' => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
+                    'artista'       => NormalizadorCancion::artista($artista),
+                    'canciones'     => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
+                    'sampleadoPor'  => \array_map([NormalizadorCancion::class, 'relacion'], $sampleadoPor),
+                    'sampleaA'      => \array_map([NormalizadorCancion::class, 'relacion'], $sampleaA),
+                    'estadisticas'  => [
+                        'totalSampleadoPor' => \count($sampleadoPor),
+                        'totalSampleaA'     => \count($sampleaA),
+                        'generos'           => $generos,
+                    ],
                 ],
             ]);
         } catch (\Throwable $e) {
