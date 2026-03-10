@@ -21,6 +21,8 @@ const TABS_RELACION = [{ id: 'relacion', etiqueta: 'Sampleo' }];
 
 interface RelacionDetalleProps {
     id?: string;
+    /* El SPA router extrae segmentos dinámicos como 'slug' — se acepta como alias de id */
+    slug?: string;
 }
 
 /* Valida formato YouTube ID y construye URL de embed segura */
@@ -40,14 +42,16 @@ const formatearTimings = (timings: number[]): string => {
         .join(', ');
 };
 
-export const RelacionDetalleIsland = ({ id }: RelacionDetalleProps): JSX.Element => {
+export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.Element => {
+    /* SPA navigation pasa 'slug' para segmentos dinámicos (/sampleo/260 → slug='260') */
+    const idEfectivo = id ?? slug;
     const {
         relacion,
         cargando,
         error,
         irACancion,
         irAArtista,
-    } = useRelacionDetalle({ id });
+    } = useRelacionDetalle({ id: idEfectivo });
 
     useTabsIsla('RelacionDetalleIsland', TABS_RELACION, 'relacion');
 

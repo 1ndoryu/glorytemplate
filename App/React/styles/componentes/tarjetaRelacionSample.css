@@ -20,28 +20,33 @@
     border-color: var(--bordeSutil);
 }
 
+/* .tarjetaRelacionImagen se aplica directamente al <img>, no a un wrapper */
 .tarjetaRelacionImagen {
     width: 56px;
     height: 56px;
     min-width: 56px;
+    flex-shrink: 0;
     border-radius: var(--radioSm);
-    overflow: hidden;
-    background: var(--fondoElevado2);
-}
-
-.tarjetaRelacionImagen img {
-    width: 100%;
-    height: 100%;
     object-fit: cover;
     display: block;
 }
 
 .tarjetaRelacionCuerpo {
     display: flex;
-    flex-direction: column;
-    gap: calc(var(--espacioXs) / 2);
+    flex-direction: row;
+    gap: var(--espacioSm);
     min-width: 0;
     flex: 1;
+    align-items: center;
+}
+
+/* Columna central: título + artista + año apilados verticalmente */
+.tarjetaRelacionInfo {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
 }
 
 .tarjetaRelacionTitulo {

@@ -205,13 +205,20 @@ class CancionesController
             $samplesDe   = RelacionesSampleRepository::samplesDe($cancionId);
             $sampleadaEn = RelacionesSampleRepository::sampleadaEn($cancionId);
 
+            $normSamplesDe   = \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe);
+            $normSampleadaEn = \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn);
+
+            /* Dedup defensivo por id: evita React key conflicts si la BD tiene duplicados */
+            $dedup = static fn(array $rows): array =>
+                \array_values(\array_intersect_key($rows, \array_unique(\array_column($rows, 'id'))));
+
             return new \WP_REST_Response([
                 'ok'   => true,
                 'data' => [
                     'cancion'     => NormalizadorCancion::cancion($cancion),
                     'artistas'    => \array_map([NormalizadorCancion::class, 'artistaConRol'], $artistas),
-                    'samplesDe'   => \array_map([NormalizadorCancion::class, 'relacion'], $samplesDe),
-                    'sampleadaEn' => \array_map([NormalizadorCancion::class, 'relacion'], $sampleadaEn),
+                    'samplesDe'   => $dedup($normSamplesDe),
+                    'sampleadaEn' => $dedup($normSampleadaEn),
                 ],
             ]);
         } catch (\Throwable $e) {
