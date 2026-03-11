@@ -177,13 +177,27 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > Ver analisis completo en `App/docs/plan-legal-contribuciones.md` FASE L7.
 
 - [x] **L7.1** Selector de lado en modal (no en menu contextual) — SelectorLado en ModalCrear.tsx, crearModalStore con LadoOpcion + seleccionarLado(), menu simplificado a 1 item
-- [ ] **L7.2** Timing de inicio en upload — campo `inicio_segundos` en ModalCrear cuando hay relacionId, pre-rellenado desde timings de la relacion
-- [ ] **L7.3** Endpoint `POST /relaciones/{id}/vincular-sample` — adjuntar sample ya publicado (sin re-subir)
-- [ ] **L7.4** `ModalVincularSampleExistente.tsx` — buscador de samples propios para vincular a sampleo
-- [ ] **L7.5** Endpoint `DELETE /relaciones/{id}/sample/{lado}` — desadjuntar sample sin eliminar el sample
-- [ ] **L7.6** Item "Quitar de este sampleo" en menu contextual del sample (solo cuando hay contexto de relacion)
-- [ ] **L7.7** Extender `ModalEdicionRelacion` con campos: youtube_url, timings de aparicion, verificada
-- [ ] **L7.8** `ContribucionesService::aplicarEdicion()` — manejar nuevos campos de media y timings
+- [x] **L7.2** Timing de inicio en upload — campo `inicio_segundos` en ContenidoCrear (CampoTexto number), useCrearContenido state+pre-fill+reset, apiSamples FormData append, SamplesUploadController almacena como PG array en timings_fuente/timings_destino de la relacion
+- [x] **L7.3** Endpoint `POST /relaciones/{id}/vincular-sample` — CancionesController: valida relacion+sample+ownership+side libre, actualiza sample_*_id + agrega metadata. Frontend: apiRelaciones.vincularSample()
+- [x] **L7.4** `ModalVincularSampleExistente.tsx` — modal 2 pasos (selector lado + buscador samples propios), useVincularSample hook (debounced search + confirmar), wired en useMenuRelacionDetalle + RelacionDetalleIsland. CSS: modalVincularSample.css
+- [x] **L7.5** Endpoint `DELETE /relaciones/{id}/sample/{lado}` — CancionesController: valida relacion+side+ownership, nullifica sample_*_id + timings_*. Frontend: apiRelaciones.desvincularSample()
+- [x] **L7.6** Item "Quitar de este sampleo" en useMenuContextualSample — solo si metadata.adjuncion_manual + relacion_id + puedeEditar. Usa desvincularSample() + toast confirmar + evento sample-actualizado
+- [x] **L7.7** ModalEdicionRelacion extendido — campos: youtube_url (CampoTexto), timings fuente/destino (CampoTexto comma-sep), verificada (Checkbox admin-only). Hook useEdicionRelacion con estado+parseo+diff. TablaRelaciones pasa timings+verificada en construirRelacionEditable
+- [x] **L7.8** ContribucionesService::aplicarEdicion() — whitelist extendida: timings_fuente/destino (PG int array), verificada (bool). youtube_url como TO-DO moderador (no hay columna directa en relacion)
+
+### C802-L7-UX — Revision UX integral ✅ [AG-ADJ]
+
+- [x] **L7-UX.1** tipo_elemento en upload: SamplesUploadController valida contra RelacionesSampleEnums::TODOS_TIPO_ELEMENTO whitelist, almacena en relacion. Frontend: SelectorMenu en ContenidoCrear (cuando audioAdjunto + enContextoRelacion), apiSamples envia tipo_elemento en FormData ✅
+- [x] **L7-UX.2** BuscadorCanciones deseleccionar: onSeleccionar acepta null, boton X (BotonBase ghost) en cancion seleccionada, buscadorCancionInfo + buscadorCancionQuitar CSS. Todos los botones nativos convertidos a BotonBase ✅
+- [x] **L7-UX.3** ModalVincularSampleExistente back + mini feed: boton "Cambiar lado" (ArrowLeft) en footer cuando no hay ladoInicial; thumbnails imagen (36x36px) o placeholder icon Music; vincularSampleItemImagen/ImagenVacia CSS ✅
+- [x] **L7-UX.4** ModalEdicionRelacion verificada admin-only: Checkbox condicionado a useAuthStore(s => s.usuario?.rol === 'admin') ✅
+- [x] **L7-UX.5** Verificar/desverificar desde menu 3-puntos: PUT /relaciones/{id}/verificar (requerirAdmin), apiRelaciones.verificarRelacion(), ShieldCheck/ShieldOff en TablaRelaciones, manejarVerificarRelacion en useMenuCancionDetalle (admin-only), wired en CancionDetalleIsland ✅
+
+> Lecciones L7-UX:
+> - [Admin check React]: `useAuthStore(s => s.usuario?.rol === 'admin')` — selector especifico, no suscribir al store completo.
+> - [apiCliente]: Existe `apiPut` pero NO `apiPatch`. Usar PUT para updates idempotentes.
+> - [BotonBase]: BuscadorCanciones tenia 3 botones nativos. Sentinel los detecta. Siempre usar BotonBase variante="ghost" tamano="ninguno" para botones de icono.
+> - [TO-DO]: BuscadorCanciones necesita extraccion de logica a useBuscadorCanciones.ts (4 useState + debounce + click-fuera).
 
 ---
 
