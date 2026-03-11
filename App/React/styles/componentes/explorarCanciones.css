@@ -1,6 +1,7 @@
 /*
  * explorarCanciones.css — C812
- * Feed vertical de canciones con ordenamiento, tarjetas horizontales, infinite scroll.
+ * Feed vertical de canciones con tarjetas tipo TarjetaSample, infinite scroll.
+ * Ordering via TopBar tabs (no hay botones inline de orden).
  */
 
 /* Contenedor principal del feed */
@@ -13,41 +14,6 @@
     margin: 0 auto;
 }
 
-/* Barra de modos de ordenamiento */
-.feedCancionesOrdenes {
-    display: flex;
-    gap: var(--espacioSm);
-    border-bottom: 1px solid var(--bordeSutil);
-    padding-bottom: var(--espacioSm);
-}
-
-.feedCancionesOrden {
-    display: flex;
-    align-items: center;
-    gap: calc(var(--espacioXs) / 2);
-    padding: var(--espacioSm) var(--espacioMd);
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--textoSecundario);
-    font-size: var(--fuenteMd);
-    cursor: pointer;
-    transition:
-        color var(--transicionNormal),
-        border-color var(--transicionNormal);
-    border-radius: unset;
-}
-
-.feedCancionesOrden:hover {
-    color: var(--textoPrimario);
-}
-
-.feedCancionesOrdenActivo {
-    color: var(--acento);
-    border-bottom-color: var(--acento);
-    font-weight: var(--pesoSemibold);
-}
-
 /* Lista vertical de tarjetas */
 .feedCancionesLista {
     display: flex;
@@ -55,7 +21,7 @@
     gap: var(--espacioSm);
 }
 
-/* Tarjeta horizontal de cancion */
+/* Tarjeta horizontal — layout tipo TarjetaSample */
 .tarjetaCancionFeed {
     display: flex;
     align-items: center;
@@ -64,7 +30,6 @@
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    cursor: pointer;
     transition:
         background var(--transicionNormal),
         border-color var(--transicionNormal);
@@ -88,6 +53,7 @@
     border-radius: var(--radioSm);
     overflow: hidden;
     background: var(--fondoElevado2);
+    cursor: pointer;
 }
 
 .tarjetaCancionFeedImagen img {
@@ -105,13 +71,20 @@
     height: 100%;
 }
 
-/* Info textual a la derecha */
-.tarjetaCancionFeedInfo {
+/* Contenido central (titulo, artista, sampleos) */
+.tarjetaCancionFeedContenido {
     display: flex;
     flex-direction: column;
     gap: calc(var(--espacioXs) / 2);
     min-width: 0;
     flex: 1;
+    cursor: pointer;
+}
+
+.tarjetaCancionFeedCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
 }
 
 .tarjetaCancionFeedTitulo {
@@ -133,10 +106,21 @@
     text-overflow: ellipsis;
 }
 
-.tarjetaCancionFeedMeta {
+/* Sampleos count — zona donde iría la wave en TarjetaSample */
+.tarjetaCancionFeedSampleos {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: calc(var(--espacioXs) / 2);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}
+
+/* Acciones: like + menu */
+.tarjetaCancionFeedAcciones {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
+    flex-shrink: 0;
 }
 
 /* Sentinela de infinite scroll */
@@ -168,88 +152,10 @@
     text-align: center;
 }
 
-/* Panel de herramientas de desarrollo (se mantiene para admins) */
-.panelDevCanciones {
-    border: 1px dashed var(--error);
-    border-radius: var(--radioMd);
-    padding: var(--espacioSm) var(--espacioMd);
-    background: var(--errorMuted);
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioSm);
-}
-
-.panelDevCabecera {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    font-size: var(--fuenteXs);
-    font-weight: var(--pesoBold);
-    color: var(--error);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.panelDevAcciones {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espacioSm);
-    align-items: flex-start;
-}
-
-.panelDevAccion {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--espacioXs) / 2);
-}
-
-.panelDevMensaje {
-    font-size: var(--fuenteXs);
-    padding: 2px var(--espacioXs);
-    border-radius: var(--radioSm);
-}
-
-.panelDevMensaje--ok {
-    color: var(--exito);
-    background: var(--exitoMuted);
-}
-
-.panelDevMensaje--error {
-    color: var(--error);
-    background: var(--errorMuted);
-}
-
-.panelDevMensaje--loading {
-    color: var(--textoSecundario);
-}
-
-.panelDevLabel {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    font-size: var(--fuenteXs);
-    color: var(--textoSecundario);
-}
-
-.panelDevInputUrl {
-    font-size: var(--fuenteXs);
-    padding: 4px var(--espacioXs);
-    border: 1px solid var(--borde);
-    border-radius: var(--radioSm);
-    background: var(--fondoBase);
-    color: var(--textoPrimario);
-    width: 340px;
-    max-width: 100%;
-}
-
 /* Responsive */
 @media (max-width: 480px) {
     .feedCancionesContenedor {
         padding: var(--espacioMd);
-    }
-
-    .feedCancionesOrdenes {
-        overflow-x: auto;
     }
 
     .tarjetaCancionFeedImagen {

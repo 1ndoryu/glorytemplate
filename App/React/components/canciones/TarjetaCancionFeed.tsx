@@ -1,56 +1,104 @@
 /*
  * TarjetaCancionFeed — C812
- * Tarjeta horizontal para el feed vertical de canciones.
- * Imagen izquierda, info derecha, badge de samples.
- * Click navega a /cancion/{slug}.
+ * Tarjeta horizontal para feed de canciones, formato similar a TarjetaSample.
+ * Imagen izquierda, info + sampleos count centro, acciones derecha (like + menu).
+ * Click en titulo navega a /cancion/{slug}.
  */
 
-import { Music } from 'lucide-react';
+import { type MouseEvent } from 'react';
+import { Music, Heart, MoreHorizontal, Disc3 } from 'lucide-react';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import type { Cancion } from '@app/types/cancion';
 
 export interface TarjetaCancionFeedProps {
     cancion: Cancion;
     onClick: () => void;
+    onLike: (cancionId: number) => void;
+    onMenu: (e: MouseEvent, cancion: Cancion) => void;
 }
 
-export const TarjetaCancionFeed = ({ cancion, onClick }: TarjetaCancionFeedProps): JSX.Element => (
-    <div
-        className="tarjetaCancionFeed"
-        role="article"
-        onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-        tabIndex={0}
-    >
-        <div className="tarjetaCancionFeedImagen">
-            {cancion.imagenUrl ? (
-                <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
-            ) : (
-                <div className="tarjetaCancionFeedImagenPlaceholder">
-                    <Music size={24} color="var(--textoTerciario)" />
-                </div>
-            )}
-        </div>
+export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: TarjetaCancionFeedProps): JSX.Element => {
+    const manejarLike = (e: MouseEvent) => {
+        e.stopPropagation();
+        onLike(cancion.id);
+    };
 
-        <div className="tarjetaCancionFeedInfo">
-            <h3 className="tarjetaCancionFeedTitulo">{cancion.titulo}</h3>
-            <p className="tarjetaCancionFeedArtista">
-                {cancion.artistaNombre ?? 'Artista desconocido'}
-                {cancion.anio ? ` · ${cancion.anio}` : ''}
-            </p>
-            <div className="tarjetaCancionFeedMeta">
-                {cancion.totalSampleada > 0 && (
-                    <Badge variante="acento" tamano="xs">
-                        {cancion.totalSampleada} sample{cancion.totalSampleada !== 1 ? 's' : ''}
-                    </Badge>
-                )}
-                {cancion.genero && (
-                    <Badge variante="neutro" tamano="xs">{cancion.genero}</Badge>
-                )}
-                {cancion.bpm && (
-                    <Badge variante="neutro" tamano="xs">{cancion.bpm} BPM</Badge>
+    const manejarMenu = (e: MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        onMenu(e, cancion);
+    };
+
+    return (
+        <div
+            className="tarjetaCancionFeed"
+            role="article"
+            tabIndex={0}
+            onContextMenu={manejarMenu}
+        >
+            {/* Portada */}
+            <div className="tarjetaCancionFeedImagen" onClick={onClick}>
+                {cancion.imagenUrl ? (
+                    <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
+                ) : (
+                    <div className="tarjetaCancionFeedImagenPlaceholder">
+                        <Music size={24} color="var(--textoTerciario)" />
+                    </div>
                 )}
             </div>
+
+            {/* Contenido central */}
+            <div className="tarjetaCancionFeedContenido" onClick={onClick}>
+                <div className="tarjetaCancionFeedCabecera">
+                    <h3 className="tarjetaCancionFeedTitulo">{cancion.titulo}</h3>
+                </div>
+                <p className="tarjetaCancionFeedArtista">
+                    {cancion.artistaNombre ?? 'Artista desconocido'}
+                    {cancion.anio ? ` · ${cancion.anio}` : ''}
+                    {cancion.genero ? ` · ${cancion.genero}` : ''}
+                </p>
+
+                {/* Sampleos count — donde iría la wave en TarjetaSample */}
+                {(cancion.totalSampleada > 0 || cancion.totalSamplea > 0) && (
+                    <div className="tarjetaCancionFeedSampleos">
+                        <Disc3 size={13} />
+                        {cancion.totalSampleada > 0 && (
+                            <Badge variante="acento" tamano="xs">
+                                {cancion.totalSampleada} vez{cancion.totalSampleada !== 1 ? 'es' : ''} sampleada
+                            </Badge>
+                        )}
+                        {cancion.totalSamplea > 0 && (
+                            <Badge variante="neutro" tamano="xs">
+                                Samplea {cancion.totalSamplea}
+                            </Badge>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Acciones */}
+            <div className="tarjetaCancionFeedAcciones">
+                <BotonBase
+                    variante="ghost"
+                    className={`tarjetaAccionBtn ${cancion.liked ? 'tarjetaAccionLiked' : ''}`}
+                    onClick={manejarLike}
+                    type="button"
+                    aria-label={cancion.liked ? 'Quitar like' : 'Dar like'}
+                >
+                    <Heart size={18} fill={cancion.liked ? 'currentColor' : 'none'} />
+                </BotonBase>
+
+                <BotonBase
+                    variante="ghost"
+                    className="tarjetaAccionBtn tarjetaMenuBtn"
+                    onClick={manejarMenu}
+                    type="button"
+                    aria-label="Más opciones"
+                >
+                    <MoreHorizontal size={18} />
+                </BotonBase>
+            </div>
         </div>
-    </div>
-);
+    );
+};

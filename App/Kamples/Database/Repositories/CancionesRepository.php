@@ -194,14 +194,32 @@ class CancionesRepository extends BaseRepository
      * @param int    $porPagina registros por pagina
      * @return array{items: array, total: int}
      */
-    public static function feed(string $orden, int $pagina = 1, int $porPagina = 20): array
+    /**
+     * Feed paginado con 3 modos de ordenamiento: inteligente, top_sampleados, hot.
+     * Si se pasa $userId, incluye subquery correlacionada para liked/reaccion del usuario.
+     */
+    public static function feed(string $orden, int $pagina = 1, int $porPagina = 20, ?int $userId = null): array
     {
         $tc = CancionesCols::TABLA;
         $ta = ArtistasMusicalesCols::TABLA;
         $offset = ($pagina - 1) * $porPagina;
 
+        /*
+         * Subquery correlacionada para reaccion del usuario autenticado.
+         * Misma tecnica que NormalizadorSample::sqlSelectSamples().
+         * $userId es ?int tipado estricto, casteado a int por seguridad.
+         */
+        $tipoCancion = LikesEnums::TIPO_CANCION;
+        $reaccionExpr = $userId !== null
+            ? "(SELECT " . LikesCols::REACCION . " FROM " . LikesCols::TABLA
+              . " WHERE " . LikesCols::USUARIO_ID . " = " . (int) $userId
+              . " AND " . LikesCols::TIPO . " = '{$tipoCancion}'"
+              . " AND " . LikesCols::TARGET_ID . " = c." . CancionesCols::ID . " LIMIT 1)"
+            : "NULL";
+
         $baseSelect = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
-                        a." . ArtistasMusicalesCols::SLUG . " AS artista_slug
+                        a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
+                        {$reaccionExpr} AS reaccion_usuario
                  FROM {$tc} c
                  JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID;
 
@@ -220,9 +238,9 @@ class CancionesRepository extends BaseRepository
                  * Fallback a total_sampleada para canciones sin likes recientes.
                  */
                 $tl = LikesCols::TABLA;
-                $tipoCancion = LikesEnums::TIPO_CANCION;
                 $sql = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
                                a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
+                               {$reaccionExpr} AS reaccion_usuario,
                                COALESCE(lr.likes_recientes, 0) AS likes_recientes
                         FROM {$tc} c
                         JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "

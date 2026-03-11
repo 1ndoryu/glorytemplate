@@ -1,20 +1,21 @@
 /*
  * Hook: useFeedCanciones — C812
- * Feed paginado de canciones con 3 modos de ordenamiento (inteligente/top/hot).
+ * Feed paginado de canciones con ordenamiento externo (TopBar tabs).
  * Infinite scroll via IntersectionObserver. Cache por clave orden.
- * Patrón basado en useFeedSamples (SRP).
+ * Like optimista con rollback en error.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type MouseEvent } from 'react';
 import { feedCanciones } from '@app/services/apiCanciones';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useNavigationStore } from '@/core/router';
+import { toast } from '@app/stores/toastStore';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import type { Cancion } from '@app/types/cancion';
 
 const POR_PAGINA = 20;
 
-export function useFeedCanciones() {
-    const [orden, setOrdenInterno] = useState<OrdenFeedCanciones>('inteligente');
+export function useFeedCanciones(ordenExterno: OrdenFeedCanciones) {
     const [canciones, setCanciones] = useState<Cancion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [cargandoMas, setCargandoMas] = useState(false);
@@ -28,7 +29,7 @@ export function useFeedCanciones() {
 
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
         const thisRequest = ++requestIdRef.current;
-        const cacheKey = `${orden}_p${pagina}`;
+        const cacheKey = `${ordenExterno}_p${pagina}`;
 
         if (esNuevo) {
             setCargando(true);
@@ -41,7 +42,7 @@ export function useFeedCanciones() {
         if (cacheRef.current[cacheKey]) {
             items = cacheRef.current[cacheKey];
         } else {
-            const resp = await feedCanciones(orden, pagina, POR_PAGINA);
+            const resp = await feedCanciones(ordenExterno, pagina, POR_PAGINA);
             if (requestIdRef.current !== thisRequest) return;
 
             if (resp.ok && resp.data) {
@@ -63,10 +64,11 @@ export function useFeedCanciones() {
             });
             setCargandoMas(false);
         }
-    }, [orden]);
+    }, [ordenExterno]);
 
-    /* Carga inicial y al cambiar orden */
+    /* Carga inicial y al cambiar orden externo */
     useEffect(() => {
+        cacheRef.current = {};
         setPaginaActual(1);
         setHayMas(true);
         cargarPagina(1, true);
@@ -92,11 +94,36 @@ export function useFeedCanciones() {
         return () => observer.disconnect();
     }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina]);
 
-    const cambiarOrden = useCallback((nuevoOrden: OrdenFeedCanciones) => {
-        if (nuevoOrden === orden) return;
-        cacheRef.current = {};
-        setOrdenInterno(nuevoOrden);
-    }, [orden]);
+    /* Like optimista con rollback */
+    const manejarLike = useCallback(async (cancionId: number) => {
+        const idx = canciones.findIndex(c => c.id === cancionId);
+        if (idx === -1) return;
+
+        const anterior = canciones[idx];
+        const nuevoLiked = !anterior.liked;
+
+        /* Optimista: actualizar UI inmediatamente */
+        setCanciones(prev => prev.map(c =>
+            c.id === cancionId ? { ...c, liked: nuevoLiked } : c
+        ));
+
+        const resp = nuevoLiked
+            ? await darLike('cancion', cancionId)
+            : await quitarLike('cancion', cancionId);
+
+        if (!resp.ok) {
+            /* Rollback */
+            setCanciones(prev => prev.map(c =>
+                c.id === cancionId ? { ...c, liked: anterior.liked } : c
+            ));
+            toast.error('Error al dar like');
+        }
+    }, [canciones]);
+
+    /* Menu contextual placeholder — el island define la lógica final */
+    const manejarMenu = useCallback((_e: MouseEvent, _cancion: Cancion) => {
+        /* TO-DO: implementar menú contextual de canciones (copiar link, ir al artista, etc.) */
+    }, []);
 
     const irACancion = useCallback(
         (slug: string) => navegar(`/cancion/${slug}`),
@@ -104,13 +131,13 @@ export function useFeedCanciones() {
     );
 
     return {
-        orden,
         canciones,
         cargando,
         cargandoMas,
         hayMas,
         sentinelaRef,
-        cambiarOrden,
+        manejarLike,
+        manejarMenu,
         irACancion,
     };
 }

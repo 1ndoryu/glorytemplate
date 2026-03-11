@@ -1,66 +1,52 @@
 /*
  * ExplorarCancionesIsland — C812
- * Feed vertical de canciones con 3 modos de ordenamiento:
+ * Feed vertical de canciones con 3 modos de ordenamiento via TopBar tabs:
  * Inteligente (heurístico), Top Sampleados, Hot (likes recientes).
- * Infinite scroll, tarjetas horizontales.
+ * Infinite scroll, tarjetas tipo TarjetaSample con like + menu.
  * Lógica extraída a useFeedCanciones (SRP).
  */
 
-import { Music, Sparkles, TrendingUp, Flame } from 'lucide-react';
-import { BotonBase } from '@app/components/ui/BotonBase';
+import { Music } from 'lucide-react';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
+import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useFeedCanciones } from '@app/hooks/useFeedCanciones';
-import { useAuthStore } from '@app/stores/authStore';
-import { PanelDevCanciones } from '@app/components/canciones/PanelDevCanciones';
 import { TarjetaCancionFeed } from '@app/components/canciones/TarjetaCancionFeed';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import '../../styles/componentes/explorarCanciones.css';
 
-const TABS_EXPLORAR = [{ id: 'canciones', etiqueta: 'Canciones' }];
-
-const ORDENES: { id: OrdenFeedCanciones; etiqueta: string; icono: JSX.Element }[] = [
-    { id: 'inteligente', etiqueta: 'Inteligente', icono: <Sparkles size={14} /> },
-    { id: 'top_sampleados', etiqueta: 'Top Sampleados', icono: <TrendingUp size={14} /> },
-    { id: 'hot', etiqueta: 'Hot', icono: <Flame size={14} /> },
+/* Tabs registradas en la TopBar — text-only, ids coinciden con OrdenFeedCanciones */
+const TABS_EXPLORAR = [
+    { id: 'inteligente', etiqueta: 'Inteligente' },
+    { id: 'top_sampleados', etiqueta: 'Top Sampleados' },
+    { id: 'hot', etiqueta: 'Hot' },
 ];
 
+const ORDENES_VALIDAS = new Set<string>(['inteligente', 'top_sampleados', 'hot']);
+
 export const ExplorarCancionesIsland = (): JSX.Element => {
+    /* Registrar tabs en TopBar y leer tab activa */
+    useTabsIsla('ExplorarCancionesIsland', TABS_EXPLORAR, 'inteligente');
+    const tabActiva = useTabsTopBarStore(s => s.activa);
+
+    /* Mapear tab activa a orden válida (defensa contra ids inesperados) */
+    const orden: OrdenFeedCanciones = ORDENES_VALIDAS.has(tabActiva)
+        ? tabActiva as OrdenFeedCanciones
+        : 'inteligente';
+
     const {
-        orden,
         canciones,
         cargando,
         cargandoMas,
         hayMas,
         sentinelaRef,
-        cambiarOrden,
+        manejarLike,
+        manejarMenu,
         irACancion,
-    } = useFeedCanciones();
-
-    const esAdmin = useAuthStore(s => s.usuario?.rol === 'admin');
-
-    useTabsIsla('ExplorarCancionesIsland', TABS_EXPLORAR, 'canciones');
+    } = useFeedCanciones(orden);
 
     return (
         <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
-
-            {/* Panel de desarrollo — solo visible para admins */}
-            {esAdmin && <PanelDevCanciones />}
-
-            {/* Barra de ordenamiento */}
-            <div className="feedCancionesOrdenes">
-                {ORDENES.map((o) => (
-                    <BotonBase
-                        key={o.id}
-                        variante="ghost"
-                        tamano="ninguno"
-                        className={`feedCancionesOrden ${orden === o.id ? 'feedCancionesOrdenActivo' : ''}`}
-                        onClick={() => cambiarOrden(o.id)}
-                    >
-                        {o.icono} {o.etiqueta}
-                    </BotonBase>
-                ))}
-            </div>
 
             {/* Contenido */}
             {cargando ? (
@@ -77,6 +63,8 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
                             key={cancion.id}
                             cancion={cancion}
                             onClick={() => irACancion(cancion.slug)}
+                            onLike={manejarLike}
+                            onMenu={manejarMenu}
                         />
                     ))}
                 </div>

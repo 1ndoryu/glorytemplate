@@ -280,7 +280,10 @@ class CancionesController
             $pagina  = (int) $request->get_param('page');
             $porPag  = (int) $request->get_param('per_page');
 
-            $resultado = CancionesRepository::feed($orden, $pagina, $porPag);
+            /* Liked status per-user: endpoint publico pero si hay sesion, se incluye */
+            $userId = UsuarioHelper::obtenerIdPg();
+
+            $resultado = CancionesRepository::feed($orden, $pagina, $porPag, $userId);
 
             return new \WP_REST_Response([
                 'ok'    => true,

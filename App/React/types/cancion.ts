@@ -29,6 +29,10 @@ export interface Cancion {
     /* Relación con artista principal (join del repo) */
     artistaNombre?: string;
     artistaSlug?: string;
+    /* Liked status (subquery correlacionada en feed, opcional si no hay sesion) */
+    liked?: boolean;
+    totalLikes?: number;
+    reaccion?: string | null;
 }
 
 /* Versión compacta para listas */

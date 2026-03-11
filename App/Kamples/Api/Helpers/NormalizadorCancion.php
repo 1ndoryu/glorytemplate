@@ -11,8 +11,16 @@
 
 namespace App\Kamples\Api\Helpers;
 
+use App\Config\Schema\_generated\LikesEnums;
+
 class NormalizadorCancion
 {
+    /*
+     * Aliases SQL usados en sqlSelectFeed (no son columnas reales).
+     * Se inyectan como subqueries correlacionadas cuando hay usuario autenticado.
+     */
+    public const ALIAS_REACCION_USUARIO = 'reaccion_usuario';
+
     /**
      * Normaliza una fila de 'canciones' + joins opcionales de artista.
      * Incluye: artista_nombre, artista_slug (JOIN con artistas_musicales).
@@ -43,6 +51,11 @@ class NormalizadorCancion
             /* Campos opcionales de JOIN con artistas_musicales */
             'artistaNombre'    => $row['artista_nombre'] ?? null,
             'artistaSlug'      => $row['artista_slug'] ?? null,
+            /* Campos opcionales de liked (subquery correlacionada en feed) */
+            'totalLikes'       => (int) ($row['total_likes'] ?? 0),
+            'liked'            => !empty($row[self::ALIAS_REACCION_USUARIO])
+                && \in_array($row[self::ALIAS_REACCION_USUARIO], [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true),
+            'reaccion'         => $row[self::ALIAS_REACCION_USUARIO] ?? null,
         ];
     }
 
