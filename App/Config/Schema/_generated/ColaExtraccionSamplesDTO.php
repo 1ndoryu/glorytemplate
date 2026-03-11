@@ -25,7 +25,7 @@ final class ColaExtraccionSamplesDTO
         public readonly string $lado,
         public readonly ?string $spotifyId,
         public readonly ?string $rutaAudioExtraido,
-        public readonly mixed $metadataExtraccion
+        public readonly ?array $metadataExtraccion
     ) {}
 
     /**
@@ -52,7 +52,7 @@ final class ColaExtraccionSamplesDTO
             lado: ($row['lado'] ?? 'fuente'),
             spotifyId: isset($row['spotify_id']) ? $row['spotify_id'] : null,
             rutaAudioExtraido: isset($row['ruta_audio_extraido']) ? $row['ruta_audio_extraido'] : null,
-            metadataExtraccion: isset($row['metadata_extraccion']) ? $row['metadata_extraccion'] : null
+            metadataExtraccion: isset($row['metadata_extraccion']) ? (is_string($row['metadata_extraccion']) ? json_decode($row['metadata_extraccion'], true) : $row['metadata_extraccion']) : null
         );
     }
 

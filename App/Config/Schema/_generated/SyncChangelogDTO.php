@@ -8,11 +8,11 @@ namespace App\Config\Schema\_generated;
 final class SyncChangelogDTO
 {
     public function __construct(
-        public readonly mixed $id,
+        public readonly int $id,
         public readonly int $usuarioId,
         public readonly string $tipo,
         public readonly int $entidadId,
-        public readonly mixed $metadata,
+        public readonly array $metadata,
         public readonly string $createdAt
     ) {}
 
@@ -23,11 +23,11 @@ final class SyncChangelogDTO
     public static function desdeRow(array $row): self
     {
         return new self(
-            id: ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en sync_changelog", 'sync_changelog', 'id')),
+            id: (int) ($row['id'] ?? throw new \Glory\Exception\SchemaException("Columna 'id' ausente en sync_changelog", 'sync_changelog', 'id')),
             usuarioId: (int) ($row['usuario_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'usuario_id' ausente en sync_changelog", 'sync_changelog', 'usuario_id')),
             tipo: ($row['tipo'] ?? throw new \Glory\Exception\SchemaException("Columna 'tipo' ausente en sync_changelog", 'sync_changelog', 'tipo')),
             entidadId: (int) ($row['entidad_id'] ?? throw new \Glory\Exception\SchemaException("Columna 'entidad_id' ausente en sync_changelog", 'sync_changelog', 'entidad_id')),
-            metadata: ($row['metadata'] ?? '{}'),
+            metadata: isset($row['metadata']) ? (is_string($row['metadata']) ? json_decode($row['metadata'], true) ?? [] : $row['metadata']) : [],
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s'))
         );
     }

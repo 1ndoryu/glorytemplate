@@ -1,6 +1,6 @@
 # Plan: Legalidad, Usuarios Simulados y Sistema de Contribuciones — C802
 
-> **Version:** 2.1 | **Fecha:** 10/03/2026 | **Estado:** Implementado (L1–L3, L5.1–L5.4, L5.7)
+> **Version:** 3.0 | **Fecha:** 10/03/2026 | **Estado:** L1-L3/L5 implementados, L6 planificado
 > **Modulo:** Legal Shield + Community Contributions + User Simulation + Manual Sample Contributions
 > **Dependencias:** PostgreSQL, usuarios_ext, relaciones_sample, samples, reportes, cola_extraccion_samples
 
@@ -494,3 +494,161 @@ No se re-scrapea. Solo aplica a nuevas relaciones. Los datos existentes no tendr
 - [Desacoplamiento] El seed batch es INDEPENDIENTE del scraping/extraccion. Los procesos automaticos no saben de seed users. El batch corre despues y redistribuye.
 - [BuscadorCanciones] Componente centralizado que se reutiliza en: contribucion de relacion, publicacion de sample, edicion de sample. Llama a GET /canciones/buscar.
 - [Manual = Automatico] Todo lo que el pipeline automatico genera (sample con cancion_origen_id, relacion con contribuidor_id, vinculo sample↔relacion) debe poder hacerse manualmente por usuarios reales via la misma UI.
+
+---
+
+## AUDITORIA C802 — Post-Implementacion
+
+> Auditoria completada: 10/03/2026 — AG-SEC
+
+### Hallazgos Positivos
+
+1. **Controllers PHP:** Todos los endpoints tienen try-catch global + logging. `ReporteLegalController` sanitiza inputs con `sanitize_text_field`, `sanitize_email`, `is_email()`, whitelist de `tipo` y `tipo_derecho`. `ContribucionesController` usa validate_callback con enums del schema.
+2. **Prepared statements:** Todos los queries usan parametros via `static::consultar()` / `static::insertar()` / `static::ejecutar()` del BaseRepository. No hay SQL interpolado.
+3. **Schema System:** Toda referencia a tablas, columnas, estados usa Cols/Enums generados. No hay strings hardcodeados.
+4. **SRP:** ContribucionesService separa logica de aprobacion del controller. Hooks React separan estado del componente visual.
+5. **Seed System:** Independiente del pipeline automatico. Pareto implementado bien. Generacion con retry.
+6. **FK cascades verificadas:** Borrar un sample -> `relaciones_sample.sample_id / sample_fuente_id / sample_destino_id` se pone NULL automaticamente (ON DELETE SET NULL en DB). La relacion entre canciones se mantiene. `cola_extraccion_samples.sample_id` necesita cleanup manual (ya implementado en `eliminarConCascada` via `desvincularSampleId`).
+
+### Hallazgos a Corregir (FASE L6)
+
+1. **CRUD incompleto para contribuciones:** Solo hay Create + Read. Falta: editar contribuciones pendientes (propias), eliminar contribuciones pendientes (propias), admin puede editar/eliminar cualquiera.
+2. **Contribuciones como factor publico:** El sistema actual asume UN contribuidor principal. En realidad, cualquier usuario deberia poder proponer cambios/correcciones a CUALQUIER relacion existente (no solo crear nuevas). Esto require un modelo de "ediciones pendientes" mas amplio.
+3. **Eliminacion de samples y cascada:** El delete ya funciona correctamente via DB FK cascades (SET NULL). Pero no hay endpoint ni UI para que el autor elimine su sample. `eliminarConCascada` existe en el repo pero no esta expuesto como endpoint de usuario. Ademas al desactivar un sample via DMCA, los `relaciones_sample` quedan con sample_id=NULL pero la relacion sigue visible — hay que definir si eso es correcto (probablemente si, el sampleo como hecho factual persiste, solo el audio adjunto desaparece).
+4. **Relacion sample↔relacion en recortes:** Los recortes bilaterales se vinculan a `relaciones_sample` via `sample_fuente_id` y `sample_destino_id` (SET NULL on delete). Cuando un sample se elimina, la relacion pierde el vinculo pero no se destruye. Correcto.
+5. **Schema generator fix aplicado:** `jsonb` y `bigint` no estaban en el mapa de tipos → `mixed` / `?mixed` fatal error. Corregido en `schemaGenerate.mjs`, regenerados todos los DTOs.
+
+---
+
+## FASE L6 — CRUD Completo + Contribuciones Publicas (Ediciones Comunitarias)
+
+> **Objetivo:** Convertir el sistema de contribuciones en un CRUD completo donde: (a) los usuarios gestionan sus propias contribuciones, (b) cualquier usuario puede proponer ediciones a relaciones EXISTENTES, (c) admin tiene control total, (d) todas las ediciones/eliminaciones pasan por moderacion.
+
+### L6.1 — CRUD de Contribuciones Propias (autor)
+
+**Contexto:** Actualmente un usuario autenticado crea contribuciones (POST /contribuciones) y las ve (GET /contribuciones/mis). Falta editar y eliminar las propias ANTES de que sean moderadas.
+
+**Reglas de negocio:**
+- Solo el contribuidor original puede editar/eliminar sus contribuciones SOLO si `estado = 'pendiente'`.
+- Una vez aprobada o rechazada, es inmutable (la relacion ya existe en `relaciones_sample`).
+- Eliminar una contribucion pendiente es un DELETE hard (no soft-delete, porque nunca llego a produccion).
+
+**Endpoints nuevos:**
+```
+PUT    /contribuciones/{id}    — Editar contribucion propia pendiente (auth)
+DELETE /contribuciones/{id}    — Eliminar contribucion propia pendiente (auth)
+```
+
+**Archivos a modificar:**
+- `ContribucionesController.php`: agregar 2 rutas + 2 callbacks
+- `ContribucionesPendientesRepository.php`: agregar `actualizarPendiente()`, `eliminarPendiente()`
+- `apiContribuciones.ts`: agregar `editarContribucion()`, `eliminarContribucion()`
+- `useContribucion.ts` o nuevo hook `useMisContribuciones.ts`
+
+### L6.2 — Ediciones Comunitarias a Relaciones Existentes
+
+**Contexto:** Actualmente solo se pueden CREAR relaciones nuevas. Pero el usuario pide que cualquier persona pueda sugerir cambios a relaciones existentes (corregir tipo_relacion, tipo_elemento, canciones asociadas, etc.). Es como Wikipedia: cualquiera puede "editar", pero los cambios se revisan.
+
+**Diseno:**
+- Reutilizar tabla `contribuciones_pendientes` con campos adicionales:
+  - `relacion_existente_id INT NULL REFERENCES relaciones_sample(id)` — indica que esta contribucion es una EDICION (no una creacion).
+  - `tipo_contribucion VARCHAR(20) CHECK (nueva, edicion, eliminacion)` — tipo de la contribucion.
+  - `cambios_propuestos JSONB NULL` — para ediciones, almacena los cambios: `{"tipo_relacion": "remix", "tipo_elemento": "bass"}`.
+
+**Migracion (v034):**
+```sql
+ALTER TABLE contribuciones_pendientes
+    ADD COLUMN relacion_existente_id INT REFERENCES relaciones_sample(id) ON DELETE SET NULL,
+    ADD COLUMN tipo_contribucion VARCHAR(20) DEFAULT 'nueva'
+        CHECK (tipo_contribucion IN ('nueva', 'edicion', 'eliminacion')),
+    ADD COLUMN cambios_propuestos JSONB;
+```
+
+**Flujo edicion:**
+1. Usuario ve una relacion de sampleo en la pagina de cancion.
+2. Click "Sugerir correccion" → modal pre-rellenado con datos actuales.
+3. Modifica tipo_relacion, tipo_elemento, etc. → crea contribucion con `tipo_contribucion='edicion'`, `relacion_existente_id=X`, `cambios_propuestos={...}`.
+4. Moderador aprueba → `ContribucionesService::aplicarEdicion()` actualiza la relacion original.
+
+**Flujo eliminacion:**
+1. Usuario cree que una relacion es incorrecta.
+2. Click "Reportar error" → crea contribucion con `tipo_contribucion='eliminacion'`, `relacion_existente_id=X`, `razon='...'`.
+3. Moderador aprueba → relacion se marca como eliminada (soft-delete o hard-delete segun politica).
+
+**Endpoints nuevos:**
+```
+POST /contribuciones/edicion      — Proponer edicion a relacion existente (auth)
+POST /contribuciones/eliminacion  — Proponer eliminacion de relacion (auth)
+```
+
+**Archivos a modificar:**
+- Migracion v034
+- `ContribucionesPendientesSchema.php`: 3 columnas nuevas
+- Schema regenerar
+- `ContribucionesController.php`: 2 endpoints nuevos
+- `ContribucionesPendientesRepository.php`: metodos de edicion/eliminacion
+- `ContribucionesService.php`: `aplicarEdicion()`, `aplicarEliminacion()`
+- Frontend: `ModalEdicionRelacion.tsx` (nuevo), `useEdicionRelacion.ts` (nuevo)
+
+### L6.3 — Eliminacion de Samples por Autor
+
+**Contexto:** Los usuarios son duenos de sus samples y deben poder eliminarlos libremente (sin moderacion).
+
+**Reglas de negocio:**
+- El creador (creador_id) puede eliminar su propio sample EN CUALQUIER momento.
+- Eliminacion = soft-delete (`estado = 'eliminado'`) + limpieza de archivos fisicos.
+- Al eliminar un sample: las relaciones que lo referencian quedan con `sample_id/sample_fuente_id/sample_destino_id = NULL` (ya funciona por FK cascade). La relacion entre canciones persiste — solo el audio adjunto desaparece.
+- Admin puede eliminar cualquier sample.
+
+**Endpoint existente a exponer:**
+```
+DELETE /samples/{id}    — Eliminar sample propio (auth, verificar creador_id)
+```
+
+**Nota:** `SamplesRepository::eliminarConCascada()` ya existe pero no esta expuesto como endpoint REST para el usuario final. Solo el admin lo usa indirectamente. Necesitamos:
+- Verificar que `creador_id === usuario_actual` (o es admin)
+- Llamar a `eliminarConCascada` o hacer soft-delete cambiando estado a 'eliminado'
+
+**Archivos a modificar:**
+- `SamplesModificacionController.php`: agregar ruta DELETE + callback
+- `SamplesRepository.php`: agregar/exponer metodo de soft-delete
+- Frontend: agregar opcion "Eliminar" en menu contextual del sample (ya existe useMenuContextualSample)
+
+### L6.4 — Admin: CRUD Completo
+
+**Contexto:** Admin debe poder editar/eliminar CUALQUIER contribucion y CUALQUIER relacion directamente (sin pasar por moderacion).
+
+**Endpoints admin:**
+```
+PUT    /admin/contribuciones/{id}     — Editar cualquier contribucion (admin)
+DELETE /admin/contribuciones/{id}     — Eliminar cualquier contribucion (admin)
+PUT    /admin/relaciones/{id}         — Editar relacion directamente (admin)
+DELETE /admin/relaciones/{id}         — Eliminar relacion directamente (admin)
+```
+
+### Checklist L6
+
+- [ ] L6.1a Migracion v034: columnas `relacion_existente_id`, `tipo_contribucion`, `cambios_propuestos`
+- [ ] L6.1b Schema update + regenerar _generated
+- [ ] L6.1c Endpoints PUT/DELETE /contribuciones/{id} (propias, pendientes)
+- [ ] L6.1d Repository: actualizarPendiente(), eliminarPendiente()
+- [ ] L6.1e Frontend: editar/eliminar en "Mis contribuciones"
+- [ ] L6.2a Endpoints POST /contribuciones/edicion + /contribuciones/eliminacion
+- [ ] L6.2b ContribucionesService: aplicarEdicion(), aplicarEliminacion()
+- [ ] L6.2c Frontend: ModalEdicionRelacion + useEdicionRelacion
+- [ ] L6.2d Boton "Sugerir correccion" y "Reportar error" en TarjetaRelacionSample
+- [ ] L6.3a Endpoint DELETE /samples/{id} (owner-only + admin)
+- [ ] L6.3b Soft-delete sample (estado='eliminado') + limpieza archivo
+- [ ] L6.3c UI: agregar "Eliminar" en menu contextual sample (condicionado a autoria)
+- [ ] L6.4a Endpoints admin CRUD contribuciones
+- [ ] L6.4b Endpoints admin CRUD relaciones
+- [ ] L6.4c Panel admin moderar contribuciones (L3.4)
+
+---
+
+## Lecciones y Decisiones
+
+- [Schema Generator] `jsonb` y `bigint` deben estar en el mapa de tipos. Sin ellos, el generator produce `mixed`, y `?mixed` es fatal en PHP 8. Fix en `schemaGenerate.mjs` tipoPHP() y tipoTS(). Tambien proteger contra `?mixed` en el generador de propiedades DTO.
+- [FK Cascades] `relaciones_sample.sample_id/sample_fuente_id/sample_destino_id` son ON DELETE SET NULL. Al borrar sample, relacion mantiene las canciones vinculadas pero pierde el audio. `cola_extraccion_samples.sample_id` NO tiene ON DELETE — necesita cleanup manual en codigo (desvincularSampleId).
+- [Contribuciones Publicas] El modelo correcto es Wikipedia-like: cualquier usuario puede proponer ediciones a cualquier relacion, pero las ediciones quedan pendientes de moderacion. Distincion clave: `tipo_contribucion` = nueva / edicion / eliminacion.
+- [Eliminacion samples] Libre para el autor (sin moderacion), soft-delete cambio de estado. Las relaciones FK se limpian automaticamente por la DB.

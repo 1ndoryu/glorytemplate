@@ -160,6 +160,15 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [ ] **C802d** Edicion de contribuciones pendientes por el propio usuario (L5.8)
 - [ ] **C802e** Pagina estatica /politica-dmca (L4)
 
+### C802-L6 — CRUD Completo + Contribuciones Publicas
+
+> Plan detallado en `App/docs/plan-legal-contribuciones.md` FASE L6.
+
+- [ ] **L6.1** CRUD contribuciones propias: PUT/DELETE propias pendientes, migracion v034
+- [ ] **L6.2** Ediciones comunitarias: cualquier usuario sugiere cambios a relaciones existentes (moderadas)
+- [ ] **L6.3** Eliminacion de samples por autor: DELETE /samples/{id} (owner-only, soft-delete)
+- [ ] **L6.4** Admin CRUD completo: editar/eliminar contribuciones y relaciones directamente
+
 ---
 
 ## Sprint F — Fixes UX + Sync + UI
