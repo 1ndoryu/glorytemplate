@@ -7,7 +7,8 @@
 import { Modal } from '../ui/Modal';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
-import { SelectorBase } from '../ui/SelectorBase';
+import { SelectorMenu } from '../ui/SelectorMenu';
+import { Checkbox } from '../ui/Checkbox';
 import { useEdicionRelacion } from '../../hooks/useEdicionRelacion';
 import type { RelacionParaEditar } from '../../hooks/useEdicionRelacion';
 import type { TipoRelacion, TipoElemento } from '../../types/cancion';
@@ -107,29 +108,49 @@ export const ModalEdicionRelacion = ({
                 ) : (
                     /* Modo edicion: campos editables */
                     <div className="modalEdicionRelacionCampos">
-                        <SelectorBase
+                        <SelectorMenu
                             etiqueta="Tipo de relacion"
-                            value={hook.tipoRelacion}
-                            onChange={(e) => hook.setTipoRelacion(e.target.value as TipoRelacion)}
-                        >
-                            {Object.entries(ETIQUETAS_TIPO_RELACION).map(([valor, etiqueta]) => (
-                                <option key={valor} value={valor}>
-                                    {etiqueta}
-                                </option>
-                            ))}
-                        </SelectorBase>
+                            valor={hook.tipoRelacion}
+                            onChange={(v) => hook.setTipoRelacion(v as TipoRelacion)}
+                            opciones={Object.entries(ETIQUETAS_TIPO_RELACION).map(([valor, etiqueta]) => ({ valor, etiqueta }))}
+                        />
 
-                        <SelectorBase
+                        <SelectorMenu
                             etiqueta="Tipo de elemento"
-                            value={hook.tipoElemento}
-                            onChange={(e) => hook.setTipoElemento(e.target.value as TipoElemento)}
-                        >
-                            {Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => (
-                                <option key={valor} value={valor}>
-                                    {etiqueta}
-                                </option>
-                            ))}
-                        </SelectorBase>
+                            valor={hook.tipoElemento}
+                            onChange={(v) => hook.setTipoElemento(v as TipoElemento)}
+                            opciones={Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta }))}
+                        />
+
+                        {/* L7.7: YouTube URL para el video de referencia */}
+                        <CampoTexto
+                            etiqueta="YouTube URL (opcional)"
+                            placeholder="https://youtube.com/watch?v=..."
+                            value={hook.youtubeUrl}
+                            onChange={(e) => hook.setYoutubeUrl((e.target as HTMLInputElement).value)}
+                        />
+
+                        {/* L7.7: Timings en segundos (separados por coma) */}
+                        <CampoTexto
+                            etiqueta="Timings fuente (seg, separados por coma)"
+                            placeholder="ej: 12, 45, 120"
+                            value={hook.timingsFuente}
+                            onChange={(e) => hook.setTimingsFuente((e.target as HTMLInputElement).value)}
+                        />
+                        <CampoTexto
+                            etiqueta="Timings destino (seg, separados por coma)"
+                            placeholder="ej: 30, 88"
+                            value={hook.timingsDestino}
+                            onChange={(e) => hook.setTimingsDestino((e.target as HTMLInputElement).value)}
+                        />
+
+                        {/* L7.7: Checkbox verificada */}
+                        <Checkbox
+                            checked={hook.verificada}
+                            onChange={(e) => hook.setVerificada(e.target.checked)}
+                            label="Marcar como verificada"
+                            className="modalEdicionRelacionCheckbox"
+                        />
 
                         <CampoTexto
                             etiqueta="Razon del cambio (opcional)"

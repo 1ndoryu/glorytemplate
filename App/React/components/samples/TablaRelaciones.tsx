@@ -5,11 +5,15 @@
  * Columnas alineadas entre todas las filas gracias a <table>.
  */
 
-import { Music } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Music, MoreVertical, Edit3, Trash2 } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
+import { BotonBase } from '@app/components/ui/BotonBase';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useNavigationStore } from '@/core/router';
 import type { RelacionSample } from '@app/types/cancion';
 import { ETIQUETAS_TIPO_ELEMENTO, construirUrlSampleo } from '@app/types/cancion';
+import type { RelacionParaEditar } from '@app/hooks/useEdicionRelacion';
 import '../../styles/componentes/tablaRelaciones.css';
 
 const formatearTimings = (timings: number[]): string => {
@@ -30,6 +34,9 @@ interface TablaRelacionesProps {
     direccion: 'origen' | 'destino';
     /* Marca la primera fila como el origen de la extraccion del sample */
     marcarOrigen?: boolean;
+    /* Callbacks opcionales para editar/reportar relacion (L6.2 wiring) */
+    onEditar?: (relacion: RelacionParaEditar) => void;
+    onEliminar?: (relacion: RelacionParaEditar) => void;
 }
 
 /*
@@ -48,9 +55,44 @@ const urlSampleo = (rel: RelacionSample, direccion: 'origen' | 'destino'): strin
     return construirUrlSampleo(rel.id, rel.artistaNombre, rel.cancionTitulo);
 };
 
-export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen }: TablaRelacionesProps): JSX.Element => {
+interface EstadoMenuFila {
+    abierto: boolean;
+    x: number;
+    y: number;
+    relId: number;
+}
+
+export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar, onEliminar }: TablaRelacionesProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
+    const hayAcciones = !!onEditar || !!onEliminar;
+    const [menuFila, setMenuFila] = useState<EstadoMenuFila>({ abierto: false, x: 0, y: 0, relId: -1 });
+    const relacionMenuActual = useRef<RelacionSample | null>(null);
+
+    const abrirMenuFila = useCallback((e: React.MouseEvent, rel: RelacionSample) => {
+        e.stopPropagation();
+        e.preventDefault();
+        relacionMenuActual.current = rel;
+        setMenuFila({ abierto: true, x: e.clientX, y: e.clientY, relId: rel.id });
+    }, []);
+
+    const cerrarMenuFila = useCallback(() => {
+        setMenuFila(prev => ({ ...prev, abierto: false }));
+    }, []);
+
+    /* Construye un RelacionParaEditar a partir de un RelacionSample */
+    const construirRelacionEditable = (rel: RelacionSample): RelacionParaEditar => ({
+        id: rel.id,
+        tipoRelacion: rel.tipoRelacion ?? 'sample',
+        tipoElemento: rel.tipoElemento ?? 'multiple_elements',
+        cancionFuente: rel.fuenteTitulo ?? rel.cancionTitulo ?? '?',
+        cancionDestino: rel.destinoTitulo ?? rel.cancionTitulo ?? '?',
+        timingsFuente: rel.timingsFuente,
+        timingsDestino: rel.timingsDestino,
+        verificada: rel.verificada,
+    });
+
     return (
+        <>
         <table className="tablaRelaciones">
             <thead>
                 <tr>
@@ -59,6 +101,7 @@ export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen }: TablaRe
                     <th className="tablaRelacionesColAnio">Año</th>
                     <th className="tablaRelacionesColElemento">Elemento</th>
                     <th className="tablaRelacionesColTiming">Timing</th>
+                    {hayAcciones && <th className="tablaRelacionesColAcciones" aria-label="Acciones" />}
                 </tr>
             </thead>
             <tbody>
@@ -122,10 +165,53 @@ export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen }: TablaRe
                             <td className="tablaRelacionesColTiming">
                                 {formatearTimings(timings)}
                             </td>
+                            {hayAcciones && (
+                                <td className="tablaRelacionesColAcciones">
+                                    <BotonBase
+                                        variante="ghost"
+                                        tamano="ninguno"
+                                        className="tablaRelacionesAccionBtn"
+                                        aria-label="Acciones"
+                                        onClick={(e) => abrirMenuFila(e, rel)}
+                                    >
+                                        <MoreVertical size={15} />
+                                    </BotonBase>
+                                </td>
+                            )}
                         </tr>
                     );
                 })}
             </tbody>
         </table>
+
+        {hayAcciones && (
+            <MenuContextual
+                abierto={menuFila.abierto}
+                onCerrar={cerrarMenuFila}
+                x={menuFila.x}
+                y={menuFila.y}
+                alinearDerecha
+                items={[
+                    ...(onEditar ? [{
+                        id: 'editar',
+                        etiqueta: 'Sugerir corrección',
+                        icono: <Edit3 size={14} />,
+                        onClick: () => {
+                            if (relacionMenuActual.current) onEditar(construirRelacionEditable(relacionMenuActual.current));
+                        },
+                    }] : []),
+                    ...(onEliminar ? [{
+                        id: 'eliminar',
+                        etiqueta: 'Reportar incorrecta',
+                        icono: <Trash2 size={14} />,
+                        peligro: true,
+                        onClick: () => {
+                            if (relacionMenuActual.current) onEliminar(construirRelacionEditable(relacionMenuActual.current));
+                        },
+                    }] : []),
+                ]}
+            />
+        )}
+        </>
     );
 };
