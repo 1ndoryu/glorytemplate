@@ -397,7 +397,7 @@ class ContribucionesController
                 return new \WP_REST_Response(['ok' => true, 'items' => []], 200);
             }
 
-            $items = CancionesRepository::buscarPorTexto($query, $limit);
+            $items = CancionesRepository::buscarTexto($query, $limit);
 
             return new \WP_REST_Response(['ok' => true, 'items' => $items], 200);
         } catch (\Throwable $e) {

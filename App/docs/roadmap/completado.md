@@ -326,3 +326,11 @@ kamples-scraper/
 **S-E.4 Re-scraping:** 3 columnas nuevas en `scraping_log` (`re_scrapeable`, `proximo_rescrape`, `veces_rescrapeado`). URLs de tipo track/artist se marcan automáticamente para revisita con intervalo creciente (30d * N). `dedup.py::url_ya_procesada()` ahora permite revisita de URLs vencidas. `ScrapingLogRepository` con métodos `pendientesRescrape()`, `marcarRescrapeada()`, `marcarReScrapeable()`. Schema/Cols/DTO actualizados.
 
 > Archivos: v029_escalabilidad_relacional.sql, pipelines.py, dedup.py, track.py, artist.py, RelacionesSampleRepository.php, ScrapingLogRepository.php, ScrapingLogSchema.php, ScrapingLogCols.php, ScrapingLogDTO.php
+
+---
+
+### Corrección Varsense + CSS Linter [AG-FIX]
+
+- **Archivos actualizados:** `modalEdicionRelacion.css`, `modalReporteLegal.css`, `modalContribucion.css`, `buscadorCanciones.css`, `artistaDetalle.css`, `landingCaracteristicas.css`, `modalVincularSample.css`, `tarjetaRelacionSample.css`, `botonReporteLegal.css`.
+- **Acciones:** Todas las variables erróneas identificadas en `.varsense-report.md` (como `--espaciado-md`, `--superficie2`, `--textoXl`, etc.) se mapearon a sus equivalentes del design system (`--espacioMd`, `--fondoElevado2`, `--fuenteXl`...). Valores hardcodeados como font-sizes en `rem` y margins (`-11px`, `-120px`) refactorizados a variables CSS (a menudo apoyados con `calc()`). Solucionados linter warnings sobre `gap: 2px` a su equivalente validado `--espacio2xs`. No se crearon nuevas variables, ajustándose estrictamente a las existentes.
+- **Aprendizaje:** Mantener nomenclature siempre validada de variables ya existentes del root. En font-size usar siempre sistema `--fuenteX` disponible y en espaciado negativo aprovechar `calc()` + variables, en lugar de magic numbers que escalan mal.

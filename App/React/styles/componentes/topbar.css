@@ -93,9 +93,8 @@
 }
 
 .topbarTabActiva {
-    color: var(--textoPrimario);
+    color: var(--textoPrimario) !important;
     background-color: var(--fondoElevado2);
-    font-weight: var(--pesoSemibold);
 }
 
 /* Wrapper del avatar — clickeable */

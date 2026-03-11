@@ -145,6 +145,8 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 360. Al eliminar sample propio, restar crédito.
 361. ✅ [AG-FIX] Fix llamada a método indefinido `buscarPorTexto` a `buscarTexto` en ContribucionesController. La búsqueda fallaba porque el método renombrado en `CancionesRepository` no se había actualizado en el controlador.
 
+362. ✅ [AG-UI] Mover tarjetaCancionFeedSampleos al lado del botón de like y quitar padding de botones en canciones.
+
 ### C800-C801 — Verificacion y correccion samples extraidos [AG-COR]
 
 800. ✅ [AG-COR] Sistema de correccion de metadata IA en samples extraidos: boton "Corregir IA" en menu contextual (admin) → modal con instrucciones → ServicioIA::corregirMetadata() → endpoint POST /samples/{id}/corregir-ia actualiza titulo, slug, tags, metadata JSONB. Archivos: corregirIAStore, useCorregirIA, ModalCorregirIA, modalCorregirIA.css, apiSamples (corregirMetadataIA), SamplesModificacionController, ServicioIA.

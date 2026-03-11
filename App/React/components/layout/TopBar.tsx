@@ -184,13 +184,18 @@ export const TopBar = (): JSX.Element => {
                 ))}
             </div>
 
-            <div className="topbarBusqueda">
-                <InputBusqueda
-                    placeholder={placeholderBusqueda}
-                    valor={busqueda}
-                    onChange={manejarBusqueda}
-                />
-            </div>
+            {/* Ocultar buscador en AdminPanelIsland */}
+            {islaActual !== 'AdminPanelIsland' ? (
+                <div className="topbarBusqueda">
+                    <InputBusqueda
+                        placeholder={placeholderBusqueda}
+                        valor={busqueda}
+                        onChange={manejarBusqueda}
+                    />
+                </div>
+            ) : (
+                <div className="topbarBusquedaOcculta"></div>
+            )}
 
             {autenticado && (
                 <div className="topbarAcciones">
@@ -210,17 +215,19 @@ export const TopBar = (): JSX.Element => {
                         )}
                     </Badge>
 
-                    <div className="topbarBusquedaMovil">
-                        <BotonBase
-                            variante="ghost"
-                            tamano="md"
-                            soloIcono
-                            onClick={() => setBusquedaModalAbierta(true)}
-                            aria-label="Buscar"
-                        >
-                            <Search size={18} />
-                        </BotonBase>
-                    </div>
+                    {islaActual !== 'AdminPanelIsland' && (
+                        <div className="topbarBusquedaMovil">
+                            <BotonBase
+                                variante="ghost"
+                                tamano="md"
+                                soloIcono
+                                onClick={() => setBusquedaModalAbierta(true)}
+                                aria-label="Buscar"
+                            >
+                                <Search size={18} />
+                            </BotonBase>
+                        </div>
+                    )}
 
                     <BotonBase
                         variante="ghost"

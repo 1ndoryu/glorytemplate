@@ -35,17 +35,21 @@
     to { transform: rotate(360deg); }
 }
 
+ul.vincularSampleLista button {
+    height: unset !important;
+    padding: var(--espacioMd) !important;
+}
+
 .vincularSampleLista {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--espacio2xs);
+    gap: var(--espacioSm);
     max-height: 300px;
     overflow-y: auto;
 }
-
 .vincularSampleItem {
     display: flex;
     align-items: center;
