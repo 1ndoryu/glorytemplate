@@ -13,6 +13,8 @@ export interface RespuestaApi<T> {
     data: T | null;
     error: string | null;
     status: number;
+    /* Preservado cuando el servidor retorna un total de pagiación en la raiz */
+    total?: number;
 }
 
 interface OpcionesPeticion {
@@ -145,6 +147,7 @@ export const apiPeticion = async <T>(
             data: (json.data ?? json) as T,
             error: null,
             status: response.status,
+            ...(typeof json.total === 'number' ? { total: json.total } : {}),
         };
     } catch (err) {
         const mensaje = err instanceof Error ? err.message : 'Error de red';

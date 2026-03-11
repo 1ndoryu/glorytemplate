@@ -41,6 +41,7 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         cargando,
         cargandoMas,
         hayMas,
+        totalReal,
         sentinelaRef,
         manejarLike,
         manejarMenu,
@@ -50,10 +51,10 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
     return (
         <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
 
-            {/* Contador de canciones cargadas */}
-            {!cargando && canciones.length > 0 && (
+            {/* Contador de canciones — total real del servidor cuando está disponible */}
+            {!cargando && canciones.length > 0 && totalReal !== null && (
                 <p className="feedCancionesContador">
-                    {canciones.length}{hayMas ? '+' : ''} {canciones.length === 1 ? 'canción' : 'canciones'}
+                    {totalReal.toLocaleString()} {totalReal === 1 ? 'canción' : 'canciones'}
                     {busqueda.trim() && ` para "${busqueda}"`}
                 </p>
             )}

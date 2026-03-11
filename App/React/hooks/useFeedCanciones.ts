@@ -23,6 +23,8 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
     const [cargandoMas, setCargandoMas] = useState(false);
     const [paginaActual, setPaginaActual] = useState(1);
     const [hayMas, setHayMas] = useState(true);
+    /* Total real retornado por el servidor en la primera página del feed */
+    const [totalReal, setTotalReal] = useState<number | null>(null);
 
     const sentinelaRef = useRef<HTMLDivElement | null>(null);
     const cacheRef = useRef<Record<string, Cancion[]>>({});
@@ -36,10 +38,14 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         const thisRequest = ++requestIdRef.current;
         setCargando(true);
         setCanciones([]);
+        setTotalReal(null);
 
         buscarCanciones(busqueda).then(resp => {
             if (requestIdRef.current !== thisRequest) return;
-            setCanciones(resp.ok && resp.data ? resp.data : []);
+            const items = resp.ok && resp.data ? resp.data : [];
+            setCanciones(items);
+            /* En búsqueda se retornan todos los resultados de una vez */
+            setTotalReal(items.length);
             setCargando(false);
         });
     }, [busqueda]);
@@ -66,6 +72,10 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
             if (resp.ok && resp.data) {
                 items = resp.data;
                 cacheRef.current[cacheKey] = items;
+                /* Capturar total real solo en la primera página */
+                if (esNuevo && typeof resp.total === 'number') {
+                    setTotalReal(resp.total);
+                }
             }
         }
 
@@ -90,6 +100,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         cacheRef.current = {};
         setPaginaActual(1);
         setHayMas(true);
+        setTotalReal(null);
         cargarPagina(1, true);
     }, [cargarPagina, busqueda]);
 
@@ -155,6 +166,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         cargando,
         cargandoMas,
         hayMas,
+        totalReal,
         sentinelaRef,
         manejarLike,
         manejarMenu,
