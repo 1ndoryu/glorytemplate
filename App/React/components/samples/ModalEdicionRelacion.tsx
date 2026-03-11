@@ -79,7 +79,7 @@ export const ModalEdicionRelacion = ({
     );
 
     return (
-        <Modal abierto={abierto} onCerrar={handleCerrar} titulo={titulo} tamano="pequeno" pie={pie}>
+        <Modal abierto={abierto} onCerrar={handleCerrar} tamano="pequeno" titulo={titulo} pie={pie}>
             <div className="modalEdicionRelacion">
                 {/* Info de la relacion actual */}
                 <div className="modalEdicionRelacionInfo">

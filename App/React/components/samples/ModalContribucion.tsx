@@ -7,8 +7,12 @@
 import { Modal } from '../ui/Modal';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
+import { SelectorMenu } from '../ui/SelectorMenu';
+import { Radio } from '../ui/Radio';
 import { BuscadorCanciones } from './BuscadorCanciones';
 import { useContribucion } from '../../hooks/useContribucion';
+import type { TipoElemento } from '../../types/cancion';
+import { ETIQUETAS_TIPO_ELEMENTO } from '../../types/cancion';
 import '../../styles/componentes/modalContribucion.css';
 
 const TIPOS_RELACION = [
@@ -16,17 +20,6 @@ const TIPOS_RELACION = [
     { valor: 'cover',         etiqueta: 'Cover' },
     { valor: 'remix',         etiqueta: 'Remix' },
     { valor: 'interpolation', etiqueta: 'Interpolacion' },
-] as const;
-
-const TIPOS_ELEMENTO = [
-    { valor: 'hook_riff',         etiqueta: 'Hook / Riff' },
-    { valor: 'vocals_lyrics',     etiqueta: 'Vocales / Letra' },
-    { valor: 'drums',             etiqueta: 'Bateria' },
-    { valor: 'bass',              etiqueta: 'Bajo' },
-    { valor: 'keys_synth',        etiqueta: 'Teclados / Sintetizador' },
-    { valor: 'sound_effect',      etiqueta: 'Efecto de sonido' },
-    { valor: 'multiple_elements', etiqueta: 'Multiples elementos' },
-    { valor: 'other',             etiqueta: 'Otro' },
 ] as const;
 
 interface ModalContribucionProps {
@@ -84,7 +77,6 @@ export function ModalContribucion({
         <Modal
             abierto={abierto}
             onCerrar={cerrar}
-            titulo="Proponer relacion de sample"
             tamano="normal"
             pie={
                 !estado.exito && (
@@ -116,30 +108,23 @@ export function ModalContribucion({
 
                     {/* Modo de la relacion */}
                     <fieldset className="modalContribucionFieldset">
-                        <legend className="modalContribucionLeyenda">
-                            ¿Como se relaciona <strong>{cancionBaseTitulo}</strong>?
-                        </legend>
                         <div className="modalContribucionModos">
-                            <label className={`modalContribucionModo ${modo === 'esta_samplea' ? 'activo' : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="modo"
-                                    value="esta_samplea"
-                                    checked={modo === 'esta_samplea'}
-                                    onChange={() => { setModo('esta_samplea'); seleccionarCancion(null); }}
-                                />
-                                <span>Esta cancion samplea a...</span>
-                            </label>
-                            <label className={`modalContribucionModo ${modo === 'fue_sampleada' ? 'activo' : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="modo"
-                                    value="fue_sampleada"
-                                    checked={modo === 'fue_sampleada'}
-                                    onChange={() => { setModo('fue_sampleada'); seleccionarCancion(null); }}
-                                />
-                                <span>Esta cancion fue sampleada por...</span>
-                            </label>
+                            <Radio
+                                name="modo"
+                                value="esta_samplea"
+                                checked={modo === 'esta_samplea'}
+                                onChange={() => { setModo('esta_samplea'); seleccionarCancion(null); }}
+                                label="Esta cancion samplea a..."
+                                className={`modalContribucionModo${modo === 'esta_samplea' ? ' activo' : ''}`}
+                            />
+                            <Radio
+                                name="modo"
+                                value="fue_sampleada"
+                                checked={modo === 'fue_sampleada'}
+                                onChange={() => { setModo('fue_sampleada'); seleccionarCancion(null); }}
+                                label="Esta cancion fue sampleada por..."
+                                className={`modalContribucionModo${modo === 'fue_sampleada' ? ' activo' : ''}`}
+                            />
                         </div>
                     </fieldset>
 
@@ -200,36 +185,26 @@ export function ModalContribucion({
                         <label className="modalContribucionLabel">Tipo de relacion</label>
                         <div className="modalContribucionOpciones">
                             {TIPOS_RELACION.map((t) => (
-                                <label
+                                <Radio
                                     key={t.valor}
-                                    className={`modalContribucionOpcion ${tipoRelacion === t.valor ? 'activo' : ''}`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="tipoRelacion"
-                                        value={t.valor}
-                                        checked={tipoRelacion === t.valor}
-                                        onChange={() => setTipoRelacion(t.valor)}
-                                    />
-                                    {t.etiqueta}
-                                </label>
+                                    name="tipoRelacion"
+                                    value={t.valor}
+                                    checked={tipoRelacion === t.valor}
+                                    onChange={() => setTipoRelacion(t.valor)}
+                                    label={t.etiqueta}
+                                    className={`modalContribucionOpcion${tipoRelacion === t.valor ? ' activo' : ''}`}
+                                />
                             ))}
                         </div>
                     </div>
 
                     {/* Tipo de elemento */}
-                    <div className="modalContribucionCampo">
-                        <label className="modalContribucionLabel">Elemento sampleado</label>
-                        <select
-                            className="modalContribucionSelect"
-                            value={tipoElemento}
-                            onChange={(e) => setTipoElemento(e.target.value as typeof tipoElemento)}
-                        >
-                            {TIPOS_ELEMENTO.map((t) => (
-                                <option key={t.valor} value={t.valor}>{t.etiqueta}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <SelectorMenu
+                        etiqueta="Elemento sampleado"
+                        valor={tipoElemento}
+                        onChange={(v) => setTipoElemento(v as TipoElemento)}
+                        opciones={Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta }))}
+                    />
 
                     {estado.error && (
                         <p className="modalContribucionError">{estado.error}</p>
