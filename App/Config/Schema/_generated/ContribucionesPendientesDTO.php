@@ -22,6 +22,9 @@ final class ContribucionesPendientesDTO
         public readonly ?int $moderadorId,
         public readonly ?string $moderadorNota,
         public readonly ?int $relacionCreadaId,
+        public readonly ?int $relacionExistenteId,
+        public readonly string $tipoContribucion,
+        public readonly ?array $cambiosPropuestos,
         public readonly string $createdAt,
         public readonly ?string $resueltoAt
     ) {}
@@ -47,6 +50,9 @@ final class ContribucionesPendientesDTO
             moderadorId: isset($row['moderador_id']) ? (int) $row['moderador_id'] : null,
             moderadorNota: isset($row['moderador_nota']) ? $row['moderador_nota'] : null,
             relacionCreadaId: isset($row['relacion_creada_id']) ? (int) $row['relacion_creada_id'] : null,
+            relacionExistenteId: isset($row['relacion_existente_id']) ? (int) $row['relacion_existente_id'] : null,
+            tipoContribucion: ($row['tipo_contribucion'] ?? 'nueva'),
+            cambiosPropuestos: isset($row['cambios_propuestos']) ? (is_string($row['cambios_propuestos']) ? json_decode($row['cambios_propuestos'], true) : $row['cambios_propuestos']) : null,
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             resueltoAt: isset($row['resuelto_at']) ? $row['resuelto_at'] : null
         );
@@ -80,6 +86,9 @@ final class ContribucionesPendientesDTO
             'moderador_id' => $this->moderadorId,
             'moderador_nota' => $this->moderadorNota,
             'relacion_creada_id' => $this->relacionCreadaId,
+            'relacion_existente_id' => $this->relacionExistenteId,
+            'tipo_contribucion' => $this->tipoContribucion,
+            'cambios_propuestos' => $this->cambiosPropuestos,
             'created_at' => $this->createdAt,
             'resuelto_at' => $this->resueltoAt];
     }

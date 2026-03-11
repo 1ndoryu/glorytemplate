@@ -3,11 +3,13 @@
  * Muestra una relación entre dos canciones (sample, cover, remix, interpolation).
  * Par de canciones con tipo, timing y badge de elemento.
  * Reutilizable en CancionDetalleIsland, ExplorarCancionesIsland, etc.
+ * L6.2d: Callbacks opcionales para edicion/eliminacion comunitaria.
  */
 
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useNavigationStore } from '@/core/router';
+import { useAuthStore } from '@app/stores/authStore';
 import type { RelacionSample } from '@app/types/cancion';
 import {
     ETIQUETAS_TIPO_RELACION,
@@ -23,6 +25,10 @@ interface TarjetaRelacionSampleProps {
     direccion: 'origen' | 'destino';
     /* Oculta encabezado con badges de tipo cuando se agrupa en sección */
     mostrarEncabezado?: boolean;
+    /* L6.2d: callback cuando el usuario quiere sugerir una corrección */
+    onSugerirCorreccion?: (relacion: RelacionSample) => void;
+    /* L6.2d: callback cuando el usuario quiere reportar la relación como incorrecta */
+    onReportarError?: (relacion: RelacionSample) => void;
 }
 
 const formatearTimings = (timings: number[]): string => {
@@ -51,8 +57,11 @@ export const TarjetaRelacionSample = ({
     relacion,
     direccion,
     mostrarEncabezado = true,
+    onSugerirCorreccion,
+    onReportarError,
 }: TarjetaRelacionSampleProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
+    const autenticado = useAuthStore((s) => s.autenticado);
 
     const handleClickRelacion = () => {
         navegar(urlSampleo(relacion, direccion));
@@ -157,6 +166,31 @@ export const TarjetaRelacionSample = ({
             </div>
 
             <div className="tarjetaRelacionPie" onClick={(e) => e.stopPropagation()}>
+                {/* L6.2d: Botones de edicion comunitaria (solo autenticados) */}
+                {autenticado && onSugerirCorreccion && (
+                    <BotonBase
+                        variante="ghost"
+                        tamano="sm"
+                        className="tarjetaRelacionAccionEditar"
+                        onClick={() => onSugerirCorreccion(relacion)}
+                        title="Sugerir una correccion a esta relacion"
+                        type="button"
+                    >
+                        Sugerir correccion
+                    </BotonBase>
+                )}
+                {autenticado && onReportarError && (
+                    <BotonBase
+                        variante="ghost"
+                        tamano="sm"
+                        className="tarjetaRelacionAccionReportar"
+                        onClick={() => onReportarError(relacion)}
+                        title="Reportar esta relacion como incorrecta"
+                        type="button"
+                    >
+                        Reportar error
+                    </BotonBase>
+                )}
                 <BotonReporteLegal
                     tipo="legal_relacion"
                     targetId={relacion.id}

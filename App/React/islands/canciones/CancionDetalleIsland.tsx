@@ -14,9 +14,11 @@ import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
+import type { RelacionSample, TipoRelacion, TipoElemento } from '@app/types/cancion';
+import { ModalEdicionRelacion } from '@app/components/samples/ModalEdicionRelacion';
 import '../../styles/componentes/cancionDetalle.css';
 import '../../styles/componentes/seccionRelaciones.css';
 
@@ -54,11 +56,45 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
     /* Proveedor de samples extraídos de esta canción (cancion_origen_id) */
     const proveedorSamples = useCallback(
         (_pagina: number) =>
-            obtenerSamplesDeCancion(slug ?? '').then((r) => (r.ok && r.data ? r.data : [])),
+            obtenerSamplesDeCancion(slug ?? '')
+                .then((r) => (r.ok && r.data ? r.data : []))
+                .catch(() => []),
         [slug]
     );
 
     useTabsIsla('CancionDetalleIsland', TABS_CANCION, 'cancion');
+
+    /* L6.2d: Estado del modal de edicion/eliminacion de relaciones */
+    const [relacionParaEditar, setRelacionParaEditar] = useState<{
+        id: number;
+        tipoRelacion: TipoRelacion;
+        tipoElemento: TipoElemento;
+        cancionDestino?: string;
+        cancionFuente?: string;
+    } | null>(null);
+    const [modoEliminacion, setModoEliminacion] = useState(false);
+
+    const handleSugerirCorreccion = useCallback((rel: RelacionSample) => {
+        setRelacionParaEditar({
+            id: rel.id,
+            tipoRelacion: rel.tipoRelacion,
+            tipoElemento: rel.tipoElemento ?? 'multiple_elements',
+            cancionDestino: rel.destinoTitulo ?? rel.cancionTitulo ?? undefined,
+            cancionFuente: rel.fuenteTitulo ?? rel.cancionTitulo ?? undefined,
+        });
+        setModoEliminacion(false);
+    }, []);
+
+    const handleReportarError = useCallback((rel: RelacionSample) => {
+        setRelacionParaEditar({
+            id: rel.id,
+            tipoRelacion: rel.tipoRelacion,
+            tipoElemento: rel.tipoElemento ?? 'multiple_elements',
+            cancionDestino: rel.destinoTitulo ?? rel.cancionTitulo ?? undefined,
+            cancionFuente: rel.fuenteTitulo ?? rel.cancionTitulo ?? undefined,
+        });
+        setModoEliminacion(true);
+    }, []);
 
     if (cargando) {
         return (
@@ -185,13 +221,23 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
 
             {samplesDe.length > 0 && (
                 <SeccionRelaciones titulo="Samplea a" contador={samplesDe.length}>
-                    <TablaRelaciones relaciones={samplesDe} direccion="destino" />
+                    <TablaRelaciones
+                        relaciones={samplesDe}
+                        direccion="destino"
+                        onSugerirCorreccion={handleSugerirCorreccion}
+                        onReportarError={handleReportarError}
+                    />
                 </SeccionRelaciones>
             )}
 
             {sampleadaEn.length > 0 && (
                 <SeccionRelaciones titulo="Sampleada por" contador={sampleadaEn.length}>
-                    <TablaRelaciones relaciones={sampleadaEn} direccion="origen" />
+                    <TablaRelaciones
+                        relaciones={sampleadaEn}
+                        direccion="origen"
+                        onSugerirCorreccion={handleSugerirCorreccion}
+                        onReportarError={handleReportarError}
+                    />
                 </SeccionRelaciones>
             )}
 
@@ -207,6 +253,13 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
             {slug && (samplesDe.length > 0 || sampleadaEn.length > 0) && (
                 <CadenaSamples slug={slug} titulo={cancion.titulo} />
             )}
+
+            {/* L6.2d: Modal de edicion/eliminacion comunitaria */}
+            <ModalEdicionRelacion
+                relacion={relacionParaEditar}
+                modoEliminacion={modoEliminacion}
+                onCerrar={() => setRelacionParaEditar(null)}
+            />
         </div>
     );
 };

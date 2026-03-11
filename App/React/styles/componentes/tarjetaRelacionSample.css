@@ -121,8 +121,31 @@
 .tarjetaRelacionPie {
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+    gap: var(--espacioXs);
     padding-top: var(--espacioXs);
     border-top: 1px solid var(--bordeSutil);
     margin-top: calc(-1 * var(--espacioXs)); /* compensar gap del flex parent */
     width: 100%;
+}
+
+/* L6.2d: Botones de edicion comunitaria */
+.tarjetaRelacionAccionEditar,
+.tarjetaRelacionAccionReportar {
+    font-size: 0.72rem;
+    opacity: 0;
+    transition: opacity var(--transicionNormal);
+}
+
+.tarjetaRelacion:hover .tarjetaRelacionAccionEditar,
+.tarjetaRelacion:hover .tarjetaRelacionAccionReportar {
+    opacity: 1;
+}
+
+.tarjetaRelacionAccionReportar {
+    color: var(--textoTerciario);
+}
+
+.tarjetaRelacionAccionEditar {
+    color: var(--acento);
 }

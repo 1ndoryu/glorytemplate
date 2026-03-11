@@ -45,7 +45,7 @@ class ContribucionesPendientesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-    /*
+            /*
      * Crear una nueva contribucion pendiente.
      * Retorna el ID generado.
      */
@@ -228,6 +228,249 @@ class ContribucionesPendientesRepository extends BaseRepository
                 'id'          => $id,
                 'estadoPrevio' => ContribucionesPendientesEnums::ESTADO_PENDIENTE,
             ]
+        );
+
+        return $filas > 0;
+    }
+
+    /*
+     * Actualizar contribucion propia pendiente.
+     * Solo se actualizan campos editables, no se permite cambiar estado ni contribuidor.
+     * Retorna true si se actualizo al menos 1 fila.
+     */
+    public static function actualizarPendiente(int $id, int $contribuidorId, array $datos): bool
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $setClauses = [];
+        $params = [
+            'id'             => $id,
+            'contribuidorId' => $contribuidorId,
+            'estadoPendiente' => ContribucionesPendientesEnums::ESTADO_PENDIENTE,
+        ];
+
+        /* Campos editables en contribuciones de tipo 'nueva' */
+        $camposEditables = [
+            'cancion_destino_id'       => ContribucionesPendientesCols::CANCION_DESTINO_ID,
+            'cancion_fuente_id'        => ContribucionesPendientesCols::CANCION_FUENTE_ID,
+            'cancion_nueva_titulo'     => ContribucionesPendientesCols::CANCION_NUEVA_TITULO,
+            'cancion_nueva_artista'    => ContribucionesPendientesCols::CANCION_NUEVA_ARTISTA,
+            'cancion_nueva_youtube_url' => ContribucionesPendientesCols::CANCION_NUEVA_YOUTUBE_URL,
+            'cancion_nueva_lado'       => ContribucionesPendientesCols::CANCION_NUEVA_LADO,
+            'tipo_relacion'            => ContribucionesPendientesCols::TIPO_RELACION,
+            'tipo_elemento'            => ContribucionesPendientesCols::TIPO_ELEMENTO,
+        ];
+
+        foreach ($camposEditables as $clave => $col) {
+            if (\array_key_exists($clave, $datos)) {
+                $paramName = \str_replace('_', '', \lcfirst(\implode('', \array_map('ucfirst', \explode('_', $clave)))));
+                $setClauses[] = "{$col} = :{$paramName}";
+                $params[$paramName] = $datos[$clave];
+            }
+        }
+
+        if (empty($setClauses)) {
+            return false;
+        }
+
+        $filas = static::ejecutar(
+            "UPDATE {$t} SET " . \implode(', ', $setClauses)
+            . " WHERE " . ContribucionesPendientesCols::ID . " = :id"
+            . " AND " . ContribucionesPendientesCols::CONTRIBUIDOR_ID . " = :contribuidorId"
+            . " AND " . ContribucionesPendientesCols::ESTADO . " = :estadoPendiente",
+            $params
+        );
+
+        return $filas > 0;
+    }
+
+    /*
+     * Eliminar contribucion propia pendiente (hard delete, nunca llego a produccion).
+     * Solo se permite si el contribuidor es el owner y el estado es 'pendiente'.
+     */
+    public static function eliminarPendiente(int $id, int $contribuidorId): bool
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $filas = static::ejecutar(
+            "DELETE FROM {$t}"
+            . " WHERE " . ContribucionesPendientesCols::ID . " = :id"
+            . " AND " . ContribucionesPendientesCols::CONTRIBUIDOR_ID . " = :contribuidorId"
+            . " AND " . ContribucionesPendientesCols::ESTADO . " = :estado",
+            [
+                'id'             => $id,
+                'contribuidorId' => $contribuidorId,
+                'estado'         => ContribucionesPendientesEnums::ESTADO_PENDIENTE,
+            ]
+        );
+
+        return $filas > 0;
+    }
+
+    /*
+     * Crear contribucion de tipo edicion (propuesta de cambio a relacion existente).
+     * Almacena referencia a la relacion original y los cambios propuestos como JSONB.
+     */
+    public static function crearEdicion(int $contribuidorId, int $relacionExistenteId, array $cambiosPropuestos): ?int
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $cambiosJson = \json_encode($cambiosPropuestos, JSON_UNESCAPED_UNICODE);
+        if ($cambiosJson === false) {
+            return null;
+        }
+
+        return static::insertar(
+            "INSERT INTO {$t} ("
+            . ContribucionesPendientesCols::CONTRIBUIDOR_ID . ", "
+            . ContribucionesPendientesCols::RELACION_EXISTENTE_ID . ", "
+            . ContribucionesPendientesCols::TIPO_CONTRIBUCION . ", "
+            . ContribucionesPendientesCols::CAMBIOS_PROPUESTOS
+            . ") VALUES (:contribuidorId, :relacionId, :tipo, :cambios::jsonb)"
+            . " RETURNING " . ContribucionesPendientesCols::ID,
+            [
+                'contribuidorId' => $contribuidorId,
+                'relacionId'     => $relacionExistenteId,
+                'tipo'           => ContribucionesPendientesEnums::TIPO_CONTRIBUCION_EDICION,
+                'cambios'        => $cambiosJson,
+            ]
+        );
+    }
+
+    /*
+     * Crear contribucion de tipo eliminacion (propuesta de borrar relacion existente).
+     * La nota/razon va en moderador_nota como texto libre (reutilizando campo semanticamente).
+     */
+    public static function crearEliminacion(int $contribuidorId, int $relacionExistenteId, string $razon): ?int
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$t} ("
+            . ContribucionesPendientesCols::CONTRIBUIDOR_ID . ", "
+            . ContribucionesPendientesCols::RELACION_EXISTENTE_ID . ", "
+            . ContribucionesPendientesCols::TIPO_CONTRIBUCION . ", "
+            . ContribucionesPendientesCols::MODERADOR_NOTA
+            . ") VALUES (:contribuidorId, :relacionId, :tipo, :razon)"
+            . " RETURNING " . ContribucionesPendientesCols::ID,
+            [
+                'contribuidorId' => $contribuidorId,
+                'relacionId'     => $relacionExistenteId,
+                'tipo'           => ContribucionesPendientesEnums::TIPO_CONTRIBUCION_ELIMINACION,
+                'razon'          => $razon,
+            ]
+        );
+    }
+
+    /*
+     * Verificar si existe edicion/eliminacion pendiente para la misma relacion por el mismo usuario.
+     * Previene duplicados de propuestas.
+     */
+    public static function existeEdicionPendiente(int $relacionExistenteId, int $contribuidorId): bool
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT 1 FROM {$t}"
+            . " WHERE " . ContribucionesPendientesCols::RELACION_EXISTENTE_ID . " = :relacionId"
+            . " AND " . ContribucionesPendientesCols::CONTRIBUIDOR_ID . " = :contribuidorId"
+            . " AND " . ContribucionesPendientesCols::ESTADO . " = :estado"
+            . " LIMIT 1",
+            [
+                'relacionId'     => $relacionExistenteId,
+                'contribuidorId' => $contribuidorId,
+                'estado'         => ContribucionesPendientesEnums::ESTADO_PENDIENTE,
+            ]
+        );
+
+        return $row !== null;
+    }
+
+    /*
+     * Listar contribuciones pendientes (admin, incluye tipo_contribucion y relacion_existente).
+     * Override de listarPendientes para incluir los nuevos campos L6.
+     */
+    public static function listarPendientesAdmin(int $limit = 20, int $offset = 0): array
+    {
+        $t  = ContribucionesPendientesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+        $tc = CancionesCols::TABLA;
+
+        return static::consultar(
+            "SELECT cp.*"
+            . ", u." . UsuariosExtCols::USERNAME . " AS contribuidor_username"
+            . ", cd.titulo AS cancion_destino_titulo, cd.slug AS cancion_destino_slug"
+            . ", cf.titulo AS cancion_fuente_titulo, cf.slug AS cancion_fuente_slug"
+            . " FROM {$t} cp"
+            . " JOIN {$tu} u ON cp." . ContribucionesPendientesCols::CONTRIBUIDOR_ID . " = u." . UsuariosExtCols::ID
+            . " LEFT JOIN {$tc} cd ON cp." . ContribucionesPendientesCols::CANCION_DESTINO_ID . " = cd.id"
+            . " LEFT JOIN {$tc} cf ON cp." . ContribucionesPendientesCols::CANCION_FUENTE_ID . " = cf.id"
+            . " WHERE cp." . ContribucionesPendientesCols::ESTADO . " = :estado"
+            . " ORDER BY cp." . ContribucionesPendientesCols::CREATED_AT . " DESC"
+            . " LIMIT :limit OFFSET :offset",
+            [
+                'estado' => ContribucionesPendientesEnums::ESTADO_PENDIENTE,
+                'limit'  => $limit,
+                'offset' => $offset,
+            ]
+        );
+    }
+
+    /*
+     * Admin: actualizar cualquier contribucion (sin restriccion de propietario ni estado).
+     * Permite editar campos de contenido y de moderacion.
+     */
+    public static function actualizarAdmin(int $id, array $datos): bool
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $camposEditables = [
+            'cancion_destino_id'       => ContribucionesPendientesCols::CANCION_DESTINO_ID,
+            'cancion_fuente_id'        => ContribucionesPendientesCols::CANCION_FUENTE_ID,
+            'cancion_nueva_titulo'     => ContribucionesPendientesCols::CANCION_NUEVA_TITULO,
+            'cancion_nueva_artista'    => ContribucionesPendientesCols::CANCION_NUEVA_ARTISTA,
+            'cancion_nueva_youtube_url' => ContribucionesPendientesCols::CANCION_NUEVA_YOUTUBE_URL,
+            'cancion_nueva_lado'       => ContribucionesPendientesCols::CANCION_NUEVA_LADO,
+            'tipo_relacion'            => ContribucionesPendientesCols::TIPO_RELACION,
+            'tipo_elemento'            => ContribucionesPendientesCols::TIPO_ELEMENTO,
+            'estado'                   => ContribucionesPendientesCols::ESTADO,
+            'moderador_nota'           => ContribucionesPendientesCols::MODERADOR_NOTA,
+        ];
+
+        $setClauses = [];
+        $params = ['id' => $id];
+
+        foreach ($camposEditables as $clave => $col) {
+            if (\array_key_exists($clave, $datos)) {
+                $paramName = 'p_' . \str_replace('.', '_', $clave);
+                $setClauses[] = "{$col} = :{$paramName}";
+                $params[$paramName] = $datos[$clave];
+            }
+        }
+
+        if (empty($setClauses)) {
+            return false;
+        }
+
+        $filas = static::ejecutar(
+            "UPDATE {$t} SET " . \implode(', ', $setClauses)
+            . " WHERE " . ContribucionesPendientesCols::ID . " = :id",
+            $params
+        );
+
+        return $filas > 0;
+    }
+
+    /*
+     * Admin: eliminar cualquier contribucion (hard delete, sin restriccion).
+     */
+    public static function eliminarAdmin(int $id): bool
+    {
+        $t = ContribucionesPendientesCols::TABLA;
+
+        $filas = static::ejecutar(
+            "DELETE FROM {$t} WHERE " . ContribucionesPendientesCols::ID . " = :id",
+            ['id' => $id]
         );
 
         return $filas > 0;

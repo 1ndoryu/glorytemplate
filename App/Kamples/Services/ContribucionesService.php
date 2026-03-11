@@ -159,4 +159,117 @@ class ContribucionesService
             CancionesCols::YOUTUBE_ID => $youtubeId,
         ]);
     }
+
+    /**
+     * Aplicar edicion comunitaria aprobada: actualiza la relacion original con los cambios propuestos.
+     * Llamado desde moderar() cuando tipo_contribucion='edicion'.
+     *
+     * @return array{ok: bool, error?: string}
+     */
+    public static function aplicarEdicion(array $contribucion, int $moderadorId, ?string $nota): array
+    {
+        $contribucionId     = (int) $contribucion[ContribucionesPendientesCols::ID];
+        $relacionExistenteId = $contribucion[ContribucionesPendientesCols::RELACION_EXISTENTE_ID] ?? null;
+
+        if (!$relacionExistenteId) {
+            return ['ok' => false, 'error' => 'Contribucion de edicion sin relacion_existente_id.'];
+        }
+
+        try {
+            $relacion = RelacionesSampleRepository::buscarPorId((int) $relacionExistenteId);
+            if (!$relacion) {
+                return ['ok' => false, 'error' => 'La relacion original ya no existe.'];
+            }
+
+            $cambiosRaw = $contribucion[ContribucionesPendientesCols::CAMBIOS_PROPUESTOS] ?? null;
+            $cambios = \is_string($cambiosRaw) ? \json_decode($cambiosRaw, true) : (\is_array($cambiosRaw) ? $cambiosRaw : []);
+
+            if (empty($cambios) || \json_last_error() !== JSON_ERROR_NONE) {
+                return ['ok' => false, 'error' => 'Cambios propuestos vacios o malformados.'];
+            }
+
+            /* Filtrar a campos permitidos con whitelist */
+            $cambiosAplicar = [];
+            if (isset($cambios['tipo_relacion']) && \in_array($cambios['tipo_relacion'], RelacionesSampleEnums::TODOS_TIPO_RELACION, true)) {
+                $cambiosAplicar[RelacionesSampleCols::TIPO_RELACION] = $cambios['tipo_relacion'];
+            }
+            if (isset($cambios['tipo_elemento']) && \in_array($cambios['tipo_elemento'], RelacionesSampleEnums::TODOS_TIPO_ELEMENTO, true)) {
+                $cambiosAplicar[RelacionesSampleCols::TIPO_ELEMENTO] = $cambios['tipo_elemento'];
+            }
+
+            if (empty($cambiosAplicar)) {
+                return ['ok' => false, 'error' => 'Ningun cambio valido para aplicar.'];
+            }
+
+            RelacionesSampleRepository::actualizarPorId((int) $relacionExistenteId, $cambiosAplicar);
+
+            /* Marcar contribucion como aprobada */
+            ContribucionesPendientesRepository::moderar(
+                $contribucionId,
+                ContribucionesPendientesEnums::ESTADO_APROBADA,
+                $moderadorId,
+                $nota
+            );
+
+            KamplesLogger::info('ContribucionesService: edicion comunitaria aplicada', [
+                'contribucion_id' => $contribucionId,
+                'relacion_id'     => $relacionExistenteId,
+                'cambios'         => $cambiosAplicar,
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ContribucionesService: error al aplicar edicion', [
+                'contribucion_id' => $contribucionId,
+                'error'           => $e->getMessage(),
+            ]);
+            return ['ok' => false, 'error' => 'Error interno al aplicar la edicion.'];
+        }
+    }
+
+    /**
+     * Aplicar eliminacion comunitaria aprobada: borra la relacion original.
+     * Llamado desde moderar() cuando tipo_contribucion='eliminacion'.
+     *
+     * @return array{ok: bool, error?: string}
+     */
+    public static function aplicarEliminacion(array $contribucion, int $moderadorId, ?string $nota): array
+    {
+        $contribucionId     = (int) $contribucion[ContribucionesPendientesCols::ID];
+        $relacionExistenteId = $contribucion[ContribucionesPendientesCols::RELACION_EXISTENTE_ID] ?? null;
+
+        if (!$relacionExistenteId) {
+            return ['ok' => false, 'error' => 'Contribucion de eliminacion sin relacion_existente_id.'];
+        }
+
+        try {
+            $relacion = RelacionesSampleRepository::buscarPorId((int) $relacionExistenteId);
+            if (!$relacion) {
+                return ['ok' => false, 'error' => 'La relacion original ya no existe.'];
+            }
+
+            RelacionesSampleRepository::eliminarPorId((int) $relacionExistenteId);
+
+            /* Marcar contribucion como aprobada */
+            ContribucionesPendientesRepository::moderar(
+                $contribucionId,
+                ContribucionesPendientesEnums::ESTADO_APROBADA,
+                $moderadorId,
+                $nota
+            );
+
+            KamplesLogger::info('ContribucionesService: eliminacion comunitaria aplicada', [
+                'contribucion_id' => $contribucionId,
+                'relacion_id'     => $relacionExistenteId,
+            ]);
+
+            return ['ok' => true];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ContribucionesService: error al aplicar eliminacion', [
+                'contribucion_id' => $contribucionId,
+                'error'           => $e->getMessage(),
+            ]);
+            return ['ok' => false, 'error' => 'Error interno al aplicar la eliminacion.'];
+        }
+    }
 }

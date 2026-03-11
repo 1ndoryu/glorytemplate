@@ -319,8 +319,9 @@ class SamplesModificacionController
 
     /**
      * DELETE /samples/{id} — Eliminar sample.
-     * Solo el propietario o un admin pueden borrar.
-     * Elimina archivos físicos y registros relacionados.
+     * Propietario: soft-delete (estado='eliminado') + limpieza archivos fisicos.
+     * Admin: hard-delete (eliminarConCascada) irreversible.
+     * Las relaciones FK se actualizan automaticamente (SET NULL en DB).
      */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -339,20 +340,27 @@ class SamplesModificacionController
             return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
         }
 
-        if ((int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId && !$esAdmin) {
+        $esPropietario = (int) $sample[SamplesCols::CREADOR_ID] === $usuarioId;
+
+        if (!$esPropietario && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para eliminar este sample'], 403);
         }
 
-        /* Eliminar archivos físicos del disco */
+        /* Eliminar archivos fisicos del disco (ambos flujos) */
         self::eliminarArchivosFisicos($sample);
 
-        /* Eliminar registros relacionados en cascada + sample */
-        SamplesRepository::eliminarConCascada($sampleId);
+        if ($esAdmin && !$esPropietario) {
+            /* Admin eliminando sample de otro: hard-delete irreversible */
+            SamplesRepository::eliminarConCascada($sampleId);
+        } else {
+            /* Propietario: soft-delete reversible (cambia estado a 'eliminado') */
+            SamplesRepository::marcarEliminado($sampleId);
+        }
 
         KamplesLogger::info('Sample eliminado', [
             'sampleId' => $sampleId,
             'titulo'   => $sample[SamplesCols::TITULO] ?? '',
-            'por'      => $esAdmin && (int) $sample[SamplesCols::CREADOR_ID] !== $usuarioId ? 'admin' : 'propietario',
+            'modo'     => ($esAdmin && !$esPropietario) ? 'hard-delete-admin' : 'soft-delete-propietario',
         ]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);

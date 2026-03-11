@@ -628,21 +628,21 @@ DELETE /admin/relaciones/{id}         — Eliminar relacion directamente (admin)
 
 ### Checklist L6
 
-- [ ] L6.1a Migracion v034: columnas `relacion_existente_id`, `tipo_contribucion`, `cambios_propuestos`
-- [ ] L6.1b Schema update + regenerar _generated
-- [ ] L6.1c Endpoints PUT/DELETE /contribuciones/{id} (propias, pendientes)
-- [ ] L6.1d Repository: actualizarPendiente(), eliminarPendiente()
-- [ ] L6.1e Frontend: editar/eliminar en "Mis contribuciones"
-- [ ] L6.2a Endpoints POST /contribuciones/edicion + /contribuciones/eliminacion
-- [ ] L6.2b ContribucionesService: aplicarEdicion(), aplicarEliminacion()
-- [ ] L6.2c Frontend: ModalEdicionRelacion + useEdicionRelacion
-- [ ] L6.2d Boton "Sugerir correccion" y "Reportar error" en TarjetaRelacionSample
-- [ ] L6.3a Endpoint DELETE /samples/{id} (owner-only + admin)
-- [ ] L6.3b Soft-delete sample (estado='eliminado') + limpieza archivo
-- [ ] L6.3c UI: agregar "Eliminar" en menu contextual sample (condicionado a autoria)
-- [ ] L6.4a Endpoints admin CRUD contribuciones
-- [ ] L6.4b Endpoints admin CRUD relaciones
-- [ ] L6.4c Panel admin moderar contribuciones (L3.4)
+- [x] L6.1a Migracion v034: columnas `relacion_existente_id`, `tipo_contribucion`, `cambios_propuestos` [AG-L6C]
+- [x] L6.1b Schema update + regenerar _generated (28 tablas, 0 errores) [AG-L6C]
+- [x] L6.1c Endpoints PUT/DELETE /contribuciones/{id} (propias, pendientes) [AG-L6C]
+- [x] L6.1d Repository: actualizarPendiente(), eliminarPendiente(), crearEdicion(), crearEliminacion(), existeEdicionPendiente(), listarPendientesAdmin(), actualizarAdmin(), eliminarAdmin() [AG-L6C]
+- [x] L6.1e Frontend: apiContribuciones.ts con editarContribucion(), eliminarContribucion() [AG-L6C]
+- [x] L6.2a Endpoints POST /contribuciones/edicion + /contribuciones/eliminacion [AG-L6C]
+- [x] L6.2b ContribucionesService: aplicarEdicion(), aplicarEliminacion() [AG-L6C]
+- [x] L6.2c Frontend: ModalEdicionRelacion + useEdicionRelacion + modalEdicionRelacion.css [AG-L6C]
+- [x] L6.2d Boton "Sugerir correccion" y "Reportar error" en TablaRelaciones + TarjetaRelacionSample + wired en CancionDetalleIsland [AG-L6C]
+- [x] L6.3a Endpoint DELETE /samples/{id} (owner soft-delete + admin hard-delete) [AG-L6C]
+- [x] L6.3b Soft-delete sample (marcarEliminado) + limpieza archivo fisica (ambas rutas) [AG-L6C]
+- [x] L6.3c UI: "Eliminar" en menu contextual sample ya existia (C800/C801 previo) [AG-L6C]
+- [x] L6.4a Endpoints admin CRUD contribuciones (PUT/DELETE /admin/contribuciones/{id}) [AG-L6C]
+- [x] L6.4b Endpoints admin CRUD relaciones (PUT/DELETE /admin/relaciones/{id}) [AG-L6C]
+- [ ] L6.4c Panel admin moderar contribuciones (L3.4) — TO-DO: componente isla de admin con tabla de contribuciones pendientes, acciones aprobar/rechazar
 
 ---
 
@@ -652,3 +652,6 @@ DELETE /admin/relaciones/{id}         — Eliminar relacion directamente (admin)
 - [FK Cascades] `relaciones_sample.sample_id/sample_fuente_id/sample_destino_id` son ON DELETE SET NULL. Al borrar sample, relacion mantiene las canciones vinculadas pero pierde el audio. `cola_extraccion_samples.sample_id` NO tiene ON DELETE — necesita cleanup manual en codigo (desvincularSampleId).
 - [Contribuciones Publicas] El modelo correcto es Wikipedia-like: cualquier usuario puede proponer ediciones a cualquier relacion, pero las ediciones quedan pendientes de moderacion. Distincion clave: `tipo_contribucion` = nueva / edicion / eliminacion.
 - [Eliminacion samples] Libre para el autor (sin moderacion), soft-delete cambio de estado. Las relaciones FK se limpian automaticamente por la DB.
+- [L6 Frontend] TarjetaRelacionSample no se usa en ningun island actualmente — el componente activo es TablaRelaciones. Los callbacks de edicion/eliminacion se anaden a ambos para cobertura futura.
+- [L6 ModalEdicionRelacion] Patron: el modal se monta en la isla padre (CancionDetalleIsland), no dentro de la tarjeta. El estado `relacionParaEditar` y `modoEliminacion` viven en la isla, se pasan al modal como props. El hook useEdicionRelacion gestiona el form state internamente.
+- [L6 moderar()] El metodo moderar() en el controller ahora maneja 3 tipos de contribucion: nueva (flujo original), edicion (aplicarEdicion via service), eliminacion (aplicarEliminacion via service). No hace falta endpoint separado.

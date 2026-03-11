@@ -23,9 +23,12 @@ final class ContribucionesPendientesCols
     const MODERADOR_ID = 'moderador_id';
     const MODERADOR_NOTA = 'moderador_nota';
     const RELACION_CREADA_ID = 'relacion_creada_id';
+    const RELACION_EXISTENTE_ID = 'relacion_existente_id';
+    const TIPO_CONTRIBUCION = 'tipo_contribucion';
+    const CAMBIOS_PROPUESTOS = 'cambios_propuestos';
     const CREATED_AT = 'created_at';
     const RESUELTO_AT = 'resuelto_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'contribuidor_id', 'cancion_destino_id', 'cancion_fuente_id', 'cancion_nueva_titulo', 'cancion_nueva_artista', 'cancion_nueva_youtube_url', 'cancion_nueva_lado', 'tipo_relacion', 'tipo_elemento', 'estado', 'moderador_id', 'moderador_nota', 'relacion_creada_id', 'created_at', 'resuelto_at'];
+    const TODAS = ['id', 'contribuidor_id', 'cancion_destino_id', 'cancion_fuente_id', 'cancion_nueva_titulo', 'cancion_nueva_artista', 'cancion_nueva_youtube_url', 'cancion_nueva_lado', 'tipo_relacion', 'tipo_elemento', 'estado', 'moderador_id', 'moderador_nota', 'relacion_creada_id', 'relacion_existente_id', 'tipo_contribucion', 'cambios_propuestos', 'created_at', 'resuelto_at'];
 }

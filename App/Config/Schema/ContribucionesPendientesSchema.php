@@ -32,6 +32,9 @@ class ContribucionesPendientesSchema extends TableSchema
             'moderador_id'           => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],
             'moderador_nota'         => ['tipo' => 'text', 'nullable' => true],
             'relacion_creada_id'     => ['tipo' => 'int', 'nullable' => true, 'ref' => 'relaciones_sample(id)'],
+            'relacion_existente_id'  => ['tipo' => 'int', 'nullable' => true, 'ref' => 'relaciones_sample(id)'],
+            'tipo_contribucion'      => ['tipo' => 'string', 'max' => 20, 'default' => 'nueva', 'check' => ['nueva', 'edicion', 'eliminacion']],
+            'cambios_propuestos'     => ['tipo' => 'jsonb', 'nullable' => true],
             'created_at'             => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'resuelto_at'            => ['tipo' => 'datetime', 'nullable' => true],
         ];

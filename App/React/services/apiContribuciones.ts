@@ -4,7 +4,7 @@
  * Los usuarios registrados pueden proponer relaciones sample-cancion.
  */
 
-import { apiGet, apiPost } from './apiCliente';
+import { apiGet, apiPost, apiPut, apiDelete } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 
 export interface DatosContribucion {
@@ -28,7 +28,12 @@ export interface ContribucionResumen {
     tipoRelacion: string;
     tipoElemento: string;
     estado: 'pendiente' | 'aprobada' | 'rechazada';
+    tipoContribucion?: 'nueva' | 'edicion' | 'eliminacion';
+    relacionExistenteId?: number | null;
+    cambiosPropuestos?: Record<string, unknown> | null;
+    moderadorNota?: string | null;
     createdAt: string;
+    resuelloAt?: string | null;
     /* campos de join opcionales */
     destinoTitulo?: string;
     fuenteTitulo?: string;
@@ -36,7 +41,7 @@ export interface ContribucionResumen {
 
 export interface RespuestaContribucion {
     ok: boolean;
-    contribucion_id?: number;
+    id?: number;
     error?: string;
 }
 
@@ -50,8 +55,41 @@ export const crearContribucion = (
 export const misContribuciones = (
     pagina = 1,
     porPagina = 20
-): Promise<RespuestaApi<ContribucionResumen[]>> =>
-    apiGet<ContribucionResumen[]>('/contribuciones/mis', {
-        pagina,
-        por_pagina: porPagina,
+): Promise<RespuestaApi<{ ok: boolean; items: ContribucionResumen[] }>> =>
+    apiGet<{ ok: boolean; items: ContribucionResumen[] }>('/contribuciones/mis', {
+        page: pagina,
+        limit: porPagina,
+    });
+
+/* L6.1c: Editar contribucion propia pendiente */
+export const editarContribucion = (
+    id: number,
+    datos: Partial<DatosContribucion>
+): Promise<RespuestaApi<{ ok: boolean }>> =>
+    apiPut<{ ok: boolean }>(`/contribuciones/${id}`, datos);
+
+/* L6.1c: Eliminar contribucion propia pendiente */
+export const eliminarContribucion = (
+    id: number
+): Promise<RespuestaApi<{ ok: boolean }>> =>
+    apiDelete<{ ok: boolean }>(`/contribuciones/${id}`);
+
+/* L6.2: Proponer edicion a relacion existente */
+export const proponerEdicion = (
+    relacionId: number,
+    cambios: Record<string, unknown>
+): Promise<RespuestaApi<RespuestaContribucion>> =>
+    apiPost<RespuestaContribucion>('/contribuciones/edicion', {
+        relacion_id: relacionId,
+        cambios,
+    });
+
+/* L6.2: Proponer eliminacion de relacion existente */
+export const proponerEliminacion = (
+    relacionId: number,
+    razon: string
+): Promise<RespuestaApi<RespuestaContribucion>> =>
+    apiPost<RespuestaContribucion>('/contribuciones/eliminacion', {
+        relacion_id: relacionId,
+        razon,
     });

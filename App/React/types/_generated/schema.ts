@@ -157,6 +157,9 @@ export interface IContribucionesPendientes {
   moderadorId: number | null
   moderadorNota: string | null
   relacionCreadaId: number | null
+  relacionExistenteId: number | null
+  tipoContribucion: 'nueva' | 'edicion' | 'eliminacion'
+  cambiosPropuestos: Record<string, unknown> | null
   createdAt: string
   resueltoAt: string | null
 }
@@ -590,6 +593,9 @@ export const ContribucionesPendientesCols = {
   MODERADOR_ID: 'moderador_id',
   MODERADOR_NOTA: 'moderador_nota',
   RELACION_CREADA_ID: 'relacion_creada_id',
+  RELACION_EXISTENTE_ID: 'relacion_existente_id',
+  TIPO_CONTRIBUCION: 'tipo_contribucion',
+  CAMBIOS_PROPUESTOS: 'cambios_propuestos',
   CREATED_AT: 'created_at',
   RESUELTO_AT: 'resuelto_at'
 } as const
@@ -940,7 +946,10 @@ export const ContribucionesPendientesEnums = {
   TIPO_ELEMENTO_OTHER: 'other',
   ESTADO_PENDIENTE: 'pendiente',
   ESTADO_APROBADA: 'aprobada',
-  ESTADO_RECHAZADA: 'rechazada'
+  ESTADO_RECHAZADA: 'rechazada',
+  TIPO_CONTRIBUCION_NUEVA: 'nueva',
+  TIPO_CONTRIBUCION_EDICION: 'edicion',
+  TIPO_CONTRIBUCION_ELIMINACION: 'eliminacion'
 } as const
 
 export const DuplicadosPendientesEnums = {

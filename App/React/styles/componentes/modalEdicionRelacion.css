@@ -1,0 +1,52 @@
+/*
+ * Estilos: modalEdicionRelacion.css — Kamples (L6.2c)
+ * Modal para proponer ediciones o eliminaciones de relaciones existentes.
+ */
+
+.modalEdicionRelacion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-md);
+}
+
+.modalEdicionRelacionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-xs);
+    padding: var(--espaciado-sm);
+    background: var(--color-superficie-elevada);
+    border-radius: var(--radio-sm);
+    border: 1px solid var(--color-borde);
+}
+
+.modalEdicionRelacionInfoEtiqueta {
+    font-size: var(--texto-xs);
+    color: var(--color-texto-secundario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modalEdicionRelacionInfoValor {
+    font-size: var(--texto-sm);
+    color: var(--color-texto-principal);
+    font-weight: 500;
+}
+
+.modalEdicionRelacionCampos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espaciado-sm);
+}
+
+.modalEdicionRelacionAviso {
+    font-size: var(--texto-xs);
+    color: var(--color-texto-terciario);
+    text-align: center;
+    padding-top: var(--espaciado-xs);
+}
+
+.modalEdicionRelacionPie {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espaciado-sm);
+}

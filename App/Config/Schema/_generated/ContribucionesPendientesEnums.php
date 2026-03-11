@@ -39,4 +39,11 @@ final class ContribucionesPendientesEnums
     const ESTADO_RECHAZADA = 'rechazada';
 
     const TODOS_ESTADO = [self::ESTADO_PENDIENTE, self::ESTADO_APROBADA, self::ESTADO_RECHAZADA];
+
+    /* Valores para columna "tipo_contribucion" */
+    const TIPO_CONTRIBUCION_NUEVA = 'nueva';
+    const TIPO_CONTRIBUCION_EDICION = 'edicion';
+    const TIPO_CONTRIBUCION_ELIMINACION = 'eliminacion';
+
+    const TODOS_TIPO_CONTRIBUCION = [self::TIPO_CONTRIBUCION_NUEVA, self::TIPO_CONTRIBUCION_EDICION, self::TIPO_CONTRIBUCION_ELIMINACION];
 }
