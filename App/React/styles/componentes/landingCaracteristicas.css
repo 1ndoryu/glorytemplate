@@ -1,4 +1,4 @@
-﻿/*
+/*
  * landingCaracteristicas.css - Grid 9 bloques de features Kamples.
  *
  * Replica EXACTA del sistema original (temp/estilos.css):
@@ -120,8 +120,8 @@
 
 /* div4: margen negativo del SVG -- replica de .div4 svg#Capa_2 { margin: -11px; margin-top: 5px } */
 .landingBloque4 .landingBloqueSvg svg {
-    margin: -11px;
-    margin-top: 5px;
+    margin: calc(var(--espacioMd) * -1);
+    margin-top: var(--espacioXs);
 }
 
 /* div7, div8: wrapper anclado al fondo del flex cell (margin-top:auto en hijo flex) */
@@ -182,8 +182,8 @@
 
     /* Ajustes SVG en movil -- replica de .div6 .lazy-svg svg y .div1 svg del original */
     .landingBloque6 .landingBloqueSvg svg {
-        margin-left: -300px;
-        margin-right: -120px;
+        margin-left: calc(var(--espacio5xl) * -3.75);
+        margin-right: calc(var(--espacio5xl) * -1.5);
     }
     .landingBloque1 .landingBloqueSvg svg {
         margin: -125px -272px -283px 0;

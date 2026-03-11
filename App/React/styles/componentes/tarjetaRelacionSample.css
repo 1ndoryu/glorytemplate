@@ -113,7 +113,7 @@
 }
 
 .tarjetaRelacionContribuidor {
-    font-size: 0.72rem;
+    font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     font-style: italic;
 }
@@ -132,7 +132,7 @@
 /* L6.2d: Botones de edicion comunitaria */
 .tarjetaRelacionAccionEditar,
 .tarjetaRelacionAccionReportar {
-    font-size: 0.72rem;
+    font-size: var(--fuenteXs);
     opacity: 0;
     transition: opacity var(--transicionNormal);
 }

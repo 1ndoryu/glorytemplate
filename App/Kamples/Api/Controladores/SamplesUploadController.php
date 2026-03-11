@@ -29,6 +29,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\RelacionesSampleCols;
+use App\Config\Schema\_generated\RelacionesSampleEnums;
 
 class SamplesUploadController
 {
@@ -295,9 +296,27 @@ class SamplesUploadController
                     ? RelacionesSampleCols::SAMPLE_FUENTE_ID
                     : RelacionesSampleCols::SAMPLE_DESTINO_ID;
 
-                RelacionesSampleRepository::actualizarPorId($relacionId, [
-                    $colVinculo => $sampleId,
-                ]);
+                $datosActualizar = [$colVinculo => $sampleId];
+
+                /* L7.2: Guardar inicio_segundos en timings de la relacion */
+                $inicioSegundosRaw = $request->get_param('inicio_segundos');
+                if ($inicioSegundosRaw !== null && is_numeric($inicioSegundosRaw)) {
+                    $inicioSegundos = (int) round((float) $inicioSegundosRaw);
+                    if ($inicioSegundos >= 0) {
+                        $colTimings = $ladoRelacion === 'fuente'
+                            ? RelacionesSampleCols::TIMINGS_FUENTE
+                            : RelacionesSampleCols::TIMINGS_DESTINO;
+                        $datosActualizar[$colTimings] = '{' . $inicioSegundos . '}';
+                    }
+                }
+
+                /* Guardar tipo_elemento en la relacion si se especifica */
+                $tipoElementoRaw = \sanitize_text_field($request->get_param('tipo_elemento') ?? '');
+                if ($tipoElementoRaw !== '' && \in_array($tipoElementoRaw, RelacionesSampleEnums::TODOS_TIPO_ELEMENTO, true)) {
+                    $datosActualizar[RelacionesSampleCols::TIPO_ELEMENTO] = $tipoElementoRaw;
+                }
+
+                RelacionesSampleRepository::actualizarPorId($relacionId, $datosActualizar);
 
                 SamplesRepository::agregarMetadata($sampleId, [
                     'relacion_id' => $relacionId,

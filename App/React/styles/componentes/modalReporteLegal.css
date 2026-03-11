@@ -21,29 +21,29 @@
     gap: var(--espacioXs);
     padding: var(--espacioSm) var(--espacioMd);
     background: var(--acentoMuted);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     border-left: 3px solid var(--error);
 }
 
 .modalReporteLegalTargetLabel {
-    font-size: 0.75rem;
+    font-size: var(--fuenteSm);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--textoSecundario);
 }
 
 .modalReporteLegalTargetValor {
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     color: var(--textoPrimario);
     font-weight: 500;
 }
 
 .modalReporteLegalAviso {
-    font-size: 0.8rem;
+    font-size: var(--fuenteMd);
     color: var(--advertencia);
     background: var(--advertenciaMuted);
     border: 1px solid var(--advertencia);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     padding: var(--espacioSm) var(--espacioMd);
     line-height: 1.5;
 }
@@ -55,7 +55,7 @@
 }
 
 .modalReporteLegalSeccionTitulo {
-    font-size: 0.78rem;
+    font-size: var(--fuenteSm);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--textoTerciario);
@@ -69,7 +69,7 @@
 }
 
 .modalReporteLegalLabel {
-    font-size: 0.82rem;
+    font-size: var(--fuenteMd);
     font-weight: 600;
     color: var(--textoSecundario);
 }
@@ -77,9 +77,9 @@
 .modalReporteLegalSelect {
     background: var(--fondoElevado3);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     color: var(--textoPrimario);
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     padding: var(--espacioSm) var(--espacioMd);
     width: 100%;
     cursor: pointer;
@@ -93,9 +93,9 @@
 .modalReporteLegalTextarea {
     background: var(--fondoElevado3);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     color: var(--textoPrimario);
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     padding: var(--espacioSm) var(--espacioMd);
     width: 100%;
     resize: vertical;
@@ -110,7 +110,7 @@
 
 .modalReporteLegalError {
     color: var(--error);
-    font-size: 0.83rem;
+    font-size: var(--fuenteMd);
 }
 
 .modalReporteLegalExito {
@@ -121,13 +121,13 @@
     align-items: center;
     gap: var(--espacioMd);
     color: var(--exito);
-    font-size: 1rem;
+    font-size: calc(var(--fuenteMd) + 3px);
     font-weight: 600;
 }
 
 .modalReporteLegalExitoSub {
     color: var(--textoSecundario);
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
     font-weight: 400;
     max-width: 360px;
     line-height: 1.6;

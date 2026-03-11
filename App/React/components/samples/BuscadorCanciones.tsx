@@ -2,18 +2,20 @@
  * Componente: BuscadorCanciones
  * Buscador con debounce que consulta /canciones/buscar.
  * Muestra resultados como lista seleccionable; expone opcion "nueva cancion".
+ * TO-DO: Extraer logica (4 useState + debounce + click-fuera) a useBuscadorCanciones.ts para cumplir SRP.
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, PlusCircle } from 'lucide-react';
+import { Search, PlusCircle, X } from 'lucide-react';
 import { buscarCanciones } from '../../services/apiCanciones';
 import type { Cancion } from '../../types/cancion';
 import { InputBusqueda } from '../ui/InputBusqueda';
+import { BotonBase } from '../ui/BotonBase';
 import '../../styles/componentes/buscadorCanciones.css';
 
 interface BuscadorCancionesProps {
     placeholder?: string;
-    onSeleccionar: (cancion: Cancion) => void;
+    onSeleccionar: (cancion: Cancion | null) => void;
     onAgregarNueva?: () => void;
     cancionActual?: Cancion | null;
 }
@@ -84,13 +86,25 @@ export function BuscadorCanciones({
         <div className="buscadorCanciones" ref={contenedorRef}>
             {cancionActual && (
                 <div className="buscadorCancionSeleccionada">
-                    <span className="buscadorCancionTitulo">{cancionActual.titulo}</span>
-                    {cancionActual.artistaNombre && (
-                        <span className="buscadorCancionArtista">{cancionActual.artistaNombre}</span>
-                    )}
-                    {cancionActual.anio && (
-                        <span className="buscadorCancionAnio">({cancionActual.anio})</span>
-                    )}
+                    <div className="buscadorCancionInfo">
+                        <span className="buscadorCancionTitulo">{cancionActual.titulo}</span>
+                        {cancionActual.artistaNombre && (
+                            <span className="buscadorCancionArtista">{cancionActual.artistaNombre}</span>
+                        )}
+                        {cancionActual.anio && (
+                            <span className="buscadorCancionAnio">({cancionActual.anio})</span>
+                        )}
+                    </div>
+                    <BotonBase
+                        variante="ghost"
+                        tamano="ninguno"
+                        className="buscadorCancionQuitar"
+                        onClick={() => onSeleccionar(null)}
+                        aria-label="Quitar canción seleccionada"
+                        type="button"
+                    >
+                        <X size={14} />
+                    </BotonBase>
                 </div>
             )}
 
@@ -112,7 +126,9 @@ export function BuscadorCanciones({
                 <ul className="buscadorResultados">
                     {resultados.map((c) => (
                         <li key={c.id} className="buscadorResultadoItem">
-                            <button
+                            <BotonBase
+                                variante="ghost"
+                                tamano="ninguno"
                                 type="button"
                                 className="buscadorResultadoBoton"
                                 onClick={() => elegirCancion(c)}
@@ -124,7 +140,7 @@ export function BuscadorCanciones({
                                 {c.anio && (
                                     <span className="buscadorResultadoAnio">({c.anio})</span>
                                 )}
-                            </button>
+                            </BotonBase>
                         </li>
                     ))}
 
@@ -132,7 +148,9 @@ export function BuscadorCanciones({
                         <li className="buscadorSinResultados">
                             <span>No se encontro "{query}"</span>
                             {onAgregarNueva && (
-                                <button
+                                <BotonBase
+                                    variante="ghost"
+                                    tamano="ninguno"
                                     type="button"
                                     className="buscadorBotonNueva"
                                     onClick={() => {
@@ -142,7 +160,7 @@ export function BuscadorCanciones({
                                 >
                                     <PlusCircle size={14} />
                                     Agregar nueva cancion
-                                </button>
+                                </BotonBase>
                             )}
                         </li>
                     )}

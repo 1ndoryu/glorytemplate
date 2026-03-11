@@ -74,6 +74,10 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [reproduciendoPreview, setReproduciendoPreview] = useState(false);
     const [progresoPreview, setProgresoPreview] = useState(0);
+    /* L7.2: Inicio del sample en la cancion original (segundos) — solo en contexto de relacion */
+    const [inicioSegundos, setInicioSegundos] = useState('');
+    /* Tipo de elemento sampleado (hook_riff, vocals, etc.) */
+    const [tipoElemento, setTipoElemento] = useState('');
     const [errorSubida, setErrorSubida] = useState<string | null>(null);
     const [exitoSubida, setExitoSubida] = useState(false);
     const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
@@ -91,6 +95,11 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         if (archivo instanceof File && archivo.name) {
             setAudioExterno(archivo);
             log.info('Archivo pre-cargado inyectado desde Mezclador', { nombre: archivo.name });
+        }
+        /* L7.2: Pre-rellenar inicioSegundos desde contextoAdjuntar si existe */
+        const ctx = useCrearModalStore.getState().contextoAdjuntar;
+        if (ctx?.inicioSegundos != null) {
+            setInicioSegundos(String(ctx.inicioSegundos));
         }
     }, [setAudioExterno]);
 
@@ -122,6 +131,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         setPermitirDescarga(true);
         setEsPremium(false);
         setPrecio('');
+        setInicioSegundos('');
+        setTipoElemento('');
         setWaveformPeaks([]);
         setAudioUrl(null);
         setErrorSubida(null);
@@ -193,6 +204,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                             cancionOrigenId: ctx.cancionOrigenId,
                             relacionId: ctx.relacionId,
                             ladoRelacion: ctx.ladoRelacion,
+                            inicioSegundos: inicioSegundos !== '' ? parseFloat(inicioSegundos) : undefined,
+                            tipoElemento: tipoElemento || undefined,
                         };
                     })(),
                 });
@@ -243,7 +256,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
             setErrorSubida('Error de conexión al publicar contenido');
             setPublicando(false);
         }
-    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, precio, resetear, alCompletarPublicacion]);
+    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, precio, inicioSegundos, tipoElemento, resetear, alCompletarPublicacion]);
 
     /* Ctrl+Enter para publicar */
     const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -256,12 +269,20 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const tagsInsuficientes = !!audioAdjunto && tags.length < MIN_TAGS_AUDIO;
     const puedePublicar = (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando && !tagsInsuficientes;
 
+    /* L7.2: Contexto de relación activo (para mostrar campo inicioSegundos en UI) */
+    const enContextoRelacion = !!useCrearModalStore.getState().contextoAdjuntar?.relacionId;
+
     return {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
         esPremium, setEsPremium,
         /* C220: Toggle comunidad */
         mostrarEnComunidad, setMostrarEnComunidad,
-        precio, setPrecio, waveformPeaks, audioUrl,
+        precio, setPrecio,
+        /* L7.2: Timing */
+        inicioSegundos, setInicioSegundos, enContextoRelacion,
+        /* Tipo de elemento sampleado */
+        tipoElemento, setTipoElemento,
+        waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,
         audioPreviewRef, textareaRef,

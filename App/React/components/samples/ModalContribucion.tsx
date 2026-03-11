@@ -33,7 +33,6 @@ interface ModalContribucionProps {
 export function ModalContribucion({
     abierto,
     cancionBaseId,
-    cancionBaseTitulo,
     onCerrar,
     onExito,
 }: ModalContribucionProps): JSX.Element {

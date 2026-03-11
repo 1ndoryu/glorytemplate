@@ -15,6 +15,10 @@ export interface RelacionParaEditar {
     tipoElemento: TipoElemento;
     cancionDestino?: string;
     cancionFuente?: string;
+    youtubeUrl?: string;
+    timingsFuente?: number[];
+    timingsDestino?: number[];
+    verificada?: boolean;
 }
 
 interface RetornoEdicionRelacion {
@@ -22,12 +26,20 @@ interface RetornoEdicionRelacion {
     modoEliminacion: boolean;
     tipoRelacion: TipoRelacion;
     tipoElemento: TipoElemento;
+    youtubeUrl: string;
+    timingsFuente: string;
+    timingsDestino: string;
+    verificada: boolean;
     razon: string;
     cargando: boolean;
     abrirEdicion: (relacion: RelacionParaEditar) => void;
     abrirEliminacion: (relacion: RelacionParaEditar) => void;
     setTipoRelacion: (v: TipoRelacion) => void;
     setTipoElemento: (v: TipoElemento) => void;
+    setYoutubeUrl: (v: string) => void;
+    setTimingsFuente: (v: string) => void;
+    setTimingsDestino: (v: string) => void;
+    setVerificada: (v: boolean) => void;
     setRazon: (v: string) => void;
     enviar: () => Promise<boolean>;
     cerrar: () => void;
@@ -38,6 +50,10 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
     const [modoEliminacion, setModoEliminacion] = useState(false);
     const [tipoRelacion, setTipoRelacion] = useState<TipoRelacion>('sample');
     const [tipoElemento, setTipoElemento] = useState<TipoElemento>('multiple_elements');
+    const [youtubeUrl, setYoutubeUrl] = useState('');
+    const [timingsFuente, setTimingsFuente] = useState('');
+    const [timingsDestino, setTimingsDestino] = useState('');
+    const [verificada, setVerificada] = useState(false);
     const [razon, setRazon] = useState('');
     const [cargando, setCargando] = useState(false);
 
@@ -46,6 +62,10 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
         setModoEliminacion(false);
         setTipoRelacion(relacion.tipoRelacion);
         setTipoElemento(relacion.tipoElemento);
+        setYoutubeUrl(relacion.youtubeUrl ?? '');
+        setTimingsFuente(relacion.timingsFuente?.join(', ') ?? '');
+        setTimingsDestino(relacion.timingsDestino?.join(', ') ?? '');
+        setVerificada(relacion.verificada ?? false);
         setRazon('');
     }, []);
 
@@ -58,6 +78,10 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
     const cerrar = useCallback(() => {
         setRelacionActiva(null);
         setModoEliminacion(false);
+        setYoutubeUrl('');
+        setTimingsFuente('');
+        setTimingsDestino('');
+        setVerificada(false);
         setRazon('');
         setCargando(false);
     }, []);
@@ -96,11 +120,30 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
         if (tipoElemento !== relacionActiva.tipoElemento) {
             cambios['tipo_elemento'] = tipoElemento;
         }
+        /* L7.7: Campos adicionales de edicion */
+        const urlLimpia = youtubeUrl.trim();
+        if (urlLimpia !== (relacionActiva.youtubeUrl ?? '')) {
+            cambios['youtube_url'] = urlLimpia || null;
+        }
+        const parsearTimings = (raw: string): number[] => raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n >= 0);
+        const tfNuevos = parsearTimings(timingsFuente);
+        const tdNuevos = parsearTimings(timingsDestino);
+        const tfOrig = relacionActiva.timingsFuente ?? [];
+        const tdOrig = relacionActiva.timingsDestino ?? [];
+        if (JSON.stringify(tfNuevos) !== JSON.stringify(tfOrig)) {
+            cambios['timings_fuente'] = tfNuevos;
+        }
+        if (JSON.stringify(tdNuevos) !== JSON.stringify(tdOrig)) {
+            cambios['timings_destino'] = tdNuevos;
+        }
+        if (verificada !== (relacionActiva.verificada ?? false)) {
+            cambios['verificada'] = verificada;
+        }
         if (razon.trim()) {
             cambios['razon'] = razon.trim();
         }
 
-        if (Object.keys(cambios).length === 0 || (!cambios['tipo_relacion'] && !cambios['tipo_elemento'])) {
+        if (Object.keys(cambios).length === 0 || (Object.keys(cambios).length === 1 && cambios['razon'])) {
             toast.error('No hay cambios para enviar.');
             setCargando(false);
             return false;
@@ -117,19 +160,27 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
 
         toast.error(resp.data?.error ?? 'No se pudo enviar la edicion.');
         return false;
-    }, [relacionActiva, modoEliminacion, tipoRelacion, tipoElemento, razon, cerrar]);
+    }, [relacionActiva, modoEliminacion, tipoRelacion, tipoElemento, youtubeUrl, timingsFuente, timingsDestino, verificada, razon, cerrar]);
 
     return {
         relacionActiva,
         modoEliminacion,
         tipoRelacion,
         tipoElemento,
+        youtubeUrl,
+        timingsFuente,
+        timingsDestino,
+        verificada,
         razon,
         cargando,
         abrirEdicion,
         abrirEliminacion,
         setTipoRelacion,
         setTipoElemento,
+        setYoutubeUrl,
+        setTimingsFuente,
+        setTimingsDestino,
+        setVerificada,
         setRazon,
         enviar,
         cerrar,

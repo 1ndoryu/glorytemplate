@@ -112,6 +112,10 @@ export interface DatosSubida {
     cancionOrigenId?: number;
     relacionId?: number;
     ladoRelacion?: 'fuente' | 'destino';
+    /* L7.2: Timing de inicio del sample en la cancion (segundos) */
+    inicioSegundos?: number;
+    /* Tipo de elemento sampleado (hook_riff, vocals, etc.) */
+    tipoElemento?: string;
 }
 
 /*
@@ -141,6 +145,12 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     if (datos.relacionId && datos.ladoRelacion) {
         formData.append('relacion_id', String(datos.relacionId));
         formData.append('lado_relacion', datos.ladoRelacion);
+    }
+    if (datos.inicioSegundos != null && datos.inicioSegundos >= 0) {
+        formData.append('inicio_segundos', String(datos.inicioSegundos));
+    }
+    if (datos.tipoElemento) {
+        formData.append('tipo_elemento', datos.tipoElemento);
     }
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);

@@ -108,7 +108,6 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     white-space: nowrap;
-    text-align: right;
 }
 
 /* Fila marcada como origen de la extracción */
@@ -133,6 +132,33 @@
 /* Elemento */
 .tablaRelacionesColElemento {
     text-align: left;
+}
+
+/* Columna acciones (L6.2 wiring): iconos editar/reportar */
+.tablaRelacionesColAcciones {
+    width: 60px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tablaRelacionesAccionBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    color: var(--textoTerciario);
+    cursor: pointer;
+    transition: color var(--transicionNormal), background var(--transicionNormal);
+}
+
+.tablaRelacionesAccionBtn:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
+}
+
+.tablaRelacionesAccionBtnPeligro:hover {
+    color: var(--error);
 }
 
 @media (max-width: 540px) {

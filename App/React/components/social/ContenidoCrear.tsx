@@ -5,12 +5,15 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users } from 'lucide-react';
+import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users, Clock } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
+import { ETIQUETAS_TIPO_ELEMENTO } from '@app/types/cancion';
+import type { TipoElemento } from '@app/types/cancion';
+import { SelectorMenu } from '@app/components/ui/SelectorMenu';
 import '@app/styles/componentes/modalCrear.css';
 import { CampoTexto } from '../ui/CampoTexto';
 import { Input } from '../ui/Input';
@@ -28,7 +31,10 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
         contenido, publicando, permitirDescarga, setPermitirDescarga,
         esPremium, setEsPremium,
         mostrarEnComunidad, setMostrarEnComunidad,
-        precio, setPrecio, waveformPeaks, audioUrl,
+        precio, setPrecio,
+        inicioSegundos, setInicioSegundos, enContextoRelacion,
+        tipoElemento, setTipoElemento,
+        waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,
         audioPreviewRef, textareaRef,
@@ -129,6 +135,40 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             onEnded={() => { setProgresoPreview(0); }}
                         />
                     )}
+                </div>
+            )}
+
+            {/* L7.2: Campo de timing — solo cuando se sube en contexto de relacion de sampleo */}
+            {audioAdjunto && enContextoRelacion && (
+                <div className="crearTimingContenedor">
+                    <Clock size={14} className="crearTimingIcono" />
+                    <label className="crearTimingLabel" htmlFor="crearTimingInput">Inicio en canción original (seg)</label>
+                    <CampoTexto
+                        id="crearTimingInput"
+                        type="number"
+                        className="crearTimingInput"
+                        min="0"
+                        step="1"
+                        placeholder="ej: 42"
+                        value={inicioSegundos}
+                        onChange={(e) => setInicioSegundos(e.target.value)}
+                    />
+                </div>
+            )}
+
+            {/* Selector de tipo de elemento sampleado — solo en contexto de relacion */}
+            {audioAdjunto && enContextoRelacion && (
+                <div className="crearElementoContenedor">
+                    <SelectorMenu
+                        etiqueta="Elemento sampleado (opcional)"
+                        valor={tipoElemento}
+                        onChange={(v) => setTipoElemento(v as TipoElemento)}
+                        opciones={[
+                            { valor: '', etiqueta: 'Sin especificar' },
+                            ...Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta })),
+                        ]}
+                        compacto
+                    />
                 </div>
             )}
 

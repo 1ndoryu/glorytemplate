@@ -24,9 +24,15 @@ use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\CancionesArtistasRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Api\Helpers\NormalizadorCancion;
-use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Auth\AuthMiddleware;
+use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\RelacionesSampleCols;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
+use App\Kamples\KamplesLogger;
 
 class CancionesController
 {
@@ -129,6 +135,46 @@ class CancionesController
             'permission_callback' => '__return_true',
             'args'                => [
                 'id' => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+            ],
+        ]);
+
+        $auth = [AuthMiddleware::class, 'requerirAuth'];
+
+        /* L7.3: Vincular sample existente a relacion de sampleo */
+        \register_rest_route($namespace, '/relaciones/(?P<id>\d+)/vincular-sample', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'vincularSample'],
+            'permission_callback' => $auth,
+            'args'                => [
+                'id'        => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+                'sample_id' => ['required' => true, 'type' => 'integer', 'minimum' => 1],
+                'lado'      => [
+                    'required'          => true,
+                    'type'              => 'string',
+                    'validate_callback' => static fn($v) => \in_array($v, ['fuente', 'destino'], true),
+                ],
+            ],
+        ]);
+
+        /* L7.5: Desvincular sample de relacion de sampleo */
+        \register_rest_route($namespace, '/relaciones/(?P<id>\d+)/sample/(?P<lado>fuente|destino)', [
+            'methods'             => 'DELETE',
+            'callback'            => [self::class, 'desvincularSample'],
+            'permission_callback' => $auth,
+            'args'                => [
+                'id'   => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+                'lado' => ['required' => true, 'type' => 'string', 'validate_callback' => static fn($v) => \in_array($v, ['fuente', 'destino'], true)],
+            ],
+        ]);
+
+        /* Verificar/desverificar relacion de sampleo — solo admin */
+        \register_rest_route($namespace, '/relaciones/(?P<id>\d+)/verificar', [
+            'methods'             => 'PUT',
+            'callback'            => [self::class, 'verificarRelacion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAdmin'],
+            'args'                => [
+                'id'         => ['required' => true, 'type' => 'integer', 'validate_callback' => function($v) { return is_numeric($v) && (int)$v > 0; }],
+                'verificada' => ['required' => true, 'type' => 'boolean'],
             ],
         ]);
 
@@ -541,6 +587,162 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::samplesDeCancion] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * L7.3: POST /relaciones/{id}/vincular-sample
+     * Vincula un sample existente del usuario a una relacion de sampleo.
+     */
+    public static function vincularSample(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
+
+            $relacionId = (int) $request['id'];
+            $sampleId   = (int) $request->get_param('sample_id');
+            $lado       = (string) $request->get_param('lado');
+
+            /* Verificar que la relacion existe */
+            $relacion = RelacionesSampleRepository::buscarPorId($relacionId);
+            if (!$relacion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada'], 404);
+            }
+
+            /* Verificar que el sample existe y pertenece al usuario */
+            $sample = SamplesRepository::buscarPorId($sampleId);
+            if (!$sample) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Sample no encontrado'], 404);
+            }
+            $creadorId = $sample[SamplesCols::CREADOR_ID] ?? null;
+            if ((int) $creadorId !== $userId) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Solo puedes vincular tus propios samples'], 403);
+            }
+            /* Verificar que el sample está activo */
+            $estado = $sample[SamplesCols::ESTADO] ?? null;
+            if ($estado !== SamplesEnums::ESTADO_ACTIVO) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'El sample no está disponible'], 400);
+            }
+
+            /* Verificar que el lado no esté ya ocupado */
+            $colVinculo = $lado === 'fuente'
+                ? RelacionesSampleCols::SAMPLE_FUENTE_ID
+                : RelacionesSampleCols::SAMPLE_DESTINO_ID;
+            $sampleExistente = $relacion[$colVinculo] ?? null;
+            if ($sampleExistente !== null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Ya existe un sample vinculado en ese lado'], 409);
+            }
+
+            RelacionesSampleRepository::actualizarPorId($relacionId, [
+                $colVinculo => $sampleId,
+            ]);
+
+            SamplesRepository::agregarMetadata($sampleId, [
+                'relacion_id'     => $relacionId,
+                'lado_extraccion' => $lado,
+                'adjuncion_manual' => true,
+            ]);
+
+            KamplesLogger::info('Sample vinculado a relación', [
+                'sampleId' => $sampleId, 'relacionId' => $relacionId, 'lado' => $lado, 'userId' => $userId,
+            ]);
+
+            return new \WP_REST_Response(['ok' => true]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error al vincular sample a relación', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * L7.5: DELETE /relaciones/{id}/sample/{lado}
+     * Desvincula un sample de una relacion sin eliminar el sample.
+     * Solo el creador del sample vinculado puede desvincularlo.
+     */
+    public static function desvincularSample(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) {
+                return UsuarioHelper::respuestaNoEncontrado();
+            }
+
+            $relacionId = (int) $request['id'];
+            $lado       = (string) $request['lado'];
+
+            $relacion = RelacionesSampleRepository::buscarPorId($relacionId);
+            if (!$relacion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada'], 404);
+            }
+
+            $colVinculo = $lado === 'fuente'
+                ? RelacionesSampleCols::SAMPLE_FUENTE_ID
+                : RelacionesSampleCols::SAMPLE_DESTINO_ID;
+            $sampleIdVinculado = $relacion[$colVinculo] ?? null;
+            if ($sampleIdVinculado === null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No hay sample vinculado en ese lado'], 400);
+            }
+            $sampleIdVinculado = (int) $sampleIdVinculado;
+
+            /* Verificar ownership: solo el creador del sample puede desvincularlo */
+            $sample = SamplesRepository::buscarPorId($sampleIdVinculado);
+            $creadorId = $sample ? (int) ($sample[SamplesCols::CREADOR_ID] ?? 0) : 0;
+            if ($creadorId !== $userId) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Solo el creador del sample puede desvincularlo'], 403);
+            }
+
+            /* Limpiar también timings del lado correspondiente */
+            $colTimings = $lado === 'fuente'
+                ? RelacionesSampleCols::TIMINGS_FUENTE
+                : RelacionesSampleCols::TIMINGS_DESTINO;
+
+            RelacionesSampleRepository::actualizarPorId($relacionId, [
+                $colVinculo  => null,
+                $colTimings  => null,
+            ]);
+
+            KamplesLogger::info('Sample desvinculado de relación', [
+                'sampleId' => $sampleIdVinculado, 'relacionId' => $relacionId, 'lado' => $lado, 'userId' => $userId,
+            ]);
+
+            return new \WP_REST_Response(['ok' => true]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error al desvincular sample de relación', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * PUT /relaciones/{id}/verificar
+     * Marca o desmarca una relacion como verificada. Solo admin (permission_callback).
+     */
+    public static function verificarRelacion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $relacionId = (int) $request['id'];
+            $verificada = \filter_var($request->get_param('verificada'), \FILTER_VALIDATE_BOOLEAN);
+
+            $relacion = RelacionesSampleRepository::buscarPorId($relacionId);
+            if (!$relacion) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Relación no encontrada'], 404);
+            }
+
+            RelacionesSampleRepository::actualizarPorId($relacionId, [
+                RelacionesSampleCols::VERIFICADA => $verificada ? 'true' : 'false',
+            ]);
+
+            KamplesLogger::info('Relación verificada/desverificada por admin', [
+                'relacionId' => $relacionId,
+                'verificada' => $verificada,
+            ]);
+
+            return new \WP_REST_Response(['ok' => true, 'verificada' => $verificada]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error al verificar relación', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }

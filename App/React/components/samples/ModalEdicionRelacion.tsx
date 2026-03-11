@@ -10,6 +10,7 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { SelectorMenu } from '../ui/SelectorMenu';
 import { Checkbox } from '../ui/Checkbox';
 import { useEdicionRelacion } from '../../hooks/useEdicionRelacion';
+import { useAuthStore } from '../../stores/authStore';
 import type { RelacionParaEditar } from '../../hooks/useEdicionRelacion';
 import type { TipoRelacion, TipoElemento } from '../../types/cancion';
 import { ETIQUETAS_TIPO_RELACION, ETIQUETAS_TIPO_ELEMENTO } from '../../types/cancion';
@@ -29,6 +30,7 @@ export const ModalEdicionRelacion = ({
     onExito,
 }: ModalEdicionRelacionProps): JSX.Element | null => {
     const hook = useEdicionRelacion();
+    const esAdmin = useAuthStore(s => s.usuario?.rol === 'admin');
 
     /* Sincronizar relacion activa con el hook cuando cambia la prop */
     const necesitaSincronizar =
@@ -58,10 +60,6 @@ export const ModalEdicionRelacion = ({
         }
     };
 
-    const titulo = hook.modoEliminacion
-        ? 'Reportar relacion incorrecta'
-        : 'Sugerir correccion';
-
     const pie = (
         <div className="modalEdicionRelacionPie">
             <BotonBase variante="ghost" onClick={handleCerrar} type="button">
@@ -79,7 +77,7 @@ export const ModalEdicionRelacion = ({
     );
 
     return (
-        <Modal abierto={abierto} onCerrar={handleCerrar} tamano="pequeno" titulo={titulo} pie={pie}>
+        <Modal abierto={abierto} onCerrar={handleCerrar} tamano="pequeno"  pie={pie}>
             <div className="modalEdicionRelacion">
                 {/* Info de la relacion actual */}
                 <div className="modalEdicionRelacionInfo">
@@ -144,13 +142,15 @@ export const ModalEdicionRelacion = ({
                             onChange={(e) => hook.setTimingsDestino((e.target as HTMLInputElement).value)}
                         />
 
-                        {/* L7.7: Checkbox verificada */}
-                        <Checkbox
-                            checked={hook.verificada}
-                            onChange={(e) => hook.setVerificada(e.target.checked)}
-                            label="Marcar como verificada"
-                            className="modalEdicionRelacionCheckbox"
-                        />
+                        {/* L7.7: Checkbox verificada — solo visible para admins */}
+                        {esAdmin && (
+                            <Checkbox
+                                checked={hook.verificada}
+                                onChange={(e) => hook.setVerificada(e.target.checked)}
+                                label="Marcar como verificada"
+                                className="modalEdicionRelacionCheckbox"
+                            />
+                        )}
 
                         <CampoTexto
                             etiqueta="Razon del cambio (opcional)"

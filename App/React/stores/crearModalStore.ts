@@ -30,6 +30,8 @@ export interface ContextoAdjuntar {
     /* Para el selector de lado en el modal (L7.1) */
     ladoFuente?: LadoOpcion;
     ladoDestino?: LadoOpcion;
+    /* L7.2: Timing de inicio sugerido desde la relacion (pre-rellenado) */
+    inicioSegundos?: number;
 }
 
 interface EstadoCrearModal {

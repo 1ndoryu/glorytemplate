@@ -6,47 +6,64 @@
 .modalEdicionRelacion {
     display: flex;
     flex-direction: column;
-    gap: var(--espaciado-md);
+    gap: var(--espacioMd);
 }
 
 .modalEdicionRelacionInfo {
     display: flex;
     flex-direction: column;
-    gap: var(--espaciado-xs);
-    padding: var(--espaciado-sm);
-    background: var(--color-superficie-elevada);
-    border-radius: var(--radio-sm);
-    border: 1px solid var(--color-borde);
+    gap: var(--espacioXs);
+    padding: var(--espacioLg);
+    background: var(--fondoElevado1);
+    border-radius: var(--radioSm);
+    border: 1px solid var(--bordeSutil);
+    align-items: center;
 }
 
 .modalEdicionRelacionInfoEtiqueta {
-    font-size: var(--texto-xs);
-    color: var(--color-texto-secundario);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .modalEdicionRelacionInfoValor {
-    font-size: var(--texto-sm);
-    color: var(--color-texto-principal);
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
     font-weight: 500;
 }
 
 .modalEdicionRelacionCampos {
     display: flex;
     flex-direction: column;
-    gap: var(--espaciado-sm);
+    gap: var(--espacioSm);
 }
 
 .modalEdicionRelacionAviso {
-    font-size: var(--texto-xs);
-    color: var(--color-texto-terciario);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
     text-align: center;
-    padding-top: var(--espaciado-xs);
+    padding-top: var(--espacioXs);
 }
 
 .modalEdicionRelacionPie {
     display: flex;
     justify-content: flex-end;
-    gap: var(--espaciado-sm);
+    gap: var(--espacioSm);
+}
+
+/* L7.7: Checkbox verificada */
+.modalEdicionRelacionCheckbox {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    cursor: pointer;
+}
+
+.modalEdicionRelacionCheckbox input[type="checkbox"] {
+    accent-color: var(--acento);
+    width: 16px;
+    height: 16px;
 }

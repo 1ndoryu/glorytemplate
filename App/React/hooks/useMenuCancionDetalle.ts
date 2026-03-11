@@ -11,6 +11,9 @@ import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { RelacionParaEditar } from '@app/hooks/useEdicionRelacion';
 import type { CancionDetalle } from '@app/types/cancion';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
+import { useAuthStore } from '@app/stores/authStore';
+import { verificarRelacion } from '@app/services/apiRelaciones';
+import { toast } from '@app/stores/toastStore';
 
 interface RetornoMenuCancionDetalle {
     menuAbierto: boolean;
@@ -31,6 +34,8 @@ interface RetornoMenuCancionDetalle {
     vincularRelacionId: number | null;
     abrirVincularSample: (relacionId: number) => void;
     cerrarVincularSample: () => void;
+    /* Verificar/desverificar relacion — admin only */
+    manejarVerificarRelacion: ((relacionId: number, verificada: boolean) => void) | undefined;
 }
 
 export const useMenuCancionDetalle = (
@@ -56,6 +61,18 @@ export const useMenuCancionDetalle = (
     const cerrarEdicionRelacion = useCallback(() => setRelacionEditando(null), []);
     const abrirVincularSample = useCallback((relacionId: number) => setVincularRelacionId(relacionId), []);
     const cerrarVincularSample = useCallback(() => setVincularRelacionId(null), []);
+
+    const esAdmin = useAuthStore(s => s.usuario?.rol === 'admin');
+
+    /* Verificar/desverificar relacion — solo admin */
+    const manejarVerificarRelacion = useCallback(async (relacionId: number, verificada: boolean) => {
+        const resp = await verificarRelacion(relacionId, verificada);
+        if (resp.ok) {
+            toast.exito(verificada ? 'Relación verificada' : 'Verificación removida');
+        } else {
+            toast.error(resp.error ?? 'Error al verificar relación');
+        }
+    }, []);
 
     const abrirEdicionRelacion = useCallback((rel: RelacionParaEditar) => {
         setRelacionEditando(rel);
@@ -105,5 +122,6 @@ export const useMenuCancionDetalle = (
         vincularRelacionId,
         abrirVincularSample,
         cerrarVincularSample,
+        manejarVerificarRelacion: esAdmin ? manejarVerificarRelacion : undefined,
     };
 };

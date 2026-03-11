@@ -22,7 +22,7 @@
 }
 
 .modalContribucionLeyenda {
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     color: var(--textoSecundario);
     margin-bottom: var(--espacioSm);
     display: block;
@@ -34,21 +34,25 @@
 
 .modalContribucionModos {
     display: flex;
-    flex-direction: column;
-    gap: var(--espacioXs);
+    flex-direction: row;
+    gap: var(--espacioMd);
+    align-content: center;
+    align-items: center;
+    width: 100%;
 }
-
 .modalContribucionModo {
     display: flex;
     align-items: center;
     gap: var(--espacioSm);
-    padding: var(--espacioSm) var(--espacioMd);
+    padding: var(--espacio2xl) var(--espacioMd);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     color: var(--textoSecundario);
     transition: border-color 0.15s, color 0.15s;
+    width: 100%;
+    justify-content: center;
 }
 
 .modalContribucionModo.activo {
@@ -59,37 +63,35 @@
 
 .modalContribucionModo input[type="radio"] {
     accent-color: var(--acento);
+    display: none;
 }
 
 .modalContribucionCampo {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioXs);
+    gap: var(--espacioMd);
 }
 
 .modalContribucionLabel {
-    font-size: 0.82rem;
-    font-weight: 600;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
     color: var(--textoSecundario);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
 }
 
 .modalContribucionNueva {
     display: flex;
     flex-direction: column;
     gap: var(--espacioMd);
-    padding: var(--espacioMd);
-    background: var(--acentoMuted);
-    border: 1px dashed var(--bordeActivo);
-    border-radius: var(--radio);
+    padding: var(--espacioLg);
+    border: 1px dashed var(--bordeSutil);
+    border-radius: var(--radioMd);
 }
 
 .modalContribucionNuevaHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
     font-weight: 600;
     color: var(--textoPrimario);
 }
@@ -104,10 +106,10 @@
     display: flex;
     align-items: center;
     gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
-    font-size: 0.82rem;
+    border-radius: var(--radioMd);
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
@@ -126,9 +128,9 @@
 .modalContribucionSelect {
     background: var(--fondoElevado3);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     color: var(--textoPrimario);
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     padding: var(--espacioSm) var(--espacioMd);
     width: 100%;
     cursor: pointer;
@@ -141,7 +143,7 @@
 
 .modalContribucionError {
     color: var(--error);
-    font-size: 0.83rem;
+    font-size: var(--fuenteMd);
     padding: var(--espacioXs) 0;
 }
 
@@ -149,13 +151,13 @@
     text-align: center;
     padding: var(--espacio2xl) var(--espacioLg);
     color: var(--exito);
-    font-size: 1rem;
+    font-size: calc(var(--fuenteMd) + 3px);
     font-weight: 600;
 }
 
 .modalContribucionExitoSub {
     color: var(--textoSecundario);
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
     font-weight: 400;
     margin-top: var(--espacioSm);
 }

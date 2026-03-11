@@ -216,6 +216,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
                         onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
                         onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
+                        onVerificar={menuCtx.manejarVerificarRelacion}
                     />
                 </SeccionRelaciones>
             )}
@@ -228,6 +229,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
                         onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
                         onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
+                        onVerificar={menuCtx.manejarVerificarRelacion}
                     />
                 </SeccionRelaciones>
             )}

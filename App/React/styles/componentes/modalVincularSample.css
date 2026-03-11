@@ -1,0 +1,183 @@
+/*
+ * Estilos: ModalVincularSampleExistente — L7.4
+ * Modal para seleccionar un sample existente y vincularlo a una relacion.
+ */
+
+.vincularSampleContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.vincularSampleDescripcion {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+.vincularSampleCargando,
+.vincularSampleVacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioLg);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+.vincularSampleSpinner {
+    animation: rotarIcono 1s linear infinite;
+}
+
+@keyframes rotarIcono {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.vincularSampleLista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xs);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.vincularSampleItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    text-align: left;
+    font-family: inherit;
+    font-size: var(--fuenteSm);
+}
+
+.vincularSampleItem:hover {
+    border-color: var(--bordeActivo);
+    background: var(--fondoElevado2);
+}
+
+.vincularSampleItemActivo {
+    border-color: var(--acento-blanco);
+    background: var(--fondoElevado3);
+}
+
+.vincularSampleItemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xs);
+    min-width: 0;
+    flex: 1;
+}
+
+.vincularSampleItemImagen {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioSm);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.vincularSampleItemImagenVacia {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioSm);
+    background: var(--fondoElevado3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--textoTerciario);
+}
+
+.vincularSampleItemTitulo {
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vincularSampleItemMeta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vincularSampleCheck {
+    color: var(--acento-blanco);
+    flex-shrink: 0;
+}
+
+.vincularSamplePie {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+}
+
+/* Selector de lado (fuente/destino) — paso previo */
+.vincularSampleSelector {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.vincularSampleSelectorOpciones {
+    display: flex;
+    flex-direction: row;
+    gap: var(--espacioSm);
+}
+
+.vincularSampleSelectorOpciones button {
+    height: unset !important;
+    padding: var(--espacioLg) !important;
+}
+
+.vincularSampleSelectorBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    width: 100%;
+    padding: var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    background: var(--fondoElevado1);
+    color: var(--textoPrimario);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    text-align: left;
+    font-family: inherit;
+    font-size: var(--fuenteSm);
+}
+
+.vincularSampleSelectorBtn:hover {
+    border-color: var(--acento-blanco);
+    background: var(--fondoElevado2);
+}
+
+.vincularSampleSelectorInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xs);
+}
+
+.vincularSampleSelectorInfo strong {
+    font-size: var(--fuenteSm);
+}
+
+.vincularSampleSelectorInfo span {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}

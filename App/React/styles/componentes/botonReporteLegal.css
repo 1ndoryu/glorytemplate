@@ -12,8 +12,8 @@
     border: none;
     cursor: pointer;
     color: var(--textoTerciario);
-    font-size: 0.75rem;
-    border-radius: var(--radio);
+    font-size: var(--fuenteSm);
+    border-radius: var(--radioMd);
     transition: color 0.15s, background 0.15s;
 }
 

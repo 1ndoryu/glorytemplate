@@ -86,8 +86,20 @@
     justify-content: flex-end;
     gap: var(--espacioSm);
     padding: var(--espacioLg) var(--espacioXl);
-    border-top: 1px solid var(--bordeSutil);
+    /* border-top: 1px solid var(--bordeSutil); */
     flex-shrink: 0;
+    width: 100%;
+    padding-top: 0;
+}
+
+.modalPie div {
+    width: 100% !important;
+    gap: var(--espacioMd) !important;
+}
+
+.modalPie button {
+    border: 1px solid var(--bordeSutil) !important;
+    width: 100% !important;
 }
 
 @keyframes fadeInOverlay {

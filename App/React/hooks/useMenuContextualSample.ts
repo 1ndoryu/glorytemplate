@@ -1,7 +1,9 @@
 /*
  * Hook: useMenuContextualSample — Kamples (Fase 2.9 + C800 + C801)
- * Gestiona la apertura, posición y acciones del menú contextual en samples.
+ * Gestiona la apertura, posicion y acciones del menu contextual en samples.
  * Reutilizable en cualquier lista que muestre TarjetaSample.
+ * TO-DO: Este hook supera 120 lineas — extraer acciones a un builder
+ * (ej: construirItemsMenuSample) para cumplir limite SRP.
  */
 
 import { useState, useCallback, useMemo, type MouseEvent } from 'react';
@@ -15,6 +17,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useCorregirIAStore } from '@app/stores/corregirIAStore';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
+import { desvincularSample } from '@app/services/apiRelaciones';
 import { descargarSample } from '@app/services/apiDescargas';
 import { toast } from '@app/stores/toastStore';
 
@@ -228,6 +231,39 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                                 }
                             });
                         },
+                    } as MenuItemDef,
+                ]
+                : []),
+            /* L7.6: Quitar sample de la relacion de sampleo (solo si fue adjuntado manualmente) */
+            ...(puedeEditar && estado.sample?.metadata?.relacion_id && estado.sample?.metadata?.adjuncion_manual
+                ? [
+                    {
+                        id: 'quitar-sampleo',
+                        etiqueta: 'Quitar de este sampleo',
+                        peligro: true,
+                        onClick: () => {
+                            if (!estado.sample?.metadata?.relacion_id || !estado.sample?.metadata?.lado_extraccion) return;
+                            const s = estado.sample;
+                            const relacionId = Number(s.metadata!.relacion_id);
+                            const lado = String(s.metadata!.lado_extraccion) as 'fuente' | 'destino';
+                            toast.confirmar(
+                                `¿Quitar "${s.titulo}" de esta relacion de sampleo?`,
+                                async () => {
+                                    const resp = await desvincularSample(relacionId, lado);
+                                    if (resp.ok) {
+                                        toast.exito('Sample desvinculado de la relacion');
+                                        window.dispatchEvent(
+                                            new CustomEvent(EVENTO_SAMPLE_ACTUALIZADO, {
+                                                detail: { sampleId: s.id, cambios: { metadata: { ...s.metadata, relacion_id: null, lado_extraccion: null, adjuncion_manual: null } } },
+                                            })
+                                        );
+                                    } else {
+                                        toast.error(resp.error ?? 'Error al desvincular');
+                                    }
+                                }
+                            );
+                        },
+                        separadorDespues: true,
                     } as MenuItemDef,
                 ]
                 : []),

@@ -197,6 +197,26 @@ class ContribucionesService
                 $cambiosAplicar[RelacionesSampleCols::TIPO_ELEMENTO] = $cambios['tipo_elemento'];
             }
 
+            /* L7.8: Timings como arrays de enteros positivos — almacenados como PG integer[] */
+            if (isset($cambios['timings_fuente']) && \is_array($cambios['timings_fuente'])) {
+                $tf = \array_filter(\array_map('intval', $cambios['timings_fuente']), fn($v) => $v >= 0);
+                $cambiosAplicar[RelacionesSampleCols::TIMINGS_FUENTE] = '{' . \implode(',', $tf) . '}';
+            }
+            if (isset($cambios['timings_destino']) && \is_array($cambios['timings_destino'])) {
+                $td = \array_filter(\array_map('intval', $cambios['timings_destino']), fn($v) => $v >= 0);
+                $cambiosAplicar[RelacionesSampleCols::TIMINGS_DESTINO] = '{' . \implode(',', $td) . '}';
+            }
+
+            /* L7.8: Verificada (boolean) */
+            if (isset($cambios['verificada'])) {
+                $cambiosAplicar[RelacionesSampleCols::VERIFICADA] = (bool) $cambios['verificada'];
+            }
+
+            /* L7.8: YouTube URL — se almacena como cambio propuesto para revision del moderador.
+             * TO-DO: Parsear a youtube_id y actualizar la cancion correspondiente (requiere
+             * definir a cual lado aplica: fuente o destino). Por ahora el moderador lo aplica
+             * manualmente desde el panel. */
+
             if (empty($cambiosAplicar)) {
                 return ['ok' => false, 'error' => 'Ningun cambio valido para aplicar.'];
             }

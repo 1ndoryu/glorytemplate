@@ -20,7 +20,7 @@
     gap: var(--espacioSm);
     align-items: center;
     text-align: center;
-    padding: var(--espacioMd);
+    padding: var(--espacio2xl) var(--espacioMd);
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioLg);

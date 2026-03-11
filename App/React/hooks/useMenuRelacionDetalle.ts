@@ -1,12 +1,12 @@
 /*
  * Hook: useMenuRelacionDetalle — Kamples (C802c)
  * Gestiona el menu contextual de 3 puntos en RelacionDetalleCabecera.
- * Items: adjuntar sample por lado (destino/fuente) + reportar.
+ * Items: adjuntar sample nuevo + vincular existente + reportar.
  * Replica el flujo del PublicadorExtraccion para vinculacion manual.
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, Flag } from 'lucide-react';
+import { Upload, Link2, Flag } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { RelacionDetalleCompleta } from '@app/types/cancion';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
@@ -17,6 +17,9 @@ interface RetornoMenuRelacion {
     items: MenuItemDef[];
     abrirMenu: (e: React.MouseEvent) => void;
     cerrarMenu: () => void;
+    /* L7.4: Estado del modal de vincular sample existente */
+    vincularAbierto: boolean;
+    cerrarVincular: () => void;
 }
 
 export const useMenuRelacionDetalle = (
@@ -25,6 +28,8 @@ export const useMenuRelacionDetalle = (
 ): RetornoMenuRelacion => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+    /* L7.4: Modal vincular sample existente */
+    const [vincularAbierto, setVincularAbierto] = useState(false);
 
     const abrirMenu = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -34,6 +39,7 @@ export const useMenuRelacionDetalle = (
     }, []);
 
     const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
+    const cerrarVincular = useCallback(() => setVincularAbierto(false), []);
 
     /*
      * Un solo item de adjuncion: el selector de lado (fuente/destino) se muestra
@@ -48,7 +54,6 @@ export const useMenuRelacionDetalle = (
                 id: 'adjuntar-sample',
                 etiqueta: 'Adjuntar sample manual',
                 icono: React.createElement(Upload, { size: 14 }),
-                separadorDespues: true,
                 onClick: () => {
                     useCrearModalStore.getState().abrirConContexto({
                         relacionId: relacion.id,
@@ -66,6 +71,13 @@ export const useMenuRelacionDetalle = (
                 },
             },
             {
+                id: 'vincular-existente',
+                etiqueta: 'Vincular sample existente',
+                icono: React.createElement(Link2, { size: 14 }),
+                separadorDespues: true,
+                onClick: () => setVincularAbierto(true),
+            },
+            {
                 id: 'reportar',
                 etiqueta: 'Reportar',
                 icono: React.createElement(Flag, { size: 14 }),
@@ -77,5 +89,5 @@ export const useMenuRelacionDetalle = (
         ];
     }, [relacion, autenticado]);
 
-    return { menuAbierto, menuPos, items, abrirMenu, cerrarMenu };
+    return { menuAbierto, menuPos, items, abrirMenu, cerrarMenu, vincularAbierto, cerrarVincular };
 };

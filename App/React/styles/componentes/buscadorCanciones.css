@@ -11,13 +11,43 @@
 .buscadorCancionSeleccionada {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
     background: var(--acentoMuted);
     border: 1px solid var(--bordeActivo);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     margin-bottom: var(--espacioSm);
-    font-size: 0.85rem;
+    font-size: var(--fuenteMd);
+}
+
+.buscadorCancionInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex: 1;
+    min-width: 0;
+}
+
+.buscadorCancionQuitar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+}
+
+.buscadorCancionQuitar:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado3);
 }
 
 .buscadorCancionTitulo {
@@ -31,7 +61,7 @@
 
 .buscadorCancionAnio {
     color: var(--textoTerciario);
-    font-size: 0.78rem;
+    font-size: var(--fuenteSm);
 }
 
 .buscadorCargando {
@@ -40,7 +70,7 @@
     gap: var(--espacioXs);
     padding: var(--espacioSm) var(--espacioMd);
     color: var(--textoSecundario);
-    font-size: 0.82rem;
+    font-size: var(--fuenteMd);
 }
 
 .buscadorResultados {
@@ -54,7 +84,7 @@
     padding: 0;
     background: var(--fondoElevado3);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     max-height: 260px;
     overflow-y: auto;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -85,17 +115,17 @@
 }
 
 .buscadorResultadoTitulo {
-    font-size: 0.88rem;
+    font-size: calc(var(--fuenteMd) + 1px);
     font-weight: 500;
 }
 
 .buscadorResultadoArtista {
-    font-size: 0.8rem;
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
 }
 
 .buscadorResultadoAnio {
-    font-size: 0.75rem;
+    font-size: var(--fuenteSm);
     color: var(--textoTerciario);
     margin-left: auto;
 }
@@ -106,7 +136,7 @@
     gap: var(--espacioSm);
     padding: var(--espacioMd);
     color: var(--textoSecundario);
-    font-size: 0.83rem;
+    font-size: var(--fuenteMd);
 }
 
 .buscadorBotonNueva {
@@ -116,9 +146,9 @@
     padding: var(--espacioXs) var(--espacioSm);
     background: var(--acentoMuted);
     border: 1px dashed var(--bordeActivo);
-    border-radius: var(--radio);
+    border-radius: var(--radioMd);
     color: var(--acento-blanco);
-    font-size: 0.82rem;
+    font-size: var(--fuenteMd);
     cursor: pointer;
     transition: background 0.15s;
 }
