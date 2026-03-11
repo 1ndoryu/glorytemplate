@@ -1,12 +1,14 @@
 /*
  * Hook: useFeedCanciones — C812
  * Feed paginado de canciones con ordenamiento externo (TopBar tabs).
- * Infinite scroll via IntersectionObserver. Cache por clave orden.
+ * Soporta dos modos:
+ *   - Modo feed: paginado/infinite scroll según ordenExterno.
+ *   - Modo búsqueda: llama a buscarCanciones cuando `busqueda` es no vacío.
  * Like optimista con rollback en error.
  */
 
 import { useState, useEffect, useCallback, useRef, type MouseEvent } from 'react';
-import { feedCanciones } from '@app/services/apiCanciones';
+import { feedCanciones, buscarCanciones } from '@app/services/apiCanciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
@@ -15,7 +17,7 @@ import type { Cancion } from '@app/types/cancion';
 
 const POR_PAGINA = 20;
 
-export function useFeedCanciones(ordenExterno: OrdenFeedCanciones) {
+export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = '') {
     const [canciones, setCanciones] = useState<Cancion[]>([]);
     const [cargando, setCargando] = useState(true);
     const [cargandoMas, setCargandoMas] = useState(false);
@@ -27,6 +29,22 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones) {
     const requestIdRef = useRef(0);
     const navegar = useNavigationStore(s => s.navegar);
 
+    /* Modo búsqueda: resultados server-side cuando hay query activo */
+    useEffect(() => {
+        if (!busqueda.trim()) return;
+
+        const thisRequest = ++requestIdRef.current;
+        setCargando(true);
+        setCanciones([]);
+
+        buscarCanciones(busqueda).then(resp => {
+            if (requestIdRef.current !== thisRequest) return;
+            setCanciones(resp.ok && resp.data ? resp.data : []);
+            setCargando(false);
+        });
+    }, [busqueda]);
+
+    /* Modo feed: carga paginada por orden */
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
         const thisRequest = ++requestIdRef.current;
         const cacheKey = `${ordenExterno}_p${pagina}`;
@@ -66,16 +84,18 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones) {
         }
     }, [ordenExterno]);
 
-    /* Carga inicial y al cambiar orden externo */
+    /* Carga inicial de feed y al cambiar orden — omitido en modo búsqueda */
     useEffect(() => {
+        if (busqueda.trim()) return;
         cacheRef.current = {};
         setPaginaActual(1);
         setHayMas(true);
         cargarPagina(1, true);
-    }, [cargarPagina]);
+    }, [cargarPagina, busqueda]);
 
-    /* Infinite scroll con IntersectionObserver */
+    /* Infinite scroll — omitido en modo búsqueda (no pagina resultados de search) */
     useEffect(() => {
+        if (busqueda.trim()) return;
         const sentinela = sentinelaRef.current;
         if (!sentinela) return;
 
@@ -92,7 +112,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones) {
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina]);
+    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina, busqueda]);
 
     /* Like optimista con rollback */
     const manejarLike = useCallback(async (cancionId: number) => {

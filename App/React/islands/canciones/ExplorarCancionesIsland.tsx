@@ -10,6 +10,7 @@ import { Music } from 'lucide-react';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useFeedCanciones } from '@app/hooks/useFeedCanciones';
 import { TarjetaCancionFeed } from '@app/components/canciones/TarjetaCancionFeed';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
@@ -28,6 +29,7 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
     /* Registrar tabs en TopBar y leer tab activa */
     useTabsIsla('ExplorarCancionesIsland', TABS_EXPLORAR, 'inteligente');
     const tabActiva = useTabsTopBarStore(s => s.activa);
+    const busqueda = useFiltrosStore(s => s.busqueda);
 
     /* Mapear tab activa a orden válida (defensa contra ids inesperados) */
     const orden: OrdenFeedCanciones = ORDENES_VALIDAS.has(tabActiva)
@@ -43,7 +45,7 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         manejarLike,
         manejarMenu,
         irACancion,
-    } = useFeedCanciones(orden);
+    } = useFeedCanciones(orden, busqueda);
 
     return (
         <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
@@ -54,7 +56,7 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
             ) : canciones.length === 0 ? (
                 <div className="feedCancionesVacio">
                     <Music size={40} />
-                    <p>No hay canciones para mostrar</p>
+                    <p>{busqueda.trim() ? `Sin resultados para "${busqueda}"` : 'No hay canciones para mostrar'}</p>
                 </div>
             ) : (
                 <div className="feedCancionesLista">
