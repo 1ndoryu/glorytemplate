@@ -108,6 +108,8 @@ export interface DatosSubida {
     precio?: number;
     /* C220: Toggle visibilidad en comunidad */
     mostrarEnComunidad?: boolean;
+    /* C802c: Vinculacion opcional a una relacion de sampleo especifica */
+    relacionSampleoId?: number | null;
 }
 
 /*
@@ -130,6 +132,9 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     formData.append('mostrar_en_comunidad', String(datos.mostrarEnComunidad ?? true));
     if (datos.precio != null && datos.precio > 0) {
         formData.append('precio', String(datos.precio));
+    }
+    if (datos.relacionSampleoId != null && datos.relacionSampleoId > 0) {
+        formData.append('relacion_sampleo_id', String(datos.relacionSampleoId));
     }
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);

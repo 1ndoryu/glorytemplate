@@ -182,6 +182,13 @@
     gap: var(--espacioSm);
 }
 
+/* Accion de subir sample vinculado a esta relacion (C802c) */
+.relacionDetalleSamplesAccion {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--espacioXs) 0;
+}
+
 /* Botón toggle de comentarios */
 .relacionDetalleToggleComentarios {
     font-size: var(--fuenteSm);

@@ -166,6 +166,12 @@ class SamplesUploadController
         if ($precio !== null && ($precio < 0 || $precio > 9999)) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'Precio fuera de rango válido (0-9999)'], 400);
         }
+        /* C802c: ID de relacion de sampleo al que se adjunta este sample (opcional) */
+        $relacionSampleoIdRaw = $request->get_param('relacion_sampleo_id');
+        $relacionSampleoId = $relacionSampleoIdRaw !== null ? (int) $relacionSampleoIdRaw : null;
+        if ($relacionSampleoId !== null && $relacionSampleoId <= 0) {
+            $relacionSampleoId = null;
+        }
 
         if (\count($tags) < 2) {
             return new \WP_REST_Response([
@@ -201,6 +207,7 @@ class SamplesUploadController
                     'descarga' => $permitirDescarga ? 'true' : 'false',
                     'licencia' => $licenciaLibre ? 'true' : 'false',
                     'comunidad' => $mostrarEnComunidad ? 'true' : 'false',
+                    'relacionSampleoId' => $relacionSampleoId,
             ]);
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);

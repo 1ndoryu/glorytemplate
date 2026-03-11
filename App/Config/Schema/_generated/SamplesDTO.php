@@ -45,7 +45,8 @@ final class SamplesDTO
         public readonly int $totalComentarios,
         public readonly bool $verificado,
         public readonly bool $mostrarEnComunidad,
-        public readonly ?int $cancionOrigenId
+        public readonly ?int $cancionOrigenId,
+        public readonly ?int $relacionSampleoId
     ) {}
 
     /**
@@ -92,7 +93,8 @@ final class SamplesDTO
             totalComentarios: (int) ($row['total_comentarios'] ?? 0),
             verificado: (bool) ($row['verificado'] ?? false),
             mostrarEnComunidad: (bool) ($row['mostrar_en_comunidad'] ?? true),
-            cancionOrigenId: isset($row['cancion_origen_id']) ? (int) $row['cancion_origen_id'] : null
+            cancionOrigenId: isset($row['cancion_origen_id']) ? (int) $row['cancion_origen_id'] : null,
+            relacionSampleoId: isset($row['relacion_sampleo_id']) ? (int) $row['relacion_sampleo_id'] : null
         );
     }
 
@@ -147,6 +149,7 @@ final class SamplesDTO
             'total_comentarios' => $this->totalComentarios,
             'verificado' => $this->verificado,
             'mostrar_en_comunidad' => $this->mostrarEnComunidad,
-            'cancion_origen_id' => $this->cancionOrigenId];
+            'cancion_origen_id' => $this->cancionOrigenId,
+            'relacion_sampleo_id' => $this->relacionSampleoId];
     }
 }

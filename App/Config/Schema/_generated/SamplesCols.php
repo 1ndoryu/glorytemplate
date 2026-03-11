@@ -47,7 +47,8 @@ final class SamplesCols
     const VERIFICADO = 'verificado';
     const MOSTRAR_EN_COMUNIDAD = 'mostrar_en_comunidad';
     const CANCION_ORIGEN_ID = 'cancion_origen_id';
+    const RELACION_SAMPLEO_ID = 'relacion_sampleo_id';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'creador_id', 'titulo', 'slug', 'descripcion', 'bpm', 'key', 'escala', 'duracion', 'formato', 'tamano', 'metadata', 'tags', 'estado', 'tipo', 'es_premium', 'precio', 'ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform', 'imagen_url', 'embedding', 'total_descargas', 'total_likes', 'total_reproducciones', 'publicado_at', 'created_at', 'updated_at', 'id_corto', 'permitir_descarga', 'licencia_libre', 'audio_hash', 'hash_parcial', 'total_comentarios', 'verificado', 'mostrar_en_comunidad', 'cancion_origen_id'];
+    const TODAS = ['id', 'creador_id', 'titulo', 'slug', 'descripcion', 'bpm', 'key', 'escala', 'duracion', 'formato', 'tamano', 'metadata', 'tags', 'estado', 'tipo', 'es_premium', 'precio', 'ruta_original', 'ruta_optimizada', 'ruta_preview', 'ruta_waveform', 'imagen_url', 'embedding', 'total_descargas', 'total_likes', 'total_reproducciones', 'publicado_at', 'created_at', 'updated_at', 'id_corto', 'permitir_descarga', 'licencia_libre', 'audio_hash', 'hash_parcial', 'total_comentarios', 'verificado', 'mostrar_en_comunidad', 'cancion_origen_id', 'relacion_sampleo_id'];
 }

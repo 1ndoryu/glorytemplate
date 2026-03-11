@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { AlertCircle, Scissors } from 'lucide-react';
+import { AlertCircle, Scissors, Upload } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
@@ -24,6 +24,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useNavigationStore } from '@/core/router';
 import { useDevAccionesRelacion } from '@app/hooks/useDevAccionesRelacion';
 import { useAuthStore } from '@app/stores/authStore';
+import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { obtenerSamplesDeRelacion } from '@app/services/apiSamples';
 import {
     ETIQUETAS_TIPO_RELACION,
@@ -68,7 +69,12 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
     );
 
     const esAdmin = useAuthStore((s) => s.usuario?.rol === 'admin');
+    const autenticado = useAuthStore((s) => s.autenticado);
     const devAcciones = useDevAccionesRelacion(relacionId);
+
+    const manejarSubirSample = useCallback(() => {
+        useCrearModalStore.getState().abrir(undefined, false, relacionId > 0 ? relacionId : null);
+    }, [relacionId]);
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => {
@@ -221,6 +227,18 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
             </div>
 
             {/* Samples publicados generados desde esta relación */}
+            {autenticado && (
+                <div className="relacionDetalleSamplesAccion">
+                    <BotonBase
+                        variante="secundario"
+                        tamano="sm"
+                        onClick={manejarSubirSample}
+                    >
+                        <Upload size={14} />
+                        Subir sample de este sampleo
+                    </BotonBase>
+                </div>
+            )}
             <FeedSamples
                 proveedor={proveedorSamplesRelacion}
                 claveCache={`relacion-samples-${relacionId}`}
