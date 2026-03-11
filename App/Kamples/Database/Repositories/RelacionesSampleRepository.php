@@ -68,14 +68,17 @@ class RelacionesSampleRepository extends BaseRepository
         $tr = RelacionesSampleCols::TABLA;
         $tc = CancionesCols::TABLA;
         $ta = ArtistasMusicalesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultar(
             "SELECT r.*, c.titulo AS cancion_titulo, c.slug AS cancion_slug,
                     c.anio AS cancion_anio, c.imagen_url AS cancion_imagen_url,
-                    a.nombre AS artista_nombre, a.slug AS artista_slug
+                    a.nombre AS artista_nombre, a.slug AS artista_slug,
+                    u." . UsuariosExtCols::USERNAME . " AS contribuidor_username
              FROM {$tr} r
              JOIN {$tc} c ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = c.id
              JOIN {$ta} a ON c.artista_id = a.id
+             LEFT JOIN {$tu} u ON r." . RelacionesSampleCols::CONTRIBUIDOR_ID . " = u." . UsuariosExtCols::ID . "
              WHERE r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = :cancion_id
              ORDER BY r." . RelacionesSampleCols::CREATED_AT . " DESC
              LIMIT :limit",
@@ -92,14 +95,17 @@ class RelacionesSampleRepository extends BaseRepository
         $tr = RelacionesSampleCols::TABLA;
         $tc = CancionesCols::TABLA;
         $ta = ArtistasMusicalesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultar(
             "SELECT r.*, c.titulo AS cancion_titulo, c.slug AS cancion_slug,
                     c.anio AS cancion_anio, c.imagen_url AS cancion_imagen_url,
-                    a.nombre AS artista_nombre, a.slug AS artista_slug
+                    a.nombre AS artista_nombre, a.slug AS artista_slug,
+                    u." . UsuariosExtCols::USERNAME . " AS contribuidor_username
              FROM {$tr} r
              JOIN {$tc} c ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = c.id
              JOIN {$ta} a ON c.artista_id = a.id
+             LEFT JOIN {$tu} u ON r." . RelacionesSampleCols::CONTRIBUIDOR_ID . " = u." . UsuariosExtCols::ID . "
              WHERE r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = :cancion_id
              ORDER BY r." . RelacionesSampleCols::CREATED_AT . " DESC
              LIMIT :limit",

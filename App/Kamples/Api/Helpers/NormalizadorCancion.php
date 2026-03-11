@@ -112,12 +112,15 @@ class NormalizadorCancion
             'verificada'       => (bool) ($row['verificada'] ?? false),
             'creadoAt'         => $row['created_at'] ?? '',
             /* Campos opcionales de JOIN */
-            'cancionTitulo'    => $row['cancion_titulo'] ?? null,
-            'cancionSlug'      => $row['cancion_slug'] ?? null,
-            'artistaNombre'    => $row['artista_nombre'] ?? null,
-            'artistaSlug'      => $row['artista_slug'] ?? null,
-            'cancionAnio'      => isset($row['cancion_anio']) ? (int) $row['cancion_anio'] : null,
-            'cancionImagenUrl' => $row['cancion_imagen_url'] ?? null,
+            'cancionTitulo'        => $row['cancion_titulo'] ?? null,
+            'cancionSlug'          => $row['cancion_slug'] ?? null,
+            'artistaNombre'        => $row['artista_nombre'] ?? null,
+            'artistaSlug'          => $row['artista_slug'] ?? null,
+            'cancionAnio'          => isset($row['cancion_anio']) ? (int) $row['cancion_anio'] : null,
+            'cancionImagenUrl'     => $row['cancion_imagen_url'] ?? null,
+            /* Contribuidor que propuso la relacion (disponible si la query hace JOIN con usuarios_ext) */
+            'contribuidorId'       => isset($row['contribuidor_id']) && $row['contribuidor_id'] !== null ? (int) $row['contribuidor_id'] : null,
+            'contribuidorUsername' => $row['contribuidor_username'] ?? null,
         ];
     }
 

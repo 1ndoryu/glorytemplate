@@ -153,6 +153,11 @@ export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar,
                                         {rel.artistaNombre}
                                     </span>
                                 )}
+                                {rel.contribuidorUsername && (
+                                    <span className="tablaRelacionesContribuidor" title="Contribuidor">
+                                        @{rel.contribuidorUsername}
+                                    </span>
+                                )}
                             </td>
                             <td className="tablaRelacionesColAnio">
                                 {rel.cancionAnio ?? '—'}

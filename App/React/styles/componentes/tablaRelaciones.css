@@ -103,6 +103,18 @@
     margin-top: var(--espacio2xs);
 }
 
+/* Contribuidor que propuso el sampleo */
+.tablaRelacionesContribuidor {
+    display: block;
+    font-size: var(--fuenteXs);
+    color: var(--acento);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: var(--espacio2xs);
+    opacity: 0.8;
+}
+
 /* Timing */
 .tablaRelacionesColTiming {
     font-size: var(--fuenteXs);
