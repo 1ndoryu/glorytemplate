@@ -148,9 +148,10 @@
 - [x] Datos ya capturados: sample_detail.py parsea votos_total + votos_promedio desde HTML
 
 ### 808.2 — ✅ Auditoria proceso extraccion audio
-- [x] yt-dlp: estrategia multi-cookies (cookies.txt -> navegador fallback) para error "page needs to be reloaded"
+- [x] yt-dlp: PO Token plugin (bgutil-ytdlp-pot-provider v1.3.1) instalado y configurado. Server scripts construidos en ~/bgutil-ytdlp-pot-provider/server/build/. Descarga verificada exitosa.
+- [x] yt-dlp: audio_download.py reescrito — estrategia simplificada (pot_nativo + pot_cookies fallback). Eliminadas estrategias obsoletas (android/tv_embedded/ios/browser cookies).
 - [x] yt-dlp: retries (3) + extractor-retries (3) + no-check-certificates para resiliencia
-- [x] spotdl agregado a requirements.txt (faltaba)
+- [x] spotdl: fallback por nombre (artista + titulo) cuando no hay spotify_id
 - [x] verificarSecretCron: eliminada restriccion WP_DEBUG (funciona en produccion ahora)
 - [x] Actualizar cookies.txt desde panel admin: seccion en TabProcesosAdmin con textarea para pegar cookies formato Netscape, endpoint POST /admin/procesos/cookies, validacion formato, backup automatico, info de estado
 
@@ -223,6 +224,10 @@
 - [WhoSampled HTML] Selectores en codigo. data-timings = segundos enteros. Related sections: NUNCA parsear por indice.
 - [yt-dlp cookies] App-Bound Encryption Chrome v114+. Usar cookies.txt exportado via extension. Si falla, fallback a --cookies-from-browser.
 - [yt-dlp resiliencia] Agregar --retries 3 --extractor-retries 3 --no-check-certificates. Error "page needs to be reloaded" = cookies expiradas.
+- [yt-dlp PO Token] Desde 2025, YouTube requiere Proof of Origin (PO) tokens. Sin plugin, TODOS los clients fallan (LOGIN_REQUIRED/UNPLAYABLE). Instalar `bgutil-ytdlp-pot-provider` via pip + clonar/build server scripts (misma version). OAuth2 ya NO funciona.
+- [bgutil setup] Plugin pip + server scripts deben ser MISMA major version. Clonar con tag: `git clone --single-branch --branch X.Y.Z`. Server: `npm ci && npx tsc`. Path default: `~/bgutil-ytdlp-pot-provider/server/`.
+- [yt-dlp exit code] yt-dlp puede retornar exit code != 0 por warnings pero generar el archivo correctamente. Siempre verificar existencia del archivo output ademas del return code.
+- [Spotify busqueda por nombre] spotdl acepta queries de texto: `spotdl download "artista - titulo"`. Fallback util cuando spotify_id es None (mayoria de tracks en cola actual).
 - [Priorizacion extraccion] ORDER BY votos_total DESC prioriza sampleos populares en WhoSampled.
 - [Pareto jitter] El jitter en distribuirPareto puede producir desborde. Clampear con min(cantidad, total - acumulado).
 - [verificarSecretCron] NO restringir con WP_DEBUG — el endpoint debe funcionar en produccion.

@@ -118,7 +118,12 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         # 1. Descargar audio (YouTube prioritario, fallback Spotify)
         actualizar_estado_cola(cola_id, "descargando")
         t0 = time.monotonic()
-        wav_path = descargar_audio(youtube_id, output_dir, spotify_id=spotify_id)
+        wav_path = descargar_audio(
+            youtube_id, output_dir,
+            spotify_id=spotify_id,
+            artista=item.get("fuente_artista"),
+            titulo=item.get("fuente_titulo"),
+        )
         if not wav_path:
             actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (YT + Spotify)")
             return False

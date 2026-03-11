@@ -421,3 +421,17 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 > - [CSS vars]: `--superficieElevada` y `--bordeInteractivo` NO existen. Usar `--fondoElevado1/2/3` y `--bordeActivo` respectivamente.
 > - [Retroactive data]: Samples generados antes de S-UI.3 tienen `imagen_url = NULL`. Fix: `UPDATE samples SET imagen_url = c.imagen_url FROM canciones c WHERE s.cancion_origen_id = c.id AND s.imagen_url IS NULL`.
 > - [TablaRelaciones origin marker]: `marcarOrigen={esFuente}` en fuente, `marcarOrigen={!esFuente}` en destino. Marca solo `idx === 0` (primera fila = canción origen directa).
+
+### S-FIX-3 — yt-dlp PO Token + Spotify fallback ✅ [AG-BTL] C900c
+- [x] **S-FIX3.1** Plugin PO Token instalado y funcional: `bgutil-ytdlp-pot-provider` v1.3.1 (pip) + server scripts v1.3.1 construidos en `~/bgutil-ytdlp-pot-provider/server/build/`. yt-dlp detecta automáticamente 3 providers (http, script-node, script-deno). Descarga verificada exitosa con client android_vr + PO token. ✅
+- [x] **S-FIX3.2** audio_download.py reescrito: eliminadas estrategias obsoletas (android/tv_embedded/ios/browser cookies). Ahora usa yt-dlp nativo con plugin PO token (elige client optimo auto) + fallback cookies.txt para restricción de edad. ✅
+- [x] **S-FIX3.3** Spotify fallback mejorado: nuevo `_descargar_spotify_por_nombre(artista, titulo)` — busca en Spotify por nombre cuando no hay spotify_id. pipeline.py pasa `fuente_artista`/`fuente_titulo` a `descargar_audio()`. ✅
+- [x] **S-FIX3.4** requirements.txt: `yt-dlp>=2025.5`, `bgutil-ytdlp-pot-provider>=1.3` añadidos. ✅
+> **Setup requerido (una vez por máquina):**
+> ```shell
+> git clone --single-branch --branch 1.3.1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git ~/bgutil-ytdlp-pot-provider
+> cd ~/bgutil-ytdlp-pot-provider/server && npm ci && npx tsc
+> pip install bgutil-ytdlp-pot-provider>=1.3
+> ```
+> **Nota:** Videos individuales pueden fallar por restricciones específicas (no por IP). El plugin PO token NO garantiza 100% bypass pero funciona para la mayoría de videos públicos. OAuth2 ya NO es soportado por YouTube.
+> Lecciones: [PO Token] YouTube requiere Proof of Origin tokens desde 2025. Sin plugin, TODOS los clients fallan (LOGIN_REQUIRED/UNPLAYABLE). [bgutil versiones] Plugin pip y server scripts DEBEN ser la misma major version. [Spotify fallback] spotdl acepta queries de texto además de URLs — `spotdl download "artista - titulo"` busca automáticamente.

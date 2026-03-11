@@ -658,7 +658,9 @@ kamples-scraper/
 
 ### Scraping / Descarga Audio
 - [yt-dlp / spotdl venv]: `subprocess.run(["yt-dlp"])` falla si el intérprete Python no ha inicializado el entorno en el PATH global en producción/cron. Solución: Resolver ruta con `sys.executable` (ej. `os.path.join(os.path.dirname(sys.executable), "yt-dlp.exe")`).
-- [yt-dlp youtube bot-check DPAPI]: YouTube emite bloqueos "Sign in to confirm you're not a bot". Al intentar `--cookies-from-browser chrome`, falla con "Failed to decrypt with DPAPI" por el App-Bound Encryption agregado desde Chrome v114+ que impide a scripts externos leer la BD de cookies sin el consentimiento guiado del usuario. Única solución funcional a gran escala: Colocar un archivo `cookies.txt` exportado vía extensión del navegador en la carpeta temporal o base del scraper.
+- [yt-dlp PO Token (2025+)]: YouTube requiere Proof of Origin tokens. Sin plugin, TODOS los player clients fallan (LOGIN_REQUIRED/UNPLAYABLE). Solucion: `pip install bgutil-ytdlp-pot-provider>=1.3` + clonar repo Brainicism con mismo tag + build server (`npm ci && npx tsc`). Cookies solas NO bastan. OAuth2 eliminado por YouTube. `--cookies-from-browser chrome` falla por DPAPI (Chrome v114+).
+- [yt-dlp exit code]: yt-dlp puede retornar exit code != 0 por warnings pero generar el archivo. Verificar existencia del output ademas del return code.
+- [spotdl busqueda texto]: spotdl acepta queries de texto `spotdl download "artista - titulo"`. Fallback cuando spotify_id es None.
 
 ### UI / SPA
 - [Navigation store]: Import `useNavigationStore` desde `@/core/router`.

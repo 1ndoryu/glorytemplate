@@ -2,12 +2,14 @@ scrapy>=2.11,<3.0
 beautifulsoup4>=4.12
 psycopg2-binary>=2.9
 python-dotenv>=1.0
-yt-dlp>=2024.1
+yt-dlp>=2025.5
 librosa>=0.10
 soundfile>=0.12
 numpy>=1.24
 # TLS fingerprinting (bypass Cloudflare)
 curl_cffi>=0.14
 brotli>=1.1
+# PO Token para YouTube (requerido desde 2025 para bypass anti-bot)
+bgutil-ytdlp-pot-provider>=1.3
 # Spotify fallback para descarga de audio
 spotdl>=4.2
