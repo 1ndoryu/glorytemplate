@@ -158,7 +158,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 **Pendiente C802 (siguiente iteracion):**
 - [ ] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones)
 - [ ] **C802b** Integrar BuscadorCanciones en modal publicacion/edicion sample (L5.5)
-- [x] **C802c** Boton "Subir sample de este sampleo" en RelacionDetalleIsland (L5.6) [AG-C802] — migracion v035 (relacion_sampleo_id en samples), crearModalStore con relacionSampleoId, useCrearContenido lo pasa al upload
+- [x] **C802c** Menus contextuales 3-puntos para adjuncion de samples (L5.6) [AG-ADJ] — CancionDetalleIsland (menu: "Subir sample de esta cancion") + RelacionDetalleIsland (menu: adjuntar por lado fuente/destino + reportar). Backend vincula via sample_fuente_id/sample_destino_id (misma logica que PublicadorExtraccion). crearModalStore con ContextoAdjuntar, useMenuRelacionDetalle hook extraido.
 - [x] **C802d** Edicion de contribuciones pendientes por el propio usuario (L6.1) [AG-L6C]
 - [ ] **C802e** Pagina estatica /politica-dmca (L4)
 
