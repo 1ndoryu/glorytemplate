@@ -655,3 +655,139 @@ DELETE /admin/relaciones/{id}         — Eliminar relacion directamente (admin)
 - [L6 Frontend] TarjetaRelacionSample no se usa en ningun island actualmente — el componente activo es TablaRelaciones. Los callbacks de edicion/eliminacion se anaden a ambos para cobertura futura.
 - [L6 ModalEdicionRelacion] Patron: el modal se monta en la isla padre (CancionDetalleIsland), no dentro de la tarjeta. El estado `relacionParaEditar` y `modoEliminacion` viven en la isla, se pasan al modal como props. El hook useEdicionRelacion gestiona el form state internamente.
 - [L6 moderar()] El metodo moderar() en el controller ahora maneja 3 tipos de contribucion: nueva (flujo original), edicion (aplicarEdicion via service), eliminacion (aplicarEliminacion via service). No hace falta endpoint separado.
+
+---
+
+## FASE L7 — Gaps Identificados: Adjuncion Manual Completa + Edicion de Media
+
+> **Origen:** Auditoria de UX post-C802c — 10/03/2026. Problemas surgidos al implementar C802c.
+> **Objetivo:** Cerrar los CINCO gaps no contemplados en L5/L6 que hacen incompleto el flujo de adjuncion manual de samples.
+
+### Gap 1 — Selector de lado dentro del modal (no en menú contextual)
+
+**Problema:** La implementacion C802c puso dos items en el menu contextual con el titulo completo de cada cancion: `Adjuntar sample de "Amen Brother"` / `Adjuntar sample de "Think"`. Los titulos son demasiado largos para texto de menu y el UX correcto es que el menu contextual sea solo un punto de entrada.
+
+**Solucion:**
+- El menu contextual de RelacionDetalleIsland muestra UN SOLO item: `"Adjuntar sample manual"`.
+- Al hacer click, abre el ModalCrearContenido SIN `ladoRelacion` ni `cancionOrigenId` pre-definidos, solo con `relacionId`.
+- El modal muestra un paso adicional: `"¿A qué canción pertenece este sample?"` con dos opciones visuales (tarjeta con portada + título de cada canción).
+- Al seleccionar: se fija `cancionOrigenId` y `ladoRelacion` para el submit.
+
+**Archivos:**
+- `useMenuRelacionDetalle.ts` — simplificar a 1 item, pasar solo `relacionId`
+- `crearModalStore.ts` — `ladoRelacion` y `cancionOrigenId` opcionales; nuevo estado `ladoSeleccionado`
+- `ModalCrearContenido.tsx` (o donde viva) — paso de seleccion de lado cuando `ladoRelacion` es undefined
+
+### Gap 2 — Timing de inicio del sample
+
+**Problema:** Al adjuntar un sample a una cancion/sampleo, se desconoce en qué momento de la canción empieza. El campo `detalleTiming` en la relacion ya tiene el timing de referencia del scraping. Deberia pre-rellenarse.
+
+**Datos en DB:**
+- `relaciones_sample.timing_destino_inicio` / `timing_fuente_inicio` (si existen, ver schema)
+- O en `metadata JSONB`: `timings: [{ muestra_inicio, sampleada_inicio, duracion }]`
+- Al adjuntar manualmente: el usuario especifica `inicio_segundos` (puede quedar vacio)
+
+**Solucion:**
+- Agregar campo `inicio_segundos` opcional al formulario de publicacion de sample cuando hay `relacionId` en el contexto.
+- Pre-rellenar con el timing de la relacion si existe (fuente o destino segun lado).
+- Backend: almacenar en `samples.metadata.inicio_segundos` (JSONB, sin requeri migracion).
+- `SamplesUploadController`: leer `inicio_segundos` y persistirlo en metadata.
+
+**Archivos:**
+- ModalCrearContenido / step de upload — campo numerico opcional `inicio_segundos`
+- `SamplesUploadController.php` — leer y guardar `inicio_segundos` en metadata JSONB
+
+### Gap 3 — Adjuntar sample ya publicado (sin re-subir archivo)
+
+**Problema:** Actualmente solo se puede "adjuntar" subiendo un archivo nuevo. Pero si el usuario ya tiene un sample publicado en Kamples que corresponde a ese sampleo, deberia poder vincularlo directamente sin duplicar.
+
+**Flujo propuesto:**
+```
+RelacionDetalle → menu 3 puntos → "Adjuntar sample existente"
+    ↓
+Modal: buscador de samples propios (o todos si admin)
+    ↓
+Seleccionar sample → click "Vincular"
+    ↓
+Backend: RelacionesSampleRepository::actualizarPorId(relacionId, [SAMPLE_FUENTE_ID/SAMPLE_DESTINO_ID => sampleId])
+         + samples::actualizarCampos(cancion_origen_id a partir del lado)
+```
+
+**Consideraciones:**
+- Solo se pueden vincular samples propios (del usuario actual). Admin puede vincular cualquiera.
+- Si el sample ya esta vinculado a otra relacion, mostrar advertencia (un sample puede estar en multiples relaciones).
+- Busqueda: GET /samples/mis?q=... (endpoint existente o extensible).
+
+**Endpoints nuevos:**
+```
+POST /relaciones/{relacionId}/vincular-sample   — Body: { sample_id, lado }  [auth]
+```
+El endpoint verifica ownership del sample (o rol admin) y hace el UPDATE en `relaciones_sample`.
+
+**Archivos:**
+- `RelacionesSampleController.php` — nuevo endpoint `vincularSampleExistente()`
+- `RelacionesSampleRepository.php` — metodo ya existe (`actualizarPorId`) — solo necesita el controller
+- Frontend: `ModalVincularSampleExistente.tsx` (nuevo) — buscador de samples propios + confirmacion
+- `apiRelaciones.ts` — funcion `vincularSampleExistente(relacionId, sampleId, lado)`
+
+### Gap 4 — Desadjuntar / cambiar sample de una relación
+
+**Problema:** No hay forma de quitar un sample ya vinculado a un sampleo (sin eliminar el sample completo) ni de cambiarlo por otro. El admin o el creador deberían poder decir "este sample ya no pertenece a este sampleo" sin borrar el sample de la plataforma.
+
+**Casos de uso:**
+- El sample fue adjuntado al sampleo incorrecto (lado equivocado o relacion equivocada).
+- El sample es de mala calidad y se quiere reemplazar por uno mejor.
+
+**Solucion:**
+- **Desadjuntar:** `PUT /relaciones/{id}` con `{sample_fuente_id: null}` o `{sample_destino_id: null}`. Esto ya es soportado por `actualizarPorId`. Solo falta la UI.
+- **Reemplazar:** Desadjuntar el anterior y vincular el nuevo (dos operaciones o una atomica).
+- UI: En `RelacionDetalleIsland`, si hay sample vinculado y el usuario es owner/admin → icono de "quitar" junto al sample en `FeedSamples`.
+- Menu contextual del sample (cuando se muestra en contexto de relacion): agregar item "Quitar de este sampleo" (visible solo si es owner del sample o admin).
+
+**Endpoint:**
+```
+DELETE /relaciones/{relacionId}/sample/{lado}   — Desvincula sample_fuente_id o sample_destino_id [auth owner/admin]
+```
+
+**Archivos:**
+- `RelacionesSampleController.php` — nuevo endpoint `desvincularSample()`
+- Frontend: `useMenuContextualSample.tsx` — item condicional "Quitar de este sampleo" (requiere saber el contexto de relacion)
+- `FeedSamples` / donde se renderiza el sample en RelacionDetalle — pasar `relacionContextoId` para activar el item
+
+### Gap 5 — Editar URL de YouTube/Spotify y timings en un sampleo (L6.2 incompleto)
+
+**Problema:** L6.2 (ModalEdicionRelacion) cubre tipo_relacion, tipo_elemento, canciones asociadas. Pero NO cubre:
+- URL de YouTube/Spotify de cada lado (fuente/destino)
+- Timings de aparicion (muestra_inicio, sampleada_inicio, duracion)
+- Campo verificada (si se puede confirmar documentalmente)
+
+**Solucion:** Extender `ModalEdicionRelacion.tsx` con campos adicionales en el formulario:
+- `destino_youtube_url` / `fuente_youtube_url` (inputs de URL con validacion de formato YouTube/Spotify)
+- `timing_fuente_inicio_s` / `timing_destino_inicio_s` / `duracion_s` (inputs numericos en segundos)
+- `verificada` (checkbox — solo visible para usuarios con rol verificador o admin)
+
+Los campos nuevos se agregan a `cambios_propuestos JSONB` de la contribucion pendiente.
+
+`ContribucionesService::aplicarEdicion()` debe manejar los campos nuevos al momento de aplicar la edicion aprobada.
+
+**Columnas a verificar en schema `relaciones_sample`:**
+- `destino_youtube_id`, `fuente_youtube_id` (ya existen probablemente). Si el campo es ID y no URL completa, el modal muestra la URL completa y el backend extrae el ID.
+- `metadata JSONB` puede contener `timings: [{ muestra_inicio, sampleada_inicio, duracion }]`.
+
+**Archivos:**
+- `ModalEdicionRelacion.tsx` — campos adicionales en el formulario
+- `useEdicionRelacion.ts` — incluir los nuevos campos en `cambiosActuales`
+- `ContribucionesService.php > aplicarEdicion()` — mapear campos nuevos de `cambios_propuestos`
+
+---
+
+### Checklist L7
+
+- [ ] **L7.1** Menu contextual RelacionDetalle — simplificar a 1 item, selection de lado en modal
+- [ ] **L7.2** Timing de inicio en modal de upload — campo `inicio_segundos` pre-rellenado con timing de relacion
+- [ ] **L7.3** Endpoint `POST /relaciones/{id}/vincular-sample` — adjuntar sample ya publicado
+- [ ] **L7.4** `ModalVincularSampleExistente.tsx` — buscador de samples propios para vincular
+- [ ] **L7.5** Endpoint `DELETE /relaciones/{id}/sample/{lado}` — desadjuntar sample sin eliminar
+- [ ] **L7.6** Item "Quitar de este sampleo" en menu contextual del sample (cuando hay contexto de relacion)
+- [ ] **L7.7** Extender `ModalEdicionRelacion` con campos: youtube_url, timings, verificada
+- [ ] **L7.8** `ContribucionesService::aplicarEdicion()` — manejar campos nuevos de media y timings

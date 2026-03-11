@@ -5,7 +5,7 @@
  * Replica el flujo del PublicadorExtraccion para vinculacion manual.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Upload, Flag } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { RelacionDetalleCompleta } from '@app/types/cancion';
@@ -36,56 +36,45 @@ export const useMenuRelacionDetalle = (
     const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
 
     /*
-     * Items: un item por lado del sampleo (destino = samplea, fuente = sampleada).
-     * Cada item abre el modal de creacion con contexto de relacion + lado,
-     * para que el backend vincule via sample_fuente_id / sample_destino_id.
+     * Un solo item de adjuncion: el selector de lado (fuente/destino) se muestra
+     * dentro del modal, no en el menu contextual (L7.1 — nombres demasiado largos).
+     * Al abrir el modal sin ladoRelacion, ModalCrear muestra un paso previo de seleccion.
      */
     const items: MenuItemDef[] = useMemo(() => {
         if (!relacion || !autenticado) return [];
-        const resultado: MenuItemDef[] = [];
 
-        if (relacion.destino_titulo) {
-            resultado.push({
-                id: 'adjuntar-destino',
-                etiqueta: `Adjuntar sample de "${relacion.destino_titulo}"`,
-                icono: Upload({ size: 14 }),
-                onClick: () => {
-                    useCrearModalStore.getState().abrirConContexto({
-                        cancionOrigenId: relacion.cancionDestinoId,
-                        relacionId: relacion.id,
-                        ladoRelacion: 'destino',
-                    });
-                },
-            });
-        }
-
-        if (relacion.fuente_titulo) {
-            resultado.push({
-                id: 'adjuntar-fuente',
-                etiqueta: `Adjuntar sample de "${relacion.fuente_titulo}"`,
-                icono: Upload({ size: 14 }),
-                onClick: () => {
-                    useCrearModalStore.getState().abrirConContexto({
-                        cancionOrigenId: relacion.cancionFuenteId,
-                        relacionId: relacion.id,
-                        ladoRelacion: 'fuente',
-                    });
-                },
+        return [
+            {
+                id: 'adjuntar-sample',
+                etiqueta: 'Adjuntar sample manual',
+                icono: React.createElement(Upload, { size: 14 }),
                 separadorDespues: true,
-            });
-        }
-
-        resultado.push({
-            id: 'reportar',
-            etiqueta: 'Reportar',
-            icono: Flag({ size: 14 }),
-            peligro: true,
-            onClick: () => {
-                /* TO-DO: Integrar con ModalReporteLegal cuando este disponible */
+                onClick: () => {
+                    useCrearModalStore.getState().abrirConContexto({
+                        relacionId: relacion.id,
+                        ladoFuente: {
+                            cancionId: relacion.cancionFuenteId,
+                            titulo: relacion.fuente_titulo ?? 'Desconocida',
+                            artista: relacion.fuente_artista ?? undefined,
+                        },
+                        ladoDestino: {
+                            cancionId: relacion.cancionDestinoId,
+                            titulo: relacion.destino_titulo ?? 'Desconocida',
+                            artista: relacion.destino_artista ?? undefined,
+                        },
+                    });
+                },
             },
-        });
-
-        return resultado;
+            {
+                id: 'reportar',
+                etiqueta: 'Reportar',
+                icono: React.createElement(Flag, { size: 14 }),
+                peligro: true,
+                onClick: () => {
+                    /* TO-DO: Integrar con ModalReporteLegal cuando este disponible */
+                },
+            },
+        ];
     }, [relacion, autenticado]);
 
     return { menuAbierto, menuPos, items, abrirMenu, cerrarMenu };

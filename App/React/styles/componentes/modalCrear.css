@@ -3,6 +3,77 @@
  * Modal unificado de creación (publicación + sample).
  */
 
+/* Selector de lado: paso previo cuando se adjunta a un sampleo sin lado definido (L7.1) */
+.selectorLadoModal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXl) var(--espacioMd);
+    text-align: center;
+}
+
+.selectorLadoIcono {
+    color: var(--acento);
+    opacity: 0.8;
+}
+
+.selectorLadoTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.selectorLadoDesc {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+    max-width: 320px;
+}
+
+.selectorLadoOpciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioMd);
+    width: 100%;
+    margin-top: var(--espacioSm);
+}
+
+.selectorLadoBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioMd);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    text-align: center;
+    height: auto;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.selectorLadoBtn:hover {
+    border-color: var(--acento);
+    background: var(--fondoElevado);
+}
+
+.selectorLadoBtnTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    display: block;
+    white-space: normal;
+    line-height: 1.3;
+}
+
+.selectorLadoBtnArtista {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    display: block;
+}
+
 .crearContenido {
     display: flex;
     flex-direction: column;

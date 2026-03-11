@@ -158,7 +158,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 **Pendiente C802 (siguiente iteracion):**
 - [ ] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones)
 - [ ] **C802b** Integrar BuscadorCanciones en modal publicacion/edicion sample (L5.5)
-- [x] **C802c** Menus contextuales 3-puntos para adjuncion de samples (L5.6) [AG-ADJ] — CancionDetalleIsland (menu: "Subir sample de esta cancion") + RelacionDetalleIsland (menu: adjuntar por lado fuente/destino + reportar). Backend vincula via sample_fuente_id/sample_destino_id (misma logica que PublicadorExtraccion). crearModalStore con ContextoAdjuntar, useMenuRelacionDetalle hook extraido.
+- [x] **C802c** Menus contextuales 3-puntos para adjuncion de samples (L5.6) [AG-ADJ] — CancionDetalleIsland (menu: "Subir sample de esta cancion") + RelacionDetalleIsland (menu: "Adjuntar sample manual"). L7.1: selector de lado ahora DENTRO del modal (ModalCrear muestra SelectorLado cuando relacionId presente pero sin ladoRelacion). crearModalStore con ContextoAdjuntar + LadoOpcion + seleccionarLado(), useMenuRelacionDetalle hook extraido.
 - [x] **C802d** Edicion de contribuciones pendientes por el propio usuario (L6.1) [AG-L6C]
 - [ ] **C802e** Pagina estatica /politica-dmca (L4)
 
@@ -171,6 +171,19 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **L6.3** Eliminacion de samples por autor: soft-delete (marcarEliminado) + admin hard-delete (eliminarConCascada) [AG-L6C]
 - [x] **L6.4** Admin CRUD completo: PUT/DELETE /admin/contribuciones/{id} y /admin/relaciones/{id} [AG-L6C]
 - [ ] **L6.4c** Panel admin moderar contribuciones (componente isla admin, misma tarea que C802a)
+
+### C802-L7 — Adjuncion Manual Completa + Edicion de Media (Gaps identificados)
+
+> Ver analisis completo en `App/docs/plan-legal-contribuciones.md` FASE L7.
+
+- [x] **L7.1** Selector de lado en modal (no en menu contextual) — SelectorLado en ModalCrear.tsx, crearModalStore con LadoOpcion + seleccionarLado(), menu simplificado a 1 item
+- [ ] **L7.2** Timing de inicio en upload — campo `inicio_segundos` en ModalCrear cuando hay relacionId, pre-rellenado desde timings de la relacion
+- [ ] **L7.3** Endpoint `POST /relaciones/{id}/vincular-sample` — adjuntar sample ya publicado (sin re-subir)
+- [ ] **L7.4** `ModalVincularSampleExistente.tsx` — buscador de samples propios para vincular a sampleo
+- [ ] **L7.5** Endpoint `DELETE /relaciones/{id}/sample/{lado}` — desadjuntar sample sin eliminar el sample
+- [ ] **L7.6** Item "Quitar de este sampleo" en menu contextual del sample (solo cuando hay contexto de relacion)
+- [ ] **L7.7** Extender `ModalEdicionRelacion` con campos: youtube_url, timings de aparicion, verificada
+- [ ] **L7.8** `ContribucionesService::aplicarEdicion()` — manejar nuevos campos de media y timings
 
 ---
 
