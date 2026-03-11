@@ -144,10 +144,12 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar crédito.
 
-### C800-C801 — Verificación y corrección samples extraídos [EN CURSO — AG-COR]
+### C800-C801 — Verificacion y correccion samples extraidos [AG-COR]
 
-800. [EN CURSO — AG-COR] Sistema de corrección de metadata IA en samples extraídos: botón "Corregir IA" en menú contextual → modal con input de instrucciones → endpoint backend que corrige metadata (título, nombre archivo, tags, etc.)
-801. [EN CURSO — AG-COR] Enlace "Ver en YouTube" en menú contextual de samples extraídos — usa youtube_id de la relación discovery.
+800. ✅ [AG-COR] Sistema de correccion de metadata IA en samples extraidos: boton "Corregir IA" en menu contextual (admin) → modal con instrucciones → ServicioIA::corregirMetadata() → endpoint POST /samples/{id}/corregir-ia actualiza titulo, slug, tags, metadata JSONB. Archivos: corregirIAStore, useCorregirIA, ModalCorregirIA, modalCorregirIA.css, apiSamples (corregirMetadataIA), SamplesModificacionController, ServicioIA.
+801. ✅ [AG-COR] Enlace "Ver en YouTube" en menu contextual de samples extraidos — usa youtube_id de metadata. PublicadorExtraccion almacena youtube_id, useMenuContextualSample muestra opcion condicionalmente.
+
+**Nota C800:** Se elimino tablaRelacionesColAcciones (columna de acciones en tabla de relaciones de canciones) — la correccion va en el menu contextual del sample, no en la tabla de canciones. Limpiados: TablaRelaciones.tsx, TarjetaRelacionSample.tsx, CancionDetalleIsland.tsx, tablaRelaciones.css.
 
 ### C802 — Legal Shield + Community Contributions ✅ [AG-SEC]
 
@@ -156,7 +158,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 **Pendiente C802 (siguiente iteracion):**
 - [ ] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones)
 - [ ] **C802b** Integrar BuscadorCanciones en modal publicacion/edicion sample (L5.5)
-- [ ] **C802c** Boton "Subir sample de esta cancion" en pagina cancion (L5.6)
+- [x] **C802c** Boton "Subir sample de este sampleo" en RelacionDetalleIsland (L5.6) [AG-C802] — migracion v035 (relacion_sampleo_id en samples), crearModalStore con relacionSampleoId, useCrearContenido lo pasa al upload
 - [x] **C802d** Edicion de contribuciones pendientes por el propio usuario (L6.1) [AG-L6C]
 - [ ] **C802e** Pagina estatica /politica-dmca (L4)
 
