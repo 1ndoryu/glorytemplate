@@ -1,143 +1,63 @@
 /*
- * ExplorarCancionesIsland — Kamples
- * Página de exploración de canciones: recientes, top sampleadas, búsqueda.
- * Lógica extraída a useExplorarCanciones (SRP).
+ * ExplorarCancionesIsland — C812
+ * Feed vertical de canciones con 3 modos de ordenamiento:
+ * Inteligente (heurístico), Top Sampleados, Hot (likes recientes).
+ * Infinite scroll, tarjetas horizontales.
+ * Lógica extraída a useFeedCanciones (SRP).
  */
 
-import { useState, useCallback } from 'react';
-import { Search, Music, TrendingUp, Clock } from 'lucide-react';
-import { Badge } from '@app/components/ui/Badge';
+import { Music, Sparkles, TrendingUp, Flame } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
-import { useExplorarCanciones } from '@app/hooks/useExplorarCanciones';
+import { useFeedCanciones } from '@app/hooks/useFeedCanciones';
 import { useAuthStore } from '@app/stores/authStore';
 import { PanelDevCanciones } from '@app/components/canciones/PanelDevCanciones';
-import type { TabExplorar } from '@app/hooks/useExplorarCanciones';
-import type { CancionResumen } from '@app/types/cancion';
+import { TarjetaCancionFeed } from '@app/components/canciones/TarjetaCancionFeed';
+import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import '../../styles/componentes/explorarCanciones.css';
 
 const TABS_EXPLORAR = [{ id: 'canciones', etiqueta: 'Canciones' }];
 
-const TABS_INTERNAS: { id: TabExplorar; etiqueta: string; icono: JSX.Element }[] = [
-    { id: 'recientes', etiqueta: 'Recientes', icono: <Clock size={14} /> },
-    { id: 'top', etiqueta: 'Más sampleadas', icono: <TrendingUp size={14} /> },
-    { id: 'buscar', etiqueta: 'Buscar', icono: <Search size={14} /> },
+const ORDENES: { id: OrdenFeedCanciones; etiqueta: string; icono: JSX.Element }[] = [
+    { id: 'inteligente', etiqueta: 'Inteligente', icono: <Sparkles size={14} /> },
+    { id: 'top_sampleados', etiqueta: 'Top Sampleados', icono: <TrendingUp size={14} /> },
+    { id: 'hot', etiqueta: 'Hot', icono: <Flame size={14} /> },
 ];
-
-/* Tarjeta compacta de canción para el grid */
-const TarjetaCancionGrid = ({
-    cancion,
-    onClick,
-}: {
-    cancion: CancionResumen;
-    onClick: () => void;
-}): JSX.Element => (
-    <div
-        className="tarjetaCancion"
-        role="article"
-        onClick={onClick}
-        onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-        tabIndex={0}
-    >
-        <div className="tarjetaCancionImagen">
-            {cancion.imagenUrl ? (
-                <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
-            ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                    <Music size={32} color="var(--textoTerciario)" />
-                </div>
-            )}
-        </div>
-        <div className="tarjetaCancionCuerpo">
-            <h3 className="tarjetaCancionTitulo">{cancion.titulo}</h3>
-            {cancion.artistaNombre && (
-                <p className="tarjetaCancionArtista">{cancion.artistaNombre}</p>
-            )}
-            {cancion.anio && (
-                <span className="tarjetaCancionAnio">{cancion.anio}</span>
-            )}
-        </div>
-        <div className="tarjetaCancionBadges">
-            {cancion.totalSampleada > 0 && (
-                <Badge variante="acento" tamano="xs">
-                    {cancion.totalSampleada} sample{cancion.totalSampleada !== 1 ? 's' : ''}
-                </Badge>
-            )}
-            {cancion.genero && (
-                <Badge variante="neutro" tamano="xs">{cancion.genero}</Badge>
-            )}
-        </div>
-    </div>
-);
 
 export const ExplorarCancionesIsland = (): JSX.Element => {
     const {
-        tabActiva,
+        orden,
         canciones,
-        estadisticas,
         cargando,
-        error,
-        queryBusqueda,
-        cambiarTab,
-        ejecutarBusqueda,
+        cargandoMas,
+        hayMas,
+        sentinelaRef,
+        cambiarOrden,
         irACancion,
-    } = useExplorarCanciones();
+    } = useFeedCanciones();
 
-    const usuario = useAuthStore(s => s.usuario);
-    const esAdmin = usuario?.rol === 'admin';
-    const [inputBusqueda, setInputBusqueda] = useState(queryBusqueda);
+    const esAdmin = useAuthStore(s => s.usuario?.rol === 'admin');
 
     useTabsIsla('ExplorarCancionesIsland', TABS_EXPLORAR, 'canciones');
 
-    const handleBuscar = useCallback((e: React.FormEvent) => {
-        e.preventDefault();
-        ejecutarBusqueda(inputBusqueda);
-    }, [inputBusqueda, ejecutarBusqueda]);
-
     return (
-        <div className="explorarCancionesContenedor" id="seccionExplorarCanciones">
+        <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
 
             {/* Panel de desarrollo — solo visible para admins */}
             {esAdmin && <PanelDevCanciones />}
 
-            {/* Estadísticas resumen */}
-            {estadisticas && Array.isArray(estadisticas.relacionesPorTipo) && estadisticas.relacionesPorTipo.length > 0 && (
-                <div className="explorarCancionesEstadisticas">
-                    {estadisticas.relacionesPorTipo.map((stat) => (
-                        <div key={stat.tipoRelacion} className="explorarCancionesEstadistica">
-                            <span className="explorarCancionesEstadisticaValor">{stat.total}</span>
-                            <span className="explorarCancionesEstadisticaEtiqueta">{stat.tipoRelacion}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Barra de búsqueda */}
-            <form className="explorarCancionesBusqueda" onSubmit={handleBuscar}>
-                <CampoTexto
-                    variante="desnudo"
-                    className="explorarCancionesBusquedaCampo"
-                    type="text"
-                    placeholder="Buscar canción o artista..."
-                    value={inputBusqueda}
-                    onChange={(e) => setInputBusqueda(e.target.value as unknown as string)}
-                />
-                <BotonBase type="submit" variante="ghost" tamano="ninguno" style={{ display: 'none' }} aria-hidden="true" />
-            </form>
-
-            {/* Tabs internas */}
-            <div className="explorarCancionesTabs">
-                {TABS_INTERNAS.map((tab) => (
+            {/* Barra de ordenamiento */}
+            <div className="feedCancionesOrdenes">
+                {ORDENES.map((o) => (
                     <BotonBase
-                        key={tab.id}
+                        key={o.id}
                         variante="ghost"
                         tamano="ninguno"
-                        className={`explorarCancionesTab ${tabActiva === tab.id ? 'explorarCancionesTabActiva' : ''}`}
-                        onClick={() => cambiarTab(tab.id)}
+                        className={`feedCancionesOrden ${orden === o.id ? 'feedCancionesOrdenActivo' : ''}`}
+                        onClick={() => cambiarOrden(o.id)}
                     >
-                        {tab.icono} {tab.etiqueta}
+                        {o.icono} {o.etiqueta}
                     </BotonBase>
                 ))}
             </div>
@@ -145,24 +65,15 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
             {/* Contenido */}
             {cargando ? (
                 <SkeletonFeed cantidad={6} />
-            ) : error ? (
-                <div className="explorarCancionesVacio">
-                    <p>{error}</p>
-                </div>
             ) : canciones.length === 0 ? (
-                <div className="explorarCancionesVacio">
+                <div className="feedCancionesVacio">
                     <Music size={40} />
-                    <p>
-                        {tabActiva === 'buscar' && queryBusqueda
-                            ? `Sin resultados para "${queryBusqueda}"`
-                            : 'No hay canciones para mostrar'
-                        }
-                    </p>
+                    <p>No hay canciones para mostrar</p>
                 </div>
             ) : (
-                <div className="explorarCancionesGrid">
+                <div className="feedCancionesLista">
                     {canciones.map((cancion) => (
-                        <TarjetaCancionGrid
+                        <TarjetaCancionFeed
                             key={cancion.id}
                             cancion={cancion}
                             onClick={() => irACancion(cancion.slug)}
@@ -170,6 +81,14 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
                     ))}
                 </div>
             )}
+
+            {/* Centinela de infinite scroll */}
+            <div ref={sentinelaRef} className="feedCancionesSentinela" aria-hidden="true">
+                {cargandoMas && <p className="feedCancionesCargandoMas">Cargando más canciones…</p>}
+                {!hayMas && canciones.length > 0 && (
+                    <p className="feedCancionesFin">No hay más canciones</p>
+                )}
+            </div>
         </div>
     );
 };

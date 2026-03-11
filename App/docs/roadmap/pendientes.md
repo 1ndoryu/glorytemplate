@@ -210,7 +210,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **809** Distribucion seed users: tercer proceso 'seed' integrado en panel 808, ejecuta SeedUsuarios (generarUsuarios + atribuirRelaciones + atribuirSamples) sincrono ✅ [AG-SDC]
 - [x] **810** Quitar "Vincular sample existente" de TablaRelaciones: eliminado de 3 archivos (TablaRelaciones, useMenuCancionDetalle, CancionDetalleIsland) ✅ [AG-SDC]
 - [x] **811** DevAcciones a menu contextual admin-only: "Generar recorte" movido a useMenuRelacionDetalle via OpcionesMenuRelacion, eliminado div devAcciones ✅ [AG-SDC]
-- [ ] **812** Rediseno /musica/: feed vertical con FeedTags (Inteligente/Top/Hot), TarjetaCancionFeed, algoritmo heuristico, scroll infinito
+- [x] **812** Rediseno /musica/: feed vertical con FeedTags (Inteligente/Top/Hot), TarjetaCancionFeed, endpoint /canciones/feed paginado con 3 modos (inteligente heuristico, top_sampleados, hot por likes recientes), useFeedCanciones con IntersectionObserver, CSS actualizado a layout vertical. ✅ [AG-SDC]
 - [x] **813** Mostrar contribuidor en sampleos: LEFT JOIN usuarios_ext en porRelacionId(), NormalizadorCancion retorna contribuidorId/Username, badge en RelacionDetalleIsland ✅ [AG-SDC]
 
 > Lecciones Sprint 806-813:
@@ -221,6 +221,8 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > - [Polling adaptativo]: 5s cuando hay procesos running (feedback rapido), 30s cuando todos stopped (bajo overhead).
 > - [escapeshellarg PID]: Aunque PID es int, siempre escapar con escapeshellarg antes de pasar a exec(). Defensa en profundidad.
 > - [posix_kill guard]: Envolver en function_exists() + fallback `kill -0` para portabilidad Windows/Linux.
+> - [Likes polimorfica]: Tabla likes usa tipo+target_id, NO cancion_id. Siempre verificar LikesCols antes de asumir FK directo.
+> - [Feed inteligente]: Algoritmo heuristico: LN(total_sampleada+1)*3 + freshness*2 + RANDOM()*1.5. No necesita tabla intermedia.
 
 ---
 

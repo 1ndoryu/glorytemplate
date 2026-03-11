@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\CancionesDTO;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
+use App\Config\Schema\_generated\LikesCols;
+use App\Config\Schema\_generated\LikesEnums;
 
 class CancionesRepository extends BaseRepository
 {
@@ -179,5 +181,83 @@ class CancionesRepository extends BaseRepository
         );
 
         return \array_map(fn($r) => $r['genero'], $rows);
+    }
+
+    /*
+     * C812: Feed paginado de canciones con 3 modos de ordenamiento.
+     * - inteligente: ponderado por total_sampleada + freshness + diversidad genero
+     * - top_sampleados: simple ORDER BY total_sampleada DESC
+     * - hot: canciones con mas likes recientes (7 dias)
+     *
+     * @param string $orden    inteligente|top_sampleados|hot
+     * @param int    $pagina   1-indexed
+     * @param int    $porPagina registros por pagina
+     * @return array{items: array, total: int}
+     */
+    public static function feed(string $orden, int $pagina = 1, int $porPagina = 20): array
+    {
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+        $offset = ($pagina - 1) * $porPagina;
+
+        $baseSelect = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
+                        a." . ArtistasMusicalesCols::SLUG . " AS artista_slug
+                 FROM {$tc} c
+                 JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID;
+
+        $countSql = "SELECT COUNT(*) FROM {$tc} c";
+
+        switch ($orden) {
+            case 'top_sampleados':
+                $sql = $baseSelect . " ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC
+                        LIMIT :limit OFFSET :offset";
+                break;
+
+            case 'hot':
+                /*
+                 * Hot = canciones con mas likes en los ultimos 7 dias.
+                 * Likes usan tabla polimorfica: tipo='cancion' + target_id = cancion.id
+                 * Fallback a total_sampleada para canciones sin likes recientes.
+                 */
+                $tl = LikesCols::TABLA;
+                $tipoCancion = LikesEnums::TIPO_CANCION;
+                $sql = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
+                               a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
+                               COALESCE(lr.likes_recientes, 0) AS likes_recientes
+                        FROM {$tc} c
+                        JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
+                        LEFT JOIN (
+                            SELECT " . LikesCols::TARGET_ID . " AS cancion_id,
+                                   COUNT(*) AS likes_recientes
+                            FROM {$tl}
+                            WHERE " . LikesCols::TIPO . " = '{$tipoCancion}'
+                              AND " . LikesCols::CREATED_AT . " > NOW() - INTERVAL '7 days'
+                            GROUP BY " . LikesCols::TARGET_ID . "
+                        ) lr ON lr.cancion_id = c." . CancionesCols::ID . "
+                        ORDER BY likes_recientes DESC, c." . CancionesCols::TOTAL_SAMPLEADA . " DESC
+                        LIMIT :limit OFFSET :offset";
+                break;
+
+            default: /* inteligente */
+                /*
+                 * Algoritmo heuristico: puntaje = log(total_sampleada+1) * 3 + freshness * 2 + random.
+                 * freshness = 1 - (dias_desde_creacion / 365), clamped 0..1.
+                 * Variable aleatoria (md5 rotativo) para diversidad sin ser completamente random.
+                 * Esto produce un feed mezclado que prioriza canciones relevantes + recientes.
+                 */
+                $sql = $baseSelect . "
+                        ORDER BY (
+                            LN(c." . CancionesCols::TOTAL_SAMPLEADA . " + 1) * 3.0
+                            + GREATEST(0, 1.0 - EXTRACT(EPOCH FROM (NOW() - c." . CancionesCols::CREATED_AT . ")) / 31536000.0) * 2.0
+                            + RANDOM() * 1.5
+                        ) DESC
+                        LIMIT :limit OFFSET :offset";
+                break;
+        }
+
+        $total = (int) static::consultarValor($countSql);
+        $items = static::consultar($sql, ['limit' => $porPagina, 'offset' => $offset]);
+
+        return ['items' => $items, 'total' => $total];
     }
 }

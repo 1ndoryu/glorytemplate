@@ -1,57 +1,30 @@
 /*
- * explorarCanciones.css — Kamples
- * Página de exploración de canciones con tabs, búsqueda y grid.
+ * explorarCanciones.css — C812
+ * Feed vertical de canciones con ordenamiento, tarjetas horizontales, infinite scroll.
  */
 
-.explorarCancionesContenedor {
+/* Contenedor principal del feed */
+.feedCancionesContenedor {
     display: flex;
     flex-direction: column;
     gap: var(--espacioMd);
     padding: var(--espacioLg);
-    max-width: 900px;
+    max-width: 700px;
     margin: 0 auto;
 }
 
-/* Barra de búsqueda */
-.explorarCancionesBusqueda {
-    display: flex;
-    gap: var(--espacioSm);
-    align-items: center;
-}
-
-.explorarCancionesBusquedaCampo {
-    flex: 1;
-}
-
-.explorarCancionesBusquedaCampo input {
-    width: 100%;
-    padding: var(--espacioSm) var(--espacioMd);
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteMd);
-    outline: none;
-    transition: border-color var(--transicionNormal);
-}
-
-.explorarCancionesBusquedaCampo input::placeholder {
-    color: var(--textoTerciario);
-}
-
-.explorarCancionesBusquedaCampo input:focus {
-    border-color: var(--acento);
-}
-
-/* Tabs */
-.explorarCancionesTabs {
+/* Barra de modos de ordenamiento */
+.feedCancionesOrdenes {
     display: flex;
     gap: var(--espacioSm);
     border-bottom: 1px solid var(--bordeSutil);
     padding-bottom: var(--espacioSm);
 }
 
-.explorarCancionesTab {
+.feedCancionesOrden {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
     padding: var(--espacioSm) var(--espacioMd);
     background: none;
     border: none;
@@ -65,66 +38,83 @@
     border-radius: unset;
 }
 
-.explorarCancionesTab:hover {
+.feedCancionesOrden:hover {
     color: var(--textoPrimario);
 }
 
-.explorarCancionesTabActiva {
+.feedCancionesOrdenActivo {
     color: var(--acento);
     border-bottom-color: var(--acento);
     font-weight: var(--pesoSemibold);
 }
 
-/* Grid de canciones */
-.explorarCancionesGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--espacioMd);
-}
-
-/* Tarjeta de canción en grid */
-.tarjetaCancion {
+/* Lista vertical de tarjetas */
+.feedCancionesLista {
     display: flex;
     flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Tarjeta horizontal de cancion */
+.tarjetaCancionFeed {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioSm);
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    overflow: hidden;
     cursor: pointer;
     transition:
         background var(--transicionNormal),
-        border-color var(--transicionNormal),
-        transform var(--transicionRapida);
+        border-color var(--transicionNormal);
 }
 
-.tarjetaCancion:hover {
+.tarjetaCancionFeed:hover {
     background: var(--fondoElevado2);
     border-color: var(--bordeSutil);
-    transform: translateY(-2px);
 }
 
-.tarjetaCancionImagen {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: var(--fondoElevado2);
+.tarjetaCancionFeed:focus-visible {
+    outline: 2px solid var(--acento);
+    outline-offset: 2px;
+}
+
+/* Imagen cuadrada a la izquierda */
+.tarjetaCancionFeedImagen {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    border-radius: var(--radioSm);
     overflow: hidden;
+    background: var(--fondoElevado2);
 }
 
-.tarjetaCancionImagen img {
+.tarjetaCancionFeedImagen img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-.tarjetaCancionCuerpo {
+.tarjetaCancionFeedImagenPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Info textual a la derecha */
+.tarjetaCancionFeedInfo {
     display: flex;
     flex-direction: column;
     gap: calc(var(--espacioXs) / 2);
-    padding: var(--espacioSm) var(--espacioMd);
+    min-width: 0;
+    flex: 1;
 }
 
-.tarjetaCancionTitulo {
+.tarjetaCancionFeedTitulo {
     margin: 0;
     font-size: var(--fuenteMd);
     font-weight: var(--pesoSemibold);
@@ -134,7 +124,7 @@
     text-overflow: ellipsis;
 }
 
-.tarjetaCancionArtista {
+.tarjetaCancionFeedArtista {
     margin: 0;
     font-size: var(--fuenteSm);
     color: var(--textoSecundario);
@@ -143,43 +133,42 @@
     text-overflow: ellipsis;
 }
 
-.tarjetaCancionAnio {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-.tarjetaCancionBadges {
+.tarjetaCancionFeedMeta {
     display: flex;
     flex-wrap: wrap;
     gap: calc(var(--espacioXs) / 2);
-    padding: 0 var(--espacioMd) var(--espacioSm);
 }
 
-/* Estadísticas resumen */
-.explorarCancionesEstadisticas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espacioMd);
+/* Sentinela de infinite scroll */
+.feedCancionesSentinela {
+    min-height: 1px;
+    text-align: center;
+}
+
+.feedCancionesCargandoMas {
     padding: var(--espacioMd);
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
 }
 
-.explorarCancionesEstadistica {
+.feedCancionesFin {
+    padding: var(--espacioMd);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+/* Estado vacio */
+.feedCancionesVacio {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--espacioXs) / 4);
     align-items: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioXl);
+    color: var(--textoTerciario);
+    text-align: center;
 }
 
-.explorarCancionesEstadisticaValor {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoBold);
-    color: var(--textoPrimario);
-}
-
-/* Panel de herramientas de desarrollo */
+/* Panel de herramientas de desarrollo (se mantiene para admins) */
 .panelDevCanciones {
     border: 1px dashed var(--error);
     border-radius: var(--radioMd);
@@ -253,29 +242,19 @@
     max-width: 100%;
 }
 
-.explorarCancionesEstadisticaEtiqueta {
-    font-size: var(--fuenteXs);
-    color: var(--textoTerciario);
-}
-
-/* Vacío y cargando */
-.explorarCancionesVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--espacioMd);
-    padding: var(--espacioXl);
-    color: var(--textoTerciario);
-    text-align: center;
-}
-
+/* Responsive */
 @media (max-width: 480px) {
-    .explorarCancionesGrid {
-        grid-template-columns: 1fr 1fr;
-        gap: var(--espacioSm);
+    .feedCancionesContenedor {
+        padding: var(--espacioMd);
     }
 
-    .explorarCancionesTabs {
+    .feedCancionesOrdenes {
         overflow-x: auto;
+    }
+
+    .tarjetaCancionFeedImagen {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
     }
 }

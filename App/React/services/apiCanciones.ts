@@ -94,6 +94,23 @@ export const obtenerCadenaSamples = (
 ): Promise<RespuestaApi<CadenaSamplesResp>> =>
     apiGet<CadenaSamplesResp>(`/canciones/${encodeURIComponent(slug)}/cadena`, { profundidad });
 
+/* C812: Feed paginado de canciones con ordenamiento */
+export type OrdenFeedCanciones = 'inteligente' | 'top_sampleados' | 'hot';
+
+export interface RespuestaFeedCanciones {
+    ok: boolean;
+    data: Cancion[];
+    total: number;
+    page: number;
+}
+
+export const feedCanciones = (
+    orden: OrdenFeedCanciones = 'inteligente',
+    pagina = 1,
+    porPagina = 20
+): Promise<RespuestaApi<Cancion[]>> =>
+    apiGet<Cancion[]>('/canciones/feed', { orden, page: pagina, per_page: porPagina });
+
 /* ── Endpoints de desarrollo (solo disponibles con WP_DEBUG = true) ── */
 
 interface RespuestaPurga {

@@ -67,6 +67,23 @@ class CancionesController
             ],
         ]);
 
+        /* C812: Feed paginado con ordenamiento inteligente/top/hot */
+        \register_rest_route($namespace, '/canciones/feed', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'feed'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'orden'    => [
+                    'type'              => 'string',
+                    'default'           => 'inteligente',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'validate_callback' => static fn($v) => \in_array($v, ['inteligente', 'top_sampleados', 'hot'], true),
+                ],
+                'page'     => ['type' => 'integer', 'default' => 1, 'minimum' => 1],
+                'per_page' => ['type' => 'integer', 'default' => 20, 'minimum' => 1, 'maximum' => 50],
+            ],
+        ]);
+
         \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'detalle'],
@@ -249,6 +266,30 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::topSampleadas] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/feed — Feed paginado con 3 modos de ordenamiento (C812).
+     */
+    public static function feed(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $orden   = (string) $request->get_param('orden');
+            $pagina  = (int) $request->get_param('page');
+            $porPag  = (int) $request->get_param('per_page');
+
+            $resultado = CancionesRepository::feed($orden, $pagina, $porPag);
+
+            return new \WP_REST_Response([
+                'ok'    => true,
+                'data'  => \array_map([NormalizadorCancion::class, 'cancion'], $resultado['items']),
+                'total' => $resultado['total'],
+                'page'  => $pagina,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::feed] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
