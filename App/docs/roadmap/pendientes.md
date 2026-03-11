@@ -210,7 +210,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **809** Distribucion seed users: tercer proceso 'seed' integrado en panel 808, ejecuta SeedUsuarios (generarUsuarios + atribuirRelaciones + atribuirSamples) sincrono ✅ [AG-SDC]
 - [x] **810** Quitar "Vincular sample existente" de TablaRelaciones: eliminado de 3 archivos (TablaRelaciones, useMenuCancionDetalle, CancionDetalleIsland) ✅ [AG-SDC]
 - [x] **811** DevAcciones a menu contextual admin-only: "Generar recorte" movido a useMenuRelacionDetalle via OpcionesMenuRelacion, eliminado div devAcciones ✅ [AG-SDC]
-- [x] **812** Rediseno /musica/: feed vertical con TopBar tabs (Inteligente/Top Sampleados/Hot), TarjetaCancionFeed con like button + 3-dot menu + sampleos count, endpoint /canciones/feed con liked status per-user (subquery correlacionada), useFeedCanciones con like optimista + rollback, eliminado PanelDevCanciones (migrado a 808), eliminado useExplorarCanciones (dead code). ✅ [AG-SDC]
+- [x] **812** Rediseno /musica/: feed vertical con TopBar tabs (Inteligente/Top Sampleados/Hot), TarjetaCancionFeed con like button + 3-dot menu + sampleos count, endpoint /canciones/feed con liked status per-user (subquery correlacionada), useFeedCanciones con like optimista + rollback, eliminado PanelDevCanciones (migrado a 808), eliminado useExplorarCanciones (dead code). Busqueda: ExplorarCancionesIsland conectado a filtrosStore.busqueda, useFeedCanciones soporta modo busqueda (buscarCanciones server-side) vs modo feed con infinite scroll. ✅ [AG-SDC] [AG-DAW]
 - [x] **813** Mostrar contribuidor en sampleos: LEFT JOIN usuarios_ext en porRelacionId(), NormalizadorCancion retorna contribuidorId/Username, badge en RelacionDetalleIsland ✅ [AG-SDC]
 
 > Lecciones Sprint 806-813:
@@ -218,6 +218,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > - [useState refactor]: Patron formulario unico con actualizar() generico reduce 9 useState a 2, cumpliendo regla max 3.
 > - [OpcionesMenuRelacion]: Interfaz para pasar contexto admin/callbacks a hook de menu sin acoplar.
 > - [Lock files vs DB]: Para process tracking, archivos .lock JSON en App/logs/ evitan migración BD y se integran con logs existentes.
+> - [Busqueda canciones 2 modos]: useFeedCanciones acepta busqueda opcional. Cuando es non-empty: llama buscarCanciones (server-side), deshabilita infinite scroll. Cuando vacío: feed normal. ExplorarCancionesIsland lee filtrosStore.busqueda via selector. Mensaje vacio dinamico muestra la query buscada.
 > - [Liked canciones]: Patron subquery correlacionada (reaccion_usuario) replica NormalizadorSample. Feed publico pero incluye liked si hay sesion activa. UsuarioHelper::obtenerIdPg() retorna null si no autenticado.
 > - [TopBar tabs como ordering]: Los ids de las tabs coinciden con los valores del tipo OrdenFeedCanciones. Se valida con Set para defensa contra ids inesperados.
 > - [PanelDevCanciones eliminado]: Funcionalidad migrada a TabProcesosAdmin (808). Borrar componente + CSS asociado al desacoplar.
