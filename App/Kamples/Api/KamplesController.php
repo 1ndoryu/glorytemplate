@@ -37,6 +37,7 @@ use App\Kamples\Api\Controladores\CancionesController;
 use App\Kamples\Api\Controladores\ContribucionesController;
 use App\Kamples\Api\Controladores\ReporteLegalController;
 use App\Kamples\Api\Controladores\DevController;
+use App\Kamples\Api\Controladores\ProcesosFondoController;
 
 class KamplesController
 {
@@ -84,6 +85,7 @@ class KamplesController
         CancionesController::registrarRutas($ns);
         ContribucionesController::registrarRutas($ns);
         ReporteLegalController::registrarRutas($ns);
+        ProcesosFondoController::registrarRutas($ns);
         DevController::registrarRutas($ns);
     }
 }

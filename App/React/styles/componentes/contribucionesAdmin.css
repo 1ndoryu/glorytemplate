@@ -1,0 +1,131 @@
+/*
+ * Estilos: Tab Contribuciones Admin — C807
+ * Lista de contribuciones pendientes con acciones de moderación.
+ */
+
+/* Contenedor principal */
+.tabContribuciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Barra superior */
+.contribBarraSuperior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.contribResumen {
+    display: flex;
+    align-items: baseline;
+    gap: var(--espacioSm);
+}
+
+.contribResumenNumero {
+    font-size: var(--fuente2xl);
+    font-weight: 700;
+    color: var(--acento);
+    line-height: 1;
+}
+
+.contribResumenLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+/* Error */
+.contribError {
+    background: var(--errorMuted);
+    color: var(--error);
+    border: 1px solid var(--error);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd);
+    font-size: var(--fuenteSm);
+}
+
+/* Cargando */
+.contribCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacio2xl) 0;
+}
+
+/* Lista de filas */
+.contribLista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* Fila individual */
+.contribFila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--espacioLg);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd) var(--espacioLg);
+}
+
+.contribFilaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    min-width: 0;
+    flex: 1;
+}
+
+.contribFilaCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-wrap: wrap;
+}
+
+.contribFilaUsuario {
+    font-size: var(--fuenteSm);
+    color: var(--acento);
+    font-weight: var(--pesoSemibold);
+}
+
+.contribFilaFecha {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.contribFilaDescripcion {
+    font-size: var(--fuenteMd);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contribFilaElemento {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+/* Acciones */
+.contribFilaAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    flex-shrink: 0;
+}
+
+/* Paginación */
+.contribPaginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.contribPaginaInfo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}

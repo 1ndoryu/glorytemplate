@@ -1,8 +1,10 @@
 /*
  * Isla: AdminPanelIsland — Kamples (FASE 13)
- * Panel de administración principal con tabs: Resumen, Usuarios, Moderación, Cola IA, Duplicados.
+ * Panel de administración principal con tabs: Resumen, Usuarios, Moderación, Cola IA, Duplicados, Procesos.
  * D4: Tabs migradas al TopBar global via useTabsIsla (consistencia con otras islas).
  * D5: Tab Duplicados para moderación de samples duplicados.
+ * C808: Tab Procesos para gestión de procesos de fondo (scraping, extraccion, seed).
+ * C807: Tab Contribuciones para moderación de contribuciones comunitarias.
  * Protegido por conAutenticacion + guard rol admin.
  */
 
@@ -13,6 +15,8 @@ import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
 import { TabColaIaAdmin } from '@app/components/admin/TabColaIaAdmin';
 import { TabDuplicadosAdmin } from '@app/components/admin/TabDuplicadosAdmin';
+import { TabProcesosAdmin } from '@app/components/admin/TabProcesosAdmin';
+import { TabContribucionesAdmin } from '@app/components/admin/TabContribucionesAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
@@ -26,6 +30,8 @@ const TABS_ADMIN = [
     { id: 'moderacion', etiqueta: 'Moderación' },
     { id: 'cola-ia', etiqueta: 'Cola IA' },
     { id: 'duplicados', etiqueta: 'Duplicados' },
+    { id: 'procesos', etiqueta: 'Procesos' },
+    { id: 'contribuciones', etiqueta: 'Contribuciones' },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -97,6 +103,14 @@ const AdminPanelBase = (): JSX.Element => {
 
             {admin.tabActiva === 'duplicados' && (
                 <TabDuplicadosAdmin />
+            )}
+
+            {admin.tabActiva === 'procesos' && (
+                <TabProcesosAdmin />
+            )}
+
+            {admin.tabActiva === 'contribuciones' && (
+                <TabContribucionesAdmin />
             )}
         </div>
     );

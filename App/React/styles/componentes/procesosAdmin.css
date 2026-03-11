@@ -1,0 +1,151 @@
+/*
+ * Estilos: Tab Procesos Admin — C808
+ * Grid de cards de procesos de fondo con log tail y acciones.
+ */
+
+/* Contenedor principal */
+.tabProcesos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Barra superior */
+.procesosBarraSuperior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.procesosTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+/* Error global */
+.procesosError {
+    background: var(--errorMuted);
+    color: var(--error);
+    border: 1px solid var(--error);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd);
+    font-size: var(--fuenteSm);
+}
+
+/* Cargando */
+.procesosCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacio2xl) 0;
+}
+
+/* Grid de cards */
+.procesosGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--espacioLg);
+}
+
+/* Card individual */
+.procesoCard {
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+    transition: border-color var(--transicionRapida);
+}
+
+.procesoCardActivo {
+    border-color: var(--exito);
+}
+
+/* Cabecera de card */
+.procesoCardCabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.procesoCardTitulo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+/* Metadata */
+.procesoCardMeta {
+    display: flex;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.procesoCardMetaItem {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+/* Error inline */
+.procesoCardError {
+    background: var(--errorMuted);
+    color: var(--error);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+}
+
+/* Resultado (seed) */
+.procesoCardResultado {
+    display: flex;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+/* Log tail */
+.procesoCardLog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.procesoCardLogCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.procesoCardLogContenido {
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioMd);
+    font-family: var(--fuenteMono);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    max-height: 160px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    scrollbar-width: thin;
+}
+
+/* Acciones */
+.procesoCardAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    margin-top: auto;
+}

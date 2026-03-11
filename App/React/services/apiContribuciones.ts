@@ -95,3 +95,34 @@ export const proponerEliminacion = (
         relacion_id: relacionId,
         razon,
     });
+
+/* ── Admin: gestión de contribuciones pendientes (C807) ── */
+
+/* Tipo extendido con joins de admin */
+export interface ContribucionAdmin extends ContribucionResumen {
+    contribuidorUsername: string;
+    cancionDestinoSlug?: string;
+    cancionFuenteSlug?: string;
+}
+
+/* Listar contribuciones pendientes (admin) */
+export const listarContribucionesAdmin = (
+    pagina = 1,
+    porPagina = 20
+): Promise<RespuestaApi<{ ok: boolean; items: ContribucionAdmin[]; total: number }>> =>
+    apiGet<{ ok: boolean; items: ContribucionAdmin[]; total: number }>(
+        '/admin/contribuciones',
+        { page: pagina, limit: porPagina }
+    );
+
+/* Moderar contribucion: aprobar o rechazar (admin) */
+export const moderarContribucionAdmin = (
+    id: number,
+    accion: 'aprobada' | 'rechazada',
+    nota?: string
+): Promise<RespuestaApi<{ ok: boolean }>> =>
+    apiPost<{ ok: boolean }>('/admin/contribuciones/moderar', {
+        id,
+        accion,
+        nota: nota ?? '',
+    });

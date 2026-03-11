@@ -143,6 +143,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 
 359. Componente centralizado estados vacios/carga (coherencia visual).
 360. Al eliminar sample propio, restar crédito.
+361. ✅ [AG-FIX] Fix llamada a método indefinido `buscarPorTexto` a `buscarTexto` en ContribucionesController. La búsqueda fallaba porque el método renombrado en `CancionesRepository` no se había actualizado en el controlador.
 
 ### C800-C801 — Verificacion y correccion samples extraidos [AG-COR]
 
@@ -198,6 +199,24 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > - [apiCliente]: Existe `apiPut` pero NO `apiPatch`. Usar PUT para updates idempotentes.
 > - [BotonBase]: BuscadorCanciones tenia 3 botones nativos. Sentinel los detecta. Siempre usar BotonBase variante="ghost" tamano="ninguno" para botones de icono.
 > - [TO-DO]: BuscadorCanciones necesita extraccion de logica a useBuscadorCanciones.ts (4 useState + debounce + click-fuera).
+
+### Sprint 806-813 — Sample Discovery UX + Admin Processes [AG-SDC]
+
+> Plan detallado en `App/docs/plan-sample-discovery.md`
+
+- [x] **806.1** Timings obligatorios en contribuciones: campos timing_fuente/timing_destino en modal, parseo m:ss, almacenamiento en cambios_propuestos JSONB, extraccion en aprobar(). Refactor useContribucion de 9 useState a 2 (formulario + estado). Backend duplicados ya detectados (409). ✅ [AG-SDC]
+- [ ] **807** Panel admin moderacion contribuciones (= L6.4c): isla admin con tabla paginada, acciones aprobar/rechazar
+- [ ] **808** Panel procesos de fondo (CRITICO): gestionar scraping/extraccion/seed desde admin con polling, locks, log tail
+- [ ] **809** Distribucion seed users: tercer proceso en panel 808, batch redistribucion con SeedUsuarios existente
+- [x] **810** Quitar "Vincular sample existente" de TablaRelaciones: eliminado de 3 archivos (TablaRelaciones, useMenuCancionDetalle, CancionDetalleIsland) ✅ [AG-SDC]
+- [x] **811** DevAcciones a menu contextual admin-only: "Generar recorte" movido a useMenuRelacionDetalle via OpcionesMenuRelacion, eliminado div devAcciones ✅ [AG-SDC]
+- [ ] **812** Rediseno /musica/: feed vertical con FeedTags (Inteligente/Top/Hot), TarjetaCancionFeed, algoritmo heuristico, scroll infinito
+- [x] **813** Mostrar contribuidor en sampleos: LEFT JOIN usuarios_ext en porRelacionId(), NormalizadorCancion retorna contribuidorId/Username, badge en RelacionDetalleIsland ✅ [AG-SDC]
+
+> Lecciones Sprint 806-813:
+> - [cambios_propuestos JSONB]: Columna existente reutilizada para transportar timings a traves del pipeline contribucion→aprobacion sin migracion BD.
+> - [useState refactor]: Patron formulario unico con actualizar() generico reduce 9 useState a 2, cumpliendo regla max 3.
+> - [OpcionesMenuRelacion]: Interfaz para pasar contexto admin/callbacks a hook de menu sin acoplar.
 
 ---
 
