@@ -182,11 +182,23 @@
     gap: var(--espacioSm);
 }
 
-/* Accion de subir sample vinculado a esta relacion (C802c) */
-.relacionDetalleSamplesAccion {
+/* Contenedor de acciones en la cabecera (like + menu 3 puntos) */
+.relacionDetalleCabeceraAcciones {
     display: flex;
-    justify-content: flex-end;
-    padding: var(--espacioXs) 0;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+/* Boton 3 puntos para menu contextual en la cabecera */
+.relacionDetalleMenuBtn {
+    color: var(--textoSecundario);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs);
+    transition: color 0.15s;
+}
+
+.relacionDetalleMenuBtn:hover {
+    color: var(--acento);
 }
 
 /* Botón toggle de comentarios */

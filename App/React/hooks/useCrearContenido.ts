@@ -186,7 +186,15 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                     esPremium,
                     precio: esPremium ? parseFloat(precio) || undefined : undefined,
                     mostrarEnComunidad,
-                    relacionSampleoId: useCrearModalStore.getState().relacionSampleoId ?? undefined,
+                    ...(() => {
+                        const ctx = useCrearModalStore.getState().contextoAdjuntar;
+                        if (!ctx) return {};
+                        return {
+                            cancionOrigenId: ctx.cancionOrigenId,
+                            relacionId: ctx.relacionId,
+                            ladoRelacion: ctx.ladoRelacion,
+                        };
+                    })(),
                 });
                 if (!resp.ok) {
                     setErrorSubida(resp.error ?? 'Error al subir el sample');

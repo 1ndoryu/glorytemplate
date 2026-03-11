@@ -8,10 +8,11 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { AlertCircle, Scissors, Upload } from 'lucide-react';
+import { AlertCircle, Scissors, MoreVertical } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
@@ -21,10 +22,10 @@ import { Skeleton } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useRelacionDetalle } from '@app/hooks/useRelacionDetalle';
 import { useComentarios } from '@app/hooks/useComentarios';
+import { useMenuRelacionDetalle } from '@app/hooks/useMenuRelacionDetalle';
 import { useNavigationStore } from '@/core/router';
 import { useDevAccionesRelacion } from '@app/hooks/useDevAccionesRelacion';
 import { useAuthStore } from '@app/stores/authStore';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { obtenerSamplesDeRelacion } from '@app/services/apiSamples';
 import {
     ETIQUETAS_TIPO_RELACION,
@@ -64,17 +65,16 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
     /* Proveedor de samples vinculados a esta relación (sample_fuente_id / sample_destino_id) */
     const proveedorSamplesRelacion = useCallback(
         (_pagina: number) =>
-            obtenerSamplesDeRelacion(relacionId).then((r) => (r.ok && r.data ? r.data : [])),
+            obtenerSamplesDeRelacion(relacionId)
+                .then((r) => (r.ok && r.data ? r.data : []))
+                .catch(() => []),
         [relacionId]
     );
 
     const esAdmin = useAuthStore((s) => s.usuario?.rol === 'admin');
     const autenticado = useAuthStore((s) => s.autenticado);
     const devAcciones = useDevAccionesRelacion(relacionId);
-
-    const manejarSubirSample = useCallback(() => {
-        useCrearModalStore.getState().abrir(undefined, false, relacionId > 0 ? relacionId : null);
-    }, [relacionId]);
+    const menuCtx = useMenuRelacionDetalle(relacion, autenticado);
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => {
@@ -167,13 +167,26 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     {relacion.verificada && <Badge variante="exito" tamano="sm">Verificada</Badge>}
                     {relacion.apareceEnTodo && <Badge variante="neutro" tamano="sm">En toda la canción</Badge>}
                 </div>
-                <BotonLike
-                    tipo="relacion"
-                    targetId={relacion.id}
-                    liked={relacion.liked}
-                    reaccion={relacion.reaccion as 'like' | 'encanta' | 'dislike' | null}
-                    totalLikes={relacion.totalLikes}
-                />
+                <div className="relacionDetalleCabeceraAcciones">
+                    <BotonLike
+                        tipo="relacion"
+                        targetId={relacion.id}
+                        liked={relacion.liked}
+                        reaccion={relacion.reaccion as 'like' | 'encanta' | 'dislike' | null}
+                        totalLikes={relacion.totalLikes}
+                    />
+                    {autenticado && (
+                        <BotonBase
+                            variante="ghost"
+                            tamano="ninguno"
+                            className="relacionDetalleMenuBtn"
+                            onClick={menuCtx.abrirMenu}
+                            aria-label="Acciones"
+                        >
+                            <MoreVertical size={20} />
+                        </BotonBase>
+                    )}
+                </div>
                 {esAdmin && (
                     <div className="relacionDetalleDevAcciones">
                         <BotonBase
@@ -227,18 +240,6 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
             </div>
 
             {/* Samples publicados generados desde esta relación */}
-            {autenticado && (
-                <div className="relacionDetalleSamplesAccion">
-                    <BotonBase
-                        variante="secundario"
-                        tamano="sm"
-                        onClick={manejarSubirSample}
-                    >
-                        <Upload size={14} />
-                        Subir sample de este sampleo
-                    </BotonBase>
-                </div>
-            )}
             <FeedSamples
                 proveedor={proveedorSamplesRelacion}
                 claveCache={`relacion-samples-${relacionId}`}
@@ -314,6 +315,16 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     />
                 )}
             </div>
+
+            {/* Menu contextual 3 puntos */}
+            <MenuContextual
+                abierto={menuCtx.menuAbierto}
+                onCerrar={menuCtx.cerrarMenu}
+                items={menuCtx.items}
+                x={menuCtx.menuPos.x}
+                y={menuCtx.menuPos.y}
+                alinearDerecha
+            />
         </div>
     );
 };

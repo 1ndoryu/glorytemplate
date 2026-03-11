@@ -108,8 +108,10 @@ export interface DatosSubida {
     precio?: number;
     /* C220: Toggle visibilidad en comunidad */
     mostrarEnComunidad?: boolean;
-    /* C802c: Vinculacion opcional a una relacion de sampleo especifica */
-    relacionSampleoId?: number | null;
+    /* C802c: Contexto de adjuncion a cancion/relacion de sampleo */
+    cancionOrigenId?: number;
+    relacionId?: number;
+    ladoRelacion?: 'fuente' | 'destino';
 }
 
 /*
@@ -133,8 +135,12 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     if (datos.precio != null && datos.precio > 0) {
         formData.append('precio', String(datos.precio));
     }
-    if (datos.relacionSampleoId != null && datos.relacionSampleoId > 0) {
-        formData.append('relacion_sampleo_id', String(datos.relacionSampleoId));
+    if (datos.cancionOrigenId) {
+        formData.append('cancion_origen_id', String(datos.cancionOrigenId));
+    }
+    if (datos.relacionId && datos.ladoRelacion) {
+        formData.append('relacion_id', String(datos.relacionId));
+        formData.append('lado_relacion', datos.ladoRelacion);
     }
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);

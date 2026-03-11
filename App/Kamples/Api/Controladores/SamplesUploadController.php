@@ -26,7 +26,9 @@ use App\Helpers\JsonHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Config\Schema\_generated\PublicacionesEnums;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 
 class SamplesUploadController
 {
@@ -167,10 +169,20 @@ class SamplesUploadController
             return new \WP_REST_Response(['ok' => false, 'error' => 'Precio fuera de rango válido (0-9999)'], 400);
         }
         /* C802c: ID de relacion de sampleo al que se adjunta este sample (opcional) */
-        $relacionSampleoIdRaw = $request->get_param('relacion_sampleo_id');
-        $relacionSampleoId = $relacionSampleoIdRaw !== null ? (int) $relacionSampleoIdRaw : null;
-        if ($relacionSampleoId !== null && $relacionSampleoId <= 0) {
-            $relacionSampleoId = null;
+        $relacionIdRaw = $request->get_param('relacion_id');
+        $relacionId = $relacionIdRaw !== null ? (int) $relacionIdRaw : null;
+        if ($relacionId !== null && $relacionId <= 0) {
+            $relacionId = null;
+        }
+        $ladoRelacion = $request->get_param('lado_relacion');
+        $ladosValidos = ['fuente', 'destino'];
+        if ($ladoRelacion !== null && !\in_array($ladoRelacion, $ladosValidos, true)) {
+            $ladoRelacion = null;
+        }
+        $cancionOrigenIdRaw = $request->get_param('cancion_origen_id');
+        $cancionOrigenId = $cancionOrigenIdRaw !== null ? (int) $cancionOrigenIdRaw : null;
+        if ($cancionOrigenId !== null && $cancionOrigenId <= 0) {
+            $cancionOrigenId = null;
         }
 
         if (\count($tags) < 2) {
@@ -207,7 +219,6 @@ class SamplesUploadController
                     'descarga' => $permitirDescarga ? 'true' : 'false',
                     'licencia' => $licenciaLibre ? 'true' : 'false',
                     'comunidad' => $mostrarEnComunidad ? 'true' : 'false',
-                    'relacionSampleoId' => $relacionSampleoId,
             ]);
         } catch (\Exception $e) {
             KamplesLogger::error('Error al insertar sample en Postgres', ['error' => $e->getMessage()]);
@@ -260,6 +271,44 @@ class SamplesUploadController
                 ]);
             } catch (\Throwable $e) {
                 KamplesLogger::warning('No se pudo guardar origen_subida en metadata', ['error' => $e->getMessage()]);
+            }
+        }
+
+        /* C802c: Vincular sample a cancion origen si se especifico (replica PublicadorExtraccion) */
+        if ($sampleId && $cancionOrigenId) {
+            try {
+                SamplesRepository::actualizarCampos($sampleId, [
+                    SamplesCols::CANCION_ORIGEN_ID . " = :cancion_id",
+                ], ['cancion_id' => $cancionOrigenId]);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('No se pudo vincular cancion_origen_id', [
+                    'sampleId' => $sampleId, 'cancionOrigenId' => $cancionOrigenId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        /* C802c: Vincular sample a relacion de sampleo (sample_fuente_id / sample_destino_id) */
+        if ($sampleId && $relacionId && $ladoRelacion) {
+            try {
+                $colVinculo = $ladoRelacion === 'fuente'
+                    ? RelacionesSampleCols::SAMPLE_FUENTE_ID
+                    : RelacionesSampleCols::SAMPLE_DESTINO_ID;
+
+                RelacionesSampleRepository::actualizarPorId($relacionId, [
+                    $colVinculo => $sampleId,
+                ]);
+
+                SamplesRepository::agregarMetadata($sampleId, [
+                    'relacion_id' => $relacionId,
+                    'lado_extraccion' => $ladoRelacion,
+                    'adjuncion_manual' => true,
+                ]);
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Error al vincular sample a relacion de sampleo', [
+                    'sampleId' => $sampleId, 'relacionId' => $relacionId,
+                    'lado' => $ladoRelacion, 'error' => $e->getMessage(),
+                ]);
             }
         }
 

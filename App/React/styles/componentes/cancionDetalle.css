@@ -26,6 +26,22 @@
     display: flex;
     gap: var(--espacioLg);
     align-items: flex-start;
+    position: relative;
+}
+
+/* Boton 3 puntos para menu contextual de acciones */
+.cancionDetalleMenuBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--textoSecundario);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs);
+    transition: color 0.15s;
+}
+
+.cancionDetalleMenuBtn:hover {
+    color: var(--acento);
 }
 
 .cancionDetallePortada {

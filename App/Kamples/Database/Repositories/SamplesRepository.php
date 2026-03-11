@@ -871,14 +871,6 @@ class SamplesRepository extends BaseRepository
     {
         $ts = SamplesCols::TABLA;
 
-        /* Columna relacion_sampleo_id es opcional — se incluye solo si viene en datos */
-        $columnaRelacion = isset($datos['relacionSampleoId']) && $datos['relacionSampleoId'] !== null
-            ? ", " . SamplesCols::RELACION_SAMPLEO_ID
-            : '';
-        $valorRelacion = isset($datos['relacionSampleoId']) && $datos['relacionSampleoId'] !== null
-            ? ", :relacionSampleoId"
-            : '';
-
         $row = static::consultarUno(
             "INSERT INTO {$ts} (" . SamplesCols::CREADOR_ID . ", " . SamplesCols::TITULO . ", "
             . SamplesCols::SLUG . ", " . SamplesCols::ID_CORTO . ", " . SamplesCols::DESCRIPCION . ", "
@@ -886,9 +878,9 @@ class SamplesRepository extends BaseRepository
             . SamplesCols::ESTADO . ", " . SamplesCols::ES_PREMIUM . ", " . SamplesCols::PRECIO . ", "
             . SamplesCols::TAGS . ", " . SamplesCols::PERMITIR_DESCARGA . ", " . SamplesCols::LICENCIA_LIBRE
             . ", " . SamplesCols::MOSTRAR_EN_COMUNIDAD . ", " . SamplesCols::PUBLICADO_AT . ", "
-            . SamplesCols::CREATED_AT . ", " . SamplesCols::UPDATED_AT . $columnaRelacion . ")"
+            . SamplesCols::CREATED_AT . ", " . SamplesCols::UPDATED_AT . ")"
             . " VALUES (:creadorId, :titulo, :slug, :idCorto, :descripcion, :formato, :tamano,"
-            . " :rutaOriginal, '" . SamplesEnums::ESTADO_PROCESANDO . "', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW()" . $valorRelacion . ")"
+            . " :rutaOriginal, '" . SamplesEnums::ESTADO_PROCESANDO . "', :esPremium, :precio, :tags, :descarga, :licencia, :comunidad, NOW(), NOW(), NOW())"
             . " RETURNING " . SamplesCols::ID,
             $datos
         );
