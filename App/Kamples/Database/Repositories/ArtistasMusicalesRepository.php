@@ -41,7 +41,7 @@ class ArtistasMusicalesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-                /**
+                        /**
      * Buscar artista por slug de WhoSampled (dedup en scraping).
      */
     public static function buscarPorSlugWhosampled(string $slug): ?array

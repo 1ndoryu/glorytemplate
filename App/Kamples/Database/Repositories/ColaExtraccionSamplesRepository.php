@@ -42,7 +42,7 @@ class ColaExtraccionSamplesRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-            /**
+                        /**
      * Obtener elementos pendientes de la cola (para el pipeline de extracción).
      */
     public static function pendientes(int $limit = 10): array

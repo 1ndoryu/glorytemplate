@@ -32,26 +32,6 @@
 .tablaRelacionesColElemento { width: 130px; }
 .tablaRelacionesColTiming   { width: 76px; }
 
-/* L6.2d: Columna de acciones comunitarias */
-.tablaRelacionesColAcciones {
-    width: 120px;
-    text-align: right;
-}
-
-.tablaRelacionesAccion {
-    font-size: 0.72rem;
-    opacity: 0;
-    transition: opacity var(--transicionNormal);
-}
-
-.tablaRelacionesFila:hover .tablaRelacionesAccion {
-    opacity: 1;
-}
-
-.tablaRelacionesAccionReportar {
-    color: var(--textoTerciario);
-}
-
 /* Filas */
 .tablaRelacionesFila {
     cursor: pointer;

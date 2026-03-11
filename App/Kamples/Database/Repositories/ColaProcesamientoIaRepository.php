@@ -42,7 +42,7 @@ class ColaProcesamientoIaRepository extends BaseRepository
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
-            
+                        
 
         
 
