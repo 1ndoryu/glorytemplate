@@ -166,6 +166,9 @@ class NormalizadorCancion
             'destino_genero'       => $row['destino_genero'] ?? null,
             'destino_artista'      => $row['destino_artista'] ?? null,
             'destino_artistaSlug'  => $row['destino_artista_slug'] ?? null,
+            /* Contribuidor que propuso la relacion */
+            'contribuidorId'       => isset($row['contribuidor_id']) ? (int) $row['contribuidor_id'] : null,
+            'contribuidorUsername' => $row['contribuidor_username'] ?? null,
         ];
     }
 

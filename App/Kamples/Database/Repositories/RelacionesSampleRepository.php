@@ -16,6 +16,7 @@ use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\RelacionesSampleDTO;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
+use App\Config\Schema\_generated\UsuariosExtCols;
 
 class RelacionesSampleRepository extends BaseRepository
 {
@@ -184,6 +185,7 @@ class RelacionesSampleRepository extends BaseRepository
         $tr = RelacionesSampleCols::TABLA;
         $tc = CancionesCols::TABLA;
         $ta = ArtistasMusicalesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
 
         return static::consultarUno(
             "SELECT r.*,
@@ -206,12 +208,14 @@ class RelacionesSampleRepository extends BaseRepository
                     cd." . CancionesCols::ALBUM . " AS destino_album,
                     cd." . CancionesCols::GENERO . " AS destino_genero,
                     ad." . ArtistasMusicalesCols::NOMBRE . " AS destino_artista,
-                    ad." . ArtistasMusicalesCols::SLUG . " AS destino_artista_slug
+                    ad." . ArtistasMusicalesCols::SLUG . " AS destino_artista_slug,
+                    u." . UsuariosExtCols::USERNAME . " AS contribuidor_username
              FROM {$tr} r
              JOIN {$tc} cf ON r." . RelacionesSampleCols::CANCION_FUENTE_ID . " = cf.id
              JOIN {$ta} af ON cf.artista_id = af.id
              JOIN {$tc} cd ON r." . RelacionesSampleCols::CANCION_DESTINO_ID . " = cd.id
              JOIN {$ta} ad ON cd.artista_id = ad.id
+             LEFT JOIN {$tu} u ON r." . RelacionesSampleCols::CONTRIBUIDOR_ID . " = u." . UsuariosExtCols::ID . "
              WHERE r." . RelacionesSampleCols::ID . " = :id",
             ['id' => $id]
         );

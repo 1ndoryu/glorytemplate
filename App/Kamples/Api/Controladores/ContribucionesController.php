@@ -67,6 +67,8 @@ class ContribucionesController
                     'default' => ContribucionesPendientesEnums::TIPO_ELEMENTO_MULTIPLE_ELEMENTS,
                     'validate_callback' => static fn($v) => \in_array($v, ContribucionesPendientesEnums::TODOS_TIPO_ELEMENTO, true),
                 ],
+                'timing_fuente'  => ['type' => 'integer', 'default' => null, 'minimum' => 0],
+                'timing_destino' => ['type' => 'integer', 'default' => null, 'minimum' => 0],
             ],
         ]);
 
@@ -245,6 +247,17 @@ class ContribucionesController
                 }
             }
 
+            /* Construir cambios_propuestos con timings si se proporcionan */
+            $cambiosPropuestos = null;
+            $timingFuente  = $request->get_param('timing_fuente');
+            $timingDestino = $request->get_param('timing_destino');
+            if ($timingFuente !== null || $timingDestino !== null) {
+                $datos = [];
+                if ($timingFuente !== null)  $datos['timings_fuente']  = [(int) $timingFuente];
+                if ($timingDestino !== null) $datos['timings_destino'] = [(int) $timingDestino];
+                $cambiosPropuestos = \wp_json_encode($datos);
+            }
+
             $id = ContribucionesPendientesRepository::crear([
                 'contribuidor_id'          => $kamId,
                 'cancion_destino_id'       => $destinoId ? (int) $destinoId : null,
@@ -255,6 +268,7 @@ class ContribucionesController
                 'cancion_nueva_lado'       => $request->get_param('cancion_nueva_lado'),
                 'tipo_relacion'            => $request->get_param('tipo_relacion'),
                 'tipo_elemento'            => $request->get_param('tipo_elemento'),
+                'cambios_propuestos'       => $cambiosPropuestos,
             ]);
 
             if (!$id) {

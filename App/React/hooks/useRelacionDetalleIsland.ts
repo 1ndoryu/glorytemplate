@@ -50,7 +50,11 @@ export const useRelacionDetalleIsland = (idEfectivo?: string) => {
     const esAdmin = useAuthStore((s) => s.usuario?.rol === 'admin');
     const autenticado = useAuthStore((s) => s.autenticado);
     const devAcciones = useDevAccionesRelacion(relacionId);
-    const menuCtx = useMenuRelacionDetalle(relacion, autenticado);
+    const menuCtx = useMenuRelacionDetalle(relacion, autenticado, {
+        esAdmin: !!esAdmin,
+        onGenerarRecorte: devAcciones.manejarGenerarRecorte,
+        recorteCargando: devAcciones.recorteCargando,
+    });
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => {

@@ -7,7 +7,7 @@
  * Tarjeta de lado extraida a LadoCancionRelacion (SRP).
  */
 
-import { AlertCircle, Scissors, MoreVertical } from 'lucide-react';
+import { AlertCircle, MoreVertical } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
@@ -34,7 +34,7 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
         relacion, cargando, error, irACancion, irAArtista, navegar,
         comentariosVisibles, manejarToggleComentarios, seccionComentarios,
         proveedorSamplesRelacion, relacionId,
-        esAdmin, autenticado, devAcciones, menuCtx,
+        autenticado, menuCtx,
         embedDestino, embedFuente,
     } = useRelacionDetalleIsland(id ?? slug);
 
@@ -81,6 +81,9 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                     )}
                     {relacion.verificada && <Badge variante="exito" tamano="sm">Verificada</Badge>}
                     {relacion.apareceEnTodo && <Badge variante="neutro" tamano="sm">En toda la cancion</Badge>}
+                    {relacion.contribuidorUsername && (
+                        <Badge variante="neutro" tamano="sm">Contribuido por {relacion.contribuidorUsername}</Badge>
+                    )}
                 </div>
                 <div className="relacionDetalleCabeceraAcciones">
                     <BotonLike
@@ -96,15 +99,6 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                         </BotonBase>
                     )}
                 </div>
-                {esAdmin && (
-                    <div className="relacionDetalleDevAcciones">
-                        <BotonBase variante="ghost" tamano="sm" onClick={devAcciones.manejarGenerarRecorte} disabled={devAcciones.recorteCargando}>
-                            <Scissors size={14} />
-                            {devAcciones.recorteCargando ? 'Generando...' : 'Generar recorte'}
-                        </BotonBase>
-                        {devAcciones.recorteMensaje && <span className="relacionDetalleDevMsg">{devAcciones.recorteMensaje}</span>}
-                    </div>
-                )}
             </div>
 
             {/* Grid: destino (samplea) → fuente (sampleada) */}

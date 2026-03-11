@@ -13,7 +13,6 @@ import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { CadenaSamples } from '@app/components/samples/CadenaSamples';
 import { ModalContribucion } from '@app/components/samples/ModalContribucion';
 import { ModalEdicionRelacion } from '@app/components/samples/ModalEdicionRelacion';
-import { ModalVincularSampleExistente } from '@app/components/samples/ModalVincularSampleExistente';
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
@@ -215,7 +214,6 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         direccion="destino"
                         onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
                         onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
-                        onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
                         onVerificar={menuCtx.manejarVerificarRelacion}
                     />
                 </SeccionRelaciones>
@@ -228,7 +226,6 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         direccion="origen"
                         onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
                         onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
-                        onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
                         onVerificar={menuCtx.manejarVerificarRelacion}
                     />
                 </SeccionRelaciones>
@@ -273,16 +270,6 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                 modoEliminacion={menuCtx.modoEliminacion}
                 onCerrar={menuCtx.cerrarEdicionRelacion}
             />
-
-            {/* Modal para vincular un sample ya publicado a una relacion */}
-            {menuCtx.vincularRelacionId !== null && (
-                <ModalVincularSampleExistente
-                    abierto
-                    relacionId={menuCtx.vincularRelacionId}
-                    onCerrar={menuCtx.cerrarVincularSample}
-                    onExito={menuCtx.cerrarVincularSample}
-                />
-            )}
         </div>
     );
 };

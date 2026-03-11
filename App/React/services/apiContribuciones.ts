@@ -16,6 +16,8 @@ export interface DatosContribucion {
     cancion_nueva_artista?: string;
     cancion_nueva_youtube_url?: string;
     cancion_nueva_lado?: 'destino' | 'fuente';
+    timing_fuente?: number;
+    timing_destino?: number;
 }
 
 export interface ContribucionResumen {

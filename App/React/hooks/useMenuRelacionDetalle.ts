@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { Upload, Link2, Flag } from 'lucide-react';
+import { Upload, Link2, Flag, Scissors } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { RelacionDetalleCompleta } from '@app/types/cancion';
 import { useCrearModalStore } from '@app/stores/crearModalStore';
@@ -22,9 +22,16 @@ interface RetornoMenuRelacion {
     cerrarVincular: () => void;
 }
 
+interface OpcionesMenuRelacion {
+    esAdmin: boolean;
+    onGenerarRecorte?: () => Promise<void>;
+    recorteCargando?: boolean;
+}
+
 export const useMenuRelacionDetalle = (
     relacion: RelacionDetalleCompleta | null,
-    autenticado: boolean
+    autenticado: boolean,
+    opciones: OpcionesMenuRelacion = { esAdmin: false }
 ): RetornoMenuRelacion => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -50,6 +57,13 @@ export const useMenuRelacionDetalle = (
         if (!relacion || !autenticado) return [];
 
         return [
+            ...(opciones.esAdmin && opciones.onGenerarRecorte ? [{
+                id: 'generar-recorte',
+                etiqueta: opciones.recorteCargando ? 'Generando...' : 'Generar recorte',
+                icono: React.createElement(Scissors, { size: 14 }),
+                separadorDespues: true,
+                onClick: () => { opciones.onGenerarRecorte!(); },
+            }] : []),
             {
                 id: 'adjuntar-sample',
                 etiqueta: 'Adjuntar sample manual',
@@ -87,7 +101,7 @@ export const useMenuRelacionDetalle = (
                 },
             },
         ];
-    }, [relacion, autenticado]);
+    }, [relacion, autenticado, opciones.esAdmin, opciones.onGenerarRecorte, opciones.recorteCargando]);
 
     return { menuAbierto, menuPos, items, abrirMenu, cerrarMenu, vincularAbierto, cerrarVincular };
 };

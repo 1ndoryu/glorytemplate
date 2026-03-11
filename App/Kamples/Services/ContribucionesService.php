@@ -68,8 +68,8 @@ class ContribucionesService
                 return ['ok' => false, 'error' => 'Faltan referencias de canciones para crear la relacion.'];
             }
 
-            /* Insertar relacion */
-            $relacionId = RelacionesSampleRepository::insertarRegistro([
+            /* Insertar relacion con timings de cambios_propuestos si existen */
+            $datosRelacion = [
                 RelacionesSampleCols::CANCION_DESTINO_ID => (int) $destinoId,
                 RelacionesSampleCols::CANCION_FUENTE_ID  => (int) $fuenteId,
                 RelacionesSampleCols::TIPO_RELACION      => $tipoRelacion,
@@ -77,7 +77,24 @@ class ContribucionesService
                 RelacionesSampleCols::FUENTE             => RelacionesSampleEnums::FUENTE_COMUNIDAD,
                 RelacionesSampleCols::CONTRIBUIDOR_ID    => $contribuidorId,
                 RelacionesSampleCols::VERIFICADA         => false,
-            ]);
+            ];
+
+            $cambiosRaw = $contribucion[ContribucionesPendientesCols::CAMBIOS_PROPUESTOS] ?? null;
+            if ($cambiosRaw) {
+                $cambios = \is_string($cambiosRaw) ? \json_decode($cambiosRaw, true) : $cambiosRaw;
+                if (\is_array($cambios)) {
+                    if (isset($cambios['timings_fuente']) && \is_array($cambios['timings_fuente'])) {
+                        $tf = \array_filter(\array_map('intval', $cambios['timings_fuente']), fn($v) => $v >= 0);
+                        if ($tf) $datosRelacion[RelacionesSampleCols::TIMINGS_FUENTE] = '{' . \implode(',', $tf) . '}';
+                    }
+                    if (isset($cambios['timings_destino']) && \is_array($cambios['timings_destino'])) {
+                        $td = \array_filter(\array_map('intval', $cambios['timings_destino']), fn($v) => $v >= 0);
+                        if ($td) $datosRelacion[RelacionesSampleCols::TIMINGS_DESTINO] = '{' . \implode(',', $td) . '}';
+                    }
+                }
+            }
+
+            $relacionId = RelacionesSampleRepository::insertarRegistro($datosRelacion);
 
             if (!$relacionId) {
                 return ['ok' => false, 'error' => 'No se pudo insertar la relacion.'];

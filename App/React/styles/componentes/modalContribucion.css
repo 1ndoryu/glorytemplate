@@ -147,6 +147,12 @@
     padding: var(--espacioXs) 0;
 }
 
+.modalContribucionTimings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioMd);
+}
+
 .modalContribucionExito {
     text-align: center;
     padding: var(--espacio2xl) var(--espacioLg);

@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useCallback } from 'react';
-import { Music, MoreVertical, Edit3, Trash2, Link2, ShieldCheck, ShieldOff } from 'lucide-react';
+import { Music, MoreVertical, Edit3, Trash2, ShieldCheck, ShieldOff } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -37,7 +37,6 @@ interface TablaRelacionesProps {
     /* Callbacks opcionales para editar/reportar relacion (L6.2 wiring) */
     onEditar?: (relacion: RelacionParaEditar) => void;
     onEliminar?: (relacion: RelacionParaEditar) => void;
-    onVincularSample?: (relacionId: number) => void;
     /* Callback admin-only para verificar/desverificar relacion */
     onVerificar?: (relacionId: number, verificada: boolean) => void;
 }
@@ -65,9 +64,9 @@ interface EstadoMenuFila {
     relId: number;
 }
 
-export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar, onEliminar, onVincularSample, onVerificar }: TablaRelacionesProps): JSX.Element => {
+export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar, onEliminar, onVerificar }: TablaRelacionesProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
-    const hayAcciones = !!onEditar || !!onEliminar || !!onVincularSample || !!onVerificar;
+    const hayAcciones = !!onEditar || !!onEliminar || !!onVerificar;
     const [menuFila, setMenuFila] = useState<EstadoMenuFila>({ abierto: false, x: 0, y: 0, relId: -1 });
     const relacionMenuActual = useRef<RelacionSample | null>(null);
 
@@ -195,14 +194,6 @@ export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar,
                 y={menuFila.y}
                 alinearDerecha
                 items={[
-                    ...(onVincularSample ? [{
-                        id: 'vincular-sample',
-                        etiqueta: 'Vincular sample existente',
-                        icono: <Link2 size={14} />,
-                        onClick: () => {
-                            if (relacionMenuActual.current) onVincularSample(relacionMenuActual.current.id);
-                        },
-                    }] : []),
                     ...(onVerificar && relacionMenuActual.current ? [{
                         id: 'verificar',
                         etiqueta: relacionMenuActual.current.verificada ? 'Desverificar sampleo' : 'Verificar sampleo',

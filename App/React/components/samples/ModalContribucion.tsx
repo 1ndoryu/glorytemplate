@@ -45,6 +45,8 @@ export function ModalContribucion({
         nuevoArtista,
         nuevoYoutubeUrl,
         agregarNueva,
+        timingFuente,
+        timingDestino,
         estado,
         setModo,
         setTipoRelacion,
@@ -54,6 +56,8 @@ export function ModalContribucion({
         setNuevoArtista,
         setNuevoYoutubeUrl,
         setAgregarNueva,
+        setTimingFuente,
+        setTimingDestino,
         enviar,
         resetear,
     } = useContribucion();
@@ -204,6 +208,32 @@ export function ModalContribucion({
                         onChange={(v) => setTipoElemento(v as TipoElemento)}
                         opciones={Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta }))}
                     />
+
+                    {/* Timings: momento exacto del sample en cada cancion */}
+                    <div className="modalContribucionTimings">
+                        <CampoTexto
+                            etiqueta={modo === 'esta_samplea'
+                                ? 'Timing en la cancion actual (destino)'
+                                : 'Timing en la cancion actual (fuente)'}
+                            value={modo === 'esta_samplea' ? timingDestino : timingFuente}
+                            onChange={(e) => modo === 'esta_samplea'
+                                ? setTimingDestino(e.target.value)
+                                : setTimingFuente(e.target.value)}
+                            placeholder="ej: 1:23"
+                            required
+                        />
+                        <CampoTexto
+                            etiqueta={modo === 'esta_samplea'
+                                ? 'Timing en la cancion fuente (original)'
+                                : 'Timing en la cancion que la sampleo'}
+                            value={modo === 'esta_samplea' ? timingFuente : timingDestino}
+                            onChange={(e) => modo === 'esta_samplea'
+                                ? setTimingFuente(e.target.value)
+                                : setTimingDestino(e.target.value)}
+                            placeholder="ej: 0:45"
+                            required
+                        />
+                    </div>
 
                     {estado.error && (
                         <p className="modalContribucionError">{estado.error}</p>

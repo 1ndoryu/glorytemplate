@@ -157,6 +157,9 @@ export interface RelacionDetalleCompleta {
     fuenteSampleadaEn?: RelacionSample[];
     /* Lado del que se extrajo el sample (solo en respuesta de relacionPorSampleId) */
     ladoExtraccion?: 'fuente' | 'destino' | null;
+    /* Contribuidor que propuso la relacion (seed o comunidad) */
+    contribuidorId?: number | null;
+    contribuidorUsername?: string | null;
 }
 
 /* Detalle de artista con canciones, relaciones y estadísticas */

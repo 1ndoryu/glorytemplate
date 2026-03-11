@@ -30,10 +30,6 @@ interface RetornoMenuCancionDetalle {
     cerrarEdicionRelacion: () => void;
     abrirEdicionRelacion: (rel: RelacionParaEditar) => void;
     abrirEliminacionRelacion: (rel: RelacionParaEditar) => void;
-    /* Modal vincular sample existente */
-    vincularRelacionId: number | null;
-    abrirVincularSample: (relacionId: number) => void;
-    cerrarVincularSample: () => void;
     /* Verificar/desverificar relacion — admin only */
     manejarVerificarRelacion: ((relacionId: number, verificada: boolean) => void) | undefined;
 }
@@ -47,7 +43,6 @@ export const useMenuCancionDetalle = (
     const [contribucionAbierta, setContribucionAbierta] = useState(false);
     const [relacionEditando, setRelacionEditando] = useState<RelacionParaEditar | null>(null);
     const [modoEliminacion, setModoEliminacion] = useState(false);
-    const [vincularRelacionId, setVincularRelacionId] = useState<number | null>(null);
 
     const abrirMenu = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -59,8 +54,6 @@ export const useMenuCancionDetalle = (
     const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
     const cerrarContribucion = useCallback(() => setContribucionAbierta(false), []);
     const cerrarEdicionRelacion = useCallback(() => setRelacionEditando(null), []);
-    const abrirVincularSample = useCallback((relacionId: number) => setVincularRelacionId(relacionId), []);
-    const cerrarVincularSample = useCallback(() => setVincularRelacionId(null), []);
 
     const esAdmin = useAuthStore(s => s.usuario?.rol === 'admin');
 
@@ -119,9 +112,6 @@ export const useMenuCancionDetalle = (
         cerrarEdicionRelacion,
         abrirEdicionRelacion,
         abrirEliminacionRelacion,
-        vincularRelacionId,
-        abrirVincularSample,
-        cerrarVincularSample,
         manejarVerificarRelacion: esAdmin ? manejarVerificarRelacion : undefined,
     };
 };
