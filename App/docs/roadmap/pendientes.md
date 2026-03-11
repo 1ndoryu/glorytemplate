@@ -157,7 +157,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > Completado: migracion v033, seed users (SeedUsuarios + SeedConfig + DevController endpoints), ContribucionesService + ContribucionesController, ReporteLegalController (POST /reportar-legal sin auth + GET /admin/reportes/legales), frontend completo (BuscadorCanciones, ModalContribucion, BotonReporteLegal, ModalReporteLegal, useContribucion, useReporteLegal, apiContribuciones, apiReporteLegal), TarjetaRelacionSample con contrib display, fix descripciones auto-generadas, endpoint retroactivo sincronizar-descripciones.
 
 **Pendiente C802 (siguiente iteracion):**
-- [ ] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones)
+- [x] **C802a** Panel admin moderar contribuciones (island admin — TabContribuciones) ✅ [AG-SDC] (= C807)
 - [ ] **C802b** Integrar BuscadorCanciones en modal publicacion/edicion sample (L5.5)
 - [x] **C802c** Menus contextuales 3-puntos para adjuncion de samples (L5.6) [AG-ADJ] — CancionDetalleIsland (menu: "Subir sample de esta cancion") + RelacionDetalleIsland (menu: "Adjuntar sample manual"). L7.1: selector de lado ahora DENTRO del modal (ModalCrear muestra SelectorLado cuando relacionId presente pero sin ladoRelacion). crearModalStore con ContextoAdjuntar + LadoOpcion + seleccionarLado(), useMenuRelacionDetalle hook extraido.
 - [x] **C802d** Edicion de contribuciones pendientes por el propio usuario (L6.1) [AG-L6C]
@@ -171,7 +171,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [x] **L6.2** Ediciones comunitarias: ModalEdicionRelacion + useEdicionRelacion, botones en TablaRelaciones/TarjetaRelacionSample, wired en CancionDetalleIsland [AG-L6C]
 - [x] **L6.3** Eliminacion de samples por autor: soft-delete (marcarEliminado) + admin hard-delete (eliminarConCascada) [AG-L6C]
 - [x] **L6.4** Admin CRUD completo: PUT/DELETE /admin/contribuciones/{id} y /admin/relaciones/{id} [AG-L6C]
-- [ ] **L6.4c** Panel admin moderar contribuciones (componente isla admin, misma tarea que C802a)
+- [x] **L6.4c** Panel admin moderar contribuciones (componente isla admin, misma tarea que C802a) ✅ [AG-SDC]
 
 ### C802-L7 — Adjuncion Manual Completa + Edicion de Media (Gaps identificados)
 
@@ -205,9 +205,9 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > Plan detallado en `App/docs/plan-sample-discovery.md`
 
 - [x] **806.1** Timings obligatorios en contribuciones: campos timing_fuente/timing_destino en modal, parseo m:ss, almacenamiento en cambios_propuestos JSONB, extraccion en aprobar(). Refactor useContribucion de 9 useState a 2 (formulario + estado). Backend duplicados ya detectados (409). ✅ [AG-SDC]
-- [ ] **807** Panel admin moderacion contribuciones (= L6.4c): isla admin con tabla paginada, acciones aprobar/rechazar
-- [ ] **808** Panel procesos de fondo (CRITICO): gestionar scraping/extraccion/seed desde admin con polling, locks, log tail
-- [ ] **809** Distribucion seed users: tercer proceso en panel 808, batch redistribucion con SeedUsuarios existente
+- [x] **807** Panel admin moderacion contribuciones (= L6.4c): TabContribucionesAdmin con lista paginada, aprobar/rechazar, useTabContribuciones polling 30s, apiContribuciones admin functions. Wired en AdminPanelIsland tab 'contribuciones'. ✅ [AG-SDC]
+- [x] **808** Panel procesos de fondo: GestorProcesosFondo (lock files + PID tracking), ProcesosFondoController (4 endpoints REST), TabProcesosAdmin con cards por proceso, useTabProcesos polling adaptativo (5s running/30s stopped), apiProcesos service. Wired en AdminPanelIsland tab 'procesos'. ✅ [AG-SDC]
+- [x] **809** Distribucion seed users: tercer proceso 'seed' integrado en panel 808, ejecuta SeedUsuarios (generarUsuarios + atribuirRelaciones + atribuirSamples) sincrono ✅ [AG-SDC]
 - [x] **810** Quitar "Vincular sample existente" de TablaRelaciones: eliminado de 3 archivos (TablaRelaciones, useMenuCancionDetalle, CancionDetalleIsland) ✅ [AG-SDC]
 - [x] **811** DevAcciones a menu contextual admin-only: "Generar recorte" movido a useMenuRelacionDetalle via OpcionesMenuRelacion, eliminado div devAcciones ✅ [AG-SDC]
 - [ ] **812** Rediseno /musica/: feed vertical con FeedTags (Inteligente/Top/Hot), TarjetaCancionFeed, algoritmo heuristico, scroll infinito
@@ -217,6 +217,10 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 > - [cambios_propuestos JSONB]: Columna existente reutilizada para transportar timings a traves del pipeline contribucion→aprobacion sin migracion BD.
 > - [useState refactor]: Patron formulario unico con actualizar() generico reduce 9 useState a 2, cumpliendo regla max 3.
 > - [OpcionesMenuRelacion]: Interfaz para pasar contexto admin/callbacks a hook de menu sin acoplar.
+> - [Lock files vs DB]: Para process tracking, archivos .lock JSON en App/logs/ evitan migración BD y se integran con logs existentes.
+> - [Polling adaptativo]: 5s cuando hay procesos running (feedback rapido), 30s cuando todos stopped (bajo overhead).
+> - [escapeshellarg PID]: Aunque PID es int, siempre escapar con escapeshellarg antes de pasar a exec(). Defensa en profundidad.
+> - [posix_kill guard]: Envolver en function_exists() + fallback `kill -0` para portabilidad Windows/Linux.
 
 ---
 
