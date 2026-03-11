@@ -83,7 +83,7 @@ export interface IColaExtraccionSamples {
   lado: 'fuente' | 'destino'
   spotifyId: string | null
   rutaAudioExtraido: string | null
-  metadataExtraccion: unknown | null
+  metadataExtraccion: Record<string, unknown> | null
 }
 
 export interface IColaProcesamientoIa {
@@ -372,11 +372,11 @@ export interface ISuscripciones {
 }
 
 export interface ISyncChangelog {
-  id: unknown
+  id: number
   usuarioId: number
   tipo: 'sample_added' | 'sample_removed' | 'sample_updated' | 'collection_created' | 'collection_renamed' | 'collection_deleted'
   entidadId: number
-  metadata: unknown
+  metadata: Record<string, unknown>
   createdAt: string
 }
 

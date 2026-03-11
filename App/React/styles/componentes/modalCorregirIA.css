@@ -1,0 +1,130 @@
+/*
+ * modalCorregirIA.css — Kamples (C800)
+ * Estilos del modal de correccion de metadata generada por IA.
+ */
+
+.corregirIAContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.corregirIACabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.corregirIAIcono {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+.corregirIATitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.corregirIADescripcion {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Metadata actual como referencia visual */
+.corregirIAMetadataActual {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.corregirIASubtitulo {
+    font-size: var(--fuenteXs);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.corregirIACampos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacioXs) var(--espacioMd);
+}
+
+.corregirIACampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xs);
+}
+
+.corregirIACampoLabel {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.corregirIACampoValor {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    word-break: break-word;
+}
+
+/* Input de instrucciones */
+.corregirIAGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.corregirIALabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoSemibold);
+}
+
+.corregirIATextarea {
+    width: 100%;
+    min-height: 100px;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color var(--transicionRapida);
+}
+
+.corregirIATextarea:focus {
+    outline: none;
+    border-color: var(--acento);
+}
+
+.corregirIATextarea::placeholder {
+    color: var(--textoTerciario);
+}
+
+.corregirIATextarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.corregirIAContador {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .corregirIACampos {
+        grid-template-columns: 1fr;
+    }
+}

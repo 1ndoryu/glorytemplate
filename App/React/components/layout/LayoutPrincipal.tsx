@@ -17,6 +17,7 @@ import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalEditar } from '../social/ModalEditar';
+import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
@@ -146,8 +147,11 @@ export const LayoutPrincipal = ({
             {/* Modal de configuración de perfil */}
             <ModalConfiguracion />
 
-            {/* C126: Modal de edición unificado (samples/publicaciones/colecciones) */}
+            {/* C126: Modal de edicion unificado (samples/publicaciones/colecciones) */}
             <ModalEditar />
+
+            {/* C800: Modal de correccion de metadata IA */}
+            <ModalCorregirIA />
 
             {/* Modal de planes (overlay, sin cambiar de isla) */}
             <PlanesIsland />

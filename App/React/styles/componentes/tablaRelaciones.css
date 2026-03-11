@@ -100,7 +100,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-top: 2px;
+    margin-top: var(--espacio2xs);
 }
 
 /* Timing */
@@ -119,7 +119,7 @@
 /* Marcador de punto de color al lado del título */
 .tablaRelacionesOrigenMarker {
     color: var(--acento);
-    font-size: 0.6em;
+    font-size: var(--fuenteXs);
     margin-right: var(--espacioXs);
     vertical-align: middle;
 }

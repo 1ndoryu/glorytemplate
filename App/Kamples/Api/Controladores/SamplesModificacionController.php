@@ -1,5 +1,5 @@
 <?php
-/* sentinel-disable-file limite-lineas — controlador update/delete cohesivo, apenas sobre limite (309/300) */
+/* sentinel-disable-file limite-lineas — controlador update/delete cohesivo, sobre limite por C800 corregir-ia */
 
 /**
  * SamplesModificacionController — Actualizar y eliminar samples.
@@ -18,12 +18,14 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\ServicioIA;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Helpers\JsonHelper;
 
 class SamplesModificacionController
 {
@@ -57,6 +59,13 @@ class SamplesModificacionController
             'methods'             => 'POST',
             'callback'            => [self::class, 'subirImagen'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* C800: Corregir metadata IA de un sample (admin only) */
+        \register_rest_route($namespace, '/samples/(?P<id>\d+)/corregir-ia', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'corregirIA'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAdmin'],
         ]);
     }
 
@@ -416,6 +425,154 @@ class SamplesModificacionController
                 'contexto' => $contexto,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * C800: POST /samples/{id}/corregir-ia — Corregir metadata IA.
+     * Solo admin. Recibe instrucciones de correccion, llama a ServicioIA::corregirMetadata()
+     * y actualiza el sample con la metadata corregida.
+     */
+    public static function corregirIA(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $sampleId = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $instrucciones = \sanitize_textarea_field($body['instrucciones'] ?? '');
+
+            if (\strlen($instrucciones) < 5 || \strlen($instrucciones) > 1000) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'mensaje' => 'Las instrucciones deben tener entre 5 y 1000 caracteres',
+                ], 400);
+            }
+
+            /* Obtener sample actual con toda su metadata */
+            $sample = SamplesRepository::buscarPorId($sampleId);
+            if (!$sample) {
+                return new \WP_REST_Response(['ok' => false, 'mensaje' => 'Sample no encontrado'], 404);
+            }
+
+            /* Decodificar metadata actual */
+            $metadataActual = JsonHelper::decodeOrDefault($sample[SamplesCols::METADATA] ?? '{}', []);
+            $titulo = $sample[SamplesCols::TITULO] ?? '';
+
+            $contextoTecnico = [
+                'bpm' => $sample[SamplesCols::BPM] ?? null,
+                'key' => $sample[SamplesCols::KEY] ?? null,
+                'escala' => $sample[SamplesCols::ESCALA] ?? null,
+            ];
+
+            /* Llamar a ServicioIA para correccion */
+            $metadataCorregida = ServicioIA::corregirMetadata($metadataActual, $titulo, $instrucciones, $contextoTecnico);
+
+            if ($metadataCorregida === null) {
+                return new \WP_REST_Response([
+                    'ok' => false,
+                    'mensaje' => 'Error al procesar la correccion con IA. Intenta de nuevo.',
+                ], 502);
+            }
+
+            /* Preservar campos que no genera la IA (youtube_id, relacion_id, confianza, etc.) */
+            $camposPreservados = ['youtube_id', 'lado_extraccion', 'relacion_id', 'bpm_confianza', 'key_confianza'];
+            foreach ($camposPreservados as $campo) {
+                if (isset($metadataActual[$campo])) {
+                    $metadataCorregida[$campo] = $metadataActual[$campo];
+                }
+            }
+            $metadataCorregida['corregido_at'] = \date('Y-m-d H:i:s');
+            $metadataCorregida['corregido_instrucciones'] = $instrucciones;
+
+            /* Construir actualizaciones al sample */
+            $setClauses = [];
+            $params = ['id' => $sampleId];
+            $cambios = [];
+
+            /* Metadata JSONB */
+            $metaJson = \json_encode($metadataCorregida, JSON_UNESCAPED_UNICODE);
+            if ($metaJson === false || \json_last_error() !== JSON_ERROR_NONE) {
+                return new \WP_REST_Response(['ok' => false, 'mensaje' => 'Error serializando metadata'], 500);
+            }
+            $setClauses[] = SamplesCols::METADATA . ' = :metadata::jsonb';
+            $params['metadata'] = $metaJson;
+            $cambios['metadata'] = true;
+
+            /* Tipo */
+            $tipoRaw = \strtolower(\str_replace([' ', '-'], '', $metadataCorregida['tipo'] ?? ''));
+            $tiposValidos = [SamplesEnums::TIPO_LOOP, SamplesEnums::TIPO_ONESHOT];
+            $tipoNuevo = \in_array($tipoRaw, $tiposValidos, true) ? $tipoRaw : SamplesEnums::TIPO_ONESHOT;
+            $setClauses[] = SamplesCols::TIPO . ' = :tipo';
+            $params['tipo'] = $tipoNuevo;
+            $cambios['tipo'] = $tipoNuevo;
+
+            /* Titulo y slug desde nombre_archivo_base corregido */
+            if (!empty($metadataCorregida['nombre_archivo_base'])) {
+                $tituloCorregido = \ucwords($metadataCorregida['nombre_archivo_base']);
+                $bpm = $sample[SamplesCols::BPM] ?? null;
+                $key = $sample[SamplesCols::KEY] ?? null;
+                $escala = $sample[SamplesCols::ESCALA] ?? null;
+
+                if ($bpm) {
+                    $tituloCorregido .= ' ' . $bpm . 'bpm';
+                }
+                if ($key) {
+                    $keyStr = $key;
+                    if ($escala === 'menor') {
+                        $keyStr .= 'm';
+                    }
+                    $tituloCorregido .= ' ' . $keyStr;
+                }
+
+                $idCorto = $sample[SamplesCols::ID_CORTO] ?? \substr(\md5((string) $sampleId), 0, 7);
+                $slugNuevo = \sanitize_title($tituloCorregido) . '-' . $idCorto;
+
+                $setClauses[] = SamplesCols::TITULO . ' = :titulo';
+                $params['titulo'] = $tituloCorregido;
+                $cambios['titulo'] = $tituloCorregido;
+
+                $setClauses[] = SamplesCols::SLUG . ' = :slug';
+                $params['slug'] = $slugNuevo;
+                $cambios['slug'] = $slugNuevo;
+            }
+
+            /* Tags: usar tags_es si existen, sino tags */
+            $tagsNuevos = $metadataCorregida['tags_es'] ?? $metadataCorregida['tags'] ?? null;
+            if (\is_array($tagsNuevos) && !empty($tagsNuevos)) {
+                $tagsNuevos = NormalizadorSample::normalizarTags($tagsNuevos);
+                $setClauses[] = SamplesCols::TAGS . ' = :tags';
+                $params['tags'] = NormalizadorSample::phpArrayToPg($tagsNuevos);
+                $cambios['tags'] = $tagsNuevos;
+            }
+
+            /* Descripcion */
+            $descNueva = $metadataCorregida['descripcion_es'] ?? $metadataCorregida['descripcion'] ?? null;
+            if ($descNueva && \is_string($descNueva)) {
+                $setClauses[] = SamplesCols::DESCRIPCION . ' = :descripcion';
+                $params['descripcion'] = \sanitize_textarea_field($descNueva);
+                $cambios['descripcion'] = $descNueva;
+            }
+
+            $setClauses[] = SamplesCols::UPDATED_AT . " = NOW()";
+
+            /* Ejecutar UPDATE */
+            $tabla = SamplesCols::TABLA;
+            $sql = "UPDATE {$tabla} SET " . \implode(', ', $setClauses) . " WHERE " . SamplesCols::ID . " = :id";
+            SamplesRepository::ejecutar($sql, $params);
+
+            KamplesLogger::info('[C800] Metadata IA corregida', [
+                'sampleId' => $sampleId,
+                'instrucciones' => \mb_substr($instrucciones, 0, 100),
+                'campos' => \array_keys($cambios),
+            ]);
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'mensaje' => 'Metadata corregida correctamente',
+                'cambios' => $cambios,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SamplesModificacionController::corregirIA error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'mensaje' => 'Error interno del servidor'], 500);
         }
     }
 }

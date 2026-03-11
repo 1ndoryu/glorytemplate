@@ -4,7 +4,7 @@
  * Conecta directamente con la API real, sin fallback a mock.
  */
 
-import { apiGet, apiPostFormData, apiDelete, apiPut } from './apiCliente';
+import { apiGet, apiPost, apiPostFormData, apiDelete, apiPut } from './apiCliente';
 import type { RespuestaApi } from './apiCliente';
 import type { SampleResumen, Sample } from '../types';
 import type { CategoriaTag } from './tagUtils';
@@ -214,3 +214,19 @@ export const obtenerMisFavoritos = async (page = 1, perPage = 20): Promise<Respu
 export const obtenerMisDescargas = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
     return apiGet<RespuestaListaSamples>('/me/descargas', { page, per_page: perPage });
 };
+
+/*
+ * C800: Corregir metadata IA de un sample extraído del pipeline.
+ * El usuario admin envía instrucciones de corrección y el backend re-procesa.
+ */
+export interface RespuestaCorreccionIA {
+    ok: boolean;
+    mensaje: string;
+    cambios?: Record<string, unknown>;
+}
+
+export const corregirMetadataIA = (
+    sampleId: number,
+    instrucciones: string
+): Promise<RespuestaApi<RespuestaCorreccionIA>> =>
+    apiPost<RespuestaCorreccionIA>(`/samples/${sampleId}/corregir-ia`, { instrucciones });

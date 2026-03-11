@@ -1,5 +1,5 @@
 /*
- * Hook: useMenuContextualSample — Kamples (Fase 2.9)
+ * Hook: useMenuContextualSample — Kamples (Fase 2.9 + C800 + C801)
  * Gestiona la apertura, posición y acciones del menú contextual en samples.
  * Reutilizable en cualquier lista que muestre TarjetaSample.
  */
@@ -13,6 +13,7 @@ import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
+import { useCorregirIAStore } from '@app/stores/corregirIAStore';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { descargarSample } from '@app/services/apiDescargas';
 import { toast } from '@app/stores/toastStore';
@@ -54,6 +55,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const abrirColeccionPicker = useColeccionPickerStore(s => s.abrir);
     const usuario = useAuthStore(s => s.usuario);
     const abrirEditarSample = useEditarModalStore(s => s.abrirSample);
+    const abrirCorregirIA = useCorregirIAStore(s => s.abrir);
 
     /* El usuario puede editar/eliminar si es propietario del sample o admin */
     const puedeEditar = useMemo(() => {
@@ -165,6 +167,21 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 },
                 separadorDespues: true,
             },
+            /* C801: Enlace directo a YouTube si el sample fue extraido del pipeline */
+            ...(() => {
+                const ytId = estado.sample?.metadata?.youtube_id;
+                if (typeof ytId === 'string' && /^[a-zA-Z0-9_-]{11}$/.test(ytId)) {
+                    return [{
+                        id: 'youtube',
+                        etiqueta: 'Ver en YouTube',
+                        onClick: () => {
+                            window.open(`https://www.youtube.com/watch?v=${ytId}`, '_blank', 'noopener,noreferrer');
+                        },
+                        separadorDespues: true,
+                    } as MenuItemDef];
+                }
+                return [];
+            })(),
             ...(puedeEditar
                 ? [
                     {
@@ -172,6 +189,18 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                         etiqueta: 'Editar sample',
                         onClick: () => {
                             if (estado.sample) abrirEditarSample(estado.sample);
+                        },
+                    } as MenuItemDef,
+                ]
+                : []),
+            /* C800: Corregir metadata IA (admin only, solo samples extraidos del pipeline) */
+            ...(esAdmin && estado.sample?.metadata?.relacion_id
+                ? [
+                    {
+                        id: 'corregir-ia',
+                        etiqueta: 'Corregir metadata IA',
+                        onClick: () => {
+                            if (estado.sample) abrirCorregirIA(estado.sample);
                         },
                     } as MenuItemDef,
                 ]

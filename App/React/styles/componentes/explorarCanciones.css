@@ -247,8 +247,8 @@
     padding: 4px var(--espacioXs);
     border: 1px solid var(--borde);
     border-radius: var(--radioSm);
-    background: var(--fondo);
-    color: var(--texto);
+    background: var(--fondoBase);
+    color: var(--textoPrimario);
     width: 340px;
     max-width: 100%;
 }

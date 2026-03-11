@@ -312,7 +312,72 @@ PROMPT;
     }
 
     /**
-     * Detecta el MIME type de un archivo de audio por extensión.
+     * C800: Corrige metadata generada por IA basandose en instrucciones del usuario.
+     * Usa el LLM con un prompt de correccion que toma metadata actual + instrucciones.
+     * Retorna la metadata corregida con la misma estructura que analizarAudio().
+     *
+     * @param array $metadataActual Metadata JSONB actual del sample
+     * @param string $titulo Titulo actual del sample
+     * @param string $instrucciones Instrucciones de correccion del usuario
+     * @param array $contextoTecnico BPM, key, escala existentes
+     * @return array|null Metadata corregida o null si falla
+     */
+    public static function corregirMetadata(array $metadataActual, string $titulo, string $instrucciones, array $contextoTecnico = []): ?array
+    {
+        $metadataJson = \json_encode($metadataActual, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($metadataJson === false) {
+            KamplesLogger::error('ServicioIA::corregirMetadata: json_encode fallo');
+            return null;
+        }
+
+        $bpmStr = isset($contextoTecnico['bpm']) ? "BPM: {$contextoTecnico['bpm']}" : '';
+        $keyStr = isset($contextoTecnico['key']) ? "Key: {$contextoTecnico['key']}" : '';
+
+        $prompt = <<<PROMPT
+Tienes un sample musical con el titulo "{$titulo}". {$bpmStr} {$keyStr}
+
+Su metadata actual generada por IA es:
+```json
+{$metadataJson}
+```
+
+El administrador solicita la siguiente CORRECCION:
+"{$instrucciones}"
+
+Tu tarea es corregir la metadata segun las instrucciones. Mantén la misma estructura JSON exacta.
+Si las instrucciones mencionan un titulo o nombre correcto, actualiza "nombre_archivo_base" con ese nombre en ingles minusculas.
+Si mencionan genero, artista, emocion u otros campos, actualiza los campos correspondientes.
+Los campos que NO se mencionan en las instrucciones deben mantenerse IGUALES que la metadata actual.
+
+IMPORTANTE: Responde UNICAMENTE con un JSON valido que tenga EXACTAMENTE estos campos:
+- "nombre_archivo_base": string (titulo corto descriptivo en ingles, minusculas, con espacios)
+- "tags": array de strings en INGLES
+- "tags_es": array de strings en ESPANOL
+- "tipo": "one shot" o "loop"
+- "genero": array de strings en INGLES
+- "emocion": array de strings en INGLES
+- "emocion_es": array de strings en ESPANOL
+- "instrumentos": array de strings en INGLES
+- "artista_vibes": array de strings
+- "descripcion_corta": string en INGLES (10-15 palabras)
+- "descripcion_corta_es": string en ESPANOL
+- "descripcion": string en INGLES (30-50 palabras)
+- "descripcion_es": string en ESPANOL
+- "carpeta_primaria": una de: "Drums", "Loops", "Samples", "FX", "Instruments", "Vocals"
+- "carpeta_secundaria": subcarpeta segun carpeta_primaria (nunca null ni vacio)
+PROMPT;
+
+        $apiKey = GroqHttpClient::obtenerApiKey('GROQ_API');
+        if (!$apiKey) {
+            KamplesLogger::warning('ServicioIA::corregirMetadata: API key de Groq no configurada');
+            return null;
+        }
+
+        return self::intentarGroq($prompt, $apiKey);
+    }
+
+    /**
+     * Detecta el MIME type de un archivo de audio por extension.
      */
     private static function detectarMime(string $ruta): string
     {
@@ -328,3 +393,4 @@ PROMPT;
         };
     }
 }
+
