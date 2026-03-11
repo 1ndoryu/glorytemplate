@@ -54,7 +54,7 @@ def obtener_pendientes(limit: int = 10) -> list[dict]:
                 "JOIN canciones c_fuente ON rs.cancion_fuente_id = c_fuente.id "
                 "JOIN artistas_musicales a_fuente ON c_fuente.artista_id = a_fuente.id "
                 "WHERE ce.estado = 'pendiente' AND ce.intentos < 3 "
-                "ORDER BY ce.created_at ASC "
+                "ORDER BY rs.votos_total DESC NULLS LAST, ce.created_at ASC "
                 "LIMIT %s",
                 (limit,),
             )

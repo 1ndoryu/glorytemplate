@@ -9,3 +9,5 @@ numpy>=1.24
 # TLS fingerprinting (bypass Cloudflare)
 curl_cffi>=0.14
 brotli>=1.1
+# Spotify fallback para descarga de audio
+spotdl>=4.2

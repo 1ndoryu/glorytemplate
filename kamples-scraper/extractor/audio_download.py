@@ -95,55 +95,77 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 
     url = f"https://www.youtube.com/watch?v={youtube_id}"
 
-    try:
-        # Navegador del que leer cookies para autenticacion YouTube
-        # Configurable via env para produccion (chrome, firefox, edge, brave, etc.)
-        cookie_browser = os.getenv("YTDLP_COOKIE_BROWSER", "chrome")
+    # Errores que indican cookies invalidas/expiradas
+    _ERRORES_COOKIES = ("reloaded", "sign in", "login required", "bot")
 
-        cmd = [
-            ytdlp_path,
-            "--no-playlist",
-            "--extract-audio",
-            "--audio-format", "mp3",
-            "--audio-quality", "0",
-            "--js-runtimes", "node",
-            "--remote-components", "ejs:github",
-            "--output", output_path.replace(".mp3", ".%(ext)s"),
-            "--quiet",
-            "--no-warnings",
-        ]
+    cookie_browser = os.getenv("YTDLP_COOKIE_BROWSER", "chrome")
 
-        # Priorizar archivo de cookies exportado si existe en raiz del scraper
-        if os.path.exists("cookies.txt"):
-            logger.debug("Usando cookies.txt exportado para autenticacion yt-dlp.")
-            cmd.extend(["--cookies", "cookies.txt"])
-        else:
-            logger.debug("Intentando usar cookies nativas de navegador: %s", cookie_browser)
-            cmd.extend(["--cookies-from-browser", cookie_browser])
+    # Estrategias de cookies: primero cookies.txt, luego navegador
+    estrategias: list[tuple[str, list[str]]] = []
+    if os.path.exists("cookies.txt"):
+        estrategias.append(("cookies.txt", ["--cookies", "cookies.txt"]))
+        estrategias.append(("navegador " + cookie_browser, ["--cookies-from-browser", cookie_browser]))
+    else:
+        estrategias.append(("navegador " + cookie_browser, ["--cookies-from-browser", cookie_browser]))
 
-        cmd.append(url)
+    for nombre_estrategia, cookie_args in estrategias:
+        try:
+            cmd = [
+                ytdlp_path,
+                "--no-playlist",
+                "--extract-audio",
+                "--audio-format", "mp3",
+                "--audio-quality", "0",
+                "--js-runtimes", "node",
+                "--remote-components", "ejs:github",
+                "--output", output_path.replace(".mp3", ".%(ext)s"),
+                "--quiet",
+                "--no-warnings",
+                "--retries", "3",
+                "--extractor-retries", "3",
+                "--file-access-retries", "3",
+                "--no-check-certificates",
+            ]
+            cmd.extend(cookie_args)
+            cmd.append(url)
 
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=300,
-        )
+            logger.debug("yt-dlp intento con estrategia: %s", nombre_estrategia)
 
-        if result.returncode != 0:
-            logger.error("yt-dlp fallo para %s: %s", youtube_id, result.stderr[:500])
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300,
+            )
+
+            if result.returncode != 0:
+                stderr_lower = (result.stderr or "").lower()
+                es_error_cookies = any(err in stderr_lower for err in _ERRORES_COOKIES)
+
+                if es_error_cookies and len(estrategias) > 1:
+                    logger.warning(
+                        "yt-dlp fallo para %s con %s (posible cookies expiradas): %s. Intentando siguiente estrategia...",
+                        youtube_id, nombre_estrategia, result.stderr[:300],
+                    )
+                    continue
+
+                logger.error("yt-dlp fallo para %s con %s: %s", youtube_id, nombre_estrategia, result.stderr[:500])
+                return None
+
+            if os.path.exists(output_path):
+                size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                logger.info("Audio descargado (YouTube/%s): %s (%.1f MB)", nombre_estrategia, youtube_id, size_mb)
+                return output_path
+
+            logger.error("Archivo MP3 no encontrado tras descarga: %s", output_path)
             return None
 
-        if os.path.exists(output_path):
-            size_mb = os.path.getsize(output_path) / (1024 * 1024)
-            logger.info("Audio descargado (YouTube): %s (%.1f MB)", youtube_id, size_mb)
-            return output_path
+        except subprocess.TimeoutExpired:
+            logger.error("Timeout descargando audio (%s): %s", nombre_estrategia, youtube_id)
+            return None
+        except Exception:
+            logger.exception("Error inesperado descargando %s con %s", youtube_id, nombre_estrategia)
+            return None
 
-        logger.error("Archivo MP3 no encontrado tras descarga: %s", output_path)
-        return None
-
-    except subprocess.TimeoutExpired:
-        logger.error("Timeout descargando audio: %s", youtube_id)
-        return None
-    except Exception:
-        logger.exception("Error inesperado descargando %s", youtube_id)
+    logger.error("Todas las estrategias de cookies fallaron para %s", youtube_id)
+    return None
         return None
 
 

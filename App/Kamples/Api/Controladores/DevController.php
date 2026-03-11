@@ -510,14 +510,11 @@ class DevController
 
     /**
      * Verifica el secret token compartido con el pipeline Python.
-     * Solo activo en dev (WP_DEBUG). El secret viene del header X-Kamples-Secret.
+     * Activo siempre que KAMPLES_CRON_SECRET este configurado.
+     * El secret viene del header X-Kamples-Secret con comparacion timing-safe.
      */
     public static function verificarSecretCron(): bool
     {
-        if (!\defined('WP_DEBUG') || !WP_DEBUG) {
-            return false;
-        }
-
         /* Dotenv::createImmutable() popula $_ENV, no putenv(). Usar patron $_ENV ?? getenv(). */
         $secretEsperado = $_ENV['KAMPLES_CRON_SECRET'] ?? \getenv('KAMPLES_CRON_SECRET') ?? '';
         if ($secretEsperado === '') {

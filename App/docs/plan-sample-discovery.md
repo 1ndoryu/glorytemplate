@@ -1,6 +1,6 @@
 # Plan Unificado: Sample Discovery + Legal + Contribuciones — Kamples
 
-> **Version:** 4.0 | **Fecha:** 11/03/2026 | **Estado:** S1-S5, L1-L7, S-ARTISTA, S-RECORTE, S-ESCALA, S-UI completados. Pendientes: S6-S7, panel procesos, rediseno /musica/.
+> **Version:** 4.1 | **Fecha:** 11/03/2026 | **Estado:** S1-S5, L1-L7, S-ARTISTA, S-RECORTE, S-ESCALA, S-UI, 808-backend completados. Pendientes: S6-S7, 808-frontend, rediseno /musica/.
 > **Archivos anteriores:** Este documento consolida `plan-legal-contribuciones.md` (v3.0) y `plan-samples-metadata.md` (v3.0). Los originales se mantienen como referencia historica.
 
 ---
@@ -129,40 +129,42 @@
 ### 808 — Panel de procesos de fondo (CRITICO — MAS IMPORTANTE)
 > Pagina especial en admin para gestionar: scraping, extraccion audio, distribucion seed.
 
-- [ ] **Backend: ProcesosFondoController.php**
-  - POST `/admin/procesos/{nombre}/start` — Inicia proceso via REST al scraper/extractor Python
-  - POST `/admin/procesos/{nombre}/stop` — Detiene proceso (signal PID o flag)
-  - GET `/admin/procesos/{nombre}/status` — Estado actual: running/stopped/error, progreso, log reciente
-  - Lock anti-doble-ejecucion: flag en BD (`procesos_fondo` tabla) con PID + timestamp
-  - Limpieza: cron WP cada 5 min verifica si PID sigue vivo, limpia flags huerfanos
-- [ ] **Backend: tabla `procesos_fondo`**
-  - Columnas: id, nombre (unique), pid, estado (running/stopped/error), progreso_actual, progreso_total, ultimo_log, iniciado_at, terminado_at
-  - Migracion necesaria
-- [ ] **Backend: endpoints REST Python (scraper side)**
-  - Cada proceso expone /status que retorna {running, processed, errors, queue_size}
-  - El PHP controller hace proxy a estos endpoints
-  - Alternativa: los procesos Python escriben status en BD directamente
+- [x] **Backend: ProcesosFondoController.php** — Ya existe con endpoints start/stop/status
+- [x] **Backend: GestorProcesosFondo.php** — Lock files JSON, deteccion PID, proceso Python/PHP
+- [x] **Backend: SeedUsuarios.php** — Generacion, atribucion Pareto, reasignacion samples
 - [ ] **Frontend: ProcesosAdminIsland.tsx**
   - Cards por proceso: Scraping, Extraccion, Distribucion Seed
   - Cada card: badge estado (running/stopped), barra progreso, boton start/stop
   - Polling cada 5s via useInterval cuando hay proceso running
   - Tail de log reciente (ultimas 20 lineas) con auto-scroll
   - Errores en rojo inline, sin acumular visualmente
-- [ ] **Proceso 1 — Scraping:** ~2000 canciones/sampleos al dia
-- [ ] **Proceso 2 — Extraccion audio:** ~2000/dia, yt-dlp + spotdl + recorte
-- [ ] **Proceso 3 — Distribucion seed (tarea 809):** redistribuir entre usuarios ficticios
 - [ ] Eliminar PanelDevCanciones actual (migrar funcionalidad a este panel)
-- **Complejidad:** Alta. Requiere coordinacion PHP<>Python, tabla nueva, UI compleja.
-- **Archivos nuevos:** ProcesosFondoController.php, ProcesosAdminIsland.tsx, useProcesosAdmin.ts, procesos.css, migracion BD
-- **Dependencias:** Migracion BD
+- **Complejidad:** Media. Backend listo, solo frontend.
+- **Archivos nuevos:** ProcesosAdminIsland.tsx, useProcesosAdmin.ts, procesos.css
+
+### 808.1 — ✅ Priorizacion por votos WhoSampled
+- [x] Cola extraccion: ORDER BY rs.votos_total DESC NULLS LAST (pipeline.py + ColaExtraccionSamplesRepository)
+- [x] Publicacion PHP: idem priorizacion en extraidos()
+- [x] Datos ya capturados: sample_detail.py parsea votos_total + votos_promedio desde HTML
+
+### 808.2 — ✅ Auditoria proceso extraccion audio
+- [x] yt-dlp: estrategia multi-cookies (cookies.txt -> navegador fallback) para error "page needs to be reloaded"
+- [x] yt-dlp: retries (3) + extractor-retries (3) + no-check-certificates para resiliencia
+- [x] spotdl agregado a requirements.txt (faltaba)
+- [x] verificarSecretCron: eliminada restriccion WP_DEBUG (funciona en produccion ahora)
+- Pendiente: actualizar cookies.txt exportando con extension de navegador
+
+### 808.3 — ✅ Auditoria proceso seed
+- [x] distribuirPareto: corregido overflow por jitter (min con totalRelaciones - acumulado)
+- [x] obtenerSistemaUserId: log warning cuando usa fallback
+- Verificado: idempotencia correcta (WHERE contribuidor_id IS NULL), SQL parametrizado, error handling robusto
+- Nota: cada update individual es autocommit (PDO), aceptable porque son idempotentes
 
 ### 809 — Distribucion seed users de fondo
-- [ ] Tercer proceso integrado en panel 808
-- [ ] Logica: query relaciones con contribuidor_id = admin_id, redistribuir a seed users segun Pareto
-- [ ] Batch: procesar N registros por ejecucion, trackear progreso
-- [ ] Reutilizar SeedUsuarios service existente: solo falta automatizacion y batch endpoint
-- **Complejidad:** Baja-Media (SeedUsuarios ya existe, es wiring).
-- **Archivos modificados:** SeedUsuarios.php (agregar metodo batch), ProcesosFondoController (nuevo proceso)
+- [x] Tercer proceso integrado en panel 808 (GestorProcesosFondo::ejecutarProcesoPhp)
+- [x] Logica: SeedUsuarios::atribuirRelaciones redistribuye con Pareto entre seed users
+- [x] Batch: calcularCantidadNecesaria -> generarUsuarios -> atribuirRelaciones -> atribuirSamples
+- **Estado:** Backend listo. Falta integracion con frontend proceso 808.
 
 ### 810 — ✅ Quitar "Vincular sample existente" de TablaRelaciones
 - [x] Eliminado item vincular-sample del menu 3 puntos en TablaRelaciones
@@ -218,3 +220,9 @@
 - [Manual = Automatico] Todo lo que el pipeline genera debe poder hacerse manualmente via UI.
 - [bilateral queries] Transformar fuente_titulo/destino_titulo antes de normalizar.
 - [WhoSampled HTML] Selectores en codigo. data-timings = segundos enteros. Related sections: NUNCA parsear por indice.
+- [yt-dlp cookies] App-Bound Encryption Chrome v114+. Usar cookies.txt exportado via extension. Si falla, fallback a --cookies-from-browser.
+- [yt-dlp resiliencia] Agregar --retries 3 --extractor-retries 3 --no-check-certificates. Error "page needs to be reloaded" = cookies expiradas.
+- [Priorizacion extraccion] ORDER BY votos_total DESC prioriza sampleos populares en WhoSampled.
+- [Pareto jitter] El jitter en distribuirPareto puede producir desborde. Clampear con min(cantidad, total - acumulado).
+- [verificarSecretCron] NO restringir con WP_DEBUG — el endpoint debe funcionar en produccion.
+- [spotdl requirements] spotdl debe estar en requirements.txt aunque sea fallback. Sin el, la instalacion en servidor nuevo falla silenciosamente.

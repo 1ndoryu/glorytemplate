@@ -217,7 +217,8 @@ class SeedUsuarios
     }
 
     /**
-     * Distribucion Pareto: top 20% users → ~60% contribuciones, etc.
+     * Distribucion Pareto: top 20% users -> ~60% contribuciones, etc.
+     * El total asignado nunca excede $totalRelaciones (ajuste por desborde de jitter).
      *
      * @return array<int, int> seedUserId => cantidadRelaciones
      */
@@ -240,12 +241,16 @@ class SeedUsuarios
         $tailShare = $totalRelaciones - $topShare - $midShare;
 
         $offset = 0;
+        $acumulado = 0;
 
         /* Top 20% */
         $porUsuario = \max(1, (int) \round($topShare / $topCount));
         for ($i = 0; $i < $topCount && $offset < $n; $i++) {
             $jitter = \random_int(-5, 5);
-            $distribucion[$ids[$offset]] = \max(1, $porUsuario + $jitter);
+            $cantidad = \max(1, $porUsuario + $jitter);
+            $cantidad = \min($cantidad, $totalRelaciones - $acumulado);
+            $distribucion[$ids[$offset]] = $cantidad;
+            $acumulado += $cantidad;
             $offset++;
         }
 
@@ -253,7 +258,10 @@ class SeedUsuarios
         $porUsuario = \max(1, (int) \round($midShare / $midCount));
         for ($i = 0; $i < $midCount && $offset < $n; $i++) {
             $jitter = \random_int(-3, 3);
-            $distribucion[$ids[$offset]] = \max(1, $porUsuario + $jitter);
+            $cantidad = \max(1, $porUsuario + $jitter);
+            $cantidad = \min($cantidad, $totalRelaciones - $acumulado);
+            $distribucion[$ids[$offset]] = $cantidad;
+            $acumulado += $cantidad;
             $offset++;
         }
 
@@ -263,7 +271,10 @@ class SeedUsuarios
             $porUsuario = \max(1, (int) \round($tailShare / $tailCount));
             for (; $offset < $n; $offset++) {
                 $jitter = \random_int(-2, 2);
-                $distribucion[$ids[$offset]] = \max(1, $porUsuario + $jitter);
+                $cantidad = \max(1, $porUsuario + $jitter);
+                $cantidad = \min($cantidad, $totalRelaciones - $acumulado);
+                $distribucion[$ids[$offset]] = $cantidad;
+                $acumulado += $cantidad;
             }
         }
 
@@ -278,6 +289,11 @@ class SeedUsuarios
     private static function obtenerSistemaUserId(): int
     {
         $envId = $_ENV['KAMPLES_SISTEMA_USUARIO_ID'] ?? \getenv('KAMPLES_SISTEMA_USUARIO_ID');
-        return $envId ? (int) $envId : SeedConfig::SISTEMA_USUARIO_ID_FALLBACK;
+        if ($envId) {
+            return (int) $envId;
+        }
+
+        KamplesLogger::warning('SeedUsuarios: KAMPLES_SISTEMA_USUARIO_ID no configurado — usando fallback=' . SeedConfig::SISTEMA_USUARIO_ID_FALLBACK);
+        return SeedConfig::SISTEMA_USUARIO_ID_FALLBACK;
     }
 }

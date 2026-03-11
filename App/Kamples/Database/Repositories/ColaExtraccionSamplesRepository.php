@@ -148,6 +148,7 @@ class ColaExtraccionSamplesRepository extends BaseRepository
         $colDest   = \App\Config\Schema\_generated\RelacionesSampleCols::CANCION_DESTINO_ID;
         $colContrib = \App\Config\Schema\_generated\RelacionesSampleCols::CONTRIBUIDOR_ID;
         $colRsId   = \App\Config\Schema\_generated\RelacionesSampleCols::ID;
+        $colVotos  = \App\Config\Schema\_generated\RelacionesSampleCols::VOTOS_TOTAL;
 
         return static::consultar(
             "SELECT ce.*, "
@@ -158,7 +159,7 @@ class ColaExtraccionSamplesRepository extends BaseRepository
             . "JOIN {$tablaRs} rs "
             . "ON ce." . ColaExtraccionSamplesCols::RELACION_ID . " = rs.{$colRsId} "
             . "WHERE ce." . ColaExtraccionSamplesCols::ESTADO . " = :estado "
-            . "ORDER BY ce." . ColaExtraccionSamplesCols::CREATED_AT . " ASC "
+            . "ORDER BY rs.{$colVotos} DESC NULLS LAST, ce." . ColaExtraccionSamplesCols::CREATED_AT . " ASC "
             . "LIMIT :limit",
             ['estado' => ColaExtraccionSamplesEnums::ESTADO_EXTRAIDO, 'limit' => $limit]
         );
