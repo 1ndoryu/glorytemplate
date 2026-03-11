@@ -4,21 +4,24 @@
  * Lógica extraída a useCancionDetalle (SRP).
  */
 
-import { Music, AlertCircle, MoreVertical, Upload } from 'lucide-react';
+import { Music, AlertCircle, MoreVertical } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { MenuContextual, type MenuItemDef } from '@app/components/ui/MenuContextual';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { Skeleton, SkeletonFeed } from '@app/components/skeletons';
 import { TablaRelaciones } from '@app/components/samples/TablaRelaciones';
 import { CadenaSamples } from '@app/components/samples/CadenaSamples';
+import { ModalContribucion } from '@app/components/samples/ModalContribucion';
+import { ModalEdicionRelacion } from '@app/components/samples/ModalEdicionRelacion';
+import { ModalVincularSampleExistente } from '@app/components/samples/ModalVincularSampleExistente';
 import { SeccionRelaciones } from '@app/components/ui/SeccionRelaciones';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
-import { useState, useCallback, useMemo } from 'react';
+import { useMenuCancionDetalle } from '@app/hooks/useMenuCancionDetalle';
+import { useCallback } from 'react';
 import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
 import { useAuthStore } from '@app/stores/authStore';
-import { useCrearModalStore } from '@app/stores/crearModalStore';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import '../../styles/componentes/cancionDetalle.css';
 import '../../styles/componentes/seccionRelaciones.css';
@@ -56,33 +59,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
 
     const autenticado = useAuthStore((s) => s.autenticado);
 
-    /* Estado del menu contextual de 3 puntos */
-    const [menuAbierto, setMenuAbierto] = useState(false);
-    const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
-
-    const abrirMenu = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setMenuPos({ x: e.clientX, y: e.clientY });
-        setMenuAbierto(true);
-    }, []);
-
-    const cerrarMenu = useCallback(() => setMenuAbierto(false), []);
-
-    /* Items del menu contextual — solo en estado cargado con cancion */
-    const itemsMenu: MenuItemDef[] = useMemo(() => {
-        if (!detalle || !autenticado) return [];
-        return [{
-            id: 'subir-sample',
-            etiqueta: 'Subir sample de esta canción',
-            icono: <Upload size={14} />,
-            onClick: () => {
-                useCrearModalStore.getState().abrirConContexto({
-                    cancionOrigenId: detalle.cancion.id,
-                });
-            },
-        }];
-    }, [detalle, autenticado]);
+    const menuCtx = useMenuCancionDetalle(detalle, autenticado);
 
     /* Proveedor de samples extraídos de esta canción (cancion_origen_id) */
     const proveedorSamples = useCallback(
@@ -198,7 +175,7 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                             variante="ghost"
                             tamano="ninguno"
                             className="cancionDetalleMenuBtn"
-                            onClick={abrirMenu}
+                            onClick={menuCtx.abrirMenu}
                             aria-label="Acciones"
                         >
                             <MoreVertical size={20} />
@@ -236,6 +213,9 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                     <TablaRelaciones
                         relaciones={samplesDe}
                         direccion="destino"
+                        onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
+                        onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
+                        onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
                     />
                 </SeccionRelaciones>
             )}
@@ -245,6 +225,9 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                     <TablaRelaciones
                         relaciones={sampleadaEn}
                         direccion="origen"
+                        onEditar={autenticado ? menuCtx.abrirEdicionRelacion : undefined}
+                        onEliminar={autenticado ? menuCtx.abrirEliminacionRelacion : undefined}
+                        onVincularSample={autenticado ? menuCtx.abrirVincularSample : undefined}
                     />
                 </SeccionRelaciones>
             )}
@@ -264,13 +247,40 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
 
             {/* Menu contextual 3 puntos */}
             <MenuContextual
-                abierto={menuAbierto}
-                onCerrar={cerrarMenu}
-                items={itemsMenu}
-                x={menuPos.x}
-                y={menuPos.y}
+                abierto={menuCtx.menuAbierto}
+                onCerrar={menuCtx.cerrarMenu}
+                items={menuCtx.items}
+                x={menuCtx.menuPos.x}
+                y={menuCtx.menuPos.y}
                 alinearDerecha
             />
+
+            {/* Modal contribucion: proponer nuevo sampleo desde esta cancion */}
+            {detalle && (
+                <ModalContribucion
+                    abierto={menuCtx.contribucionAbierta}
+                    cancionBaseId={cancion.id}
+                    cancionBaseTitulo={cancion.titulo}
+                    onCerrar={menuCtx.cerrarContribucion}
+                />
+            )}
+
+            {/* Modal edicion/eliminacion de relacion existente */}
+            <ModalEdicionRelacion
+                relacion={menuCtx.relacionEditando}
+                modoEliminacion={menuCtx.modoEliminacion}
+                onCerrar={menuCtx.cerrarEdicionRelacion}
+            />
+
+            {/* Modal para vincular un sample ya publicado a una relacion */}
+            {menuCtx.vincularRelacionId !== null && (
+                <ModalVincularSampleExistente
+                    abierto
+                    relacionId={menuCtx.vincularRelacionId}
+                    onCerrar={menuCtx.cerrarVincularSample}
+                    onExito={menuCtx.cerrarVincularSample}
+                />
+            )}
         </div>
     );
 };
