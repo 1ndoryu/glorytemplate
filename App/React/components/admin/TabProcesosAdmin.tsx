@@ -4,11 +4,13 @@
  * Cards por proceso con estado, start/stop, log tail.
  */
 
-import { RefreshCw, Loader2, Play, Square, Terminal, Server } from 'lucide-react';
+import { RefreshCw, Loader2, Play, Square, Terminal, Server, Cookie, Upload, Check, AlertTriangle } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { Badge } from '../ui/Badge';
+import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabProcesos } from '../../hooks/useTabProcesos';
+import { useCookiesAdmin } from '../../hooks/useCookiesAdmin';
 import type { EstadoProceso } from '../../services/apiProcesos';
 import '../../styles/componentes/procesosAdmin.css';
 
@@ -124,7 +126,11 @@ const TarjetaProceso = ({
 };
 
 export const TabProcesosAdmin = (): JSX.Element => {
-    const { procesos, cargando, accionEnCurso, iniciar, detener, recargar, error } = useTabProcesos();
+    const { procesos, cargando, accionEnCurso, iniciar, detener, recargar, error, cookiesInfo } = useTabProcesos();
+    const {
+        contenidoCookies, setContenidoCookies,
+        guardando, mensaje, errorCookies, guardar,
+    } = useCookiesAdmin();
 
     return (
         <div className="tabProcesos">
@@ -168,6 +174,66 @@ export const TabProcesosAdmin = (): JSX.Element => {
                         onDetener={detener}
                     />
                 ))}
+            </div>
+
+            {/* Seccion Cookies yt-dlp */}
+            <div className="cookiesSeccion">
+                <div className="cookiesCabecera">
+                    <Cookie size={16} />
+                    <h4 className="cookiesTitulo">Cookies yt-dlp</h4>
+                    {cookiesInfo?.existe && (
+                        <Badge variante="exito" tamano="sm">
+                            <Check size={10} />
+                            Activo
+                        </Badge>
+                    )}
+                    {cookiesInfo && !cookiesInfo.existe && (
+                        <Badge variante="advertencia" tamano="sm">
+                            <AlertTriangle size={10} />
+                            Sin cookies
+                        </Badge>
+                    )}
+                </div>
+
+                {cookiesInfo?.existe && cookiesInfo.modificado && (
+                    <p className="cookiesInfo">
+                        Ultimo update: {new Date(cookiesInfo.modificado).toLocaleString()}
+                        {cookiesInfo.tamano ? ` (${(cookiesInfo.tamano / 1024).toFixed(1)} KB)` : ''}
+                    </p>
+                )}
+
+                <p className="cookiesDescripcion">
+                    Pega el contenido de cookies.txt (formato Netscape) para autenticacion de YouTube.
+                    Necesario cuando yt-dlp reporta errores de &quot;page needs to be reloaded&quot;.
+                </p>
+
+                <CampoTexto
+                    multilínea
+                    variante="desnudo"
+                    className="cookiesTextarea"
+                    placeholder={"# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tname\tvalue"}
+                    value={contenidoCookies}
+                    onChange={e => setContenidoCookies(e.target.value)}
+                    rows={8}
+                    disabled={guardando}
+                />
+
+                <div className="cookiesAcciones">
+                    <BotonBase
+                        onClick={guardar}
+                        variante="primario"
+                        tamano="sm"
+                        disabled={guardando || contenidoCookies.trim() === ''}
+                    >
+                        {guardando
+                            ? <Loader2 size={14} className="adminSpinner" />
+                            : <Upload size={14} />}
+                        Actualizar Cookies
+                    </BotonBase>
+                </div>
+
+                {mensaje && <div className="cookiesMensajeExito">{mensaje}</div>}
+                {errorCookies && <div className="cookiesMensajeError">{errorCookies}</div>}
             </div>
         </div>
     );

@@ -6,7 +6,7 @@
  */
 
 import { type MouseEvent } from 'react';
-import { Music, Heart, MoreHorizontal, Disc3 } from 'lucide-react';
+import { Music, Heart, MoreHorizontal } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import type { Cancion } from '@app/types/cancion';
@@ -59,10 +59,14 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
                     {cancion.genero ? ` · ${cancion.genero}` : ''}
                 </p>
 
-                {/* Sampleos count — donde iría la wave en TarjetaSample */}
+            </div>
+
+            {/* Acciones e info derecha */}
+            <div className="tarjetaCancionFeedAcciones">
+                {/* Sampleos count movido al lado del like */}
                 {(cancion.totalSampleada > 0 || cancion.totalSamplea > 0) && (
                     <div className="tarjetaCancionFeedSampleos">
-                        <Disc3 size={13} />
+                        
                         {cancion.totalSampleada > 0 && (
                             <Badge variante="acento" tamano="xs">
                                 {cancion.totalSampleada} vez{cancion.totalSampleada !== 1 ? 'es' : ''} sampleada
@@ -75,10 +79,7 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
                         )}
                     </div>
                 )}
-            </div>
 
-            {/* Acciones */}
-            <div className="tarjetaCancionFeedAcciones">
                 <BotonBase
                     variante="ghost"
                     className={`tarjetaAccionBtn ${cancion.liked ? 'tarjetaAccionLiked' : ''}`}

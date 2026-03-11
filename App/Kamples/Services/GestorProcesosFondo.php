@@ -10,7 +10,6 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\KamplesLogger;
-use App\Config\Schema\_generated\ScrapingLogEnums;
 
 class GestorProcesosFondo
 {
@@ -366,7 +365,10 @@ class GestorProcesosFondo
         if ($json === false) {
             return;
         }
-        \file_put_contents(self::rutaLock($nombre), $json, LOCK_EX);
+        $resultado = \file_put_contents(self::rutaLock($nombre), $json, LOCK_EX);
+        if ($resultado === false) {
+            KamplesLogger::warning('[Procesos] Fallo al escribir lock file', ['proceso' => $nombre]);
+        }
     }
 
     private static function pidVivo(int $pid): bool
@@ -376,8 +378,10 @@ class GestorProcesosFondo
         }
 
         if (\PHP_OS_FAMILY === 'Windows') {
-            $pidSafe = \escapeshellarg((string) $pid);
-            \exec('tasklist /FI "PID eq ' . $pidSafe . '" /NH 2>&1', $output);
+            /* tasklist /FI espera comillas dobles internas; escapeshellarg las duplica y rompe el query.
+               PID ya es int validado (>0) por parametro de type hint, seguro concatenar directamente. */
+            $pidInt = (int) $pid;
+            \exec('tasklist /FI "PID eq ' . $pidInt . '" /NH 2>&1', $output);
             foreach ($output as $linea) {
                 if (\str_contains($linea, (string) $pid)) {
                     return true;
@@ -536,5 +540,85 @@ class GestorProcesosFondo
         }
         $salida = \shell_exec(\escapeshellarg($ruta) . ' --version 2>&1');
         return $salida !== null && \stripos(\trim($salida), 'Python') === 0;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Cookies yt-dlp                                                     */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Guarda contenido cookies.txt para yt-dlp en el directorio del scraper.
+     * Hace backup del archivo anterior si existe.
+     *
+     * @param string $contenido Texto completo en formato Netscape cookies.txt
+     * @return array{ok: bool, mensaje?: string, error?: string, backup?: string}
+     */
+    public static function guardarCookies(string $contenido): array
+    {
+        $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
+        $rutaCookies = $scraperDir . '/cookies.txt';
+
+        try {
+            /* Backup si existe archivo previo */
+            $backup = null;
+            if (\file_exists($rutaCookies)) {
+                $backup = $rutaCookies . '.bak.' . \date('Ymd_His');
+                $copiado = \copy($rutaCookies, $backup);
+                if (!$copiado) {
+                    KamplesLogger::warning('[Procesos] No se pudo crear backup de cookies.txt');
+                    $backup = null;
+                }
+            }
+
+            /* Asegurar header Netscape si no lo tiene */
+            $contenidoFinal = $contenido;
+            if (\strpos($contenidoFinal, '# Netscape HTTP Cookie File') === false) {
+                $contenidoFinal = "# Netscape HTTP Cookie File\n# https://curl.haxx.se/rfc/cookie_spec.html\n\n" . $contenidoFinal;
+            }
+
+            $resultado = \file_put_contents($rutaCookies, $contenidoFinal, LOCK_EX);
+            if ($resultado === false) {
+                return ['ok' => false, 'error' => 'No se pudo escribir cookies.txt — verificar permisos del directorio.'];
+            }
+
+            KamplesLogger::info('[Procesos] cookies.txt actualizado', [
+                'bytes'  => $resultado,
+                'backup' => $backup,
+            ]);
+
+            $respuesta = [
+                'ok'      => true,
+                'mensaje' => 'Cookies actualizadas correctamente (' . $resultado . ' bytes).',
+            ];
+            if ($backup !== null) {
+                $respuesta['backup'] = \basename($backup);
+            }
+
+            return $respuesta;
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[Procesos] Error guardando cookies.txt', ['error' => $e->getMessage()]);
+            return ['ok' => false, 'error' => 'Error al guardar cookies: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Obtiene metadata del archivo cookies.txt actual (existencia, tamano, fecha).
+     * Usado por el frontend para mostrar estado.
+     *
+     * @return array{existe: bool, tamano?: int, modificado?: string}
+     */
+    public static function infoCookies(): array
+    {
+        $rutaCookies = \get_template_directory() . '/' . self::SCRAPER_DIR . '/cookies.txt';
+
+        if (!\file_exists($rutaCookies)) {
+            return ['existe' => false];
+        }
+
+        return [
+            'existe'     => true,
+            'tamano'     => \filesize($rutaCookies) ?: 0,
+            'modificado' => \gmdate('c', \filemtime($rutaCookies) ?: 0),
+        ];
     }
 }

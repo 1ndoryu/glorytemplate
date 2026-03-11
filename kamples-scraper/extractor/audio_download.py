@@ -166,7 +166,6 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 
     logger.error("Todas las estrategias de cookies fallaron para %s", youtube_id)
     return None
-        return None
 
 
 def _descargar_spotify(spotify_id: str, output_dir: str) -> str | None:

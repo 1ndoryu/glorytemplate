@@ -152,11 +152,12 @@
 - [x] yt-dlp: retries (3) + extractor-retries (3) + no-check-certificates para resiliencia
 - [x] spotdl agregado a requirements.txt (faltaba)
 - [x] verificarSecretCron: eliminada restriccion WP_DEBUG (funciona en produccion ahora)
-- Pendiente: actualizar cookies.txt exportando con extension de navegador
+- [x] Actualizar cookies.txt desde panel admin: seccion en TabProcesosAdmin con textarea para pegar cookies formato Netscape, endpoint POST /admin/procesos/cookies, validacion formato, backup automatico, info de estado
 
 ### 808.3 — ✅ Auditoria proceso seed
 - [x] distribuirPareto: corregido overflow por jitter (min con totalRelaciones - acumulado)
 - [x] obtenerSistemaUserId: log warning cuando usa fallback
+- [x] SeedConfig: ajustado rango contribuciones de 80-120 a 50-100 por usuario
 - Verificado: idempotencia correcta (WHERE contribuidor_id IS NULL), SQL parametrizado, error handling robusto
 - Nota: cada update individual es autocommit (PDO), aceptable porque son idempotentes
 

@@ -44,8 +44,8 @@ final class SeedConfig
     const NUMERO_MAX = 99;
 
     /* Proporcion: 1 seed user por cada N relaciones (aleatorio entre min y max) */
-    const RELACIONES_POR_USER_MIN = 80;
-    const RELACIONES_POR_USER_MAX = 120;
+    const RELACIONES_POR_USER_MIN = 50;
+    const RELACIONES_POR_USER_MAX = 100;
 
     /* ID de usuario del sistema (admin) para comparar en atribucion */
     const SISTEMA_USUARIO_ID_FALLBACK = 7;

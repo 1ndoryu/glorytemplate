@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { EstadoProceso } from '../services/apiProcesos';
+import type { EstadoProceso, InfoCookies } from '../services/apiProcesos';
 import { listarProcesos, iniciarProceso, detenerProceso } from '../services/apiProcesos';
 
 interface UseTabProcesosReturn {
@@ -16,6 +16,7 @@ interface UseTabProcesosReturn {
     detener: (nombre: string) => Promise<void>;
     recargar: () => Promise<void>;
     error: string | null;
+    cookiesInfo: InfoCookies | null;
 }
 
 const INTERVALO_ACTIVO  = 5000;
@@ -26,6 +27,7 @@ export function useTabProcesos(): UseTabProcesosReturn {
     const [cargando, setCargando] = useState(true);
     const [accionEnCurso, setAccionEnCurso] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [cookiesInfo, setCookiesInfo] = useState<InfoCookies | null>(null);
     const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const cargarDatos = useCallback(async () => {
@@ -34,6 +36,9 @@ export function useTabProcesos(): UseTabProcesosReturn {
             if (resp.ok && resp.data?.procesos) {
                 setProcesos(resp.data.procesos);
                 setError(null);
+            }
+            if (resp.data?.cookies) {
+                setCookiesInfo(resp.data.cookies);
             }
         } catch {
             setError('Error cargando estado de procesos.');
@@ -100,5 +105,6 @@ export function useTabProcesos(): UseTabProcesosReturn {
         detener,
         recargar: cargarDatos,
         error,
+        cookiesInfo,
     };
 }

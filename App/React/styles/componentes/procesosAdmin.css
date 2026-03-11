@@ -149,3 +149,96 @@
     gap: var(--espacioSm);
     margin-top: auto;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Seccion Cookies yt-dlp                                             */
+/* ------------------------------------------------------------------ */
+
+.cookiesSeccion {
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.cookiesCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.cookiesTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.cookiesInfo {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
+.cookiesDescripcion {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* CampoTexto variante desnudo — el className va al wrapper contenedorCampoTexto */
+.cookiesTextarea {
+    width: 100%;
+}
+
+.cookiesTextarea textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: 300px;
+    resize: vertical;
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    padding: var(--espacioMd);
+    font-family: var(--fuenteMono);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    scrollbar-width: thin;
+    transition: border-color var(--transicionRapida);
+    box-sizing: border-box;
+}
+
+.cookiesTextarea textarea:focus {
+    outline: none;
+    border-color: var(--acento);
+}
+
+.cookiesTextarea textarea::placeholder {
+    color: var(--textoTerciario);
+    opacity: 0.6;
+}
+
+.cookiesAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+}
+
+.cookiesMensajeExito {
+    font-size: var(--fuenteSm);
+    color: var(--exito);
+    background: var(--exitoMuted);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+}
+
+.cookiesMensajeError {
+    font-size: var(--fuenteSm);
+    color: var(--error);
+    background: var(--errorMuted);
+    border-radius: var(--radioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+}

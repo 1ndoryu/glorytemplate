@@ -22,6 +22,14 @@ export interface EstadoProceso {
 interface RespuestaProcesos {
     ok: boolean;
     procesos: EstadoProceso[];
+    cookies: InfoCookies;
+}
+
+/* Info del archivo cookies.txt */
+export interface InfoCookies {
+    existe: boolean;
+    tamano?: number;
+    modificado?: string;
 }
 
 /* Respuesta de start/stop */
@@ -31,6 +39,14 @@ interface RespuestaAccion {
     error?: string;
     pid?: number;
     resultado?: Record<string, unknown>;
+}
+
+/* Respuesta de actualizacion de cookies */
+interface RespuestaCookies {
+    ok: boolean;
+    mensaje?: string;
+    error?: string;
+    backup?: string;
 }
 
 export async function listarProcesos() {
@@ -47,4 +63,12 @@ export async function iniciarProceso(nombre: string, limit?: number) {
 
 export async function detenerProceso(nombre: string) {
     return apiPost<RespuestaAccion>(`/admin/procesos/${nombre}/stop`, {});
+}
+
+export async function actualizarCookies(contenido: string) {
+    return apiPost<RespuestaCookies>('/admin/procesos/cookies', { contenido });
+}
+
+export async function infoCookies() {
+    return apiGet<{ ok: boolean; cookies: InfoCookies }>('/admin/procesos/cookies');
 }
