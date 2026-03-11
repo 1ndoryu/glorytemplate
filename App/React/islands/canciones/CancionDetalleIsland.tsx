@@ -194,8 +194,10 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                     </div>
                 )}
 
-                {/* Samples publicados extraídos de esta canción (pipeline) */}
-                {slug && (
+                {/* Samples de audio extraídos de esta canción vía pipeline:
+                 * Solo se intenta la carga cuando totalSampleada > 0,
+                 * evitando una petición innecesaria en canciones sin samples. */}
+                {slug && cancion.totalSampleada > 0 && (
                     <FeedSamples
                         proveedor={proveedorSamples}
                         claveCache={`cancion-samples-${slug}`}

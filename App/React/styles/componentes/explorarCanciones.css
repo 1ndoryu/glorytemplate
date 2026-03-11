@@ -26,13 +26,11 @@
     display: flex;
     align-items: center;
     gap: var(--espacioMd);
-    padding: var(--espacioSm);
+    padding: var(--espacioMd) var(--espacioLg) var(--espacioMd) var(--espacioMd);
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
     border-radius: var(--radioMd);
-    transition:
-        background var(--transicionNormal),
-        border-color var(--transicionNormal);
+    transition: background var(--transicionNormal), border-color var(--transicionNormal);
 }
 
 .tarjetaCancionFeed:hover {
@@ -47,9 +45,9 @@
 
 /* Imagen cuadrada a la izquierda */
 .tarjetaCancionFeedImagen {
-    width: 64px;
-    height: 64px;
-    min-width: 64px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
     border-radius: var(--radioSm);
     overflow: hidden;
     background: var(--fondoElevado2);
@@ -109,18 +107,26 @@
 /* Sampleos count — zona donde iría la wave en TarjetaSample */
 .tarjetaCancionFeedSampleos {
     display: flex;
-    align-items: center;
-    gap: calc(var(--espacioXs) / 2);
+    align-items: flex-end;
+    gap: var(--espacioXs);
     color: var(--textoTerciario);
     font-size: var(--fuenteXs);
+    flex-direction: column;
 }
 
-/* Acciones: like + menu */
+/* Acciones: like + menu + badges */
 .tarjetaCancionFeedAcciones {
     display: flex;
     align-items: center;
-    gap: calc(var(--espacioXs) / 2);
+    gap: var(--espacioMd);
     flex-shrink: 0;
+}
+
+/* Remover el padding del botonBase para acciones compactas */
+.tarjetaCancionFeedAcciones .botonBase.tarjetaAccionBtn {
+    padding: 0;
+    height: 28px;
+    min-width: unset;
 }
 
 /* Sentinela de infinite scroll */
@@ -139,6 +145,14 @@
     padding: var(--espacioMd);
     color: var(--textoTerciario);
     font-size: var(--fuenteSm);
+}
+
+/* Contador de resultados */
+.feedCancionesContador {
+    margin: 0;
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    font-weight: var(--pesoMedium);
 }
 
 /* Estado vacio */

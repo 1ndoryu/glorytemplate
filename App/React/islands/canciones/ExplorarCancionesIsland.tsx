@@ -50,6 +50,14 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
     return (
         <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
 
+            {/* Contador de canciones cargadas */}
+            {!cargando && canciones.length > 0 && (
+                <p className="feedCancionesContador">
+                    {canciones.length}{hayMas ? '+' : ''} {canciones.length === 1 ? 'canción' : 'canciones'}
+                    {busqueda.trim() && ` para "${busqueda}"`}
+                </p>
+            )}
+
             {/* Contenido */}
             {cargando ? (
                 <SkeletonFeed cantidad={6} />
