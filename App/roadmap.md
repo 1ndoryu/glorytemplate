@@ -185,34 +185,9 @@ Punto rojo indicador de samples no reproducidos. **Backend:** Nuevo endpoint `GE
 
 Tooltip flotante de perfil estilo Twitter/X. **Arquitectura:** tooltipPerfilStore (Zustand global con cache de perfiles + timers centralizados show 400ms/hide 250ms), useHoverPerfil (hook trigger reutilizable con pre-carga de perfil), useTooltipPerfil (lógica del tooltip: carga con cache, follow/unfollow optimista, cierre por Escape/scroll), usePosicionTooltipPerfil (posicionamiento inteligente debajo/arriba del ancla con ajuste viewport), TooltipPerfil (componente flotante sin overlay oscuro, montado globalmente en LayoutPrincipal). **Integración:** TarjetaPublicacion agrega hover en el nombre del autor — funciona automáticamente en ComunidadIsland, PerfilIsland y PublicacionIsland. ComunidadIsland simplificado: eliminado CardPerfil local y useState, el botón + ahora usa abrirInmediato del store global. **Optimización:** perfiles se cachean en el store, pre-carga al hover evita delay visible, tooltip aparece instantáneo en hovers repetidos. Archivos: tooltipPerfilStore.ts, useHoverPerfil.ts, useTooltipPerfil.ts, usePosicionTooltipPerfil.ts, TooltipPerfil.tsx, tooltipPerfil.css, TarjetaPublicacion.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx.
 
-## QQ48 
+## QQ48 ✅ [AG-QQF]
 
-useModalSeguidores.ts:72 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
-    at useModalSeguidores (useModalSeguidores.ts:72:31)
-    at ModalSeguidores (ModalSeguidores.tsx:18:95)
-    at renderWithHooks (chunk-NXESFFTV.js?v=6343ef1e:11596:26)
-    at updateFunctionComponent (chunk-NXESFFTV.js?v=6343ef1e:14630:28)
-    at beginWork (chunk-NXESFFTV.js?v=6343ef1e:15972:22)
-    at HTMLUnknownElement.callCallback2 (chunk-NXESFFTV.js?v=6343ef1e:3680:22)
-    at Object.invokeGuardedCallbackDev (chunk-NXESFFTV.js?v=6343ef1e:3705:24)
-    at invokeGuardedCallback (chunk-NXESFFTV.js?v=6343ef1e:3739:39)
-    at beginWork$1 (chunk-NXESFFTV.js?v=6343ef1e:19818:15)
-    at performUnitOfWork (chunk-NXESFFTV.js?v=6343ef1e:19251:20)Comprende este error
-chunk-NXESFFTV.js?v=6343ef1e:14080 The above error occurred in the <ModalSeguidores> component:
-
-    at ModalSeguidores (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/social/ModalSeguidores.tsx?t=1773329151056:29:93)
-    at div
-    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx?t=1773329151123:77:3)
-    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx?t=1773329151121:19:37)
-    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx?t=1773317156173:47:31)
-    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
-
-Consider adding an error boundary to your tree to customize error handling behavior.
-Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
-logCapturedError @ chunk-NXESFFTV.js?v=6343ef1e:14080Comprende este error
-chunk-NXESFFTV.js?v=6343ef1e:19466 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
-    at useModalSeguidores (useModalSeguidores.ts:72:31)
-    at ModalSeguidores (ModalSeguidores.tsx:18:95)
+Fix crash ModalSeguidores: `TypeError: Cannot read properties of undefined (reading 'length')`. **Causa:** `obtenerSeguidores()` retorna `RespuestaApi<{ data: SeguidorResumen[]; total: number }>` — si la API retorna `resp.data` sin campo `data` interno (shape inesperado), `setSeguidores(resp.data.data)` asigna `undefined` al estado, y `seguidores.length` en `hayMas` crashea. **Fix:** Guard defensivo `resp.data.data ?? []` y `resp.data.total ?? 0` en la carga inicial y en `cargarMas()`. Archivo: useModalSeguidores.ts.
 
 ## QQ49
 

@@ -38,8 +38,8 @@ export function useModalSeguidores() {
         obtenerSeguidores(username, 1, POR_PAGINA).then((resp) => {
             if (cancelado) return;
             if (resp.ok && resp.data) {
-                setSeguidores(resp.data.data);
-                setTotal(resp.data.total);
+                setSeguidores(resp.data.data ?? []);
+                setTotal(resp.data.total ?? 0);
             }
             setCargando(false);
             setPagina(1);
@@ -59,7 +59,7 @@ export function useModalSeguidores() {
         try {
             const resp = await obtenerSeguidores(username, siguiente, POR_PAGINA);
             if (resp.ok && resp.data) {
-                setSeguidores(prev => [...prev, ...resp.data!.data]);
+                setSeguidores(prev => [...prev, ...(resp.data!.data ?? [])]);
                 setPagina(siguiente);
             }
         } catch (err) {
