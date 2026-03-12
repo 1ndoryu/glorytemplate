@@ -11,6 +11,7 @@
  */
 
 import { registrarReproduccion } from '../services/apiReproduciones';
+import { useReproducidosStore } from '../stores/reproducidosStore';
 
 /* Umbral mínimo (seg) para considerar una escucha trackeable — evita clicks accidentales */
 const UMBRAL_MINIMO_SEG = 0.5;
@@ -18,6 +19,8 @@ const UMBRAL_MINIMO_SEG = 0.5;
 /*
  * Envía tracking de reproducción al backend con duración real.
  * Solo envía si la duración supera el umbral mínimo.
+ * QQ46: También marca el sample como reproducido en el store global
+ * para que el indicador de punto rojo se actualice en tiempo real.
  * Best-effort: errores de red no bloquean la UX.
  */
 export const enviarTrackingReproduccion = (
@@ -26,6 +29,9 @@ export const enviarTrackingReproduccion = (
     completada: boolean
 ): void => {
     if (!sampleId || duracionEscuchada < UMBRAL_MINIMO_SEG) return;
+
+    /* Actualizar store inmediatamente (optimista) */
+    useReproducidosStore.getState().marcarReproducido(sampleId);
 
     registrarReproduccion(sampleId, {
         duracionEscuchada: Math.round(duracionEscuchada * 100) / 100,

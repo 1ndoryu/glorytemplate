@@ -19,6 +19,7 @@ import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalSeguidores } from '../social/ModalSeguidores';
 import { ModalGeneros } from '../social/ModalGeneros';
 import { useGenerosModalStore } from '@app/stores/generosModalStore';
+import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
@@ -100,6 +101,12 @@ export const LayoutPrincipal = ({
             useGenerosModalStore.getState().abrir();
         }
     }, [autenticado, usuario, cargandoAuth]);
+
+    /* QQ46: Cargar IDs de samples reproducidos al autenticar */
+    useEffect(() => {
+        if (!autenticado || cargandoAuth) return;
+        useReproducidosStore.getState().cargar();
+    }, [autenticado, cargandoAuth]);
 
     /* Modo de autenticación efectivo: real o simulado */
     const autenticadoEfectivo = override?.simulaDeslogueado ? false : autenticado;

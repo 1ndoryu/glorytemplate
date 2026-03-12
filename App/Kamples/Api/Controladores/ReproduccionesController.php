@@ -46,6 +46,12 @@ class ReproduccionesController
             ],
         ]);
 
+        /* QQ46: IDs de samples reproducidos (liviano, para indicador de "no reproducido") */
+        register_rest_route($namespace, '/reproducciones/ids', [
+            'methods' => 'GET', 'callback' => [self::class, 'listarIds'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         /* Samples similares para "También te podría gustar" */
         register_rest_route($namespace, '/samples/(?P<id>\d+)/similares', [
             'methods' => 'GET', 'callback' => [self::class, 'similares'],
@@ -127,6 +133,25 @@ class ReproduccionesController
         ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('ReproduccionesController::historial error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * GET /reproducciones/ids — IDs de samples que el usuario ha reproducido.
+     * Query liviana usada por el frontend para el indicador de "no reproducido" (punto rojo).
+     */
+    public static function listarIds(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $ids = ReproduccionesRepository::listarIdsReproducidos($userId);
+
+            return new \WP_REST_Response(['data' => $ids], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ReproduccionesController::listarIds error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

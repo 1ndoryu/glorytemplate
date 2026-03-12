@@ -58,6 +58,20 @@ export const obtenerHistorial = async (
 };
 
 /*
+ * QQ46: IDs de samples que el usuario ha reproducido (query liviana).
+ * Usado por reproducidosStore para mostrar indicador de "no reproducido".
+ * Endpoint: GET /reproducciones/ids
+ */
+export const obtenerIdsReproducidos = async (): Promise<RespuestaApi<number[]>> => {
+    try {
+        return await apiGet<number[]>('/reproducciones/ids');
+    } catch (err) {
+        log.error('Error obteniendo IDs reproducidos', err);
+        return { ok: false, data: [], error: 'Error de red', status: 0 };
+    }
+};
+
+/*
  * Samples similares por metadata (tags, BPM, key, tipo).
  * C142: Corregido tipo — apiCliente ya desenvuelve json.data, no hace falta { data: ... }.
  * Endpoint: GET /samples/{id}/similares

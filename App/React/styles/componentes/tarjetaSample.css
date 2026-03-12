@@ -101,6 +101,17 @@
     color: var(--acento);
 }
 
+/* QQ46: Punto rojo indicador de sample no reproducido */
+.tarjetaPuntoRojo {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radioFull);
+    background: var(--error);
+    flex-shrink: 0;
+    margin-left: var(--espacio2xs);
+}
+
 .tarjetaCreador {
     font-size: var(--fuenteSm);
     color: var(--textoSecundario);

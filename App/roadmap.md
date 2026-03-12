@@ -215,9 +215,9 @@ Modal de bienvenida con seleccion de generos favoritos. Backend: columna `genero
 
 permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue ✅ [AG-QQF] Implementado: input inline con borde dashed y ícono + al final del grid de géneros. Enter para agregar. Tags personalizados se muestran como badges activos removibles. Backend actualizado para aceptar tags personalizados sanitizados (regex `/[^a-z0-9\s\-&]/`, max 30 chars/tag, max 10 total). Contador muestra X/10. Modal sigue abriéndose si generosPreferidos está vacío.
 
-## QQ46
+## QQ46 ✅ [AG-QQF]
 
-Cuando los samples aun no hayan sido reproducidos por el usuario, que aparezca un punto rojo al final del nombre del sample en tarjetaTitulo tarjetaTituloClickeable
+Punto rojo indicador de samples no reproducidos. **Backend:** Nuevo endpoint `GET /reproducciones/ids` — query liviana (`SELECT DISTINCT sample_id`) que devuelve solo los IDs de samples reproducidos por el usuario. ReproduccionesRepository::listarIdsReproducidos(). **Frontend:** reproducidosStore (Zustand global) — se carga una vez al autenticar, mantiene `Set<number>` de IDs reproducidos. Selector eficiente `s.cargado && !s.ids.has(sampleId)` para evitar re-renders masivos. trackingReproduccion.ts actualiza el store optimísticamente al reproducir un sample (`marcarReproducido`). TarjetaSample.tsx muestra `<span className="tarjetaPuntoRojo">` entre el título y el badge de verificado. CSS: punto rojo de 6px con `var(--error)`, `border-radius: var(--radioFull)`. Funciona en todas las islas que usan TarjetaSample (feed, perfil, comunidad, detalle, explorador). Archivos: ReproduccionesRepository.php, ReproduccionesController.php, apiReproduciones.ts, reproducidosStore.ts, trackingReproduccion.ts, TarjetaSample.tsx, tarjetaSample.css, LayoutPrincipal.tsx.
 
 ## QQ47 ✅ [AG-QQF]
 

@@ -181,4 +181,23 @@ class ReproduccionesRepository extends BaseRepository
 
         return static::consultar($sql, ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]);
     }
+
+    /*
+     * QQ46: Devuelve solo los IDs de samples que el usuario ha reproducido.
+     * Query liviana (solo DISTINCT sample_id) usada por el frontend para
+     * mostrar punto rojo en samples no reproducidos.
+     */
+    public static function listarIdsReproducidos(int $userId): array
+    {
+        $tabla = ReproduccionesCols::TABLA;
+        $colSample = ReproduccionesCols::SAMPLE_ID;
+        $colUsuario = ReproduccionesCols::USUARIO_ID;
+
+        $rows = static::consultar(
+            "SELECT DISTINCT {$colSample} FROM {$tabla} WHERE {$colUsuario} = :userId",
+            ['userId' => $userId]
+        );
+
+        return array_map(fn($r) => (int) $r[$colSample], $rows);
+    }
 }

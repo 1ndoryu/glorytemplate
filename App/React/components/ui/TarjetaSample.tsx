@@ -14,6 +14,7 @@ import { Tooltip } from './Tooltip';
 import { etiquetaBpm } from '../../services/bpmUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
+import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import '../../styles/componentes/tarjetaSample.css';
 import { BotonBase } from './BotonBase';
 
@@ -44,6 +45,9 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         manejarColeccionar, manejarMenu, manejarGuardar, manejarSeek,
         manejarDragStart, navegar, onClickTitulo, manejarComentar, requiereCompra, esSoloPro,
     } = useTarjetaSample(props);
+
+    /* QQ46: Punto rojo para samples no reproducidos */
+    const noReproducido = useReproducidosStore(s => s.cargado && !s.ids.has(sample.id));
 
     /* Long press en mobile para abrir menú contextual (500ms) */
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -112,6 +116,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     >
                         {sample.titulo}
                     </a>
+                    {noReproducido && <span className="tarjetaPuntoRojo" aria-label="No reproducido" />}
                     {sample.verificado && <BadgeCheck size={14} className="tarjetaVerificado" />}
                     {sample.esPremium && <span className="tarjetaPremium">PRO</span>}
                 </div>
