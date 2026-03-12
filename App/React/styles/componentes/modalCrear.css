@@ -140,7 +140,8 @@
 
 .crearTagsInsuficientes {
     color: var(--error);
-    background-color: var(--errorMuted);
+    opacity: 0.5;
+    padding: 0;
 }
 
 .crearTagsSuficientes {
@@ -277,18 +278,13 @@
     color: var(--textoSecundario);
 }
 
-.crearCondicionActiva {
-    border-color: var(--acento-blanco);
-    color: var(--acento-blanco);
+.crearCondicionActiva, .crearCondicionPremium  {
+    border-color: var(--acento);
+    color: #4a665b !important;
     background-color: var(--fondoElevado3);
+    background: #4a665b1a !important;
 }
 
-/* Toggle premium con estilo dorado (usando advertencia como base) */
-.crearCondicionPremium {
-    border-color: var(--advertencia);
-    color: var(--advertencia);
-    background-color: color-mix(in srgb, var(--advertencia) 10%, transparent);
-}
 
 /* L7.2: Campo timing inicio del sample en la cancion original */
 .crearTimingContenedor {
@@ -329,9 +325,10 @@
 /* Campo precio para samples premium */
 .crearPrecioContenedor {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--espacioSm);
-    padding: 0 var(--espacioSm);
+    /* padding: 0 var(--espacioSm); */
+    flex-direction: column;
 }
 
 .crearPrecioLabel {

@@ -102,11 +102,9 @@ App/React/agente/CONFIG_ACTUAL.md
 App/React/capacitor.config.local.json
 App/React/android/app/src/main/res/values/strings.local.xml
 .agent/docs/CONTEXTO_SMTP_GUILLERMO.md
-.gitignore
 .agent/docs/migracion-nuevo-vps.md
 .agent/docs/OPTIMIZACION_GLORY_LITE.md
 .agent/docs/protocolo-coolify-wordpress.md
-.gitignore
 .agent/docs/api-tareas.md
 .agent/docs/infeccion-vps-167.86.117.147.md
 App/React/android
@@ -118,10 +116,15 @@ App1/
 .github/instructions/test.instructions.md
 .vitepress/
 temp_dl/
-colors/
+
 
 # Desktop Tauri
 desktop/dist/
 desktop/src-tauri/gen/
 desktop/src-tauri/target/
+# Kamples Scraper
 kamples-scraper/cookies.txt
+kamples-scraper/cookies.txt.bak.*
+kamples-scraper/log*.txt
+kamples-scraper/**/.rate_limiter_state
+kamples-scraper/extractor/temp/

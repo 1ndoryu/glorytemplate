@@ -235,11 +235,11 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     <CampoTexto
                         id="crearPrecioInput"
                         type="number"
-                        className="crearPrecioInput"
                         min="0.50"
                         max="99.99"
                         step="0.01"
                         placeholder="2.99"
+                        variante="bordado"
                         value={precio}
                         onChange={(e) => setPrecio(e.target.value)}
                     />
