@@ -8,6 +8,7 @@
 import { useState, useCallback, useRef, type KeyboardEvent } from 'react';
 import { Edit3, Trash2, Flag } from 'lucide-react';
 import { useAuthStore } from '@app/stores/authStore';
+import { useReportarStore } from '@app/stores/reportarStore';
 import type { Comentario } from '@app/types/publicacion';
 import type { ComentarioAcciones } from '@app/components/social/ComentarioItem';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
@@ -59,10 +60,12 @@ export const useComentarioItem = ({ comentario, acciones }: UseComentarioItemPar
             onClick: () => { acciones.onEliminar!(comentario.id); },
         });
     }
-    if (!esAutor && acciones?.onReportar) {
+    if (!esAutor) {
         menuItems.push({
             id: 'reportar', etiqueta: 'Reportar', icono: <Flag size={14} />, peligro: true,
-            onClick: () => { acciones.onReportar!(comentario.id, 'contenido inapropiado'); },
+            onClick: () => {
+                useReportarStore.getState().abrir('comentario', comentario.id);
+            },
         });
     }
 

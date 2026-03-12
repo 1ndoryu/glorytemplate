@@ -18,8 +18,7 @@ import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
-import { ModalReportarError } from '../social/ModalReportarError';
-import { ModalReportarUsuario } from '../social/ModalReportarUsuario';
+import { ModalReportar } from '../social/ModalReportar';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
@@ -155,11 +154,8 @@ export const LayoutPrincipal = ({
             {/* C800: Modal de correccion de metadata IA */}
             <ModalCorregirIA />
 
-            {/* QQ12: Modal de reporte de errores de plataforma */}
-            <ModalReportarError />
-
-            {/* QQ23: Modal de reporte de usuarios */}
-            <ModalReportarUsuario />
+            {/* QQ38: Modal centralizado de reportes (usuario, publicacion, comentario, sample, error) */}
+            <ModalReportar />
 
             {/* Modal de planes (overlay, sin cambiar de isla) */}
             <PlanesIsland />

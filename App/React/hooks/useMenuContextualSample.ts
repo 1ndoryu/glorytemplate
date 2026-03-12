@@ -21,6 +21,7 @@ import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { desvincularSample } from '@app/services/apiRelaciones';
 import { descargarSample } from '@app/services/apiDescargas';
 import { toast } from '@app/stores/toastStore';
+import { useReportarStore } from '@app/stores/reportarStore';
 
 /* Eventos globales para notificar cambios de samples sin recargar la página */
 export const EVENTO_SAMPLE_ELIMINADO = 'kamples:sample-eliminado';
@@ -327,7 +328,8 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 etiqueta: 'Reportar',
                 peligro: true,
                 onClick: () => {
-                    /* TO-DO: modal de reporte */
+                    if (!estado.sample) return;
+                    useReportarStore.getState().abrir('sample', estado.sample.id, estado.sample.titulo);
                 },
             },
         ]

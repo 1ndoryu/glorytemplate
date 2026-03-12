@@ -7,7 +7,7 @@
 import { useState, useCallback, useMemo, type MouseEvent } from 'react';
 import { Flag, ShieldAlert, ShieldOff } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
-import { useReportarUsuarioStore } from '@app/stores/reportarUsuarioStore';
+import { useReportarStore } from '@app/stores/reportarStore';
 import { useBloqueosStore } from '@app/stores/bloqueosStore';
 import { toast } from '@app/stores/toastStore';
 
@@ -36,7 +36,7 @@ export const useMenuContextualPerfil = (usuario: DatosUsuarioPerfil | null): Ret
         y: 0,
     });
 
-    const abrirReporte = useReportarUsuarioStore(s => s.abrir);
+    const abrirReporte = useReportarStore(s => s.abrir);
     const bloquear = useBloqueosStore(s => s.bloquear);
     const desbloquear = useBloqueosStore(s => s.desbloquear);
     const estaBloqueado = useBloqueosStore(s => s.estaBloqueado);
@@ -67,7 +67,7 @@ export const useMenuContextualPerfil = (usuario: DatosUsuarioPerfil | null): Ret
             peligro: true,
             separadorDespues: true,
             onClick: () => {
-                abrirReporte(usuario.id, usuario.username);
+                abrirReporte('usuario', usuario.id, usuario.username);
             },
         });
 

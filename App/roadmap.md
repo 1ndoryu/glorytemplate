@@ -195,13 +195,13 @@ en whosampled no pasa eso
 
 si es porque estamos en local, lo entiendo, ignoralo pero si hay forma de arregalarlo, arreglalo.
 
-## QQ37
+## QQ37 ✅ [AG-QQF]
 
-el mismo problema de antes, si voy directamente a http://glory.local/perfil/cualquier perfil, da 404 pero si navego con la pagina ya cargando dando click al perfil carga ¿porque este problema se repite tanto en diferentes contextos?tambien volvio a repetirse el problema con http://glory.local/admin/panel/ , en algun momento se arrelgo y volvio a suceder, pasa con las publicaciones
+Resuelto por QQ28. El fix en `forzarResolucionDinamica()` auto-crea paginas WP faltantes (perfil, admin/panel, publicacion, etc.) cuando estan definidas en PageDefinition pero ausentes en BD. Cubre rutas dinamicas (/perfil/{username}) y estaticas (/admin/panel). Si la pagina se borra o no se sincronizo, se recrea al primer acceso con transient de 300s para evitar intentos repetidos. `crearPaginaDefinida()` ya maneja jerarquia padre/hijo (`asegurarPaginaPadre()` recursivo).
 
-## QQ38 
+## QQ38 ✅ [AG-QQF]
 
-El reportar de las publicaciones y el de probablmente los samples, sampleos y canciones no es el mismo que el de reportar perfiles, no abre el modal, debería ser igual como el de reportar problema, perfil, etc, los reportes tienen que estar centralizados!!
+Sistema de reportes centralizado. Un solo modal (ModalReportar), store (reportarStore), hook (useReportar) y endpoint backend (POST /reportar) para todos los tipos: usuario, publicacion, comentario, sample, error_plataforma. Backend: ModeracionController::reportarGenerico con validacion especifica por tipo (existencia, duplicados, rate limit). Frontend: reportarStore con tipo+targetId+targetNombre, ModalReportar adapta UI segun tipo. Eliminados: ModalReportarUsuario, ModalReportarError, reportarUsuarioStore, reportarErrorStore, useReportarUsuario, useReportarError. Migrados: useMenuContextualPerfil, useMenuContextualPublicacion (era window.prompt), useVentanaChat, useComentarioItem, useMenuContextualSample (tenia TO-DO), Sidebar, LayoutPrincipal.
 
 ## QQ39 
 
@@ -214,3 +214,14 @@ Se que antes habia dicho que habia que quitar las portadas, me arrepiento, ya no
 Hay errores ortograficos en el modal de iniciar sesion y registro
 
 Agregar la funcionalidad de registrarse con google
+
+mi id de cliente la puse en el env
+
+## QQ41 
+
+Cambiar el buscador de inicio por un boton de registro secundario y otro primario de descargar, eso descargaría la aplicación.
+
+Crea un md de como alojar la aplicación de forma de que se actualice en todos los usuarios, hacer lo necesario para que la autoactulización funcione, y como hacer el instalador ,etc.
+
+## QQ42
+

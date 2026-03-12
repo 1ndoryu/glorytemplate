@@ -10,7 +10,7 @@ import { enviarMensaje, enviarMensajeMultimedia, obtenerMensajes } from '@app/se
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
-import { useReportarUsuarioStore } from '@app/stores/reportarUsuarioStore';
+import { useReportarStore } from '@app/stores/reportarStore';
 import { useBloqueosStore } from '@app/stores/bloqueosStore';
 import type { Mensaje } from '@app/types';
 
@@ -150,8 +150,9 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
 
     const reportar = useCallback(() => {
         setMenuAbierto(false);
-        /* QQ23: Abrir modal de reporte de usuario */
-        useReportarUsuarioStore.getState().abrir(
+        /* QQ38: Abrir modal centralizado de reporte de usuario */
+        useReportarStore.getState().abrir(
+            'usuario',
             chat.participanteId,
             chat.participanteUsername,
         );

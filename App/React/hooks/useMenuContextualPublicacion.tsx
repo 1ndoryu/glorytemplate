@@ -7,12 +7,13 @@
 
 import { useState, useCallback, useMemo, type MouseEvent, type Dispatch, type SetStateAction } from 'react';
 import { User, Link2, Trash2, Flag, CheckCircle, Pencil } from 'lucide-react';
+import { useReportarStore } from '@app/stores/reportarStore';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import type { Publicacion } from '@app/types';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
-import { actualizarPublicacion, eliminarPublicacion, reportarPublicacion } from '@app/services/apiSocial';
+import { actualizarPublicacion, eliminarPublicacion } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
 
 import { useEditarModalStore } from '@app/stores/editarModalStore';
@@ -185,20 +186,8 @@ export const useMenuContextualPublicacion = (
                 etiqueta: 'Reportar',
                 icono: <Flag size={16} />,
                 peligro: true,
-                onClick: async () => {
-                    const razon = window.prompt('¿Por qué quieres reportar esta publicación?', 'contenido inapropiado');
-                    if (razon !== null && razon.trim() !== '') {
-                        try {
-                            const resp = await reportarPublicacion(post.id, razon.trim());
-                            if (resp.ok) {
-                                toast.exito(resp.data?.message ?? 'Reporte enviado');
-                            } else {
-                                toast.error(resp.error ?? 'Error al reportar');
-                            }
-                        } catch (err) {
-                            toast.error('Error de red al reportar');
-                        }
-                    }
+                onClick: () => {
+                    useReportarStore.getState().abrir('publicacion', post.id);
                 },
             });
         }

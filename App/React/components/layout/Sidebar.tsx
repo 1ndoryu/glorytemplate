@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
-import { useReportarErrorStore } from '@app/stores/reportarErrorStore';
+import { useReportarStore } from '@app/stores/reportarStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
@@ -54,7 +54,7 @@ export const Sidebar = ({
 }: SidebarProps): JSX.Element => {
     const navegar = useNavigationStore(s => s.navegar);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
-    const abrirReportarError = useReportarErrorStore(s => s.abrir);
+    const abrirReporte = useReportarStore(s => s.abrir);
     const usuario = useAuthStore(s => s.usuario);
     const esAdmin = usuario?.rol === 'admin';
 
@@ -134,7 +134,7 @@ export const Sidebar = ({
                 <BotonBase variante="ghost"
                     className="sidebarItem"
                     data-tooltip="Reportar error"
-                    onClick={() => abrirReportarError()}
+                    onClick={() => abrirReporte('error_plataforma')}
                     type="button"
                     aria-label="Reportar error"
                 >
