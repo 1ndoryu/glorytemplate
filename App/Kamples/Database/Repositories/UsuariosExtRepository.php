@@ -337,7 +337,8 @@ class UsuariosExtRepository extends BaseRepository
         $tabla = UsuariosExtCols::TABLA;
 
         return static::consultarUno(
-            "SELECT " . UsuariosExtCols::ID . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
+            "SELECT " . UsuariosExtCols::ID . ", " . UsuariosExtCols::TOTAL_SEGUIDORES
+            . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
             [UsuariosExtCols::USERNAME => $username]
         );
     }

@@ -38,8 +38,10 @@ export function useModalSeguidores() {
         obtenerSeguidores(username, 1, POR_PAGINA).then((resp) => {
             if (cancelado) return;
             if (resp.ok && resp.data) {
-                setSeguidores(resp.data.data ?? []);
-                setTotal(resp.data.total ?? 0);
+                /* QQ77: apiCliente desenvuelve json.data -> resp.data ya es el array */
+                const lista = Array.isArray(resp.data) ? resp.data : (resp.data as any).data ?? [];
+                setSeguidores(lista);
+                setTotal(resp.total ?? 0);
             }
             setCargando(false);
             setPagina(1);
@@ -59,7 +61,8 @@ export function useModalSeguidores() {
         try {
             const resp = await obtenerSeguidores(username, siguiente, POR_PAGINA);
             if (resp.ok && resp.data) {
-                setSeguidores(prev => [...prev, ...(resp.data!.data ?? [])]);
+                const lista = Array.isArray(resp.data) ? resp.data : (resp.data as any).data ?? [];
+                setSeguidores(prev => [...prev, ...lista]);
                 setPagina(siguiente);
             }
         } catch (err) {

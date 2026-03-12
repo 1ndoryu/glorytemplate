@@ -37,8 +37,8 @@ export const obtenerSeguidores = async (
     username: string,
     page = 1,
     perPage = 20
-): Promise<RespuestaApi<{ data: SeguidorResumen[]; total: number }>> => {
-    return apiGet<{ data: SeguidorResumen[]; total: number }>(
+): Promise<RespuestaApi<SeguidorResumen[]>> => {
+    return apiGet<SeguidorResumen[]>(
         `/usuarios/${encodeURIComponent(username)}/seguidores`,
         { page, perPage }
     );

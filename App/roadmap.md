@@ -318,7 +318,7 @@ El boton de preview de las colecciones no funciona, lo que hara esto es que repr
 
 ## QQ77 
 
-El modal de seguidres siempre dice "Sin seguidores aún" 
+✅ [AG-SEC] Fix modal seguidores siempre vacío. **2 bugs:** (1) Backend: `buscarPorUsername()` solo seleccionaba `id`, sin `total_seguidores` — controller usaba `$target['total_seguidores'] ?? 0` que siempre era 0. Fix: añadido `TOTAL_SEGUIDORES` al SELECT. (2) Frontend: `obtenerSeguidores` tipado como `RespuestaApi<{data:...; total:...}>` pero apiCliente desenvuelve `json.data` automáticamente — `resp.data` ya era el array, no un wrapper. Fix: tipo corregido a `RespuestaApi<SeguidorResumen[]>`, hook usa `resp.data` directamente y `resp.total` para el total. Archivos: UsuariosExtRepository.php, apiSocial.ts, useModalSeguidores.ts.
 
 
 ## QQ78
@@ -343,5 +343,15 @@ era un sample antes de que se pudiera ver la informacion, no se si es un problem
 
 ✅ [AG-SEC] Fix error compilación useVentanaChat: faltaba `const resp = await obtenerMensajes(chat.conversacionId)` antes de usar `resp`. Se había perdido la línea durante la edición PowerShell de QQ69. Archivo: useVentanaChat.ts.
 
+## QQ81
 
+El logo de kamples no aparece como favicon
+
+## QQ82
+
+Revisión de seo profunda, hay un md de seo pero no esta actualizado. 
+
+Esta tarea es super importante y no se debe tomar a ligera. 
+
+¿Los las paginas individuales de los samples estan optizadas para seo? ¿Las de las colecciones? ¿La de 
 
