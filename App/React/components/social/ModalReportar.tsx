@@ -14,14 +14,6 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { useReportar } from '@app/hooks/useReportar';
 import '../../styles/componentes/modalReportarError.css';
 
-const titulosPorTipo: Record<string, string> = {
-    usuario:          'Reportar usuario',
-    publicacion:      'Reportar publicacion',
-    comentario:       'Reportar comentario',
-    sample:           'Reportar sample',
-    error_plataforma: 'Reportar un problema',
-};
-
 export const ModalReportar = (): JSX.Element | null => {
     const {
         abierto,
@@ -46,7 +38,6 @@ export const ModalReportar = (): JSX.Element | null => {
             abierto={abierto}
             onCerrar={cerrar}
             tamano="pequeno"
-            titulo={titulosPorTipo[tipo] ?? 'Reportar'}
         >
             <div className="reportarErrorFormulario">
                 {tipo === 'usuario' && targetNombre && (

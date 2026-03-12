@@ -50,7 +50,6 @@
     gap: var(--espacioSm);
     padding: var(--espacioSm) var(--espacioMd);
     min-width: 180px;
-    background: var(--fondoElevado2);
     border-radius: var(--radioFull);
 }
 
@@ -93,6 +92,7 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
     white-space: nowrap;
+    display: none;
 }
 
 /* -- Sample compartido -- */

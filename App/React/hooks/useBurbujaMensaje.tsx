@@ -76,7 +76,8 @@ const BurbujaAudio = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
             />
             <BotonBase variante="ghost"
                 className="burbujaAudioBtn"
-                onClick={alternarReproduccion}
+                onClick={alternarReproduccion} 
+                tamano="ninguno"
                 type="button"
                 aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
             >
