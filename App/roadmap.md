@@ -146,17 +146,9 @@ agrege de explicacion: "encrearCondiciones tambien es absurdo que aparezca ciert
 
 El boton de mensaje en los perfil a dar click, el chat tarda en abrir y los mensajes en cargar ¿por qué? esta ¿optimizado esto? 
 
-## QQ32 
+## QQ32 ✅ [AG-QQF]
 
-Mejora social. 
-
-Por defecto se crea una partoda con imagenes de colors en perfilPortada, quitar esto, que ya no haya portadas, la foto de perfil ahora iría al lado del nombre y descripcion y la info de seguidores debajo (ME RETRACTO)
-
-Quitar la fecha de cuando se unio, y contador de siguiendo. 
-
-Cuando se de click a los seguidores debe mostar un modal con una lista con carga optimizada por scroll, la lista muestra los seguidores, y con un boton de seguir, obivamente si ya sigues pues el boton aparece como dejar de seguir.
-
-En configuracion, permitir un input de enalce, ese enlace aparecera al lado de los seguidores y en el perfil y abrira en otra pestaña, si el enlace es muy largo que se recorte visualmente
+Rediseño social del perfil. Backend: añadida columna `sitio_web` en `usuarios_ext` (v037 migration), PerfilController normaliza y actualiza `sitioWeb` (URL sanitization con `esc_url_raw`). Nuevo endpoint `GET /usuarios/{username}/seguidores` en SocialController con paginación + estado de follow del viewer. FollowsRepository: `listarSeguidores()` con JOIN a `usuarios_ext`. Frontend: Eliminada fecha de unión (Calendar) y contador de "Siguiendo" de PerfilIsland. "Seguidores" ahora clickable → abre ModalSeguidores (Zustand store + hook `useModalSeguidores` con scroll infinito + toggle follow/unfollow optimista con rollback). ModalConfiguracion: nuevo input "Enlace" con `sitioWeb` en payload de actualización. PerfilIsland muestra sitioWeb truncado a 40 chars. `.perfilMetadata` re-habilitada (ya no `display:none`). Añadida variable CSS `--hoverSutil`. Archivos: UsuariosExtSchema.php, UsuariosExtCols.php, v037 migration, PerfilController.php, SocialController.php, FollowsRepository.php, apiSocial.ts, seguidoresModalStore.ts, useModalSeguidores.ts, ModalSeguidores.tsx, modalSeguidores.css, PerfilIsland.tsx, LayoutPrincipal.tsx, useModalConfiguracion.ts, ModalConfiguracion.tsx, perfil.css, variables.css.
 
 ## QQ33 ✅ [AG-QQF]
 
@@ -229,4 +221,12 @@ Sera un modal muy sencillo, donde se le pregunta con un texto centrado todo. ¿C
 
 Y abajo unos tags badge con generos para elegir, pon muchos y luego esa informacion tiene que tenerla en cuenta el algoritmo, luego en configuracion agrega un boton para reabrir este modal y que el usuario pueda cambiar sus gustos, esto en el algoritmo no tiene que tener un inpacto grande a la largo, inicialmente lo tendrá porque claro, inicialmente no se tiene información del usuario, 
 
-permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue
+permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue 
+
+## QQ46
+
+Cuando los samples aun no hayan sido reproducidos por el usuario, que aparezca un punto rojo al final del nombre del sample en tarjetaTitulo tarjetaTituloClickeable
+
+## QQ47 
+
+No se porque el modal de cardPerfil tarda en emparecer (cuando se da click en el boton de seguir en las publicaciones) ¿no esta optimizado? optmiza y tambien debe aparecer el modal sin oscurucer el fondo y sobre cursor como un tooltip cuando se pone el cursor sobre el nombre del usuario en las publicaciones, esto es algo tipico de las redes sociales

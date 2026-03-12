@@ -39,6 +39,7 @@ class UsuariosExtSchema extends TableSchema
             'creditos_bonus'         => ['tipo' => 'int', 'default' => 0],
             'stripe_subscription_id' => ['tipo' => 'string', 'max' => 100, 'nullable' => true],
             'es_seed'                => ['tipo' => 'bool', 'default' => false],
+            'sitio_web'              => ['tipo' => 'string', 'max' => 500, 'nullable' => true],
         ];
     }
 }

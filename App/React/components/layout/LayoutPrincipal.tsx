@@ -16,6 +16,7 @@ import { ModalCrear } from '../social/ModalCrear';
 import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
+import { ModalSeguidores } from '../social/ModalSeguidores';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
@@ -147,6 +148,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal de configuración de perfil */}
             <ModalConfiguracion />
+
+            {/* QQ32: Modal de seguidores */}
+            <ModalSeguidores />
 
             {/* C126: Modal de edicion unificado (samples/publicaciones/colecciones) */}
             <ModalEditar />

@@ -67,6 +67,17 @@ class SocialController
             'callback'            => [self::class, 'misSeguidos'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* QQ32: Lista paginada de seguidores de un usuario (publico) */
+        register_rest_route($namespace, '/usuarios/(?P<username>[a-zA-Z0-9_-]+)/seguidores', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listarSeguidores'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'page'    => ['default' => 1, 'type' => 'integer', 'minimum' => 1],
+                'perPage' => ['default' => 20, 'type' => 'integer', 'minimum' => 1, 'maximum' => 50],
+            ],
+        ]);
     }
 
     /**
@@ -265,6 +276,56 @@ class SocialController
             return new \WP_REST_Response(['ok' => true, 'reaccion' => null], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SocialController::quitarLike error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * GET /usuarios/{username}/seguidores — Lista paginada de seguidores (QQ32).
+     * Devuelve array de usuarios resumidos con flag `siguiendo` relativo al viewer.
+     */
+    public static function listarSeguidores(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $username = sanitize_user($request->get_param('username'));
+            $page = max(1, (int) ($request->get_param('page') ?? 1));
+            $perPage = min(50, max(1, (int) ($request->get_param('perPage') ?? 20)));
+            $offset = ($page - 1) * $perPage;
+
+            $target = UsuariosExtRepository::buscarPorUsername($username);
+            if (!$target) {
+                return new \WP_REST_Response(['code' => 'usuario_no_encontrado', 'message' => 'Usuario no encontrado'], 404);
+            }
+
+            $targetId = (int) $target['id'];
+            $seguidores = FollowsRepository::listarSeguidores($targetId, $perPage, $offset);
+            $total = (int) ($target['total_seguidores'] ?? 0);
+
+            /* Obtener IDs que el viewer sigue para marcar `siguiendo` */
+            $viewerSeguidos = [];
+            $currentWp = AuthMiddleware::obtenerUsuarioActual();
+            if ($currentWp) {
+                $viewerId = UsuariosExtRepository::obtenerIdPorWpId($currentWp['wp_user_id']);
+                if ($viewerId) {
+                    $rows = FollowsRepository::idsSeguidos($viewerId);
+                    $viewerSeguidos = array_column($rows, 'id');
+                }
+            }
+
+            $data = array_map(function ($row) use ($viewerSeguidos) {
+                $id = (int) $row['id'];
+                return [
+                    'id'             => $id,
+                    'username'       => $row['username'],
+                    'nombreVisible'  => $row['nombre_visible'] ?? $row['username'],
+                    'avatarUrl'      => UsuarioHelper::resolverAvatarUrl($row['avatar_url'] ?? null, (int) ($row['wp_user_id'] ?? 0)),
+                    'siguiendo'      => in_array($id, $viewerSeguidos, false),
+                ];
+            }, $seguidores);
+
+            return new \WP_REST_Response(['data' => $data, 'total' => $total], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('SocialController::listarSeguidores error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

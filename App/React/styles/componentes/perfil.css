@@ -87,6 +87,17 @@
     gap: var(--espacioSm);
 }
 
+/* Stat interactivo (ej: seguidores clickable) */
+.perfilStatClickable {
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs) var(--espacioSm);
+    transition: background-color 0.15s ease;
+}
+
+.perfilStatClickable:hover {
+    background-color: var(--hoverSutil);
+}
+
 .perfilStatLabel {
     /* font-size: var(--fuenteXs); */
     color: var(--textoTerciario);
@@ -151,14 +162,13 @@
     }
 }
 
-/* Metadata del perfil (ubicación, fecha, web) */
+/* Metadata del perfil (ubicación, web) */
 .perfilMetadata {
     display: flex;
     align-items: center;
     gap: var(--espacioLg);
     margin-bottom: var(--espacioMd);
     flex-wrap: wrap;
-    display: none;
 }
 
 .perfilMetaItem {

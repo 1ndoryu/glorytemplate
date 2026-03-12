@@ -84,6 +84,7 @@ class PerfilController
             'totalSamples'    => (int) ($perfil[UsuariosExtCols::TOTAL_SAMPLES] ?? 0),
             'totalDescargas'  => (int) ($perfil[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
             'creadoAt'        => $perfil[UsuariosExtCols::CREATED_AT] ?? '',
+            'sitioWeb'        => $perfil[UsuariosExtCols::SITIO_WEB] ?? null,
         ];
 
         /* Verificar si el usuario autenticado sigue a este perfil */
@@ -194,6 +195,7 @@ class PerfilController
             'limiteSubidas'    => (int) ($datos['limite_subidas'] ?? -1),
             'mensajesHoy'      => (int) ($datos['mensajes_hoy'] ?? 0),
             'limiteMensajes'   => (int) ($datos['limite_mensajes'] ?? -1),
+            'sitioWeb'         => $datos[UsuariosExtCols::SITIO_WEB] ?? null,
         ];
     }
 
@@ -248,6 +250,16 @@ class PerfilController
         if (isset($body['avatarUrl'])) {
             $campos[] = UsuariosExtCols::AVATAR_URL . ' = :avatar';
             $params['avatar'] = esc_url_raw($body['avatarUrl']);
+        }
+        if (isset($body['sitioWeb'])) {
+            $sitioWeb = trim($body['sitioWeb']);
+            if ($sitioWeb === '') {
+                $campos[] = UsuariosExtCols::SITIO_WEB . ' = :sitioWeb';
+                $params['sitioWeb'] = null;
+            } else {
+                $campos[] = UsuariosExtCols::SITIO_WEB . ' = :sitioWeb';
+                $params['sitioWeb'] = esc_url_raw($sitioWeb);
+            }
         }
 
         if (empty($campos)) {

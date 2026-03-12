@@ -23,6 +23,27 @@ export const obtenerMisSeguidos = async (): Promise<RespuestaApi<{ id: number }[
     return apiGet<{ id: number }[]>('/me/seguidos');
 };
 
+/* QQ32: Resumen de seguidor para el modal */
+export interface SeguidorResumen {
+    id: number;
+    username: string;
+    nombreVisible: string;
+    avatarUrl: string | null;
+    siguiendo: boolean;
+}
+
+/* QQ32: Lista paginada de seguidores de un usuario */
+export const obtenerSeguidores = async (
+    username: string,
+    page = 1,
+    perPage = 20
+): Promise<RespuestaApi<{ data: SeguidorResumen[]; total: number }>> => {
+    return apiGet<{ data: SeguidorResumen[]; total: number }>(
+        `/usuarios/${encodeURIComponent(username)}/seguidores`,
+        { page, perPage }
+    );
+};
+
 /* Tipos de contenido que soportan likes y comentarios */
 export type TipoLikeable = 'sample' | 'publicacion' | 'cancion' | 'relacion';
 export type TipoComentable = 'sample' | 'publicacion' | 'cancion' | 'relacion';

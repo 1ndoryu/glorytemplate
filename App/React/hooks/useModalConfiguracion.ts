@@ -27,6 +27,7 @@ export function useModalConfiguracion() {
     const [nombreVisible, setNombreVisible] = useState(usuario?.nombreVisible ?? '');
     const [username, setUsername] = useState(usuario?.username ?? '');
     const [bio, setBio] = useState('');
+    const [sitioWeb, setSitioWeb] = useState('');
     const [notificaciones, setNotificaciones] = useState(true);
     const [temaSeleccionado, setTemaSeleccionado] = useState<TemaApp>('dark');
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function useModalConfiguracion() {
         if (abierto && usuario) {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
+            setSitioWeb(usuario.sitioWeb ?? '');
             setTemaSeleccionado(obtenerTemaAppActual());
             setAvatarPreview(null);
             setAvatarArchivo(null);
@@ -89,6 +91,7 @@ export function useModalConfiguracion() {
                 nombreVisible,
                 username,
                 bio,
+                sitioWeb: sitioWeb || null,
             });
 
             if (resp.ok && resp.data) {
@@ -102,7 +105,7 @@ export function useModalConfiguracion() {
 
         setGuardando(false);
         cerrar();
-    }, [guardando, usuario, nombreVisible, username, bio, avatarArchivo, setUsuario, cerrar]);
+    }, [guardando, usuario, nombreVisible, username, bio, sitioWeb, avatarArchivo, setUsuario, cerrar]);
 
     const manejarCerrar = useCallback(() => {
         if (guardando) return;
@@ -119,6 +122,7 @@ export function useModalConfiguracion() {
         nombreVisible, setNombreVisible,
         username, setUsername,
         bio, setBio,
+        sitioWeb, setSitioWeb,
         notificaciones, setNotificaciones,
         temaSeleccionado,
         avatarActual,

@@ -1,0 +1,70 @@
+/*
+ * modalSeguidores.css — Kamples (QQ32)
+ * Estilos para el modal de lista de seguidores.
+ */
+
+.seguidoresLista {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) 0;
+}
+
+.seguidoresItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioMd);
+    transition: background-color var(--transicionRapida);
+}
+
+.seguidoresItem:hover {
+    background-color: var(--fondoElevado2);
+}
+
+.seguidoresItemInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+}
+
+.seguidoresItemTexto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.seguidoresItemNombre {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.seguidoresItemUsername {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+.seguidoresVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacio2xl);
+    color: var(--textoTerciario);
+}
+
+.seguidoresCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioMd);
+}

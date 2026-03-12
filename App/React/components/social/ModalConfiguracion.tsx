@@ -50,7 +50,7 @@ const SECCIONES_NAV: NavItemConfig[] = [
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
-    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar} = useModalConfiguracion();
+    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, sitioWeb, setSitioWeb, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar} = useModalConfiguracion();
 
     if (!abierto || !autenticado) return null;
 
@@ -100,6 +100,13 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                             <label className="configLabel">Descripción / Bio</label>
                             <CampoTexto multilínea variante="desnudo" className="configTextarea" value={bio} onChange={e => setBio(e.target.value)} placeholder="Cuéntanos sobre ti..." maxLength={300} rows={3} />
                             <span className="configContador">{300 - bio.length}</span>
+                        </div>
+
+                        {/* QQ32: Enlace externo */}
+                        <div className="configSeccion">
+                            <label className="configLabel">Enlace</label>
+                            <CampoTexto variante="desnudo" className="configInput" value={sitioWeb} onChange={e => setSitioWeb(e.target.value)} placeholder="https://tu-pagina.com" maxLength={500} />
+                            <span className="configSubtexto">Se mostrará en tu perfil público.</span>
                         </div>
                     </>
                 );

@@ -133,4 +133,28 @@ class FollowsRepository extends BaseRepository
         );
         return $row !== null;
     }
+
+    /*
+     * QQ32: Lista paginada de seguidores de un usuario.
+     * JOIN con usuarios_ext para datos de perfil resumidos.
+     */
+    public static function listarSeguidores(int $seguidoId, int $limit = 20, int $offset = 0): array
+    {
+        $tf = FollowsCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        return static::consultar(
+            "SELECT u." . UsuariosExtCols::ID
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . " FROM {$tf} f"
+            . " JOIN {$tu} u ON u." . UsuariosExtCols::ID . " = f." . FollowsCols::SEGUIDOR_ID
+            . " WHERE f." . FollowsCols::SEGUIDO_ID . " = :seguidoId"
+            . " ORDER BY f." . FollowsCols::CREATED_AT . " DESC"
+            . " LIMIT :lim OFFSET :off",
+            ['seguidoId' => $seguidoId, 'lim' => $limit, 'off' => $offset]
+        );
+    }
 }

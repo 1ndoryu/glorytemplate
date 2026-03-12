@@ -4,7 +4,7 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
-import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
+import { Music, Heart, Settings, MapPin, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -19,6 +19,7 @@ import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { usePerfilIsland } from '@app/hooks/usePerfilIsland';
 import { useComentarios } from '@app/hooks/useComentarios';
+import { useSeguidoresModalStore } from '@app/stores/seguidoresModalStore';
 import { crearLogger } from '@app/services/logger';
 import type { SampleResumen } from '@app/types/sample';
 import '../../styles/componentes/perfil.css';
@@ -128,16 +129,10 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                     {usuario.ubicacion}
                                 </span>
                             )}
-                            {usuario.creadoAt && (
-                                <span className="perfilMetaItem">
-                                    <Calendar size={14} />
-                                    Se unió en {new Date(usuario.creadoAt).getFullYear()}
-                                </span>
-                            )}
                             {usuario.sitioWeb && (
                                 <a className="perfilMetaItem perfilMetaLink" href={usuario.sitioWeb} target="_blank" rel="noopener">
                                     <LinkIcon size={14} />
-                                    {usuario.sitioWeb.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                                    {usuario.sitioWeb.replace(/^https?:\/\//, '').replace(/\/$/, '').slice(0, 40)}
                                 </a>
                             )}
                         </div>
@@ -147,13 +142,15 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                 <span className="perfilStatValor">{usuario.totalSamples ?? 0}</span>
                                 <span className="perfilStatLabel">Samples</span>
                             </div>
-                            <div className="perfilStat">
+                            <div
+                                className="perfilStat perfilStatClickable"
+                                onClick={() => useSeguidoresModalStore.getState().abrir(usuario.username)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => { if (e.key === 'Enter') useSeguidoresModalStore.getState().abrir(usuario.username); }}
+                            >
                                 <span className="perfilStatValor">{usuario.totalSeguidores ?? 0}</span>
                                 <span className="perfilStatLabel">Seguidores</span>
-                            </div>
-                            <div className="perfilStat">
-                                <span className="perfilStatValor">{usuario.totalSeguidos ?? 0}</span>
-                                <span className="perfilStatLabel">Siguiendo</span>
                             </div>
                         </div>
                     </div>
