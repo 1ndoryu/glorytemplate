@@ -60,6 +60,11 @@ _SOUNDCLOUD_MIN_DURATION_MS = 60_000
 _SOUNDCLOUD_MAX_DURATION_MS = 720_000
 # client_id se extrae del frontend y se cachea por sesion
 _soundcloud_client_id: str | None = None
+# OAuth token de SoundCloud GO (suscripcion de pago).
+# Desbloquea tracks con policy='SNIP'. Obtener desde DevTools despues de login en
+# soundcloud.com: Application -> Cookies -> oauth_token (formato: 2-000000-xxxxx).
+# O desde localStorage: soundcloud.com -> DevTools -> Application -> localStorage -> oauth_token
+_soundcloud_oauth_token: str | None = os.getenv("SOUNDCLOUD_OAUTH_TOKEN", "").strip() or None
 # Regex para extraer client_id de los scripts JS de SoundCloud
 _SOUNDCLOUD_CLIENT_ID_RE = re.compile(r'client_id\s*[:=]\s*["\']([a-zA-Z0-9]{20,})["\']')
 # Headers para requests HTTP a SoundCloud y Deezer
@@ -302,7 +307,9 @@ _SOUNDCLOUD_TITULO_EXCLUIDO_RE = re.compile(
     r"|compilation|compil|best of|greatest hits|collection|recopilacion"
     r"|medley|megalo|nonstop|non-stop|non stop"
     r"|tribute|homenaje|karaoke"
-    r"|slowed|reverb|sped up|lofi|lo-fi|nightcore|8d audio"
+    r"|slowed|reverb|sped up|nightcore|8d audio"
+    r"|reloop|relooped"
+    r"|edit"
     r")\b",
     re.IGNORECASE,
 )
@@ -311,7 +318,7 @@ _SOUNDCLOUD_TITULO_EXCLUIDO_RE = re.compile(
 def _titulo_soundcloud_es_valido(track: dict, titulo_buscado: str) -> bool:
     """
     Retorna False si el titulo del track contiene terminos que indican
-    que no es la cancion original (remix, cover, full album, etc.).
+    que no es la cancion original (remix, cover, full album, reloop, edit, etc.).
 
     Excepcion: si el titulo buscado tambien contiene el termino (ej: busqueda
     de "Jazzy Jeff Remix"), no se descarta — el usuario quiere ese tipo de track.
@@ -327,6 +334,18 @@ def _titulo_soundcloud_es_valido(track: dict, titulo_buscado: str) -> bool:
         return True
 
     return False
+
+
+def _soundcloud_request_headers() -> dict:
+    """
+    Headers para requests a la API de SoundCloud.
+    Incluye Authorization: OAuth si hay token GO configurado,
+    lo que desbloquea tracks con policy='SNIP' (SoundCloud GO).
+    """
+    headers = dict(_HTTP_HEADERS)
+    if _soundcloud_oauth_token:
+        headers["Authorization"] = f"OAuth {_soundcloud_oauth_token}"
+    return headers
 
 
 def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | None:
@@ -353,14 +372,16 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
         logger.debug("Audio SoundCloud ya en cache: %s", output_path)
         return output_path
 
-    # Buscar track
+    # Buscar track — con GO (OAuth token) se amplian resultados y se incluyen tracks GO
     query = f"{artista} {titulo}"
+    search_limit = 10 if _soundcloud_oauth_token else 5
     search_url = (
         f"https://api-v2.soundcloud.com/search/tracks"
-        f"?q={urllib.parse.quote(query)}&client_id={client_id}&limit=5"
+        f"?q={urllib.parse.quote(query)}&client_id={client_id}&limit={search_limit}"
     )
+    sc_headers = _soundcloud_request_headers()
     try:
-        req = urllib.request.Request(search_url, headers=_HTTP_HEADERS)
+        req = urllib.request.Request(search_url, headers=sc_headers)
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, json.JSONDecodeError, OSError) as e:
@@ -371,6 +392,20 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
     if not tracks:
         logger.debug("SoundCloud: sin resultados para '%s'", query)
         return None
+
+    # Filtrar por policy: sin token GO, descartar tracks que requieren suscripcion.
+    # policy='SNIP' = solo preview 30s hasta que el usuario pague GO.
+    # Con OAuth token activo se incluyen (GO los desbloquea).
+    if not _soundcloud_oauth_token:
+        go_tracks = [t for t in tracks if t.get("policy") not in ("ALLOW", None, "")]
+        if go_tracks:
+            logger.info(
+                "SoundCloud: %d track(s) GO/bloqueado(s) descartados para '%s' "
+                "(configurar SOUNDCLOUD_OAUTH_TOKEN en .env para acceder con tu suscripcion GO): %s",
+                len(go_tracks), query,
+                [t.get("title", "?") for t in go_tracks],
+            )
+        tracks = [t for t in tracks if t.get("policy") in ("ALLOW", None, "")]
 
     # Filtrar por duracion: excluir snippets (<60s) y compilaciones/DJ sets (>12min).
     # Un track de 2h a 128kbps ocupa ~108 MB — causa OOM y uso extremo de disco.
@@ -432,7 +467,7 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
 
     try:
         stream_api_url = f"{tc_url}?client_id={client_id}"
-        req = urllib.request.Request(stream_api_url, headers=_HTTP_HEADERS)
+        req = urllib.request.Request(stream_api_url, headers=sc_headers)
         with urllib.request.urlopen(req, timeout=10) as resp:
             stream_data = json.loads(resp.read().decode("utf-8"))
         stream_url = stream_data.get("url", "")
