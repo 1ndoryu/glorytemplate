@@ -118,29 +118,17 @@ Fix 404 en URLs directas (publicaciones y otras rutas): En `PageTemplateIntercep
 
 feedSamplesContenedor ya no aparece en relaciones sin samples. Se agrego `total_samples` al query de `porRelacionId()` via subquery (cuenta samples activos por `sample_fuente_id`, `sample_destino_id` y `relacion_sampleo_id`). Normalizer incluye `totalSamples` en la respuesta. `RelacionDetalleIsland` ahora guarda `FeedSamples` con `relacion.totalSamples > 0`, evitando peticion innecesaria. Archivos: RelacionesSampleRepository.php, NormalizadorCancion.php, cancion.ts, RelacionDetalleIsland.tsx.
 
-## QQ30
+## QQ30 ✅ [AG-QQF]
 
-Es absurdo que cuando le click a Adjuntar sample manual o "Subir sample de esta canción" en los sampleos o canciones, al escribir algo sin poner un audio me permita publicar, (en las publicaciones normales si tiene sentido)  
+En contexto adjuntar: audio obligatorio para publicar, descarga forzada on (oculta), premium/precio ocultos, solo botón comunidad (off por defecto). `esContextoAdjuntar` flag en useCrearContenido.
 
-crearCondiciones tambien es absurdo que aparezca en ese contexto, por defecto las descargas tienen que estar activa, no permitir premiun ni precio
+## QQ30.1 ✅ [AG-QQF]
 
-Tambien hay que ajustar los estilos en esa parte
+`crearElementoContenedor` reemplazado por `crearPrecioContenedor` (mismos estilos). SelectorMenu de tipo elemento sin `compacto` — ahora usa estilo select normal.
 
-## QQ30.1 
+## QQ30.2 ✅ [AG-QQF]
 
-Esta estrucutra se ve muy bien, no esta mal 
-
-<div class="crearPrecioContenedor"><label class="crearPrecioLabel" for="crearPrecioInput">Precio (USD)</label><div class="contenedorCampoTexto "><input class="campTextoInput campoBordado " id="crearPrecioInput" type="number" min="0.50" max="99.99" step="0.01" placeholder="2.99" value=""></div></div>
-
-el problema es que crearPrecioContenedor, y crearElementoContenedor tienen estilos diferente cuando deberían ser los mismos que crearPrecioContenedor
-
-en selectorMenuContenedor selectorMenuCompacto el select no debería ser un boton, debería ser algo como el select que aparece en el modal de editar sample "selectorMenuContenedor", el mismo estilo
-
-## QQ30.2 
-
-Ccuando leiste la tarea y la empezaste a hacer no la leiste completa porque no la habia terminado de explicar,
-
-agrege de explicacion: "encrearCondiciones tambien es absurdo que aparezca ciertos botones por defecto las descargas tienen que estar activa y no aparecer para que no se pueda cambiar, y no permitir premiun ni precio que no aparezcan esos botoenes, el unico boton permitido es el de comunidad y por defecto ahi tiene que estar desactivado."
+Incluido en QQ30 — botones descarga/premium/precio ocultos en contexto adjuntar, solo comunidad visible (desactivado por defecto).
 
 ## QQ31
 

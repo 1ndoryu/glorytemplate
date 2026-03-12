@@ -30,7 +30,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        esPremium, togglePremium,
+        esPremium, togglePremium, esContextoAdjuntar,
         tienePrecio, setTienePrecio,
         mostrarEnComunidad, setMostrarEnComunidad,
         precio, setPrecio,
@@ -178,7 +178,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
 
             {/* Selector de tipo de elemento sampleado — solo en contexto de relacion */}
             {audioAdjunto && enContextoRelacion && (
-                <div className="crearElementoContenedor">
+                <div className="crearPrecioContenedor">
                     <SelectorMenu
                         etiqueta="Elemento sampleado (opcional)"
                         valor={tipoElemento}
@@ -187,7 +187,6 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             { valor: '', etiqueta: 'Sin especificar' },
                             ...Object.entries(ETIQUETAS_TIPO_ELEMENTO).map(([valor, etiqueta]) => ({ valor, etiqueta })),
                         ]}
-                        compacto
                     />
                 </div>
             )}
@@ -214,8 +213,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 </div>
             )}
 
-            {/* Condiciones del sample (descarga/pro/precio/comunidad) — icon-only con tooltip */}
-            {audioAdjunto && (
+            {/* QQ30/30.2: Condiciones del sample — en contexto adjuntar solo comunidad */}
+            {audioAdjunto && !esContextoAdjuntar && (
                 <div className="crearCondiciones">
                     <Tooltip texto={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'} posicion="bottom">
                         <BotonBase variante="ghost"
@@ -251,6 +250,22 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                             <DollarSign size={14} />
                         </BotonBase>
                     </Tooltip>
+                    <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
+                        <BotonBase variante="ghost"
+                            className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
+                            onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
+                            type="button"
+                            soloIcono
+                            aria-label={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
+                        >
+                            <Users size={14} />
+                        </BotonBase>
+                    </Tooltip>
+                </div>
+            )}
+            {/* QQ30.2: En contexto adjuntar, solo botón comunidad (off por defecto) */}
+            {audioAdjunto && esContextoAdjuntar && (
+                <div className="crearCondiciones">
                     <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
                         <BotonBase variante="ghost"
                             className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}

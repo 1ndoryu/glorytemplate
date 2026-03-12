@@ -103,6 +103,10 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         if (ctx?.inicioSegundos != null) {
             setInicioSegundos(String(ctx.inicioSegundos));
         }
+        /* QQ30: En contexto de adjuntar, comunidad desactivada por defecto */
+        if (ctx) {
+            setMostrarEnComunidad(false);
+        }
     }, [setAudioExterno]);
 
     /* Generar waveform al adjuntar audio */
@@ -277,14 +281,18 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const tags = extraerTags(contenido);
     const caracteresPendientes = MAX_CARACTERES - contenido.length;
     const tagsInsuficientes = !!audioAdjunto && tags.length < MIN_TAGS_AUDIO;
-    const puedePublicar = (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando && !tagsInsuficientes;
-
+    /* QQ30: Contexto adjuntar activo (manual o desde canción — restringe condiciones) */
+    const esContextoAdjuntar = !!useCrearModalStore.getState().contextoAdjuntar;
     /* L7.2: Contexto de relación activo (para mostrar campo inicioSegundos en UI) */
     const enContextoRelacion = !!useCrearModalStore.getState().contextoAdjuntar?.relacionId;
+    /* QQ30: En contexto adjuntar, audio es obligatorio — sin sample no se puede publicar */
+    const puedePublicar = esContextoAdjuntar
+        ? !!audioAdjunto && contenido.trim().length > 0 && !publicando && !tagsInsuficientes
+        : (contenido.trim().length > 0 || !!audioAdjunto || imagenes.length > 0) && !publicando && !tagsInsuficientes;
 
     return {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        esPremium, togglePremium,
+        esPremium, togglePremium, esContextoAdjuntar,
         /* QQ16: Toggle precio independiente de Pro */
         tienePrecio, setTienePrecio,
         /* C220: Toggle comunidad */
