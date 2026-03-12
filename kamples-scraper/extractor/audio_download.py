@@ -2,10 +2,10 @@
 Descarga de audio desde multiples fuentes con fallback inteligente.
 
 Prioridad (timing-aware):
-1. YouTube ID local (sin proxy, gratis)
-2. Deezer preview (30s, gratis, para timing <= 30s)
-3. YouTube ID via proxy DataImpulse (con retries, ~$1/GB)
-4. YouTube search via proxy
+1. SoundCloud API v2 (gratis, tracks completos 128kbps, sin auth)
+2. YouTube ID local (sin proxy, gratis)
+3. Deezer preview (30s, gratis, para timing <= 30s)
+4. YouTube search local
 5. Spotify ID (spotdl)
 6. Spotify search por nombre
 
@@ -55,6 +55,9 @@ _SPOTIFY_ID_RE = re.compile(r"^[A-Za-z0-9]{10,30}$")
 _SOUNDCLOUD_ENABLED = os.getenv("SOUNDCLOUD_ENABLED", "true").lower() == "true"
 # Duracion minima en ms para considerar un track completo (no snippet/preview)
 _SOUNDCLOUD_MIN_DURATION_MS = 60_000
+# Duracion maxima en ms — compilaciones/DJ sets suelen superar este limite.
+# A 128kbps: 15min = ~14MB. Canciones reales rara vez superan 12 min.
+_SOUNDCLOUD_MAX_DURATION_MS = 720_000
 # client_id se extrae del frontend y se cachea por sesion
 _soundcloud_client_id: str | None = None
 # Regex para extraer client_id de los scripts JS de SoundCloud
@@ -252,6 +255,39 @@ def _obtener_soundcloud_client_id() -> str | None:
         return None
 
 
+def _score_relevancia_soundcloud(track: dict, artista: str, titulo: str) -> int:
+    """
+    Puntua la relevancia de un resultado de SoundCloud respecto a la busqueda original.
+
+    Cuenta palabras significativas (>3 chars, no stop-words) que aparecen tanto en
+    el query como en el titulo/artista del resultado. Un score=0 indica que el
+    resultado probablemente no es el track buscado (ej: compilacion, DJ set).
+
+    Retorna int >= 0. Mayor = mas relevante.
+    """
+    stop_words = {
+        "the", "and", "for", "with", "from", "this", "that", "have", "will",
+        "your", "are", "was", "were", "not", "but", "each",
+    }
+
+    def tokens(text: str) -> set[str]:
+        words = re.findall(r"\w+", text.lower())
+        return {w for w in words if len(w) > 3 and w not in stop_words}
+
+    query_tokens = tokens(artista) | tokens(titulo)
+    track_title_tokens = tokens(track.get("title", ""))
+    user = track.get("user", {})
+    track_artist_tokens = tokens(
+        user.get("username", "") + " " + user.get("full_name", "")
+    )
+
+    title_score = len(query_tokens & track_title_tokens)
+    # El artista coincidente vale doble: indica match directo
+    artist_score = len(tokens(artista) & track_artist_tokens) * 2
+
+    return title_score + artist_score
+
+
 def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | None:
     """
     Buscar y descargar track completo desde SoundCloud API v2 (gratis, sin auth).
@@ -295,9 +331,36 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
         logger.debug("SoundCloud: sin resultados para '%s'", query)
         return None
 
-    # Filtrar snippets (tracks con duracion < 60s probablemente son previews)
-    tracks_completos = [t for t in tracks if t.get("duration", 0) >= _SOUNDCLOUD_MIN_DURATION_MS]
-    track = tracks_completos[0] if tracks_completos else tracks[0]
+    # Filtrar por duracion: excluir snippets (<60s) y compilaciones/DJ sets (>12min).
+    # Un track de 2h a 128kbps ocupa ~108 MB — causa OOM y uso extremo de disco.
+    tracks_validos = [
+        t for t in tracks
+        if _SOUNDCLOUD_MIN_DURATION_MS <= t.get("duration", 0) <= _SOUNDCLOUD_MAX_DURATION_MS
+    ]
+    if not tracks_validos:
+        logger.debug(
+            "SoundCloud: sin tracks en rango de duracion valido para '%s' "
+            "(resultados: %d, todos fuera de [%ds, %ds])",
+            query, len(tracks),
+            _SOUNDCLOUD_MIN_DURATION_MS // 1000,
+            _SOUNDCLOUD_MAX_DURATION_MS // 1000,
+        )
+        return None
+
+    # Ordenar por relevancia: preferir tracks cuyo titulo/artista comparte
+    # palabras con la busqueda. Evita descargar compilaciones sin relacion.
+    tracks_validos.sort(key=lambda t: _score_relevancia_soundcloud(t, artista, titulo), reverse=True)
+    mejor_score = _score_relevancia_soundcloud(tracks_validos[0], artista, titulo)
+    if mejor_score == 0:
+        # Ninguna palabra del query aparece en el resultado — muy probable falso match.
+        titulos_encontrados = [t.get("title", "?") for t in tracks_validos[:3]]
+        logger.warning(
+            "SoundCloud: resultados sin relevancia para '%s' -> %s. Abortando para evitar descarga incorrecta.",
+            query, titulos_encontrados,
+        )
+        return None
+
+    track = tracks_validos[0]
 
     transcodings = track.get("media", {}).get("transcodings", [])
     tc = _elegir_transcoding_soundcloud(transcodings)
@@ -346,6 +409,19 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
         return None
 
     size_kb = os.path.getsize(output_path) / 1024
+    # Guardia post-descarga: si el archivo supera ~15 MB es muy probable una
+    # compilacion o DJ set descargado por coincidencia en la busqueda.
+    # A 128kbps: 15 MB = ~17min. Todas las canciones validas para sampleo son <12min.
+    _MAX_SIZE_KB = 15_000
+    if size_kb > _MAX_SIZE_KB:
+        logger.warning(
+            "SoundCloud: archivo %.0f KB supera limite %.0f KB \u2014 posible compilacion. "
+            "Eliminando: '%s' -> %s",
+            size_kb, _MAX_SIZE_KB, query, output_path,
+        )
+        os.unlink(output_path)
+        return None
+
     sc_title = track.get("title", "?")
     sc_user = track.get("user", {}).get("username", "?")
     logger.info(
