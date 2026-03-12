@@ -163,9 +163,13 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                             )}
                         </h1>
 
-                        {sample.descripcion && (
-                            <p className="detalleDescripcionInterna">{sample.descripcion}</p>
-                        )}
+                        {(() => {
+                            const meta = sample.metadata;
+                            const desc = sample.descripcion
+                                || meta?.descripcion_es || meta?.descripcionEs
+                                || meta?.descripcion || meta?.descripcionIA || null;
+                            return desc ? <p className="detalleDescripcionInterna">{desc}</p> : null;
+                        })()}
 
                         <div className="detalleWaveformFila">
                             <WaveformPlayer

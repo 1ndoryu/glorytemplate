@@ -323,7 +323,7 @@ El boton de preview de las colecciones no funciona, lo que hara esto es que repr
 
 ## QQ78
 
-Corregir metadata IA no aparece
+✅ [AG-SEC] Fix metadata IA no aparece en detalle de sample. **Causa:** La página de detalle solo mostraba `sample.descripcion` (campo del usuario) que está vacío en ~90% de samples. La descripción IA (`metadata.descripcion_es`) existía en BD pero no se usaba como fallback. **Fix:** Cadena de fallback: `descripcion → metadata.descripcion_es → metadata.descripcion → metadata.descripcionIA`. Añadidos badges de artista vibes (`artista_vibes`) debajo de los tags en la vista de detalle. Archivo: SampleDetalleIsland.tsx.
 
 ## QQ79
 
@@ -353,5 +353,13 @@ Revisión de seo profunda, hay un md de seo pero no esta actualizado.
 
 Esta tarea es super importante y no se debe tomar a ligera. 
 
-¿Los las paginas individuales de los samples estan optizadas para seo? ¿Las de las colecciones? ¿La de 
+Esto no es solo para responder en el md , sino tambien para que evualues y trabajes en los ajustes necesarios 
+
+¿Los las paginas individuales de los samples estan optizadas para seo? ¿Las de las colecciones, canciones, sampleos, publicaciones? ¿Que pasa cuando hay muchos samples, casi 100.000? ¿Como afecta el seo la cantidad grande samples? ¿Cual es la mejor decisión, subir mucho inicialmente o limitarse a una cantidad? 
+
+Si voy a paginas como comunidad http://glory.local/comunidad/ estando deslogeado, me aparece el modal de registro pero al cerrar se queda todo en negro, debería mostrar el landing
+
+Si intento dar like, o abrir comentarios o descargar estando deslogeada debería mostrar el modal de iniciar sesion 
+
+Si intento 
 
