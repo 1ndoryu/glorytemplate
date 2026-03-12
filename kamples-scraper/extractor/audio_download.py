@@ -279,16 +279,22 @@ def _score_relevancia_soundcloud(track: dict, artista: str, titulo: str) -> int:
         words = re.findall(r"\w+", text.lower())
         return {w for w in words if len(w) > 3 and w not in stop_words}
 
-    query_tokens = tokens(artista) | tokens(titulo)
     track_title_tokens = tokens(track.get("title", ""))
     user = track.get("user", {})
     track_artist_tokens = tokens(
         user.get("username", "") + " " + user.get("full_name", "")
     )
 
-    title_score = len(query_tokens & track_title_tokens)
+    titulo_tokens = tokens(titulo)
+    title_score = len(titulo_tokens & track_title_tokens)
     # El artista coincidente vale doble: indica match directo
     artist_score = len(tokens(artista) & track_artist_tokens) * 2
+
+    # Si el titulo tiene palabras significativas (>3 chars) y NINGUNA aparece en
+    # el resultado, rechazar aunque el artista coincida. Previene descargar
+    # otra cancion del mismo artista (ej: "Matrix" -> "Salt Peanuts" de Dizzy Gillespie).
+    if titulo_tokens and title_score == 0:
+        return 0
 
     return title_score + artist_score
 
