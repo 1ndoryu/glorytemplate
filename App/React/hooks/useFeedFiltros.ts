@@ -5,7 +5,7 @@
  */
 
 import { useMemo, useCallback, useState, useEffect, useRef } from 'react';
-import { extraerTagsMetadata } from '@app/services/tagUtils';
+import { extraerTagsMetadata, normalizarTag } from '@app/services/tagUtils';
 import { obtenerTagsAgregados, type TagsAgregadosResp } from '@app/services/apiSamples';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import type { SampleResumen } from '@app/types';
@@ -92,12 +92,27 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
         }
 
         if (busqueda && busqueda.trim() !== '') {
-            const termino = busqueda.toLowerCase().trim();
+            /*
+             * QQ15: Búsqueda textual con soporte de múltiples términos (coma),
+             * y normalización de sinónimos para que "hip hop" encuentre "hip-hop".
+             * Cada término debe coincidir con título, tags o tags normalizados.
+             */
+            const terminos = busqueda.split(',')
+                .map(t => t.trim().toLowerCase())
+                .filter(t => t.length > 0);
+
             resultado = resultado.filter(s => {
-                const tituloCoincide = s.titulo.toLowerCase().includes(termino);
+                const tituloLower = s.titulo.toLowerCase();
                 const tagsSample = extraerTagsMetadata(s);
-                const tagsCoinciden = tagsSample.some(t => t.toLowerCase().includes(termino));
-                return tituloCoincide || tagsCoinciden;
+                const tagsLower = tagsSample.map(t => t.toLowerCase());
+                const tagsNorm = tagsSample.map(normalizarTag);
+
+                return terminos.every(termino => {
+                    const terminoNorm = normalizarTag(termino);
+                    return tituloLower.includes(termino)
+                        || tagsLower.some(t => t.includes(termino))
+                        || tagsNorm.some(t => t.includes(terminoNorm));
+                });
             });
         }
 
@@ -105,8 +120,10 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
 
         return resultado.filter(s => {
             const tagsSample = extraerTagsMetadata(s);
-            return tagsIncluidos.every(t => tagsSample.includes(t))
-                && tagsExcluidos.every(t => !tagsSample.includes(t));
+            /* QQ15: Normalizar ambos lados para que sinónimos coincidan (hip hop → hip-hop) */
+            const tagsNorm = tagsSample.map(normalizarTag);
+            return tagsIncluidos.every(t => tagsNorm.includes(normalizarTag(t)))
+                && tagsExcluidos.every(t => !tagsNorm.includes(normalizarTag(t)));
         });
     }, [samples, tagsIncluidos, tagsExcluidos, busqueda, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
 

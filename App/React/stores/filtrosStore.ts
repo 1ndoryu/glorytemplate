@@ -116,9 +116,14 @@ export const useFiltrosStore = create<EstadoFiltros>((set) => ({
     ...filtrosIniciales,
 
     setBusqueda: (busqueda) => {
-        /* C115: Al escribir en búsqueda, parsear tags automáticamente */
-        const { incluidos, excluidos } = parsearBusquedaATags(busqueda);
-        set({ busqueda, tagsIncluidos: incluidos, tagsExcluidos: excluidos, pagina: 1 });
+        /*
+         * QQ15: busqueda y tags son filtros INDEPENDIENTES.
+         * Escribir en el buscador NO parsea tags — solo setea busqueda textual.
+         * Tags se gestionan exclusivamente via incluirTag/excluirTag (click en chip).
+         * Antes (C115 roto): se auto-parseaba busqueda→tags, causando doble
+         * filtrado con normalización inconsistente que eliminaba resultados válidos.
+         */
+        set({ busqueda, pagina: 1 });
     },
     setPagina: (pagina) => set({ pagina }),
     toggleYaReproducidos: () => set((s) => ({ yaReproducidos: !s.yaReproducidos, pagina: 1 })),
