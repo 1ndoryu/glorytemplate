@@ -29,6 +29,7 @@ use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
+use App\Config\Schema\_generated\CancionesCols;
 
 class NormalizadorSample
 {

@@ -122,8 +122,17 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             <Layers size={14} /> Origen y Sampleo
                         </div>
                         <div className="inspectorGrid">
-                            <Campo etiqueta="Es Recorte" valor={(datos as Sample).relacionSampleoId != null} />
+                            {/* QQ79: esRecorte se determina por cancionOrigenId o relacionSampleoId */}
+                            <Campo etiqueta="Es Recorte" valor={
+                                (datos as Sample).cancionOrigenId != null || (datos as Sample).relacionSampleoId != null
+                            } />
                             <Campo etiqueta="Cancion Origen ID" valor={(datos as Sample).cancionOrigenId} numerico />
+                            {(datos as Sample).cancionOrigen?.titulo && (
+                                <Campo etiqueta="Cancion Origen" valor={(datos as Sample).cancionOrigen!.titulo} ancho />
+                            )}
+                            {(datos as Sample).cancionOrigen?.slug && (
+                                <Campo etiqueta="Enlace Fuente" valor={`/cancion/${(datos as Sample).cancionOrigen!.slug}/`} ancho />
+                            )}
                             <Campo etiqueta="Relacion Sampleo ID" valor={(datos as Sample).relacionSampleoId} numerico />
                         </div>
                     </div>

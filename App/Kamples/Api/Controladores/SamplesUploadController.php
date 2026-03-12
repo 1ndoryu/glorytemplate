@@ -322,6 +322,11 @@ class SamplesUploadController
 
                 RelacionesSampleRepository::actualizarPorId($relacionId, $datosActualizar);
 
+                /* QQ79: Vincular relacion_sampleo_id en el sample */
+                SamplesRepository::actualizarCampos($sampleId, [
+                    SamplesCols::RELACION_SAMPLEO_ID . " = :rel_id",
+                ], ['rel_id' => $relacionId]);
+
                 SamplesRepository::agregarMetadata($sampleId, [
                     'relacion_id' => $relacionId,
                     'lado_extraccion' => $ladoRelacion,

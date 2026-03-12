@@ -187,6 +187,11 @@ class PublicadorExtraccion
                 $colVinculo => $sampleId,
             ]);
 
+            /* QQ79: Vincular relacion_sampleo_id en el sample */
+            SamplesRepository::actualizarCampos($sampleId, [
+                SamplesCols::RELACION_SAMPLEO_ID . " = :rel_id",
+            ], ['rel_id' => $relacionId]);
+
             /* Marcar cola como completada con sample_id */
             ColaExtraccionSamplesRepository::vincularSample($colaId, $sampleId, [
                 'bpm'            => $meta['bpm_detectado'] ?? null,

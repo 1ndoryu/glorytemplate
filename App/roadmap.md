@@ -361,5 +361,12 @@ Si voy a paginas como comunidad http://glory.local/comunidad/ estando deslogeado
 
 Si intento dar like, o abrir comentarios o descargar estando deslogeada debería mostrar el modal de iniciar sesion 
 
-Si intento 
+landingNav del landing publico, ese nav debería aparecer en todas las paginas con usuarios deslogeados, tambien va a llevar la pagina de http://glory.local/musica/ y colecciones
 
+Ahora si, agregar una pagina de explorar, que es exactamente la misma que la de inicio cuando estas logeado, o sea, al lado del logo poner un menu de nav, la primera pagina es de explorar, muestra la lista de samples, la organización de inteligente supongo que no va a funcionar ocn un usuarios deslogeados asi que hay que ajustar para que haya una version del algoritmo para usuarlos deslogeados, muy sencilla en la que simplemente muestra samples descatacados. 
+
+## QQ83 
+
+Pequeño ajuste visual, artistaDetalleCanciones es inncesario, basta con que se vea igual artistaDetalleRelaciones, o sea una tabla de las canciones. en vez de verse diferente. 
+
+La imagen de perfil del artista que sea automaticamente cualquiera de la de sus portadas destacadas. 

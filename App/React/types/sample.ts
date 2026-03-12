@@ -104,6 +104,8 @@ export interface Sample {
     /* QQ51: Info de origen — cancion y relacion de sampleo si es un recorte */
     cancionOrigenId?: number | null;
     relacionSampleoId?: number | null;
+    /* QQ79: Datos enriquecidos de la cancion de origen */
+    cancionOrigen?: { titulo: string; slug: string } | null;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */
