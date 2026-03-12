@@ -16,6 +16,7 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\LogModeracion as KamplesLogger;
 use App\Config\Schema\_generated\ComentariosCols;
@@ -294,27 +295,10 @@ class ComentariosInteraccionController
         }
     }
 
-    /* Localiza el binario FFmpeg desde .env o PATH del sistema */
+    /* Delegado a FFmpegDetector (centralizado, cross-platform) */
     private static function obtenerFFmpegBin(): ?string
     {
-        $envPath = \defined('FFMPEG_PATH') ? FFMPEG_PATH : (\getenv('FFMPEG_PATH') ?: null);
-        if ($envPath && \is_executable($envPath)) return $envPath;
-
-        try {
-            $esWindows = \strtoupper(\substr(PHP_OS, 0, 3)) === 'WIN';
-            $cmd = $esWindows ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
-            $resultado = \trim(\shell_exec($cmd) ?? '');
-
-            if ($resultado) {
-                $lineas = \explode("\n", $resultado);
-                $ruta = \trim($lineas[0]);
-                if (\is_executable($ruta)) return $ruta;
-            }
-        } catch (\Throwable $e) {
-            KamplesLogger::error('ComentariosController: error buscando FFmpeg', ['error' => $e->getMessage()]);
-        }
-
-        return null;
+        return FFmpegDetector::obtenerFFmpeg();
     }
 
     private static function eliminarArchivoSiExiste(string $ruta, string $contexto): void

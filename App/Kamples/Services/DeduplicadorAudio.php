@@ -19,6 +19,7 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
 
@@ -227,26 +228,10 @@ class DeduplicadorAudio
     }
 
     /**
-     * Busca FFmpeg en el sistema.
+     * Delegado a FFmpegDetector (centralizado, cross-platform).
      */
     private static function buscarFFmpeg(): ?string
     {
-        /* Variable de entorno tiene prioridad */
-        $envPath = $_ENV['FFMPEG_PATH'] ?? getenv('FFMPEG_PATH') ?: null;
-        if ($envPath && file_exists($envPath)) return $envPath;
-
-        /* Buscar en PATH del sistema */
-        try {
-            $cmd = PHP_OS_FAMILY === 'Windows' ? 'where ffmpeg 2>nul' : 'which ffmpeg 2>/dev/null';
-            exec($cmd, $output, $exitCode);
-
-            if ($exitCode === 0 && !empty($output[0]) && file_exists(trim($output[0]))) {
-                return trim($output[0]);
-            }
-        } catch (\Throwable $e) {
-            KamplesLogger::error('DeduplicadorAudio: error buscando FFmpeg', ['error' => $e->getMessage()]);
-        }
-
-        return null;
+        return FFmpegDetector::obtenerFFmpeg();
     }
 }

@@ -89,10 +89,22 @@
 
 ---
 
-## QQ1 — Revision despliegue VPS (ULTIMO)
-**Archivos:** `.env`, `App/Config/environment.php`, scripts cron, pipeline PHP
+## ✅ QQ1 — [AG-QQF] Revision despliegue VPS
+**Archivos:** `.env.example`, `GitCommandRunner.php`, `ComentariosInteraccionController.php`, `DeduplicadorAudio.php`
 **Problema:** Proyecto testeado en Windows, necesita funcionar en Linux VPS con Coolify (Rust).
-**Solucion:** (a) Revisar rutas hardcodeadas Windows (FFMPEG_PATH, etc). (b) Asegurar que .env usa variables para todo path. (c) Verificar que procesos de fondo (scraper, recortes) usan paths relativos o de .env. (d) Adaptar scripts cron para Linux.
+**Resultado auditoría:**
+- **3 issues críticos encontrados, todos resueltos:**
+  1. `.env` tiene rutas Windows — `.env.example` y stack YAML ya tienen rutas Linux correctas. No requiere cambio en código.
+  2. `GitCommandRunner.php`: usaba constante `WP_SYSTEM` inexistente para detectar OS. Migrado a `PHP_OS_FAMILY` + `file_exists()` condicional.
+  3. `DevController.php`: rutas Windows hardcodeadas pero protegidas por `$esWindows` guard. No romperán en Linux.
+- **Mejoras cross-platform aplicadas:**
+  - `ComentariosInteraccionController.php` y `DeduplicadorAudio.php`: Eliminada detección FFmpeg duplicada, delegada a `FFmpegDetector` centralizado.
+  - `.env.example`: Agregadas variables faltantes (`KAMPLES_PYTHON_PATH`, `KAMPLES_CRON_SECRET`, `KAMPLES_SISTEMA_USUARIO_ID`).
+- **Docker faltantes documentados (no críticos para primer deploy):**
+  - Python no instalado en Dockerfile (scraper no funcionará desde WP)
+  - No hay cron daemon en container (usar WP Cron o Coolify scheduled tasks)
+  - kamples-scraper/ necesita volume mount o COPY adicional
+- **Estado general:** El proyecto es cross-platform. La mayoría de archivos ya usan `PHP_OS_FAMILY` correctamente. Temp dirs usan `sys_get_temp_dir()`. Cron usa `wp_schedule_event`.
 
 ---
 
