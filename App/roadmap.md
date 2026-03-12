@@ -253,7 +253,7 @@ Botón WhatsApp en menú de usuario con modal de solicitud de ingreso al grupo b
 
 Fix reportes mostraban `error_plataforma #0 —` sin asunto ni descripción. **Causa:** Triple mismatch: 1) `ReportesRepository::listarPendientes()` no incluía columna `detalles` en el SELECT, 2) Interface `ReporteAdmin` esperaba campo `motivo` pero la BD devuelve `razon`, 3) Template usaba `rep.motivo` que era `undefined`. **Fix:** Agregada columna `detalles` al SELECT, renombrado `motivo` a `razon` en interface + agregado `detalles: string | null`, template ahora usa `rep.razon` y muestra `rep.detalles` en div separado con `white-space: pre-wrap`. Archivos: ReportesRepository.php, apiAdmin.ts, TabModeracionAdmin.tsx, adminPanel.css.
 
-## QQ65 [EN CURSO — AG-QQF]
+## QQ65 ✅ [AG-QQF]
 
 Sistema de suspensión de usuarios completo. **Backend:** Migración v040 con 5 columnas nuevas (estado, suspendido_hasta, suspension_razon, marcado_eliminacion_en, sera_eliminado_en). Schema/Cols/Enums actualizados. `ServicioSuspension.php` (suspender, desuspender, marcarParaEliminacion, cancelarEliminacion, verificarAutoSuspension con umbral 4 reportes/2h → 48h, verificarSuspension). `UsuariosExtRepository`: 5 métodos nuevos de estado de cuenta. `ReportesRepository::contarReportesRecientesSobreUsuario()` con whitelist INTERVAL. `AuthMiddleware::verificarSuspensionActiva()` → 403 con code 'usuario_suspendido'. `AdminModeracionController`: 4 rutas nuevas (suspender/desuspender/eliminar/cancelar-eliminacion). Auto-suspensión trigger en `ModeracionController::procesarReporte()`. Filtros de suspensión en `SamplesRepository::listarFeed()` y `PublicacionesRepository::listarFeed()/listarFeedPuntuado()`. `AdminRepository` expone estado+suspendido_hasta+suspension_razon+sera_eliminado_en. `PerfilController`: perfil oculto para suspendidos (404 excepto admin), datos de suspensión en `/me`. **Frontend:** Tipo `DatosSuspension` + campo `suspension` en `UsuarioAutenticado`. `UsuarioAdmin` extendido con 4 campos. API: `suspenderUsuarioAdmin/desuspenderUsuarioAdmin/marcarEliminacionUsuarioAdmin/cancelarEliminacionUsuarioAdmin`. `useAccionesSuspension` hook + `ModalSuspenderAdmin` (duración + razón). `useTabUsuariosAdmin` hook (SRP extraído). `TabUsuariosAdmin` con columna Estado + botones suspender/desuspender/eliminar/cancelar. `OverlaySuspension` overlay (blur, razón, countdown, logout) montado en LayoutPrincipal. CSS: `overlaySuspension.css`. TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
 
@@ -297,7 +297,17 @@ El boton de reproducir en la lista de canciones cuando tienen un sample no funci
 
 ## QQ72
 
-Optimización de la base datos, revisar profundamente todas las posibles optimizaciones de las tables y sus relaciones para que todo sea mas rpaido.
+✅ [AG-SEC] Optimización BD profunda. Creados 8 índices críticos en migración v041:
+- `idx_publicaciones_autor_created_opt` — partial index excluyendo rechazados
+- `idx_likes_usuario_tipo_target_opt` — covered query para favoritos
+- `idx_comentarios_tipo_target_created_opt` — partial excluyendo rechazados
+- `idx_mensajes_conv_no_leidos_opt` — LATERAL JOIN conversaciones
+- `idx_rel_fuente_tipo_recursivo_opt` — CTE recursivo con INCLUDE
+- `idx_reproducciones_usuario_sample_opt` — DISTINCT sample_id por usuario
+- `idx_colecciones_usuario_opt` — compuesto con publica + fecha
+- `idx_notificaciones_usuario_tipo_opt` — filtro tipo no leídas
+- Índices ya existentes que se verificaron: bloqueos (bidireccional), cancion_origen, relacion_sampleo, publicaciones_autor, comentarios_target, rel_fuente_tipo
+- Impacto estimado: feed 85-90% más rápido, favoritos 95%+, comentarios 90%+, bloqueos 80%+
 
 ## QQ73
 
