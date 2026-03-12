@@ -10,8 +10,7 @@
     width: 90vw;
     max-width: 720px;
     height: 80vh;
-    max-height: 560px;
-    box-shadow: 0 var(--espacioXl) calc(var(--espacioXs) * 15) rgba(0, 0, 0, 0.4);
+    max-height: 800px;
 }
 
 /* El cuerpo del Modal actua como flex row para nav + contenido */
@@ -119,7 +118,7 @@ nav.configNavLista button {
     flex-direction: column;
     gap: 0;
 }
-}
+
 
 .configSeccionTitulo {
     font-size: var(--fuenteLg);
@@ -132,9 +131,8 @@ nav.configNavLista button {
 .configSeccion {
     display: flex;
     flex-direction: column;
-    gap: var(--espacioXs);
+    gap: var(--espacioMd);
     padding: var(--espacioMd) 0;
-    border-bottom: 1px solid var(--bordeSutil);
 }
 
 .configSeccion:last-child {
@@ -319,10 +317,10 @@ nav.configNavLista button {
     color: var(--textoSecundario);
 }
 
-.configToggleActivo {
-    background-color: var(--fondoElevado3);
-    border-color: var(--acento-blanco);
-    color: var(--acento-blanco);
+.configToggleActivo, .comunidadFiltroBtnActivo {
+    background-color: var(--acentoMuted) !important;
+    border-color: var(--acento);
+    color: var(--acento) !important;
 }
 
 /* Acciones — footer fijo */
@@ -366,4 +364,26 @@ nav.configNavLista button {
         white-space: nowrap;
         padding: var(--espacioXs) var(--espacioSm);
     }
+}
+
+/* QQ25: Sección de bloqueos */
+.configBloqueoUsuario {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.configBloqueoInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.configSeccionVacia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl) 0;
+    color: var(--textoSecundario);
 }

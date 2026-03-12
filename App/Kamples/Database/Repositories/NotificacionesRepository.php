@@ -14,6 +14,7 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\NotificacionesCols;
 use App\Config\Schema\_generated\NotificacionesDTO;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 
 class NotificacionesRepository extends BaseRepository
 {
@@ -67,6 +68,8 @@ class NotificacionesRepository extends BaseRepository
     {
         $tabla = NotificacionesCols::TABLA;
 
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('n.' . NotificacionesCols::ACTOR_ID, $userId);
+
         return static::consultar(
             "SELECT n." . NotificacionesCols::ID . ", n." . NotificacionesCols::TIPO
             . ", n." . NotificacionesCols::TITULO . ", n." . NotificacionesCols::MENSAJE . ", n." . NotificacionesCols::DATOS . ", n." . NotificacionesCols::LEIDA
@@ -75,6 +78,7 @@ class NotificacionesRepository extends BaseRepository
             . " u." . UsuariosExtCols::AVATAR_URL . " as \"actorAvatar\", u." . UsuariosExtCols::WP_USER_ID . " as \"actorWpUserId\""
             . " FROM {$tabla} n LEFT JOIN " . UsuariosExtCols::TABLA . " u ON u." . UsuariosExtCols::ID . " = n." . NotificacionesCols::ACTOR_ID
             . " WHERE n." . NotificacionesCols::USUARIO_ID . " = :userId"
+            . $filtroBloqueos
             . " ORDER BY n." . NotificacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]
         );

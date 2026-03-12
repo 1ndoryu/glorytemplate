@@ -18,6 +18,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\CancionesCols;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 
 class ComentariosRepository extends BaseRepository
@@ -118,10 +119,12 @@ class ComentariosRepository extends BaseRepository
      * Listar comentarios raíz con datos del autor (JOIN usuarios_ext).
      * Excluye rechazados y comentarios hijo (parent_id NULL).
      */
-    public static function listarRaizConAutor(string $tipo, int $targetId, int $offset, int $limit = 20): array
+    public static function listarRaizConAutor(string $tipo, int $targetId, int $offset, int $limit = 20, ?int $userId = null): array
     {
         $tc = ComentariosCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
+
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('c.' . ComentariosCols::AUTOR_ID, $userId);
 
         return static::consultar(
             "SELECT c." . ComentariosCols::ID . ", c." . ComentariosCols::CONTENIDO
@@ -137,6 +140,7 @@ class ComentariosRepository extends BaseRepository
             . " WHERE c." . ComentariosCols::TIPO . " = :tipo AND c." . ComentariosCols::TARGET_ID . " = :targetId"
             . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
+            . $filtroBloqueos
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
             ['tipo' => $tipo, 'targetId' => $targetId, 'limit' => $limit, 'offset' => $offset]
         );
@@ -145,10 +149,12 @@ class ComentariosRepository extends BaseRepository
     /*
      * Listar respuestas de un comentario padre con datos del autor.
      */
-    public static function listarRespuestasConAutor(int $parentId, int $limit = 50): array
+    public static function listarRespuestasConAutor(int $parentId, int $limit = 50, ?int $userId = null): array
     {
         $tc = ComentariosCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
+
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('c.' . ComentariosCols::AUTOR_ID, $userId);
 
         return static::consultar(
             "SELECT c." . ComentariosCols::ID . ", c." . ComentariosCols::CONTENIDO
@@ -163,6 +169,7 @@ class ComentariosRepository extends BaseRepository
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::PARENT_ID . " = :parentId"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
+            . $filtroBloqueos
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit",
             ['parentId' => $parentId, 'limit' => $limit]
         );

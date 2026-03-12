@@ -33,6 +33,7 @@ use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\PerfilUsuario;
 use App\Config\Schema\_generated\ReproduccionesCols;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
@@ -277,8 +278,9 @@ class MotorRecomendacion
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
-                    WHERE s.{$sEstado} = '{$eActivo}'
-                ),
+                    WHERE s.{$sEstado} = '{$eActivo}'"
+                . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
+                . "),
                 scored AS (
                     SELECT base_scores.*,
                            ROW_NUMBER() OVER (PARTITION BY base_scores.{$sCreadorId} ORDER BY base_scores.score DESC) as rn
@@ -329,9 +331,10 @@ class MotorRecomendacion
          * Boost: +15% para samples verificados.
          */
         $selectBase = NormalizadorSample::sqlSelectSamples($userId);
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId);
         $sql = "WITH base AS (
                     {$selectBase}
-                    WHERE s.{$sEstado} = '{$eActivo}'
+                    WHERE s.{$sEstado} = '{$eActivo}'{$filtroBloqueos}
                 ),
                 ranked AS (
                     SELECT base.*,

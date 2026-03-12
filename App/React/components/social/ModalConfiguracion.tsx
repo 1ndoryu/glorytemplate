@@ -4,13 +4,14 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
 import {Modal} from '@app/components/ui/Modal';
 import {usePanelLateralStore} from '@app/stores/panelLateralStore';
 import {useModalConfiguracion, type SeccionConfig} from '@app/hooks/useModalConfiguracion';
+import {SeccionBloqueos} from './SeccionBloqueos';
 import '../../styles/componentes/modalConfiguracion.css';
 import {CampoTexto} from '../ui/CampoTexto';
 import {Input} from '../ui/Input';
@@ -44,7 +45,8 @@ const SECCIONES_NAV: NavItemConfig[] = [
     {id: 'perfil', etiqueta: 'Perfil', icono: <User size={16} />},
     {id: 'cuenta', etiqueta: 'Cuenta', icono: <Shield size={16} />},
     {id: 'notificaciones', etiqueta: 'Notificaciones', icono: <Bell size={16} />},
-    {id: 'apariencia', etiqueta: 'Apariencia', icono: <Palette size={16} />}
+    {id: 'apariencia', etiqueta: 'Apariencia', icono: <Palette size={16} />},
+    {id: 'bloqueos', etiqueta: 'Bloqueos', icono: <Ban size={16} />}
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
@@ -118,7 +120,7 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         </div>
                         <div className="configSeccion">
                             <label className="configLabel configLabelPeligro">Zona de peligro</label>
-                            <BotonBase variante="ghost" tamano="sm" onClick={() => console.info('TO-DO: Eliminar cuenta')}>
+                            <BotonBase variante="secundario" tamano="md" onClick={() => console.info('TO-DO: Eliminar cuenta')}>
                                 Eliminar cuenta
                             </BotonBase>
                         </div>
@@ -178,6 +180,9 @@ export const ModalConfiguracion = (): JSX.Element | null => {
                         <PanelLateralPreferencia />
                     </>
                 );
+
+            case 'bloqueos':
+                return <SeccionBloqueos />;
 
             default:
                 return null;

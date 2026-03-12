@@ -10,6 +10,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
@@ -117,6 +118,9 @@ class PublicacionesController
             $ePendiente = PublicacionesEnums::MODERACION_ESTADO_PENDIENTE;
             $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = '{$eAprobado}' OR ((p.{$pModEstado} = '{$eRevision}' OR p.{$pModEstado} = '{$ePendiente}') AND p.{$pAutorId} = :currentUser))";
             $params['currentUser'] = $currentUserId;
+
+            /* QQ25: Excluir publicaciones de usuarios bloqueados (bidireccional) */
+            $donde .= BloqueosRepository::sqlExcluirBloqueados("p.{$pAutorId}", $currentUserId);
         } else {
             $eAprobado = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
             $donde .= " AND (p.{$pModEstado} IS NULL OR p.{$pModEstado} = '{$eAprobado}')";

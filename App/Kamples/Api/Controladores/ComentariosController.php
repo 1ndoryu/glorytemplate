@@ -116,7 +116,7 @@ class ComentariosController
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
         /* C265: Solo comentarios raíz (sin parent_id), las respuestas se cargan aparte */
-        $comentarios = ComentariosRepository::listarRaizConAutor($tipo, $targetId, $offset);
+        $comentarios = ComentariosRepository::listarRaizConAutor($tipo, $targetId, $offset, 20, $currentUserId);
 
         $resultado = self::normalizarComentarios($comentarios, $currentUserId);
 
@@ -216,7 +216,7 @@ class ComentariosController
         $parentId = (int) $request->get_param('id');
         $currentUserId = UsuarioHelper::obtenerIdPg();
 
-        $respuestas = ComentariosRepository::listarRespuestasConAutor($parentId);
+        $respuestas = ComentariosRepository::listarRespuestasConAutor($parentId, 50, $currentUserId);
 
         $resultado = self::normalizarComentarios($respuestas, $currentUserId);
 

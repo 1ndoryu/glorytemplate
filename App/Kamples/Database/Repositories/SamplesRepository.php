@@ -25,6 +25,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
@@ -602,8 +603,11 @@ class SamplesRepository extends BaseRepository
         $tipoScore = "CASE WHEN s." . SamplesCols::TIPO . " = :stipo THEN 3 ELSE 0 END";
         $params['stipo'] = $tipo;
 
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "' AND s." . SamplesCols::ID . " != :sampleId"
+             . $filtroBloqueos
              . " ORDER BY ({$tagScore} + {$keyScore} + {$tipoScore}"
              . " + CASE WHEN s." . SamplesCols::BPM . " IS NOT NULL THEN GREATEST(0, 5 - ABS(s." . SamplesCols::BPM . " - :bpm) / 10) ELSE 0 END) DESC,"
              . " s." . SamplesCols::TOTAL_LIKES . " DESC LIMIT :limit";
@@ -649,8 +653,11 @@ class SamplesRepository extends BaseRepository
         $keyScore = $dominantKey ? "CASE WHEN s." . SamplesCols::KEY . " = :domKey THEN 3 ELSE 0 END" : "0";
         if ($dominantKey) $params['domKey'] = $dominantKey;
 
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "' {$excludeClause}"
+             . $filtroBloqueos
              . " ORDER BY ({$tagScore} + {$keyScore}"
              . " + CASE WHEN s." . SamplesCols::BPM . " IS NOT NULL THEN GREATEST(0, 5 - ABS(s." . SamplesCols::BPM . " - :avgBpm) / 10) ELSE 0 END) DESC,"
              . " s." . SamplesCols::TOTAL_LIKES . " DESC, s." . SamplesCols::PUBLICADO_AT . " DESC"
@@ -832,8 +839,10 @@ class SamplesRepository extends BaseRepository
         $params['limit'] = $limit;
         $params['offset'] = $offset;
 
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
-             . " WHERE {$whereSQL} {$orderBy} LIMIT :limit OFFSET :offset";
+             . " WHERE {$whereSQL}" . $filtroBloqueos . " {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, $params);
     }
@@ -857,8 +866,11 @@ class SamplesRepository extends BaseRepository
      */
     public static function listarFeed(?int $userId, string $orderBy, int $limit, int $offset): array
     {
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+             . $filtroBloqueos
              . " {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);

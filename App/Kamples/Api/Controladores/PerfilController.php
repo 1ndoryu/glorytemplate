@@ -20,6 +20,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\FollowsRepository;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\KamplesLogger;
 
 class PerfilController
@@ -91,6 +92,7 @@ class PerfilController
             $currentPgId = UsuariosExtRepository::obtenerIdPorWpId($currentWp['wp_user_id']);
             if ($currentPgId && $currentPgId !== $normalizado['id']) {
                 $normalizado['siguiendo'] = FollowsRepository::estaSiguiendo($currentPgId, $normalizado['id']);
+                $normalizado['bloqueado'] = BloqueosRepository::existeBloqueoMutuo($currentPgId, $normalizado['id']);
             }
         }
 

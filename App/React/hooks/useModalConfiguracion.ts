@@ -14,7 +14,7 @@ import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } fr
 
 const log = crearLogger('ModalConfiguracion');
 
-export type SeccionConfig = 'perfil' | 'cuenta' | 'notificaciones' | 'apariencia';
+export type SeccionConfig = 'perfil' | 'cuenta' | 'notificaciones' | 'apariencia' | 'bloqueos';
 
 export function useModalConfiguracion() {
     const abierto = useConfiguracionModalStore(s => s.abierto);
