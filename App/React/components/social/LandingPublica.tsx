@@ -1,7 +1,7 @@
 /*
  * Componente: LandingPublica — Kamples
  * Página de bienvenida para usuarios no autenticados.
- * Secciones: Hero con buscador, Grid features SVG, Trending, Tabla comparativa.
+ * Secciones: Hero con buscador, Visual Kamples, Sync, DAW, Catálogo.
  * Lógica extraída a useLandingPublica.
  */
 
@@ -9,7 +9,6 @@ import {Search} from 'lucide-react';
 import {BotonBase} from '@app/components/ui/BotonBase';
 import {LogoKamples} from '@app/components/ui/LogoKamples';
 import {Input} from '@app/components/ui/Input';
-import {TarjetaSample} from '@app/components/ui/TarjetaSample';
 import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import '../../styles/componentes/landingPublica.css';
@@ -19,12 +18,15 @@ const SVG_SYNC = '/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg';
 const MINI_DAW = '/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg';
 const ROLAS = '/wp-content/themes/glorytemplate/App/Assets/svg/Rolas.svg';
 
+/* Dimensiones nativas de los SVGs para prevenir CLS */
+const SVG_W = 1288;
+const SVG_H = 717;
+
 export const LandingPublica = (): JSX.Element => {
-    const {trending, navegar, setSample, sampleActual, reproduciendo, progreso, abrirAuth} = useLandingPublica();
+    const {navegar, abrirAuth} = useLandingPublica();
 
     return (
         <div className="landingPublica" id="landingPublica">
-            {/* Nav flotante con blur */}
             <nav className="landingNav">
                 <div className="landingNavIzquierda">
                     <LogoKamples tamano={22} />
@@ -39,13 +41,14 @@ export const LandingPublica = (): JSX.Element => {
                 </div>
             </nav>
 
-            {/* Hero con buscador */}
             <section className="landingHero">
                 <h1 className="landingHeroTitulo">
                     La mejor biblioteca de samples
                     <span className="landingHeroResaltado"> del planeta</span>
                 </h1>
-                <p className="landingHeroDescripcion">Plataforma de samples con alma de red social. Algoritmo inteligente, comunidad de productores, sync automático — todo en un solo lugar.</p>
+                <p className="landingHeroDescripcion">
+                    Descubre, descarga y sincroniza samples. Algoritmo inteligente, comunidad de productores y DAW integrado.
+                </p>
                 <div className="landingHeroBuscador">
                     <Search size={18} className="landingHeroBuscadorIcono" />
                     <Input
@@ -71,44 +74,64 @@ export const LandingPublica = (): JSX.Element => {
                 </div>
             </section>
 
-            {/* Trending preview */}
-            {trending.length > 0 && (
-                <section className="seccionEstandar" style={{display: 'none'}}>
-                    <div className="">
-                        {trending.map(sample => (
-                            <TarjetaSample key={sample.id} sample={sample} onPlay={s => setSample(s)} activa={sampleActual?.id === sample.id} reproduciendo={sampleActual?.id === sample.id && reproduciendo} progreso={sampleActual?.id === sample.id ? progreso : 0} onClickCreador={u => navegar(`/perfil/${u}/`)} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {/* SVG Kamples superpuesto encima de la imagen de ambiente */}
             <section className="landingHeroVisual">
-                <img src={SVG_KAMPLES} alt="Kamples" className="landingSeccionSync" />
+                <img
+                    src={SVG_KAMPLES}
+                    alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado"
+                    className="landingSeccionSync"
+                    width={SVG_W}
+                    height={SVG_H}
+                    fetchPriority="high"
+                    decoding="async"
+                />
             </section>
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">Sincronización de dos vías</h2>
-                    <span className="subtitleSeccion">Todos tus samples sincronizados en todos tus dispositivos</span>
+                    <h2 className="titleSeccion">Sync en todos tus dispositivos</h2>
+                    <span className="subtitleSeccion">Sincronización bidireccional automática entre web y escritorio</span>
                 </div>
-                <img src={SVG_SYNC} alt="Sync" className="landingSeccionSync" loading="lazy" />
+                <img
+                    src={SVG_SYNC}
+                    alt="Sincronización bidireccional de samples entre plataformas web y escritorio"
+                    className="landingSeccionSync"
+                    width={SVG_W}
+                    height={SVG_H}
+                    loading="lazy"
+                    decoding="async"
+                />
             </section>
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">DAW Web</h2>
-                    <span className="subtitleSeccion">Mezcla, prueba y edita tus samples directamente en el navegador antes de descargar</span>
+                    <h2 className="titleSeccion">Mezcla en el navegador</h2>
+                    <span className="subtitleSeccion">Prueba y combina samples en el DAW integrado antes de descargar</span>
                 </div>
-                <img src={MINI_DAW} alt="Daw" className="landingSeccionSync" loading="lazy" />
+                <img
+                    src={MINI_DAW}
+                    alt="DAW integrado en el navegador para mezclar y editar samples"
+                    className="landingSeccionSync"
+                    width={SVG_W}
+                    height={SVG_H}
+                    loading="lazy"
+                    decoding="async"
+                />
             </section>
 
             <section className="seccionSync seccionEstandar">
                 <div>
-                    <h2 className="titleSeccion">DAW Web</h2>
-                    <span className="subtitleSeccion">Mezcla, prueba y edita tus samples directamente en el navegador antes de descargar</span>
+                    <h2 className="titleSeccion">Miles de samples por descubrir</h2>
+                    <span className="subtitleSeccion">Catálogo curado con algoritmo de recomendación personalizado</span>
                 </div>
-                <img src={ROLAS} alt="Daw" className="landingSeccionSync" loading="lazy" />
+                <img
+                    src={ROLAS}
+                    alt="Catálogo de samples con portadas de canciones y algoritmo de descubrimiento"
+                    className="landingSeccionSync"
+                    width={SVG_W}
+                    height={SVG_H}
+                    loading="lazy"
+                    decoding="async"
+                />
             </section>
 
             <footer className="landingFooter">
@@ -120,10 +143,10 @@ export const LandingPublica = (): JSX.Element => {
                 </p>
                 <nav className="landingFooterNav">
                     <GloryLink href="/privacy/" className="landingFooterNavEnlace">
-                        Privacy
+                        Privacidad
                     </GloryLink>
                     <GloryLink href="/terms/" className="landingFooterNavEnlace">
-                        Terms
+                        Términos
                     </GloryLink>
                 </nav>
             </footer>

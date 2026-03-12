@@ -27,5 +27,8 @@
     },
     "dependencies": {
         "@measured/puck": "^0.20.2"
+    },
+    "devDependencies": {
+        "sharp": "^0.34.5"
     }
 }
