@@ -98,17 +98,9 @@ Tambien falta informacion nueva de cosas que se agregaron, falta muchisima infor
 
 Menú 3 puntos en perfiles de otros usuarios con Reportar + Bloquear/Desbloquear. Backend: POST `/reportar-usuario/{userId}` en SocialController (rate limit 5/24h, sanitización, ReportesRepository::crearReporteUsuario con tipo='usuario'). Frontend: reportarUsuarioStore (Zustand), ModalReportarUsuario + useReportarUsuario hook (reutiliza CSS de modalReportarError), useMenuContextualPerfil (construye items dinámicos con bloqueosStore). PerfilIsland: botón MoreHorizontal + MenuContextual. Chat: useVentanaChat report/block conectados a stores reales (antes eran placeholders). ModalReportarUsuario montado globalmente en LayoutPrincipal.
 
-## QQ24
+## QQ24 ✅ [AG-QQF]
 
-No se si ya comente este problema pero en los repotes hay un problema, se ven asi
-
-Reportes pendientes (2)
-@admin
-hace 57m
-error_plataforma #0 â€”
-@admin
-hace 58m
-error_plataforma #0 â€”
+Fix texto garbled en reportes (â€" en vez de —). Causa: PostgresService.php no seteaba `client_encoding` en la conexion PDO, causando Mojibake (UTF-8 bytes interpretados como Latin-1). Fix: agregado `SET client_encoding = 'UTF8'` en PostgresService.php despues de crear conexion. Aplica a toda la aplicacion, no solo reportes.
 
 ## QQ25 ✅ [AG-QQF]
 
@@ -225,3 +217,4 @@ Crea un md de como alojar la aplicación de forma de que se actualice en todos l
 
 ## QQ42
 
+verificar que el sync respete cuando  "Al borrar en local, borrar en el servidor" este desactivado

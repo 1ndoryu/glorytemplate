@@ -67,8 +67,9 @@ class PostgresService
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ]);
 
-            /* Configurar timezone y search_path */
+            /* Configurar timezone, encoding y search_path */
             self::$conexion->exec("SET timezone = 'UTC'");
+            self::$conexion->exec("SET client_encoding = 'UTF8'");
             self::$conexion->exec("SET search_path TO public");
 
             return self::$conexion;
