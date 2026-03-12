@@ -29,8 +29,8 @@ import { crearLogger } from '@app/services/logger';
 const log = crearLogger('PerfilIsland');
 
 const TABS_PERFIL = [
-    { id: 'samples', etiqueta: 'Samples' },
     { id: 'publicaciones', etiqueta: 'Publicaciones' },
+    { id: 'samples', etiqueta: 'Samples' },
     { id: 'likes', etiqueta: 'Likes' }
 ];
 
@@ -75,7 +75,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     const usuarioAuth = useAuthStore(s => s.usuario);
     const authCargando = useAuthStore(s => s.cargando);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
-    useTabsIsla('PerfilIsland', TABS_PERFIL, 'samples');
+    useTabsIsla('PerfilIsland', TABS_PERFIL, 'publicaciones');
     const navegar = useNavigationStore(s => s.navegar);
     const rutaActualRaw = useNavigationStore(s => s.rutaActual);
 
@@ -265,6 +265,48 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         [navegar]
     );
 
+    /* QQ18: Like optimista en publicaciones del perfil (replicado de useComunidadIsland) */
+    const manejarLikePost = useCallback(async (postId: number, reaccion?: TipoReaccion) => {
+        const post = publicacionesPerfil.find((p) => p.id === postId);
+        const snapshot = publicacionesPerfil;
+
+        try {
+            if (reaccion) {
+                const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+                const esPositivo = reaccion !== 'dislike';
+                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
+                setPublicacionesPerfil(prev => prev.map(p =>
+                    p.id === postId ? { ...p, liked: esPositivo, reaccion, totalLikes: Math.max(0, p.totalLikes + delta) } : p
+                ));
+                await darLike('publicacion', postId, reaccion);
+            } else if (post?.liked || post?.reaccion) {
+                const eraPositivo = post?.reaccion === 'like' || post?.reaccion === 'encanta';
+                setPublicacionesPerfil(prev => prev.map(p =>
+                    p.id === postId ? { ...p, liked: false, reaccion: null, totalLikes: Math.max(0, p.totalLikes - (eraPositivo ? 1 : 0)) } : p
+                ));
+                await quitarLike('publicacion', postId);
+            } else {
+                setPublicacionesPerfil(prev => prev.map(p =>
+                    p.id === postId ? { ...p, liked: true, reaccion: 'like' as const, totalLikes: p.totalLikes + 1 } : p
+                ));
+                await darLike('publicacion', postId, 'like');
+            }
+        } catch {
+            setPublicacionesPerfil(snapshot);
+        }
+    }, [publicacionesPerfil]);
+
+    /* QQ18: Alternar panel de comentarios en publicaciones del perfil */
+    const [comentariosAbiertos, setComentariosAbiertos] = useState<Set<number>>(new Set());
+    const alternarComentarios = useCallback((postId: number) => {
+        setComentariosAbiertos(prev => {
+            const siguiente = new Set(prev);
+            if (siguiente.has(postId)) siguiente.delete(postId);
+            else siguiente.add(postId);
+            return siguiente;
+        });
+    }, []);
+
     /* Repost optimista con toast */
     const manejarRepost = useCallback(async (postId: number) => {
         const post = publicacionesPerfil.find(p => p.id === postId);
@@ -309,6 +351,9 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         esPropietario,
         recargarPublicaciones,
         manejarLike,
+        manejarLikePost,
+        alternarComentarios,
+        comentariosAbiertos,
         manejarClickCreador,
         manejarRepost,
     };

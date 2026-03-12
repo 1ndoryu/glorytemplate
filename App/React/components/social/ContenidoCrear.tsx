@@ -5,10 +5,11 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users, Clock } from 'lucide-react';
+import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users, Clock, DollarSign } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
+import { Tooltip } from '@app/components/ui/Tooltip';
 import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
 import { ETIQUETAS_TIPO_ELEMENTO } from '@app/types/cancion';
@@ -29,7 +30,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
 
     const {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        esPremium, setEsPremium,
+        esPremium, togglePremium,
+        tienePrecio, setTienePrecio,
         mostrarEnComunidad, setMostrarEnComunidad,
         precio, setPrecio,
         inicioSegundos, setInicioSegundos, enContextoRelacion,
@@ -90,6 +92,24 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                     {tagsInsuficientes
                         ? `Agrega al menos 2 tags (#hashtags) para subir tu sample (${tags.length}/2)`
                         : `${tags.length} tags`}
+                </div>
+            )}
+
+            {/* QQ16: Campo precio para samples con precio — aparece con toggle $ */}
+            {audioAdjunto && tienePrecio && (
+                <div className="crearPrecioContenedor">
+                    <label className="crearPrecioLabel" htmlFor="crearPrecioInput">Precio (USD)</label>
+                    <CampoTexto
+                        id="crearPrecioInput"
+                        type="number"
+                        min="0.50"
+                        max="99.99"
+                        step="0.01"
+                        placeholder="2.99"
+                        variante="bordado"
+                        value={precio}
+                        onChange={(e) => setPrecio(e.target.value)}
+                    />
                 </div>
             )}
 
@@ -194,55 +214,54 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 </div>
             )}
 
-            {/* Condiciones del sample (descarga/licencia/premium) */}
+            {/* Condiciones del sample (descarga/pro/precio/comunidad) — icon-only con tooltip */}
             {audioAdjunto && (
                 <div className="crearCondiciones">
-                    <BotonBase variante="ghost"
-                        className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
-                        onClick={() => setPermitirDescarga(!permitirDescarga)}
-                        type="button"
-                        title={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
-                    >
-                        <Download size={14} />
-                        <span>{permitirDescarga ? 'Descarga sí' : 'Descarga no'}</span>
-                    </BotonBase>
-                    <BotonBase variante="ghost"
-                        className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}
-                        onClick={() => setEsPremium(!esPremium)}
-                        type="button"
-                        title={esPremium ? 'Sample premium' : 'Sample gratuito'}
-                    >
-                        <Crown size={14} />
-                        <span>{esPremium ? 'Premium' : 'Gratis'}</span>
-                    </BotonBase>
-                    {/* C220: Toggle visibilidad en comunidad */}
-                    <BotonBase variante="ghost"
-                        className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
-                        onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
-                        type="button"
-                        title={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
-                    >
-                        <Users size={14} />
-                        <span>{mostrarEnComunidad ? 'Comunidad sí' : 'Comunidad no'}</span>
-                    </BotonBase>
-                </div>
-            )}
-
-            {/* Campo precio para samples premium */}
-            {audioAdjunto && esPremium && (
-                <div className="crearPrecioContenedor">
-                    <label className="crearPrecioLabel" htmlFor="crearPrecioInput">Precio (USD)</label>
-                    <CampoTexto
-                        id="crearPrecioInput"
-                        type="number"
-                        min="0.50"
-                        max="99.99"
-                        step="0.01"
-                        placeholder="2.99"
-                        variante="bordado"
-                        value={precio}
-                        onChange={(e) => setPrecio(e.target.value)}
-                    />
+                    <Tooltip texto={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'} posicion="bottom">
+                        <BotonBase variante="ghost"
+                            className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
+                            onClick={() => { if (!esPremium) setPermitirDescarga(!permitirDescarga); }}
+                            type="button"
+                            soloIcono
+                            aria-label={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
+                            disabled={esPremium}
+                        >
+                            <Download size={14} />
+                        </BotonBase>
+                    </Tooltip>
+                    <Tooltip texto={esPremium ? 'Solo Pro — genera ingresos al creador' : 'Sample gratuito'} posicion="bottom">
+                        <BotonBase variante="ghost"
+                            className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}
+                            onClick={togglePremium}
+                            type="button"
+                            soloIcono
+                            aria-label={esPremium ? 'Solo Pro — genera ingresos' : 'Sample gratuito'}
+                        >
+                            <Crown size={14} />
+                        </BotonBase>
+                    </Tooltip>
+                    <Tooltip texto={tienePrecio ? `Con precio $${precio || '0'} — cualquier usuario puede comprar` : 'Sin precio'} posicion="bottom">
+                        <BotonBase variante="ghost"
+                            className={`crearCondicionBtn ${tienePrecio ? 'crearCondicionPrecio' : ''}`}
+                            onClick={() => setTienePrecio(!tienePrecio)}
+                            type="button"
+                            soloIcono
+                            aria-label={tienePrecio ? 'Con precio' : 'Sin precio'}
+                        >
+                            <DollarSign size={14} />
+                        </BotonBase>
+                    </Tooltip>
+                    <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
+                        <BotonBase variante="ghost"
+                            className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
+                            onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
+                            type="button"
+                            soloIcono
+                            aria-label={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
+                        >
+                            <Users size={14} />
+                        </BotonBase>
+                    </Tooltip>
                 </div>
             )}
 

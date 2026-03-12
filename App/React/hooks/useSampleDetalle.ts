@@ -5,7 +5,6 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { obtenerSample } from '@app/services/apiSamples';
-import { obtenerSimilares } from '@app/services/apiReproduciones';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
 import { etiquetaBpm } from '@app/services/bpmUtils';
@@ -24,8 +23,6 @@ interface SampleDetalleParams {
 
 export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
     const [sample, setSample] = useState<Sample | null>(null);
-    const [similares, setSimilares] = useState<SampleResumen[]>([]);
-    const [mostrarSimilares, setMostrarSimilares] = useState(false);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [liked, setLiked] = useState(false);
@@ -36,7 +33,9 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
     const rutaActual = useNavigationStore(s => s.rutaActual);
     const navegar = useNavigationStore(s => s.navegar);
     const usuarioAuth = useAuthStore(s => s.usuario);
-    const sugerenciasAlDarLike = usePanelLateralStore(s => s.sugerenciasAlDarLike);
+    const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
     const abrirPlanes = usePlanesModalStore(s => s.abrir);
 
     /* Keep-alive: congelar rutaActual cuando la isla está oculta (display:none).
@@ -44,6 +43,14 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
      * useEffect setea error y al volver re-fetcha innecesariamente. */
     const activa = useIslaActiva('SampleDetalleIsland');
     const rutaCongelada = useValorCongelado(rutaActual, !activa);
+
+    /* QQ19: Habilitar panel lateral en la isla de detalle para sugerencias */
+    useEffect(() => {
+        if (activa) habilitarPanel();
+    }, [activa, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
     /* Resolver slug: priorizar URL SPA sobre prop PHP (stale tras primer render) */
     const slug = useMemo(() => {
@@ -82,16 +89,6 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
                     setSample(respuesta.data);
                     setLiked(Boolean(respuesta.data.liked));
                     setReaccionActual(respuesta.data.reaccion ?? null);
-
-                    /* F10: Usar endpoint dedicado con scoring (tags/BPM/key/tipo) */
-                    const resSimilares = await obtenerSimilares(respuesta.data.id, 5);
-                    if (controller.signal.aborted) return;
-                    if (resSimilares.ok && resSimilares.data) {
-                        const listaSimilares = Array.isArray(resSimilares.data)
-                            ? resSimilares.data
-                            : [];
-                        setSimilares(listaSimilares);
-                    }
                 } else {
                     setError(respuesta.error ?? 'Error al cargar el sample.');
                 }
@@ -142,14 +139,14 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
             } else {
                 setLiked(true);
                 setReaccionActual('like');
-                if (sugerenciasAlDarLike) setMostrarSimilares(true);
+                abrirSugerencias(sample as unknown as SampleResumen);
                 await darLike('sample', sample.id, 'like');
             }
         } catch {
             setLiked(prevLiked);
             setReaccionActual(prevReaccion);
         }
-    }, [liked, reaccionActual, sample, sugerenciasAlDarLike]);
+    }, [liked, reaccionActual, sample, abrirSugerencias]);
 
     const manejarReaccionDetalle = useCallback(async (reaccion: TipoReaccion) => {
         if (!sample) return;
@@ -158,13 +155,13 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
         try {
             setLiked(reaccion !== 'dislike');
             setReaccionActual(reaccion);
-            if (reaccion !== 'dislike' && sugerenciasAlDarLike) setMostrarSimilares(true);
+            if (reaccion !== 'dislike') abrirSugerencias(sample as unknown as SampleResumen);
             await darLike('sample', sample.id, reaccion);
         } catch {
             setLiked(prevLiked);
             setReaccionActual(prevReaccion);
         }
-    }, [sample, sugerenciasAlDarLike]);
+    }, [sample, abrirSugerencias]);
 
     const manejarQuitarReaccionDetalle = useCallback(async () => {
         if (!sample) return;
@@ -179,48 +176,6 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
             setReaccionActual(prevReaccion);
         }
     }, [sample]);
-
-    /* Like en samples similares (optimistic UI con reacciones) */
-    const manejarLikeSimilar = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const sim = similares.find((s) => s.id === sampleId);
-        const snapshot = similares;
-        try {
-            if (reaccion) {
-                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-                const esPositivo = reaccion !== 'dislike';
-                const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                            : s
-                    )
-                );
-                await darLike('sample', sampleId, reaccion);
-            } else if (sim?.liked || sim?.reaccion) {
-                const eraPositivo = sim?.reaccion === 'like' || sim?.reaccion === 'encanta';
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                            : s
-                    )
-                );
-                await quitarLike('sample', sampleId);
-            } else {
-                setSimilares((prev) =>
-                    prev.map((s) =>
-                        s.id === sampleId
-                            ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                            : s
-                    )
-                );
-                await darLike('sample', sampleId, 'like');
-            }
-        } catch {
-            setSimilares(snapshot);
-        }
-    }, [similares]);
 
     /* Tags/badges computados */
     const tagsHome = useMemo(() => {
@@ -259,9 +214,6 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
 
     return {
         sample,
-        similares,
-        mostrarSimilares,
-        setMostrarSimilares,
         cargando,
         error,
         liked,
@@ -279,6 +231,5 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
         manejarLike,
         manejarReaccionDetalle,
         manejarQuitarReaccionDetalle,
-        manejarLikeSimilar,
     };
 }

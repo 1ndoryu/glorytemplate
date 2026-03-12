@@ -6,10 +6,11 @@
  */
 
 import { useRef, type MouseEvent } from 'react';
-import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign } from 'lucide-react';
+import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign, Crown } from 'lucide-react';
 import type { SampleResumen, TipoReaccion } from '../../types';
 import { WaveformPlayer } from './WaveformPlayer';
 import { Badge } from './Badge';
+import { Tooltip } from './Tooltip';
 import { etiquetaBpm } from '../../services/bpmUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
@@ -41,7 +42,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         picosAudio, descargado, guardado, comentado, estaReproduciendo, progresoActual, clases, imagenPortada,
         manejarPlayPause, manejarLike, manejarReaccion, manejarQuitarReaccion,
         manejarColeccionar, manejarMenu, manejarGuardar, manejarSeek,
-        manejarDragStart, navegar, onClickTitulo, manejarComentar, requiereCompra,
+        manejarDragStart, navegar, onClickTitulo, manejarComentar, requiereCompra, esSoloPro,
     } = useTarjetaSample(props);
 
     /* Long press en mobile para abrir menú contextual (500ms) */
@@ -164,9 +165,29 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     <MessageCircle size={18} fill={comentado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${requiereCompra ? 'tarjetaAccionComprar' : ''} ${descargado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarColeccionar} type="button" aria-label={requiereCompra ? `Comprar $${sample.precio}` : 'Coleccionar'}>
-                    {requiereCompra ? <DollarSign size={18} /> : <Plus size={18} />}
-                </BotonBase>
+                {(() => {
+                    /* QQ16: Determinar icono y tooltip según condición del sample */
+                    const etiqueta = requiereCompra
+                        ? `Comprar $${sample.precio}`
+                        : esSoloPro ? 'Solo Pro' : 'Coleccionar';
+                    const icono = requiereCompra
+                        ? <DollarSign size={18} />
+                        : esSoloPro ? <Crown size={18} /> : <Plus size={18} />;
+                    const clase = [
+                        'tarjetaAccionBtn',
+                        requiereCompra ? 'tarjetaAccionComprar' : '',
+                        esSoloPro ? 'tarjetaAccionPro' : '',
+                        descargado ? 'tarjetaAccionLiked' : '',
+                    ].filter(Boolean).join(' ');
+
+                    return (
+                        <Tooltip texto={etiqueta} posicion="top">
+                            <BotonBase variante="ghost" className={clase} onClick={manejarColeccionar} type="button" aria-label={etiqueta}>
+                                {icono}
+                            </BotonBase>
+                        </Tooltip>
+                    );
+                })()}
 
                 <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion tarjetaMenuBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">
                     <MoreHorizontal size={18} />

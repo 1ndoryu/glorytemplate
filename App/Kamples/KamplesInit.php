@@ -15,6 +15,7 @@ namespace App\Kamples;
 
 use App\Kamples\Api\KamplesController;
 use App\Kamples\Auth\GuardiaWpAdmin;
+use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
@@ -45,6 +46,9 @@ class KamplesInit
 
         /* Registrar API REST */
         KamplesController::registrar();
+
+        /* QQ17: Backfill slugs para colecciones existentes que no lo tengan */
+        self::backfillSlugsColecciones();
 
         /* Hook para deduplicación de audio en background */
         DeduplicadorAudio::registrarHook();
@@ -166,6 +170,32 @@ class KamplesInit
         if (!wp_next_scheduled('kamples_algoritmo_cron')) {
             wp_schedule_event(time(), 'kamples_5min', 'kamples_algoritmo_cron');
         }
+    }
+
+    /*
+     * QQ17: Backfill slugs para colecciones que no lo tienen.
+     * Se ejecuta una sola vez via transient. Si quedan colecciones sin slug
+     * (ej: creadas antes de QQ13), se les genera automáticamente.
+     */
+    private static function backfillSlugsColecciones(): void
+    {
+        $transientKey = 'kamples_slugs_colecciones_backfill';
+        if (get_transient($transientKey)) {
+            return;
+        }
+
+        add_action('init', function () use ($transientKey): void {
+            try {
+                $actualizados = ColeccionesRepository::generarSlugsFaltantes();
+                if ($actualizados > 0) {
+                    KamplesLogger::info('[Backfill] Slugs generados para colecciones', ['total' => $actualizados]);
+                }
+                /* Marcar como completado — no re-ejecutar por 30 días */
+                set_transient($transientKey, true, 30 * DAY_IN_SECONDS);
+            } catch (\Throwable $e) {
+                KamplesLogger::error('[Backfill] Error generando slugs de colecciones', ['error' => $e->getMessage()]);
+            }
+        });
     }
 }
 

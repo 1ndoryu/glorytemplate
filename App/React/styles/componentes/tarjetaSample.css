@@ -213,7 +213,7 @@
     color: var(--error);
 }
 
-/* QQ11: Boton comprar ($ en vez de +) para samples pro con precio */
+/* QQ16: Boton comprar ($) para samples con precio */
 .tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionComprar {
     color: var(--acento);
 }
@@ -221,6 +221,16 @@
 .tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionComprar:hover {
     color: var(--blanco);
     background: var(--acento);
+}
+
+/* QQ16: Boton Solo Pro (Crown) para samples premium sin precio */
+.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionPro {
+    color: var(--advertencia, #e6a817);
+}
+
+.tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionPro:hover {
+    color: var(--blanco);
+    background: var(--advertencia, #e6a817);
 }
 
 .tarjetaAccionDescargado:hover {

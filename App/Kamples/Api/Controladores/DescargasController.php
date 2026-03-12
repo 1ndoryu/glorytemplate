@@ -111,31 +111,35 @@ class DescargasController
         $consumeCredito = !$esPropietario && !$yaDescargado;
 
         /*
-         * QQ11: Samples premium con precio requieren compra individual O plan Pro+.
-         * Si tiene precio > 0, verificar si el usuario ya lo compró.
-         * Si no lo compró Y no tiene plan Pro+, retornar info de compra necesaria.
+         * QQ11+QQ16: Control de acceso a descargas por condiciones del sample.
+         * Dos ejes independientes: esPremium (solo Pro descarga gratis) y precio (compra individual).
+         * Un sample puede tener ambas condiciones: Pro descarga gratis, non-Pro paga precio.
          */
         $esPremium = (bool) ($sample[SamplesCols::ES_PREMIUM] ?? false);
         $precioSample = isset($sample[SamplesCols::PRECIO]) ? (float) $sample[SamplesCols::PRECIO] : 0;
 
-        if ($esPremium && !$esPropietario) {
+        if (!$esPropietario) {
             if ($precioSample > 0) {
-                /* Sample con precio individual: verificar compra */
+                /* Sample con precio: verificar compra o plan Pro en samples premium */
                 $yaComprado = TransaccionesRepository::haComprado($userId, $sampleId);
-                if (!$yaComprado && $plan === UsuariosExtEnums::PLAN_FREE) {
-                    return new \WP_REST_Response([
-                        'ok' => false,
-                        'error' => 'Este sample requiere compra individual',
-                        'requiereCompra' => true,
-                        'precio' => $precioSample,
-                    ], 403);
-                }
-                /* Si ya lo compró, puede descargar sin consumir crédito */
-                if ($yaComprado) {
+                if (!$yaComprado) {
+                    /* Pro users pueden descargar samples premium con precio sin pagar */
+                    if ($esPremium && $plan !== UsuariosExtEnums::PLAN_FREE) {
+                        $consumeCredito = false;
+                    } else {
+                        return new \WP_REST_Response([
+                            'ok' => false,
+                            'error' => 'Este sample requiere compra individual',
+                            'requiereCompra' => true,
+                            'precio' => $precioSample,
+                        ], 403);
+                    }
+                } else {
+                    /* Ya comprado: descarga sin crédito */
                     $consumeCredito = false;
                 }
-            } else {
-                /* Sample premium sin precio: requiere plan Pro+ (comportamiento original) */
+            } elseif ($esPremium) {
+                /* Sample premium sin precio: requiere plan Pro+ */
                 if ($plan === UsuariosExtEnums::PLAN_FREE) {
                     return new \WP_REST_Response(['ok' => false, 'error' => 'Se requiere plan Pro o Premium para descargar este sample'], 403);
                 }

@@ -16,6 +16,7 @@ import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useCorregirIAStore } from '@app/stores/corregirIAStore';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { desvincularSample } from '@app/services/apiRelaciones';
 import { descargarSample } from '@app/services/apiDescargas';
@@ -59,6 +60,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const usuario = useAuthStore(s => s.usuario);
     const abrirEditarSample = useEditarModalStore(s => s.abrirSample);
     const abrirCorregirIA = useCorregirIAStore(s => s.abrir);
+    const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
 
     /* El usuario puede editar/eliminar si es propietario del sample o admin */
     const puedeEditar = useMemo(() => {
@@ -169,6 +171,14 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                     }
                 },
                 separadorDespues: true,
+            },
+            /* QQ19: Abrir panel lateral de sugerencias similares */
+            {
+                id: 'sugerencias',
+                etiqueta: 'También te podría gustar',
+                onClick: () => {
+                    if (estado.sample) abrirSugerencias(estado.sample);
+                },
             },
             /* C801: Enlace directo a YouTube si el sample fue extraido del pipeline */
             ...(() => {

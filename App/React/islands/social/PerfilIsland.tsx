@@ -13,15 +13,37 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
+import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SkeletonPerfil, SkeletonFeed } from '@app/components/skeletons';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { usePerfilIsland } from '@app/hooks/usePerfilIsland';
+import { useComentarios } from '@app/hooks/useComentarios';
 import { crearLogger } from '@app/services/logger';
 import type { SampleResumen } from '@app/types/sample';
 import '../../styles/componentes/perfil.css';
 
 const log = crearLogger('PerfilIsland');
+
+/* QQ18: Sección de comentarios para publicaciones del perfil (replica de ComunidadIsland) */
+const SeccionComentariosPost = ({ postId, navegar }: { postId: number; navegar: (ruta: string) => void }): JSX.Element => {
+    const {
+        comentarios, cargando, enviar, enviarMultimedia, cargarMas, hayMas,
+        editar, eliminar, reportar, toggleLike, cargarRespuestas,
+        editandoId, setEditandoId, respondendoAId, setRespondendoAId,
+    } = useComentarios({ tipo: 'publicacion', targetId: postId, cargarAlAbrir: true });
+
+    return (
+        <ListaComentarios
+            comentarios={comentarios} cargando={cargando} onEnviar={enviar} onEnviarMultimedia={enviarMultimedia}
+            onClickAutor={(u) => navegar(`/perfil/${u}/`)} maxVisibles={3}
+            onCargarMas={cargarMas} hayMasPaginas={hayMas}
+            onEditar={editar} onEliminar={eliminar} onReportar={reportar} onToggleLike={toggleLike}
+            onCargarRespuestas={cargarRespuestas} editandoId={editandoId} setEditandoId={setEditandoId}
+            respondendoAId={respondendoAId} setRespondendoAId={setRespondendoAId}
+        />
+    );
+};
 
 interface PerfilIslandProps {
     username?: string;
@@ -32,7 +54,8 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
         cargandoTab, authCargando, tabActiva, navegar,
         abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
-        recargarPublicaciones, manejarLike, manejarClickCreador, manejarRepost,
+        recargarPublicaciones, manejarLike, manejarLikePost, alternarComentarios,
+        comentariosAbiertos, manejarClickCreador, manejarRepost,
     } = usePerfilIsland({ usernameProp });
 
     if (cargando || (authCargando && !username)) {
@@ -197,9 +220,15 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                         publicacion={post}
                                         onClickAutor={manejarClickCreador}
                                         onClickFecha={(pubId) => navegar(`/publicacion/${pubId}/`)}
+                                        onLike={(id, reaccion) => manejarLikePost(id, reaccion)}
+                                        onComentar={(id) => alternarComentarios(id)}
                                         onRepost={manejarRepost}
                                         onMenu={(e) => menuPublicacion.abrirMenu(e, post)}
-                                    />
+                                    >
+                                        {comentariosAbiertos.has(post.id) && (
+                                            <SeccionComentariosPost postId={post.id} navegar={navegar} />
+                                        )}
+                                    </TarjetaPublicacion>
                                 ))}
                             </div>
                         )}

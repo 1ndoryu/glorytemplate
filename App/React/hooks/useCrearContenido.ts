@@ -67,6 +67,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const [publicando, setPublicando] = useState(false);
     const [permitirDescarga, setPermitirDescarga] = useState(true);
     const [esPremium, setEsPremium] = useState(false);
+    /* QQ16: Toggle precio independiente de Pro */
+    const [tienePrecio, setTienePrecio] = useState(false);
     /* C220: Toggle visibilidad en comunidad — por defecto sí */
     const [mostrarEnComunidad, setMostrarEnComunidad] = useState(true);
     const [precio, setPrecio] = useState('');
@@ -130,6 +132,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         resetearArchivos();
         setPermitirDescarga(true);
         setEsPremium(false);
+        setTienePrecio(false);
         setPrecio('');
         setInicioSegundos('');
         setTipoElemento('');
@@ -195,7 +198,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                     permitirDescarga,
                     licenciaLibre: permitirDescarga,
                     esPremium,
-                    precio: esPremium ? parseFloat(precio) || undefined : undefined,
+                    precio: tienePrecio ? parseFloat(precio) || undefined : undefined,
                     mostrarEnComunidad,
                     ...(() => {
                         const ctx = useCrearModalStore.getState().contextoAdjuntar;
@@ -256,12 +259,19 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
             setErrorSubida('Error de conexión al publicar contenido');
             setPublicando(false);
         }
-    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, precio, inicioSegundos, tipoElemento, resetear, alCompletarPublicacion]);
+    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, tienePrecio, precio, inicioSegundos, tipoElemento, resetear, alCompletarPublicacion]);
 
     /* Ctrl+Enter para publicar */
     const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); manejarPublicar(); }
     }, [manejarPublicar]);
+
+    /* QQ16: Togglear Pro fuerza descarga activa — los samples Pro siempre se descargan */
+    const togglePremium = useCallback(() => {
+        const nuevo = !esPremium;
+        setEsPremium(nuevo);
+        if (nuevo) setPermitirDescarga(true);
+    }, [esPremium]);
 
     /* Valores computados */
     const tags = extraerTags(contenido);
@@ -274,7 +284,9 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
 
     return {
         contenido, publicando, permitirDescarga, setPermitirDescarga,
-        esPremium, setEsPremium,
+        esPremium, togglePremium,
+        /* QQ16: Toggle precio independiente de Pro */
+        tienePrecio, setTienePrecio,
         /* C220: Toggle comunidad */
         mostrarEnComunidad, setMostrarEnComunidad,
         precio, setPrecio,

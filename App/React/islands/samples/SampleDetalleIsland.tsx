@@ -10,7 +10,6 @@ import {
     Pause,
     AlertCircle,
     Crown,
-    Sparkles,
     BadgeCheck,
 } from 'lucide-react';
 import {
@@ -20,7 +19,6 @@ import {
 import { Skeleton } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { WaveformPlayer } from '@app/components/ui/WaveformPlayer';
-import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { BotonFollow } from '@app/components/social/BotonFollow';
 import { SampleDetalleAcciones } from '@app/components/samples/SampleDetalleAcciones';
@@ -45,11 +43,10 @@ interface SampleDetalleProps {
 
 export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX.Element => {
     const {
-        sample, similares, mostrarSimilares, setMostrarSimilares,
-        cargando, error, liked, reaccionActual, descargado,
+        sample, cargando, error, liked, reaccionActual, descargado,
         comentariosVisibles, setComentariosVisibles, esPropietario,
         tagsHome, navegar, usuarioAuth, manejarLike, manejarDescargar,
-        manejarReaccionDetalle, manejarQuitarReaccionDetalle, manejarLikeSimilar,
+        manejarReaccionDetalle, manejarQuitarReaccionDetalle,
     } = useSampleDetalle({ slugProp });
     const {
         reproduciendo, progreso, picosWaveform, manejarPlay, buscarPosicion,
@@ -224,37 +221,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
             {/* S4.4: Sample Discovery — muestra canción fuente/destino si existe */}
             <SeccionSampleDiscovery sampleId={sample.id} />
 
-            {/* C156: Samples similares ocultos por defecto, toggled via menu 3 puntos */}
-            {mostrarSimilares && similares.length > 0 && (
-                <div className="detalleSeccion detalleSimilaresSeccion">
-                    <h2 className="detalleSeccionTitulo">También te podría gustar</h2>
-                    <div className="detalleSimilares">
-                        {similares.map((s) => (
-                            <TarjetaSample
-                                key={s.id}
-                                sample={s}
-                                onLike={manejarLikeSimilar}
-                                onMenu={menu.abrirMenu}
-                                onClickCreador={(u) => navegar(`/perfil/${u}/`)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
-
             <MenuContextual
                 abierto={menu.estado.abierto}
                 onCerrar={menu.cerrarMenu}
-                items={[
-                    ...menu.items,
-                    /* C156: Item para mostrar/ocultar similares */
-                    ...(similares.length > 0 ? [{
-                        id: 'similares',
-                        etiqueta: mostrarSimilares ? 'Ocultar recomendaciones' : 'También te podría gustar',
-                        icono: <Sparkles size={16} />,
-                        onClick: () => setMostrarSimilares(prev => !prev),
-                    }] : []),
-                ]}
+                items={menu.items}
                 x={menu.estado.x}
                 y={menu.estado.y}
             />
