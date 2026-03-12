@@ -136,15 +136,17 @@ export const extraerTagsMetadata = (sample: {
         return Array.from(resultado);
     }
 
-    /* Tags IA (inglés) */
-    const metaTags = meta.tags ?? meta.tags_es;
-    if (Array.isArray(metaTags)) {
-        metaTags.forEach((t) => {
-            if (typeof t === 'string') {
-                const n = normalizarTag(t);
-                if (n) resultado.add(n);
-            }
-        });
+    /* QQ21b: Incluir tags de AMBOS idiomas para enriquecer búsqueda */
+    const fuentesTags = [meta.tags, meta.tags_es, meta.tagsEs];
+    for (const fuente of fuentesTags) {
+        if (Array.isArray(fuente)) {
+            fuente.forEach((t) => {
+                if (typeof t === 'string') {
+                    const n = normalizarTag(t);
+                    if (n) resultado.add(n);
+                }
+            });
+        }
     }
 
     /* Género */
@@ -171,11 +173,12 @@ export const extraerTagsMetadata = (sample: {
         });
     }
 
-    /* Emoción */
-    const emocion = meta.emocion;
-    if (typeof emocion === 'string') {
-        const n = normalizarTag(emocion);
-        if (n) resultado.add(n);
+    /* Emoción — ambos idiomas para enriquecer búsqueda */
+    for (const campo of [meta.emocion, meta.emocion_es, meta.emocionEs]) {
+        if (typeof campo === 'string') {
+            const n = normalizarTag(campo);
+            if (n) resultado.add(n);
+        }
     }
 
     /* Artista vibes */

@@ -53,9 +53,11 @@ export const InicioIsland = (): JSX.Element => {
 const FeedUnificado = (): JSX.Element => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
-    const [totalSamples, setTotalSamples] = useState(0);
+    const [totalServidor, setTotalServidor] = useState(0);
+    const [conteoFiltrado, setConteoFiltrado] = useState(0);
 
     const abrirCrear = useCrearModalStore(s => s.abrir);
+    const busqueda = useFiltrosStore(s => s.busqueda);
     const ordenamiento = useFiltrosStore(s => s.ordenamiento);
     const periodoDestacados = useFiltrosStore(s => s.periodoDestacados);
     const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
@@ -104,7 +106,7 @@ const FeedUnificado = (): JSX.Element => {
             : 'descubrir';
         const resp = await obtenerFeed(tipo, pagina);
         /* QQ2: El backend devuelve total en page 1; usarlo para el contador real */
-        if (resp.total != null) setTotalSamples(resp.total);
+        if (resp.total != null) setTotalServidor(resp.total);
         return resp.ok && resp.data ? resp.data : [];
     }, [ordenamiento]);
 
@@ -126,7 +128,12 @@ const FeedUnificado = (): JSX.Element => {
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">
-                    <span className="inicioTagsContador">{totalSamples} samples</span>
+                    <span className="inicioTagsContador">
+                        {busqueda.trim()
+                            ? `${conteoFiltrado} de ${totalServidor} samples`
+                            : `${totalServidor} samples`
+                        }
+                    </span>
                 </div>
 
                 <div className="inicioControlesDerecha">
@@ -197,6 +204,7 @@ const FeedUnificado = (): JSX.Element => {
                 mensajeVacio="No se encontraron samples."
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
+                onConteoChange={setConteoFiltrado}
                 accionVacia={
                     <BotonBase variante="primario" onClick={() => abrirCrear()}>
                         Sube el primero

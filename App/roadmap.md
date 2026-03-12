@@ -67,13 +67,13 @@ Fix comentarios en publicaciones del perfil: PerfilIsland ahora pasa `onLike`, `
 
 Las publicaciones deberían mostrar al menos 1 comentario, sin abrir los comentarios, (el comentario que tenga mas like), no estoy queriendo decir que se muestren todos los comentarios, se mostrarn al abrir los comentarios obviamente pero por defecto 1 esta bien sin tener que abrir.
 
-## QQ21
+## QQ21a ✅ [AG-QQF]
 
-inicioTagsContador no se esta actualizando con la busqueda
+inicioTagsContador ahora refleja resultados filtrados al buscar. FeedSamples ya tenía `onConteoChange` callback — conectado a InicioIsland con `setConteoFiltrado`. Counter muestra `{conteoFiltrado} de {totalServidor} samples` cuando hay búsqueda activa, `{totalServidor} samples` cuando no. Archivos: InicioIsland.tsx.
 
-## QQ21
+## QQ21b ✅ [AG-QQF]
 
-Normalizar en el front, que todos los samples sean en ingles, verificar que la IA realmente genere los tags en ambas idiomas, preservarlos, sirve para enriqueser la busqueda por si alguien busca en español pero, en el front ahora usaremos solo tags en ingles
+Tags normalizados a inglés en el front. **Display:** BadgesMetadata en TarjetaSample ahora prefiere `emocion` (EN) sobre `emocion_es` (ES), y `tags` (EN) sobre `tags_es` (ES). **Búsqueda enriquecida:** `extraerTagsMetadata` en tagUtils.ts ahora incluye tags de AMBOS idiomas (`meta.tags` + `meta.tags_es` + `meta.tagsEs`) y emociones de ambos idiomas para que búsquedas en español sigan funcionando. Español preservado en metadata para enriquecimiento de búsqueda. Archivos: TarjetaSample.tsx, tagUtils.ts.
 
 ## QQ22 ✅ [AG-QQF]
 

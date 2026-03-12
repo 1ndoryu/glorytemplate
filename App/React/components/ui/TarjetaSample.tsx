@@ -233,13 +233,14 @@ const BadgesMetadata = ({ sample, onFiltrar }: BadgesMetadataProps): JSX.Element
 
     agregarBadge(meta?.instrumentos ?? meta?.['instrumentos'], 'inst');
     agregarBadge(meta?.genero ?? meta?.['genero'], 'gen');
-    agregarBadge(meta?.emocion_es ?? meta?.emocionEs ?? meta?.emocion, 'emo');
+    /* QQ21b: Preferir tags en inglés en el front; español se preserva para búsqueda */
+    agregarBadge(meta?.emocion ?? meta?.emocion_es ?? meta?.emocionEs, 'emo');
 
     if (sample.bpm) {
         badges.push({ texto: etiquetaBpm(sample.bpm), clave: 'vel' });
     }
 
-    agregarBadge(meta?.tags_es ?? meta?.tagsEs ?? meta?.tags ?? sample.tags, 'tag');
+    agregarBadge(meta?.tags ?? meta?.tags_es ?? meta?.tagsEs ?? sample.tags, 'tag');
 
     /* Fallback si no hay metadata IA */
     if (badges.length === 0) {
