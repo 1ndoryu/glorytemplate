@@ -334,3 +334,13 @@ kamples-scraper/
 - **Archivos actualizados:** `modalEdicionRelacion.css`, `modalReporteLegal.css`, `modalContribucion.css`, `buscadorCanciones.css`, `artistaDetalle.css`, `landingCaracteristicas.css`, `modalVincularSample.css`, `tarjetaRelacionSample.css`, `botonReporteLegal.css`.
 - **Acciones:** Todas las variables erróneas identificadas en `.varsense-report.md` (como `--espaciado-md`, `--superficie2`, `--textoXl`, etc.) se mapearon a sus equivalentes del design system (`--espacioMd`, `--fondoElevado2`, `--fuenteXl`...). Valores hardcodeados como font-sizes en `rem` y margins (`-11px`, `-120px`) refactorizados a variables CSS (a menudo apoyados con `calc()`). Solucionados linter warnings sobre `gap: 2px` a su equivalente validado `--espacio2xs`. No se crearon nuevas variables, ajustándose estrictamente a las existentes.
 - **Aprendizaje:** Mantener nomenclature siempre validada de variables ya existentes del root. En font-size usar siempre sistema `--fuenteX` disponible y en espaciado negativo aprovechar `calc()` + variables, en lugar de magic numbers que escalan mal.
+
+---
+
+## Completado — Pipeline Audio: SoundCloud GO + WP Cron (C901-C903)
+
+- **C901** ✅ Fix WP Cron publicación: hook `kamples_publicar_extracciones` tenía `add_action` pero nunca se programaba con `wp_schedule_event`. Refactorizado en `registrarCronPublicadorExtraccion()` con guard `if (!wp_next_scheduled(...))`. Commit `14c1d520`.
+
+- **C902** ✅ SoundCloud GO auth + filtro policy: `_soundcloud_oauth_token` module-level + `_soundcloud_request_headers()` añade `Authorization: OAuth <token>`. Policy filter descarta `policy=SNIP` (GO-only, solo 30s preview) cuando no hay token. Regex exclusión ampliada: `reloop`, `relooped`, `edit`. Commit `cacf805e`.
+
+- **C903** ✅ Fix token dinámico + search_limit duplicado: `_soundcloud_request_headers()` hace `os.getenv()` en cada llamada (no en módulo). Eliminado `search_limit = 10 if _soundcloud_oauth_token else 5` duplicado (usaba var de módulo, evaluada antes de `load_dotenv()`). Ahora `tiene_oauth` se detecta ANTES de construir la search URL. Token añadido a `kamples-scraper/.env` (no commiteado — secreto). Commit `319c9e3e`.
