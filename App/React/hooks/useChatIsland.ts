@@ -88,27 +88,31 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
         const cargar = async () => {
             setCargando(true);
             try {
+                /* Carga paralela: conversaciones (si faltan) + mensajes al mismo tiempo */
+                const necesitaConvs = conversaciones.length === 0;
+                const [respConvs, respMsgs] = await Promise.all([
+                    necesitaConvs
+                        ? obtenerConversaciones()
+                        : Promise.resolve(null),
+                    obtenerMensajes(conversacionId),
+                ]);
+                if (!activo) return;
+
                 let convs = conversaciones;
-                if (convs.length === 0) {
-                    const respConvs = await obtenerConversaciones();
-                    if (!activo) return;
-                    if (respConvs.ok && respConvs.data) {
-                        setConversaciones(respConvs.data);
-                        convs = respConvs.data;
-                    }
+                if (respConvs?.ok && respConvs.data) {
+                    setConversaciones(respConvs.data);
+                    convs = respConvs.data;
                 }
 
                 const convActiva = convs.find(c => c.id === conversacionId) ?? null;
-                if (!activo) return;
                 setConversacion(convActiva);
 
-                const resp = await obtenerMensajes(conversacionId);
-                if (!activo) return;
-                if (resp.ok && resp.data) setMensajes(resp.data);
+                if (respMsgs.ok && respMsgs.data) setMensajes(respMsgs.data);
 
+                /* Fire-and-forget: marcar leida no bloquea la UI */
                 if (convActiva && convActiva.noLeidos > 0) {
                     useMensajesStore.getState().marcarConversacionLeida(conversacionId);
-                    await marcarConversacionLeida(conversacionId);
+                    marcarConversacionLeida(conversacionId);
                 }
             } catch {
                 /* Fallo de carga silencioso */

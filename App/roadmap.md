@@ -115,9 +115,9 @@ En contexto adjuntar: audio obligatorio para publicar, descarga forzada on (ocul
 
 Incluido en QQ30 — botones descarga/premium/precio ocultos en contexto adjuntar, solo comunidad visible (desactivado por defecto).
 
-## QQ31
+## QQ31 ✅ [AG-QQF]
 
-El boton de mensaje en los perfil a dar click, el chat tarda en abrir y los mensajes en cargar ¿por qué? esta ¿optimizado esto? 
+Optimización de rendimiento del chat. **Problema:** Al abrir chat desde perfil, tardaba 2-5s por N+1 queries (3 queries × N conversaciones) + carga secuencial frontend. **Backend:** Nueva `ConversacionesRepository::listarDeUsuarioEnriquecido()` — 1 sola query con JOIN a `usuarios_ext` + 2 `LEFT JOIN LATERAL` (último mensaje + conteo no leídos). Reemplaza loop de `buscarParticipante()` + `ultimoDeConversacion()` + `contarNoLeidos()` por conversación. MensajesController simplificado (208 líneas, antes ~248). **Frontend:** `useChatIsland.ts` — carga paralela con `Promise.all([obtenerConversaciones(), obtenerMensajes()])` (antes secuencial). `marcarConversacionLeida()` cambiado de `await` a fire-and-forget. Archivos: ConversacionesRepository.php, MensajesController.php, useChatIsland.ts.
 
 ## QQ32 ✅ [AG-QQF]
 

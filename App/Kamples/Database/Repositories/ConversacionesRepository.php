@@ -13,6 +13,7 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\ConversacionesDTO;
+use App\Config\Schema\_generated\MensajesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ConversacionesRepository extends BaseRepository
@@ -61,6 +62,71 @@ class ConversacionesRepository extends BaseRepository
              FROM {$tabla} c
              WHERE c.participante_1 = :userId OR c.participante_2 = :userId
              ORDER BY c." . ConversacionesCols::ULTIMO_MENSAJE_AT . " DESC NULLS LAST",
+            ['userId' => $userId]
+        );
+    }
+
+    /*
+     * Listar conversaciones con participante, ultimo mensaje y no leidos en 1 sola query.
+     * Reemplaza el patron N+1 de listarDeUsuario + 3 queries por conversacion.
+     */
+    public static function listarDeUsuarioEnriquecido(int $userId): array
+    {
+        $tConv = ConversacionesCols::TABLA;
+        $tMsg = MensajesCols::TABLA;
+        $tUsr = UsuariosExtCols::TABLA;
+
+        $colConvId       = ConversacionesCols::ID;
+        $colUltimoMsgAt  = ConversacionesCols::ULTIMO_MENSAJE_AT;
+        $colConvCreatedAt = ConversacionesCols::CREATED_AT;
+        $colMsgConvId    = MensajesCols::CONVERSACION_ID;
+        $colMsgAutor     = MensajesCols::AUTOR_ID;
+        $colMsgContenido = MensajesCols::CONTENIDO;
+        $colMsgTipo      = MensajesCols::TIPO;
+        $colMsgCreatedAt = MensajesCols::CREATED_AT;
+        $colMsgLeido     = MensajesCols::LEIDO;
+        $colUsrId        = UsuariosExtCols::ID;
+        $colUsername      = UsuariosExtCols::USERNAME;
+        $colNombre       = UsuariosExtCols::NOMBRE_VISIBLE;
+        $colAvatar       = UsuariosExtCols::AVATAR_URL;
+        $colVerificado   = UsuariosExtCols::VERIFICADO;
+        $colWpUserId     = UsuariosExtCols::WP_USER_ID;
+
+        return static::consultar(
+            "SELECT c.{$colConvId},
+                    c.{$colUltimoMsgAt},
+                    c.{$colConvCreatedAt},
+                    CASE WHEN c.participante_1 = :userId THEN c.participante_2
+                         ELSE c.participante_1 END AS otro_id,
+                    u.{$colUsername}      AS \"usr_username\",
+                    u.{$colNombre}        AS \"usr_nombre_visible\",
+                    u.{$colAvatar}        AS \"usr_avatar_url\",
+                    u.{$colVerificado}    AS \"usr_verificado\",
+                    u.{$colWpUserId}      AS \"usr_wp_user_id\",
+                    lm.{$colMsgContenido} AS \"ultimo_contenido\",
+                    lm.{$colMsgTipo}      AS \"ultimo_tipo\",
+                    lm.{$colMsgCreatedAt} AS \"ultimo_msg_at\",
+                    COALESCE(nl.total, 0)::int AS \"no_leidos\"
+             FROM {$tConv} c
+             JOIN {$tUsr} u
+               ON u.{$colUsrId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2
+                                       ELSE c.participante_1 END
+             LEFT JOIN LATERAL (
+                 SELECT m.{$colMsgContenido}, m.{$colMsgTipo}, m.{$colMsgCreatedAt}
+                 FROM {$tMsg} m
+                 WHERE m.{$colMsgConvId} = c.{$colConvId}
+                 ORDER BY m.{$colMsgCreatedAt} DESC
+                 LIMIT 1
+             ) lm ON true
+             LEFT JOIN LATERAL (
+                 SELECT COUNT(*)::int AS total
+                 FROM {$tMsg} m2
+                 WHERE m2.{$colMsgConvId} = c.{$colConvId}
+                   AND m2.{$colMsgAutor} != :userId
+                   AND m2.{$colMsgLeido} = false
+             ) nl ON true
+             WHERE c.participante_1 = :userId OR c.participante_2 = :userId
+             ORDER BY c.{$colUltimoMsgAt} DESC NULLS LAST",
             ['userId' => $userId]
         );
     }

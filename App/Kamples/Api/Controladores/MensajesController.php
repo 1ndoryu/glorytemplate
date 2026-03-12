@@ -13,7 +13,6 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ConversacionesCols;
-use App\Config\Schema\_generated\MensajesCols;
 use App\Config\Schema\_generated\MensajesEnums;
 use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
@@ -77,37 +76,35 @@ class MensajesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        $conversaciones = ConversacionesRepository::listarDeUsuario($userId);
+        $filas = ConversacionesRepository::listarDeUsuarioEnriquecido($userId);
 
         $resultado = [];
-        foreach ($conversaciones as $conv) {
-            $otroId = (int) $conv['otro_id'];
+        foreach ($filas as $fila) {
+            $avatarUrl = UsuarioHelper::resolverAvatarUrl(
+                $fila['usr_avatar_url'] ?? null,
+                (int) ($fila['usr_wp_user_id'] ?? 0)
+            );
 
-            $otro = UsuariosExtRepository::buscarParticipante($otroId);
-
-            $ultimoMsg = MensajesRepository::ultimoDeConversacion((int) $conv[ConversacionesCols::ID]);
-
-            $noLeidos = MensajesRepository::contarNoLeidos((int) $conv[ConversacionesCols::ID], $userId);
-
-            /* C193: fallback avatar */
-            if ($otro) {
-                $otro[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl($otro[UsuariosExtCols::AVATAR_URL] ?? null, (int) ($otro[UsuariosExtCols::WP_USER_ID] ?? 0));
-            }
-
-            /* Preview del Ãºltimo mensaje segÃºn tipo */
-            $previewMsg = $ultimoMsg[MensajesCols::CONTENIDO] ?? '';
-            $tipoUltimo = $ultimoMsg[MensajesCols::TIPO] ?? MensajesEnums::TIPO_TEXTO;
+            /* Preview del ultimo mensaje segun tipo */
+            $tipoUltimo = $fila['ultimo_tipo'] ?? MensajesEnums::TIPO_TEXTO;
+            $previewMsg = $fila['ultimo_contenido'] ?? '';
             if ($tipoUltimo === MensajesEnums::TIPO_IMAGEN) $previewMsg = '[Imagen]';
             elseif ($tipoUltimo === MensajesEnums::TIPO_AUDIO) $previewMsg = '[Audio]';
-            elseif ($tipoUltimo === MensajesEnums::TIPO_SAMPLE) $previewMsg = '[Sample] ' . ($ultimoMsg[MensajesCols::CONTENIDO] ?? '');
+            elseif ($tipoUltimo === MensajesEnums::TIPO_SAMPLE) $previewMsg = '[Sample] ' . ($fila['ultimo_contenido'] ?? '');
 
             $resultado[] = [
-                'id'              => (int) $conv[ConversacionesCols::ID],
-                'participante'    => self::normalizarParticipante($otro),
+                'id'              => (int) $fila[ConversacionesCols::ID],
+                'participante'    => [
+                    'id'            => (int) $fila['otro_id'],
+                    'username'      => $fila['usr_username'] ?? '',
+                    'nombreVisible' => $fila['usr_nombre_visible'] ?? $fila['usr_username'] ?? '',
+                    'avatarUrl'     => $avatarUrl,
+                    'verificado'    => (bool) ($fila['usr_verificado'] ?? false),
+                ],
                 'ultimoMensaje'   => $previewMsg,
                 'ultimoMensajeTipo' => $tipoUltimo,
-                'ultimoMensajeAt' => $ultimoMsg[MensajesCols::CREATED_AT] ?? $conv[ConversacionesCols::CREATED_AT],
-                'noLeidos'        => $noLeidos,
+                'ultimoMensajeAt' => $fila['ultimo_msg_at'] ?? $fila[ConversacionesCols::CREATED_AT],
+                'noLeidos'        => (int) $fila['no_leidos'],
                 'enLinea'         => false,
             ];
         }
