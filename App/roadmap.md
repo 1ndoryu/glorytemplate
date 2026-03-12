@@ -272,9 +272,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ69
 
-El icono de mensaje siempre queda en rojo, tiene marcarse los mensajes como leido al verlos desde el modal
-
-Las imagenes del chat cuando abre, no se cierran si doy click por fuera, solo por la parte de arriba pero no a los lads.
+✅ [AG-SEC] Dos fixes chat: (A) Chat flotante ahora marca conversación como leída al abrir — useMensajesStore.marcarConversacionLeida() local + API marcarConversacionLeida(). Faltaba en useVentanaChat.ts (useChatIsland ya lo hacía). (B) Visor imagen: pointer-events:none en contenedor transparente .visorImagenModal + pointer-events:auto en .visorImagenImg para que clicks en área transparente lleguen al overlay y cierren. Archivos: useVentanaChat.ts, visorImagen.css.
 
 ## QQ70
 
@@ -304,11 +302,11 @@ Las imagenes del chat cuando abre, no se cierran si doy click por fuera, solo po
 
 ## QQ73
 
-Quitar de feedFiltrosSelectsm, el select de sentimiento, y los pint de bpm no necesitan los estilos de .campTextoInput, .campoTextoArea, 
+✅ [AG-SEC] Removido 'sentimiento' de CATEGORIAS_SELECT en useFeedSamples.ts. Inputs BPM en SelectorBPM ahora usan variante='desnudo' en CampoTexto para evitar estilos de campTextoInput/campoTextoArea. Archivos: useFeedSamples.ts, SelectorBPM.tsx.
 
 ## QQ74
 
-en http://glory.local/descargas/ me salen samples que dejaron de existir
+✅ [AG-SEC] Fix descargas mostrando samples eliminados. **Causa:** Las queries `coleccionadosDeUsuario()`, `contarColeccionados()` y `carpetasColeccionados()` seguían el patrón F12 (creador ve propios sin filtro de estado) pero no excluían `estado='eliminado'`. **Fix:** En `coleccionadosDeUsuario` y `contarColeccionados`: añadido `WHERE s.estado != 'eliminado'` global antes del OR clause (ambos branches — propios y descargados — excluyen eliminados). En `carpetasColeccionados`: añadido `AND s.estado != 'eliminado'` en la subquery UNION del creador (la rama de descargas ya filtraba `estado='activo'`). Todas las referencias usan `SamplesEnums::ESTADO_ELIMINADO`. Archivo: SamplesRepository.php.
 
 ## QQ75
 
@@ -338,19 +336,12 @@ Cancion Origen ID
 2971
 Relacion Sampleo ID
 
-era un sample antes de que se pudiera ver la informacion, no se si es un problema real pero de todas formas verificiar, los recortes si tiene que identificarse como recortes (cuando se generan con el proceso de recorte), 
+era un sample antes de que se pudiera ver la informacion, no se si es un problema real pero de todas formas verificiar, los recortes si tiene que identificarse como recortes (cuando se generan con el proceso de recorte), y eso se comprueba que si tiene una cancion de origen, tambien debería de tener una de sampleo casi siempre, y en inspecionar no veo informacion calve como el origen del recorte, el enlace de la fuente de donde se recorto, el nombre y artista de la fuente, etc y toda esa info que alguna vez planifique se guardara cuando se hicieran recortes ya que esa info es importante para poder verificar si realmente el sample se recorto de una fuente coherente. 
 
-# ANTES DE LA ULTIMA TAREA
 
-Asegurarte de que todo los cambios se hayan subido, no importa que no sean tus cambios, haz commit de todo. Una vez que todo este asegurado. Haz una copia de seguirdad local del tema, en la misma carpeta de themes.
+## QQ80 
 
-Cuandos tengas el respaldo de seguridad, ahora, lo que vas a hacer es que la rama main kamples, la vas a separar en repositorio individual, preservar todos los submodulos y todo igual, incluyendo el gitingore y todo eos, todos los subrepositorios que queden igual, solo es sacar la rama main-kamples a un repositorio independiente, en caso de que sea posible preservar todos los commit y esa informacion, genial, mi github es https://github.com/1ndoryu
+No se encuentra el nombre 'resp'. useVentanaChat
 
-Asegurarse de que el proyecto tenga una licencia fuerte, y cuando este separado en un repositorio independiente, configura style.css para que tema se llame kamples, y que no haya perdida de datos en el reposotiro de glorytemplate
 
-## ULTIMA TAREA
-
-Desplegar kamples en la vps con coolify manager rust (kamples.com) sin afectar a los otros desplieges por favor.
-
-Primero vamos ahorrarnos trabajo y asegurarnos de que los procesos de fondo scrapper, recortes, webhoock para los mensajes, notificaciones, los despliegues y todas estas cosas vayan a funcionar en linux, incluyendo la IA, la optización de audio, etc. Cuando hagas el despliegue, la url no funciona, coolify tiene un problema de que las url incialmente son de testeos, asi que no intentes empezar con kamples, deja que se cree la url temporal que genera coolify, entonces, cuando se suba todo, asegurate que haga el build automatico con cada update, que se selecione el tema glory template, instala el sitio con lo que suele pedir la instalacion para que tu mismo compruebues si corre, va a dar error, siempre da error, asi que activa el modo dev, no intentes ejecutar comandos desde coolify el powershell siempre tien probles con las comillas, la mejor opcion es crear los comandos en local y usar algun mecanimos para ejecutarlos en la vps.
 

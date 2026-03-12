@@ -723,12 +723,15 @@ class SamplesRepository extends BaseRepository
         /*
          * F12: Creador ve sus propios samples sin importar estado (pendiente, activo).
          * Descargas ajenas requieren estado activo.
+         * QQ74: Eliminados no se muestran ni al creador.
          */
+        $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " LEFT JOIN " . DescargasCols::TABLA . " d ON d."
              . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
-             . " WHERE ("
+             . " WHERE s." . SamplesCols::ESTADO . " != '{$eEliminado}'"
+             . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
              . " ){$carpetaClause}"
@@ -765,12 +768,14 @@ class SamplesRepository extends BaseRepository
             }
         }
 
-        /* F12: Consistente con coleccionadosDeUsuario — propios sin filtro de estado */
+        /* F12: Consistente con coleccionadosDeUsuario — propios sin filtro de estado, QQ74: excepto eliminados */
+        $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
         $sql = "SELECT COUNT(DISTINCT s." . SamplesCols::ID . ") AS total"
              . " FROM {$ts} s"
              . " LEFT JOIN {$td} d ON d." . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " AND d." . DescargasCols::USUARIO_ID . " = :uid"
-             . " WHERE ("
+             . " WHERE s." . SamplesCols::ESTADO . " != '{$eEliminado}'"
+             . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
              . " ){$carpetaClause}";
@@ -787,7 +792,8 @@ class SamplesRepository extends BaseRepository
         $ts = SamplesCols::TABLA;
         $td = DescargasCols::TABLA;
 
-        /* F12: El creador ve sus propios samples sin filtro de estado */
+        /* F12: El creador ve sus propios samples sin filtro de estado, QQ74: excepto eliminados */
+        $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
         $sql = "SELECT"
              . "  COALESCE(s." . SamplesCols::METADATA . "->>'carpeta_primaria', '" . self::CARPETA_DEFAULT . "') AS primaria,"
              . "  s." . SamplesCols::METADATA . "->>'carpeta_secundaria' AS secundaria,"
@@ -800,6 +806,7 @@ class SamplesRepository extends BaseRepository
              . "  UNION"
              . "  SELECT s." . SamplesCols::ID . ", s." . SamplesCols::METADATA . " FROM {$ts} s"
              . "  WHERE s." . SamplesCols::CREADOR_ID . " = :uid2"
+             . "  AND s." . SamplesCols::ESTADO . " != '{$eEliminado}'"
              . " ) s"
              . " GROUP BY primaria, secundaria"
              . " ORDER BY primaria, secundaria";
