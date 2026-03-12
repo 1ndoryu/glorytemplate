@@ -21,6 +21,7 @@ import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { useMenuContextualSample, EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { useMenuContextualPublicacion, EVENTO_PUBLICACION_ELIMINADA } from '@app/hooks/useMenuContextualPublicacion';
+import { useMenuContextualPerfil } from '@app/hooks/useMenuContextualPerfil';
 import type { Usuario } from '@app/types/usuario';
 import type { SampleResumen } from '@app/types/sample';
 import type { Publicacion } from '@app/types/publicacion';
@@ -117,6 +118,11 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     }, [rutaActual, usernameProp, usuarioAuth?.username]);
 
     const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
+
+    /* QQ23: Menu contextual del perfil (reportar/bloquear) — solo visible para no propietario */
+    const menuPerfil = useMenuContextualPerfil(
+        usuario && !esPropietario ? { id: usuario.id, username: usuario.username } : null
+    );
 
     /* Cargar perfil con AbortController */
     useEffect(() => {
@@ -347,6 +353,7 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         abrirChat,
         menu,
         menuPublicacion,
+        menuPerfil,
         username,
         esPropietario,
         recargarPublicaciones,

@@ -4,7 +4,7 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
-import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon } from 'lucide-react';
+import { Music, Heart, Settings, MapPin, Calendar, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -53,7 +53,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     const {
         usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
         cargandoTab, authCargando, tabActiva, navegar,
-        abrirConfiguracion, abrirChat, menu, menuPublicacion, username, esPropietario,
+        abrirConfiguracion, abrirChat, menu, menuPublicacion, menuPerfil, username, esPropietario,
         recargarPublicaciones, manejarLike, manejarLikePost, alternarComentarios,
         comentariosAbiertos, manejarClickCreador, manejarRepost,
     } = usePerfilIsland({ usernameProp });
@@ -186,6 +186,10 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                     }}>
                                     Mensaje
                                 </BotonBase>
+                                {/* QQ23: Menu de 3 puntos para reportar/bloquear */}
+                                <BotonBase variante="ghost" onClick={menuPerfil.abrirMenu} aria-label="Opciones de usuario">
+                                    <MoreHorizontal size={18} />
+                                </BotonBase>
                             </>
                         )}
                     </div>
@@ -242,6 +246,9 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
             {/* Menú contextual publicaciones (C322) */}
             <MenuContextual abierto={menuPublicacion.estado.abierto} x={menuPublicacion.estado.x} y={menuPublicacion.estado.y}
                 items={menuPublicacion.items} onCerrar={menuPublicacion.cerrarMenu} />
+            {/* QQ23: Menú contextual perfil (reportar/bloquear) */}
+            <MenuContextual abierto={menuPerfil.estado.abierto} x={menuPerfil.estado.x} y={menuPerfil.estado.y}
+                items={menuPerfil.items} onCerrar={menuPerfil.cerrarMenu} alinearDerecha />
         </div>
     );
 };

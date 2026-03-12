@@ -141,6 +141,37 @@ class ReportesRepository extends BaseRepository
     }
 
     /*
+     * QQ23: Crear reporte de usuario con reportado_id.
+     * Rellena tipo='usuario', target_id y reportado_id con el ID del usuario reportado.
+     */
+    public static function crearReporteUsuario(int $reportadoId, int $reportadorId, string $razon, ?string $detalles = null): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        return static::insertar(
+            "INSERT INTO {$tabla} ("
+            . ReportesCols::TIPO . ", "
+            . ReportesCols::TARGET_ID . ", "
+            . ReportesCols::REPORTADOR_ID . ", "
+            . ReportesCols::REPORTADO_ID . ", "
+            . ReportesCols::RAZON . ", "
+            . ReportesCols::DETALLES . ", "
+            . ReportesCols::ESTADO
+            . ") VALUES (:tipo, :targetId, :reportadorId, :reportadoId, :razon, :detalles, :estado)"
+            . " RETURNING " . ReportesCols::ID,
+            [
+                'tipo'         => 'usuario',
+                'targetId'     => $reportadoId,
+                'reportadorId' => $reportadorId,
+                'reportadoId'  => $reportadoId,
+                'razon'        => $razon,
+                'detalles'     => $detalles,
+                'estado'       => ReportesEnums::ESTADO_PENDIENTE,
+            ]
+        );
+    }
+
+    /*
      * Resolver un reporte: cambiar estado a 'resuelto' o 'descartado'.
      * Registra quién lo resolvió y cuándo.
      * Retorna true si el reporte existía y fue actualizado.

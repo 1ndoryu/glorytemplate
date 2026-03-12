@@ -181,6 +181,15 @@ export const reportarPublicacion = async (
     return apiPost<{ ok: boolean; message: string }>(`/publicaciones/${publicacionId}/reportar`, { razon });
 };
 
+/* QQ23: Reportar usuario */
+export const reportarUsuario = async (
+    usuarioId: number,
+    razon: string,
+    detalles?: string,
+): Promise<RespuestaApi<{ ok: boolean; message: string }>> => {
+    return apiPost<{ ok: boolean; message: string }>(`/reportar-usuario/${usuarioId}`, { razon, detalles });
+};
+
 /* C126: Datos editables de una publicación */
 export interface DatosActualizarPublicacion {
     contenido?: string;

@@ -10,6 +10,8 @@ import { enviarMensaje, enviarMensajeMultimedia, obtenerMensajes } from '@app/se
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
+import { useReportarUsuarioStore } from '@app/stores/reportarUsuarioStore';
+import { useBloqueosStore } from '@app/stores/bloqueosStore';
 import type { Mensaje } from '@app/types';
 
 interface UseVentanaChatParams {
@@ -148,15 +150,19 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
 
     const reportar = useCallback(() => {
         setMenuAbierto(false);
-        /* TO-DO: sistema de reportes */
-        toast.info('Reporte enviado');
-    }, []);
+        /* QQ23: Abrir modal de reporte de usuario */
+        useReportarUsuarioStore.getState().abrir(
+            chat.participanteId,
+            chat.participanteUsername,
+        );
+    }, [chat.participanteId, chat.participanteUsername]);
 
-    const bloquear = useCallback(() => {
+    const bloquear = useCallback(async () => {
         setMenuAbierto(false);
-        /* TO-DO: API de bloqueo */
-        toast.info('Usuario bloqueado');
-    }, []);
+        /* QQ23: Bloquear usuario via bloqueosStore */
+        await useBloqueosStore.getState().bloquear(chat.participanteId);
+        toast.exito(`Has bloqueado a @${chat.participanteUsername}`);
+    }, [chat.participanteId, chat.participanteUsername]);
 
     return {
         mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
