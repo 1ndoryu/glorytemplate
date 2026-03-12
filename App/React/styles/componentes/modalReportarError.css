@@ -1,0 +1,67 @@
+/*
+ * modalReportarError.css — Kamples
+ * Estilos para el modal de reporte de errores de plataforma.
+ */
+
+.reportarErrorFormulario {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.reportarErrorLabel {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoMedio);
+}
+
+.reportarErrorInput {
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-family: var(--fuentePrincipal);
+    outline: none;
+    transition: border-color var(--transicionRapida);
+    box-sizing: border-box;
+}
+
+.reportarErrorInput:focus {
+    border-color: var(--bordeActivo);
+}
+
+.reportarErrorTextarea {
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioMd);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-family: var(--fuentePrincipal);
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color var(--transicionRapida);
+    box-sizing: border-box;
+}
+
+.reportarErrorTextarea:focus {
+    border-color: var(--bordeActivo);
+}
+
+.reportarErrorNota {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    margin: 0;
+}
+
+.reportarErrorAcciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioSm);
+}

@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, PanelRight} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';

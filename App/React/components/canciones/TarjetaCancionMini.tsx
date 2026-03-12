@@ -26,22 +26,22 @@ export const TarjetaCancionMini = ({
 }: TarjetaCancionMiniProps): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
 
-    const handleClick = () => {
-        if (slug) navegar(`/cancion/${slug}`);
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+            e.preventDefault();
+            if (slug) navegar(`/cancion/${slug}`);
+        }
     };
 
+    const Contenedor = slug ? 'a' : 'div';
+    const containerProps = slug
+        ? { href: `/cancion/${slug}`, onClick: handleClick as React.MouseEventHandler }
+        : {};
+
     return (
-        <div
+        <Contenedor
             className={`tarjetaCancionMini${slug ? ' tarjetaCancionMiniClickable' : ''}`}
-            role={slug ? 'button' : undefined}
-            tabIndex={slug ? 0 : undefined}
-            onClick={handleClick}
-            onKeyDown={(e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && slug) {
-                    e.preventDefault();
-                    handleClick();
-                }
-            }}
+            {...containerProps}
         >
             <div className="tarjetaCancionMiniPortada">
                 {imagen ? (
@@ -71,6 +71,6 @@ export const TarjetaCancionMini = ({
                     {anio ? <span className="tarjetaCancionMiniAnio"> · {anio}</span> : null}
                 </span>
             </div>
-        </div>
+        </Contenedor>
     );
 };

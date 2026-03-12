@@ -116,10 +116,21 @@ class ReportesRepository extends BaseRepository
 
     /*
      * Crear nuevo reporte. Retorna el ID generado.
+     * Acepta opcionalmente 'detalles' para informacion ampliada (ej: reportes de error).
      */
-    public static function crearReporte(string $tipo, int $targetId, int $userId, string $razon): int
+    public static function crearReporte(string $tipo, int $targetId, int $userId, string $razon, ?string $detalles = null): int
     {
         $tabla = ReportesCols::TABLA;
+
+        if ($detalles !== null) {
+            return static::insertar(
+                "INSERT INTO {$tabla} (" . ReportesCols::TIPO . ", " . ReportesCols::TARGET_ID
+                . ", " . ReportesCols::REPORTADOR_ID . ", " . ReportesCols::RAZON . ", " . ReportesCols::DETALLES
+                . ", " . ReportesCols::ESTADO . ")"
+                . " VALUES (:tipo, :targetId, :userId, :razon, :detalles, '" . ReportesEnums::ESTADO_PENDIENTE . "') RETURNING " . ReportesCols::ID,
+                ['tipo' => $tipo, 'targetId' => $targetId, 'userId' => $userId, ReportesCols::RAZON => $razon, 'detalles' => $detalles]
+            );
+        }
 
         return static::insertar(
             "INSERT INTO {$tabla} (" . ReportesCols::TIPO . ", " . ReportesCols::TARGET_ID

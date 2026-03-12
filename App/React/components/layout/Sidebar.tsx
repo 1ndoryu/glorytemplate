@@ -14,9 +14,11 @@ import {
     Music,
     Settings,
     ShieldCheck,
+    Bug,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
+import { useReportarErrorStore } from '@app/stores/reportarErrorStore';
 import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
@@ -52,6 +54,7 @@ export const Sidebar = ({
 }: SidebarProps): JSX.Element => {
     const navegar = useNavigationStore(s => s.navegar);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
+    const abrirReportarError = useReportarErrorStore(s => s.abrir);
     const usuario = useAuthStore(s => s.usuario);
     const esAdmin = usuario?.rol === 'admin';
 
@@ -74,9 +77,18 @@ export const Sidebar = ({
 
     return (
         <div className="sidebar">
-            <div className="sidebarLogo" onClick={() => navegar('/')} role="button" tabIndex={0}>
+            <a
+                href="/"
+                className="sidebarLogo"
+                onClick={(e) => {
+                    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                        e.preventDefault();
+                        navegar('/');
+                    }
+                }}
+            >
                 <LogoKamples tamano={22} />
-            </div>
+            </a>
 
             <nav className="sidebarNav">
                 {itemsFinales.map((item) => {
@@ -119,6 +131,15 @@ export const Sidebar = ({
 
             <div className="sidebarFooter">
                 <div className="sidebarSeparador" />
+                <BotonBase variante="ghost"
+                    className="sidebarItem"
+                    data-tooltip="Reportar error"
+                    onClick={() => abrirReportarError()}
+                    type="button"
+                    aria-label="Reportar error"
+                >
+                    <Bug size={20} />
+                </BotonBase>
                 <BotonBase variante="ghost"
                     className="sidebarItem"
                     data-tooltip="Configuración"

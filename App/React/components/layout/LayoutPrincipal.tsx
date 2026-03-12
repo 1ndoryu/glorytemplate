@@ -18,6 +18,7 @@ import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
+import { ModalReportarError } from '../social/ModalReportarError';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
@@ -152,6 +153,9 @@ export const LayoutPrincipal = ({
 
             {/* C800: Modal de correccion de metadata IA */}
             <ModalCorregirIA />
+
+            {/* QQ12: Modal de reporte de errores de plataforma */}
+            <ModalReportarError />
 
             {/* Modal de planes (overlay, sin cambiar de isla) */}
             <PlanesIsland />
