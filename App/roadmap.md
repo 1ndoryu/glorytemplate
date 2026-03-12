@@ -127,10 +127,9 @@ Rediseño social del perfil. Backend: añadida columna `sitio_web` en `usuarios_
 
 Fix errores IDE: PipelineAudio usaba `DuplicadosPendientesRepository::crear()` inexistente → cambiado a `insertarRegistro()`. SocialController usaba `RateLimiter::verificar()` inexistente → cambiado a `verificarUsuario()`. SocialController excedía 300 líneas → extraído bloqueo+reportes a nuevo `ModeracionController.php` (141 líneas). Limpiados imports muertos (CancionesCols, RelacionesSampleCols). Registrado ModeracionController en KamplesController.
 
-## QQ34 
+## QQ34 ✅ [AG-QQF]
 
-Mejorar el landing publico para seo, mejorar los textos, manterlos breve.
-Los svg son muy pesados, tienen imagenes internas que deberían ser optimizadas, no se como optimizarlas, tambien en caos de que esas imagenes internas puedan cargar de forma no bloqueante, sea una buena optimización
+Landing SEO + SVG optimization. **SVGs:** Script `scripts/optimize-svg-images.cjs` (sharp) recomprime imágenes base64 embebidas en SVGs: Kamples.svg 34→4.5MB (-87%), MiniDaw.svg 28→2.5MB (-91%), Sync.svg 5→1.4MB (-70%), Rolas.svg 1.2→1.0MB (-19%). Total 68MB→9.4MB (-86%). 59 imágenes JPEG/PNG recomprimidas con mozjpeg quality 68. **SEO:** Textos hero concisos ("Descubre, descarga y sincroniza samples"), h2 duplicado "DAW Web" corregido (Rolas → "Miles de samples por descubrir"), alt texts descriptivos para todas las secciones. **Performance:** width/height explícitos (1288×717) en todos los `<img>` para prevenir CLS, `fetchPriority="high"` en hero, `decoding="async"` en todas las imágenes, `loading="lazy"` en below-fold. **Cleanup:** Sección trending muerta (display:none + fetch innecesario) eliminada, hook reducido de 50 a 12 líneas, import TarjetaSample eliminado, footer en español. Archivos: LandingPublica.tsx, useLandingPublica.ts, 4 SVGs, optimize-svg-images.cjs.
 
 ## QQ35 ✅ [AG-QQF]
 
