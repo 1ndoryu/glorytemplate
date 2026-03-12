@@ -147,22 +147,35 @@ class PublicadorExtraccion
             }
 
             /*
-             * C801: Guardar youtube_id en metadata del sample para enlace directo
-             * desde el menu contextual ("Ver en YouTube"). El youtube_id viene de la cola.
+             * Guardar metadata de extraccion en el sample:
+             * - origen='extraccion' para distinguir de samples subidos manualmente.
+             * - Fuente de descarga (SC/YT/Deezer) para verificacion manual.
+             * - youtube_id, lado y relacion para trazabilidad.
              */
+            $metadataSample = [
+                'origen' => 'extraccion',
+                'lado_extraccion' => $lado,
+                'relacion_id' => $relacionId,
+            ];
+
             $youtubeId = $item[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
             if ($youtubeId) {
-                try {
-                    SamplesRepository::agregarMetadata($sampleId, [
-                        'youtube_id' => $youtubeId,
-                        'lado_extraccion' => $lado,
-                        'relacion_id' => $relacionId,
-                    ]);
-                } catch (\Throwable $e) {
-                    KamplesLogger::warning('[PUB-EXTRACCION] No se pudo guardar youtube_id en metadata', [
-                        'sampleId' => $sampleId, 'error' => $e->getMessage(),
-                    ]);
+                $metadataSample['youtube_id'] = $youtubeId;
+            }
+
+            /* Preservar metadata de fuente de descarga (SC permalink, titulo match, metodo) */
+            foreach (['descarga_metodo', 'descarga_fuente_url', 'descarga_fuente_titulo', 'descarga_fuente_artista'] as $clave) {
+                if (!empty($meta[$clave])) {
+                    $metadataSample[$clave] = $meta[$clave];
                 }
+            }
+
+            try {
+                SamplesRepository::agregarMetadata($sampleId, $metadataSample);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('[PUB-EXTRACCION] No se pudo guardar metadata de extraccion', [
+                    'sampleId' => $sampleId, 'error' => $e->getMessage(),
+                ]);
             }
 
             /* Vincular sample a la relacion (sample_fuente_id o sample_destino_id) */

@@ -167,14 +167,21 @@ class ColaExtraccionSamplesRepository extends BaseRepository
     }
 
     /**
-     * Desvincula sample_id de las entradas de cola que lo referencian.
+     * Desvincula sample_id y resetea a pendiente para re-extraccion.
+     *
      * Debe llamarse ANTES de eliminar el sample para evitar FK violation.
+     * Resetea estado/intentos/metadata para que el pipeline re-descargue automaticamente.
      */
     public static function desvincularSampleId(int $sampleId): void
     {
         static::ejecutar(
             "UPDATE " . ColaExtraccionSamplesCols::TABLA
-            . " SET " . ColaExtraccionSamplesCols::SAMPLE_ID . " = NULL"
+            . " SET " . ColaExtraccionSamplesCols::SAMPLE_ID . " = NULL, "
+            . ColaExtraccionSamplesCols::ESTADO . " = '" . ColaExtraccionSamplesEnums::ESTADO_PENDIENTE . "', "
+            . ColaExtraccionSamplesCols::INTENTOS . " = 0, "
+            . ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO . " = NULL, "
+            . ColaExtraccionSamplesCols::METADATA_EXTRACCION . " = NULL, "
+            . ColaExtraccionSamplesCols::ERROR_MENSAJE . " = NULL"
             . " WHERE " . ColaExtraccionSamplesCols::SAMPLE_ID . " = :sid",
             ['sid' => $sampleId]
         );

@@ -8,10 +8,17 @@ Flujo unificado (dos fases):
 Python solo marca la cola como 'extraido' con la ruta del archivo.
 PHP (DevController::publicarExtracciones) se encarga de la publicacion real.
 
-Ejecutar: python -m extractor.pipeline --limit 20
+Ejecutar:
+  python -m extractor.pipeline --limit 20
+  python -m extractor.pipeline --continuo --limite-diario 2000 --intervalo 60
+
+Modo continuo: procesa lotes, auto-encola relaciones sin samples cuando la cola
+esta vacia, reintenta despues de 30 minutos, y se detiene si SoundCloud devuelve
+error de autenticacion (ban o token vencido).
 """
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -20,10 +27,11 @@ import time
 import urllib.request
 
 from kamples_scraper.utils.db import get_connection
-from extractor.audio_download import descargar_audio, limpiar_audio
+from extractor.audio_download import descargar_audio, limpiar_audio, SoundCloudAuthError
 from extractor.bpm_analyzer import analizar_bpm
 from extractor.sample_cutter import calcular_recorte, recortar_audio
 from extractor.kamples_inserter import registrar_extraccion
+from extractor.rate_limiter import RateLimiter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,20 +126,21 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         # 1. Descargar audio (SoundCloud prioritario, fallback YouTube/Deezer/Spotify)
         actualizar_estado_cola(cola_id, "descargando")
         t0 = time.monotonic()
-        wav_path = descargar_audio(
+        resultado_descarga = descargar_audio(
             youtube_id, output_dir,
             spotify_id=spotify_id,
             artista=item.get("fuente_artista"),
             titulo=item.get("fuente_titulo"),
             timing_seg=timing,
         )
-        if not wav_path:
-            actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (YT + Spotify)")
+        if not resultado_descarga:
+            actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (todas las fuentes)")
             return False
+        wav_path = resultado_descarga.ruta
         size_mb = os.path.getsize(wav_path) / (1024 * 1024) if os.path.exists(wav_path) else 0
         logger.info(
-            "[cola=%d] Paso 1/5 Descarga: %.1fs, archivo=%s (%.1f MB)",
-            cola_id, time.monotonic() - t0, wav_path, size_mb,
+            "[cola=%d] Paso 1/5 Descarga (%s): %.1fs, archivo=%s (%.1f MB)",
+            cola_id, resultado_descarga.metodo, time.monotonic() - t0, wav_path, size_mb,
         )
 
         # 2. Analizar BPM
@@ -182,6 +191,10 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             "votos_total": item.get("votos_total", 0),
             "cancion_fuente_id": item.get("cancion_fuente_id"),
             "cancion_destino_id": item.get("cancion_destino_id"),
+            "descarga_metodo": resultado_descarga.metodo,
+            "descarga_fuente_url": resultado_descarga.fuente_url,
+            "descarga_fuente_titulo": resultado_descarga.fuente_titulo,
+            "descarga_fuente_artista": resultado_descarga.fuente_artista,
         }
 
         t0 = time.monotonic()
@@ -253,37 +266,193 @@ def notificar_publicacion(exitosos: int) -> None:
         logger.warning("No se pudo llamar al endpoint de publicacion: %s", e)
 
 
+def _parsear_timings(raw) -> list:
+    """Parsear campo timings (puede ser string JSON, lista, o None)."""
+    if isinstance(raw, list):
+        return raw
+    if isinstance(raw, str) and raw:
+        try:
+            parsed = json.loads(raw)
+            return parsed if isinstance(parsed, list) else []
+        except (json.JSONDecodeError, ValueError):
+            return []
+    return []
+
+
+def auto_encolar_pendientes(limit: int = 50) -> int:
+    """
+    Busca relaciones sin samples vinculados y las encola automaticamente.
+
+    Consulta relaciones_sample donde sample_fuente_id o sample_destino_id es NULL,
+    y no existe entrada activa en cola_extraccion_samples para ese lado.
+    Crea entradas con ON CONFLICT DO NOTHING para dedup atomica.
+
+    Retorna el numero de items encolados.
+    """
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT rs.id, "
+                "       c_fuente.youtube_id AS fuente_youtube_id, "
+                "       c_dest.youtube_id AS destino_youtube_id, "
+                "       c_fuente.spotify_id AS fuente_spotify_id, "
+                "       c_dest.spotify_id AS destino_spotify_id, "
+                "       rs.timings_fuente, rs.timings_destino, "
+                "       rs.sample_fuente_id, rs.sample_destino_id "
+                "FROM relaciones_sample rs "
+                "JOIN canciones c_fuente ON rs.cancion_fuente_id = c_fuente.id "
+                "JOIN canciones c_dest ON rs.cancion_destino_id = c_dest.id "
+                "WHERE rs.sample_fuente_id IS NULL OR rs.sample_destino_id IS NULL "
+                "ORDER BY rs.votos_total DESC NULLS LAST "
+                "LIMIT %s",
+                (limit,),
+            )
+            columnas = [desc[0] for desc in cur.description]
+            relaciones = [dict(zip(columnas, row)) for row in cur.fetchall()]
+
+            if not relaciones:
+                return 0
+
+            encolados = 0
+            for rel in relaciones:
+                # Lado fuente
+                if (
+                    rel["sample_fuente_id"] is None
+                    and (rel.get("fuente_youtube_id") or rel.get("fuente_spotify_id"))
+                ):
+                    timings = _parsear_timings(rel.get("timings_fuente"))
+                    timing = int(timings[0]) if timings else 0
+                    cur.execute(
+                        "INSERT INTO cola_extraccion_samples "
+                        "(relacion_id, youtube_id, spotify_id, timing_inicio_seg, lado) "
+                        "VALUES (%s, %s, %s, %s, 'fuente') "
+                        "ON CONFLICT (relacion_id, lado) DO NOTHING",
+                        (rel["id"], rel.get("fuente_youtube_id"), rel.get("fuente_spotify_id"), timing),
+                    )
+                    encolados += cur.rowcount
+
+                # Lado destino
+                if (
+                    rel["sample_destino_id"] is None
+                    and (rel.get("destino_youtube_id") or rel.get("destino_spotify_id"))
+                ):
+                    timings = _parsear_timings(rel.get("timings_destino"))
+                    timing = int(timings[0]) if timings else 0
+                    cur.execute(
+                        "INSERT INTO cola_extraccion_samples "
+                        "(relacion_id, youtube_id, spotify_id, timing_inicio_seg, lado) "
+                        "VALUES (%s, %s, %s, %s, 'destino') "
+                        "ON CONFLICT (relacion_id, lado) DO NOTHING",
+                        (rel["id"], rel.get("destino_youtube_id"), rel.get("destino_spotify_id"), timing),
+                    )
+                    encolados += cur.rowcount
+
+            conn.commit()
+            return encolados
+
+    except Exception:
+        conn.rollback()
+        logger.exception("Error auto-encolando relaciones sin samples")
+        return 0
+    finally:
+        conn.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pipeline de extraccion de audio Kamples")
-    parser.add_argument("--limit", type=int, default=10, help="Maximo de items a procesar")
+    parser.add_argument("--limit", type=int, default=10, help="Maximo de items a procesar por lote")
     parser.add_argument("--output-dir", type=str, default=None, help="Directorio de salida")
+    parser.add_argument(
+        "--continuo", action="store_true",
+        help="Modo continuo: auto-encola relaciones, reintenta cuando la cola esta vacia",
+    )
+    parser.add_argument(
+        "--intervalo", type=float, default=60.0,
+        help="Segundos minimos entre acciones, medido de inicio a inicio (default: 60)",
+    )
+    parser.add_argument(
+        "--limite-diario", type=int, default=2000,
+        help="Maximo de operaciones por dia (default: 2000)",
+    )
+    parser.add_argument(
+        "--espera-vacio", type=int, default=1800,
+        help="Segundos de espera cuando la cola esta vacia (default: 1800 = 30 min)",
+    )
     args = parser.parse_args()
 
     output_dir = args.output_dir or os.getenv("AUDIO_TMP_DIR", tempfile.gettempdir())
     os.makedirs(output_dir, exist_ok=True)
 
-    pendientes = obtener_pendientes(args.limit)
-    if not pendientes:
-        logger.info("No hay elementos pendientes en la cola de extraccion")
-        return
-
-    logger.info("Procesando %d elementos de la cola", len(pendientes))
-
-    exitosos = 0
-    fallidos = 0
-
-    for item in pendientes:
-        if procesar_elemento(item, output_dir):
-            exitosos += 1
-        else:
-            fallidos += 1
-
+    limiter = RateLimiter(
+        intervalo_seg=args.intervalo,
+        limite_diario=args.limite_diario,
+    )
     logger.info(
-        "Pipeline completado: %d exitosos, %d fallidos de %d total",
-        exitosos, fallidos, len(pendientes),
+        "Pipeline iniciado — modo=%s, intervalo=%.0fs, limite_diario=%d, restantes_hoy=%d",
+        "continuo" if args.continuo else "lote",
+        args.intervalo, args.limite_diario, limiter.restantes_hoy,
     )
 
-    notificar_publicacion(exitosos)
+    while True:
+        pendientes = obtener_pendientes(args.limit)
+
+        if not pendientes:
+            # Auto-enqueue: buscar relaciones sin samples y crear entradas en cola
+            encolados = auto_encolar_pendientes(limit=args.limit)
+            if encolados > 0:
+                logger.info("Auto-encolados %d items desde relaciones sin samples", encolados)
+                pendientes = obtener_pendientes(args.limit)
+
+        if not pendientes:
+            if not args.continuo:
+                logger.info("No hay elementos pendientes en la cola de extraccion")
+                break
+            logger.info(
+                "Cola vacia. Reintentando en %d minutos...",
+                args.espera_vacio // 60,
+            )
+            time.sleep(args.espera_vacio)
+            continue
+
+        logger.info("Procesando %d elementos de la cola", len(pendientes))
+
+        exitosos = 0
+        fallidos = 0
+
+        try:
+            for item in pendientes:
+                if not limiter.esperar():
+                    logger.warning(
+                        "Limite diario alcanzado (%d/%d). Deteniendo pipeline.",
+                        limiter.operaciones_hoy, limiter.limite_diario,
+                    )
+                    break
+
+                if procesar_elemento(item, output_dir):
+                    exitosos += 1
+                else:
+                    fallidos += 1
+
+        except SoundCloudAuthError as e:
+            logger.critical(
+                "PIPELINE DETENIDO: SoundCloud error de autenticacion. "
+                "Probable ban de cuenta o token vencido. "
+                "Verificar SOUNDCLOUD_OAUTH_TOKEN en .env y estado de la cuenta SC. "
+                "Error: %s", e,
+            )
+            notificar_publicacion(exitosos)
+            return
+
+        logger.info(
+            "Lote completado: %d exitosos, %d fallidos de %d total",
+            exitosos, fallidos, len(pendientes),
+        )
+
+        notificar_publicacion(exitosos)
+
+        if not args.continuo:
+            break
 
 
 if __name__ == "__main__":

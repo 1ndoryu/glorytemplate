@@ -55,6 +55,10 @@ def registrar_extraccion(
         "duracion_compas": recorte.duracion_compas,
         "tamano_bytes": os.path.getsize(audio_path),
         "formato": "mp3" if audio_path.lower().endswith(".mp3") else "wav",
+        "descarga_metodo": metadata_cancion.get("descarga_metodo"),
+        "descarga_fuente_url": metadata_cancion.get("descarga_fuente_url"),
+        "descarga_fuente_titulo": metadata_cancion.get("descarga_fuente_titulo"),
+        "descarga_fuente_artista": metadata_cancion.get("descarga_fuente_artista"),
     }
 
     conn = get_connection()

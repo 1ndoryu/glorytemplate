@@ -32,6 +32,7 @@ Proxy DataImpulse:
 Spotify: spotdl como fallback final.
 """
 
+import dataclasses
 import json
 import logging
 import os
@@ -46,7 +47,29 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from extractor.groq_validator import validar_match as _groq_validar, habilitado as _groq_habilitado
+
 logger = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass
+class ResultadoDescarga:
+    """Resultado de una descarga con metadata de la fuente."""
+    ruta: str
+    metodo: str  # soundcloud, youtube_local, deezer, youtube_search, spotify, spotify_search
+    fuente_url: str | None = None
+    fuente_titulo: str | None = None
+    fuente_artista: str | None = None
+
+
+class SoundCloudAuthError(Exception):
+    """SoundCloud devolvio error de autenticacion (ban o token vencido).
+
+    Cuando se lanza esta excepcion, el pipeline debe detenerse inmediatamente
+    para evitar saturar SoundCloud con requests fallidos y permitir intervencion
+    humana (renovar token, verificar estado de la cuenta).
+    """
+    pass
 
 # Patron de validacion para Spotify IDs (alfanumerico, 10-30 chars)
 _SPOTIFY_ID_RE = re.compile(r"^[A-Za-z0-9]{10,30}$")
@@ -133,7 +156,7 @@ def descargar_audio(
     artista: str | None = None,
     titulo: str | None = None,
     timing_seg: int = 0,
-) -> str | None:
+) -> ResultadoDescarga | None:
     """
     Descargar audio con fallback multi-fuente.
 
@@ -155,7 +178,11 @@ def descargar_audio(
             Deezer preview es viable (solo cubre primeros 30s de la cancion).
 
     Returns:
-        Ruta al archivo MP3 temporal, o None si falla.
+        ResultadoDescarga con ruta al archivo y metadata de fuente, o None si falla.
+
+    Raises:
+        SoundCloudAuthError: Si SoundCloud devuelve 401/403 (ban o token vencido).
+            El pipeline debe detenerse para intervencion humana.
     """
     if output_dir is None:
         output_dir = os.getenv("AUDIO_TMP_DIR", tempfile.gettempdir())
@@ -176,9 +203,13 @@ def descargar_audio(
 
     # 2. YouTube local (gratis, puede estar IP flaggeada)
     if youtube_id and len(youtube_id) <= 20:
-        resultado = _descargar_youtube(youtube_id, output_dir)
-        if resultado:
-            return resultado
+        ruta = _descargar_youtube(youtube_id, output_dir)
+        if ruta:
+            return ResultadoDescarga(
+                ruta=ruta,
+                metodo="youtube_local",
+                fuente_url=f"https://www.youtube.com/watch?v={youtube_id}",
+            )
         logger.warning(
             "YouTube local fallo para %s, continuando con fuentes alternativas",
             youtube_id,
@@ -186,28 +217,50 @@ def descargar_audio(
 
     # 3. Deezer preview (30s, gratis — solo si timing <= 30s)
     if deezer_viable:
-        resultado = _descargar_deezer_preview(artista, titulo, output_dir)
-        if resultado:
-            return resultado
+        ruta = _descargar_deezer_preview(artista, titulo, output_dir)
+        if ruta:
+            return ResultadoDescarga(
+                ruta=ruta,
+                metodo="deezer",
+                fuente_url=None,
+                fuente_titulo=titulo,
+                fuente_artista=artista,
+            )
 
     # 4. YouTube search (busca subidas alternativas sin restricciones DRM)
     if artista and titulo:
-        resultado = _descargar_youtube_search(artista, titulo, output_dir)
-        if resultado:
-            return resultado
+        ruta = _descargar_youtube_search(artista, titulo, output_dir)
+        if ruta:
+            return ResultadoDescarga(
+                ruta=ruta,
+                metodo="youtube_search",
+                fuente_url=None,
+                fuente_titulo=titulo,
+                fuente_artista=artista,
+            )
 
     # 5. Spotify por ID
     if spotify_id and _SPOTIFY_ID_RE.match(spotify_id):
-        resultado = _descargar_spotify(spotify_id, output_dir)
-        if resultado:
-            return resultado
+        ruta = _descargar_spotify(spotify_id, output_dir)
+        if ruta:
+            return ResultadoDescarga(
+                ruta=ruta,
+                metodo="spotify",
+                fuente_url=f"https://open.spotify.com/track/{spotify_id}",
+            )
         logger.warning("Spotify por ID fallo para %s", spotify_id)
 
     # 6. Spotify por nombre
     if artista and titulo:
-        resultado = _descargar_spotify_por_nombre(artista, titulo, output_dir)
-        if resultado:
-            return resultado
+        ruta = _descargar_spotify_por_nombre(artista, titulo, output_dir)
+        if ruta:
+            return ResultadoDescarga(
+                ruta=ruta,
+                metodo="spotify_search",
+                fuente_url=None,
+                fuente_titulo=titulo,
+                fuente_artista=artista,
+            )
 
     logger.error(
         "Sin fuente de audio: youtube_id=%s, spotify_id=%s, artista=%s, timing=%ds",
@@ -358,7 +411,7 @@ def _soundcloud_request_headers() -> dict:
     return headers
 
 
-def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | None:
+def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> ResultadoDescarga | None:
     """
     Buscar y descargar track completo desde SoundCloud API v2 (gratis, sin auth).
 
@@ -366,10 +419,14 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
     1. Obtener client_id dinamico (cacheado por sesion)
     2. Buscar track por artista + titulo
     3. Filtrar snippets (<60s) y seleccionar mejor match
-    4. Elegir transcoding: progressive MP3 > HLS MP3 > HLS AAC
-    5. Descargar: progressive (URL directa) o HLS (m3u8 + segmentos)
+    4. Validacion IA con Groq (si configurado)
+    5. Elegir transcoding: progressive MP3 > HLS MP3 > HLS AAC
+    6. Descargar: progressive (URL directa) o HLS (m3u8 + segmentos)
 
-    Retorna ruta al MP3 descargado, o None si falla.
+    Retorna ResultadoDescarga con ruta al MP3 y metadata SC, o None si falla.
+
+    Raises:
+        SoundCloudAuthError: Si SC devuelve HTTP 401/403 (ban o token vencido).
     """
     client_id = _obtener_soundcloud_client_id()
     if not client_id:
@@ -380,7 +437,7 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
 
     if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
         logger.debug("Audio SoundCloud ya en cache: %s", output_path)
-        return output_path
+        return ResultadoDescarga(ruta=output_path, metodo="soundcloud")
 
     # Buscar track — con GO (OAuth token) se amplian resultados y se incluyen tracks GO
     query = f"{artista} {titulo}"
@@ -395,6 +452,14 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
         req = urllib.request.Request(search_url, headers=sc_headers)
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            raise SoundCloudAuthError(
+                f"SoundCloud search HTTP {e.code}: probable ban de cuenta o token vencido. "
+                f"Verificar SOUNDCLOUD_OAUTH_TOKEN en .env."
+            )
+        logger.warning("SoundCloud search fallo para '%s': HTTP %d", query, e.code)
+        return None
     except (urllib.error.URLError, json.JSONDecodeError, OSError) as e:
         logger.warning("SoundCloud search fallo para '%s': %s", query, e)
         return None
@@ -450,17 +515,37 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
     # Ordenar por relevancia: preferir tracks cuyo titulo/artista comparte
     # palabras con la busqueda. Evita descargar compilaciones sin relacion.
     tracks_validos.sort(key=lambda t: _score_relevancia_soundcloud(t, artista, titulo), reverse=True)
-    mejor_score = _score_relevancia_soundcloud(tracks_validos[0], artista, titulo)
-    if mejor_score == 0:
-        # Ninguna palabra del query aparece en el resultado — muy probable falso match.
+
+    # Seleccionar mejor track con score + validacion Groq IA (opcional).
+    # Itera candidatos: si el top score pasa Groq, se usa. Si no, intenta el siguiente.
+    groq_activo = _groq_habilitado()
+    track = None
+    for candidato in tracks_validos[:5]:
+        score = _score_relevancia_soundcloud(candidato, artista, titulo)
+        if score == 0:
+            continue
+
+        if groq_activo:
+            sc_title = candidato.get("title", "")
+            sc_artist = candidato.get("user", {}).get("username", "")
+            if not _groq_validar(artista, titulo, sc_artist, sc_title):
+                logger.info(
+                    "Groq rechazo: '%s - %s' no es '%s - %s' (score=%d)",
+                    sc_artist, sc_title, artista, titulo, score,
+                )
+                continue
+
+        track = candidato
+        break
+
+    if not track:
         titulos_encontrados = [t.get("title", "?") for t in tracks_validos[:3]]
         logger.warning(
-            "SoundCloud: resultados sin relevancia para '%s' -> %s. Abortando para evitar descarga incorrecta.",
+            "SoundCloud: ningun resultado paso validacion para '%s' -> %s. "
+            "Abortando para evitar descarga incorrecta.",
             query, titulos_encontrados,
         )
         return None
-
-    track = tracks_validos[0]
 
     transcodings = track.get("media", {}).get("transcodings", [])
     tc = _elegir_transcoding_soundcloud(transcodings)
@@ -485,6 +570,13 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
         if not stream_url:
             logger.warning("SoundCloud: URL de stream vacia para '%s'", query)
             return None
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            raise SoundCloudAuthError(
+                f"SoundCloud stream HTTP {e.code}: probable ban de cuenta o token vencido."
+            )
+        logger.warning("SoundCloud: error resolviendo stream URL para '%s': HTTP %d", query, e.code)
+        return None
     except (urllib.error.URLError, json.JSONDecodeError, OSError) as e:
         logger.warning("SoundCloud: error resolviendo stream URL para '%s': %s", query, e)
         return None
@@ -524,11 +616,18 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
 
     sc_title = track.get("title", "?")
     sc_user = track.get("user", {}).get("username", "?")
+    sc_permalink = track.get("permalink_url", "")
     logger.info(
         "Audio descargado (SoundCloud/%s): '%s' -> %s - %s (%.0f KB)",
         protocol, query, sc_user, sc_title, size_kb,
     )
-    return output_path
+    return ResultadoDescarga(
+        ruta=output_path,
+        metodo="soundcloud",
+        fuente_url=sc_permalink,
+        fuente_titulo=sc_title,
+        fuente_artista=sc_user,
+    )
 
 
 def _elegir_transcoding_soundcloud(transcodings: list[dict]) -> dict | None:
