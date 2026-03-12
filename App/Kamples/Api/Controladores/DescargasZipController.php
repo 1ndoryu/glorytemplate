@@ -11,6 +11,7 @@
 
 namespace App\Kamples\Api\Controladores;
 
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\StripeService;
 use App\Kamples\Services\PlanificadorAlgoritmo;
@@ -38,6 +39,10 @@ class DescargasZipController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ71: Verificar ban + suspensión antes de permitir descarga ZIP */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $coleccionId = (int) $request->get_param('id');
 

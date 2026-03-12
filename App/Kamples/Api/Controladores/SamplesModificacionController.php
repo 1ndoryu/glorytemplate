@@ -84,6 +84,10 @@ class SamplesModificacionController
             return UsuarioHelper::respuestaNoEncontrado();
         }
 
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($usuarioId);
+        if ($cuentaResp) return $cuentaResp;
+
         $sample = SamplesRepository::buscarParaModificacion($sampleId);
 
         if (!$sample) {
@@ -241,6 +245,10 @@ class SamplesModificacionController
                 return UsuarioHelper::respuestaNoEncontrado();
             }
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($usuarioId);
+            if ($cuentaResp) return $cuentaResp;
+
             $sampleId = (int) $request->get_param('id');
             $esAdmin = UsuarioHelper::esAdmin();
 
@@ -333,6 +341,10 @@ class SamplesModificacionController
         if (!$usuarioId) {
             return UsuarioHelper::respuestaNoEncontrado();
         }
+
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($usuarioId);
+        if ($cuentaResp) return $cuentaResp;
 
         $sample = SamplesRepository::buscarParaEliminar($sampleId);
 

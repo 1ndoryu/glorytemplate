@@ -360,9 +360,12 @@ class AdminModeracionController
                 return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
             }
 
-            /* Prevenir auto-suspensión */
+            /* Prevenir auto-suspensión (QQ71: fail-safe si no se puede identificar al admin) */
             $currentPgId = UsuarioHelper::obtenerIdPg();
-            if ($currentPgId && $id === $currentPgId) {
+            if (!$currentPgId) {
+                return new \WP_REST_Response(['code' => 'sin_identificacion', 'message' => 'No se pudo identificar al administrador'], 401);
+            }
+            if ($id === $currentPgId) {
                 return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes suspenderte a ti mismo'], 400);
             }
 
@@ -418,8 +421,12 @@ class AdminModeracionController
                 return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
             }
 
+            /* QQ71: Fail-safe si no se puede identificar al admin */
             $currentPgId = UsuarioHelper::obtenerIdPg();
-            if ($currentPgId && $id === $currentPgId) {
+            if (!$currentPgId) {
+                return new \WP_REST_Response(['code' => 'sin_identificacion', 'message' => 'No se pudo identificar al administrador'], 401);
+            }
+            if ($id === $currentPgId) {
                 return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes eliminar tu propia cuenta'], 400);
             }
 

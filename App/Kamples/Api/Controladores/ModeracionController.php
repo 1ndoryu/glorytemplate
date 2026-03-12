@@ -81,6 +81,10 @@ class ModeracionController
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
+
             $targetId = (int) $request->get_param('userId');
             if ($targetId === $userId) {
                 return new \WP_REST_Response(['code' => 'auto_bloqueo', 'message' => 'No puedes bloquearte a ti mismo'], 400);
@@ -114,6 +118,10 @@ class ModeracionController
         try {
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             $targetId = (int) $request->get_param('userId');
             BloqueosRepository::desbloquear($userId, $targetId);
@@ -150,6 +158,10 @@ class ModeracionController
         try {
             $reportadorId = UsuarioHelper::obtenerIdPg();
             if (!$reportadorId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($reportadorId);
+            if ($cuentaResp) return $cuentaResp;
 
             /* Rate limit: 5 reportes de usuario cada 24h */
             $limitResp = RateLimiter::verificarUsuario($reportadorId, 'reportar_usuario', 5, 86400);
@@ -223,6 +235,10 @@ class ModeracionController
         try {
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             $body     = $request->get_json_params();
             $tipo     = \sanitize_text_field($body['tipo'] ?? '');

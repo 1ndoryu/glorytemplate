@@ -123,8 +123,27 @@ class AuthMiddleware
     }
 
     /**
+     * QQ71: Verificación unificada de cuenta activa — ban + suspensión.
+     * Reemplaza las llamadas individuales a verificarBanActivo() y verificarSuspensionActiva().
+     * Todos los endpoints de escritura DEBEN llamar este método al inicio.
+     * Retorna null si la cuenta está en buen estado, o WP_REST_Response 403 si no.
+     */
+    public static function verificarCuentaActiva(int $pgUserId): ?\WP_REST_Response
+    {
+        /* Primero: ban temporal (más prioritario, tiene fecha de fin específica) */
+        $banResp = self::verificarBanActivo($pgUserId);
+        if ($banResp) return $banResp;
+
+        /* Segundo: suspensión de cuenta (auto-suspensión por reportes, admin, eliminación) */
+        $suspResp = self::verificarSuspensionActiva($pgUserId);
+        if ($suspResp) return $suspResp;
+
+        return null;
+    }
+
+    /**
      * C132: Verifica si el usuario PG está baneado y retorna WP_REST_Response 403 si lo está.
-     * Retorna null si no hay ban activo. Los controllers llaman esto al inicio de acciones de escritura.
+     * Retorna null si no hay ban activo. Usar verificarCuentaActiva() en su lugar para check completo.
      */
     public static function verificarBanActivo(int $pgUserId): ?\WP_REST_Response
     {
@@ -145,6 +164,7 @@ class AuthMiddleware
      * QQ65: Verifica si el usuario PG está suspendido o en proceso de eliminación.
      * Retorna WP_REST_Response 403 con datos de suspensión, o null si la cuenta está activa.
      * El frontend usa el code 'usuario_suspendido' para mostrar el overlay de suspensión.
+     * Usar verificarCuentaActiva() en su lugar para check completo.
      */
     public static function verificarSuspensionActiva(int $pgUserId): ?\WP_REST_Response
     {

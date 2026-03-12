@@ -134,6 +134,10 @@ class ComentariosController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
+
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
         $contenido = sanitize_textarea_field($body['contenido'] ?? '');

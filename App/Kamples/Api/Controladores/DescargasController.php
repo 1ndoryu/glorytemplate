@@ -84,6 +84,10 @@ class DescargasController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* QQ71: Verificar ban + suspensión antes de permitir descarga */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
+
         $sampleId = (int) $request->get_param('id');
 
         /* Obtener plan del usuario */

@@ -55,9 +55,9 @@ class ComentariosEscrituraController
             return new \WP_REST_Response(['code' => 'tipo_invalido'], 400);
         }
 
-        /* S26 fix: verificar ban ANTES de cualquier otro procesamiento */
-        $banResp = AuthMiddleware::verificarBanActivo($userId);
-        if ($banResp) return $banResp;
+        /* QQ71: Verificar ban + suspensión ANTES de cualquier otro procesamiento */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         /* C130: Soporta JSON (texto) o FormData (multimedia) */
         $contentType = $request->get_content_type();
@@ -210,6 +210,10 @@ class ComentariosEscrituraController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $id = (int) $request->get_param('id');
 

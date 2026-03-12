@@ -15,6 +15,7 @@
 
 namespace App\Kamples\Api\Controladores;
 
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Services\ServicioNotificaciones;
@@ -33,6 +34,10 @@ class ComentariosInteraccionController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $id = (int) $request->get_param('id');
 
@@ -63,6 +68,10 @@ class ComentariosInteraccionController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $id = (int) $request->get_param('id');
 

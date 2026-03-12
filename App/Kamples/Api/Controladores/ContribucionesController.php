@@ -224,11 +224,9 @@ class ContribucionesController
             $limitResp = RateLimiter::verificarUsuario($kamId, 'crear_contribucion', 20, 3600);
             if ($limitResp) return $limitResp;
 
-            /* QQ10: Verificar ban activo */
-            $ban = ServicioBan::verificarBan($kamId);
-            if ($ban) {
-                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
-            }
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($kamId);
+            if ($cuentaResp) return $cuentaResp;
 
             $destinoId = $request->get_param('cancion_destino_id');
             $fuenteId  = $request->get_param('cancion_fuente_id');
@@ -434,6 +432,10 @@ class ContribucionesController
             $limitResp = RateLimiter::verificarUsuario($kamId, 'editar_contribucion', 20, 3600);
             if ($limitResp) return $limitResp;
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($kamId);
+            if ($cuentaResp) return $cuentaResp;
+
             $id = (int) $request->get_param('id');
             $body = $request->get_json_params();
 
@@ -495,6 +497,10 @@ class ContribucionesController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado.'], 401);
             }
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($kamId);
+            if ($cuentaResp) return $cuentaResp;
+
             $id = (int) $request->get_param('id');
 
             $ok = ContribucionesPendientesRepository::eliminarPendiente($id, $kamId);
@@ -525,11 +531,9 @@ class ContribucionesController
             $limitResp = RateLimiter::verificarUsuario($kamId, 'proponer_edicion', 10, 3600);
             if ($limitResp) return $limitResp;
 
-            /* QQ10: Verificar ban activo */
-            $ban = ServicioBan::verificarBan($kamId);
-            if ($ban) {
-                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
-            }
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($kamId);
+            if ($cuentaResp) return $cuentaResp;
 
             $relacionId = (int) $request->get_param('relacion_id');
             $cambiosRaw = $request->get_param('cambios');
@@ -588,11 +592,9 @@ class ContribucionesController
             $limitResp = RateLimiter::verificarUsuario($kamId, 'proponer_eliminacion', 10, 3600);
             if ($limitResp) return $limitResp;
 
-            /* QQ10: Verificar ban activo */
-            $ban = ServicioBan::verificarBan($kamId);
-            if ($ban) {
-                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
-            }
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($kamId);
+            if ($cuentaResp) return $cuentaResp;
 
             $relacionId = (int) $request->get_param('relacion_id');
             $razon      = \trim((string) $request->get_param('razon'));

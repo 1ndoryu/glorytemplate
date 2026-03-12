@@ -110,6 +110,10 @@ class SocialController
             $limitResp = RateLimiter::verificarUsuario($seguidorId, 'follow', 20, 60);
             if ($limitResp) return $limitResp;
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($seguidorId);
+            if ($cuentaResp) return $cuentaResp;
+
             $targetId = (int) $request->get_param('userId');
 
             if ($seguidorId === $targetId) {
@@ -143,6 +147,10 @@ class SocialController
             $seguidorId = UsuarioHelper::obtenerIdPg();
             if (!$seguidorId) return UsuarioHelper::respuestaNoEncontrado();
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($seguidorId);
+            if ($cuentaResp) return $cuentaResp;
+
             $targetId = (int) $request->get_param('userId');
 
             FollowsRepository::dejarDeSeguir($seguidorId, $targetId);
@@ -164,6 +172,10 @@ class SocialController
             /* C164: Rate limit — 30 likes por minuto */
             $limitResp = RateLimiter::verificarUsuario($userId, 'like', 30, 60);
             if ($limitResp) return $limitResp;
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             $tipo     = sanitize_text_field($request->get_param('tipo'));
             $targetId = (int) $request->get_param('target_id');
@@ -253,6 +265,10 @@ class SocialController
         try {
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             $tipo     = sanitize_text_field($request->get_param('tipo'));
             $targetId = (int) $request->get_param('target_id');

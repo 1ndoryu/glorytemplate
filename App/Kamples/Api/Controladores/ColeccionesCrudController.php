@@ -18,6 +18,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\SyncChangelogRepository;
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
@@ -49,11 +50,9 @@ class ColeccionesCrudController
         $limitResp = RateLimiter::verificarUsuario($userId, 'crear_coleccion', 500, 3600);
         if ($limitResp) return $limitResp;
 
-        /* QQ10: Verificar ban activo */
-        $ban = ServicioBan::verificarBan($userId);
-        if ($ban) {
-            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Cuenta temporalmente suspendida'], 403);
-        }
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $body = $request->get_json_params();
         $nombre = sanitize_text_field($body['nombre'] ?? '');
@@ -112,11 +111,9 @@ class ColeccionesCrudController
         $limitResp = RateLimiter::verificarUsuario($userId, 'editar_coleccion', 100, 3600);
         if ($limitResp) return $limitResp;
 
-        /* QQ10: Verificar ban activo */
-        $ban = ServicioBan::verificarBan($userId);
-        if ($ban) {
-            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Cuenta temporalmente suspendida'], 403);
-        }
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
@@ -197,6 +194,10 @@ class ColeccionesCrudController
         /* QQ10: Rate limit eliminaciones — 50 por hora */
         $limitResp = RateLimiter::verificarUsuario($userId, 'eliminar_coleccion', 50, 3600);
         if ($limitResp) return $limitResp;
+
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
 
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();

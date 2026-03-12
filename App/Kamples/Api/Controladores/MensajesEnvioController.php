@@ -61,9 +61,9 @@ class MensajesEnvioController
             $limitResp = RateLimiter::verificarUsuario($userId, 'mensaje', 30, 60);
             if ($limitResp) return $limitResp;
 
-            /* Verificar si el usuario está baneado */
-            $banResp = AuthMiddleware::verificarBanActivo($userId);
-            if ($banResp) return $banResp;
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             /* C164: Limite de longitud para mensajes de texto */
             if ($tipo === MensajesEnums::TIPO_TEXTO && !empty($contenido)) {

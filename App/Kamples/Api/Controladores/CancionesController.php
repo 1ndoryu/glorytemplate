@@ -647,6 +647,10 @@ class CancionesController
                 return UsuarioHelper::respuestaNoEncontrado();
             }
 
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
+
             $relacionId = (int) $request['id'];
             $sampleId   = (int) $request->get_param('sample_id');
             $lado       = (string) $request->get_param('lado');
@@ -714,6 +718,10 @@ class CancionesController
             if (!$userId) {
                 return UsuarioHelper::respuestaNoEncontrado();
             }
+
+            /* QQ71: Verificar ban + suspensión */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+            if ($cuentaResp) return $cuentaResp;
 
             $relacionId = (int) $request['id'];
             $lado       = (string) $request['lado'];

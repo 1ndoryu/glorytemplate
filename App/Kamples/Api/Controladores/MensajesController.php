@@ -199,7 +199,11 @@ class MensajesController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-        /* C164: Rate limiting â€” 10 conversaciones nuevas por hora */
+        /* QQ71: Verificar ban + suspensión */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) return $cuentaResp;
+
+        /* C164: Rate limiting — 10 conversaciones nuevas por hora */
         $limitResp = RateLimiter::verificarUsuario($userId, 'nueva_conversacion', 10, 3600);
         if ($limitResp) return $limitResp;
 

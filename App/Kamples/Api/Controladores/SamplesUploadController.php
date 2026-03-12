@@ -84,6 +84,10 @@ class SamplesUploadController
         /* C164: Rate limit — 5000 uploads por hora (Alto para permitir Desktop Sync de librerías enteras) */
         $pgId = UsuarioHelper::obtenerIdPg();
         if ($pgId) {
+            /* QQ71: Verificar ban + suspensión antes de permitir upload */
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+            if ($cuentaResp) return $cuentaResp;
+
             $limitResp = RateLimiter::verificarUsuario($pgId, 'subir_sample', 5000, 3600);
             if ($limitResp) return $limitResp;
         }

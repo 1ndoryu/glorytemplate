@@ -239,6 +239,14 @@ class PerfilController
     {
         try {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+        /* QQ71: Verificar ban + suspensión antes de permitir edición */
+        $pgId = UsuarioHelper::obtenerIdPg();
+        if ($pgId) {
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+            if ($cuentaResp) return $cuentaResp;
+        }
+
         $body = $request->get_json_params();
 
         /* C164: Rate limit — 10 actualizaciones de perfil por hora */
@@ -337,6 +345,14 @@ class PerfilController
     {
         try {
         $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+        /* QQ71: Verificar ban + suspensión antes de permitir subida de avatar */
+        $pgId = UsuarioHelper::obtenerIdPg();
+        if ($pgId) {
+            $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+            if ($cuentaResp) return $cuentaResp;
+        }
+
         $files = $request->get_file_params();
 
         if (empty($files['avatar'])) {

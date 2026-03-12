@@ -1,7 +1,9 @@
 <?php
 
 /**
- * PublicacionesController — Feed social (lectura + media). Escritura en PublicacionesEscrituraController.
+ * PublicacionesController — Feed social (lectura + media).
+ * Escritura CRUD en PublicacionesEscrituraController.
+ * Interacciones sociales en PublicacionesInteraccionController.
  * Rutas: GET /publicaciones, GET /publicaciones/{id}, GET .../comentarios, POST .../imagenes.
  */
 
@@ -63,23 +65,23 @@ class PublicacionesController
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/comentarios', [
-            'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'crearComentario'],
+            'methods' => 'POST', 'callback' => [PublicacionesInteraccionController::class, 'crearComentario'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/repost', [
             [
-                'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'repostear'],
+                'methods' => 'POST', 'callback' => [PublicacionesInteraccionController::class, 'repostear'],
                 'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             ],
             [
-                'methods' => 'DELETE', 'callback' => [PublicacionesEscrituraController::class, 'quitarRepost'],
+                'methods' => 'DELETE', 'callback' => [PublicacionesInteraccionController::class, 'quitarRepost'],
                 'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
             ],
         ]);
 
         register_rest_route($namespace, '/publicaciones/(?P<id>\d+)/reportar', [
-            'methods' => 'POST', 'callback' => [PublicacionesEscrituraController::class, 'reportar'],
+            'methods' => 'POST', 'callback' => [PublicacionesInteraccionController::class, 'reportar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
