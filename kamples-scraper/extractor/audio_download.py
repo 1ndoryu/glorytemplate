@@ -288,6 +288,47 @@ def _score_relevancia_soundcloud(track: dict, artista: str, titulo: str) -> int:
     return title_score + artist_score
 
 
+# Terminos en el titulo del track que indican que NO es la cancion original.
+# Se usa coincidencia de palabra completa (word boundary) para evitar falsos positivos
+# (ej: "recovery" no debe matchear "cover", "format" no debe matchear "remix").
+_SOUNDCLOUD_TITULO_EXCLUIDO_RE = re.compile(
+    r"\b("
+    r"remix|remixed|rmx|re-mix"
+    r"|cover|covered|coverversion|cover version"
+    r"|full album|full lp|full ep|complete album|side [ab]"
+    r"|mixtape|mix tape|megamix|mega mix"
+    r"|mashup|mash-up|mash up|bootleg"
+    r"|dj set|djset|live set|live mix|radio mix|radio edit"
+    r"|compilation|compil|best of|greatest hits|collection|recopilacion"
+    r"|medley|megalo|nonstop|non-stop|non stop"
+    r"|tribute|homenaje|karaoke"
+    r"|slowed|reverb|sped up|lofi|lo-fi|nightcore|8d audio"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _titulo_soundcloud_es_valido(track: dict, titulo_buscado: str) -> bool:
+    """
+    Retorna False si el titulo del track contiene terminos que indican
+    que no es la cancion original (remix, cover, full album, etc.).
+
+    Excepcion: si el titulo buscado tambien contiene el termino (ej: busqueda
+    de "Jazzy Jeff Remix"), no se descarta — el usuario quiere ese tipo de track.
+    """
+    track_title = track.get("title", "")
+    match = _SOUNDCLOUD_TITULO_EXCLUIDO_RE.search(track_title)
+    if not match:
+        return True
+
+    # El termino encontrado esta en el titulo buscado originalmente -> es intencional
+    termino = match.group(1).lower()
+    if termino in titulo_buscado.lower():
+        return True
+
+    return False
+
+
 def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | None:
     """
     Buscar y descargar track completo desde SoundCloud API v2 (gratis, sin auth).
@@ -345,6 +386,19 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
             _SOUNDCLOUD_MIN_DURATION_MS // 1000,
             _SOUNDCLOUD_MAX_DURATION_MS // 1000,
         )
+        return None
+
+    # Excluir tracks cuyo titulo delata que no son la cancion original:
+    # remixes, covers, full albums, compilaciones, medleys, karaoke, etc.
+    excluidos = [t for t in tracks_validos if not _titulo_soundcloud_es_valido(t, titulo)]
+    if excluidos:
+        logger.debug(
+            "SoundCloud: descartados %d resultado(s) por titulo no-original para '%s': %s",
+            len(excluidos), query, [t.get("title", "?") for t in excluidos],
+        )
+    tracks_validos = [t for t in tracks_validos if _titulo_soundcloud_es_valido(t, titulo)]
+    if not tracks_validos:
+        logger.debug("SoundCloud: todos los resultados descartados por titulo no-original para '%s'", query)
         return None
 
     # Ordenar por relevancia: preferir tracks cuyo titulo/artista comparte
