@@ -8,11 +8,13 @@
  * 1. Verificar FFmpeg (FFmpegDetector)
  * 2. Duración real (ProcesadorFFmpeg)
  * 3. Análisis técnico: BPM + key (AnalizadorAudio)
+ * 2.5. Hash SHA-256 + verificación duplicados (ANTES de IA para ahorrar tokens)
  * 4. Análisis creativo: tags, emociones (ServicioIA)
  * 5. Waveform peaks + MP3 + preview (ProcesadorFFmpeg)
  * 6. Renombrar + actualizar PostgreSQL
  *
  * A12: Refactorizado — FFmpeg detection en FFmpegDetector, audio ops en ProcesadorFFmpeg.
+ * QQ9: Duplicados se verifican ANTES de IA. Mismo-usuario ya no elimina archivos, queda en supervision.
  *
  * @package Kamples
  */
@@ -92,6 +94,109 @@ class PipelineAudio
             'key' => $analisisTecnico['key'],
             'escala' => $analisisTecnico['escala'],
         ]);
+
+        /*
+         * Paso 2.5: Hash SHA-256 + verificacion de duplicados (ANTES de IA).
+         * Movido aqui para evitar desperdiciar tokens IA en samples duplicados.
+         * Si es duplicado, se registra en duplicados_pendientes y se conservan los archivos
+         * para que admin pueda reproducir ambos audios en la pagina de revision.
+         */
+        $hashArchivo = null;
+        try {
+            $hashArchivo = \hash_file('sha256', $rutaArchivo);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Pipeline: Error calculando hash SHA-256', [
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        if ($hashArchivo) {
+            $actualizaciones['audio_hash'] = $hashArchivo;
+            $duplicados = SamplesRepository::buscarConHash($hashArchivo, $sampleId);
+
+            if (!empty($duplicados)) {
+                $creadorActual = SamplesRepository::buscarParaDeduplicacion($sampleId);
+                $creadorId = $creadorActual ? (int) $creadorActual[SamplesCols::CREADOR_ID] : 0;
+
+                $esMismoUsuario = false;
+                $sampleDuplicadoDe = null;
+
+                foreach ($duplicados as $dup) {
+                    if ((int) $dup[SamplesCols::CREADOR_ID] === $creadorId) {
+                        $esMismoUsuario = true;
+                        $sampleDuplicadoDe = $dup;
+                        break;
+                    }
+                }
+
+                if ($esMismoUsuario && $sampleDuplicadoDe) {
+                    /*
+                     * Duplicado del mismo usuario: NO eliminar archivos.
+                     * Marcar como en_supervision y crear registro en duplicados_pendientes
+                     * para que admin pueda escuchar ambos audios y decidir.
+                     */
+                    $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
+                    $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
+                    PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
+
+                    try {
+                        DuplicadosPendientesRepository::insertarRegistro([
+                            'sample_original_id' => (int) $sampleDuplicadoDe[SamplesCols::ID],
+                            'sample_duplicado_id' => $sampleId,
+                            'tipo' => DuplicadosPendientesEnums::TIPO_MISMO_USUARIO,
+                        ]);
+                    } catch (\Throwable $e) {
+                        KamplesLogger::error('Pipeline: Error creando registro duplicado mismo usuario', [
+                            'sampleId' => $sampleId,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+
+                    KamplesLogger::warning('Pipeline: Duplicado mismo usuario — en supervision (archivos conservados)', [
+                        'sampleNuevo' => $sampleId,
+                        'sampleExistente' => (int) $sampleDuplicadoDe[SamplesCols::ID],
+                        'creadorId' => $creadorId,
+                    ]);
+                    return;
+                }
+
+                /* Duplicado de otro usuario: crear flag de moderacion */
+                $primerDup = $duplicados[0];
+
+                try {
+                    DuplicadosPendientesRepository::insertarRegistro([
+                        'sample_original_id' => (int) $primerDup[SamplesCols::ID],
+                        'sample_duplicado_id' => $sampleId,
+                        'tipo' => DuplicadosPendientesEnums::TIPO_CROSS_USUARIO,
+                    ]);
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('Pipeline: Error creando registro duplicado', [
+                        'sampleId' => $sampleId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
+                $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
+                PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
+
+                KamplesLogger::warning('Pipeline: Duplicado cross-usuario — en supervision', [
+                    'sampleNuevo' => $sampleId,
+                    'sampleOriginal' => (int) $primerDup[SamplesCols::ID],
+                ]);
+
+                try {
+                    DeduplicadorAudio::programarCalculo($sampleId);
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('Pipeline: Error programando hash perceptual', [
+                        'sampleId' => $sampleId, 'error' => $e->getMessage(),
+                    ]);
+                }
+
+                return;
+            }
+        }
 
         /* Paso 3: Análisis creativo — tags, emociones, etc. con IA (Gemini + Groq fallback) */
         $contextoTecnico = [
@@ -321,102 +426,7 @@ class PipelineAudio
             $actualizaciones['ruta_preview'] = $rutaPreview;
         }
 
-        /*
-         * Paso 7.5: Hash SHA-256 sincrono + verificacion de duplicados (D1).
-         * Se calcula ANTES de activar para detectar duplicados y evitar
-         * que dos samples identicos coexistan como estado='activo'.
-         */
-        $hashArchivo = null;
-        try {
-            $hashArchivo = \hash_file('sha256', $rutaArchivo);
-        } catch (\Throwable $e) {
-            KamplesLogger::error('Pipeline: Error calculando hash SHA-256', [
-                'sampleId' => $sampleId,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        if ($hashArchivo) {
-            $actualizaciones['audio_hash'] = $hashArchivo;
-
-            /* Buscar duplicados por hash exacto */
-            $duplicados = SamplesRepository::buscarConHash($hashArchivo, $sampleId);
-
-            if (!empty($duplicados)) {
-                $creadorActual = SamplesRepository::buscarParaDeduplicacion($sampleId);
-                $creadorId = $creadorActual ? (int) $creadorActual[SamplesCols::CREADOR_ID] : 0;
-
-                $esMismoUsuario = false;
-                $sampleDuplicadoDe = null;
-
-                foreach ($duplicados as $dup) {
-                    if ((int) $dup[SamplesCols::CREADOR_ID] === $creadorId) {
-                        $esMismoUsuario = true;
-                        $sampleDuplicadoDe = $dup;
-                        break;
-                    }
-                }
-
-                if ($esMismoUsuario && $sampleDuplicadoDe) {
-                    /*
-                     * Duplicado del mismo usuario: marcar como eliminado.
-                     * El sample original ya existe, no se necesita este nuevo.
-                     */
-                    SamplesRepository::marcarEliminado($sampleId);
-                    PipelineAudioHelpers::limpiarArchivosSample($sampleId, $directorio, $idCorto);
-
-                    KamplesLogger::warning('Pipeline: Duplicado mismo usuario detectado — eliminando nuevo', [
-                        'sampleNuevo' => $sampleId,
-                        'sampleExistente' => (int) $sampleDuplicadoDe[SamplesCols::ID],
-                        'creadorId' => $creadorId,
-                    ]);
-                    return; /* Salir del pipeline: no activar */
-                }
-
-                /*
-                 * Duplicado de otro usuario: crear flag de moderacion.
-                 * El sample se activa como 'en_supervision' para revision admin.
-                 */
-                $primerDup = $duplicados[0];
-
-                try {
-                    DuplicadosPendientesRepository::crear([
-                        'sample_original_id' => (int) $primerDup[SamplesCols::ID],
-                        'sample_duplicado_id' => $sampleId,
-                        'tipo' => DuplicadosPendientesEnums::TIPO_CROSS_USUARIO,
-                    ]);
-                } catch (\Throwable $e) {
-                    KamplesLogger::error('Pipeline: Error creando registro duplicado', [
-                        'sampleId' => $sampleId,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                /* Activar como en_supervision en vez de activo */
-                $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
-                $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
-
-                PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
-
-                KamplesLogger::warning('Pipeline: Duplicado cross-usuario — en supervision', [
-                    'sampleNuevo' => $sampleId,
-                    'sampleOriginal' => (int) $primerDup[SamplesCols::ID],
-                ]);
-
-                /* Programar hash perceptual igualmente para doble verificacion */
-                try {
-                    DeduplicadorAudio::programarCalculo($sampleId);
-                } catch (\Throwable $e) {
-                    KamplesLogger::error('Pipeline: Error programando hash perceptual', [
-                        'sampleId' => $sampleId, 'error' => $e->getMessage(),
-                    ]);
-                }
-
-                return; /* Salir: no activar como 'activo' */
-            }
-        }
-
-        /* Paso 8: Activar sample en PostgreSQL (sin duplicados detectados) */
+        /* Paso 8: Activar sample en PostgreSQL (sin duplicados detectados — verificacion en paso 2.5) */
         $actualizaciones['estado'] = SamplesEnums::ESTADO_ACTIVO;
         $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
 
