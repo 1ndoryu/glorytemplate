@@ -94,13 +94,9 @@ http://glory.local/wp-content/uploads/kamples/portadas/a0719513592a1e3a5410c591c
 
 Tambien falta informacion nueva de cosas que se agregaron, falta muchisima informacion que se pueede inspesionar, el inspector no esta actualizado, revisar que falta y actualizar.
 
-## QQ23
+## QQ23 ✅ [AG-QQF]
 
-Hace Falta un boton de 3 puntos en los perfiles de otros usuarios en http://glory.local/ para las acciones de reportar, bloquear, debería abrir el mismo modal de reporte e enviar por ahi mismo con el usuario adjunto ya por defecto, (el que se esta repotando)
-
-En los mensajes hay un boton de 3 puntos cuando se abre el chat, y ahi un reportar alli pero no funciona solo muestra una alerta pero no veo el reporte en moderación,
-
-Tambien hay un boton de bloquear
+Menú 3 puntos en perfiles de otros usuarios con Reportar + Bloquear/Desbloquear. Backend: POST `/reportar-usuario/{userId}` en SocialController (rate limit 5/24h, sanitización, ReportesRepository::crearReporteUsuario con tipo='usuario'). Frontend: reportarUsuarioStore (Zustand), ModalReportarUsuario + useReportarUsuario hook (reutiliza CSS de modalReportarError), useMenuContextualPerfil (construye items dinámicos con bloqueosStore). PerfilIsland: botón MoreHorizontal + MenuContextual. Chat: useVentanaChat report/block conectados a stores reales (antes eran placeholders). ModalReportarUsuario montado globalmente en LayoutPrincipal.
 
 ## QQ24
 
@@ -114,11 +110,9 @@ error_plataforma #0 â€”
 hace 58m
 error_plataforma #0 â€”
 
-## QQ25
+## QQ25 ✅ [AG-QQF]
 
-La accion de bloqueo debería hacer 2 cosas, una el usuario bloqueado no ven sus publicaciones entre ellos, ni sus samples, ni comentarios ni nada, cero contacto.
-
-Tambien hace falta algo para desbloquear usuarios, podemos aprovechar el modal de configuraciones para agregar una tab de bloqueos, y mna lista de los bloqueos y poder desbloquear
+Sistema de bloqueo user-to-user completo. BD: tabla `bloqueos` (PK, FK, UNIQUE, CHECK, indices). Schema: BloqueoSchema + BloqueoCols + BloqueoDTO. Backend: BloqueosRepository con CRUD + `sqlExcluirBloqueados()` helper reutilizable para SQL subqueries bidireccionales. API: POST/DELETE /block/{userId} (con rate limit + auto-unfollow mutuo), GET /me/bloqueados. Filtrado bidireccional inyectado en: MotorRecomendacion (feed personalizado + nuevo usuario), SamplesRepository (listarFeed, buscarSimilares, buscarPorScoring, listarConFiltros), PublicacionesController (feed social), ComentariosRepository (raíz + respuestas), NotificacionesRepository (listarConActor). Frontend: bloqueosStore (Zustand), apiBloqueos service, SeccionBloqueos en ModalConfiguracion. Perfil: campo `bloqueado` en respuesta de perfil público.
 
 ## QQ27
 
@@ -130,9 +124,9 @@ tambien me di cuenta que las notificaciones tienen el problema de que no se pued
 
 No vi notificacion cuando un comentario fue rechazado automaticamente o una publicacion,
 
-## QQ28
+## QQ28 ✅ [AG-QQF]
 
-Las urles de las publicaciones son asi http://glory.local/publicacion/87/ creo que no esta mal, si se puede mejorar para seo ok, mejor dejalo asi, el punto es que si voy directamente a las publicaciones da error, no carga la pagina da 404 pero si navego desde la pagina cargada si abre la pagina, el mismo problema de ## QQ4.
+Fix 404 en URLs directas (publicaciones y otras rutas): En `PageTemplateInterceptor::forzarResolucionDinamica()`, si `get_page_by_path()` retorna null pero la pagina esta definida en `PageDefinition::getPaginasDefinidas()`, se auto-crea la pagina WP via `PageProcessor::crearPaginaDefinida()` con transient de 300s para evitar intentos repetidos. Aplica tanto a rutas dinamicas (publicacion/87) como paginas estaticas. Archivos: Glory/src/Manager/PageTemplateInterceptor.php.
 
 ## QQ29
 
@@ -140,9 +134,9 @@ feedSamplesContenedor aparece en las canciones cuando no tienen samples (no conf
 
 ## QQ30
 
-Es absurdo que cuando le click a Adjuntar sample manual en los sampleos o canciones, al escribir algo sin poner un audio me permita publicar, (en las publicaciones normales si tiene sentido) 
+Es absurdo que cuando le click a Adjuntar sample manual o "Subir sample de esta canción" en los sampleos o canciones, al escribir algo sin poner un audio me permita publicar, (en las publicaciones normales si tiene sentido)  
 
-crearCondiciones tambien es absurdo que aparezca en ese contexto y tambien con 
+crearCondiciones tambien es absurdo que aparezca en ese contexto, por defecto las descargas tienen que estar activa, no permitir premiun ni precio
 
 Tambien hay que ajustar los estilos en esa parte
 
@@ -155,3 +149,68 @@ Esta estrucutra se ve muy bien, no esta mal
 el problema es que crearPrecioContenedor, y crearElementoContenedor tienen estilos diferente cuando deberían ser los mismos que crearPrecioContenedor
 
 en selectorMenuContenedor selectorMenuCompacto el select no debería ser un boton, debería ser algo como el select que aparece en el modal de editar sample "selectorMenuContenedor", el mismo estilo
+
+## QQ30.2 
+
+Ccuando leiste la tarea y la empezaste a hacer no la leiste completa porque no la habia terminado de explicar,
+
+agrege de explicacion: "encrearCondiciones tambien es absurdo que aparezca ciertos botones por defecto las descargas tienen que estar activa y no aparecer para que no se pueda cambiar, y no permitir premiun ni precio que no aparezcan esos botoenes, el unico boton permitido es el de comunidad y por defecto ahi tiene que estar desactivado."
+
+## QQ31
+
+El boton de mensaje en los perfil a dar click, el chat tarda en abrir y los mensajes en cargar ¿por qué? esta ¿optimizado esto? 
+
+## QQ32 
+
+Mejora social. 
+
+Por defecto se crea una partoda con imagenes de colors en perfilPortada, quitar esto, que ya no haya portadas, la foto de perfil ahora iría al lado del nombre y descripcion y la info de seguidores debajo (ME RETRACTO)
+
+Quitar la fecha de cuando se unio, y contador de siguiendo. 
+
+Cuando se de click a los seguidores debe mostar un modal con una lista con carga optimizada por scroll, la lista muestra los seguidores, y con un boton de seguir, obivamente si ya sigues pues el boton aparece como dejar de seguir.
+
+En configuracion, permitir un input de enalce, ese enlace aparecera al lado de los seguidores y en el perfil y abrira en otra pestaña, si el enlace es muy largo que se recorte visualmente
+
+## QQ33 ✅ [AG-QQF]
+
+Fix errores IDE: PipelineAudio usaba `DuplicadosPendientesRepository::crear()` inexistente → cambiado a `insertarRegistro()`. SocialController usaba `RateLimiter::verificar()` inexistente → cambiado a `verificarUsuario()`. SocialController excedía 300 líneas → extraído bloqueo+reportes a nuevo `ModeracionController.php` (141 líneas). Limpiados imports muertos (CancionesCols, RelacionesSampleCols). Registrado ModeracionController en KamplesController.
+
+## QQ34 
+
+Mejorar el landing publico para seo, mejorar los textos, manterlos breve.
+Los svg son muy pesados, tienen imagenes internas que deberían ser optimizadas, no se como optimizarlas, tambien en caos de que esas imagenes internas puedan cargar de forma no bloqueante, sea una buena optimización
+
+## QQ35
+
+El modal de configuracion no se ve bien en movil, le falta responsive.
+
+## QQ36 
+
+¿Porque cuando reproduzco los videos de youtube en los sampleos y canciones? dice 
+Inicia sesión para confirmar que no eres un bot
+De esta forma nos ayudas a proteger nuestra comunidad. Más información
+
+en whosampled no pasa eso
+
+si es porque estamos en local, lo entiendo, ignoralo pero si hay forma de arregalarlo, arreglalo.
+
+## QQ37
+
+el mismo problema de antes, si voy directamente a http://glory.local/perfil/cualquier perfil, da 404 pero si navego con la pagina ya cargando dando click al perfil carga ¿porque este problema se repite tanto en diferentes contextos?tambien volvio a repetirse el problema con http://glory.local/admin/panel/ , en algun momento se arrelgo y volvio a suceder, pasa con las publicaciones
+
+## QQ38 
+
+El reportar de las publicaciones y el de probablmente los samples, sampleos y canciones no es el mismo que el de reportar perfiles, no abre el modal, debería ser igual como el de reportar problema, perfil, etc, los reportes tienen que estar centralizados!!
+
+## QQ39 
+
+Quitar el tab de like de los perfiles.
+
+Se que antes habia dicho que habia que quitar las portadas, me arrepiento, ya nos las quites.
+
+## QQ40 
+
+Hay errores ortograficos en el modal de iniciar sesion y registro
+
+Agregar la funcionalidad de registrarse con google
