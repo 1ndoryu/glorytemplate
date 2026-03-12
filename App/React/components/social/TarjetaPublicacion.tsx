@@ -14,6 +14,7 @@ import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
+import { useHoverPerfil } from '@app/hooks/useHoverPerfil';
 import { formatearTiempoRelativo } from '@app/utils/tiempo';
 import type { Publicacion, SampleResumen, TipoReaccion } from '@app/types';
 import '../../styles/componentes/tarjetaPublicacion.css';
@@ -60,6 +61,9 @@ export const TarjetaPublicacion = ({
     children,
     className = '',
 }: TarjetaPublicacionProps): JSX.Element => {
+    /* Hover card de perfil sobre el nombre del autor */
+    const hoverAutor = useHoverPerfil(publicacion.autor.username);
+
     /* Lightbox interno — igual que ComunidadIsland */
     const [imagenAbierta, setImagenAbierta] = useState<string | null>(null);
     const timerClickImagen = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,6 +119,8 @@ export const TarjetaPublicacion = ({
                             href={`/perfil/${publicacion.autor.username}/`}
                             className="tarjetaPubNombreEnlace"
                             aria-label={`Ir al perfil de ${publicacion.autor.nombreVisible}`}
+                            onMouseEnter={hoverAutor.onMouseEnter}
+                            onMouseLeave={hoverAutor.onMouseLeave}
                             onClick={() => {
                                 onClickAutor?.(publicacion.autor.username);
                             }}

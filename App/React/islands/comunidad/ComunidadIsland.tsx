@@ -5,19 +5,18 @@
  * Extras de isla: botón seguir (+) sobre el avatar, CardPerfil, sección comentarios.
  */
 
-import { useState } from 'react';
 import { Users, TrendingUp, Clock, Plus } from 'lucide-react';
 import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
-import { CardPerfil } from '@app/components/social/CardPerfil';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { SkeletonTarjetaPublicacion } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
+import { useTooltipPerfilStore } from '@app/stores/tooltipPerfilStore';
 import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
 
@@ -59,12 +58,16 @@ const ComunidadBase = (): JSX.Element => {
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
 
-    /* Card de perfil estilo Threads — específica de ComunidadIsland */
-    const [cardPerfilUsername, setCardPerfilUsername] = useState<string | null>(null);
-
+    /* QQ47: Abrir tooltip de perfil al hacer clic en el boton + sobre el avatar */
     const abrirCardPerfil = (e: React.MouseEvent, autor: UsuarioResumen) => {
         e.stopPropagation();
-        setCardPerfilUsername(autor.username);
+        const rect = e.currentTarget.getBoundingClientRect();
+        useTooltipPerfilStore.getState().abrirInmediato(autor.username, {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+        });
     };
 
     return (
@@ -158,14 +161,7 @@ const ComunidadBase = (): JSX.Element => {
                 y={menuSample.estado.y}
             />
 
-            {/* Card de perfil estilo Threads */}
-            {cardPerfilUsername && (
-                <CardPerfil
-                    username={cardPerfilUsername}
-                    onCerrar={() => setCardPerfilUsername(null)}
-                    onNavegar={navegar}
-                />
-            )}
+            {/* TooltipPerfil ahora se renderiza globalmente en LayoutPrincipal */}
         </div>
     );
 };

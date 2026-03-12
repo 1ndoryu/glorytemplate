@@ -1,0 +1,117 @@
+/*
+ * tooltipPerfil.css — Hover card de perfil estilo Twitter/X.
+ * Flotante sin overlay oscuro, posicionado relativo al trigger.
+ */
+
+.tooltipPerfil {
+    position: fixed;
+    z-index: 1200;
+    width: 340px;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
+    padding: var(--espacioMd);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    animation: tooltipPerfilEntrar 0.15s ease;
+    pointer-events: auto;
+}
+
+@keyframes tooltipPerfilEntrar {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tooltipPerfilCargando {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    text-align: center;
+    padding: var(--espacioSm) 0;
+}
+
+/* Fila superior: textos izquierda, avatar derecha */
+.tooltipPerfilCabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--espacioSm);
+}
+
+.tooltipPerfilTextos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xs);
+    flex: 1;
+    min-width: 0;
+}
+
+.tooltipPerfilTextos button {
+    align-items: flex-start;
+    justify-content: start;
+}
+
+.tooltipPerfilNombreBtn.botonBase {
+    padding: 0;
+    background: none;
+    min-height: unset;
+    height: auto;
+}
+
+.tooltipPerfilNombre {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteLg);
+    font-weight: 700;
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tooltipPerfilUsername {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+.tooltipPerfilAvatarBtn.botonBase {
+    padding: 0;
+    background: none;
+    min-height: unset;
+    height: auto;
+    border-radius: var(--radioFull);
+    flex-shrink: 0;
+}
+
+.tooltipPerfilAvatarBtn.botonBase:hover {
+    background: none;
+}
+
+/* Bio */
+.tooltipPerfilBio {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    margin: 0;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Seguidores */
+.tooltipPerfilSeguidores {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+}
+
+/* Boton seguir */
+.tooltipPerfilSeguirBtn.botonBase {
+    width: 100%;
+    justify-content: center;
+    margin-top: var(--espacioXs);
+}

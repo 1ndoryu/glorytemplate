@@ -22,6 +22,7 @@ import { useGenerosModalStore } from '@app/stores/generosModalStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
+import { TooltipPerfil } from '../social/TooltipPerfil';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
@@ -175,6 +176,9 @@ export const LayoutPrincipal = ({
 
             {/* QQ38: Modal centralizado de reportes (usuario, publicacion, comentario, sample, error) */}
             <ModalReportar />
+
+            {/* QQ47: Tooltip flotante de perfil (hover card estilo Twitter/X) */}
+            <TooltipPerfil />
 
             {/* Modal de planes (overlay, sin cambiar de isla) */}
             <PlanesIsland />
