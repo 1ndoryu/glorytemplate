@@ -112,7 +112,8 @@ class ColaExtraccionSamplesRepository extends BaseRepository
 
         if (isset($datosBpm['bpm'])) {
             $sets[] = ColaExtraccionSamplesCols::BPM_DETECTADO . " = :bpm";
-            $params['bpm'] = $datosBpm['bpm'];
+            /* La columna bpm_detectado es smallint: redondear el float del detector BPM */
+            $params['bpm'] = (int) round((float) $datosBpm['bpm']);
         }
         if (isset($datosBpm['duracion_compas'])) {
             $sets[] = ColaExtraccionSamplesCols::DURACION_COMPAS_SEG . " = :dur_compas";
