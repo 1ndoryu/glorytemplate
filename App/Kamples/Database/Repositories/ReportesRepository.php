@@ -71,6 +71,7 @@ class ReportesRepository extends BaseRepository
             . ", r." . ReportesCols::TARGET_ID
             . ", r." . ReportesCols::REPORTADOR_ID
             . ", r." . ReportesCols::RAZON
+            . ", r." . ReportesCols::DETALLES
             . ", r." . ReportesCols::ESTADO
             . ", r." . ReportesCols::CREATED_AT
             . ", u." . UsuariosExtCols::USERNAME . " as reportador_username"

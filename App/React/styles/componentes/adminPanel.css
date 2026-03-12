@@ -483,6 +483,13 @@
     overflow: hidden;
 }
 
+.adminModeracionDetalles {
+    margin-top: var(--espacioXs);
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    white-space: pre-wrap;
+}
+
 .adminModeracionAcciones {
     display: flex;
     gap: var(--espacioSm);

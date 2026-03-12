@@ -70,7 +70,8 @@ export interface ReporteAdmin {
     reportador_username: string;
     tipo: string;
     target_id: number;
-    motivo: string;
+    razon: string;
+    detalles: string | null;
     estado: string;
     created_at: string;
 }

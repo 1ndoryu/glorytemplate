@@ -288,7 +288,10 @@ export const TabModeracionAdmin = ({
                                         <span className="adminModeracionFecha">{formatearFechaRelativa(rep.created_at)}</span>
                                     </div>
                                     <div className="adminModeracionContenido">
-                                        <strong>{rep.tipo}</strong> #{rep.target_id} — {rep.motivo}
+                                        <strong>{rep.tipo}</strong> #{rep.target_id} — {rep.razon}
+                                        {rep.detalles && (
+                                            <div className="adminModeracionDetalles">{rep.detalles}</div>
+                                        )}
                                     </div>
                                     <div className="adminModeracionAcciones">
                                         <BotonBase variante="ghost" className="historialBoton historialBotonAprobar" onClick={() => onResolverReporte(rep.id, 'resolver')} type="button">Resolver</BotonBase>
