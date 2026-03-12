@@ -32,6 +32,26 @@ export interface Publicacion {
 
     /* Repost: datos del post original cuando esta publicacion es un repost */
     repostOriginal?: RepostOriginal | null;
+
+    /* QQ20: Comentario con más likes para preview inline */
+    comentarioDestacado?: ComentarioDestacado | null;
+}
+
+/* Estructura mínima del comentario destacado devuelto por el backend */
+export interface ComentarioDestacado {
+    id: number;
+    autorId: number;
+    contenido: string;
+    totalLikes: number;
+    creadoAt: string;
+    tipoContenido?: 'texto' | 'imagen' | 'audio';
+    mediaUrl?: string | null;
+    autor: {
+        id: number;
+        username: string;
+        nombreVisible: string;
+        avatarUrl?: string;
+    };
 }
 
 export interface RepostOriginal {

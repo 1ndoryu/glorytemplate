@@ -63,9 +63,9 @@ Fix comentarios en publicaciones del perfil: PerfilIsland ahora pasa `onLike`, `
 
 "También te podría gustar" unificado con panel lateral. Página individual: eliminado renderizado inline y item en menú contextual — ahora al dar like se abre el panel lateral con PanelSugerencias (mismo flujo que feed). Feed: agregado item "También te podría gustar" (sin icono) en menú contextual que abre panel lateral. Archivos: useSampleDetalle.ts, SampleDetalleIsland.tsx, useMenuContextualSample.ts.
 
-## QQ20
+## QQ20 ✅ [AG-QQF]
 
-Las publicaciones deberían mostrar al menos 1 comentario, sin abrir los comentarios, (el comentario que tenga mas like), no estoy queriendo decir que se muestren todos los comentarios, se mostrarn al abrir los comentarios obviamente pero por defecto 1 esta bien sin tener que abrir.
+Publicaciones muestran 1 comentario destacado (el de más likes) como preview inline. **Backend:** `ComentariosRepository::obtenerDestacadosPorPubs()` — query batch eficiente con `DISTINCT ON` (PostgreSQL), 1 query para todas las publicaciones del feed. `NormalizadorPublicacion::normalizarComentarioDestacado()` — normalización del row crudo. Integrado en `PublicacionesController::listar()` y `obtener()`. **Frontend:** `ComentarioDestacado` type en publicacion.ts. `ComentarioPreview` componente (avatar xs + nombre + tiempo + texto truncado a 2 líneas + likes). Se renderiza entre BarraAccionesPost y children slot; se oculta cuando children está presente (comentarios ya están abiertos). Clickeable para abrir comentarios. Archivos: ComentariosRepository.php, NormalizadorPublicacion.php, PublicacionesController.php, publicacion.ts, index.ts, TarjetaPublicacion.tsx, ComentarioPreview.tsx, comentarioPreview.css.
 
 ## QQ21a ✅ [AG-QQF]
 

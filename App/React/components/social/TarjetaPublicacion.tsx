@@ -12,6 +12,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { ComentarioPreview } from '@app/components/social/ComentarioPreview';
 import BarraAccionesPost from '@app/components/social/BarraAccionesPost';
 import { useAuthStore } from '@app/stores/authStore';
 import { useHoverPerfil } from '@app/hooks/useHoverPerfil';
@@ -286,6 +287,14 @@ export const TarjetaPublicacion = ({
                 onRepost={onRepost}
                 mostrarCeroConteo={mostrarCeroConteo}
             />
+
+            {/* QQ20: Preview del comentario con más likes */}
+            {publicacion.comentarioDestacado && !children && (
+                <ComentarioPreview
+                    comentario={publicacion.comentarioDestacado}
+                    onClick={onComentar ? () => onComentar(publicacion.id) : undefined}
+                />
+            )}
 
             {/* Slot para comentarios u otros extras por isla */}
             {children}

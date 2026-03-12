@@ -180,8 +180,16 @@ class PublicacionesController
         }
 
         /* Enriquecer cada publicación con campos normalizados */
+        /* QQ20: Batch fetch de comentarios destacados (1 query para todas las pubs) */
+        $pubIds = \array_map(fn($p) => (int) $p[PublicacionesCols::ID], $publicaciones);
+        $topComentarios = ComentariosRepository::obtenerDestacadosPorPubs($pubIds, $currentUserId);
+
         foreach ($publicaciones as &$pub) {
             $pub = NormalizadorPublicacion::enriquecer($pub, $samplesMap);
+            $pubId = $pub['id'];
+            $pub['comentarioDestacado'] = isset($topComentarios[$pubId])
+                ? NormalizadorPublicacion::normalizarComentarioDestacado($topComentarios[$pubId])
+                : null;
         }
 
         return new \WP_REST_Response(['data' => $publicaciones, 'page' => $page], 200);
@@ -226,6 +234,13 @@ class PublicacionesController
         }
 
         $pub = NormalizadorPublicacion::enriquecer($pub, $samplesMap);
+
+        /* QQ20: Comentario destacado para publicación individual */
+        $pubId = $pub['id'];
+        $topComentarios = ComentariosRepository::obtenerDestacadosPorPubs([$pubId], $currentUserId);
+        $pub['comentarioDestacado'] = isset($topComentarios[$pubId])
+            ? NormalizadorPublicacion::normalizarComentarioDestacado($topComentarios[$pubId])
+            : null;
 
         return new \WP_REST_Response(['data' => $pub], 200);
         } catch (\Throwable $e) {

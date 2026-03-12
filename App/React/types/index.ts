@@ -25,6 +25,7 @@ export type {
 export type {
     Publicacion,
     Comentario,
+    ComentarioDestacado,
     TipoPublicacion,
     RepostOriginal,
 } from './publicacion';

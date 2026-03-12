@@ -13,6 +13,8 @@ namespace App\Kamples\Api\Helpers;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\ComentariosCols;
+use App\Config\Schema\_generated\ComentariosEnums;
 
 class NormalizadorPublicacion
 {
@@ -113,5 +115,34 @@ class NormalizadorPublicacion
         }
 
         return $pub;
+    }
+
+    /**
+     * QQ20: Normalizar un row crudo de comentario destacado para la respuesta API.
+     * Formato minimal: id, contenido, totalLikes, creadoAt, tipoContenido, mediaUrl, autor.
+     *
+     * @param array $fila Row crudo con joins de usuario.
+     * @return array Comentario normalizado para el frontend.
+     */
+    public static function normalizarComentarioDestacado(array $fila): array
+    {
+        return [
+            'id'             => (int) $fila[ComentariosCols::ID],
+            'autorId'        => (int) $fila[ComentariosCols::AUTOR_ID],
+            'contenido'      => $fila[ComentariosCols::CONTENIDO] ?? '',
+            'totalLikes'     => (int) ($fila[ComentariosCols::TOTAL_LIKES] ?? 0),
+            'creadoAt'       => $fila[ComentariosCols::CREATED_AT] ?? '',
+            'tipoContenido'  => $fila[ComentariosCols::TIPO_CONTENIDO] ?? ComentariosEnums::TIPO_CONTENIDO_TEXTO,
+            'mediaUrl'       => $fila[ComentariosCols::MEDIA_URL] ?? null,
+            'autor'          => [
+                'id'             => (int) $fila[ComentariosCols::AUTOR_ID],
+                'username'       => $fila[UsuariosExtCols::USERNAME] ?? '',
+                'nombreVisible'  => $fila[UsuariosExtCols::NOMBRE_VISIBLE] ?? '',
+                'avatarUrl'      => UsuarioHelper::resolverAvatarUrl(
+                    $fila[UsuariosExtCols::AVATAR_URL] ?? null,
+                    (int) ($fila[UsuariosExtCols::WP_USER_ID] ?? 0)
+                ),
+            ],
+        ];
     }
 }

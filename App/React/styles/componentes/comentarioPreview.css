@@ -1,0 +1,60 @@
+/* ComentarioPreview — QQ20: Preview compacto del comentario con más likes */
+
+.comentarioPrevContenedor {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-top: 1px solid var(--bordeSutil);
+    transition: background var(--transicionRapida);
+}
+
+.comentarioPrevContenedor:hover {
+    background: var(--hoverSutil);
+}
+
+.comentarioPrevCuerpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.comentarioPrevCabecera {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+.comentarioPrevAutor {
+    font-weight: 600;
+    color: var(--textoPrimario);
+}
+
+.comentarioPrevTiempo {
+    color: var(--textoTerciario);
+    font-size: 0.75rem;
+}
+
+.comentarioPrevTexto {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: var(--textoSecundario);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.comentarioPrevLikes {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    margin-top: 2px;
+}

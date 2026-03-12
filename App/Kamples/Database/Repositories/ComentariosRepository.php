@@ -376,4 +376,61 @@ class ComentariosRepository extends BaseRepository
             ['estado' => $estado, 'detalle' => $detalle, 'id' => $id]
         );
     }
+
+    /*
+     * QQ20: Obtener el comentario más destacado (por likes) para varias publicaciones en batch.
+     * Usa DISTINCT ON (PostgreSQL) — 1 query sin importar cantidad de pubs.
+     *
+     * @param int[] $pubIds IDs de publicaciones.
+     * @param int|null $userId ID del usuario actual (para filtro de bloqueos).
+     * @return array<int, array> Mapa targetId => row crudo del comentario.
+     */
+    public static function obtenerDestacadosPorPubs(array $pubIds, ?int $userId = null): array
+    {
+        if (empty($pubIds)) return [];
+
+        $tc = ComentariosCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('c.' . ComentariosCols::AUTOR_ID, $userId);
+
+        $placeholders = [];
+        $params = [];
+        foreach ($pubIds as $i => $id) {
+            $key = "pid{$i}";
+            $placeholders[] = ":{$key}";
+            $params[$key] = (int) $id;
+        }
+        $inClause = \implode(',', $placeholders);
+
+        $filas = static::consultar(
+            "SELECT DISTINCT ON (c." . ComentariosCols::TARGET_ID . ")"
+            . " c." . ComentariosCols::ID
+            . ", c." . ComentariosCols::TARGET_ID
+            . ", c." . ComentariosCols::CONTENIDO
+            . ", c." . ComentariosCols::TOTAL_LIKES
+            . ", c." . ComentariosCols::CREATED_AT
+            . ", c." . ComentariosCols::TIPO_CONTENIDO
+            . ", c." . ComentariosCols::MEDIA_URL
+            . ", u." . UsuariosExtCols::ID . " as " . ComentariosCols::AUTOR_ID
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE c." . ComentariosCols::TIPO . " = '" . ComentariosEnums::TIPO_PUBLICACION . "'"
+            . " AND c." . ComentariosCols::TARGET_ID . " IN ({$inClause})"
+            . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
+            . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
+            . $filtroBloqueos
+            . " ORDER BY c." . ComentariosCols::TARGET_ID . ", c." . ComentariosCols::TOTAL_LIKES . " DESC, c." . ComentariosCols::CREATED_AT . " DESC",
+            $params
+        );
+
+        $mapa = [];
+        foreach ($filas as $fila) {
+            $mapa[(int) $fila[ComentariosCols::TARGET_ID]] = $fila;
+        }
+        return $mapa;
+    }
 }
