@@ -54,15 +54,8 @@ class KamplesInit
         /* D1.5: Cron para backfill de hashes SHA-256 en samples existentes */
         BackfillHashService::registrarCron();
 
-        /* Hook de WP Cron para publicar extracciones de audio via PipelineAudio */
-        \add_action('kamples_publicar_extracciones', function (int $limit = 10): void {
-            try {
-                $resultado = PublicadorExtraccion::publicarPendientes($limit);
-                KamplesLogger::info('[CRON] Extracciones publicadas', $resultado);
-            } catch (\Throwable $e) {
-                KamplesLogger::error('[CRON] Error publicando extracciones', ['error' => $e->getMessage()]);
-            }
-        });
+        /* Cron para publicar extracciones de audio via PipelineAudio (cada 5 min) */
+        self::registrarCronPublicadorExtraccion();
     }
 
     /*
@@ -119,6 +112,27 @@ class KamplesInit
             3
         );
     }
+    /*
+     * Registra y programa el cron de WP para publicar samples extraidos.
+     * Lee items con estado='extraido' de cola_extraccion_samples y los publica
+     * via PipelineAudio (waveform, hash, IA, etc.). Se ejecuta cada 5 minutos.
+     */
+    private static function registrarCronPublicadorExtraccion(): void
+    {
+        add_action('kamples_publicar_extracciones', function (): void {
+            try {
+                $resultado = PublicadorExtraccion::publicarPendientes(10);
+                KamplesLogger::info('[CRON] Extracciones publicadas', $resultado);
+            } catch (\Throwable $e) {
+                KamplesLogger::error('[CRON] Error publicando extracciones', ['error' => $e->getMessage()]);
+            }
+        });
+
+        if (!wp_next_scheduled('kamples_publicar_extracciones')) {
+            wp_schedule_event(time(), 'kamples_5min', 'kamples_publicar_extracciones');
+        }
+    }
+
     /*
      * Registra el cron de WP para recalculos temporales del algoritmo (C45).
      * Se ejecuta cada 5 minutos y evalua si algun usuario necesita recalculo.
