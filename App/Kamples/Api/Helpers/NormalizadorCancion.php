@@ -56,6 +56,8 @@ class NormalizadorCancion
             'liked'            => !empty($row[self::ALIAS_REACCION_USUARIO])
                 && \in_array($row[self::ALIAS_REACCION_USUARIO], [LikesEnums::REACCION_LIKE, LikesEnums::REACCION_ENCANTA], true),
             'reaccion'         => $row[self::ALIAS_REACCION_USUARIO] ?? null,
+            /* Sample adjunto: primer sample Kamples vinculado a esta cancion (subquery JSON en feed) */
+            'sampleAdjunto'    => self::decodeSampleAdjunto($row['sample_adjunto_json'] ?? null),
         ];
     }
 
@@ -186,6 +188,36 @@ class NormalizadorCancion
             'contribuidorId'       => isset($row['contribuidor_id']) ? (int) $row['contribuidor_id'] : null,
             'contribuidorUsername' => $row['contribuidor_username'] ?? null,
             'totalSamples'         => (int) ($row['total_samples'] ?? 0),
+        ];
+    }
+
+    /**
+     * Decodifica el JSON del sample adjunto devuelto por la subquery row_to_json().
+     * Retorna array camelCase con los campos minimos para reproduccion, o null si no hay.
+     */
+    private static function decodeSampleAdjunto(mixed $valor): ?array
+    {
+        if ($valor === null || $valor === '') {
+            return null;
+        }
+
+        $data = \is_array($valor) ? $valor : \json_decode((string) $valor, true);
+
+        if (\json_last_error() !== JSON_ERROR_NONE || !\is_array($data)) {
+            \error_log('[NormalizadorCancion] sample_adjunto_json corrupto: ' . (string) $valor);
+            return null;
+        }
+
+        return [
+            'id'          => (int) ($data['id'] ?? 0),
+            'titulo'      => $data['titulo'] ?? '',
+            'slug'        => $data['slug'] ?? '',
+            'rutaPreview' => $data['ruta_preview'] ?? '',
+            'imagenUrl'   => $data['imagen_url'] ?? null,
+            'creadorId'   => (int) ($data['creador_id'] ?? 0),
+            'idCorto'     => $data['id_corto'] ?? '',
+            'duracion'    => (float) ($data['duracion'] ?? 0),
+            'tipo'        => $data['tipo'] ?? 'loop',
         ];
     }
 

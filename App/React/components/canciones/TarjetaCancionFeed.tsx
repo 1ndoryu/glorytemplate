@@ -3,10 +3,11 @@
  * Tarjeta horizontal para feed de canciones, formato similar a TarjetaSample.
  * Imagen izquierda, info + sampleos count centro, acciones derecha (like + menu).
  * Click en titulo navega a /cancion/{slug}.
+ * Play button solo visible cuando la cancion tiene un sample adjunto (QQ50).
  */
 
 import { type MouseEvent } from 'react';
-import { Music, Heart, MoreHorizontal } from 'lucide-react';
+import { Music, Heart, MoreHorizontal, Play, Pause } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import type { Cancion } from '@app/types/cancion';
@@ -16,9 +17,18 @@ export interface TarjetaCancionFeedProps {
     onClick: () => void;
     onLike: (cancionId: number) => void;
     onMenu: (e: MouseEvent, cancion: Cancion) => void;
+    onPlay?: (cancion: Cancion) => void;
+    reproduciendo?: boolean;
 }
 
-export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: TarjetaCancionFeedProps): JSX.Element => {
+export const TarjetaCancionFeed = ({
+    cancion,
+    onClick,
+    onLike,
+    onMenu,
+    onPlay,
+    reproduciendo = false,
+}: TarjetaCancionFeedProps): JSX.Element => {
     const manejarLike = (e: MouseEvent) => {
         e.stopPropagation();
         onLike(cancion.id);
@@ -29,6 +39,13 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
         e.preventDefault();
         onMenu(e, cancion);
     };
+
+    const manejarPlay = (e: MouseEvent) => {
+        e.stopPropagation();
+        onPlay?.(cancion);
+    };
+
+    const tieneSample = !!cancion.sampleAdjunto;
 
     const href = `/cancion/${cancion.slug}`;
     const manejarClickEnlace = (e: MouseEvent<HTMLAnchorElement>) => {
@@ -86,6 +103,22 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
                             </Badge>
                         )}
                     </div>
+                )}
+
+                {/* Play: solo visible si la cancion tiene sample adjunto */}
+                {tieneSample && (
+                    <BotonBase
+                        variante="ghost"
+                        className={`tarjetaAccionBtn ${reproduciendo ? 'tarjetaAccionActiva' : ''}`}
+                        onClick={manejarPlay}
+                        type="button"
+                        aria-label={reproduciendo ? 'Pausar sample' : 'Reproducir sample'}
+                    >
+                        {reproduciendo
+                            ? <Pause size={18} fill="currentColor" />
+                            : <Play size={18} fill="currentColor" />
+                        }
+                    </BotonBase>
                 )}
 
                 <BotonBase

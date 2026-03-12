@@ -151,9 +151,9 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         }
     }, [canciones]);
 
-    /* Menu contextual placeholder — el island define la lógica final */
+    /* Menu contextual: placeholder — el island usa useMenuContextualCancion (QQ50) */
     const manejarMenu = useCallback((_e: MouseEvent, _cancion: Cancion) => {
-        /* TO-DO: implementar menú contextual de canciones (copiar link, ir al artista, etc.) */
+        /* Depreciado: ExplorarCancionesIsland usa useMenuContextualCancion directamente */
     }, []);
 
     const irACancion = useCallback(

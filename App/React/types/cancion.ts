@@ -33,6 +33,24 @@ export interface Cancion {
     liked?: boolean;
     totalLikes?: number;
     reaccion?: string | null;
+    /* Primer sample Kamples vinculado a esta cancion (subquery JSON en feed) */
+    sampleAdjunto?: SampleAdjuntoCancion | null;
+}
+
+/*
+ * Subset minimo de un sample Kamples vinculado a una cancion.
+ * Campos necesarios para reproducir desde la TarjetaCancionFeed.
+ */
+export interface SampleAdjuntoCancion {
+    id: number;
+    titulo: string;
+    slug: string;
+    rutaPreview: string;
+    imagenUrl: string | null;
+    creadorId: number;
+    idCorto: string;
+    duracion: number;
+    tipo: string;
 }
 
 /* Versión compacta para listas */

@@ -193,9 +193,9 @@ Fix crash ModalSeguidores: `TypeError: Cannot read properties of undefined (read
 
 Reproductor minimalista rebuild completo. **Arquitectura:** Audio global único via `useMotorAudio` (1 HTMLAudioElement persistente montado en LayoutPrincipal), store reescrito (`contexto` reemplaza `cola`, `reproducir()` reemplaza `setSample`, `pendingSeek` para seek sin refs), `useAudioPlayback` delegado 100% al store (sin audio local por tarjeta). **UI:** Pill shape (`border-radius: 9999px`, `width: fit-content`, `max-width: 640px`, `height: 48px`), portada circular 36px, controles inline (prev/play/next con BotonBase ghost), barra de progreso 3px, botón like con optimistic update, shuffle toggle. **Contexto:** Cada `<TarjetaSample>` recibe `contexto` (lista de samples del feed/colección/etc.) para que siguiente/anterior funcionen en cualquier vista. Limpieza: eliminado `useReproductor.ts` (dead code), eliminados props `activa`/`reproduciendo`/`progreso` de TarjetaSample (ahora lee del store). Archivos: reproductorStore.ts, useMotorAudio.ts (nuevo), useReproductorGlobal.ts, useAudioPlayback.ts, useTarjetaSample.ts, ReproductorGlobal.tsx, TarjetaSample.tsx, LayoutPrincipal.tsx, reproductorGlobal.css, ReproductorIsland.tsx, + 8 islands/componentes actualizados con contexto.
 
-## QQ50 
+## QQ50 ✅ [AG-QQF]
 
-En http://glory.local/musica/ el boton de 3 puntos no funciona en las canciones. Agregar un boton de play al lado del boton de like, aparecera solo cuando la canción tenga un sample adjunto, reproducira el sample de la canción.
+Menu contextual de canciones + play button para sample adjunto. **Backend:** Subquery `row_to_json()` correlacionada en `CancionesRepository::feed()` que devuelve el primer sample activo (via `samples.cancion_origen_id`) como JSON embebido en cada cancion del feed. Agregado a los 3 modos de ordenamiento (inteligente, top_sampleados, hot). `NormalizadorCancion::decodeSampleAdjunto()` decodifica el JSON a array camelCase. **Frontend:** Tipo `SampleAdjuntoCancion` en `cancion.ts`, campo opcional `sampleAdjunto` en `Cancion`. `TarjetaCancionFeed` muestra botón Play (con Pause toggle) solo cuando `sampleAdjunto` existe. `useMenuContextualCancion` hook nuevo con items: ver canción, copiar enlace, ver artista, abrir en WhoSampled. `ExplorarCancionesIsland` integra el menú contextual (MenuContextual portal) y maneja play/pause via `reproductorStore.reproducir()` construyendo un `SampleResumen` minimo desde el `sampleAdjunto`. Archivos: CancionesRepository.php, NormalizadorCancion.php, cancion.ts, TarjetaCancionFeed.tsx, ExplorarCancionesIsland.tsx, useMenuContextualCancion.ts (nuevo), useFeedCanciones.ts, hooks/index.ts.
 
 ## QQ51
 
@@ -241,13 +241,23 @@ Cuando le doy a comprar a un sample, no hace nada, debería abrir un modal con l
 
 ## QQ61 
 
+Revisiones de seguridad y optimizacion generales, el proyecto es muy grande pero se puede al menos revisar lo mas importante y obvio.
 
+## QQ62 
+
+Hay un pequeño bug con el reproductor, al reproducir fucniona pero al pasar al siguiente inicia pausado en el siguiente, tambien, ahora cuando estoy reproduciendo un audio y toco otro sample, se pausa, antes no pasaba, tiene que ser fluido, a pasar a lsiguiente sample tiene que reproducirse automaticamente independientemente que sea mediante un click o mediante el boton de pasar a la siguiente.
+
+## QQ63 
+
+En el menu contextual de usuario donde aparece el logout, arruba de logut agregar un boton de whatsapp, esto hará que el usuario ingrese a https://chat.whatsapp.com/JOduGKvWGR9KbYfBS9BWGL en otra pestaña, sera el grupo del proyecto, pero antes, abrira un modal de solicitud, tiene que ser igual al modal de reporte, 
 
 # ANTES DE LA ULTIMA TAREA
 
 Asegurarte de que todo los cambios se hayan subido, no importa que no sean tus cambios, haz commit de todo. Una vez que todo este asegurado. Haz una copia de seguirdad local del tema, en la misma carpeta de themes.
 
-Cuandos tengas el respaldo de seguridad, ahora, lo que vas a hacer es que vas a crear u
+Cuandos tengas el respaldo de seguridad, ahora, lo que vas a hacer es que la rama main kamples, la vas a separar en repositorio individual, preservar todos los submodulos y todo igual, incluyendo el gitingore y todo eos, todos los subrepositorios que queden igual, solo es sacar la rama main-kamples a un repositorio independiente, en caso de que sea posible preservar todos los commit y esa informacion, genial, mi github es https://github.com/1ndoryu
+
+Asegurarse de que el proyecto tenga una licencia fuerte, y cuando este separado en un repositorio independiente, configura style.css para que tema se llame kamples
 
 ## ULTIMA TAREA
 

@@ -1,18 +1,25 @@
 /*
- * ExplorarCancionesIsland — C812
+ * ExplorarCancionesIsland — C812 + QQ50
  * Feed vertical de canciones con 3 modos de ordenamiento via TopBar tabs:
- * Inteligente (heurístico), Top Sampleados, Hot (likes recientes).
- * Infinite scroll, tarjetas tipo TarjetaSample con like + menu.
- * Lógica extraída a useFeedCanciones (SRP).
+ * Inteligente (heuristico), Top Sampleados, Hot (likes recientes).
+ * Infinite scroll, tarjetas tipo TarjetaSample con like + menu + play.
+ * Play solo visible cuando la cancion tiene sample adjunto vinculado.
+ * Logica extraida a useFeedCanciones (SRP).
  */
 
+import { useCallback } from 'react';
 import { Music } from 'lucide-react';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useFiltrosStore } from '@app/stores/filtrosStore';
 import { useFeedCanciones } from '@app/hooks/useFeedCanciones';
+import { useMenuContextualCancion } from '@app/hooks/useMenuContextualCancion';
+import { useReproductorStore } from '@app/stores/reproductorStore';
 import { TarjetaCancionFeed } from '@app/components/canciones/TarjetaCancionFeed';
+import { MenuContextual } from '@app/components/ui/MenuContextual';
+import type { Cancion } from '@app/types/cancion';
+import type { SampleResumen } from '@app/types/sample';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import '../../styles/componentes/explorarCanciones.css';
 
@@ -44,9 +51,55 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         totalReal,
         sentinelaRef,
         manejarLike,
-        manejarMenu,
         irACancion,
     } = useFeedCanciones(orden, busqueda);
+
+    /* Menu contextual de canciones (QQ50) */
+    const { estado: menuEstado, items: menuItems, abrirMenu, cerrarMenu } = useMenuContextualCancion();
+
+    /* Reproductor: play/pause del sample adjunto de la cancion */
+    const reproducir = useReproductorStore(s => s.reproducir);
+    const togglePlay = useReproductorStore(s => s.togglePlay);
+    const sampleActualId = useReproductorStore(s => s.sampleActual?.id ?? null);
+    const estaReproduciendo = useReproductorStore(s => s.reproduciendo);
+
+    const manejarPlay = useCallback((cancion: Cancion) => {
+        const sa = cancion.sampleAdjunto;
+        if (!sa) return;
+
+        /*
+         * Si el sample adjunto ya esta cargado en el reproductor, toggle play/pause.
+         * Si no, reproducir el sample construyendo un SampleResumen minimo.
+         */
+        if (sampleActualId === sa.id) {
+            togglePlay();
+            return;
+        }
+
+        const sampleParaReproducir: SampleResumen = {
+            id: sa.id,
+            titulo: sa.titulo,
+            slug: sa.slug,
+            rutaPreview: sa.rutaPreview,
+            rutaWaveform: '',
+            imagenUrl: sa.imagenUrl ?? cancion.imagenUrl,
+            duracion: sa.duracion,
+            tipo: sa.tipo as SampleResumen['tipo'],
+            bpm: null,
+            key: null,
+            escala: null,
+            tags: [],
+            esPremium: false,
+            precio: null,
+            totalDescargas: 0,
+            totalLikes: 0,
+            totalReproducciones: 0,
+            metadata: null,
+            creador: { id: sa.creadorId, username: '', nombreVisible: '', avatarUrl: null, verificado: false },
+        };
+
+        reproducir(sampleParaReproducir);
+    }, [sampleActualId, togglePlay, reproducir]);
 
     return (
         <div className="feedCancionesContenedor" id="seccionExplorarCanciones">
@@ -75,7 +128,13 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
                             cancion={cancion}
                             onClick={() => irACancion(cancion.slug)}
                             onLike={manejarLike}
-                            onMenu={manejarMenu}
+                            onMenu={abrirMenu}
+                            onPlay={manejarPlay}
+                            reproduciendo={
+                                !!cancion.sampleAdjunto
+                                && sampleActualId === cancion.sampleAdjunto.id
+                                && estaReproduciendo
+                            }
                         />
                     ))}
                 </div>
@@ -88,6 +147,15 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
                     <p className="feedCancionesFin">No hay más canciones</p>
                 )}
             </div>
+
+            {/* Menu contextual de canciones */}
+            <MenuContextual
+                abierto={menuEstado.abierto}
+                onCerrar={cerrarMenu}
+                items={menuItems}
+                x={menuEstado.x}
+                y={menuEstado.y}
+            />
         </div>
     );
 };

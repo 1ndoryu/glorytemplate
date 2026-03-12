@@ -16,6 +16,8 @@ use App\Config\Schema\_generated\CancionesDTO;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 
 class CancionesRepository extends BaseRepository
 {
@@ -217,9 +219,35 @@ class CancionesRepository extends BaseRepository
               . " AND " . LikesCols::TARGET_ID . " = c." . CancionesCols::ID . " LIMIT 1)"
             : "NULL";
 
+        /*
+         * Subquery correlacionada: primer sample activo con preview vinculado a la cancion.
+         * Devuelve JSON con los campos minimos para construir un SampleResumen en el frontend.
+         * Usa samples.cancion_origen_id = cancion.id (vinculo directo sample -> cancion).
+         */
+        $ts = SamplesCols::TABLA;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        $sampleAdjuntoExpr = "(SELECT row_to_json(sq) FROM (
+            SELECT s." . SamplesCols::ID . ",
+                   s." . SamplesCols::TITULO . ",
+                   s." . SamplesCols::SLUG . ",
+                   s." . SamplesCols::RUTA_PREVIEW . ",
+                   s." . SamplesCols::IMAGEN_URL . ",
+                   s." . SamplesCols::CREADOR_ID . ",
+                   s." . SamplesCols::ID_CORTO . ",
+                   s." . SamplesCols::DURACION . ",
+                   s." . SamplesCols::TIPO . "
+            FROM {$ts} s
+            WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
+              AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
+              AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+            ORDER BY s." . SamplesCols::TOTAL_REPRODUCCIONES . " DESC NULLS LAST
+            LIMIT 1
+        ) sq) AS sample_adjunto_json";
+
         $baseSelect = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
                         a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
-                        {$reaccionExpr} AS reaccion_usuario
+                        {$reaccionExpr} AS reaccion_usuario,
+                        {$sampleAdjuntoExpr}
                  FROM {$tc} c
                  JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID;
 
@@ -241,6 +269,7 @@ class CancionesRepository extends BaseRepository
                 $sql = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
                                a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
                                {$reaccionExpr} AS reaccion_usuario,
+                               {$sampleAdjuntoExpr},
                                COALESCE(lr.likes_recientes, 0) AS likes_recientes
                         FROM {$tc} c
                         JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
