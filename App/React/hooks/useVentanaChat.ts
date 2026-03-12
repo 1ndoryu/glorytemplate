@@ -6,8 +6,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
-import { enviarMensaje, enviarMensajeMultimedia, obtenerMensajes } from '@app/services/apiMensajes';
+import { enviarMensaje, enviarMensajeMultimedia, obtenerMensajes, marcarConversacionLeida } from '@app/services/apiMensajes';
 import { useAuthStore } from '@app/stores/authStore';
+import { useMensajesStore } from '@app/stores/mensajesStore';
 import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
 import { useReportarStore } from '@app/stores/reportarStore';
@@ -51,7 +52,12 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
         const cargar = async () => {
             try {
                 const resp = await obtenerMensajes(chat.conversacionId);
-                if (activo && resp.ok && resp.data) setMensajes(resp.data);
+                if (activo && resp.ok && resp.data) {
+                    setMensajes(resp.data);
+                    /* QQ69: Marcar conversacion leida al abrir ventana flotante */
+                    useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
+                    marcarConversacionLeida(chat.conversacionId);
+                }
             } catch {
                 /* Error de red al cargar mensajes — se muestra chat vacío */
             } finally {

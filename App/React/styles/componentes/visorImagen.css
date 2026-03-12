@@ -4,6 +4,7 @@
  */
 
 /* El contenedor del modal se hace transparente y sin padding para lightbox */
+/* QQ69: pointer-events: none para que clicks en area transparente lleguen al overlay y cierren */
 .visorImagenModal {
     background: transparent;
     box-shadow: none;
@@ -11,6 +12,7 @@
     max-width: 90vw;
     max-height: 90vh;
     padding: 0;
+    pointer-events: none;
 }
 
 .visorImagenModal .modalCuerpo {
@@ -25,4 +27,6 @@
     max-height: 85vh;
     object-fit: contain;
     border-radius: var(--radioMd);
+    pointer-events: auto;
+    cursor: default;
 }
