@@ -115,7 +115,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
     t_total = time.monotonic()
 
     try:
-        # 1. Descargar audio (YouTube prioritario, fallback Spotify)
+        # 1. Descargar audio (SoundCloud prioritario, fallback YouTube/Deezer/Spotify)
         actualizar_estado_cola(cola_id, "descargando")
         t0 = time.monotonic()
         wav_path = descargar_audio(
@@ -123,6 +123,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             spotify_id=spotify_id,
             artista=item.get("fuente_artista"),
             titulo=item.get("fuente_titulo"),
+            timing_seg=timing,
         )
         if not wav_path:
             actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (YT + Spotify)")

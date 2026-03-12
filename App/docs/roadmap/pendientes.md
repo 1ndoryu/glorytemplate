@@ -481,3 +481,19 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 > 3. Monitorear releases de bgutil-ytdlp-pot-provider para fix de GVS experiment.
 > 4. Procesar cola en lotes pequeños (3-5 items) con pausas entre lotes para evitar IP flagging.
 > Lecciones: [tv_embedded obsoleto] Eliminado de yt-dlp 2026.03.03. [android_vr no soporta cookies] yt-dlp lo descarta silenciosamente si hay cookies — causa "Requested format is not available". [GVS experiment] YouTube GVS experiment vincula PO tokens a video IDs — bgutil 1.3.1 genera tokens inválidos. Afecta TODOS los clientes web (web, web_safari, mweb, tv_downgraded). [IP flagging acumulativo] Cada request fallido incrementa el flag. ~10 requests = LOGIN_REQUIRED para todo. Se desflaggea con inactividad. [Cookies frescas criticas] cookies.txt puede invalidarse server-side aunque no expire. Re-exportar periódicamente.
+
+### S-FIX-8 — SoundCloud como fuente primaria + proxy eliminado ✅ [AG-BTL] C900h
+> **Investigacion exhaustiva (2026-03-13):** 20+ fuentes alternativas probadas. Cobalt, Piped, Invidious, pytubefix, converter sites (Y2Mate, loader.to, cnvmp3, vevioz, yt5s, savefrom, y2meta, tomp3) — TODOS muertos/bloqueados. Proxy DataImpulse funciona pero inviable a escala ($240/mes @2000/dia). **SoundCloud API v2 descubierta: gratis, sin auth, tracks completos, 128kbps, 15/15 = 100% exito.**
+- [x] **S-FIX8.1** `_obtener_soundcloud_client_id()`: extraccion dinamica del client_id desde frontend JS de SoundCloud, cache a nivel de modulo ✅
+- [x] **S-FIX8.2** `_descargar_soundcloud()`: busqueda + filtro de snippets (<60s) + seleccion de transcoding + descarga ✅
+- [x] **S-FIX8.3** `_elegir_transcoding_soundcloud()`: progressive MP3 > HLS MP3 > HLS AAC, excluye encrypted (DRM) ✅
+- [x] **S-FIX8.4** `_descargar_progressive()` + `_descargar_hls()`: descarga directa y HLS (m3u8→segmentos→concatenar) ✅
+- [x] **S-FIX8.5** `descargar_audio()` reescrito: SoundCloud→YT local→Deezer(timing<=30s)→YT search→Spotify ID→Spotify search. Proxy eliminado de cadena activa ✅
+- [x] **S-FIX8.6** Fix breaking change: eliminado `proxy_url=proxy_url` de `_descargar_youtube_search()` (no acepta ese kwarg) ✅
+- [x] **S-FIX8.7** `pipeline.py`: pasa `timing_seg=timing` a `descargar_audio()` para routing inteligente Deezer ✅
+- [x] **S-FIX8.8** plan-fuentes-audio.md reescrito: SoundCloud primario, alternativas descartadas documentadas ✅
+- [x] **S-FIX8.9** investigacion-fuentes-audio.md actualizado con resultados finales y tabla de fuentes descartadas ✅
+- [x] **S-FIX8.10** Test files temporales eliminados (14 archivos: test_conv*.py, test_sc_*.py, test_proxy*.py, check_timings.py, test_rick.mp3) ✅
+- [ ] **S-FIX8.11** Probar con cola real (659 items): medir cobertura SoundCloud en produccion (pendiente)
+> **Proyeccion:** 2000 tracks/dia, ~10 GB bandwidth, ~3.5h, **$0/mes**. Elimina dependencia de proxy ($240/mes inviable).
+> Lecciones: [SoundCloud API v2] Publica sin auth. client_id del frontend JS, cacheable. Transcodings progressive = descarga directa (mas rapido que HLS). DRM = ctr-encrypted-hls/cbc-encrypted-hls — excluir. [Converter sites] Todos con Turnstile/CAPTCHA, APIs muertas. Ejecutan yt-dlp en servidores propios con IP pools. [Piped/Invidious] Ecosistema muerto Mar 2026. [pytubefix] Mismo GVS blocking que yt-dlp. [Deezer GW API] Requiere ARL (cookie login) para full tracks, anonymous solo da CSRF invalid.
