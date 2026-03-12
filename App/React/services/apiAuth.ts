@@ -62,3 +62,11 @@ export const registrar = async (datos: {
 }) => {
     return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/registro', datos);
 };
+
+/*
+ * QQ14: Cierra la sesión del usuario via API (sin redirigir a wp-login.php).
+ * Destruye cookies WP server-side.
+ */
+export const cerrarSesion = async () => {
+    return apiPost<{ ok: boolean }>('/auth/logout', {});
+};

@@ -14,6 +14,7 @@
 namespace App\Kamples;
 
 use App\Kamples\Api\KamplesController;
+use App\Kamples\Auth\GuardiaWpAdmin;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
@@ -38,6 +39,9 @@ class KamplesInit
 
         /* CORS para app desktop Tauri — dev y producción */
         self::registrarCors();
+
+        /* QQ14: Bloquear wp-admin y wp-login.php para no-admins */
+        GuardiaWpAdmin::registrar();
 
         /* Registrar API REST */
         KamplesController::registrar();

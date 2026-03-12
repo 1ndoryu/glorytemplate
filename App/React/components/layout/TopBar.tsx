@@ -15,6 +15,7 @@ import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
+import { cerrarSesion as apiCerrarSesion } from '@app/services/apiAuth';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
@@ -161,8 +162,10 @@ export const TopBar = (): JSX.Element => {
             etiqueta: 'Cerrar sesión',
             icono: <LogOut size={14} />,
             peligro: true,
-            onClick: () => {
-                window.location.href = '/wp-login.php?action=logout';
+            onClick: async () => {
+                await apiCerrarSesion();
+                /* Recarga completa para invalidar nonces WP y estado React */
+                window.location.href = '/';
             },
         },
     ];

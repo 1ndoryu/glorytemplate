@@ -18,6 +18,7 @@ use App\Kamples\Api\Helpers\Validador;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Auth\JwtService;
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\KamplesLogger;
 
 class AuthController
@@ -34,6 +35,12 @@ class AuthController
             'methods'             => 'POST',
             'callback'            => [self::class, 'registro'],
             'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route($namespace, '/auth/logout', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'logout'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
     }
 
@@ -268,5 +275,21 @@ class AuthController
             'rol'             => $row[UsuariosExtCols::ROL] ?? 'user',
             'creadoEn'        => $row[UsuariosExtCols::CREATED_AT] ?? null,
         ];
+    }
+
+    /**
+     * POST /auth/logout
+     * Cierra la sesión de WordPress (destruye cookies) y retorna JSON.
+     * QQ14: Permite logout sin navegar a wp-login.php.
+     */
+    public static function logout(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            \wp_logout();
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en logout', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error al cerrar sesión'], 500);
+        }
     }
 }
