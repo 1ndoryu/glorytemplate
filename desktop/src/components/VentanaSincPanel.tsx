@@ -228,6 +228,7 @@ export function VentanaSincPanel(): JSX.Element {
         elegirCarpeta,
         alternarSincronizacion,
         sincronizarAhora,
+        reforzarSyncAhora,
         abrirCarpetaSincronizacion,
         limpiarHistorialLocal,
     } = usePanelSincronizacion();
@@ -273,6 +274,12 @@ export function VentanaSincPanel(): JSX.Element {
             etiqueta: 'Sincronizar ahora',
             icono: <FolderSync size={14} />,
             onClick: sincronizarAhora,
+        },
+        {
+            id: 'reforzar-sync',
+            etiqueta: 'Reforzar sincronización',
+            icono: <RefreshCw size={14} />,
+            onClick: reforzarSyncAhora,
         },
         {
             id: 'elegir-carpeta',
@@ -324,6 +331,7 @@ export function VentanaSincPanel(): JSX.Element {
         elegirCarpeta,
         limpiarHistorialLocal,
         ocultarVentana,
+        reforzarSyncAhora,
         sincronizacionActiva,
         sincronizarAhora,
     ]);

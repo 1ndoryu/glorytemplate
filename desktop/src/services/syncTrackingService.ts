@@ -687,6 +687,25 @@ export async function reactivarSync(sampleId: number): Promise<boolean> {
     return encontrado;
 }
 
+/*
+ * Reactiva todos los samples marcados como syncDeshabilitado.
+ * Elimina sus entradas del tracking para forzar re-descarga en la próxima sync.
+ * Usado por "Reforzar sincronización" para recuperar archivos borrados localmente.
+ */
+export async function reactivarTodosSyncDeshabilitados(): Promise<number> {
+    let reactivados = 0;
+    for (const [clave, archivo] of Object.entries(datos.archivos)) {
+        if (archivo.syncDeshabilitado) {
+            delete datos.archivos[clave];
+            reactivados++;
+        }
+    }
+    if (reactivados > 0) {
+        await registrarEnJournal('MARK_ENABLED_ALL', { reactivados });
+    }
+    return reactivados;
+}
+
 export function listarArchivosPorColeccion(coleccionId: number | null): ArchivoTracking[] {
     return Object.values(datos.archivos).filter(a => a.coleccionId === coleccionId);
 }

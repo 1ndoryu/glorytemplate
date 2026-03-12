@@ -28,6 +28,7 @@ export type TipoOperacionJournal =
     | 'MOVE_FILE'
     | 'MARK_DISABLED'
     | 'MARK_ENABLED'
+    | 'MARK_ENABLED_ALL'
     | 'UPDATE_HISTORIAL';
 
 export interface OperacionJournal {

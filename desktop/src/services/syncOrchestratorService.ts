@@ -342,3 +342,41 @@ export async function forzarResync(
 
     return sincronizarConServidor(onProgreso);
 }
+
+/*
+ * Reforzar sync: reactiva samples marcados como no_sincronizar (borrados localmente)
+ * y ejecuta sync completa para re-descargarlos.
+ *
+ * Diferencia con forzarResync: forzarResync resetea TODO el tracking (re-descarga completa).
+ * reforzarSync solo reactiva los samples con syncDeshabilitado, preservando el tracking
+ * de archivos que ya existen en disco. Es más rápida y menos agresiva.
+ */
+export async function reforzarSync(
+    onProgreso?: ProgressCallback,
+): Promise<{ nuevos: number; eliminados: number }> {
+    const { trackingModule } = estado;
+
+    /* Reactivar todos los samples con sync deshabilitado en tracking v2 */
+    let reactivadosV2 = 0;
+    if (trackingModule) {
+        reactivadosV2 = await trackingModule.reactivarTodosSyncDeshabilitados();
+        if (reactivadosV2 > 0) {
+            await trackingModule.registrarAccion({
+                tipo: 'creado',
+                descripcion: `Reforzar sync: ${reactivadosV2} samples reactivados para re-descarga`,
+            });
+        }
+    }
+
+    /* Reactivar en índice v1 (legacy fallback): eliminar entradas deshabilitadas */
+    const cantidadAntes = estado.indiceArchivos.length;
+    estado.indiceArchivos = estado.indiceArchivos.filter(a => !a.syncDeshabilitado);
+    const reactivadosV1 = cantidadAntes - estado.indiceArchivos.length;
+    if (reactivadosV1 > 0 || reactivadosV2 > 0) {
+        await guardarIndice();
+    }
+
+    logSync.info('syncOrchestrator', `Reforzar sync: ${reactivadosV2 + reactivadosV1} samples reactivados (v2: ${reactivadosV2}, v1: ${reactivadosV1})`);
+
+    return sincronizarConServidor(onProgreso, { forzar: true });
+}

@@ -44,6 +44,7 @@ export {
     sincronizarConServidor,
     sincronizarSampleIndividual,
     forzarResync,
+    reforzarSync,
 } from './syncOrchestratorService';
 export {
     registrarDescarga,

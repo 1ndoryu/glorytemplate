@@ -46,6 +46,7 @@ interface KamplesSync {
     }>;
     obtenerColeccionesSync?: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
     forzarResync?: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
+    reforzarSync?: (onProgreso?: (p: ProgresoSync) => void) => Promise<{ nuevos: number; eliminados: number }>;
     haySyncEnCurso?: () => boolean;
     limpiarHistorialSync?: () => Promise<void>;
     recargarHistorialDesdeStore?: () => Promise<void>;
@@ -444,6 +445,31 @@ export const usePanelSincronizacion = () => {
         }
     }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial, setHistorialSamples]);
 
+    /* Reforzar sync: reactiva samples borrados localmente y los re-descarga.
+     * Menos agresivo que forzarResync (que resetea todo el tracking). */
+    const reforzarSyncAhora = useCallback(async () => {
+        const srv = obtenerSync();
+        if (!srv?.reforzarSync || !carpetaLocal) return;
+        try {
+            const resultado = await ejecutarSyncConProgreso(
+                (onProgreso) => srv.reforzarSync!(onProgreso),
+                'Reforzando sincronización...',
+            );
+            setEstado(
+                'completado',
+                `Reforzar sync completa: ${resultado.nuevos} archivos recuperados`,
+            );
+            if (srv.obtenerHistorialSync) {
+                setHistorial(srv.obtenerHistorialSync(50));
+            }
+            if (srv.obtenerHistorialSamplesSync) {
+                setHistorialSamples(srv.obtenerHistorialSamplesSync(50));
+            }
+        } catch {
+            setEstado('error', 'Error al reforzar sincronización');
+        }
+    }, [carpetaLocal, ejecutarSyncConProgreso, setEstado, setHistorial, setHistorialSamples]);
+
     const espacioFormateado = formatearTamano(espacioUsado);
     const ultimaSyncFormateada = ultimaSync > 0 ? formatearTiempoRelativo(ultimaSync) : 'Nunca';
 
@@ -469,6 +495,7 @@ export const usePanelSincronizacion = () => {
         alternarSincronizacion,
         sincronizarAhora,
         forzarResyncAhora,
+        reforzarSyncAhora,
         limpiarHistorialLocal,
     };
 };

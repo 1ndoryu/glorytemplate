@@ -34,6 +34,7 @@ interface Window {
         obtenerHistorialSamplesSync: (limite?: number) => Array<{ sampleId: number; nombreArchivo: string; estado: 'detectado' | 'subiendo' | 'sincronizado' | 'error' | 'moviendo' | 'descargando' | 'descargado'; imagenUrl: string | null; rutaLocal: string | null; coleccionNombre?: string; timestampCreado: number; timestampActualizado: number; error?: string }>;
         obtenerColeccionesSync: () => Array<{ id: number; nombre: string; carpetaLocal: string; archivos: number }>;
         forzarResync: (onProgreso?: (progreso: { actual: number; total: number; sampleId: number; nombre: string; estado: 'descargando' | 'descargado' | 'error'; tamano?: number; ruta?: string }) => void) => Promise<{ nuevos: number; eliminados: number }>;
+        reforzarSync: (onProgreso?: (progreso: { actual: number; total: number; sampleId: number; nombre: string; estado: 'descargando' | 'descargado' | 'error'; tamano?: number; ruta?: string }) => void) => Promise<{ nuevos: number; eliminados: number }>;
         haySyncEnCurso: () => boolean;
         limpiarHistorialSync: () => Promise<void>;
         recargarHistorialDesdeStore: () => Promise<void>;
