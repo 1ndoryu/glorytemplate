@@ -189,11 +189,9 @@ Tooltip flotante de perfil estilo Twitter/X. **Arquitectura:** tooltipPerfilStor
 
 Fix crash ModalSeguidores: `TypeError: Cannot read properties of undefined (reading 'length')`. **Causa:** `obtenerSeguidores()` retorna `RespuestaApi<{ data: SeguidorResumen[]; total: number }>` — si la API retorna `resp.data` sin campo `data` interno (shape inesperado), `setSeguidores(resp.data.data)` asigna `undefined` al estado, y `seguidores.length` en `hayMas` crashea. **Fix:** Guard defensivo `resp.data.data ?? []` y `resp.data.total ?? 0` en la carga inicial y en `cargarMas()`. Archivo: useModalSeguidores.ts.
 
-## QQ49
+## QQ49 ✅ [AG-QQF]
 
-Reproductor, actualmente hay un reproductor, fue de las primeras cosas que se implemente pero no esta nada actualizado y de hecho, siempre estuvo desactivado, vamos a rehacerlo.
-
-Tiene que ser muy minimalista, pequeño, centrado abajo, que tiene poder desactivarse o activarse en la configuracion, 50% border radius, muestra la portada del sample que se reproduce 50% borde radius, la reproduccin tiene que ser sincronizada, actualmente los samples tienen un wave que muestra como se produce el audio, bueno, el progreso de la repdoucion tiene que ser sincronizado, no olvides usar las variables correctas, tiene que tener boton de play, de like pasar a la siguiente y retroceder, boton de activar o desactivar aleatoreo, y pasar a la siguiente o retroceder tiene que funcionar en cualquier ocntexto, en la lista de samples en cualquier lugar, en las colecciones, etc.
+Reproductor minimalista rebuild completo. **Arquitectura:** Audio global único via `useMotorAudio` (1 HTMLAudioElement persistente montado en LayoutPrincipal), store reescrito (`contexto` reemplaza `cola`, `reproducir()` reemplaza `setSample`, `pendingSeek` para seek sin refs), `useAudioPlayback` delegado 100% al store (sin audio local por tarjeta). **UI:** Pill shape (`border-radius: 9999px`, `width: fit-content`, `max-width: 640px`, `height: 48px`), portada circular 36px, controles inline (prev/play/next con BotonBase ghost), barra de progreso 3px, botón like con optimistic update, shuffle toggle. **Contexto:** Cada `<TarjetaSample>` recibe `contexto` (lista de samples del feed/colección/etc.) para que siguiente/anterior funcionen en cualquier vista. Limpieza: eliminado `useReproductor.ts` (dead code), eliminados props `activa`/`reproduciendo`/`progreso` de TarjetaSample (ahora lee del store). Archivos: reproductorStore.ts, useMotorAudio.ts (nuevo), useReproductorGlobal.ts, useAudioPlayback.ts, useTarjetaSample.ts, ReproductorGlobal.tsx, TarjetaSample.tsx, LayoutPrincipal.tsx, reproductorGlobal.css, ReproductorIsland.tsx, + 8 islands/componentes actualizados con contexto.
 
 ## QQ50 
 
@@ -217,9 +215,42 @@ Fix géneros favoritos no se guardaban. **Causa raíz:** Migraciones SQL v036-v0
 
 ## QQ55
 
+Tengo dudas sobre el arrastre de sonidos desde la aplicacion, actualmente funciona, cuando arrastro un un sonido, se pega o se copia donde lo arrastre, esto es realmente util para tener la aplicación abierta y arrastrar un sonido a un daw externo, lo que hay que revisar es que esto sea igual que hacer una descarga, o sea debe consumir un credito en caso de que el sample no haya sido descargado, y sample que arrastra, debe ser el original, no la version optmizada. He estado probando y funciona porque el archivo resultante es un wav, pero esto una pequeña revision.
 
+## QQ56
+
+Revisiones de optmizacion de uso de banda, revisar que los audios optimizados se cachen durante 3 meses, esto no cambia, las imagenes de las publicaciones que esten optimizadas a un 70% de calidad y cacheadas, revision de almacenamiento.
+
+A. Que los audios eliminados vayan a la papelera por 30 días, y que despues de 30 dias se borren completamentamente del disco. Esto incluye las publicaciones, los adjuntos, los comentarios, todos los medias que generan estas interacciones deben estar muy optimizados, el de las publicaciones un 70%, el de los comentarios un 50% (cuando digo 70% me refiero a que mientras mas alto sea el valor, mas calidad tiene), los mensajes 40%. Cuando se borre un chat que se borren todos los adjuntos, cuando se borre una publicaciones que se borre todos los comentarios y sus adjuntos, cuando se borre un sample sus comentarios y adjuntos tambien, cuando se borre un comentario de alguna cancion o sampleo, etc. Creo que se entiende mi idea.  
+
+## QQ57
+
+No hay una forma de ver la papelera, que los usuarios vean el boton de 3 puntos en sus propios perfiles y que so abra un menu contextual donde aparezca configuracion, y otro de papelera, la papelera es un modal grande no aparece una lista de lo que ha eliminado, incluyendo sus samples y publicaciones, los comentarios, mensajes y esas cosas no van a la papelera. 
+
+## QQ58
+
+Hay varios errores de react, revisa.
+
+## QQ59
+
+Presiento que hay errores de php, si existe alguna forma de escanearlos todos, seria genial.
+
+## QQ60
+
+Cuando le doy a comprar a un sample, no hace nada, debería abrir un modal con la inforamcion de la compra que se va a realizar, minimalista, y al confirmar, abrir stripe. No he configurado el webhook porque aun no estamos en produccion pero supongo que eso no debería ser problema para abrir la compra.
+
+## QQ61 
+
+
+
+# ANTES DE LA ULTIMA TAREA
+
+Asegurarte de que todo los cambios se hayan subido, no importa que no sean tus cambios, haz commit de todo. Una vez que todo este asegurado. Haz una copia de seguirdad local del tema, en la misma carpeta de themes.
+
+Cuandos tengas el respaldo de seguridad, ahora, lo que vas a hacer es que vas a crear u
 
 ## ULTIMA TAREA
 
-Desplegar kamples en la vps con coolify manager rust
+Desplegar kamples en la vps con coolify manager rust (kamples.com)
 
+Primero vamos ahorrarnos trabajo y asegurarnos de que los procesos de fondo scrapper, recortes, webhoock para los mensajes, notificaciones, los despliegues y todas estas cosas vayan a funcionar en linux, incluyendo la IA, la optización de audio, etc. Cuando hagas el despliegue, la url no funciona, coolify tiene un problema de que las url incialmente son de testeos, asi que no intentes empezar con kamples, deja que se cree la url temporal que genera coolify, entonces, cuando se suba todo, asegurate que haga el build automatico con cada update, que se selecione el tema glory template, instala el sitio con lo que suele pedir la instalacion para que tu mismo compruebues si corre, va a dar error, siempre da error, asi que activa el modo dev, no intentes ejecutar comandos desde coolify el powershell siempre tien probles con las comillas, la mejor opcion es crear los comandos en local y usar algun mecanimos para ejecutarlos en la vps 
