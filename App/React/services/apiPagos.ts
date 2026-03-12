@@ -257,3 +257,22 @@ export const abrirPortalFacturacion = async (): Promise<{ ok: boolean; url?: str
         return { ok: false, error: 'Error de conexión' };
     }
 };
+
+/*
+ * QQ11: Crea sesión de Stripe Checkout para compra individual de sample.
+ * Redirige a Stripe para completar el pago one-time.
+ */
+export const crearCheckoutSample = async (
+    sampleId: number
+): Promise<{ ok: boolean; url?: string; error?: string }> => {
+    try {
+        const resp = await apiPost<{ ok: boolean; url: string }>('/pagos/checkout-sample', { sampleId });
+        if (resp.ok && resp.data?.url) {
+            return { ok: true, url: resp.data.url };
+        }
+        return { ok: false, error: resp.error ?? 'Error al crear sesión de compra' };
+    } catch (err) {
+        log.error('Error creando checkout sample', err);
+        return { ok: false, error: 'Error de conexión' };
+    }
+};

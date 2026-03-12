@@ -7,6 +7,7 @@
 import { apiGet, apiPost } from './apiCliente';
 import { crearLogger } from './logger';
 import type { RespuestaApi } from './apiCliente';
+import type { SampleResumen } from '@app/types';
 
 const log = crearLogger('apiDescargas');
 
@@ -66,4 +67,21 @@ export const puedeDescargar = async (): Promise<boolean> => {
     const resp = await obtenerLimites();
     if (!resp.ok || !resp.data) return false;
     return resp.data.ilimitado || resp.data.usadas < resp.data.limite;
+};
+
+/*
+ * QQ11: Obtener samples comprados por el usuario.
+ * Retorna lista de SampleResumen con yaComprado=true.
+ */
+export const obtenerComprados = async (): Promise<RespuestaApi<SampleResumen[]>> => {
+    try {
+        const resp = await apiGet<{ ok: boolean; data: SampleResumen[] }>('/descargas/comprados');
+        if (resp.ok && resp.data) {
+            return { ok: true, data: resp.data.data ?? [], error: null, status: resp.status };
+        }
+        return { ok: false, data: [], error: resp.error, status: resp.status };
+    } catch (err) {
+        log.error('Error obteniendo comprados', err);
+        return { ok: false, data: [], error: 'Error de red', status: 500 };
+    }
 };

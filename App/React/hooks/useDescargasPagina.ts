@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { obtenerColeccionados } from '@app/services/apiExplorador';
-import { obtenerLimites, type LimitesDescarga } from '@app/services/apiDescargas';
+import { obtenerLimites, obtenerComprados, type LimitesDescarga } from '@app/services/apiDescargas';
 import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
@@ -17,25 +17,31 @@ const log = crearLogger('useDescargasPagina');
 
 export interface UseDescargasPaginaResultado {
     samples: SampleResumen[];
+    comprados: SampleResumen[];
     limites: LimitesDescarga | null;
     cargando: boolean;
+    cargandoComprados: boolean;
     proveedorSugerencias: (pagina: number) => Promise<SampleResumen[]>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
 export function useDescargasPagina(): UseDescargasPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
+    const [comprados, setComprados] = useState<SampleResumen[]>([]);
     const [limites, setLimites] = useState<LimitesDescarga | null>(null);
     const [cargando, setCargando] = useState(true);
+    const [cargandoComprados, setCargandoComprados] = useState(true);
 
-    /* Carga inicial: descargas + límites en paralelo */
+    /* Carga inicial: descargas + límites + comprados en paralelo */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
+            setCargandoComprados(true);
             try {
-                const [respDescargas, respLimites] = await Promise.all([
+                const [respDescargas, respLimites, respComprados] = await Promise.all([
                     obtenerColeccionados(1, 30),
                     obtenerLimites(),
+                    obtenerComprados(),
                 ]);
                 if (respDescargas.ok && respDescargas.data) {
                     setSamples(respDescargas.data.data ?? []);
@@ -43,10 +49,14 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
                 if (respLimites.ok && respLimites.data) {
                     setLimites(respLimites.data);
                 }
+                if (respComprados.ok && respComprados.data) {
+                    setComprados(respComprados.data);
+                }
             } catch (err) {
                 log.error('Error cargando descargas', err);
             }
             setCargando(false);
+            setCargandoComprados(false);
         };
         cargar();
     }, []);
@@ -130,5 +140,5 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         }
     }, [samples]);
 
-    return { samples, limites, cargando, proveedorSugerencias, manejarLike };
+    return { samples, comprados, limites, cargando, cargandoComprados, proveedorSugerencias, manejarLike };
 }

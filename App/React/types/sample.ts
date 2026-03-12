@@ -138,6 +138,8 @@ export interface SampleResumen {
     yaGuardadoEnColeccion?: boolean;
     yaComentado?: boolean;
     esMio?: boolean;
+    /* QQ11: true si el usuario ya compró este sample (transaccion compra_sample completada) */
+    yaComprado?: boolean;
 }
 
 /* Importamos referencia para evitar circular */

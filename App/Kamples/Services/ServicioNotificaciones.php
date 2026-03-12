@@ -261,6 +261,28 @@ class ServicioNotificaciones
     }
 
     /**
+     * Notifica al creador que alguien compro su sample.
+     */
+    public static function compraSample(int $creadorId, int $compradorId, int $sampleId, float $precio): void
+    {
+        $comprador = self::obtenerNombreActor($compradorId);
+        $precioFormato = '$' . number_format($precio, 2);
+
+        self::crear(
+            $creadorId,
+            'venta',
+            "{$comprador} compro tu sample por {$precioFormato}",
+            [
+                'comprador_id' => $compradorId,
+                'sample_id'    => $sampleId,
+                'precio'       => $precio,
+            ],
+            $compradorId,
+            'Venta de sample'
+        );
+    }
+
+    /**
      * Obtener username para mensajes legibles.
      * Cache estatico evita queries repetidas para el mismo actor (N+1).
      */

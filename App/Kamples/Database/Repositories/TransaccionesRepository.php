@@ -236,4 +236,102 @@ class TransaccionesRepository extends BaseRepository
             ['userId' => $creadorId, 'dias' => self::intervaloDias($intervalo), 'estado' => TransaccionesEnums::ESTADO_COMPLETED]
         );
     }
+
+    /**
+     * Verifica si un usuario ya compró un sample específico.
+     * Retorna true si existe transacción completada de tipo compra_sample.
+     */
+    public static function haComprado(int $userId, int $sampleId): bool
+    {
+        $tabla = TransaccionesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT 1 FROM {$tabla}"
+            . " WHERE " . TransaccionesCols::COMPRADOR_ID . " = :userId"
+            . " AND " . TransaccionesCols::SAMPLE_ID . " = :sampleId"
+            . " AND " . TransaccionesCols::TIPO . " = :tipo"
+            . " AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)"
+            . " LIMIT 1",
+            [
+                'userId'   => $userId,
+                'sampleId' => $sampleId,
+                'tipo'     => TransaccionesEnums::TIPO_COMPRA_SAMPLE,
+                'estado1'  => TransaccionesEnums::ESTADO_COMPLETADA,
+                'estado2'  => TransaccionesEnums::ESTADO_COMPLETED,
+            ]
+        );
+
+        return $row !== null;
+    }
+
+    /**
+     * Registra una transacción de compra de sample individual.
+     * Revenue share: el creador recibe su porcentaje según su plan.
+     */
+    public static function registrarCompraSample(
+        int $compradorId,
+        int $creadorId,
+        int $sampleId,
+        float $monto,
+        float $pagoCreador,
+        float $comisionPlataforma,
+        ?string $stripePaymentId = null
+    ): int {
+        $tabla = TransaccionesCols::TABLA;
+
+        static::ejecutar(
+            "INSERT INTO {$tabla} (" . TransaccionesCols::COMPRADOR_ID
+            . ", " . TransaccionesCols::CREADOR_ID
+            . ", " . TransaccionesCols::SAMPLE_ID
+            . ", " . TransaccionesCols::TIPO
+            . ", " . TransaccionesCols::MONTO
+            . ", " . TransaccionesCols::PAGO_CREADOR
+            . ", " . TransaccionesCols::COMISION_PLATAFORMA
+            . ", " . TransaccionesCols::ESTADO
+            . ", " . TransaccionesCols::STRIPE_PAYMENT_ID
+            . ") VALUES (:comprador, :creador, :sample, :tipo, :monto, :pago, :comision, :estado, :stripeId)",
+            [
+                'comprador' => $compradorId,
+                'creador'   => $creadorId,
+                'sample'    => $sampleId,
+                'tipo'      => TransaccionesEnums::TIPO_COMPRA_SAMPLE,
+                'monto'     => $monto,
+                'pago'      => $pagoCreador,
+                'comision'  => $comisionPlataforma,
+                'estado'    => TransaccionesEnums::ESTADO_COMPLETADA,
+                'stripeId'  => $stripePaymentId,
+            ]
+        );
+
+        $row = static::consultarUno("SELECT lastval() AS id");
+        return (int) ($row['id'] ?? 0);
+    }
+
+    /**
+     * Lista samples comprados por un usuario (para tab "Comprados" en /descargas).
+     * Retorna IDs de samples con transacción completada de tipo compra_sample.
+     */
+    public static function listarSamplesComprados(int $userId, int $limit = 50, int $offset = 0): array
+    {
+        $tabla = TransaccionesCols::TABLA;
+
+        return static::consultar(
+            "SELECT DISTINCT " . TransaccionesCols::SAMPLE_ID . " as sample_id, "
+            . "MIN(" . TransaccionesCols::CREATED_AT . ") as fecha_compra"
+            . " FROM {$tabla}"
+            . " WHERE " . TransaccionesCols::COMPRADOR_ID . " = :userId"
+            . " AND " . TransaccionesCols::TIPO . " = :tipo"
+            . " AND " . TransaccionesCols::ESTADO . " IN (:estado1, :estado2)"
+            . " GROUP BY " . TransaccionesCols::SAMPLE_ID
+            . " ORDER BY fecha_compra DESC LIMIT :limit OFFSET :offset",
+            [
+                'userId'  => $userId,
+                'tipo'    => TransaccionesEnums::TIPO_COMPRA_SAMPLE,
+                'estado1' => TransaccionesEnums::ESTADO_COMPLETADA,
+                'estado2' => TransaccionesEnums::ESTADO_COMPLETED,
+                'limit'   => $limit,
+                'offset'  => $offset,
+            ]
+        );
+    }
 }

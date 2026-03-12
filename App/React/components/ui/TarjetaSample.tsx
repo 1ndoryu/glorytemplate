@@ -6,7 +6,7 @@
  */
 
 import { useRef, type MouseEvent } from 'react';
-import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark } from 'lucide-react';
+import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign } from 'lucide-react';
 import type { SampleResumen, TipoReaccion } from '../../types';
 import { WaveformPlayer } from './WaveformPlayer';
 import { Badge } from './Badge';
@@ -41,7 +41,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         picosAudio, descargado, guardado, comentado, estaReproduciendo, progresoActual, clases, imagenPortada,
         manejarPlayPause, manejarLike, manejarReaccion, manejarQuitarReaccion,
         manejarColeccionar, manejarMenu, manejarGuardar, manejarSeek,
-        manejarDragStart, navegar, onClickTitulo, manejarComentar,
+        manejarDragStart, navegar, onClickTitulo, manejarComentar, requiereCompra,
     } = useTarjetaSample(props);
 
     /* Long press en mobile para abrir menú contextual (500ms) */
@@ -164,8 +164,8 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                     <MessageCircle size={18} fill={comentado ? 'currentColor' : 'none'} />
                 </BotonBase>
 
-                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${descargado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarColeccionar} type="button" aria-label="Coleccionar">
-                    <Plus size={18} />
+                <BotonBase variante="ghost" className={`tarjetaAccionBtn ${requiereCompra ? 'tarjetaAccionComprar' : ''} ${descargado ? 'tarjetaAccionLiked' : ''}`} onClick={manejarColeccionar} type="button" aria-label={requiereCompra ? `Comprar $${sample.precio}` : 'Coleccionar'}>
+                    {requiereCompra ? <DollarSign size={18} /> : <Plus size={18} />}
                 </BotonBase>
 
                 <BotonBase variante="ghost" className="tarjetaAccionBtn paddingExtraAccion tarjetaMenuBtn" onClick={manejarMenu} type="button" aria-label="Más opciones">

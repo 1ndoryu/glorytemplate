@@ -21,6 +21,7 @@ import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { descargarSample } from '@app/services/apiDescargas';
+import { crearCheckoutSample } from '@app/services/apiPagos';
 import { useNavigationStore } from '@/core/router';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
@@ -66,6 +67,10 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const [guardado, setGuardado] = useState(() => !!sample.yaGuardadoEnColeccion);
     const [comentado, setComentado] = useState(() => !!sample.yaComentado);
     const navegar = useNavigationStore(s => s.navegar);
+
+    /* Sample pro con precio pendiente de compra: muestra $ en vez de + */
+    const requiereCompra = !!sample.esPremium && (sample.precio ?? 0) > 0
+        && !sample.yaComprado && !sample.esMio;
 
     /*
      * Escucha evento global cuando este sample es guardado en una coleccion (boton Bookmark).
@@ -123,6 +128,18 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const manejarColeccionar = useCallback(async (e: MouseEvent) => {
         e.stopPropagation();
         if (descargado) return;
+
+        /* Sample pro con precio: redirigir a Stripe Checkout en vez de descargar */
+        if (requiereCompra) {
+            const resp = await crearCheckoutSample(sample.id);
+            if (resp.ok && resp.url) {
+                window.location.href = resp.url;
+            } else {
+                toast.error(resp.error ?? 'Error al iniciar la compra');
+            }
+            return;
+        }
+
         if (onDescargar) {
             onDescargar(sample.id);
             setDescargado(true);
@@ -160,7 +177,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
             toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
             usePlanesModalStore.getState().abrir();
         }
-    }, [onDescargar, sample.id, sample.metadata, descargado]);
+    }, [onDescargar, sample.id, sample.metadata, descargado, requiereCompra]);
 
     /* Menú contextual */
     const manejarMenu = useCallback((e: MouseEvent) => {
@@ -279,6 +296,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         progresoActual,
         clases,
         imagenPortada,
+        requiereCompra,
         manejarPlayPause,
         manejarLike,
         manejarReaccion,

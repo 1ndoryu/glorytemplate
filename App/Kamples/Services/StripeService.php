@@ -258,6 +258,58 @@ class StripeService
     }
 
     /**
+     * Crea una sesión de Checkout para compra individual de sample (one-time payment).
+     * Usa modo 'payment' en vez de 'subscription'.
+     *
+     * @param int    $userId     ID del comprador
+     * @param int    $sampleId   ID del sample a comprar
+     * @param string $titulo     Título del sample (para mostrar en Stripe)
+     * @param float  $precio     Precio en USD
+     * @param int    $creadorId  ID del creador (metadata para webhook)
+     * @param string $urlExito   URL de éxito post-pago
+     * @param string $urlCancelar URL si cancela
+     */
+    public static function crearCheckoutSample(
+        int $userId,
+        int $sampleId,
+        string $titulo,
+        float $precio,
+        int $creadorId,
+        string $urlExito,
+        string $urlCancelar
+    ): array {
+        $customerId = self::obtenerOCrearCustomer($userId);
+        if (!$customerId) {
+            return ['error' => 'No se pudo crear/obtener el customer de Stripe'];
+        }
+
+        /* Stripe espera el monto en centavos */
+        $montoCentavos = (int) round($precio * 100);
+
+        if ($montoCentavos < 50) {
+            return ['error' => 'El precio mínimo es $0.50 USD'];
+        }
+
+        $params = [
+            'mode'                            => 'payment',
+            'customer'                        => $customerId,
+            'line_items[0][price_data][currency]'    => 'usd',
+            'line_items[0][price_data][unit_amount]' => $montoCentavos,
+            'line_items[0][price_data][product_data][name]' => $titulo,
+            'line_items[0][quantity]'          => 1,
+            'success_url'                     => $urlExito . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'                      => $urlCancelar,
+            'metadata[tipo]'                  => 'compra_sample',
+            'metadata[user_id]'               => $userId,
+            'metadata[sample_id]'             => $sampleId,
+            'metadata[creador_id]'            => $creadorId,
+            'metadata[precio]'                => $precio,
+        ];
+
+        return self::request('POST', '/checkout/sessions', $params);
+    }
+
+    /**
      * Crea un enlace al Customer Portal de Stripe.
      */
     public static function crearPortalSession(int $userId, string $urlRetorno): array
@@ -355,6 +407,22 @@ class StripeService
     public static function obtenerConfigPlan(string $plan): array
     {
         return self::PLANES[$plan] ?? self::PLANES['free'];
+    }
+
+    /**
+     * Calcula revenue share para compra individual de sample.
+     * Retorna array con pagoCreador y comisionPlataforma basado en el plan del creador.
+     * El creador recibe su revenue_share del precio; la plataforma el resto.
+     */
+    public static function calcularRevenueShareSample(float $precio, string $planCreador): array
+    {
+        $config = self::obtenerConfigPlan($planCreador);
+        $share = $config['revenue_share'] ?? 0.70;
+
+        return [
+            'pagoCreador'        => round($precio * $share, 2),
+            'comisionPlataforma' => round($precio * (1 - $share), 2),
+        ];
     }
 
     /**

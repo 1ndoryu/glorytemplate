@@ -19,7 +19,12 @@ use App\Kamples\Services\StripeService;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\TransaccionesRepository;
+use App\Kamples\Services\ServicioEmailCompra;
 
 class PagosController
 {
@@ -28,6 +33,12 @@ class PagosController
         register_rest_route($namespace, '/pagos/checkout', [
             'methods'             => 'POST',
             'callback'            => [self::class, 'crearCheckout'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/pagos/checkout-sample', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'crearCheckoutSample'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
@@ -92,6 +103,89 @@ class PagosController
         ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en PagosController::crearCheckout', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    /*
+     * POST /pagos/checkout-sample — Crea sesion Stripe Checkout para compra individual de sample.
+     * Body: { sampleId: number }
+     */
+    public static function crearCheckoutSample(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $body = $request->get_json_params();
+            $sampleId = (int) ($body['sampleId'] ?? 0);
+
+            if ($sampleId <= 0) {
+                return new \WP_REST_Response(['code' => 'sample_invalido', 'message' => 'ID de sample requerido'], 400);
+            }
+
+            /* Verificar que el sample existe, es premium y tiene precio */
+            $sample = SamplesRepository::buscarParaDescarga($sampleId);
+            if (!$sample) {
+                return new \WP_REST_Response(['code' => 'sample_no_encontrado'], 404);
+            }
+
+            $esPremium = (bool) ($sample[SamplesCols::ES_PREMIUM] ?? false);
+            $precio = isset($sample[SamplesCols::PRECIO]) ? (float) $sample[SamplesCols::PRECIO] : 0;
+
+            if (!$esPremium || $precio <= 0) {
+                return new \WP_REST_Response(['code' => 'no_comprable', 'message' => 'Este sample no tiene precio de venta'], 400);
+            }
+
+            /* No permitir comprar tu propio sample */
+            $creadorId = (int) ($sample[SamplesCols::CREADOR_ID] ?? 0);
+            if ($creadorId === $userId) {
+                return new \WP_REST_Response(['code' => 'propio_sample', 'message' => 'No puedes comprar tu propio sample'], 400);
+            }
+
+            /* Verificar si ya lo compro */
+            if (TransaccionesRepository::haComprado($userId, $sampleId)) {
+                return new \WP_REST_Response(['code' => 'ya_comprado', 'message' => 'Ya compraste este sample'], 400);
+            }
+
+            $siteUrl = \home_url();
+            $urlExito = $siteUrl . '/descargas/?compra=exito&sample=' . $sampleId;
+            $urlCancelar = $siteUrl . '/sample/' . ($sample[SamplesCols::SLUG] ?? $sampleId) . '/?compra=cancelado';
+
+            $resultado = StripeService::crearCheckoutSample(
+                $userId,
+                $sampleId,
+                $sample[SamplesCols::TITULO] ?? 'Sample',
+                $precio,
+                $creadorId,
+                $urlExito,
+                $urlCancelar
+            );
+
+            if (isset($resultado['error'])) {
+                KamplesLogger::error('Error creando checkout sample', ['error' => $resultado['error']]);
+                return new \WP_REST_Response([
+                    'code' => 'error_checkout',
+                    'message' => $resultado['error']['message'] ?? $resultado['error'],
+                ], 500);
+            }
+
+            if (!isset($resultado['url'])) {
+                return new \WP_REST_Response(['code' => 'sin_url', 'message' => 'No se generó URL de checkout'], 500);
+            }
+
+            return new \WP_REST_Response([
+                'ok'  => true,
+                'url' => $resultado['url'],
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en PagosController::crearCheckoutSample', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -168,7 +262,13 @@ class PagosController
 
         switch ($tipo) {
             case 'checkout.session.completed':
-                self::procesarCheckoutCompletado($datos);
+                /* Distinguir suscripcion vs compra de sample via metadata */
+                $metaTipo = $datos['metadata']['tipo'] ?? '';
+                if ($metaTipo === 'compra_sample') {
+                    self::procesarCompraSampleCompletada($datos);
+                } else {
+                    self::procesarCheckoutCompletado($datos);
+                }
                 break;
 
             case 'customer.subscription.updated':
@@ -362,5 +462,67 @@ class PagosController
             'charges'  => $cargosActivos,
             'payouts'  => $payoutsActivos,
         ]);
+    }
+
+    /**
+     * Procesa compra individual de sample completada vía Stripe Checkout.
+     * Registra transaccion, notifica y envia email con enlace de descarga.
+     */
+    private static function procesarCompraSampleCompletada(array $sesion): void
+    {
+        $userId = (int) ($sesion['metadata']['user_id'] ?? 0);
+        $sampleId = (int) ($sesion['metadata']['sample_id'] ?? 0);
+        $creadorId = (int) ($sesion['metadata']['creador_id'] ?? 0);
+        $precio = (float) ($sesion['metadata']['precio'] ?? 0);
+        $stripePaymentId = $sesion['payment_intent'] ?? null;
+
+        if (!$userId || !$sampleId || !$creadorId || $precio <= 0) {
+            KamplesLogger::error('Webhook compra_sample: metadata incompleta', $sesion['metadata'] ?? []);
+            return;
+        }
+
+        /* Evitar procesar duplicados */
+        if (TransaccionesRepository::haComprado($userId, $sampleId)) {
+            KamplesLogger::info('Webhook compra_sample: ya procesada (duplicado)', [
+                'userId' => $userId, 'sampleId' => $sampleId,
+            ]);
+            return;
+        }
+
+        /* Calcular revenue share para el creador */
+        $creador = UsuariosExtRepository::buscarPorId($creadorId);
+        $planCreador = $creador[UsuariosExtCols::PLAN] ?? UsuariosExtEnums::PLAN_FREE;
+        $shares = StripeService::calcularRevenueShareSample($precio, $planCreador);
+
+        $transaccionId = TransaccionesRepository::registrarCompraSample(
+            $userId,
+            $creadorId,
+            $sampleId,
+            $precio,
+            $shares['pagoCreador'],
+            $shares['comisionPlataforma'],
+            $stripePaymentId
+        );
+
+        KamplesLogger::info('Compra de sample registrada', [
+            'transaccionId' => $transaccionId,
+            'comprador'     => $userId,
+            'creador'       => $creadorId,
+            'sample'        => $sampleId,
+            'precio'        => $precio,
+            'pagoCreador'   => $shares['pagoCreador'],
+        ]);
+
+        /* Notificar al creador */
+        ServicioNotificaciones::compraSample($creadorId, $userId, $sampleId, $precio);
+
+        /* Enviar email al comprador con enlace de descarga */
+        try {
+            ServicioEmailCompra::enviarConfirmacionCompra($userId, $sampleId, $precio);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error enviando email de compra', [
+                'userId' => $userId, 'sampleId' => $sampleId, 'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

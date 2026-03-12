@@ -27,6 +27,7 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 
 class DescargasController
 {
@@ -51,6 +52,12 @@ class DescargasController
         register_rest_route($namespace, '/descargas/limites', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'limites'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/descargas/comprados', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'listarComprados'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
@@ -103,9 +110,36 @@ class DescargasController
         $yaDescargado = !$esPropietario && DescargasRepository::yaDescargado($userId, $sampleId);
         $consumeCredito = !$esPropietario && !$yaDescargado;
 
-        /* Samples premium requieren plan pro o superior (excepto para el creador) */
-        if ((bool) $sample[SamplesCols::ES_PREMIUM] && $plan === UsuariosExtEnums::PLAN_FREE && !$esPropietario) {
-            return new \WP_REST_Response(['ok' => false, 'error' => 'Se requiere plan Pro o Premium para descargar este sample'], 403);
+        /*
+         * QQ11: Samples premium con precio requieren compra individual O plan Pro+.
+         * Si tiene precio > 0, verificar si el usuario ya lo compró.
+         * Si no lo compró Y no tiene plan Pro+, retornar info de compra necesaria.
+         */
+        $esPremium = (bool) ($sample[SamplesCols::ES_PREMIUM] ?? false);
+        $precioSample = isset($sample[SamplesCols::PRECIO]) ? (float) $sample[SamplesCols::PRECIO] : 0;
+
+        if ($esPremium && !$esPropietario) {
+            if ($precioSample > 0) {
+                /* Sample con precio individual: verificar compra */
+                $yaComprado = TransaccionesRepository::haComprado($userId, $sampleId);
+                if (!$yaComprado && $plan === UsuariosExtEnums::PLAN_FREE) {
+                    return new \WP_REST_Response([
+                        'ok' => false,
+                        'error' => 'Este sample requiere compra individual',
+                        'requiereCompra' => true,
+                        'precio' => $precioSample,
+                    ], 403);
+                }
+                /* Si ya lo compró, puede descargar sin consumir crédito */
+                if ($yaComprado) {
+                    $consumeCredito = false;
+                }
+            } else {
+                /* Sample premium sin precio: requiere plan Pro+ (comportamiento original) */
+                if ($plan === UsuariosExtEnums::PLAN_FREE) {
+                    return new \WP_REST_Response(['ok' => false, 'error' => 'Se requiere plan Pro o Premium para descargar este sample'], 403);
+                }
+            }
         }
 
         /* Determinar calidad y archivo */
@@ -355,6 +389,58 @@ class DescargasController
                 'error' => $e->getMessage(),
             ]);
             return false;
+        }
+    }
+
+    /**
+     * GET /descargas/comprados — Lista samples comprados por el usuario.
+     * Consulta transacciones de tipo compra_sample completadas y retorna samples normalizados.
+     */
+    public static function listarComprados(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $compras = TransaccionesRepository::listarSamplesComprados($userId, 50);
+
+            if (empty($compras)) {
+                return new \WP_REST_Response(['ok' => true, 'data' => []], 200);
+            }
+
+            $sampleIds = array_map(fn($c) => (int) $c['sample_id'], $compras);
+
+            /* Obtener samples completos via NormalizadorSample SQL (incluye creador, flags, etc.) */
+            $selectBase = NormalizadorSample::sqlSelectSamples($userId);
+            $placeholders = implode(',', array_fill(0, count($sampleIds), '?'));
+            $sql = $selectBase . " WHERE s." . SamplesCols::ID . " IN ({$placeholders})";
+
+            $params = [];
+            foreach ($sampleIds as $i => $sid) {
+                $params['sid' . $i] = $sid;
+            }
+            $namedPlaceholders = implode(',', array_map(fn($k) => ':' . $k, array_keys($params)));
+            $sql = $selectBase . " WHERE s." . SamplesCols::ID . " IN ({$namedPlaceholders})";
+
+            $samples = SamplesRepository::consultar($sql, $params);
+            $normalizados = NormalizadorSample::normalizarLista($samples);
+
+            /* Marcar todos como yaComprado = true (redundante con flag del SQL, pero explícito) */
+            foreach ($normalizados as &$s) {
+                $s['yaComprado'] = true;
+            }
+            unset($s);
+
+            return new \WP_REST_Response(['ok' => true, 'data' => $normalizados], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en DescargasController::listarComprados', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
         }
     }
 }

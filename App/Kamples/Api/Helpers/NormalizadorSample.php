@@ -27,6 +27,8 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
+use App\Config\Schema\_generated\TransaccionesCols;
+use App\Config\Schema\_generated\TransaccionesEnums;
 
 class NormalizadorSample
 {
@@ -141,6 +143,8 @@ class NormalizadorSample
     public const ALIAS_YA_GUARDADO_EN_COLECCION = 'ya_guardado_en_coleccion';
     public const ALIAS_YA_COMENTADO = 'ya_comentado';
     public const ALIAS_ES_MIO = 'es_mio';
+    /* QQ11: Flag que indica si el usuario ya compro este sample (transaccion compra_sample completada) */
+    public const ALIAS_YA_COMPRADO = 'ya_comprado';
 
     public static function normalizar(array $row): array
     {
@@ -230,6 +234,7 @@ class NormalizadorSample
             'yaGuardadoEnColeccion' => (bool) ($row[self::ALIAS_YA_GUARDADO_EN_COLECCION] ?? false),
             'yaComentado'        => (bool) ($row[self::ALIAS_YA_COMENTADO] ?? false),
             'esMio'              => (bool) ($row[self::ALIAS_ES_MIO] ?? false),
+            'yaComprado'         => (bool) ($row[self::ALIAS_YA_COMPRADO] ?? false),
         ];
     }
 
@@ -288,6 +293,11 @@ class NormalizadorSample
             ? "(s." . SamplesCols::CREADOR_ID . " = " . (int) $userId . ")"
             : "FALSE";
 
+        /* QQ11: yaComprado — true si existe transaccion completada de tipo compra_sample */
+        $yaCompradoExpr = $userId !== null
+            ? "(SELECT 1 FROM " . TransaccionesCols::TABLA . " WHERE " . TransaccionesCols::COMPRADOR_ID . " = " . (int) $userId . " AND " . TransaccionesCols::SAMPLE_ID . " = s." . SamplesCols::ID . " AND " . TransaccionesCols::TIPO . " = '" . TransaccionesEnums::TIPO_COMPRA_SAMPLE . "' AND " . TransaccionesCols::ESTADO . " IN ('" . TransaccionesEnums::ESTADO_COMPLETADA . "', '" . TransaccionesEnums::ESTADO_COMPLETED . "') LIMIT 1)"
+            : "NULL";
+
         /*
          * C202: No incluir ruta_original / ruta_optimizada en queries publicos.
          * Esto evita que la API exponga URLs directas a archivos sensibles.
@@ -344,7 +354,8 @@ class NormalizadorSample
                        {$yaColeccionadoExpr} AS ya_coleccionado,
                        {$yaGuardadoEnColeccionExpr} AS ya_guardado_en_coleccion,
                        {$yaComentadoExpr} AS ya_comentado,
-                       {$esMioExpr} AS es_mio
+                       {$esMioExpr} AS es_mio,
+                       {$yaCompradoExpr} AS ya_comprado
                 FROM {$ts} s
                 LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
     }

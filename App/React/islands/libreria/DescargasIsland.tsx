@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
@@ -27,11 +27,12 @@ import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Coleccionados' },
+    { id: 'comprados', etiqueta: 'Comprados' },
     { id: 'ideas', etiqueta: 'Más Ideas' },
 ];
 
 const DescargasBase = (): JSX.Element => {
-    const { samples, cargando, proveedorSugerencias, manejarLike } = useDescargasPagina();
+    const { samples, comprados, cargando, cargandoComprados, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -101,7 +102,7 @@ const DescargasBase = (): JSX.Element => {
             </div>
 
             {/* Contenido según tab activa — key distinta fuerza desmontaje (C46) */}
-            {tabActiva === 'descargas' ? (
+            {tabActiva === 'descargas' && (
                 samples.length === 0 ? (
                     <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
                         <Download size={32} />
@@ -136,7 +137,34 @@ const DescargasBase = (): JSX.Element => {
                         </div>
                     </>
                 )
-            ) : (
+            )}
+
+            {tabActiva === 'comprados' && (
+                cargandoComprados ? (
+                    <SkeletonColeccionDetalle cantidadSamples={3} />
+                ) : comprados.length === 0 ? (
+                    <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
+                        <ShoppingBag size={32} />
+                        <p>Los samples que compres aparecerán aquí.</p>
+                    </div>
+                ) : (
+                    <div className="listaDeSamples">
+                        {comprados.map((sample) => (
+                            <TarjetaSample
+                                key={sample.id}
+                                sample={sample}
+                                onLike={manejarLike}
+                                onMenu={menu.abrirMenu}
+                                onClickCreador={(u) => navegar(`/perfil/${u}`)}
+                                onClickTitulo={manejarClickTitulo}
+                                onComentar={manejarComentar}
+                            />
+                        ))}
+                    </div>
+                )
+            )}
+
+            {tabActiva === 'ideas' && (
                 <FeedSamples
                     key="descargas-ideas"
                     proveedor={proveedorSugerencias}
