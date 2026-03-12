@@ -341,10 +341,14 @@ def _soundcloud_request_headers() -> dict:
     Headers para requests a la API de SoundCloud.
     Incluye Authorization: OAuth si hay token GO configurado,
     lo que desbloquea tracks con policy='SNIP' (SoundCloud GO).
+
+    El token se lee en cada llamada (no a nivel de modulo) para que
+    funcione aunque load_dotenv() se llame despues de importar este modulo.
     """
     headers = dict(_HTTP_HEADERS)
-    if _soundcloud_oauth_token:
-        headers["Authorization"] = f"OAuth {_soundcloud_oauth_token}"
+    token = os.getenv("SOUNDCLOUD_OAUTH_TOKEN", "").strip() or None
+    if token:
+        headers["Authorization"] = f"OAuth {token}"
     return headers
 
 
@@ -374,7 +378,8 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
 
     # Buscar track — con GO (OAuth token) se amplian resultados y se incluyen tracks GO
     query = f"{artista} {titulo}"
-    search_limit = 10 if _soundcloud_oauth_token else 5
+    tiene_oauth = bool(os.getenv("SOUNDCLOUD_OAUTH_TOKEN", "").strip())
+    search_limit = 10 if tiene_oauth else 5
     search_url = (
         f"https://api-v2.soundcloud.com/search/tracks"
         f"?q={urllib.parse.quote(query)}&client_id={client_id}&limit={search_limit}"
@@ -396,7 +401,7 @@ def _descargar_soundcloud(artista: str, titulo: str, output_dir: str) -> str | N
     # Filtrar por policy: sin token GO, descartar tracks que requieren suscripcion.
     # policy='SNIP' = solo preview 30s hasta que el usuario pague GO.
     # Con OAuth token activo se incluyen (GO los desbloquea).
-    if not _soundcloud_oauth_token:
+    if not tiene_oauth:
         go_tracks = [t for t in tracks if t.get("policy") not in ("ALLOW", None, "")]
         if go_tracks:
             logger.info(
