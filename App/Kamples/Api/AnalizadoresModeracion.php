@@ -3,9 +3,11 @@
 /**
  * AnalizadoresModeracion — Capas de análisis IA para moderación.
  *
- * Capa 1: Llama Guard (texto) — analizarTextoGuard / analizarTextoComentario
+ * Capa 1: GPT-OSS-Safeguard (texto) — analizarTextoGuard / analizarTextoComentario
  * Capa 2: Llama Vision (imágenes) — analizarImagenes / analizarImagenComentario
  * Capa 3: Contextual (combinada) — analizarContextual
+ *
+ * QQ67: Migrado de Llama Guard 4 12B (deprecado) a GPT-OSS-Safeguard 20B.
  *
  * @package Kamples
  */
@@ -18,7 +20,7 @@ use App\Kamples\Api\Helpers\GroqVisionInputHelper;
 
 class AnalizadoresModeracion
 {
-    private const MODELO_GUARD = 'meta-llama/llama-guard-4-12b';
+    private const MODELO_GUARD = 'openai/gpt-oss-safeguard-20b';
     private const MODELO_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct';
     private const MODELO_CONTEXTUAL = 'openai/gpt-oss-120b';
     private const TIMEOUT = 25;
@@ -120,7 +122,7 @@ class AnalizadoresModeracion
     }
 
     /**
-     * Capa 1 — Llama Guard: detecta categorías de contenido peligroso en texto.
+     * Capa 1 — GPT-OSS-Safeguard: detecta categorías de contenido peligroso en texto.
      */
     public static function analizarTextoGuard(string $apiKey, string $texto): array
     {

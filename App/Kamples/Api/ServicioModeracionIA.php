@@ -4,7 +4,7 @@
  * ServicioModeracionIA — Orquestador de moderación de contenido con IA (Groq).
  *
  * Coordina 3 capas de análisis (delegadas a AnalizadoresModeracion):
- * - Llama Guard 4: detecta toxicidad en textos
+ * - GPT-OSS-Safeguard 20B: detecta toxicidad en textos (QQ67: reemplaza Llama Guard 4 deprecado)
  * - Llama 4 Scout: modera imágenes adjuntas
  * - gpt-oss-120b: moderación contextual combinada
  *

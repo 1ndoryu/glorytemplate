@@ -263,12 +263,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ67
 
-recibi este corre, revisa que usamos ese modelo y cambialo
-
-This is a final reminder that Llama-Guard-4-12B was decommissioned today, meaning your requests will start to fail if you have not yet switched models. 
-
-TAKE ACTION NOW
-Our recommended replacement model is GPT-OSS-Safeguard. Revisa como se usa en la documentacion de groq. 
+✅ [AG-SEC] Migrado modelo de moderación: `meta-llama/llama-guard-4-12b` (deprecado) → `openai/gpt-oss-safeguard-20b`. API compatible (mismo endpoint Groq chat completions), mismos prompts. Archivos: AnalizadoresModeracion.php, ServicioModeracionIA.php. 
 
 ## QQ68
 
