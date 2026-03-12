@@ -207,14 +207,19 @@ Asegurarse de que el nombre original del sample que se suba se guarda en la info
 
 Cuando llegue un mensaje, chatFlotanteVentana tiene que abrirse automaticamente de la conversación, asegurarse de que el bloqueo funcionen, en ese contexto, sea, no poder recibir ni que aparezcan mensajes de usuarios bloqueados. Cuando recibo un mensaje el icono de mensaje no se pone rojo como el de notificaciones, además parece que los mensajes nunca se marcan como leidos en el modal, cuando seleciono un adjunto, este se envia automaticamente en vez de ponerse en el input para escribirse un mensaje del adjunto. Asegurarse de que haya rate limits para los mensajes, y una optimización muy agresiva para las imagenes, no permitir audios de max 30 mb, solo permitir imagenes y audios, agregar una detección de spam, agregar un tab al modal de principal y posible spam, donde todos los mensajes de usuarios que se siguen mutuamente llegan a principal y usuarios que no se siguen lleguen a posible spam, agregar un boton en la lista de chats (el modal) para poder realizar acciones, borrar, bloquear, reportar, ver perfil. Las imagenes de los chat tienen que abrirse como se abren las imagenes de las publicaciones y no en otra pestaña, los mensajes no funcionan en tiempo real, esperamos que cuando se despliegue en el vps, puedan funcionar en tiempo real, verifica en coolifiy manager (rust) va a poder correr lo que sea necesario para que los mensajes y notificaciones usen websocket 
 
-## QQ53
+## QQ53 ✅ [AG-QQF]
 
-Sigue saliendo en la pagina de reportes moderacion
+Fix texto garbled en moderación (â€" y otros caracteres Mojibake). **Causa:** El archivo `TabModeracionAdmin.tsx` tenía double-encoding UTF-8 (bytes UTF-8 re-interpretados como Windows-1252 y re-codificados). QQ24 (PDO client_encoding) solo arregló datos de BD, pero el source code ya tenía los caracteres corruptos hardcodeados. **Fix:** 16 reemplazos de Mojibake en el TSX: `â€–` → `—`, `Ã³` → `ó`, `Ãº` → `ú`, `Ã¡` → `á`, `Ã­` → `í`, `Â·` → `·` en comentarios, JSX, strings y atributos. Archivo: TabModeracionAdmin.tsx.
 
-@admin
-hace 0m
-error_plataforma #0 â€”
+## QQ54 ✅ [AG-QQF]
 
-## QQ54
+Fix géneros favoritos no se guardaban. **Causa raíz:** Migraciones SQL v036-v039 nunca fueron ejecutadas contra PostgreSQL. La columna `generos_favoritos` (JSONB) no existía en `usuarios_ext`, PUT /me fallaba con 500 silencioso y GET /me retornaba `generosPreferidos: []` por fallback `?? '[]'`. **Fix:** Ejecutadas las 4 migraciones pendientes (v036-v039). **Lección:** No existe auto-runner de migraciones — deben ejecutarse manualmente.
 
-nunca se guarda, ¿Cuáles son tus géneros favoritos?, al recargar siempre vuelve a salir
+## QQ55
+
+
+
+## ULTIMA TAREA
+
+Desplegar kamples en la vps con coolify manager rust
+

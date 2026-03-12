@@ -1,9 +1,9 @@
 ﻿/* sentinel-disable-file limite-lineas — componente de vista moderacion, apenas sobre limite (325/300); logica ya en useAdminPanel *//*
- * Componente: TabModeracionAdmin â€” Kamples (FASE 13)
- * Lista de publicaciones pendientes de moderaciÃ³n, reportes con acciones,
- * e historial IA en grid de 3 columnas con JSON acordeona, menÃº contextual.
- * Solo vista; lÃ³gica en useAdminPanel.
- * - MenÃº contextual usa <MenuContextual> del sistema UI (posicionamiento por coords).
+ * Componente: TabModeracionAdmin — Kamples (FASE 13)
+ * Lista de publicaciones pendientes de moderación, reportes con acciones,
+ * e historial IA en grid de 3 columnas con JSON acordeona, menú contextual.
+ * Solo vista; lógica en useAdminPanel.
+ * - Menú contextual usa <MenuContextual> del sistema UI (posicionamiento por coords).
  * - Formulario de ban en <Modal> pequeno con <SelectorBase> e <Input>.
  */
 
@@ -25,7 +25,7 @@ interface TabModeracionAdminProps {
     onRechazarTodasDeUsuario: (autorId: number) => Promise<boolean>;
 }
 
-/* Estado del menÃº contextual: compartido entre todas las tarjetas del historial */
+/* Estado del menú contextual: compartido entre todas las tarjetas del historial */
 interface EstadoMenu {
     abierto: boolean;
     x: number;
@@ -147,9 +147,9 @@ const TarjetaHistorial = ({
                     className="historialMenuBoton"
                     onClick={(e) => onAbrirMenu(e, pub)}
                     type="button"
-                    title="MÃ¡s opciones"
+                    title="Más opciones"
                 >
-                    Â·Â·Â·
+                    ···
                 </BotonBase>
             </div>
         </div>
@@ -185,7 +185,7 @@ export const TabModeracionAdmin = ({
 
     const aplicarBan = useCallback(async () => {
         if (!banModal.pub?.autor_id) return;
-        await onBanear(banModal.pub.autor_id, banModal.duracion, banModal.razon || 'RevisiÃ³n manual');
+        await onBanear(banModal.pub.autor_id, banModal.duracion, banModal.razon || 'Revisión manual');
         cerrarModalBan();
     }, [banModal, onBanear, cerrarModalBan]);
 
@@ -211,7 +211,7 @@ export const TabModeracionAdmin = ({
     if (!moderacion) {
         return (
             <EstadoVacio
-                mensaje="Cargando moderaciÃ³n..."
+                mensaje="Cargando moderación..."
                 icono={<Loader2 size={24} className="adminSpinner" />}
             />
         );
@@ -224,7 +224,7 @@ export const TabModeracionAdmin = ({
     if (sinContenido) {
         return (
             <EstadoVacio
-                mensaje="Todo en orden. No hay contenido pendiente de moderaciÃ³n."
+                mensaje="Todo en orden. No hay contenido pendiente de moderación."
                 icono={<CheckCircle size={24} />}
             />
         );
@@ -288,7 +288,7 @@ export const TabModeracionAdmin = ({
                                         <span className="adminModeracionFecha">{formatearFechaRelativa(rep.created_at)}</span>
                                     </div>
                                     <div className="adminModeracionContenido">
-                                        <strong>{rep.tipo}</strong> #{rep.target_id} â€” {rep.motivo}
+                                        <strong>{rep.tipo}</strong> #{rep.target_id} — {rep.motivo}
                                     </div>
                                     <div className="adminModeracionAcciones">
                                         <BotonBase variante="ghost" className="historialBoton historialBotonAprobar" onClick={() => onResolverReporte(rep.id, 'resolver')} type="button">Resolver</BotonBase>
@@ -300,12 +300,12 @@ export const TabModeracionAdmin = ({
                     </>
                 )}
 
-                {/* Historial IA: grid de 3 columnas con JSON acordeona y menÃº contextual */}
+                {/* Historial IA: grid de 3 columnas con JSON acordeona y menú contextual */}
                 {historialModeracion.length > 0 && (
                     <>
                         <div className="adminSeccionTitulo">
                             <History size={16} />
-                            Historial IA (Ãºltimas 48h)
+                            Historial IA (últimas 48h)
                         </div>
                         <div className="historialGrid">
                             {historialModeracion.map((pub) => (
@@ -321,7 +321,7 @@ export const TabModeracionAdmin = ({
                 )}
             </div>
 
-            {/* MenÃº contextual compartido: abre desde el botÃ³n Â·Â·Â· de cada tarjeta */}
+            {/* Menú contextual compartido: abre desde el botón ··· de cada tarjeta */}
             <MenuContextual
                 abierto={menu.abierto}
                 x={menu.x}
@@ -331,7 +331,7 @@ export const TabModeracionAdmin = ({
                 alinearDerecha
             />
 
-            {/* Modal de ban: formulario con selector de duraciÃ³n y campo de razÃ³n */}
+            {/* Modal de ban: formulario con selector de duración y campo de razón */}
             <Modal
                 abierto={banModal.abierto}
                 onCerrar={cerrarModalBan}
@@ -345,17 +345,17 @@ export const TabModeracionAdmin = ({
                 }
             >
                 <SelectorBase
-                    etiqueta="DuraciÃ³n del ban"
+                    etiqueta="Duración del ban"
                     value={banModal.duracion}
                     onChange={(e) => setBanModal(prev => ({ ...prev, duracion: e.target.value as DuracionBan }))}
                 >
                     <option value="1h">1 hora</option>
                     <option value="24h">24 horas</option>
-                    <option value="7d">7 dÃ­as</option>
-                    <option value="30d">30 dÃ­as</option>
+                    <option value="7d">7 días</option>
+                    <option value="30d">30 días</option>
                 </SelectorBase>
                 <Input
-                    placeholder="RazÃ³n (opcional)"
+                    placeholder="Razón (opcional)"
                     value={banModal.razon}
                     onChange={(e) => setBanModal(prev => ({ ...prev, razon: e.target.value }))}
                     style={{ marginTop: 'var(--espacioMd)', width: '100%', boxSizing: 'border-box' }}
