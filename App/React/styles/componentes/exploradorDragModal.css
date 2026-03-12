@@ -124,53 +124,7 @@
     cursor: grabbing;
 }
 
-/* C338: Modal "Mover a carpeta" — migrado a componente Modal base.
- * Las clases .exploradorModalOverlay, .exploradorModalContenido, .exploradorModalTitulo
- * ya no se usan en el JSX. Se conservan temporalmente por si hay referencias externas.
- * TO-DO: Eliminar estas reglas dead CSS en limpieza futura. */
-.exploradorModalOverlay {
-    position: fixed;
-    inset: 0;
-    background: var(--overlayOscuro);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: var(--zModal);
-    animation: exploradorModalFadeIn 0.15s ease;
-}
-
-@keyframes exploradorModalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.exploradorModalContenido {
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioMd);
-    padding: var(--espacioLg);
-    min-width: 260px;
-    max-width: 360px;
-    width: 90%;
-    max-height: 70vh;
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacioMd);
-    animation: exploradorModalSlideIn 0.15s ease;
-}
-
-@keyframes exploradorModalSlideIn {
-    from { transform: translateY(12px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.exploradorModalTitulo {
-    font-size: var(--fuenteMd);
-    font-weight: 600;
-    color: var(--textoPrimario);
-    margin: 0;
-}
-
+/* Clases de contenido del modal mover-carpeta (usa Modal base como wrapper) */
 .exploradorModalLista {
     display: flex;
     flex-direction: column;

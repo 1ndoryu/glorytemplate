@@ -163,9 +163,9 @@ Landing page: reemplazado buscador hero por dos CTAs — "Crear cuenta gratis" (
 
 Reforzar sincronización: botón para re-descargar samples borrados localmente. **Verificación:** `borrarEnServidorAlBorrarLocal=false` ya funciona correctamente — al borrar localmente, `marcarNoSincronizar()` marca `syncDeshabilitado=true` y el sample no se re-descarga ni se borra del servidor. **Nuevo:** `reforzarSync()` en syncOrchestratorService — reactiva todos los samples con `syncDeshabilitado`, elimina sus entradas del tracking v2 + v1 para forzar re-descarga, y ejecuta sync completa. Es menos agresivo que `forzarResync()` (que resetea todo el tracking). **Pipeline completo:** `reactivarTodosSyncDeshabilitados()` en syncTrackingService → `reforzarSync()` en syncOrchestratorService → re-export en syncService.ts → expuesto en `window.__KAMPLES_SYNC__` (main.tsx + sync.tsx) → `KamplesSync` interface + `reforzarSyncAhora` callback en usePanelSincronizacion → botón "Reforzar sincronización" (icono RefreshCw) en menú contextual de VentanaSincPanel, justo debajo de "Sincronizar ahora". Tipo `MARK_ENABLED_ALL` añadido a TipoOperacionJournal. Archivos: syncTrackingService.ts, syncOrchestratorService.ts, syncService.ts, syncJournal.ts, global.d.ts, main.tsx, sync.tsx, usePanelSincronizacion.ts, VentanaSincPanel.tsx.
 
-## QQ43
+## QQ43 ✅ [AG-QQF]
 
-Verificar TO-DO sueltos en la aplicación y haz los que sean importantes.
+Auditoría completa de TO-DOs: 42 encontrados, 3 críticos corregidos. **(1) Bug TransaccionesEnums:** `'descarga'` hardcodeado en INSERT violaba CHECK constraint — la BD rechazaría el INSERT. Fix: agregado `'descarga'` al CHECK en TransaccionesSchema.php, regenerado TransaccionesEnums.php con `TIPO_DESCARGA`, reemplazado string literal por constante en TransaccionesRepository.php, creada migración v039 para ALTER TABLE. **(2) Chat rollback optimista:** catches vacíos en `useChatIsland.ts` dejaban mensajes fantasma en UI tras fallo de envío. Fix: agregado `eliminarMensaje(id)` a mensajesStore + rollback en ambos catches (texto y multimedia). **(3) Dead CSS cleanup:** eliminadas 3 reglas muertas + 2 keyframes (.exploradorModalOverlay, .exploradorModalContenido, .exploradorModalTitulo) de exploradorDragModal.css. Archivos: TransaccionesSchema.php, TransaccionesEnums.php, TransaccionesRepository.php, v039_transacciones_tipo_descarga.sql, useChatIsland.ts, mensajesStore.ts, exploradorDragModal.css.
 
 ## QQ44 ✅ [AG-QQF]
 
@@ -242,3 +242,4 @@ error_plataforma #0 â€”
 
 ## QQ54
 
+nunca se guarda, ¿Cuáles son tus géneros favoritos?, al recargar siempre vuelve a salir

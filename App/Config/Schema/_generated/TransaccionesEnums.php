@@ -11,8 +11,9 @@ final class TransaccionesEnums
     const TIPO_SUSCRIPCION = 'suscripcion';
     const TIPO_COMPRA_SAMPLE = 'compra_sample';
     const TIPO_PAYOUT = 'payout';
+    const TIPO_DESCARGA = 'descarga';
 
-    const TODOS_TIPO = [self::TIPO_SUSCRIPCION, self::TIPO_COMPRA_SAMPLE, self::TIPO_PAYOUT];
+    const TODOS_TIPO = [self::TIPO_SUSCRIPCION, self::TIPO_COMPRA_SAMPLE, self::TIPO_PAYOUT, self::TIPO_DESCARGA];
 
     /* Valores para columna "estado" */
     const ESTADO_COMPLETADA = 'completada';

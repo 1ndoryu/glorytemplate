@@ -18,7 +18,7 @@ class TransaccionesSchema extends TableSchema
             'comprador_id'        => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
             'creador_id'          => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],
             'sample_id'           => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
-            'tipo'                => ['tipo' => 'string', 'max' => 30, 'check' => ['suscripcion', 'compra_sample', 'payout']],
+            'tipo'                => ['tipo' => 'string', 'max' => 30, 'check' => ['suscripcion', 'compra_sample', 'payout', 'descarga']],
             'monto'               => ['tipo' => 'decimal'],
             'moneda'              => ['tipo' => 'string', 'max' => 3, 'default' => 'USD'],
             'estado'              => ['tipo' => 'string', 'max' => 30, 'default' => 'pendiente', 'check' => ['completada', 'completed', 'pendiente', 'fallida', 'reembolsada']],

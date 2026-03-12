@@ -53,6 +53,7 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
     const conversaciones = useMensajesStore(s => s.conversaciones);
     const setMensajes = useMensajesStore(s => s.setMensajes);
     const agregarMensaje = useMensajesStore(s => s.agregarMensaje);
+    const eliminarMensaje = useMensajesStore(s => s.eliminarMensaje);
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
     const actualizarUltimoMensaje = useMensajesStore(s => s.actualizarUltimoMensaje);
 
@@ -153,12 +154,12 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
         try {
             await enviarMensaje(conversacionId, contenido);
         } catch {
-            /* TO-DO: rollback del mensaje optimista en caso de fallo */
+            eliminarMensaje(mensajeOptimista.id);
         } finally {
             setEnviando(false);
         }
         inputRef.current?.focus();
-    }, [textoMensaje, conversacionId, enviando, miId, agregarMensaje, actualizarUltimoMensaje]);
+    }, [textoMensaje, conversacionId, enviando, miId, agregarMensaje, eliminarMensaje, actualizarUltimoMensaje]);
 
     const manejarArchivo = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const archivo = e.target.files?.[0];
@@ -187,12 +188,12 @@ export const useChatIsland = ({ conversacionId: propId }: UseChatIslandParams) =
         try {
             await enviarMensajeMultimedia(conversacionId, tipo, archivo);
         } catch {
-            /* TO-DO: rollback del mensaje multimedia optimista */
+            eliminarMensaje(msgOptimista.id);
         } finally {
             setEnviando(false);
             if (archivoRef.current) archivoRef.current.value = '';
         }
-    }, [conversacionId, miId, agregarMensaje, actualizarUltimoMensaje]);
+    }, [conversacionId, miId, agregarMensaje, eliminarMensaje, actualizarUltimoMensaje]);
 
     const manejarKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

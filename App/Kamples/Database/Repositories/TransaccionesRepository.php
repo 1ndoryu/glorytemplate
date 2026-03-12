@@ -64,8 +64,6 @@ class TransaccionesRepository extends BaseRepository
 
     /*
      * Registrar transacción de revenue share por descarga.
-     * TO-DO: 'descarga' hardcodeado como tipo — no existe TIPO_DESCARGA en TransaccionesEnums.
-     * Crear constante en schema y reemplazar aqui.
      */
     public static function registrarRevenueShare(
         int $compradorId,
@@ -86,7 +84,7 @@ class TransaccionesRepository extends BaseRepository
             . ", " . TransaccionesCols::PAGO_CREADOR
             . ", " . TransaccionesCols::COMISION_PLATAFORMA
             . ", " . TransaccionesCols::ESTADO
-            . ") VALUES (:comprador, :creador, :sample, 'descarga', :monto, :pago, :comision, '"
+            . ") VALUES (:comprador, :creador, :sample, '" . TransaccionesEnums::TIPO_DESCARGA . "', :monto, :pago, :comision, '"
             . TransaccionesEnums::ESTADO_COMPLETED . "')",
             [
                 'comprador' => $compradorId,

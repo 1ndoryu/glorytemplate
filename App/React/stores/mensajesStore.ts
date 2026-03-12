@@ -28,6 +28,7 @@ interface EstadoMensajes {
     setConversacionActiva: (id: number | null) => void;
     setMensajes: (mensajes: Mensaje[]) => void;
     agregarMensaje: (mensaje: Mensaje) => void;
+    eliminarMensaje: (id: number) => void;
     setCargandoConversaciones: (v: boolean) => void;
     setCargandoMensajes: (v: boolean) => void;
     setEscribiendo: (v: boolean) => void;
@@ -63,6 +64,11 @@ export const useMensajesStore = create<EstadoMensajes>((set, get) => ({
     agregarMensaje: (mensaje) =>
         set((state) => ({
             mensajes: [...state.mensajes, mensaje],
+        })),
+
+    eliminarMensaje: (id) =>
+        set((state) => ({
+            mensajes: state.mensajes.filter((m) => m.id !== id),
         })),
 
     setCargandoConversaciones: (v) => set({ cargandoConversaciones: v }),
