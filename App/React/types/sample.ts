@@ -71,7 +71,7 @@ export interface Sample {
     precio: number | null;
     liked?: boolean;
     reaccion?: TipoReaccion | null;
-    /* C202: Rutas originales ya no se envian en la API publica por seguridad */
+    /* C202: Rutas originales solo se envian cuando esMio (QQ22) */
     rutaOriginal?: string;
     rutaOptimizada?: string;
     rutaPreview: string;
@@ -80,15 +80,27 @@ export interface Sample {
     totalDescargas: number;
     totalLikes: number;
     totalReproducciones: number;
+    totalComentarios: number;
     publicadoAt: string | null;
     creadoAt: string;
     actualizadoAt: string;
+    /* QQ22: Campos adicionales para inspector */
+    idCorto?: string;
+    audioHash?: string | null;
+    permitirDescarga?: boolean;
+    licenciaLibre?: boolean;
 
     /* Relacion opcional cargada via API */
     creador?: UsuarioResumen;
     verificado?: boolean;
     /* C220: Toggle visibilidad en comunidad */
     mostrarEnComunidad?: boolean;
+    /* Flags de estado del usuario autenticado */
+    yaColeccionado?: boolean;
+    yaGuardadoEnColeccion?: boolean;
+    yaComentado?: boolean;
+    esMio?: boolean;
+    yaComprado?: boolean;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */

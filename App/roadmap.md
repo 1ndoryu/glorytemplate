@@ -75,24 +75,9 @@ inicioTagsContador no se esta actualizando con la busqueda
 
 Normalizar en el front, que todos los samples sean en ingles, verificar que la IA realmente genere los tags en ambas idiomas, preservarlos, sirve para enriqueser la busqueda por si alguien busca en español pero, en el front ahora usaremos solo tags en ingles
 
-## QQ22
+## QQ22 ✅ [AG-QQF]
 
-En la informacion de los samples falta informacion al inspesionar, no dice la ruta de archivo original y optimizado
-
-Duracion
-0:18
-Ruta Preview
-http://glory.local/wp-content/uploads/kamples/0/2026/03/FjiKSr6_preview.mp3
-Ruta Waveform
-http://glory.local/wp-content/uploads/kamples/0/2026/03/FjiKSr6_waveform.json
-Archivo Original
-—
-Audio Optimizado
-—
-Imagen URL
-http://glory.local/wp-content/uploads/kamples/portadas/a0719513592a1e3a5410c591c6bb56c0ebaa4ab3.jpg
-
-Tambien falta informacion nueva de cosas que se agregaron, falta muchisima informacion que se pueede inspesionar, el inspector no esta actualizado, revisar que falta y actualizar.
+Inspector de samples actualizado con todos los campos faltantes. **Backend:** NormalizadorSample ahora incluye `rutaOriginal`/`rutaOptimizada` (solo cuando `esMio=true`, seguridad C202 preservada), `permitirDescarga`, `licenciaLibre`, `publicadoAt`, `creadoAt`, `totalComentarios` en la respuesta. SQL SELECT extendido con columnas faltantes. **Frontend:** Sample type extendido con campos nuevos (`totalComentarios`, `idCorto`, `audioHash`, `permitirDescarga`, `licenciaLibre`, flags de estado). ModalInspectorSample ampliado: Info General (+idCorto, precio, reaccion, permitirDescarga, licenciaLibre, mostrarComunidad, verificado), Audio (+audioHash), Metadata IA (+carpetaPrimaria/Secundaria), Stats (+totalComentarios), nueva seccion Flags de Estado (esMio, yaColeccionado, enColeccion, yaComentado, yaComprado), nueva seccion Fechas (publicadoAt, creadoAt). Archivos: NormalizadorSample.php, sample.ts, ModalInspectorSample.tsx.
 
 ## QQ23 ✅ [AG-QQF]
 

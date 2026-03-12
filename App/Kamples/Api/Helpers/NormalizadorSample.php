@@ -200,10 +200,16 @@ class NormalizadorSample
             'rutaPreview'      => self::rutaAUrl($row[SamplesCols::RUTA_PREVIEW] ?? ''),
             'rutaWaveform'     => self::rutaAUrl($row[SamplesCols::RUTA_WAVEFORM] ?? ''),
             /*
-             * C202: rutaOriginal y rutaOptimizada NO se exponen en respuestas publicas.
-             * Los archivos originales solo se sirven via el endpoint /descargar autenticado.
+             * C202: rutaOriginal y rutaOptimizada solo se exponen cuando el usuario es el creador.
              * Evita que usuarios anonimos obtengan URLs directas a WAV/MP3 originales.
+             * QQ22: El inspector necesita estas rutas para debug — seguro si esMio.
              */
+            ...((bool) ($row[self::ALIAS_ES_MIO] ?? false) ? [
+                'rutaOriginal'    => self::rutaAUrl($row[SamplesCols::RUTA_ORIGINAL] ?? ''),
+                'rutaOptimizada'  => self::rutaAUrl($row[SamplesCols::RUTA_OPTIMIZADA] ?? ''),
+            ] : []),
+            'permitirDescarga' => (bool) ($row[SamplesCols::PERMITIR_DESCARGA] ?? true),
+            'licenciaLibre'    => (bool) ($row[SamplesCols::LICENCIA_LIBRE] ?? false),
             /*
              * imagenUrl puede persistirse como ruta absoluta de filesystem
              * (igual que preview/waveform). Normalizar siempre a URL HTTP.
@@ -235,6 +241,10 @@ class NormalizadorSample
             'yaComentado'        => (bool) ($row[self::ALIAS_YA_COMENTADO] ?? false),
             'esMio'              => (bool) ($row[self::ALIAS_ES_MIO] ?? false),
             'yaComprado'         => (bool) ($row[self::ALIAS_YA_COMPRADO] ?? false),
+            /* QQ22: Fechas y total comentarios para el inspector */
+            'publicadoAt'        => $row[SamplesCols::PUBLICADO_AT] ?? null,
+            'creadoAt'           => $row[SamplesCols::CREATED_AT] ?? null,
+            'totalComentarios'   => (int) ($row[SamplesCols::TOTAL_COMENTARIOS] ?? 0),
         ];
     }
 
@@ -332,6 +342,10 @@ class NormalizadorSample
         $sCreatedAt = SamplesCols::CREATED_AT;
         $sTotComent = SamplesCols::TOTAL_COMENTARIOS;
         $sCreadorId = SamplesCols::CREADOR_ID;
+        $sPermitirDesc = SamplesCols::PERMITIR_DESCARGA;
+        $sLicenciaLibre = SamplesCols::LICENCIA_LIBRE;
+        $sRutaOriginal = SamplesCols::RUTA_ORIGINAL;
+        $sRutaOptimizada = SamplesCols::RUTA_OPTIMIZADA;
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $uId = UsuariosExtCols::ID;
@@ -345,6 +359,8 @@ class NormalizadorSample
                        s.{$sBpm}, s.{$sKey}, s.{$sEscala}, s.{$sDuracion}, s.{$sFormato}, s.{$sTamano},
                        s.{$sTags}, s.{$sTipo}, s.{$sEstado}, s.{$sPremium}, s.{$sPrecio}, s.{$sMeta},
                        s.{$sPreview}, s.{$sWaveform},
+                       s.{$sRutaOriginal}, s.{$sRutaOptimizada},
+                       s.{$sPermitirDesc}, s.{$sLicenciaLibre},
                        s.{$sImagen}, s.{$sTotDesc}, s.{$sTotLikes}, s.{$sTotRepro},
                        s.{$sHash}, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                        s.{$sPubAt}, s.{$sCreatedAt}, s.{$sTotComent},

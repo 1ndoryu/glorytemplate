@@ -7,7 +7,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp} from 'lucide-react';
+import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp, Clock} from 'lucide-react';
 import {Modal} from './Modal';
 import {Avatar} from './Avatar';
 import {Badge} from './Badge';
@@ -93,12 +93,19 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="ID" valor={datos.id} numerico />
                         <Campo etiqueta="Titulo" valor={datos.titulo} />
                         <Campo etiqueta="Slug" valor={datos.slug} />
+                        {'idCorto' in datos && <Campo etiqueta="ID Corto" valor={(datos as Sample).idCorto} />}
                         <Campo etiqueta="Tipo" valor={datos.tipo} />
                         <Campo etiqueta="Premium" valor={datos.esPremium} />
+                        <Campo etiqueta="Precio" valor={datos.precio} numerico />
                         <Campo etiqueta="Liked" valor={datos.liked} />
+                        <Campo etiqueta="Reaccion" valor={datos.reaccion} />
                         {completo && <Campo etiqueta="Estado" valor={(datos as Sample).estado} />}
                         {completo && <Campo etiqueta="Formato" valor={(datos as Sample).formato} />}
                         {completo && <Campo etiqueta="Tamano" valor={`${((datos as Sample).tamano / 1024 / 1024).toFixed(2)} MB`} />}
+                        {completo && <Campo etiqueta="Permitir Descarga" valor={(datos as Sample).permitirDescarga} />}
+                        {completo && <Campo etiqueta="Licencia Libre" valor={(datos as Sample).licenciaLibre} />}
+                        <Campo etiqueta="Mostrar Comunidad" valor={datos.mostrarEnComunidad} />
+                        <Campo etiqueta="Verificado" valor={datos.verificado} />
                     </div>
                 </div>
 
@@ -112,6 +119,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="Key" valor={datos.key} />
                         <Campo etiqueta="Escala" valor={datos.escala} />
                         <Campo etiqueta="Duracion" valor={datos.duracion ? formatearDuracion(datos.duracion) : null} />
+                        <Campo etiqueta="Audio Hash" valor={completo ? (datos as Sample).audioHash : (datos as SampleResumen).audioHash} ancho />
                         <Campo etiqueta="Ruta Preview" valor={datos.rutaPreview} ancho />
                         <Campo etiqueta="Ruta Waveform" valor={datos.rutaWaveform} ancho />
                         {completo && <Campo etiqueta="Archivo Original" valor={(datos as Sample).rutaOriginal} ancho />}
@@ -166,6 +174,8 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             } ancho />
                             <Campo etiqueta="BPM Confianza" valor={m.bpmConfianza as number ?? m.bpm_confianza as number ?? null} numerico />
                             <Campo etiqueta="Key Confianza" valor={m.keyConfianza as number ?? m.key_confianza as number ?? null} numerico />
+                            <Campo etiqueta="Carpeta Primaria" valor={String(m.carpetaPrimaria || m.carpeta_primaria || '—')} />
+                            <Campo etiqueta="Carpeta Secundaria" valor={String(m.carpetaSecundaria || m.carpeta_secundaria || '—')} />
                         </div>
                         {Boolean(m.descripcion || m.descripcionEs || m.descripcion_es || m.descripcionIA) && (
                             <div className="inspectorMetadataIA">
@@ -191,8 +201,36 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="Descargas" valor={datos.totalDescargas} numerico />
                         <Campo etiqueta="Likes" valor={datos.totalLikes} numerico />
                         {'totalReproducciones' in datos && <Campo etiqueta="Reproducciones" valor={(datos as Sample).totalReproducciones} numerico />}
+                        {completo && <Campo etiqueta="Comentarios" valor={(datos as Sample).totalComentarios} numerico />}
                     </div>
                 </div>
+
+                {/* Seccion: Flags de Estado del Usuario */}
+                <div className="inspectorSeccion">
+                    <div className="inspectorSeccionTitulo">
+                        <User size={14} /> Flags de Estado
+                    </div>
+                    <div className="inspectorGrid">
+                        <Campo etiqueta="Es Mio" valor={'esMio' in datos ? (datos as Sample).esMio : null} />
+                        <Campo etiqueta="Ya Coleccionado" valor={'yaColeccionado' in datos ? (datos as Sample).yaColeccionado : null} />
+                        <Campo etiqueta="En Coleccion" valor={'yaGuardadoEnColeccion' in datos ? (datos as Sample).yaGuardadoEnColeccion : null} />
+                        <Campo etiqueta="Ya Comentado" valor={'yaComentado' in datos ? (datos as Sample).yaComentado : null} />
+                        <Campo etiqueta="Ya Comprado" valor={'yaComprado' in datos ? (datos as Sample).yaComprado : null} />
+                    </div>
+                </div>
+
+                {/* Seccion: Fechas */}
+                {completo && (
+                    <div className="inspectorSeccion">
+                        <div className="inspectorSeccionTitulo">
+                            <Clock size={14} /> Fechas
+                        </div>
+                        <div className="inspectorGrid">
+                            <Campo etiqueta="Publicado" valor={(datos as Sample).publicadoAt} ancho />
+                            <Campo etiqueta="Creado" valor={(datos as Sample).creadoAt} ancho />
+                        </div>
+                    </div>
+                )}
 
                 {/* Sección: Creador */}
                 {datos.creador && (
