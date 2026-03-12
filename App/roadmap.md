@@ -135,15 +135,9 @@ Landing SEO + SVG optimization. **SVGs:** Script `scripts/optimize-svg-images.cj
 
 Modal configuración responsive. Fix: selector `.configModal` inexistente → `.modalContenedor.configModalLayout`. En mobile (<600px): fullscreen (100vw/100vh, sin border-radius), nav lateral → tabs horizontales scrolleables con scrollbar oculto, padding reducido en contenido, portada 80px, secciones horizontales → apiladas verticalmente. Fix colateral: gap hardcodeado 2px → `calc(var(--espacioXs)/2)` en `.configBloqueoInfo`. Archivos: modalConfiguracion.css.
 
-## QQ36 
+## QQ36 ✅ [AG-QQF]
 
-¿Porque cuando reproduzco los videos de youtube en los sampleos y canciones? dice 
-Inicia sesión para confirmar que no eres un bot
-De esta forma nos ayudas a proteger nuestra comunidad. Más información
-
-en whosampled no pasa eso
-
-si es porque estamos en local, lo entiendo, ignoralo pero si hay forma de arregalarlo, arreglalo.
+YouTube embed bot verification — investigado: el problema es inherente al entorno localhost. YouTube rechaza embeds desde orígenes `localhost`/IPs locales por tráfico sospechoso. WhoSampled funciona porque es un dominio público verificado. El código ya implementa correctamente `youtube-nocookie.com` (privacidad mejorada), validación de ID con regex `^[a-zA-Z0-9_-]{11}$`, y atributos `allow` apropiados. En producción (kamples.com con HTTPS) funcionará sin problemas. No hay fix aplicable — comportamiento esperado de YouTube en desarrollo local. Archivos verificados: CancionDetalleIsland.tsx, LadoCancionRelacion.tsx, useRelacionDetalleIsland.ts.
 
 ## QQ37 ✅ [AG-QQF]
 
@@ -245,3 +239,6 @@ Sigue saliendo en la pagina de reportes moderacion
 @admin
 hace 0m
 error_plataforma #0 â€”
+
+## QQ54
+
