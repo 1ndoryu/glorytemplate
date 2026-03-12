@@ -161,23 +161,21 @@ Tab de likes eliminado del perfil. Removido de `TABS_PERFIL`, eliminado estado `
 
 Errores ortográficos corregidos + Google OAuth implementado. ModalAuth.tsx: 7 errores de ortografía corregidos (sesion→sesión, Contrasena→Contraseña, Registrate→Regístrate, signos de interrogación faltantes). Botón Google OAuth añadido a ambos formularios (login y registro) del modal. Backend: GoogleAuthController.php — endpoint POST /auth/google que recibe ID token de Google Identity Services, lo verifica server-side con oauth2.googleapis.com/tokeninfo (validación de aud, iss, email_verified, exp), crea o encuentra usuario WP por email, crea registro PG, actualiza avatar de Google si falta, genera JWT. Frontend: useGoogleAuth.ts hook que carga dinámicamente GSI script, inicializa con client_id de GLORY_CONTEXT, y dispara One Tap prompt. GoogleClientId inyectado en GLORY_CONTEXT desde config.php (.env). IconoGoogle.tsx componente SVG reutilizable (eliminado SVG duplicado en LoginIsland y RegistroIsland). loginConGoogle() en apiAuth.ts. AuthController.php refactorizado: helpers obtenerOCrearUsuarioPg/normalizarUsuario ahora public static (reutilizados por GoogleAuthController). AuthController 297 líneas (dentro del límite). Archivos: ModalAuth.tsx, authModal.css, useAuth.ts, useGoogleAuth.ts, IconoGoogle.tsx, apiAuth.ts, GoogleAuthController.php, AuthController.php, KamplesController.php, config.php, LoginIsland.tsx, RegistroIsland.tsx.
 
-## QQ41 
+## QQ41 ✅ [AG-QQF]
 
-Cambiar el buscador de inicio por un boton de registro secundario y otro primario de descargar, eso descargaría la aplicación.
+Landing page: reemplazado buscador hero por dos CTAs — "Crear cuenta gratis" (secundario, abre modal registro) + "Descargar app" (primario, link a /descargar con icono Download). Eliminados imports muertos: `Search` de lucide-react, `Input` de ui/Input. Hook `useLandingPublica` simplificado: removido `navegar` (ya no necesario sin buscador), solo expone `abrirAuth`. CSS limpio: eliminadas todas las clases `.landingHeroBuscador*` (6 reglas + 3 responsive overrides) y 7 variables CSS huérfanas en variables.css (`--landingEspacioBuscador`, `--landingPaddingBuscador*`, `--landingPaddingInput*`, `--landingPaddingBoton*`, `--landingAltoBotonBuscador`). Reutilizada clase existente `.landingHeroAcciones` para layout flex. Añadida `.landingHeroDescargarEnlace` para neutralizar estilos de `<a>`. **Auto-update docs:** Creado `App/docs/plan-desktop-distribucion.md` — guía completa de distribución Tauri 2: generación de claves de firma, configuración updater en tauri.conf.json, formato de respuesta del endpoint, opciones de hosting (GitHub Releases / servidor propio / híbrido), CI/CD pipeline con GitHub Actions, integración Rust/TS, checklist de implementación, consideraciones de seguridad. Archivos: LandingPublica.tsx, useLandingPublica.ts, landingPublica.css, variables.css, plan-desktop-distribucion.md.
 
-Crea un md de como alojar la aplicación de forma de que se actualice en todos los usuarios, hacer lo necesario para que la autoactulización funcione, y como hacer el instalador ,etc.
+## QQ42 ✅ [AG-QQF]
 
-## QQ42
-
-verificar que el sync respete cuando  "Al borrar en local, borrar en el servidor" este desactivado para evitar perdida de datos. Cuando esto este desactivado, no vuelve a descargar los samples que se borraron en local. Implica agregar un boton de refozar sync en donde todos los samples que faltan se vuelven a descargar. El boton iría en el menu contexta, haria lo mismo que sicnronizar ahora pero con el agregado que fuerza descargar lo que falta. 
+Reforzar sincronización: botón para re-descargar samples borrados localmente. **Verificación:** `borrarEnServidorAlBorrarLocal=false` ya funciona correctamente — al borrar localmente, `marcarNoSincronizar()` marca `syncDeshabilitado=true` y el sample no se re-descarga ni se borra del servidor. **Nuevo:** `reforzarSync()` en syncOrchestratorService — reactiva todos los samples con `syncDeshabilitado`, elimina sus entradas del tracking v2 + v1 para forzar re-descarga, y ejecuta sync completa. Es menos agresivo que `forzarResync()` (que resetea todo el tracking). **Pipeline completo:** `reactivarTodosSyncDeshabilitados()` en syncTrackingService → `reforzarSync()` en syncOrchestratorService → re-export en syncService.ts → expuesto en `window.__KAMPLES_SYNC__` (main.tsx + sync.tsx) → `KamplesSync` interface + `reforzarSyncAhora` callback en usePanelSincronizacion → botón "Reforzar sincronización" (icono RefreshCw) en menú contextual de VentanaSincPanel, justo debajo de "Sincronizar ahora". Tipo `MARK_ENABLED_ALL` añadido a TipoOperacionJournal. Archivos: syncTrackingService.ts, syncOrchestratorService.ts, syncService.ts, syncJournal.ts, global.d.ts, main.tsx, sync.tsx, usePanelSincronizacion.ts, VentanaSincPanel.tsx.
 
 ## QQ43
 
 Verificar TO-DO sueltos en la aplicación y haz los que sean importantes.
 
-## QQ44
+## QQ44 ✅ [AG-QQF]
 
-La opción de mostrar kamples en el icono de bandeja de entrada en la aplicación no funciona, no vuelve a aparecer la aplicación, solo el sync
+Fix tray icon "Mostrar Kamples" no funcionaba. **Causa:** La ventana principal en `tauri.conf.json` no tenía `"label": "main"` explícito. El handler Rust en `lib.rs` buscaba `app.get_webview_window("main")` que retornaba `None` silenciosamente. También afectaba "Minimizar a bandeja" (mismo label). **Fix:** Agregado `"label": "main"` a la primera ventana en tauri.conf.json. Las ventanas `sync-panel` y `config-sync` ya tenían labels explícitos y funcionaban correctamente. Archivo: tauri.conf.json.
 
 ## QQ45 ✅ [AG-QQF]
 
@@ -192,3 +190,58 @@ Punto rojo indicador de samples no reproducidos. **Backend:** Nuevo endpoint `GE
 ## QQ47 ✅ [AG-QQF]
 
 Tooltip flotante de perfil estilo Twitter/X. **Arquitectura:** tooltipPerfilStore (Zustand global con cache de perfiles + timers centralizados show 400ms/hide 250ms), useHoverPerfil (hook trigger reutilizable con pre-carga de perfil), useTooltipPerfil (lógica del tooltip: carga con cache, follow/unfollow optimista, cierre por Escape/scroll), usePosicionTooltipPerfil (posicionamiento inteligente debajo/arriba del ancla con ajuste viewport), TooltipPerfil (componente flotante sin overlay oscuro, montado globalmente en LayoutPrincipal). **Integración:** TarjetaPublicacion agrega hover en el nombre del autor — funciona automáticamente en ComunidadIsland, PerfilIsland y PublicacionIsland. ComunidadIsland simplificado: eliminado CardPerfil local y useState, el botón + ahora usa abrirInmediato del store global. **Optimización:** perfiles se cachean en el store, pre-carga al hover evita delay visible, tooltip aparece instantáneo en hovers repetidos. Archivos: tooltipPerfilStore.ts, useHoverPerfil.ts, useTooltipPerfil.ts, usePosicionTooltipPerfil.ts, TooltipPerfil.tsx, tooltipPerfil.css, TarjetaPublicacion.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx.
+
+## QQ48 
+
+useModalSeguidores.ts:72 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
+    at useModalSeguidores (useModalSeguidores.ts:72:31)
+    at ModalSeguidores (ModalSeguidores.tsx:18:95)
+    at renderWithHooks (chunk-NXESFFTV.js?v=6343ef1e:11596:26)
+    at updateFunctionComponent (chunk-NXESFFTV.js?v=6343ef1e:14630:28)
+    at beginWork (chunk-NXESFFTV.js?v=6343ef1e:15972:22)
+    at HTMLUnknownElement.callCallback2 (chunk-NXESFFTV.js?v=6343ef1e:3680:22)
+    at Object.invokeGuardedCallbackDev (chunk-NXESFFTV.js?v=6343ef1e:3705:24)
+    at invokeGuardedCallback (chunk-NXESFFTV.js?v=6343ef1e:3739:39)
+    at beginWork$1 (chunk-NXESFFTV.js?v=6343ef1e:19818:15)
+    at performUnitOfWork (chunk-NXESFFTV.js?v=6343ef1e:19251:20)Comprende este error
+chunk-NXESFFTV.js?v=6343ef1e:14080 The above error occurred in the <ModalSeguidores> component:
+
+    at ModalSeguidores (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/social/ModalSeguidores.tsx?t=1773329151056:29:93)
+    at div
+    at LayoutPrincipal (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/layout/LayoutPrincipal.tsx?t=1773329151123:77:3)
+    at InicializadorAuth (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/components/auth/InicializadorAuth.tsx?t=1773329151121:19:37)
+    at AppProvider (http://localhost:5173/@fs/C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/appIslands.tsx?t=1773317156173:47:31)
+    at GloryProvider (http://localhost:5173/src/core/GloryProvider.tsx:20:33)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-NXESFFTV.js?v=6343ef1e:14080Comprende este error
+chunk-NXESFFTV.js?v=6343ef1e:19466 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
+    at useModalSeguidores (useModalSeguidores.ts:72:31)
+    at ModalSeguidores (ModalSeguidores.tsx:18:95)
+
+## QQ49
+
+Reproductor, actualmente hay un reproductor, fue de las primeras cosas que se implemente pero no esta nada actualizado y de hecho, siempre estuvo desactivado, vamos a rehacerlo.
+
+Tiene que ser muy minimalista, pequeño, centrado abajo, que tiene poder desactivarse o activarse en la configuracion, 50% border radius, muestra la portada del sample que se reproduce 50% borde radius, la reproduccin tiene que ser sincronizada, actualmente los samples tienen un wave que muestra como se produce el audio, bueno, el progreso de la repdoucion tiene que ser sincronizado, no olvides usar las variables correctas, tiene que tener boton de play, de like pasar a la siguiente y retroceder, boton de activar o desactivar aleatoreo, y pasar a la siguiente o retroceder tiene que funcionar en cualquier ocntexto, en la lista de samples en cualquier lugar, en las colecciones, etc.
+
+## QQ50 
+
+En http://glory.local/musica/ el boton de 3 puntos no funciona en las canciones. Agregar un boton de play al lado del boton de like, aparecera solo cuando la canción tenga un sample adjunto, reproducira el sample de la canción.
+
+## QQ51
+
+Asegurarse de que el nombre original del sample que se suba se guarda en la informacion del sample, esto tiene que salir en inspesionar sample, y la funcionalidad de inspesionar asegurarse que solo este disponible para admin. Tambien falta ciertas informaciones, no esta mostrando cosas como si es un recorte y la informacion de sampleo o cancion de origen si es que esta disponible esa info, etc.
+
+## QQ52 
+
+Cuando llegue un mensaje, chatFlotanteVentana tiene que abrirse automaticamente de la conversación, asegurarse de que el bloqueo funcionen, en ese contexto, sea, no poder recibir ni que aparezcan mensajes de usuarios bloqueados. Cuando recibo un mensaje el icono de mensaje no se pone rojo como el de notificaciones, además parece que los mensajes nunca se marcan como leidos en el modal, cuando seleciono un adjunto, este se envia automaticamente en vez de ponerse en el input para escribirse un mensaje del adjunto. Asegurarse de que haya rate limits para los mensajes, y una optimización muy agresiva para las imagenes, no permitir audios de max 30 mb, solo permitir imagenes y audios, agregar una detección de spam, agregar un tab al modal de principal y posible spam, donde todos los mensajes de usuarios que se siguen mutuamente llegan a principal y usuarios que no se siguen lleguen a posible spam, agregar un boton en la lista de chats (el modal) para poder realizar acciones, borrar, bloquear, reportar, ver perfil. Las imagenes de los chat tienen que abrirse como se abren las imagenes de las publicaciones y no en otra pestaña, los mensajes no funcionan en tiempo real, esperamos que cuando se despliegue en el vps, puedan funcionar en tiempo real, verifica en coolifiy manager (rust) va a poder correr lo que sea necesario para que los mensajes y notificaciones usen websocket 
+
+## QQ53
+
+Sigue saliendo en la pagina de reportes moderacion
+
+@admin
+hace 0m
+error_plataforma #0 â€”

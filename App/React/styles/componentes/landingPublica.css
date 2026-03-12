@@ -114,57 +114,16 @@
     font-weight: 500;
 }
 
-.landingHeroBuscador {
-    display: flex;
-    align-items: center;
-    gap: var(--landingEspacioBuscador);
-    width: 100%;
-    max-width: 44rem;
-    padding: var(--landingPaddingBuscadorY) var(--landingPaddingBuscadorY) var(--landingPaddingBuscadorY) var(--landingPaddingBuscadorX);
-    background-color: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioFull);
-    transition: border-color var(--transicionRapida), box-shadow var(--transicionRapida);
-}
-
-.landingHeroBuscador:focus-within {
-    border-color: var(--bordeActivo);
-    box-shadow: 0 0 0 1px var(--bordeActivo);
-}
-
-.landingHeroBuscadorIcono {
-    color: var(--textoTerciario);
-    flex-shrink: 0;
-}
-
-.landingHeroBuscadorInput {
-    flex: 1;
-    border: none;
-    background: transparent;
-    color: var(--textoPrimario);
-    font-family: var(--landingFuenteSubtitulo);
-    font-size: var(--landingTextoUi);
-    outline: none;
-    padding: var(--landingPaddingInputY) 0;
-    border-bottom: 0;
-}
-
-.landingHeroBuscadorInput::placeholder {
-    color: var(--textoTerciario);
-}
-
-.landingHeroBuscador .botonBase {
-    border-radius: var(--radioFull);
-    font-family: var(--landingFuenteSubtitulo);
-    font-size: var(--landingTextoUi);
-    min-height: var(--landingAltoBotonBuscador);
-    padding: var(--landingPaddingBotonY) var(--landingPaddingBotonX);
-}
-
 .landingHeroAcciones {
     display: flex;
     gap: var(--landingEspacioAcciones);
     align-items: center;
+}
+
+/* Enlace envolvente para el botón de descarga (evita estilos de <a> por defecto) */
+.landingHeroDescargarEnlace {
+    text-decoration: none;
+    color: inherit;
 }
 
 .landingTrending {
@@ -407,22 +366,13 @@
         gap: var(--espacioXs);
     }
 
-    .landingHeroAcciones,
-    .landingHeroBuscador {
-        width: 100%;
-    }
-
     .landingHeroAcciones {
+        width: 100%;
         flex-wrap: wrap;
     }
 
     .landingHeroTitulo {
         font-size: var(--landingTituloMovil);
-    }
-
-    .landingHeroBuscador {
-        flex-wrap: wrap;
-        padding: var(--landingPaddingBuscadorCompacto);
     }
 }
 
@@ -444,9 +394,7 @@
     .landingPlanes h2,
     .landingPlan h3,
     .landingFooterCta h2,
-    .landingNavLogo,
-    .landingHeroBuscadorInput,
-    .landingHeroBuscador .botonBase {
+    .landingNavLogo {
         font-size: var(--landingTextoUi);
     }
 }

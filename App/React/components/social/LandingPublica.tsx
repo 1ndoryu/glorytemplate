@@ -1,14 +1,13 @@
 /*
  * Componente: LandingPublica — Kamples
  * Página de bienvenida para usuarios no autenticados.
- * Secciones: Hero con buscador, Visual Kamples, Sync, DAW, Catálogo.
+ * Secciones: Hero con CTAs, Visual Kamples, Sync, DAW, Catálogo.
  * Lógica extraída a useLandingPublica.
  */
 
-import {Search} from 'lucide-react';
+import {Download} from 'lucide-react';
 import {BotonBase} from '@app/components/ui/BotonBase';
 import {LogoKamples} from '@app/components/ui/LogoKamples';
-import {Input} from '@app/components/ui/Input';
 import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import '../../styles/componentes/landingPublica.css';
@@ -23,7 +22,7 @@ const SVG_W = 1288;
 const SVG_H = 717;
 
 export const LandingPublica = (): JSX.Element => {
-    const {navegar, abrirAuth} = useLandingPublica();
+    const {abrirAuth} = useLandingPublica();
 
     return (
         <div className="landingPublica" id="landingPublica">
@@ -49,28 +48,16 @@ export const LandingPublica = (): JSX.Element => {
                 <p className="landingHeroDescripcion">
                     Descubre, descarga y sincroniza samples. Algoritmo inteligente, comunidad de productores y DAW integrado.
                 </p>
-                <div className="landingHeroBuscador">
-                    <Search size={18} className="landingHeroBuscadorIcono" />
-                    <Input
-                        className="landingHeroBuscadorInput"
-                        placeholder="Encuentra cualquier sonido"
-                        onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                                const valor = (e.target as HTMLInputElement).value.trim();
-                                if (valor) navegar(`/explorar/?q=${encodeURIComponent(valor)}`);
-                            }
-                        }}
-                    />
-                    <BotonBase
-                        variante="primario"
-                        tamano="sm"
-                        onClick={() => {
-                            const input = document.querySelector<HTMLInputElement>('.landingHeroBuscadorInput');
-                            const valor = input?.value.trim();
-                            if (valor) navegar(`/explorar/?q=${encodeURIComponent(valor)}`);
-                        }}>
-                        Buscar
+                <div className="landingHeroAcciones">
+                    <BotonBase variante="secundario" tamano="md" onClick={() => abrirAuth('registro')}>
+                        Crear cuenta gratis
                     </BotonBase>
+                    <GloryLink href="/descargar" className="landingHeroDescargarEnlace">
+                        <BotonBase variante="primario" tamano="md">
+                            <Download size={16} />
+                            Descargar app
+                        </BotonBase>
+                    </GloryLink>
                 </div>
             </section>
 

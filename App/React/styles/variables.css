@@ -93,7 +93,6 @@
     --landingTextoUi: 1rem;
     --landingEspacioSeccion: 3rem;
     --landingEspacioHero: 1.5rem;
-    --landingEspacioBuscador: 0.75rem;
     --landingEspacioAcciones: 1rem;
     --landingPaddingSuperior: 3rem;
     --landingPaddingHorizontal: 2rem;
@@ -101,13 +100,6 @@
     --landingPaddingInferior: 4rem;
     --landingPaddingInferiorCompacto: 3rem;
     --landingPaddingHeroSuperior: 4rem;
-    --landingPaddingBuscadorY: 0.5rem;
-    --landingPaddingBuscadorX: 1.25rem;
-    --landingPaddingBuscadorCompacto: 0.75rem;
-    --landingPaddingInputY: 0.75rem;
-    --landingPaddingBotonY: 0.875rem;
-    --landingPaddingBotonX: 1.5rem;
-    --landingAltoBotonBuscador: 3.25rem;
     --landingFuenteTitulo: 'Junicode Landing', 'Times New Roman', serif;
     --landingFuenteSubtitulo: 'Bricolage Landing', var(--fuentePrincipal);
 }
