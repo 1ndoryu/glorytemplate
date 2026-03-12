@@ -28,6 +28,8 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
+use App\Kamples\Services\ServicioAntiSpam;
+use App\Kamples\Services\ServicioBan;
 
 class PublicacionesEscrituraController
 {
@@ -50,6 +52,19 @@ class PublicacionesEscrituraController
         /* C164: Rate limiting — 5 publicaciones por minuto */
         $limitResp = RateLimiter::verificarUsuario($userId, 'publicar', 5, 60);
         if ($limitResp) return $limitResp;
+
+        /* QQ10: Verificar ban activo antes de permitir creación */
+        $ban = ServicioBan::verificarBan($userId);
+        if ($ban) {
+            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Tu cuenta está temporalmente suspendida'], 403);
+        }
+
+        /* QQ10: Anti-spam heurístico sobre contenido de la publicación */
+        $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
+        if ($razonSpam) {
+            ServicioBan::registrarViolacion($userId, $razonSpam, 'publicacion');
+            return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
+        }
 
         /* C164: Validar imagenes (limite y URLs) */
         $imagenesRaw = $body['imagenes'] ?? [];
@@ -144,6 +159,16 @@ class PublicacionesEscrituraController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* QQ10: Rate limit ediciones — 10 por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'editar_publicacion', 10, 60);
+        if ($limitResp) return $limitResp;
+
+        /* QQ10: Verificar ban activo */
+        $ban = ServicioBan::verificarBan($userId);
+        if ($ban) {
+            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Tu cuenta está temporalmente suspendida'], 403);
+        }
+
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
@@ -168,6 +193,13 @@ class PublicacionesEscrituraController
             }
             $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_PUBLICACION, 'La publicación');
             if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+
+            /* QQ10: Anti-spam sobre contenido editado */
+            $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
+            if ($razonSpam) {
+                ServicioBan::registrarViolacion($userId, $razonSpam, 'publicacion');
+                return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
+            }
 
             $campos[] = PublicacionesCols::CONTENIDO . ' = :' . PublicacionesCols::CONTENIDO;
             $params[PublicacionesCols::CONTENIDO] = $contenido;
@@ -236,6 +268,10 @@ class PublicacionesEscrituraController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* QQ10: Rate limit eliminaciones — 20 por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'eliminar_publicacion', 20, 60);
+        if ($limitResp) return $limitResp;
+
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
@@ -286,6 +322,18 @@ class PublicacionesEscrituraController
         $limitResp = RateLimiter::verificarUsuario($userId, 'comentar', 10, 60);
         if ($limitResp) return $limitResp;
 
+        /* QQ10: Verificar ban + anti-spam en comentarios */
+        $ban = ServicioBan::verificarBan($userId);
+        if ($ban) {
+            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Tu cuenta está temporalmente suspendida'], 403);
+        }
+
+        $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
+        if ($razonSpam) {
+            ServicioBan::registrarViolacion($userId, $razonSpam, 'comentario');
+            return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
+        }
+
         $id = ComentariosRepository::insertarComentario([
             'autor' => $userId,
             'tipo' => 'publicacion',
@@ -313,6 +361,10 @@ class PublicacionesEscrituraController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ10: Rate limit reposts — 15 por minuto */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'repostear', 15, 60);
+        if ($limitResp) return $limitResp;
 
         $pubId = (int) $request->get_param('id');
 
@@ -357,6 +409,10 @@ class PublicacionesEscrituraController
         try {
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ10: Rate limit reportes — 10 por hora */
+            $limitResp = RateLimiter::verificarUsuario($userId, 'reportar_publicacion', 10, 3600);
+            if ($limitResp) return $limitResp;
 
             $id = (int) $request->get_param('id');
             $body = $request->get_json_params();

@@ -24,6 +24,8 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
+use App\Kamples\Services\ServicioBan;
 use App\Kamples\Database\Repositories\ContribucionesPendientesRepository;
 use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Kamples\Database\Repositories\CancionesRepository;
@@ -216,6 +218,16 @@ class ContribucionesController
             $kamId = UsuarioHelper::obtenerIdPg();
             if (!$kamId) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado.'], 401);
+            }
+
+            /* QQ10: Rate limit — 20 contribuciones por hora */
+            $limitResp = RateLimiter::verificarUsuario($kamId, 'crear_contribucion', 20, 3600);
+            if ($limitResp) return $limitResp;
+
+            /* QQ10: Verificar ban activo */
+            $ban = ServicioBan::verificarBan($kamId);
+            if ($ban) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
             }
 
             $destinoId = $request->get_param('cancion_destino_id');
@@ -418,6 +430,10 @@ class ContribucionesController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado.'], 401);
             }
 
+            /* QQ10: Rate limit ediciones — 20 por hora */
+            $limitResp = RateLimiter::verificarUsuario($kamId, 'editar_contribucion', 20, 3600);
+            if ($limitResp) return $limitResp;
+
             $id = (int) $request->get_param('id');
             $body = $request->get_json_params();
 
@@ -505,6 +521,16 @@ class ContribucionesController
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado.'], 401);
             }
 
+            /* QQ10: Rate limit — 10 propuestas de edición por hora */
+            $limitResp = RateLimiter::verificarUsuario($kamId, 'proponer_edicion', 10, 3600);
+            if ($limitResp) return $limitResp;
+
+            /* QQ10: Verificar ban activo */
+            $ban = ServicioBan::verificarBan($kamId);
+            if ($ban) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
+            }
+
             $relacionId = (int) $request->get_param('relacion_id');
             $cambiosRaw = $request->get_param('cambios');
 
@@ -556,6 +582,16 @@ class ContribucionesController
             $kamId = UsuarioHelper::obtenerIdPg();
             if (!$kamId) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado.'], 401);
+            }
+
+            /* QQ10: Rate limit — 10 propuestas de eliminación por hora */
+            $limitResp = RateLimiter::verificarUsuario($kamId, 'proponer_eliminacion', 10, 3600);
+            if ($limitResp) return $limitResp;
+
+            /* QQ10: Verificar ban activo */
+            $ban = ServicioBan::verificarBan($kamId);
+            if ($ban) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Cuenta temporalmente suspendida.'], 403);
             }
 
             $relacionId = (int) $request->get_param('relacion_id');

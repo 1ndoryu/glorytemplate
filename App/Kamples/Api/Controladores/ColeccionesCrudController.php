@@ -21,6 +21,7 @@ use App\Kamples\Database\Repositories\SyncChangelogRepository;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\Validador;
+use App\Kamples\Services\ServicioBan;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
@@ -47,6 +48,12 @@ class ColeccionesCrudController
         /* C164: Rate limit — 500 colecciones por hora (Alto para permitir Desktop Sync de carpetas anidadas) */
         $limitResp = RateLimiter::verificarUsuario($userId, 'crear_coleccion', 500, 3600);
         if ($limitResp) return $limitResp;
+
+        /* QQ10: Verificar ban activo */
+        $ban = ServicioBan::verificarBan($userId);
+        if ($ban) {
+            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Cuenta temporalmente suspendida'], 403);
+        }
 
         $body = $request->get_json_params();
         $nombre = sanitize_text_field($body['nombre'] ?? '');
@@ -100,6 +107,16 @@ class ColeccionesCrudController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ10: Rate limit ediciones — 100 por hora */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'editar_coleccion', 100, 3600);
+        if ($limitResp) return $limitResp;
+
+        /* QQ10: Verificar ban activo */
+        $ban = ServicioBan::verificarBan($userId);
+        if ($ban) {
+            return new \WP_REST_Response(['code' => 'usuario_baneado', 'message' => 'Cuenta temporalmente suspendida'], 403);
+        }
 
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
@@ -177,6 +194,10 @@ class ColeccionesCrudController
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
+        /* QQ10: Rate limit eliminaciones — 50 por hora */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'eliminar_coleccion', 50, 3600);
+        if ($limitResp) return $limitResp;
+
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
@@ -214,6 +235,10 @@ class ColeccionesCrudController
         try {
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            /* QQ10: Rate limit subida imágenes — 30 por hora */
+            $limitResp = RateLimiter::verificarUsuario($userId, 'subir_imagen_col', 30, 3600);
+            if ($limitResp) return $limitResp;
 
             $id = (int) $request->get_param('id');
 

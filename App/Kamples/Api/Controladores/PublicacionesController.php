@@ -12,6 +12,7 @@ use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\NormalizadorPublicacion;
 use App\Config\Schema\_generated\PublicacionesCols;
@@ -268,6 +269,10 @@ class PublicacionesController
         try {
         $userId = UsuarioHelper::obtenerIdPg();
         if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+        /* QQ10: Rate limit subida de imágenes — 30 por hora */
+        $limitResp = RateLimiter::verificarUsuario($userId, 'subir_imagen_pub', 30, 3600);
+        if ($limitResp) return $limitResp;
 
         $files = $request->get_file_params();
         if (empty($files['imagen'])) {
