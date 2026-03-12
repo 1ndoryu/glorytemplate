@@ -14,6 +14,7 @@ use App\Kamples\Api\Helpers\RateLimiter;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\MensajesEnums;
+use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
@@ -105,6 +106,7 @@ class MensajesController
                 'ultimoMensajeTipo' => $tipoUltimo,
                 'ultimoMensajeAt' => $fila['ultimo_msg_at'] ?? $fila[ConversacionesCols::CREATED_AT],
                 'noLeidos'        => (int) $fila['no_leidos'],
+                'esMutuo'         => (bool) ($fila['es_mutuo'] ?? false),
                 'enLinea'         => false,
             ];
         }
@@ -137,6 +139,12 @@ class MensajesController
 
         if (!$conv) {
             return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
+        }
+
+        /* QQ52: Bloqueo bidireccional — no permitir leer mensajes de usuario bloqueado */
+        $otroId = ConversacionesRepository::obtenerOtroParticipante($conversacionId, $userId);
+        if ($otroId && BloqueosRepository::existeBloqueoMutuo($userId, $otroId)) {
+            return new \WP_REST_Response(['code' => 'usuario_bloqueado', 'message' => 'Conversación no disponible'], 403);
         }
 
         $mensajes = MensajesRepository::listarDeConversacion($conversacionId, $perPage, $offset);
@@ -203,6 +211,11 @@ class MensajesController
         }
         if ($userId === $otroId) {
             return new \WP_REST_Response(['code' => 'no_self_chat', 'message' => 'No puedes chatear contigo mismo'], 400);
+        }
+
+        /* QQ52: No permitir iniciar conversación con usuario bloqueado */
+        if (BloqueosRepository::existeBloqueoMutuo($userId, $otroId)) {
+            return new \WP_REST_Response(['code' => 'usuario_bloqueado', 'message' => 'No puedes enviar mensajes a este usuario'], 403);
         }
 
         $p1 = min($userId, $otroId);

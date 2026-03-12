@@ -53,6 +53,7 @@ export const TopBar = (): JSX.Element => {
         busquedaModalAbierta,
         setBusquedaModalAbierta,
         totalNotificacionesNoLeidas,
+        totalMensajesNoLeidos,
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,
@@ -289,6 +290,7 @@ export const TopBar = (): JSX.Element => {
                             soloIcono
                             onClick={alternarMensajes}
                             aria-label="Mensajes"
+                            className={totalMensajesNoLeidos > 0 ? 'topbarBotonNotificacionesPendientes' : ''}
                         >
                             <Mail size={18} />
                         </BotonBase>

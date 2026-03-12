@@ -5,8 +5,9 @@
  * C192: Usa mensajesStore como cache (stale-while-revalidate) via useDropdownMensajes hook.
  */
 
-import { Mail, Loader2 } from 'lucide-react';
+import { Mail, Loader2, Users, UserPlus } from 'lucide-react';
 import { Avatar } from './Avatar';
+import { BotonBase } from './BotonBase';
 import { useDropdownMensajes } from '../../hooks/useDropdownMensajes';
 import '../../styles/componentes/dropdownPanel.css';
 
@@ -30,6 +31,9 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         conversaciones,
         cargando,
         conversacionesCargadas,
+        tabActiva,
+        setTabActiva,
+        totalSolicitudes,
         abrirConversacion,
     } = useDropdownMensajes({ onCerrar });
 
@@ -37,6 +41,31 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         <>
             <div className="dropdownOverlay" onClick={onCerrar} />
             <div className="dropdownPanel">
+                {/* QQ52: Tabs principal / solicitudes */}
+                <div className="dropdownPanelTabs">
+                    <BotonBase
+                        variante="ghost"
+                        className={`dropdownPanelTab${tabActiva === 'principal' ? ' dropdownPanelTabActiva' : ''}`}
+                        onClick={() => setTabActiva('principal')}
+                        type="button"
+                    >
+                        <Users size={14} />
+                        Principal
+                    </BotonBase>
+                    <BotonBase
+                        variante="ghost"
+                        className={`dropdownPanelTab${tabActiva === 'solicitudes' ? ' dropdownPanelTabActiva' : ''}`}
+                        onClick={() => setTabActiva('solicitudes')}
+                        type="button"
+                    >
+                        <UserPlus size={14} />
+                        Solicitudes
+                        {totalSolicitudes > 0 && (
+                            <span className="dropdownPanelTabBadge">{totalSolicitudes}</span>
+                        )}
+                    </BotonBase>
+                </div>
+
                 <div className="dropdownPanelLista">
                     {cargando && !conversacionesCargadas ? (
                         <div className="dropdownPanelVacio">

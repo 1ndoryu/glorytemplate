@@ -18,7 +18,7 @@
 
 /* Subir chats cuando el reproductor global está activo */
 .layoutPrincipal:has(.reproductorGlobal) .chatFlotanteContenedor {
-    bottom: 100px;
+    /* bottom: 100px; No es necesario */
 }
 
 /* Ventana individual de chat */
@@ -248,5 +248,59 @@
 
 /* Boton de adjunto — sin padding para iconos compactos */
 .chatFlotanteAdjuntarBtn {
+    padding: 0;
+}
+
+/* QQ52: Staging preview — archivo seleccionado antes de enviar */
+.chatFlotanteStagingPreview {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    margin-bottom: var(--espacioXs);
+    width: 100%;
+}
+
+.chatFlotanteStagingImagen {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radioSm);
+    flex-shrink: 0;
+}
+
+.chatFlotanteStagingAudio {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chatFlotanteStagingAcciones {
+    display: flex;
+    gap: var(--espacioXs);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.chatFlotanteStagingCancelar {
+    color: var(--textoTerciario);
+    padding: 0;
+}
+
+.chatFlotanteStagingCancelar:hover {
+    color: var(--error);
+}
+
+.chatFlotanteStagingEnviar {
+    color: var(--acento);
     padding: 0;
 }

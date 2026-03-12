@@ -36,16 +36,18 @@ class ServicioAntiSpam
     private const VENTANA_DUPLICADOS_SEG = 600;
 
     /**
-     * Evalúa un texto y retorna null si no es spam, o un string con la razón si lo es.
+     * Evalúa solo patrones de texto (sin consulta a BD).
+     * Reutilizable para mensajes, comentarios u otros contextos.
+     * Retorna null si pasa, o string con razón si detecta spam.
      */
-    public static function evaluar(string $texto, int $autorId): ?string
+    public static function evaluarTexto(string $texto): ?string
     {
         if (empty(trim($texto))) return null;
 
         /* 1. Exceso de URLs */
         $urls = preg_match_all('/https?:\/\/\S+/i', $texto);
         if ($urls > self::MAX_URLS) {
-            return 'Demasiados enlaces en el comentario';
+            return 'Demasiados enlaces en el mensaje';
         }
 
         /* 2. Ratio de mayusculas excesivo (solo para textos > 10 chars) */
@@ -68,6 +70,18 @@ class ServicioAntiSpam
                 return 'Contenido detectado como spam';
             }
         }
+
+        return null;
+    }
+
+    /**
+     * Evalúa un texto y retorna null si no es spam, o un string con la razón si lo es.
+     * Incluye check de duplicados contra comentarios (contexto original).
+     */
+    public static function evaluar(string $texto, int $autorId): ?string
+    {
+        $resultado = self::evaluarTexto($texto);
+        if ($resultado !== null) return $resultado;
 
         /* 5. Texto duplicado del mismo usuario en ventana reciente */
         $duplicado = ComentariosRepository::buscarDuplicadoReciente(

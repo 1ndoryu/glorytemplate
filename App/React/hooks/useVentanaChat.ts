@@ -31,6 +31,13 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     const [cargando, setCargando] = useState(true);
     const [menuAbierto, setMenuAbierto] = useState(false);
 
+    /* QQ52: Staging de multimedia — preview antes de enviar */
+    const [archivoStaging, setArchivoStaging] = useState<{
+        archivo: File;
+        tipo: 'imagen' | 'audio';
+        previewUrl: string;
+    } | null>(null);
+
     const mensajesRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const archivoRef = useRef<HTMLInputElement>(null);
@@ -97,7 +104,8 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
         inputRef.current?.focus();
     }, [texto, enviando, chat.conversacionId, miId]);
 
-    const manejarArchivo = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    /* QQ52: Staging — seleccionar archivo para preview, no enviar directamente */
+    const manejarArchivo = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const archivo = e.target.files?.[0];
         if (!archivo) return;
 
@@ -105,14 +113,27 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
         const esAudio = archivo.type.startsWith('audio/');
         if (!esImagen && !esAudio) return;
 
-        setEnviando(true);
         const tipo = esImagen ? 'imagen' as const : 'audio' as const;
+        const previewUrl = URL.createObjectURL(archivo);
+        setArchivoStaging({ archivo, tipo, previewUrl });
+
+        if (archivoRef.current) archivoRef.current.value = '';
+    }, []);
+
+    /* QQ52: Enviar el archivo staged */
+    const enviarArchivoStaging = useCallback(async () => {
+        if (!archivoStaging || enviando) return;
+        const { archivo, tipo, previewUrl } = archivoStaging;
+
+        setEnviando(true);
+        setArchivoStaging(null);
+        URL.revokeObjectURL(previewUrl);
 
         const msgOptimista: Mensaje = {
             id: Date.now(),
             conversacionId: chat.conversacionId,
             remitenteId: miId,
-            contenido: esImagen ? '[Imagen]' : '[Audio]',
+            contenido: tipo === 'imagen' ? '[Imagen]' : '[Audio]',
             tipo,
             mediaUrl: URL.createObjectURL(archivo),
             leido: false,
@@ -127,8 +148,15 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
             toast.error('Error al enviar archivo');
         }
         setEnviando(false);
-        if (archivoRef.current) archivoRef.current.value = '';
-    }, [chat.conversacionId, miId]);
+    }, [archivoStaging, enviando, chat.conversacionId, miId]);
+
+    /* QQ52: Cancelar staging */
+    const cancelarStaging = useCallback(() => {
+        if (archivoStaging) {
+            URL.revokeObjectURL(archivoStaging.previewUrl);
+            setArchivoStaging(null);
+        }
+    }, [archivoStaging]);
 
     const manejarKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
@@ -167,9 +195,10 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
 
     return {
         mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
+        archivoStaging,
         mensajesRef, inputRef, archivoRef,
         cerrarChat, minimizarChat, restaurarChat,
-        manejarEnviar, manejarArchivo, manejarKeyDown,
+        manejarEnviar, manejarArchivo, enviarArchivoStaging, cancelarStaging, manejarKeyDown,
         toggleMenu, cerrarMenuChat, verPerfil, reportar, bloquear,
     };
 };

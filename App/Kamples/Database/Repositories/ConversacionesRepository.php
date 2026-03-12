@@ -15,6 +15,8 @@ use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\ConversacionesDTO;
 use App\Config\Schema\_generated\MensajesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\FollowsCols;
+use App\Config\Schema\_generated\BloqueoCols;
 
 class ConversacionesRepository extends BaseRepository
 {
@@ -75,6 +77,8 @@ class ConversacionesRepository extends BaseRepository
         $tConv = ConversacionesCols::TABLA;
         $tMsg = MensajesCols::TABLA;
         $tUsr = UsuariosExtCols::TABLA;
+        $tFollow = FollowsCols::TABLA;
+        $tBloqueo = BloqueoCols::TABLA;
 
         $colConvId       = ConversacionesCols::ID;
         $colUltimoMsgAt  = ConversacionesCols::ULTIMO_MENSAJE_AT;
@@ -91,6 +95,10 @@ class ConversacionesRepository extends BaseRepository
         $colAvatar       = UsuariosExtCols::AVATAR_URL;
         $colVerificado   = UsuariosExtCols::VERIFICADO;
         $colWpUserId     = UsuariosExtCols::WP_USER_ID;
+        $colSeguidorId   = FollowsCols::SEGUIDOR_ID;
+        $colSeguidoId    = FollowsCols::SEGUIDO_ID;
+        $colBloqueadorId = BloqueoCols::BLOQUEADOR_ID;
+        $colBloqueadoId  = BloqueoCols::BLOQUEADO_ID;
 
         return static::consultar(
             "SELECT c.{$colConvId},
@@ -106,7 +114,17 @@ class ConversacionesRepository extends BaseRepository
                     lm.{$colMsgContenido} AS \"ultimo_contenido\",
                     lm.{$colMsgTipo}      AS \"ultimo_tipo\",
                     lm.{$colMsgCreatedAt} AS \"ultimo_msg_at\",
-                    COALESCE(nl.total, 0)::int AS \"no_leidos\"
+                    COALESCE(nl.total, 0)::int AS \"no_leidos\",
+                    /* QQ52: Follow mutuo — true si ambos se siguen */
+                    (EXISTS (
+                        SELECT 1 FROM {$tFollow} f1
+                        WHERE f1.{$colSeguidorId} = :userId
+                          AND f1.{$colSeguidoId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END
+                    ) AND EXISTS (
+                        SELECT 1 FROM {$tFollow} f2
+                        WHERE f2.{$colSeguidorId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END
+                          AND f2.{$colSeguidoId} = :userId
+                    ))::bool AS \"es_mutuo\"
              FROM {$tConv} c
              JOIN {$tUsr} u
                ON u.{$colUsrId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2
@@ -125,7 +143,13 @@ class ConversacionesRepository extends BaseRepository
                    AND m2.{$colMsgAutor} != :userId
                    AND m2.{$colMsgLeido} = false
              ) nl ON true
-             WHERE c.participante_1 = :userId OR c.participante_2 = :userId
+             WHERE (c.participante_1 = :userId OR c.participante_2 = :userId)
+               /* QQ52: Excluir conversaciones con usuarios bloqueados (bidireccional) */
+               AND NOT EXISTS (
+                   SELECT 1 FROM {$tBloqueo} b
+                   WHERE (b.{$colBloqueadorId} = :userId AND b.{$colBloqueadoId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END)
+                      OR (b.{$colBloqueadoId} = :userId AND b.{$colBloqueadorId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2 ELSE c.participante_1 END)
+               )
              ORDER BY c.{$colUltimoMsgAt} DESC NULLS LAST",
             ['userId' => $userId]
         );
@@ -142,6 +166,22 @@ class ConversacionesRepository extends BaseRepository
             "SELECT " . ConversacionesCols::ID . " FROM {$tabla} WHERE " . ConversacionesCols::ID . " = :convId AND (participante_1 = :userId OR participante_2 = :userId)",
             ['convId' => $convId, 'userId' => $userId]
         );
+    }
+
+    /*
+     * QQ52: Obtener el ID del otro participante en una conversación.
+     */
+    public static function obtenerOtroParticipante(int $convId, int $userId): ?int
+    {
+        $tabla = ConversacionesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT CASE WHEN participante_1 = :userId THEN participante_2 ELSE participante_1 END AS otro_id"
+            . " FROM {$tabla} WHERE " . ConversacionesCols::ID . " = :convId",
+            ['convId' => $convId, 'userId' => $userId]
+        );
+
+        return $row ? (int) $row['otro_id'] : null;
     }
 
     /*

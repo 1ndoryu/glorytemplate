@@ -9,6 +9,7 @@ import { useState, useRef } from 'react';
 import { Play, Pause, Music, ExternalLink } from 'lucide-react';
 import type { Mensaje, MediaMetadataSample } from '@app/types';
 import { BotonBase } from '../components/ui/BotonBase';
+import { useVisorImagenStore } from '../stores/visorImagenStore';
 
 /* Formatear tamaño de archivo (reservada para uso futuro con metadatos de archivos) */
 const _formatearTamano = (bytes: number): string => {
@@ -18,23 +19,27 @@ const _formatearTamano = (bytes: number): string => {
 };
 void _formatearTamano;
 
-/* Burbuja de imagen */
-const BurbujaImagen = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => (
-    <div className="burbujaMensajeMedia burbujaImagen">
-        <img
-            src={mensaje.mediaUrl ?? ''}
-            alt={mensaje.contenido || 'Imagen'}
-            className="burbujaImagenImg"
-            loading="lazy"
-            onClick={() => {
-                if (mensaje.mediaUrl) window.open(mensaje.mediaUrl, '_blank');
-            }}
-        />
-        {mensaje.contenido && (
-            <p className="burbujaImagenTexto">{mensaje.contenido}</p>
-        )}
-    </div>
-);
+/* Burbuja de imagen — QQ52: visor inline en vez de window.open */
+const BurbujaImagen = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {
+    const abrirVisor = useVisorImagenStore(s => s.abrir);
+
+    return (
+        <div className="burbujaMensajeMedia burbujaImagen">
+            <img
+                src={mensaje.mediaUrl ?? ''}
+                alt={mensaje.contenido || 'Imagen'}
+                className="burbujaImagenImg"
+                loading="lazy"
+                onClick={() => {
+                    if (mensaje.mediaUrl) abrirVisor(mensaje.mediaUrl, mensaje.contenido || 'Imagen');
+                }}
+            />
+            {mensaje.contenido && (
+                <p className="burbujaImagenTexto">{mensaje.contenido}</p>
+            )}
+        </div>
+    );
+};
 
 /* Burbuja de audio */
 const BurbujaAudio = ({ mensaje }: { mensaje: Mensaje }): JSX.Element => {

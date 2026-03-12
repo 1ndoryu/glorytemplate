@@ -39,6 +39,7 @@ export interface Conversacion {
     ultimoMensajeTipo?: TipoMensaje;
     ultimoMensajeAt: string;
     noLeidos: number;
+    esMutuo: boolean;
     enLinea: boolean;
 }
 

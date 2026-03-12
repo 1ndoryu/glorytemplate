@@ -1,0 +1,28 @@
+/*
+ * visorImagen.css — Kamples (QQ52)
+ * Sobreescrituras para el Modal cuando actúa como visor de imagen fullscreen.
+ */
+
+/* El contenedor del modal se hace transparente y sin padding para lightbox */
+.visorImagenModal {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    max-width: 90vw;
+    max-height: 90vh;
+    padding: 0;
+}
+
+.visorImagenModal .modalCuerpo {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.visorImagenImg {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: var(--radioMd);
+}

@@ -25,6 +25,7 @@ import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
 import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
+import { VisorImagen } from '../ui/VisorImagen';
 import { TooltipPerfil } from '../social/TooltipPerfil';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
@@ -192,6 +193,9 @@ export const LayoutPrincipal = ({
 
             {/* QQ63: Modal de solicitud de ingreso al grupo de WhatsApp */}
             <ModalSolicitudWhatsapp />
+
+            {/* QQ52: Visor modal de imágenes (chat, publicaciones, etc.) */}
+            <VisorImagen />
 
             {/* QQ47: Tooltip flotante de perfil (hover card estilo Twitter/X) */}
             <TooltipPerfil />

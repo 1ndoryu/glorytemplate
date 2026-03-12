@@ -4,7 +4,7 @@
  * Lógica de VentanaChat extraída a useVentanaChat (SRP).
  */
 
-import { X, Minus, Send, Maximize2, Paperclip, MoreVertical, User, ShieldAlert, Flag, Loader2 } from 'lucide-react';
+import { X, Minus, Send, Maximize2, Paperclip, MoreVertical, User, ShieldAlert, Flag, Loader2, Volume2 } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { BurbujaMensaje } from '@app/components/social/BurbujaMensaje';
 import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
@@ -18,9 +18,10 @@ import { Input } from '../ui/Input';
 const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
     const {
         mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
+        archivoStaging,
         mensajesRef, inputRef, archivoRef,
         cerrarChat, minimizarChat, restaurarChat,
-        manejarEnviar, manejarArchivo, manejarKeyDown,
+        manejarEnviar, manejarArchivo, enviarArchivoStaging, cancelarStaging, manejarKeyDown,
         toggleMenu, verPerfil, reportar, bloquear,
     } = useVentanaChat({ chat });
 
@@ -95,6 +96,29 @@ const VentanaChat = ({ chat }: { chat: ChatFlotanteInfo }): JSX.Element => {
             </div>
 
             <div className="chatFlotanteInput">
+                {/* QQ52: Preview de archivo antes de enviar */}
+                {archivoStaging && (
+                    <div className="chatFlotanteStagingPreview">
+                        {archivoStaging.tipo === 'imagen' ? (
+                            <img src={archivoStaging.previewUrl} alt="Preview" className="chatFlotanteStagingImagen" />
+                        ) : (
+                            <div className="chatFlotanteStagingAudio">
+                                <Volume2 size={16} />
+                                <span>{archivoStaging.archivo.name}</span>
+                            </div>
+                        )}
+                        <div className="chatFlotanteStagingAcciones">
+                            <BotonBase variante="ghost" className="chatFlotanteStagingCancelar" onClick={cancelarStaging}
+                                type="button" aria-label="Cancelar">
+                                <X size={14} />
+                            </BotonBase>
+                            <BotonBase variante="ghost" className="chatFlotanteStagingEnviar" onClick={enviarArchivoStaging}
+                                type="button" aria-label="Enviar" disabled={enviando}>
+                                <Send size={14} />
+                            </BotonBase>
+                        </div>
+                    </div>
+                )}
                 <Input ref={archivoRef} type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp,audio/mpeg,audio/wav,audio/ogg"
                     onChange={manejarArchivo} style={{ display: 'none' }} />

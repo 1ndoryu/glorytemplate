@@ -5,11 +5,13 @@
  * Extraído de DropdownMensajes para cumplir SRP.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
 import { useMensajesStore } from '@app/stores/mensajesStore';
 import { obtenerConversaciones } from '@app/services/apiMensajes';
 import type { Conversacion } from '@app/types';
+
+type TabMensajes = 'principal' | 'solicitudes';
 
 interface UseDropdownMensajesParams {
     onCerrar: () => void;
@@ -23,6 +25,9 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
     const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
     const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
+
+    /* QQ52: Tab activa — principal (mutuos) / solicitudes (no mutuos) */
+    const [tabActiva, setTabActiva] = useState<TabMensajes>('principal');
 
     /*
      * C192: Stale-while-revalidate.
@@ -62,11 +67,22 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
 
     const sinLeer = conversaciones.filter((c) => c.noLeidos > 0).length;
 
+    /* QQ52: Filtrar por tab — principal muestra mutuos, solicitudes muestra no mutuos */
+    const conversacionesFiltradas = conversaciones.filter((c) =>
+        tabActiva === 'principal' ? c.esMutuo : !c.esMutuo
+    );
+
+    const totalSolicitudes = conversaciones.filter((c) => !c.esMutuo).length;
+
     return {
-        conversaciones,
+        conversaciones: conversacionesFiltradas,
+        todasConversaciones: conversaciones,
         cargando,
         conversacionesCargadas,
         sinLeer,
+        tabActiva,
+        setTabActiva,
+        totalSolicitudes,
         abrirConversacion,
     };
 };

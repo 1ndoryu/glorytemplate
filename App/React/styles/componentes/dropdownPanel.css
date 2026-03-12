@@ -179,3 +179,47 @@
         max-width: 400px;
     }
 }
+
+/* QQ52: Tabs principal/solicitudes para mensajes */
+.dropdownPanelTabs {
+    display: flex;
+    border-bottom: 1px solid var(--bordeSutil);
+    padding: 0 var(--espacioSm);
+}
+
+.dropdownPanelTab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioSm) var(--espacioMd);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    color: var(--textoTerciario);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.dropdownPanelTab:hover {
+    color: var(--textoSecundario);
+}
+
+.dropdownPanelTabActiva {
+    color: var(--acento);
+    border-bottom-color: var(--acento);
+}
+
+.dropdownPanelTabBadge {
+    font-size: var(--fuenteXs);
+    background-color: var(--acento);
+    color: var(--textoPrimario);
+    border-radius: var(--radioFull);
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.4;
+}

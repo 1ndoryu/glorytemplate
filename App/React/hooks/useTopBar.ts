@@ -36,6 +36,7 @@ export const useTopBar = () => {
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
 
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
+    const totalMensajesNoLeidos = useMensajesStore(s => s.totalNoLeidos());
     const hidratarNotificaciones = useNotificacionesStore(s => s.hidratarNotificaciones);
     const setCargandoSilenciosoNotificaciones = useNotificacionesStore(s => s.setCargandoSilencioso);
     const marcarTodasLeidasLocal = useNotificacionesStore(s => s.marcarTodasLeidasLocal);
@@ -177,6 +178,7 @@ export const useTopBar = () => {
         busquedaModalAbierta,
         setBusquedaModalAbierta,
         totalNotificacionesNoLeidas,
+        totalMensajesNoLeidos,
         etiquetaCreditos,
         placeholderBusqueda,
         manejarClickAvatar,

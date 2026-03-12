@@ -19,6 +19,8 @@ use App\Config\Schema\_generated\MensajesEnums;
 use App\Kamples\Database\Repositories\ConversacionesRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\BloqueosRepository;
+use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\KamplesLogger;
 
 class MensajesEnvioController
@@ -67,6 +69,15 @@ class MensajesEnvioController
             if ($tipo === MensajesEnums::TIPO_TEXTO && !empty($contenido)) {
                 $errorLongitud = Validador::validarLongitud($contenido, Validador::MAX_MENSAJE, 'El mensaje');
                 if ($errorLongitud) return Validador::respuestaError($errorLongitud);
+
+                /* QQ52: Anti-spam heurístico en mensajes de texto */
+                $spamRazon = ServicioAntiSpam::evaluarTexto($contenido);
+                if ($spamRazon !== null) {
+                    return new \WP_REST_Response([
+                        'code' => 'mensaje_spam',
+                        'message' => $spamRazon,
+                    ], 422);
+                }
             }
 
             $mediaUrl = null;
@@ -112,6 +123,12 @@ class MensajesEnvioController
             $conv = ConversacionesRepository::verificarParticipacion($conversacionId, $userId);
             if (!$conv) {
                 return new \WP_REST_Response(['code' => 'conversacion_no_encontrada'], 404);
+            }
+
+            /* QQ52: Bloqueo bidireccional — no permitir enviar mensajes a/desde usuarios bloqueados */
+            $otroId = ConversacionesRepository::obtenerOtroParticipante($conversacionId, $userId);
+            if ($otroId && BloqueosRepository::existeBloqueoMutuo($userId, $otroId)) {
+                return new \WP_REST_Response(['code' => 'bloqueado', 'message' => 'No puedes enviar mensajes a este usuario'], 403);
             }
 
             $msgId = MensajesRepository::insertarMensaje(
@@ -169,8 +186,8 @@ class MensajesEnvioController
             return new \WP_REST_Response(['code' => 'tipo_no_permitido', 'message' => "Tipo de archivo no permitido: {$mimeReal}"], 400);
         }
 
-        /* Límite de tamaño: 10MB imágenes, 25MB audio */
-        $maxBytes = $tipo === MensajesEnums::TIPO_IMAGEN ? 10 * 1024 * 1024 : 25 * 1024 * 1024;
+        /* Límite de tamaño: 10MB imágenes, 30MB audio */
+        $maxBytes = $tipo === MensajesEnums::TIPO_IMAGEN ? 10 * 1024 * 1024 : 30 * 1024 * 1024;
         if ($archivo['size'] > $maxBytes) {
             $maxMB = $maxBytes / 1024 / 1024;
             return new \WP_REST_Response(['code' => 'archivo_grande', 'message' => "El archivo excede el límite de {$maxMB}MB"], 400);
