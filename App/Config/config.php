@@ -35,6 +35,12 @@ add_filter('glory_react_context', function (array $context): array {
         }
     }
 
+    /* Google OAuth Client ID — valor público para Google Identity Services */
+    $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
+    if ($googleClientId) {
+        $context['googleClientId'] = $googleClientId;
+    }
+
     return $context;
 });
 SyncManager::setAdminBarVisible(true); 

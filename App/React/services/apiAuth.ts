@@ -70,3 +70,14 @@ export const registrar = async (datos: {
 export const cerrarSesion = async () => {
     return apiPost<{ ok: boolean }>('/auth/logout', {});
 };
+
+/*
+ * QQ40: Login/registro con Google OAuth.
+ * Recibe el credential (ID token de Google Identity Services)
+ * y lo envía al backend para verificación server-side.
+ */
+export const loginConGoogle = async (credential: string) => {
+    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/google', {
+        credential,
+    });
+};

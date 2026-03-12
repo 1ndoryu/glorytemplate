@@ -1,6 +1,6 @@
 /*
  * Componente: ModalAuth
- * Modal full-screen de login y registro.
+ * Modal full-screen de login y registro con soporte Google OAuth.
  * Layout: imagen en mitad izquierda, formulario en mitad derecha.
  * Renderiza su propio portal (no usa Modal base) para tener control total
  * del layout sin restricciones de max-width ni border-radius.
@@ -13,6 +13,7 @@ import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
 import { useAuth } from '../../hooks/useAuth';
 import { useModalAuth } from '../../hooks/useModalAuth';
+import { IconoGoogle } from '../ui/IconoGoogle';
 import '../../styles/componentes/authModal.css';
 
 const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/2.jpg';
@@ -21,7 +22,7 @@ const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/2.jpg';
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion } = useAuth();
+    const { cargando, error, iniciarSesion, iniciarSesionGoogle } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -30,7 +31,20 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
 
     return (
         <div className="authFormContenedor">
-            <h2 className="authTitulo">Inicia sesion</h2>
+            <h2 className="authTitulo">Inicia sesión</h2>
+
+            <BotonBase
+                variante="ghost"
+                className="authGoogleBtn"
+                onClick={iniciarSesionGoogle}
+                disabled={cargando}
+                type="button"
+            >
+                <IconoGoogle />
+                Continuar con Google
+            </BotonBase>
+
+            <div className="authSeparador">o</div>
 
             {error && <div className="authError">{error}</div>}
 
@@ -45,9 +59,9 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
                 />
 
                 <CampoTexto
-                    etiqueta="Contrasena"
+                    etiqueta="Contraseña"
                     type="password"
-                    placeholder="Tu contrasena"
+                    placeholder="Tu contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -59,14 +73,14 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
                     anchoCompleto
                     cargando={cargando}
                 >
-                    Iniciar sesion
+                    Iniciar sesión
                 </BotonBase>
             </form>
 
             <p className="authFooter">
-                No tienes cuenta?{' '}
+                ¿No tienes cuenta?{' '}
                 <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
-                    Registrate gratis
+                    Regístrate gratis
                 </BotonBase>
             </p>
         </div>
@@ -78,7 +92,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, registrar } = useAuth();
+    const { cargando, error, registrar, iniciarSesionGoogle } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -88,6 +102,19 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
     return (
         <div className="authFormContenedor">
             <h2 className="authTitulo">Crea tu cuenta</h2>
+
+            <BotonBase
+                variante="ghost"
+                className="authGoogleBtn"
+                onClick={iniciarSesionGoogle}
+                disabled={cargando}
+                type="button"
+            >
+                <IconoGoogle />
+                Registrarse con Google
+            </BotonBase>
+
+            <div className="authSeparador">o</div>
 
             {error && <div className="authError">{error}</div>}
 
@@ -110,9 +137,9 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
                 />
 
                 <CampoTexto
-                    etiqueta="Contrasena"
+                    etiqueta="Contraseña"
                     type="password"
-                    placeholder="Minimo 6 caracteres"
+                    placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -129,9 +156,9 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
             </form>
 
             <p className="authFooter">
-                Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta?{' '}
                 <BotonBase variante="ghost" type="button" className="authEnlace" onClick={onCambiar}>
-                    Inicia sesion
+                    Inicia sesión
                 </BotonBase>
             </p>
         </div>

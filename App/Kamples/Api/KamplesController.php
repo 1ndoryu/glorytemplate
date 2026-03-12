@@ -29,6 +29,7 @@ use App\Kamples\Api\Controladores\ExperimentosController;
 use App\Kamples\Api\Controladores\EmbeddingsController;
 use App\Kamples\Api\Controladores\ComentariosController;
 use App\Kamples\Api\Controladores\AuthController;
+use App\Kamples\Api\Controladores\GoogleAuthController;
 use App\Kamples\Api\Controladores\AdminController;
 use App\Kamples\Api\Controladores\DuplicadosController;
 use App\Kamples\Api\Controladores\ColaIaController;
@@ -81,6 +82,7 @@ class KamplesController
         EmbeddingsController::registrarRutas($ns);
         ComentariosController::registrarRutas($ns);
         AuthController::registrarRutas($ns);
+        GoogleAuthController::registrarRutas($ns);
         AdminController::registrarRutas($ns);
         DuplicadosController::registrarRutas($ns);
         ColaIaController::registrarRutas($ns);

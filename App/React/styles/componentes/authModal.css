@@ -137,6 +137,54 @@
     color: var(--acentoHover);
 }
 
+/* Botón Google OAuth */
+.authGoogleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioSm) var(--espacioLg);
+    border-radius: var(--radioMd);
+    border: 1px solid var(--bordeSutil);
+    background-color: var(--fondoElevado2);
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-weight: var(--pesoMedium);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.authGoogleBtn:hover {
+    background-color: var(--fondoElevado3);
+    border-color: var(--bordeActivo);
+}
+
+.authGoogleBtn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Separador "o" entre Google y formulario */
+.authSeparador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.authSeparador::before,
+.authSeparador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--bordeSutil);
+}
+
 /* Responsive: imagen oculta en pantallas pequeñas */
 @media (max-width: 700px) {
     .authPantallaCompleta {

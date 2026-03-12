@@ -7,9 +7,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useAuthModalStore } from '../stores/authModalStore';
-import { obtenerUsuarioActual, login, registrar as apiRegistrar } from '../services/apiAuth';
+import { obtenerUsuarioActual, login, registrar as apiRegistrar, loginConGoogle } from '../services/apiAuth';
 import { crearLogger } from '../services/logger';
 import { useNavigationStore } from '@/core/router/navigationStore';
+import { useGoogleAuth } from './useGoogleAuth';
 import type { UsuarioAutenticado } from '../types/usuario';
 
 const log = crearLogger('useAuth');
@@ -153,11 +154,47 @@ export const useAuth = () => {
         }
     }, [setUsuario]);
 
+    const manejarCredencialGoogle = useCallback(async (credential: string) => {
+        setError(null);
+        setCargando(true);
+
+        try {
+            const resp = await loginConGoogle(credential);
+
+            if (resp.ok && resp.data) {
+                const datos = resp.data as unknown as { token?: string; usuario?: UsuarioAutenticado };
+                const usuarioResp = datos.usuario ?? (resp.data as unknown as UsuarioAutenticado);
+                setUsuario(usuarioResp);
+
+                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    await persistirTokenDesktop(datos.token, datos.usuario ?? null);
+                }
+
+                useAuthModalStore.getState().cerrar();
+
+                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    useNavigationStore.getState().navegar('/');
+                } else {
+                    window.location.href = '/';
+                }
+            } else {
+                setError(resp.error ?? 'Error al iniciar sesión con Google');
+            }
+        } catch (err) {
+            log.error('Error en login con Google', err);
+            setError('Error de conexión. Intenta de nuevo.');
+        } finally {
+            setCargando(false);
+        }
+    }, [setUsuario]);
+
+    /* GSI: disparar popup de Google Sign-In */
+    const { disparar: dispararGoogle } = useGoogleAuth(manejarCredencialGoogle);
+
     const iniciarSesionGoogle = useCallback(() => {
-        /* TO-DO: redirigir al flujo OAuth de WordPress/Google */
         log.info('Iniciando flujo OAuth Google');
-        window.location.href = '/wp-login.php?action=wordpress_social_authenticate&mode=login&provider=Google';
-    }, []);
+        dispararGoogle();
+    }, [dispararGoogle]);
 
     const logout = useCallback(() => {
         cerrarSesion();

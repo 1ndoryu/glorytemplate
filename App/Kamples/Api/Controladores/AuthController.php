@@ -1,11 +1,13 @@
 <?php
 
 /**
- * AuthController — Endpoints de autenticación.
+ * AuthController — Endpoints de autenticación con credenciales.
  *
  * POST /auth/login    — Iniciar sesión con email/username + contraseña
  * POST /auth/registro — Crear cuenta nueva
+ * POST /auth/logout   — Cerrar sesión
  *
+ * Google OAuth se maneja en GoogleAuthController.
  * Delega la autenticación real a WordPress (wp_authenticate / wp_create_user).
  *
  * @package Kamples
@@ -211,9 +213,9 @@ class AuthController
 
     /**
      * Obtiene o crea el registro de usuario extendido en PostgreSQL.
-     * Reutiliza la lógica de PerfilController::usuarioActual, pero simplificada.
+     * Público para reutilización en GoogleAuthController.
      */
-    private static function obtenerOCrearUsuarioPg($wpUser): array
+    public static function obtenerOCrearUsuarioPg($wpUser): array
     {
         $wpId = is_object($wpUser) ? ($wpUser->ID ?? 0) : $wpUser;
         $wpData = get_userdata($wpId);
@@ -252,7 +254,7 @@ class AuthController
      * Convierte snake_case de PG a camelCase para el frontend.
      * C193: fallback a WP Gravatar si avatar_url es null.
      */
-    private static function normalizarUsuario(array $row): array
+    public static function normalizarUsuario(array $row): array
     {
         $avatarUrl = $row[UsuariosExtCols::AVATAR_URL] ?? null;
         if (!$avatarUrl && !empty($row[UsuariosExtCols::WP_USER_ID])) {
