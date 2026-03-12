@@ -58,6 +58,11 @@ const DEFINICIONES_NOTIFICACION: MapaTiposNotificacion = {
         prioridad: 'alta',
         permiteToast: true,
     },
+    venta: {
+        categoria: 'monetizacion',
+        prioridad: 'alta',
+        permiteToast: true,
+    },
 };
 
 const MENSAJE_POR_DEFECTO = 'Tienes una nueva notificación';

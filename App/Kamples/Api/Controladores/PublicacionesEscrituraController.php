@@ -63,6 +63,7 @@ class PublicacionesEscrituraController
         $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
         if ($razonSpam) {
             ServicioBan::registrarViolacion($userId, $razonSpam, 'publicacion');
+            ServicioNotificaciones::publicacionRechazada($userId, $razonSpam);
             return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
         }
 
@@ -92,8 +93,9 @@ class PublicacionesEscrituraController
             $textoMod = $contenido;
             $imgsMod = \is_array($urlsImagenes) ? $urlsImagenes : [];
             $adminFlag = $esAdmin;
+            $autorId = $userId;
 
-            \add_action('shutdown', function () use ($pubId, $textoMod, $imgsMod, $adminFlag) {
+            \add_action('shutdown', function () use ($pubId, $textoMod, $imgsMod, $adminFlag, $autorId) {
                 if (\function_exists('fastcgi_finish_request')) {
                     \fastcgi_finish_request();
                 }
@@ -108,6 +110,11 @@ class PublicacionesEscrituraController
                             'nivelOriginal' => $resultado['nivel'] ?? 'desconocido',
                         ], 'moderacion');
                         PublicacionesRepository::forzarModeracion($pubId, PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'admin_auto');
+                    }
+
+                    /* QQ27: Notificar al autor si la IA rechaza su publicacion */
+                    if (!$adminFlag && ($resultado['nivel'] ?? '') === PublicacionesEnums::MODERACION_ESTADO_RECHAZADO) {
+                        ServicioNotificaciones::publicacionRechazada($autorId, $resultado['razon'] ?? '');
                     }
                 } catch (\Throwable $e) {
                     KamplesLogger::error('Error en moderación de publicación', [
@@ -198,6 +205,7 @@ class PublicacionesEscrituraController
             $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
             if ($razonSpam) {
                 ServicioBan::registrarViolacion($userId, $razonSpam, 'publicacion');
+                ServicioNotificaciones::publicacionRechazada($userId, $razonSpam);
                 return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
             }
 
@@ -331,6 +339,7 @@ class PublicacionesEscrituraController
         $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
         if ($razonSpam) {
             ServicioBan::registrarViolacion($userId, $razonSpam, 'comentario');
+            ServicioNotificaciones::comentarioRechazado($userId, $razonSpam);
             return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'Contenido detectado como spam'], 403);
         }
 

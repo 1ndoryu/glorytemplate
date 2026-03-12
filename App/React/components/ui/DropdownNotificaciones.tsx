@@ -3,10 +3,14 @@
  * Panel dropdown con la lista de notificaciones recientes.
  * Se muestra al hacer click en el icono de campana del TopBar.
  * Conectado a API real via useDropdownNotificaciones hook.
+ *
+ * QQ27: Muestra avatar del actor cuando existe, icono como fallback.
+ * Items son enlaces <a> para permitir apertura en nueva pestana (click central).
  */
 
-import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard } from 'lucide-react';
+import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard, DollarSign } from 'lucide-react';
 import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
+import type { NotificacionUI } from '@app/types/notificaciones';
 import '../../styles/componentes/dropdownPanel.css';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
@@ -19,6 +23,7 @@ const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
     sistema: <Bell size={16} />,
     mensaje: <MessageCircle size={16} />,
     pago: <CreditCard size={16} />,
+    venta: <DollarSign size={16} />,
     moderacion: <ShieldAlert size={16} />,
     duplicado_detectado: <AlertTriangle size={16} />,
 };
@@ -32,6 +37,14 @@ const formatearTiempo = (fecha: string): string => {
     if (hrs < 24) return `Hace ${hrs}h`;
     const dias = Math.floor(hrs / 24);
     return dias === 1 ? 'Ayer' : `Hace ${dias}d`;
+};
+
+/* Construye la URL de navegacion de una notificacion */
+const obtenerEnlaceNotificacion = (noti: NotificacionUI): string | null => {
+    if (noti.enlace) return noti.enlace;
+    if (noti.datos?.sampleSlug) return `/sample/${noti.datos.sampleSlug}/`;
+    if (noti.tipo === 'follow' && noti.actor?.username) return `/perfil/${noti.actor.username}`;
+    return null;
 };
 
 interface DropdownNotificacionesProps {
@@ -62,32 +75,41 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
                             <p>Sin notificaciones</p>
                         </div>
                     ) : (
-                        notificaciones.map((noti) => (
-                            <div
-                                key={noti.id}
-                                className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
-                                onClick={() => manejarClickNotif(noti)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
+                        notificaciones.map((noti) => {
+                            const enlace = obtenerEnlaceNotificacion(noti);
+                            const tieneAvatar = !!noti.actor?.avatarUrl;
+                            return (
+                                <a
+                                    key={noti.id}
+                                    className={`dropdownItem ${!noti.leida ? 'dropdownItemNoLeido' : ''}`}
+                                    href={enlace ?? '#'}
+                                    onClick={(e) => {
                                         e.preventDefault();
                                         manejarClickNotif(noti);
-                                    }
-                                }}
-                                role="button"
-                                tabIndex={0}
-                            >
-                                <div className="dropdownItemIcono">
-                                    {ICONOS_NOTIFICACION[noti.tipo] ?? <Bell size={16} />}
-                                </div>
-                                <div className="dropdownItemContenido">
-                                    <span className="dropdownItemTexto">{noti.mensaje}</span>
-                                    <span className="dropdownItemTiempo">
-                                        {formatearTiempo(noti.creadaAt)}
-                                    </span>
-                                </div>
-                                {!noti.leida && <div className="dropdownItemPunto" />}
-                            </div>
-                        ))
+                                    }}
+                                    onAuxClick={(e) => {
+                                        /* Click central: marca leida sin cerrar dropdown */
+                                        if (e.button === 1 && enlace) {
+                                            manejarClickNotif(noti, true);
+                                        }
+                                    }}
+                                >
+                                    <div className={`dropdownItemIcono ${tieneAvatar ? 'dropdownItemConAvatar' : ''}`}>
+                                        {tieneAvatar
+                                            ? <img src={noti.actor!.avatarUrl!} alt="" className="dropdownItemAvatar" loading="lazy" />
+                                            : (ICONOS_NOTIFICACION[noti.tipo] ?? <Bell size={16} />)
+                                        }
+                                    </div>
+                                    <div className="dropdownItemContenido">
+                                        <span className="dropdownItemTexto">{noti.mensaje}</span>
+                                        <span className="dropdownItemTiempo">
+                                            {formatearTiempo(noti.creadaAt)}
+                                        </span>
+                                    </div>
+                                    {!noti.leida && <div className="dropdownItemPunto" />}
+                                </a>
+                            );
+                        })
                     )}
                 </div>
             </div>

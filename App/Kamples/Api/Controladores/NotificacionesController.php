@@ -53,11 +53,18 @@ class NotificacionesController
 
         /* C193: fallback avatar para actores de notificaciones */
         foreach ($notificaciones as &$n) {
-            $n['actorAvatar'] = UsuarioHelper::resolverAvatarUrl(
-                $n['actorAvatar'] ?? null,
-                isset($n['actorWpUserId']) ? (int) $n['actorWpUserId'] : null
-            );
-            unset($n['actorWpUserId']);
+            $n['actor'] = null;
+            if (!empty($n['actorUsername'])) {
+                $n['actor'] = [
+                    'username'       => $n['actorUsername'],
+                    'nombreVisible'  => $n['actorNombre'] ?? $n['actorUsername'],
+                    'avatarUrl'      => UsuarioHelper::resolverAvatarUrl(
+                        $n['actorAvatar'] ?? null,
+                        isset($n['actorWpUserId']) ? (int) $n['actorWpUserId'] : null
+                    ),
+                ];
+            }
+            unset($n['actorUsername'], $n['actorNombre'], $n['actorAvatar'], $n['actorWpUserId']);
         }
 
         return new \WP_REST_Response(['data' => $notificaciones], 200);

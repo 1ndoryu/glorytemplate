@@ -300,4 +300,34 @@ class ServicioNotificaciones
             return 'usuario';
         }
     }
+
+    /**
+     * Notifica al autor que su publicacion fue rechazada automaticamente.
+     */
+    public static function publicacionRechazada(int $destinatarioId, string $razon = ''): void
+    {
+        self::crear(
+            $destinatarioId,
+            'moderacion',
+            'Tu publicacion fue rechazada' . ($razon ? ": {$razon}" : ' por violar las normas de la comunidad'),
+            ['razon' => $razon],
+            null,
+            'Contenido rechazado'
+        );
+    }
+
+    /**
+     * Notifica al autor que su comentario fue rechazado automaticamente.
+     */
+    public static function comentarioRechazado(int $destinatarioId, string $razon = ''): void
+    {
+        self::crear(
+            $destinatarioId,
+            'moderacion',
+            'Tu comentario fue rechazado' . ($razon ? ": {$razon}" : ' por violar las normas de la comunidad'),
+            ['razon' => $razon],
+            null,
+            'Contenido rechazado'
+        );
+    }
 }

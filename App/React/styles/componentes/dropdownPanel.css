@@ -76,6 +76,10 @@
     background: none;
     width: 100%;
     text-align: left;
+    text-decoration: none;
+    color: inherit;
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioMd);
 }
 
 .dropdownItem:hover {
@@ -96,6 +100,18 @@
     justify-content: center;
     flex-shrink: 0;
     color: var(--textoSecundario);
+}
+
+/* Cuando el icono contiene un avatar, quitar fondo para que la imagen se vea limpia */
+.dropdownItemConAvatar {
+    background-color: transparent;
+}
+
+.dropdownItemAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioFull);
+    object-fit: cover;
 }
 
 .dropdownItemContenido {

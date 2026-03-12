@@ -106,15 +106,9 @@ Fix texto garbled en reportes (â€" en vez de —). Causa: PostgresService.php
 
 Sistema de bloqueo user-to-user completo. BD: tabla `bloqueos` (PK, FK, UNIQUE, CHECK, indices). Schema: BloqueoSchema + BloqueoCols + BloqueoDTO. Backend: BloqueosRepository con CRUD + `sqlExcluirBloqueados()` helper reutilizable para SQL subqueries bidireccionales. API: POST/DELETE /block/{userId} (con rate limit + auto-unfollow mutuo), GET /me/bloqueados. Filtrado bidireccional inyectado en: MotorRecomendacion (feed personalizado + nuevo usuario), SamplesRepository (listarFeed, buscarSimilares, buscarPorScoring, listarConFiltros), PublicacionesController (feed social), ComentariosRepository (raíz + respuestas), NotificacionesRepository (listarConActor). Frontend: bloqueosStore (Zustand), apiBloqueos service, SeccionBloqueos en ModalConfiguracion. Perfil: campo `bloqueado` en respuesta de perfil público.
 
-## QQ27
+## QQ27 ✅ [AG-QQF]
 
-Mejorar el sistema notificaciones, primero, no tiene que mostrar iconos, sino imagenes, se respecto a un sample mmuestra la imagen del sample, si esta relacionado con un usuario, muestra la foto de perfil del usuario, las cosas que no tienen nada que ver con samples o usuarios bueno se deja con un icono ok,
-
-en vez de Alguien comento en tu publicacion, debería ser Carlos comento tu publicacion "Hola como..." (nombre de usuario) y (trzo inicial de comentario)
-
-tambien me di cuenta que las notificaciones tienen el problema de que no se pueden abrir en otra pestaña dando click con el boton central de rueda.
-
-No vi notificacion cuando un comentario fue rechazado automaticamente o una publicacion,
+Sistema de notificaciones mejorado. Backend: NotificacionesController normaliza actor data en objeto anidado `{username, nombreVisible, avatarUrl}` (antes eran campos planos). ServicioNotificaciones: nuevos métodos `publicacionRechazada()` y `comentarioRechazado()` (tipo='moderacion'). Notificaciones de rechazo automático añadidas en 5 puntos: anti-spam publicaciones (crear/editar), anti-spam comentarios (publicaciones + comentarios), IA moderación (publicaciones en shutdown hook, comentarios). Frontend: DropdownNotificaciones muestra avatar del actor cuando existe (img round 36px), fallback a icono por tipo. Items son `<a>` con href para soporte de click central (nueva pestaña). Añadido tipo `venta` con icono DollarSign. Hook soporta `soloMarcarLeida` para middle-click. CSS: clases `.dropdownItemAvatar`, `.dropdownItemConAvatar`. Archivos: NotificacionesController.php, ServicioNotificaciones.php, PublicacionesEscrituraController.php, ComentariosEscrituraController.php, ServicioModeracionIA.php, DropdownNotificaciones.tsx, useDropdownNotificaciones.ts, apiNotificaciones.ts, notificaciones.ts (utils), dropdownPanel.css.
 
 ## QQ28 ✅ [AG-QQF]
 
@@ -226,3 +220,13 @@ Verificar TO-DO sueltos en la aplicación y haz los que sean importantes.
 ## QQ44
 
 La opción de mostrar kamples en el icono de bandeja de entrada en la aplicación no funciona, no vuelve a aparecer la aplicación, solo el sync
+
+## QQ45
+
+Modal inicial de bienvenida
+
+Sera un modal muy sencillo, donde se le pregunta con un texto centrado todo. ¿Cuales son tus generos favoritos? 
+
+Y abajo unos tags badge con generos para elegir, pon muchos y luego esa informacion tiene que tenerla en cuenta el algoritmo, luego en configuracion agrega un boton para reabrir este modal y que el usuario pueda cambiar sus gustos, esto en el algoritmo no tiene que tener un inpacto grande a la largo, inicialmente lo tendrá porque claro, inicialmente no se tiene información del usuario, 
+
+permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue

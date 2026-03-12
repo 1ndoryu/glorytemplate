@@ -104,6 +104,7 @@ class ComentariosEscrituraController
             $razonSpam = ServicioAntiSpam::evaluar($contenido, $userId);
             if ($razonSpam) {
                 ServicioBan::registrarViolacion($userId, $razonSpam, 'comentario');
+                ServicioNotificaciones::comentarioRechazado($userId, $razonSpam);
                 return new \WP_REST_Response(['code' => 'contenido_spam', 'message' => 'El comentario fue rechazado por spam'], 403);
             }
         }

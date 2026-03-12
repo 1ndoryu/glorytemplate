@@ -19,7 +19,8 @@ export type TipoNotificacion =
     | 'pago'
     | 'sistema'
     | 'moderacion'
-    | 'duplicado_detectado';
+    | 'duplicado_detectado'
+    | 'venta';
 
 export interface Notificacion {
     id: number;

@@ -44,17 +44,23 @@ export const useDropdownNotificaciones = ({ onCerrar }: UseDropdownNotificacione
         return () => { cancelado = true; };
     }, [hidratarNotificaciones, necesitaRefrescar, notificacionesCargadas, setCargandoVisible]);
 
-    const manejarClickNotif = useCallback((noti: NotificacionUI) => {
+    const manejarClickNotif = useCallback((noti: NotificacionUI, soloMarcarLeida = false) => {
         if (!noti.leida) {
             marcarLeidaLocal(noti.id);
             void marcarLeida(noti.id);
         }
 
+        /* Middle-click: solo marca leida, el navegador abre en nueva pestana */
+        if (soloMarcarLeida) return;
+
         if (noti.enlace) {
             navegar(noti.enlace);
             onCerrar();
         } else if (noti.datos?.sampleSlug) {
-            navegar(`/sample/${noti.datos.sampleSlug}/`);
+            navegar(`/sample/${noti.datos.sampleSlug as string}/`);
+            onCerrar();
+        } else if (noti.tipo === 'follow' && noti.actor?.username) {
+            navegar(`/perfil/${noti.actor.username}`);
             onCerrar();
         }
     }, [marcarLeidaLocal, navegar, onCerrar]);

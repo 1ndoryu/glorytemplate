@@ -27,6 +27,7 @@ use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\ColaProcesamientoIaRepository;
 use App\Kamples\Services\ServicioBan;
+use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\GroqHttpClient;
 use App\Kamples\Api\AnalizadoresModeracion;
 
@@ -276,6 +277,7 @@ class ServicioModeracionIA
         /* C132: Si rechazado, registrar violación y posible ban */
         if ($veredicto['nivel'] === PublicacionesEnums::MODERACION_ESTADO_RECHAZADO) {
             ServicioBan::registrarViolacion($autorId, $veredicto['razon'], 'comentario');
+            ServicioNotificaciones::comentarioRechazado($autorId, $veredicto['razon']);
         }
 
         return $veredicto;
