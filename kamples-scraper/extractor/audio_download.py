@@ -4,14 +4,15 @@ Descarga de audio desde YouTube (yt-dlp) o Spotify (spotdl).
 Prioridad: YouTube ID > YouTube search > Spotify ID > Spotify search > error.
 
 Youtube:
-- Estrategia 1 (pot_nativo): yt-dlp sin cookies. Funciona para contenido publico
-  via android_vr. No apta para contenido que requiere auth.
-- Estrategia 2 (pot_cookies): yt-dlp + cookies.txt. Bypasea bot detection.
-  No funciona para contenido restringido por labels (requiere YouTube Premium).
-- YouTube search: busqueda por nombre si el video ID directo falla.
-  Puede encontrar subidas no oficiales sin restricciones de DRM.
-- fetch_pot=always: activa bgutil-ytdlp-pot-provider para generar GVS PO tokens,
-  resolviendo el "The page needs to be reloaded" del experimento de YouTube.
+- Estrategia primaria android_vr: player_client=android_vr no requiere PO tokens
+  ni bgutil activo. Funciona para la mayoria del contenido publico de YouTube.
+- android_vr + cookies: para contenido con restriccion de edad.
+- web+bgutil (condicional): si bgutil HTTP server esta activo en localhost:4416,
+  se agrega web+fetch_pot=always como fallback adicional.
+- ATENCION: fetch_pot=always sin bgutil activo hace fallar TODOS los requests
+  con "The page needs to be reloaded". Verificar servidor antes de activar.
+- YouTube search: busqueda ytsearch5: con android_vr si el ID directo falla.
+  Encuentra subidas no oficiales sin restricciones DRM de canales de labels.
 
 Spotify: spotdl como fallback para contenido no disponible en YouTube.
 """
@@ -115,16 +116,40 @@ def descargar_audio(
     return None
 
 
+_bgutil_activo_cache: bool | None = None
+
+
+def _bgutil_servidor_activo() -> bool:
+    """Verificar si el servidor HTTP de bgutil esta activo en localhost:4416.
+
+    Resultado cacheado por proceso para evitar multiples checks por video.
+    Si no esta activo, se usa android_vr como cliente primario (no requiere PO tokens).
+    """
+    global _bgutil_activo_cache
+    if _bgutil_activo_cache is not None:
+        return _bgutil_activo_cache
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://localhost:4416/ping", timeout=2) as resp:
+            _bgutil_activo_cache = resp.status == 200
+    except Exception:
+        _bgutil_activo_cache = False
+    if _bgutil_activo_cache:
+        logger.info("bgutil: servidor HTTP activo — web+fetch_pot disponible como fallback")
+    else:
+        logger.debug("bgutil: servidor HTTP no disponible. Usando android_vr como cliente primario.")
+    return _bgutil_activo_cache
+
+
 def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
-    """Descargar audio de YouTube con PO Token plugin (bgutil-ytdlp-pot-provider).
+    """Descargar audio de YouTube priorizando android_vr (sin PO tokens requeridos).
 
-    yt-dlp 2025+ requiere PO (Proof of Origin) Tokens para YouTube.
-    El plugin bgutil genera tokens automaticamente si esta instalado y
-    el servidor/scripts estan construidos en ~/bgutil-ytdlp-pot-provider/server/.
-
-    Estrategia:
-    1. yt-dlp nativo — el plugin PO token elige el mejor client automaticamente
-    2. + cookies.txt — para videos con restriccion de edad (si el archivo existe)
+    Estrategia progresiva:
+    1. android_vr: cliente que no requiere PO tokens. Funciona para la
+       mayoria del contenido publico sin necesidad de bgutil activo.
+    2. android_vr + cookies: para contenido con restriccion de edad.
+    3. web + fetch_pot=always (condicional): solo si bgutil HTTP server esta
+       activo en localhost:4416. Para contenido que requiere web client.
     """
     output_path = os.path.join(output_dir, f"{youtube_id}.mp3")
 
@@ -138,16 +163,18 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 
     url = f"https://www.youtube.com/watch?v={youtube_id}"
 
-    # Errores que indican restriccion de autenticacion (intentar con cookies)
+    # Errores que indican restriccion de autenticacion o client incompatible (intentar siguiente estrategia)
     _ERRORES_AUTH = (
-        "reloaded", "sign in", "login required", "bot",
-        "age", "confirm your age", "not available",
+        "reloaded",          # GVS experiment: se necesita PO token del web client
+        "sign in",           # anti-bot o auth requerida
+        "login required",    # auth requerida
+        "bot",               # anti-bot detection
+        "age", "confirm your age",  # restriccion de edad
+        "not available", "unavailable",  # video no disponible en este client
     )
 
-    # Comando base — yt-dlp + plugin PO token eligen client optimo automaticamente.
-    # fetch_pot=always: fuerza generacion de player PO tokens antes del player API request.
-    # Sin esto, yt-dlp en modo 'auto' no llama a bgutil aunque este disponible,
-    # lo que hace que el GVS experiment de YouTube devuelva UNPLAYABLE.
+    # Comando base — argumentos compartidos por todas las estrategias.
+    # El player_client y fetch_pot se inyectan por estrategia en extra_args.
     base_cmd = [
         ytdlp_path,
         "--no-playlist",
@@ -162,18 +189,30 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
         "--file-access-retries", "3",
         "--no-check-certificates",
         "--socket-timeout", "30",
-        "--extractor-args", "youtube:fetch_pot=always",
-    ]
-
-    # Estrategia 1: yt-dlp nativo con PO token plugin
-    # Estrategia 2: agregar cookies.txt para videos con restriccion de edad
-    estrategias: list[tuple[str, list[str]]] = [
-        ("pot_nativo", []),
     ]
 
     cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
-    if os.path.exists(cookies_path):
-        estrategias.append(("pot_cookies", ["--cookies", cookies_path]))
+    cookies_existe = os.path.exists(cookies_path)
+
+    # android_vr: cliente primario — no requiere PO tokens ni bgutil activo.
+    # Funciona para la mayoria del contenido publico de YouTube.
+    estrategias: list[tuple[str, list[str]]] = [
+        ("android_vr", ["--extractor-args", "youtube:player_client=android_vr"]),
+    ]
+
+    if cookies_existe:
+        estrategias.append((
+            "android_vr_cookies",
+            ["--extractor-args", "youtube:player_client=android_vr", "--cookies", cookies_path],
+        ))
+
+    # web+bgutil: fallback para contenido que requiere web client con PO token.
+    # Solo se activa si bgutil HTTP server esta corriendo en localhost:4416.
+    if _bgutil_servidor_activo():
+        extra_web: list[str] = ["--extractor-args", "youtube:player_client=web;fetch_pot=always"]
+        if cookies_existe:
+            extra_web += ["--cookies", cookies_path]
+        estrategias.append(("web_bgutil", extra_web))
 
     for nombre_estrategia, extra_args in estrategias:
         cmd = base_cmd + extra_args + [url]
@@ -282,8 +321,9 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
             "--extractor-retries", "2",
             "--no-check-certificates",
             "--socket-timeout", "30",
-            # fetch_pot=always: activar bgutil para web clients (resuelve GVS experiment)
-            "--extractor-args", "youtube:fetch_pot=always",
+            # android_vr: cliente primario para busqueda — no requiere PO tokens ni bgutil.
+            # Los resultados de ytsearch son mayormente contenido publico accesible.
+            "--extractor-args", "youtube:player_client=android_vr",
             *cookies_args,
             query,
         ]

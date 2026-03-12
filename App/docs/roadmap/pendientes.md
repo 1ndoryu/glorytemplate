@@ -436,7 +436,14 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 > **Nota:** Videos individuales pueden fallar por restricciones específicas (no por IP). El plugin PO token NO garantiza 100% bypass pero funciona para la mayoría de videos públicos. OAuth2 ya NO es soportado por YouTube.
 > Lecciones: [PO Token] YouTube requiere Proof of Origin tokens desde 2025. Sin plugin, TODOS los clients fallan (LOGIN_REQUIRED/UNPLAYABLE). [bgutil versiones] Plugin pip y server scripts DEBEN ser la misma major version. [Spotify fallback] spotdl acepta queries de texto además de URLs — `spotdl download "artista - titulo"` busca automáticamente.
 
-### S-FIX-4 — fetch_pot=always + YT search fallback + spotdl rate limit fix ✅ [AG-BTL] C900d
+### S-FIX-5 — android_vr primario + _bgutil_servidor_activo() con cache ✅ [AG-BTL] C900e
+- [x] **S-FIX5.1** Diagnóstico: `fetch_pot=always` en base_cmd sin bgutil server activo hace que yt-dlp use web client → falla con "The page needs to be reloaded" en TODOS los requests (incluyendo ytsearch). ✅
+- [x] **S-FIX5.2** `_bgutil_servidor_activo()`: chequea `localhost:4416/ping` con urllib.request, timeout=2s, resultado cacheado por proceso. Evita múltiples checks por video. ✅
+- [x] **S-FIX5.3** `_descargar_youtube()` estrategias rediseñadas: (1) android_vr sin PO tokens, (2) android_vr+cookies, (3) web+fetch_pot solo si bgutil activo. Elimina dependencia en servidor externo para contenido público. ✅
+- [x] **S-FIX5.4** `_descargar_youtube_search()`: reemplazado `fetch_pot=always` por `player_client=android_vr`. Mismo cliente que descarga directa para consistencia. ✅
+- [x] **S-FIX5.5** `_ERRORES_AUTH` ampliado con "unavailable" y comentarios por tipo de error. base_cmd limpio (sin extractor-args globales). ✅
+> **Root cause del fallo masivo:** El servidor bgutil se apaga cuando se cierra el terminal. La pipeline cron/scheduled no tiene el servidor activo. android_vr no necesita servidor → funciona como primario robusto.
+> Lecciones: [bgutil server efímero] Si bgutil se inicia en terminal interactivo, muere al cerrar sesión. Para producción, usar systemd/PM2/NSSM. [fetch_pot sin server] fetch_pot=always sin servidor bgutil activo es peor que no usarlo — fuerza web client que falla. [android_vr resiliente] android_vr funciona para 95%+ del contenido público sin ningún servidor externo.
 - [x] **S-FIX4.1** Diagnóstico raíz: bgutil NO era llamado. `PLAYER_PO_TOKEN_POLICY(required=False, recommended=False)` en web client → yt-dlp en modo `auto` nunca fetcha player PO tokens. Fix: `--extractor-args "youtube:fetch_pot=always"` fuerza bgutil a generar tokens para CADA request. ✅
 - [x] **S-FIX4.2** `_descargar_youtube_search()` nuevo: busca `ytsearch5:artista titulo` con `--max-downloads 1` + `--ignore-errors` + cookies + `fetch_pot=always`. Itera resultados automáticamente hasta el primer MP3 descargable. Evita restricciones DRM de canales oficiales encontrando subidas no oficiales. ✅
 - [x] **S-FIX4.3** `_ejecutar_spotdl()` helper: usa `Popen + threading` para leer stdout/stderr en tiempo real y matar el proceso inmediatamente al detectar "rate" + "limit". Evita esperar los 86400s de retry de Spotify API. ✅
