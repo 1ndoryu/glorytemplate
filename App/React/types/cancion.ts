@@ -164,6 +164,8 @@ export interface RelacionDetalleCompleta {
     /* Contribuidor que propuso la relacion (seed o comunidad) */
     contribuidorId?: number | null;
     contribuidorUsername?: string | null;
+    /* Cantidad de samples publicados vinculados a esta relacion */
+    totalSamples: number;
 }
 
 /* Detalle de artista con canciones, relaciones y estadísticas */

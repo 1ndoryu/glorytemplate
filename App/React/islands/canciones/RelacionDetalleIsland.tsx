@@ -123,11 +123,15 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                 />
             </div>
 
-            {/* Samples publicados generados desde esta relación */}
-            <FeedSamples
-                proveedor={proveedorSamplesRelacion} claveCache={`relacion-samples-${relacionId}`}
-                mostrarTags={false} infiniteScroll={false} virtualizar={false} mensajeVacio=""
-            />
+            {/* Samples publicados generados desde esta relacion:
+             * Solo se renderiza cuando totalSamples > 0, evitando
+             * peticion innecesaria en relaciones sin samples adjuntos. */}
+            {relacion.totalSamples > 0 && (
+                <FeedSamples
+                    proveedor={proveedorSamplesRelacion} claveCache={`relacion-samples-${relacionId}`}
+                    mostrarTags={false} infiniteScroll={false} virtualizar={false} mensajeVacio=""
+                />
+            )}
 
             {/* Relaciones adicionales de la cancion destino */}
             {(relacion.destinoSamplesDe?.length ?? 0) > 0 && (

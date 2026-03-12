@@ -185,6 +185,7 @@ class NormalizadorCancion
             /* Contribuidor que propuso la relacion */
             'contribuidorId'       => isset($row['contribuidor_id']) ? (int) $row['contribuidor_id'] : null,
             'contribuidorUsername' => $row['contribuidor_username'] ?? null,
+            'totalSamples'         => (int) ($row['total_samples'] ?? 0),
         ];
     }
 

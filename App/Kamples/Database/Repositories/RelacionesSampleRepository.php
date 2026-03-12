@@ -17,6 +17,8 @@ use App\Config\Schema\_generated\RelacionesSampleDTO;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 
 class RelacionesSampleRepository extends BaseRepository
 {
@@ -192,9 +194,17 @@ class RelacionesSampleRepository extends BaseRepository
         $tc = CancionesCols::TABLA;
         $ta = ArtistasMusicalesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
+        $ts = SamplesCols::TABLA;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
 
         return static::consultarUno(
             "SELECT r.*,
+                    (SELECT COUNT(*) FROM {$ts} sp
+                     WHERE sp." . SamplesCols::ESTADO . " = '{$estadoActivo}'
+                       AND (sp.id = r." . RelacionesSampleCols::SAMPLE_FUENTE_ID
+                         . " OR sp.id = r." . RelacionesSampleCols::SAMPLE_DESTINO_ID
+                         . " OR sp." . SamplesCols::RELACION_SAMPLEO_ID . " = r.id)
+                    ) AS total_samples,
                     cf." . CancionesCols::TITULO . " AS fuente_titulo,
                     cf." . CancionesCols::SLUG . " AS fuente_slug,
                     cf." . CancionesCols::ANIO . " AS fuente_anio,

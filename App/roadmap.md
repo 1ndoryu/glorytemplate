@@ -120,9 +120,9 @@ No vi notificacion cuando un comentario fue rechazado automaticamente o una publ
 
 Fix 404 en URLs directas (publicaciones y otras rutas): En `PageTemplateInterceptor::forzarResolucionDinamica()`, si `get_page_by_path()` retorna null pero la pagina esta definida en `PageDefinition::getPaginasDefinidas()`, se auto-crea la pagina WP via `PageProcessor::crearPaginaDefinida()` con transient de 300s para evitar intentos repetidos. Aplica tanto a rutas dinamicas (publicacion/87) como paginas estaticas. Archivos: Glory/src/Manager/PageTemplateInterceptor.php.
 
-## QQ29
+## QQ29 ✅ [AG-QQF]
 
-feedSamplesContenedor aparece en las canciones cuando no tienen samples (no confundir con samples) adjuntos aún, no debería, porque intenta cargar smaples cuando no tiene ninguno
+feedSamplesContenedor ya no aparece en relaciones sin samples. Se agrego `total_samples` al query de `porRelacionId()` via subquery (cuenta samples activos por `sample_fuente_id`, `sample_destino_id` y `relacion_sampleo_id`). Normalizer incluye `totalSamples` en la respuesta. `RelacionDetalleIsland` ahora guarda `FeedSamples` con `relacion.totalSamples > 0`, evitando peticion innecesaria. Archivos: RelacionesSampleRepository.php, NormalizadorCancion.php, cancion.ts, RelacionDetalleIsland.tsx.
 
 ## QQ30
 
@@ -205,7 +205,7 @@ Se que antes habia dicho que habia que quitar las portadas, me arrepiento, ya no
 
 Hay errores ortograficos en el modal de iniciar sesion y registro
 
-Agregar la funcionalidad de registrarse con google
+Agregar la funcionalidad de registrarse con google, en local no suele funcionar pero en produccion tiene que funcionar, la url sera ya sabes kamples.com
 
 mi id de cliente la puse en el env
 
@@ -217,4 +217,12 @@ Crea un md de como alojar la aplicación de forma de que se actualice en todos l
 
 ## QQ42
 
-verificar que el sync respete cuando  "Al borrar en local, borrar en el servidor" este desactivado
+verificar que el sync respete cuando  "Al borrar en local, borrar en el servidor" este desactivado para evitar perdida de datos. Cuando esto este desactivado, no vuelve a descargar los samples que se borraron en local. Implica agregar un boton de refozar sync en donde todos los samples que faltan se vuelven a descargar. El boton iría en el menu contexta, haria lo mismo que sicnronizar ahora pero con el agregado que fuerza descargar lo que falta. 
+
+## QQ43
+
+Verificar TO-DO sueltos en la aplicación y haz los que sean importantes.
+
+## QQ44
+
+La opción de mostrar kamples en el icono de bandeja de entrada en la aplicación no funciona, no vuelve a aparecer la aplicación, solo el sync
