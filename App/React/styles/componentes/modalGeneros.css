@@ -1,0 +1,82 @@
+/*
+ * Estilos: ModalGeneros — Kamples (QQ45)
+ * Modal de seleccion de generos favoritos (onboarding + configuracion).
+ */
+
+.generosContenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--espacioLg) 0;
+    gap: var(--espacioLg);
+}
+
+.generosTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    text-align: center;
+    margin: 0;
+}
+
+.generosSubtitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    text-align: center;
+    margin: 0;
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+.generosGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacioSm);
+    justify-content: center;
+    max-width: 520px;
+    padding: var(--espacioMd) 0;
+}
+
+.generosBadge {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioFull);
+    border: 1px solid var(--bordeSutil);
+    background: transparent;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.generosBadge:hover {
+    border-color: var(--acento);
+    color: var(--textoPrimario);
+}
+
+.generosBadgeActivo {
+    background: var(--acento);
+    border-color: var(--acento);
+    color: var(--textoPrimarioInverso);
+    font-weight: var(--pesoMedium);
+}
+
+.generosBadgeActivo:hover {
+    opacity: 0.9;
+}
+
+.generosAcciones {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 520px;
+    padding-top: var(--espacioMd);
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.generosContador {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}

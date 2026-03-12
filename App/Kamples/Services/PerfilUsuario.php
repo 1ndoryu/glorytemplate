@@ -15,6 +15,7 @@
 
 namespace App\Kamples\Services;
 
+use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class PerfilUsuario
@@ -22,24 +23,29 @@ class PerfilUsuario
     /**
      * Construye el perfil de preferencias del usuario.
      * Extrae: BPM promedio, keys más usadas, géneros favoritos, tipo preferido.
+     * Incluye géneros declarados (onboarding) como señal suplementaria.
      */
     public static function construir(int $userId): array
     {
         /* Contar interacciones totales */
         $total = UsuariosExtRepository::contarInteracciones($userId);
 
+        /* Cargar generos declarados del onboarding (siempre, independiente de interacciones) */
+        $generosDeclarados = self::obtenerGenerosDeclarados($userId);
+
         if ($total === 0) {
-            return ['interacciones' => 0, 'userId' => $userId];
+            return ['interacciones' => 0, 'userId' => $userId, 'generosDeclarados' => $generosDeclarados];
         }
 
         return [
-            'interacciones' => $total,
-            'userId'        => $userId,
-            'bpmProm'       => UsuariosExtRepository::bpmPromedio($userId) ?? 0,
-            'keyFav'        => UsuariosExtRepository::keyFavorita($userId),
-            'escalaFav'     => UsuariosExtRepository::escalaFavorita($userId),
-            'tipoFav'       => UsuariosExtRepository::tipoFavorito($userId),
-            'creadoresFav'  => self::obtenerCreadoresFavoritos($userId),
+            'interacciones'     => $total,
+            'userId'            => $userId,
+            'bpmProm'           => UsuariosExtRepository::bpmPromedio($userId) ?? 0,
+            'keyFav'            => UsuariosExtRepository::keyFavorita($userId),
+            'escalaFav'         => UsuariosExtRepository::escalaFavorita($userId),
+            'tipoFav'           => UsuariosExtRepository::tipoFavorito($userId),
+            'creadoresFav'      => self::obtenerCreadoresFavoritos($userId),
+            'generosDeclarados' => $generosDeclarados,
         ];
     }
 
@@ -50,5 +56,18 @@ class PerfilUsuario
     public static function obtenerCreadoresFavoritos(int $userId): array
     {
         return UsuariosExtRepository::obtenerCreadoresFavoritos($userId);
+    }
+
+    /**
+     * Carga los generos declarados por el usuario en onboarding.
+     * Retorna array de strings (generos en minuscula) o vacio.
+     */
+    private static function obtenerGenerosDeclarados(int $userId): array
+    {
+        $raw = UsuariosExtRepository::obtenerCampo($userId, UsuariosExtCols::GENEROS_FAVORITOS);
+        if (!$raw || !is_string($raw)) return [];
+        $decoded = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) return [];
+        return array_values($decoded);
     }
 }

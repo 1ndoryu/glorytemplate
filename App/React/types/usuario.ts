@@ -34,6 +34,7 @@ export interface Usuario {
     stripeConnectId: string | null;
     creadoAt: string;
     actualizadoAt: string;
+    generosPreferidos: string[];
 }
 
 /* Version resumida para tarjetas, listas y relaciones */

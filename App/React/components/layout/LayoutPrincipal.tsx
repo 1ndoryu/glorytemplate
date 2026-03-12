@@ -17,6 +17,8 @@ import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
 import { ModalConfiguracion } from '../social/ModalConfiguracion';
 import { ModalSeguidores } from '../social/ModalSeguidores';
+import { ModalGeneros } from '../social/ModalGeneros';
+import { useGenerosModalStore } from '@app/stores/generosModalStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
@@ -87,6 +89,16 @@ export const LayoutPrincipal = ({
     const autenticado = useAuthStore(s => s.autenticado);
     const cargandoAuth = useAuthStore(s => s.cargando);
     const override = useDevToolsStore((s) => s.override);
+    const usuario = useAuthStore(s => s.usuario);
+
+    /* QQ45: Auto-abrir modal de generos para usuarios nuevos sin preferencias */
+    useEffect(() => {
+        if (!autenticado || !usuario || cargandoAuth) return;
+        const sinGeneros = !usuario.generosPreferidos || usuario.generosPreferidos.length === 0;
+        if (sinGeneros) {
+            useGenerosModalStore.getState().abrir();
+        }
+    }, [autenticado, usuario, cargandoAuth]);
 
     /* Modo de autenticación efectivo: real o simulado */
     const autenticadoEfectivo = override?.simulaDeslogueado ? false : autenticado;
@@ -151,6 +163,9 @@ export const LayoutPrincipal = ({
 
             {/* QQ32: Modal de seguidores */}
             <ModalSeguidores />
+
+            {/* QQ45: Modal de seleccion de generos favoritos */}
+            <ModalGeneros />
 
             {/* C126: Modal de edicion unificado (samples/publicaciones/colecciones) */}
             <ModalEditar />

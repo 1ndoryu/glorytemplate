@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -12,6 +12,7 @@ import {Modal} from '@app/components/ui/Modal';
 import {usePanelLateralStore} from '@app/stores/panelLateralStore';
 import {useModalConfiguracion, type SeccionConfig} from '@app/hooks/useModalConfiguracion';
 import {SeccionBloqueos} from './SeccionBloqueos';
+import {useGenerosModalStore} from '@app/stores/generosModalStore';
 import '../../styles/componentes/modalConfiguracion.css';
 import {CampoTexto} from '../ui/CampoTexto';
 import {Input} from '../ui/Input';
@@ -185,6 +186,15 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
                         {/* C155: Preferencia panel lateral al dar like */}
                         <PanelLateralPreferencia />
+
+                        {/* QQ45: Boton para reabrir modal de generos */}
+                        <div className="configSeccion">
+                            <label className="configLabel">Generos favoritos</label>
+                            <span className="configSubtexto">Personaliza tu feed eligiendo tus generos musicales preferidos.</span>
+                            <BotonBase variante="secundario" tamano="sm" onClick={() => { useGenerosModalStore.getState().abrir(); }} type="button">
+                                <Music size={14} /> Editar generos
+                            </BotonBase>
+                        </div>
                     </>
                 );
 

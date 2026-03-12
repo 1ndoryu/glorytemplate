@@ -25,6 +25,18 @@ use App\Kamples\KamplesLogger;
 
 class PerfilController
 {
+    /*
+     * Whitelist de generos permitidos para onboarding/preferencias.
+     * Mantener en minusculas. Se usa para validar input del usuario.
+     */
+    const GENEROS_PERMITIDOS = [
+        'hip-hop', 'trap', 'r&b', 'pop', 'house', 'techno', 'drum and bass',
+        'dubstep', 'lo-fi', 'ambient', 'jazz', 'soul', 'funk', 'reggaeton',
+        'rock', 'metal', 'indie', 'electronic', 'edm', 'future bass',
+        'garage', 'grime', 'afrobeat', 'latin', 'classical', 'country',
+        'disco', 'phonk', 'drill', 'dancehall',
+    ];
+
     public static function registrarRutas(string $namespace): void
     {
         register_rest_route($namespace, '/perfil/(?P<username>[a-zA-Z0-9_-]+)', [
@@ -85,6 +97,7 @@ class PerfilController
             'totalDescargas'  => (int) ($perfil[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
             'creadoAt'        => $perfil[UsuariosExtCols::CREATED_AT] ?? '',
             'sitioWeb'        => $perfil[UsuariosExtCols::SITIO_WEB] ?? null,
+            'generosPreferidos' => self::decodificarGeneros($perfil[UsuariosExtCols::GENEROS_FAVORITOS] ?? '[]'),
         ];
 
         /* Verificar si el usuario autenticado sigue a este perfil */
@@ -196,6 +209,7 @@ class PerfilController
             'mensajesHoy'      => (int) ($datos['mensajes_hoy'] ?? 0),
             'limiteMensajes'   => (int) ($datos['limite_mensajes'] ?? -1),
             'sitioWeb'         => $datos[UsuariosExtCols::SITIO_WEB] ?? null,
+            'generosPreferidos' => self::decodificarGeneros($datos[UsuariosExtCols::GENEROS_FAVORITOS] ?? '[]'),
         ];
     }
 
@@ -260,6 +274,16 @@ class PerfilController
                 $campos[] = UsuariosExtCols::SITIO_WEB . ' = :sitioWeb';
                 $params['sitioWeb'] = esc_url_raw($sitioWeb);
             }
+        }
+        if (isset($body['generosPreferidos']) && is_array($body['generosPreferidos'])) {
+            $generosValidos = array_values(array_intersect(
+                array_map('strtolower', array_map('trim', $body['generosPreferidos'])),
+                self::GENEROS_PERMITIDOS
+            ));
+            $generosValidos = array_slice($generosValidos, 0, 10);
+            $campos[] = UsuariosExtCols::GENEROS_FAVORITOS . ' = :generos';
+            $generosJson = json_encode($generosValidos, JSON_UNESCAPED_UNICODE);
+            $params['generos'] = $generosJson !== false ? $generosJson : '[]';
         }
 
         if (empty($campos)) {
@@ -366,5 +390,18 @@ class PerfilController
             KamplesLogger::error('PerfilController::subirAvatar error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
+    }
+
+    /**
+     * Decodifica generos_favoritos desde JSONB (string) a array PHP.
+     * Retorna array vacio si el valor es nulo, invalido o no-array.
+     */
+    private static function decodificarGeneros($raw): array
+    {
+        if (is_array($raw)) return $raw;
+        if (!is_string($raw) || $raw === '') return [];
+        $decoded = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) return [];
+        return array_values($decoded);
     }
 }

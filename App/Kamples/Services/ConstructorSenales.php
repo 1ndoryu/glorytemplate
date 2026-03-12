@@ -313,7 +313,26 @@ class ConstructorSenales
             $escalaScore = "0.5";
         }
 
-        /* Genero/metadata match: tags enriquecidos del candidato vs top tags del usuario (excluye dislikes) */
+        /*
+         * Genero/metadata match: tags enriquecidos del candidato vs top tags del usuario.
+         * Combina tags derivados de interacciones (likes) con generos declarados
+         * del onboarding. Para usuarios nuevos sin interacciones, solo los generos
+         * declarados determinan el match. A medida que el usuario interactua,
+         * los tags de comportamiento dominan naturalmente (LIMIT 8).
+         */
+        $generosDeclarados = $perfilUsuario['generosDeclarados'] ?? [];
+        $generosDeclSql = '';
+        if (!empty($generosDeclarados)) {
+            $placeholdersGeneros = [];
+            foreach ($generosDeclarados as $i => $g) {
+                $key = "generoDec{$i}";
+                $params[$key] = strtolower($g);
+                $placeholdersGeneros[] = ":{$key}";
+            }
+            $listaGeneros = implode(', ', $placeholdersGeneros);
+            $generosDeclSql = "UNION ALL SELECT UNNEST(ARRAY[{$listaGeneros}]) as tag, 1 as freq";
+        }
+
         $generoScore = "COALESCE((
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
@@ -323,6 +342,7 @@ class ConstructorSenales
                     JOIN {$ts} s_inner ON l_inner.{$lTarget} = s_inner.{$sId}
                     WHERE l_inner.{$lUid} = :userId AND l_inner.{$lTipo} = '{$ltSample}' AND l_inner.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
                 ) t GROUP BY tag ORDER BY freq DESC LIMIT 8
+                {$generosDeclSql}
             ) top_tags
             WHERE {$tagsCandidato} @> ARRAY[top_tags.tag::text]
         ), 0)";

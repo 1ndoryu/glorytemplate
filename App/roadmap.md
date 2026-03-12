@@ -213,13 +213,9 @@ Verificar TO-DO sueltos en la aplicación y haz los que sean importantes.
 
 La opción de mostrar kamples en el icono de bandeja de entrada en la aplicación no funciona, no vuelve a aparecer la aplicación, solo el sync
 
-## QQ45
+## QQ45 ✅ [AG-QQF]
 
-Modal inicial de bienvenida
-
-Sera un modal muy sencillo, donde se le pregunta con un texto centrado todo. ¿Cuales son tus generos favoritos? 
-
-Y abajo unos tags badge con generos para elegir, pon muchos y luego esa informacion tiene que tenerla en cuenta el algoritmo, luego en configuracion agrega un boton para reabrir este modal y que el usuario pueda cambiar sus gustos, esto en el algoritmo no tiene que tener un inpacto grande a la largo, inicialmente lo tendrá porque claro, inicialmente no se tiene información del usuario, 
+Modal de bienvenida con seleccion de generos favoritos. Backend: columna `generos_favoritos` JSONB en `usuarios_ext` (v038 migration). PerfilController: whitelist de 30 generos, validacion max 10, `decodificarGeneros()` helper. PerfilUsuario: carga generos declarados y los incluye en perfil de recomendacion. ConstructorSenales: `sqlContexto` inyecta generos declarados como tags suplementarios en scoring — para usuarios nuevos sin interacciones, son la senal primaria de contexto; para usuarios con historial, suplementan los tags de comportamiento. Frontend: generosModalStore (Zustand), useModalGeneros hook con seleccion multi-toggle y persistencia via API, ModalGeneros component con grid de badges, modalGeneros.css. Auto-apertura: LayoutPrincipal detecta usuario autenticado sin generos y abre modal automaticamente. Configuracion: boton "Editar generos" en seccion Apariencia de ModalConfiguracion. Tipo `Usuario` extendido con `generosPreferidos: string[]`. Archivos: UsuariosExtSchema.php, UsuariosExtCols.php, v038 migration, PerfilController.php, PerfilUsuario.php, ConstructorSenales.php, UsuariosExtRepository.php, usuario.ts, generosModalStore.ts, useModalGeneros.ts, ModalGeneros.tsx, modalGeneros.css, LayoutPrincipal.tsx, ModalConfiguracion.tsx.
 
 permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue 
 

@@ -734,4 +734,25 @@ class UsuariosExtRepository extends BaseRepository
             []
         );
     }
+
+    /**
+     * Obtiene un campo especifico de usuarios_ext por ID de usuario Postgres.
+     * Retorna el valor raw del campo o null si no existe.
+     */
+    public static function obtenerCampo(int $userId, string $columna)
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $idCol = UsuariosExtCols::ID;
+
+        if (!in_array($columna, UsuariosExtCols::TODAS, true)) {
+            return null;
+        }
+
+        $row = static::consultarUno(
+            "SELECT {$columna} FROM {$tabla} WHERE {$idCol} = :id",
+            ['id' => $userId]
+        );
+
+        return $row[$columna] ?? null;
+    }
 }
