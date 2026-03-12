@@ -460,3 +460,24 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 > **Contexto:** Todos los videos en cola eran contenido de labels oficiales (Commodores, Jodeci, etc.) → UNPLAYABLE incluso con tokens válidos (restricción DRM, no bot detection). YouTube search fallback puede encontrar subidas no oficiales sin esas restricciones.
 > **Estado Spotify:** rate limit de 24h activo por testing previo con spotdl. Expira automáticamente; el pipeline reintentará vía spotdl cuando se reactive.
 > Lecciones: [fetch_pot=auto no llama bgutil] En modo auto, yt-dlp solo pide PO tokens si `required=True` para el client. Para activar bgutil siempre usar `fetch_pot=always`. [Label content UNPLAYABLE] Videos de sellos oficiales retornan UNPLAYABLE incluso con tokens PO válidos — es restricción DRM/Premium, no bot detection. YT search es el único workaround (buscar subidas no oficiales). [spotdl rate limit Popen] `subprocess.run()` con capture_output no puede detectar rate limit a tiempo. Popen + threads permiten kill inmediato al detectar el mensaje en stderr/stdout.
+
+### S-FIX-7 — Estrategias corregidas + nightly + diagnóstico GVS ✅ [AG-BTL] C900g
+> **DIAGNÓSTICO MANUAL COMPLETO (junio 2026):** Cada cliente probado individualmente con yt-dlp CLI directo.
+- [x] **S-FIX7.1** `tv_embedded` ELIMINADO: yt-dlp 2026.03.03+ lo salta silenciosamente con "WARNING: Skipping unsupported client tv_embedded". Todo el código basado en tv_embedded era código muerto. ✅
+- [x] **S-FIX7.2** `android_vr + cookies` CONFIRMADO roto: yt-dlp rechaza android_vr cuando hay cookies con "WARNING: Skipping client android_vr since it does not support cookies". Genera "Requested format is not available" (solo retorna imágenes). ✅
+- [x] **S-FIX7.3** bgutil PO tokens INVÁLIDOS para GVS experiment: Tanto HTTP server como script-deno como script-node generan tokens que YouTube rechaza. script-deno/node fallan con "Failed to generate an integrity token" para tv_downgraded. Para web_safari generan token pero YouTube responde UNPLAYABLE. ✅
+- [x] **S-FIX7.4** Estrategias corregidas: (1) default sin cookies (android_vr auto-seleccionado para público), (2) default con cookies (tv_downgraded/web/web_safari para restringidos). Eliminados todos los `--extractor-args youtube:player_client=...` hardcodeados. ✅
+- [x] **S-FIX7.5** Search corregido: ytsearch5→ytsearch3 (menos API calls = menos bot detection). Sin cookies primero, con cookies después. Eliminada iteración por player_client (obsoleta). ✅
+- [x] **S-FIX7.6** `_bgutil_servidor_activo()` eliminado: servidor ya no aporta valor (tokens inválidos). Elimina dependencia y latencia innecesaria. ✅
+- [x] **S-FIX7.7** yt-dlp actualizado a nightly 2026.03.11 (dev): `pip install --pre "yt-dlp[default]"`. Incluye yt-dlp-ejs y pycryptodomex. ✅
+> **Estado actual (realista):**
+> - android_vr sin cookies FUNCIONA para contenido público cuando la IP no está flaggeada.
+> - Tras ~10 requests consecutivos, YouTube flaggea la IP (LOGIN_REQUIRED en todo). Se desflaggea tras 1-2h de inactividad.
+> - Con cookies, android_vr se descarta → solo quedan web-based clients → GVS BLOQUEA todos.
+> - bgutil (1.3.1) NO genera integrity tokens válidos para la GVS experiment actual de YouTube.
+> **Acción requerida del usuario:**
+> 1. Parar requests yt-dlp por 1-2h para desflaggear IP.
+> 2. Cerrar Chrome y re-exportar cookies con extensión "Get cookies.txt LOCALLY" → reemplazar kamples-scraper/cookies.txt.
+> 3. Monitorear releases de bgutil-ytdlp-pot-provider para fix de GVS experiment.
+> 4. Procesar cola en lotes pequeños (3-5 items) con pausas entre lotes para evitar IP flagging.
+> Lecciones: [tv_embedded obsoleto] Eliminado de yt-dlp 2026.03.03. [android_vr no soporta cookies] yt-dlp lo descarta silenciosamente si hay cookies — causa "Requested format is not available". [GVS experiment] YouTube GVS experiment vincula PO tokens a video IDs — bgutil 1.3.1 genera tokens inválidos. Afecta TODOS los clientes web (web, web_safari, mweb, tv_downgraded). [IP flagging acumulativo] Cada request fallido incrementa el flag. ~10 requests = LOGIN_REQUIRED para todo. Se desflaggea con inactividad. [Cookies frescas criticas] cookies.txt puede invalidarse server-side aunque no expire. Re-exportar periódicamente.
