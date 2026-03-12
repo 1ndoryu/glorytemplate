@@ -31,8 +31,7 @@ const log = crearLogger('PerfilIsland');
 
 const TABS_PERFIL = [
     { id: 'publicaciones', etiqueta: 'Publicaciones' },
-    { id: 'samples', etiqueta: 'Samples' },
-    { id: 'likes', etiqueta: 'Likes' }
+    { id: 'samples', etiqueta: 'Samples' }
 ];
 
 interface PerfilParams {
@@ -43,7 +42,6 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
     const [cargando, setCargando] = useState(true);
     const [samplesPerfil, setSamplesPerfil] = useState<SampleResumen[]>([]);
-    const [likesPerfil, setLikesPerfil] = useState<SampleResumen[]>([]);
     const [publicacionesPerfil, setPublicacionesPerfil] = useState<Publicacion[]>([]);
     const [cargandoTab, setCargandoTab] = useState(false);
 
@@ -53,7 +51,6 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
             const detalle = (event as CustomEvent<{ sampleId?: number }>).detail;
             if (detalle?.sampleId) {
                 setSamplesPerfil(prev => prev.filter(s => s.id !== detalle.sampleId));
-                setLikesPerfil(prev => prev.filter(s => s.id !== detalle.sampleId));
             }
         };
         const manejarRestauracion = (event: Event) => {
@@ -186,12 +183,6 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
                         const lista = resp.data.data ?? resp.data ?? [];
                         setPublicacionesPerfil(Array.isArray(lista) ? lista : []);
                     }
-                } else if (tabActiva === 'likes') {
-                    /* TO-DO: endpoint GET /usuarios/{id}/likes */
-                    const resp = await listarSamples({ page: 1, perPage: 10 });
-                    if (!controller.signal.aborted && resp.ok && resp.data) {
-                        setLikesPerfil(resp.data.data ?? []);
-                    }
                 }
             } catch (err) {
                 log.error('Error cargando tab', err);
@@ -218,52 +209,45 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
 
     /* Like con optimistic UI y soporte de reacciones */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        const encontrar = (lista: SampleResumen[]) => lista.find(s => s.id === sampleId);
-        const sampleEncontrado = encontrar(samplesPerfil) || encontrar(likesPerfil);
+        const sampleEncontrado = samplesPerfil.find(s => s.id === sampleId);
         const estabaLiked = sampleEncontrado?.liked ?? false;
         const reaccionAnterior = sampleEncontrado?.reaccion ?? null;
-
         const snapSamples = samplesPerfil;
-        const snapLikes = likesPerfil;
 
         try {
             if (reaccion) {
                 const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
                 const esPositivo = reaccion !== 'dislike';
                 const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
+                setSamplesPerfil(prev =>
+                    prev.map(s => s.id === sampleId
                         ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
                         : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
+                    )
+                );
                 await darLike('sample', sampleId, reaccion);
             } else if (estabaLiked || reaccionAnterior) {
                 const eraPositivo = reaccionAnterior === 'like' || reaccionAnterior === 'encanta';
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
+                setSamplesPerfil(prev =>
+                    prev.map(s => s.id === sampleId
                         ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
                         : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
+                    )
+                );
                 await quitarLike('sample', sampleId);
             } else {
-                const actualizar = (lista: SampleResumen[]) =>
-                    lista.map(s => s.id === sampleId
+                setSamplesPerfil(prev =>
+                    prev.map(s => s.id === sampleId
                         ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
                         : s
-                    );
-                setSamplesPerfil(actualizar);
-                setLikesPerfil(actualizar);
+                    )
+                );
                 await darLike('sample', sampleId, 'like');
             }
         } catch {
             setSamplesPerfil(snapSamples);
-            setLikesPerfil(snapLikes);
         }
-    }, [samplesPerfil, likesPerfil]);
+    }, [samplesPerfil]);
 
     /* Navegacion al creador */
     const manejarClickCreador = useCallback(
@@ -342,7 +326,6 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
         usuario,
         cargando,
         samplesPerfil,
-        likesPerfil,
         publicacionesPerfil,
         cargandoTab,
         usuarioAuth,

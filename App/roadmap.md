@@ -154,11 +154,9 @@ Resuelto por QQ28. El fix en `forzarResolucionDinamica()` auto-crea paginas WP f
 
 Sistema de reportes centralizado. Un solo modal (ModalReportar), store (reportarStore), hook (useReportar) y endpoint backend (POST /reportar) para todos los tipos: usuario, publicacion, comentario, sample, error_plataforma. Backend: ModeracionController::reportarGenerico con validacion especifica por tipo (existencia, duplicados, rate limit). Frontend: reportarStore con tipo+targetId+targetNombre, ModalReportar adapta UI segun tipo. Eliminados: ModalReportarUsuario, ModalReportarError, reportarUsuarioStore, reportarErrorStore, useReportarUsuario, useReportarError. Migrados: useMenuContextualPerfil, useMenuContextualPublicacion (era window.prompt), useVentanaChat, useComentarioItem, useMenuContextualSample (tenia TO-DO), Sidebar, LayoutPrincipal.
 
-## QQ39 
+## QQ39 ✅ [AG-QQF]
 
-Quitar el tab de like de los perfiles.
-
-Se que antes habia dicho que habia que quitar las portadas, me arrepiento, ya nos las quites.
+Tab de likes eliminado del perfil. Removido de `TABS_PERFIL`, eliminado estado `likesPerfil` y su API call (que usaba endpoint genérico como placeholder), simplificado `manejarLike` optimista a solo `samplesPerfil`. Import `Heart` limpiado de PerfilIsland. Archivos: usePerfilIsland.ts, PerfilIsland.tsx.
 
 ## QQ40 ✅ [AG-QQF]
 

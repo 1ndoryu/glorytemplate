@@ -4,7 +4,7 @@
  * Logica extraida a usePerfilIsland (SRP).
  */
 
-import { Music, Heart, Settings, MapPin, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
+import { Music, Settings, MapPin, Link as LinkIcon, MoreHorizontal } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -52,7 +52,7 @@ interface PerfilIslandProps {
 
 export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX.Element => {
     const {
-        usuario, cargando, samplesPerfil, likesPerfil, publicacionesPerfil,
+        usuario, cargando, samplesPerfil, publicacionesPerfil,
         cargandoTab, authCargando, tabActiva, navegar,
         abrirConfiguracion, abrirChat, menu, menuPublicacion, menuPerfil, username, esPropietario,
         recargarPublicaciones, manejarLike, manejarLikePost, alternarComentarios,
@@ -235,7 +235,6 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                         )}
                     </div>
                 )}
-                {tabActiva === 'likes' && renderizarListaSamples(likesPerfil, 'No ha dado likes aún', <Heart size={40} />)}
             </div>
 
             {/* Menú contextual samples */}
