@@ -289,7 +289,11 @@ El boton de reproducir en la lista de canciones cuando tienen un sample no funci
 
 ## QQ71 
 
-La tarea qq65 es compleja, hacer una auditorría profunda y completa para ver que quedo bien.
+✅ [AG-SEC] Auditoría profunda QQ65 — commit aad13717. CRITICO: verificarSuspensionActiva nunca se llamaba. Creado verificarCuentaActiva() unificado (ban+suspensión), aplicado a ~35 endpoints en 18 controllers. PublicacionesEscrituraController dividido en 2 (SRP). AdminModeracionController: fix fail-safe null pgId.
+- [Seguridad]: verificarCuentaActiva = ban check primero (prioridad mayor), luego suspensión. Retorna null si cuenta activa.
+- [Arquitectura]: WordPress REST API no tiene middleware nativo. Los checks van dentro del cuerpo de cada método, tras obtenerIdPg().
+- [Housekeeping]: marcarLeida, marcarTodasLeidas, moverSampleACarpeta NO bloqueados para suspendidos.
+- [Frontend]: apiCliente.ts ya mapea json?.message a RespuestaApi.error — el hook usa resp.error ?? fallback correctamente.
 
 ## QQ72
 
@@ -302,6 +306,14 @@ Quitar de feedFiltrosSelectsm, el select de sentimiento, y los pint de bpm no ne
 ## QQ74
 
 en http://glory.local/descargas/ me salen samples que dejaron de existir
+
+## QQ75
+
+El boton de preview de las colecciones no funciona, lo que hara esto es que reproducirá aleatoreamiente los samples del la coleccion, con transicicones suaves, maximo 10 segundos cada uno 
+
+## QQ76
+
+ TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
 
 
 # ANTES DE LA ULTIMA TAREA
