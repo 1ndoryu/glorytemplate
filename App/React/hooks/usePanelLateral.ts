@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { useReproductorStore } from '@app/stores/reproductorStore';
 import { crearLogger } from '@app/services/logger';
 
 const LS_KEY_ANCHO = 'kamples:anchoPanelLateral';
@@ -78,6 +79,27 @@ export const usePanelLateral = () => {
             document.documentElement.style.setProperty('--anchoPanelLateral', `${ancho}px`);
         }
     }, [ancho, expandido]);
+
+    /*
+     * QQ68: Sincronizar panel lateral con el reproductor.
+     * Si el panel está abierto en modo detalle o comentarios y el usuario
+     * reproduce un sample diferente, actualizar el panel para mostrar el nuevo sample.
+     */
+    const sampleReproduciendo = useReproductorStore(s => s.sampleActual);
+    const sampleIdPanelRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        sampleIdPanelRef.current = sample?.id ?? null;
+    }, [sample]);
+
+    useEffect(() => {
+        if (!sampleReproduciendo) return;
+        if (!habilitado) return;
+        const modoActual = usePanelLateralStore.getState().modo;
+        if (modoActual !== 'detalle' && modoActual !== 'comentarios') return;
+        if (sampleReproduciendo.id === sampleIdPanelRef.current) return;
+        usePanelLateralStore.getState().abrirDetalle(sampleReproduciendo);
+    }, [sampleReproduciendo, habilitado]);
 
     return {
         modo,

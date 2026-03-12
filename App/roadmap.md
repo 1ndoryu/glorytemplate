@@ -267,9 +267,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ68
 
-Mejora del panel lateral, el panel lateral debe actualizarse cuando se reproduce otro sample. 
-
-Y la unica forma aparente de abrir el panel lateral de un sample es dando click al boton de comentario, lo que haremos es agregar otro boton en el menu de contextual de "abrir panel" 
+✅ [AG-SEC] Panel lateral se sincroniza con reproductor + item "Abrir panel" en menú contextual. usePanelLateral detecta cambio de sampleActual y actualiza panel si está abierto en modo detalle/comentarios. useMenuContextualSample refactorizado: items extraídos a construirItemsMenuSample (SRP, TO-DO resuelto). Archivos: usePanelLateral.ts, useMenuContextualSample.ts, construirItemsMenuSample.ts (nuevo).
 
 
 ## QQ69
@@ -319,6 +317,10 @@ El boton de preview de las colecciones no funciona, lo que hara esto es que repr
 ## QQ76
 
  TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
+
+## QQ77 
+
+El modal de seguidres siempre dice "Sin seguidores aún" 
 
 
 # ANTES DE LA ULTIMA TAREA
