@@ -4,15 +4,14 @@ Descarga de audio desde YouTube (yt-dlp) o Spotify (spotdl).
 Prioridad: YouTube ID > YouTube search > Spotify ID > Spotify search > error.
 
 Youtube:
-- Estrategia primaria android_vr: player_client=android_vr no requiere PO tokens
-  ni bgutil activo. Funciona para la mayoria del contenido publico de YouTube.
-- android_vr + cookies: para contenido con restriccion de edad.
-- web+bgutil (condicional): si bgutil HTTP server esta activo en localhost:4416,
-  se agrega web+fetch_pot=always como fallback adicional.
-- ATENCION: fetch_pot=always sin bgutil activo hace fallar TODOS los requests
-  con "The page needs to be reloaded". Verificar servidor antes de activar.
-- YouTube search: busqueda ytsearch5: con android_vr si el ID directo falla.
-  Encuentra subidas no oficiales sin restricciones DRM de canales de labels.
+- Estrategia primaria tv_embedded: player_client=tv_embedded bypasea restricciones de
+  canales de labels sin PO tokens ni cookies. Contexto embed, diferente anti-bot.
+- android_vr: segundo cliente, sin cookies (evita mismatch de API con cookies web).
+- tv_embedded + cookies: para contenido con restriccion de edad.
+- web+bgutil (condicional): si bgutil HTTP server activo en localhost:4416.
+- CRITICO: NUNCA combinar android_vr con cookies de navegador web — contextos de
+  API incompatibles => 'Requested format is not available' de forma sistematica.
+- YouTube search: ytsearch5 itera tv_embedded → android_vr para busqueda por nombre.
 
 Spotify: spotdl como fallback para contenido no disponible en YouTube.
 """
@@ -142,14 +141,18 @@ def _bgutil_servidor_activo() -> bool:
 
 
 def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
-    """Descargar audio de YouTube priorizando android_vr (sin PO tokens requeridos).
+    """Descargar audio de YouTube con estrategia progresiva de clientes.
 
-    Estrategia progresiva:
-    1. android_vr: cliente que no requiere PO tokens. Funciona para la
-       mayoria del contenido publico sin necesidad de bgutil activo.
-    2. android_vr + cookies: para contenido con restriccion de edad.
-    3. web + fetch_pot=always (condicional): solo si bgutil HTTP server esta
-       activo en localhost:4416. Para contenido que requiere web client.
+    Orden de preferencia:
+    1. tv_embedded: bypasea restricciones de labels sin PO tokens ni cookies.
+       Contexto de embed, diferente deteccion anti-bot que web/android.
+    2. android_vr: cliente movil alternativo, sin cookies (evita mismatch de API).
+    3. tv_embedded + cookies: para contenido con restriccion de edad.
+       tv_embedded acepta cookies de sesion web sin mismatch de formato.
+    4. web + fetch_pot=always: solo si bgutil esta activo en localhost:4416.
+    
+    PROHIBIDO: mezclar android_vr con cookies; sus contextos de API son incompatibles
+    y producen 'Requested format is not available' de forma sistematica.
     """
     output_path = os.path.join(output_dir, f"{youtube_id}.mp3")
 
@@ -163,14 +166,17 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 
     url = f"https://www.youtube.com/watch?v={youtube_id}"
 
-    # Errores que indican restriccion de autenticacion o client incompatible (intentar siguiente estrategia)
-    _ERRORES_AUTH = (
-        "reloaded",          # GVS experiment: se necesita PO token del web client
-        "sign in",           # anti-bot o auth requerida
-        "login required",    # auth requerida
-        "bot",               # anti-bot detection
-        "age", "confirm your age",  # restriccion de edad
-        "not available", "unavailable",  # video no disponible en este client
+    # Errores que indican client incompatible o deteccion anti-bot (continuar al siguiente)
+    _ERRORES_CONTINUAR = (
+        "reloaded",               # GVS experiment: PO token requerido
+        "sign in",                # anti-bot o auth requerida
+        "login required",         # auth requerida
+        "bot",                    # anti-bot detection
+        "age", "confirm your age",   # restriccion de edad
+        "not available",          # contenido no disponible para este client
+        "unavailable",            # video no disponible
+        "requested format",       # formato incompatible con el client elegido
+        "private video",          # video privado
     )
 
     # Comando base — argumentos compartidos por todas las estrategias.
@@ -194,19 +200,22 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
     cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
     cookies_existe = os.path.exists(cookies_path)
 
-    # android_vr: cliente primario — no requiere PO tokens ni bgutil activo.
-    # Funciona para la mayoria del contenido publico de YouTube.
+    # tv_embedded: primario — contexto embed, diferente anti-bot al web/android.
+    # No requiere PO tokens ni cookies; bypasea restricciones de canales de labels.
     estrategias: list[tuple[str, list[str]]] = [
-        ("android_vr", ["--extractor-args", "youtube:player_client=android_vr"]),
+        ("tv_embedded", ["--extractor-args", "youtube:player_client=tv_embedded"]),
+        ("android_vr",  ["--extractor-args", "youtube:player_client=android_vr"]),
     ]
 
     if cookies_existe:
+        # tv_embedded acepta cookies de sesion web sin mismatch de formato.
+        # NUNCA: android_vr + cookies (mismatch de API → Requested format not available).
         estrategias.append((
-            "android_vr_cookies",
-            ["--extractor-args", "youtube:player_client=android_vr", "--cookies", cookies_path],
+            "tv_embedded_cookies",
+            ["--extractor-args", "youtube:player_client=tv_embedded", "--cookies", cookies_path],
         ))
 
-    # web+bgutil: fallback para contenido que requiere web client con PO token.
+    # web+bgutil: fallback para contenido que requiere PO token del web client.
     # Solo se activa si bgutil HTTP server esta corriendo en localhost:4416.
     if _bgutil_servidor_activo():
         extra_web: list[str] = ["--extractor-args", "youtube:player_client=web;fetch_pot=always"]
@@ -242,11 +251,11 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 
             stderr = result.stderr or ""
             stderr_lower = stderr.lower()
-            es_error_auth = any(err in stderr_lower for err in _ERRORES_AUTH)
+            es_error_continuar = any(err in stderr_lower for err in _ERRORES_CONTINUAR)
 
-            if es_error_auth:
+            if es_error_continuar:
                 logger.warning(
-                    "yt-dlp fallo para %s con %s (error auth/anti-bot): %s",
+                    "yt-dlp fallo para %s con %s (client incompatible): %s",
                     youtube_id, nombre_estrategia, stderr[:200],
                 )
                 continue
@@ -274,12 +283,9 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
 def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str | None:
     """Buscar en YouTube por nombre y descargar el primer resultado accesible.
 
-    Cuando el video ID directo falla por restricciones de label/DRM,
-    los resultados de busqueda incluyen subidas no oficiales que no tienen
-    esas restricciones y funcionan con el cliente android_vr.
-
-    Usa ytsearch5: + --max-downloads 1 + --ignore-errors para iterar resultados
-    automaticamente hasta encontrar uno descargable.
+    Itera sobre clientes (tv_embedded, android_vr) hasta que uno funcione.
+    tv_embedded como primario: mismo contexto que descarga directa, sin mismatch de API.
+    Encuentra subidas no oficiales sin restricciones DRM de canales de labels.
     """
     nombre_seguro = re.sub(r"[^\w\s-]", "", f"{artista}_{titulo}")[:80].strip()
     output_path = os.path.join(output_dir, f"ytsearch_{nombre_seguro}.mp3")
@@ -295,14 +301,39 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
     query = f"ytsearch5:{artista} {titulo}"
     logger.info("YouTube search fallback: buscando '%s %s'", artista, titulo)
 
-    # Usar cookies si existen:
-    # - Con cookies: bypass del bot detection de YouTube search
-    # - Sin cookies: riesgo de "Sign in to confirm" en todos los resultados
+    # tv_embedded acepta cookies de sesion web sin mismatch de formato.
+    # NUNCA pasar cookies con android_vr en search (mismo mismatch que en descarga directa).
     cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
     cookies_args = ["--cookies", cookies_path] if os.path.exists(cookies_path) else []
 
-    # Directorio temporal para capturar el archivo descargado antes de renombrarlo.
-    # ytsearch genera nombres con %(id)s; necesitamos encontrar el archivo creado.
+    for player_client in ("tv_embedded", "android_vr"):
+        resultado = _ejecutar_ytsearch(
+            ytdlp_path, query, player_client, cookies_args, output_path, artista, titulo,
+        )
+        if resultado:
+            return resultado
+
+    logger.warning(
+        "YouTube search sin resultado con ningun cliente para '%s %s'",
+        artista, titulo,
+    )
+    return None
+
+
+def _ejecutar_ytsearch(
+    ytdlp_path: str,
+    query: str,
+    player_client: str,
+    cookies_args: list[str],
+    output_path: str,
+    artista: str,
+    titulo: str,
+) -> str | None:
+    """Ejecutar ytsearch5 con un player_client especifico.
+
+    Retorna la ruta al MP3 si descarga algun resultado, None si todos los resultados fallan.
+    Usa directorio temporal para capturar el archivo antes de renombrarlo al destino final.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
             ytdlp_path,
@@ -313,17 +344,13 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
             "--output", os.path.join(tmpdir, "%(id)s.%(ext)s"),
             "--quiet",
             "--no-warnings",
-            # --max-downloads 1: parar despues del primer exito
             "--max-downloads", "1",
-            # --ignore-errors: continuar al siguiente resultado si uno falla
             "--ignore-errors",
             "--retries", "2",
             "--extractor-retries", "2",
             "--no-check-certificates",
             "--socket-timeout", "30",
-            # android_vr: cliente primario para busqueda — no requiere PO tokens ni bgutil.
-            # Los resultados de ytsearch son mayormente contenido publico accesible.
-            "--extractor-args", "youtube:player_client=android_vr",
+            "--extractor-args", f"youtube:player_client={player_client}",
             *cookies_args,
             query,
         ]
@@ -333,7 +360,6 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
                 cmd, capture_output=True, text=True, timeout=300,
             )
 
-            # Buscar el mp3 descargado en el directorio temporal
             mp3_archivos = [
                 os.path.join(tmpdir, f)
                 for f in os.listdir(tmpdir)
@@ -341,27 +367,26 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
             ]
 
             if mp3_archivos:
-                # Mover el primero encontrado al destino esperado
                 shutil.move(mp3_archivos[0], output_path)
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
                 logger.info(
-                    "Audio descargado (YouTube/search): '%s %s' (%.1f MB)",
-                    artista, titulo, size_mb,
+                    "Audio descargado (YouTube/search/%s): '%s %s' (%.1f MB)",
+                    player_client, artista, titulo, size_mb,
                 )
                 return output_path
 
             stderr = (result.stderr or "")[:500]
             logger.warning(
-                "YouTube search no encontro resultado descargable para '%s %s': %s",
-                artista, titulo, stderr,
+                "YouTube search/%s: sin resultado para '%s %s': %s",
+                player_client, artista, titulo, stderr,
             )
             return None
 
         except subprocess.TimeoutExpired:
-            logger.error("Timeout en YouTube search para '%s %s'", artista, titulo)
+            logger.error("Timeout en YouTube search/%s para '%s %s'", player_client, artista, titulo)
             return None
         except Exception:
-            logger.exception("Error en YouTube search '%s %s'", artista, titulo)
+            logger.exception("Error en YouTube search/%s '%s %s'", player_client, artista, titulo)
             return None
 
 
