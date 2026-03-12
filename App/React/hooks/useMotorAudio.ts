@@ -83,6 +83,17 @@ export const useMotorAudio = (): void => {
                                 detail: { sampleId: state.sampleActual.id },
                             })
                         );
+
+                        /*
+                         * QQ62: Si el estado es reproduciendo, iniciar play inmediatamente.
+                         * Necesario porque siguiente/anterior/reproducir setean reproduciendo=true
+                         * pero si ya era true, el bloque de play/pause no se dispara.
+                         */
+                        if (state.reproduciendo) {
+                            audio.play().catch(() => {
+                                useReproductorStore.getState().pause();
+                            });
+                        }
                     }
                 } else {
                     audio.pause();

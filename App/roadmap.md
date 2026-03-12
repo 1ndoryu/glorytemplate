@@ -243,13 +243,23 @@ Cuando le doy a comprar a un sample, no hace nada, debería abrir un modal con l
 
 Revisiones de seguridad y optimizacion generales, el proyecto es muy grande pero se puede al menos revisar lo mas importante y obvio.
 
-## QQ62 
+## QQ62 ✅ [AG-QQF]
 
-Hay un pequeño bug con el reproductor, al reproducir fucniona pero al pasar al siguiente inicia pausado en el siguiente, tambien, ahora cuando estoy reproduciendo un audio y toco otro sample, se pausa, antes no pasaba, tiene que ser fluido, a pasar a lsiguiente sample tiene que reproducirse automaticamente independientemente que sea mediante un click o mediante el boton de pasar a la siguiente.
+Fix reproductor: siguiente/click no reproducía automáticamente. **Causa:** `useMotorAudio.ts` solo llamaba `audio.play()` cuando `state.reproduciendo` cambiaba de valor, pero `siguiente()`, `anterior()` y `reproducir()` setean `reproduciendo: true` cuando ya era `true`, así que la condición `state.reproduciendo !== prevState.reproduciendo` nunca se cumplía. **Fix:** En el bloque de cambio de sample, después de `audio.load()`, llamar `audio.play()` directamente si `state.reproduciendo` es true. Archivo: useMotorAudio.ts.
 
 ## QQ63 
 
-En el menu contextual de usuario donde aparece el logout, arruba de logut agregar un boton de whatsapp, esto hará que el usuario ingrese a https://chat.whatsapp.com/JOduGKvWGR9KbYfBS9BWGL en otra pestaña, sera el grupo del proyecto, pero antes, abrira un modal de solicitud, tiene que ser igual al modal de reporte, 
+En el menu contextual de usuario donde aparece el logout, arruba de logut agregar un boton de whatsapp, esto hará que el usuario ingrese a https://chat.whatsapp.com/JOduGKvWGR9KbYfBS9BWGL en otra pestaña, sera el grupo del proyecto, pero antes, abrira un modal de solicitud, tiene que ser igual al modal de reporte, de hecho, para no complicarnso la vida utilizarmeos la misma logica de reporte, no repitas solo centraliza.
+
+## QQ64
+
+Envie un reporte pero sale asi
+
+@admin
+hace 0m
+error_plataforma #0 —
+
+no sale el asunto ni la descripcion.
 
 # ANTES DE LA ULTIMA TAREA
 
