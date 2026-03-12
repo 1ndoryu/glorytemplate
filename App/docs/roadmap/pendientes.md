@@ -100,6 +100,8 @@
 348. Subcarpetas alinear derecha: `justify-content: flex-end` en contenedor subcarpetas.
     - Archivos: `explorador.css`
 
+363. [EN CURSO — AG-GIT] Evitar rastreo de backups de cookies y logs autogenerados en kamples-scraper.
+
 349. **[CRÍTICA] Rediseño explorador tipo file manager:** Funcionar como Google Drive/Windows Explorer.
     - Archivos: `ExploradorIsland.tsx`, `useExploradorIsland.ts`, `useExploradorPagina.ts`, `ArbolCarpetas.tsx`, `explorador.css` + nuevos
     - **Concepto:** Raíz muestra carpetas + samples sueltos. Click carpeta → entra. Subcarpetas arriba + samples abajo. Navegación por click (no sidebar). ArbolCarpetas colapsable/oculto. Eliminar "carpeta Todas". Breadcrumbs funcionales.
@@ -497,3 +499,24 @@ Commits: `79f586db`, `fc3db49f`, `b575fb68`, `55b9fd8b`
 - [ ] **S-FIX8.11** Probar con cola real (659 items): medir cobertura SoundCloud en produccion (pendiente)
 > **Proyeccion:** 2000 tracks/dia, ~10 GB bandwidth, ~3.5h, **$0/mes**. Elimina dependencia de proxy ($240/mes inviable).
 > Lecciones: [SoundCloud API v2] Publica sin auth. client_id del frontend JS, cacheable. Transcodings progressive = descarga directa (mas rapido que HLS). DRM = ctr-encrypted-hls/cbc-encrypted-hls — excluir. [Converter sites] Todos con Turnstile/CAPTCHA, APIs muertas. Ejecutan yt-dlp en servidores propios con IP pools. [Piped/Invidious] Ecosistema muerto Mar 2026. [pytubefix] Mismo GVS blocking que yt-dlp. [Deezer GW API] Requiere ARL (cookie login) para full tracks, anonymous solo da CSRF invalid.
+
+### C905 — Pipeline robusto: rate limiter, Groq AI, auto-enqueue, SC auth ✅ [AG-EXT]
+
+> **9 features implementadas en una sola iteracion:**
+
+- [x] **C905.1** `ResultadoDescarga` dataclass: `descargar_audio()` retorna metadata de fuente (metodo, URL SC/YT, titulo match, artista match). Se persiste en `metadata_extraccion` JSONB del item de cola ✅
+- [x] **C905.2** `groq_validator.py`: Validacion IA pre-descarga via Groq LLM (`llama-3.1-8b-instant`). Pregunta si el track SC encontrado es la cancion buscada. Configurable via `GROQ_API_KEY` en `.env`. Tolerante a fallos (permisivo si Groq falla) ✅
+- [x] **C905.3** `SoundCloudAuthError`: Detecta HTTP 401/403 en SC API v2 (search + stream). Detiene el pipeline inmediatamente para intervencion humana (renovar token, verificar cuenta) ✅
+- [x] **C905.4** `rate_limiter.py`: Clase `RateLimiter` con intervalo start-to-start configurable (default 60s) y limite diario (default 2000). Estado persistido en archivo para sobrevivir reinicios ✅
+- [x] **C905.5** `auto_encolar_pendientes()`: Busca `relaciones_sample` con samples NULL, crea entradas en cola via `INSERT ON CONFLICT DO NOTHING`. Se ejecuta cuando cola vacia ✅
+- [x] **C905.6** `desvincularSampleId()` resetea a pendiente: Al eliminar un sample, la cola se resetea para re-extraccion automatica ✅
+- [x] **C905.7** Marca `origen='extraccion'` en metadata publicada. Incluye `descarga_metodo`, `descarga_fuente_url`, `descarga_fuente_titulo` para trazabilidad ✅
+- [x] **C905.8** Modo `--continuo` con `--espera-vacio 1800`: retry cada 30 min cuando cola vacia ✅
+- [x] **C905.9** CLI args: `--intervalo 60 --limite-diario 2000 --continuo --espera-vacio 1800` ✅
+> Lecciones C905:
+> - [ResultadoDescarga]: Dataclass > dict para retornos multi-valor. Solo `_descargar_soundcloud()` retorna directamente; otras fuentes wrappean en `descargar_audio()`.
+> - [Groq rate limit 429]: Retorna True (permisivo). Pipeline no debe bloquearse por Groq.
+> - [SoundCloudAuthError]: Exception se propaga naturalmente. Mas limpio que flags booleanos de modulo.
+> - [ON CONFLICT DO NOTHING]: Dedup atomica para auto-enqueue. No duplica entradas existentes.
+> - [youtube_id en canciones]: `relaciones_sample` NO tiene youtube_id directo; se JOIN con `canciones`.
+> - [GROQ_API_KEY en .env scraper]: `os.getenv()` despues de `load_dotenv()` (no al importar — leccion C903).
