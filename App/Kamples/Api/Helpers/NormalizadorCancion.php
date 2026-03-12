@@ -212,8 +212,10 @@ class NormalizadorCancion
             'id'          => (int) ($data['id'] ?? 0),
             'titulo'      => $data['titulo'] ?? '',
             'slug'        => $data['slug'] ?? '',
-            'rutaPreview' => $data['ruta_preview'] ?? '',
-            'imagenUrl'   => $data['imagen_url'] ?? null,
+            'rutaPreview' => NormalizadorSample::rutaAUrl($data['ruta_preview'] ?? ''),
+            'imagenUrl'   => !empty($data['imagen_url'])
+                ? NormalizadorSample::rutaAUrl((string) $data['imagen_url'])
+                : null,
             'creadorId'   => (int) ($data['creador_id'] ?? 0),
             'idCorto'     => $data['id_corto'] ?? '',
             'duracion'    => (float) ($data['duracion'] ?? 0),

@@ -278,7 +278,7 @@ Las imagenes del chat cuando abre, no se cierran si doy click por fuera, solo po
 
 ## QQ70
 
-El boton de reproducir en la lista de canciones cuando tienen un sample no funciona. Muestra el reproductor pero no reproduce.
+✅ [AG-SEC] Fix play canciones: NormalizadorCancion::decodeSampleAdjunto() no convertía ruta_preview (filesystem absoluto) a URL HTTP. La BD almacena paths como `C:\...\wp-content\uploads\...` y NormalizadorSample::rutaAUrl() convierte a `http://glory.local/wp-content/...`. El método decodeSampleAdjunto copiaba el path crudo, así el frontend recibía una ruta inválida como src del Audio. Fix: usar NormalizadorSample::rutaAUrl() para rutaPreview e imagenUrl. Archivo: NormalizadorCancion.php.
 
 ## QQ71 
 
@@ -322,6 +322,23 @@ El boton de preview de las colecciones no funciona, lo que hara esto es que repr
 
 El modal de seguidres siempre dice "Sin seguidores aún" 
 
+
+## QQ78
+
+Corregir metadata IA no aparece
+
+## QQ79
+
+Vi un sample que en realidad si era un recorte con esta información
+
+Origen y Sampleo
+Es Recorte
+No
+Cancion Origen ID
+2971
+Relacion Sampleo ID
+
+era un sample antes de que se pudiera ver la informacion, no se si es un problema real pero de todas formas verificiar, los recortes si tiene que identificarse como recortes (cuando se generan con el proceso de recorte), 
 
 # ANTES DE LA ULTIMA TAREA
 
