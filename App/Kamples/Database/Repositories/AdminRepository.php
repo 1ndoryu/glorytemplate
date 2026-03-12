@@ -126,6 +126,8 @@ class AdminRepository
                 . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
                 . ", u." . UsuariosExtCols::PLAN . ", u." . UsuariosExtCols::ROL
                 . ", u." . UsuariosExtCols::VERIFICADO . ", u." . UsuariosExtCols::BANEADO_HASTA . " AS ban_hasta"
+                . ", u." . UsuariosExtCols::ESTADO . ", u." . UsuariosExtCols::SUSPENDIDO_HASTA
+                . ", u." . UsuariosExtCols::SUSPENSION_RAZON . ", u." . UsuariosExtCols::SERA_ELIMINADO_EN
                 . ", u." . UsuariosExtCols::CREATED_AT . ", u." . UsuariosExtCols::UPDATED_AT
                 . ", (SELECT COUNT(*) FROM {$ts} s WHERE s." . SamplesCols::CREADOR_ID . " = u." . UsuariosExtCols::ID
                 . " AND s." . SamplesCols::ESTADO . " = '{$activo}') as total_samples"

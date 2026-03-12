@@ -151,7 +151,8 @@ class UsuariosExtRepository extends BaseRepository
             . UsuariosExtCols::PORTADA_URL . ", " . UsuariosExtCols::PLAN . ", "
             . UsuariosExtCols::VERIFICADO . ", " . UsuariosExtCols::TOTAL_SEGUIDORES . ", "
             . UsuariosExtCols::TOTAL_SEGUIDOS . ", " . UsuariosExtCols::TOTAL_SAMPLES . ", "
-            . UsuariosExtCols::TOTAL_DESCARGAS . ", " . UsuariosExtCols::CREATED_AT
+            . UsuariosExtCols::TOTAL_DESCARGAS . ", " . UsuariosExtCols::CREATED_AT . ", "
+            . UsuariosExtCols::ESTADO
             . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
             [UsuariosExtCols::USERNAME => $username]
         );
@@ -565,6 +566,97 @@ class UsuariosExtRepository extends BaseRepository
         static::ejecutar(
             "UPDATE {$tabla} SET " . UsuariosExtCols::BANEADO_HASTA . " = NULL, " . UsuariosExtCols::BAN_RAZON . " = NULL
              WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+    }
+
+    /* --- Metodos de suspension/eliminacion de cuentas (QQ65) --- */
+
+    /*
+     * Actualizar estado de cuenta a suspendido con fecha límite y razón.
+     */
+    public static function actualizarEstadoCuenta(int $userId, string $estado, string $suspendidoHasta, string $razon): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . UsuariosExtCols::ESTADO . " = :estado, "
+            . UsuariosExtCols::SUSPENDIDO_HASTA . " = :hasta, "
+            . UsuariosExtCols::SUSPENSION_RAZON . " = :razon, "
+            . UsuariosExtCols::UPDATED_AT . " = NOW() "
+            . "WHERE " . UsuariosExtCols::ID . " = :id",
+            ['estado' => $estado, 'hasta' => $suspendidoHasta, 'razon' => $razon, 'id' => $userId]
+        );
+    }
+
+    /*
+     * Restaurar estado de cuenta a activo (limpia todos los campos de suspensión/eliminación).
+     */
+    public static function restaurarEstadoCuenta(int $userId): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . UsuariosExtCols::ESTADO . " = :estado, "
+            . UsuariosExtCols::SUSPENDIDO_HASTA . " = NULL, "
+            . UsuariosExtCols::SUSPENSION_RAZON . " = NULL, "
+            . UsuariosExtCols::MARCADO_ELIMINACION_EN . " = NULL, "
+            . UsuariosExtCols::SERA_ELIMINADO_EN . " = NULL, "
+            . UsuariosExtCols::UPDATED_AT . " = NOW() "
+            . "WHERE " . UsuariosExtCols::ID . " = :id",
+            ['estado' => UsuariosExtEnums::ESTADO_ACTIVO, 'id' => $userId]
+        );
+    }
+
+    /*
+     * Marcar cuenta para eliminación (estado en_eliminacion + fechas).
+     */
+    public static function marcarEliminacion(int $userId, string $marcadoEn, string $seraEliminadoEn, string $razon): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tabla} SET "
+            . UsuariosExtCols::ESTADO . " = :estado, "
+            . UsuariosExtCols::MARCADO_ELIMINACION_EN . " = :marcadoEn, "
+            . UsuariosExtCols::SERA_ELIMINADO_EN . " = :seraEn, "
+            . UsuariosExtCols::SUSPENSION_RAZON . " = :razon, "
+            . UsuariosExtCols::UPDATED_AT . " = NOW() "
+            . "WHERE " . UsuariosExtCols::ID . " = :id",
+            [
+                'estado' => UsuariosExtEnums::ESTADO_EN_ELIMINACION,
+                'marcadoEn' => $marcadoEn,
+                'seraEn' => $seraEliminadoEn,
+                'razon' => $razon,
+                'id' => $userId,
+            ]
+        );
+    }
+
+    /*
+     * Obtener estado de cuenta (solo la columna estado).
+     */
+    public static function obtenerEstadoCuenta(int $userId): string
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $row = static::consultarUno(
+            "SELECT " . UsuariosExtCols::ESTADO . " FROM {$tabla} WHERE " . UsuariosExtCols::ID . " = :id",
+            ['id' => $userId]
+        );
+        return $row[UsuariosExtCols::ESTADO] ?? UsuariosExtEnums::ESTADO_ACTIVO;
+    }
+
+    /*
+     * Obtener datos de suspensión completos para verificación de estado.
+     */
+    public static function obtenerDatosSuspension(int $userId): ?array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        return static::consultarUno(
+            "SELECT " . UsuariosExtCols::ESTADO . ", "
+            . UsuariosExtCols::SUSPENDIDO_HASTA . ", "
+            . UsuariosExtCols::SUSPENSION_RAZON . ", "
+            . UsuariosExtCols::SERA_ELIMINADO_EN
+            . " FROM {$tabla} WHERE " . UsuariosExtCols::ID . " = :id",
             ['id' => $userId]
         );
     }

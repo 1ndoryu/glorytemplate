@@ -22,6 +22,7 @@ use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
@@ -868,9 +869,13 @@ class SamplesRepository extends BaseRepository
     {
         $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
 
+        /* QQ65: Excluir contenido de usuarios suspendidos o en eliminación */
+        $filtroSuspension = " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)";
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . $filtroBloqueos
+             . $filtroSuspension
              . " {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);

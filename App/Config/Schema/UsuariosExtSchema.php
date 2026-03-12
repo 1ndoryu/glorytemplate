@@ -41,6 +41,11 @@ class UsuariosExtSchema extends TableSchema
             'es_seed'                => ['tipo' => 'bool', 'default' => false],
             'sitio_web'              => ['tipo' => 'string', 'max' => 500, 'nullable' => true],
             'generos_favoritos'      => ['tipo' => 'json', 'default' => '[]'],
+            'estado'                 => ['tipo' => 'string', 'max' => 20, 'default' => 'activo', 'check' => ['activo', 'suspendido', 'en_eliminacion']],
+            'suspendido_hasta'       => ['tipo' => 'datetime', 'nullable' => true],
+            'suspension_razon'       => ['tipo' => 'text', 'nullable' => true],
+            'marcado_eliminacion_en' => ['tipo' => 'datetime', 'nullable' => true],
+            'sera_eliminado_en'      => ['tipo' => 'datetime', 'nullable' => true],
         ];
     }
 }

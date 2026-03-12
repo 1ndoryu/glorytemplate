@@ -36,7 +36,12 @@ final class UsuariosExtCols
     const ES_SEED = 'es_seed';
     const SITIO_WEB = 'sitio_web';
     const GENEROS_FAVORITOS = 'generos_favoritos';
+    const ESTADO = 'estado';
+    const SUSPENDIDO_HASTA = 'suspendido_hasta';
+    const SUSPENSION_RAZON = 'suspension_razon';
+    const MARCADO_ELIMINACION_EN = 'marcado_eliminacion_en';
+    const SERA_ELIMINADO_EN = 'sera_eliminado_en';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'wp_user_id', 'username', 'email', 'nombre_visible', 'bio', 'avatar_url', 'portada_url', 'plan', 'rol', 'verificado', 'total_seguidores', 'total_seguidos', 'total_samples', 'total_descargas', 'stripe_customer_id', 'stripe_connect_id', 'created_at', 'updated_at', 'violaciones_moderacion', 'baneado_hasta', 'ban_razon', 'creditos_bonus', 'stripe_subscription_id', 'es_seed', 'sitio_web', 'generos_favoritos'];
+    const TODAS = ['id', 'wp_user_id', 'username', 'email', 'nombre_visible', 'bio', 'avatar_url', 'portada_url', 'plan', 'rol', 'verificado', 'total_seguidores', 'total_seguidos', 'total_samples', 'total_descargas', 'stripe_customer_id', 'stripe_connect_id', 'created_at', 'updated_at', 'violaciones_moderacion', 'baneado_hasta', 'ban_razon', 'creditos_bonus', 'stripe_subscription_id', 'es_seed', 'sitio_web', 'generos_favoritos', 'estado', 'suspendido_hasta', 'suspension_razon', 'marcado_eliminacion_en', 'sera_eliminado_en'];
 }

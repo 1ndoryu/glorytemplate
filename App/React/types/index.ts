@@ -18,6 +18,7 @@ export type {
     Usuario,
     UsuarioResumen,
     UsuarioAutenticado,
+    DatosSuspension,
     TipoPlan,
     RolUsuario,
 } from './usuario';

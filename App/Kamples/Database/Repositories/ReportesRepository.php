@@ -309,4 +309,29 @@ class ReportesRepository extends BaseRepository
 
         return $row ? (int) $row['total'] : 0;
     }
+
+    /*
+     * QQ65: Contar reportes recibidos sobre un usuario en las últimas N horas.
+     * Para auto-suspensión: cuenta reportes de tipo 'usuario' donde target_id = userId
+     * creados dentro de la ventana temporal.
+     * Gotcha: INTERVAL no acepta parámetros PDO — se usa whitelist de valores permitidos.
+     */
+    public static function contarReportesRecientesSobreUsuario(int $userId, int $horas): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        /* Whitelist de ventanas temporales válidas para prevenir inyección en INTERVAL */
+        $intervalosValidos = [1 => '1 hours', 2 => '2 hours', 6 => '6 hours', 12 => '12 hours', 24 => '24 hours', 48 => '48 hours'];
+        $intervalo = $intervalosValidos[$horas] ?? '2 hours';
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " = 'usuario'"
+            . " AND " . ReportesCols::TARGET_ID . " = :userId"
+            . " AND " . ReportesCols::CREATED_AT . " >= NOW() - INTERVAL '{$intervalo}'",
+            ['userId' => $userId]
+        );
+
+        return $row ? (int) $row['total'] : 0;
+    }
 }

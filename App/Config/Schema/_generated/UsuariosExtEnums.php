@@ -20,4 +20,11 @@ final class UsuariosExtEnums
     const ROL_ADMIN = 'admin';
 
     const TODOS_ROL = [self::ROL_USUARIO, self::ROL_CREADOR, self::ROL_ADMIN];
+
+    /* Valores para columna "estado" */
+    const ESTADO_ACTIVO = 'activo';
+    const ESTADO_SUSPENDIDO = 'suspendido';
+    const ESTADO_EN_ELIMINACION = 'en_eliminacion';
+
+    const TODOS_ESTADO = [self::ESTADO_ACTIVO, self::ESTADO_SUSPENDIDO, self::ESTADO_EN_ELIMINACION];
 }

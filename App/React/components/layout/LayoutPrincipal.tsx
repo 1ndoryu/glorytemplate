@@ -28,6 +28,7 @@ import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
 import { VisorImagen } from '../ui/VisorImagen';
 import { TooltipPerfil } from '../social/TooltipPerfil';
 import { ChatFlotante } from '../social/ChatFlotante';
+import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
 import { ModalAuth } from '../auth/ModalAuth';
@@ -208,6 +209,9 @@ export const LayoutPrincipal = ({
 
             {/* Modal de auth (login/registro) */}
             <ModalAuth />
+
+            {/* QQ65: Overlay de suspensión — bloquea toda la UI si el usuario está suspendido */}
+            <OverlaySuspension />
 
             {/* Puente store -> toast para nuevas notificaciones */}
             <NotificacionesToastBridge />

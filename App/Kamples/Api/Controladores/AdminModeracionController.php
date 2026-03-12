@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\ServicioBan;
+use App\Kamples\Services\ServicioSuspension;
 use App\Kamples\Services\ServicioNotificaciones;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\KamplesLogger;
@@ -75,6 +76,31 @@ class AdminModeracionController
         register_rest_route($namespace, '/admin/moderacion/rechazar-usuario-publicaciones', [
             'methods' => 'POST',
             'callback' => [self::class, 'rechazarPublicacionesUsuario'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* QQ65: Endpoints de suspensión y eliminación de usuarios */
+        register_rest_route($namespace, '/admin/usuarios/(?P<id>\d+)/suspender', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'suspenderUsuario'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/usuarios/(?P<id>\d+)/desuspender', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'desuspenderUsuario'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/usuarios/(?P<id>\d+)/eliminar', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'marcarEliminacionUsuario'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/usuarios/(?P<id>\d+)/cancelar-eliminacion', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'cancelarEliminacionUsuario'],
             'permission_callback' => $admin,
         ]);
     }
@@ -311,6 +337,124 @@ class AdminModeracionController
             return new \WP_REST_Response(['ok' => true, 'afectados' => $afectados], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminModeracionController::rechazarTodosPendientes fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /* ---- QQ65: Suspensión y eliminación de usuarios ---- */
+
+    /*
+     * POST /admin/usuarios/{id}/suspender
+     * Body: { horas: number, razon: string }
+     * Duración en horas. Si no se envía, default 48h.
+     */
+    public static function suspenderUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $id = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $horas = max(1, (int) ($body['horas'] ?? 48));
+            $razon = \sanitize_text_field($body['razon'] ?? 'Suspensión manual por equipo de moderación');
+
+            if (!$id) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
+            }
+
+            /* Prevenir auto-suspensión */
+            $currentPgId = UsuarioHelper::obtenerIdPg();
+            if ($currentPgId && $id === $currentPgId) {
+                return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes suspenderte a ti mismo'], 400);
+            }
+
+            $ok = ServicioSuspension::suspender($id, $horas, $razon);
+            if (!$ok) {
+                return new \WP_REST_Response(['code' => 'error_suspension', 'message' => 'No se pudo suspender al usuario'], 500);
+            }
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::suspenderUsuario fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/usuarios/{id}/desuspender
+     * Sin body requerido. Restaura cuenta a estado activo.
+     */
+    public static function desuspenderUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $id = (int) $request->get_param('id');
+            if (!$id) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
+            }
+
+            $ok = ServicioSuspension::desuspender($id);
+            if (!$ok) {
+                return new \WP_REST_Response(['code' => 'error_desuspender', 'message' => 'No se pudo desuspender al usuario'], 500);
+            }
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::desuspenderUsuario fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/usuarios/{id}/eliminar
+     * Body: { razon: string }
+     * Marca al usuario para eliminación (15 días de countdown).
+     */
+    public static function marcarEliminacionUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $id = (int) $request->get_param('id');
+            $body = $request->get_json_params();
+            $razon = \sanitize_text_field($body['razon'] ?? 'Eliminación por equipo de moderación');
+
+            if (!$id) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
+            }
+
+            $currentPgId = UsuarioHelper::obtenerIdPg();
+            if ($currentPgId && $id === $currentPgId) {
+                return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes eliminar tu propia cuenta'], 400);
+            }
+
+            $ok = ServicioSuspension::marcarParaEliminacion($id, $razon);
+            if (!$ok) {
+                return new \WP_REST_Response(['code' => 'error_eliminacion', 'message' => 'No se pudo marcar para eliminación'], 500);
+            }
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::marcarEliminacionUsuario fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * POST /admin/usuarios/{id}/cancelar-eliminacion
+     * Cancela eliminación pendiente y restaura la cuenta.
+     */
+    public static function cancelarEliminacionUsuario(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $id = (int) $request->get_param('id');
+            if (!$id) {
+                return new \WP_REST_Response(['code' => 'params_invalidos', 'message' => 'ID de usuario requerido'], 400);
+            }
+
+            $ok = ServicioSuspension::cancelarEliminacion($id);
+            if (!$ok) {
+                return new \WP_REST_Response(['code' => 'error_cancelar', 'message' => 'No se pudo cancelar la eliminación'], 500);
+            }
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminModeracionController::cancelarEliminacionUsuario fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

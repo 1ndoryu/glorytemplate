@@ -13,6 +13,7 @@ namespace App\Kamples\Auth;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Services\ServicioBan;
+use App\Kamples\Services\ServicioSuspension;
 
 class AuthMiddleware
 {
@@ -137,6 +138,28 @@ class AuthMiddleware
             'message' => 'Tu cuenta está temporalmente restringida',
             'baneadoHasta' => $infoBan['baneadoHasta'],
             'razon' => $infoBan['razon'],
+        ], 403);
+    }
+
+    /**
+     * QQ65: Verifica si el usuario PG está suspendido o en proceso de eliminación.
+     * Retorna WP_REST_Response 403 con datos de suspensión, o null si la cuenta está activa.
+     * El frontend usa el code 'usuario_suspendido' para mostrar el overlay de suspensión.
+     */
+    public static function verificarSuspensionActiva(int $pgUserId): ?\WP_REST_Response
+    {
+        $infoSuspension = ServicioSuspension::verificarSuspension($pgUserId);
+        if (!$infoSuspension) {
+            return null;
+        }
+
+        return new \WP_REST_Response([
+            'code' => 'usuario_suspendido',
+            'message' => 'Tu cuenta está suspendida',
+            'estado' => $infoSuspension['estado'],
+            'suspendidoHasta' => $infoSuspension['suspendidoHasta'],
+            'razon' => $infoSuspension['razon'],
+            'seraEliminadoEn' => $infoSuspension['seraEliminadoEn'],
         ], 403);
     }
 

@@ -46,6 +46,14 @@ export interface UsuarioResumen {
     verificado: boolean;
 }
 
+/* Datos de suspensión activa (solo presente si el usuario está suspendido) */
+export interface DatosSuspension {
+    estado: string;
+    suspendidoHasta: string | null;
+    razon: string | null;
+    seraEliminadoEn: string | null;
+}
+
 /* Datos del usuario autenticado (incluye campos privados) */
 export interface UsuarioAutenticado extends Usuario {
     descargasHoy: number;
@@ -54,4 +62,5 @@ export interface UsuarioAutenticado extends Usuario {
     limiteSubidas: number;
     mensajesHoy: number;
     limiteMensajes: number;
+    suspension: DatosSuspension | null;
 }

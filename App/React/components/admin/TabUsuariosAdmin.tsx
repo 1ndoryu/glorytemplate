@@ -4,8 +4,7 @@
  * Solo vista; la lógica viene de useAdminPanel.
  */
 
-import { useState, useCallback } from 'react';
-import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight, ShieldAlert, Trash2, Undo2 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import type { UsuarioAdmin } from '../../services/apiAdmin';
 import { BotonBase } from '../ui/BotonBase';
@@ -13,6 +12,8 @@ import { SelectorMenu } from '../ui/SelectorMenu';
 import type { OpcionSelector } from '../ui/SelectorMenu';
 import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
+import { ModalSuspenderAdmin } from './ModalSuspenderAdmin';
+import { useTabUsuariosAdmin } from '@app/hooks/useTabUsuariosAdmin';
 
 interface TabUsuariosAdminProps {
     usuarios: UsuarioAdmin[];
@@ -24,6 +25,7 @@ interface TabUsuariosAdminProps {
     onCambiarBusqueda: (b: string) => void;
     onCambiarFiltroPlan: (p: string) => void;
     onActualizarUsuario: (id: number, cambios: Record<string, unknown>) => Promise<boolean>;
+    onRefrescar?: () => void;
 }
 
 /* Formatear fecha corta */
@@ -35,6 +37,14 @@ const colorPlan = (plan: string): 'neutro' | 'acento' | 'premium' | 'info' => {
     if (plan === 'premium') return 'premium';
     if (plan === 'pro') return 'acento';
     return 'neutro';
+};
+
+/* QQ65: Estado de cuenta del usuario */
+const estadoLabel = (u: UsuarioAdmin): { texto: string; variante: 'neutro' | 'error' | 'premium' } => {
+    if (u.estado === 'en_eliminacion') return { texto: 'Eliminación', variante: 'error' };
+    if (u.estado === 'suspendido') return { texto: 'Suspendido', variante: 'premium' };
+    if (u.ban_hasta && new Date(u.ban_hasta) > new Date()) return { texto: 'Baneado', variante: 'error' };
+    return { texto: 'Activo', variante: 'neutro' };
 };
 
 /* Opciones para filtro y selector de plan */
@@ -61,26 +71,13 @@ export const TabUsuariosAdmin = ({
     onCambiarBusqueda,
     onCambiarFiltroPlan,
     onActualizarUsuario,
+    onRefrescar,
 }: TabUsuariosAdminProps): JSX.Element => {
-    const [procesando, setProcesando] = useState<number | null>(null);
-    const totalPaginas = Math.ceil(totalUsuarios / 20);
-
-    const manejarAccion = useCallback(async (id: number, cambios: Record<string, unknown>) => {
-        setProcesando(id);
-        await onActualizarUsuario(id, cambios);
-        setProcesando(null);
-    }, [onActualizarUsuario]);
-
-    /* Toggle ban (7 días o desbanear) */
-    const toggleBan = useCallback((usuario: UsuarioAdmin) => {
-        if (usuario.ban_hasta) {
-            manejarAccion(usuario.id, { ban_hasta: null });
-        } else {
-            const enUnaSemana = new Date();
-            enUnaSemana.setDate(enUnaSemana.getDate() + 7);
-            manejarAccion(usuario.id, { ban_hasta: enUnaSemana.toISOString() });
-        }
-    }, [manejarAccion]);
+    const { procesando, totalPaginas, suspension, manejarAccion, toggleBan } = useTabUsuariosAdmin({
+        onActualizarUsuario,
+        totalUsuarios,
+        onRefrescar,
+    });
 
     return (
         <div>
@@ -110,6 +107,7 @@ export const TabUsuariosAdmin = ({
                         <th>Usuario</th>
                         <th>Plan</th>
                         <th>Rol</th>
+                        <th>Estado</th>
                         <th>Samples</th>
                         <th>Descargas</th>
                         <th>Registro</th>
@@ -119,7 +117,7 @@ export const TabUsuariosAdmin = ({
                 <tbody>
                     {usuarios.length === 0 && (
                         <tr>
-                            <td colSpan={7}>
+                            <td colSpan={8}>
                                 <EstadoVacio
                                     mensaje="No se encontraron usuarios"
                                     icono={<Search size={24} />}
@@ -152,6 +150,12 @@ export const TabUsuariosAdmin = ({
                                 <Badge variante={u.rol === 'admin' ? 'error' : 'neutro'}>
                                     {u.rol}
                                 </Badge>
+                            </td>
+                            <td>
+                                {(() => {
+                                    const est = estadoLabel(u);
+                                    return <Badge variante={est.variante}>{est.texto}</Badge>;
+                                })()}
                             </td>
                             <td>{u.total_samples}</td>
                             <td>{u.total_descargas}</td>
@@ -188,7 +192,54 @@ export const TabUsuariosAdmin = ({
                                     >
                                         <Ban size={14} />
                                     </BotonBase>
-                                    {/* C257: Selector de plan */}
+                                    {/* QQ65: Acciones de suspensión */}
+                                    {u.estado === 'suspendido' ? (
+                                        <BotonBase variante="ghost"
+                                            tamano="ninguno"
+                                            className="adminBotonAccion"
+                                            title="Levantar suspensión"
+                                            onClick={() => suspension.desuspender(u)}
+                                            disabled={suspension.procesando}
+                                            type="button"
+                                        >
+                                            <Undo2 size={14} />
+                                        </BotonBase>
+                                    ) : u.estado === 'en_eliminacion' ? (
+                                        <BotonBase variante="ghost"
+                                            tamano="ninguno"
+                                            className="adminBotonAccion"
+                                            title="Cancelar eliminación"
+                                            onClick={() => suspension.cancelarEliminacion(u)}
+                                            disabled={suspension.procesando}
+                                            type="button"
+                                        >
+                                            <Undo2 size={14} />
+                                        </BotonBase>
+                                    ) : (
+                                        <>
+                                            <BotonBase variante="ghost"
+                                                tamano="ninguno"
+                                                className="adminBotonAccion adminBotonAccionPeligro"
+                                                title="Suspender usuario"
+                                                onClick={() => suspension.abrirSuspender(u)}
+                                                disabled={suspension.procesando}
+                                                type="button"
+                                            >
+                                                <ShieldAlert size={14} />
+                                            </BotonBase>
+                                            <BotonBase variante="ghost"
+                                                tamano="ninguno"
+                                                className="adminBotonAccion adminBotonAccionPeligro"
+                                                title="Marcar eliminación"
+                                                onClick={() => suspension.abrirEliminar(u)}
+                                                disabled={suspension.procesando}
+                                                type="button"
+                                            >
+                                                <Trash2 size={14} />
+                                            </BotonBase>
+                                        </>
+                                    )}
+                                    {/* Selector de plan */}
                                     <SelectorMenu
                                         compacto
                                         opciones={OPCIONES_PLAN}
@@ -227,6 +278,16 @@ export const TabUsuariosAdmin = ({
                     </BotonBase>
                 </div>
             )}
+
+            {/* QQ65: Modal de suspensión/eliminación */}
+            <ModalSuspenderAdmin
+                accion={suspension.modal.accion}
+                usuario={suspension.modal.usuario}
+                procesando={suspension.procesando}
+                onCerrar={suspension.cerrarModal}
+                onConfirmarSuspension={suspension.confirmarSuspension}
+                onConfirmarEliminacion={suspension.confirmarEliminacion}
+            />
         </div>
     );
 };

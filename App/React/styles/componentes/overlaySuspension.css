@@ -1,0 +1,77 @@
+/*
+ * Estilos: OverlaySuspension — QQ65
+ * Overlay a pantalla completa con fondo desenfocado para usuarios suspendidos.
+ */
+
+.overlaySuspension {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--zModal) + 500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.overlaySuspensionContenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 440px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: var(--fondoElevado1);
+    border-radius: var(--radioLg);
+    border: 1px solid var(--bordeSutil);
+}
+
+.overlaySuspensionIcono {
+    color: var(--error);
+    margin-bottom: 0.5rem;
+}
+
+.overlaySuspensionTitulo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.overlaySuspensionRazon {
+    color: var(--textoSecundario);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    background: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    width: 100%;
+}
+
+.overlaySuspensionTimer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--textoSecundario);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.overlaySuspensionTimerPeligro {
+    color: var(--error);
+}
+
+.overlaySuspensionAcciones {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.overlaySuspensionNota {
+    color: var(--textoTerciario);
+    font-size: 0.75rem;
+    margin: 0;
+}

@@ -17,6 +17,7 @@ use App\Config\Schema\_generated\PublicacionesDTO;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\FollowsCols;
@@ -236,7 +237,9 @@ class PublicacionesRepository extends BaseRepository
             . " = u." . UsuariosExtCols::ID
             . " LEFT JOIN {$tp} orig ON p." . PublicacionesCols::REPOST_ID . " = orig." . PublicacionesCols::ID
             . " LEFT JOIN {$tu} u_orig ON orig." . PublicacionesCols::AUTOR_ID . " = u_orig." . UsuariosExtCols::ID
-            . " WHERE 1=1 {$donde} {$orderBy} LIMIT :limit OFFSET :offset",
+            . " WHERE 1=1 {$donde}"
+            . " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)"
+            . " {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
     }
@@ -354,6 +357,7 @@ class PublicacionesRepository extends BaseRepository
             . " LEFT JOIN {$tp} orig ON p.{$pRepostId} = orig.{$pId}"
             . " LEFT JOIN {$tu} u_orig ON orig.{$pAutorId} = u_orig." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde}"
+            . " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)"
             . "), diversified AS ("
             . " SELECT *, ROW_NUMBER() OVER (PARTITION BY {$pAutorId} ORDER BY _score_base DESC) AS _rn_autor"
             . " FROM base"

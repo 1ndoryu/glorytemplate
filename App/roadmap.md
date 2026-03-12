@@ -197,13 +197,13 @@ Reproductor minimalista rebuild completo. **Arquitectura:** Audio global único 
 
 Menu contextual de canciones + play button para sample adjunto. **Backend:** Subquery `row_to_json()` correlacionada en `CancionesRepository::feed()` que devuelve el primer sample activo (via `samples.cancion_origen_id`) como JSON embebido en cada cancion del feed. Agregado a los 3 modos de ordenamiento (inteligente, top_sampleados, hot). `NormalizadorCancion::decodeSampleAdjunto()` decodifica el JSON a array camelCase. **Frontend:** Tipo `SampleAdjuntoCancion` en `cancion.ts`, campo opcional `sampleAdjunto` en `Cancion`. `TarjetaCancionFeed` muestra botón Play (con Pause toggle) solo cuando `sampleAdjunto` existe. `useMenuContextualCancion` hook nuevo con items: ver canción, copiar enlace, ver artista, abrir en WhoSampled. `ExplorarCancionesIsland` integra el menú contextual (MenuContextual portal) y maneja play/pause via `reproductorStore.reproducir()` construyendo un `SampleResumen` minimo desde el `sampleAdjunto`. Archivos: CancionesRepository.php, NormalizadorCancion.php, cancion.ts, TarjetaCancionFeed.tsx, ExplorarCancionesIsland.tsx, useMenuContextualCancion.ts (nuevo), useFeedCanciones.ts, hooks/index.ts.
 
-## QQ51
+## QQ51 ✅ [AG-QQF]
 
-Asegurarse de que el nombre original del sample que se suba se guarda en la informacion del sample, esto tiene que salir en inspesionar sample, y la funcionalidad de inspesionar asegurarse que solo este disponible para admin. Tambien falta ciertas informaciones, no esta mostrando cosas como si es un recorte y la informacion de sampleo o cancion de origen si es que esta disponible esa info, etc.
+Inspector sample admin-only + campos origen/sampleo + nombre original. **Backend:** `NormalizadorSample::sqlSelectSamples()` ahora incluye `cancion_origen_id` y `relacion_sampleo_id` en el SELECT. `normalizar()` expone `cancionOrigenId` y `relacionSampleoId`. **Frontend:** Tipo `Sample` extendido con `cancionOrigenId?: number | null` y `relacionSampleoId?: number | null`. `useMenuContextualSample`: item "inspeccionar" solo visible para admin (`esAdmin` conditional spread). `ModalInspectorSample`: nombre original extraído de `rutaOriginal` (basename) mostrado en Info General, nueva sección "Origen y Sampleo" con campos "Es Recorte" (derivado de `relacionSampleoId != null`), "Canción Origen ID" y "Relación Sampleo ID". Archivos: NormalizadorSample.php, sample.ts, useMenuContextualSample.ts, ModalInspectorSample.tsx.
 
-## QQ52 
+## QQ52 ✅ [AG-QQF]
 
-Cuando llegue un mensaje, chatFlotanteVentana tiene que abrirse automaticamente de la conversación, asegurarse de que el bloqueo funcionen, en ese contexto, sea, no poder recibir ni que aparezcan mensajes de usuarios bloqueados. Cuando recibo un mensaje el icono de mensaje no se pone rojo como el de notificaciones, además parece que los mensajes nunca se marcan como leidos en el modal, cuando seleciono un adjunto, este se envia automaticamente en vez de ponerse en el input para escribirse un mensaje del adjunto. Asegurarse de que haya rate limits para los mensajes, y una optimización muy agresiva para las imagenes, no permitir audios de max 30 mb, solo permitir imagenes y audios, agregar una detección de spam, agregar un tab al modal de principal y posible spam, donde todos los mensajes de usuarios que se siguen mutuamente llegan a principal y usuarios que no se siguen lleguen a posible spam, agregar un boton en la lista de chats (el modal) para poder realizar acciones, borrar, bloquear, reportar, ver perfil. Las imagenes de los chat tienen que abrirse como se abren las imagenes de las publicaciones y no en otra pestaña, los mensajes no funcionan en tiempo real, esperamos que cuando se despliegue en el vps, puedan funcionar en tiempo real, verifica en coolifiy manager (rust) va a poder correr lo que sea necesario para que los mensajes y notificaciones usen websocket 
+Overhaul completo del chat. **Backend:** `ConversacionesRepository::listarDeUsuarioEnriquecido()` ampliado con `es_mutuo` boolean (doble EXISTS subquery en `follows` para detectar follow mutuo) + `NOT EXISTS` en `bloqueos` para excluir conversaciones con usuarios bloqueados bidireccional. `MensajesController`: bloqueo bidireccional en `obtenerMensajes` y `iniciarConversacion` via `BloqueosRepository::existeBloqueoMutuo()`. `esMutuo` incluido en response JSON de conversaciones. `MensajesEnvioController`: check de bloqueo pre-envío, anti-spam (`ServicioAntiSpam::evaluarTexto()`) en mensajes de texto, limite audio 30MB. `ServicioAntiSpam`: refactorizado — nuevo `evaluarTexto()` reutilizable (patrones 1-4 sin consulta BD), `evaluar()` lo usa + check duplicados. **Frontend:** Badge no leídos en TopBar (`totalMensajesNoLeidos` via `useMensajesStore`, clase `topbarBotonNotificacionesPendientes` en botón Mail). Tabs principal/solicitudes en DropdownMensajes (filtro por `esMutuo`, badge contador). Staging multimedia (preview de imagen/audio antes de enviar con botones enviar/cancelar). Visor imagen inline (VisorImagen + visorImagenStore — reemplaza `window.open`, usa Modal del sistema, montado en LayoutPrincipal). Tipo `Conversacion` extendido con `esMutuo: boolean`. TO-DO: eliminar conversación requiere endpoint backend (soft/hard delete design decision pendiente). Archivos: ConversacionesRepository.php, MensajesController.php, MensajesEnvioController.php, ServicioAntiSpam.php, mensaje.ts, useTopBar.ts, TopBar.tsx, useDropdownMensajes.ts, DropdownMensajes.tsx, dropdownPanel.css, useVentanaChat.ts, ChatFlotante.tsx, chatFlotante.css, useBurbujaMensaje.tsx, visorImagenStore.ts (nuevo), VisorImagen.tsx (nuevo), visorImagen.css (nuevo), LayoutPrincipal.tsx.
 
 ## QQ53 ✅ [AG-QQF]
 
@@ -247,19 +247,62 @@ Revisiones de seguridad y optimizacion generales, el proyecto es muy grande pero
 
 Fix reproductor: siguiente/click no reproducía automáticamente. **Causa:** `useMotorAudio.ts` solo llamaba `audio.play()` cuando `state.reproduciendo` cambiaba de valor, pero `siguiente()`, `anterior()` y `reproducir()` setean `reproduciendo: true` cuando ya era `true`, así que la condición `state.reproduciendo !== prevState.reproduciendo` nunca se cumplía. **Fix:** En el bloque de cambio de sample, después de `audio.load()`, llamar `audio.play()` directamente si `state.reproduciendo` es true. Archivo: useMotorAudio.ts.
 
-## QQ63 
+## QQ63 ✅ [AG-QQF]
 
-En el menu contextual de usuario donde aparece el logout, arruba de logut agregar un boton de whatsapp, esto hará que el usuario ingrese a https://chat.whatsapp.com/JOduGKvWGR9KbYfBS9BWGL en otra pestaña, sera el grupo del proyecto, pero antes, abrira un modal de solicitud, tiene que ser igual al modal de reporte, de hecho, para no complicarnso la vida utilizarmeos la misma logica de reporte, no repitas solo centraliza.
+Botón WhatsApp en menú de usuario con modal de solicitud de ingreso al grupo beta. **Backend:** Nuevo tipo `solicitud_whatsapp` en TIPOS_PERMITIDOS de ModeracionController. Endpoint `GET /solicitud-whatsapp/estado` verifica disponibilidad (1 por usuario, 6 diarias globales). Case en `procesarReporte` con validación de duplicado + limite diario. `ReportesRepository`: métodos `contarPorTipoYUsuario()` y `contarPorTipoHoy()`. Datos se guardan en tabla reportes: razon=motivo, detalles="Nombre: X\nTeléfono: Y\nPaís: Z\n\nDescripción". **Frontend:** `solicitudWhatsappStore` (Zustand), `useSolicitudWhatsapp` hook (5 campos, verificación de disponibilidad al abrir, envía a `/reportar`, redirect a grupo WA tras éxito), `ModalSolicitudWhatsapp` (3 estados: formulario, ya enviada, limite diario — reutiliza CSS modalReportarError). TopBar: item "Grupo de WhatsApp" con icono MessageCircle antes de logout. URL del grupo no visible en botón, solo redirige tras envío exitoso.## QQ64 ✅ [AG-QQF]
 
-## QQ64
+Fix reportes mostraban `error_plataforma #0 —` sin asunto ni descripción. **Causa:** Triple mismatch: 1) `ReportesRepository::listarPendientes()` no incluía columna `detalles` en el SELECT, 2) Interface `ReporteAdmin` esperaba campo `motivo` pero la BD devuelve `razon`, 3) Template usaba `rep.motivo` que era `undefined`. **Fix:** Agregada columna `detalles` al SELECT, renombrado `motivo` a `razon` en interface + agregado `detalles: string | null`, template ahora usa `rep.razon` y muestra `rep.detalles` en div separado con `white-space: pre-wrap`. Archivos: ReportesRepository.php, apiAdmin.ts, TabModeracionAdmin.tsx, adminPanel.css.
 
-Envie un reporte pero sale asi
+## QQ65 [EN CURSO — AG-QQF]
 
-@admin
-hace 0m
-error_plataforma #0 —
+Sistema de suspensión de usuarios completo. **Backend:** Migración v040 con 5 columnas nuevas (estado, suspendido_hasta, suspension_razon, marcado_eliminacion_en, sera_eliminado_en). Schema/Cols/Enums actualizados. `ServicioSuspension.php` (suspender, desuspender, marcarParaEliminacion, cancelarEliminacion, verificarAutoSuspension con umbral 4 reportes/2h → 48h, verificarSuspension). `UsuariosExtRepository`: 5 métodos nuevos de estado de cuenta. `ReportesRepository::contarReportesRecientesSobreUsuario()` con whitelist INTERVAL. `AuthMiddleware::verificarSuspensionActiva()` → 403 con code 'usuario_suspendido'. `AdminModeracionController`: 4 rutas nuevas (suspender/desuspender/eliminar/cancelar-eliminacion). Auto-suspensión trigger en `ModeracionController::procesarReporte()`. Filtros de suspensión en `SamplesRepository::listarFeed()` y `PublicacionesRepository::listarFeed()/listarFeedPuntuado()`. `AdminRepository` expone estado+suspendido_hasta+suspension_razon+sera_eliminado_en. `PerfilController`: perfil oculto para suspendidos (404 excepto admin), datos de suspensión en `/me`. **Frontend:** Tipo `DatosSuspension` + campo `suspension` en `UsuarioAutenticado`. `UsuarioAdmin` extendido con 4 campos. API: `suspenderUsuarioAdmin/desuspenderUsuarioAdmin/marcarEliminacionUsuarioAdmin/cancelarEliminacionUsuarioAdmin`. `useAccionesSuspension` hook + `ModalSuspenderAdmin` (duración + razón). `useTabUsuariosAdmin` hook (SRP extraído). `TabUsuariosAdmin` con columna Estado + botones suspender/desuspender/eliminar/cancelar. `OverlaySuspension` overlay (blur, razón, countdown, logout) montado en LayoutPrincipal. CSS: `overlaySuspension.css`. TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
 
-no sale el asunto ni la descripcion.
+## QQ66
+
+He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, los falso positivo corrigelos en la extension en agent.
+
+## QQ67
+
+recibi este corre, revisa que usamos ese modelo y cambialo
+
+This is a final reminder that Llama-Guard-4-12B was decommissioned today, meaning your requests will start to fail if you have not yet switched models. 
+
+TAKE ACTION NOW
+Our recommended replacement model is GPT-OSS-Safeguard. Revisa como se usa en la documentacion de groq. 
+
+## QQ68
+
+Mejora del panel lateral, el panel lateral debe actualizarse cuando se reproduce otro sample. 
+
+Y la unica forma aparente de abrir el panel lateral de un sample es dando click al boton de comentario, lo que haremos es agregar otro boton en el menu de contextual de "abrir panel" 
+
+
+## QQ69
+
+El icono de mensaje siempre queda en rojo, tiene marcarse los mensajes como leido al verlos desde el modal
+
+Las imagenes del chat cuando abre, no se cierran si doy click por fuera, solo por la parte de arriba pero no a los lads.
+
+## QQ70
+
+El boton de reproducir en la lista de canciones cuando tienen un sample no funciona. Muestra el reproductor pero no reproduce.
+
+## QQ71 
+
+La tarea qq65 es compleja, hacer una auditorría profunda y completa para ver que quedo bien.
+
+## QQ72
+
+Optimización de la base datos, revisar profundamente todas las posibles optimizaciones de las tables y sus relaciones para que todo sea mas rpaido.
+
+## QQ73
+
+Quitar de feedFiltrosSelectsm, el select de sentimiento, y los pint de bpm no necesitan los estilos de .campTextoInput, .campoTextoArea, 
+
+## QQ74
+
+en http://glory.local/descargas/ me salen samples que dejaron de existir
+
 
 # ANTES DE LA ULTIMA TAREA
 
@@ -267,10 +310,11 @@ Asegurarte de que todo los cambios se hayan subido, no importa que no sean tus c
 
 Cuandos tengas el respaldo de seguridad, ahora, lo que vas a hacer es que la rama main kamples, la vas a separar en repositorio individual, preservar todos los submodulos y todo igual, incluyendo el gitingore y todo eos, todos los subrepositorios que queden igual, solo es sacar la rama main-kamples a un repositorio independiente, en caso de que sea posible preservar todos los commit y esa informacion, genial, mi github es https://github.com/1ndoryu
 
-Asegurarse de que el proyecto tenga una licencia fuerte, y cuando este separado en un repositorio independiente, configura style.css para que tema se llame kamples
+Asegurarse de que el proyecto tenga una licencia fuerte, y cuando este separado en un repositorio independiente, configura style.css para que tema se llame kamples, y que no haya perdida de datos en el reposotiro de glorytemplate
 
 ## ULTIMA TAREA
 
-Desplegar kamples en la vps con coolify manager rust (kamples.com)
+Desplegar kamples en la vps con coolify manager rust (kamples.com) sin afectar a los otros desplieges por favor.
 
-Primero vamos ahorrarnos trabajo y asegurarnos de que los procesos de fondo scrapper, recortes, webhoock para los mensajes, notificaciones, los despliegues y todas estas cosas vayan a funcionar en linux, incluyendo la IA, la optización de audio, etc. Cuando hagas el despliegue, la url no funciona, coolify tiene un problema de que las url incialmente son de testeos, asi que no intentes empezar con kamples, deja que se cree la url temporal que genera coolify, entonces, cuando se suba todo, asegurate que haga el build automatico con cada update, que se selecione el tema glory template, instala el sitio con lo que suele pedir la instalacion para que tu mismo compruebues si corre, va a dar error, siempre da error, asi que activa el modo dev, no intentes ejecutar comandos desde coolify el powershell siempre tien probles con las comillas, la mejor opcion es crear los comandos en local y usar algun mecanimos para ejecutarlos en la vps 
+Primero vamos ahorrarnos trabajo y asegurarnos de que los procesos de fondo scrapper, recortes, webhoock para los mensajes, notificaciones, los despliegues y todas estas cosas vayan a funcionar en linux, incluyendo la IA, la optización de audio, etc. Cuando hagas el despliegue, la url no funciona, coolify tiene un problema de que las url incialmente son de testeos, asi que no intentes empezar con kamples, deja que se cree la url temporal que genera coolify, entonces, cuando se suba todo, asegurate que haga el build automatico con cada update, que se selecione el tema glory template, instala el sitio con lo que suele pedir la instalacion para que tu mismo compruebues si corre, va a dar error, siempre da error, asi que activa el modo dev, no intentes ejecutar comandos desde coolify el powershell siempre tien probles con las comillas, la mejor opcion es crear los comandos en local y usar algun mecanimos para ejecutarlos en la vps.
+

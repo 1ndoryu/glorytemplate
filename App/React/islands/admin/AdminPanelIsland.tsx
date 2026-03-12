@@ -82,6 +82,7 @@ const AdminPanelBase = (): JSX.Element => {
                     onCambiarBusqueda={admin.setBusquedaUsuarios}
                     onCambiarFiltroPlan={admin.setFiltroPlannUsuarios}
                     onActualizarUsuario={admin.actualizarUsuario}
+                    onRefrescar={admin.cargarUsuarios}
                 />
             )}
 

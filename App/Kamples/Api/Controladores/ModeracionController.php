@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioSuspension;
 
 class ModeracionController
 {
@@ -268,6 +269,8 @@ class ModeracionController
                     return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Usuario no encontrado'], 404);
                 }
                 ReportesRepository::crearReporteUsuario($targetId, $userId, $razon, $detalles ?: null);
+                /* QQ65: Verificar umbral de auto-suspensión tras reporte de usuario */
+                ServicioSuspension::verificarAutoSuspension($targetId);
                 break;
 
             case self::TIPO_PUBLICACION:

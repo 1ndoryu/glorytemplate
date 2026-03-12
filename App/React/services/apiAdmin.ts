@@ -43,6 +43,10 @@ export interface UsuarioAdmin {
     rol: string;
     verificado: boolean;
     ban_hasta: string | null;
+    estado: string | null;
+    suspendido_hasta: string | null;
+    suspension_razon: string | null;
+    sera_eliminado_en: string | null;
     created_at: string;
     updated_at: string;
     total_samples: number;
@@ -244,4 +248,33 @@ export interface ResultadoBorradoMasivo {
  */
 export const eliminarTodosSamples = async (): Promise<RespuestaApi<ResultadoBorradoMasivo>> => {
     return apiDelete<ResultadoBorradoMasivo>('/admin/samples/todos');
+};
+
+/* QQ65: Suspensión de usuarios */
+
+export const suspenderUsuarioAdmin = async (
+    id: number,
+    horas: number,
+    razon: string
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>(`/admin/usuarios/${id}/suspender`, { horas, razon });
+};
+
+export const desuspenderUsuarioAdmin = async (
+    id: number
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>(`/admin/usuarios/${id}/desuspender`, {});
+};
+
+export const marcarEliminacionUsuarioAdmin = async (
+    id: number,
+    razon: string
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>(`/admin/usuarios/${id}/eliminar`, { razon });
+};
+
+export const cancelarEliminacionUsuarioAdmin = async (
+    id: number
+): Promise<RespuestaApi<{ ok: boolean }>> => {
+    return apiPost<{ ok: boolean }>(`/admin/usuarios/${id}/cancelar-eliminacion`, {});
 };

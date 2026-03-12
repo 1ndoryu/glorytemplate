@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
+use App\Kamples\Services\ServicioSuspension;
 use App\Kamples\KamplesLogger;
 
 class PerfilController
@@ -79,6 +80,15 @@ class PerfilController
 
         if ($perfil === null) {
             return new \WP_REST_Response(['code' => 'perfil_no_encontrado', 'message' => 'El usuario no existe.'], 404);
+        }
+
+        /* QQ65: Ocultar perfil de usuarios suspendidos/en eliminación (excepto para admin) */
+        $estadoPerfil = $perfil[UsuariosExtCols::ESTADO] ?? 'activo';
+        if ($estadoPerfil !== 'activo') {
+            $esAdmin = current_user_can('manage_options');
+            if (!$esAdmin) {
+                return new \WP_REST_Response(['code' => 'perfil_no_disponible', 'message' => 'Este perfil no está disponible.'], 404);
+            }
         }
 
         /* Normalizar a camelCase — C193: fallback avatar via WP */
@@ -163,6 +173,15 @@ class PerfilController
         }
 
         $normalizado = self::normalizarUsuario($datos);
+
+        /* QQ65: Incluir datos de suspensión si la cuenta no está activa */
+        $pgId = (int) ($ext[UsuariosExtCols::ID] ?? 0);
+        if ($pgId) {
+            $infoSuspension = ServicioSuspension::verificarSuspension($pgId);
+            if ($infoSuspension) {
+                $normalizado['suspension'] = $infoSuspension;
+            }
+        }
 
         return new \WP_REST_Response(['data' => $normalizado], 200);
         } catch (\Throwable $e) {
