@@ -73,6 +73,11 @@ def validar_match(
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
+                # Cloudflare bloquea Python-urllib con 403 1010 — simular SDK oficial
+                "User-Agent": "groq-python/0.13.0",
+                "x-stainless-lang": "python",
+                "x-stainless-os": "Windows",
+                "x-stainless-runtime": "CPython",
             },
         )
         with urllib.request.urlopen(req, timeout=_GROQ_TIMEOUT) as resp:
