@@ -1,8 +1,19 @@
 """
 Descarga de audio desde YouTube (yt-dlp) o Spotify (spotdl).
 
-Prioridad: YouTube > Spotify > error.
-Descarga audio en mejor calidad y convierte a WAV temporal para análisis BPM.
+Prioridad: YouTube ID > YouTube search > Spotify ID > Spotify search > error.
+
+Youtube:
+- Estrategia 1 (pot_nativo): yt-dlp sin cookies. Funciona para contenido publico
+  via android_vr. No apta para contenido que requiere auth.
+- Estrategia 2 (pot_cookies): yt-dlp + cookies.txt. Bypasea bot detection.
+  No funciona para contenido restringido por labels (requiere YouTube Premium).
+- YouTube search: busqueda por nombre si el video ID directo falla.
+  Puede encontrar subidas no oficiales sin restricciones de DRM.
+- fetch_pot=always: activa bgutil-ytdlp-pot-provider para generar GVS PO tokens,
+  resolviendo el "The page needs to be reloaded" del experimento de YouTube.
+
+Spotify: spotdl como fallback para contenido no disponible en YouTube.
 """
 
 import logging
@@ -76,7 +87,14 @@ def descargar_audio(
         resultado = _descargar_youtube(youtube_id, output_dir)
         if resultado:
             return resultado
-        logger.warning("YouTube fallo para %s, intentando Spotify fallback", youtube_id)
+        logger.warning("YouTube (ID directo) fallo para %s, intentando busqueda por nombre", youtube_id)
+
+    # Fallback: buscar en YouTube por nombre — evita restricciones de canales oficiales.
+    # Las subidas no oficiales no tienen DRM de labels y funcionan con android_vr.
+    if artista and titulo:
+        resultado = _descargar_youtube_search(artista, titulo, output_dir)
+        if resultado:
+            return resultado
 
     if spotify_id and _SPOTIFY_ID_RE.match(spotify_id):
         resultado = _descargar_spotify(spotify_id, output_dir)
@@ -84,7 +102,7 @@ def descargar_audio(
             return resultado
         logger.warning("Spotify por ID fallo para %s", spotify_id)
 
-    # Fallback: buscar en Spotify por nombre de artista + titulo
+    # Ultimo fallback: buscar en Spotify por nombre de artista + titulo
     if artista and titulo:
         resultado = _descargar_spotify_por_nombre(artista, titulo, output_dir)
         if resultado:
@@ -127,8 +145,9 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
     )
 
     # Comando base — yt-dlp + plugin PO token eligen client optimo automaticamente.
-    # No forzar --extractor-args player_client: el plugin bgutil ya maneja
-    # la generacion de tokens para el client que yt-dlp seleccione.
+    # fetch_pot=always: fuerza generacion de player PO tokens antes del player API request.
+    # Sin esto, yt-dlp en modo 'auto' no llama a bgutil aunque este disponible,
+    # lo que hace que el GVS experiment de YouTube devuelva UNPLAYABLE.
     base_cmd = [
         ytdlp_path,
         "--no-playlist",
@@ -143,6 +162,7 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
         "--file-access-retries", "3",
         "--no-check-certificates",
         "--socket-timeout", "30",
+        "--extractor-args", "youtube:fetch_pot=always",
     ]
 
     # Estrategia 1: yt-dlp nativo con PO token plugin
@@ -212,6 +232,147 @@ def _descargar_youtube(youtube_id: str, output_dir: str) -> str | None:
     return None
 
 
+def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str | None:
+    """Buscar en YouTube por nombre y descargar el primer resultado accesible.
+
+    Cuando el video ID directo falla por restricciones de label/DRM,
+    los resultados de busqueda incluyen subidas no oficiales que no tienen
+    esas restricciones y funcionan con el cliente android_vr.
+
+    Usa ytsearch5: + --max-downloads 1 + --ignore-errors para iterar resultados
+    automaticamente hasta encontrar uno descargable.
+    """
+    nombre_seguro = re.sub(r"[^\w\s-]", "", f"{artista}_{titulo}")[:80].strip()
+    output_path = os.path.join(output_dir, f"ytsearch_{nombre_seguro}.mp3")
+
+    if os.path.exists(output_path):
+        logger.debug("Audio YT search ya en cache: %s", output_path)
+        return output_path
+
+    ytdlp_path = _resolver_ejecutable("yt-dlp")
+    if not ytdlp_path:
+        return None
+
+    query = f"ytsearch5:{artista} {titulo}"
+    logger.info("YouTube search fallback: buscando '%s %s'", artista, titulo)
+
+    # Usar cookies si existen:
+    # - Con cookies: bypass del bot detection de YouTube search
+    # - Sin cookies: riesgo de "Sign in to confirm" en todos los resultados
+    cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
+    cookies_args = ["--cookies", cookies_path] if os.path.exists(cookies_path) else []
+
+    # Directorio temporal para capturar el archivo descargado antes de renombrarlo.
+    # ytsearch genera nombres con %(id)s; necesitamos encontrar el archivo creado.
+    with tempfile.TemporaryDirectory() as tmpdir:
+        cmd = [
+            ytdlp_path,
+            # Sin --no-playlist: ytsearch necesita tratarse como playlist para iterar
+            "--extract-audio",
+            "--audio-format", "mp3",
+            "--audio-quality", "0",
+            "--output", os.path.join(tmpdir, "%(id)s.%(ext)s"),
+            "--quiet",
+            "--no-warnings",
+            # --max-downloads 1: parar despues del primer exito
+            "--max-downloads", "1",
+            # --ignore-errors: continuar al siguiente resultado si uno falla
+            "--ignore-errors",
+            "--retries", "2",
+            "--extractor-retries", "2",
+            "--no-check-certificates",
+            "--socket-timeout", "30",
+            # fetch_pot=always: activar bgutil para web clients (resuelve GVS experiment)
+            "--extractor-args", "youtube:fetch_pot=always",
+            *cookies_args,
+            query,
+        ]
+
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300,
+            )
+
+            # Buscar el mp3 descargado en el directorio temporal
+            mp3_archivos = [
+                os.path.join(tmpdir, f)
+                for f in os.listdir(tmpdir)
+                if f.endswith(".mp3") and os.path.getsize(os.path.join(tmpdir, f)) > 0
+            ]
+
+            if mp3_archivos:
+                # Mover el primero encontrado al destino esperado
+                shutil.move(mp3_archivos[0], output_path)
+                size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                logger.info(
+                    "Audio descargado (YouTube/search): '%s %s' (%.1f MB)",
+                    artista, titulo, size_mb,
+                )
+                return output_path
+
+            stderr = (result.stderr or "")[:500]
+            logger.warning(
+                "YouTube search no encontro resultado descargable para '%s %s': %s",
+                artista, titulo, stderr,
+            )
+            return None
+
+        except subprocess.TimeoutExpired:
+            logger.error("Timeout en YouTube search para '%s %s'", artista, titulo)
+            return None
+        except Exception:
+            logger.exception("Error en YouTube search '%s %s'", artista, titulo)
+            return None
+
+
+def _ejecutar_spotdl(cmd: list[str], timeout: int = 120) -> tuple[int, str, str]:
+    """
+    Ejecutar spotdl con deteccion temprana de rate limits.
+
+    Usa Popen para leer stdout/stderr en tiempo real y matar el proceso
+    inmediatamente si detecta un mensaje de rate limit (evita esperas de 24h).
+    Retorna (returncode, stdout, stderr).
+    """
+    import threading
+
+    stdout_lines: list[str] = []
+    stderr_lines: list[str] = []
+    killed_by_ratelimit = [False]
+
+    def _leer_stream(stream, buffer: list[str], proc: subprocess.Popen) -> None:
+        for line in stream:
+            buffer.append(line)
+            if "rate" in line.lower() and "limit" in line.lower():
+                killed_by_ratelimit[0] = True
+                proc.kill()
+                break
+
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        # Leer stdout y stderr en threads separados para no bloquear
+        t_out = threading.Thread(target=_leer_stream, args=(proc.stdout, stdout_lines, proc))
+        t_err = threading.Thread(target=_leer_stream, args=(proc.stderr, stderr_lines, proc))
+        t_out.start()
+        t_err.start()
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+        t_out.join(timeout=5)
+        t_err.join(timeout=5)
+
+        returncode = proc.returncode if not killed_by_ratelimit[0] else 1
+        return returncode, "".join(stdout_lines), "".join(stderr_lines)
+    except Exception as exc:
+        raise RuntimeError(f"Error ejecutando spotdl: {exc}") from exc
+
+
 def _descargar_spotify(spotify_id: str, output_dir: str) -> str | None:
     """Descargar audio desde Spotify via spotdl (busca match en YouTube Music)."""
     output_path = os.path.join(output_dir, f"spotify_{spotify_id}.wav")
@@ -234,12 +395,14 @@ def _descargar_spotify(spotify_id: str, output_dir: str) -> str | None:
             "--format", "wav",
         ]
 
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120,
-        )
+        returncode, stdout, stderr = _ejecutar_spotdl(cmd, timeout=120)
 
-        if result.returncode != 0:
-            logger.error("spotdl fallo para %s: %s", spotify_id, result.stderr[:500])
+        if returncode != 0:
+            combined = (stdout + stderr).lower()
+            if "rate" in combined and "limit" in combined:
+                logger.warning("spotdl: rate limit de Spotify alcanzado para %s. Reintentando en 24h.", spotify_id)
+            else:
+                logger.error("spotdl fallo para %s: %s", spotify_id, stderr[:500])
             return None
 
         # spotdl puede generar archivos con nombres distintos; buscar el wav descargado
@@ -259,9 +422,6 @@ def _descargar_spotify(spotify_id: str, output_dir: str) -> str | None:
         logger.error("Archivo WAV no encontrado tras spotdl: %s", spotify_id)
         return None
 
-    except subprocess.TimeoutExpired:
-        logger.error("Timeout descargando audio Spotify: %s", spotify_id)
-        return None
     except Exception:
         logger.exception("Error inesperado descargando Spotify %s", spotify_id)
         return None
@@ -296,12 +456,14 @@ def _descargar_spotify_por_nombre(artista: str, titulo: str, output_dir: str) ->
             "--format", "wav",
         ]
 
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120,
-        )
+        returncode, stdout, stderr = _ejecutar_spotdl(cmd, timeout=120)
 
-        if result.returncode != 0:
-            logger.warning("spotdl busqueda fallo para '%s': %s", query, result.stderr[:300])
+        if returncode != 0:
+            combined = (stdout + stderr).lower()
+            if "rate" in combined and "limit" in combined:
+                logger.warning("spotdl: rate limit de Spotify alcanzado para '%s'. Reintentando en 24h.", query)
+            else:
+                logger.warning("spotdl busqueda fallo para '%s': %s", query, stderr[:300])
             return None
 
         if os.path.exists(output_path):
@@ -320,9 +482,6 @@ def _descargar_spotify_por_nombre(artista: str, titulo: str, output_dir: str) ->
         logger.warning("Archivo WAV no encontrado tras spotdl busqueda: '%s'", query)
         return None
 
-    except subprocess.TimeoutExpired:
-        logger.error("Timeout buscando audio Spotify: '%s'", query)
-        return None
     except Exception:
         logger.exception("Error inesperado en Spotify busqueda '%s'", query)
         return None
