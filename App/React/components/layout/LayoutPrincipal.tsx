@@ -24,6 +24,7 @@ import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
+import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
 import { TooltipPerfil } from '../social/TooltipPerfil';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
@@ -188,6 +189,9 @@ export const LayoutPrincipal = ({
 
             {/* QQ38: Modal centralizado de reportes (usuario, publicacion, comentario, sample, error) */}
             <ModalReportar />
+
+            {/* QQ63: Modal de solicitud de ingreso al grupo de WhatsApp */}
+            <ModalSolicitudWhatsapp />
 
             {/* QQ47: Tooltip flotante de perfil (hover card estilo Twitter/X) */}
             <TooltipPerfil />

@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu, MessageCircle } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
@@ -19,6 +19,7 @@ import { cerrarSesion as apiCerrarSesion } from '@app/services/apiAuth';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
+import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import '../../styles/componentes/topbar.css';
 
 export const TopBar = (): JSX.Element => {
@@ -157,6 +158,16 @@ export const TopBar = (): JSX.Element => {
                 },
             } as MenuItemDef,
         ] : []),
+        {
+            id: 'whatsapp',
+            etiqueta: 'Grupo de WhatsApp',
+            icono: <MessageCircle size={14} />,
+            separadorDespues: true,
+            onClick: () => {
+                useSolicitudWhatsappStore.getState().abrir();
+                setMenuAbierto(false);
+            },
+        },
         {
             id: 'cerrarSesion',
             etiqueta: 'Cerrar sesión',

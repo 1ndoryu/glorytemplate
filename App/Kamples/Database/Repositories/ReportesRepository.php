@@ -200,6 +200,41 @@ class ReportesRepository extends BaseRepository
     }
 
     /*
+     * QQ63: Contar reportes de un tipo específico creados por un usuario.
+     * Se usa para verificar si un usuario ya envió una solicitud_whatsapp.
+     */
+    public static function contarPorTipoYUsuario(string $tipo, int $userId): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " = :tipo"
+            . " AND " . ReportesCols::REPORTADOR_ID . " = :userId",
+            ['tipo' => $tipo, 'userId' => $userId]
+        );
+
+        return $row ? (int) $row['total'] : 0;
+    }
+
+    /*
+     * QQ63: Contar reportes de un tipo específico creados hoy (limite global diario).
+     */
+    public static function contarPorTipoHoy(string $tipo): int
+    {
+        $tabla = ReportesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " = :tipo"
+            . " AND " . ReportesCols::CREATED_AT . " >= CURRENT_DATE",
+            ['tipo' => $tipo]
+        );
+
+        return $row ? (int) $row['total'] : 0;
+    }
+
+    /*
      * Crear reporte legal (DMCA/derechos) sin requerir usuario registrado.
      * Los datos del reclamante se almacenan en la columna JSONB 'detalles'.
      * Retorna el ID generado o null en fallo.

@@ -63,6 +63,13 @@ class ModeracionController
             'callback'            => [self::class, 'reportarGenerico'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* QQ63: Verificar disponibilidad de solicitud WhatsApp */
+        register_rest_route($namespace, '/solicitud-whatsapp/estado', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'estadoSolicitudWhatsapp'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /* ---- QQ25: Bloqueo user-to-user ---- */
@@ -193,6 +200,8 @@ class ModeracionController
     private const TIPO_COMENTARIO = 'comentario';
     private const TIPO_SAMPLE = 'sample';
     private const TIPO_ERROR = 'error_plataforma';
+    private const TIPO_SOLICITUD_WA = 'solicitud_whatsapp';
+    private const LIMITE_DIARIO_SOLICITUDES_WA = 6;
 
     private const TIPOS_PERMITIDOS = [
         self::TIPO_USUARIO,
@@ -200,6 +209,7 @@ class ModeracionController
         self::TIPO_COMENTARIO,
         self::TIPO_SAMPLE,
         self::TIPO_ERROR,
+        self::TIPO_SOLICITUD_WA,
     ];
 
     /*
@@ -297,9 +307,46 @@ class ModeracionController
                 }
                 ReportesRepository::crearReporte(self::TIPO_ERROR, 0, $userId, $razon, $detallesCompletos ?: null);
                 break;
+
+            case self::TIPO_SOLICITUD_WA:
+                if (ReportesRepository::contarPorTipoYUsuario(self::TIPO_SOLICITUD_WA, $userId) > 0) {
+                    return Validador::respuestaError('Ya enviaste tu solicitud de ingreso');
+                }
+                if (ReportesRepository::contarPorTipoHoy(self::TIPO_SOLICITUD_WA) >= self::LIMITE_DIARIO_SOLICITUDES_WA) {
+                    return Validador::respuestaError('Se ha alcanzado el limite diario de solicitudes. Intenta manana temprano.');
+                }
+                ReportesRepository::crearReporte(self::TIPO_SOLICITUD_WA, 0, $userId, $razon, $detalles ?: null);
+                break;
         }
 
         KamplesLogger::info('Reporte creado', ['tipo' => $tipo, 'target' => $targetId, 'reportador' => $userId]);
         return new \WP_REST_Response(['ok' => true, 'message' => 'Reporte enviado'], 201);
+    }
+
+    /*
+     * QQ63: Verificar si el usuario puede enviar solicitud de WhatsApp.
+     * Retorna: disponible (puede enviar), yaEnviada (ya envió una), limiteDiario (se excedió el global).
+     */
+    public static function estadoSolicitudWhatsapp(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $yaEnviada = ReportesRepository::contarPorTipoYUsuario(self::TIPO_SOLICITUD_WA, $userId) > 0;
+            $limiteDiario = ReportesRepository::contarPorTipoHoy(self::TIPO_SOLICITUD_WA) >= self::LIMITE_DIARIO_SOLICITUDES_WA;
+
+            return new \WP_REST_Response([
+                'ok' => true,
+                'data' => [
+                    'disponible'   => !$yaEnviada && !$limiteDiario,
+                    'yaEnviada'    => $yaEnviada,
+                    'limiteDiario' => $limiteDiario,
+                ],
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ModeracionController::estadoSolicitudWhatsapp error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }
