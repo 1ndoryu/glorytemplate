@@ -7,7 +7,7 @@
  */
 
 import {useState, useEffect} from 'react';
-import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp, Clock} from 'lucide-react';
+import {Music, BarChart3, Brain, User, Code, ChevronDown, ChevronUp, Clock, Layers} from 'lucide-react';
 import {Modal} from './Modal';
 import {Avatar} from './Avatar';
 import {Badge} from './Badge';
@@ -81,6 +81,11 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
     /* Helper para acceder a campos IA (snake_case o camelCase) */
     const m = (metadata ?? {}) as Record<string, unknown>;
 
+    /* Extraer nombre original del archivo desde rutaOriginal (basename) */
+    const nombreOriginal = completo && (datos as Sample).rutaOriginal
+        ? (datos as Sample).rutaOriginal!.split('/').pop() ?? null
+        : null;
+
     return (
         <Modal abierto={abierto} onCerrar={onCerrar} tamano="grande">
             <div className="inspectorContenido">
@@ -106,8 +111,23 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         {completo && <Campo etiqueta="Licencia Libre" valor={(datos as Sample).licenciaLibre} />}
                         <Campo etiqueta="Mostrar Comunidad" valor={datos.mostrarEnComunidad} />
                         <Campo etiqueta="Verificado" valor={datos.verificado} />
+                        {nombreOriginal && <Campo etiqueta="Nombre Original" valor={nombreOriginal} ancho />}
                     </div>
                 </div>
+
+                {/* Seccion: Origen y Sampleo (solo sample completo con datos de origen) */}
+                {completo && ((datos as Sample).cancionOrigenId || (datos as Sample).relacionSampleoId) && (
+                    <div className="inspectorSeccion">
+                        <div className="inspectorSeccionTitulo">
+                            <Layers size={14} /> Origen y Sampleo
+                        </div>
+                        <div className="inspectorGrid">
+                            <Campo etiqueta="Es Recorte" valor={(datos as Sample).relacionSampleoId != null} />
+                            <Campo etiqueta="Cancion Origen ID" valor={(datos as Sample).cancionOrigenId} numerico />
+                            <Campo etiqueta="Relacion Sampleo ID" valor={(datos as Sample).relacionSampleoId} numerico />
+                        </div>
+                    </div>
+                )}
 
                 {/* Sección: Análisis Audio */}
                 <div className="inspectorSeccion">

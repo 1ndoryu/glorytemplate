@@ -278,13 +278,16 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                     } as MenuItemDef,
                 ]
                 : []),
-            {
-                id: 'inspeccionar',
-                etiqueta: 'Inspeccionar datos',
-                onClick: () => {
-                    if (estado.sample) setSampleInspeccion(estado.sample);
-                },
-            },
+            /* QQ51: Inspeccionar datos — solo admin */
+            ...(esAdmin
+                ? [{
+                    id: 'inspeccionar',
+                    etiqueta: 'Inspeccionar datos',
+                    onClick: () => {
+                        if (estado.sample) setSampleInspeccion(estado.sample);
+                    },
+                } as MenuItemDef]
+                : []),
             ...(puedeEliminar
                 ? [
                     {

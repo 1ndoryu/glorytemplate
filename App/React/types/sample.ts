@@ -101,6 +101,9 @@ export interface Sample {
     yaComentado?: boolean;
     esMio?: boolean;
     yaComprado?: boolean;
+    /* QQ51: Info de origen — cancion y relacion de sampleo si es un recorte */
+    cancionOrigenId?: number | null;
+    relacionSampleoId?: number | null;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */

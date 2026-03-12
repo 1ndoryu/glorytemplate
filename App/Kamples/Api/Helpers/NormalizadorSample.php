@@ -245,6 +245,11 @@ class NormalizadorSample
             'publicadoAt'        => $row[SamplesCols::PUBLICADO_AT] ?? null,
             'creadoAt'           => $row[SamplesCols::CREATED_AT] ?? null,
             'totalComentarios'   => (int) ($row[SamplesCols::TOTAL_COMENTARIOS] ?? 0),
+            /* QQ51: Info de origen — cancion y relacion de sampleo si es un recorte */
+            'cancionOrigenId'    => isset($row[SamplesCols::CANCION_ORIGEN_ID])
+                ? (int) $row[SamplesCols::CANCION_ORIGEN_ID] : null,
+            'relacionSampleoId'  => isset($row[SamplesCols::RELACION_SAMPLEO_ID])
+                ? (int) $row[SamplesCols::RELACION_SAMPLEO_ID] : null,
         ];
     }
 
@@ -346,6 +351,9 @@ class NormalizadorSample
         $sLicenciaLibre = SamplesCols::LICENCIA_LIBRE;
         $sRutaOriginal = SamplesCols::RUTA_ORIGINAL;
         $sRutaOptimizada = SamplesCols::RUTA_OPTIMIZADA;
+        /* QQ51: Campos de origen — vinculo sample -> cancion / relacion de sampleo */
+        $sCancionOrigen = SamplesCols::CANCION_ORIGEN_ID;
+        $sRelacionSampleo = SamplesCols::RELACION_SAMPLEO_ID;
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $uId = UsuariosExtCols::ID;
@@ -364,6 +372,7 @@ class NormalizadorSample
                        s.{$sImagen}, s.{$sTotDesc}, s.{$sTotLikes}, s.{$sTotRepro},
                        s.{$sHash}, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                        s.{$sPubAt}, s.{$sCreatedAt}, s.{$sTotComent},
+                       s.{$sCancionOrigen}, s.{$sRelacionSampleo},
                        u.{$uId} as creador_id, u.{$uUser}, u.{$uNombre},
                        u.{$uAvatar}, u.{$uVerif}, u.{$uWpId} AS creador_wp_user_id,
                        {$reaccionExpr} AS reaccion_usuario,
