@@ -81,22 +81,17 @@
 
 .perfilStat {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     cursor: pointer;
-}
-
-.perfilStatValor {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoBold);
-    color: var(--textoPrimario);
+    gap: var(--espacioSm);
 }
 
 .perfilStatLabel {
-    font-size: var(--fuenteXs);
+    /* font-size: var(--fuenteXs); */
     color: var(--textoTerciario);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    /* text-transform: uppercase; */
+    /* letter-spacing: 0.5px; */
 }
 
 /* Acciones */
@@ -163,6 +158,7 @@
     gap: var(--espacioLg);
     margin-bottom: var(--espacioMd);
     flex-wrap: wrap;
+    display: none;
 }
 
 .perfilMetaItem {

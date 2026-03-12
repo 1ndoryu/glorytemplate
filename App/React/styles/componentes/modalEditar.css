@@ -62,8 +62,9 @@
 
 .editarImagenPreview {
     width: 100%;
-    min-height: 120px;
-    max-height: 240px;
+    margin: auto;
+    max-width: 200px;
+    max-height: 200px;
     border-radius: var(--radioMd);
     object-fit: cover;
     border: 1px solid var(--bordeSutil);

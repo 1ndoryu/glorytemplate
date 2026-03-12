@@ -39,17 +39,22 @@ const formatoFecha = (iso: string): string => {
     }
 };
 
-const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview }: {
+const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, slug }: {
     etiqueta: string;
     titulo: string;
     creador: string;
     fecha: string;
     sampleId: number;
     rutaPreview: string | null;
+    slug: string | null;
 }): JSX.Element => (
     <div className="dupLado">
         <span className="dupLadoEtiqueta">{etiqueta}</span>
-        <span className="dupLadoTitulo" title={titulo}>{titulo}</span>
+        {slug ? (
+            <a href={`/sample/${slug}/`} className="dupLadoTitulo dupLadoTituloEnlace" title={titulo} target="_blank" rel="noopener noreferrer">{titulo}</a>
+        ) : (
+            <span className="dupLadoTitulo" title={titulo}>{titulo}</span>
+        )}
         <span className="dupLadoMeta">
             por <strong>{creador}</strong> — {formatoFecha(fecha)}
         </span>
@@ -88,6 +93,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     fecha={d.original_subido_at}
                     sampleId={d.original_id}
                     rutaPreview={d.original_ruta_preview}
+                    slug={d.original_slug}
                 />
                 <div className="dupSeparador">
                     <span className="dupSeparadorLinea" />
@@ -101,6 +107,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     fecha={d.duplicado_subido_at}
                     sampleId={d.duplicado_id}
                     rutaPreview={d.duplicado_ruta_preview}
+                    slug={d.duplicado_slug}
                 />
             </div>
 

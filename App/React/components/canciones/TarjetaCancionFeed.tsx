@@ -30,6 +30,14 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
         onMenu(e, cancion);
     };
 
+    const href = `/cancion/${cancion.slug}`;
+    const manejarClickEnlace = (e: MouseEvent<HTMLAnchorElement>) => {
+        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+            e.preventDefault();
+            onClick();
+        }
+    };
+
     return (
         <div
             className="tarjetaCancionFeed"
@@ -38,7 +46,7 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
             onContextMenu={manejarMenu}
         >
             {/* Portada */}
-            <div className="tarjetaCancionFeedImagen" onClick={onClick}>
+            <a href={href} className="tarjetaCancionFeedImagen" onClick={manejarClickEnlace}>
                 {cancion.imagenUrl ? (
                     <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
                 ) : (
@@ -46,10 +54,10 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
                         <Music size={24} color="var(--textoTerciario)" />
                     </div>
                 )}
-            </div>
+            </a>
 
             {/* Contenido central */}
-            <div className="tarjetaCancionFeedContenido" onClick={onClick}>
+            <a href={href} className="tarjetaCancionFeedContenido" onClick={manejarClickEnlace}>
                 <div className="tarjetaCancionFeedCabecera">
                     <h3 className="tarjetaCancionFeedTitulo">{cancion.titulo}</h3>
                 </div>
@@ -59,7 +67,7 @@ export const TarjetaCancionFeed = ({ cancion, onClick, onLike, onMenu }: Tarjeta
                     {cancion.genero ? ` · ${cancion.genero}` : ''}
                 </p>
 
-            </div>
+            </a>
 
             {/* Acciones e info derecha */}
             <div className="tarjetaCancionFeedAcciones">

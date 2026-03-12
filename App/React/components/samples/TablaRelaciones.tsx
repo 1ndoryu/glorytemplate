@@ -119,7 +119,17 @@ export const TablaRelaciones = ({ relaciones, direccion, marcarOrigen, onEditar,
                             className={`tablaRelacionesFila${esOrigenFila ? ' tablaRelacionesFilaOrigen' : ''}`}
                             role="button"
                             tabIndex={0}
-                            onClick={() => navegar(urlSampleo(rel, direccion))}
+                            onClick={(e) => {
+                                if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                                    navegar(urlSampleo(rel, direccion));
+                                }
+                            }}
+                            /* Middle-click abre en nueva pestana via onAuxClick */
+                            onAuxClick={(e) => {
+                                if (e.button === 1) {
+                                    window.open(urlSampleo(rel, direccion), '_blank');
+                                }
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                     e.preventDefault();

@@ -54,7 +54,7 @@ class ReporteErrorController
     public static function crear(WP_REST_Request $request): WP_REST_Response
     {
         try {
-            $userId = UsuarioHelper::obtenerIdUsuario($request);
+            $userId = UsuarioHelper::obtenerIdPg($request);
             if (!$userId) {
                 return new WP_REST_Response(['code' => 'no_autorizado'], 401);
             }

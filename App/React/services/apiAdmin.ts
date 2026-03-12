@@ -173,12 +173,14 @@ export interface DuplicadoAdmin {
     original_ruta_preview: string | null;
     original_creador: string;
     original_creador_id: number;
+    original_slug: string | null;
     duplicado_id: number;
     duplicado_titulo: string;
     duplicado_subido_at: string;
     duplicado_ruta_preview: string | null;
     duplicado_creador: string;
     duplicado_creador_id: number;
+    duplicado_slug: string | null;
 }
 
 export interface ListaDuplicados {

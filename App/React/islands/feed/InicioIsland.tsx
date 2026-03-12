@@ -20,6 +20,7 @@ import { useNavigationStore } from '@/core/router';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
+import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import type { SampleResumen } from '@app/types';
@@ -66,6 +67,9 @@ const FeedUnificado = (): JSX.Element => {
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
 
+    /* QQ3: Sincronizar filtros ↔ URL query params */
+    useUrlFiltros();
+
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
 
@@ -95,16 +99,12 @@ const FeedUnificado = (): JSX.Element => {
 
     /* Proveedor de datos para FeedSamples — cambia según ordenamiento */
     const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
-        if (ordenamiento === 'recientes') {
-            const resp = await obtenerFeed('recientes', pagina);
-            return resp.ok && resp.data ? resp.data : [];
-        }
-        if (ordenamiento === 'destacados') {
-            const resp = await obtenerFeed('trending', pagina);
-            return resp.ok && resp.data ? resp.data : [];
-        }
-        /* Inteligente — usa el endpoint /feed con tipo 'descubrir' que activa MotorRecomendacion */
-        const resp = await obtenerFeed('descubrir', pagina);
+        const tipo = ordenamiento === 'recientes' ? 'recientes'
+            : ordenamiento === 'destacados' ? 'trending'
+            : 'descubrir';
+        const resp = await obtenerFeed(tipo, pagina);
+        /* QQ2: El backend devuelve total en page 1; usarlo para el contador real */
+        if (resp.total != null) setTotalSamples(resp.total);
         return resp.ok && resp.data ? resp.data : [];
     }, [ordenamiento]);
 
@@ -197,7 +197,6 @@ const FeedUnificado = (): JSX.Element => {
                 mensajeVacio="No se encontraron samples."
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
-                onConteoChange={setTotalSamples}
                 accionVacia={
                     <BotonBase variante="primario" onClick={() => abrirCrear()}>
                         Sube el primero

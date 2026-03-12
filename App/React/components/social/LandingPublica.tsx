@@ -17,6 +17,7 @@ import '../../styles/componentes/landingPublica.css';
 const SVG_KAMPLES = '/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg';
 const SVG_SYNC = '/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg';
 const MINI_DAW = '/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg';
+const ROLAS = '/wp-content/themes/glorytemplate/App/Assets/svg/Rolas.svg';
 
 export const LandingPublica = (): JSX.Element => {
     const {trending, navegar, setSample, sampleActual, reproduciendo, progreso, abrirAuth} = useLandingPublica();
@@ -102,6 +103,14 @@ export const LandingPublica = (): JSX.Element => {
                 <img src={MINI_DAW} alt="Daw" className="landingSeccionSync" loading="lazy" />
             </section>
 
+            <section className="seccionSync seccionEstandar">
+                <div>
+                    <h2 className="titleSeccion">DAW Web</h2>
+                    <span className="subtitleSeccion">Mezcla, prueba y edita tus samples directamente en el navegador antes de descargar</span>
+                </div>
+                <img src={ROLAS} alt="Daw" className="landingSeccionSync" loading="lazy" />
+            </section>
+
             <footer className="landingFooter">
                 <p className="landingFooterTexto">
                     Kamples es un producto de{' '}
@@ -110,8 +119,12 @@ export const LandingPublica = (): JSX.Element => {
                     </GloryLink>
                 </p>
                 <nav className="landingFooterNav">
-                    <GloryLink href="/privacy/" className="landingFooterNavEnlace">Privacy</GloryLink>
-                    <GloryLink href="/terms/" className="landingFooterNavEnlace">Terms</GloryLink>
+                    <GloryLink href="/privacy/" className="landingFooterNavEnlace">
+                        Privacy
+                    </GloryLink>
+                    <GloryLink href="/terms/" className="landingFooterNavEnlace">
+                        Terms
+                    </GloryLink>
                 </nav>
             </footer>
         </div>

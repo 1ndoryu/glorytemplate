@@ -283,6 +283,13 @@ class SamplesController
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
 
+        /* QQ2: Total de samples activos para el contador del feed (solo en page 1 para evitar query extra) */
+        $sEstadoFeed = SamplesCols::ESTADO;
+        $eActivoFeed = SamplesEnums::ESTADO_ACTIVO;
+        $totalActivos = ($page === 1)
+            ? SamplesRepository::contarConFiltros("s.{$sEstadoFeed} = '{$eActivoFeed}'", [])
+            : null;
+
         /* Intentar usar el motor de recomendación para 'descubrir' */
         if ($tipo === 'descubrir') {
             $userId = UsuarioHelper::obtenerIdPg();
@@ -298,12 +305,14 @@ class SamplesController
                         'resultados' => \count($recomendados),
                     ], 'algoritmo');
                     if (!empty($recomendados)) {
-                        return new \WP_REST_Response([
+                        $resp = [
                             'data' => NormalizadorSample::normalizarLista($recomendados),
                             'feed' => 'descubrir',
                             'page' => $page,
                             'algoritmo' => true,
-                        ], 200);
+                        ];
+                        if ($totalActivos !== null) $resp['total'] = $totalActivos;
+                        return new \WP_REST_Response($resp, 200);
                     }
                 } catch (\Throwable $e) {
                     /* Fallback al ORDER BY simple si el motor falla */
@@ -333,11 +342,13 @@ class SamplesController
 
         $samples = SamplesRepository::listarFeed($userIdFallback, $orderBy, $perPage, $offset);
 
-        return new \WP_REST_Response([
+        $resp = [
             'data' => NormalizadorSample::normalizarLista($samples),
             'feed' => $tipo,
             'page' => $page,
-        ], 200);
+        ];
+        if ($totalActivos !== null) $resp['total'] = $totalActivos;
+        return new \WP_REST_Response($resp, 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SamplesController::feed error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

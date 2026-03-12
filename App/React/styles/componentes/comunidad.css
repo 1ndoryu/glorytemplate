@@ -45,12 +45,6 @@
     color: var(--textoPrimario);
 }
 
-.comunidadFiltroBtnActivo {
-    background-color: var(--fondoElevado3);
-    border-color: var(--acento-blanco);
-    color: var(--acento-blanco);
-}
-
 /* -- Feed -- */
 .comunidadFeed {
     display: flex;

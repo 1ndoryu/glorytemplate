@@ -91,6 +91,7 @@
     pointer-events: none;
     background: unset;
     color: var(--acento-blanco);
+    border: 1px solid var(--bordeSutil);
 }
 
 /* Icono solo (cuadrado) */

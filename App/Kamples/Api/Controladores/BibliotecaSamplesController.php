@@ -104,8 +104,8 @@ class BibliotecaSamplesController
                 'pagination' => [
                     'page'     => $page,
                     'per_page' => $perPage,
-                    'total'    => (int) ($total['total'] ?? 0),
-                    'pages'    => \max(1, (int) \ceil(($total['total'] ?? 0) / $perPage)),
+                    'total'    => $total,
+                    'pages'    => \max(1, (int) \ceil($total / $perPage)),
                 ],
             ],
         ], 200);

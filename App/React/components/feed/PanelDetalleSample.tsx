@@ -123,13 +123,18 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     <MessageCircle size={14} />
                 </BotonBase>
 
-                <BotonBase
-                    variante="secundario"
-                    tamano="sm"
-                    onClick={() => navegar(`/sample/${sample.slug}/`)}
+                <a
+                    href={`/sample/${sample.slug}/`}
+                    className="botonBase varianteSecundario tamanoSm"
+                    onClick={(e) => {
+                        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                            e.preventDefault();
+                            navegar(`/sample/${sample.slug}/`);
+                        }
+                    }}
                 >
                     Ver completo
-                </BotonBase>
+                </a>
             </div>
 
             {/* Discovery: canción de origen si el sample fue extraído del pipeline */}

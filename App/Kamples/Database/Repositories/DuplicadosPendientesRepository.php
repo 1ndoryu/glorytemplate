@@ -69,6 +69,7 @@ class DuplicadosPendientesRepository extends BaseRepository
     {
         $tabla    = DuplicadosPendientesCols::TABLA;
         $tSamples = SamplesCols::TABLA;
+        $tUsuarios = UsuariosExtCols::TABLA;
         $offset   = ($pagina - 1) * $porPagina;
 
         $params     = ['estado' => $estado, 'limit' => $porPagina, 'offset' => $offset];
@@ -84,13 +85,25 @@ class DuplicadosPendientesRepository extends BaseRepository
                 so." . SamplesCols::ID_CORTO . " AS original_id_corto,
                 so." . SamplesCols::AUDIO_HASH . " AS original_hash,
                 so." . SamplesCols::ESTADO . " AS original_estado,
+                so." . SamplesCols::RUTA_PREVIEW . " AS original_ruta_preview,
+                so." . SamplesCols::SLUG . " AS original_slug,
+                so." . SamplesCols::CREADOR_ID . " AS original_creador_id,
+                so." . SamplesCols::PUBLICADO_AT . " AS original_subido_at,
+                uo." . UsuariosExtCols::NOMBRE_VISIBLE . " AS original_creador,
                 sd." . SamplesCols::TITULO . " AS duplicado_titulo,
                 sd." . SamplesCols::ID_CORTO . " AS duplicado_id_corto,
                 sd." . SamplesCols::AUDIO_HASH . " AS duplicado_hash,
-                sd." . SamplesCols::ESTADO . " AS duplicado_estado
+                sd." . SamplesCols::ESTADO . " AS duplicado_estado,
+                sd." . SamplesCols::RUTA_PREVIEW . " AS duplicado_ruta_preview,
+                sd." . SamplesCols::SLUG . " AS duplicado_slug,
+                sd." . SamplesCols::CREADOR_ID . " AS duplicado_creador_id,
+                sd." . SamplesCols::PUBLICADO_AT . " AS duplicado_subido_at,
+                ud." . UsuariosExtCols::NOMBRE_VISIBLE . " AS duplicado_creador
             FROM {$tabla} dp
             LEFT JOIN {$tSamples} so ON dp." . DuplicadosPendientesCols::SAMPLE_ORIGINAL_ID . " = so." . SamplesCols::ID . "
             LEFT JOIN {$tSamples} sd ON dp." . DuplicadosPendientesCols::SAMPLE_DUPLICADO_ID . " = sd." . SamplesCols::ID . "
+            LEFT JOIN {$tUsuarios} uo ON so." . SamplesCols::CREADOR_ID . " = uo." . UsuariosExtCols::ID . "
+            LEFT JOIN {$tUsuarios} ud ON sd." . SamplesCols::CREADOR_ID . " = ud." . UsuariosExtCols::ID . "
             WHERE dp." . DuplicadosPendientesCols::ESTADO . " = :estado{$whereTipo}
             ORDER BY dp." . DuplicadosPendientesCols::CREATED_AT . " DESC
             LIMIT :limit OFFSET :offset",
