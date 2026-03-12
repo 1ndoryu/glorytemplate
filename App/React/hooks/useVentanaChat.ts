@@ -4,22 +4,22 @@
  * Cleanup con activo=false en carga + refs para scroll/focus.
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { useChatFlotanteStore, type ChatFlotanteInfo } from '@app/stores/chatFlotanteStore';
-import { enviarMensaje, enviarMensajeMultimedia, obtenerMensajes, marcarConversacionLeida } from '@app/services/apiMensajes';
-import { useAuthStore } from '@app/stores/authStore';
-import { useMensajesStore } from '@app/stores/mensajesStore';
-import { useNavigationStore } from '@/core/router';
-import { toast } from '@app/stores/toastStore';
-import { useReportarStore } from '@app/stores/reportarStore';
-import { useBloqueosStore } from '@app/stores/bloqueosStore';
-import type { Mensaje } from '@app/types';
+import {useState, useRef, useCallback, useEffect} from 'react';
+import {useChatFlotanteStore, type ChatFlotanteInfo} from '@app/stores/chatFlotanteStore';
+import {enviarMensaje, enviarMensajeMultimedia, obtenerMensajes, marcarConversacionLeida} from '@app/services/apiMensajes';
+import {useAuthStore} from '@app/stores/authStore';
+import {useMensajesStore} from '@app/stores/mensajesStore';
+import {useNavigationStore} from '@/core/router';
+import {toast} from '@app/stores/toastStore';
+import {useReportarStore} from '@app/stores/reportarStore';
+import {useBloqueosStore} from '@app/stores/bloqueosStore';
+import type {Mensaje} from '@app/types';
 
 interface UseVentanaChatParams {
     chat: ChatFlotanteInfo;
 }
 
-export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
+export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
     const cerrarChat = useChatFlotanteStore(s => s.cerrarChat);
     const minimizarChat = useChatFlotanteStore(s => s.minimizarChat);
     const restaurarChat = useChatFlotanteStore(s => s.restaurarChat);
@@ -45,7 +45,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
 
     const miId = usuario?.id ?? 1;
 
-    /* Cargar mensajes al abrir — con cleanup */
+    /* Cargar mensajes al abrir — con cleanup + marcar leída (QQ69) */
     useEffect(() => {
         let activo = true;
         setCargando(true);
@@ -53,8 +53,8 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
             try {
                 const resp = await obtenerMensajes(chat.conversacionId);
                 if (activo && resp.ok && resp.data) {
-                    setMensajes(resp.data);
                     /* QQ69: Marcar conversacion leida al abrir ventana flotante */
+                    setMensajes(resp.data);
                     useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
                     marcarConversacionLeida(chat.conversacionId);
                 }
@@ -65,7 +65,9 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
             }
         };
         cargar();
-        return () => { activo = false; };
+        return () => {
+            activo = false;
+        };
     }, [chat.conversacionId]);
 
     /* Auto-scroll al fondo */
@@ -96,7 +98,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
             contenido,
             tipo: 'texto',
             leido: false,
-            creadoAt: new Date().toISOString(),
+            creadoAt: new Date().toISOString()
         };
         setMensajes(prev => [...prev, mensajeOptimista]);
 
@@ -119,9 +121,9 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
         const esAudio = archivo.type.startsWith('audio/');
         if (!esImagen && !esAudio) return;
 
-        const tipo = esImagen ? 'imagen' as const : 'audio' as const;
+        const tipo = esImagen ? ('imagen' as const) : ('audio' as const);
         const previewUrl = URL.createObjectURL(archivo);
-        setArchivoStaging({ archivo, tipo, previewUrl });
+        setArchivoStaging({archivo, tipo, previewUrl});
 
         if (archivoRef.current) archivoRef.current.value = '';
     }, []);
@@ -129,7 +131,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     /* QQ52: Enviar el archivo staged */
     const enviarArchivoStaging = useCallback(async () => {
         if (!archivoStaging || enviando) return;
-        const { archivo, tipo, previewUrl } = archivoStaging;
+        const {archivo, tipo, previewUrl} = archivoStaging;
 
         setEnviando(true);
         setArchivoStaging(null);
@@ -143,7 +145,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
             tipo,
             mediaUrl: URL.createObjectURL(archivo),
             leido: false,
-            creadoAt: new Date().toISOString(),
+            creadoAt: new Date().toISOString()
         };
         setMensajes(prev => [...prev, msgOptimista]);
 
@@ -185,11 +187,7 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     const reportar = useCallback(() => {
         setMenuAbierto(false);
         /* QQ38: Abrir modal centralizado de reporte de usuario */
-        useReportarStore.getState().abrir(
-            'usuario',
-            chat.participanteId,
-            chat.participanteUsername,
-        );
+        useReportarStore.getState().abrir('usuario', chat.participanteId, chat.participanteUsername);
     }, [chat.participanteId, chat.participanteUsername]);
 
     const bloquear = useCallback(async () => {
@@ -200,11 +198,29 @@ export const useVentanaChat = ({ chat }: UseVentanaChatParams) => {
     }, [chat.participanteId, chat.participanteUsername]);
 
     return {
-        mensajes, texto, setTexto, enviando, cargando, menuAbierto, miId,
+        mensajes,
+        texto,
+        setTexto,
+        enviando,
+        cargando,
+        menuAbierto,
+        miId,
         archivoStaging,
-        mensajesRef, inputRef, archivoRef,
-        cerrarChat, minimizarChat, restaurarChat,
-        manejarEnviar, manejarArchivo, enviarArchivoStaging, cancelarStaging, manejarKeyDown,
-        toggleMenu, cerrarMenuChat, verPerfil, reportar, bloquear,
+        mensajesRef,
+        inputRef,
+        archivoRef,
+        cerrarChat,
+        minimizarChat,
+        restaurarChat,
+        manejarEnviar,
+        manejarArchivo,
+        enviarArchivoStaging,
+        cancelarStaging,
+        manejarKeyDown,
+        toggleMenu,
+        cerrarMenuChat,
+        verPerfil,
+        reportar,
+        bloquear
     };
 };

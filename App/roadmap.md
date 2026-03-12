@@ -341,7 +341,7 @@ era un sample antes de que se pudiera ver la informacion, no se si es un problem
 
 ## QQ80 
 
-No se encuentra el nombre 'resp'. useVentanaChat
+✅ [AG-SEC] Fix error compilación useVentanaChat: faltaba `const resp = await obtenerMensajes(chat.conversacionId)` antes de usar `resp`. Se había perdido la línea durante la edición PowerShell de QQ69. Archivo: useVentanaChat.ts.
 
 
 
