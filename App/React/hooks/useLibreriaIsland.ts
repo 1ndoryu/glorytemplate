@@ -129,6 +129,7 @@ export function useLibreriaIsland() {
                         id: sub.id,
                         usuarioId: col.usuarioId,
                         nombre: sub.nombre,
+                        slug: sub.slug,
                         descripcion: '',
                         esPublica: sub.esPublica,
                         imagenUrl: sub.imagenUrl,

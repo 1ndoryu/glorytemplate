@@ -18,6 +18,7 @@ class ColeccionesSchema extends TableSchema
             'usuario_id'     => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
             'parent_id'      => ['tipo' => 'int', 'nullable' => true, 'ref' => 'colecciones(id)'],
             'nombre'         => ['tipo' => 'string', 'max' => 200],
+            'slug'           => ['tipo' => 'string', 'max' => 255, 'nullable' => true],
             'descripcion'    => ['tipo' => 'text', 'default' => ''],
             'imagen_url'     => ['tipo' => 'text', 'nullable' => true],
             'publica'        => ['tipo' => 'bool', 'default' => true],

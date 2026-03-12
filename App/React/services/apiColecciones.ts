@@ -17,6 +17,7 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
     id: (raw.id ?? 0) as number,
     usuarioId: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
     nombre: (raw.nombre ?? '') as string,
+    slug: (raw.slug ?? null) as string | null,
     descripcion: (raw.descripcion ?? '') as string,
     esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
     imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
@@ -42,6 +43,7 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
 const normalizarColeccionResumen = (raw: Record<string, unknown>): ColeccionResumen => ({
     id: (raw.id ?? 0) as number,
     nombre: (raw.nombre ?? '') as string,
+    slug: (raw.slug ?? null) as string | null,
     imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
     totalSamples: (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number,
     esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
@@ -135,13 +137,24 @@ export const listarColeccionesPublicas = async (
     return { ok: false, data: null, error: resp.error, status: resp.status };
 };
 
-/* Detalle de una colección */
+/* Detalle de una colección por ID numérico */
 export const obtenerColeccion = async (
     id: number,
     opciones?: { incluirSubcolecciones?: boolean },
 ): Promise<RespuestaApi<Coleccion>> => {
     const params = opciones?.incluirSubcolecciones ? '?incluirSubcolecciones=1' : '';
     const resp = await apiGet<Coleccion>(`/colecciones/${id}${params}`);
+    if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
+    return resp;
+};
+
+/* Detalle de una colección por slug */
+export const obtenerColeccionPorSlug = async (
+    slug: string,
+    opciones?: { incluirSubcolecciones?: boolean },
+): Promise<RespuestaApi<Coleccion>> => {
+    const params = opciones?.incluirSubcolecciones ? '?incluirSubcolecciones=1' : '';
+    const resp = await apiGet<Coleccion>(`/colecciones/por-slug/${encodeURIComponent(slug)}${params}`);
     if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
     return resp;
 };

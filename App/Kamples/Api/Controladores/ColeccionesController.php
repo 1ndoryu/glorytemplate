@@ -55,6 +55,12 @@ class ColeccionesController
             'permission_callback' => '__return_true',
         ]);
 
+        /* QQ13: Obtener colección por slug SEO */
+        register_rest_route($namespace, '/colecciones/por-slug/(?P<slug>[a-zA-Z0-9_-]+)', [
+            'methods' => 'GET', 'callback' => [self::class, 'obtenerPorSlug'],
+            'permission_callback' => '__return_true',
+        ]);
+
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)', [
             'methods' => 'PUT', 'callback' => [ColeccionesCrudController::class, 'actualizar'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
@@ -236,6 +242,72 @@ class ColeccionesController
         return new \WP_REST_Response(['data' => $coleccion], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::obtener', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * QQ13: GET /colecciones/por-slug/{slug} — Obtener colección por slug SEO.
+     * Reutiliza la lógica de obtener() pero resuelve por slug en vez de ID.
+     */
+    public static function obtenerPorSlug(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $slug = \sanitize_text_field($request->get_param('slug'));
+            if (empty($slug)) {
+                return new \WP_REST_Response(['code' => 'slug_invalido'], 400);
+            }
+
+            $coleccion = ColeccionesRepository::obtenerPorSlug($slug);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
+            }
+
+            /* Seguridad: colecciones privadas solo visibles al propietario */
+            $esPublica = (bool) ($coleccion[ColeccionesCols::PUBLICA] ?? true);
+            if (!$esPublica) {
+                $usuarioActual = UsuarioHelper::obtenerIdPg();
+                if (!$usuarioActual || $usuarioActual !== (int) $coleccion[ColeccionesCols::USUARIO_ID]) {
+                    return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
+                }
+            }
+
+            $id = (int) $coleccion[ColeccionesCols::ID];
+            $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
+            $incluirSub = \filter_var($request->get_param('incluirSubcolecciones') ?? 'false', FILTER_VALIDATE_BOOLEAN);
+            $userId = UsuarioHelper::obtenerIdPg();
+
+            if ($incluirSub && $parentId === null) {
+                $subIds = ColeccionesRepository::idsSubcolecciones($id);
+                if (!empty($subIds)) {
+                    $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId);
+                } else {
+                    $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+                }
+            } else {
+                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+            }
+
+            $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
+            $coleccion['total_items'] = \count($samples);
+
+            if ($parentId === null) {
+                $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
+            } else {
+                $coleccion['subcolecciones'] = [];
+            }
+
+            $coleccion[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+                $coleccion[UsuariosExtCols::AVATAR_URL] ?? null,
+                isset($coleccion[UsuariosExtCols::WP_USER_ID]) ? (int) $coleccion[UsuariosExtCols::WP_USER_ID] : null
+            );
+            unset($coleccion[UsuariosExtCols::WP_USER_ID]);
+
+            return new \WP_REST_Response(['data' => $coleccion], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::obtenerPorSlug', [
                 'error' => $e->getMessage(),
             ]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

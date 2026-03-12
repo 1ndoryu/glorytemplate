@@ -10,6 +10,7 @@ export interface Coleccion {
     id: number;
     usuarioId: number;
     nombre: string;
+    slug: string | null;
     descripcion: string;
     esPublica: boolean;
     imagenUrl: string | null;
@@ -35,6 +36,7 @@ export interface Coleccion {
 export interface ColeccionResumen {
     id: number;
     nombre: string;
+    slug: string | null;
     imagenUrl: string | null;
     totalSamples: number;
     esPublica: boolean;

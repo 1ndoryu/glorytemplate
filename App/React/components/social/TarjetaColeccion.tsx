@@ -53,7 +53,7 @@ export const TarjetaColeccion = ({
                 icono: <Link2 size={16} />,
                 separadorDespues: true,
                 onClick: () => {
-                    copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.id}/`);
+                    copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.slug ?? coleccion.id}/`);
                 },
             },
         ];
@@ -86,7 +86,7 @@ export const TarjetaColeccion = ({
 
     return (
         <div className={clases}>
-            <EnlaceNavegacion href={`/coleccion/${coleccion.id}/`} className="tarjetaColeccionEnlace">
+            <EnlaceNavegacion href={`/coleccion/${coleccion.slug ?? coleccion.id}/`} className="tarjetaColeccionEnlace">
                 <div className="tarjetaColeccionPortada">
                     <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
                     {esSubcoleccion && (

@@ -23,10 +23,10 @@ import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
 
 interface ColeccionDetalleIslandProps {
-    coleccionId?: string;
+    coleccionSlug?: string;
 }
 
-const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandProps): JSX.Element => {
+const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
     const {
         coleccion, cargando, guardada, descargando, navegar,
         tabActiva, usuario, id, samples, metasComunes,
@@ -34,7 +34,7 @@ const ColeccionDetalleBase = ({ coleccionId: propId }: ColeccionDetalleIslandPro
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
-    } = useColeccionDetalle({ propId });
+    } = useColeccionDetalle({ propSlug });
 
     /* Proveedor para tab "Más Ideas" */
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {

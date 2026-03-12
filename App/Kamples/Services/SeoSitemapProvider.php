@@ -201,12 +201,14 @@ class SitemapColeccionesProvider extends \WP_Sitemaps_Provider
         $siteUrl = home_url();
         $urls = [];
         foreach ($colecciones as $col) {
+            $slug = $col[ColeccionesCols::SLUG] ?? null;
             $id = $col[ColeccionesCols::ID] ?? 0;
+            $identificador = $slug !== null && $slug !== '' ? $slug : $id;
             if ($id <= 0) {
                 continue;
             }
             $entry = [
-                'loc' => $siteUrl . '/coleccion/' . $id . '/',
+                'loc' => $siteUrl . '/coleccion/' . $identificador . '/',
             ];
 
             $updatedAt = $col[ColeccionesCols::UPDATED_AT] ?? $col[ColeccionesCols::CREATED_AT] ?? '';

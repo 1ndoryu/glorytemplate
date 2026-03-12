@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
-import { obtenerColeccion, descargarColeccionZip } from '@app/services/apiColecciones';
+import { obtenerColeccion, obtenerColeccionPorSlug, descargarColeccionZip } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
@@ -26,10 +26,10 @@ const TABS_COLECCION_DETALLE = [
 ];
 
 interface ColeccionDetalleParams {
-    propId?: string;
+    propSlug?: string;
 }
 
-export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
+export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [coleccion, setColeccion] = useState<Coleccion | null>(null);
     const [cargando, setCargando] = useState(true);
     const [guardada, setGuardada] = useState(false);
@@ -68,24 +68,37 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
 
-    /* Obtener ID: priorizar prop, luego ruta SPA (congelada para keep-alive) */
-    const id = useMemo(() => {
-        if (propId) return parseInt(propId, 10);
+    /* Obtener identificador: priorizar prop, luego ruta SPA (congelada para keep-alive).
+     * Puede ser slug ("mi-coleccion-123") o ID numérico para backward compat. */
+    const segmento = useMemo(() => {
+        if (propSlug) return propSlug;
         const partes = rutaActual.split('/').filter(Boolean);
         const idx = partes.indexOf('coleccion');
-        return idx >= 0 && partes[idx + 1] ? parseInt(partes[idx + 1], 10) : null;
-    }, [propId, rutaActual]);
+        return idx >= 0 && partes[idx + 1] ? partes[idx + 1] : null;
+    }, [propSlug, rutaActual]);
+
+    /* ID numérico derivado del segmento (para operaciones que requieren ID) */
+    const id = useMemo(() => {
+        if (!segmento) return null;
+        const n = parseInt(segmento, 10);
+        return !isNaN(n) && String(n) === segmento ? n : null;
+    }, [segmento]);
 
     /* Cargar coleccion con AbortController.
+     * Soporta slug y backward compat con ID numérico.
      * incluirSubcolecciones=true para que "Todos" muestre samples de subs. */
     useEffect(() => {
-        if (!id) return;
+        if (!segmento) return;
         const controller = new AbortController();
 
         const cargar = async () => {
             setCargando(true);
             try {
-                const resp = await obtenerColeccion(id, { incluirSubcolecciones: true });
+                /* Si el segmento es puramente numérico, usar endpoint por ID; si no, por slug */
+                const opts = { incluirSubcolecciones: true };
+                const resp = id !== null
+                    ? await obtenerColeccion(id, opts)
+                    : await obtenerColeccionPorSlug(segmento, opts);
                 if (controller.signal.aborted) return;
                 if (resp.ok && resp.data) setColeccion(resp.data);
             } catch {
@@ -97,7 +110,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
 
         cargar();
         return () => { controller.abort(); };
-    }, [id]);
+    }, [segmento, id]);
 
     const manejarGuardar = useCallback(() => {
         setGuardada((prev) => !prev);
@@ -105,10 +118,10 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
 
     /* Descargar coleccion como ZIP */
     const manejarDescargarZip = useCallback(async () => {
-        if (!id || descargando) return;
+        if (!coleccion?.id || descargando) return;
         setDescargando(true);
         try {
-            const resp = await descargarColeccionZip(id);
+            const resp = await descargarColeccionZip(coleccion.id);
             if (resp.ok && resp.data) {
                 const a = document.createElement('a');
                 a.href = resp.data.url;
@@ -132,7 +145,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
         } finally {
             setDescargando(false);
         }
-    }, [id, descargando]);
+    }, [coleccion?.id, descargando]);
 
     /* Sync like desde FeedSamples */
     const manejarLikeSamples = useCallback((sampleId: number) => {
@@ -247,7 +260,7 @@ export function useColeccionDetalle({ propId }: ColeccionDetalleParams) {
             icono: <Link2 size={16} />,
             separadorDespues: true,
             onClick: () => {
-                copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.id}/`);
+                copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.slug ?? coleccion.id}/`);
                 cerrarMenuColeccion();
             }
         });

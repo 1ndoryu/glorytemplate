@@ -7,6 +7,7 @@ use Glory\Seo\RuntimeSeoData;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Config\Schema\_generated\ColeccionesCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesEnums;
 
@@ -324,21 +325,22 @@ class SeoKamples
     }
 
     /**
-     * Resuelve SEO para /coleccion/{id}/
+     * Resuelve SEO para /coleccion/{slug}/
+     * Soporta slug alfanumérico y backward compat con ID numérico.
      */
-    public static function resolverColeccion(string $coleccionId): void
+    public static function resolverColeccion(string $segmento): void
     {
-        if ($coleccionId === '' || $coleccionId === 'coleccion') {
-            return;
-        }
-
-        $id = (int) $coleccionId;
-        if ($id <= 0) {
+        if ($segmento === '' || $segmento === 'coleccion') {
             return;
         }
 
         try {
-            $coleccion = ColeccionesRepository::buscarPorId($id);
+            /* Determinar si es ID numérico o slug */
+            if (ctype_digit($segmento)) {
+                $coleccion = ColeccionesRepository::buscarPorId((int) $segmento);
+            } else {
+                $coleccion = ColeccionesRepository::obtenerPorSlug($segmento);
+            }
         } catch (\Throwable $e) {
             return;
         }
@@ -346,6 +348,8 @@ class SeoKamples
         if ($coleccion === null) {
             return;
         }
+
+        $slug = $coleccion['slug'] ?? $coleccion[ColeccionesCols::ID];
 
         /* Solo indexar colecciones publicas */
         $esPublica = (bool) ($coleccion['publica'] ?? false);
@@ -363,7 +367,7 @@ class SeoKamples
         $portadaUrl = $coleccion['portada_url'] ?? '';
 
         $siteUrl = home_url();
-        $canonical = $siteUrl . '/coleccion/' . $coleccionId . '/';
+        $canonical = $siteUrl . '/coleccion/' . $slug . '/';
 
         /* Title */
         $seoTitle = "{$nombre} - Coleccion de Samples | Kamples";

@@ -94,18 +94,19 @@ PageManager::registrarRutaDinamica('publicacion', ':publicacionId');
 // PageManager::reactPage('explorador', 'ExploradorIsland');
 
 /*
- * Colección detalle — recibe coleccionId como segmento dinámico
+ * Colección detalle — recibe slug como segmento dinámico.
+ * Backward compat: acepta tanto slug (mi-coleccion-123) como ID numérico.
  */
 PageManager::reactPage('coleccion', 'ColeccionDetalleIsland', function($pageId) {
     $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
     $partes = explode('/', $path);
     $idx = array_search('coleccion', $partes);
-    $coleccionId = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
-    return ['coleccionId' => sanitize_text_field($coleccionId)];
+    $coleccionSlug = ($idx !== false && isset($partes[$idx + 1])) ? $partes[$idx + 1] : '';
+    return ['coleccionSlug' => sanitize_text_field($coleccionSlug)];
 });
 
-/* Ruta dinámica: /coleccion/{id} */
-PageManager::registrarRutaDinamica('coleccion', ':coleccionId');
+/* Ruta dinámica: /coleccion/{slug} */
+PageManager::registrarRutaDinamica('coleccion', ':coleccionSlug');
 
 /* Paginas Kamples — Mensajeria (Fase 7) */
 PageManager::reactPage('mensajes', 'MensajesIsland');

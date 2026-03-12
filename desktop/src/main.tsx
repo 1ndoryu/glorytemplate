@@ -78,7 +78,7 @@ const RUTAS_DESKTOP: Record<string, { island: string; props?: Record<string, unk
     '/planes/': { island: 'PlanesIsland' },
     '/comunidad/': { island: 'ComunidadIsland' },
     '/explorador/': { island: 'ExploradorIsland' },
-    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionId: '' } },
+    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' } },
     '/mensajes/': { island: 'MensajesIsland' },
     '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' } },
     '/admin/dashboard/': { island: 'DashboardCreadorIsland' },

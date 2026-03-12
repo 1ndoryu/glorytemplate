@@ -40,7 +40,7 @@ export const FilaColecciones = (): JSX.Element | null => {
             {colecciones.map((col) => (
                 <EnlaceNavegacion
                     key={col.id}
-                    href={`/coleccion/${col.id}/`}
+                    href={`/coleccion/${col.slug ?? col.id}/`}
                     className="filaColeccionChip"
                     title={col.nombre}
                 >

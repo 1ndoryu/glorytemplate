@@ -447,18 +447,29 @@ class ColeccionesRepository extends BaseRepository
 
         if ($parentId !== null) {
             $insertParams['parentId'] = $parentId;
-            return static::insertar(
+            $newId = static::insertar(
                 "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
                  VALUES (:userId, :parentId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
                 $insertParams
             );
+        } else {
+            $newId = static::insertar(
+                "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
+                 VALUES (:userId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
+                $insertParams
+            );
         }
 
-        return static::insertar(
-            "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
-             VALUES (:userId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
-            $insertParams
-        );
+        /* Generar y asignar slug con el ID recién creado */
+        if ($newId) {
+            $slug = self::generarSlug($nombre, $newId);
+            static::ejecutar(
+                "UPDATE {$t} SET " . ColeccionesCols::SLUG . " = :slug WHERE " . ColeccionesCols::ID . " = :id",
+                ['slug' => $slug, 'id' => $newId]
+            );
+        }
+
+        return $newId;
     }
 
     /*
@@ -641,7 +652,7 @@ class ColeccionesRepository extends BaseRepository
     public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
     {
         $t = ColeccionesCols::TABLA;
-        $sql = "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::UPDATED_AT . ", " . ColeccionesCols::CREATED_AT
+        $sql = "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::SLUG . ", " . ColeccionesCols::UPDATED_AT . ", " . ColeccionesCols::CREATED_AT
              . " FROM {$t}"
              . " WHERE " . ColeccionesCols::PUBLICA . " = true"
              . " AND " . ColeccionesCols::TOTAL_SAMPLES . " > 0"
@@ -663,5 +674,64 @@ class ColeccionesRepository extends BaseRepository
 
         $resultado = static::consultarValor($sql, []);
         return (int) ($resultado ?? 0);
+    }
+
+    /*
+     * Generar slug SEO para una colección: sanitize_title(nombre) + '-' + id.
+     * Formato: "mi-coleccion-42"
+     */
+    public static function generarSlug(string $nombre, int $id): string
+    {
+        $base = \sanitize_title($nombre);
+        if (empty($base)) {
+            $base = 'coleccion';
+        }
+        return $base . '-' . $id;
+    }
+
+    /*
+     * Buscar colección por slug. Retorna la fila completa con datos del creador.
+     */
+    public static function obtenerPorSlug(string $slug): ?array
+    {
+        $t = ColeccionesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT c.*, u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . ", u." . UsuariosExtCols::AVATAR_URL
+            . ", u." . UsuariosExtCols::WP_USER_ID
+            . " FROM {$t} c"
+            . " JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE c." . ColeccionesCols::SLUG . " = :slug",
+            ['slug' => $slug]
+        );
+    }
+
+    /*
+     * Generar slugs faltantes para colecciones existentes (post-migración PHP).
+     * Útil si la migración SQL no cubre bien caracteres especiales.
+     */
+    public static function generarSlugsFaltantes(): int
+    {
+        $t = ColeccionesCols::TABLA;
+        $sinSlug = static::consultar(
+            "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::NOMBRE
+            . " FROM {$t} WHERE " . ColeccionesCols::SLUG . " IS NULL OR " . ColeccionesCols::SLUG . " = ''",
+            []
+        );
+
+        $actualizados = 0;
+        foreach ($sinSlug as $col) {
+            $slug = self::generarSlug($col[ColeccionesCols::NOMBRE], (int) $col[ColeccionesCols::ID]);
+            static::ejecutar(
+                "UPDATE {$t} SET " . ColeccionesCols::SLUG . " = :slug WHERE " . ColeccionesCols::ID . " = :id",
+                ['slug' => $slug, 'id' => (int) $col[ColeccionesCols::ID]]
+            );
+            $actualizados++;
+        }
+
+        return $actualizados;
     }
 }
