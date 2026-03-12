@@ -48,7 +48,7 @@ export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
     otro: 'Tags',
 };
 
-export const CATEGORIAS_SELECT: CategoriaTag[] = ['genero', 'instrumento', 'sentimiento', 'tipo'];
+export const CATEGORIAS_SELECT: CategoriaTag[] = ['genero', 'instrumento', 'tipo'];
 
 export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     const {

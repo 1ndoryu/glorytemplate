@@ -59,6 +59,7 @@ export const SelectorBPM = ({
                             <span>Min</span>
                             <CampoTexto
                                 type="number"
+                                variante="desnudo"
                                 className="selectorBPMInput"
                                 value={minLocal}
                                 onChange={(e) => setMinLocal((e.target as HTMLInputElement).value)}
@@ -73,6 +74,7 @@ export const SelectorBPM = ({
                             <span>Max</span>
                             <CampoTexto
                                 type="number"
+                                variante="desnudo"
                                 className="selectorBPMInput"
                                 value={maxLocal}
                                 onChange={(e) => setMaxLocal((e.target as HTMLInputElement).value)}
