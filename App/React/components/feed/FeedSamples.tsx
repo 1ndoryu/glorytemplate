@@ -119,6 +119,7 @@ export const FeedSamples = ({
                         <TarjetaSample
                             key={s.id}
                             sample={s}
+                            contexto={feed.samplesVisibles}
                             onLike={feed.manejarLike}
                             onMenu={feed.menu.abrirMenu}
                             onClickCreador={u => feed.navegar(`/perfil/${u}`)}

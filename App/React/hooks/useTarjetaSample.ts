@@ -35,9 +35,7 @@ export { formatearKey } from './utils/tarjetaSampleUtils';
 
 interface UseTarjetaSampleOpciones {
     sample: SampleResumen;
-    activa?: boolean;
-    reproduciendo?: boolean;
-    progreso?: number;
+    contexto?: SampleResumen[];
     onPlay?: (sample: SampleResumen) => void;
     onPause?: () => void;
     onSeek?: (posicion: number) => void;
@@ -51,7 +49,7 @@ interface UseTarjetaSampleOpciones {
 
 export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const {
-        sample, activa = false, reproduciendo = false, progreso = 0,
+        sample, contexto,
         onPlay, onPause, onSeek, onLike, onDescargar, onMenu,
         onComentar, onClickTitulo, className = '',
     } = opciones;
@@ -110,7 +108,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         progresoActual,
         manejarPlayPause,
         manejarSeek,
-    } = useAudioPlayback({ sample, activa, reproduciendo, progreso, onPlay, onPause, onSeek });
+    } = useAudioPlayback({ sample, contexto, onPlay, onPause, onSeek });
 
     /* Like / Reaccion */
     const manejarLike = useCallback((e: MouseEvent) => {

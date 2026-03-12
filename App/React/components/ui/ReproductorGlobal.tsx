@@ -1,96 +1,107 @@
 /*
  * Componente: ReproductorGlobal
- * Barra inferior persistente del reproductor de audio.
- * Controles: play/pause, anterior/siguiente, seek, volumen, repetir, aleatorio.
- * Se conecta al reproductorStore via useReproductorGlobal hook.
+ * Reproductor minimalista flotante centrado abajo.
+ * Pill shape, portada circular, controles inline, barra de progreso.
+ * QQ49: Rediseño completo.
  */
 
-import {Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Repeat, Shuffle, Heart, Music} from 'lucide-react';
-import {useReproductorGlobal} from '../../hooks/useReproductorGlobal';
-import '../../styles/componentes/reproductorGlobal.css';
+import { Play, Pause, SkipBack, SkipForward, Heart, Shuffle, Music } from 'lucide-react';
+import { useReproductorGlobal } from '../../hooks/useReproductorGlobal';
 import { BotonBase } from './BotonBase';
+import '../../styles/componentes/reproductorGlobal.css';
 
 export const ReproductorGlobal = (): JSX.Element | null => {
     const {
         sampleActual,
         reproduciendo,
-        volumen,
         progreso,
         duracion,
-        muted,
-        repetir,
         aleatorio,
+        liked,
         togglePlay,
-        toggleMute,
-        toggleRepetir,
         toggleAleatorio,
         siguiente,
         anterior,
+        manejarLike,
         manejarSeekProgreso,
-        manejarSeekVolumen,
         progresoBarraRef,
-        volumenBarraRef,
-        contenedorRef,
         formatearTiempo,
     } = useReproductorGlobal();
 
-    /* No mostrar si no hay sample */
     if (!sampleActual) return null;
 
     return (
-        <div className="reproductorGlobal" id="reproductorGlobal" ref={contenedorRef}>
-            {/* Izquierda: info del sample */}
+        <div className="reproductorGlobal" id="reproductorGlobal">
+            {/* Portada circular */}
+            <div className="reproductorPortada">
+                {sampleActual.imagenUrl
+                    ? <img src={sampleActual.imagenUrl} alt={sampleActual.titulo} />
+                    : <Music size={16} className="reproductorPortadaIcono" />
+                }
+            </div>
+
+            {/* Info */}
             <div className="reproductorInfo">
-                <div className="reproductorImagen">{sampleActual.imagenUrl ? <img src={sampleActual.imagenUrl} alt={sampleActual.titulo} /> : <Music size={20} />}</div>
-                <div className="reproductorTextos">
-                    <span className="reproductorTitulo">{sampleActual.titulo}</span>
-                    <span className="reproductorArtista">{sampleActual.creador.nombreVisible || sampleActual.creador.username}</span>
-                </div>
-                <BotonBase variante="ghost" className={`reproductorControlBtn ${sampleActual.liked ? 'reproductorControlBtnActivo' : ''}`} type="button" aria-label="Like">
-                    <Heart size={16} fill={sampleActual.liked ? 'currentColor' : 'none'} />
+                <span className="reproductorTitulo">{sampleActual.titulo}</span>
+                <span className="reproductorArtista">
+                    {sampleActual.creador.nombreVisible || sampleActual.creador.username}
+                </span>
+            </div>
+
+            {/* Controles */}
+            <div className="reproductorControles">
+                <BotonBase variante="ghost" tamano="ninguno" soloIcono className="reproductorBtn" onClick={anterior} aria-label="Anterior">
+                    <SkipBack size={14} />
+                </BotonBase>
+                <BotonBase variante="ghost" tamano="ninguno" soloIcono className="reproductorPlayBtn" onClick={togglePlay} aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
+                    {reproduciendo ? <Pause size={16} /> : <Play size={16} />}
+                </BotonBase>
+                <BotonBase variante="ghost" tamano="ninguno" soloIcono className="reproductorBtn" onClick={siguiente} aria-label="Siguiente">
+                    <SkipForward size={14} />
                 </BotonBase>
             </div>
 
-            {/* Centro: controles + progreso */}
-            <div className="reproductorCentro">
-                <div className="reproductorControles">
-                    <BotonBase variante="ghost" className={`reproductorControlBtn ${aleatorio ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleAleatorio} type="button" aria-label="Aleatorio">
-                        <Shuffle size={14} />
-                    </BotonBase>
-                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={anterior} type="button" aria-label="Anterior">
-                        <SkipBack size={16} />
-                    </BotonBase>
-                    <BotonBase variante="ghost" className="reproductorPlayBtn" onClick={togglePlay} type="button" aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}>
-                        {reproduciendo ? <Pause size={18} /> : <Play size={18} />}
-                    </BotonBase>
-                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={siguiente} type="button" aria-label="Siguiente">
-                        <SkipForward size={16} />
-                    </BotonBase>
-                    <BotonBase variante="ghost" className={`reproductorControlBtn ${repetir ? 'reproductorControlBtnActivo' : ''}`} onClick={toggleRepetir} type="button" aria-label="Repetir">
-                        <Repeat size={14} />
-                    </BotonBase>
+            {/* Barra de progreso */}
+            <div className="reproductorProgreso">
+                <span className="reproductorTiempo">{formatearTiempo(progreso * duracion)}</span>
+                <div
+                    ref={progresoBarraRef}
+                    className="reproductorBarra"
+                    onClick={manejarSeekProgreso}
+                    role="slider"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(progreso * 100)}
+                    aria-label="Progreso"
+                >
+                    <div className="reproductorBarraRelleno" style={{ width: `${progreso * 100}%` }} />
                 </div>
-
-                <div className="reproductorProgreso">
-                    <span className="reproductorTiempo">{formatearTiempo(progreso * duracion)}</span>
-                    <div ref={progresoBarraRef} className="reproductorBarraProgreso" onClick={manejarSeekProgreso} role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progreso * 100)} aria-label="Progreso">
-                        <div className="reproductorBarraRelleno" style={{width: `${progreso * 100}%`}} />
-                    </div>
-                    <span className="reproductorTiempo">{formatearTiempo(duracion)}</span>
-                </div>
+                <span className="reproductorTiempo">{formatearTiempo(duracion)}</span>
             </div>
 
-            {/* Derecha: volumen */}
-            <div className="reproductorDerecha">
-                <div className="reproductorVolumen">
-                    <BotonBase variante="ghost" className="reproductorControlBtn" onClick={toggleMute} type="button" aria-label={muted ? 'Activar sonido' : 'Silenciar'}>
-                        {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </BotonBase>
-                    <div ref={volumenBarraRef} className="reproductorVolumenBarra" onClick={manejarSeekVolumen} role="slider" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(volumen * 100)} aria-label="Volumen">
-                        <div className="reproductorVolumenRelleno" style={{width: `${(muted ? 0 : volumen) * 100}%`}} />
-                    </div>
-                </div>
-            </div>
+            {/* Like */}
+            <BotonBase
+                variante="ghost"
+                tamano="ninguno"
+                soloIcono
+                className={`reproductorBtn ${liked ? 'reproductorBtnActivo' : ''}`}
+                onClick={manejarLike}
+                aria-label="Like"
+            >
+                <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
+            </BotonBase>
+
+            {/* Aleatorio */}
+            <BotonBase
+                variante="ghost"
+                tamano="ninguno"
+                soloIcono
+                className={`reproductorBtn ${aleatorio ? 'reproductorBtnActivo' : ''}`}
+                onClick={toggleAleatorio}
+                aria-label="Aleatorio"
+            >
+                <Shuffle size={14} />
+            </BotonBase>
         </div>
     );
 };

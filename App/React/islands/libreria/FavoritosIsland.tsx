@@ -126,6 +126,7 @@ const FavoritosBase = (): JSX.Element => {
                                 <TarjetaSample
                                     key={sample.id}
                                     sample={sample}
+                                    contexto={filtros.samplesFiltrados}
                                     onLike={manejarLike}
                                     onMenu={menu.abrirMenu}
                                     onClickCreador={(u) => navegar(`/perfil/${u}`)}

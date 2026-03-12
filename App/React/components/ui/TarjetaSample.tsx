@@ -20,9 +20,7 @@ import { BotonBase } from './BotonBase';
 
 interface TarjetaSampleProps {
     sample: SampleResumen;
-    activa?: boolean;
-    reproduciendo?: boolean;
-    progreso?: number;
+    contexto?: SampleResumen[];
     onPlay?: (sample: SampleResumen) => void;
     onPause?: () => void;
     onSeek?: (posicion: number) => void;

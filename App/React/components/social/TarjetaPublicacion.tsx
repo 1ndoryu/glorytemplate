@@ -33,8 +33,6 @@ interface TarjetaPublicacionProps {
     onClickCreadorSample?: (username: string) => void;
     onPlaySample?: (sample: SampleResumen) => void;
     onPauseSample?: () => void;
-    sampleActualId?: number;
-    reproduciendo?: boolean;
     mostrarCeroConteo?: boolean;
     /* Slot para extras de isla sobre el avatar (ej: botón seguir en ComunidadIsland) */
     avatarExtra?: React.ReactNode;
@@ -55,8 +53,6 @@ export const TarjetaPublicacion = ({
     onClickCreadorSample,
     onPlaySample,
     onPauseSample,
-    sampleActualId,
-    reproduciendo = false,
     mostrarCeroConteo,
     avatarExtra,
     children,
@@ -245,8 +241,7 @@ export const TarjetaPublicacion = ({
                                 <TarjetaSample
                                     key={sample.id}
                                     sample={sample}
-                                    activa={sampleActualId === sample.id}
-                                    reproduciendo={sampleActualId === sample.id && reproduciendo}
+                                    contexto={publicacion.repostOriginal!.samplesAdjuntos}
                                     onPlay={onPlaySample}
                                     onPause={onPauseSample}
                                     onLike={onLikeSample}
@@ -266,8 +261,7 @@ export const TarjetaPublicacion = ({
                         <TarjetaSample
                             key={sample.id}
                             sample={sample}
-                            activa={sampleActualId === sample.id}
-                            reproduciendo={sampleActualId === sample.id && reproduciendo}
+                            contexto={publicacion.samplesAdjuntos}
                             onPlay={onPlaySample}
                             onPause={onPauseSample}
                             onLike={onLikeSample}

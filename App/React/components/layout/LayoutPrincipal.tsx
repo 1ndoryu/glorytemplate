@@ -12,6 +12,7 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { PanelLateral } from './PanelLateral';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
+import { useMotorAudio } from '@app/hooks/useMotorAudio';
 import { ModalCrear } from '../social/ModalCrear';
 import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
@@ -78,6 +79,7 @@ function detectarPaginaActiva(ruta: string): string {
     return 'inicio';
 }
 
+/* TO-DO: Extraer logica (auth, ruta, overrides, generos, reproducidos) a useLayoutPrincipal.ts */
 export const LayoutPrincipal = ({
     children,
     paginaActiva,
@@ -85,6 +87,9 @@ export const LayoutPrincipal = ({
     useEffect(() => {
         inicializarTemaApp();
     }, []);
+
+    /* QQ49: Motor de audio global — crea y gestiona el unico HTMLAudioElement persistente */
+    useMotorAudio();
 
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);

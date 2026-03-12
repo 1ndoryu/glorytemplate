@@ -203,6 +203,7 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                             <TarjetaSample
                                 key={s.id}
                                 sample={s}
+                                contexto={similares}
                                 onClickCreador={(u) => navegar(`/perfil/${u}/`)}
                                 className="panelDetalleTarjetaMini"
                             />

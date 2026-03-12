@@ -56,7 +56,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const [sampleInspeccion, setSampleInspeccion] = useState<SampleResumen | null>(null);
 
     const navegar = useNavigationStore(s => s.navegar);
-    const setSample = useReproductorStore(s => s.setSample);
+    const reproducir = useReproductorStore(s => s.reproducir);
     const abrirColeccionPicker = useColeccionPickerStore(s => s.abrir);
     const usuario = useAuthStore(s => s.usuario);
     const abrirEditarSample = useEditarModalStore(s => s.abrirSample);
@@ -110,7 +110,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
                 id: 'reproducir',
                 etiqueta: 'Reproducir',
                 onClick: () => {
-                    if (estado.sample) setSample(estado.sample);
+                    if (estado.sample) reproducir(estado.sample);
                 },
             },
             {

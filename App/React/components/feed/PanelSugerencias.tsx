@@ -60,6 +60,7 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
                         <TarjetaSample
                             key={s.id}
                             sample={s}
+                            contexto={sugerencias}
                             onClickCreador={(u) => navegar(`/perfil/${u}/`)}
                             className="panelDetalleTarjetaMini"
                         />

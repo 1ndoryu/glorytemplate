@@ -1,145 +1,126 @@
 /*
  * reproductorGlobal.css — Kamples
- * Reproductor flotante centrado en la parte inferior.
- * Solo visible cuando hay un sample en reproducción.
- * Ancho limitado, bordes redondeados, efecto glassmorphism sutil.
+ * QQ49: Reproductor flotante minimalista.
+ * Pill shape, portada circular, controles inline compactos.
  */
 
 .reproductorGlobal {
-    position: relative;
-    width: min(720px, calc(100vw - 120px));
-    height: var(--altoReproductor);
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    width: fit-content;
+    max-width: min(640px, calc(100vw - var(--espacioLg) * 2));
+    height: 48px;
+    padding: 0 var(--espacioLg) 0 var(--espacioSm);
     background-color: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioLg);
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    align-items: center;
-    padding: 0 var(--espacioLg);
+    border-radius: var(--radioFull);
     z-index: var(--zReproductor);
-    gap: var(--espacioLg);
     pointer-events: auto;
-    box-shadow: 0 var(--espacioXs) calc(var(--espacioXs) * 6) rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
     animation: reproductorEntrar 300ms ease forwards;
 }
 
 @keyframes reproductorEntrar {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Sección izquierda: info del sample */
-.reproductorInfo {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioMd);
-    min-width: 0;
-    overflow: hidden;
-}
-
-.reproductorImagen {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radioSm);
-    background-color: var(--fondoElevado3);
+/* Portada circular */
+.reproductorPortada {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     flex-shrink: 0;
+    overflow: hidden;
+    background-color: var(--fondoElevado3);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--textoTerciario);
-    overflow: hidden;
 }
 
-.reproductorImagen img {
+.reproductorPortada img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.reproductorTextos {
+.reproductorPortadaIcono {
+    color: var(--textoTerciario);
+}
+
+/* Info truncada */
+.reproductorInfo {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--espacioXs) / 2);
+    gap: 1px;
     min-width: 0;
+    max-width: 120px;
 }
 
 .reproductorTitulo {
-    font-size: var(--fuenteSm);
+    font-size: var(--fuenteXs);
     font-weight: var(--pesoMedio);
     color: var(--textoPrimario);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .reproductorArtista {
-    font-size: var(--fuenteXs);
-    color: var(--textoSecundario);
+    font-size: 10px;
+    color: var(--textoTerciario);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: pointer;
+    line-height: 1.2;
 }
 
-.reproductorArtista:hover {
-    color: var(--acentoTexto);
-}
-
-/* Sección central: controles + waveform */
-.reproductorCentro {
+/* Controles agrupados */
+.reproductorControles {
     display: flex;
-    flex-direction: column;
     align-items: center;
     gap: var(--espacioXs);
 }
 
-.reproductorControles {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioMd);
-}
-
-.reproductorControlBtn {
+.reproductorBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: none;
     color: var(--textoSecundario);
     border-radius: var(--radioFull);
     cursor: pointer;
     transition: color var(--transicionRapida);
+    padding: 0;
 }
 
-.reproductorControlBtn:hover {
+.reproductorBtn:hover {
     color: var(--textoPrimario);
 }
 
-.reproductorControlBtnActivo {
+.reproductorBtnActivo {
     color: var(--acentoTexto);
 }
 
-/* Botón central play/pause más grande */
+/* Play/pause central */
 .reproductorPlayBtn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border: none;
     background-color: var(--blanco);
     color: var(--fondoBase);
     border-radius: var(--radioFull);
     cursor: pointer;
-    transition: transform var(--transicionRapida), background-color var(--transicionRapida);
+    transition: transform var(--transicionRapida);
+    padding: 0;
 }
 
 .reproductorPlayBtn:hover {
@@ -150,26 +131,26 @@
     transform: scale(0.95);
 }
 
-/* Barra de progreso + tiempos */
+/* Barra de progreso */
 .reproductorProgreso {
     display: flex;
     align-items: center;
-    gap: var(--espacioSm);
-    width: 100%;
-    max-width: 500px;
+    gap: var(--espacioXs);
+    flex: 1;
+    min-width: 80px;
 }
 
 .reproductorTiempo {
-    font-size: var(--fuenteXs);
+    font-size: 10px;
     color: var(--textoTerciario);
-    min-width: 36px;
+    min-width: 30px;
     text-align: center;
     font-variant-numeric: tabular-nums;
 }
 
-.reproductorBarraProgreso {
+.reproductorBarra {
     flex: 1;
-    height: 4px;
+    height: 3px;
     background-color: var(--fondoElevado3);
     border-radius: var(--radioFull);
     cursor: pointer;
@@ -184,36 +165,27 @@
     transition: width 100ms linear;
 }
 
-.reproductorBarraProgreso:hover .reproductorBarraRelleno {
+.reproductorBarra:hover .reproductorBarraRelleno {
     background-color: var(--acentoTexto);
 }
 
-/* Sección derecha: volumen + acciones */
-.reproductorDerecha {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--espacioMd);
-}
+/* Responsive mobile */
+@media (max-width: 600px) {
+    .reproductorGlobal {
+        max-width: calc(100vw - var(--espacioSm) * 2);
+        gap: var(--espacioSm);
+        padding: 0 var(--espacioMd) 0 var(--espacioXs);
+    }
 
-.reproductorVolumen {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-}
+    .reproductorInfo {
+        max-width: 80px;
+    }
 
-.reproductorVolumenBarra {
-    width: 80px;
-    height: 4px;
-    background-color: var(--fondoElevado3);
-    border-radius: var(--radioFull);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
+    .reproductorProgreso {
+        min-width: 60px;
+    }
 
-.reproductorVolumenRelleno {
-    height: 100%;
-    background-color: var(--textoPrimario);
-    border-radius: var(--radioFull);
+    .reproductorTiempo {
+        display: none;
+    }
 }

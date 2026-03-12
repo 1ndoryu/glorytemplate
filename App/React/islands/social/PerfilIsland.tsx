@@ -95,7 +95,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         return (
             <div className="listaDeSamples">
                 {lista.map(sample => (
-                    <TarjetaSample key={sample.id} sample={sample} onLike={manejarLike} onMenu={menu.abrirMenu} onClickCreador={manejarClickCreador} />
+                    <TarjetaSample key={sample.id} sample={sample} contexto={lista} onLike={manejarLike} onMenu={menu.abrirMenu} onClickCreador={manejarClickCreador} />
                 ))}
             </div>
         );

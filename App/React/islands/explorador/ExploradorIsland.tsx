@@ -221,6 +221,7 @@ const ExploradorBase = (): JSX.Element => {
                                     </span>
                                     <TarjetaSample
                                         sample={sample}
+                                        contexto={samples}
                                         onLike={manejarLike}
                                         onMenu={menu.abrirMenu}
                                         onClickCreador={(u) => navegar(`/perfil/${u}`)}

@@ -67,6 +67,7 @@ export const ModalSugerenciasLike = (): JSX.Element | null => {
                             <TarjetaSample
                                 key={s.id}
                                 sample={s}
+                                contexto={sugerencias}
                                 onLike={manejarLikeSugerencia}
                                 onClickCreador={(u) => { cerrar(); navegar(`/perfil/${u}`); }}
                                 className="sugerenciasLikeTarjeta"

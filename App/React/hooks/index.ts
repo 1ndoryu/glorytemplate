@@ -3,7 +3,6 @@
  */
 
 export { useAuth } from './useAuth';
-export { useReproductor } from './useReproductor';
 export { useFiltros } from './useFiltros';
 export { useSamples } from './useSamples';
 export { useDescargas } from './useDescargas';

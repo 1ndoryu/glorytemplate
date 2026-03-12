@@ -25,7 +25,7 @@ const formatearTiempo = (segundos: number): string => {
 
 export const ReproductorIsland = (): JSX.Element => {
     const sampleActual = useReproductorStore(s => s.sampleActual);
-    const cola = useReproductorStore(s => s.cola);
+    const contexto = useReproductorStore(s => s.contexto);
     const reproduciendo = useReproductorStore(s => s.reproduciendo);
     const volumen = useReproductorStore(s => s.volumen);
     const progreso = useReproductorStore(s => s.progreso);
@@ -41,9 +41,7 @@ export const ReproductorIsland = (): JSX.Element => {
     const toggleAleatorio = useReproductorStore(s => s.toggleAleatorio);
     const siguiente = useReproductorStore(s => s.siguiente);
     const anterior = useReproductorStore(s => s.anterior);
-    const setSample = useReproductorStore(s => s.setSample);
-    const quitarDeCola = useReproductorStore(s => s.quitarDeCola);
-    const limpiarCola = useReproductorStore(s => s.limpiarCola);
+    const reproducir = useReproductorStore(s => s.reproducir);
 
     const navegar = useNavigationStore(s => s.navegar);
 
@@ -55,17 +53,16 @@ export const ReproductorIsland = (): JSX.Element => {
         [setProgreso]
     );
 
-    /* Mover item en cola (swap con vecino) */
+    /* Mover item en contexto (swap con vecino) */
     const moverEnCola = useCallback(
         (indice: number, direccion: 'arriba' | 'abajo') => {
-            const nuevaCola = [...cola];
+            const nuevoContexto = [...contexto];
             const destino = direccion === 'arriba' ? indice - 1 : indice + 1;
-            if (destino < 0 || destino >= nuevaCola.length) return;
-            [nuevaCola[indice], nuevaCola[destino]] = [nuevaCola[destino], nuevaCola[indice]];
-            /* Actualizamos la cola completa reemplazando */
-            useReproductorStore.setState({cola: nuevaCola});
+            if (destino < 0 || destino >= nuevoContexto.length) return;
+            [nuevoContexto[indice], nuevoContexto[destino]] = [nuevoContexto[destino], nuevoContexto[indice]];
+            useReproductorStore.setState({contexto: nuevoContexto});
         },
-        [cola]
+        [contexto]
     );
 
     /* Ir al perfil del creador */
@@ -167,7 +164,14 @@ export const ReproductorIsland = (): JSX.Element => {
                 </div>
 
                 {/* Panel derecho: cola de reproducción */}
-                <PanelCola cola={cola} sampleActualId={sampleActual.id} onSeleccionar={setSample} onQuitar={quitarDeCola} onMover={moverEnCola} onLimpiar={limpiarCola} />
+                <PanelCola
+                    cola={contexto}
+                    sampleActualId={sampleActual.id}
+                    onSeleccionar={reproducir}
+                    onQuitar={(id) => useReproductorStore.setState({ contexto: contexto.filter(s => s.id !== id) })}
+                    onMover={moverEnCola}
+                    onLimpiar={() => useReproductorStore.setState({ contexto: [] })}
+                />
             </div>
         </div>
     );
