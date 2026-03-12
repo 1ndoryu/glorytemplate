@@ -334,11 +334,12 @@ nav.configNavLista button {
 
 /* Responsive: en pantallas pequeñas, nav lateral se convierte en tabs horizontales */
 @media (max-width: 600px) {
-    .configModal {
-        flex-direction: column;
-        width: 95vw;
-        height: 90vh;
-        max-height: none;
+    .modalContenedor.configModalLayout {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
     }
 
     .configNavLateral {
@@ -347,8 +348,14 @@ nav.configNavLista button {
         flex-direction: row;
         border-right: none;
         border-bottom: 1px solid var(--bordeSutil);
-        padding: var(--espacioSm);
+        padding: var(--espacioXs) var(--espacioSm);
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .configNavLateral::-webkit-scrollbar {
+        display: none;
     }
 
     .configNavTitulo {
@@ -358,11 +365,36 @@ nav.configNavLista button {
     .configNavLista {
         flex-direction: row;
         gap: var(--espacioXs);
+        width: max-content;
     }
 
     .configNavItem {
         white-space: nowrap;
         padding: var(--espacioXs) var(--espacioSm);
+        font-size: var(--fuenteXs);
+    }
+
+    /* Ocultar label de nav, solo mostrar icono en pantallas muy estrechas */
+    .configNavItem svg {
+        flex-shrink: 0;
+    }
+
+    .configSeccionContenido {
+        padding: var(--espacioMd);
+    }
+
+    .configPortadaContenedor {
+        height: 80px;
+    }
+
+    .configAcciones {
+        padding: var(--espacioSm) var(--espacioMd);
+    }
+
+    .configSeccionHorizontal {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--espacioSm);
     }
 }
 
@@ -376,7 +408,7 @@ nav.configNavLista button {
 .configBloqueoInfo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: calc(var(--espacioXs) / 2);
 }
 
 .configSeccionVacia {

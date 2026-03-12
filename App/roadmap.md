@@ -132,9 +132,9 @@ Fix errores IDE: PipelineAudio usaba `DuplicadosPendientesRepository::crear()` i
 Mejorar el landing publico para seo, mejorar los textos, manterlos breve.
 Los svg son muy pesados, tienen imagenes internas que deberían ser optimizadas, no se como optimizarlas, tambien en caos de que esas imagenes internas puedan cargar de forma no bloqueante, sea una buena optimización
 
-## QQ35
+## QQ35 ✅ [AG-QQF]
 
-El modal de configuracion no se ve bien en movil, le falta responsive.
+Modal configuración responsive. Fix: selector `.configModal` inexistente → `.modalContenedor.configModalLayout`. En mobile (<600px): fullscreen (100vw/100vh, sin border-radius), nav lateral → tabs horizontales scrolleables con scrollbar oculto, padding reducido en contenido, portada 80px, secciones horizontales → apiladas verticalmente. Fix colateral: gap hardcodeado 2px → `calc(var(--espacioXs)/2)` en `.configBloqueoInfo`. Archivos: modalConfiguracion.css.
 
 ## QQ36 
 
