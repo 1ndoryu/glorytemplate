@@ -33,10 +33,12 @@ export function useModalGeneros() {
     const generosIniciales = usuario?.generosPreferidos ?? [];
     const [seleccionados, setSeleccionados] = useState<string[]>(generosIniciales);
     const [guardando, setGuardando] = useState(false);
+    const [tagPersonalizado, setTagPersonalizado] = useState('');
 
     /* Sincronizar seleccion al abrir */
     const sincronizar = useCallback(() => {
         setSeleccionados(usuario?.generosPreferidos ?? []);
+        setTagPersonalizado('');
     }, [usuario?.generosPreferidos]);
 
     const toggleGenero = useCallback((genero: string) => {
@@ -49,6 +51,17 @@ export function useModalGeneros() {
             return [...prev, generoLower];
         });
     }, []);
+
+    /* Agrega un tag personalizado escrito por el usuario */
+    const agregarPersonalizado = useCallback(() => {
+        const limpio = tagPersonalizado.trim().toLowerCase().slice(0, 30);
+        if (!limpio) return;
+        setSeleccionados((prev) => {
+            if (prev.includes(limpio) || prev.length >= MAX_GENEROS) return prev;
+            return [...prev, limpio];
+        });
+        setTagPersonalizado('');
+    }, [tagPersonalizado]);
 
     const guardar = useCallback(async () => {
         if (seleccionados.length < MIN_GENEROS) return;
@@ -74,8 +87,12 @@ export function useModalGeneros() {
         guardando,
         puedeGuardar,
         toggleGenero,
+        agregarPersonalizado,
+        tagPersonalizado,
+        setTagPersonalizado,
         guardar,
         cerrar,
         sincronizar,
+        limiteAlcanzado: seleccionados.length >= MAX_GENEROS,
     };
 }

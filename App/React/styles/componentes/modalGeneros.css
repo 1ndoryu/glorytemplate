@@ -66,6 +66,46 @@
     opacity: 0.9;
 }
 
+/* Tag personalizado — muestra que se puede quitar */
+.generosBadgeCustom {
+    text-transform: lowercase;
+}
+
+/* Input inline para agregar tag personalizado (parece un badge) */
+.generosInputInline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioFull);
+    border: 1px dashed var(--bordeSutil);
+    background: transparent;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+    transition: border-color 0.15s ease;
+    cursor: text;
+}
+
+.generosInputInline:focus-within {
+    border-color: var(--acento);
+    color: var(--textoSecundario);
+}
+
+.generosInputCustom {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteSm);
+    width: 140px;
+    padding: 0;
+    font-family: inherit;
+}
+
+.generosInputCustom::placeholder {
+    color: var(--textoTerciario);
+}
+
 .generosAcciones {
     display: flex;
     align-items: center;

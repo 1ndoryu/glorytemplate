@@ -276,10 +276,15 @@ class PerfilController
             }
         }
         if (isset($body['generosPreferidos']) && is_array($body['generosPreferidos'])) {
-            $generosValidos = array_values(array_intersect(
-                array_map('strtolower', array_map('trim', $body['generosPreferidos'])),
-                self::GENEROS_PERMITIDOS
-            ));
+            /* Sanitizar: lowercase, trim, solo caracteres alfanumericos/espacios/guiones, max 30 chars por tag */
+            $generosRaw = array_map(function (string $g): string {
+                $limpio = strtolower(trim($g));
+                $limpio = preg_replace('/[^a-z0-9\s\-&]/', '', $limpio);
+                return substr($limpio, 0, 30);
+            }, array_filter($body['generosPreferidos'], 'is_string'));
+
+            /* Eliminar vacíos y duplicados, limitar a 10 */
+            $generosValidos = array_values(array_unique(array_filter($generosRaw)));
             $generosValidos = array_slice($generosValidos, 0, 10);
             $campos[] = UsuariosExtCols::GENEROS_FAVORITOS . ' = :generos';
             $generosJson = json_encode($generosValidos, JSON_UNESCAPED_UNICODE);

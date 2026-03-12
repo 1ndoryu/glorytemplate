@@ -2,11 +2,13 @@
  * Componente: ModalGeneros — Kamples (QQ45)
  * Modal de seleccion de generos favoritos.
  * Se muestra en onboarding para usuarios nuevos y desde configuracion.
+ * Permite seleccionar generos predefinidos y agregar tags personalizados.
  */
 
-import { useEffect } from 'react';
+import { useEffect, type KeyboardEvent } from 'react';
 import { Modal } from '../ui/Modal';
 import { BotonBase } from '../ui/BotonBase';
+import { Plus } from 'lucide-react';
 import { useModalGeneros, GENEROS_DISPONIBLES } from '@app/hooks/useModalGeneros';
 import '../../styles/componentes/modalGeneros.css';
 
@@ -17,9 +19,13 @@ export const ModalGeneros = (): JSX.Element => {
         guardando,
         puedeGuardar,
         toggleGenero,
+        agregarPersonalizado,
+        tagPersonalizado,
+        setTagPersonalizado,
         guardar,
         cerrar,
         sincronizar,
+        limiteAlcanzado,
     } = useModalGeneros();
 
     /* Sincronizar seleccion al abrir el modal */
@@ -27,14 +33,27 @@ export const ModalGeneros = (): JSX.Element => {
         if (abierto) sincronizar();
     }, [abierto, sincronizar]);
 
+    const manejarKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            agregarPersonalizado();
+        }
+    };
+
+    /* Tags personalizados: los que están seleccionados pero no son predefinidos */
+    const generosDisponiblesLower = GENEROS_DISPONIBLES.map((g) => g.toLowerCase());
+    const tagsPersonalizados = seleccionados.filter(
+        (s) => !generosDisponiblesLower.includes(s)
+    );
+
     return (
         <Modal abierto={abierto} onCerrar={cerrar} tamano="grande">
             <div className="generosContenido">
                 <h2 className="generosTitulo">
-                    Cuales son tus generos favoritos?
+                    ¿Cuáles son tus géneros favoritos?
                 </h2>
                 <p className="generosSubtitulo">
-                    Elige al menos 1 genero para personalizar tu feed. Puedes cambiarlo despues.
+                    Elige al menos 1 género para personalizar tu feed. Puedes cambiarlo después.
                 </p>
 
                 <div className="generosGrid">
@@ -51,11 +70,39 @@ export const ModalGeneros = (): JSX.Element => {
                             </button>
                         );
                     })}
+
+                    {/* Tags personalizados ya agregados */}
+                    {tagsPersonalizados.map((tag) => (
+                        <button
+                            key={tag}
+                            type="button"
+                            className="generosBadge generosBadgeActivo generosBadgeCustom"
+                            onClick={() => toggleGenero(tag)}
+                        >
+                            {tag}
+                        </button>
+                    ))}
+
+                    {/* Input inline para agregar tag personalizado */}
+                    {!limiteAlcanzado && (
+                        <span className="generosInputInline">
+                            <Plus size={14} />
+                            <input
+                                type="text"
+                                className="generosInputCustom"
+                                placeholder="Agregar personalizado"
+                                value={tagPersonalizado}
+                                onChange={(e) => setTagPersonalizado(e.target.value)}
+                                onKeyDown={manejarKeyDown}
+                                maxLength={30}
+                            />
+                        </span>
+                    )}
                 </div>
 
                 <div className="generosAcciones">
                     <span className="generosContador">
-                        {seleccionados.length} seleccionado{seleccionados.length !== 1 ? 's' : ''}
+                        {seleccionados.length}/10 seleccionado{seleccionados.length !== 1 ? 's' : ''}
                     </span>
                     <BotonBase
                         variante="primario"
