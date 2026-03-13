@@ -30,6 +30,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
 use App\Helpers\UrlHelper;
 
 class NormalizadorSample
@@ -254,6 +255,8 @@ class NormalizadorSample
                 ? (int) $row[SamplesCols::RELACION_SAMPLEO_ID] : null,
             /* QQ79: Datos enriquecidos de la cancion de origen */
             'cancionOrigen'      => self::decodificarCancionOrigen($row),
+            /* QQ117: Metadatos de extraccion (fuente, timing, metodo descarga) */
+            'extraccion'         => self::decodificarExtraccion($row),
         ];
     }
     /*
@@ -273,6 +276,55 @@ class NormalizadorSample
         return [
             'titulo' => $data[CancionesCols::TITULO] ?? null,
             'slug'   => $data[CancionesCols::SLUG] ?? null,
+        ];
+    }
+
+    /*
+     * QQ117: Decodifica JSON de extraccion (subselect row_to_json).
+     * Contiene fuente de descarga, timing, metodo y metadata enriquecida.
+     * Retorna null si el sample no proviene de una extraccion.
+     */
+    private static function decodificarExtraccion(array $row): ?array
+    {
+        $json = $row['extraccion_json'] ?? null;
+        if (!$json) {
+            return null;
+        }
+        $data = is_string($json) ? json_decode($json, true) : (is_array($json) ? $json : null);
+        if (!is_array($data)) {
+            return null;
+        }
+
+        /* metadata_extraccion es JSONB anidado con info de descarga */
+        $meta = $data[ColaExtraccionSamplesCols::METADATA_EXTRACCION] ?? null;
+        if (is_string($meta)) {
+            $meta = json_decode($meta, true);
+        }
+
+        return [
+            'youtubeId'        => $data[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null,
+            'spotifyId'        => $data[ColaExtraccionSamplesCols::SPOTIFY_ID] ?? null,
+            'timingInicioSeg'  => isset($data[ColaExtraccionSamplesCols::TIMING_INICIO_SEG])
+                ? (float) $data[ColaExtraccionSamplesCols::TIMING_INICIO_SEG] : null,
+            'bpmDetectado'     => isset($data[ColaExtraccionSamplesCols::BPM_DETECTADO])
+                ? (float) $data[ColaExtraccionSamplesCols::BPM_DETECTADO] : null,
+            'duracionCompasSeg' => isset($data[ColaExtraccionSamplesCols::DURACION_COMPAS_SEG])
+                ? (float) $data[ColaExtraccionSamplesCols::DURACION_COMPAS_SEG] : null,
+            'compasInicioSeg'  => isset($data[ColaExtraccionSamplesCols::COMPAS_INICIO_SEG])
+                ? (float) $data[ColaExtraccionSamplesCols::COMPAS_INICIO_SEG] : null,
+            'compasFinSeg'     => isset($data[ColaExtraccionSamplesCols::COMPAS_FIN_SEG])
+                ? (float) $data[ColaExtraccionSamplesCols::COMPAS_FIN_SEG] : null,
+            'lado'             => $data[ColaExtraccionSamplesCols::LADO] ?? null,
+            'estado'           => $data[ColaExtraccionSamplesCols::ESTADO] ?? null,
+            'rutaAudioExtraido' => !empty($data[ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO])
+                ? self::rutaAUrl((string) $data[ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO]) : null,
+            /* Campos del JSONB metadata_extraccion */
+            'fuenteUrl'        => $meta['descarga_fuente_url'] ?? null,
+            'fuenteTitulo'     => $meta['descarga_fuente_titulo'] ?? null,
+            'fuenteArtista'    => $meta['descarga_fuente_artista'] ?? null,
+            'descargaMetodo'   => $meta['descarga_metodo'] ?? null,
+            'origen'           => $meta['origen'] ?? null,
+            'ladoExtraccion'   => $meta['lado_extraccion'] ?? null,
         ];
     }
 
@@ -388,6 +440,24 @@ class NormalizadorSample
             SELECT c.{$cTitulo}, c.{$cSlug}
             FROM {$tc} c WHERE c.{$cId} = s.{$sCancionOrigen}
         ) co) AS cancion_origen_json";
+        /* QQ117: Metadata de extraccion (fuente, URL, timing, etc.) asociada al sample */
+        $tCe = ColaExtraccionSamplesCols::TABLA;
+        $ceMetadata = ColaExtraccionSamplesCols::METADATA_EXTRACCION;
+        $ceYoutubeId = ColaExtraccionSamplesCols::YOUTUBE_ID;
+        $ceTimingInicio = ColaExtraccionSamplesCols::TIMING_INICIO_SEG;
+        $ceCompasInicio = ColaExtraccionSamplesCols::COMPAS_INICIO_SEG;
+        $ceCompasFin = ColaExtraccionSamplesCols::COMPAS_FIN_SEG;
+        $ceRuta = ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO;
+        $ceLado = ColaExtraccionSamplesCols::LADO;
+        $ceSpotifyId = ColaExtraccionSamplesCols::SPOTIFY_ID;
+        $ceSampleId = ColaExtraccionSamplesCols::SAMPLE_ID;
+        $extraccionExpr = "(SELECT row_to_json(ex.*) FROM (
+            SELECT ce.{$ceMetadata}, ce.{$ceYoutubeId}, ce.{$ceTimingInicio},
+                   ce.{$ceCompasInicio}, ce.{$ceCompasFin}, ce.{$ceRuta},
+                   ce.{$ceLado}, ce.{$ceSpotifyId}
+            FROM {$tCe} ce WHERE ce.{$ceSampleId} = s.{$sId}
+            LIMIT 1
+        ) ex) AS extraccion_json";
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $uId = UsuariosExtCols::ID;
@@ -399,6 +469,7 @@ class NormalizadorSample
 
         return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
                        {$cancionOrigenExpr},
+                       {$extraccionExpr},
                        s.{$sBpm}, s.{$sKey}, s.{$sEscala}, s.{$sDuracion}, s.{$sFormato}, s.{$sTamano},
                        s.{$sTags}, s.{$sTipo}, s.{$sEstado}, s.{$sPremium}, s.{$sPrecio}, s.{$sMeta},
                        s.{$sPreview}, s.{$sWaveform},

@@ -15,6 +15,7 @@ import type {Sample, SampleResumen} from '@app/types';
 import {obtenerSample} from '@app/services/apiSamples';
 import '../../styles/componentes/modalInspector.css';
 import { BotonBase } from './BotonBase';
+import { SeccionExtraccionInspector } from './SeccionExtraccionInspector';
 
 /* Acepta tanto Sample completo como SampleResumen */
 type SampleInspectable = Sample | SampleResumen;
@@ -136,6 +137,11 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             <Campo etiqueta="Relacion Sampleo ID" valor={(datos as Sample).relacionSampleoId} numerico />
                         </div>
                     </div>
+                )}
+
+                {/* QQ117: Seccion Extraccion — fuente, timing, metodo descarga */}
+                {completo && (datos as Sample).extraccion && (
+                    <SeccionExtraccionInspector extraccion={(datos as Sample).extraccion!} />
                 )}
 
                 {/* Sección: Análisis Audio */}

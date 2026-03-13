@@ -12,6 +12,7 @@ export type {
     TipoReaccion,
     NotaMusical,
     EscalaMusical,
+    ExtraccionSample,
 } from './sample';
 
 export type {

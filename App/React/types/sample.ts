@@ -106,6 +106,28 @@ export interface Sample {
     relacionSampleoId?: number | null;
     /* QQ79: Datos enriquecidos de la cancion de origen */
     cancionOrigen?: { titulo: string; slug: string } | null;
+    /* QQ117: Metadatos de extraccion (fuente, timing, metodo descarga) */
+    extraccion?: ExtraccionSample | null;
+}
+
+/* QQ117: Metadata de extraccion vinculada desde cola_extraccion_samples */
+export interface ExtraccionSample {
+    youtubeId: string | null;
+    spotifyId: string | null;
+    timingInicioSeg: number | null;
+    bpmDetectado: number | null;
+    duracionCompasSeg: number | null;
+    compasInicioSeg: number | null;
+    compasFinSeg: number | null;
+    lado: string | null;
+    estado: string | null;
+    rutaAudioExtraido: string | null;
+    fuenteUrl: string | null;
+    fuenteTitulo: string | null;
+    fuenteArtista: string | null;
+    descargaMetodo: string | null;
+    origen: string | null;
+    ladoExtraccion: string | null;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */
