@@ -19,6 +19,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Database\Repositories\DuplicadosPendientesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\DuplicadosPendientesEnums;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\KamplesLogger;
@@ -90,6 +91,9 @@ class DuplicadosController
 
             $duplicados = DuplicadosPendientesRepository::listar($estado, $tipo, $pagina, $porPagina);
             $total = DuplicadosPendientesRepository::contarPendientes();
+
+            /* Convertir rutas filesystem a URLs HTTP para previews de audio */
+            $duplicados = array_map([self::class, 'normalizarRutasPreview'], $duplicados);
 
             return new \WP_REST_Response([
                 'ok' => true,
@@ -231,5 +235,24 @@ class DuplicadosController
             KamplesLogger::error('DuplicadosController: Error en backfill', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
+    }
+
+    /*
+     * Convierte rutas filesystem a URLs HTTP para ambos lados de un duplicado.
+     * Usa ruta_original como fallback si ruta_preview no existe (samples
+     * marcados como duplicado antes de que el pipeline genere el preview).
+     */
+    private static function normalizarRutasPreview(array $row): array
+    {
+        $row['original_ruta_preview'] = NormalizadorSample::rutaAUrl(
+            $row['original_ruta_preview'] ?? $row['original_ruta_original'] ?? ''
+        );
+        $row['duplicado_ruta_preview'] = NormalizadorSample::rutaAUrl(
+            $row['duplicado_ruta_preview'] ?? $row['duplicado_ruta_original'] ?? ''
+        );
+        /* No exponer rutas filesystem al frontend */
+        unset($row['original_ruta_original'], $row['duplicado_ruta_original']);
+
+        return $row;
     }
 }

@@ -50,13 +50,18 @@ class PipelineAudio
      * @param array $tagsUsuario Tags proporcionados por el usuario (#hashtags)
      * @throws \RuntimeException Si FFmpeg no está disponible
      */
-    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = []): void
+    /**
+     * @param bool $omitirDedup Si true, salta la verificacion de duplicados en paso 2.5.
+     *  Usado al reprocesar un sample aprobado por admin desde el panel de duplicados.
+     */
+    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false): void
     {
         KamplesLogger::info("Pipeline: Iniciando procesamiento", [
             'sampleId' => $sampleId,
             'archivo' => \basename($rutaArchivo),
             'idCorto' => $idCorto,
             'tagsCount' => \count($tagsUsuario),
+            'omitirDedup' => $omitirDedup,
         ]);
 
         /* Paso 0: Verificar FFmpeg (OBLIGATORIO) */
@@ -113,6 +118,9 @@ class PipelineAudio
 
         if ($hashArchivo) {
             $actualizaciones['audio_hash'] = $hashArchivo;
+
+            /* Saltar verificacion de duplicados si el sample fue aprobado por admin */
+            if (!$omitirDedup) {
             $duplicados = SamplesRepository::buscarConHash($hashArchivo, $sampleId);
 
             if (!empty($duplicados)) {
@@ -196,6 +204,7 @@ class PipelineAudio
 
                 return;
             }
+            } /* fin if (!$omitirDedup) */
         }
 
         /* Paso 3: Análisis creativo — tags, emociones, etc. con IA (Gemini + Groq fallback) */

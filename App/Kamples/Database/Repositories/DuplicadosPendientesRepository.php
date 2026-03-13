@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\DescargasCols;
+use App\Kamples\Services\ReprocesadorPostDuplicado;
 
 class DuplicadosPendientesRepository extends BaseRepository
 {
@@ -86,6 +87,7 @@ class DuplicadosPendientesRepository extends BaseRepository
                 so." . SamplesCols::AUDIO_HASH . " AS original_hash,
                 so." . SamplesCols::ESTADO . " AS original_estado,
                 so." . SamplesCols::RUTA_PREVIEW . " AS original_ruta_preview,
+                so." . SamplesCols::RUTA_ORIGINAL . " AS original_ruta_original,
                 so." . SamplesCols::SLUG . " AS original_slug,
                 so." . SamplesCols::CREADOR_ID . " AS original_creador_id,
                 so." . SamplesCols::PUBLICADO_AT . " AS original_subido_at,
@@ -95,6 +97,7 @@ class DuplicadosPendientesRepository extends BaseRepository
                 sd." . SamplesCols::AUDIO_HASH . " AS duplicado_hash,
                 sd." . SamplesCols::ESTADO . " AS duplicado_estado,
                 sd." . SamplesCols::RUTA_PREVIEW . " AS duplicado_ruta_preview,
+                sd." . SamplesCols::RUTA_ORIGINAL . " AS duplicado_ruta_original,
                 sd." . SamplesCols::SLUG . " AS duplicado_slug,
                 sd." . SamplesCols::CREADOR_ID . " AS duplicado_creador_id,
                 sd." . SamplesCols::PUBLICADO_AT . " AS duplicado_subido_at,
@@ -140,6 +143,8 @@ class DuplicadosPendientesRepository extends BaseRepository
 
     /**
      * Aprobar: ambos samples coexisten (no es duplicado real).
+     * Restaura el sample duplicado a 'procesando' y programa el pipeline completo
+     * (omitiendo dedup) para generar preview, waveform, IA tags, etc.
      */
     public static function aprobar(int $registroId, int $adminId): bool
     {
@@ -147,6 +152,21 @@ class DuplicadosPendientesRepository extends BaseRepository
         if (!$registro || $registro[DuplicadosPendientesCols::ESTADO] !== DuplicadosPendientesEnums::ESTADO_PENDIENTE) {
             return false;
         }
+
+        /*
+         * El sample duplicado fue interrumpido en el pipeline (paso 2.5) antes de generar
+         * preview, waveform, IA tags, etc. Restaurar a 'procesando' y re-encolar pipeline.
+         */
+        $duplicadoId = (int) $registro[DuplicadosPendientesCols::SAMPLE_DUPLICADO_ID];
+        $tSamples = SamplesCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$tSamples} SET " . SamplesCols::ESTADO . " = :estado WHERE " . SamplesCols::ID . " = :id",
+            ['estado' => SamplesEnums::ESTADO_PROCESANDO, 'id' => $duplicadoId]
+        );
+
+        /* Programar re-procesamiento en background (5s de delay para evitar colision) */
+        \wp_schedule_single_event(\time() + 5, ReprocesadorPostDuplicado::HOOK, [$duplicadoId]);
+
         return static::marcarResuelto($registroId, $adminId, DuplicadosPendientesEnums::ESTADO_APROBADO);
     }
 

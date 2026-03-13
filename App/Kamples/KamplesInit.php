@@ -21,6 +21,7 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\Services\PublicadorExtraccion;
+use App\Kamples\Services\ReprocesadorPostDuplicado;
 use App\Kamples\Servicios\ServicioPapelera;
 
 class KamplesInit
@@ -53,6 +54,9 @@ class KamplesInit
 
         /* Hook para deduplicación de audio en background */
         DeduplicadorAudio::registrarHook();
+
+        /* QQ116: Hook para reprocesar samples aprobados desde panel de duplicados */
+        ReprocesadorPostDuplicado::registrarHook();
 
         /* Cron para recálculos temporales del algoritmo (C45) */
         self::registrarCronAlgoritmo();
