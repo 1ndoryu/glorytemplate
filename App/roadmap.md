@@ -418,9 +418,9 @@ tambien hay un problema, cuando se ejecuta el comando que crea los repositories,
 
 Sigo sin ver el favicon de kamples y veo es el de wordpress.
 
-## QQ95 
+## QQ95 ✅ [AG-QQF]
 
-La imagen de portada no cambia, la foto de perfil si pero no la portada.
+La imagen de portada no cambiaba porque el frontend solo creaba un blob URL local pero nunca subía el archivo al servidor. **Fix completo:** Backend: nuevo endpoint `POST /me/portada` en PerfilController (validación MIME, 10MB max, optimización 70%/1920px, guarda en uploads/kamples/portadas/{userId}/). `UsuariosExtRepository::actualizarPortada()` nuevo método. Frontend: `subirPortada()` en apiAuth.ts (FormData como avatar). `useModalConfiguracion`: se guarda `portadaArchivo` (File) y se sube en `manejarGuardar()` antes de actualizar perfil. Archivos: PerfilController.php, UsuariosExtRepository.php, apiAuth.ts, useModalConfiguracion.ts.
 
 ## QQ96
 

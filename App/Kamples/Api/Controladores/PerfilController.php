@@ -25,7 +25,7 @@ use App\Kamples\Services\ServicioSuspension;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Servicios\ServicioMedia;
 
-/* TO-DO: PerfilController excede 300 LOC (331). Extraer subirAvatar() a PerfilAvatarController o ServicioAvatar. */
+/* TO-DO: PerfilController excede 300 LOC (407). Extraer subirAvatar() y subirPortada() a PerfilMediaController separado. Prioridad alta. */
 class PerfilController
 {
     /*
@@ -66,6 +66,12 @@ class PerfilController
         register_rest_route($namespace, '/me/avatar', [
             'methods'             => 'POST',
             'callback'            => [self::class, 'subirAvatar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/me/portada', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'subirPortada'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
     }
@@ -437,6 +443,108 @@ class PerfilController
         ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('PerfilController::subirAvatar error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * POST /me/portada — Subir imagen de portada del perfil.
+     * Acepta FormData con campo 'portada' (imagen).
+     * Guarda en wp-content/uploads/kamples/portadas/{userId}/
+     * QQ95: endpoint faltante — portada nunca se subía al servidor.
+     */
+    public static function subirPortada(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+            $pgId = UsuarioHelper::obtenerIdPg();
+            if ($pgId) {
+                $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+                if ($cuentaResp) return $cuentaResp;
+            }
+
+            $files = $request->get_file_params();
+
+            if (empty($files['portada'])) {
+                return new \WP_REST_Response([
+                    'code' => 'sin_archivo',
+                    'message' => 'No se recibió ninguna imagen de portada.',
+                ], 400);
+            }
+
+            $uploaded = $files['portada'];
+
+            if (($uploaded['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+                return new \WP_REST_Response([
+                    'code' => 'error_subida',
+                    'message' => 'Error al recibir el archivo. Código: ' . ($uploaded['error'] ?? 'desconocido'),
+                ], 400);
+            }
+
+            /* Validar tipo MIME */
+            $tiposPermitidos = ['image/jpeg', 'image/png', 'image/webp'];
+            $mimeReal = \mime_content_type($uploaded['tmp_name']);
+            if (!in_array($mimeReal, $tiposPermitidos, true)) {
+                return new \WP_REST_Response([
+                    'code' => 'tipo_invalido',
+                    'message' => 'Solo se permiten imágenes (JPEG, PNG, WebP).',
+                ], 400);
+            }
+
+            /* Validar tamaño (máx 10MB — portadas son más grandes que avatares) */
+            if ($uploaded['size'] > 10 * 1024 * 1024) {
+                return new \WP_REST_Response([
+                    'code' => 'archivo_muy_grande',
+                    'message' => 'La imagen de portada no puede superar 10 MB.',
+                ], 400);
+            }
+
+            /* Directorio de destino */
+            $uploadDir = \wp_upload_dir();
+            $portadaDir = $uploadDir['basedir'] . '/kamples/portadas/' . $wpUserId;
+            if (!\file_exists($portadaDir)) {
+                \wp_mkdir_p($portadaDir);
+            }
+
+            /* Generar nombre único */
+            $ext = \pathinfo($uploaded['name'], PATHINFO_EXTENSION) ?: 'jpg';
+            $nombre = 'portada_' . time() . '.' . $ext;
+            $rutaFinal = $portadaDir . '/' . $nombre;
+
+            /* Mover archivo */
+            if (!\move_uploaded_file($uploaded['tmp_name'], $rutaFinal)) {
+                return new \WP_REST_Response([
+                    'code' => 'error_subida',
+                    'message' => 'No se pudo guardar la imagen.',
+                ], 500);
+            }
+
+            /* Optimizar (misma calidad que publicaciones — portada es decorativa) */
+            ServicioMedia::optimizarImagen(
+                $rutaFinal,
+                ServicioMedia::CALIDAD_PUBLICACION,
+                ServicioMedia::DIMENSION_PUBLICACION
+            );
+
+            /* Construir URL pública */
+            $portadaUrl = $uploadDir['baseurl'] . '/kamples/portadas/' . $wpUserId . '/' . $nombre;
+
+            /* Actualizar en BD */
+            UsuariosExtRepository::actualizarPortada($wpUserId, $portadaUrl);
+
+            /* Devolver perfil completo actualizado */
+            $wpUser = AuthMiddleware::obtenerUsuarioActual();
+            $extData = UsuariosExtRepository::buscarPorWpId($wpUserId);
+            $normalizado = self::normalizarUsuario(array_merge($wpUser ?? [], $extData ?? []));
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $normalizado,
+                'portadaUrl' => $portadaUrl,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::subirPortada error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
         }
     }

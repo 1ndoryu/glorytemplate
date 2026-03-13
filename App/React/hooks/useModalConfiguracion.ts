@@ -7,7 +7,7 @@
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { actualizarPerfil, subirAvatar } from '@app/services/apiAuth';
+import { actualizarPerfil, subirAvatar, subirPortada } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
 import type { UsuarioAutenticado } from '@app/types';
 import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
@@ -33,6 +33,7 @@ export function useModalConfiguracion() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [avatarArchivo, setAvatarArchivo] = useState<File | null>(null);
     const [portadaPreview, setPortadaPreview] = useState<string | null>(null);
+    const [portadaArchivo, setPortadaArchivo] = useState<File | null>(null);
     const [guardando, setGuardando] = useState(false);
     const inputFotoRef = useRef<HTMLInputElement>(null);
     const inputPortadaRef = useRef<HTMLInputElement>(null);
@@ -47,6 +48,7 @@ export function useModalConfiguracion() {
             setAvatarPreview(null);
             setAvatarArchivo(null);
             setPortadaPreview(null);
+            setPortadaArchivo(null);
             setSeccionActiva('perfil');
         }
     }, [abierto, usuario]);
@@ -71,6 +73,7 @@ export function useModalConfiguracion() {
         if (!archivo) return;
         const url = URL.createObjectURL(archivo);
         setPortadaPreview(url);
+        setPortadaArchivo(archivo);
     }, []);
 
     const manejarGuardar = useCallback(async () => {
@@ -84,6 +87,16 @@ export function useModalConfiguracion() {
                     const datos = (respAvatar.data as Record<string, unknown>).data ?? respAvatar.data;
                     setUsuario(datos as UsuarioAutenticado);
                     log.info('Avatar subido correctamente');
+                }
+            }
+
+            /* QQ95: Subir portada al servidor (antes solo se guardaba blob local) */
+            if (portadaArchivo) {
+                const respPortada = await subirPortada(portadaArchivo);
+                if (respPortada.ok && respPortada.data) {
+                    const datos = (respPortada.data as Record<string, unknown>).data ?? respPortada.data;
+                    setUsuario(datos as UsuarioAutenticado);
+                    log.info('Portada subida correctamente');
                 }
             }
 
@@ -105,13 +118,14 @@ export function useModalConfiguracion() {
 
         setGuardando(false);
         cerrar();
-    }, [guardando, usuario, nombreVisible, username, bio, sitioWeb, avatarArchivo, setUsuario, cerrar]);
+    }, [guardando, usuario, nombreVisible, username, bio, sitioWeb, avatarArchivo, portadaArchivo, setUsuario, cerrar]);
 
     const manejarCerrar = useCallback(() => {
         if (guardando) return;
         cerrar();
         setAvatarPreview(null);
         setPortadaPreview(null);
+        setPortadaArchivo(null);
     }, [cerrar, guardando]);
 
     const avatarActual = avatarPreview || usuario?.avatarUrl || null;

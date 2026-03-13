@@ -40,6 +40,16 @@ export const subirAvatar = async (archivo: File) => {
 };
 
 /*
+ * Sube una imagen de portada del perfil.
+ * QQ95: endpoint faltante — portada no se subía al servidor.
+ */
+export const subirPortada = async (archivo: File) => {
+    const formData = new FormData();
+    formData.append('portada', archivo);
+    return apiPostFormData<{ ok: boolean; data: UsuarioAutenticado; portadaUrl: string }>('/me/portada', formData);
+};
+
+/*
  * Login con credenciales (delega a WP).
  * TO-DO: implementar cuando tengamos auth custom.
  */

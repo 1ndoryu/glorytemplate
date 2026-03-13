@@ -221,6 +221,21 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
+     * Actualizar portada_url de un usuario.
+     * QQ95: endpoint /me/portada guarda la URL de la imagen de portada.
+     */
+    public static function actualizarPortada(int $wpUserId, string $portadaUrl): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::PORTADA_URL . " = :portada, "
+            . UsuariosExtCols::UPDATED_AT . " = NOW() WHERE " . UsuariosExtCols::WP_USER_ID . " = :wpId",
+            ['portada' => $portadaUrl, 'wpId' => $wpUserId]
+        );
+    }
+
+    /*
      * Crear registro de usuario desde datos de WordPress.
      * Retorna el ID generado.
      */
