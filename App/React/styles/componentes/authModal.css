@@ -137,33 +137,12 @@
     color: var(--acentoHover);
 }
 
-/* Botón Google OAuth */
-.authGoogleBtn {
+/* QK5: Contenedor para el botón de Google renderizado por GSI */
+.authGoogleBtnContenedor {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: var(--espacioSm);
     width: 100%;
-    padding: var(--espacioSm) var(--espacioLg);
-    border-radius: var(--radioMd);
-    border: 1px solid var(--bordeSutil);
-    background-color: var(--fondoElevado2);
-    color: var(--textoPrimario);
-    font-size: var(--fuenteMd);
-    font-weight: var(--pesoMedium);
-    cursor: pointer;
-    transition: all var(--transicionRapida);
-}
-
-.authGoogleBtn:hover {
-    background-color: var(--fondoElevado3);
-    border-color: var(--bordeActivo);
-}
-
-.authGoogleBtn svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
+    min-height: 44px;
 }
 
 /* Separador "o" entre Google y formulario */

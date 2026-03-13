@@ -3,9 +3,13 @@
  * Carga dinámicamente Google Identity Services y gestiona el flujo OAuth.
  * Usa el enfoque de credential (ID token) para autenticación segura.
  * El ID token se valida server-side en POST /auth/google.
+ *
+ * QK5: Usa renderButton() como mecanismo principal (abre popup, funciona
+ * en incógnito). prompt() (One Tap) se mantiene como mejora UX opcional
+ * para usuarios con sesión Google activa + cookies habilitadas.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { crearLogger } from '../services/logger';
 
 const log = crearLogger('useGoogleAuth');
@@ -27,6 +31,14 @@ interface GoogleAccounts {
             cancel_on_tap_outside?: boolean;
         }) => void;
         prompt: (notification?: (n: { isNotDisplayed: () => boolean }) => void) => void;
+        renderButton: (parent: HTMLElement, options: {
+            type?: 'standard' | 'icon';
+            theme?: 'outline' | 'filled_blue' | 'filled_black';
+            size?: 'large' | 'medium' | 'small';
+            text?: 'signin_with' | 'signup_with' | 'continue_with';
+            logo_alignment?: 'left' | 'center';
+            width?: number;
+        }) => void;
     };
 }
 
@@ -48,13 +60,15 @@ function obtenerClientId(): string | null {
 }
 
 /**
- * Hook que inicializa Google Identity Services y expone un método
- * para disparar el flujo OAuth. Retorna el credential (ID token)
- * vía el callback proporcionado.
+ * Hook que inicializa Google Identity Services y expone:
+ * - botonContenedorRef: callback ref para renderizar el botón de Google
+ *   (popup nativo, funciona en incógnito sin third-party cookies).
+ * - disparar: dispara One Tap (opcional, solo funciona con cookies activas).
  */
 export function useGoogleAuth(onCredential: (credential: string) => void) {
     const inicializadoRef = useRef(false);
     const callbackRef = useRef(onCredential);
+    const [gsiListo, setGsiListo] = useState(false);
     callbackRef.current = onCredential;
 
     useEffect(() => {
@@ -78,6 +92,7 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
                 cancel_on_tap_outside: true,
             });
             inicializadoRef.current = true;
+            setGsiListo(true);
             log.debug('Google Identity Services inicializado');
         };
 
@@ -103,6 +118,24 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
         document.head.appendChild(script);
     }, []);
 
+    /*
+     * QK5: Callback ref que renderiza el botón de Google cuando el nodo DOM
+     * existe Y GSI está listo. renderButton crea un botón que al hacer click
+     * abre un popup nativo de Google — funciona en incógnito sin third-party cookies.
+     * Al cambiar gsiListo, React re-invoca el callback con el nodo → renderiza.
+     */
+    const botonContenedorRef = useCallback((nodo: HTMLDivElement | null) => {
+        if (!nodo || !gsiListo || !window.google?.accounts?.id) return;
+        window.google.accounts.id.renderButton(nodo, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+            text: 'continue_with',
+            logo_alignment: 'left',
+            width: 300,
+        });
+    }, [gsiListo]);
+
     /**
      * Dispara el popup de Google One Tap / Sign In.
      * Si GSI no está disponible, no hace nada (graceful degradation).
@@ -119,5 +152,5 @@ export function useGoogleAuth(onCredential: (credential: string) => void) {
         });
     }, []);
 
-    return { disparar };
+    return { disparar, botonContenedorRef };
 }

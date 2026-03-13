@@ -41,63 +41,62 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 ## Tareas nuevas a organizar y hacer
 
 
-## QK1 [EN CURSO — AG-DSK]
+## QK1 ✅ [AG-DSK]
 
-La aplicacion de escritorio sigue fallando con el inicio de sesion, deslogea pero nunca se deslogea de verdad, a recargar parece cargar el usuario anteiror, la foto perfil el sync no carga y el console log esta plagadado de 401, esto funciona falta
+**Solución:** Auditía profunda del flujo de logout. Root causes: (1) `cerrarSesionDesktop()` no llamaba `detenerSyncBidireccional()` — el sync watcher seguía polling con token null → cascada de 401. (2) `GLORY_CONTEXT.isLoggedIn` no se limpiaba → el sistema detectaba usuario anterior al recargar. (3) Stores con datos de usuario (tooltipPerfil, notificaciones, mensajes, reproducidos) no se limpiaban al logout → datos del usuario anterior persistían.
+- Archivos: `authDesktopService.ts`, `useAuth.ts`, `tooltipPerfilStore.ts`
+- [logout]: Siempre detener sync watcher ANTES de limpiar tracking. Sin esto, polling con token null → 401 infinito.
+- [GLORY_CONTEXT]: Al hacer logout en desktop, limpiar `isLoggedIn` y `userId` del contexto global.
+- [stores cleanup]: Al hacer logout, limpiar cache de tooltipPerfil, vaciar notificaciones, mensajes, reproducidos.
 
-ESTO NECESITA UNA AUDITORIA PROFUNDA PARA QUE NO HAYA FALLOS CON EL SYNC; CERRAR SESION LO MEJOR ES QUE TODO SE BORRE DESDE CERO NO SE PERO SIGO VIENDO HISTORIAL DEL USUARIO ANTERIO Y AL RECARGAR VEO COMO S FUERA EL USUARIO ANTERIOR 
+## QK2 ✅ [AG-DSK]
 
-LA PAGINA DE MUSICA NO CARGA EN LA APLICACION; LO DE¿Cuáles son tus géneros favoritos? Sale a cada rato supongo que es por el mismo problema
+**Solución:** `tooltipPerfilStore` cacheaba perfiles (incluyendo estado `siguiendo`) y nunca los invalidaba tras follow/unfollow. Añadido `invalidarCache(username)` al store y llamada en `manejarSeguir()` de `useTooltipPerfil.ts` cuando la API retorna `ok`. El próximo hover re-fetchea datos frescos.
+- Archivos: `tooltipPerfilStore.ts`, `useTooltipPerfil.ts`
+- [cache invalidation]: Tras follow/unfollow exitoso, invalidar el perfil específico del cache para forzar re-fetch.
 
-El peefil me acabo de dar cuenta que me sale es el correcto pero 
-
-Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncLogger.ts:108 [sync:syncWatcher] Reconciliación de descargas: 1773438176s sin sync completa, forzando 
-:1420/wp-json/kamples/v1/me/sync/colecciones?_t=1773438176169:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
-obtenerColeccionesDelServidor @ syncCollectionService.ts:296
-:1420/:1 [Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
-:1420/wp-json/kamples/v1/me/sync/colecciones?_t=1773438176483:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
-obtenerColeccionesDelServidor @ syncCollectionService.ts:296
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-avatar_1771208514.jpg:1   Failed to load resource: the server responded with a status of 404 (Not Found)
-:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/perfil/admin:1   Failed to load resource: the server responded with a status of 404 (Not Found)
-:1420/wp-json/kamples/v1/perfil/admin:1   Failed to load resource: the server responded with a status of 404 (Not Found)
-avatar_1771208514.jpg:1   Failed to load resource: the server responded with a status of 404 (Not Found)
-
-## QK2 [EN CURSO — AG-DSK]
-
-El modal de usuario para seguir odnde muestra la info al hacer hover, al seguir, y volver a hacer hover sale boton para seguir cuando ya se sigio, es decir. No se actualiza
-
-## QK3
+## QK3 [EN CURSO — AG-DSK]
 
 ¿Cuáles son tus géneros favoritos? a veces sale por un momento al iniciar sesion cuando debería de salir una sola vez.
 
-## QK4
+## QK4 [EN CURSO — AG-DSK]
 
 Plan 'pro' no tiene price_id configurado (el price es price_1SgsPECdHJpmDkrr0uHyUYLj) asegurate de que las env que tenemos aca en local esten produccion
 
 tambien he configurado el websocket como https://kamples.com/wp-json/glory/v1/stripe/kamples , he puesto GLORY_STRIPE_WEBHOOK_SECRET en el env local
 
-## QK5
+## QK5 [EN CURSO — AG-DSK]
 
 El inicio de sesion de google solo funciona si ya estas logeado, aparecen las cuentas en las esquinas pero no funciona en incognito, a dar click al boton no hace nada.
 
+## QK6
 
+Lo de ¿Cuáles son tus géneros favoritos? no se actualiza ni guarda en la aplicacion 
 
+sigue saliendo 
 
+Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+logger.ts:82  [Kamples] 17:58:58 [ERROR] ModalGeneros: Error guardando generos Lo siento, no tienes permisos para hacer eso.
+error @ logger.ts:82
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+logger.ts:82  [Kamples] 17:59:01 [ERROR] ModalGeneros: Error guardando generos Lo siento, no tienes permisos para hacer eso.
 
+a recargar la aplicacion nada funciona hasta la imagen de perfil desaparece
 
+## QK7
 
+Los recortes se estan haciendo pero no se estan publicando, el problema anterior es simlar o igual a qq127, tu solucion fue
 
+" ## QQ127 ✅ [AG-SCR] Implementado `disableWpCron` en coolify-manager-rs: nuevo campo `bool` en `SiteConfig`, propagado a `update_glory_theme()`, funcion `ensure_wp_cron_disabled()` inyecta `define('DISABLE_WP_CRON', true)` en wp-config.php si no existe. Configurado `"disableWpCron": true` para sitio kamples en settings.json. Binario recompilado ok."
 
-
+pero dejo de funcionar no se si es por que volvio el error o es otra cosa.
 
 
 

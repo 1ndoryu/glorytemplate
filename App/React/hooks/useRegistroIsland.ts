@@ -13,7 +13,7 @@ export const useRegistroIsland = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmarPassword, setConfirmarPassword] = useState('');
-    const { cargando, error, registrar, iniciarSesionGoogle } = useAuth();
+    const { cargando, error, registrar, iniciarSesionGoogle, googleBotonRef } = useAuth();
 
     const manejarSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
@@ -40,6 +40,7 @@ export const useRegistroIsland = () => {
         cargando,
         error,
         iniciarSesionGoogle,
+        googleBotonRef,
         manejarSubmit,
         errorPassword,
     };

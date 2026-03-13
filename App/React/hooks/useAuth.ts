@@ -226,7 +226,7 @@ export const useAuth = () => {
     }, [setUsuario]);
 
     /* GSI: disparar popup de Google Sign-In */
-    const { disparar: dispararGoogle } = useGoogleAuth(manejarCredencialGoogle);
+    const { disparar: dispararGoogle, botonContenedorRef: googleBotonRef } = useGoogleAuth(manejarCredencialGoogle);
 
     const iniciarSesionGoogle = useCallback(() => {
         log.info('Iniciando flujo OAuth Google');
@@ -266,6 +266,7 @@ export const useAuth = () => {
         iniciarSesion,
         registrar,
         iniciarSesionGoogle,
+        googleBotonRef,
         logout,
     };
 };

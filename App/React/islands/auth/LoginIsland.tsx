@@ -7,7 +7,6 @@ import { useState, type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
-import { IconoGoogle } from '../../components/ui/IconoGoogle';
 import { GloryLink } from '@/core/router';
 import { useAuth } from '../../hooks/useAuth';
 import '../../styles/componentes/login.css';
@@ -15,7 +14,7 @@ import '../../styles/componentes/login.css';
 export const LoginIsland = (): JSX.Element => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion, iniciarSesionGoogle } = useAuth();
+    const { cargando, error, iniciarSesion, googleBotonRef } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -35,15 +34,9 @@ export const LoginIsland = (): JSX.Element => {
                     Descubre los mejores samples del mundo
                 </p>
 
-                <BotonBase variante="ghost"
-                    className="loginGoogleBtn"
-                    onClick={iniciarSesionGoogle}
-                    disabled={cargando}
-                    type="button"
-                >
-                    <IconoGoogle />
-                    Continuar con Google
-                </BotonBase>
+                {/* QK5: Botón de Google renderizado por GSI — abre popup nativo,
+                 * funciona en incógnito sin third-party cookies. */}
+                <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
 
                 <div className="loginSeparador">o</div>
 

@@ -6,7 +6,6 @@
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
-import { IconoGoogle } from '../../components/ui/IconoGoogle';
 import { GloryLink } from '@/core/router';
 import { useRegistroIsland } from '../../hooks/useRegistroIsland';
 import '../../styles/componentes/login.css';
@@ -25,7 +24,7 @@ export const RegistroIsland = (): JSX.Element => {
         setConfirmarPassword,
         cargando,
         error,
-        iniciarSesionGoogle,
+        googleBotonRef,
         manejarSubmit,
         errorPassword,
     } = useRegistroIsland();
@@ -43,15 +42,9 @@ export const RegistroIsland = (): JSX.Element => {
                     Empieza a descubrir y compartir samples
                 </p>
 
-                <BotonBase variante="ghost"
-                    className="loginGoogleBtn"
-                    onClick={iniciarSesionGoogle}
-                    disabled={cargando}
-                    type="button"
-                >
-                    <IconoGoogle />
-                    Registrarse con Google
-                </BotonBase>
+                {/* QK5: Botón de Google renderizado por GSI — abre popup nativo,
+                 * funciona en incógnito sin third-party cookies. */}
+                <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
 
                 <div className="loginSeparador">o</div>
 
