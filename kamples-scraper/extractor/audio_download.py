@@ -769,6 +769,13 @@ def _descargar_youtube(
 ) -> str | None:
     """Descargar audio de YouTube con estrategia progresiva y soporte proxy.
 
+    IMPORTANTE: NUNCA usar proxy para descargar videos/audio de YouTube.
+    El proxy residencial (DataImpulse) cambia IP entre la request de metadata
+    y la descarga del CDN (googlevideo), causando ~67% de fallos por request.
+    El fallback multi-fuente (SoundCloud + Deezer + Spotify) compensa sin
+    el costo de bandwidth del proxy. Si la IP del VPS esta flaggeada, las
+    alternativas cubren la gran mayoria de tracks.
+
     Orden de preferencia:
     1. Sin cookies, sin explicit client: yt-dlp auto-selecciona android_vr
        como cliente primario. Funciona para contenido publico sin restricciones.
