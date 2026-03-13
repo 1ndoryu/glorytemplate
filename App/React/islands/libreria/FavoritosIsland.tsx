@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useCallback } from 'react';
+import type { SampleResumen } from '@app/types';
 import { Heart, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
@@ -58,7 +59,7 @@ const FavoritosBase = (): JSX.Element => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
 
-    const manejarClickTitulo = useCallback((sample: import('@app/types').SampleResumen) => {
+    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
         abrirDetalle(sample);
     }, [abrirDetalle]);
 

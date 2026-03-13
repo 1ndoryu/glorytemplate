@@ -280,9 +280,9 @@
 
 .crearCondicionActiva, .crearCondicionPremium, .crearCondicionPrecio  {
     border-color: var(--acento);
-    color: #4a665b !important;
+    color: var(--acento) !important;
     background-color: var(--fondoElevado3);
-    background: #4a665b1a !important;
+    background: var(--acentoMuted) !important;
 }
 
 

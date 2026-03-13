@@ -236,12 +236,12 @@
 
 /* QQ16: Boton Solo Pro (Crown) para samples premium sin precio */
 .tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionPro {
-    color: var(--advertencia, #e6a817);
+    color: var(--advertencia);
 }
 
 .tarjetaAcciones .botonBase.tarjetaAccionBtn.tarjetaAccionPro:hover {
     color: var(--blanco);
-    background: var(--advertencia, #e6a817);
+    background: var(--advertencia);
 }
 
 .tarjetaAccionDescargado:hover {

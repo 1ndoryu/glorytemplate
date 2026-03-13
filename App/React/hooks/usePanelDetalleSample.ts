@@ -86,7 +86,7 @@ export function usePanelDetalleSample(sample: SampleResumen) {
             const ctx = new AudioContext();
             try {
                 const resp = await fetch(sample.rutaPreview, { signal: controller.signal });
-                if (!resp.ok) throw new Error();
+                if (!resp.ok) throw new Error('Error al obtener picos de audio');
                 const buf = await resp.arrayBuffer();
                 const decoded = await ctx.decodeAudioData(buf.slice(0));
                 if (controller.signal.aborted) return;

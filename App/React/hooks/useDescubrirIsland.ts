@@ -1,132 +1,108 @@
 /*
- * Hook: useDescubrirIsland
- * Lógica extraída de DescubrirIsland (SRP).
- * Gestiona carga de secciones feed y likes optimistic sobre todas las secciones.
- * Preserva patrón cancelado/cleanup de sesión anterior.
+ * Hook: useDescubrirIsland (QQ88)
+ * Lógica extraída de DescubrirIsland para cumplir SRP (max 3 useState en componente).
+ * Gestiona ordenamiento, filtros avanzados, panel lateral y proveedor de FeedSamples.
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, Flame, Clock } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { obtenerFeed } from '@app/services/apiSamples';
-import { darLike, quitarLike } from '@app/services/apiSocial';
-import type { TipoReaccion, SampleResumen } from '@app/types';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
+import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useNavigationStore } from '@/core/router';
-import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
-import { requiereAuth } from '@app/utils/requiereAuth';
-import React from 'react';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+import { useAuthStore } from '@app/stores/authStore';
+import { useHistorialIds } from '@app/hooks/useHistorialIds';
+import { useFiltroIds } from '@app/hooks/useFiltroIds';
+import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
+import type { SampleResumen } from '@app/types';
 
-interface SeccionDescubrir {
-    id: string;
-    titulo: string;
-    icono: React.ReactNode;
-    samples: SampleResumen[];
-}
+const TABS_DESCUBRIR = [{ id: 'descubrir', etiqueta: 'Explorar' }];
 
 export const useDescubrirIsland = () => {
-    const [secciones, setSecciones] = useState<SeccionDescubrir[]>([]);
-    const [cargando, setCargando] = useState(true);
+    const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+    const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
+    const [totalServidor, setTotalServidor] = useState(0);
+    const [conteoFiltrado, setConteoFiltrado] = useState(0);
 
-    const navegar = useNavigationStore(s => s.navegar);
-    const menu = useMenuContextualSample();
+    const autenticado = useAuthStore(s => s.autenticado);
+    const busqueda = useFiltrosStore(s => s.busqueda);
+    const ordenamiento = useFiltrosStore(s => s.ordenamiento);
+    const periodoDestacados = useFiltrosStore(s => s.periodoDestacados);
+    const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
+    const likeados = useFiltrosStore(s => s.likeados);
+    const deSeguidos = useFiltrosStore(s => s.deSeguidos);
+    const descargados = useFiltrosStore(s => s.descargados);
+    const setOrdenamiento = useFiltrosStore(s => s.setOrdenamiento);
+    const setPeriodoDestacados = useFiltrosStore(s => s.setPeriodoDestacados);
+    const habilitarPanel = usePanelLateralStore(s => s.habilitar);
+    const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
 
-    /* Like con optimistic UI sobre todas las secciones */
-    const manejarLike = useCallback(
-        async (sampleId: number, reaccion?: TipoReaccion) => {
-            if (!requiereAuth()) return;
-            const todas = secciones.flatMap((s) => s.samples);
-            const sample = todas.find((s) => s.id === sampleId);
+    useUrlFiltros();
 
-            const actualizarSecciones = (transformar: (s: SampleResumen) => SampleResumen) =>
-                setSecciones((prev) =>
-                    prev.map((sec) => ({
-                        ...sec,
-                        samples: sec.samples.map((s) => (s.id === sampleId ? transformar(s) : s)),
-                    }))
-                );
-
-            /* Snapshot para rollback */
-            const snapshot = secciones;
-
-            try {
-                if (reaccion) {
-                    const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                    const esPositivo = reaccion !== 'dislike';
-                    const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-                    actualizarSecciones((s) => ({ ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }));
-                    await darLike('sample', sampleId, reaccion);
-                } else if (sample?.liked || sample?.reaccion) {
-                    const eraPositivo = sample?.reaccion === 'like' || sample?.reaccion === 'encanta';
-                    actualizarSecciones((s) => ({ ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }));
-                    await quitarLike('sample', sampleId);
-                } else {
-                    actualizarSecciones((s) => ({ ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }));
-                    await darLike('sample', sampleId, 'like');
-                }
-            } catch {
-                setSecciones(snapshot);
-            }
-        },
-        [secciones]
+    /* Filtros avanzados solo para autenticados */
+    const { idsReproducidos } = useHistorialIds(autenticado && yaReproducidos);
+    const { idsLikeados, idsDescargados, idsSeguidos } = useFiltroIds(
+        autenticado && likeados,
+        autenticado && descargados,
+        autenticado && deSeguidos
     );
 
-    /* Cargar secciones */
+    const idsExcluidosCombinados = useMemo(() => {
+        if (!autenticado) return undefined;
+        const set = new Set<number>();
+        if (yaReproducidos) idsReproducidos.forEach((id) => set.add(id));
+        if (likeados) idsLikeados.forEach((id) => set.add(id));
+        if (descargados) idsDescargados.forEach((id) => set.add(id));
+        return set.size > 0 ? set : undefined;
+    }, [autenticado, yaReproducidos, idsReproducidos, likeados, idsLikeados, descargados, idsDescargados]);
+
+    useTabsIsla('DescubrirIsland', TABS_DESCUBRIR, 'descubrir');
+
+    const islaActual = useNavigationStore(s => s.islaActual);
     useEffect(() => {
-        let cancelado = false;
-        const cargar = async () => {
-            setCargando(true);
-            try {
-                const [resTrending, resRecientes, resDescubrir] = await Promise.all([
-                    obtenerFeed('trending'),
-                    obtenerFeed('recientes'),
-                    obtenerFeed('descubrir'),
-                ]);
+        if (islaActual === 'DescubrirIsland') habilitarPanel();
+    }, [islaActual, habilitarPanel]);
+    useEffect(() => {
+        return () => deshabilitarPanel();
+    }, [deshabilitarPanel]);
 
-                if (cancelado) return;
-                const nuevasSecciones: SeccionDescubrir[] = [];
+    const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+        const tipo = ordenamiento === 'recientes' ? 'recientes'
+            : ordenamiento === 'destacados' ? 'trending'
+            : 'descubrir';
+        const resp = await obtenerFeed(tipo, pagina);
+        if (resp.total != null) setTotalServidor(resp.total);
+        return resp.ok && resp.data ? resp.data : [];
+    }, [ordenamiento]);
 
-                if (resDescubrir.ok && resDescubrir.data?.length) {
-                    nuevasSecciones.push({
-                        id: 'para-ti',
-                        titulo: 'Para ti',
-                        icono: React.createElement(Sparkles, { size: 18 }),
-                        samples: resDescubrir.data,
-                    });
-                }
+    const claveCache = `descubrir_${ordenamiento}_${periodoDestacados}`;
 
-                if (resTrending.ok && resTrending.data?.length) {
-                    nuevasSecciones.push({
-                        id: 'trending',
-                        titulo: 'Trending',
-                        icono: React.createElement(Flame, { size: 18 }),
-                        samples: resTrending.data,
-                    });
-                }
-
-                if (resRecientes.ok && resRecientes.data?.length) {
-                    nuevasSecciones.push({
-                        id: 'nuevos',
-                        titulo: 'Nuevos',
-                        icono: React.createElement(Clock, { size: 18 }),
-                        samples: resRecientes.data,
-                    });
-                }
-
-                if (!cancelado) setSecciones(nuevasSecciones);
-            } catch {
-                /* Fallo de carga — secciones quedan vacías */
-            } finally {
-                if (!cancelado) setCargando(false);
-            }
-        };
-        cargar();
-        return () => { cancelado = true; };
-    }, []);
+    const obtenerEtiquetaOrden = useCallback((): string => {
+        if (ordenamiento === 'destacados') {
+            return periodoDestacados === 'mes' ? 'Top Mensual' : 'Top Semanal';
+        }
+        return ordenamiento === 'recientes' ? 'Recientes' : 'Inteligente';
+    }, [ordenamiento, periodoDestacados]);
 
     return {
-        secciones,
-        cargando,
-        navegar,
-        menu,
-        manejarLike,
+        filtrosAbierto,
+        setFiltrosAbierto,
+        menuOrdenamiento,
+        setMenuOrdenamiento,
+        totalServidor,
+        conteoFiltrado,
+        setConteoFiltrado,
+        autenticado,
+        busqueda,
+        ordenamiento,
+        periodoDestacados,
+        setOrdenamiento,
+        setPeriodoDestacados,
+        deSeguidos,
+        idsSeguidos,
+        idsExcluidosCombinados,
+        proveedor,
+        claveCache,
+        obtenerEtiquetaOrden,
     };
 };

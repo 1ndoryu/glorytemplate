@@ -72,6 +72,7 @@ PageManager::reactPage('descargas', 'DescargasIsland');
 PageManager::reactPage('favoritos', 'FavoritosIsland');
 PageManager::reactPage('reproductor', 'ReproductorIsland');
 PageManager::reactPage('descubrir', 'DescubrirIsland');
+PageManager::reactPage('colecciones', 'ColeccionesIsland');
 PageManager::reactPage('planes', 'PlanesIsland');
 PageManager::reactPage('comunidad', 'ComunidadIsland');
 

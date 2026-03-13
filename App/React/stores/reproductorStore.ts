@@ -1,4 +1,8 @@
-﻿/*
+﻿/* 2UPRA */
+
+/* Algunas circunstancias las toleramos innecesariamente. Vivir evitando nuestro destino solo nos hace darnos cuenta de lo infelices que podemos llegar a ser recorriendo el camino que tomamos para huir de el. */
+
+/*
  * Store: reproductorStore  Kamples
  * Estado global del reproductor de audio.
  * Controla play/pause, contexto de navegacion, sample actual, volumen, progreso.

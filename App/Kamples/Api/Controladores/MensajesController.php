@@ -16,6 +16,7 @@ use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\MensajesEnums;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Database\Repositories\ConversacionesRepository;
+use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
@@ -271,7 +272,8 @@ class MensajesController
             'data' => [
                 'id' => (int) $convId, 'participante' => self::normalizarParticipante($otro),
                 'ultimoMensaje' => '', 'ultimoMensajeAt' => (new \DateTime())->format('c'),
-                'noLeidos' => 0, 'enLinea' => false,
+                'noLeidos' => 0, 'esMutuo' => FollowsRepository::sonMutuos($userId, $otroId),
+                'enLinea' => false,
             ]
         ], 201);
         } catch (\Throwable $e) {

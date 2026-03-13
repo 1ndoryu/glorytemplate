@@ -1,0 +1,107 @@
+/*
+ * coleccionesPublicas.css — Kamples (QQ88)
+ * Pagina publica de colecciones: cabecera con busqueda + grid responsive.
+ */
+
+.coleccionesPublicas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+    padding: var(--espacioLg);
+}
+
+/* Cabecera */
+.coleccionesPublicasCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.coleccionesPublicasTitulo {
+    font-size: var(--fuenteXl);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+/* Buscador inline */
+.coleccionesPublicasBuscador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    padding: var(--espacioXs) var(--espacioMd);
+    min-width: 200px;
+    max-width: 320px;
+    flex: 1;
+}
+
+.coleccionesPublicasBuscadorIcono {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.coleccionesPublicasBuscadorInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--textoPrimario);
+    font-size: var(--fuenteMd);
+    font-family: var(--fuentePrincipal);
+}
+
+.coleccionesPublicasBuscadorInput::placeholder {
+    color: var(--textoTerciario);
+}
+
+/* Grid de colecciones */
+.coleccionesPublicasGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--espacioMd);
+}
+
+/* Estado vacío */
+.coleccionesPublicasVacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    min-height: 300px;
+    color: var(--textoTerciario);
+    text-align: center;
+}
+
+.coleccionesPublicasVacio h2 {
+    font-size: var(--fuenteLg);
+    color: var(--textoSecundario);
+    font-weight: var(--pesoMedio);
+    margin: 0;
+}
+
+.coleccionesPublicasVacio p {
+    font-size: var(--fuenteSm);
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .coleccionesPublicasCabecera {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .coleccionesPublicasBuscador {
+        max-width: none;
+    }
+
+    .coleccionesPublicasGrid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+}

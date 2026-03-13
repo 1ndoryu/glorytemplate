@@ -22,6 +22,7 @@ export const NavPublico = (): JSX.Element => {
                 </GloryLink>
                 <div className="navPublicoEnlaces">
                     <GloryLink href="/descubrir/" className="navPublicoEnlace">Explorar</GloryLink>
+                    <GloryLink href="/colecciones/" className="navPublicoEnlace">Colecciones</GloryLink>
                     <GloryLink href="/musica/" className="navPublicoEnlace">Música</GloryLink>
                 </div>
             </div>

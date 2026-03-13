@@ -144,9 +144,8 @@ export const ShowcaseFormularios = ({ onToast }: Props): JSX.Element => {
                 <p className="showcaseSeccionDesc">Drag & drop para archivos de audio.</p>
 
                 <DropZone
-                    onArchivos={(archivos) => {
+                    onArchivos={() => {
                         onToast('exito');
-                        console.log('Archivos recibidos:', archivos);
                     }}
                 />
             </section>

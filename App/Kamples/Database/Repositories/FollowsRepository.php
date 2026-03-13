@@ -135,6 +135,23 @@ class FollowsRepository extends BaseRepository
     }
 
     /*
+     * QQ58: Verificar si dos usuarios se siguen mutuamente (1 query, 2 EXISTS).
+     */
+    public static function sonMutuos(int $userId1, int $userId2): bool
+    {
+        $tabla = FollowsCols::TABLA;
+        $col1 = FollowsCols::SEGUIDOR_ID;
+        $col2 = FollowsCols::SEGUIDO_ID;
+
+        $row = static::consultarUno(
+            "SELECT (EXISTS (SELECT 1 FROM {$tabla} WHERE {$col1} = :a AND {$col2} = :b)"
+            . " AND EXISTS (SELECT 1 FROM {$tabla} WHERE {$col1} = :b2 AND {$col2} = :a2))::bool AS mutuo",
+            ['a' => $userId1, 'b' => $userId2, 'b2' => $userId2, 'a2' => $userId1]
+        );
+        return (bool) ($row['mutuo'] ?? false);
+    }
+
+    /*
      * QQ32: Lista paginada de seguidores de un usuario.
      * JOIN con usuarios_ext para datos de perfil resumidos.
      */

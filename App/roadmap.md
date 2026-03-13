@@ -231,9 +231,9 @@ A. Que los audios eliminados vayan a la papelera por 30 días, y que despues de 
 
 No hay una forma de ver la papelera, que los usuarios vean el boton de 3 puntos en sus propios perfiles y que so abra un menu contextual donde aparezca configuracion, y otro de papelera, la papelera es un modal grande no aparece una lista de lo que ha eliminado, incluyendo sus samples y publicaciones, los comentarios, mensajes y esas cosas no van a la papelera. 
 
-## QQ58
+## QQ58 ✅ [AG-QQF]
 
-Hay varios errores de react, revisa.
+Revisión profunda de errores React. **4 issues reales encontrados y corregidos:** (1) `console.log` + parámetro sin usar en ShowcaseFormularios.tsx. (2) `throw new Error()` sin mensaje en usePanelDetalleSample.ts. (3) Inline type import en FavoritosIsland.tsx → import type estándar. (4) `Conversacion.esMutuo` requerido por tipo pero `POST /mensajes/nueva` no lo retornaba → nuevo método `FollowsRepository::sonMutuos()` (1 query, 2 EXISTS) + integración en MensajesController. **2 CSS fixes:** modalCrear.css colores hardcodeados → `var(--acento)`/`var(--acentoMuted)`. tarjetaSample.css fallback incorrecto `#e6a817` en `var(--advertencia)` eliminado. Archivos: ShowcaseFormularios.tsx, usePanelDetalleSample.ts, FavoritosIsland.tsx, FollowsRepository.php, MensajesController.php, modalCrear.css, tarjetaSample.css.
 
 ## QQ59
 
@@ -377,23 +377,27 @@ Esta tarea es complicada si puedes adelantar todo lo que puedas sin requerir ayu
 
 ✅ [AG-SEC] Mensajes se marcan como leídos al abrir dropdown. **Problema:** `DropdownMensajes` cargaba conversaciones pero nunca llamaba endpoint de marcar leídos — el badge rojo persistía indefinidamente. **Backend:** Nuevo endpoint `POST /mensajes/leer-todas` + `MensajesRepository::marcarTodosLeidosDeUsuario()` — UPDATE batch con JOIN a conversaciones del usuario. **Frontend:** `marcarTodasConversacionesLeidas()` en apiMensajes.ts, `marcarTodasLeidas()` en mensajesStore.ts. `useDropdownMensajes`: useEffect al montar que detecta `noLeidos > 0` → store local inmediato + API fire-and-forget. El badge rojo desaparece al abrir el dropdown. Archivos: MensajesRepository.php, MensajesController.php, apiMensajes.ts, mensajesStore.ts, useDropdownMensajes.ts.
 
-## QQ87
+## QQ87 ✅ [AG-QQF]
 
-Agrega un comentario random en cualquier archivo importante que diga
+Comentario `/* 2UPRA */` añadido al inicio de reproductorStore.ts. Archivo: reproductorStore.ts.
 
-/* 2UPRA */
+## QQ88 ✅ [AG-QQF]
 
-/* Algunas circunstancias las toleramos innecesariamente. Vivir evitando nuestro destino solo nos hace darnos cuenta de lo infelices que podemos llegar a ser recorriendo el camino que tomamos para huir de él. */
-
-## QQ88
-
-La pagina de descubrir no se parece en nada la de inicio cuando se esta logeado, falta los tags, falta las colecciones, todo, tiene que ser la misma no una distinta
-
-Falta la pagina de colecciones en los enlaces publicos
+DescubrirIsland reescrito para ser idéntico a InicioIsland: FilaColecciones + barra de control con ordenamiento (Inteligente/Recientes/Top Semanal/Top Mensual) + FeedSamples con tags, infinite scroll, virtualización + ModalFiltros. Filtros avanzados (reproducidos/likeados/descargados/seguidos) condicionales a `autenticado`. Lógica extraída a `useDescubrirIsland.ts` (SRP). **ColeccionesIsland** nueva: página pública `/colecciones/` con grid responsive de TarjetaColeccion + búsqueda con debounce. Hook `useColeccionesPublicas.ts`. CSS `coleccionesPublicas.css`. Registrada en `pages.php` y `appIslands.tsx`. **NavPublico:** añadido enlace "Colecciones" entre Explorar y Música. Eliminados archivos muertos: `useDescubrirIsland.ts` (viejo) y `descubrir.css`. Archivos: DescubrirIsland.tsx, useDescubrirIsland.ts (nuevo), ColeccionesIsland.tsx (nuevo), useColeccionesPublicas.ts (nuevo), coleccionesPublicas.css (nuevo), NavPublico.tsx, pages.php, appIslands.tsx.
 
 ## QQ89
 
 Auditoría profunda de seguridada y rendimiento, aplicar correciones sin dañar el codigo.
+
+## QQ90
+
+Cuando subo un audio, en en el adjunto debería, al lado de la x debería aparecer un icono para adjuntar una imagen de portada al sample, al adjuntar remplazaría el icono pondría imagen cuadrada pequeña con bordes redondeado y al subirse el sample ya tendría un partada subida por el usuario. 
+
+# QQ91 
+
+En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuando se ven todos, (casi igual a QQ86)
+
+
 
 ---
 
