@@ -56,17 +56,26 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
     }, []);
 
     /*
-     * QQ86: Al abrir el dropdown, marcar todas las conversaciones como leídas.
-     * Store local inmediato (badge desaparece), API fire-and-forget.
+     * QQ86+QQ91: Al abrir/recargar conversaciones, marcar como leídas.
+     * Usa ultimaCargaConversaciones para detectar re-fetches (no solo el flag booleano).
+     * Store local inmediato (optimistic), + API con rollback si falla.
      */
+    const ultimaCarga = useMensajesStore(s => s.ultimaCargaConversaciones);
+
     useEffect(() => {
         if (!conversacionesCargadas) return;
         const tieneNoLeidos = conversaciones.some((c) => c.noLeidos > 0);
         if (!tieneNoLeidos) return;
 
+        const prevConversaciones = [...conversaciones];
         marcarTodasLeidas();
-        marcarTodasConversacionesLeidas();
-    }, [conversacionesCargadas]);
+
+        marcarTodasConversacionesLeidas().then((resp) => {
+            if (!resp.ok) {
+                setConversaciones(prevConversaciones);
+            }
+        });
+    }, [conversacionesCargadas, ultimaCarga]);
 
     const abrirConversacion = useCallback((conv: Conversacion) => {
         abrirChat({

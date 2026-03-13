@@ -36,7 +36,9 @@ export const useTopBar = () => {
     const cerrarPanel = usePanelLateralStore(s => s.cerrar);
 
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
-    const totalMensajesNoLeidos = useMensajesStore(s => s.totalNoLeidos());
+    const totalMensajesNoLeidos = useMensajesStore(
+        s => s.conversaciones.reduce((acc, c) => acc + c.noLeidos, 0)
+    );
     const hidratarNotificaciones = useNotificacionesStore(s => s.hidratarNotificaciones);
     const setCargandoSilenciosoNotificaciones = useNotificacionesStore(s => s.setCargandoSilencioso);
     const marcarTodasLeidasLocal = useNotificacionesStore(s => s.marcarTodasLeidasLocal);
