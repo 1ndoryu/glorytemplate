@@ -121,10 +121,9 @@ class SamplesUploadController
             ], 400);
         }
 
-        /* Verificar contenido real del archivo con magic bytes (finfo) */
-        /* Se pasa FILEINFO_MIME_TYPE explícito en ->file() para compatibilidad PHP 8.x */
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $realMime = $finfo->file($audio['tmp_name'], FILEINFO_MIME_TYPE);
+        /* Verificar contenido real del archivo con mime_content_type() + fallback magic bytes WAV */
+        /* mime_content_type es más robusto que finfo::file() en PHP 8.2 con mod_php */
+        $realMime = \mime_content_type($audio['tmp_name']) ?: '';
         /* WAV puede devolver audio/x-wav — aceptar con fallback de magic bytes RIFF/WAVE */
         $mimeValido = \in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)
             || ($extension === 'wav' && self::esArchivoWav($audio['tmp_name']));
@@ -369,9 +368,8 @@ class SamplesUploadController
                 if ($portada['size'] > self::MAX_TAMANO_PORTADA) {
                     KamplesLogger::warning('Portada excede tamaño máximo', ['size' => $portada['size']]);
                 } else {
-                    /* Validar MIME real con magic bytes */
-                    $finfoPortada = new \finfo(FILEINFO_MIME_TYPE);
-                    $mimePortada = $finfoPortada->file($portada['tmp_name'], FILEINFO_MIME_TYPE);
+                    /* Validar MIME real con mime_content_type — evita bug de finfo::file() en PHP 8.2 */
+                    $mimePortada = \mime_content_type($portada['tmp_name']) ?: '';
 
                     if (!\in_array($mimePortada, self::FORMATOS_IMAGEN_VALIDOS, true)) {
                         KamplesLogger::warning('Portada con MIME inválido', ['mime' => $mimePortada]);
