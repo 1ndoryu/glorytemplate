@@ -81,7 +81,13 @@ export function useTooltipPerfil() {
             const resp = estabaS
                 ? await dejarDeSeguir(perfil.id)
                 : await seguirUsuario(perfil.id);
-            if (!resp.ok) setSiguiendo(estabaS);
+            if (!resp.ok) {
+                setSiguiendo(estabaS);
+            } else {
+                /* QK2: Invalidar cache para que el próximo hover re-fetch
+                 * el perfil con el estado de seguimiento actualizado. */
+                useTooltipPerfilStore.getState().invalidarCache(perfil.username);
+            }
         } catch {
             setSiguiendo(estabaS);
         }

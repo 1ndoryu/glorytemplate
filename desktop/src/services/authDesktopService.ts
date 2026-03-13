@@ -128,12 +128,29 @@ export async function cerrarSesionDesktop(): Promise<void> {
     limpiarAuthApi();
     establecerTokenSync(null);
 
+    /* QK1: Detener sync watcher ANTES de limpiar tracking.
+     * Sin esto, el watcher sigue polling con token null → 401 infinito. */
+    try {
+        const { detenerSyncBidireccional } = await import('./syncWatcherSetup');
+        await detenerSyncBidireccional();
+    } catch {
+        /* Sync no inicializado — nada que detener */
+    }
+
     /* C286: Limpiar tracking sync para evitar contaminación cross-usuario */
     try {
         const { resetearTracking } = await import('./syncTrackingService');
         await resetearTracking();
     } catch {
         /* Tracking no inicializado — nada que limpiar */
+    }
+
+    /* QK1: Limpiar GLORY_CONTEXT para evitar que useInicializadorAuth
+     * detecte isLoggedIn=true del usuario anterior al recargar. */
+    const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+    if (ctx) {
+        ctx.isLoggedIn = false;
+        ctx.userId = undefined;
     }
 
     if (!esDesktop()) return;

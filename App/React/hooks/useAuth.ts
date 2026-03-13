@@ -11,9 +11,46 @@ import { obtenerUsuarioActual, login, registrar as apiRegistrar, loginConGoogle,
 import { crearLogger } from '../services/logger';
 import { useNavigationStore } from '@/core/router/navigationStore';
 import { useGoogleAuth } from './useGoogleAuth';
+import { useTooltipPerfilStore } from '../stores/tooltipPerfilStore';
 import type { UsuarioAutenticado } from '../types/usuario';
 
 const log = crearLogger('useAuth');
+
+/*
+ * QK1: Limpia todos los Zustand stores que contienen datos de usuario.
+ * Evita fuga de datos entre cuentas tras logout (cache perfiles,
+ * notificaciones, mensajes, reproducidos, etc.).
+ */
+function limpiarStoresUsuario(): void {
+    /* Cache de perfiles hover (incluye estado de seguimiento) */
+    useTooltipPerfilStore.getState().limpiarCache();
+    useTooltipPerfilStore.getState().cancelarTodo();
+
+    /* Imports dinámicos para stores opcionales — si no están cargados, nada que limpiar */
+    try {
+        /* eslint-disable @typescript-eslint/no-require-imports */
+        const { useNotificacionesStore } = require('../stores/notificacionesStore') as {
+            useNotificacionesStore: { getState: () => { hidratarNotificaciones: (n: never[], s?: boolean) => void } }
+        };
+        useNotificacionesStore.getState().hidratarNotificaciones([], true);
+    } catch { /* store no cargado */ }
+
+    try {
+        const { useMensajesStore } = require('../stores/mensajesStore') as {
+            useMensajesStore: { getState: () => { setConversaciones: (c: never[]) => void; setMensajes: (m: never[]) => void } }
+        };
+        const s = useMensajesStore.getState();
+        s.setConversaciones([]);
+        s.setMensajes([]);
+    } catch { /* store no cargado */ }
+
+    try {
+        const { useReproducidosStore } = require('../stores/reproducidosStore') as {
+            useReproducidosStore: { setState: (s: { ids: Set<number>; cargado: boolean }) => void }
+        };
+        useReproducidosStore.setState({ ids: new Set(), cargado: false });
+    } catch { /* store no cargado */ }
+}
 
 /*
  * Persiste token y usuario en el Tauri Store (solo en desktop).
@@ -213,6 +250,11 @@ export const useAuth = () => {
             }
         }
         cerrarSesion();
+
+        /* QK1: Limpiar stores con datos de usuario para evitar fuga
+         * de datos entre cuentas (cache perfiles, notificaciones, mensajes, etc.). */
+        limpiarStoresUsuario();
+
         useNavigationStore.getState().navegar('/');
     }, [cerrarSesion]);
 

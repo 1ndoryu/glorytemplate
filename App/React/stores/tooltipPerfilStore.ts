@@ -41,6 +41,8 @@ interface TooltipPerfilState {
     /* Cache */
     guardarEnCache: (username: string, perfil: Usuario) => void;
     obtenerDeCache: (username: string) => Usuario | undefined;
+    limpiarCache: () => void;
+    invalidarCache: (username: string) => void;
 }
 
 export const useTooltipPerfilStore = create<TooltipPerfilState>((set, get) => ({
@@ -94,4 +96,17 @@ export const useTooltipPerfilStore = create<TooltipPerfilState>((set, get) => ({
         set(s => ({ cache: { ...s.cache, [username]: perfil } })),
 
     obtenerDeCache: (username) => get().cache[username],
+
+    /* QK1: Limpia todo el cache de perfiles al cerrar sesión.
+     * Evita datos de seguimiento del usuario anterior. */
+    limpiarCache: () => set({ cache: {} }),
+
+    /* QK2: Invalida un perfil específico del cache para forzar re-fetch.
+     * Usado tras follow/unfollow para que el próximo hover muestre estado fresco. */
+    invalidarCache: (username: string) =>
+        set(s => {
+            const cacheNuevo = { ...s.cache };
+            delete cacheNuevo[username];
+            return { cache: cacheNuevo };
+        }),
 }));
