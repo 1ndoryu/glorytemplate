@@ -1,100 +1,113 @@
 /*
  * usePaginacionProgresiva
- * Throttle progresivo para infinite scroll que previene carga infinita.
+ * Throttle basado en velocidad para infinite scroll que previene carga descontrolada.
  *
- * Comportamiento:
- *   - Primeras paginasRapidas: carga inmediata (0ms delay).
- *   - Siguientes paginas hasta maxAutoCarga: delay creciente.
- *   - Despues de maxAutoCarga: requiere accion manual (boton "Cargar mas").
+ * QQ118 — Comportamiento:
+ *   - Primeras N paginas: carga inmediata sin deteccion.
+ *   - Despues: mide el tiempo entre cargas recientes.
+ *   - Si las cargas promedio son mas rapidas que el umbral: pausa y muestra boton.
+ *   - El boton desaparece automaticamente despues de unos segundos.
+ *   - Si el usuario vuelve a scrollear rapido: reaparece.
  *
- * Cada feed que usa infinite scroll debe integrar este hook para proteger
- * contra scrolling pasivo que cargaria todo el catalogo.
+ * La API externa es compatible con la version anterior (programarCarga, cargarManual, resetear, requiereManual).
  */
 
 import { useRef, useState, useCallback, useEffect } from 'react';
 
 interface ConfigPaginacionProgresiva {
-    /** Paginas que cargan sin delay (default: 3) */
-    paginasRapidas?: number;
-    /** Maximo de paginas con auto-carga antes de requerir manual (default: 10) */
-    maxAutoCarga?: number;
-    /** Delay base en ms para la primera pagina con throttle (default: 800) */
-    delayBaseMs?: number;
-    /** Factor multiplicador por cada pagina adicional (default: 1.4) */
-    factorIncremento?: number;
+    /** Paginas iniciales sin chequeo de velocidad (default: 3) */
+    paginasMinimasInicio?: number;
+    /** Cuantas cargas recientes se analizan para deteccion (default: 3) */
+    ventanaDeteccion?: number;
+    /** Umbral en ms: si el promedio entre cargas es menor, se considera rapido (default: 2000) */
+    umbralRapidoMs?: number;
+    /** Tiempo en ms para auto-ocultar el boton (default: 6000) */
+    tiempoAutoOcultarMs?: number;
 }
 
 const DEFAULTS = {
-    paginasRapidas: 3,
-    maxAutoCarga: 10,
-    delayBaseMs: 800,
-    factorIncremento: 1.4,
+    paginasMinimasInicio: 3,
+    ventanaDeteccion: 3,
+    umbralRapidoMs: 2000,
+    tiempoAutoOcultarMs: 6000,
 } as const;
 
-/**
- * Calcula el delay en ms para una pagina dada.
- * Retorna -1 si la pagina excede maxAutoCarga (requiere manual).
- */
-function calcularDelay(
-    pagina: number,
-    paginasRapidas: number,
-    maxAutoCarga: number,
-    delayBaseMs: number,
-    factorIncremento: number,
-): number {
-    if (pagina <= paginasRapidas) return 0;
-    if (pagina > maxAutoCarga) return -1;
-    const nivel = pagina - paginasRapidas;
-    return Math.round(delayBaseMs * Math.pow(factorIncremento, nivel - 1));
-}
-
 export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {}) {
-    const paginasRapidas = config.paginasRapidas ?? DEFAULTS.paginasRapidas;
-    const maxAutoCarga = config.maxAutoCarga ?? DEFAULTS.maxAutoCarga;
-    const delayBaseMs = config.delayBaseMs ?? DEFAULTS.delayBaseMs;
-    const factorIncremento = config.factorIncremento ?? DEFAULTS.factorIncremento;
+    const paginasMinimasInicio = config.paginasMinimasInicio ?? DEFAULTS.paginasMinimasInicio;
+    const ventanaDeteccion = config.ventanaDeteccion ?? DEFAULTS.ventanaDeteccion;
+    const umbralRapidoMs = config.umbralRapidoMs ?? DEFAULTS.umbralRapidoMs;
+    const tiempoAutoOcultarMs = config.tiempoAutoOcultarMs ?? DEFAULTS.tiempoAutoOcultarMs;
 
-    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+    const timestampsRef = useRef<number[]>([]);
+    const autoOcultarRef = useRef<ReturnType<typeof setTimeout>>();
     const [requiereManual, setRequiereManual] = useState(false);
 
     /**
-     * Programa la carga de la siguiente pagina con throttle progresivo.
-     * Retorna true si se programo, false si requiere carga manual.
+     * Programa la carga de la siguiente pagina.
+     * Retorna true si se ejecuta, false si se bloquea por velocidad excesiva.
      */
     const programarCarga = useCallback((pagina: number, callback: () => void): boolean => {
-        clearTimeout(timerRef.current);
-
-        const delay = calcularDelay(pagina, paginasRapidas, maxAutoCarga, delayBaseMs, factorIncremento);
-
-        if (delay === -1) {
-            setRequiereManual(true);
-            return false;
-        }
-
-        if (delay === 0) {
+        /* Primeras paginas: carga libre sin deteccion */
+        if (pagina <= paginasMinimasInicio) {
+            timestampsRef.current.push(Date.now());
             callback();
-        } else {
-            timerRef.current = setTimeout(callback, delay);
+            return true;
         }
 
-        return true;
-    }, [paginasRapidas, maxAutoCarga, delayBaseMs, factorIncremento]);
+        const ahora = Date.now();
+        timestampsRef.current.push(ahora);
 
-    /** Ejecuta una carga manual y permite N paginas rapidas adicionales */
+        /* Mantener solo las ultimas N timestamps */
+        if (timestampsRef.current.length > ventanaDeteccion + 1) {
+            timestampsRef.current = timestampsRef.current.slice(-(ventanaDeteccion + 1));
+        }
+
+        /* Verificar velocidad promedio entre cargas recientes */
+        const ts = timestampsRef.current;
+        if (ts.length >= ventanaDeteccion + 1) {
+            let sumaGaps = 0;
+            const numGaps = Math.min(ventanaDeteccion, ts.length - 1);
+            for (let i = ts.length - numGaps; i < ts.length; i++) {
+                sumaGaps += ts[i] - ts[i - 1];
+            }
+            const promedioGap = sumaGaps / numGaps;
+
+            if (promedioGap < umbralRapidoMs) {
+                /* Carga demasiado rapida — pausar y mostrar boton */
+                setRequiereManual(true);
+                clearTimeout(autoOcultarRef.current);
+                autoOcultarRef.current = setTimeout(() => {
+                    setRequiereManual(false);
+                    /* Reset timestamps para que no se dispare inmediatamente al reanudar */
+                    timestampsRef.current = [];
+                }, tiempoAutoOcultarMs);
+                return false;
+            }
+        }
+
+        /* Velocidad normal — ejecutar */
+        callback();
+        return true;
+    }, [paginasMinimasInicio, ventanaDeteccion, umbralRapidoMs, tiempoAutoOcultarMs]);
+
+    /** Carga manual (click en boton) — resetea deteccion y ejecuta */
     const cargarManual = useCallback((callback: () => void) => {
+        clearTimeout(autoOcultarRef.current);
         setRequiereManual(false);
+        timestampsRef.current = [];
         callback();
     }, []);
 
-    /** Reset completo (cambio de orden, filtros, busqueda, claveCache) */
+    /** Reset completo (cambio de filtros, busqueda, tab) */
     const resetear = useCallback(() => {
-        clearTimeout(timerRef.current);
+        clearTimeout(autoOcultarRef.current);
+        timestampsRef.current = [];
         setRequiereManual(false);
     }, []);
 
     /* Cleanup al desmontar */
     useEffect(() => {
-        return () => clearTimeout(timerRef.current);
+        return () => clearTimeout(autoOcultarRef.current);
     }, []);
 
     return { programarCarga, cargarManual, resetear, requiereManual };
