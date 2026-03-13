@@ -420,3 +420,9 @@ En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuand
   - [Migraciones]: No hay auto-runner. Ejecutar manualmente con PHP runner base64-encoded
   - [React build]: `npm install` necesario en servidor antes de `npm run build` (soundtouchjs faltaba)
   - [coolify-manager-rs]: `find_container` retornaba siempre el primer container del stack. Fix: doble grep UUID+nombre/imagen
+  - [WAV upload]: En Linux/Apache los WAV se reportan como `audio/wave`, `audio/vnd.wave` o `application/octet-stream`. Whitelist expandida; finfo magic bytes hace la verificacion real.
+  - [Publicaciones]: `shutdown` hook unreliable en Docker Apache/mod_php — publicaciones se quedan en `pendiente` para siempre. Solucion: crear con `aprobado` directamente; IA puede rechazar async.
+  - [Moderacion panel vacio]: `moderacion_razon` faltaba en la tabla `publicaciones` en produccion — la query SQL crasheaba silenciosamente. Siempre verificar que columnas nuevas tienen su migracion SQL antes de desplegar.
+  - [Migraciones auto]: `deploy --update` ahora ejecuta `run_pending_migrations()` automaticamente. Credenciales PG leidas de env vars del contenedor WP (`KAMPLES_PG_USER`, `KAMPLES_PG_DB`). Tracking en tabla `_migraciones_ejecutadas`. v001 siempre se salta (schema base). Los errores de migracion son no-fatales (warning + continua).
+  - [Base64 exec]: Para comandos con comillas dobles/simples mezcladas, usar base64: `echo "cmd" | base64 -d | bash`. Evitar `echo 'cmd'` con DEFAULT '' en SQL (las comillas simples terminan el string de shell).
+  - [Tracking inicial]: `_migraciones_ejecutadas` se creo en produccion con v001-v041 preregistrados (ON CONFLICT DO NOTHING) para evitar re-ejecucion al hacer el primer `deploy --update`.
