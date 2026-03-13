@@ -140,9 +140,18 @@ export const FeedSamples = ({
             )}
 
             {/* Centinela de infinite scroll */}
-            {feed.infiniteScroll && (
+            {feed.infiniteScroll && !feed.requiereManual && (
                 <div ref={feed.sentinelaRef} className="feedSamplesSentinela" aria-hidden="true">
                     {feed.cargandoMas && <p className="feedSamplesCargandoMas">Cargando más samples…</p>}
+                </div>
+            )}
+
+            {/* Botón manual cuando el throttle excede maxAutoCarga */}
+            {feed.requiereManual && (
+                <div className="feedSamplesBotonManual">
+                    <button type="button" className="feedSamplesCargarMas" onClick={feed.cargarMasManual}>
+                        Cargar más samples
+                    </button>
                 </div>
             )}
 

@@ -14,6 +14,7 @@ import { toast } from '@app/stores/toastStore';
 import { darLike, quitarLike, repostear, quitarRepost, obtenerPublicacion } from '@app/services/apiSocial';
 import { EVENTO_ENTIDAD_ACTUALIZADA } from '@app/components/social/ModalEditar';
 import type { TipoReaccion, Publicacion } from '@app/types';
+import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 
 export type FiltroComunidad = 'todos' | 'siguiendo' | 'populares';
 
@@ -41,6 +42,9 @@ export function useComunidadIsland() {
     /* Menú contextual de publicaciones (C322 — hook reutilizable) */
     const menuPublicacion = useMenuContextualPublicacion({ setPublicaciones });
 
+    /* Throttle progresivo */
+    const throttle = usePaginacionProgresiva();
+
     /* Escuchar edicion desde ModalEditar y actualizar el post en tiempo real sin recargar */
     useEffect(() => {
         const manejarActualizacion = async (e: Event) => {
@@ -64,6 +68,7 @@ export function useComunidadIsland() {
         setCargando(true);
         setHayMas(true);
         paginaRef.current = 1;
+        throttle.resetear();
 
         const cargar = async () => {
             try {
@@ -82,7 +87,7 @@ export function useComunidadIsland() {
 
         cargar();
         return () => { activo = false; };
-    }, [filtro]);
+    }, [filtro, throttle.resetear]);
 
     /* cargarMas — appends la siguiente página al feed */
     const cargarMas = useCallback(async () => {
@@ -101,18 +106,28 @@ export function useComunidadIsland() {
         }
     }, [cargandoMas, hayMas, filtro]);
 
-    /* IntersectionObserver: dispara cargarMas cuando el sentinel entra en viewport */
+    /* IntersectionObserver: dispara cargarMas con throttle progresivo */
     useEffect(() => {
         const sentinel = sentinelRef.current;
-        if (!sentinel || !hayMas) return;
+        if (!sentinel || !hayMas || throttle.requiereManual) return;
 
         const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) cargarMas(); },
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    const siguientePagina = paginaRef.current + 1;
+                    throttle.programarCarga(siguientePagina, () => cargarMas());
+                }
+            },
             { rootMargin: '300px' }
         );
         observer.observe(sentinel);
         return () => observer.disconnect();
-    }, [cargarMas, hayMas]);
+    }, [cargarMas, hayMas, throttle.requiereManual, throttle.programarCarga]);
+
+    /* Carga manual cuando throttle excede maxAutoCarga */
+    const cargarMasManual = useCallback(() => {
+        throttle.cargarManual(() => cargarMas());
+    }, [throttle.cargarManual, cargarMas]);
 
     /* Callback para recargar feed tras publicar — resetea paginación */
     const recargarFeed = useCallback(async () => {
@@ -234,5 +249,6 @@ export function useComunidadIsland() {
         comentariosAbiertos, navegar, usuario,
         menuSample, menuPublicacion, sentinelRef,
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
+        requiereManual: throttle.requiereManual, cargarMasManual,
     };
 }

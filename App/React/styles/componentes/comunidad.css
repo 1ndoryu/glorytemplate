@@ -88,3 +88,26 @@
     transform: scale(1.12);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
+
+/* Botón manual de "Cargar más" para throttle de paginación */
+.comunidadBotonManual {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioLg) 0;
+}
+
+.comunidadCargarMas {
+    background: var(--superficie2);
+    color: var(--textoSecundario);
+    border: 1px solid var(--borde);
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm) var(--espacioXl);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+.comunidadCargarMas:hover {
+    background: var(--superficie3);
+    color: var(--textoPrincipal);
+}

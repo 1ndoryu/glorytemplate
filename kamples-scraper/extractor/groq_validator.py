@@ -1,11 +1,13 @@
 """
-Validacion de resultados de busqueda usando Groq LLM.
+Validacion de resultados de busqueda usando similitud textual + Groq LLM.
 
-Pregunta a un modelo LLM rapido si el resultado de SoundCloud/YouTube es realmente
-la cancion buscada. Previene descargas incorrectas cuando la puntuacion textual no
-es suficiente para distinguir versiones (live, covered, variaciones de nombre).
+Arquitectura de 2 capas para reducir falsos positivos:
+  1. Pre-screening con similitud textual normalizada (SequenceMatcher).
+     Si la similitud es >= UMBRAL_SIMILITUD_ALTA se acepta sin LLM.
+     Si es <= UMBRAL_SIMILITUD_BAJA se rechaza sin LLM.
+  2. Para la zona gris intermedia, validacion con LLM (Groq).
 
-Modelo: llama-3.1-8b-instant (rapido, bajo costo, suficiente para clasificacion yes/no).
+Modelo: llama-3.3-70b-versatile (mejor razonamiento que 8b, igual de rapido en Groq).
 Fallback: si Groq falla (timeout, rate limit, API down), retorna True (permisivo) para
 no bloquear el pipeline.
 
@@ -15,14 +17,54 @@ Requiere: GROQ_API_KEY en .env
 import json
 import logging
 import os
+import re
+import unicodedata
 import urllib.error
 import urllib.request
+from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
 _GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-_GROQ_MODEL = "llama-3.1-8b-instant"
-_GROQ_TIMEOUT = 10
+_GROQ_MODEL = "llama-3.3-70b-versatile"
+_GROQ_TIMEOUT = 12
+
+# Umbrales para pre-screening textual (0.0 - 1.0)
+UMBRAL_SIMILITUD_ALTA = 0.80
+UMBRAL_SIMILITUD_BAJA = 0.25
+
+
+def _normalizar_texto(texto: str) -> str:
+    """Normaliza para comparacion: lowercase, sin acentos, sin puntuacion extra."""
+    texto = unicodedata.normalize("NFKD", texto.lower())
+    texto = "".join(c for c in texto if not unicodedata.combining(c))
+    texto = re.sub(r"[^a-z0-9\s]", " ", texto)
+    texto = re.sub(r"\s+", " ", texto).strip()
+    return texto
+
+
+def _similitud(a: str, b: str) -> float:
+    """Ratio de similitud entre dos strings normalizados."""
+    na = _normalizar_texto(a)
+    nb = _normalizar_texto(b)
+    if not na or not nb:
+        return 0.0
+    return SequenceMatcher(None, na, nb).ratio()
+
+
+def _similitud_combinada(
+    busqueda_artista: str,
+    busqueda_titulo: str,
+    resultado_artista: str,
+    resultado_titulo: str,
+) -> float:
+    """
+    Score combinado de similitud: 60% peso titulo, 40% peso artista.
+    El titulo pesa mas porque es mas discriminante que el artista.
+    """
+    sim_titulo = _similitud(busqueda_titulo, resultado_titulo)
+    sim_artista = _similitud(busqueda_artista, resultado_artista)
+    return sim_titulo * 0.6 + sim_artista * 0.4
 
 
 def _obtener_api_key() -> str | None:
@@ -42,25 +84,76 @@ def validar_match(
     resultado_titulo: str,
 ) -> bool:
     """
-    Pregunta a Groq si el resultado encontrado corresponde a la cancion buscada.
+    Valida si el resultado corresponde a la cancion buscada.
+
+    Capa 1: Pre-screening textual rapido.
+    Capa 2: Validacion LLM para zona gris.
 
     Retorna True si es match, False si no.
-    En caso de error (timeout, rate limit, API down), retorna True (permisivo)
-    para no bloquear el pipeline.
+    En caso de error de LLM, retorna True (permisivo).
     """
+    # Capa 1: Pre-screening por similitud textual
+    score = _similitud_combinada(
+        busqueda_artista, busqueda_titulo,
+        resultado_artista, resultado_titulo,
+    )
+
+    if score >= UMBRAL_SIMILITUD_ALTA:
+        logger.info(
+            "Pre-screen ACEPTADO (score=%.2f): '%s - %s' vs '%s - %s'",
+            score, busqueda_artista, busqueda_titulo,
+            resultado_artista, resultado_titulo,
+        )
+        return True
+
+    if score <= UMBRAL_SIMILITUD_BAJA:
+        logger.info(
+            "Pre-screen RECHAZADO (score=%.2f): '%s - %s' vs '%s - %s'",
+            score, busqueda_artista, busqueda_titulo,
+            resultado_artista, resultado_titulo,
+        )
+        return False
+
+    # Capa 2: Zona gris — consultar LLM
+    return _validar_con_llm(
+        busqueda_artista, busqueda_titulo,
+        resultado_artista, resultado_titulo,
+        score,
+    )
+
+
+def _validar_con_llm(
+    busqueda_artista: str,
+    busqueda_titulo: str,
+    resultado_artista: str,
+    resultado_titulo: str,
+    score_textual: float,
+) -> bool:
+    """Capa 2: validacion via Groq LLM con prompt few-shot."""
     api_key = _obtener_api_key()
     if not api_key:
         return True
 
     prompt = (
-        f"I'm searching for the specific song \"{busqueda_titulo}\" by \"{busqueda_artista}\".\n"
-        f"A music platform returned this result: \"{resultado_titulo}\" by \"{resultado_artista}\".\n\n"
-        f"Is this the SAME specific song? Minor spelling differences in artist names are OK "
-        f"(e.g. 'Honey Drippers' vs 'Honeydrippers', 'Dj' vs 'DJ'). Also OK if the uploader "
-        f"name differs but the song title and original artist match. "
-        f"NOT OK: remixes, covers, live versions, DJ sets, medleys, or different songs by the "
-        f"same artist — unless the search specifically asked for that version.\n"
-        f"Answer ONLY 'yes' or 'no'."
+        "You are a music metadata validator. Determine if a search result is the SAME song.\n\n"
+        "RULES:\n"
+        "- Minor artist name variations are OK: spacing, punctuation, abbreviations, "
+        "transliterations (e.g. 'Honey Drippers' = 'Honeydrippers', 'DJ Shadow' = 'Dj Shadow', "
+        "'Led Zeppelin' = 'Led Zepellin').\n"
+        "- Uploader name may differ from original artist — focus on whether the SONG is correct.\n"
+        "- Extra tags in title are OK if the core song title matches: "
+        "'Sea of Love (Official Audio)' = 'Sea of Love'.\n"
+        "- NOT the same: remixes, covers, live versions, DJ sets, medleys, mashups, "
+        "sped up/slowed versions, or completely different songs.\n\n"
+        "EXAMPLES:\n"
+        "Search: 'Sea of Love' by 'The Honeydrippers' | Result: 'Sea of Love' by 'Honey Drippers' -> yes\n"
+        "Search: 'Roxanne' by 'The Police' | Result: 'Roxanne (Live at MSG)' by 'The Police' -> no\n"
+        "Search: 'No Diggity' by 'Blackstreet' | Result: 'No Diggity' by 'BLACKstreet ft Dr Dre' -> yes\n"
+        "Search: 'Billie Jean' by 'Michael Jackson' | Result: 'Billie Jean (Remix)' by 'MJ' -> no\n"
+        "Search: 'Superstition' by 'Stevie Wonder' | Result: 'Superstition' by 'stevie_wonder_official' -> yes\n\n"
+        f"Search: '{busqueda_titulo}' by '{busqueda_artista}'\n"
+        f"Result: '{resultado_titulo}' by '{resultado_artista}'\n\n"
+        "Answer ONLY 'yes' or 'no'."
     )
 
     payload = json.dumps({
@@ -77,7 +170,6 @@ def validar_match(
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                # Cloudflare bloquea Python-urllib con 403 1010 — simular SDK oficial
                 "User-Agent": "groq-python/0.13.0",
                 "x-stainless-lang": "python",
                 "x-stainless-os": "Windows",
@@ -91,7 +183,8 @@ def validar_match(
         es_match = respuesta.startswith("yes") or respuesta.startswith("si")
 
         logger.info(
-            "Groq validacion: '%s - %s' vs '%s - %s' -> %s (%s)",
+            "Groq LLM (score_textual=%.2f): '%s - %s' vs '%s - %s' -> %s (%s)",
+            score_textual,
             busqueda_artista, busqueda_titulo,
             resultado_artista, resultado_titulo,
             "MATCH" if es_match else "RECHAZADO",

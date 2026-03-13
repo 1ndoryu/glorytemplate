@@ -52,6 +52,8 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
         sentinelaRef,
         manejarLike,
         irACancion,
+        requiereManual,
+        cargarMasManual,
     } = useFeedCanciones(orden, busqueda);
 
     /* Menu contextual de canciones (QQ50) */
@@ -141,12 +143,23 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
             )}
 
             {/* Centinela de infinite scroll */}
-            <div ref={sentinelaRef} className="feedCancionesSentinela" aria-hidden="true">
-                {cargandoMas && <p className="feedCancionesCargandoMas">Cargando más canciones…</p>}
-                {!hayMas && canciones.length > 0 && (
-                    <p className="feedCancionesFin">No hay más canciones</p>
-                )}
-            </div>
+            {!requiereManual && (
+                <div ref={sentinelaRef} className="feedCancionesSentinela" aria-hidden="true">
+                    {cargandoMas && <p className="feedCancionesCargandoMas">Cargando más canciones…</p>}
+                    {!hayMas && canciones.length > 0 && (
+                        <p className="feedCancionesFin">No hay más canciones</p>
+                    )}
+                </div>
+            )}
+
+            {/* Botón manual cuando el throttle excede maxAutoCarga */}
+            {requiereManual && (
+                <div className="feedCancionesBotonManual">
+                    <button type="button" className="feedCancionesCargarMas" onClick={cargarMasManual}>
+                        Cargar más canciones
+                    </button>
+                </div>
+            )}
 
             {/* Menu contextual de canciones */}
             <MenuContextual

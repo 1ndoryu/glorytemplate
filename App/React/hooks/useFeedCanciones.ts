@@ -14,6 +14,7 @@ import { useNavigationStore } from '@/core/router';
 import { toast } from '@app/stores/toastStore';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
 import type { Cancion } from '@app/types/cancion';
+import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 
 const POR_PAGINA = 20;
 
@@ -30,6 +31,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
     const cacheRef = useRef<Record<string, Cancion[]>>({});
     const requestIdRef = useRef(0);
     const navegar = useNavigationStore(s => s.navegar);
+    const throttle = usePaginacionProgresiva();
 
     /* Modo búsqueda: resultados server-side cuando hay query activo */
     useEffect(() => {
@@ -94,19 +96,29 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         }
     }, [ordenExterno]);
 
-    /* Carga inicial de feed y al cambiar orden — omitido en modo búsqueda */
+    /* Carga inicial de feed y al cambiar orden — omitido en modo busqueda */
     useEffect(() => {
         if (busqueda.trim()) return;
         cacheRef.current = {};
         setPaginaActual(1);
         setHayMas(true);
         setTotalReal(null);
+        throttle.resetear();
         cargarPagina(1, true);
-    }, [cargarPagina, busqueda]);
+    }, [cargarPagina, busqueda, throttle.resetear]);
 
-    /* Infinite scroll — omitido en modo búsqueda (no pagina resultados de search) */
+    /* Carga manual cuando throttle excede maxAutoCarga */
+    const cargarMasManual = useCallback(() => {
+        const nuevaPagina = paginaActual + 1;
+        throttle.cargarManual(() => {
+            setPaginaActual(nuevaPagina);
+            cargarPagina(nuevaPagina, false);
+        });
+    }, [paginaActual, throttle.cargarManual, cargarPagina]);
+
+    /* Infinite scroll con throttle progresivo — omitido en modo busqueda */
     useEffect(() => {
-        if (busqueda.trim()) return;
+        if (busqueda.trim() || throttle.requiereManual) return;
         const sentinela = sentinelaRef.current;
         if (!sentinela) return;
 
@@ -114,8 +126,10 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
             entries => {
                 if (entries[0].isIntersecting && !cargandoMas && hayMas && !cargando) {
                     const nuevaPagina = paginaActual + 1;
-                    setPaginaActual(nuevaPagina);
-                    cargarPagina(nuevaPagina, false);
+                    throttle.programarCarga(nuevaPagina, () => {
+                        setPaginaActual(nuevaPagina);
+                        cargarPagina(nuevaPagina, false);
+                    });
                 }
             },
             { rootMargin: '200px' },
@@ -123,7 +137,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina, busqueda]);
+    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina, busqueda, throttle.requiereManual, throttle.programarCarga]);
 
     /* Like optimista con rollback */
     const manejarLike = useCallback(async (cancionId: number) => {
@@ -171,5 +185,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         manejarLike,
         manejarMenu,
         irACancion,
+        requiereManual: throttle.requiereManual,
+        cargarMasManual,
     };
 }

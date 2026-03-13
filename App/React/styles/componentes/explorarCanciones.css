@@ -147,6 +147,29 @@
     font-size: var(--fuenteSm);
 }
 
+/* Botón manual de "Cargar más" para throttle de paginación */
+.feedCancionesBotonManual {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioLg) 0;
+}
+
+.feedCancionesCargarMas {
+    background: var(--superficie2);
+    color: var(--textoSecundario);
+    border: 1px solid var(--borde);
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm) var(--espacioXl);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+.feedCancionesCargarMas:hover {
+    background: var(--superficie3);
+    color: var(--textoPrincipal);
+}
+
 /* Contador de resultados */
 .feedCancionesContador {
     margin: 0;

@@ -6,6 +6,9 @@
  * Filtros/tags delegados a useFeedFiltros.
  * Arrastre horizontal de tags delegado a useFeedArrastreTags.
  * Extraído de FeedSamples.tsx para cumplir SRP.
+ *
+ * TO-DO: Extraer likes optimistas (manejarLike) y listeners CRUD a hooks separados
+ * para bajar de 300 lineas efectivas.
  */
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -22,6 +25,7 @@ import type { CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
+import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
@@ -108,6 +112,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         if (sample) abrirComentarios(sample);
     }, [abrirComentarios, samples]);
 
+    /* Throttle progresivo para infinite scroll */
+    const throttle = usePaginacionProgresiva();
+
     /* Reset al cambiar claveCache */
     useEffect(() => {
         if (claveCacheAnteriorRef.current !== claveCache) {
@@ -116,8 +123,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             setPaginaActual(1);
             setHayMasPaginas(true);
             setIndiceInicio(0);
+            throttle.resetear();
         }
-    }, [claveCache]);
+    }, [claveCache, throttle.resetear]);
 
     /* Guard contra race conditions */
     const requestIdRef = useRef(0);
@@ -175,9 +183,18 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         }
     }, [samplesIniciales]);
 
-    /* Infinite scroll con IntersectionObserver */
+    /* Carga manual cuando throttle excede maxAutoCarga */
+    const cargarMasManual = useCallback(() => {
+        const nuevaPagina = paginaActual + 1;
+        throttle.cargarManual(() => {
+            setPaginaActual(nuevaPagina);
+            cargarPagina(nuevaPagina, false);
+        });
+    }, [paginaActual, throttle.cargarManual, cargarPagina]);
+
+    /* Infinite scroll con IntersectionObserver + throttle progresivo */
     useEffect(() => {
-        if (!infiniteScroll) return;
+        if (!infiniteScroll || throttle.requiereManual) return;
         const sentinela = sentinelaRef.current;
         if (!sentinela) return;
 
@@ -185,8 +202,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             entries => {
                 if (entries[0].isIntersecting && !cargandoMas && hayMasPaginas && !cargando) {
                     const nuevaPagina = paginaActual + 1;
-                    setPaginaActual(nuevaPagina);
-                    cargarPagina(nuevaPagina, false);
+                    throttle.programarCarga(nuevaPagina, () => {
+                        setPaginaActual(nuevaPagina);
+                        cargarPagina(nuevaPagina, false);
+                    });
                 }
             },
             { rootMargin: '200px' },
@@ -194,7 +213,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [infiniteScroll, cargandoMas, hayMasPaginas, cargando, paginaActual, cargarPagina]);
+    }, [infiniteScroll, cargandoMas, hayMasPaginas, cargando, paginaActual, cargarPagina, throttle.requiereManual, throttle.programarCarga]);
 
     /* Virtualización: ajustar rango visible al scroll */
     useEffect(() => {
@@ -367,5 +386,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         panelHabilitado,
         manejarClickTitulo,
         manejarComentar,
+
+        /* Throttle paginacion */
+        requiereManual: throttle.requiereManual,
+        cargarMasManual,
     };
 }
