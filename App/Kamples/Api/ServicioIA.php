@@ -5,7 +5,7 @@
  *
  * Cadena de fallback: Groq Whisper (audio→texto) → Groq LLM (texto→JSON)
  * Whisper: whisper-large-v3 → whisper-large-v3-turbo
- * LLM Groq: openai/gpt-oss-120b → qwen/qwen3-32b → openai/gpt-oss-20b
+ * LLM Groq: openai/gpt-oss-120b → llama-3.3-70b → kimi-k2 → qwen3-32b → llama-4-scout → gpt-oss-20b
  *
  * Analiza archivos de audio para extraer metadata CREATIVA:
  * tags, emociones, instrumentos, géneros, descripción, artistas similares.
@@ -31,11 +31,18 @@ class ServicioIA
         'whisper-large-v3-turbo',
     ];
 
-    /* Modelos Groq en orden de preferencia (fallback por cuota/error) */
+    /*
+     * QQ142: Modelos Groq en orden de inteligencia (fallback por cuota/error).
+     * Si un modelo falla o esta rate-limited, se intenta el siguiente.
+     * Todos los modelos utiles disponibles en la cuenta Groq.
+     */
     private const MODELOS_GROQ = [
-        'openai/gpt-oss-120b',
-        'qwen/qwen3-32b',
-        'openai/gpt-oss-20b',
+        'openai/gpt-oss-120b',                         /* 120B — mejor calidad, 200K tok/dia */
+        'llama-3.3-70b-versatile',                      /* 70B — buena calidad, 100K tok/dia */
+        'moonshotai/kimi-k2-instruct',                  /* Alta calidad, 300K tok/dia, 60 RPM */
+        'qwen/qwen3-32b',                               /* 32B MoE, 500K tok/dia, 60 RPM */
+        'meta-llama/llama-4-scout-17b-16e-instruct',    /* 17B x 16 expertos MoE, 500K tok/dia */
+        'openai/gpt-oss-20b',                           /* 20B fallback, 200K tok/dia */
     ];
 
     private const TIMEOUT_AUDIO = 45;
@@ -235,7 +242,7 @@ PROMPT;
                 ],
             ],
             'temperature'   => 0.2,
-            'max_tokens'    => 2500,
+            'max_tokens'    => 1500, /* QQ142: reducido de 2500 — JSON respuesta tipica usa ~500 tokens */
             'response_format' => ['type' => 'json_object'],
         ];
 

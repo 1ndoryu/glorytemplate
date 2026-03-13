@@ -217,18 +217,19 @@ class PipelineAudio
         ];
 
         /*
-         * C184.10: Optimización IA — enviar MP3 recortado a 20s en vez del WAV original.
-         * Ahorra ~90% de tokens para audios largos.
+         * C184.10 + QQ142: Optimización IA — enviar MP3 recortado a 10s en vez del WAV original.
+         * QQ142: Reducido de 20s a 10s para ahorrar audio-seconds de Whisper.
+         * 10s son suficientes para extraer genero, emocion e instrumentos.
          */
         $rutaAudioParaIA = $rutaArchivo;
         $audioRecortado = false;
         $mp3TemporalIA = null;
 
         if ($ffmpeg) {
-            $limiteSegundosIA = 20;
+            $limiteSegundosIA = 10;
             $mp3TemporalIA = $directorio . '/tmp_ia_' . $idCorto . '.mp3';
 
-            /* Generar MP3 optimizado de los primeros 20s para IA */
+            /* Generar MP3 optimizado de los primeros 10s para IA */
             try {
                 $cmdIA = \sprintf(
                     '%s -y -i %s -t %d -codec:a libmp3lame -b:a 128k -ac 1 -ar 22050 %s 2>&1',

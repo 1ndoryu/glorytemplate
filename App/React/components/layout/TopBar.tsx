@@ -16,6 +16,8 @@ import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
 import { cerrarSesion as apiCerrarSesion } from '@app/services/apiAuth';
+import { useAuthStore } from '@app/stores/authStore';
+import { useNavigationStore } from '@/core/router/navigationStore';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
@@ -175,8 +177,15 @@ export const TopBar = (): JSX.Element => {
             icono: <LogOut size={14} />,
             peligro: true,
             onClick: async () => {
-                /* QQ132-B: Limpiar Tauri Store antes de cerrar sesion (desktop) */
-                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                /*
+                 * QQ141: Orden critico — cerrar sesion WP ANTES de limpiar JWT.
+                 * Sin esto, apiCerrarSesion() va sin Authorization header y el server
+                 * no puede destruir la sesion WP, dejando cookies activas en el webview.
+                 */
+                await apiCerrarSesion();
+
+                const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
+                if (esDesktop) {
                     try {
                         const modPath = '@desktop' + '/services/authDesktopService';
                         const m = await import(/* @vite-ignore */ modPath);
@@ -185,9 +194,16 @@ export const TopBar = (): JSX.Element => {
                         /* En web no existe el modulo — ignorar */
                     }
                 }
-                await apiCerrarSesion();
-                /* Recarga completa para invalidar nonces WP y estado React */
-                window.location.href = '/';
+
+                useAuthStore.getState().cerrarSesion();
+
+                if (esDesktop) {
+                    /* SPA navigation: evita reload que re-lee cookies WP del webview */
+                    useNavigationStore.getState().navegar('/');
+                } else {
+                    /* Web: recarga completa para invalidar nonces WP y estado React */
+                    window.location.href = '/';
+                }
             },
         },
     ];

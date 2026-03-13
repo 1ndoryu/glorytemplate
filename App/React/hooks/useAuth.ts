@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useAuthModalStore } from '../stores/authModalStore';
-import { obtenerUsuarioActual, login, registrar as apiRegistrar, loginConGoogle } from '../services/apiAuth';
+import { obtenerUsuarioActual, login, registrar as apiRegistrar, loginConGoogle, cerrarSesion as apiCerrarSesion } from '../services/apiAuth';
 import { crearLogger } from '../services/logger';
 import { useNavigationStore } from '@/core/router/navigationStore';
 import { useGoogleAuth } from './useGoogleAuth';
@@ -197,7 +197,12 @@ export const useAuth = () => {
     }, [dispararGoogle]);
 
     const logout = useCallback(async () => {
-        /* QQ132-B: Limpiar Tauri Store antes de cerrar sesion (desktop) */
+        /*
+         * QQ141: Orden critico — cerrar sesion WP ANTES de limpiar JWT desktop.
+         * apiCerrarSesion necesita el Authorization header activo para destruir la sesion.
+         */
+        try { await apiCerrarSesion(); } catch { /* best effort */ }
+
         if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
             try {
                 const modPath = '@desktop' + '/services/authDesktopService';
