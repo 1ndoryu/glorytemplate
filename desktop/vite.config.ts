@@ -6,7 +6,13 @@ import { resolve } from 'path';
 /*
  * Vite config para Kamples Desktop (Tauri 2.0)
  * Reutiliza los mismos componentes React del proyecto web via aliases.
+ *
+ * El proxy de dev redirige a KAMPLES_API_TARGET (env) o kamples.com por defecto.
+ * Para apuntar a WP local: set KAMPLES_API_TARGET=http://glory.local
  */
+
+const apiTarget = process.env.KAMPLES_API_TARGET || 'https://kamples.com';
+
 export default defineConfig({
     plugins: [react(), tailwindcss()],
 
@@ -33,18 +39,18 @@ export default defineConfig({
         strictPort: true,
         host: 'localhost',
         /*
-         * Proxy: redirige peticiones a glory.local en dev.
+         * Proxy: redirige peticiones al API target (kamples.com por defecto).
          * Elimina CORS porque las peticiones salen de Vite (mismo origen).
-         * En produccion, las URLs apuntan directamente a kamples.com.
+         * Para WP local: set KAMPLES_API_TARGET=http://glory.local
          */
         proxy: {
             '/wp-json': {
-                target: 'http://glory.local',
+                target: apiTarget,
                 changeOrigin: true,
                 secure: false,
             },
             '/wp-content': {
-                target: 'http://glory.local',
+                target: apiTarget,
                 changeOrigin: true,
                 secure: false,
             },

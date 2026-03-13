@@ -130,9 +130,9 @@ async function inicializar(): Promise<void> {
         try { origenServidor = new URL(apiUrl).origin; } catch { /* fallback abajo */ }
     }
 
-    /* Fallback: en dev, construir desde host conocido */
+    /* Fallback: en dev, el proxy local redirige a kamples.com (via KAMPLES_API_TARGET) */
     if (!origenServidor) {
-        origenServidor = import.meta.env.DEV ? 'http://glory.local' : 'https://kamples.com';
+        origenServidor = 'https://kamples.com';
     }
 
     window.__KAMPLES_CONFIG__ = { serverUrl: `${origenServidor}/wp-json` };

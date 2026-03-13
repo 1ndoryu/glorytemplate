@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import os
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -134,11 +135,18 @@ class ImageDescargaPipeline:
                 url_local = self._descargar(datos["imagen_url"])
                 if url_local:
                     datos["imagen_url"] = url_local
+                else:
+                    # Si la descarga fallo, limpiar la URL externa para no guardar URLs
+                    # inaccesibles (WhoSampled bloquea hotlinking → 403 en el frontend)
+                    datos["imagen_url"] = None
 
         return item
 
+    _MAX_REINTENTOS = 3
+    _ESPERA_BASE_SEG = 2
+
     def _descargar(self, url: str) -> str | None:
-        """Descarga imagen y retorna URL local. Retorna None si falla."""
+        """Descarga imagen con reintentos y retorna URL local. Retorna None si falla."""
         nombre = hashlib.sha256(url.encode()).hexdigest()[:40]
         ext = Path(urlparse(url).path).suffix.lower()
         if ext not in self._EXTENSIONES_VALIDAS:
@@ -151,15 +159,36 @@ class ImageDescargaPipeline:
         if archivo.exists():
             return url_local
 
-        try:
-            resp = self.session.get(url, proxies=self.proxies, timeout=15)
-            resp.raise_for_status()
-            archivo.write_bytes(resp.content)
-            logger.debug("Imagen descargada: %s → %s", url, archivo.name)
-            return url_local
-        except Exception as exc:
-            logger.warning("Error descargando imagen %s: %s", url, exc)
-            return None
+        for intento in range(1, self._MAX_REINTENTOS + 1):
+            try:
+                resp = self.session.get(url, proxies=self.proxies, timeout=15)
+                resp.raise_for_status()
+
+                # Verificar que el contenido es realmente una imagen (no HTML de error)
+                content_type = resp.headers.get("content-type", "")
+                if "text/html" in content_type or len(resp.content) < 100:
+                    logger.warning(
+                        "Imagen sospechosa (content-type=%s, size=%d): %s (intento %d/%d)",
+                        content_type, len(resp.content), url, intento, self._MAX_REINTENTOS,
+                    )
+                    if intento < self._MAX_REINTENTOS:
+                        time.sleep(self._ESPERA_BASE_SEG * intento)
+                        continue
+                    return None
+
+                archivo.write_bytes(resp.content)
+                logger.debug("Imagen descargada: %s → %s", url, archivo.name)
+                return url_local
+            except Exception as exc:
+                logger.warning(
+                    "Error descargando imagen %s: %s (intento %d/%d)",
+                    url, exc, intento, self._MAX_REINTENTOS,
+                )
+                if intento < self._MAX_REINTENTOS:
+                    time.sleep(self._ESPERA_BASE_SEG * intento)
+
+        logger.error("Imagen NO descargada tras %d intentos: %s", self._MAX_REINTENTOS, url)
+        return None
 
 
 class PostgresPipeline:

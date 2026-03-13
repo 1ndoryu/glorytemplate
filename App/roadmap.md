@@ -567,15 +567,53 @@ Diagnosticado y resuelto: extracciones en estado `extraido` no se publicaban por
 
 necesito que tu pruebes y testest test_youtube_download.py, intenta todo o que esta a alcance, prueba y error, coreccion hasta ver si funciona.
 
-## QQ126
+## QQ125 ✅ [AG-SCR]
 
-Algunas imagenes del scrapper se guardaron asi
+Tests completos de `test_youtube_download.py` ejecutados en VPS (contenedor wordpress, Python 3.13, yt-dlp 2026.03.03). Resultados: (1) **innertube_ANDROID_VR: EXITO** — 0.12s, 4 audio URLs directas, itag 251 opus 136kbps, descarga verificada. (2) **ytdlp_default: EXITO** — 6.9s, 7MB descargado, auto-selecciona mejor cliente. (3) Todos los demas clientes fallan: TV_EMBEDDED muerto, IOS HTTP 400, WEB_CREATOR requiere auth, MWEB requiere PO token, cobalt Cloudflare 403. **Conclusion:** pipeline actual ya usa la mejor estrategia disponible. InnerTube ANDROID_VR directo es ~56x mas rapido que yt-dlp para verificar formatos — potencial para fallback rapido.
 
-<img src="https://www.whosampled.com/static/images/media/track_images_200/lr31800_2019923_103832608693.jpg" alt="Pulsar City Alarm" loading="lazy"> y no cargar, por favor, evitar que esto suceda a demás de algo para corregir las imagenes que aparecen asi
+## QQ126 ✅ [AG-SCR]
 
-# QQ127 
+Reparadas 201 imagenes (198 canciones + 3 samples) con URLs externas de whosampled.com que retornaban 403 (hotlink bloqueado). Fix: descarga masiva via proxy DataImpulse → almacenamiento local en portadas/ → UPDATE en DB. Scraper mejorado: `ImageDescargaPipeline._descargar()` ahora tiene 3 reintentos con backoff exponencial, validacion de content-type, y limpieza de URL externa si descarga falla (evita guardar URLs inaccesibles). QQ129 tambien resuelto con este fix.
 
-TO-DO para agregarlo al flujo de deploy de coolify-manager. TRABAJA en eso 
+## QQ129 ✅ [AG-SCR]
+
+Resuelto con QQ126 — las 3 imagenes de portada de samples con URLs de whosampled.com fueron reparadas.
+
+## QQ127 ✅ [AG-SCR]
+
+Implementado `disableWpCron` en coolify-manager-rs: nuevo campo `bool` en `SiteConfig`, propagado a `update_glory_theme()`, funcion `ensure_wp_cron_disabled()` inyecta `define('DISABLE_WP_CRON', true)` en wp-config.php si no existe. Configurado `"disableWpCron": true` para sitio kamples en settings.json. Binario recompilado ok.
+
+## QQ128 ✅ [AG-SCR]
+
+Desktop app en dev ahora apunta a kamples.com. Vite proxy configurable via `KAMPLES_API_TARGET` env var (default: kamples.com). Para volver a WP local: `set KAMPLES_API_TARGET=http://glory.local`. Actualizado: vite.config.ts (proxy target), apiDesktopAdapter.ts (DOMINIOS_PROXY + comentarios), sync.tsx (fallback origin).
+
+## QQ129 ✅ [AG-SCR]
+
+Resuelto con QQ126. Las 3 imagenes de portada de samples con URLs de whosampled.com reparadas.
+
+## QQ130
+
+Agregar un boton en los menu contextuales de los samples para extender por 5 segundo mas el audio (solo para recortes y para el admin), como el mp3 descargado ya se guarda, creo es posible agregar 5 segundos extra, tal vez haciendo de nuevo el recorte que parece lo mas eficiente pero sumando 5 segundos mas, o retrasando, creo que mejor agregamos un modal para elegir cuanto tiempo suma adelante y atras.
+
+## QQ131
+
+En el menu contextual habia dicho antes de una opcion de Corregir IA, que hacia que reanalizaba el audio con el proceso de IA para volver a generar las tags sumando extra la informacion (el feedback del usuario nuevo) para arreglar la metadata IA, pero no parece, hacer una auditoría de esto, tiene que funcionar y regenerar la metadata del samplee
+
+## QQ132 
+
+Veo un problema con los recortes y es que, cuando el bpm es muy rapido, el audio dura muy poco, es muy rapido debería duplicar el tiempo, y asi algun algorimto que sume segundos extras a medida que suben los bpm
+
+## QQ133
+
+También te podría gustar parece que solo muestra 6 samples, que muestre 26, y auditar que esto funcione bien algoritmicamente, hace tiempo que no se audita esta parte. 
+
+## QQ134
+
+Reducir la velocidad del proceso de recorte, mejor cada cierto tiempo minutos y varias entre 1 a 5 minutos aleat para evitar comportamiento robotico
+
+## QQ135
+
+no veo algo como Cookies yt-dlp para la cookies de soundcloud, va a ser dificil cambiar en el futuro, por favor, deja un feedback del env pero que se pueda cambiar en el front
 
 ---
 

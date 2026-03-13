@@ -2,8 +2,8 @@
  * Adaptador de API para desktop.
  * Configura GLORY_CONTEXT para que apiCliente.ts funcione.
  *
- * En DEV: Vite proxy redirige /wp-json y /wp-content a glory.local,
- *         eliminando problemas de CORS. Las URLs son relativas.
+ * En DEV: Vite proxy redirige /wp-json y /wp-content al servidor target
+ *         (kamples.com por defecto, configurable via KAMPLES_API_TARGET).
  * En PROD: apunta directamente al servidor de produccion.
  *
  * En la web: PHP inyecta GLORY_CONTEXT con apiUrl y nonce.
@@ -24,7 +24,7 @@ const SERVIDOR_PROD = 'https://kamples.com/wp-json';
 
 function obtenerServidorUrl(): string {    const config = window.__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;    if (config?.serverUrl) return config.serverUrl;
 
-    /* En dev, Vite proxy redirige /wp-json a glory.local */
+    /* En dev, Vite proxy redirige /wp-json al target (kamples.com por defecto) */
     if (import.meta.env.DEV) return SERVIDOR_DEV;
     return SERVIDOR_PROD;
 }
@@ -52,11 +52,11 @@ export function configurarApiDesktop(): void {
 }
 
 /*
- * En dev, el backend retorna URLs absolutas (http://glory.local/wp-content/...).
+ * En dev, el backend retorna URLs absolutas (https://kamples.com/wp-content/...).
  * Las convertimos a relativas (/wp-content/...) para que pasen por el proxy Vite.
  * Lista de dominios cuyas URLs deben ser reescritas al proxy local.
  */
-const DOMINIOS_PROXY = ['http://glory.local', 'https://glory.local'];
+const DOMINIOS_PROXY = ['http://glory.local', 'https://glory.local', 'https://kamples.com', 'http://kamples.com'];
 
 function reescribirUrlParaProxy(url: string): string {
     if (!import.meta.env.DEV) return url;
