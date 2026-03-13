@@ -472,61 +472,57 @@ connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection re
 
 ## QQ106
 
-sigue saliendo
-
-main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/bricolage-grotesque-latin-400-normal.A6LyuA6R-A6LyuA6R.woff2 net::ERR_ABORTED 404 (Not Found)
-[NEW] Explain Console errors by using Copilot in Edge: click
-         
-         to explain an error. 
-        Learn more
-        Don't show again
-main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/bricolage-grotesque-latin-500-normal.DEDBoLFO-DEDBoLFO.woff2 net::ERR_ABORTED 404 (Not Found)
-main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/JunicodeVF-Roman-subset-B2B4Tdd7.woff2 net::ERR_ABORTED 404 (Not Found)
+✅ [AG-FIX] Font 404s: Glory submodule en produccion estaba en commit viejo (`d9ef208`) con base path `themes/glory/` en vite.config.ts. Fix: checkout manual a `3fd3fd1` + rebuild. Nuevo CSS `main-Bz-7ncon.css` con paths correctos `themes/glorytemplate/`.
 
 ## QQ107
 
-Porque el favicon de kamples esta en /Glory si glory debe ser agnostico
-
-el repositorio del sync este https://github.com/1ndoryu/kamples-sync/settings/secrets/actions 
-
-no se ha subido /desktop y los secrets los coloque en Repository secrets
+✅ [AG-FIX] Favicon movido de `Glory/assets/images/` a `App/Assets/images/`. Glory debe ser agnostico del proyecto. Referencias actualizadas en header.php y TemplateReact.php con `filemtime()` cache-buster.
+- **Sync repo secrets:** Pendiente — el usuario configuro secrets en https://github.com/1ndoryu/kamples-sync/settings/secrets/actions (Repository secrets).
+- **Desktop:** Pendiente subir `/desktop` al repositorio remoto (requiere decision sobre estructura de deploy).
 
 ## QQ108
 
-Cambie los colores del favicon pero sigue cargando el viejo, como se hace para arreglar.
+✅ [AG-FIX] Cache de favicon: Agregado `?v={filemtime}` a URLs del favicon en header.php y TemplateReact.php. Cada vez que el SVG cambie en disco, el query param cambia y el navegador descarga la version nueva. Para forzar recarga inmediata: Ctrl+Shift+R o limpiar cache del navegador.
 
 ## QQ109
 
-response = await ensure_awaitable(
+✅ [AG-FIX] Scraper 403 en WhoSampled. 4 fixes aplicados:
+1. **403 en RETRY_HTTP_CODES** + RETRY_TIMES=5 (antes no reintentaba 403)
+2. **Warm-up global** en CurlCffiDownloaderMiddleware (homepage request para cookies de sesion antes de cualquier spider)
+3. **Header Referer** automatico en cada request (simula navegacion real)
+4. **Bug BandwidthTracker** corregido: `process_response` no recibia parametro `spider` causando NameError
+- **Nota:** Si los 403 persisten post-fix, verificar que las credenciales de DataImpulse proxy estan vigentes. WhoSampled usa Cloudflare y curl_cffi no ejecuta JS challenges — si Cloudflare activa JS challenge, se necesitaria Playwright/Selenium.
 
-2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-samples/>: HTTP status code is not handled or not allowed
-2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-covers/>: HTTP status code is not handled or not allowed
-2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-remixes/>: HTTP status code is not handled or not allowed
-2026-03-13 05:36:44 [scrapy.core.engine] INFO: Closing spider (finished)
-2026-03-13 05:36:44 [kamples_scraper.pipelines] INFO: PostgresPipeline: conexion cerrada
-2026-03-13 05:36:44 [kamples_scraper.middlewares] INFO: Bandwidth total consumido: 0.02 MB (25833 bytes)
-2026-03-13 05:36:44 [scrapy.statscollectors] INFO: Dumping Scrapy stats:
-{'downloader/response_bytes': 30398,
- 'downloader/response_count': 3,
- 'downloader/response_status_count/403': 3,
- 'elapsed_time_seconds': 0.309223,
- 'finish_reason': 'finished',
- 'finish_time': datetime.datetime(2026, 3, 13, 5, 36, 44, 182965, tzinfo=datetime.timezone.utc),
- 'httperror/response_ignored_count': 3,
- 'httperror/response_ignored_status_count/403': 3,
- 'items_per_minute': None,
- 'log_count/INFO': 7,
- 'log_count/WARNING': 2,
- 'memusage/max': 90537984,
- 'memusage/startup': 90537984,
- 'response_received_count': 3,
- 'responses_per_minute': None,
- 'scheduler/dequeued': 3,
- 'scheduler/dequeued/memory': 3,
- 'scheduler/enqueued': 3,
- 'scheduler/enqueued/memory': 3,
- 'start_time': datetime.datetime(2026, 3, 13, 5, 36, 43, 873742, tzinfo=datetime.timezone.utc)}
-2026-03-13 05:36:44 [scrapy.core.engine] INFO: Spider closed (finished)
+---
+## QQ111 ✅ [AG-SCR]
+
+Groq false positive con variaciones de nombre de artista ("Honeydrippers" vs "Honey Drippers"). Prompt del validador mejorado: ahora tolera diferencias menores de ortografia/espaciado en nombres de artista. Archivo: groq_validator.py.
+
+## QQ112 ✅ [AG-SCR]
+
+Auto-publicacion no funcionaba por 3 problemas encadenados:
+1. **Ruta no registrada en produccion:** `/dev/extraccion/publicar-auto` estaba dentro del guard `WP_DEBUG` que la ocultaba. Movida fuera del guard (usa secret, no sesion WP).
+2. **Secret mismatch:** Scraper .env tenia `kamples-cron-prod-2026-abc` pero container env tenia `kamples-prod-cron-2026`. Sincronizado.
+3. **KAMPLES_SISTEMA_USUARIO_ID=7** en container env — user 7 no existe en produccion. Cambiado a 1 en docker-compose de Coolify.
+4. **URL interna:** pipeline.py ahora usa `KAMPLES_INTERNAL_URL=http://localhost` para evitar SSL error al llamarse a si mismo.
+- Verificado: 2 samples publicados exitosamente (IDs 9 y 10).
+
+## QQ113 ✅ [AG-SCR]
+
+Proxy revertido para descargas de YouTube. El pipeline ya NO pasa proxy a `_descargar_youtube()` ni `_descargar_youtube_search()`. YouTube seguira fallando desde IP del VPS (bot detection), pero SoundCloud es la fuente primaria y funciona bien con GO token.
+
+
+## QQ114
+
+La paginación de las canciones y supongo que de otras cosas que carga por scroll es muy rapida, bien, pero, quiero mantenerla rapida pero si alguien deja el scroll hacia abajo va a empezar a cargar infinitamente las miles y miles de canciones, agregar mecanismos que lo eviten, igual con las paginacion de los samples, los ssamples dentro de las colecciones, etc, por ejemplo que las 3 paginas sigueinte sean rapida los primeros segundos si se baja muy rapido
+
+## QQ115
+
+realmente me preocupa los falsos positivos
+"Groq false positive con variaciones de nombre de artista ("Honeydrippers" vs "Honey Drippers"). Prompt del validador mejorado: ahora tolera diferencias menores de ortografia/espaciado en nombres de artista. Archivo: groq_validator.py."
+
+verifica que se puede hacer para evitar y si hay una ia mejor, etc
+
 
 ---
 
