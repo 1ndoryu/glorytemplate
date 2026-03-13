@@ -414,9 +414,9 @@ tambien hay un problema, cuando se ejecuta el comando que crea los repositories,
 
 **Fix:** (1) Errores IDE corregidos: namespace KamplesLogger, métodos PostgresService (consultar/ejecutar), supresores @. (2) ReportesRepository: añadidos UMBRAL_OCULTAR_* + sqlFiltroAutoOcultacion() faltantes de QQ76. (3) Schema generator: comparación de contenido normalizado CRLF-aware antes de escribir — 27/29 repos ahora muestran "sin cambios".
 
-## QQ94
+## QQ94 ✅ [AG-QQF]
 
-Sigo sin ver el favicon de kamples y veo es el de wordpress.
+Favicon mostraba el de WordPress en vez del de Kamples. **Causa:** el `<link rel="icon">` estaba después de `wp_head()`, permitiendo que WordPress inyectara su favicon primero. **Fix:** Movido el link de favicon ANTES de `wp_head()` en header.php y agregado `<link rel="shortcut icon">` como fallback de compatibilidad. El SVG favicon personalizado (`Glory/assets/images/favicon.svg`) ahora tiene prioridad. `wp_site_icon` ya estaba removido en SeoFrontendRenderer. Archivos: header.php.
 
 ## QQ95 ✅ [AG-QQF]
 
@@ -437,7 +437,97 @@ Reglas de quoting base64 agregadas en `.github/instructions/test.instructions.md
 
 ## QQ98
 
-Empieza a trabajar en el plan-desktop-distribucion.md
+Empieza a trabajar en el plan-desktop-distribucion.md 
+
+## QQ99
+
+corregir lo que se pueda, no descartar los svg
+
+sar tiempos de vida de caché eficientes Ahorro estimado de 7723 KiB
+Una duración en caché más larga puede aumentar el número de visitas repetidas a tu página. Más informaciónLCPFCPSin puntuar
+Solicitud
+Tiempo de vida en caché
+Tamaño de la transferencia
+kamples.com Propio
+7723 KiB
+…svg/Kamples.svg(kamples.com)
+None
+3596 KiB
+…svg/MiniDaw.svg(kamples.com)
+None
+2055 KiB
+…svg/Sync.svg(kamples.com)
+None
+1284 KiB
+…svg/Rolas.svg(kamples.com)
+None
+507 KiB
+…assets/main-DD5tePBF.js(kamples.com)
+None
+235 KiB
+…assets/main-CEGSnYZ0.css(kamples.com)
+None
+45 KiB
+Solicitudes que bloquean el renderizado Ahorro estimado de 300 ms
+Las solicitudes están bloqueando el renderizado inicial de la página, lo que puede retrasar el LCP. Si se posponen o se insertan, estas solicitudes de red pueden salir de la ruta crítica.LCPFCPSin puntuar
+URL
+Tamaño de la transferencia
+Duración
+kamples.com Propio
+45,4 KiB	790 ms
+…assets/main-CEGSnYZ0.css(kamples.com)
+45,4 KiB
+790 ms
+Desglose de LCP
+Cada subparte tiene estrategias de mejora específicas. Lo ideal es que la mayor parte del tiempo de LCP se dedique a cargar los recursos, no a los retrasos.LCPSin puntuar
+Subparte
+Duración
+Time to First Byte
+0 ms
+Retraso de carga de recursos
+1200 ms
+Duración de la carga del recurso
+2550 ms
+Retraso de renderizado de elementos
+1020 ms
+Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado
+<img src="/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg" alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor int…" class="landingSeccionSync" width="1288" height="717" fetchpriority="high" decoding="async">
+Descubrimiento de solicitudes de LCP
+Optimiza el LCP haciendo descubrible la imagen de LCP desde el HTML directamente y evita la carga en diferidoLCPSin puntuar
+carga en diferido no aplicada
+fetchpriority=high applied
+La solicitud es visible en el documento inicial
+Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado
+<img src="/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg" alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor int…" class="landingSeccionSync" width="1288" height="717" fetchpriority="high" decoding="async">
+Árbol de dependencia de red
+Evita encadenar solicitudes críticas reduciendo la longitud de las cadenas, disminuyendo el tamaño de los recursos o posponiendo la descarga de recursos innecesarios para mejorar la carga de la página.LCPSin puntuar
+Latencia de ruta crítica máxima: 1793 ms
+Navegación inicial
+https://kamples.com - 519 ms, 7,45 KiB
+…assets/main-CEGSnYZ0.css(kamples.com) - 686 ms, 45,44 KiB
+…assets/JunicodeV….woff2(kamples.com) - 1350 ms, 2,73 KiB
+…assets/bricolage….A6LyuA6R-A6LyuA6R.woff2(kamples.com) - 1793 ms, 2,73 KiB
+…assets/bricolage….DEDBoLFO-DEDBoLFO.woff2(kamples.com) - 1338 ms, 2,73 KiB
+…assets/main-DD5tePBF.js(kamples.com) - 1063 ms, 235,42 KiB
+Orígenes preconectados
+Las sugerencias para establecer conexión previamente ayudan al navegador a establecer una conexión antes de que se cargue la página, lo que ahorra tiempo al hacer la primera solicitud a ese origen. A continuación se indican los orígenes con los que la página ha establecido conexión previamente.
+No hay orígenes con los que se haya establecido conexión previamente
+Candidatos para establecer conexión previamente
+Añade sugerencias para establecer conexión previamente con tus orígenes más importantes, pero intenta usar 4 como máximo.
+No hay más orígenes que sean buenos candidatos para establecer conexión previamente
+Estas estadísticas también están disponibles en el panel Rendimiento de Chrome DevTools. Graba una traza para ver información más detallada.
+Diagnósticos
+Reduce el contenido JavaScript que no se use Ahorro estimado de 164 KiB
+Reduce el contenido JavaScript que no se use y retrasa la carga de secuencias de comandos hasta que se necesiten. Así, se reducirán los bytes consumidos por la actividad de red. Consulta cómo reducir el contenido de JavaScript que no se useLCPFCPSin puntuar
+WordPress
+Puedes reducir o cambiar la cantidad de complementos de WordPress que cargan código de JavaScript sin usar en tu página. Para identificar los complementos que añaden código de JavaScript externo, ejecuta la cobertura de código en DevTools de Chrome. Puedes identificar el tema o complemento concreto en la URL de la secuencia de comandos. Presta atención a los complementos con varias secuencias de comandos en la lista y con muchos elementos en rojo en la cobertura de código. Un complemento solo debería poner en cola una secuencia de comandos (si esta se usa en la página).
+URL
+Tamaño de la transferencia
+Ahorro estimado
+kamples.com Propio
+234,8 KiB	164,3 KiB
+…assets/main-DD5tePBF.js(kamples.com)
+
 ---
 
 ## Despliegue Produccion (VPS Coolify)
