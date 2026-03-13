@@ -45,6 +45,8 @@ class ColaExtraccionSamplesRepository extends BaseRepository
                         /**
      * Obtener elementos pendientes de la cola (para el pipeline de extracción).
      */
+    private const MAX_INTENTOS = 5;
+
     public static function pendientes(int $limit = 10): array
     {
         $tabla = ColaExtraccionSamplesCols::TABLA;
@@ -53,7 +55,9 @@ class ColaExtraccionSamplesRepository extends BaseRepository
         return static::consultar(
             "SELECT {$cols} FROM {$tabla} WHERE "
             . ColaExtraccionSamplesCols::ESTADO . " = :estado AND "
-            . ColaExtraccionSamplesCols::INTENTOS . " < 3 "
+            . ColaExtraccionSamplesCols::INTENTOS . " < " . self::MAX_INTENTOS . " "
+            . "AND (" . ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT . " IS NULL "
+            . "OR " . ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT . " <= NOW()) "
             . "ORDER BY " . ColaExtraccionSamplesCols::CREATED_AT . " ASC "
             . "LIMIT :limit",
             ['estado' => ColaExtraccionSamplesEnums::ESTADO_PENDIENTE, 'limit' => $limit]
@@ -62,6 +66,8 @@ class ColaExtraccionSamplesRepository extends BaseRepository
 
     /**
      * Actualizar estado de un elemento en la cola.
+     * Si el estado es ERROR, aplica backoff exponencial y auto-marca revision_humana
+     * cuando se alcanzan los intentos máximos.
      */
     public static function actualizarEstado(int $id, string $estado, ?string $error = null): bool
     {
@@ -80,6 +86,12 @@ class ColaExtraccionSamplesRepository extends BaseRepository
         if ($estado === ColaExtraccionSamplesEnums::ESTADO_COMPLETADO || $estado === ColaExtraccionSamplesEnums::ESTADO_ERROR) {
             $sets[] = ColaExtraccionSamplesCols::PROCESADO_AT . " = NOW()";
             $sets[] = ColaExtraccionSamplesCols::INTENTOS . " = " . ColaExtraccionSamplesCols::INTENTOS . " + 1";
+
+            /* Backoff exponencial en error: delay = min(2^intentos, 4) dias */
+            if ($estado === ColaExtraccionSamplesEnums::ESTADO_ERROR) {
+                $sets[] = ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT
+                    . " = NOW() + (LEAST(POWER(2, " . ColaExtraccionSamplesCols::INTENTOS . " + 1), 4) || ' days')::INTERVAL";
+            }
         }
 
         $setSql = implode(', ', $sets);
@@ -88,6 +100,16 @@ class ColaExtraccionSamplesRepository extends BaseRepository
             "UPDATE {$tabla} SET {$setSql} WHERE " . ColaExtraccionSamplesCols::ID . " = :id",
             $params
         );
+
+        /* Auto-marcar revision_humana si se alcanzaron los intentos maximos */
+        if ($estado === ColaExtraccionSamplesEnums::ESTADO_ERROR && $afectadas > 0) {
+            static::ejecutar(
+                "UPDATE {$tabla} SET " . ColaExtraccionSamplesCols::ESTADO . " = :estadoRevision "
+                . "WHERE " . ColaExtraccionSamplesCols::ID . " = :id "
+                . "AND " . ColaExtraccionSamplesCols::INTENTOS . " >= " . self::MAX_INTENTOS,
+                ['id' => $id, 'estadoRevision' => ColaExtraccionSamplesEnums::ESTADO_REVISION_HUMANA]
+            );
+        }
 
         return $afectadas > 0;
     }
@@ -181,7 +203,8 @@ class ColaExtraccionSamplesRepository extends BaseRepository
             . ColaExtraccionSamplesCols::INTENTOS . " = 0, "
             . ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO . " = NULL, "
             . ColaExtraccionSamplesCols::METADATA_EXTRACCION . " = NULL, "
-            . ColaExtraccionSamplesCols::ERROR_MENSAJE . " = NULL"
+            . ColaExtraccionSamplesCols::ERROR_MENSAJE . " = NULL, "
+            . ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT . " = NULL"
             . " WHERE " . ColaExtraccionSamplesCols::SAMPLE_ID . " = :sid",
             ['sid' => $sampleId]
         );

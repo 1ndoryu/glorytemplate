@@ -39,6 +39,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Maximo de intentos antes de marcar revision_humana
+MAX_INTENTOS = 5
+
+# Backoff: delay en dias por intento (capped a 4 dias)
+BACKOFF_MAX_DIAS = 4
+
 
 def obtener_pendientes(limit: int = 10) -> list[dict]:
     """Obtener elementos pendientes de la cola de extracción (bilateral)."""
@@ -61,10 +67,14 @@ def obtener_pendientes(limit: int = 10) -> list[dict]:
                 "JOIN artistas_musicales a_dest ON c_dest.artista_id = a_dest.id "
                 "JOIN canciones c_fuente ON rs.cancion_fuente_id = c_fuente.id "
                 "JOIN artistas_musicales a_fuente ON c_fuente.artista_id = a_fuente.id "
-                "WHERE ce.estado = 'pendiente' AND ce.intentos < 3 "
-                "ORDER BY rs.votos_total DESC NULLS LAST, ce.created_at ASC "
+                "WHERE ce.estado = 'pendiente' AND ce.intentos < %s "
+                "AND (ce.proximo_intento_at IS NULL OR ce.proximo_intento_at <= NOW()) "
+                "ORDER BY "
+                "  CASE WHEN ce.intentos = 0 THEN 0 ELSE 1 END ASC, "
+                "  rs.votos_total DESC NULLS LAST, "
+                "  ce.created_at ASC "
                 "LIMIT %s",
-                (limit,),
+                (MAX_INTENTOS, limit),
             )
             columnas = [desc[0] for desc in cur.description]
             return [dict(zip(columnas, row)) for row in cur.fetchall()]
@@ -73,16 +83,29 @@ def obtener_pendientes(limit: int = 10) -> list[dict]:
 
 
 def actualizar_estado_cola(cola_id: int, estado: str, error: str | None = None) -> None:
-    """Actualizar estado de un elemento en la cola."""
+    """
+    Actualizar estado de un elemento en la cola.
+    Si hay error, aplica backoff exponencial y auto-marca revision_humana al
+    alcanzar MAX_INTENTOS.
+    """
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             if error:
+                # Backoff: min(2^intentos, BACKOFF_MAX_DIAS) dias
                 cur.execute(
                     "UPDATE cola_extraccion_samples "
-                    "SET estado = %s, error_mensaje = %s, intentos = intentos + 1 "
+                    "SET estado = %s, error_mensaje = %s, intentos = intentos + 1, "
+                    "    proximo_intento_at = NOW() + (LEAST(POWER(2, intentos + 1), %s) || ' days')::INTERVAL "
                     "WHERE id = %s",
-                    (estado, error[:1000], cola_id),
+                    (estado, error[:1000], BACKOFF_MAX_DIAS, cola_id),
+                )
+                # Auto-marcar revision_humana si se alcanzaron los intentos maximos
+                cur.execute(
+                    "UPDATE cola_extraccion_samples "
+                    "SET estado = 'revision_humana' "
+                    "WHERE id = %s AND intentos >= %s AND estado = 'error'",
+                    (cola_id, MAX_INTENTOS),
                 )
             else:
                 cur.execute(
@@ -197,6 +220,8 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             "descarga_fuente_url": resultado_descarga.fuente_url,
             "descarga_fuente_titulo": resultado_descarga.fuente_titulo,
             "descarga_fuente_artista": resultado_descarga.fuente_artista,
+            # QQ121: Registrar fuentes que fallaron antes de la exitosa
+            "fuentes_descartadas": resultado_descarga.fuentes_intentadas,
         }
 
         t0 = time.monotonic()

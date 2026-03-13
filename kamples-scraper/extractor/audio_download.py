@@ -60,6 +60,8 @@ class ResultadoDescarga:
     fuente_url: str | None = None
     fuente_titulo: str | None = None
     fuente_artista: str | None = None
+    # QQ121: Fuentes que se intentaron sin exito antes de la exitosa
+    fuentes_intentadas: list[str] = dataclasses.field(default_factory=list)
 
 
 class SoundCloudAuthError(Exception):
@@ -195,22 +197,30 @@ def descargar_audio(
         and titulo
     )
 
+    # QQ121: Trackear fuentes intentadas para registrar en metadata
+    intentadas: list[str] = []
+
     # 1. SoundCloud (track completo, gratis, sin auth)
     if _SOUNDCLOUD_ENABLED and artista and titulo:
         resultado = _descargar_soundcloud(artista, titulo, output_dir)
         if resultado:
+            resultado.fuentes_intentadas = intentadas
             return resultado
+        intentadas.append("soundcloud")
 
     # 2. YouTube local (gratis, IP del VPS puede estar flaggeada — sin proxy para
     #    ahorrar bandwidth. Si falla, SoundCloud/Deezer cubren la mayoria de tracks)
     if youtube_id and len(youtube_id) <= 20:
         ruta = _descargar_youtube(youtube_id, output_dir)
         if ruta:
-            return ResultadoDescarga(
+            res = ResultadoDescarga(
                 ruta=ruta,
                 metodo="youtube_local",
                 fuente_url=f"https://www.youtube.com/watch?v={youtube_id}",
+                fuentes_intentadas=intentadas,
             )
+            return res
+        intentadas.append("youtube_local")
         logger.warning(
             "YouTube local fallo para %s, continuando con fuentes alternativas",
             youtube_id,
@@ -226,7 +236,9 @@ def descargar_audio(
                 fuente_url=None,
                 fuente_titulo=titulo,
                 fuente_artista=artista,
+                fuentes_intentadas=intentadas,
             )
+        intentadas.append("deezer")
 
     # 4. YouTube search (busca subidas alternativas sin restricciones DRM — sin proxy)
     if artista and titulo:
@@ -238,7 +250,9 @@ def descargar_audio(
                 fuente_url=None,
                 fuente_titulo=titulo,
                 fuente_artista=artista,
+                fuentes_intentadas=intentadas,
             )
+        intentadas.append("youtube_search")
 
     # 5. Spotify por ID
     if spotify_id and _SPOTIFY_ID_RE.match(spotify_id):
@@ -248,7 +262,9 @@ def descargar_audio(
                 ruta=ruta,
                 metodo="spotify",
                 fuente_url=f"https://open.spotify.com/track/{spotify_id}",
+                fuentes_intentadas=intentadas,
             )
+        intentadas.append("spotify")
         logger.warning("Spotify por ID fallo para %s", spotify_id)
 
     # 6. Spotify por nombre
@@ -261,7 +277,9 @@ def descargar_audio(
                 fuente_url=None,
                 fuente_titulo=titulo,
                 fuente_artista=artista,
+                fuentes_intentadas=intentadas,
             )
+        intentadas.append("spotify_search")
 
     logger.error(
         "Sin fuente de audio: youtube_id=%s, spotify_id=%s, artista=%s, timing=%ds",
