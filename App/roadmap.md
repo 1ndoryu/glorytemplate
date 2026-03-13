@@ -382,4 +382,38 @@ Los mensajes siguen sin marcarse como leidos, el boton sigue rojo, debería bast
 
 Agrega un comentario random en cualquier archivo importante que diga
 
-/* */
+/* 2UPRA */
+
+/* Algunas circunstancias las toleramos innecesariamente. Vivir evitando nuestro destino solo nos hace darnos cuenta de lo infelices que podemos llegar a ser recorriendo el camino que tomamos para huir de él. */
+
+## QQ88
+
+La pagina de descubrir no se parece en nada la de inicio cuando se esta logeado, falta los tags, falta las colecciones, todo, tiene que ser la misma no una distinta
+
+Falta la pagina de colecciones en los enlaces publicos
+
+## QQ89
+
+Auditoría profunda de seguridada y rendimiento, aplicar correciones sin dañar el codigo.
+
+---
+
+## Despliegue Produccion (VPS Coolify)
+
+**Estado:** Funcional — sitio carga HTTP 200 con tema Kamples activo.
+
+- **Stack UUID:** `mo4so4440c488g8woow4cow0`
+- **URL temporal:** `http://wordpress-mo4so4440c488g8woow4cow0.66.94.100.241.sslip.io`
+- **WordPress:** Tema activo, SEO funcionando (OG, structured data, sitemaps), React islands cargando (CSS/JS enlazados)
+- **PostgreSQL 18:** pgvector 0.8.2, 28 tablas creadas (41 migraciones ejecutadas)
+- **React build:** Completado (Vite + prerender, dist/assets + dist/ssg)
+- **Glory submodule:** Commit `d9ef2085` en `main` (fix `registrarRutaDinamica`)
+- **Env vars:** Todas presentes (Stripe, Google OAuth, Groq, DataImpulse, PG)
+- **Pendiente:** `GLORY_STRIPE_WEBHOOK_SECRET` vacio — configurar en Coolify cuando se conecte dominio
+- **Pendiente:** Conectar dominio `kamples.com` en Coolify
+- **Lecciones:**
+  - [Submodule]: Glory en servidor estaba en `glory-react` (branch viejo sin `registrarRutaDinamica`). Fix: `git stash` + `git submodule update --init Glory`
+  - [PG18]: Mount en `/var/lib/postgresql` (no `/var/lib/postgresql/data`) — breaking change PG18
+  - [Migraciones]: No hay auto-runner. Ejecutar manualmente con PHP runner base64-encoded
+  - [React build]: `npm install` necesario en servidor antes de `npm run build` (soundtouchjs faltaba)
+  - [coolify-manager-rs]: `find_container` retornaba siempre el primer container del stack. Fix: doble grep UUID+nombre/imagen
