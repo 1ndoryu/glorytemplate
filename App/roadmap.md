@@ -98,9 +98,84 @@ Los recortes se estan haciendo pero no se estan publicando, el problema anterior
 
 pero dejo de funcionar no se si es por que volvio el error o es otra cosa.
 
+## QK8
+
+Antes habia puesto esta tarea
+
+"## QQ138 ✅ [AG-EXT]
+
+Esto es una cuestion de preferencias mias pero quiero que el scraper tenga prioridad sobre algunos artitas, asi en este orden, y me refiero a los sampleos que hacen, o sea no es una decision de que su lado del sampleo sea mas importante, no, ambos lados, el sampleo en general
+
+https://www.whosampled.com/DJ-Smokey/
+https://www.whosampled.com/Soudiere/
+https://www.whosampled.com/Juicy-J/
+https://www.whosampled.com/Three-6-Mafia/
+https://www.whosampled.com/Project-Pat/
+https://www.whosampled.com/Tyler,-The-Creator/
+https://www.whosampled.com/Freddie-Dredd/
+https://www.whosampled.com/Kanye-West/
+https://www.whosampled.com/Daft-Punk/
 
 
+voy a dejar un html como se ve la pagina de los artistas artistas.html
 
+Luego que tenga prorioridad sobre los top rated, dejare un toprated.html
+
+asegurarnos de que tambien sistematicamente decida obtener informacion primero de samples mas puntuados que este guardando tambien la informacion de las puntuaciones
+
+siempre se guardan en los sampleos como (mas votos es igual amas prioridad)
+
+<div class="ratingWrap section-header-action" id="rating">
+    <span class="ratingLoading" style="display:none"></span>
+    <div class="ratingCounts"><span class="ratingCount">86 Votes</span> <span class="userRating"></span></div>
+    <div class="ratingRecords">
+        <span class="ratingOverlay" style="width:125.0px"></span>
+        <button class="rating rating-1" title="Blasphemy!"></button>
+        <button class="rating rating-2" title="Not very clever"></button>
+        <button class="rating rating-3" title="Not bad"></button>
+        <button class="rating rating-4" title="Clever"></button>
+        <button class="rating rating-5" title="Genius!"></button>
+    </div>
+</div>
+
+> Solucion: (1) Columna `prioridad SMALLINT` en artistas_musicales (migracion v047). 9 artistas seeded con prioridad 70-100. (2) pipeline.py ordena cola por prioridad artista (mayor primero). (3) artist.py spider tiene `priority_mode`: `scrapy crawl artist -a priority=true` procesa artistas prioritarios primero."
+
+pero no veo ninguna cancion de dj smokey aun, intuyo que no funciona, hablo de cuando se ejecuta el proceso de fondo en el panel admin
+
+## QK9
+
+Ants habia dicho poder subir las cookies de soundcloud pero no asi, "Pega el contenido de cookies.txt (formato Netscape) para autenticacion en yt-dlp. Se usa para Yo"
+
+cookies yt-dlp (YouTube + SoundCloud)
+
+mejor de forma separada para evitar errores
+
+## QK10 
+
+En una tarea anterior vi que limitaste la cantidad de tokens de los modelos y me preocupo que este genere algun error en el futuro por si un json es muy largo, revisa que no genere errores.
+
+## QK11
+
+La aplicación sigue fallando
+
+Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncLogger.ts:108 [sync:syncWatcher] Reconciliación de descargas: 1773441640s sin sync completa, forzando 
+:1420/wp-json/kamples/v1/me/sync/colecciones?_t=1773441640112:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
+obtenerColeccionesDelServidor @ syncCollectionService.ts:296
+(index):1 [Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
+avatar_1771208514.jpg:1   Failed to load resource: the server responded with a status of 404 (Not Found)
+:1420/wp-json/kamples/v1/me/sync/colecciones?_t=1773441640471:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
+obtenerColeccionesDelServidor @ syncCollectionService.ts:296
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 
 
 

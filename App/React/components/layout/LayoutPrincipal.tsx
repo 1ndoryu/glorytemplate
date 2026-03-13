@@ -104,14 +104,18 @@ export const LayoutPrincipal = ({
     const override = useDevToolsStore((s) => s.override);
     const usuario = useAuthStore(s => s.usuario);
 
-    /* QQ45: Auto-abrir modal de generos para usuarios nuevos sin preferencias */
+    /* QQ45+QK3: Auto-abrir modal de generos para usuarios sin preferencias.
+     * Solo se abre si perfilVerificado=true (datos de API /me, no de cache parcial).
+     * Sin esta guarda, el modal destella brevemente con datos del Tauri Store
+     * que no incluyen generosPreferidos (campo agregado después del cache). */
+    const perfilVerificado = useAuthStore(s => s.perfilVerificado);
     useEffect(() => {
-        if (!autenticado || !usuario || cargandoAuth) return;
+        if (!autenticado || !usuario || cargandoAuth || !perfilVerificado) return;
         const sinGeneros = !usuario.generosPreferidos || usuario.generosPreferidos.length === 0;
         if (sinGeneros) {
             useGenerosModalStore.getState().abrir();
         }
-    }, [autenticado, usuario, cargandoAuth]);
+    }, [autenticado, usuario, cargandoAuth, perfilVerificado]);
 
     /* QQ46: Cargar IDs de samples reproducidos al autenticar */
     useEffect(() => {

@@ -32,6 +32,7 @@ const obtenerContexto = (): GloryContext | null => {
 
 export const useInicializadorAuth = (): void => {
     const autenticado = useAuthStore(s => s.autenticado);
+    const perfilVerificado = useAuthStore(s => s.perfilVerificado);
     const setUsuario = useAuthStore(s => s.setUsuario);
     const setCargando = useAuthStore(s => s.setCargando);
 
@@ -78,7 +79,7 @@ export const useInicializadorAuth = (): void => {
                     avatarUrl: avatarNormalizado,
                     plan: 'free',
                     verificado: false,
-                } as never);
+                } as never, false /* QK3: datos parciales de WP, no API /me */);
                 log.debug('Sesión WP detectada (sin perfil Kamples)', ctx.currentUser.username);
             } else {
                 setUsuario(null);
@@ -92,4 +93,31 @@ export const useInicializadorAuth = (): void => {
         }
         return () => { cancelado = true; };
     }, []);
+
+    /*
+     * QK3: Refetch silencioso de /me cuando hay pre-autenticación
+     * con datos parciales (desktop Tauri Store cache, WP fallback).
+     * Obtiene datos completos (generosPreferidos, etc.) y marca perfilVerificado=true.
+     * Sin esto, el modal de generos no sabe si los datos son completos.
+     */
+    useEffect(() => {
+        if (!autenticado || perfilVerificado) return;
+
+        let cancelado = false;
+        const verificar = async () => {
+            try {
+                const resp = await obtenerUsuarioActual();
+                if (cancelado) return;
+                if (resp.ok && resp.data) {
+                    setUsuario(resp.data);
+                    log.debug('Perfil completo obtenido (refetch)', resp.data);
+                }
+            } catch {
+                if (cancelado) return;
+                log.debug('Refetch /me falló — datos parciales se mantienen');
+            }
+        };
+        verificar();
+        return () => { cancelado = true; };
+    }, [autenticado, perfilVerificado, setUsuario]);
 };

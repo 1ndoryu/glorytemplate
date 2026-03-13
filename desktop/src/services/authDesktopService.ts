@@ -53,7 +53,10 @@ export async function inicializarAuthDesktop(): Promise<void> {
             if (usuario) {
                 /* Importar authStore dinámicamente para evitar dependencia circular */
                 const { useAuthStore } = await import(/* @vite-ignore */ '@app/stores/authStore');
-                useAuthStore.getState().setUsuario(usuario as never);
+                /* QK3: Datos del Tauri Store son cache parcial (pueden no incluir
+                 * generosPreferidos). Marcar como no verificado para que
+                 * el modal de generos no destelle con datos incompletos. */
+                useAuthStore.getState().setUsuario(usuario as never, false);
             }
 
             /* Marcar isLoggedIn en GLORY_CONTEXT para que useInicializadorAuth

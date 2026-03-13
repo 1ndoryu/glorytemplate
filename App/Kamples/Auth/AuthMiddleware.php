@@ -18,6 +18,68 @@ use App\Kamples\Services\ServicioSuspension;
 class AuthMiddleware
 {
     /**
+     * QK6: Registra filtro rest_authentication_errors para autenticar con JWT
+     * ANTES de que rest_cookie_check_errors (prioridad 100) bloquee
+     * requests con cookies pero sin nonce válido.
+     *
+     * Crítico para desktop (Tauri) donde:
+     * 1. Login llama wp_set_auth_cookie() → el proxy Vite reenvía Set-Cookie al WebView
+     * 2. Requests posteriores incluyen cookies + JWT Bearer
+     * 3. Sin este filtro: WP ve cookies sin nonce → 401 inmediato
+     *    (permission_callback con JWT fallback nunca se ejecuta)
+     *
+     * Prioridad 90 = antes de cookie check (100).
+     */
+    public static function registrarFiltroRestJwt(): void
+    {
+        add_filter('rest_authentication_errors', [self::class, 'autenticarRestConJwt'], 90);
+    }
+
+    /**
+     * Callback del filtro rest_authentication_errors.
+     * Si hay JWT válido → autentica y retorna true (skip cookie check).
+     * Si no hay JWT → retorna null (dejar que cookies/nonce manejen auth).
+     *
+     * @param \WP_Error|true|null $result Resultado de filtros anteriores.
+     * @return \WP_Error|true|null
+     */
+    public static function autenticarRestConJwt($result)
+    {
+        /* Si otro filtro ya manejó la auth, no interferir */
+        if ($result !== null) {
+            return $result;
+        }
+
+        $token = self::obtenerBearerToken();
+        if (!$token) {
+            return null;
+        }
+
+        $wpUserId = JwtService::validar($token);
+        if (!$wpUserId) {
+            return new \WP_Error(
+                'jwt_invalid',
+                'Token de autenticación inválido o expirado',
+                ['status' => 401]
+            );
+        }
+
+        $wpUser = get_userdata($wpUserId);
+        if (!$wpUser) {
+            return new \WP_Error(
+                'jwt_user_not_found',
+                'Usuario no encontrado',
+                ['status' => 401]
+            );
+        }
+
+        /* JWT válido → establecer usuario WP y marcar auth como resuelta.
+         * Retornar true impide que rest_cookie_check_errors bloquee el request. */
+        wp_set_current_user($wpUserId);
+        return true;
+    }
+
+    /**
      * Permission callback para endpoints que requieren autenticación.
      * Acepta tanto nonce WP como JWT Bearer token.
      */

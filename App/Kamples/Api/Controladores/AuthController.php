@@ -285,6 +285,9 @@ class AuthController
             'totalDescargas'  => (int) ($row[UsuariosExtCols::TOTAL_DESCARGAS] ?? 0),
             'rol'             => $row[UsuariosExtCols::ROL] ?? 'user',
             'creadoEn'        => $row[UsuariosExtCols::CREATED_AT] ?? null,
+            /* QK3+QK6: Incluir generos favoritos para que el cache desktop (Tauri Store)
+             * tenga datos completos y no cause flash del modal de generos. */
+            'generosPreferidos' => self::decodificarGenerosSeguro($row[UsuariosExtCols::GENEROS_FAVORITOS] ?? '[]'),
         ];
     }
 
@@ -302,5 +305,18 @@ class AuthController
             KamplesLogger::error('Error en logout', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error al cerrar sesión'], 500);
         }
+    }
+
+    /**
+     * Decodifica JSONB de generos favoritos a array PHP.
+     * Retorna array vacío si el valor es nulo, inválido o no-array.
+     */
+    private static function decodificarGenerosSeguro($raw): array
+    {
+        if (is_array($raw)) return $raw;
+        if (!is_string($raw) || $raw === '') return [];
+        $decoded = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) return [];
+        return array_values($decoded);
     }
 }

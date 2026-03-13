@@ -14,6 +14,7 @@
 namespace App\Kamples;
 
 use App\Kamples\Api\KamplesController;
+use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Auth\GuardiaWpAdmin;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Services\DeduplicadorAudio;
@@ -42,6 +43,12 @@ class KamplesInit
 
         /* CORS para app desktop Tauri — dev y producción */
         self::registrarCors();
+
+        /* QK6: JWT auth a nivel de protocolo WP REST — antes del cookie check.
+         * Sin esto, desktop (Tauri) con cookies WP + JWT recibe 401 porque
+         * rest_cookie_check_errors rechaza cookies sin nonce antes de que
+         * permission_callback ejecute el fallback JWT. */
+        AuthMiddleware::registrarFiltroRestJwt();
 
         /* QQ14: Bloquear wp-admin y wp-login.php para no-admins */
         GuardiaWpAdmin::registrar();

@@ -128,3 +128,5 @@ kamples-scraper/cookies.txt.bak.*
 kamples-scraper/log*.txt
 kamples-scraper/**/.rate_limiter_state
 kamples-scraper/extractor/temp/
+artistas.html
+toprated.html
