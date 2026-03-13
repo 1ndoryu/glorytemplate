@@ -257,6 +257,28 @@ TAREA COMPLETADA:
 - **NO OMITIR OPORTUNIDADES DE OPTIMIZACIÓN O CORRECCIÓN FUERA DE LA TAREA PRINCIPAL:** Si mientras trabajas en una tarea detectas código que viola estas reglas (en el mismo archivo o en archivos que estés consultando), **corregirlo** si es de bajo riesgo, o dejarlo documentado como **TO-DO** con descripción clara si la corrección es compleja. **PROHIBIDO** ignorar violaciones conocidas solo porque "no son parte de la tarea actual".
 - **NO PERMITIR QUE LA ENTROPÍA CREZCA (RESPONSABILIDAD ABSOLUTA):** Todo cambio, toda tarea, toda nueva feature introduce entropía si no se toman las decisiones correctas de estructura, ubicación, nomenclatura y limpieza. El usuario generalmente **no es consciente** de cómo el código se desordena progresivamente. Por lo tanto, es **responsabilidad absoluta del agente** — aunque no se le indique ni se le pida — actuar como guardián del orden del proyecto. Esto significa: elegir la ubicación correcta para cada archivo nuevo, mantener coherencia en patrones existentes, no dejar imports huérfanos, no crear abstracciones innecesarias, no romper convenciones establecidas, y asegurar que cada cambio deja el código **igual o más ordenado** que antes. Si detectas desorden preexistente mientras trabajas, limpiarlo proactivamente si es de bajo riesgo. La entropía se combate con cada decisión, no con refactorizaciones masivas futuras que nunca llegan.
 
+## 8. Gotchas de Entorno PowerShell/SSH/VPS
+
+- **Quoting MySQL/SQL en PowerShell via SSH (CRÍTICO):** PowerShell interpreta las comillas simples y dobles de forma diferente a bash. Las comillas en comandos SSH se pierden o se corrompen, causando errores de parsing SQL. **SOLUCIÓN OBLIGATORIA: usar base64 para pasar SQL complejo.** Patrón:
+    ```powershell
+    # En lugar de: ssh host "mysql -e 'SELECT * FROM tabla WHERE col = \"valor\"'"
+    # Hacer:
+    $sql = 'SELECT * FROM tabla WHERE col = "valor"'
+    $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($sql))
+    ssh host "echo $b64 | base64 -d | mysql -u user -ppass db"
+    ```
+    Para `psql`:
+    ```powershell
+    $sql = 'SELECT fqdn FROM service_applications WHERE uuid LIKE '"'"'abc%'"'"';'
+    $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($sql))
+    ssh host "echo $b64 | base64 -d | docker exec -i coolify-db psql -U coolify coolify"
+    ```
+    **Alternativa para comandos complejos:** Crear un script `.sh` local, copiarlo con `scp` y ejecutarlo: `scp script.sh host:/tmp/ ; ssh host 'bash /tmp/script.sh'`. Esto elimina por completo los problemas de quoting.
+- **SSH heredoc en PowerShell:** PowerShell NO tiene heredoc estilo bash (`<< 'EOF'`). El operador `<<` no existe en PS5. Para pasar múltiples líneas a SSH, usar el patrón SCP-script descrito arriba.
+- **Pipes en SSH desde PowerShell:** El carácter `|` dentro de comillas simples enviadas a SSH puede interpretarse incorrectamente. Usar SCP-script o encapsular el pipe en `bash -c "..."` con las comillas correctas para bash.
+- **Contenedor Docker con labels de Traefik obsoletas:** Cuando se cambia el dominio en Coolify, el contenedor sigue corriendo con las labels antiguas. Para aplicar el nuevo FQDN: `cd /data/coolify/services/{uuid} && docker compose up -d --no-build --force-recreate wordpress`. Los volúmenes de datos persisten. Traefik detecta los cambios automáticamente y solicita nuevo cert SSL.
+- **Verificar cert SSL desde VPS:** El VPS puede tener DNS interno diferente. Verificar siempre con IP directa: `openssl s_client -connect {IP_VPS}:443 -servername {dominio} 2>&1 | head -30`.
+
 ---
 
 ### Ejemplo de Estilo de Comentario Aceptado

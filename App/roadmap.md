@@ -422,14 +422,9 @@ Favicon mostraba el de WordPress en vez del de Kamples. **Causa:** el `<link rel
 
 La imagen de portada no cambiaba porque el frontend solo creaba un blob URL local pero nunca subía el archivo al servidor. **Fix completo:** Backend: nuevo endpoint `POST /me/portada` en PerfilController (validación MIME, 10MB max, optimización 70%/1920px, guarda en uploads/kamples/portadas/{userId}/). `UsuariosExtRepository::actualizarPortada()` nuevo método. Frontend: `subirPortada()` en apiAuth.ts (FormData como avatar). `useModalConfiguracion`: se guarda `portadaArchivo` (File) y se sube en `manejarGuardar()` antes de actualizar perfil. Archivos: PerfilController.php, UsuariosExtRepository.php, apiAuth.ts, useModalConfiguracion.ts.
 
-## QQ96
+## QQ96 ✅ [AG-QQF]
 
-El scrappy en el servidor (producción) no funciona, da este error, intuyo que la Extraccion Audio debe tener un error similar
-
-------------------------------------------------------------
-[2026-03-13 03:31:13] INICIO proceso=scraping
-------------------------------------------------------------
-/usr/bin/python3: No module named scrapy
+Scraper no funcionaba en producción por falta de virtualenv. Python 3.13.5 estaba instalado en el contenedor pero sin pip packages. **Fix:** Ejecutado `install_scraper_venv.sh` via coolify-manager `run-script`. Venv creado en `/kamples-scraper/.venv/`, scrapy 2.14.2 + psycopg2 + yt-dlp + bs4 + librosa instalados. Los scripts `run_daily.sh` y `run_extraction.sh` ya tenían lógica para activar el venv si existe. 5 spiders verificados funcionando: artist, browse_year, hot_samples, sample_detail, track.
 
 ## QQ97 ✅ [AG-SSL]
 
@@ -527,6 +522,14 @@ Ahorro estimado
 kamples.com Propio
 234,8 KiB	164,3 KiB
 …assets/main-DD5tePBF.js(kamples.com)
+
+## QQ100
+
+En produccion por alguna extraña razon no cargan estas fuentes
+
+Failed to load resource: the server responded with a status of 404 ()Comprende este error
+bricolage-grotesque-latin-400-normal.A6LyuA6R-A6LyuA6R.woff2:1  Failed to load resource: the server responded with a status of 404 ()Comprende este error
+JunicodeVF-Roman-subset-B2B4Tdd7.woff2:1  Failed to load resource: the server responded with a status of 404 ()
 
 ---
 

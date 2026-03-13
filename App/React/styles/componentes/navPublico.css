@@ -35,13 +35,14 @@
 .navPublicoEnlaces {
     display: flex;
     align-items: center;
-    gap: var(--espacioMd);
+    gap: var(--espacioLg);
+    padding: var(--espacioLg);
 }
 
 .navPublicoEnlace {
     color: var(--textoSecundario);
     text-decoration: none;
-    font-size: var(--fuenteSm);
+    font-size: var(--fuenteMd);
     font-weight: var(--pesoMedium);
     transition: color var(--transicionRapida);
 }
