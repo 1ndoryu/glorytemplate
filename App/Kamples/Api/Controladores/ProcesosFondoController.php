@@ -64,6 +64,17 @@ class ProcesosFondoController
             'methods'             => 'POST',
             'callback'            => [self::class, 'actualizarCookies'],
             'permission_callback' => $admin,
+            'args'                => [
+                'tipo' => [
+                    'type'              => 'string',
+                    'required'          => false,
+                    'default'           => 'youtube',
+                    'sanitize_callback' => 'sanitize_key',
+                    'validate_callback' => static function (string $v): bool {
+                        return \in_array($v, ['youtube', 'soundcloud'], true);
+                    },
+                ],
+            ],
         ]);
 
         \register_rest_route($namespace, '/admin/procesos/cookies', [
@@ -79,7 +90,7 @@ class ProcesosFondoController
             return new \WP_REST_Response([
                 'ok'       => true,
                 'procesos' => GestorProcesosFondo::estadoTodos(),
-                'cookies'  => GestorProcesosFondo::infoCookies(),
+                'cookies'  => GestorProcesosFondo::infoCookiesTodas(),
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('[Procesos] Error listando procesos', ['error' => $e->getMessage()]);
@@ -142,14 +153,15 @@ class ProcesosFondoController
     }
 
     /**
-     * Actualiza cookies.txt del scraper para autenticacion yt-dlp.
-     * Recibe contenido como texto plano en el body.
+     * Actualiza cookies del scraper para autenticacion yt-dlp.
+     * Recibe contenido como texto plano en el body y tipo de plataforma.
      * POST /admin/procesos/cookies
      */
     public static function actualizarCookies(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
             $contenido = $request->get_param('contenido');
+            $tipo      = $request->get_param('tipo') ?? 'youtube';
 
             if (!\is_string($contenido) || \trim($contenido) === '') {
                 return new \WP_REST_Response([
@@ -178,7 +190,7 @@ class ProcesosFondoController
                 ], 400);
             }
 
-            $resultado = GestorProcesosFondo::guardarCookies($contenido);
+            $resultado = GestorProcesosFondo::guardarCookies($contenido, $tipo);
 
             return new \WP_REST_Response($resultado, $resultado['ok'] ? 200 : 500);
         } catch (\Throwable $e) {
@@ -188,14 +200,14 @@ class ProcesosFondoController
     }
 
     /**
-     * GET /admin/procesos/cookies — Info del archivo cookies.txt actual.
+     * GET /admin/procesos/cookies — Info de todos los archivos de cookies.
      */
     public static function infoCookies(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
             return new \WP_REST_Response([
                 'ok'      => true,
-                'cookies' => GestorProcesosFondo::infoCookies(),
+                'cookies' => GestorProcesosFondo::infoCookiesTodas(),
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('[Procesos] Error obteniendo info cookies', ['error' => $e->getMessage()]);

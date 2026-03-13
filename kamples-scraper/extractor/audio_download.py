@@ -102,6 +102,26 @@ _HTTP_HEADERS = {
 _DEEZER_PREVIEW_ENABLED = os.getenv("DEEZER_PREVIEW_ENABLED", "true").lower() == "true"
 _DEEZER_MAX_TIMING = int(os.getenv("DEEZER_PREVIEW_MAX_TIMING", "30"))
 
+# Directorio raiz del scraper (para resolver paths de cookies)
+_SCRAPER_ROOT = os.path.dirname(os.path.dirname(__file__))
+
+
+def _resolver_cookies_youtube() -> str | None:
+    """Resuelve ruta a cookies de YouTube. Prioridad: cookies_youtube.txt > cookies.txt (legacy)."""
+    for nombre in ("cookies_youtube.txt", "cookies.txt"):
+        ruta = os.path.join(_SCRAPER_ROOT, nombre)
+        if os.path.exists(ruta):
+            return ruta
+    return None
+
+
+def _resolver_cookies_soundcloud() -> str | None:
+    """Resuelve ruta a cookies de SoundCloud para yt-dlp (si se usa como fallback)."""
+    ruta = os.path.join(_SCRAPER_ROOT, "cookies_soundcloud.txt")
+    if os.path.exists(ruta):
+        return ruta
+    return None
+
 
 def _construir_proxy_url() -> str | None:
     """
@@ -863,8 +883,7 @@ def _descargar_youtube(
     if proxy_url:
         base_cmd.extend(["--proxy", proxy_url])
 
-    cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
-    cookies_existe = os.path.exists(cookies_path)
+    cookies_path = _resolver_cookies_youtube()
 
     # Sin explicit player_client: yt-dlp selecciona el mejor cliente disponible.
     # Sin cookies: android_vr se auto-selecciona (funciona para contenido publico).
@@ -873,7 +892,7 @@ def _descargar_youtube(
         ("default", []),
     ]
 
-    if cookies_existe:
+    if cookies_path:
         estrategias.append(("default_cookies", ["--cookies", cookies_path]))
 
     # Retry loop: con proxy rotativo, ~33% exito por intento (IP mismatch en CDN).
@@ -990,12 +1009,12 @@ def _descargar_youtube_search(
     query = f"ytsearch3:{artista} {titulo}"
     logger.info("YouTube search fallback: buscando '%s %s'", artista, titulo)
 
-    cookies_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cookies.txt")
+    cookies_path = _resolver_cookies_youtube()
 
     # Sin cookies primero: android_vr auto-seleccionado, funciona para contenido publico.
     # Con cookies despues: para resultados restringidos (tv_downgraded/web/web_safari).
     intentos_cookies: list[tuple[str, list[str]]] = [("sin_cookies", [])]
-    if os.path.exists(cookies_path):
+    if cookies_path:
         intentos_cookies.append(("con_cookies", ["--cookies", cookies_path]))
 
     for nombre_intento, cookies_args in intentos_cookies:

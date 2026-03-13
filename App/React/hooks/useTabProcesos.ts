@@ -5,8 +5,11 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { EstadoProceso, InfoCookies } from '../services/apiProcesos';
+import type { EstadoProceso, InfoCookies, TipoCookies } from '../services/apiProcesos';
 import { listarProcesos, iniciarProceso, detenerProceso } from '../services/apiProcesos';
+
+/** Mapa de info de cookies por plataforma */
+type InfoCookiesMapa = Record<TipoCookies, InfoCookies>;
 
 interface UseTabProcesosReturn {
     procesos: EstadoProceso[];
@@ -16,7 +19,7 @@ interface UseTabProcesosReturn {
     detener: (nombre: string) => Promise<void>;
     recargar: () => Promise<void>;
     error: string | null;
-    cookiesInfo: InfoCookies | null;
+    cookiesInfo: InfoCookiesMapa | null;
 }
 
 const INTERVALO_ACTIVO  = 5000;
@@ -27,7 +30,7 @@ export function useTabProcesos(): UseTabProcesosReturn {
     const [cargando, setCargando] = useState(true);
     const [accionEnCurso, setAccionEnCurso] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [cookiesInfo, setCookiesInfo] = useState<InfoCookies | null>(null);
+    const [cookiesInfo, setCookiesInfo] = useState<InfoCookiesMapa | null>(null);
     const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const cargarDatos = useCallback(async () => {

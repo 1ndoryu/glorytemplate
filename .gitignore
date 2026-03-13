@@ -124,7 +124,9 @@ desktop/src-tauri/gen/
 desktop/src-tauri/target/
 # Kamples Scraper
 kamples-scraper/cookies.txt
-kamples-scraper/cookies.txt.bak.*
+kamples-scraper/cookies_youtube.txt
+kamples-scraper/cookies_soundcloud.txt
+kamples-scraper/cookies*.txt.bak.*
 kamples-scraper/log*.txt
 kamples-scraper/**/.rate_limiter_state
 kamples-scraper/extractor/temp/

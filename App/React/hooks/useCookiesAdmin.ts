@@ -1,66 +1,106 @@
 /*
  * Hook: useCookiesAdmin
- * Logica para gestion de cookies.txt de yt-dlp desde el panel admin.
+ * Logica para gestion de cookies de yt-dlp desde el panel admin.
+ * Soporta multiples plataformas (YouTube, SoundCloud) con estado independiente.
  * Separado de useTabProcesos para SRP — cada hook una responsabilidad.
  */
 
 import { useState, useCallback } from 'react';
-import type { InfoCookies } from '../services/apiProcesos';
+import type { InfoCookies, TipoCookies } from '../services/apiProcesos';
 import { actualizarCookies } from '../services/apiProcesos';
 
-interface UseCookiesAdminReturn {
-    infoCookies: InfoCookies | null;
-    contenidoCookies: string;
-    setContenidoCookies: (v: string) => void;
+/** Estado individual de cookies para una plataforma */
+interface EstadoCookiesPlataforma {
+    contenido: string;
     guardando: boolean;
     mensaje: string | null;
-    errorCookies: string | null;
-    guardar: () => Promise<void>;
-    actualizarInfo: (info: InfoCookies) => void;
+    error: string | null;
 }
 
-export function useCookiesAdmin(): UseCookiesAdminReturn {
-    const [infoCookies, setInfoCookies] = useState<InfoCookies | null>(null);
-    const [contenidoCookies, setContenidoCookies] = useState('');
-    const [guardando, setGuardando] = useState(false);
-    const [mensaje, setMensaje] = useState<string | null>(null);
-    const [errorCookies, setErrorCookies] = useState<string | null>(null);
+interface UseCookiesAdminReturn {
+    /** Info de archivo de cada plataforma (viene del backend) */
+    infoCookies: Record<TipoCookies, InfoCookies> | null;
+    /** Estado de edicion por plataforma */
+    plataformas: Record<TipoCookies, EstadoCookiesPlataforma>;
+    /** Actualiza el contenido del textarea de una plataforma */
+    setContenido: (tipo: TipoCookies, valor: string) => void;
+    /** Guarda cookies de una plataforma al backend */
+    guardar: (tipo: TipoCookies) => Promise<void>;
+    /** Recibe info del backend (llamado por useTabProcesos) */
+    actualizarInfo: (info: Record<TipoCookies, InfoCookies>) => void;
+}
 
-    const guardar = useCallback(async () => {
-        if (contenidoCookies.trim() === '') {
-            setErrorCookies('El contenido de cookies no puede estar vacio.');
+const estadoInicial: EstadoCookiesPlataforma = {
+    contenido: '',
+    guardando: false,
+    mensaje: null,
+    error: null,
+};
+
+export function useCookiesAdmin(): UseCookiesAdminReturn {
+    const [infoCookies, setInfoCookies] = useState<Record<TipoCookies, InfoCookies> | null>(null);
+    const [plataformas, setPlataformas] = useState<Record<TipoCookies, EstadoCookiesPlataforma>>({
+        youtube: { ...estadoInicial },
+        soundcloud: { ...estadoInicial },
+    });
+
+    const setContenido = useCallback((tipo: TipoCookies, valor: string) => {
+        setPlataformas(prev => ({
+            ...prev,
+            [tipo]: { ...prev[tipo], contenido: valor },
+        }));
+    }, []);
+
+    const guardar = useCallback(async (tipo: TipoCookies) => {
+        const actual = plataformas[tipo];
+        if (actual.contenido.trim() === '') {
+            setPlataformas(prev => ({
+                ...prev,
+                [tipo]: { ...prev[tipo], error: 'El contenido de cookies no puede estar vacio.' },
+            }));
             return;
         }
 
-        setGuardando(true);
-        setMensaje(null);
-        setErrorCookies(null);
+        setPlataformas(prev => ({
+            ...prev,
+            [tipo]: { ...prev[tipo], guardando: true, mensaje: null, error: null },
+        }));
 
-        const resp = await actualizarCookies(contenidoCookies);
+        const resp = await actualizarCookies(actual.contenido, tipo);
 
         if (resp.ok && resp.data?.ok) {
-            setMensaje(resp.data.mensaje ?? 'Cookies actualizadas correctamente.');
-            setContenidoCookies('');
+            setPlataformas(prev => ({
+                ...prev,
+                [tipo]: {
+                    ...prev[tipo],
+                    guardando: false,
+                    contenido: '',
+                    mensaje: resp.data?.mensaje ?? `Cookies ${tipo} actualizadas correctamente.`,
+                    error: null,
+                },
+            }));
             /* Actualizar info — ahora existe */
-            setInfoCookies({ existe: true });
+            setInfoCookies(prev => prev ? { ...prev, [tipo]: { existe: true } } : prev);
         } else {
-            setErrorCookies(resp.data?.error ?? resp.error ?? 'Error al guardar cookies.');
+            setPlataformas(prev => ({
+                ...prev,
+                [tipo]: {
+                    ...prev[tipo],
+                    guardando: false,
+                    error: resp.data?.error ?? resp.error ?? 'Error al guardar cookies.',
+                },
+            }));
         }
+    }, [plataformas]);
 
-        setGuardando(false);
-    }, [contenidoCookies]);
-
-    const actualizarInfo = useCallback((info: InfoCookies) => {
+    const actualizarInfo = useCallback((info: Record<TipoCookies, InfoCookies>) => {
         setInfoCookies(info);
     }, []);
 
     return {
         infoCookies,
-        contenidoCookies,
-        setContenidoCookies,
-        guardando,
-        mensaje,
-        errorCookies,
+        plataformas,
+        setContenido,
         guardar,
         actualizarInfo,
     };

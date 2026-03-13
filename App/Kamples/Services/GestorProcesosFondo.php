@@ -543,20 +543,42 @@ class GestorProcesosFondo
     }
 
     /* ------------------------------------------------------------------ */
-    /*  Cookies yt-dlp                                                     */
+    /*  Cookies yt-dlp (por plataforma)                                    */
     /* ------------------------------------------------------------------ */
 
+    /** Tipos de cookies soportados — whitelist para evitar path traversal */
+    private const TIPOS_COOKIES_VALIDOS = ['youtube', 'soundcloud'];
+
     /**
-     * Guarda contenido cookies.txt para yt-dlp en el directorio del scraper.
+     * Resuelve el nombre de archivo de cookies segun el tipo de plataforma.
+     * Para youtube mantiene retrocompatibilidad: cookies_youtube.txt (preferido) o cookies.txt (legacy).
+     */
+    private static function resolverNombreCookies(string $tipo): string
+    {
+        return match ($tipo) {
+            'youtube'    => 'cookies_youtube.txt',
+            'soundcloud' => 'cookies_soundcloud.txt',
+            default      => throw new \InvalidArgumentException("Tipo de cookies invalido: {$tipo}"),
+        };
+    }
+
+    /**
+     * Guarda contenido cookies para yt-dlp en el directorio del scraper.
      * Hace backup del archivo anterior si existe.
      *
      * @param string $contenido Texto completo en formato Netscape cookies.txt
+     * @param string $tipo      Plataforma: 'youtube' | 'soundcloud'
      * @return array{ok: bool, mensaje?: string, error?: string, backup?: string}
      */
-    public static function guardarCookies(string $contenido): array
+    public static function guardarCookies(string $contenido, string $tipo = 'youtube'): array
     {
+        if (!\in_array($tipo, self::TIPOS_COOKIES_VALIDOS, true)) {
+            return ['ok' => false, 'error' => 'Tipo de cookies invalido.'];
+        }
+
         $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
-        $rutaCookies = $scraperDir . '/cookies.txt';
+        $archivo = self::resolverNombreCookies($tipo);
+        $rutaCookies = $scraperDir . '/' . $archivo;
 
         try {
             /* Backup si existe archivo previo */
@@ -565,7 +587,7 @@ class GestorProcesosFondo
                 $backup = $rutaCookies . '.bak.' . \date('Ymd_His');
                 $copiado = \copy($rutaCookies, $backup);
                 if (!$copiado) {
-                    KamplesLogger::warning('[Procesos] No se pudo crear backup de cookies.txt');
+                    KamplesLogger::warning("[Procesos] No se pudo crear backup de {$archivo}");
                     $backup = null;
                 }
             }
@@ -578,17 +600,18 @@ class GestorProcesosFondo
 
             $resultado = \file_put_contents($rutaCookies, $contenidoFinal, LOCK_EX);
             if ($resultado === false) {
-                return ['ok' => false, 'error' => 'No se pudo escribir cookies.txt — verificar permisos del directorio.'];
+                return ['ok' => false, 'error' => "No se pudo escribir {$archivo} — verificar permisos del directorio."];
             }
 
-            KamplesLogger::info('[Procesos] cookies.txt actualizado', [
+            KamplesLogger::info("[Procesos] {$archivo} actualizado", [
                 'bytes'  => $resultado,
                 'backup' => $backup,
+                'tipo'   => $tipo,
             ]);
 
             $respuesta = [
                 'ok'      => true,
-                'mensaje' => 'Cookies actualizadas correctamente (' . $resultado . ' bytes).',
+                'mensaje' => "Cookies {$tipo} actualizadas correctamente ({$resultado} bytes).",
             ];
             if ($backup !== null) {
                 $respuesta['backup'] = \basename($backup);
@@ -596,20 +619,34 @@ class GestorProcesosFondo
 
             return $respuesta;
         } catch (\Throwable $e) {
-            KamplesLogger::error('[Procesos] Error guardando cookies.txt', ['error' => $e->getMessage()]);
+            KamplesLogger::error("[Procesos] Error guardando {$archivo}", ['error' => $e->getMessage()]);
             return ['ok' => false, 'error' => 'Error al guardar cookies: ' . $e->getMessage()];
         }
     }
 
     /**
-     * Obtiene metadata del archivo cookies.txt actual (existencia, tamano, fecha).
-     * Usado por el frontend para mostrar estado.
+     * Obtiene metadata de un archivo de cookies (existencia, tamano, fecha).
      *
+     * @param string $tipo Plataforma: 'youtube' | 'soundcloud'
      * @return array{existe: bool, tamano?: int, modificado?: string}
      */
-    public static function infoCookies(): array
+    public static function infoCookies(string $tipo = 'youtube'): array
     {
-        $rutaCookies = \get_template_directory() . '/' . self::SCRAPER_DIR . '/cookies.txt';
+        if (!\in_array($tipo, self::TIPOS_COOKIES_VALIDOS, true)) {
+            return ['existe' => false];
+        }
+
+        $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
+        $archivo = self::resolverNombreCookies($tipo);
+        $rutaCookies = $scraperDir . '/' . $archivo;
+
+        /* Retrocompatibilidad: si no existe cookies_youtube.txt, probar cookies.txt legacy */
+        if ($tipo === 'youtube' && !\file_exists($rutaCookies)) {
+            $rutaLegacy = $scraperDir . '/cookies.txt';
+            if (\file_exists($rutaLegacy)) {
+                $rutaCookies = $rutaLegacy;
+            }
+        }
 
         if (!\file_exists($rutaCookies)) {
             return ['existe' => false];
@@ -620,5 +657,19 @@ class GestorProcesosFondo
             'tamano'     => \filesize($rutaCookies) ?: 0,
             'modificado' => \gmdate('c', \filemtime($rutaCookies) ?: 0),
         ];
+    }
+
+    /**
+     * Info combinada de todas las plataformas de cookies. Usado por listarTodos().
+     *
+     * @return array<string, array{existe: bool, tamano?: int, modificado?: string}>
+     */
+    public static function infoCookiesTodas(): array
+    {
+        $resultado = [];
+        foreach (self::TIPOS_COOKIES_VALIDOS as $tipo) {
+            $resultado[$tipo] = self::infoCookies($tipo);
+        }
+        return $resultado;
     }
 }

@@ -154,6 +154,21 @@
 /*  Seccion Cookies yt-dlp                                             */
 /* ------------------------------------------------------------------ */
 
+/* Grupo contenedor para cookies de todas las plataformas */
+.cookiesSeccionGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.cookiesGrupoCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding-bottom: var(--espacioSm);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
 .cookiesSeccion {
     background: var(--fondoElevado2);
     border: 1px solid var(--bordeSutil);
@@ -173,6 +188,13 @@
 .cookiesTitulo {
     font-size: var(--fuenteMd);
     font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    margin: 0;
+}
+
+.cookiesSubtitulo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
     color: var(--textoPrimario);
     margin: 0;
 }

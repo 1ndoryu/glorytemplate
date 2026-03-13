@@ -4,14 +4,15 @@
  * Cards por proceso con estado, start/stop, log tail.
  */
 
-import { RefreshCw, Loader2, Play, Square, Terminal, Server, Cookie, Upload, Check, AlertTriangle } from 'lucide-react';
+import { useEffect } from 'react';
+import { RefreshCw, Loader2, Play, Square, Terminal, Server, Cookie, Upload, Check, AlertTriangle, Youtube, Music } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { Badge } from '../ui/Badge';
 import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabProcesos } from '../../hooks/useTabProcesos';
 import { useCookiesAdmin } from '../../hooks/useCookiesAdmin';
-import type { EstadoProceso } from '../../services/apiProcesos';
+import type { EstadoProceso, TipoCookies } from '../../services/apiProcesos';
 import '../../styles/componentes/procesosAdmin.css';
 
 const ETIQUETAS_PROCESO: Record<string, string> = {
@@ -125,12 +126,42 @@ const TarjetaProceso = ({
     );
 };
 
+/* Configuracion de plataformas de cookies para renderizado */
+const PLATAFORMAS_COOKIES: {
+    tipo: TipoCookies;
+    titulo: string;
+    descripcion: string;
+    icono: typeof Youtube;
+    placeholder: string;
+}[] = [
+    {
+        tipo: 'youtube',
+        titulo: 'Cookies YouTube',
+        descripcion: 'Cookies de YouTube en formato Netscape para yt-dlp. Necesario cuando YouTube reporta "sign in to confirm" o errores de autenticacion.',
+        icono: Youtube,
+        placeholder: '# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tname\tvalue',
+    },
+    {
+        tipo: 'soundcloud',
+        titulo: 'Cookies SoundCloud',
+        descripcion: 'Cookies de SoundCloud en formato Netscape para yt-dlp (fallback). Si SoundCloud bloquea peticiones, yt-dlp las usa como respaldo.',
+        icono: Music,
+        placeholder: '# Netscape HTTP Cookie File\n.soundcloud.com\tTRUE\t/\tTRUE\t0\tname\tvalue',
+    },
+];
+
 export const TabProcesosAdmin = (): JSX.Element => {
     const { procesos, cargando, accionEnCurso, iniciar, detener, recargar, error, cookiesInfo } = useTabProcesos();
     const {
-        contenidoCookies, setContenidoCookies,
-        guardando, mensaje, errorCookies, guardar,
+        plataformas, setContenido, guardar, actualizarInfo,
     } = useCookiesAdmin();
+
+    /* Sincronizar info de cookies desde useTabProcesos a useCookiesAdmin */
+    useEffect(() => {
+        if (cookiesInfo) {
+            actualizarInfo(cookiesInfo);
+        }
+    }, [cookiesInfo, actualizarInfo]);
 
     return (
         <div className="tabProcesos">
@@ -176,65 +207,75 @@ export const TabProcesosAdmin = (): JSX.Element => {
                 ))}
             </div>
 
-            {/* Seccion Cookies yt-dlp */}
-            <div className="cookiesSeccion">
-                <div className="cookiesCabecera">
+            {/* Seccion Cookies — una por plataforma */}
+            <div className="cookiesSeccionGrupo">
+                <div className="cookiesGrupoCabecera">
                     <Cookie size={16} />
-                    <h4 className="cookiesTitulo">Cookies yt-dlp (YouTube + SoundCloud)</h4>
-                    {cookiesInfo?.existe && (
-                        <Badge variante="exito" tamano="sm">
-                            <Check size={10} />
-                            Activo
-                        </Badge>
-                    )}
-                    {cookiesInfo && !cookiesInfo.existe && (
-                        <Badge variante="advertencia" tamano="sm">
-                            <AlertTriangle size={10} />
-                            Sin cookies
-                        </Badge>
-                    )}
+                    <h4 className="cookiesTitulo">Cookies yt-dlp</h4>
                 </div>
 
-                {cookiesInfo?.existe && cookiesInfo.modificado && (
-                    <p className="cookiesInfo">
-                        Ultimo update: {new Date(cookiesInfo.modificado).toLocaleString()}
-                        {cookiesInfo.tamano ? ` (${(cookiesInfo.tamano / 1024).toFixed(1)} KB)` : ''}
-                    </p>
-                )}
+                {PLATAFORMAS_COOKIES.map(({ tipo, titulo, descripcion, icono: Icono, placeholder }) => {
+                    const estado = plataformas[tipo];
+                    const info = cookiesInfo?.[tipo];
 
-                <p className="cookiesDescripcion">
-                    Pega el contenido de cookies.txt (formato Netscape) para autenticacion en yt-dlp.
-                    Se usa para YouTube y SoundCloud. Necesario cuando yt-dlp reporta errores de
-                    autenticacion o &quot;sign in to confirm&quot;.
-                </p>
+                    return (
+                        <div key={tipo} className="cookiesSeccion">
+                            <div className="cookiesCabecera">
+                                <Icono size={16} />
+                                <h4 className="cookiesSubtitulo">{titulo}</h4>
+                                {info?.existe && (
+                                    <Badge variante="exito" tamano="sm">
+                                        <Check size={10} />
+                                        Activo
+                                    </Badge>
+                                )}
+                                {info && !info.existe && (
+                                    <Badge variante="advertencia" tamano="sm">
+                                        <AlertTriangle size={10} />
+                                        Sin cookies
+                                    </Badge>
+                                )}
+                            </div>
 
-                <CampoTexto
-                    multilínea
-                    variante="desnudo"
-                    className="cookiesTextarea"
-                    placeholder={"# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tname\tvalue"}
-                    value={contenidoCookies}
-                    onChange={e => setContenidoCookies(e.target.value)}
-                    rows={8}
-                    disabled={guardando}
-                />
+                            {info?.existe && info.modificado && (
+                                <p className="cookiesInfo">
+                                    Ultimo update: {new Date(info.modificado).toLocaleString()}
+                                    {info.tamano ? ` (${(info.tamano / 1024).toFixed(1)} KB)` : ''}
+                                </p>
+                            )}
 
-                <div className="cookiesAcciones">
-                    <BotonBase
-                        onClick={guardar}
-                        variante="primario"
-                        tamano="sm"
-                        disabled={guardando || contenidoCookies.trim() === ''}
-                    >
-                        {guardando
-                            ? <Loader2 size={14} className="adminSpinner" />
-                            : <Upload size={14} />}
-                        Actualizar Cookies
-                    </BotonBase>
-                </div>
+                            <p className="cookiesDescripcion">{descripcion}</p>
 
-                {mensaje && <div className="cookiesMensajeExito">{mensaje}</div>}
-                {errorCookies && <div className="cookiesMensajeError">{errorCookies}</div>}
+                            <CampoTexto
+                                multilínea
+                                variante="desnudo"
+                                className="cookiesTextarea"
+                                placeholder={placeholder}
+                                value={estado.contenido}
+                                onChange={e => setContenido(tipo, e.target.value)}
+                                rows={6}
+                                disabled={estado.guardando}
+                            />
+
+                            <div className="cookiesAcciones">
+                                <BotonBase
+                                    onClick={() => guardar(tipo)}
+                                    variante="primario"
+                                    tamano="sm"
+                                    disabled={estado.guardando || estado.contenido.trim() === ''}
+                                >
+                                    {estado.guardando
+                                        ? <Loader2 size={14} className="adminSpinner" />
+                                        : <Upload size={14} />}
+                                    Actualizar
+                                </BotonBase>
+                            </div>
+
+                            {estado.mensaje && <div className="cookiesMensajeExito">{estado.mensaje}</div>}
+                            {estado.error && <div className="cookiesMensajeError">{estado.error}</div>}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

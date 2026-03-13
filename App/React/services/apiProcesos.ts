@@ -18,11 +18,14 @@ export interface EstadoProceso {
     resultado?: Record<string, unknown>;
 }
 
-/* Respuesta de listar todos */
+/* Tipos de plataforma soportados para cookies */
+export type TipoCookies = 'youtube' | 'soundcloud';
+
+/* Respuesta de listar todos — cookies ahora es mapa por plataforma */
 interface RespuestaProcesos {
     ok: boolean;
     procesos: EstadoProceso[];
-    cookies: InfoCookies;
+    cookies: Record<TipoCookies, InfoCookies>;
 }
 
 /* Info del archivo cookies.txt */
@@ -65,10 +68,10 @@ export async function detenerProceso(nombre: string) {
     return apiPost<RespuestaAccion>(`/admin/procesos/${nombre}/stop`, {});
 }
 
-export async function actualizarCookies(contenido: string) {
-    return apiPost<RespuestaCookies>('/admin/procesos/cookies', { contenido });
+export async function actualizarCookies(contenido: string, tipo: TipoCookies = 'youtube') {
+    return apiPost<RespuestaCookies>('/admin/procesos/cookies', { contenido, tipo });
 }
 
 export async function infoCookies() {
-    return apiGet<{ ok: boolean; cookies: InfoCookies }>('/admin/procesos/cookies');
+    return apiGet<{ ok: boolean; cookies: Record<TipoCookies, InfoCookies> }>('/admin/procesos/cookies');
 }
