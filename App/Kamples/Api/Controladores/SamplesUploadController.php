@@ -34,13 +34,18 @@ use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 
 class SamplesUploadController
 {
+    /* MIME types que finfo puede devolver al leer magic bytes — fuente de verdad */
     private const FORMATOS_AUDIO_VALIDOS = [
-        'audio/wav', 'audio/wave', 'audio/vnd.wave',
-        'audio/mpeg', 'audio/mp3', 'audio/flac',
-        'audio/aiff', 'audio/x-wav', 'audio/x-aiff',
-        /* Linux/Apache puede reportar audio/octet-stream para WAV — finfo lo verifica con magic bytes */
+        'audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave',
+        'audio/mpeg', 'audio/mp3',
+        'audio/flac', 'audio/x-flac',
+        'audio/aiff', 'audio/x-aiff',
+        /* Algunos libmagic antiguos retornan octet-stream para archivos de audio válidos */
         'application/octet-stream',
     ];
+
+    /* Extensiones aceptadas — el navegador reporta MIME de forma no fiable según OS/browser */
+    private const EXTENSIONES_AUDIO_VALIDAS = ['wav', 'mp3', 'flac', 'aiff', 'aif'];
     private const MAX_TAMANO_AUDIO = 50 * 1024 * 1024;
 
     public static function registrarRutas(string $namespace): void
@@ -104,16 +109,22 @@ class SamplesUploadController
 
         $audio = $archivos['audio'];
 
-        if (!\in_array($audio['type'], self::FORMATOS_AUDIO_VALIDOS, true)) {
+        /* Validar por extensión — más fiable que $audio['type'] (browser MIME varía por OS/browser) */
+        $extension = \strtolower(\pathinfo($audio['name'], PATHINFO_EXTENSION));
+        if (!\in_array($extension, self::EXTENSIONES_AUDIO_VALIDAS, true)) {
             return new \WP_REST_Response([
                 'ok' => false, 'error' => 'Formato de audio no válido. Formatos aceptados: WAV, MP3, FLAC, AIFF'
             ], 400);
         }
 
-        /* S30 fix: Verificar contenido real del archivo con magic bytes */
+        /* Verificar contenido real del archivo con magic bytes (finfo) */
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $realMime = $finfo->file($audio['tmp_name']);
-        if (!\in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)) {
+        /* WAV puede devolver audio/x-wav — aceptar con fallback de magic bytes RIFF/WAVE */
+        $mimeValido = \in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)
+            || ($extension === 'wav' && self::esArchivoWav($audio['tmp_name']));
+
+        if (!$mimeValido) {
             return new \WP_REST_Response(['ok' => false, 'error' => 'El contenido del archivo no coincide con un formato de audio válido'], 400);
         }
 
@@ -488,6 +499,30 @@ class SamplesUploadController
                 'ok' => false,
                 'error' => 'Error interno verificando duplicado',
             ], 500);
+        }
+    }
+
+    /**
+     * Verifica que el archivo sea WAV comprobando los magic bytes RIFF/WAVE.
+     * Usado como fallback cuando finfo devuelve audio/x-wav (no está en la lista estándar de libmagic).
+     */
+    private static function esArchivoWav(string $rutaTmp): bool
+    {
+        try {
+            $fp = \fopen($rutaTmp, 'rb');
+            if ($fp === false) {
+                return false;
+            }
+            $cabecera = \fread($fp, 12);
+            \fclose($fp);
+            if ($cabecera === false || \strlen($cabecera) < 12) {
+                return false;
+            }
+            /* Bytes 0-3: "RIFF", bytes 8-11: "WAVE" */
+            return \substr($cabecera, 0, 4) === 'RIFF' && \substr($cabecera, 8, 4) === 'WAVE';
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('esArchivoWav: No se pudo leer magic bytes', ['error' => $e->getMessage()]);
+            return false;
         }
     }
 }
