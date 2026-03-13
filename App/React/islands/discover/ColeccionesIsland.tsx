@@ -5,32 +5,17 @@
  * No requiere autenticacion.
  */
 
-import { Search, FolderOpen } from 'lucide-react';
-import { Input } from '@app/components/ui';
+import { FolderOpen } from 'lucide-react';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { useColeccionesPublicas } from '@app/hooks/useColeccionesPublicas';
 import '../../styles/componentes/coleccionesPublicas.css';
 
 export const ColeccionesIsland = (): JSX.Element => {
-    const { colecciones, cargando, busqueda, manejarBusqueda } = useColeccionesPublicas();
+    const { colecciones, cargando } = useColeccionesPublicas();
 
     return (
         <div className="coleccionesPublicas" id="seccionColecciones">
-            <div className="coleccionesPublicasCabecera">
-                <h1 className="coleccionesPublicasTitulo">Colecciones</h1>
-                <div className="coleccionesPublicasBuscador">
-                    <Search size={16} className="coleccionesPublicasBuscadorIcono" />
-                    <Input
-                        type="text"
-                        className="coleccionesPublicasBuscadorInput"
-                        placeholder="Buscar colecciones..."
-                        value={busqueda}
-                        onChange={(e) => manejarBusqueda(e.target.value)}
-                    />
-                </div>
-            </div>
-
             {cargando ? (
                 <SkeletonFeed cantidad={6} />
             ) : colecciones.length === 0 ? (

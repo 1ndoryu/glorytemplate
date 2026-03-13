@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useCallback, useState } from 'react';
-import { obtenerConversaciones, marcarConversacionLeida } from '@app/services/apiMensajes';
+import { obtenerConversaciones, marcarConversacionLeida, marcarTodasConversacionesLeidas } from '@app/services/apiMensajes';
 import { useMensajesStore } from '@app/stores/mensajesStore';
 import { useNavigationStore } from '@/core/router';
 import type { Conversacion } from '@app/types';
@@ -17,6 +17,8 @@ export const useMensajesIsland = () => {
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
     const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
     const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
+    const marcarTodasLeidas = useMensajesStore(s => s.marcarTodasLeidas);
+    const ultimaCarga = useMensajesStore(s => s.ultimaCargaConversaciones);
 
     const navegar = useNavigationStore(s => s.navegar);
     const [busqueda, setBusqueda] = useState('');
@@ -46,6 +48,26 @@ export const useMensajesIsland = () => {
 
         return () => { cancelado = true; };
     }, [setConversaciones, setCargandoConversaciones]);
+
+    /*
+     * QQ91: Al abrir la página de mensajes, marcar todas como leídas.
+     * Mismo patrón que useDropdownMensajes (QQ86).
+     * Store local inmediato (optimistic) + API con rollback si falla.
+     */
+    useEffect(() => {
+        if (!conversacionesCargadas) return;
+        const tieneNoLeidos = conversaciones.some((c) => c.noLeidos > 0);
+        if (!tieneNoLeidos) return;
+
+        const prevConversaciones = [...conversaciones];
+        marcarTodasLeidas();
+
+        marcarTodasConversacionesLeidas().then((resp) => {
+            if (!resp.ok) {
+                setConversaciones(prevConversaciones);
+            }
+        });
+    }, [conversacionesCargadas, ultimaCarga]);
 
     /* Abrir una conversación */
     const abrirConversacion = useCallback(

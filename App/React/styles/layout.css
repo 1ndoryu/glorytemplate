@@ -134,6 +134,7 @@
 }
 
 .areaContenidoPublico {
-    width: 100%;
+    width: min(100%, var(--landingAnchoMaximo));
     min-height: 100vh;
+    margin: 0 auto;
 }

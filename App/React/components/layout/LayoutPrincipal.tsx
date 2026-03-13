@@ -24,6 +24,7 @@ import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
 import { ModalReportar } from '../social/ModalReportar';
+import { ModalCompra } from '../social/ModalCompra';
 import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
 import { VisorImagen } from '../ui/VisorImagen';
 import { TooltipPerfil } from '../social/TooltipPerfil';
@@ -196,6 +197,9 @@ export const LayoutPrincipal = ({
 
             {/* QQ63: Modal de solicitud de ingreso al grupo de WhatsApp */}
             <ModalSolicitudWhatsapp />
+
+            {/* QQ60: Modal de confirmacion de compra de sample */}
+            <ModalCompra />
 
             {/* QQ52: Visor modal de imágenes (chat, publicaciones, etc.) */}
             <VisorImagen />

@@ -21,10 +21,10 @@ import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { descargarSample } from '@app/services/apiDescargas';
-import { crearCheckoutSample } from '@app/services/apiPagos';
 import { useNavigationStore } from '@/core/router';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
+import { useCompraModalStore } from '@app/stores/compraModalStore';
 import { toast } from '@app/stores/toastStore';
 import { useAudioPlayback } from './useAudioPlayback';
 import { esDesktop, obtenerDragService, obtenerSyncService } from './utils/tarjetaSampleUtils';
@@ -136,14 +136,9 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
         if (descargado) return;
         if (!requiereAuth()) return;
 
-        /* Sample pro con precio: redirigir a Stripe Checkout en vez de descargar */
+        /* QQ60: Sample con precio: abrir modal de confirmacion de compra */
         if (requiereCompra) {
-            const resp = await crearCheckoutSample(sample.id);
-            if (resp.ok && resp.url) {
-                window.location.href = resp.url;
-            } else {
-                toast.error(resp.error ?? 'Error al iniciar la compra');
-            }
+            useCompraModalStore.getState().abrir(sample);
             return;
         }
 

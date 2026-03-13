@@ -1,0 +1,85 @@
+/*
+ * modalCompra.css — Kamples (QQ60)
+ * Estilos del modal de confirmacion de compra de sample.
+ * Minimalista: portada + info + boton confirmar.
+ */
+
+.compraContenido {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioLg);
+    padding: var(--espacioMd) 0;
+}
+
+.compraPortada {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radioLg);
+    overflow: hidden;
+    background-color: var(--fondoElevado2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.compraPortada img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.compraPortadaIcono {
+    color: var(--textoTerciario);
+}
+
+.compraInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioXs);
+    text-align: center;
+}
+
+.compraTitulo {
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+    margin: 0;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.compraCreador {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.compraPrecio {
+    font-size: var(--fuente2xl);
+    font-weight: var(--pesoBold);
+    color: var(--acento);
+    margin: var(--espacioXs) 0;
+}
+
+.compraDetalle {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.compraAcciones {
+    display: flex;
+    gap: var(--espacioMd);
+    width: 100%;
+    justify-content: center;
+}
+
+.compraBotonConfirmar {
+    min-width: 180px;
+}

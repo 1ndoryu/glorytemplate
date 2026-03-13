@@ -239,9 +239,9 @@ Revisión profunda de errores React. **4 issues reales encontrados y corregidos:
 
 Cubierto por QQ89. Errores PHP encontrados y corregidos: 12 refs rotas a constantes eliminadas (ModeracionController), método inexistente obtenerAutorId (AdminModeracionController), strings hardcodeados en lugar de enums (ReportesRepository, CancionesController, SamplesUploadController).
 
-## QQ60
+## QQ60 ✅ [AG-QQF]
 
-Cuando le doy a comprar a un sample, no hace nada, debería abrir un modal con la inforamcion de la compra que se va a realizar, minimalista, y al confirmar, abrir stripe. No he configurado el webhook porque aun no estamos en produccion pero supongo que eso no debería ser problema para abrir la compra.
+Modal de confirmación de compra de sample. Botón "Comprar" abre modal con portada, título, creador y precio → confirmar redirige a Stripe Checkout. Store (compraModalStore), hook (useModalCompra con estado procesando anti-doble-click), componente (ModalCompra.tsx tamano="pequeno"), CSS (modalCompra.css). useTarjetaSample: manejarColeccionar ahora abre modal en vez de ir directo a Stripe. ModalCompra montado globalmente en LayoutPrincipal. Backend (crearCheckoutSample, haComprado, webhook processor) ya existía completo. Archivos: compraModalStore.ts, useModalCompra.ts, ModalCompra.tsx, modalCompra.css, useTarjetaSample.ts, LayoutPrincipal.tsx.
 
 ## QQ61 
 
@@ -392,19 +392,17 @@ Auditoría profunda de seguridad y rendimiento PHP + CSS. **PHP Enums centraliza
 - [SOLID]: CancionesController conserva _relacionBilateralAUnilateral (usado en detalleArtista). RelacionesController tiene todos los endpoints de relaciones de sampleo.
 - [CSS]: Falsos positivos del linter cuando variables se resuelven a valores (ej: var(--fuente2xs) → "10px hardcoded").
 
-## QQ90
+## QQ90 ✅ [AG-QQF]
 
-Cuando subo un audio, en en el adjunto debería, al lado de la x debería aparecer un icono para adjuntar una imagen de portada al sample, al adjuntar remplazaría el icono pondría imagen cuadrada pequeña con bordes redondeado y al subirse el sample ya tendría un partada subida por el usuario. 
+Ya implementado. ImagePlus icon junto a la X del adjunto abre selector de imagen. Preview cuadrada con bordes redondeados reemplaza el icono. FormData append de imagen al subir sample. Backend procesa y almacena la portada. Verificado via grep: ContenidoCrear.tsx (icono+preview+handler), useCrearContenido.ts (estado imagenPortada+manejarImagenPortada), SamplesUploadController.php (procesamiento). No requirió cambios.
 
-# QQ91 
+## QQ91 ✅ [AG-QQF]
 
-En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuando se ven todos, (casi igual a QQ86)
+Fix badge mensajes en MensajesIsland (página completa). Mismo patrón que QQ86 (dropdown). useEffect al montar que detecta noLeidos > 0 → marcarTodasLeidas() optimista en store + marcarTodasConversacionesLeidas() API fire-and-forget con rollback si falla. Archivo: useMensajesIsland.ts.
 
-# QQ92
+## QQ92 ✅ [AG-QQF]
 
-todas las paginas cuando se esta deslogeado deben tener     width: min(100%, var(--landingAnchoMaximo));
-
-la pagina de colecciones, quita lo de coleccionesPublicasCabecera
+Ancho máximo en páginas públicas: `width: min(100%, var(--landingAnchoMaximo)); margin: 0 auto` centralizado en `.areaContenidoPublico` (layout.css). Eliminada `coleccionesPublicasCabecera` (h1+buscador) de ColeccionesIsland.tsx + ~50 líneas CSS muertas en coleccionesPublicas.css. Archivos: layout.css, ColeccionesIsland.tsx, coleccionesPublicas.css.
 
 
 ---

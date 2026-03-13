@@ -10,55 +10,6 @@
     padding: var(--espacioLg);
 }
 
-/* Cabecera */
-.coleccionesPublicasCabecera {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--espacioMd);
-    flex-wrap: wrap;
-}
-
-.coleccionesPublicasTitulo {
-    font-size: var(--fuenteXl);
-    font-weight: var(--pesoBold);
-    color: var(--textoPrimario);
-    margin: 0;
-}
-
-/* Buscador inline */
-.coleccionesPublicasBuscador {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioSm);
-    background: var(--fondoElevado1);
-    border: 1px solid var(--bordeSutil);
-    border-radius: var(--radioFull);
-    padding: var(--espacioXs) var(--espacioMd);
-    min-width: 200px;
-    max-width: 320px;
-    flex: 1;
-}
-
-.coleccionesPublicasBuscadorIcono {
-    color: var(--textoTerciario);
-    flex-shrink: 0;
-}
-
-.coleccionesPublicasBuscadorInput {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--textoPrimario);
-    font-size: var(--fuenteMd);
-    font-family: var(--fuentePrincipal);
-}
-
-.coleccionesPublicasBuscadorInput::placeholder {
-    color: var(--textoTerciario);
-}
-
 /* Grid de colecciones */
 .coleccionesPublicasGrid {
     display: grid;
@@ -92,15 +43,6 @@
 
 /* Responsive */
 @media (max-width: 600px) {
-    .coleccionesPublicasCabecera {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .coleccionesPublicasBuscador {
-        max-width: none;
-    }
-
     .coleccionesPublicasGrid {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
