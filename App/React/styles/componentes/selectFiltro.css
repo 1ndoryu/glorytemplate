@@ -227,12 +227,12 @@
 .selectorBPMAplicar {
     width: 100%;
     margin-top: var(--espacioSm);
-    padding: var(--espacioXs) var(--espacioMd);
+    padding: var(--espacioSm) var(--espacioMd) !important;
     background: var(--acento);
-    border: none;
+    border: 1px solid var(--bordeSutil);
     border-radius: var(--radioSm);
     color: var(--textoPrimarioInverso);
-    font-size: var(--fuenteXs);
+    font-size: var(--fuenteSm) !important;
     font-family: var(--fuentePrincipal);
     font-weight: var(--pesoSemibold);
     cursor: pointer;

@@ -201,6 +201,19 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         </div>
                     )}
 
+                    {/* QQ78: Mostrar artista vibes de la metadata IA */}
+                    {(() => {
+                        const vibes = sample.metadata?.artista_vibes ?? sample.metadata?.artistaVibes;
+                        const arr = Array.isArray(vibes) ? vibes : [];
+                        return arr.length > 0 ? (
+                            <div className="detalleTagsHome">
+                                {arr.map((v) => (
+                                    <Badge key={String(v)} variante="acento" tamano="xs">{String(v)}</Badge>
+                                ))}
+                            </div>
+                        ) : null;
+                    })()}
+
                     <SampleDetalleAcciones
                         liked={liked}
                         reaccionActual={reaccionActual}

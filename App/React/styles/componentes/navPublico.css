@@ -10,10 +10,13 @@
     width: 100%;
     padding: var(--espacioMd) var(--espacioLg);
     background: var(--fondoBase);
-    border-bottom: 1px solid var(--bordeSutil);
+    /* border-bottom: 1px solid var(--bordeSutil); */
     position: sticky;
+    width: min(100%, var(--landingAnchoMaximo));
     top: 0;
     z-index: 50;
+    padding-top: var(--espacio2xl);
+    margin: auto;
 }
 
 .navPublicoIzquierda {

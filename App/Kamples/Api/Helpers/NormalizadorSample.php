@@ -251,8 +251,31 @@ class NormalizadorSample
                 ? (int) $row[SamplesCols::CANCION_ORIGEN_ID] : null,
             'relacionSampleoId'  => isset($row[SamplesCols::RELACION_SAMPLEO_ID])
                 ? (int) $row[SamplesCols::RELACION_SAMPLEO_ID] : null,
+            /* QQ79: Datos enriquecidos de la cancion de origen */
+            'cancionOrigen'      => self::decodificarCancionOrigen($row),
         ];
     }
+    /*
+     * QQ79: Decodifica JSON de la cancion de origen (subselect row_to_json).
+     * Retorna null si el sample no es un recorte.
+     */
+    private static function decodificarCancionOrigen(array $row): ?array
+    {
+        $json = $row['cancion_origen_json'] ?? null;
+        if (!$json) {
+            return null;
+        }
+        $data = is_string($json) ? json_decode($json, true) : (is_array($json) ? $json : null);
+        if (!is_array($data)) {
+            return null;
+        }
+        return [
+            'titulo' => $data[CancionesCols::TITULO] ?? null,
+            'slug'   => $data[CancionesCols::SLUG] ?? null,
+        ];
+    }
+
+    /*
 
     /**
      * Normaliza un array de samples.
@@ -355,6 +378,15 @@ class NormalizadorSample
         /* QQ51: Campos de origen — vinculo sample -> cancion / relacion de sampleo */
         $sCancionOrigen = SamplesCols::CANCION_ORIGEN_ID;
         $sRelacionSampleo = SamplesCols::RELACION_SAMPLEO_ID;
+        /* QQ79: Datos enriquecidos de la cancion origen (subselect correlacionado) */
+        $tc = CancionesCols::TABLA;
+        $cTitulo = CancionesCols::TITULO;
+        $cSlug = CancionesCols::SLUG;
+        $cId = CancionesCols::ID;
+        $cancionOrigenExpr = "(SELECT row_to_json(co.*) FROM (
+            SELECT c.{$cTitulo}, c.{$cSlug}
+            FROM {$tc} c WHERE c.{$cId} = s.{$sCancionOrigen}
+        ) co) AS cancion_origen_json";
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $uId = UsuariosExtCols::ID;
@@ -365,6 +397,7 @@ class NormalizadorSample
         $uWpId = UsuariosExtCols::WP_USER_ID;
 
         return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
+                       {$cancionOrigenExpr},
                        s.{$sBpm}, s.{$sKey}, s.{$sEscala}, s.{$sDuracion}, s.{$sFormato}, s.{$sTamano},
                        s.{$sTags}, s.{$sTipo}, s.{$sEstado}, s.{$sPremium}, s.{$sPrecio}, s.{$sMeta},
                        s.{$sPreview}, s.{$sWaveform},
