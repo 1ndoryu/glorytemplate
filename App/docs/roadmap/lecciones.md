@@ -283,6 +283,12 @@
 - [og:audio Twitter Cards]: Cuando hay og:audio disponible, usar `twitter:card = player` en vez de `summary_large_image`. Permite embedding de audio en Twitter.
 - [RuntimeSeoData vs update_post_meta]: No usar update_post_meta para SEO dinámico porque todas las rutas /sample/* comparten el mismo WP post ID — sobreescribiría para todos. RuntimeSeoData (static, request-scoped) es la solución correcta.
 - [BaseRepository consultarValor]: Método nuevo para queries escalares (COUNT, SUM, MAX). Retorna `reset($fila)` de consultarUno. Necesario para contarParaSitemap.
+- [QQ116 — Duplicados audio]: Las rutas de preview se almacenan como filesystem paths, no URLs HTTP. Toda normalización debe pasar por `NormalizadorSample::rutaAUrl()`. Fallback: `ruta_preview ?? ruta_original`.
+- [QQ116 — aprobar pipeline]: Al aprobar un duplicado, el sample necesita re-entrar al pipeline (pasos 3-9) para generar preview, waveform, MP3 optimizado. Usar `omitirDedup=true` para evitar que el hash lo detecte como duplicado otra vez.
+- [QQ116 — ReprocesadorPostDuplicado]: Cron WP vía `wp_schedule_single_event`. Lee sample de BD, verifica archivo existe, llama `PipelineAudio::procesar()`. Si falta archivo en disco: fallback a `activo` sin procesar.
+- [QQ117 — NormalizadorSample subselects]: Las subselects correlacionadas (row_to_json) son el patrón estándar para enriquecer datos sin JOINs. Alias `_json` + decode method. El JSONB anidado (`metadata_extraccion`) necesita doble decode (string → json → array).
+- [QQ118 — Throttle velocidad vs conteo]: Count-based throttle (delay creciente por pagina) no refleja la intención del usuario. Speed-based (medir gap promedio entre cargas) detecta scrolling real y es más natural: pausa al scroll rapido, reanuda al parar.
+- [QQ119 — Extraccion fallos]: No hay backoff exponencial ni priorización de no-intentados. Items con `intentos >= 3` quedan abandonados. Recomendado: columna `proximo_intento_at`, backoff 2→4→4 dias, priorizar `intentos = 0`.
 
 ---
 

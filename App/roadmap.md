@@ -523,42 +523,39 @@ Groq validator reescrito con arquitectura de 2 capas contra falsos positivos:
 2. **LLM zona gris:** Modelo upgradeado de `llama-3.1-8b-instant` a `llama-3.3-70b-versatile` (mejor razonamiento). Prompt few-shot con 5 ejemplos concretos de edge cases musicales. Timeout 12s (antes 10s).
 - Impacto: elimina falsos positivos por variaciones de nombre, reduce llamadas LLM innecesarias.
 
-## QQ116
+## QQ116 ✅ [AG-SCR]
 
-El sistema de duplicados necesita una revisión profunda
+Revision profunda del sistema de duplicados. 3 bugs corregidos:
+1. **Audio previews no sonaban:** `normalizarRutasPreview()` convierte rutas filesystem a URLs HTTP. Fallback a `ruta_original` si no hay preview.
+2. **Samples duplicados sin preview:** Query incluye `ruta_original` de ambos samples como fallback.
+3. **Aprobar no publicaba:** `aprobar()` ahora pone sample en `procesando`, schedule `ReprocesadorPostDuplicado` via WP cron para completar pipeline (pasos 3-9) con `omitirDedup=true`. Nuevo parametro `$omitirDedup` en `PipelineAudio::procesar()` evita loop infinito de dedup.
 
-primero, los audios incluyendo los que se generan a través del recorte no escuchan el el preview para chequear si realmente son duplicados, o sea en la verificación humana, proble marcando que no eran duplicados a ver si se publicaba, y no, el smaple jamas se publico lo que probablemente sea una perdida de datos
+## QQ117 ✅ [AG-SCR]
 
-si hay duplicados tienen que ser capaz de resolver el conflicto despues de la revision segun la opcion que se eliga, tienen que poder escucharte, etc.
-
-## QQ117
-
-en el inspesionar samples veo esta info
-
-Es Recorte
-Si
-Cancion Origen ID
-80
-Relacion 
-81
-
-no esta mal pero presiento que falta mas informacion, muchisima mas porque habia pedido antes que se pudiera guardar la url de youtube o soundcloud de la fuente de donde se extrajo, tambien el tiempo de que parte del recorte es, tambien el nombre del archivo de recorte, su ubicacion, los archivos de recorte no deben borrarse, se que hay muchisima mas informacion del recorte, del scraper que se esta ignorando, piensa en aquella informacion que necesito para revisar si el recorte y de donde se extrajo es legitimo, ejemplo, el nombre de la cancion en soundcloud, url, etc, obviamente necesito toda esa info,
+Inspector de samples ahora muestra metadata de extraccion completa. Backend: subselect correlacionado en `NormalizadorSample` trae datos de `cola_extraccion_samples` (metadata JSONB + campos directos). Frontend: nueva seccion "Extraccion" en `SeccionExtraccionInspector.tsx` (componente extraido del modal). Campos visibles: origen, metodo descarga, YouTube ID, Spotify ID, URL fuente, titulo/artista fuente, lado, timing inicio, BPM detectado, duracion compas, compas inicio/fin, ruta audio extraido.
 
 
-## QQ118
+## QQ118 ✅ [AG-SCR]
 
-Vi que agregaste un boton de autocarga, bien, pero por favor que aparezca solo si se cargan paginas muy rapidos y despues se quita, y se vuelve a poner si se vuelven a cargar paginas muy rapido. 
+Boton autocarga rediseñado: de count-based a speed-based. Ahora detecta velocidad promedio entre cargas recientes (ventana de 3 cargas, umbral 2s). Si scroll es rapido: pausa y muestra boton. Despues de 6s sin accion: boton se oculta automaticamente y reanuda infinite scroll. Si vuelve la velocidad alta: reaparece. API publica sin cambios (compatible con useFeedSamples, useFeedCanciones, useComunidadIsland).
 
-## QQ119 (planificando)
+## QQ119 ✅ [AG-SCR]
 
-Auditoría profunda sobre el el proceso de Extraccion Audio
+Auditoria profunda del proceso de extraccion audio creada en `App/docs/auditoria-extraccion-audio.md`. Cubre: manejo de fallos por fuente, backoff exponencial recomendado (2→4→4 dias), priorizacion de no-intentados sobre retried, marcado automatico `revision_humana`, campo `fuentes_descartadas` en metadata, UI cookies SoundCloud. Comentario anti-proxy agregado en `audio_download.py::_descargar_youtube()`. Recomendaciones: columna `proximo_intento_at`, aumentar max_intentos a 5, priorizar items sin intentos en ORDER BY.
 
-lo primero es que tengo dudas acerca de 
+## QQ120
 
-a. que pasa si falla la busqueda, con soudcloud es poco probable que no aparezca un audio antiguo porque la mayoria de los samples son los años 1950 - 2000, bien, pero supongamos un caso en el que realmente no existe en soundcloup, en ese caso creo que debe dejar una marca que no existe en soundcloud para que no vuelva a intentar, asi despues se hace una lista de lo que no existe en soundcloup.
+auditoría profunda de seguridad de audios, revisar la seguridad de los audios si hay sistemas anti bot, adivinación de wav, que los wav no se expongan, etc, sistema que eviten la descarga del mp3, stream, etc
 
-b. que pasa cuando todo falla ¿vuelve a intentarlo despues? supongo que debe de dejar una marca de que todo fallo, pero, hay un fecho fundamental y es que si falla en todo no significa que no exista, si existia en soundcloup y por algun motivo fallo, y leugo falla en las otras alternativas, pero existia eso debe ser un reintento para mañana, no una sentencia de nunca mas volver a intentar. 
+## QQ121
 
+trabaja en resolver todo lo de auditoria-extraccion-audio.md si es que aun no los haz hecho
+
+## QQ122 (planificando no hacer hasta que terminie de planificar)
+
+haz una investigacion en internet sobre los metodos eficientes y recientes que usan las paginas esas que siempre funcioan para descargar mp3 de youtube, algo estan haciendo que nosotros no, investiga profundamente todo lo que puedas, que estrategias recientes de 2026 hay para descargar mp3 de youtube o el video para luego a pasar a mp3 sin tener que usar proxy
+
+estoy escribiendo un md ocn una investigación que hice yo: investigación-s-youtube.md
 ---
 
 ## Despliegue Produccion (VPS Coolify)
