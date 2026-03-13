@@ -371,7 +371,7 @@ class SamplesUploadController
                 } else {
                     /* Validar MIME real con magic bytes */
                     $finfoPortada = new \finfo(FILEINFO_MIME_TYPE);
-                    $mimePortada = $finfoPortada->file($portada['tmp_name']);
+                    $mimePortada = $finfoPortada->file($portada['tmp_name'], FILEINFO_MIME_TYPE);
 
                     if (!\in_array($mimePortada, self::FORMATOS_IMAGEN_VALIDOS, true)) {
                         KamplesLogger::warning('Portada con MIME inválido', ['mime' => $mimePortada]);
