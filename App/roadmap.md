@@ -400,6 +400,11 @@ Cuando subo un audio, en en el adjunto debería, al lado de la x debería aparec
 
 En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuando se ven todos, (casi igual a QQ86)
 
+# QQ92
+
+todas las paginas cuando se esta deslogeado deben tener     width: min(100%, var(--landingAnchoMaximo));
+
+la pagina de colecciones, quita lo de coleccionesPublicasCabecera
 
 
 ---
@@ -426,3 +431,31 @@ En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuand
   - [OPcache]: Apache/mod_php usa OPcache que cachea PHP bytecode. Despues de un git pull, hacer `service apache2 reload` para limpiar cache. Sin reload, el PHP viejo sigue ejecutandose aunque los archivos cambien.
   - [bloqueos]: Tabla `bloqueos` creada en QQ25 via Schema System pero sin migracion SQL. Nunca se ejecuto en produccion. Sin esta tabla, todas las queries del feed/comentarios/notificaciones crasheaban silenciosamente (error 42P01). Migracion v043 creada y aplicada.
   - [diagnostico]: Revisar logs en `App/logs/kamples-YYYY-MM-DD.log` y `App/logs/kamples-algoritmo-YYYY-MM-DD.log` para detectar errores de BD. El error 42P01 (Undefined table) es criticamente grave — mata queries silenciosamente.
+  - [WAV upload]: `$audio['type']` (browser MIME) es NO fiable — varía por OS/browser. Fix: validar por extensión + finfo magic bytes RIFF/WAVE como fallback. `audio/x-wav` es lo que devuelve finfo en este servidor Linux (ya en la whitelist).
+  - [OPcache/Docker]: `service apache2 reload` NO limpia OPcache de mod_php. `apachectl graceful` (SIGUSR1) es el comando correcto — reemplaza workers sin matar PID 1 (el contenedor). Ahora se ejecuta automáticamente en cada `deploy --update`.
+  - [npm build logging]: El npm build tardaba ~7s pero no tenía tracing::info!. Ahora muestra "Compilando React..." y "React compilado exitosamente." en los logs del deploy.
+
+## Comando para actualizar producción
+
+```powershell
+cd .agent/coolify-manager-rs
+.\target\release\coolify-manager.exe deploy --name kamples --update
+```
+
+**Qué hace el comando `deploy --update`** (en orden):
+1. `git pull` del tema (glorytemplate) en el contenedor WP
+2. `git pull` del submodule Glory
+3. `composer install --no-dev` (dependencias PHP)
+4. Verifica que Node.js esté instalado (instala si falta)
+5. `npm install` si node_modules no existe
+6. `npm run build` (Vite — compila React/SSG) — **loggea "Compilando React..." y "React compilado."**
+7. Ejecuta migraciones SQL pendientes (lee `migrations/*.sql`, compara con `_migraciones_ejecutadas`)
+8. `chown -R www-data:www-data` (permisos)
+9. `apachectl graceful` — **limpia OPcache sin matar el contenedor Docker**
+
+**Si el build del binary Rust cambió**, también ejecutar:
+```powershell
+cd .agent/coolify-manager-rs
+cargo build --release
+# Luego hacer git add + commit del .exe o simplemente correr el nuevo .exe localmente
+```
