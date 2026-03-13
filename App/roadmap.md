@@ -336,7 +336,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ81
 
-El logo de kamples no aparece como favicon
+✅ [AG-SEC] Favicon Kamples corregido. El SVG existia pero usaba fill blanco sin fondo (invisible en temas claros del navegador). Rediseñado: fondo #070707 con esquinas redondeadas (rx=6) + logo en color acento #4a665b. El header.php ya referenciaba el archivo correctamente. Archivo: Glory/assets/images/favicon.svg.
 
 ## QQ82
 
