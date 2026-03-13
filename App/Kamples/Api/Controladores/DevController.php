@@ -174,6 +174,29 @@ class DevController
             'callback'            => [self::class, 'purgarPapelera'],
             'permission_callback' => $admin,
         ]);
+
+        /* QQ122: Test de metodos de descarga YouTube (script independiente) */
+        \register_rest_route($namespace, '/dev/test-youtube-download', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'testYoutubeDownload'],
+            'permission_callback' => $admin,
+            'args'                => [
+                'video_id' => [
+                    'type'              => 'string',
+                    'required'          => true,
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'validate_callback' => static function (string $v): bool {
+                        return (bool) \preg_match('/^[A-Za-z0-9_-]{11}$/', $v);
+                    },
+                ],
+                'metodo' => [
+                    'type'    => 'string',
+                    'default' => 'todos',
+                    'enum'    => ['todos', 'innertube', 'ytdlp_default', 'ytdlp_cookies',
+                                  'ytdlp_clients', 'ytdlp_po_token', 'cobalt'],
+                ],
+            ],
+        ]);
     }
 
     /**
@@ -952,6 +975,112 @@ class DevController
         } catch (\Throwable $e) {
             KamplesLogger::error('[DEV] Error purgando papelera', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error al purgar papelera.'], 500);
+        }
+    }
+
+    /**
+     * QQ122: Ejecutar test de metodos de descarga YouTube.
+     * Lanza script Python independiente y retorna resultados JSON.
+     * POST /dev/test-youtube-download { video_id: string, metodo?: string }
+     */
+    public static function testYoutubeDownload(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $videoId = (string) $request->get_param('video_id');
+            $metodo  = (string) ($request->get_param('metodo') ?: 'todos');
+
+            $python = self::detectarPython();
+            if ($python === null) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Python no encontrado.'], 500);
+            }
+
+            $scraperDir = \get_template_directory() . '/' . self::SCRAPER_DIR;
+
+            $cmd = [
+                $python, '-m', 'extractor.test_youtube_download',
+                '--video-id', $videoId,
+                '--metodo', $metodo,
+                '--json',
+            ];
+
+            $logsDir = \get_template_directory() . '/App/logs';
+            if (!\is_dir($logsDir)) {
+                \wp_mkdir_p($logsDir);
+            }
+
+            $descriptores = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
+
+            $pipes = [];
+            /* sentinel-disable-next-line exec-sin-escapeshellarg — proc_open con array no pasa por shell */
+            $proceso = \proc_open($cmd, $descriptores, $pipes, $scraperDir);
+
+            if ($proceso === false) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No se pudo iniciar proceso de test.'], 500);
+            }
+
+            \fclose($pipes[0]);
+
+            $stdout = \stream_get_contents($pipes[1]);
+            $stderr = \stream_get_contents($pipes[2]);
+            \fclose($pipes[1]);
+            \fclose($pipes[2]);
+
+            $exitCode = \proc_close($proceso);
+
+            /* Parsear JSON de stdout */
+            $resultados = null;
+            if ($stdout) {
+                /* El script puede imprimir logs antes del JSON; buscar el array JSON */
+                $jsonStart = \strpos($stdout, '[');
+                if ($jsonStart !== false) {
+                    $jsonStr = \substr($stdout, $jsonStart);
+                    $resultados = \json_decode($jsonStr, true);
+                }
+            }
+
+            if ($resultados === null || \json_last_error() !== JSON_ERROR_NONE) {
+                KamplesLogger::warning('[DEV] Test YouTube: JSON invalido en stdout', [
+                    'exitCode' => $exitCode,
+                    'stdout'   => \substr((string) $stdout, 0, 500),
+                    'stderr'   => \substr((string) $stderr, 0, 500),
+                ]);
+                return new \WP_REST_Response([
+                    'ok'     => false,
+                    'error'  => 'El script no retorno JSON valido.',
+                    'stderr' => \substr((string) $stderr, 0, 1000),
+                ], 500);
+            }
+
+            $exitosos = 0;
+            $total    = \count($resultados);
+            foreach ($resultados as $r) {
+                if (!empty($r['exito'])) {
+                    $exitosos++;
+                }
+            }
+
+            KamplesLogger::info('[DEV] Test YouTube completado', [
+                'video_id' => $videoId,
+                'metodo'   => $metodo,
+                'exitosos' => $exitosos,
+                'total'    => $total,
+            ]);
+
+            return new \WP_REST_Response([
+                'ok'         => true,
+                'video_id'   => $videoId,
+                'metodo'     => $metodo,
+                'exitosos'   => $exitosos,
+                'total'      => $total,
+                'resultados' => $resultados,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error en test YouTube', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error ejecutando test.'], 500);
         }
     }
 }
