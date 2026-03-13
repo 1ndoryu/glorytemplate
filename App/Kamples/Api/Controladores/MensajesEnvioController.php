@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Servicios\ServicioMedia;
 
 class MensajesEnvioController
 {
@@ -225,11 +226,22 @@ class MensajesEnvioController
             return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
         }
 
+        /* QQ56: Optimizar imagen de mensaje */
+        if ($tipo === MensajesEnums::TIPO_IMAGEN) {
+            ServicioMedia::optimizarImagen(
+                $subido['file'],
+                ServicioMedia::CALIDAD_MENSAJE,
+                ServicioMedia::DIMENSION_MENSAJE
+            );
+        }
+
+        $tamanoFinal = \file_exists($subido['file']) ? \filesize($subido['file']) : $archivo['size'];
+
         return [
             'mediaUrl'      => $subido['url'],
             'mediaMetadata' => json_encode([
                 'formato'  => pathinfo($archivo['name'], PATHINFO_EXTENSION),
-                'tamano'   => $archivo['size'],
+                'tamano'   => $tamanoFinal,
                 'mimeType' => $mimeReal,
             ]),
         ];

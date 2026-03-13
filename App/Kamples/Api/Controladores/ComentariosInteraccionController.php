@@ -25,6 +25,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\KamplesLogger as LogGeneral;
+use App\Kamples\Servicios\ServicioMedia;
 
 class ComentariosInteraccionController
 {
@@ -164,10 +165,21 @@ class ComentariosInteraccionController
             return new \WP_REST_Response(['code' => 'error_subida', 'message' => $subido['error']], 500);
         }
 
+        /* QQ56: Optimizar imagen antes de registrar metadata */
+        if ($tipoContenido === ComentariosEnums::TIPO_CONTENIDO_IMAGEN) {
+            ServicioMedia::optimizarImagen(
+                $subido['file'],
+                ServicioMedia::CALIDAD_COMENTARIO,
+                ServicioMedia::DIMENSION_COMENTARIO
+            );
+        }
+
         $mediaUrl = $subido['url'];
+        /* Recalcular tamaño tras posible optimización */
+        $tamanoFinal = \file_exists($subido['file']) ? \filesize($subido['file']) : $archivo['size'];
         $mediaMetadata = \json_encode([
             'formato' => \pathinfo($archivo['name'], PATHINFO_EXTENSION),
-            'tamano'  => $archivo['size'],
+            'tamano'  => $tamanoFinal,
             'mimeType' => $mimeReal,
         ]);
 

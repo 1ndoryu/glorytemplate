@@ -24,6 +24,7 @@ use App\Kamples\Services\PublicadorExtraccion;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ScrapingLogEnums;
+use App\Kamples\Servicios\ServicioPapelera;
 
 /* TO-DO: Extraer logica de scraper/Python (ejecutarScraper, procesarSiguienteDeCola,
  * detectarPython, verificarBinarioPython) a un servicio dedicado ScraperRunner
@@ -160,6 +161,13 @@ class DevController
         \register_rest_route($namespace, '/dev/samples/sincronizar-descripciones', [
             'methods'             => 'POST',
             'callback'            => [self::class, 'sincronizarDescripciones'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* QQ56: Purga manual de papelera (items >30 días) */
+        \register_rest_route($namespace, '/dev/papelera/purgar', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'purgarPapelera'],
             'permission_callback' => $admin,
         ]);
     }
@@ -922,6 +930,24 @@ class DevController
         } catch (\Throwable $e) {
             KamplesLogger::error('[DEV] Error sincronizando descripciones', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error al sincronizar.'], 500);
+        }
+    }
+
+    /*
+     * QQ56: Purga manual de papelera — elimina items con >30 dias.
+     * POST /dev/papelera/purgar
+     */
+    public static function purgarPapelera(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $resultado = ServicioPapelera::purgarExpiradas();
+
+            KamplesLogger::info('[DEV] Papelera purgada manualmente', $resultado);
+
+            return new \WP_REST_Response(['ok' => true, 'resultado' => $resultado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[DEV] Error purgando papelera', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error al purgar papelera.'], 500);
         }
     }
 }

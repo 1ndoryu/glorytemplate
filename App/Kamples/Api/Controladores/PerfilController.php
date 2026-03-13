@@ -23,7 +23,9 @@ use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioSuspension;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Servicios\ServicioMedia;
 
+/* TO-DO: PerfilController excede 300 LOC (331). Extraer subirAvatar() a PerfilAvatarController o ServicioAvatar. */
 class PerfilController
 {
     /*
@@ -83,8 +85,8 @@ class PerfilController
         }
 
         /* QQ65: Ocultar perfil de usuarios suspendidos/en eliminación (excepto para admin) */
-        $estadoPerfil = $perfil[UsuariosExtCols::ESTADO] ?? 'activo';
-        if ($estadoPerfil !== 'activo') {
+        $estadoPerfil = $perfil[UsuariosExtCols::ESTADO] ?? UsuariosExtEnums::ESTADO_ACTIVO;
+        if ($estadoPerfil !== UsuariosExtEnums::ESTADO_ACTIVO) {
             $esAdmin = current_user_can('manage_options');
             if (!$esAdmin) {
                 return new \WP_REST_Response(['code' => 'perfil_no_disponible', 'message' => 'Este perfil no está disponible.'], 404);
@@ -409,6 +411,13 @@ class PerfilController
                 'message' => 'No se pudo guardar la imagen.',
             ], 500);
         }
+
+        /* QQ56: Optimizar avatar */
+        ServicioMedia::optimizarImagen(
+            $rutaFinal,
+            ServicioMedia::CALIDAD_AVATAR,
+            ServicioMedia::DIMENSION_AVATAR
+        );
 
         /* Construir URL pública */
         $avatarUrl = $uploadDir['baseurl'] . '/kamples/avatars/' . $wpUserId . '/' . $nombre;

@@ -217,15 +217,17 @@ Fix texto garbled en moderación (â€" y otros caracteres Mojibake). **Causa:*
 
 Fix géneros favoritos no se guardaban. **Causa raíz:** Migraciones SQL v036-v039 nunca fueron ejecutadas contra PostgreSQL. La columna `generos_favoritos` (JSONB) no existía en `usuarios_ext`, PUT /me fallaba con 500 silencioso y GET /me retornaba `generosPreferidos: []` por fallback `?? '[]'`. **Fix:** Ejecutadas las 4 migraciones pendientes (v036-v039). **Lección:** No existe auto-runner de migraciones — deben ejecutarse manualmente.
 
-## QQ55
+## QQ55 ✅ [AG-QQF]
 
-Tengo dudas sobre el arrastre de sonidos desde la aplicacion, actualmente funciona, cuando arrastro un un sonido, se pega o se copia donde lo arrastre, esto es realmente util para tener la aplicación abierta y arrastrar un sonido a un daw externo, lo que hay que revisar es que esto sea igual que hacer una descarga, o sea debe consumir un credito en caso de que el sample no haya sido descargado, y sample que arrastra, debe ser el original, no la version optmizada. He estado probando y funciona porque el archivo resultante es un wav, pero esto una pequeña revision.
+Drag-and-drop desktop consume crédito + sirve archivo original. **Antes:** drag sin sync local usaba `sample.rutaPreview` (optimizada) sin API call → no consumía crédito. **Ahora:** llama `descargarSample(sample.id)` antes de drag → registra descarga, consume crédito si aplica, y usa la URL de streaming que sirve `ruta_original` (WAV según plan). Si créditos agotados (429/403), muestra toast de error. Caso con sync local: sin cambios (archivo ya sincronizado = ya registrado). Drag web (mezclador): sin cambios (interno, no es descarga). Archivo: useTarjetaSample.ts.
 
-## QQ56
+## QQ56 ✅ [AG-QQF]
 
 Revisiones de optmizacion de uso de banda, revisar que los audios optimizados se cachen durante 3 meses, esto no cambia, las imagenes de las publicaciones que esten optimizadas a un 70% de calidad y cacheadas, revision de almacenamiento.
 
 A. Que los audios eliminados vayan a la papelera por 30 días, y que despues de 30 dias se borren completamentamente del disco. Esto incluye las publicaciones, los adjuntos, los comentarios, todos los medias que generan estas interacciones deben estar muy optimizados, el de las publicaciones un 70%, el de los comentarios un 50% (cuando digo 70% me refiero a que mientras mas alto sea el valor, mas calidad tiene), los mensajes 40%. Cuando se borre un chat que se borren todos los adjuntos, cuando se borre una publicaciones que se borre todos los comentarios y sus adjuntos, cuando se borre un sample sus comentarios y adjuntos tambien, cuando se borre un comentario de alguna cancion o sampleo, etc. Creo que se entiende mi idea.  
+
+**Implementado:** Sistema papelera 30 días (ServicioPapelera) + optimización media (ServicioMedia). Samples y publicaciones del owner van a papelera soft-delete; admin hard-delete con limpieza completa de archivos. Imágenes optimizadas automáticamente: publicaciones 70%/1920px, comentarios 50%/1280px, mensajes 40%/1024px, avatares 70%/400px, portadas sample 70%/1920px, colecciones 70%/1920px. Limpieza media en eliminación: comentarios limpian su media_url, publicaciones limpian imágenes + media de comentarios, samples limpian archivos + media de comentarios. Cache audio: .htaccess en uploads/kamples con 3 meses para audio, 1 mes para imágenes. Cron WP diario `kamples_purgar_papelera` + endpoint manual `/dev/papelera/purgar`. Archivos clave: ServicioPapelera.php, ServicioMedia.php, SamplesModificacionController, PublicacionesEscrituraController, ComentariosEscrituraController, ComentariosInteraccionController, MensajesEnvioController, PerfilController, SamplesUploadController, ColeccionesCrudController, KamplesInit, DevController.
 
 ## QQ57
 
@@ -404,7 +406,38 @@ Fix badge mensajes en MensajesIsland (página completa). Mismo patrón que QQ86 
 
 Ancho máximo en páginas públicas: `width: min(100%, var(--landingAnchoMaximo)); margin: 0 auto` centralizado en `.areaContenidoPublico` (layout.css). Eliminada `coleccionesPublicasCabecera` (h1+buscador) de ColeccionesIsland.tsx + ~50 líneas CSS muertas en coleccionesPublicas.css. Archivos: layout.css, ColeccionesIsland.tsx, coleccionesPublicas.css.
 
+## QQ93 ✅ [AG-QQF]
 
+El ide avisa de errores en sampleRepository y Publicación Repository, tambien en servicioMedia y servicio papelera, tal vez cuando ves esto ya esten arreglados pero igual revisa.
+
+tambien hay un problema, cuando se ejecuta el comando que crea los repositories, todos los repositorires se marcan modificados pero en realidad solo se modifica espacio vacío 
+
+**Fix:** (1) Errores IDE corregidos: namespace KamplesLogger, métodos PostgresService (consultar/ejecutar), supresores @. (2) ReportesRepository: añadidos UMBRAL_OCULTAR_* + sqlFiltroAutoOcultacion() faltantes de QQ76. (3) Schema generator: comparación de contenido normalizado CRLF-aware antes de escribir — 27/29 repos ahora muestran "sin cambios".
+
+## QQ94
+
+Sigo sin ver el favicon de kamples y veo es el de wordpress.
+
+## QQ95 
+
+La imagen de portada no cambia, la foto de perfil si pero no la portada.
+
+## QQ96
+
+El scrappy en el servidor (producción) no funciona, da este error, intuyo que la Extraccion Audio debe tener un error similar
+
+------------------------------------------------------------
+[2026-03-13 03:31:13] INICIO proceso=scraping
+------------------------------------------------------------
+/usr/bin/python3: No module named scrapy
+
+## QQ97
+
+Agrega en las reglas que los Problemas de quoting con las comillas de MySQL en PowerShell se evitan usando base64 (agrega en .github\instructions\test.instructions.md)
+
+## QQ98
+
+Empieza a trabajar en el plan-desktop-distribucion.md
 ---
 
 ## Despliegue Produccion (VPS Coolify)
@@ -432,6 +465,9 @@ Ancho máximo en páginas públicas: `width: min(100%, var(--landingAnchoMaximo)
   - [WAV upload]: `$audio['type']` (browser MIME) es NO fiable — varía por OS/browser. Fix: validar por extensión + finfo magic bytes RIFF/WAVE como fallback. `audio/x-wav` es lo que devuelve finfo en este servidor Linux (ya en la whitelist).
   - [OPcache/Docker]: `service apache2 reload` NO limpia OPcache de mod_php. `apachectl graceful` (SIGUSR1) es el comando correcto — reemplaza workers sin matar PID 1 (el contenedor). Ahora se ejecuta automáticamente en cada `deploy --update`.
   - [npm build logging]: El npm build tardaba ~7s pero no tenía tracing::info!. Ahora muestra "Compilando React..." y "React compilado exitosamente." en los logs del deploy.
+
+  - [SMTP/Docker]: `sendmail` no existe en el contenedor Docker WP. Usar mu-plugin que configura PHPMailer via SMTP externo. El mu-plugin `00-smtp-config.php` se genera y despliega automáticamente en cada `deploy --update` si existe config `smtp` en `settings.json` del coolify-manager-rs. Proveedor: Brevo (smtp-relay.brevo.com:587, TLS). Credenciales en `coolify-manager-rs/config/settings.json` bloque `smtp`.
+  - [coolify-manager-rs settings.json]: El binario usa `config/settings.json` relativo a donde corre (`.agent/coolify-manager-rs/config/settings.json`), NO el del PowerShell manager (`.agent/coolify-manager/config/settings.json`).
 
 ## Comando para actualizar producción
 

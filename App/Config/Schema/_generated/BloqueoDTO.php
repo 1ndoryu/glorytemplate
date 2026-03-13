@@ -17,6 +17,7 @@ final class BloqueoDTO
 
     /**
      * Construir desde array de base de datos.
+     * Valida presencia de columnas requeridas.
      */
     public static function desdeRow(array $row): self
     {
@@ -47,7 +48,6 @@ final class BloqueoDTO
             'bloqueador_id' => $this->bloqueadorId,
             'bloqueado_id' => $this->bloqueadoId,
             'razon' => $this->razon,
-            'created_at' => $this->createdAt,
-        ];
+            'created_at' => $this->createdAt];
     }
 }

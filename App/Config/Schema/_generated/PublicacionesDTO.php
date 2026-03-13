@@ -23,7 +23,8 @@ final class PublicacionesDTO
         public readonly string $moderacionEstado,
         public readonly array $moderacionDetalle,
         public readonly ?string $moderacionRazon,
-        public readonly string $updatedAt
+        public readonly string $updatedAt,
+        public readonly ?string $eliminadoEn
     ) {}
 
     /**
@@ -48,7 +49,8 @@ final class PublicacionesDTO
             moderacionEstado: ($row['moderacion_estado'] ?? 'pendiente'),
             moderacionDetalle: isset($row['moderacion_detalle']) ? (is_string($row['moderacion_detalle']) ? json_decode($row['moderacion_detalle'], true) ?? [] : $row['moderacion_detalle']) : [],
             moderacionRazon: isset($row['moderacion_razon']) ? $row['moderacion_razon'] : null,
-            updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s'))
+            updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s')),
+            eliminadoEn: isset($row['eliminado_en']) ? $row['eliminado_en'] : null
         );
     }
 
@@ -81,6 +83,7 @@ final class PublicacionesDTO
             'moderacion_estado' => $this->moderacionEstado,
             'moderacion_detalle' => $this->moderacionDetalle,
             'moderacion_razon' => $this->moderacionRazon,
-            'updated_at' => $this->updatedAt];
+            'updated_at' => $this->updatedAt,
+            'eliminado_en' => $this->eliminadoEn];
     }
 }

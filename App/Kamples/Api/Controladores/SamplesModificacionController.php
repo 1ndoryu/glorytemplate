@@ -26,6 +26,8 @@ use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Helpers\JsonHelper;
+use App\Kamples\Servicios\ServicioPapelera;
+use App\Kamples\Servicios\ServicioMedia;
 
 class SamplesModificacionController
 {
@@ -327,8 +329,8 @@ class SamplesModificacionController
 
     /**
      * DELETE /samples/{id} — Eliminar sample.
-     * Propietario: soft-delete (estado='eliminado') + limpieza archivos fisicos.
-     * Admin: hard-delete (eliminarConCascada) irreversible.
+     * Propietario: soft-delete via papelera (30 días de retención, archivos en disco).
+     * Admin: hard-delete irreversible con limpieza completa de archivos.
      * Las relaciones FK se actualizan automaticamente (SET NULL en DB).
      */
     public static function eliminar(\WP_REST_Request $request): \WP_REST_Response
@@ -358,21 +360,23 @@ class SamplesModificacionController
             return new \WP_REST_Response(['code' => 'sin_permisos', 'message' => 'No tienes permiso para eliminar este sample'], 403);
         }
 
-        /* Eliminar archivos fisicos del disco (ambos flujos) */
-        self::eliminarArchivosFisicos($sample);
-
         if ($esAdmin && !$esPropietario) {
-            /* Admin eliminando sample de otro: hard-delete irreversible */
+            /* Admin eliminando sample de otro: hard-delete irreversible + limpieza archivos */
+            self::eliminarArchivosFisicos($sample);
+            ServicioMedia::limpiarMediaComentarios('sample', $sampleId);
             SamplesRepository::eliminarConCascada($sampleId);
         } else {
-            /* Propietario: soft-delete reversible (cambia estado a 'eliminado') */
-            SamplesRepository::marcarEliminado($sampleId);
+            /* QQ56: Propietario — papelera con retención 30 días. Archivos se mantienen en disco. */
+            $ok = ServicioPapelera::enviarSample($sampleId);
+            if (!$ok) {
+                return new \WP_REST_Response(['code' => 'error_papelera', 'message' => 'Error al enviar a papelera'], 500);
+            }
         }
 
         KamplesLogger::info('Sample eliminado', [
             'sampleId' => $sampleId,
             'titulo'   => $sample[SamplesCols::TITULO] ?? '',
-            'modo'     => ($esAdmin && !$esPropietario) ? 'hard-delete-admin' : 'soft-delete-propietario',
+            'modo'     => ($esAdmin && !$esPropietario) ? 'hard-delete-admin' : 'papelera-propietario',
         ]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);

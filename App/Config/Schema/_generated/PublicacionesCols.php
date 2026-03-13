@@ -25,7 +25,8 @@ final class PublicacionesCols
     const MODERACION_DETALLE = 'moderacion_detalle';
     const MODERACION_RAZON = 'moderacion_razon';
     const UPDATED_AT = 'updated_at';
+    const ELIMINADO_EN = 'eliminado_en';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'autor_id', 'tipo', 'contenido', 'imagenes', 'samples_adjuntos', 'total_likes', 'total_comentarios', 'total_reposts', 'created_at', 'repost_id', 'imagenes_metadata', 'moderacion_estado', 'moderacion_detalle', 'moderacion_razon', 'updated_at'];
+    const TODAS = ['id', 'autor_id', 'tipo', 'contenido', 'imagenes', 'samples_adjuntos', 'total_likes', 'total_comentarios', 'total_reposts', 'created_at', 'repost_id', 'imagenes_metadata', 'moderacion_estado', 'moderacion_detalle', 'moderacion_razon', 'updated_at', 'eliminado_en'];
 }

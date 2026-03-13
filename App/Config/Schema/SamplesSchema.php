@@ -53,6 +53,7 @@ class SamplesSchema extends TableSchema
             'mostrar_en_comunidad' => ['tipo' => 'bool', 'default' => true],
             'cancion_origen_id'    => ['tipo' => 'int', 'nullable' => true, 'ref' => 'canciones(id)'],
             'relacion_sampleo_id'  => ['tipo' => 'int', 'nullable' => true, 'ref' => 'relaciones_sample(id)'],
+            'eliminado_en'         => ['tipo' => 'datetime', 'nullable' => true],
         ];
     }
 }

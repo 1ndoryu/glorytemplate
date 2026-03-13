@@ -213,7 +213,7 @@ class ComentariosRepository extends BaseRepository
         return static::consultarUno(
             "SELECT " . ComentariosCols::ID . ", " . ComentariosCols::AUTOR_ID
             . ", " . ComentariosCols::PARENT_ID . ", " . ComentariosCols::TIPO
-            . ", " . ComentariosCols::TARGET_ID
+            . ", " . ComentariosCols::TARGET_ID . ", " . ComentariosCols::MEDIA_URL
             . " FROM {$tabla} WHERE " . ComentariosCols::ID . " = :id",
             ['id' => $id]
         );

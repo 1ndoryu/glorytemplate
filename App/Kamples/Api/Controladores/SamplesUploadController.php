@@ -31,6 +31,7 @@ use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
+use App\Kamples\Servicios\ServicioMedia;
 
 class SamplesUploadController
 {
@@ -406,6 +407,12 @@ class SamplesUploadController
                         if (isset($subidoPortada['error'])) {
                             KamplesLogger::warning('Error al subir portada', ['error' => $subidoPortada['error']]);
                         } else {
+                            /* QQ56: Optimizar portada del sample */
+                            ServicioMedia::optimizarImagen(
+                                $subidoPortada['file'],
+                                ServicioMedia::CALIDAD_PUBLICACION,
+                                ServicioMedia::DIMENSION_PUBLICACION
+                            );
                             SamplesRepository::actualizarCampos($sampleId, [
                                 SamplesCols::IMAGEN_URL . " = :imagen_url",
                             ], ['imagen_url' => $subidoPortada['url']]);

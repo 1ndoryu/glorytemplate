@@ -34,6 +34,24 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
+     * Buscar registros con estado activo, paginados.
+     */
+    public static function buscarActivos(int $limit = 20, int $offset = 0): array
+    {
+        $tabla = UsuariosExtCols::TABLA;
+        $colEstado = UsuariosExtCols::ESTADO;
+
+        return static::consultar(
+            "SELECT * FROM {$tabla} WHERE {$colEstado} = :estado ORDER BY " . static::colId() . " DESC LIMIT :limit OFFSET :offset",
+            [
+                'estado' => UsuariosExtEnums::ESTADO_ACTIVO,
+                'limit' => $limit,
+                'offset' => $offset,
+            ]
+        );
+    }
+
+    /*
      * Buscar registros mas recientes.
      */
     public static function buscarRecientes(int $limit = 20): array
@@ -47,6 +65,7 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
+    
 
         
 

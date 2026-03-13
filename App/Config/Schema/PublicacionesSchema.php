@@ -30,6 +30,7 @@ class PublicacionesSchema extends TableSchema
             'moderacion_detalle'  => ['tipo' => 'json', 'default' => '{}'],
             'moderacion_razon'    => ['tipo' => 'string', 'max' => 255, 'nullable' => true],
             'updated_at'          => ['tipo' => 'datetime', 'default' => 'NOW()'],
+            'eliminado_en'        => ['tipo' => 'datetime', 'nullable' => true],
         ];
     }
 }

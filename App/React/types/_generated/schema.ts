@@ -34,6 +34,14 @@ export interface IArtistasMusicales {
   updatedAt: string
 }
 
+export interface IBloqueo {
+  id: number
+  bloqueadorId: number
+  bloqueadoId: number
+  razon: string
+  createdAt: string
+}
+
 export interface ICancionesArtistas {
   cancionId: number
   artistaId: number
@@ -106,6 +114,7 @@ export interface IColecciones {
   usuarioId: number
   parentId: number | null
   nombre: string
+  slug: string | null
   descripcion: string
   imagenUrl: string | null
   publica: boolean
@@ -247,6 +256,7 @@ export interface IPublicaciones {
   moderacionDetalle: Record<string, unknown>
   moderacionRazon: string | null
   updatedAt: string
+  eliminadoEn: string | null
 }
 
 export interface IRelacionesSample {
@@ -286,7 +296,7 @@ export interface IReportesDuplicados {
 
 export interface IReportes {
   id: number
-  tipo: string
+  tipo: 'usuario' | 'publicacion' | 'comentario' | 'sample' | 'error_plataforma' | 'solicitud_whatsapp' | 'legal'
   targetId: number
   reportadorId: number
   reportadoId: number | null
@@ -346,6 +356,8 @@ export interface ISamples {
   verificado: boolean
   mostrarEnComunidad: boolean
   cancionOrigenId: number | null
+  relacionSampleoId: number | null
+  eliminadoEn: string | null
 }
 
 export interface IScrapingLog {
@@ -388,7 +400,7 @@ export interface ITransacciones {
   compradorId: number
   creadorId: number | null
   sampleId: number | null
-  tipo: 'suscripcion' | 'compra_sample' | 'payout'
+  tipo: 'suscripcion' | 'compra_sample' | 'payout' | 'descarga'
   monto: number
   moneda: string
   estado: 'completada' | 'completed' | 'pendiente' | 'fallida' | 'reembolsada'
@@ -424,6 +436,13 @@ export interface IUsuariosExt {
   creditosBonus: number
   stripeSubscriptionId: string | null
   esSeed: boolean
+  sitioWeb: string | null
+  generosFavoritos: Record<string, unknown>
+  estado: 'activo' | 'suspendido' | 'en_eliminacion'
+  suspendidoHasta: string | null
+  suspensionRazon: string | null
+  marcadoEliminacionEn: string | null
+  seraEliminadoEn: string | null
 }
 
 /* Constantes de columna (mirror de PHP) */
@@ -460,6 +479,15 @@ export const ArtistasMusicalesCols = {
   TOTAL_CANCIONES: 'total_canciones',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
+} as const
+
+export const BloqueoCols = {
+  TABLA: 'bloqueos',
+  ID: 'id',
+  BLOQUEADOR_ID: 'bloqueador_id',
+  BLOQUEADO_ID: 'bloqueado_id',
+  RAZON: 'razon',
+  CREATED_AT: 'created_at'
 } as const
 
 export const CancionesArtistasCols = {
@@ -539,6 +567,7 @@ export const ColeccionesCols = {
   USUARIO_ID: 'usuario_id',
   PARENT_ID: 'parent_id',
   NOMBRE: 'nombre',
+  SLUG: 'slug',
   DESCRIPCION: 'descripcion',
   IMAGEN_URL: 'imagen_url',
   PUBLICA: 'publica',
@@ -690,7 +719,8 @@ export const PublicacionesCols = {
   MODERACION_ESTADO: 'moderacion_estado',
   MODERACION_DETALLE: 'moderacion_detalle',
   MODERACION_RAZON: 'moderacion_razon',
-  UPDATED_AT: 'updated_at'
+  UPDATED_AT: 'updated_at',
+  ELIMINADO_EN: 'eliminado_en'
 } as const
 
 export const RelacionesSampleCols = {
@@ -794,7 +824,9 @@ export const SamplesCols = {
   TOTAL_COMENTARIOS: 'total_comentarios',
   VERIFICADO: 'verificado',
   MOSTRAR_EN_COMUNIDAD: 'mostrar_en_comunidad',
-  CANCION_ORIGEN_ID: 'cancion_origen_id'
+  CANCION_ORIGEN_ID: 'cancion_origen_id',
+  RELACION_SAMPLEO_ID: 'relacion_sampleo_id',
+  ELIMINADO_EN: 'eliminado_en'
 } as const
 
 export const ScrapingLogCols = {
@@ -877,7 +909,14 @@ export const UsuariosExtCols = {
   BAN_RAZON: 'ban_razon',
   CREDITOS_BONUS: 'creditos_bonus',
   STRIPE_SUBSCRIPTION_ID: 'stripe_subscription_id',
-  ES_SEED: 'es_seed'
+  ES_SEED: 'es_seed',
+  SITIO_WEB: 'sitio_web',
+  GENEROS_FAVORITOS: 'generos_favoritos',
+  ESTADO: 'estado',
+  SUSPENDIDO_HASTA: 'suspendido_hasta',
+  SUSPENSION_RAZON: 'suspension_razon',
+  MARCADO_ELIMINACION_EN: 'marcado_eliminacion_en',
+  SERA_ELIMINADO_EN: 'sera_eliminado_en'
 } as const
 
 /* Constantes de valores enum/check (mirror de PHP) */
@@ -1009,6 +1048,13 @@ export const ReportesDuplicadosEnums = {
 } as const
 
 export const ReportesEnums = {
+  TIPO_USUARIO: 'usuario',
+  TIPO_PUBLICACION: 'publicacion',
+  TIPO_COMENTARIO: 'comentario',
+  TIPO_SAMPLE: 'sample',
+  TIPO_ERROR_PLATAFORMA: 'error_plataforma',
+  TIPO_SOLICITUD_WHATSAPP: 'solicitud_whatsapp',
+  TIPO_LEGAL: 'legal',
   ESTADO_PENDIENTE: 'pendiente',
   ESTADO_RESUELTO: 'resuelto',
   ESTADO_DESCARTADO: 'descartado'
@@ -1063,6 +1109,7 @@ export const TransaccionesEnums = {
   TIPO_SUSCRIPCION: 'suscripcion',
   TIPO_COMPRA_SAMPLE: 'compra_sample',
   TIPO_PAYOUT: 'payout',
+  TIPO_DESCARGA: 'descarga',
   ESTADO_COMPLETADA: 'completada',
   ESTADO_COMPLETED: 'completed',
   ESTADO_PENDIENTE: 'pendiente',
@@ -1076,5 +1123,8 @@ export const UsuariosExtEnums = {
   PLAN_PREMIUM: 'premium',
   ROL_USUARIO: 'usuario',
   ROL_CREADOR: 'creador',
-  ROL_ADMIN: 'admin'
+  ROL_ADMIN: 'admin',
+  ESTADO_ACTIVO: 'activo',
+  ESTADO_SUSPENDIDO: 'suspendido',
+  ESTADO_EN_ELIMINACION: 'en_eliminacion'
 } as const

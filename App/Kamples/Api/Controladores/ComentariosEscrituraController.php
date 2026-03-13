@@ -37,6 +37,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\KamplesLogger as LogGeneral;
+use App\Kamples\Servicios\ServicioMedia;
 
 class ComentariosEscrituraController
 {
@@ -228,6 +229,12 @@ class ComentariosEscrituraController
 
         if (!$esAutor && !$esAdmin) {
             return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+        }
+
+        /* QQ56: Limpiar archivo de media antes de eliminar registro */
+        $mediaUrl = $comentario[ComentariosCols::MEDIA_URL] ?? null;
+        if ($mediaUrl) {
+            ServicioMedia::eliminarDesdeUrl($mediaUrl);
         }
 
         if ($comentario[ComentariosCols::PARENT_ID]) {

@@ -46,7 +46,8 @@ final class SamplesDTO
         public readonly bool $verificado,
         public readonly bool $mostrarEnComunidad,
         public readonly ?int $cancionOrigenId,
-        public readonly ?int $relacionSampleoId
+        public readonly ?int $relacionSampleoId,
+        public readonly ?string $eliminadoEn
     ) {}
 
     /**
@@ -94,7 +95,8 @@ final class SamplesDTO
             verificado: (bool) ($row['verificado'] ?? false),
             mostrarEnComunidad: (bool) ($row['mostrar_en_comunidad'] ?? true),
             cancionOrigenId: isset($row['cancion_origen_id']) ? (int) $row['cancion_origen_id'] : null,
-            relacionSampleoId: isset($row['relacion_sampleo_id']) ? (int) $row['relacion_sampleo_id'] : null
+            relacionSampleoId: isset($row['relacion_sampleo_id']) ? (int) $row['relacion_sampleo_id'] : null,
+            eliminadoEn: isset($row['eliminado_en']) ? $row['eliminado_en'] : null
         );
     }
 
@@ -150,6 +152,7 @@ final class SamplesDTO
             'verificado' => $this->verificado,
             'mostrar_en_comunidad' => $this->mostrarEnComunidad,
             'cancion_origen_id' => $this->cancionOrigenId,
-            'relacion_sampleo_id' => $this->relacionSampleoId];
+            'relacion_sampleo_id' => $this->relacionSampleoId,
+            'eliminado_en' => $this->eliminadoEn];
     }
 }

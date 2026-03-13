@@ -32,7 +32,14 @@ final class UsuariosExtDTO
         public readonly ?string $banRazon,
         public readonly int $creditosBonus,
         public readonly ?string $stripeSubscriptionId,
-        public readonly bool $esSeed
+        public readonly bool $esSeed,
+        public readonly ?string $sitioWeb,
+        public readonly array $generosFavoritos,
+        public readonly string $estado,
+        public readonly ?string $suspendidoHasta,
+        public readonly ?string $suspensionRazon,
+        public readonly ?string $marcadoEliminacionEn,
+        public readonly ?string $seraEliminadoEn
     ) {}
 
     /**
@@ -66,7 +73,14 @@ final class UsuariosExtDTO
             banRazon: isset($row['ban_razon']) ? $row['ban_razon'] : null,
             creditosBonus: (int) ($row['creditos_bonus'] ?? 0),
             stripeSubscriptionId: isset($row['stripe_subscription_id']) ? $row['stripe_subscription_id'] : null,
-            esSeed: (bool) ($row['es_seed'] ?? false)
+            esSeed: (bool) ($row['es_seed'] ?? false),
+            sitioWeb: isset($row['sitio_web']) ? $row['sitio_web'] : null,
+            generosFavoritos: isset($row['generos_favoritos']) ? (is_string($row['generos_favoritos']) ? json_decode($row['generos_favoritos'], true) ?? [] : $row['generos_favoritos']) : [],
+            estado: ($row['estado'] ?? 'activo'),
+            suspendidoHasta: isset($row['suspendido_hasta']) ? $row['suspendido_hasta'] : null,
+            suspensionRazon: isset($row['suspension_razon']) ? $row['suspension_razon'] : null,
+            marcadoEliminacionEn: isset($row['marcado_eliminacion_en']) ? $row['marcado_eliminacion_en'] : null,
+            seraEliminadoEn: isset($row['sera_eliminado_en']) ? $row['sera_eliminado_en'] : null
         );
     }
 
@@ -108,6 +122,13 @@ final class UsuariosExtDTO
             'ban_razon' => $this->banRazon,
             'creditos_bonus' => $this->creditosBonus,
             'stripe_subscription_id' => $this->stripeSubscriptionId,
-            'es_seed' => $this->esSeed];
+            'es_seed' => $this->esSeed,
+            'sitio_web' => $this->sitioWeb,
+            'generos_favoritos' => $this->generosFavoritos,
+            'estado' => $this->estado,
+            'suspendido_hasta' => $this->suspendidoHasta,
+            'suspension_razon' => $this->suspensionRazon,
+            'marcado_eliminacion_en' => $this->marcadoEliminacionEn,
+            'sera_eliminado_en' => $this->seraEliminadoEn];
     }
 }

@@ -15,7 +15,7 @@ class ReportesSchema extends TableSchema
     {
         return [
             'id'             => ['tipo' => 'int', 'pk' => true],
-            'tipo'           => ['tipo' => 'string', 'max' => 30],
+            'tipo'           => ['tipo' => 'string', 'max' => 30, 'check' => ['usuario', 'publicacion', 'comentario', 'sample', 'error_plataforma', 'solicitud_whatsapp', 'legal']],
             'target_id'      => ['tipo' => 'int'],
             'reportador_id'  => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
             'reportado_id'   => ['tipo' => 'int', 'nullable' => true, 'ref' => 'usuarios_ext(id)'],

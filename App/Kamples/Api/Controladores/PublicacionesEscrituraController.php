@@ -27,6 +27,8 @@ use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Services\ServicioAntiSpam;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Services\ServicioBan;
+use App\Kamples\Servicios\ServicioPapelera;
+use App\Kamples\Servicios\ServicioMedia;
 
 class PublicacionesEscrituraController
 {
@@ -291,15 +293,23 @@ class PublicacionesEscrituraController
             return new \WP_REST_Response(['code' => 'sin_permisos'], 403);
         }
 
-        /* C266: Notificar al autor si un admin elimina su publicación */
         $autorId = (int) $pub[PublicacionesCols::AUTOR_ID];
-        if ($esAdmin && $autorId !== $userId) {
-            ServicioNotificaciones::publicacionEliminada($autorId, $id, 'Eliminada por un administrador');
+        $esAutor = $autorId === $userId;
+
+        if ($esAutor && !$esAdmin) {
+            /* QQ56: Soft-delete — papelera 30 días */
+            ServicioPapelera::enviarPublicacion($id);
+            KamplesLogger::info('Publicación enviada a papelera', ['publicacionId' => $id]);
+        } else {
+            /* Admin: hard-delete con limpieza de archivos */
+            if ($autorId !== $userId) {
+                ServicioNotificaciones::publicacionEliminada($autorId, $id, 'Eliminada por un administrador');
+            }
+            ServicioMedia::limpiarImagenesPublicacion($pub[PublicacionesCols::IMAGENES] ?? null);
+            ServicioMedia::limpiarMediaComentarios('publicacion', $id);
+            PublicacionesRepository::eliminarConCascada($id);
+            KamplesLogger::info('Publicación eliminada permanentemente', ['publicacionId' => $id]);
         }
-
-        PublicacionesRepository::eliminarConCascada($id);
-
-        KamplesLogger::info('Publicación eliminada', ['publicacionId' => $id]);
 
         return new \WP_REST_Response(['ok' => true, 'eliminado' => true], 200);
         } catch (\Throwable $e) {

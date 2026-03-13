@@ -26,6 +26,7 @@ use App\Kamples\Services\ServicioBan;
 use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Servicios\ServicioMedia;
 
 /*
  * TO-DO [A3+A4]: Extraer lógica de negocio a ColeccionesService.php
@@ -277,6 +278,13 @@ class ColeccionesCrudController
                 KamplesLogger::error('Error al subir imagen de colección', ['error' => $resultado['error'], 'coleccionId' => $id]);
                 return new \WP_REST_Response(['code' => 'error_subida', 'message' => $resultado['error']], 500);
             }
+
+            /* QQ56: Optimizar imagen de colección */
+            ServicioMedia::optimizarImagen(
+                $resultado['file'],
+                ServicioMedia::CALIDAD_PUBLICACION,
+                ServicioMedia::DIMENSION_PUBLICACION
+            );
 
             $url = esc_url_raw($resultado['url']);
 

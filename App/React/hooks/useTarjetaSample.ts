@@ -235,21 +235,25 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
                 }
 
                 /*
-                 * Sin archivo local pero en desktop: descargar a temp y drag.
-                 * Cancelamos el drag del browser y usamos el fallback de temp.
+                 * QQ55: Sin archivo local — registrar descarga via API (consume
+                 * crédito si aplica) y usar la URL de streaming del original.
+                 * El endpoint retorna ruta_original (WAV) según plan del usuario.
                  */
-                if (sample.rutaPreview) {
-                    e.preventDefault();
+                e.preventDefault();
 
-                    dragService.iniciarDragNativo(
-                        sample.id,
-                        sample.rutaPreview,
-                        `${sample.titulo}.wav`,
-                    ).catch((err: unknown) => {
-                        console.error('[DragNativo] Error (temp):', err);
-                    });
-                    return;
-                }
+                descargarSample(sample.id).then(resp => {
+                    if (resp.ok && resp.data?.url) {
+                        const nombre = resp.data.nombre || `${sample.titulo}.${resp.data.formato || 'wav'}`;
+                        dragService.iniciarDragNativo(sample.id, resp.data.url, nombre)
+                            .then(() => { if (!resp.data?.yaExistia) setDescargado(true); })
+                            .catch((err: unknown) => console.error('[DragNativo] Error:', err));
+                    } else if (resp.status === 429 || resp.status === 403) {
+                        toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
+                    }
+                }).catch(() => {
+                    toast.error('Error de red al preparar arrastre');
+                });
+                return;
             }
         }
 

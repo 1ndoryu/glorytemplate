@@ -21,6 +21,7 @@ use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\Services\PublicadorExtraccion;
+use App\Kamples\Servicios\ServicioPapelera;
 
 class KamplesInit
 {
@@ -64,6 +65,12 @@ class KamplesInit
 
         /* Cron para publicar extracciones de audio via PipelineAudio (cada 5 min) */
         self::registrarCronPublicadorExtraccion();
+
+        /* QQ56: Cron diario para purgar papelera expirada (>30 días) */
+        self::registrarCronPurgaPapelera();
+
+        /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
+        self::asegurarCacheMedia();
     }
 
     /*
@@ -151,7 +158,7 @@ class KamplesInit
             try {
                 PlanificadorAlgoritmo::procesarTemporales();
             } catch (\Throwable $e) {
-                Helpers\KamplesLogger::error('Cron', "Error en recalculo temporal: {$e->getMessage()}");
+                KamplesLogger::error('Cron', "Error en recalculo temporal: {$e->getMessage()}");
             }
         });
 
@@ -169,6 +176,83 @@ class KamplesInit
         /* Programar si no existe ya (ahora el intervalo ya está registrado) */
         if (!wp_next_scheduled('kamples_algoritmo_cron')) {
             wp_schedule_event(time(), 'kamples_5min', 'kamples_algoritmo_cron');
+        }
+    }
+
+    /*
+     * QQ56: Genera .htaccess en wp-content/uploads/kamples/ con reglas de cache
+     * para audio (3 meses) e imágenes (1 mes). Solo se escribe una vez (transient).
+     */
+    private static function asegurarCacheMedia(): void
+    {
+        $transientKey = 'kamples_cache_htaccess_v1';
+        if (get_transient($transientKey)) {
+            return;
+        }
+
+        $uploadDir = wp_upload_dir();
+        $kamDir = $uploadDir['basedir'] . '/kamples';
+        $htaccess = $kamDir . '/.htaccess';
+
+        if (!\file_exists($kamDir)) {
+            return;
+        }
+
+        $contenido = <<<'HTACCESS'
+# QQ56: Cache agresivo para media estatica de Kamples
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType audio/mpeg "access plus 3 months"
+    ExpiresByType audio/mp4 "access plus 3 months"
+    ExpiresByType audio/ogg "access plus 3 months"
+    ExpiresByType audio/wav "access plus 3 months"
+    ExpiresByType audio/webm "access plus 3 months"
+    ExpiresByType audio/flac "access plus 3 months"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(mp3|m4a|ogg|wav|webm|flac)$">
+        Header set Cache-Control "public, max-age=7776000, immutable"
+    </FilesMatch>
+    <FilesMatch "\.(jpg|jpeg|png|webp|gif)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+</IfModule>
+HTACCESS;
+
+        try {
+            \file_put_contents($htaccess, $contenido);
+            set_transient($transientKey, true, 90 * DAY_IN_SECONDS);
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('[Cache] No se pudo escribir .htaccess en uploads/kamples', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /*
+     * QQ56: Cron diario para purgar items de papelera con >30 dias.
+     * Elimina archivos de disco y registros de BD para samples y publicaciones expirados.
+     */
+    private static function registrarCronPurgaPapelera(): void
+    {
+        add_action('kamples_purgar_papelera', function (): void {
+            try {
+                $resultado = ServicioPapelera::purgarExpiradas();
+                if ($resultado['totalPurgados'] > 0) {
+                    KamplesLogger::info('[CRON] Papelera purgada', $resultado);
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::error('[CRON] Error purgando papelera', ['error' => $e->getMessage()]);
+            }
+        });
+
+        if (!wp_next_scheduled('kamples_purgar_papelera')) {
+            wp_schedule_event(time(), 'daily', 'kamples_purgar_papelera');
         }
     }
 
