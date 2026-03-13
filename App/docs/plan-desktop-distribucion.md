@@ -4,10 +4,16 @@
 
 ## Estado Actual
 
-- **Dependencia instalada:** `tauri-plugin-updater = "2"` en `Cargo.toml`
-- **Plugin NO configurado:** `"plugins": {}` en `tauri.conf.json` (vacío)
-- **No hay endpoint de actualización** definido
-- **No hay claves de firma** generadas
+- **Dependencia instalada:** `tauri-plugin-updater = "2"` en `Cargo.toml` ✅
+- **Plugin registrado:** `.plugin(tauri_plugin_updater::Builder::new().build())` en `lib.rs` ✅
+- **Capabilities configuradas:** `updater:default`, `updater:allow-check`, `updater:allow-download-and-install` en `principal.json` ✅
+- **Config updater en tauri.conf.json:** endpoint + installMode configurados ✅ (falta pubkey real)
+- **Endpoint backend:** `DesktopUpdateController.php` — GET `/desktop/update/{target}/{arch}/{current_version}` ✅
+- **CI/CD:** `.github/workflows/release-desktop.yml` — build multiplataforma + firma + GitHub Releases ✅
+- **Claves de firma:** ⚠️ PENDIENTE — Ejecutar `npx @tauri-apps/cli signer generate -w ~/.tauri/kamples.key` manualmente
+- **Pubkey en tauri.conf.json:** ⚠️ PLACEHOLDER — Reemplazar `PENDIENTE_GENERAR_CON_TAURI_SIGNER` con la clave pública generada
+- **Secrets en GitHub:** ⚠️ PENDIENTE — Configurar `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_KEY_PASSWORD` en Settings > Secrets
+- **Repo de releases:** ⚠️ PENDIENTE — Crear repo `AKamples/kamples-desktop-releases` en GitHub (o ajustar constante en `DesktopUpdateController.php`)
 
 ---
 
@@ -209,13 +215,14 @@ if (update) {
 
 ## 8. Checklist de Implementación
 
-- [ ] Generar par de claves con `signer generate`
-- [ ] Agregar clave pública a `tauri.conf.json` `plugins.updater.pubkey`
-- [ ] Configurar endpoints en `tauri.conf.json`
-- [ ] Registrar plugin en `lib.rs` (`.plugin(tauri_plugin_updater::Builder::new().build())`)
-- [ ] Implementar endpoint de actualización en backend o configurar GitHub Releases
-- [ ] Configurar CI/CD pipeline para builds multiplataforma
-- [ ] Almacenar clave privada + passphrase como secrets del CI
+- [ ] Generar par de claves con `signer generate` (requiere terminal interactiva)
+- [ ] Agregar clave pública real a `tauri.conf.json` `plugins.updater.pubkey` (reemplazar placeholder)
+- [x] Configurar endpoints en `tauri.conf.json`
+- [x] Registrar plugin en `lib.rs` (`.plugin(tauri_plugin_updater::Builder::new().build())`)
+- [x] Implementar endpoint de actualización en backend (`DesktopUpdateController.php`)
+- [x] Configurar CI/CD pipeline para builds multiplataforma (`.github/workflows/release-desktop.yml`)
+- [ ] Almacenar clave privada + passphrase como secrets del CI (`TAURI_SIGNING_PRIVATE_KEY`, `TAURI_KEY_PASSWORD`)
+- [ ] Crear repo de releases en GitHub (`AKamples/kamples-desktop-releases`) o ajustar constante
 - [ ] Crear página `/descargar` en el frontend con links a los instaladores
 - [ ] Testear flujo completo: instalar v1 → publicar v2 → verificar diálogo de update
 

@@ -11,10 +11,12 @@ import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import '../../styles/componentes/landingPublica.css';
 
-const SVG_KAMPLES = '/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg';
-const SVG_SYNC = '/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg';
-const MINI_DAW = '/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg';
-const ROLAS = '/wp-content/themes/glorytemplate/App/Assets/svg/Rolas.svg';
+/* Versión de assets SVG para cache-busting (incrementar al modificar los SVGs) */
+const SVG_V = '2';
+const SVG_KAMPLES = `/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg?v=${SVG_V}`;
+const SVG_SYNC = `/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg?v=${SVG_V}`;
+const MINI_DAW = `/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg?v=${SVG_V}`;
+const ROLAS = `/wp-content/themes/glorytemplate/App/Assets/svg/Rolas.svg?v=${SVG_V}`;
 
 /* Dimensiones nativas de los SVGs para prevenir CLS */
 const SVG_W = 1288;

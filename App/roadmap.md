@@ -430,29 +430,13 @@ Scraper no funcionaba en producción por falta de virtualenv. Python 3.13.5 esta
 
 Reglas de quoting base64 agregadas en `.github/instructions/test.instructions.md` bajo nueva sección **"8. Gotchas de Entorno PowerShell/SSH/VPS"**. Incluye: patrón base64 para MySQL/psql, alternativa SCP-script, heredoc imposible en PS5, pipes en SSH, labels Traefik obsoletas, verificación SSL por IP directa.
 
-## QQ98
+## QQ98 ✅ [AG-QQF]
 
-Empieza a trabajar en el plan-desktop-distribucion.md 
+Implementación del plan de distribución desktop. **Completado:** updater plugin habilitado en lib.rs, tauri.conf.json configurado con endpoint + installMode passive (pubkey placeholder pendiente de generación manual), `DesktopUpdateController.php` creado (proxy GitHub Releases con caché transient 5min, manejo de targets Windows/macOS/Linux), registrado en KamplesController, CI/CD workflow `.github/workflows/release-desktop.yml` (build multiplataforma + firma + release draft). Plan actualizado con checklist y estado actual. **Pendiente manual:** generar claves con `npx @tauri-apps/cli signer generate` (interactivo), configurar GitHub secrets, crear repo de releases.
 
-## QQ99
+## QQ99 ✅ [AG-QQF]
 
-corregir lo que se pueda, no descartar los svg
-
-sar tiempos de vida de caché eficientes Ahorro estimado de 7723 KiB
-Una duración en caché más larga puede aumentar el número de visitas repetidas a tu página. Más informaciónLCPFCPSin puntuar
-Solicitud
-Tiempo de vida en caché
-Tamaño de la transferencia
-kamples.com Propio
-7723 KiB
-…svg/Kamples.svg(kamples.com)
-None
-3596 KiB
-…svg/MiniDaw.svg(kamples.com)
-None
-2055 KiB
-…svg/Sync.svg(kamples.com)
-None
+SVGs de landing (9.4MB total) no tenían cache headers, causando re-descargas en cada visita. **Fix:** Creado `.htaccess` en raíz del tema con: `mod_expires` (1 año SVG/img/fuentes, 1 año CSS/JS por hashes Vite, 3 meses audio), `mod_headers` (Cache-Control immutable + Vary Accept-Encoding), `mod_deflate` (GZIP para SVG/CSS/JS/JSON). Habilitado `mod_headers` en Apache producción. Creado script `post-deploy-apache.sh` para habilitar módulos automáticamente post-rebuild. Agregado cache-busting `?v=` a SVGs en LandingPublica.tsx. Los SVGs NO se descartaron — ya estaban optimizados (68MB→9.4MB, -86%). Archivos: .htaccess, .agent/post-deploy-apache.sh, LandingPublica.tsx.
 1284 KiB
 …svg/Rolas.svg(kamples.com)
 None
@@ -523,13 +507,44 @@ kamples.com Propio
 234,8 KiB	164,3 KiB
 …assets/main-DD5tePBF.js(kamples.com)
 
-## QQ100
+## QQ100 ✅ [AG-QQF]
 
-En produccion por alguna extraña razon no cargan estas fuentes
+Fuentes Bricolage Grotesque y JunicodeVF daban 404 en producción. **Causa raíz:** `vite.config.ts` tenía base path `/wp-content/themes/glory/` pero el tema se llama `glorytemplate`. El CSS compilado generaba URLs incorrectas para los @font-face. **Fix:** Cambio en `Glory/assets/react/vite.config.ts` línea 20: `glory` → `glorytemplate`. Rebuild genera CSS con rutas correctas. Requiere rebuild en producción (`npm run build` en Glory/assets/react). Archivos: Glory/assets/react/vite.config.ts.
 
-Failed to load resource: the server responded with a status of 404 ()Comprende este error
-bricolage-grotesque-latin-400-normal.A6LyuA6R-A6LyuA6R.woff2:1  Failed to load resource: the server responded with a status of 404 ()Comprende este error
-JunicodeVF-Roman-subset-B2B4Tdd7.woff2:1  Failed to load resource: the server responded with a status of 404 ()
+## QQ101
+
+El titulo de la pagina de inicio es Home, porque no tiene optmizacion seo.
+
+## QQ102 
+
+EL favicon sigue sin aparecer, compruebalo tu mismo yendo a kamples.com, ni siquiera aparece en el html.
+
+## QQ103 
+
+Ya genere las claves key, estan en desktop\~\.tauri\kamples.key , agrega al git ignore y completa el plan anterior.
+
+## QQ104
+
+Algo pasa cuando inicie sesion con google
+
+Failed to load resource: net::ERR_CERT_AUTHORITY_INVALIDComprende este error
+/wp-json/kamples/v1/publicaciones?autor=Wandorius&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
+/wp-json/kamples/v1/feed?tipo=descubrir&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
+/wp-json/kamples/v1/publicaciones?autor=Wandorius&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
+avatar_1773372526.jpg:1  Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID
+
+Ya tenia una cuenta con el mismo correo con el que me registre, inicio en mi cuenta wandorius, 
+
+pero luego probe con una cuenta que no estuviera registrada antes 
+
+y main-Ct0RMbkf.js:770  POST https://kamples.com/wp-json/kamples/v1/auth/google 500 (Internal Server Error)
+
+Luego ingreso si google y da este error
+
+GET https://wordpress-mo4so4440c488g8woow4cow0.66.94.100.241.sslip.io/wp-content/uploads/kamples/avatars/1/avatar_1773372526.jpg net::ERR_CERT_AUTHORITY_INVALID
+main-Ct0RMbkf.js:770   GET https://kamples.com/wp-json/kamples/v1/feed?tipo=descubrir&page=1 500 (Internal Server Error)
+
+porque la url esta harcodeada y bueno ahora el feed da 500 
 
 ---
 

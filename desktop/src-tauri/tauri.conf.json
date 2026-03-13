@@ -79,5 +79,16 @@
       "timestampUrl": ""
     }
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": "PENDIENTE_GENERAR_CON_TAURI_SIGNER",
+      "endpoints": [
+        "https://kamples.com/wp-json/kamples/v1/desktop/update/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
 }
