@@ -55,108 +55,58 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - Archivos: `tooltipPerfilStore.ts`, `useTooltipPerfil.ts`
 - [cache invalidation]: Tras follow/unfollow exitoso, invalidar el perfil específico del cache para forzar re-fetch.
 
-## QK3 [EN CURSO — AG-DSK]
+## QK3 ✅ [AG-DSK]
 
-¿Cuáles son tus géneros favoritos? a veces sale por un momento al iniciar sesion cuando debería de salir una sola vez.
+**Solucion:** El modal de generos aparecia brevemente porque `useInicializadorAuth` seteaba `perfilVerificado=true` con datos cacheados (que no incluian generos). Solucion: nuevo flag `perfilVerificado` en authStore. El cache inicia con `verificado=false`, se hace refetch silencioso a `/me`, y solo cuando el servidor confirma datos reales se marca `verificado=true`. El modal solo se muestra si `perfilVerificado=true` Y el usuario no tiene generos.
+- [authStore]: Flag `perfilVerificado` evita que datos cacheados incompletos disparen UI.
 
-## QK4 [EN CURSO — AG-DSK]
+## QK4 ✅ [AG-DSK]
 
-Plan 'pro' no tiene price_id configurado (el price es price_1SgsPECdHJpmDkrr0uHyUYLj) asegurate de que las env que tenemos aca en local esten produccion
+**Solucion:** `GLORY_STRIPE_PRICE_PRO=price_1SgsPECdHJpmDkrr0uHyUYLj` configurado en .env local y produccion.
+- **ACCION USUARIO PENDIENTE:** Webhook URL configurada incorrectamente como `glory/v1/stripe/kamples` pero el endpoint real es `kamples/v1/pagos/webhook`. Corregir en Stripe Dashboard.
 
-tambien he configurado el websocket como https://kamples.com/wp-json/glory/v1/stripe/kamples , he puesto GLORY_STRIPE_WEBHOOK_SECRET en el env local
+## QK5 ✅ [AG-DSK]
 
-## QK5 [EN CURSO — AG-DSK]
+**Solucion:** One Tap (login automatico) requiere cookie previa de Google. En incognito no hay cookie, por lo que One Tap no funciona. Solucion: boton explicito de Google renderizado con `google.accounts.id.renderButton()` dentro de `<div>` en `BotonGoogle.tsx`, que abre popup OAuth en cualquier contexto.
+- [Google Identity]: One Tap = solo usuarios ya logueados. Para incognito/nuevo, usar `renderButton()` con popup mode.
 
-El inicio de sesion de google solo funciona si ya estas logeado, aparecen las cuentas en las esquinas pero no funciona en incognito, a dar click al boton no hace nada.
+## QK6 ✅ [AG-DSK]
 
-## QK6
+**Solucion:** Root cause: desktop login llama `wp_set_auth_cookie()` (necesario para mantener sesion web). Al hacer requests desde desktop, el fetch incluye cookie + header Authorization Bearer JWT. WP `rest_cookie_check_errors` (prioridad 100) detecta cookie sin nonce valido y bloquea con 401 ANTES de que el `permission_callback` JWT se ejecute.
 
-Lo de ¿Cuáles son tus géneros favoritos? no se actualiza ni guarda en la aplicacion 
+Fix: `AuthMiddleware::registrarFiltroRestJwt()` en `rest_authentication_errors` prioridad 90 (antes del check de cookie). Si hay header JWT valido, retorna `true` para bypass el check de cookie.
+- [JWT+Cookie]: Cuando desktop envia ambos (cookie sin nonce + JWT), WP bloquea por cookie invalida. Filtro JWT a prioridad 90 resuelve.
+- [AuthController]: `normalizarUsuario()` ahora incluye `generosPreferidos` en la respuesta.
 
-sigue saliendo 
+## QK7 ✅ [AG-DSK]
 
-Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-logger.ts:82  [Kamples] 17:58:58 [ERROR] ModalGeneros: Error guardando generos Lo siento, no tienes permisos para hacer eso.
-error @ logger.ts:82
-:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-logger.ts:82  [Kamples] 17:59:01 [ERROR] ModalGeneros: Error guardando generos Lo siento, no tienes permisos para hacer eso.
+**Solucion:** WP Cron estaba correctamente disabled, pero el crontab del VPS usaba `curl -s http://localhost/wp-cron.php` que pasa por Traefik sin Host header correcto y falla. Fix: crontab actualizado a `docker exec wordpress-mo4so4440c488g8woow4cow0 php /var/www/html/wp-cron.php` — ejecuta directamente dentro del contenedor.
+- [Cron VPS]: NUNCA usar curl a localhost para WP cron en Docker+Traefik. Usar `docker exec` directo.
+- 11 items en estado `extraido` se publicaron exitosamente tras el fix.
 
-a recargar la aplicacion nada funciona hasta la imagen de perfil desaparece
+## QK8 ✅ [AG-DSK]
 
-## QK7
+**Solucion:** Los artistas existian en BD pero todos tenian `prioridad=0`. La migracion v047 creo la columna pero no inserto los valores. Creada migracion v049 que aplica: DJ Smokey(100), Soudiere(98), Juicy J(96), Three 6 Mafia(94), Project Pat(92), Tyler The Creator(90), Freddie Dredd(88), Kanye West(86), Daft Punk(84). Pipeline.py ya ordena por GREATEST de prioridad de ambos artistas del sampleo.
+- [Migraciones]: Verificar que el seed de datos se ejecute, no solo la estructura.
 
-Los recortes se estan haciendo pero no se estan publicando, el problema anterior es simlar o igual a qq127, tu solucion fue
+## QK9 ✅ [AG-DSK]
 
-" ## QQ127 ✅ [AG-SCR] Implementado `disableWpCron` en coolify-manager-rs: nuevo campo `bool` en `SiteConfig`, propagado a `update_glory_theme()`, funcion `ensure_wp_cron_disabled()` inyecta `define('DISABLE_WP_CRON', true)` en wp-config.php si no existe. Configurado `"disableWpCron": true` para sitio kamples en settings.json. Binario recompilado ok."
+**Solucion:** Sistema de cookies separado por plataforma. Backend: `guardarCookies($contenido, $tipo)` e `infoCookies($tipo)` parametrizados con whitelist `['youtube', 'soundcloud']`. Python: `_resolver_cookies_youtube()` busca `cookies_youtube.txt` > `cookies.txt` (legacy fallback). Frontend: dos secciones independientes con icono YouTube/SoundCloud, cada una con su propio textarea y boton de guardar.
+- [Cookies]: SoundCloud en practica usa OAuth token via env var, no yt-dlp cookies. Pero el campo esta disponible como fallback.
+- [Retrocompatibilidad]: Si solo existe `cookies.txt` legacy, YouTube lo sigue usando.
 
-pero dejo de funcionar no se si es por que volvio el error o es otra cosa.
+## QK10 ✅ [AG-DSK]
 
-## QK8
+**Solucion:** Dos problemas encontrados:
+1. **Embedding dimension mismatch**: BD tenia `vector(1536)` desde v001 pero el codigo genera 128-dim (metadata local: BPM, key, tags). Migracion v048 corrige a `vector(128)`.
+2. **JsonRepairer token limit**: `max_tokens=2000` insuficiente para JSONs largos. Aumentado a 4000. El input ya se trunca a 4000 chars con `mb_substr`.
+- [Embeddings]: Verificar dimension del vector en BD vs codigo al crear columnas vectoriales.
+- [Groq]: El modelo gpt-oss-120b necesita tokens generosos para reparar JSON — 2x del input es minimo seguro.
 
-Antes habia puesto esta tarea
+## QK11 ✅ [AG-DSK]
 
-"## QQ138 ✅ [AG-EXT]
-
-Esto es una cuestion de preferencias mias pero quiero que el scraper tenga prioridad sobre algunos artitas, asi en este orden, y me refiero a los sampleos que hacen, o sea no es una decision de que su lado del sampleo sea mas importante, no, ambos lados, el sampleo en general
-
-https://www.whosampled.com/DJ-Smokey/
-https://www.whosampled.com/Soudiere/
-https://www.whosampled.com/Juicy-J/
-https://www.whosampled.com/Three-6-Mafia/
-https://www.whosampled.com/Project-Pat/
-https://www.whosampled.com/Tyler,-The-Creator/
-https://www.whosampled.com/Freddie-Dredd/
-https://www.whosampled.com/Kanye-West/
-https://www.whosampled.com/Daft-Punk/
-
-
-voy a dejar un html como se ve la pagina de los artistas artistas.html
-
-Luego que tenga prorioridad sobre los top rated, dejare un toprated.html
-
-asegurarnos de que tambien sistematicamente decida obtener informacion primero de samples mas puntuados que este guardando tambien la informacion de las puntuaciones
-
-siempre se guardan en los sampleos como (mas votos es igual amas prioridad)
-
-<div class="ratingWrap section-header-action" id="rating">
-    <span class="ratingLoading" style="display:none"></span>
-    <div class="ratingCounts"><span class="ratingCount">86 Votes</span> <span class="userRating"></span></div>
-    <div class="ratingRecords">
-        <span class="ratingOverlay" style="width:125.0px"></span>
-        <button class="rating rating-1" title="Blasphemy!"></button>
-        <button class="rating rating-2" title="Not very clever"></button>
-        <button class="rating rating-3" title="Not bad"></button>
-        <button class="rating rating-4" title="Clever"></button>
-        <button class="rating rating-5" title="Genius!"></button>
-    </div>
-</div>
-
-> Solucion: (1) Columna `prioridad SMALLINT` en artistas_musicales (migracion v047). 9 artistas seeded con prioridad 70-100. (2) pipeline.py ordena cola por prioridad artista (mayor primero). (3) artist.py spider tiene `priority_mode`: `scrapy crawl artist -a priority=true` procesa artistas prioritarios primero."
-
-pero no veo ninguna cancion de dj smokey aun, intuyo que no funciona, hablo de cuando se ejecuta el proceso de fondo en el panel admin
-
-## QK9
-
-Ants habia dicho poder subir las cookies de soundcloud pero no asi, "Pega el contenido de cookies.txt (formato Netscape) para autenticacion en yt-dlp. Se usa para Yo"
-
-cookies yt-dlp (YouTube + SoundCloud)
-
-mejor de forma separada para evitar errores
-
-## QK10 
-
-En una tarea anterior vi que limitaste la cantidad de tokens de los modelos y me preocupo que este genere algun error en el futuro por si un json es muy largo, revisa que no genere errores.
-
-## QK11
-
-La aplicación sigue fallando
+**Solucion:** Mismo root cause que QK6. El filtro JWT de AuthMiddleware en prioridad 90 resuelve los 401 persistentes de la app desktop. Desplegado en produccion con el commit de QK6.
+- Los logs de produccion mostraban `JWT invalido | error=Signature verification failed` — esto era porque el filtro aun no estaba desplegado.
 
 Failed to load resource: the server responded with a status of 401 (Unauthorized)
 syncLogger.ts:108 [sync:syncWatcher] Reconciliación de descargas: 1773441640s sin sync completa, forzando 
@@ -177,6 +127,21 @@ obtenerColeccionesDelServidor @ syncCollectionService.ts:296
 :1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 :1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 
+## QK12 
+
+Crea un md detallado de todo lo que hay que hacer para tener la aplicacion de android lista con tauri, y adelanta todo lo que puedas
+
+## QK13 
+
+El buscador el nav arriba funciona muy bien, no dar dañar como funciona ahora solo, agregar un agregado, y es que, al escribir, que salga justo de bajo un cuadro con resultados en forma lista que incluya canciones, samples, sampleos y perfiles de usuario, con su foto de perfil, imagenes de portada, titulo, imagen cuadrada con bordes, minimalista bonito, usa las variables, tiene que mostrarse automaticamente al escribir, actualizarse en tiempo real y estar extremadamente optimizado. 
+
+## QQ14
+
+en https://kamples.com/admin/panel/ si bien aparecen las estadisticas, abajo debería haber una lista resumida de historial, compacta, para revisar, que incluya lo que esta en cola y pendiente.
+
+## QQ15 
+
+Respecto a la aplicación, sigue fallando con los errores de antes, la estoy iniciando en modo dev, no se si es por eso. 
 
 
 
