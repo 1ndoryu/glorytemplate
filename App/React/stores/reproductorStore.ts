@@ -1,8 +1,8 @@
-/*
- * Store: reproductorStore — Kamples
+﻿/*
+ * Store: reproductorStore  Kamples
  * Estado global del reproductor de audio.
  * Controla play/pause, contexto de navegacion, sample actual, volumen, progreso.
- * QQ49: Reescrito — contexto reemplaza cola, progreso normalizado 0..1,
+ * QQ49: Reescrito  contexto reemplaza cola, progreso normalizado 0..1,
  * seek via pendingSeek, like optimista, habilitado toggle.
  */
 
@@ -21,6 +21,8 @@ interface EstadoReproductor {
     aleatorio: boolean;
     habilitado: boolean;
     pendingSeek: number | null;
+    /* QQ75: ID de coleccion en modo preview (null = no preview) */
+    coleccionPreviewId: number | null;
 
     reproducir: (sample: SampleResumen, contexto?: SampleResumen[]) => void;
     play: () => void;
@@ -39,6 +41,7 @@ interface EstadoReproductor {
     cerrar: () => void;
     setHabilitado: (v: boolean) => void;
     actualizarLike: (liked: boolean) => void;
+    setColeccionPreviewId: (id: number | null) => void;
 }
 
 export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
@@ -53,6 +56,7 @@ export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
     aleatorio: false,
     habilitado: true,
     pendingSeek: null,
+    coleccionPreviewId: null,
 
     reproducir: (sample, contexto) => {
         const update: Partial<EstadoReproductor> = {
@@ -113,6 +117,7 @@ export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
             reproduciendo: false,
             progreso: 0,
             duracion: 0,
+            coleccionPreviewId: null,
         }),
 
     setHabilitado: v => set({habilitado: v}),
@@ -122,4 +127,6 @@ export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
             if (!s.sampleActual) return s;
             return {sampleActual: {...s.sampleActual, liked}};
         }),
+
+    setColeccionPreviewId: id => set({coleccionPreviewId: id}),
 }));

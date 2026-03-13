@@ -310,7 +310,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ75
 
-El boton de preview de las colecciones no funciona, lo que hara esto es que reproducirá aleatoreamiente los samples del la coleccion, con transicicones suaves, maximo 10 segundos cada uno 
+✅ [AG-SEC] Preview aleatorio de colecciones implementado. **Nuevo hook** `useColeccionPreview.ts`: al clickear Play en TarjetaColeccion, carga los samples de la colección via `obtenerColeccion(id)`, reproduce uno aleatorio con `reproductorStore.reproducir()`, activa modo aleatorio, y programa timer de 10s que llama `siguiente()` cíclicamente. Se suscribe a cambios de sampleActual para reiniciar timer. Si el usuario pausa externamente, limpia el preview. Toggle: segundo click detiene. **Store:** Añadido `coleccionPreviewId: number | null` y `setColeccionPreviewId()` al reproductorStore para coordinar estado entre tarjetas sin contexto shared. Se limpia en `cerrar()`. **TarjetaColeccion.tsx:** Añadido botón Play/Pause con Loader2 en zona inferior derecha de la portada (aparece en hover, siempre visible cuando activo). Clase CSS `tarjetaColeccionReproduciendo` para borde acento. **CSS:** Estilos para `.tarjetaColeccionPreviewContenedor`, `.tarjetaColeccionPreviewBtn`, `.tarjetaColeccionPreviewActivo`, spinner con @keyframes girar. Archivos: useColeccionPreview.ts (nuevo), TarjetaColeccion.tsx, reproductorStore.ts, tarjetaColeccion.css.
 
 ## QQ76
 
@@ -327,16 +327,7 @@ El boton de preview de las colecciones no funciona, lo que hara esto es que repr
 
 ## QQ79
 
-Vi un sample que en realidad si era un recorte con esta información
-
-Origen y Sampleo
-Es Recorte
-No
-Cancion Origen ID
-2971
-Relacion Sampleo ID
-
-era un sample antes de que se pudiera ver la informacion, no se si es un problema real pero de todas formas verificiar, los recortes si tiene que identificarse como recortes (cuando se generan con el proceso de recorte), y eso se comprueba que si tiene una cancion de origen, tambien debería de tener una de sampleo casi siempre, y en inspecionar no veo informacion calve como el origen del recorte, el enlace de la fuente de donde se recorto, el nombre y artista de la fuente, etc y toda esa info que alguna vez planifique se guardara cuando se hicieran recortes ya que esa info es importante para poder verificar si realmente el sample se recorto de una fuente coherente. 
+✅ [AG-SEC] Fix esRecorte + enriquecer inspector con datos de canción origen. **3 bugs corregidos:** (1) `relacion_sampleo_id` nunca se establecía en el sample al subir con relación — fix en SamplesUploadController y PublicadorExtraccion: ahora ambos ejecutan `actualizarCampos(RELACION_SAMPLEO_ID)` tras vincular a la relación. (2) Inspector usaba solo `relacionSampleoId != null` para determinar esRecorte — corregido a `cancionOrigenId != null || relacionSampleoId != null`. (3) Inspector solo mostraba IDs crudos — ahora muestra nombre de canción origen y enlace (`/cancion/{slug}/`) gracias a subselect `row_to_json` en `sqlSelectSamples()` que trae `titulo` y `slug` de la canción. Tipo `Sample` extendido con `cancionOrigen?: { titulo, slug }`. Archivos: NormalizadorSample.php, SamplesUploadController.php, PublicadorExtraccion.php, ModalInspectorSample.tsx, sample.ts, SampleDetalleIsland.tsx.
 
 
 ## QQ80 
@@ -365,8 +356,19 @@ landingNav del landing publico, ese nav debería aparecer en todas las paginas c
 
 Ahora si, agregar una pagina de explorar, que es exactamente la misma que la de inicio cuando estas logeado, o sea, al lado del logo poner un menu de nav, la primera pagina es de explorar, muestra la lista de samples, la organización de inteligente supongo que no va a funcionar ocn un usuarios deslogeados asi que hay que ajustar para que haya una version del algoritmo para usuarlos deslogeados, muy sencilla en la que simplemente muestra samples descatacados. 
 
+Si voy a una coleccion http://glory.local/coleccion/k4-91/ no me deja verla deslogeado, lo cual esta mal para el seo porque las colecciones deberían verse igual tambien las lista de colecciones publicas en /liberría
+
 ## QQ83 
 
 Pequeño ajuste visual, artistaDetalleCanciones es inncesario, basta con que se vea igual artistaDetalleRelaciones, o sea una tabla de las canciones. en vez de verse diferente. 
 
 La imagen de perfil del artista que sea automaticamente cualquiera de la de sus portadas destacadas. 
+
+## QQ84
+
+Si ya tengo tauri, puedo hacer la aplicacion para android, necesito la apk, esto implica que en la apk, desactivar lo de suscribirse mediante stripe para evitar el problema de la playstore, implica evitar salirse de la pagina pues supongo que es un web view excepto para el logeo de google, implica hacer las paginas de terminos, y la otra de servicio, no cargan, estan en el footer del landing, para no complicarnos la vida por el momento haremos que el login se pueda salir para ir a google ingresar los datos y regresar logeado, esto implica simular una navegador porque con las apk google suele bloquear. 
+
+Implica agregar el gesto de recargar tirando hacia arriba, implica que las reproducciones, descarags, funcionen. Implica que las notificaciones funcionen en android, implica que la aplicación funcione en modo office con lo que se pueda.
+
+Esta tarea es complicada si puedes adelantar todo lo que puedas sin requerir ayuda externa mejor. 
+

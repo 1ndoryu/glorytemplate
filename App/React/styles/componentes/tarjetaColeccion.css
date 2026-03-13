@@ -1,7 +1,8 @@
 /*
- * tarjetaColeccion.css — Kamples (C141)
+ * tarjetaColeccion.css — Kamples (C141 + QQ75)
  * Tarjeta visual tipo card para colecciones.
  * Botón 3 puntos en esquina superior derecha con menú contextual.
+ * Botón play preview en esquina inferior derecha de la portada.
  * El menuContenedor está FUERA del <a> interno pero dentro del div exterior.
  */
 
@@ -141,4 +142,62 @@
     color: var(--blanco);
     backdrop-filter: blur(4px);
     z-index: 3;
+}
+
+/* QQ75: Botón preview — esquina inferior derecha sobre la portada */
+.tarjetaColeccionPreviewContenedor {
+    position: absolute;
+    bottom: calc(var(--espacioXs) + 42%);
+    right: var(--espacioSm);
+    z-index: 5;
+}
+
+.tarjetaColeccionPreviewBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radioFull);
+    border: none;
+    background: var(--acento);
+    color: var(--blanco);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+        opacity var(--transicionRapida),
+        transform var(--transicionRapida),
+        background var(--transicionRapida);
+}
+
+.tarjetaColeccion:hover .tarjetaColeccionPreviewBtn,
+.tarjetaColeccionPreviewActivo {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tarjetaColeccionPreviewBtn:hover {
+    background: var(--acentoHover);
+}
+
+.tarjetaColeccionPreviewActivo {
+    opacity: 1;
+    transform: translateY(0);
+    background: var(--acento);
+}
+
+/* Borde acento cuando la colección está en preview */
+.tarjetaColeccionReproduciendo {
+    border-color: var(--acento);
+}
+
+/* Spinner de carga */
+.tarjetaColeccionSpinner {
+    animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

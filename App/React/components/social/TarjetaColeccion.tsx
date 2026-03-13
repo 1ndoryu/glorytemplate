@@ -1,15 +1,18 @@
-/*
- * Componente: TarjetaColeccion — Kamples (C141)
- * Tarjeta visual tipo card para mostrar una colección.
- * Botón 3 puntos en esquina superior derecha — usa MenuContextual (mismo que el resto de la app).
- * El botón está FUERA del <a> para evitar navegación accidental al hacer click.
+﻿/*
+ * Componente: TarjetaColeccion -- Kamples (C141 + QQ75)
+ * Tarjeta visual tipo card para mostrar una coleccion.
+ * Boton 3 puntos en esquina superior derecha -- usa MenuContextual.
+ * Boton play/preview en esquina inferior derecha de la portada.
+ * El boton esta FUERA del <a> para evitar navegacion accidental al hacer click.
  */
 
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
-import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree } from 'lucide-react';
+import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree, Play, Pause, Loader2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { useReproductorStore } from '@app/stores/reproductorStore';
+import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import { MenuContextual } from '../ui/MenuContextual';
 import { BotonBase } from '../ui/BotonBase';
@@ -17,7 +20,7 @@ import '../../styles/componentes/tarjetaColeccion.css';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
-    /** C388: Indica visualmente que es subcolección (tiene parentId) */
+    /** C388: Indica visualmente que es subcoleccion (tiene parentId) */
     esSubcoleccion?: boolean;
     onEditar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
@@ -34,6 +37,18 @@ export const TarjetaColeccion = ({
     const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({
         abierto: false, x: 0, y: 0,
     });
+
+    /* QQ75: Preview aleatorio de la coleccion */
+    const { iniciarPreview, cargando } = useColeccionPreview();
+    const coleccionPreviewId = useReproductorStore(s => s.coleccionPreviewId);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const esPreviewActiva = coleccionPreviewId === coleccion.id && reproduciendo;
+
+    const manejarPreview = useCallback((e: MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        iniciarPreview(coleccion.id);
+    }, [iniciarPreview, coleccion.id]);
 
     const abrirMenu = useCallback((e: MouseEvent) => {
         e.stopPropagation();
@@ -82,7 +97,19 @@ export const TarjetaColeccion = ({
     }, [coleccion, onEditar, onEliminar]);
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
-    const clases = ['tarjetaColeccion', esSubcoleccion ? 'tarjetaColeccionSub' : '', className].filter(Boolean).join(' ');
+    const clases = [
+        'tarjetaColeccion',
+        esSubcoleccion ? 'tarjetaColeccionSub' : '',
+        esPreviewActiva ? 'tarjetaColeccionReproduciendo' : '',
+        className,
+    ].filter(Boolean).join(' ');
+
+    /* Icono del boton preview segun estado */
+    const iconoPreview = cargando
+        ? <Loader2 size={18} className="tarjetaColeccionSpinner" />
+        : esPreviewActiva
+            ? <Pause size={18} />
+            : <Play size={18} />;
 
     return (
         <div className={clases}>
@@ -90,7 +117,7 @@ export const TarjetaColeccion = ({
                 <div className="tarjetaColeccionPortada">
                     <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
                     {esSubcoleccion && (
-                        <span className="tarjetaColeccionSubBadge" title="Subcolección">
+                        <span className="tarjetaColeccionSubBadge" title="Subcoleccion">
                             <FolderTree size={12} />
                         </span>
                     )}
@@ -99,7 +126,7 @@ export const TarjetaColeccion = ({
                 <div className="tarjetaColeccionInfo">
                     <div className="tarjetaColeccionCabecera">
                         <span className="tarjetaColeccionNombre">{coleccion.nombre}</span>
-                        <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? 'Pública' : 'Privada'}>
+                        <span className="tarjetaColeccionVisibilidad" title={coleccion.esPublica ? 'Publica' : 'Privada'}>
                             {coleccion.esPublica ? <Globe size={12} /> : <Lock size={12} />}
                         </span>
                     </div>
@@ -110,17 +137,32 @@ export const TarjetaColeccion = ({
                 </div>
             </EnlaceNavegacion>
 
-            {/* Botón 3 puntos — FUERA del <a> para evitar navegación al hacer click */}
+            {/* Boton 3 puntos -- FUERA del <a> para evitar navegacion al hacer click */}
             <div className="tarjetaColeccionMenuContenedor">
                 <BotonBase variante="ghost"
                     className="tarjetaColeccionMenuBtn"
                     onClick={abrirMenu}
                     type="button"
-                    aria-label="Opciones de colección"
+                    aria-label="Opciones de coleccion"
                 >
                     <MoreVertical size={16} />
                 </BotonBase>
             </div>
+
+            {/* QQ75: Boton preview -- esquina inferior derecha de la portada */}
+            {coleccion.totalSamples > 0 && (
+                <div className="tarjetaColeccionPreviewContenedor">
+                    <BotonBase variante="ghost"
+                        className={`tarjetaColeccionPreviewBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
+                        onClick={manejarPreview}
+                        type="button"
+                        aria-label={esPreviewActiva ? 'Detener preview' : 'Preview coleccion'}
+                        disabled={cargando}
+                    >
+                        {iconoPreview}
+                    </BotonBase>
+                </div>
+            )}
 
             <MenuContextual
                 abierto={menu.abierto}
