@@ -8,7 +8,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: var(--espacioMd) var(--espacioLg);
+    padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0;
     background: var(--fondoBase);
     /* border-bottom: 1px solid var(--bordeSutil); */
     position: sticky;
@@ -66,4 +66,8 @@
     .navPublicoEnlaces {
         display: none;
     }
+}
+
+.areaContenidoPublico .inicioContenedor, .areaContenidoPublico .coleccionesPublicas {
+    padding: var(--landingPaddingSuperior) var(--landingPaddingHorizontal) 0 !important;
 }

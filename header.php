@@ -14,8 +14,9 @@ $usuarioId = get_current_user_id();
     <!-- Assets encolados por AssetManager: GSAP y Highlight.js (controlados por features) -->
     <link rel="profile" href="https://gmpg.org/xfn/11">
     <!-- QQ94: Favicon personalizado antes de wp_head para evitar que WP lo sobreescriba -->
-    <link rel="icon" type="image/svg+xml" href="<?php echo esc_url(get_template_directory_uri() . '/Glory/assets/images/favicon.svg'); ?>">
-    <link rel="shortcut icon" href="<?php echo esc_url(get_template_directory_uri() . '/Glory/assets/images/favicon.svg'); ?>">
+    <?php $faviconVer = filemtime(get_template_directory() . '/App/Assets/images/favicon.svg'); ?>
+    <link rel="icon" type="image/svg+xml" href="<?php echo esc_url(get_template_directory_uri() . '/App/Assets/images/favicon.svg?v=' . $faviconVer); ?>">
+    <link rel="shortcut icon" href="<?php echo esc_url(get_template_directory_uri() . '/App/Assets/images/favicon.svg?v=' . $faviconVer); ?>">
     <?php wp_head(); ?>
 </head>
 

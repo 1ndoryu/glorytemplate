@@ -437,114 +437,96 @@ Implementación del plan de distribución desktop. **Completado:** updater plugi
 ## QQ99 ✅ [AG-QQF]
 
 SVGs de landing (9.4MB total) no tenían cache headers, causando re-descargas en cada visita. **Fix:** Creado `.htaccess` en raíz del tema con: `mod_expires` (1 año SVG/img/fuentes, 1 año CSS/JS por hashes Vite, 3 meses audio), `mod_headers` (Cache-Control immutable + Vary Accept-Encoding), `mod_deflate` (GZIP para SVG/CSS/JS/JSON). Habilitado `mod_headers` en Apache producción. Creado script `post-deploy-apache.sh` para habilitar módulos automáticamente post-rebuild. Agregado cache-busting `?v=` a SVGs en LandingPublica.tsx. Los SVGs NO se descartaron — ya estaban optimizados (68MB→9.4MB, -86%). Archivos: .htaccess, .agent/post-deploy-apache.sh, LandingPublica.tsx.
-1284 KiB
-…svg/Rolas.svg(kamples.com)
-None
-507 KiB
-…assets/main-DD5tePBF.js(kamples.com)
-None
-235 KiB
-…assets/main-CEGSnYZ0.css(kamples.com)
-None
-45 KiB
-Solicitudes que bloquean el renderizado Ahorro estimado de 300 ms
-Las solicitudes están bloqueando el renderizado inicial de la página, lo que puede retrasar el LCP. Si se posponen o se insertan, estas solicitudes de red pueden salir de la ruta crítica.LCPFCPSin puntuar
-URL
-Tamaño de la transferencia
-Duración
-kamples.com Propio
-45,4 KiB	790 ms
-…assets/main-CEGSnYZ0.css(kamples.com)
-45,4 KiB
-790 ms
-Desglose de LCP
-Cada subparte tiene estrategias de mejora específicas. Lo ideal es que la mayor parte del tiempo de LCP se dedique a cargar los recursos, no a los retrasos.LCPSin puntuar
-Subparte
-Duración
-Time to First Byte
-0 ms
-Retraso de carga de recursos
-1200 ms
-Duración de la carga del recurso
-2550 ms
-Retraso de renderizado de elementos
-1020 ms
-Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado
-<img src="/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg" alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor int…" class="landingSeccionSync" width="1288" height="717" fetchpriority="high" decoding="async">
-Descubrimiento de solicitudes de LCP
-Optimiza el LCP haciendo descubrible la imagen de LCP desde el HTML directamente y evita la carga en diferidoLCPSin puntuar
-carga en diferido no aplicada
-fetchpriority=high applied
-La solicitud es visible en el documento inicial
-Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado
-<img src="/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg" alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor int…" class="landingSeccionSync" width="1288" height="717" fetchpriority="high" decoding="async">
-Árbol de dependencia de red
-Evita encadenar solicitudes críticas reduciendo la longitud de las cadenas, disminuyendo el tamaño de los recursos o posponiendo la descarga de recursos innecesarios para mejorar la carga de la página.LCPSin puntuar
-Latencia de ruta crítica máxima: 1793 ms
-Navegación inicial
-https://kamples.com - 519 ms, 7,45 KiB
-…assets/main-CEGSnYZ0.css(kamples.com) - 686 ms, 45,44 KiB
-…assets/JunicodeV….woff2(kamples.com) - 1350 ms, 2,73 KiB
-…assets/bricolage….A6LyuA6R-A6LyuA6R.woff2(kamples.com) - 1793 ms, 2,73 KiB
-…assets/bricolage….DEDBoLFO-DEDBoLFO.woff2(kamples.com) - 1338 ms, 2,73 KiB
-…assets/main-DD5tePBF.js(kamples.com) - 1063 ms, 235,42 KiB
-Orígenes preconectados
-Las sugerencias para establecer conexión previamente ayudan al navegador a establecer una conexión antes de que se cargue la página, lo que ahorra tiempo al hacer la primera solicitud a ese origen. A continuación se indican los orígenes con los que la página ha establecido conexión previamente.
-No hay orígenes con los que se haya establecido conexión previamente
-Candidatos para establecer conexión previamente
-Añade sugerencias para establecer conexión previamente con tus orígenes más importantes, pero intenta usar 4 como máximo.
-No hay más orígenes que sean buenos candidatos para establecer conexión previamente
-Estas estadísticas también están disponibles en el panel Rendimiento de Chrome DevTools. Graba una traza para ver información más detallada.
-Diagnósticos
-Reduce el contenido JavaScript que no se use Ahorro estimado de 164 KiB
-Reduce el contenido JavaScript que no se use y retrasa la carga de secuencias de comandos hasta que se necesiten. Así, se reducirán los bytes consumidos por la actividad de red. Consulta cómo reducir el contenido de JavaScript que no se useLCPFCPSin puntuar
-WordPress
-Puedes reducir o cambiar la cantidad de complementos de WordPress que cargan código de JavaScript sin usar en tu página. Para identificar los complementos que añaden código de JavaScript externo, ejecuta la cobertura de código en DevTools de Chrome. Puedes identificar el tema o complemento concreto en la URL de la secuencia de comandos. Presta atención a los complementos con varias secuencias de comandos en la lista y con muchos elementos en rojo en la cobertura de código. Un complemento solo debería poner en cola una secuencia de comandos (si esta se usa en la página).
-URL
-Tamaño de la transferencia
-Ahorro estimado
-kamples.com Propio
-234,8 KiB	164,3 KiB
-…assets/main-DD5tePBF.js(kamples.com)
+
 
 ## QQ100 ✅ [AG-QQF]
 
 Fuentes Bricolage Grotesque y JunicodeVF daban 404 en producción. **Causa raíz:** `vite.config.ts` tenía base path `/wp-content/themes/glory/` pero el tema se llama `glorytemplate`. El CSS compilado generaba URLs incorrectas para los @font-face. **Fix:** Cambio en `Glory/assets/react/vite.config.ts` línea 20: `glory` → `glorytemplate`. Rebuild genera CSS con rutas correctas. Requiere rebuild en producción (`npm run build` en Glory/assets/react). Archivos: Glory/assets/react/vite.config.ts.
 
-## QQ101
+## QQ101 ✅ [AG-FIX]
 
-El titulo de la pagina de inicio es Home, porque no tiene optmizacion seo.
+SEO title "Home" corregido. Causa: MetaTagRenderer::filterDocumentTitle() solo manejaba is_page()/is_singular() pero homepage via TemplateReact puede no satisfacer is_page(). Fix: agregado bloque is_front_page() con fallback chain (RuntimeSeoData -> post_meta -> slug defaults -> 'home' key). Tambien corregido printMetaDescription() y printCanonical(). Verificado en produccion: title muestra "Kamples - Samples y Loops Gratuitos para Produccion Musical". Archivos: Glory/src/Seo/MetaTagRenderer.php.
 
-## QQ102 
+## QQ102 ✅ [AG-FIX]
 
-EL favicon sigue sin aparecer, compruebalo tu mismo yendo a kamples.com, ni siquiera aparece en el html.
+Favicon corregido. Causa raiz: homepage usa TemplateReact.php (no header.php), y QQ94 solo agrego favicon a header.php. Fix: agregado `<link rel="icon">` y `<link rel="shortcut icon">` apuntando a favicon.svg en TemplateReact.php. Verificado en produccion: favicon.svg carga 200. Archivos: TemplateReact.php.
 
-## QQ103 
+## QQ103 ✅ [AG-FIX]
 
-Ya genere las claves key, estan en desktop\~\.tauri\kamples.key , agrega al git ignore y completa el plan anterior.
+Tauri keys configuradas. Pubkey real insertada en tauri.conf.json (reemplazando PENDIENTE_GENERAR_CON_TAURI_SIGNER). Private key excluida via desktop/.gitignore. plan-desktop-distribucion.md actualizado. Archivos: desktop/src-tauri/tauri.conf.json, desktop/.gitignore, App/docs/plan-desktop-distribucion.md.
 
-## QQ104
+## QQ104 ✅ [AG-FIX]
 
-Algo pasa cuando inicie sesion con google
+4 problemas resueltos: (1) Feed 500 — sqlFiltroAutoOcultacion() no existia en ReportesRepository, creado con constantes UMBRAL_OCULTAR_SAMPLE/PUBLICACION=3 y SQL fragment inline. (2) Google Auth 500 — AuthController::obtenerOCrearUsuarioPg() pasaba keys incorrectas (wpId/nombre/avatar en vez de wp_user_id/display_name/avatar_url) a crearDesdeWP(). (3) URLs sslip.io — creado App/Helpers/UrlHelper.php centralizado con normalizacion en 5 puntos de salida (AuthController, PerfilController, UsuarioHelper, NormalizadorPublicacion, NormalizadorSample). DB migrada via PHP script (0 URLs sslip.io restantes, 1 http://->https:// corregido). (4) SQL UNION syntax — ConstructorSenales.php linea 337, primer SELECT con ORDER BY/LIMIT envuelto en parentesis antes del UNION ALL. Archivos: ReportesRepository.php, AuthController.php, UrlHelper.php (nuevo), PerfilController.php, UsuarioHelper.php, NormalizadorPublicacion.php, NormalizadorSample.php, ConstructorSenales.php. Commit: fb3e29ec.
 
-Failed to load resource: net::ERR_CERT_AUTHORITY_INVALIDComprende este error
-/wp-json/kamples/v1/publicaciones?autor=Wandorius&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
-/wp-json/kamples/v1/feed?tipo=descubrir&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
-/wp-json/kamples/v1/publicaciones?autor=Wandorius&page=1:1  Failed to load resource: the server responded with a status of 500 ()Comprende este error
-avatar_1773372526.jpg:1  Failed to load resource: net::ERR_CERT_AUTHORITY_INVALID
+## QQ105 ✅ [AG-FIX]
 
-Ya tenia una cuenta con el mismo correo con el que me registre, inicio en mi cuenta wandorius, 
+Scraper DB connection corregido. Causa: db.py usaba DB_HOST=localhost (dev .env) pero en produccion PG esta en hostname 'postgres' (Docker). Fix: db.py ahora lee KAMPLES_PG_* env vars primero (disponibles en container WP), fallback a DB_* de .env, luego defaults. Archivos: kamples-scraper/kamples_scraper/utils/db.py.
+    ^
+  File "/var/www/html/wp-content/themes/glorytemplate/kamples-scraper/.venv/lib/python3.13/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
 
-pero luego probe con una cuenta que no estuviera registrada antes 
+## QQ106
 
-y main-Ct0RMbkf.js:770  POST https://kamples.com/wp-json/kamples/v1/auth/google 500 (Internal Server Error)
+sigue saliendo
 
-Luego ingreso si google y da este error
+main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/bricolage-grotesque-latin-400-normal.A6LyuA6R-A6LyuA6R.woff2 net::ERR_ABORTED 404 (Not Found)
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/bricolage-grotesque-latin-500-normal.DEDBoLFO-DEDBoLFO.woff2 net::ERR_ABORTED 404 (Not Found)
+main-B_0xA5pE.css:1   GET https://kamples.com/wp-content/themes/glory/Glory/assets/react/dist/assets/JunicodeVF-Roman-subset-B2B4Tdd7.woff2 net::ERR_ABORTED 404 (Not Found)
 
-GET https://wordpress-mo4so4440c488g8woow4cow0.66.94.100.241.sslip.io/wp-content/uploads/kamples/avatars/1/avatar_1773372526.jpg net::ERR_CERT_AUTHORITY_INVALID
-main-Ct0RMbkf.js:770   GET https://kamples.com/wp-json/kamples/v1/feed?tipo=descubrir&page=1 500 (Internal Server Error)
+## QQ107
 
-porque la url esta harcodeada y bueno ahora el feed da 500 
+Porque el favicon de kamples esta en /Glory si glory debe ser agnostico
+
+el repositorio del sync este https://github.com/1ndoryu/kamples-sync/settings/secrets/actions 
+
+no se ha subido /desktop y los secrets los coloque en Repository secrets
+
+## QQ108
+
+Cambie los colores del favicon pero sigue cargando el viejo, como se hace para arreglar.
+
+## QQ109
+
+response = await ensure_awaitable(
+
+2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-samples/>: HTTP status code is not handled or not allowed
+2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-covers/>: HTTP status code is not handled or not allowed
+2026-03-13 05:36:44 [scrapy.spidermiddlewares.httperror] INFO: Ignoring response <403 https://www.whosampled.com/hot-remixes/>: HTTP status code is not handled or not allowed
+2026-03-13 05:36:44 [scrapy.core.engine] INFO: Closing spider (finished)
+2026-03-13 05:36:44 [kamples_scraper.pipelines] INFO: PostgresPipeline: conexion cerrada
+2026-03-13 05:36:44 [kamples_scraper.middlewares] INFO: Bandwidth total consumido: 0.02 MB (25833 bytes)
+2026-03-13 05:36:44 [scrapy.statscollectors] INFO: Dumping Scrapy stats:
+{'downloader/response_bytes': 30398,
+ 'downloader/response_count': 3,
+ 'downloader/response_status_count/403': 3,
+ 'elapsed_time_seconds': 0.309223,
+ 'finish_reason': 'finished',
+ 'finish_time': datetime.datetime(2026, 3, 13, 5, 36, 44, 182965, tzinfo=datetime.timezone.utc),
+ 'httperror/response_ignored_count': 3,
+ 'httperror/response_ignored_status_count/403': 3,
+ 'items_per_minute': None,
+ 'log_count/INFO': 7,
+ 'log_count/WARNING': 2,
+ 'memusage/max': 90537984,
+ 'memusage/startup': 90537984,
+ 'response_received_count': 3,
+ 'responses_per_minute': None,
+ 'scheduler/dequeued': 3,
+ 'scheduler/dequeued/memory': 3,
+ 'scheduler/enqueued': 3,
+ 'scheduler/enqueued/memory': 3,
+ 'start_time': datetime.datetime(2026, 3, 13, 5, 36, 43, 873742, tzinfo=datetime.timezone.utc)}
+2026-03-13 05:36:44 [scrapy.core.engine] INFO: Spider closed (finished)
 
 ---
 
