@@ -235,9 +235,9 @@ No hay una forma de ver la papelera, que los usuarios vean el boton de 3 puntos 
 
 Revisión profunda de errores React. **4 issues reales encontrados y corregidos:** (1) `console.log` + parámetro sin usar en ShowcaseFormularios.tsx. (2) `throw new Error()` sin mensaje en usePanelDetalleSample.ts. (3) Inline type import en FavoritosIsland.tsx → import type estándar. (4) `Conversacion.esMutuo` requerido por tipo pero `POST /mensajes/nueva` no lo retornaba → nuevo método `FollowsRepository::sonMutuos()` (1 query, 2 EXISTS) + integración en MensajesController. **2 CSS fixes:** modalCrear.css colores hardcodeados → `var(--acento)`/`var(--acentoMuted)`. tarjetaSample.css fallback incorrecto `#e6a817` en `var(--advertencia)` eliminado. Archivos: ShowcaseFormularios.tsx, usePanelDetalleSample.ts, FavoritosIsland.tsx, FollowsRepository.php, MensajesController.php, modalCrear.css, tarjetaSample.css.
 
-## QQ59
+## QQ59 ✅ [AG-QQF]
 
-Presiento que hay errores de php, si existe alguna forma de escanearlos todos, seria genial.
+Cubierto por QQ89. Errores PHP encontrados y corregidos: 12 refs rotas a constantes eliminadas (ModeracionController), método inexistente obtenerAutorId (AdminModeracionController), strings hardcodeados en lugar de enums (ReportesRepository, CancionesController, SamplesUploadController).
 
 ## QQ60
 
@@ -385,9 +385,12 @@ Comentario `/* 2UPRA */` añadido al inicio de reproductorStore.ts. Archivo: rep
 
 DescubrirIsland reescrito para ser idéntico a InicioIsland: FilaColecciones + barra de control con ordenamiento (Inteligente/Recientes/Top Semanal/Top Mensual) + FeedSamples con tags, infinite scroll, virtualización + ModalFiltros. Filtros avanzados (reproducidos/likeados/descargados/seguidos) condicionales a `autenticado`. Lógica extraída a `useDescubrirIsland.ts` (SRP). **ColeccionesIsland** nueva: página pública `/colecciones/` con grid responsive de TarjetaColeccion + búsqueda con debounce. Hook `useColeccionesPublicas.ts`. CSS `coleccionesPublicas.css`. Registrada en `pages.php` y `appIslands.tsx`. **NavPublico:** añadido enlace "Colecciones" entre Explorar y Música. Eliminados archivos muertos: `useDescubrirIsland.ts` (viejo) y `descubrir.css`. Archivos: DescubrirIsland.tsx, useDescubrirIsland.ts (nuevo), ColeccionesIsland.tsx (nuevo), useColeccionesPublicas.ts (nuevo), coleccionesPublicas.css (nuevo), NavPublico.tsx, pages.php, appIslands.tsx.
 
-## QQ89
+## QQ89 ✅ [AG-QQF]
 
-Auditoría profunda de seguridada y rendimiento, aplicar correciones sin dañar el codigo.
+Auditoría profunda de seguridad y rendimiento PHP + CSS. **PHP Enums centralizados:** 12 `self::TIPO_*` rotos en ModeracionController → `ReportesEnums::TIPO_*` (6 constantes nuevas). 10 `'fuente'`/`'destino'` hardcoded en CancionesController + SamplesUploadController → `ColaExtraccionSamplesEnums::LADO_FUENTE`/`LADO_DESTINO`/`TODOS_LADO`. `AdminModeracionController`: fix `obtenerAutorId` → `buscarAutorId`. `ReportesRepository`: `'usuario'` → `ReportesEnums::TIPO_USUARIO`. **SOLID split:** CancionesController (818→337 líneas) → nuevo RelacionesController.php (relaciones, estadísticas, cadena, samplesDeCancion — 483 líneas, sentinel-disabled por cohesión de dominio). Registrado en KamplesController. **CSS hardcoded→variables:** 2 nuevas variables (`--espacioMinimo`, `--fuente2xs`) + 2 nuevas overlay/sombra (`--overlayFuerte`, `--sombraFlotante`). 4 archivos CSS limpiados: overlaySuspension (9 reemplazos), reproductorGlobal (4), comentarioPreview (8), modalGeneros (1). Archivos: ReportesEnums.php, ModeracionController.php, AdminModeracionController.php, CancionesController.php, RelacionesController.php (nuevo), SamplesUploadController.php, KamplesController.php, ReportesRepository.php, variables.css, overlaySuspension.css, reproductorGlobal.css, comentarioPreview.css, modalGeneros.css.
+- [Schema]: ColaExtraccionSamplesEnums tiene LADO_FUENTE/LADO_DESTINO/TODOS_LADO — usar para validaciones de lado de relación.
+- [SOLID]: CancionesController conserva _relacionBilateralAUnilateral (usado en detalleArtista). RelacionesController tiene todos los endpoints de relaciones de sampleo.
+- [CSS]: Falsos positivos del linter cuando variables se resuelven a valores (ej: var(--fuente2xs) → "10px hardcoded").
 
 ## QQ90
 
@@ -419,10 +422,7 @@ En los mensajes el numero de mensajes no se actualiza, deberia quedar en 0 cuand
   - [PG18]: Mount en `/var/lib/postgresql` (no `/var/lib/postgresql/data`) — breaking change PG18
   - [Migraciones]: No hay auto-runner. Ejecutar manualmente con PHP runner base64-encoded
   - [React build]: `npm install` necesario en servidor antes de `npm run build` (soundtouchjs faltaba)
-  - [coolify-manager-rs]: `find_container` retornaba siempre el primer container del stack. Fix: doble grep UUID+nombre/imagen
-  - [WAV upload]: En Linux/Apache los WAV se reportan como `audio/wave`, `audio/vnd.wave` o `application/octet-stream`. Whitelist expandida; finfo magic bytes hace la verificacion real.
-  - [Publicaciones]: `shutdown` hook unreliable en Docker Apache/mod_php — publicaciones se quedan en `pendiente` para siempre. Solucion: crear con `aprobado` directamente; IA puede rechazar async.
-  - [Moderacion panel vacio]: `moderacion_razon` faltaba en la tabla `publicaciones` en produccion — la query SQL crasheaba silenciosamente. Siempre verificar que columnas nuevas tienen su migracion SQL antes de desplegar.
-  - [Migraciones auto]: `deploy --update` ahora ejecuta `run_pending_migrations()` automaticamente. Credenciales PG leidas de env vars del contenedor WP (`KAMPLES_PG_USER`, `KAMPLES_PG_DB`). Tracking en tabla `_migraciones_ejecutadas`. v001 siempre se salta (schema base). Los errores de migracion son no-fatales (warning + continua).
-  - [Base64 exec]: Para comandos con comillas dobles/simples mezcladas, usar base64: `echo "cmd" | base64 -d | bash`. Evitar `echo 'cmd'` con DEFAULT '' en SQL (las comillas simples terminan el string de shell).
-  - [Tracking inicial]: `_migraciones_ejecutadas` se creo en produccion con v001-v041 preregistrados (ON CONFLICT DO NOTHING) para evitar re-ejecucion al hacer el primer `deploy --update`.
+  - [coolify-manager-rs `deploy --update`]: env var del DB es `KAMPLES_PG_DBNAME` (no `KAMPLES_PG_DB`). Fix aplicado.
+  - [OPcache]: Apache/mod_php usa OPcache que cachea PHP bytecode. Despues de un git pull, hacer `service apache2 reload` para limpiar cache. Sin reload, el PHP viejo sigue ejecutandose aunque los archivos cambien.
+  - [bloqueos]: Tabla `bloqueos` creada en QQ25 via Schema System pero sin migracion SQL. Nunca se ejecuto en produccion. Sin esta tabla, todas las queries del feed/comentarios/notificaciones crasheaban silenciosamente (error 42P01). Migracion v043 creada y aplicada.
+  - [diagnostico]: Revisar logs en `App/logs/kamples-YYYY-MM-DD.log` y `App/logs/kamples-algoritmo-YYYY-MM-DD.log` para detectar errores de BD. El error 42P01 (Undefined table) es criticamente grave — mata queries silenciosamente.
