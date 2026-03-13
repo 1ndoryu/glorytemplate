@@ -55,6 +55,16 @@
 
 ---
 
+## Extraccion / Pipeline Audio / WP Cron
+
+- [WP pseudo-cron sin trafico]: WP cron es pseudo-cron que se dispara en visitas HTTP. Sin trafico, `kamples_publicar_extracciones` nunca se ejecuta aunque esté programado (cron scheduled past-due pero sin trigger). Solucion: cron real del host `*/5 * * * * curl -s http://localhost/wp-cron.php?doing_wp_cron` + `DISABLE_WP_CRON=true` en wp-config.php.
+- [proximo_intento_at backoff]: Columna TIMESTAMPTZ con partial index `WHERE estado='pendiente' AND proximo_intento_at IS NOT NULL`. Formula: `NOW() + LEAST(POWER(2, intentos+1), 4) days`. Tanto PHP (ColaExtraccionSamplesRepository) como Python (pipeline.py) comparten logica identica con constante `MAX_INTENTOS=5`.
+- [YouTube 2026 landscape]: yt-dlp requiere Deno desde 2025.11.12. ANDROID_VR degradado marzo 2026 (A/B SABR). TV_EMBEDDED removido de yt-dlp 2026.03.03 pero endpoint InnerTube sigue activo. IOS es el mejor cliente actual para contenido sin restriccion. InnerTube API directa viable como fallback sin yt-dlp.
+- [Contenedor DB Kamples]: El contenedor PostgreSQL se llama `postgres-mo4so4440c488g8woow4cow0` (no `kamples-db`). El WP se llama `wordpress-mo4so4440c488g8woow4cow0`. Ambos usan el UUID del stack Coolify.
+- [Scraper WhoSampled bandwidth]: Scraper bien optimizado: gzip/br, dedup multi-capa, presupuesto 5GB, autothrottle. Mejoras opcionales: HTTP cache entre runs (-30-50% re-scrapes), sacar 429 de RETRY_HTTP_CODES.
+
+---
+
 ## Repository / Schema System
 
 - `contarConFiltros`/`listarConFiltros`: WHERE dinámico. JOINs en repo principal. `crearConConflict` para upserts.

@@ -559,9 +559,9 @@ Investigacion YouTube download 2026 + script de test multi-metodo + endpoint adm
 
 Auditoria scraper WhoSampled (bandwidth). Veredicto: **scraper bien optimizado**, no requiere cambios urgentes. Medidas correctas: gzip/br compression, dedup multi-capa (sesion + persistente + imagenes SHA256), presupuesto hard-stop 5GB, autothrottle, re-scraping controlado (180d creciente). Mejoras opcionales identificadas: HTTP cache entre runs (-30-50% re-scrapes), retry 429 fix (-5%). Documento completo: `App/docs/auditoria-scraper-whosampled-bandwidth.md`.
  
-## QQ124 (prioritario)
+## QQ124 ✅ [AG-SCR]
 
-Desde hace rato hice varias extracciones con recortes en el vps pero aun no se publican, no se que pasa, ya pasaron 5 minutos. (en el servidor)
+Diagnosticado y resuelto: extracciones en estado `extraido` no se publicaban porque WP pseudo-cron no se disparaba sin trafico. **Causa raiz:** WP cron depende de visitas HTTP — sin trafico, las tareas programadas (kamples_publicar_extracciones cada 5min) no se ejecutan. **Solucion:** (1) Publicados manualmente los 6 items pendientes (ahora 8 completados). (2) Configurado cron real a nivel de host: `*/5 * * * * curl -s http://localhost/wp-cron.php?doing_wp_cron` (persistente entre deploys). (3) `DISABLE_WP_CRON=true` agregado a wp-config.php (efimero en contenedor — TO-DO: agregar a coolify-manager deploy flow).(en el servidor)
 
 ## QQ125
 
@@ -572,6 +572,10 @@ necesito que tu pruebes y testest test_youtube_download.py, intenta todo o que e
 Algunas imagenes del scrapper se guardaron asi
 
 <img src="https://www.whosampled.com/static/images/media/track_images_200/lr31800_2019923_103832608693.jpg" alt="Pulsar City Alarm" loading="lazy"> y no cargar, por favor, evitar que esto suceda a demás de algo para corregir las imagenes que aparecen asi
+
+# QQ127 
+
+TO-DO para agregarlo al flujo de deploy de coolify-manager. TRABAJA en eso 
 
 ---
 
