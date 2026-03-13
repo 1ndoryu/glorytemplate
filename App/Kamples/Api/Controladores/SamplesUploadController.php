@@ -48,6 +48,10 @@ class SamplesUploadController
     private const EXTENSIONES_AUDIO_VALIDAS = ['wav', 'mp3', 'flac', 'aiff', 'aif'];
     private const MAX_TAMANO_AUDIO = 50 * 1024 * 1024;
 
+    /* QQ90: Validación de imagen de portada — MIME por magic bytes */
+    private const FORMATOS_IMAGEN_VALIDOS = ['image/jpeg', 'image/png', 'image/webp'];
+    private const MAX_TAMANO_PORTADA = 5 * 1024 * 1024;
+
     public static function registrarRutas(string $namespace): void
     {
         \register_rest_route($namespace, '/samples/upload', [
@@ -118,8 +122,9 @@ class SamplesUploadController
         }
 
         /* Verificar contenido real del archivo con magic bytes (finfo) */
+        /* Se pasa FILEINFO_MIME_TYPE explícito en ->file() para compatibilidad PHP 8.x */
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $realMime = $finfo->file($audio['tmp_name']);
+        $realMime = $finfo->file($audio['tmp_name'], FILEINFO_MIME_TYPE);
         /* WAV puede devolver audio/x-wav — aceptar con fallback de magic bytes RIFF/WAVE */
         $mimeValido = \in_array($realMime, self::FORMATOS_AUDIO_VALIDOS, true)
             || ($extension === 'wav' && self::esArchivoWav($audio['tmp_name']));
@@ -351,6 +356,53 @@ class SamplesUploadController
                 KamplesLogger::error('Error al vincular sample a relacion de sampleo', [
                     'sampleId' => $sampleId, 'relacionId' => $relacionId,
                     'lado' => $ladoRelacion, 'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        /* QQ90: Procesar imagen de portada si fue enviada */
+        if ($sampleId && !empty($archivos['portada'])) {
+            try {
+                $portada = $archivos['portada'];
+
+                /* Validar tamaño */
+                if ($portada['size'] > self::MAX_TAMANO_PORTADA) {
+                    KamplesLogger::warning('Portada excede tamaño máximo', ['size' => $portada['size']]);
+                } else {
+                    /* Validar MIME real con magic bytes */
+                    $finfoPortada = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimePortada = $finfoPortada->file($portada['tmp_name']);
+
+                    if (!\in_array($mimePortada, self::FORMATOS_IMAGEN_VALIDOS, true)) {
+                        KamplesLogger::warning('Portada con MIME inválido', ['mime' => $mimePortada]);
+                    } else {
+                        /* Reutilizar mismo filtro de directorio que el audio */
+                        \add_filter('upload_dir', $filtroDir);
+
+                        $subidoPortada = \wp_handle_upload($portada, [
+                            'test_form' => false,
+                            'mimes' => [
+                                'jpg|jpeg' => 'image/jpeg',
+                                'png' => 'image/png',
+                                'webp' => 'image/webp',
+                            ],
+                        ]);
+
+                        \remove_filter('upload_dir', $filtroDir);
+
+                        if (isset($subidoPortada['error'])) {
+                            KamplesLogger::warning('Error al subir portada', ['error' => $subidoPortada['error']]);
+                        } else {
+                            SamplesRepository::actualizarCampos($sampleId, [
+                                SamplesCols::IMAGEN_URL . " = :imagen_url",
+                            ], ['imagen_url' => $subidoPortada['url']]);
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Error procesando portada del sample', [
+                    'sampleId' => $sampleId,
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
