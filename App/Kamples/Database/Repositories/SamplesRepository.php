@@ -27,6 +27,7 @@ use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Database\Repositories\BloqueosRepository;
+use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
@@ -871,6 +872,7 @@ class SamplesRepository extends BaseRepository
 
     /*
      * Feed de samples con ordenamiento dinámico.
+     * QQ76: Excluye samples con >= UMBRAL reportes pendientes (excepto del propio creador).
      */
     public static function listarFeed(?int $userId, string $orderBy, int $limit, int $offset): array
     {
@@ -879,10 +881,20 @@ class SamplesRepository extends BaseRepository
         /* QQ65: Excluir contenido de usuarios suspendidos o en eliminación */
         $filtroSuspension = " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)";
 
+        /* QQ76: Excluir samples con muchos reportes pendientes (el creador sigue viendolos) */
+        $filtroReportes = ReportesRepository::sqlFiltroAutoOcultacion(
+            'sample',
+            's.' . SamplesCols::ID,
+            ReportesRepository::UMBRAL_OCULTAR_SAMPLE,
+            's.' . SamplesCols::CREADOR_ID,
+            $userId
+        );
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . $filtroBloqueos
              . $filtroSuspension
+             . $filtroReportes
              . " {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);

@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\FollowsCols;
+use App\Kamples\Database\Repositories\ReportesRepository;
 
 class PublicacionesRepository extends BaseRepository
 {
@@ -200,6 +201,7 @@ class PublicacionesRepository extends BaseRepository
     /*
      * Feed de publicaciones con autor, moderación y likes.
      * Construye WHERE dinámico y subquery de reacción del usuario.
+     * QQ76: Excluye publicaciones con >= UMBRAL reportes pendientes (excepto del propio autor).
      */
     public static function listarFeed(
         string $donde,
@@ -214,6 +216,16 @@ class PublicacionesRepository extends BaseRepository
         $likedSubquery = isset($params['current_user'])
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . PublicacionesCols::ID . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
+
+        /* QQ76: Excluir publicaciones con muchos reportes pendientes */
+        $currentUserId = $params['current_user'] ?? null;
+        $filtroReportes = ReportesRepository::sqlFiltroAutoOcultacion(
+            'publicacion',
+            'p.' . PublicacionesCols::ID,
+            ReportesRepository::UMBRAL_OCULTAR_PUBLICACION,
+            'p.' . PublicacionesCols::AUTOR_ID,
+            $currentUserId
+        );
 
         /* JOIN con publicación original y su autor para reposts — expone datos del original en el feed */
         return static::consultar(
@@ -239,6 +251,7 @@ class PublicacionesRepository extends BaseRepository
             . " LEFT JOIN {$tu} u_orig ON orig." . PublicacionesCols::AUTOR_ID . " = u_orig." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde}"
             . " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)"
+            . $filtroReportes
             . " {$orderBy} LIMIT :limit OFFSET :offset",
             $params
         );
@@ -252,6 +265,7 @@ class PublicacionesRepository extends BaseRepository
      *
      * CTE 2 niveles: base (score) → diversified (ROW_NUMBER) → SELECT final.
      * Pesos y parámetros vienen de algoritmoPesos['comunidad'].
+     * QQ76: Excluye publicaciones con >= UMBRAL reportes pendientes.
      * sentinel-disable-next-line php-service-retorna-asociativo — fetchAll() retorna array indexado, JSON serializa como []
      */
     public static function listarFeedPuntuado(
@@ -328,6 +342,15 @@ class PublicacionesRepository extends BaseRepository
             ? ", (SELECT l." . LikesCols::REACCION . " FROM {$tl} l WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_PUBLICACION . "' AND l." . LikesCols::TARGET_ID . " = p." . $pId . " AND l." . LikesCols::USUARIO_ID . " = :current_user LIMIT 1) AS reaccion_usuario"
             : ", NULL AS reaccion_usuario";
 
+        /* QQ76: Excluir publicaciones con muchos reportes pendientes */
+        $filtroReportes = ReportesRepository::sqlFiltroAutoOcultacion(
+            'publicacion',
+            'p.' . $pId,
+            ReportesRepository::UMBRAL_OCULTAR_PUBLICACION,
+            'p.' . $pAutorId,
+            $currentUserId
+        );
+
         /*
          * CTE 2 niveles:
          * 1. base: calcula _score para cada publicación
@@ -358,6 +381,7 @@ class PublicacionesRepository extends BaseRepository
             . " LEFT JOIN {$tu} u_orig ON orig.{$pAutorId} = u_orig." . UsuariosExtCols::ID
             . " WHERE 1=1 {$donde}"
             . " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ESTADO . " IS NULL)"
+            . $filtroReportes
             . "), diversified AS ("
             . " SELECT *, ROW_NUMBER() OVER (PARTITION BY {$pAutorId} ORDER BY _score_base DESC) AS _rn_autor"
             . " FROM base"

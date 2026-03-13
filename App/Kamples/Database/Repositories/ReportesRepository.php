@@ -18,6 +18,15 @@ use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ReportesRepository extends BaseRepository
 {
+    /*
+     * Umbrales de reportes pendientes para auto-ocultacion en feeds publicos.
+     * Si un contenido acumula >= UMBRAL reportes pendientes, se oculta del feed.
+     * Escalable: agregar mas tipos sin modificar logica de filtrado.
+     */
+    const UMBRAL_OCULTAR_SAMPLE = 5;
+    const UMBRAL_OCULTAR_PUBLICACION = 3;
+    const UMBRAL_OCULTAR_COMENTARIO = 3;
+
     protected static function tabla(): string
     {
         return ReportesCols::TABLA;
@@ -26,6 +35,52 @@ class ReportesRepository extends BaseRepository
     protected static function colId(): string
     {
         return ReportesCols::ID;
+    }
+
+    /*
+     * QQ76: Fragmento SQL para excluir contenido con demasiados reportes pendientes.
+     * Retorna " AND NOT EXISTS (...)" listo para inyectar en WHERE.
+     *
+     * Si $aliasCreadorId se provee, el dueño del contenido sigue viendolo
+     * (exclusion solo aplica a otros usuarios).
+     *
+     * Ejemplo: sqlFiltroAutoOcultacion('sample', 's.id', 5, 's.creador_id', $userId)
+     */
+    public static function sqlFiltroAutoOcultacion(
+        string $tipoReporte,
+        string $aliasTargetId,
+        int $umbral,
+        ?string $aliasCreadorId = null,
+        ?int $userId = null
+    ): string {
+        $tr = ReportesCols::TABLA;
+        $tipo = ReportesCols::TIPO;
+        $targetId = ReportesCols::TARGET_ID;
+        $estado = ReportesCols::ESTADO;
+        $estadoPendiente = ReportesEnums::ESTADO_PENDIENTE;
+
+        $sql = " AND NOT EXISTS ("
+             . "SELECT 1 FROM {$tr} rep"
+             . " WHERE rep.{$tipo} = '{$tipoReporte}'"
+             . " AND rep.{$targetId} = {$aliasTargetId}"
+             . " AND rep.{$estado} = '{$estadoPendiente}'"
+             . " GROUP BY rep.{$targetId}"
+             . " HAVING COUNT(*) >= {$umbral}"
+             . ")";
+
+        /* Si el usuario actual es el creador, no aplicar filtro (ve su propio contenido) */
+        if ($aliasCreadorId !== null && $userId !== null) {
+            $sql = " AND ({$aliasCreadorId} = {$userId} OR NOT EXISTS ("
+                 . "SELECT 1 FROM {$tr} rep"
+                 . " WHERE rep.{$tipo} = '{$tipoReporte}'"
+                 . " AND rep.{$targetId} = {$aliasTargetId}"
+                 . " AND rep.{$estado} = '{$estadoPendiente}'"
+                 . " GROUP BY rep.{$targetId}"
+                 . " HAVING COUNT(*) >= {$umbral}"
+                 . "))";
+        }
+
+        return $sql;
     }
 
     /*

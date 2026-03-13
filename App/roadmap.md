@@ -314,7 +314,7 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ76
 
- TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
+✅ [AG-SEC] Auto-ocultacion de samples/publicaciones por reportes + verificacion menu 3 puntos perfil. **Part 1 (Auto-ocultacion):** Nuevo metodo `ReportesRepository::sqlFiltroAutoOcultacion()` genera fragmento SQL `NOT EXISTS (...)` reutilizable para excluir contenido con >= N reportes pendientes. Umbrales: UMBRAL_OCULTAR_SAMPLE=5, UMBRAL_OCULTAR_PUBLICACION=3, UMBRAL_OCULTAR_COMENTARIO=3. El creador sigue viendo su propio contenido (condicion OR en SQL). Inyectado en: `SamplesRepository::listarFeed()`, `PublicacionesRepository::listarFeed()`, `PublicacionesRepository::listarFeedPuntuado()`. **Part 2 (Menu 3 puntos perfil):** Ya existia completo desde QQ23 (PerfilIsland.tsx + useMenuContextualPerfil.tsx con Reportar + Bloquear/Desbloquear). Archivos: ReportesRepository.php (metodo + constantes), SamplesRepository.php (import + filtro), PublicacionesRepository.php (import + filtro x2).
 
 ## QQ77 
 
