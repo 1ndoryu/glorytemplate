@@ -543,19 +543,21 @@ Boton autocarga rediseñado: de count-based a speed-based. Ahora detecta velocid
 
 Auditoria profunda del proceso de extraccion audio creada en `App/docs/auditoria-extraccion-audio.md`. Cubre: manejo de fallos por fuente, backoff exponencial recomendado (2→4→4 dias), priorizacion de no-intentados sobre retried, marcado automatico `revision_humana`, campo `fuentes_descartadas` en metadata, UI cookies SoundCloud. Comentario anti-proxy agregado en `audio_download.py::_descargar_youtube()`. Recomendaciones: columna `proximo_intento_at`, aumentar max_intentos a 5, priorizar items sin intentos en ORDER BY.
 
-## QQ120
+## QQ120 ✅ [AG-SCR]
 
-auditoría profunda de seguridad de audios, revisar la seguridad de los audios si hay sistemas anti bot, adivinación de wav, que los wav no se expongan, etc, sistema que eviten la descarga del mp3, stream, etc
+Auditoria de seguridad de audio completada en `App/docs/auditoria-seguridad-audio.md`. Hallazgo critico corregido: usuarios baneados podian streamear con tokens HMAC aun validos — ahora `DescargasStreamController::streamDescarga()` verifica `AuthMiddleware::verificarCuentaActiva()`. Sistema fundamentalmente seguro: WAV protegido por HMAC-SHA256, acceso por plan, limites diarios/mensuales. Pendientes para escalar: rate limiting streaming, UUIDs en URLs preview, audit logging.
 
 ## QQ121
 
-trabaja en resolver todo lo de auditoria-extraccion-audio.md si es que aun no los haz hecho
+trabaja en resolver todo lo de auditoria-extraccion-audio.md si es que aun no los haz hecho aun
 
-## QQ122 (planificando no hacer hasta que terminie de planificar)
+## QQ122 (ya se planifico, hacer)
 
 haz una investigacion en internet sobre los metodos eficientes y recientes que usan las paginas esas que siempre funcioan para descargar mp3 de youtube, algo estan haciendo que nosotros no, investiga profundamente todo lo que puedas, que estrategias recientes de 2026 hay para descargar mp3 de youtube o el video para luego a pasar a mp3 sin tener que usar proxy
 
-estoy escribiendo un md ocn una investigación que hice yo: investigación-s-youtube.md
+revisa investigación-s-youtube.md , hice una investigacion que puedes complementar
+
+por favor, lo que sea que vayas implementar o intentar, intentalo en un proceso extra de prueba, agregamos un proceso extra en el panel admin para testear lo que vayamos a implementar, intenta todo lo que puedas sin modificar el script que ya tenemos haz uno nuevo de prueba, con varios metodos y formas, no importa que sea dificil, intenta y haz lo necesario hasta lograrlo
 ---
 
 ## Despliegue Produccion (VPS Coolify)

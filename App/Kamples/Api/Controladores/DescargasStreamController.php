@@ -13,6 +13,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Auth\AuthMiddleware;
 
 class DescargasStreamController
 {
@@ -66,6 +67,12 @@ class DescargasStreamController
         $firmaEsperada = self::generarFirmaDescarga($sampleId, $userId, $expira);
         if (!\hash_equals($firmaEsperada, $firma)) {
             return new \WP_REST_Response(['code' => 'firma_invalida'], 403);
+        }
+
+        /* QQ120: Verificar que la cuenta del usuario sigue activa (ban/suspension) */
+        $cuentaResp = AuthMiddleware::verificarCuentaActiva($userId);
+        if ($cuentaResp) {
+            return $cuentaResp;
         }
 
         /* Obtener ruta del archivo */
