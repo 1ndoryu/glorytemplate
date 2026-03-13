@@ -14,6 +14,7 @@ namespace App\Kamples\Api\Helpers;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Helpers\UrlHelper;
 
 class UsuarioHelper
 {
@@ -80,7 +81,7 @@ class UsuarioHelper
     public static function resolverAvatarUrl(?string $avatarUrl, ?int $wpUserId = null): ?string
     {
         if ($avatarUrl && trim($avatarUrl) !== '') {
-            return $avatarUrl;
+            return UrlHelper::normalizar($avatarUrl);
         }
 
         if ($wpUserId && $wpUserId > 0) {

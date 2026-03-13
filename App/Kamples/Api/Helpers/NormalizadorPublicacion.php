@@ -15,6 +15,7 @@ use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
+use App\Helpers\UrlHelper;
 
 class NormalizadorPublicacion
 {
@@ -68,7 +69,9 @@ class NormalizadorPublicacion
 
         /* Moderación e imágenes */
         $pub['moderacionEstado'] = $pub[PublicacionesCols::MODERACION_ESTADO] ?? null;
-        $pub['imagenes'] = NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null);
+        $pub['imagenes'] = UrlHelper::normalizarArray(
+            NormalizadorSample::pgArrayToPhp($pub[PublicacionesCols::IMAGENES] ?? null)
+        );
 
         /* Autor */
         $wpUserId = isset($pub[UsuariosExtCols::WP_USER_ID]) ? (int) $pub[UsuariosExtCols::WP_USER_ID] : 0;
@@ -99,7 +102,9 @@ class NormalizadorPublicacion
             $pub['repostOriginal'] = [
                 'id'              => (int) ($pub['orig_id'] ?? 0),
                 'contenido'       => $pub['orig_contenido'] ?? '',
-                'imagenes'        => NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null),
+                'imagenes'        => UrlHelper::normalizarArray(
+                    NormalizadorSample::pgArrayToPhp($pub['orig_imagenes'] ?? null)
+                ),
                 'samplesAdjuntos' => $origSamples,
                 'autor'           => [
                     'id'            => (int) ($pub['orig_autor_id'] ?? 0),

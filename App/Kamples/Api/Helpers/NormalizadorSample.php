@@ -30,6 +30,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\CancionesCols;
+use App\Helpers\UrlHelper;
 
 class NormalizadorSample
 {
@@ -87,9 +88,9 @@ class NormalizadorSample
     {
         if (!$rutaAbsoluta || $rutaAbsoluta === '') return '';
 
-        /* Si ya es una URL HTTP, devolver tal cual */
+        /* Si ya es una URL HTTP, normalizar dominio legacy y devolver */
         if (str_starts_with($rutaAbsoluta, 'http://') || str_starts_with($rutaAbsoluta, 'https://')) {
-            return $rutaAbsoluta;
+            return UrlHelper::normalizar($rutaAbsoluta) ?? $rutaAbsoluta;
         }
 
         $uploadDir = \wp_upload_dir();

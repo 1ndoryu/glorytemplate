@@ -336,12 +336,12 @@ class ConstructorSenales
         $generoScore = "COALESCE((
             SELECT COUNT(*)::float / GREATEST(1, array_length({$tagsCandidato}, 1))
             FROM (
-                SELECT tag, COUNT(*) as freq FROM (
+                (SELECT tag, COUNT(*) as freq FROM (
                     SELECT UNNEST({$tagsInner}) as tag
                     FROM {$tl} l_inner
                     JOIN {$ts} s_inner ON l_inner.{$lTarget} = s_inner.{$sId}
                     WHERE l_inner.{$lUid} = :userId AND l_inner.{$lTipo} = '{$ltSample}' AND l_inner.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
-                ) t GROUP BY tag ORDER BY freq DESC LIMIT 8
+                ) t GROUP BY tag ORDER BY freq DESC LIMIT 8)
                 {$generosDeclSql}
             ) top_tags
             WHERE {$tagsCandidato} @> ARRAY[top_tags.tag::text]

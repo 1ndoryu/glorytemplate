@@ -22,6 +22,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Auth\JwtService;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\KamplesLogger;
+use App\Helpers\UrlHelper;
 
 class AuthController
 {
@@ -217,37 +218,45 @@ class AuthController
      */
     public static function obtenerOCrearUsuarioPg($wpUser): array
     {
-        $wpId = is_object($wpUser) ? ($wpUser->ID ?? 0) : $wpUser;
-        $wpData = get_userdata($wpId);
+        try {
+            $wpId = is_object($wpUser) ? ($wpUser->ID ?? 0) : $wpUser;
+            $wpData = get_userdata($wpId);
 
-        if (!$wpData) {
-            return ['id' => 0, 'username' => 'unknown'];
+            if (!$wpData) {
+                return ['id' => 0, 'username' => 'unknown'];
+            }
+
+            $username     = $wpData->user_login;
+            $email        = $wpData->user_email;
+            $displayName  = $wpData->display_name ?: $username;
+
+            /* Verificar si ya existe en PG */
+            $existing = UsuariosExtRepository::buscarPorWpId($wpId);
+
+            if ($existing) {
+                return self::normalizarUsuario($existing);
+            }
+
+            /* Crear registro nuevo — C193: incluir avatar_url de WP */
+            $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
+            UsuariosExtRepository::crearDesdeWP([
+                'wp_user_id'   => $wpId,
+                'username'     => $username,
+                'email'        => $email,
+                'display_name' => $displayName,
+                'avatar_url'   => $avatarWp,
+            ]);
+
+            $nuevo = UsuariosExtRepository::buscarPorWpId($wpId);
+
+            return $nuevo ? self::normalizarUsuario($nuevo) : ['id' => 0, 'username' => $username];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en AuthController::obtenerOCrearUsuarioPg', [
+                'error' => $e->getMessage(),
+                'wpId'  => is_object($wpUser) ? ($wpUser->ID ?? 0) : $wpUser,
+            ]);
+            return ['id' => 0, 'username' => 'error'];
         }
-
-        $username     = $wpData->user_login;
-        $email        = $wpData->user_email;
-        $displayName  = $wpData->display_name ?: $username;
-
-        /* Verificar si ya existe en PG */
-        $existing = UsuariosExtRepository::buscarPorWpId($wpId);
-
-        if ($existing) {
-            return self::normalizarUsuario($existing);
-        }
-
-        /* Crear registro nuevo — C193: incluir avatar_url de WP */
-        $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
-        UsuariosExtRepository::crearDesdeWP([
-            'wpId'    => $wpId,
-            'username' => $username,
-            'email'    => $email,
-            'nombre'   => $displayName,
-            'avatar'   => $avatarWp,
-        ]);
-
-        $nuevo = UsuariosExtRepository::buscarPorWpId($wpId);
-
-        return $nuevo ? self::normalizarUsuario($nuevo) : ['id' => 0, 'username' => $username];
     }
 
     /**
@@ -266,8 +275,8 @@ class AuthController
             'username'        => $row[UsuariosExtCols::USERNAME],
             'nombreVisible'   => $row[UsuariosExtCols::NOMBRE_VISIBLE] ?? $row[UsuariosExtCols::USERNAME],
             'bio'             => $row[UsuariosExtCols::BIO] ?? '',
-            'avatarUrl'       => $avatarUrl,
-            'portadaUrl'      => $row[UsuariosExtCols::PORTADA_URL] ?? null,
+            'avatarUrl'       => UrlHelper::normalizar($avatarUrl),
+            'portadaUrl'      => UrlHelper::normalizar($row[UsuariosExtCols::PORTADA_URL] ?? null),
             'plan'            => $row[UsuariosExtCols::PLAN] ?? 'free',
             'verificado'      => (bool) ($row[UsuariosExtCols::VERIFICADO] ?? false),
             'totalSeguidores' => (int) ($row[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),

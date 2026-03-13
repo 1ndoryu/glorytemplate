@@ -42,19 +42,53 @@ class ReportesRepository extends BaseRepository
     }
 
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
-    
 
-        
+    /* QQ76: Umbrales de reportes pendientes para auto-ocultacion de contenido */
+    const UMBRAL_OCULTAR_SAMPLE = 3;
+    const UMBRAL_OCULTAR_PUBLICACION = 3;
 
-        
+    /*
+     * QQ76: Genera clausula SQL para ocultar contenido con >= N reportes pendientes.
+     * El creador del contenido sigue viendolo (para que pueda editarlo/eliminarlo).
+     *
+     * @param string   $tipo          Tipo de reporte (ReportesEnums::TIPO_SAMPLE, etc.)
+     * @param string   $colTarget     Alias.columna del ID del contenido (ej: 's.id')
+     * @param int      $umbral        Numero minimo de reportes para ocultar
+     * @param string   $colCreador    Alias.columna del creador del contenido (ej: 's.creador_id')
+     * @param int|null $currentUserId ID del usuario actual (null = anonimo)
+     * @return string Fragmento SQL " AND (...)" o vacio si umbral <= 0
+     *
+     * NOTA: $tipo y $colTarget/$colCreador DEBEN venir de constantes del schema, nunca de input.
+     * Se usa integer inline (cast seguro) para el umbral y userId dentro del SQL.
+     */
+    public static function sqlFiltroAutoOcultacion(
+        string $tipo,
+        string $colTarget,
+        int $umbral,
+        string $colCreador,
+        ?int $currentUserId
+    ): string {
+        if ($umbral <= 0) {
+            return '';
+        }
 
-    
+        $tabla = ReportesCols::TABLA;
+        $estadoPendiente = ReportesEnums::ESTADO_PENDIENTE;
+        $umbral = (int) $umbral;
 
-    
+        $subquery = "(SELECT COUNT(*) FROM {$tabla}"
+            . " WHERE " . ReportesCols::TIPO . " = '{$tipo}'"
+            . " AND " . ReportesCols::TARGET_ID . " = {$colTarget}"
+            . " AND " . ReportesCols::ESTADO . " = '{$estadoPendiente}')";
 
-        
+        /* El creador siempre ve su propio contenido */
+        if ($currentUserId !== null) {
+            $currentUserId = (int) $currentUserId;
+            return " AND ({$subquery} < {$umbral} OR {$colCreador} = {$currentUserId})";
+        }
 
-    
+        return " AND {$subquery} < {$umbral}";
+    }
 
     /*
      * Listar reportes pendientes con username del reportador.
@@ -249,7 +283,7 @@ class ReportesRepository extends BaseRepository
         $tabla = ReportesCols::TABLA;
 
         $detallesJson = json_encode($detalles, JSON_UNESCAPED_UNICODE);
-        if ($detallesJson === false) {
+        if ($detallesJson === false || strlen($detallesJson) > 65535) {
             return null;
         }
 

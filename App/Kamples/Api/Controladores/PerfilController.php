@@ -23,6 +23,7 @@ use App\Kamples\Database\Repositories\FollowsRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioSuspension;
 use App\Kamples\KamplesLogger;
+use App\Helpers\UrlHelper;
 use App\Kamples\Servicios\ServicioMedia;
 
 /* TO-DO: PerfilController excede 300 LOC (407). Extraer subirAvatar() y subirPortada() a PerfilMediaController separado. Prioridad alta. */
@@ -216,8 +217,8 @@ class PerfilController
             'email'            => $datos[UsuariosExtCols::EMAIL] ?? '',
             'nombreVisible'    => $datos[UsuariosExtCols::NOMBRE_VISIBLE] ?? $datos['display_name'] ?? '',
             'bio'              => $datos[UsuariosExtCols::BIO] ?? '',
-            'avatarUrl'        => $avatarUrl,
-            'portadaUrl'       => $datos[UsuariosExtCols::PORTADA_URL] ?? null,
+            'avatarUrl'        => UrlHelper::normalizar($avatarUrl),
+            'portadaUrl'       => UrlHelper::normalizar($datos[UsuariosExtCols::PORTADA_URL] ?? null),
             'plan'             => $datos[UsuariosExtCols::PLAN] ?? 'free',
             'rol'              => $datos[UsuariosExtCols::ROL] ?? 'usuario',
             'verificado'       => (bool) ($datos[UsuariosExtCols::VERIFICADO] ?? false),
