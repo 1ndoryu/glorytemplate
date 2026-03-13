@@ -135,6 +135,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         )
         if not resultado_descarga:
             actualizar_estado_cola(cola_id, "error", "Descarga de audio fallida (todas las fuentes)")
+            item["_motivo_fallo"] = "sin_fuente_audio"
             return False
         wav_path = resultado_descarga.ruta
         size_mb = os.path.getsize(wav_path) / (1024 * 1024) if os.path.exists(wav_path) else 0
@@ -174,6 +175,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         exito = recortar_audio(wav_path, recorte, recorte_path)
         if not exito:
             actualizar_estado_cola(cola_id, "error", "Recorte de audio fallido")
+            item["_motivo_fallo"] = "recorte_fallido"
             return False
         size_kb = os.path.getsize(recorte_path) / 1024 if os.path.exists(recorte_path) else 0
         logger.info(
@@ -221,11 +223,13 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             return True
         else:
             actualizar_estado_cola(cola_id, "error", "Registro de extraccion fallido")
+            item["_motivo_fallo"] = "registro_fallido"
             return False
 
     except Exception as e:
         logger.exception("Error procesando cola_id=%d lado=%s", cola_id, lado)
         actualizar_estado_cola(cola_id, "error", str(e)[:1000])
+        item["_motivo_fallo"] = f"excepcion: {type(e).__name__}"
         return False
     finally:
         # Limpiar archivo descargado completo (no el recortado, ese se guarda)
@@ -419,6 +423,7 @@ def main():
 
         exitosos = 0
         fallidos = 0
+        motivos_fallo: dict[str, int] = {}
 
         try:
             for item in pendientes:
@@ -433,6 +438,8 @@ def main():
                     exitosos += 1
                 else:
                     fallidos += 1
+                    motivo = item.get("_motivo_fallo", "desconocido")
+                    motivos_fallo[motivo] = motivos_fallo.get(motivo, 0) + 1
 
         except SoundCloudAuthError as e:
             logger.critical(
@@ -448,6 +455,11 @@ def main():
             "Lote completado: %d exitosos, %d fallidos de %d total",
             exitosos, fallidos, len(pendientes),
         )
+        if motivos_fallo:
+            logger.info(
+                "Resumen de fallos: %s",
+                ", ".join(f"{m}: {c}" for m, c in sorted(motivos_fallo.items(), key=lambda x: -x[1])),
+            )
 
         notificar_publicacion(exitosos)
 

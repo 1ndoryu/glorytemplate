@@ -188,6 +188,9 @@ def descargar_audio(
         output_dir = os.getenv("AUDIO_TMP_DIR", tempfile.gettempdir())
     os.makedirs(output_dir, exist_ok=True)
 
+    # Proxy residencial para YouTube (IP del VPS suele estar flaggeada)
+    proxy_url = _construir_proxy_url()
+
     deezer_viable = (
         _DEEZER_PREVIEW_ENABLED
         and timing_seg <= _DEEZER_MAX_TIMING
@@ -201,9 +204,13 @@ def descargar_audio(
         if resultado:
             return resultado
 
-    # 2. YouTube local (gratis, puede estar IP flaggeada)
+    # 2. YouTube via proxy (IP del VPS esta flaggeada por Google)
     if youtube_id and len(youtube_id) <= 20:
-        ruta = _descargar_youtube(youtube_id, output_dir)
+        ruta = _descargar_youtube(
+            youtube_id, output_dir,
+            proxy_url=proxy_url,
+            max_retries=8 if proxy_url else 1,
+        )
         if ruta:
             return ResultadoDescarga(
                 ruta=ruta,
@@ -227,9 +234,9 @@ def descargar_audio(
                 fuente_artista=artista,
             )
 
-    # 4. YouTube search (busca subidas alternativas sin restricciones DRM)
+    # 4. YouTube search via proxy (busca subidas alternativas sin restricciones DRM)
     if artista and titulo:
-        ruta = _descargar_youtube_search(artista, titulo, output_dir)
+        ruta = _descargar_youtube_search(artista, titulo, output_dir, proxy_url=proxy_url)
         if ruta:
             return ResultadoDescarga(
                 ruta=ruta,
@@ -940,7 +947,10 @@ def _descargar_youtube(
     return None
 
 
-def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str | None:
+def _descargar_youtube_search(
+    artista: str, titulo: str, output_dir: str,
+    proxy_url: str | None = None,
+) -> str | None:
     """Buscar en YouTube por nombre y descargar el primer resultado accesible.
 
     ytsearch3 sin cookies primero (android_vr auto-seleccionado para publicos).
@@ -972,6 +982,7 @@ def _descargar_youtube_search(artista: str, titulo: str, output_dir: str) -> str
     for nombre_intento, cookies_args in intentos_cookies:
         resultado = _ejecutar_ytsearch(
             ytdlp_path, query, cookies_args, output_path, artista, titulo,
+            proxy_url=proxy_url,
         )
         if resultado:
             return resultado
@@ -991,6 +1002,7 @@ def _ejecutar_ytsearch(
     output_path: str,
     artista: str,
     titulo: str,
+    proxy_url: str | None = None,
 ) -> str | None:
     """Ejecutar ytsearch3 sin explicit player_client (yt-dlp auto-selecciona).
 
@@ -1014,7 +1026,8 @@ def _ejecutar_ytsearch(
             "--extractor-retries", "2",
             "--no-check-certificates",
             "--socket-timeout", "30",
-            *cookies_args,
+            *(cookies_args),
+            *(["--proxy", proxy_url] if proxy_url else []),
             query,
         ]
 
