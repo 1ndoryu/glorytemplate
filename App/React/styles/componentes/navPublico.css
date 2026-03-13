@@ -1,0 +1,65 @@
+/*
+ * Estilos: NavPublico — Kamples (QQ82)
+ * Nav global para usuarios no autenticados.
+ */
+
+.navPublico {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--espacioMd) var(--espacioLg);
+    background: var(--fondoBase);
+    border-bottom: 1px solid var(--bordeSutil);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.navPublicoIzquierda {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioLg);
+}
+
+.navPublicoLogo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--textoPrimario);
+}
+
+.navPublicoEnlaces {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.navPublicoEnlace {
+    color: var(--textoSecundario);
+    text-decoration: none;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedium);
+    transition: color var(--transicionRapida);
+}
+
+.navPublicoEnlace:hover {
+    color: var(--textoPrimario);
+}
+
+.navPublicoDerecha {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .navPublico {
+        padding: var(--espacioSm) var(--espacioMd);
+    }
+
+    .navPublicoEnlaces {
+        display: none;
+    }
+}

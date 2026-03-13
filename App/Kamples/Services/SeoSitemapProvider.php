@@ -5,10 +5,14 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Database\Repositories\ArtistasMusicalesRepository;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\CancionesCols;
+use App\Config\Schema\_generated\ArtistasMusicalesCols;
 
 /**
  * SeoSitemapProvider
@@ -51,6 +55,14 @@ class SeoSitemapProvider
         $sitemaps->registry->add_provider(
             'kamples-colecciones',
             new SitemapColeccionesProvider()
+        );
+        $sitemaps->registry->add_provider(
+            'kamples-canciones',
+            new SitemapCancionesProvider()
+        );
+        $sitemaps->registry->add_provider(
+            'kamples-artistas',
+            new SitemapArtistasProvider()
         );
     }
 
@@ -225,6 +237,114 @@ class SitemapColeccionesProvider extends \WP_Sitemaps_Provider
     {
         try {
             $total = ColeccionesRepository::contarParaSitemap();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+        return (int) ceil($total / self::POR_PAGINA);
+    }
+}
+
+/**
+ * Proveedor de sitemap para canciones.
+ */
+class SitemapCancionesProvider extends \WP_Sitemaps_Provider
+{
+    /** @var string */
+    public $name = 'kamples-canciones';
+    /** @var string */
+    public $object_type = 'kamples-canciones';
+
+    private const POR_PAGINA = 2000;
+
+    public function get_url_list($page_num, $object_subtype = '')
+    {
+        $offset = ((int) $page_num - 1) * self::POR_PAGINA;
+
+        try {
+            $canciones = CancionesRepository::listarParaSitemap(self::POR_PAGINA, $offset);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $siteUrl = home_url();
+        $urls = [];
+        foreach ($canciones as $cancion) {
+            $slug = $cancion[CancionesCols::SLUG] ?? '';
+            if ($slug === '') {
+                continue;
+            }
+            $entry = [
+                'loc' => $siteUrl . '/cancion/' . $slug . '/',
+            ];
+
+            $updatedAt = $cancion[CancionesCols::UPDATED_AT] ?? '';
+            if ($updatedAt !== '') {
+                $entry['lastmod'] = date('Y-m-d\TH:i:sP', strtotime($updatedAt));
+            }
+
+            $urls[] = $entry;
+        }
+        return $urls;
+    }
+
+    public function get_max_num_pages($object_subtype = '')
+    {
+        try {
+            $total = CancionesRepository::contarParaSitemap();
+        } catch (\Throwable $e) {
+            return 0;
+        }
+        return (int) ceil($total / self::POR_PAGINA);
+    }
+}
+
+/**
+ * Proveedor de sitemap para artistas musicales.
+ */
+class SitemapArtistasProvider extends \WP_Sitemaps_Provider
+{
+    /** @var string */
+    public $name = 'kamples-artistas';
+    /** @var string */
+    public $object_type = 'kamples-artistas';
+
+    private const POR_PAGINA = 2000;
+
+    public function get_url_list($page_num, $object_subtype = '')
+    {
+        $offset = ((int) $page_num - 1) * self::POR_PAGINA;
+
+        try {
+            $artistas = ArtistasMusicalesRepository::listarParaSitemap(self::POR_PAGINA, $offset);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $siteUrl = home_url();
+        $urls = [];
+        foreach ($artistas as $artista) {
+            $slug = $artista[ArtistasMusicalesCols::SLUG] ?? '';
+            if ($slug === '') {
+                continue;
+            }
+            $entry = [
+                'loc' => $siteUrl . '/artista/' . $slug . '/',
+            ];
+
+            $updatedAt = $artista[ArtistasMusicalesCols::UPDATED_AT] ?? '';
+            if ($updatedAt !== '') {
+                $entry['lastmod'] = date('Y-m-d\TH:i:sP', strtotime($updatedAt));
+            }
+
+            $urls[] = $entry;
+        }
+        return $urls;
+    }
+
+    public function get_max_num_pages($object_subtype = '')
+    {
+        try {
+            $total = ArtistasMusicalesRepository::contarParaSitemap();
         } catch (\Throwable $e) {
             return 0;
         }

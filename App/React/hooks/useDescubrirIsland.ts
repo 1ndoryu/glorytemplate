@@ -12,6 +12,7 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoReaccion, SampleResumen } from '@app/types';
 import { useNavigationStore } from '@/core/router';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { requiereAuth } from '@app/utils/requiereAuth';
 import React from 'react';
 
 interface SeccionDescubrir {
@@ -31,6 +32,7 @@ export const useDescubrirIsland = () => {
     /* Like con optimistic UI sobre todas las secciones */
     const manejarLike = useCallback(
         async (sampleId: number, reaccion?: TipoReaccion) => {
+            if (!requiereAuth()) return;
             const todas = secciones.flatMap((s) => s.samples);
             const sample = todas.find((s) => s.id === sampleId);
 

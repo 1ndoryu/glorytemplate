@@ -23,6 +23,7 @@ import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import type { SampleResumen, TipoReaccion } from '@app/types';
+import { requiereAuth } from '@app/utils/requiereAuth';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
 
 export interface UseFeedSamplesOpciones {
@@ -102,6 +103,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     }, [abrirDetalle]);
 
     const manejarComentar = useCallback((sampleId: number) => {
+        if (!requiereAuth()) return;
         const sample = samples.find(s => s.id === sampleId);
         if (sample) abrirComentarios(sample);
     }, [abrirComentarios, samples]);
@@ -267,6 +269,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
     /* Like optimistic UI con soporte de reacciones */
     const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
+        if (!requiereAuth()) return;
         const sampleRef = samples.find(s => s.id === sampleId) ?? null;
 
         if (reaccion) {

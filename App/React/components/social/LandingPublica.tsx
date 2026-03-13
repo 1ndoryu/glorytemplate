@@ -7,7 +7,6 @@
 
 import {Download} from 'lucide-react';
 import {BotonBase} from '@app/components/ui/BotonBase';
-import {LogoKamples} from '@app/components/ui/LogoKamples';
 import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import '../../styles/componentes/landingPublica.css';
@@ -26,19 +25,7 @@ export const LandingPublica = (): JSX.Element => {
 
     return (
         <div className="landingPublica" id="landingPublica">
-            <nav className="landingNav">
-                <div className="landingNavIzquierda">
-                    <LogoKamples tamano={22} />
-                </div>
-                <div className="landingNavDerecha">
-                    <BotonBase variante="ghost" tamano="md" onClick={() => abrirAuth('login')}>
-                        Iniciar sesión
-                    </BotonBase>
-                    <BotonBase variante="primario" tamano="md" onClick={() => abrirAuth('registro')}>
-                        Crear cuenta
-                    </BotonBase>
-                </div>
-            </nav>
+            {/* Nav público ahora se renderiza globalmente en LayoutPrincipal (QQ82) */}
 
             <section className="landingHero">
                 <h1 className="landingHeroTitulo">

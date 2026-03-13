@@ -307,4 +307,28 @@ class CancionesRepository extends BaseRepository
 
         return ['items' => $items, 'total' => $total];
     }
+
+    /**
+     * Lista canciones para el sitemap XML (campos mínimos: slug, updated_at).
+     */
+    public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
+    {
+        $tc = CancionesCols::TABLA;
+        $sql = "SELECT " . CancionesCols::SLUG . ", " . CancionesCols::UPDATED_AT
+             . " FROM {$tc}"
+             . " ORDER BY " . CancionesCols::UPDATED_AT . " DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);
+    }
+
+    /**
+     * Cuenta total de canciones para paginación del sitemap.
+     */
+    public static function contarParaSitemap(): int
+    {
+        $tc = CancionesCols::TABLA;
+        $sql = "SELECT COUNT(*) FROM {$tc}";
+        return (int) (static::consultarValor($sql) ?? 0);
+    }
 }

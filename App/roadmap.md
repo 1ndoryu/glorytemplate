@@ -37,7 +37,11 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 3. Al cambiar arquitectura o stack, actualizar `docs/roadmap/arquitectura.md`
 4. Compactar secciones completadas cuando superen 10 items detallados
 
-## Tareas nuevas a organizar, borrar esto despues de organizar
+
+
+
+
+## Tareas nuevas a organizar y hacer
 
 ## QQ14 ✅ [AG-QQF]
 
@@ -340,23 +344,17 @@ He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, 
 
 ## QQ82
 
-Revisión de seo profunda, hay un md de seo pero no esta actualizado. 
-
-Esta tarea es super importante y no se debe tomar a ligera. 
-
-Esto no es solo para responder en el md , sino tambien para que evualues y trabajes en los ajustes necesarios 
-
-¿Los las paginas individuales de los samples estan optizadas para seo? ¿Las de las colecciones, canciones, sampleos, publicaciones? ¿Que pasa cuando hay muchos samples, casi 100.000? ¿Como afecta el seo la cantidad grande samples? ¿Cual es la mejor decisión, subir mucho inicialmente o limitarse a una cantidad? 
-
-Si voy a paginas como comunidad http://glory.local/comunidad/ estando deslogeado, me aparece el modal de registro pero al cerrar se queda todo en negro, debería mostrar el landing
-
-Si intento dar like, o abrir comentarios o descargar estando deslogeada debería mostrar el modal de iniciar sesion 
-
-landingNav del landing publico, ese nav debería aparecer en todas las paginas con usuarios deslogeados, tambien va a llevar la pagina de http://glory.local/musica/ y colecciones
-
-Ahora si, agregar una pagina de explorar, que es exactamente la misma que la de inicio cuando estas logeado, o sea, al lado del logo poner un menu de nav, la primera pagina es de explorar, muestra la lista de samples, la organización de inteligente supongo que no va a funcionar ocn un usuarios deslogeados asi que hay que ajustar para que haya una version del algoritmo para usuarlos deslogeados, muy sencilla en la que simplemente muestra samples descatacados. 
-
-Si voy a una coleccion http://glory.local/coleccion/k4-91/ no me deja verla deslogeado, lo cual esta mal para el seo porque las colecciones deberían verse igual tambien las lista de colecciones publicas en /liberría
+✅ [AG-SEC] Revisión SEO profunda — accesibilidad pública, auth modals, nav global, sitemaps. **6 cambios principales:**
+1. **ColeccionDetalleIsland público:** Eliminado `conAutenticacion` HOC. Colecciones ahora visibles sin login. Auth guards (login modal) en `manejarGuardar` y `manejarDescargarZip` via `useAuthModalStore`.
+2. **ComunidadIsland público:** Reemplazado `conAutenticacion` por wrapper `ComunidadBase` que muestra `<LandingPublica />` para anónimos (antes: pantalla negra). Split en ComunidadContenido + ComunidadBase para respetar reglas de hooks.
+3. **NavPublico global:** Nuevo componente sticky en `LayoutPrincipal` para usuarios no autenticados. Links: Explorar (/descubrir/), Música (/musica/). Botones login/registro. Eliminada nav inline duplicada de LandingPublica.
+4. **Explorar público:** Ya funcionaba — DescubrirIsland no usaba `conAutenticacion`, feed API es pública. Algoritmo cae a ordenamiento por fecha para anónimos (sin señales de usuario).
+5. **Auth modals en acciones:** Nuevo utility `requiereAuth()` (getState Zustand, no hook). Integrado en: like (feed+descubrir), comentar, coleccionar, guardar (bookmark), descargar, añadir a colección — 5 archivos.
+6. **Sitemaps faltantes:** Nuevos providers para canciones (`/cancion/{slug}/`) y artistas (`/artista/{slug}/`). Repos con `listarParaSitemap()` + `contarParaSitemap()`. Total: 5 sitemap providers.
+- [SEO]: Páginas individuales (samples, colecciones, canciones, artistas) ya tenían meta tags vía DynamicSeoResolver. El bottleneck era accesibilidad (auth walls) y cobertura de sitemaps.
+- [Arquitectura]: `requiereAuth()` usa `getState()` — funciona fuera de React components/hooks, ideal para handlers de eventos.
+- [React]: Para evitar hooks condicionales, patron ComunidadContenido (hooks) + ComunidadBase (auth wrapper con early return).
+Archivos: ColeccionDetalleIsland.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx, LandingPublica.tsx, useColeccionDetalle.tsx, useDescubrirIsland.ts, useFeedSamples.ts, useTarjetaSample.ts, construirItemsMenuSample.ts, requiereAuth.ts, NavPublico.tsx, navPublico.css, SeoSitemapProvider.php, CancionesRepository.php, ArtistasMusicalesRepository.php.
 
 ## QQ83 
 
@@ -372,3 +370,16 @@ Implica agregar el gesto de recargar tirando hacia arriba, implica que las repro
 
 Esta tarea es complicada si puedes adelantar todo lo que puedas sin requerir ayuda externa mejor. 
 
+## QQ85 
+
+Sigo viendo el favicon de wordpress en vez que el de kamples
+
+## QQ86
+
+Los mensajes siguen sin marcarse como leidos, el boton sigue rojo, debería basta con verlos sin abrir los mensajes par que dejen de estar sin leer.
+
+## QQ87
+
+Agrega un comentario random en cualquier archivo importante que diga
+
+/* */

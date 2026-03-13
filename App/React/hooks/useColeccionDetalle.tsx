@@ -15,6 +15,7 @@ import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useAuthStore } from '@app/stores/authStore';
+import { useAuthModalStore } from '@app/stores/authModalStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
@@ -50,6 +51,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
     const usuario = useAuthStore(s => s.usuario);
+    const abrirAuth = useAuthModalStore(s => s.abrir);
     const rutaActualRaw = useNavigationStore(s => s.rutaActual);
 
     /* Keep-alive: congelar valores globales cuando la isla está oculta */
@@ -113,11 +115,13 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     }, [segmento, id]);
 
     const manejarGuardar = useCallback(() => {
+        if (!usuario) { abrirAuth('login'); return; }
         setGuardada((prev) => !prev);
-    }, []);
+    }, [usuario, abrirAuth]);
 
     /* Descargar coleccion como ZIP */
     const manejarDescargarZip = useCallback(async () => {
+        if (!usuario) { abrirAuth('login'); return; }
         if (!coleccion?.id || descargando) return;
         setDescargando(true);
         try {
@@ -145,7 +149,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         } finally {
             setDescargando(false);
         }
-    }, [coleccion?.id, descargando]);
+    }, [coleccion?.id, descargando, usuario, abrirAuth]);
 
     /* Sync like desde FeedSamples */
     const manejarLikeSamples = useCallback((sampleId: number) => {

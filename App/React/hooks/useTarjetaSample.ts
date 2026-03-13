@@ -28,6 +28,7 @@ import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
 import { useAudioPlayback } from './useAudioPlayback';
 import { esDesktop, obtenerDragService, obtenerSyncService } from './utils/tarjetaSampleUtils';
+import { requiereAuth } from '@app/utils/requiereAuth';
 import { EVENTO_SAMPLE_GUARDADO_EN_COLECCION } from './useModalSeleccionColeccion';
 import { EVENTO_SAMPLE_COMENTADO } from './useComentarios';
 
@@ -133,6 +134,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const manejarColeccionar = useCallback(async (e: MouseEvent) => {
         e.stopPropagation();
         if (descargado) return;
+        if (!requiereAuth()) return;
 
         /* Sample pro con precio: redirigir a Stripe Checkout en vez de descargar */
         if (requiereCompra) {
@@ -200,6 +202,7 @@ export function useTarjetaSample(opciones: UseTarjetaSampleOpciones) {
     const abrirPicker = useColeccionPickerStore(s => s.abrir);
     const manejarGuardar = useCallback((e: MouseEvent) => {
         e.stopPropagation();
+        if (!requiereAuth()) return;
         abrirPicker(sample, { x: e.clientX, y: e.clientY });
         /* guardado se actualiza via EVENTO_SAMPLE_GUARDADO_EN_COLECCION cuando el picker confirma */
     }, [abrirPicker, sample]);

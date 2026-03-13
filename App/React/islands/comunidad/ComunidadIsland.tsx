@@ -13,7 +13,8 @@ import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { SkeletonTarjetaPublicacion } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
-import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import { useAuthStore } from '@app/stores/authStore';
+import { LandingPublica } from '@app/components/social/LandingPublica';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
 import { useTooltipPerfilStore } from '@app/stores/tooltipPerfilStore';
@@ -48,7 +49,8 @@ const filtros: { valor: FiltroComunidad; icono: typeof Users; label: string }[] 
     { valor: 'populares', icono: TrendingUp, label: 'Populares' },
 ];
 
-const ComunidadBase = (): JSX.Element => {
+/* Contenido autenticado de la comunidad — hooks siempre se ejecutan */
+const ComunidadContenido = (): JSX.Element => {
     const {
         publicaciones, filtro, setFiltro, cargando, cargandoMas, hayMas,
         comentariosAbiertos, navegar, usuario,
@@ -166,5 +168,27 @@ const ComunidadBase = (): JSX.Element => {
     );
 };
 
-export const ComunidadIsland = conAutenticacion(ComunidadBase);
+/*
+ * Wrapper: muestra LandingPublica si no está autenticado,
+ * ComunidadContenido si sí lo está. Esto evita que al cerrar el
+ * modal de login quede la pantalla en negro (QQ82).
+ */
+const ComunidadBase = (): JSX.Element => {
+    const autenticado = useAuthStore(s => s.autenticado);
+    const cargandoAuth = useAuthStore(s => s.cargando);
+
+    if (cargandoAuth) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', color: 'var(--textoSecundario)' }}>
+                Verificando sesión...
+            </div>
+        );
+    }
+
+    if (!autenticado) return <LandingPublica />;
+
+    return <ComunidadContenido />;
+};
+
+export const ComunidadIsland = ComunidadBase;
 export default ComunidadIsland;

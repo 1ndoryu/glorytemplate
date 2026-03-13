@@ -15,7 +15,6 @@ import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerSugerencias } from '@app/services/apiColecciones';
-import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
@@ -212,5 +211,5 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
     );
 };
 
-export const ColeccionDetalleIsland = conAutenticacion(ColeccionDetalleBase);
+export const ColeccionDetalleIsland = ColeccionDetalleBase;
 export default ColeccionDetalleIsland;

@@ -125,4 +125,28 @@ class ArtistasMusicalesRepository extends BaseRepository
             ArtistasMusicalesCols::SLUG   => $slug,
         ]);
     }
+
+    /**
+     * Lista artistas para el sitemap XML (campos mínimos: slug, updated_at).
+     */
+    public static function listarParaSitemap(int $limit = 2000, int $offset = 0): array
+    {
+        $ta = ArtistasMusicalesCols::TABLA;
+        $sql = "SELECT " . ArtistasMusicalesCols::SLUG . ", " . ArtistasMusicalesCols::UPDATED_AT
+             . " FROM {$ta}"
+             . " ORDER BY " . ArtistasMusicalesCols::UPDATED_AT . " DESC"
+             . " LIMIT :limit OFFSET :offset";
+
+        return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);
+    }
+
+    /**
+     * Cuenta total de artistas para paginación del sitemap.
+     */
+    public static function contarParaSitemap(): int
+    {
+        $ta = ArtistasMusicalesCols::TABLA;
+        $sql = "SELECT COUNT(*) FROM {$ta}";
+        return (int) (static::consultarValor($sql) ?? 0);
+    }
 }

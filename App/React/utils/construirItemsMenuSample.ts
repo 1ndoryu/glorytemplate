@@ -11,6 +11,7 @@ import { desvincularSample } from '@app/services/apiRelaciones';
 import { descargarSample } from '@app/services/apiDescargas';
 import { toast } from '@app/stores/toastStore';
 import { useReportarStore } from '@app/stores/reportarStore';
+import { requiereAuth } from '@app/utils/requiereAuth';
 import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
 
 export interface DepsMenuSample {
@@ -37,8 +38,9 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     const items: MenuItemDef[] = [
         { id: 'reproducir', etiqueta: 'Reproducir', onClick: () => d.reproducir(s) },
         { id: 'detalle', etiqueta: 'Ver detalle', href: `/sample/${s.slug}/`, onClick: () => d.navegar(`/sample/${s.slug}/`), separadorDespues: true },
-        { id: 'coleccion', etiqueta: 'Añadir a colección', onClick: () => d.abrirColeccionPicker(s) },
+        { id: 'coleccion', etiqueta: 'Añadir a colección', onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
         { id: 'descargar', etiqueta: 'Descargar archivo', separadorDespues: true, onClick: async () => {
+            if (!requiereAuth()) return;
             try {
                 const resp = await descargarSample(s.id);
                 if (resp.ok && resp.data?.url) {

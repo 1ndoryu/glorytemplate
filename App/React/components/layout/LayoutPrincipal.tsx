@@ -32,6 +32,7 @@ import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
 import { BotonDevTools } from '../ui/BotonDevTools';
 import { ModalAuth } from '../auth/ModalAuth';
+import { NavPublico } from './NavPublico';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { NotificacionesToastBridge } from '../ui/NotificacionesToastBridge';
 import { useNavigationStore } from '@/core/router';
@@ -130,6 +131,7 @@ export const LayoutPrincipal = ({
     if (!autenticadoEfectivo && !cargandoAuth) {
         return (
             <div className="layoutPublico">
+                <NavPublico />
                 <main className="areaContenidoPublico">
                     {children}
                 </main>
