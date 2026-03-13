@@ -188,9 +188,6 @@ def descargar_audio(
         output_dir = os.getenv("AUDIO_TMP_DIR", tempfile.gettempdir())
     os.makedirs(output_dir, exist_ok=True)
 
-    # Proxy residencial para YouTube (IP del VPS suele estar flaggeada)
-    proxy_url = _construir_proxy_url()
-
     deezer_viable = (
         _DEEZER_PREVIEW_ENABLED
         and timing_seg <= _DEEZER_MAX_TIMING
@@ -204,13 +201,10 @@ def descargar_audio(
         if resultado:
             return resultado
 
-    # 2. YouTube via proxy (IP del VPS esta flaggeada por Google)
+    # 2. YouTube local (gratis, IP del VPS puede estar flaggeada — sin proxy para
+    #    ahorrar bandwidth. Si falla, SoundCloud/Deezer cubren la mayoria de tracks)
     if youtube_id and len(youtube_id) <= 20:
-        ruta = _descargar_youtube(
-            youtube_id, output_dir,
-            proxy_url=proxy_url,
-            max_retries=8 if proxy_url else 1,
-        )
+        ruta = _descargar_youtube(youtube_id, output_dir)
         if ruta:
             return ResultadoDescarga(
                 ruta=ruta,
@@ -234,9 +228,9 @@ def descargar_audio(
                 fuente_artista=artista,
             )
 
-    # 4. YouTube search via proxy (busca subidas alternativas sin restricciones DRM)
+    # 4. YouTube search (busca subidas alternativas sin restricciones DRM — sin proxy)
     if artista and titulo:
-        ruta = _descargar_youtube_search(artista, titulo, output_dir, proxy_url=proxy_url)
+        ruta = _descargar_youtube_search(artista, titulo, output_dir)
         if ruta:
             return ResultadoDescarga(
                 ruta=ruta,

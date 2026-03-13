@@ -47,7 +47,18 @@ class DevController
 
     public static function registrarRutas(string $namespace): void
     {
-        /* Solo registrar en entornos de desarrollo */
+        /*
+         * Endpoint de publicacion automatica: se registra SIEMPRE (produccion incluida)
+         * porque usa autenticacion por secret (X-Kamples-Secret), no sesion WP.
+         * El pipeline Python lo llama desde dentro del container al terminar extraccion.
+         */
+        \register_rest_route($namespace, '/dev/extraccion/publicar-auto', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'publicarExtraccionesAuto'],
+            'permission_callback' => [self::class, 'verificarSecretCron'],
+        ]);
+
+        /* El resto de rutas /dev/* solo se registra en desarrollo */
         if (!\defined('WP_DEBUG') || !WP_DEBUG) {
             return;
         }
@@ -126,13 +137,6 @@ class DevController
                     'maximum' => 50,
                 ],
             ],
-        ]);
-
-        /* Endpoint llamado por Python al terminar la extraccion (secret token, no sesion WP) */
-        \register_rest_route($namespace, '/dev/extraccion/publicar-auto', [
-            'methods'             => 'POST',
-            'callback'            => [self::class, 'publicarExtraccionesAuto'],
-            'permission_callback' => [self::class, 'verificarSecretCron'],
         ]);
 
         /* Endpoints del sistema de seed users (atribucion legal retroactiva) */

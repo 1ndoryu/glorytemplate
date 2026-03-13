@@ -246,12 +246,15 @@ def notificar_publicacion(exitosos: int) -> None:
     if exitosos == 0:
         return
 
-    site_url = os.getenv("KAMPLES_SITE_URL", "").rstrip("/")
+    # Preferir URL interna (http://localhost) para evitar SSL desde dentro del container
+    site_url = os.getenv("KAMPLES_INTERNAL_URL", "").rstrip("/") or os.getenv(
+        "KAMPLES_SITE_URL", ""
+    ).rstrip("/")
     secret = os.getenv("KAMPLES_CRON_SECRET", "")
 
     if not site_url or not secret:
         logger.warning(
-            "KAMPLES_SITE_URL o KAMPLES_CRON_SECRET no configurados — publicacion manual requerida."
+            "KAMPLES_INTERNAL_URL/KAMPLES_SITE_URL o KAMPLES_CRON_SECRET no configurados — publicacion manual requerida."
         )
         return
 

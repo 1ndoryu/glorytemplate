@@ -55,8 +55,12 @@ def validar_match(
     prompt = (
         f"I'm searching for the specific song \"{busqueda_titulo}\" by \"{busqueda_artista}\".\n"
         f"A music platform returned this result: \"{resultado_titulo}\" by \"{resultado_artista}\".\n\n"
-        f"Is this the SAME specific song (not just the same artist, and not a remix/cover/live version "
-        f"unless the search was for that)? Answer ONLY 'yes' or 'no'."
+        f"Is this the SAME specific song? Minor spelling differences in artist names are OK "
+        f"(e.g. 'Honey Drippers' vs 'Honeydrippers', 'Dj' vs 'DJ'). Also OK if the uploader "
+        f"name differs but the song title and original artist match. "
+        f"NOT OK: remixes, covers, live versions, DJ sets, medleys, or different songs by the "
+        f"same artist — unless the search specifically asked for that version.\n"
+        f"Answer ONLY 'yes' or 'no'."
     )
 
     payload = json.dumps({
