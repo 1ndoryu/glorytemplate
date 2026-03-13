@@ -34,8 +34,11 @@ use App\Config\Schema\_generated\RelacionesSampleEnums;
 class SamplesUploadController
 {
     private const FORMATOS_AUDIO_VALIDOS = [
-        'audio/wav', 'audio/mpeg', 'audio/mp3', 'audio/flac',
-        'audio/aiff', 'audio/x-wav', 'audio/x-aiff'
+        'audio/wav', 'audio/wave', 'audio/vnd.wave',
+        'audio/mpeg', 'audio/mp3', 'audio/flac',
+        'audio/aiff', 'audio/x-wav', 'audio/x-aiff',
+        /* Linux/Apache puede reportar audio/octet-stream para WAV — finfo lo verifica con magic bytes */
+        'application/octet-stream',
     ];
     private const MAX_TAMANO_AUDIO = 50 * 1024 * 1024;
 

@@ -77,7 +77,12 @@ class PublicacionesEscrituraController
             ? '{' . \implode(',', \array_map('intval', $adjuntosRaw)) . '}'
             : '{}';
 
-        $id = PublicacionesRepository::crearPublicacion($userId, $contenido, $imagenes, $samplesAdjuntos);
+        /*
+         * Produccion: crear como 'aprobado' inmediatamente para que aparezca en el feed.
+         * La moderacion IA corre async en shutdown y puede bajar a 'rechazado' si es necesario.
+         * El anti-spam heuristico ya filtro el contenido mas obvio arriba.
+         */
+        $id = PublicacionesRepository::crearPublicacion($userId, $contenido, $imagenes, $samplesAdjuntos, null, PublicacionesEnums::MODERACION_ESTADO_APROBADO);
 
         /* Análisis async de imágenes con IA + moderación (no bloquea la respuesta) */
         $urlsImagenes = $body['imagenes'] ?? [];
