@@ -381,7 +381,7 @@ class ReportesRepository extends BaseRepository
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$tabla}"
-            . " WHERE " . ReportesCols::TIPO . " = 'usuario'"
+            . " WHERE " . ReportesCols::TIPO . " = '" . ReportesEnums::TIPO_USUARIO . "'"
             . " AND " . ReportesCols::TARGET_ID . " = :userId"
             . " AND " . ReportesCols::CREATED_AT . " >= NOW() - INTERVAL '{$intervalo}'",
             ['userId' => $userId]

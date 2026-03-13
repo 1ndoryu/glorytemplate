@@ -75,7 +75,7 @@
 .generosInputInline {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--espacioXs);
     padding: var(--espacioSm) var(--espacioMd);
     border-radius: var(--radioFull);
     border: 1px dashed var(--bordeSutil);

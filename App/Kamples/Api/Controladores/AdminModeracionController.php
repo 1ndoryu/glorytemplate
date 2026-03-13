@@ -179,7 +179,7 @@ class AdminModeracionController
 
             /* Notificar al autor si es rechazo manual de publicación */
             if ($accion === 'rechazar' && $tipo === ComentariosEnums::TIPO_PUBLICACION) {
-                $autorId = PublicacionesRepository::obtenerAutorId($id);
+                $autorId = PublicacionesRepository::buscarAutorId($id);
                 if ($autorId) {
                     ServicioNotificaciones::crear(
                         $autorId,

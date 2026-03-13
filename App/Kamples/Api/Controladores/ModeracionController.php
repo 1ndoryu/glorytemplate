@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\KamplesLogger;
+use App\Config\Schema\_generated\ReportesEnums;
 use App\Kamples\Services\ServicioSuspension;
 
 class ModeracionController
@@ -208,20 +209,15 @@ class ModeracionController
     }
 
     /* Tipos validos para el endpoint centralizado de reportes */
-    private const TIPO_USUARIO = 'usuario';
-    private const TIPO_PUBLICACION = 'publicacion';
-    private const TIPO_COMENTARIO = 'comentario';
-    private const TIPO_SAMPLE = 'sample';
-    private const TIPO_ERROR = 'error_plataforma';
-    private const TIPO_SOLICITUD_WA = 'solicitud_whatsapp';
+    private const TIPO_SOLICITUD_WA = ReportesEnums::TIPO_SOLICITUD_WHATSAPP;
     private const LIMITE_DIARIO_SOLICITUDES_WA = 6;
 
     private const TIPOS_PERMITIDOS = [
-        self::TIPO_USUARIO,
-        self::TIPO_PUBLICACION,
-        self::TIPO_COMENTARIO,
-        self::TIPO_SAMPLE,
-        self::TIPO_ERROR,
+        ReportesEnums::TIPO_USUARIO,
+        ReportesEnums::TIPO_PUBLICACION,
+        ReportesEnums::TIPO_COMENTARIO,
+        ReportesEnums::TIPO_SAMPLE,
+        ReportesEnums::TIPO_ERROR_PLATAFORMA,
         self::TIPO_SOLICITUD_WA,
     ];
 
@@ -277,7 +273,7 @@ class ModeracionController
     private static function procesarReporte(string $tipo, int $targetId, int $userId, string $razon, string $detalles, string $url): \WP_REST_Response
     {
         switch ($tipo) {
-            case self::TIPO_USUARIO:
+            case ReportesEnums::TIPO_USUARIO:
                 if ($userId === $targetId) {
                     return Validador::respuestaError('No puedes reportarte a ti mismo');
                 }
@@ -289,42 +285,42 @@ class ModeracionController
                 ServicioSuspension::verificarAutoSuspension($targetId);
                 break;
 
-            case self::TIPO_PUBLICACION:
+            case ReportesEnums::TIPO_PUBLICACION:
                 if (!PublicacionesRepository::existe([PublicacionesCols::ID => $targetId])) {
                     return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Publicacion no encontrada'], 404);
                 }
-                if (ReportesRepository::yaReportado(self::TIPO_PUBLICACION, $targetId, $userId)) {
+                if (ReportesRepository::yaReportado(ReportesEnums::TIPO_PUBLICACION, $targetId, $userId)) {
                     return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste esta publicacion'], 200);
                 }
-                ReportesRepository::crearReporte(self::TIPO_PUBLICACION, $targetId, $userId, $razon, $detalles ?: null);
+                ReportesRepository::crearReporte(ReportesEnums::TIPO_PUBLICACION, $targetId, $userId, $razon, $detalles ?: null);
                 break;
 
-            case self::TIPO_COMENTARIO:
+            case ReportesEnums::TIPO_COMENTARIO:
                 if (!ComentariosRepository::existe([ComentariosCols::ID => $targetId])) {
                     return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Comentario no encontrado'], 404);
                 }
-                if (ReportesRepository::yaReportado(self::TIPO_COMENTARIO, $targetId, $userId)) {
+                if (ReportesRepository::yaReportado(ReportesEnums::TIPO_COMENTARIO, $targetId, $userId)) {
                     return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste este comentario'], 200);
                 }
-                ReportesRepository::crearReporte(self::TIPO_COMENTARIO, $targetId, $userId, $razon, $detalles ?: null);
+                ReportesRepository::crearReporte(ReportesEnums::TIPO_COMENTARIO, $targetId, $userId, $razon, $detalles ?: null);
                 break;
 
-            case self::TIPO_SAMPLE:
+            case ReportesEnums::TIPO_SAMPLE:
                 if (!SamplesRepository::existe([SamplesCols::ID => $targetId])) {
                     return new \WP_REST_Response(['code' => 'no_encontrado', 'message' => 'Sample no encontrado'], 404);
                 }
-                if (ReportesRepository::yaReportado(self::TIPO_SAMPLE, $targetId, $userId)) {
+                if (ReportesRepository::yaReportado(ReportesEnums::TIPO_SAMPLE, $targetId, $userId)) {
                     return new \WP_REST_Response(['ok' => true, 'message' => 'Ya reportaste este sample'], 200);
                 }
-                ReportesRepository::crearReporte(self::TIPO_SAMPLE, $targetId, $userId, $razon, $detalles ?: null);
+                ReportesRepository::crearReporte(ReportesEnums::TIPO_SAMPLE, $targetId, $userId, $razon, $detalles ?: null);
                 break;
 
-            case self::TIPO_ERROR:
+            case ReportesEnums::TIPO_ERROR_PLATAFORMA:
                 $detallesCompletos = $detalles;
                 if (!empty($url)) {
                     $detallesCompletos = "URL: {$url}\n\n{$detalles}";
                 }
-                ReportesRepository::crearReporte(self::TIPO_ERROR, 0, $userId, $razon, $detallesCompletos ?: null);
+                ReportesRepository::crearReporte(ReportesEnums::TIPO_ERROR_PLATAFORMA, 0, $userId, $razon, $detallesCompletos ?: null);
                 break;
 
             case self::TIPO_SOLICITUD_WA:

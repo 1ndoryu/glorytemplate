@@ -3,8 +3,8 @@
 .comentarioPrevContenedor {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
     cursor: pointer;
     border-top: 1px solid var(--bordeSutil);
     transition: background var(--transicionRapida);
@@ -22,8 +22,8 @@
 .comentarioPrevCabecera {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
     line-height: 1.2;
 }
 
@@ -34,12 +34,12 @@
 
 .comentarioPrevTiempo {
     color: var(--textoTerciario);
-    font-size: 0.75rem;
+    font-size: var(--fuenteSm);
 }
 
 .comentarioPrevTexto {
-    margin: 2px 0 0;
-    font-size: 0.85rem;
+    margin: var(--espacio2xs) 0 0;
+    font-size: var(--fuenteMd);
     color: var(--textoSecundario);
     line-height: 1.4;
     overflow: hidden;
@@ -52,9 +52,9 @@
 .comentarioPrevLikes {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
     color: var(--textoTerciario);
     white-space: nowrap;
-    margin-top: 2px;
+    margin-top: var(--espacio2xs);
 }

@@ -31,6 +31,7 @@
     --advertenciaMuted: rgba(245, 158, 11, 0.15);
     --info: #3b82f6;
     --infoMuted: rgba(59, 130, 246, 0.15);
+    --espacioMinimo: 1px;
     --espacio2xs: 2px;
     --espacio3xs: 3px;
     --espacioXs: 4px;
@@ -43,6 +44,7 @@
     --espacio4xl: 64px;
     --espacio5xl: 80px;
     --espacio6xl: 96px;
+    --fuente2xs: 10px;
     --fuenteXs: 11px;
     --fuenteSm: 12px;
     --fuenteMd: 13px;
@@ -65,8 +67,10 @@
     --sombraElevada: unset;
     --sombraModal: unset;
     --sombraSutil: unset;
+    --overlayFuerte: rgba(0, 0, 0, 0.85);
     --overlayOscuro: rgba(0, 0, 0, 0.7);
     --overlaySuave: rgba(0, 0, 0, 0.4);
+    --sombraFlotante: 0 4px 24px rgba(0, 0, 0, 0.5);
     --transicionRapida: 150ms ease;
     --transicionNormal: 250ms ease;
     --transicionLenta: 400ms ease;
@@ -130,6 +134,8 @@
     --advertenciaMuted: rgba(164, 103, 0, 0.14);
     --info: #1d64d6;
     --infoMuted: rgba(29, 100, 214, 0.14);
+    --overlayFuerte: rgba(0, 0, 0, 0.5);
     --overlayOscuro: rgba(0, 0, 0, 0.24);
     --overlaySuave: rgba(0, 0, 0, 0.14);
+    --sombraFlotante: 0 4px 24px rgba(0, 0, 0, 0.18);
 }

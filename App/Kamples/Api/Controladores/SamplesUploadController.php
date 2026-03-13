@@ -30,6 +30,7 @@ use App\Kamples\Database\Repositories\RelacionesSampleRepository;
 use App\Config\Schema\_generated\PublicacionesEnums;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\RelacionesSampleEnums;
+use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 
 class SamplesUploadController
 {
@@ -183,7 +184,7 @@ class SamplesUploadController
             $relacionId = null;
         }
         $ladoRelacion = $request->get_param('lado_relacion');
-        $ladosValidos = ['fuente', 'destino'];
+        $ladosValidos = ColaExtraccionSamplesEnums::TODOS_LADO;
         if ($ladoRelacion !== null && !\in_array($ladoRelacion, $ladosValidos, true)) {
             $ladoRelacion = null;
         }
@@ -299,7 +300,7 @@ class SamplesUploadController
         /* C802c: Vincular sample a relacion de sampleo (sample_fuente_id / sample_destino_id) */
         if ($sampleId && $relacionId && $ladoRelacion) {
             try {
-                $colVinculo = $ladoRelacion === 'fuente'
+                $colVinculo = $ladoRelacion === ColaExtraccionSamplesEnums::LADO_FUENTE
                     ? RelacionesSampleCols::SAMPLE_FUENTE_ID
                     : RelacionesSampleCols::SAMPLE_DESTINO_ID;
 
@@ -310,7 +311,7 @@ class SamplesUploadController
                 if ($inicioSegundosRaw !== null && is_numeric($inicioSegundosRaw)) {
                     $inicioSegundos = (int) round((float) $inicioSegundosRaw);
                     if ($inicioSegundos >= 0) {
-                        $colTimings = $ladoRelacion === 'fuente'
+                        $colTimings = $ladoRelacion === ColaExtraccionSamplesEnums::LADO_FUENTE
                             ? RelacionesSampleCols::TIMINGS_FUENTE
                             : RelacionesSampleCols::TIMINGS_DESTINO;
                         $datosActualizar[$colTimings] = '{' . $inicioSegundos . '}';

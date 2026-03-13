@@ -13,4 +13,12 @@ final class ReportesEnums
     const ESTADO_DESCARTADO = 'descartado';
 
     const TODOS_ESTADO = [self::ESTADO_PENDIENTE, self::ESTADO_RESUELTO, self::ESTADO_DESCARTADO];
+
+    /* Valores para columna "tipo" (sin CHECK constraint pero estandarizados) */
+    const TIPO_USUARIO = 'usuario';
+    const TIPO_PUBLICACION = 'publicacion';
+    const TIPO_COMENTARIO = 'comentario';
+    const TIPO_SAMPLE = 'sample';
+    const TIPO_ERROR_PLATAFORMA = 'error_plataforma';
+    const TIPO_SOLICITUD_WHATSAPP = 'solicitud_whatsapp';
 }
