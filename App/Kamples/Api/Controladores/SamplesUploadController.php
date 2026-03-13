@@ -113,6 +113,21 @@ class SamplesUploadController
 
         $audio = $archivos['audio'];
 
+        /* Verificar que PHP no rechazó el archivo por límite de tamaño (upload_max_filesize < archivo) */
+        if (isset($audio['error']) && $audio['error'] !== UPLOAD_ERR_OK) {
+            $mensajesError = [
+                UPLOAD_ERR_INI_SIZE   => 'El archivo excede el límite de tamaño configurado en el servidor',
+                UPLOAD_ERR_FORM_SIZE  => 'El archivo excede el tamaño máximo del formulario',
+                UPLOAD_ERR_PARTIAL    => 'El archivo se subió de forma incompleta. Intenta de nuevo',
+                UPLOAD_ERR_NO_FILE    => 'No se recibió archivo de audio',
+                UPLOAD_ERR_NO_TMP_DIR => 'Error interno: no hay directorio temporal en el servidor',
+                UPLOAD_ERR_CANT_WRITE => 'Error interno: no se pudo escribir el archivo en disco',
+                UPLOAD_ERR_EXTENSION  => 'Una extensión PHP bloqueó la subida del archivo',
+            ];
+            $msg = $mensajesError[$audio['error']] ?? 'Error desconocido al subir el archivo (código ' . $audio['error'] . ')';
+            return new \WP_REST_Response(['ok' => false, 'error' => $msg], 400);
+        }
+
         /* Validar por extensión — más fiable que $audio['type'] (browser MIME varía por OS/browser) */
         $extension = \strtolower(\pathinfo($audio['name'], PATHINFO_EXTENSION));
         if (!\in_array($extension, self::EXTENSIONES_AUDIO_VALIDAS, true)) {
