@@ -512,17 +512,52 @@ Auto-publicacion no funcionaba por 3 problemas encadenados:
 Proxy revertido para descargas de YouTube. El pipeline ya NO pasa proxy a `_descargar_youtube()` ni `_descargar_youtube_search()`. YouTube seguira fallando desde IP del VPS (bot detection), pero SoundCloud es la fuente primaria y funciona bien con GO token.
 
 
-## QQ114
+## QQ114 ✅ [AG-SCR]
 
-La paginación de las canciones y supongo que de otras cosas que carga por scroll es muy rapida, bien, pero, quiero mantenerla rapida pero si alguien deja el scroll hacia abajo va a empezar a cargar infinitamente las miles y miles de canciones, agregar mecanismos que lo eviten, igual con las paginacion de los samples, los ssamples dentro de las colecciones, etc, por ejemplo que las 3 paginas sigueinte sean rapida los primeros segundos si se baja muy rapido
+Throttle progresivo para paginacion infinita. Hook reutilizable `usePaginacionProgresiva`: primeras 3 paginas sin delay, paginas 4-10 con delay creciente (800ms * 1.4^nivel), paginas 11+ requieren boton manual "Cargar mas". Integrado en useFeedSamples (samples), useFeedCanciones (canciones), useComunidadIsland (publicaciones). CSS para boton manual en 3 archivos. Protege contra scroll pasivo que cargaria todo el catalogo.
 
-## QQ115
+## QQ115 ✅ [AG-SCR]
 
-realmente me preocupa los falsos positivos
-"Groq false positive con variaciones de nombre de artista ("Honeydrippers" vs "Honey Drippers"). Prompt del validador mejorado: ahora tolera diferencias menores de ortografia/espaciado en nombres de artista. Archivo: groq_validator.py."
+Groq validator reescrito con arquitectura de 2 capas contra falsos positivos:
+1. **Pre-screening textual:** SequenceMatcher + normalizacion Unicode (sin acentos, lowercase, sin puntuacion). Score combinado (60% titulo + 40% artista). >= 0.80 = auto-acepta, <= 0.25 = auto-rechaza. Casos como "Honeydrippers" vs "Honey Drippers" se resuelven sin LLM.
+2. **LLM zona gris:** Modelo upgradeado de `llama-3.1-8b-instant` a `llama-3.3-70b-versatile` (mejor razonamiento). Prompt few-shot con 5 ejemplos concretos de edge cases musicales. Timeout 12s (antes 10s).
+- Impacto: elimina falsos positivos por variaciones de nombre, reduce llamadas LLM innecesarias.
 
-verifica que se puede hacer para evitar y si hay una ia mejor, etc
+## QQ116
 
+El sistema de duplicados necesita una revisión profunda
+
+primero, los audios incluyendo los que se generan a través del recorte no escuchan el el preview para chequear si realmente son duplicados, o sea en la verificación humana, proble marcando que no eran duplicados a ver si se publicaba, y no, el smaple jamas se publico lo que probablemente sea una perdida de datos
+
+si hay duplicados tienen que ser capaz de resolver el conflicto despues de la revision segun la opcion que se eliga, tienen que poder escucharte, etc.
+
+## QQ117
+
+en el inspesionar samples veo esta info
+
+Es Recorte
+Si
+Cancion Origen ID
+80
+Relacion 
+81
+
+no esta mal pero presiento que falta mas informacion, muchisima mas porque habia pedido antes que se pudiera guardar la url de youtube o soundcloud de la fuente de donde se extrajo, tambien el tiempo de que parte del recorte es, tambien el nombre del archivo de recorte, su ubicacion, los archivos de recorte no deben borrarse, se que hay muchisima mas informacion del recorte, del scraper que se esta ignorando, piensa en aquella informacion que necesito para revisar si el recorte y de donde se extrajo es legitimo, ejemplo, el nombre de la cancion en soundcloud, url, etc, obviamente necesito toda esa info,
+
+
+## QQ118
+
+Vi que agregaste un boton de autocarga, bien, pero por favor que aparezca solo si se cargan paginas muy rapidos y despues se quita, y se vuelve a poner si se vuelven a cargar paginas muy rapido. 
+
+## QQ119 (planificando)
+
+Auditoría profunda sobre el el proceso de Extraccion Audio
+
+lo primero es que tengo dudas acerca de 
+
+a. que pasa si falla la busqueda, con soudcloud es poco probable que no aparezca un audio antiguo porque la mayoria de los samples son los años 1950 - 2000, bien, pero supongamos un caso en el que realmente no existe en soundcloup, en ese caso creo que debe dejar una marca que no existe en soundcloud para que no vuelva a intentar, asi despues se hace una lista de lo que no existe en soundcloup.
+
+b. que pasa cuando todo falla ¿vuelve a intentarlo despues? supongo que debe de dejar una marca de que todo fallo, pero, hay un fecho fundamental y es que si falla en todo no significa que no exista, si existia en soundcloup y por algun motivo fallo, y leugo falla en las otras alternativas, pero existia eso debe ser un reintento para mañana, no una sentencia de nunca mas volver a intentar. 
 
 ---
 
