@@ -63,8 +63,8 @@ ITEM_PIPELINES = {
 }
 
 # --- Retry ---
-RETRY_TIMES = 2
-RETRY_HTTP_CODES = [429, 500, 502, 503, 520]
+RETRY_TIMES = 5
+RETRY_HTTP_CODES = [403, 429, 500, 502, 503, 520]
 
 # --- Dedup ---
 DUPEFILTER_CLASS = "scrapy.dupefilters.RFPDupeFilter"

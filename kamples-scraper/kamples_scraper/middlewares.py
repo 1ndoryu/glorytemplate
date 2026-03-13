@@ -15,14 +15,18 @@ from curl_cffi import requests as curl_requests
 
 logger = logging.getLogger(__name__)
 
+WARMUP_URL = "https://www.whosampled.com/"
+
 
 class CurlCffiDownloaderMiddleware:
     """
-    Middleware que reemplaza el downloader HTTP estándar de Scrapy
+    Middleware que reemplaza el downloader HTTP estandar de Scrapy
     con curl_cffi para emular TLS fingerprint de Chrome.
 
     Resuelve el bloqueo de Cloudflare (403 "Just a moment...").
     Lee proxy de settings; si no hay proxy, request directo.
+    Realiza warm-up automatico contra WhoSampled para establecer
+    cookies de sesion antes de que cualquier spider haga requests.
     """
 
     @classmethod
@@ -39,12 +43,41 @@ class CurlCffiDownloaderMiddleware:
         else:
             middleware.proxies = None
 
-        # Sesion compartida: el pipeline de imagenes la reutiliza para
-        # descargar assets con las mismas cookies activas de la sesion.
         middleware.session = curl_requests.Session(impersonate="chrome")
         crawler._curl_session = middleware.session
-        crawler._curl_proxies = middleware.proxies  # None si no hay proxy configurado
+        crawler._curl_proxies = middleware.proxies
+
+        middleware._warmup(crawler)
         return middleware
+
+    def _warmup(self, crawler):
+        """
+        Request inicial a la homepage para establecer cookies de sesion
+        y pasar posibles challenges de Cloudflare antes del scraping real.
+        """
+        try:
+            resp = self.session.get(
+                WARMUP_URL,
+                proxies=self.proxies,
+                timeout=30,
+                allow_redirects=True,
+            )
+            if resp.status_code == 200:
+                logger.info(
+                    "Warm-up OK: status=%d, cookies=%d",
+                    resp.status_code,
+                    len(self.session.cookies),
+                )
+            else:
+                logger.warning(
+                    "Warm-up con status inesperado: %d. "
+                    "Posible problema de proxy o Cloudflare challenge.",
+                    resp.status_code,
+                )
+        except Exception:
+            logger.exception(
+                "Warm-up fallo. Verificar proxy y conectividad."
+            )
 
     def process_request(self, request):
         """
@@ -58,9 +91,13 @@ class CurlCffiDownloaderMiddleware:
     def _fetch(self, request):
         """Ejecutar request con curl_cffi (sync, en thread separado)."""
         try:
+            headers = dict(request.headers.to_unicode_dict())
+            if "Referer" not in headers:
+                headers["Referer"] = "https://www.whosampled.com/"
+
             resp = self.session.get(
                 request.url,
-                headers=dict(request.headers.to_unicode_dict()),
+                headers=headers,
                 proxies=self.proxies,
                 timeout=30,
                 allow_redirects=True,
@@ -68,15 +105,15 @@ class CurlCffiDownloaderMiddleware:
 
             # curl_cffi ya descomprime brotli/gzip, pero deja el header
             # Content-Encoding intacto. Scrapy's HttpCompressionMiddleware
-            # intentaría descomprimir de nuevo y fallaría.
-            headers = dict(resp.headers)
-            headers.pop("Content-Encoding", None)
-            headers.pop("content-encoding", None)
+            # intentaria descomprimir de nuevo y fallaria.
+            resp_headers = dict(resp.headers)
+            resp_headers.pop("Content-Encoding", None)
+            resp_headers.pop("content-encoding", None)
 
             return HtmlResponse(
                 url=str(resp.url),
                 status=resp.status_code,
-                headers=headers,
+                headers=resp_headers,
                 body=resp.content,
                 request=request,
             )
@@ -95,15 +132,17 @@ class BandwidthTrackerMiddleware:
         self.total_bytes = 0
         self.budget_bytes = 0
         self.alerted_80 = False
+        self.crawler = None
 
     @classmethod
     def from_crawler(cls, crawler):
         middleware = cls()
         middleware.budget_bytes = crawler.settings.getint("PROXY_BUDGET_BYTES", 5368709120)
+        middleware.crawler = crawler
         crawler.signals.connect(middleware.spider_closed, signal=signals.spider_closed)
         return middleware
 
-    def process_response(self, request, response):
+    def process_response(self, request, response, spider):
         body_size = len(response.body) if response.body else 0
         self.total_bytes += body_size
 
