@@ -82,6 +82,10 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
     const [tipoElemento, setTipoElemento] = useState('');
     const [errorSubida, setErrorSubida] = useState<string | null>(null);
     const [exitoSubida, setExitoSubida] = useState(false);
+    /* QQ90: Portada personalizada para el sample */
+    const [portadaArchivo, setPortadaArchivo] = useState<File | null>(null);
+    const [portadaPreviewUrl, setPortadaPreviewUrl] = useState<string | null>(null);
+    const inputPortadaRef = useRef<HTMLInputElement>(null);
     const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -123,6 +127,37 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         setProgresoPreview(0);
     }, [audioAdjunto]);
 
+    /* QQ90: Gestionar portada del sample */
+    const adjuntarPortada = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        const archivo = e.target.files?.[0];
+        if (!archivo) return;
+        if (!archivo.type.startsWith('image/')) {
+            setErrorSubida('La portada debe ser una imagen (JPG, PNG, WebP)');
+            return;
+        }
+        if (archivo.size > 5 * 1024 * 1024) {
+            setErrorSubida('La imagen de portada no puede superar 5 MB');
+            return;
+        }
+        setPortadaArchivo(archivo);
+        const url = URL.createObjectURL(archivo);
+        setPortadaPreviewUrl(url);
+        e.target.value = '';
+    }, []);
+
+    const quitarPortada = useCallback(() => {
+        setPortadaArchivo(null);
+        if (portadaPreviewUrl) URL.revokeObjectURL(portadaPreviewUrl);
+        setPortadaPreviewUrl(null);
+    }, [portadaPreviewUrl]);
+
+    /* Limpiar objectURL de portada al desmontar */
+    useEffect(() => {
+        return () => {
+            if (portadaPreviewUrl) URL.revokeObjectURL(portadaPreviewUrl);
+        };
+    }, [portadaPreviewUrl]);
+
     const togglePreview = useCallback(() => {
         const audio = audioPreviewRef.current;
         if (!audio || !audioUrl) return;
@@ -146,6 +181,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         setExitoSubida(false);
         setReproduciendoPreview(false);
         setProgresoPreview(0);
+        quitarPortada();
         if (textareaRef.current) textareaRef.current.style.height = 'auto';
     }, [resetearArchivos]);
 
@@ -204,6 +240,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
                     esPremium,
                     precio: tienePrecio ? parseFloat(precio) || undefined : undefined,
                     mostrarEnComunidad,
+                    portada: portadaArchivo ?? undefined,
                     ...(() => {
                         const ctx = useCrearModalStore.getState().contextoAdjuntar;
                         if (!ctx) return {};
@@ -263,7 +300,7 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
             setErrorSubida('Error de conexión al publicar contenido');
             setPublicando(false);
         }
-    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, tienePrecio, precio, inicioSegundos, tipoElemento, resetear, alCompletarPublicacion]);
+    }, [contenido, audioAdjunto, imagenes, publicando, permitirDescarga, esPremium, tienePrecio, precio, inicioSegundos, tipoElemento, portadaArchivo, resetear, alCompletarPublicacion]);
 
     /* Ctrl+Enter para publicar */
     const manejarKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -302,6 +339,8 @@ export const useCrearContenido = (opciones: UseCrearContenidoOpciones = {}) => {
         inicioSegundos, setInicioSegundos, enContextoRelacion,
         /* Tipo de elemento sampleado */
         tipoElemento, setTipoElemento,
+        /* QQ90: Portada del sample */
+        portadaPreviewUrl, adjuntarPortada, quitarPortada, inputPortadaRef,
         waveformPeaks, audioUrl,
         reproduciendoPreview, progresoPreview, setProgresoPreview,
         errorSubida, setErrorSubida, exitoSubida,

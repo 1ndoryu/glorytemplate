@@ -5,16 +5,16 @@
  * Toda la lógica reside en useCrearContenido.
  */
 
-import { Music, Image, X, Download, AlertCircle, CheckCircle, Crown, Users, Clock, DollarSign } from 'lucide-react';
+import { Music, Image as ImageIcon, X, AlertCircle, CheckCircle, Clock, ImagePlus } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
-import { Tooltip } from '@app/components/ui/Tooltip';
 import { useCrearContenido } from '@app/hooks/useCrearContenido';
 import { useAuthStore } from '@app/stores/authStore';
 import { ETIQUETAS_TIPO_ELEMENTO } from '@app/types/cancion';
 import type { TipoElemento } from '@app/types/cancion';
 import { SelectorMenu } from '@app/components/ui/SelectorMenu';
+import { CondicionesSample } from '@app/components/social/CondicionesSample';
 import '@app/styles/componentes/modalCrear.css';
 import { CampoTexto } from '../ui/CampoTexto';
 import { Input } from '../ui/Input';
@@ -48,6 +48,8 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
         quitarImagen, quitarAudio,
         manejarDragEnter, manejarDragLeave, manejarDragOver, manejarDrop,
         formatosAudio, maxImagenes,
+        /* QQ90: Portada del sample */
+        portadaPreviewUrl, adjuntarPortada, quitarPortada, inputPortadaRef,
     } = useCrearContenido({ alCompletarPublicacion });
 
     return (
@@ -121,6 +123,31 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                         <span className="crearAdjuntoNombre">{audioAdjunto.nombre}</span>
                         <span className="crearAdjuntoMeta">{audioAdjunto.formato} — {audioAdjunto.tamano}</span>
                     </div>
+                    {/* QQ90: Botón/preview portada del sample */}
+                    {portadaPreviewUrl ? (
+                        <BotonBase
+                            variante="ghost"
+                            className="crearAdjuntoPortadaPreview"
+                            onClick={quitarPortada}
+                            type="button"
+                            aria-label="Quitar portada"
+                            title="Quitar portada"
+                        >
+                            <img src={portadaPreviewUrl} alt="Portada" />
+                            <span className="crearAdjuntoPortadaQuitar"><X size={10} /></span>
+                        </BotonBase>
+                    ) : (
+                        <BotonBase
+                            variante="ghost"
+                            className="crearAdjuntoBtn"
+                            onClick={() => inputPortadaRef.current?.click()}
+                            type="button"
+                            aria-label="Adjuntar portada"
+                            title="Adjuntar imagen de portada"
+                        >
+                            <ImagePlus size={14} />
+                        </BotonBase>
+                    )}
                     <BotonBase variante="ghost" className="crearAdjuntoBtn crearAdjuntoBtnQuitar" onClick={quitarAudio} type="button" aria-label="Quitar audio">
                         <X size={14} />
                     </BotonBase>
@@ -213,71 +240,15 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                 </div>
             )}
 
-            {/* QQ30/30.2: Condiciones del sample — en contexto adjuntar solo comunidad */}
-            {audioAdjunto && !esContextoAdjuntar && (
-                <div className="crearCondiciones">
-                    <Tooltip texto={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'} posicion="bottom">
-                        <BotonBase variante="ghost"
-                            className={`crearCondicionBtn ${permitirDescarga ? 'crearCondicionActiva' : ''}`}
-                            onClick={() => { if (!esPremium) setPermitirDescarga(!permitirDescarga); }}
-                            type="button"
-                            soloIcono
-                            aria-label={permitirDescarga ? 'Descarga permitida' : 'Descarga no permitida'}
-                            disabled={esPremium}
-                        >
-                            <Download size={14} />
-                        </BotonBase>
-                    </Tooltip>
-                    <Tooltip texto={esPremium ? 'Solo Pro — genera ingresos al creador' : 'Sample gratuito'} posicion="bottom">
-                        <BotonBase variante="ghost"
-                            className={`crearCondicionBtn ${esPremium ? 'crearCondicionPremium' : ''}`}
-                            onClick={togglePremium}
-                            type="button"
-                            soloIcono
-                            aria-label={esPremium ? 'Solo Pro — genera ingresos' : 'Sample gratuito'}
-                        >
-                            <Crown size={14} />
-                        </BotonBase>
-                    </Tooltip>
-                    <Tooltip texto={tienePrecio ? `Con precio $${precio || '0'} — cualquier usuario puede comprar` : 'Sin precio'} posicion="bottom">
-                        <BotonBase variante="ghost"
-                            className={`crearCondicionBtn ${tienePrecio ? 'crearCondicionPrecio' : ''}`}
-                            onClick={() => setTienePrecio(!tienePrecio)}
-                            type="button"
-                            soloIcono
-                            aria-label={tienePrecio ? 'Con precio' : 'Sin precio'}
-                        >
-                            <DollarSign size={14} />
-                        </BotonBase>
-                    </Tooltip>
-                    <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
-                        <BotonBase variante="ghost"
-                            className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
-                            onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
-                            type="button"
-                            soloIcono
-                            aria-label={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
-                        >
-                            <Users size={14} />
-                        </BotonBase>
-                    </Tooltip>
-                </div>
-            )}
-            {/* QQ30.2: En contexto adjuntar, solo botón comunidad (off por defecto) */}
-            {audioAdjunto && esContextoAdjuntar && (
-                <div className="crearCondiciones">
-                    <Tooltip texto={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'} posicion="bottom">
-                        <BotonBase variante="ghost"
-                            className={`crearCondicionBtn ${mostrarEnComunidad ? 'crearCondicionActiva' : ''}`}
-                            onClick={() => setMostrarEnComunidad(!mostrarEnComunidad)}
-                            type="button"
-                            soloIcono
-                            aria-label={mostrarEnComunidad ? 'Visible en comunidad' : 'No visible en comunidad'}
-                        >
-                            <Users size={14} />
-                        </BotonBase>
-                    </Tooltip>
-                </div>
+            {/* QQ30/30.2: Condiciones del sample */}
+            {audioAdjunto && (
+                <CondicionesSample
+                    permitirDescarga={permitirDescarga} setPermitirDescarga={setPermitirDescarga}
+                    esPremium={esPremium} togglePremium={togglePremium}
+                    tienePrecio={tienePrecio} setTienePrecio={setTienePrecio}
+                    mostrarEnComunidad={mostrarEnComunidad} setMostrarEnComunidad={setMostrarEnComunidad}
+                    precio={precio} esContextoAdjuntar={esContextoAdjuntar}
+                />
             )}
 
             {/* Mensaje de error */}
@@ -304,7 +275,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
                         <Music size={18} />
                     </BotonBase>
                     <BotonBase variante="ghost" tamano="sm" soloIcono onClick={() => inputImagenRef.current?.click()} type="button" aria-label="Adjuntar imagen" disabled={imagenes.length >= maxImagenes}>
-                        <Image size={18} />
+                        <ImageIcon size={18} />
                     </BotonBase>
                 </div>
                 <div className="crearAccionesDerecha">
@@ -318,6 +289,7 @@ export const ContenidoCrear = ({ autoFocus, placeholder, alCompletarPublicacion 
             {/* Inputs ocultos */}
             <Input ref={inputAudioRef} type="file" accept={formatosAudio.join(',')} hidden onChange={manejarInputAudio} />
             <Input ref={inputImagenRef} type="file" accept="image/*" multiple hidden onChange={manejarInputImagen} />
+            <Input ref={inputPortadaRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={adjuntarPortada} />
         </div>
     );
 };

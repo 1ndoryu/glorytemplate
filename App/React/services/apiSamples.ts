@@ -116,6 +116,8 @@ export interface DatosSubida {
     inicioSegundos?: number;
     /* Tipo de elemento sampleado (hook_riff, vocals, etc.) */
     tipoElemento?: string;
+    /* QQ90: Imagen de portada del sample */
+    portada?: File;
 }
 
 /*
@@ -151,6 +153,10 @@ export const subirSample = async (datos: DatosSubida): Promise<RespuestaApi<Resp
     }
     if (datos.tipoElemento) {
         formData.append('tipo_elemento', datos.tipoElemento);
+    }
+    /* QQ90: Portada del sample */
+    if (datos.portada) {
+        formData.append('portada', datos.portada, datos.portada.name);
     }
 
     return apiPostFormData<RespuestaSubida>('/samples/upload', formData);
