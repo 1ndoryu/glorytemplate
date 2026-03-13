@@ -1,14 +1,17 @@
 /*
- * Hook: useMenuContextualPerfil — Kamples (QQ23)
- * Gestiona menu contextual de 3 puntos en perfiles de otros usuarios.
- * Acciones: Reportar usuario, Bloquear/Desbloquear.
+ * Hook: useMenuContextualPerfil — Kamples (QQ23 + QQ57)
+ * Gestiona menu contextual de 3 puntos en perfiles.
+ * Modo propietario: Configuración + Papelera.
+ * Modo visitante: Reportar + Bloquear/Desbloquear.
  */
 
 import { useState, useCallback, useMemo, type MouseEvent } from 'react';
-import { Flag, ShieldAlert, ShieldOff } from 'lucide-react';
+import { Flag, ShieldAlert, ShieldOff, Settings, Trash2 } from 'lucide-react';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { useReportarStore } from '@app/stores/reportarStore';
 import { useBloqueosStore } from '@app/stores/bloqueosStore';
+import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
+import { usePapeleraStore } from '@app/stores/papeleraStore';
 import { toast } from '@app/stores/toastStore';
 
 interface EstadoMenuPerfil {
@@ -22,6 +25,11 @@ interface DatosUsuarioPerfil {
     username: string;
 }
 
+interface OpcionesMenuPerfil {
+    usuario: DatosUsuarioPerfil | null;
+    esPropietario: boolean;
+}
+
 interface RetornoMenuPerfil {
     estado: EstadoMenuPerfil;
     items: MenuItemDef[];
@@ -29,22 +37,27 @@ interface RetornoMenuPerfil {
     cerrarMenu: () => void;
 }
 
-export const useMenuContextualPerfil = (usuario: DatosUsuarioPerfil | null): RetornoMenuPerfil => {
+export const useMenuContextualPerfil = ({ usuario, esPropietario }: OpcionesMenuPerfil): RetornoMenuPerfil => {
     const [estado, setEstado] = useState<EstadoMenuPerfil>({
         abierto: false,
         x: 0,
         y: 0,
     });
 
+    /* Stores para modo visitante */
     const abrirReporte = useReportarStore(s => s.abrir);
     const bloquear = useBloqueosStore(s => s.bloquear);
     const desbloquear = useBloqueosStore(s => s.desbloquear);
     const estaBloqueado = useBloqueosStore(s => s.estaBloqueado);
 
+    /* Stores para modo propietario */
+    const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
+    const abrirPapelera = usePapeleraStore(s => s.abrir);
+
     const bloqueado = useMemo(() => {
-        if (!usuario) return false;
+        if (!usuario || esPropietario) return false;
         return estaBloqueado(usuario.id);
-    }, [usuario, estaBloqueado]);
+    }, [usuario, esPropietario, estaBloqueado]);
 
     const abrirMenu = useCallback((e: MouseEvent) => {
         e.preventDefault();
@@ -57,6 +70,26 @@ export const useMenuContextualPerfil = (usuario: DatosUsuarioPerfil | null): Ret
     }, []);
 
     const items = useMemo((): MenuItemDef[] => {
+        /* Modo propietario: configuración + papelera */
+        if (esPropietario) {
+            return [
+                {
+                    id: 'configuracion',
+                    etiqueta: 'Configuración',
+                    icono: <Settings size={16} />,
+                    separadorDespues: true,
+                    onClick: () => { abrirConfiguracion(); },
+                },
+                {
+                    id: 'papelera',
+                    etiqueta: 'Papelera',
+                    icono: <Trash2 size={16} />,
+                    onClick: () => { abrirPapelera(); },
+                },
+            ];
+        }
+
+        /* Modo visitante: reportar + bloquear */
         if (!usuario) return [];
         const result: MenuItemDef[] = [];
 
@@ -95,7 +128,7 @@ export const useMenuContextualPerfil = (usuario: DatosUsuarioPerfil | null): Ret
         }
 
         return result;
-    }, [usuario, bloqueado, abrirReporte, bloquear, desbloquear]);
+    }, [esPropietario, usuario, bloqueado, abrirReporte, bloquear, desbloquear, abrirConfiguracion, abrirPapelera]);
 
     return { estado, items, abrirMenu, cerrarMenu };
 };

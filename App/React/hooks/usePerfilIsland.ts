@@ -116,10 +116,11 @@ export function usePerfilIsland({ usernameProp }: PerfilParams) {
 
     const esPropietario = usuarioAuth && usuario && usuarioAuth.username === usuario.username;
 
-    /* QQ23: Menu contextual del perfil (reportar/bloquear) — solo visible para no propietario */
-    const menuPerfil = useMenuContextualPerfil(
-        usuario && !esPropietario ? { id: usuario.id, username: usuario.username } : null
-    );
+    /* QQ23+QQ57: Menu contextual del perfil — propietario (config+papelera) o visitante (reportar/bloquear) */
+    const menuPerfil = useMenuContextualPerfil({
+        usuario: usuario ? { id: usuario.id, username: usuario.username } : null,
+        esPropietario: !!esPropietario,
+    });
 
     /* Cargar perfil con AbortController */
     useEffect(() => {

@@ -14,6 +14,7 @@ import { BotonFollow } from '@app/components/social/BotonFollow';
 import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
+import { ModalPapelera } from '@app/components/social/ModalPapelera';
 import { SkeletonPerfil, SkeletonFeed } from '@app/components/skeletons';
 import { iniciarConversacion } from '@app/services/apiMensajes';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
@@ -183,12 +184,12 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                                     }}>
                                     Mensaje
                                 </BotonBase>
-                                {/* QQ23: Menu de 3 puntos para reportar/bloquear */}
-                                <BotonBase variante="ghost" onClick={menuPerfil.abrirMenu} aria-label="Opciones de usuario">
-                                    <MoreHorizontal size={18} />
-                                </BotonBase>
                             </>
                         )}
+                        {/* QQ23+QQ57: Menu de 3 puntos — owner (config+papelera) o visitante (reportar/bloquear) */}
+                        <BotonBase variante="ghost" onClick={menuPerfil.abrirMenu} aria-label="Opciones de usuario">
+                            <MoreHorizontal size={18} />
+                        </BotonBase>
                     </div>
                 </div>
             </div>
@@ -242,9 +243,11 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
             {/* Menú contextual publicaciones (C322) */}
             <MenuContextual abierto={menuPublicacion.estado.abierto} x={menuPublicacion.estado.x} y={menuPublicacion.estado.y}
                 items={menuPublicacion.items} onCerrar={menuPublicacion.cerrarMenu} />
-            {/* QQ23: Menú contextual perfil (reportar/bloquear) */}
+            {/* QQ23+QQ57: Menú contextual perfil — owner (config+papelera) o visitante (reportar/bloquear) */}
             <MenuContextual abierto={menuPerfil.estado.abierto} x={menuPerfil.estado.x} y={menuPerfil.estado.y}
                 items={menuPerfil.items} onCerrar={menuPerfil.cerrarMenu} alinearDerecha />
+            {/* QQ57: Modal de papelera */}
+            <ModalPapelera />
         </div>
     );
 };

@@ -229,9 +229,9 @@ A. Que los audios eliminados vayan a la papelera por 30 días, y que despues de 
 
 **Implementado:** Sistema papelera 30 días (ServicioPapelera) + optimización media (ServicioMedia). Samples y publicaciones del owner van a papelera soft-delete; admin hard-delete con limpieza completa de archivos. Imágenes optimizadas automáticamente: publicaciones 70%/1920px, comentarios 50%/1280px, mensajes 40%/1024px, avatares 70%/400px, portadas sample 70%/1920px, colecciones 70%/1920px. Limpieza media en eliminación: comentarios limpian su media_url, publicaciones limpian imágenes + media de comentarios, samples limpian archivos + media de comentarios. Cache audio: .htaccess en uploads/kamples con 3 meses para audio, 1 mes para imágenes. Cron WP diario `kamples_purgar_papelera` + endpoint manual `/dev/papelera/purgar`. Archivos clave: ServicioPapelera.php, ServicioMedia.php, SamplesModificacionController, PublicacionesEscrituraController, ComentariosEscrituraController, ComentariosInteraccionController, MensajesEnvioController, PerfilController, SamplesUploadController, ColeccionesCrudController, KamplesInit, DevController.
 
-## QQ57
+## QQ57 ✅ [AG-QQF]
 
-No hay una forma de ver la papelera, que los usuarios vean el boton de 3 puntos en sus propios perfiles y que so abra un menu contextual donde aparezca configuracion, y otro de papelera, la papelera es un modal grande no aparece una lista de lo que ha eliminado, incluyendo sus samples y publicaciones, los comentarios, mensajes y esas cosas no van a la papelera. 
+UI de papelera en perfil. **Backend:** PapeleraController.php con GET /papelera (lista items) y POST /papelera/restaurar (tipo+id), validación auth + rate limiting. Registrado en KamplesController. **Frontend:** papeleraStore.ts (Zustand: abierto, items, cargando, restaurandoIds + acciones abrir/cerrar/cargar/restaurar), usePapelera.ts (hook SRP), ModalPapelera.tsx (modal grande con lista de items, thumbnail, días restantes con colores según urgencia, botón restaurar con loading, skeleton de carga, estado vacío). **Menú contextual perfil refactorizado:** useMenuContextualPerfil ahora recibe `{ usuario, esPropietario }` — modo owner muestra Configuración + Papelera, modo visitante mantiene Reportar + Bloquear. Botón 3-puntos ahora visible para propietario y visitantes. PerfilIsland renderiza ModalPapelera. CSS: modalPapelera.css con variables del proyecto. Archivos: PapeleraController.php, KamplesController.php, papeleraStore.ts, usePapelera.ts, ModalPapelera.tsx, modalPapelera.css, useMenuContextualPerfil.tsx, usePerfilIsland.ts, PerfilIsland.tsx.
 
 ## QQ58 ✅ [AG-QQF]
 
@@ -431,9 +431,9 @@ El scrappy en el servidor (producción) no funciona, da este error, intuyo que l
 ------------------------------------------------------------
 /usr/bin/python3: No module named scrapy
 
-## QQ97
+## QQ97 ✅ [AG-SSL]
 
-Agrega en las reglas que los Problemas de quoting con las comillas de MySQL en PowerShell se evitan usando base64 (agrega en .github\instructions\test.instructions.md)
+Reglas de quoting base64 agregadas en `.github/instructions/test.instructions.md` bajo nueva sección **"8. Gotchas de Entorno PowerShell/SSH/VPS"**. Incluye: patrón base64 para MySQL/psql, alternativa SCP-script, heredoc imposible en PS5, pipes en SSH, labels Traefik obsoletas, verificación SSL por IP directa.
 
 ## QQ98
 
@@ -442,10 +442,10 @@ Empieza a trabajar en el plan-desktop-distribucion.md
 
 ## Despliegue Produccion (VPS Coolify)
 
-**Estado:** Funcional — sitio carga HTTP 200 con tema Kamples activo.
+**Estado:** ✅ Producción — `https://kamples.com` activo con SSL Let's Encrypt (válido hasta Jun 11 2026).
 
 - **Stack UUID:** `mo4so4440c488g8woow4cow0`
-- **URL temporal:** `http://wordpress-mo4so4440c488g8woow4cow0.66.94.100.241.sslip.io`
+- **URL produccion:** `https://kamples.com`
 - **WordPress:** Tema activo, SEO funcionando (OG, structured data, sitemaps), React islands cargando (CSS/JS enlazados)
 - **PostgreSQL 18:** pgvector 0.8.2, 28 tablas creadas (41 migraciones ejecutadas)
 - **React build:** Completado (Vite + prerender, dist/assets + dist/ssg)
@@ -468,6 +468,10 @@ Empieza a trabajar en el plan-desktop-distribucion.md
 
   - [SMTP/Docker]: `sendmail` no existe en el contenedor Docker WP. Usar mu-plugin que configura PHPMailer via SMTP externo. El mu-plugin `00-smtp-config.php` se genera y despliega automáticamente en cada `deploy --update` si existe config `smtp` en `settings.json` del coolify-manager-rs. Proveedor: Brevo (smtp-relay.brevo.com:587, TLS). Credenciales en `coolify-manager-rs/config/settings.json` bloque `smtp`.
   - [coolify-manager-rs settings.json]: El binario usa `config/settings.json` relativo a donde corre (`.agent/coolify-manager-rs/config/settings.json`), NO el del PowerShell manager (`.agent/coolify-manager/config/settings.json`).
+  - [Traefik labels/dominio]: Cuando se cambia el FQDN en Coolify, el archivo docker-compose en disco (`/data/coolify/services/{uuid}/docker-compose.yml`) se actualiza, pero el contenedor corriendo mantiene las labels antiguas. Para aplicar el nuevo dominio y obtener el certificado SSL, hay que recrear el contenedor: `cd /data/coolify/services/{uuid} && docker compose up -d --no-build --force-recreate wordpress`. Los datos persisten en volúmenes Docker.
+  - [SSL Let's Encrypt/Traefik]: Traefik emite el certificado automáticamente al detectar labels `traefik.http.routers.*.tls.certresolver=letsencrypt`. El cert se guarda en `/traefik/acme.json` dentro del contenedor `coolify-proxy`. Verificar emisión: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
+  - [DNS VPS interno]: El VPS puede resolver `kamples.com` a una IP diferente (DNS interno del proveedor). No afecta a usuarios externos (Google 8.8.8.8 y Cloudflare 1.1.1.1 resuelven a la IP correcta). Verificar SSL desde el servidor con `openssl s_client -connect {IP}:443 -servername kamples.com`.
+  - [Coolify DB]: Las "applications" de git/imagen están en tabla `applications`. Los stacks Docker Compose están en `services` + `service_applications` (con columna `fqdn`). El UUID del stack es `mo4so4440c488g8woow4cow0`, subapp wordpress tiene UUID `ng4kko8k0k4k0cswswos0ooo`.
 
 ## Comando para actualizar producción
 
