@@ -358,9 +358,7 @@ Archivos: ColeccionDetalleIsland.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx, 
 
 ## QQ83 
 
-Pequeño ajuste visual, artistaDetalleCanciones es inncesario, basta con que se vea igual artistaDetalleRelaciones, o sea una tabla de las canciones. en vez de verse diferente. 
-
-La imagen de perfil del artista que sea automaticamente cualquiera de la de sus portadas destacadas. 
+✅ [AG-SEC] Artista detalle canciones = tabla estilo TablaRelaciones + imagen perfil fallback. **Canciones:** Reemplazada lista flex (`artistaDetalleCancionFila` con buttons) por tabla HTML reutilizando clases `.tablaRelaciones*`. Columnas: portada, canción+album, año, género (badge). Filas clickables con navegación. **Imagen artista:** Fallback a `canciones[0].imagenUrl` cuando `artista.imagenUrl` es null — sin cambios backend, datos ya disponibles. Eliminados ~70 líneas de CSS dead code (`.artistaDetalleListaCanciones`, `.artistaDetalleCancionFila`, etc.). Archivos: ArtistaDetalleIsland.tsx, artistaDetalle.css.
 
 ## QQ84
 
@@ -372,11 +370,12 @@ Esta tarea es complicada si puedes adelantar todo lo que puedas sin requerir ayu
 
 ## QQ85 
 
-Sigo viendo el favicon de wordpress en vez que el de kamples
+✅ [AG-SEC] Favicon WordPress eliminado. `wp_site_icon` (prioridad 99) inyectaba el favicon de WP via `wp_head()` antes del custom `<link>` en header.php. Fix: `remove_action('wp_head', 'wp_site_icon', 99)` en SeoFrontendRenderer.php junto al `remove_action` existente de `rel_canonical`. Ahora solo se muestra el favicon SVG personalizado. Archivo: Glory/src/Seo/SeoFrontendRenderer.php.
+- [WP]: `wp_site_icon` se registra en prioridad 99, hay que especificarla en `remove_action` para que funcione.
 
 ## QQ86
 
-Los mensajes siguen sin marcarse como leidos, el boton sigue rojo, debería basta con verlos sin abrir los mensajes par que dejen de estar sin leer.
+✅ [AG-SEC] Mensajes se marcan como leídos al abrir dropdown. **Problema:** `DropdownMensajes` cargaba conversaciones pero nunca llamaba endpoint de marcar leídos — el badge rojo persistía indefinidamente. **Backend:** Nuevo endpoint `POST /mensajes/leer-todas` + `MensajesRepository::marcarTodosLeidosDeUsuario()` — UPDATE batch con JOIN a conversaciones del usuario. **Frontend:** `marcarTodasConversacionesLeidas()` en apiMensajes.ts, `marcarTodasLeidas()` en mensajesStore.ts. `useDropdownMensajes`: useEffect al montar que detecta `noLeidos > 0` → store local inmediato + API fire-and-forget. El badge rojo desaparece al abrir el dropdown. Archivos: MensajesRepository.php, MensajesController.php, apiMensajes.ts, mensajesStore.ts, useDropdownMensajes.ts.
 
 ## QQ87
 

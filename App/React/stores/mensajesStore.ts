@@ -33,6 +33,7 @@ interface EstadoMensajes {
     setCargandoMensajes: (v: boolean) => void;
     setEscribiendo: (v: boolean) => void;
     marcarConversacionLeida: (conversacionId: number) => void;
+    marcarTodasLeidas: () => void;
     actualizarUltimoMensaje: (conversacionId: number, contenido: string) => void;
     totalNoLeidos: () => number;
     necesitaRefrescar: () => boolean;
@@ -81,6 +82,13 @@ export const useMensajesStore = create<EstadoMensajes>((set, get) => ({
         set((state) => ({
             conversaciones: state.conversaciones.map((c) =>
                 c.id === conversacionId ? { ...c, noLeidos: 0 } : c
+            ),
+        })),
+
+    marcarTodasLeidas: () =>
+        set((state) => ({
+            conversaciones: state.conversaciones.map((c) =>
+                c.noLeidos > 0 ? { ...c, noLeidos: 0 } : c
             ),
         })),
 

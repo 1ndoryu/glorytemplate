@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useChatFlotanteStore } from '@app/stores/chatFlotanteStore';
 import { useMensajesStore } from '@app/stores/mensajesStore';
-import { obtenerConversaciones } from '@app/services/apiMensajes';
+import { obtenerConversaciones, marcarTodasConversacionesLeidas } from '@app/services/apiMensajes';
 import type { Conversacion } from '@app/types';
 
 type TabMensajes = 'principal' | 'solicitudes';
@@ -25,6 +25,7 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
     const setConversaciones = useMensajesStore(s => s.setConversaciones);
     const setCargandoConversaciones = useMensajesStore(s => s.setCargandoConversaciones);
     const necesitaRefrescar = useMensajesStore(s => s.necesitaRefrescar);
+    const marcarTodasLeidas = useMensajesStore(s => s.marcarTodasLeidas);
 
     /* QQ52: Tab activa — principal (mutuos) / solicitudes (no mutuos) */
     const [tabActiva, setTabActiva] = useState<TabMensajes>('principal');
@@ -53,6 +54,19 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
         });
         return () => { cancelado = true; };
     }, []);
+
+    /*
+     * QQ86: Al abrir el dropdown, marcar todas las conversaciones como leídas.
+     * Store local inmediato (badge desaparece), API fire-and-forget.
+     */
+    useEffect(() => {
+        if (!conversacionesCargadas) return;
+        const tieneNoLeidos = conversaciones.some((c) => c.noLeidos > 0);
+        if (!tieneNoLeidos) return;
+
+        marcarTodasLeidas();
+        marcarTodasConversacionesLeidas();
+    }, [conversacionesCargadas]);
 
     const abrirConversacion = useCallback((conv: Conversacion) => {
         abrirChat({

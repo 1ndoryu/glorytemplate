@@ -15,6 +15,7 @@ import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useArtistaDetalle } from '@app/hooks/useArtistaDetalle';
 import type { Cancion } from '@app/types/cancion';
 import '../../styles/componentes/artistaDetalle.css';
+import '../../styles/componentes/tablaRelaciones.css';
 import '../../styles/componentes/seccionRelaciones.css';
 
 const TABS_ARTISTA = [
@@ -61,13 +62,18 @@ export const ArtistaDetalleIsland = ({ slug }: ArtistaDetalleProps): JSX.Element
 
     const { artista, canciones, sampleadoPor, sampleaA, estadisticas } = datos;
 
+    /* QQ83: Imagen del artista — fallback a portada de cualquiera de sus canciones */
+    const imagenArtista = artista.imagenUrl
+        ?? canciones.find((c: Cancion) => c.imagenUrl)?.imagenUrl
+        ?? null;
+
     return (
         <div className="artistaDetalleContenedor" id="seccionArtistaDetalle">
             {/* Cabecera */}
             <div className="artistaDetalleCabecera">
                 <div className="artistaDetalleImagen">
-                    {artista.imagenUrl ? (
-                        <img src={artista.imagenUrl} alt={artista.nombre} loading="lazy" />
+                    {imagenArtista ? (
+                        <img src={imagenArtista} alt={artista.nombre} loading="lazy" />
                     ) : (
                         <User size={48} color="var(--textoTerciario)" />
                     )}
@@ -99,52 +105,68 @@ export const ArtistaDetalleIsland = ({ slug }: ArtistaDetalleProps): JSX.Element
                 </div>
             </div>
 
-            {/* Tab: Canciones */}
+            {/* Tab: Canciones — tabla estilo TablaRelaciones */}
             {tabActiva === 'canciones' && (
                 <div className="artistaDetalleCanciones">
                     {canciones.length === 0 ? (
                         <p className="artistaDetalleSinDatos">Sin canciones registradas.</p>
                     ) : (
-                        <div className="artistaDetalleListaCanciones">
-                            {canciones.map((c: Cancion) => (
-                                <BotonBase
-                                    key={c.id}
-                                    variante="ghost"
-                                    tamano="ninguno"
-                                    anchoCompleto
-                                    className="artistaDetalleCancionFila"
-                                    onClick={() => irACancion(c.slug)}
-                                >
-                                    <div className="artistaDetalleCancionPortada">
-                                        {c.imagenUrl ? (
-                                            <img src={c.imagenUrl} alt={c.titulo} loading="lazy" />
-                                        ) : (
-                                            <Music size={20} color="var(--textoTerciario)" />
-                                        )}
-                                    </div>
-                                    <div className="artistaDetalleCancionInfo">
-                                        <span className="artistaDetalleCancionTitulo">{c.titulo}</span>
-                                        <span className="artistaDetalleCancionMeta">
-                                            {c.anio && <span>{c.anio}</span>}
-                                            {c.album && <span>{c.album}</span>}
-                                            {c.genero && <span>{c.genero}</span>}
-                                        </span>
-                                    </div>
-                                    <div className="artistaDetalleCancionStats">
-                                        {c.totalSampleada > 0 && (
-                                            <Badge variante="neutro" tamano="sm">
-                                                Sampleada {c.totalSampleada}
-                                            </Badge>
-                                        )}
-                                        {c.totalSamplea > 0 && (
-                                            <Badge variante="neutro" tamano="sm">
-                                                Samplea {c.totalSamplea}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </BotonBase>
-                            ))}
-                        </div>
+                        <table className="tablaRelaciones">
+                            <thead>
+                                <tr>
+                                    <th className="tablaRelacionesColImagen" aria-label="Portada" />
+                                    <th className="tablaRelacionesColCancion">Canción</th>
+                                    <th className="tablaRelacionesColAnio">Año</th>
+                                    <th className="tablaRelacionesColElemento">Género</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {canciones.map((c: Cancion) => (
+                                    <tr
+                                        key={c.id}
+                                        className="tablaRelacionesFila"
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => irACancion(c.slug)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                irACancion(c.slug);
+                                            }
+                                        }}
+                                    >
+                                        <td className="tablaRelacionesColImagen">
+                                            {c.imagenUrl ? (
+                                                <img
+                                                    src={c.imagenUrl}
+                                                    alt=""
+                                                    className="tablaRelacionesImagen"
+                                                    loading="lazy"
+                                                />
+                                            ) : (
+                                                <div className="tablaRelacionesImagenVacia">
+                                                    <Music size={18} />
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="tablaRelacionesColCancion">
+                                            <span className="tablaRelacionesTitulo">{c.titulo}</span>
+                                            {c.album && (
+                                                <span className="tablaRelacionesArtista">{c.album}</span>
+                                            )}
+                                        </td>
+                                        <td className="tablaRelacionesColAnio">
+                                            {c.anio ?? '—'}
+                                        </td>
+                                        <td className="tablaRelacionesColElemento">
+                                            {c.genero ? (
+                                                <Badge variante="neutro" tamano="xs">{c.genero}</Badge>
+                                            ) : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
             )}

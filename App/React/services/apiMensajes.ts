@@ -102,6 +102,16 @@ export const marcarConversacionLeida = async (
     }
 };
 
+/* Marcar TODAS las conversaciones como leídas */
+export const marcarTodasConversacionesLeidas = async (): Promise<RespuestaApi<void>> => {
+    try {
+        return await apiPost<void>('/mensajes/leer-todas');
+    } catch (err) {
+        log.error('Error marcando todas las conversaciones leídas', err);
+        return { ok: false, data: null, error: 'Error de red', status: 500 };
+    }
+};
+
 /* Iniciar nueva conversación con un usuario */
 export const iniciarConversacion = async (
     usuarioId: number

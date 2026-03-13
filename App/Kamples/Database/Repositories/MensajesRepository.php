@@ -149,4 +149,24 @@ class MensajesRepository extends BaseRepository
             ['convId' => $convId, 'userId' => $userId]
         );
     }
+
+    /*
+     * Marcar como leídos TODOS los mensajes no leídos del usuario en TODAS sus conversaciones.
+     * Usado cuando el usuario abre el dropdown de mensajes — equivale a "ver" todos.
+     */
+    public static function marcarTodosLeidosDeUsuario(int $userId): void
+    {
+        $tabla = MensajesCols::TABLA;
+        $tablaConv = 'conversaciones';
+
+        static::ejecutar(
+            "UPDATE {$tabla} m SET " . MensajesCols::LEIDO . " = true
+             FROM {$tablaConv} c
+             WHERE m." . MensajesCols::CONVERSACION_ID . " = c.id
+               AND (c.participante_1 = :userId OR c.participante_2 = :userId)
+               AND m." . MensajesCols::AUTOR_ID . " != :userId2
+               AND m." . MensajesCols::LEIDO . " = false",
+            ['userId' => $userId, 'userId2' => $userId]
+        );
+    }
 }

@@ -64,6 +64,12 @@ class MensajesController
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
+        register_rest_route($namespace, '/mensajes/leer-todas', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'marcarTodasLeidas'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
         register_rest_route($namespace, '/mensajes/nueva', [
             'methods'             => 'POST',
             'callback'            => [self::class, 'iniciarConversacion'],
@@ -183,6 +189,27 @@ class MensajesController
         return new \WP_REST_Response(['ok' => true], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en MensajesController::marcarLeida', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return new \WP_REST_Response([
+                'code' => 'error_interno',
+                'message' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    public static function marcarTodasLeidas(): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            MensajesRepository::marcarTodosLeidosDeUsuario($userId);
+
+            return new \WP_REST_Response(['ok' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en MensajesController::marcarTodasLeidas', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
