@@ -451,10 +451,14 @@ class NormalizadorSample
         $ceLado = ColaExtraccionSamplesCols::LADO;
         $ceSpotifyId = ColaExtraccionSamplesCols::SPOTIFY_ID;
         $ceSampleId = ColaExtraccionSamplesCols::SAMPLE_ID;
+        $ceBpmDetectado = ColaExtraccionSamplesCols::BPM_DETECTADO;
+        $ceDuracionCompas = ColaExtraccionSamplesCols::DURACION_COMPAS_SEG;
+        $ceEstado = ColaExtraccionSamplesCols::ESTADO;
         $extraccionExpr = "(SELECT row_to_json(ex.*) FROM (
             SELECT ce.{$ceMetadata}, ce.{$ceYoutubeId}, ce.{$ceTimingInicio},
                    ce.{$ceCompasInicio}, ce.{$ceCompasFin}, ce.{$ceRuta},
-                   ce.{$ceLado}, ce.{$ceSpotifyId}
+                   ce.{$ceLado}, ce.{$ceSpotifyId},
+                   ce.{$ceBpmDetectado}, ce.{$ceDuracionCompas}, ce.{$ceEstado}
             FROM {$tCe} ce WHERE ce.{$ceSampleId} = s.{$sId}
             LIMIT 1
         ) ex) AS extraccion_json";

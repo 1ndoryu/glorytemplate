@@ -175,6 +175,16 @@ export const TopBar = (): JSX.Element => {
             icono: <LogOut size={14} />,
             peligro: true,
             onClick: async () => {
+                /* QQ132-B: Limpiar Tauri Store antes de cerrar sesion (desktop) */
+                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                    try {
+                        const modPath = '@desktop' + '/services/authDesktopService';
+                        const m = await import(/* @vite-ignore */ modPath);
+                        await m.cerrarSesionDesktop();
+                    } catch {
+                        /* En web no existe el modulo — ignorar */
+                    }
+                }
                 await apiCerrarSesion();
                 /* Recarga completa para invalidar nonces WP y estado React */
                 window.location.href = '/';

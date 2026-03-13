@@ -179,6 +179,9 @@ export interface SampleResumen {
     esMio?: boolean;
     /* QQ11: true si el usuario ya compró este sample (transaccion compra_sample completada) */
     yaComprado?: boolean;
+    /* QQ51: relaciones de sampleo (columna DB, siempre viene del backend) */
+    cancionOrigenId?: number | null;
+    relacionSampleoId?: number | null;
 }
 
 /* Importamos referencia para evitar circular */

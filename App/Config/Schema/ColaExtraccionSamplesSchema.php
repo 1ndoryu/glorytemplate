@@ -35,6 +35,7 @@ class ColaExtraccionSamplesSchema extends TableSchema
             'lado'                => ['tipo' => 'string', 'max' => 10, 'default' => 'fuente', 'check' => ['fuente', 'destino']],
             'spotify_id'          => ['tipo' => 'string', 'max' => 30, 'nullable' => true],
             'ruta_audio_extraido' => ['tipo' => 'text', 'nullable' => true],
+            'ruta_audio_completo' => ['tipo' => 'text', 'nullable' => true],
             'metadata_extraccion' => ['tipo' => 'jsonb', 'nullable' => true],
             'proximo_intento_at' => ['tipo' => 'datetime', 'nullable' => true],
         ];

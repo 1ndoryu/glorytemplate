@@ -25,6 +25,7 @@ final class ColaExtraccionSamplesDTO
         public readonly string $lado,
         public readonly ?string $spotifyId,
         public readonly ?string $rutaAudioExtraido,
+        public readonly ?string $rutaAudioCompleto,
         public readonly ?array $metadataExtraccion,
         public readonly ?string $proximoIntentoAt
     ) {}
@@ -53,6 +54,7 @@ final class ColaExtraccionSamplesDTO
             lado: ($row['lado'] ?? 'fuente'),
             spotifyId: isset($row['spotify_id']) ? $row['spotify_id'] : null,
             rutaAudioExtraido: isset($row['ruta_audio_extraido']) ? $row['ruta_audio_extraido'] : null,
+            rutaAudioCompleto: isset($row['ruta_audio_completo']) ? $row['ruta_audio_completo'] : null,
             metadataExtraccion: isset($row['metadata_extraccion']) ? (is_string($row['metadata_extraccion']) ? json_decode($row['metadata_extraccion'], true) : $row['metadata_extraccion']) : null,
             proximoIntentoAt: isset($row['proximo_intento_at']) ? $row['proximo_intento_at'] : null
         );
@@ -89,6 +91,7 @@ final class ColaExtraccionSamplesDTO
             'lado' => $this->lado,
             'spotify_id' => $this->spotifyId,
             'ruta_audio_extraido' => $this->rutaAudioExtraido,
+            'ruta_audio_completo' => $this->rutaAudioCompleto,
             'metadata_extraccion' => $this->metadataExtraccion,
             'proximo_intento_at' => $this->proximoIntentoAt];
     }

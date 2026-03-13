@@ -1,0 +1,57 @@
+/*
+ * Estilos para paginas legales (Privacidad, Terminos).
+ * Diseno limpio y legible con la paleta oscura de Kamples.
+ */
+
+.contenedorLegal {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--espacioGrande) var(--espacioMedio);
+    color: var(--textoPrimario);
+    line-height: 1.7;
+}
+
+.tituloLegal {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: var(--espacioChico);
+    color: var(--blanco);
+}
+
+.fechaLegal {
+    font-size: 0.85rem;
+    color: var(--textoSecundario);
+    margin-bottom: var(--espacioGrande);
+    border-bottom: 1px solid var(--bordeSutil);
+    padding-bottom: var(--espacioMedio);
+}
+
+.seccionLegal {
+    margin-bottom: var(--espacioGrande);
+}
+
+.seccionLegal h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--blanco);
+    margin-bottom: var(--espacioChico);
+}
+
+.seccionLegal p {
+    margin-bottom: var(--espacioChico);
+    color: var(--textoSecundario);
+}
+
+.seccionLegal ul {
+    padding-left: 1.5rem;
+    margin-bottom: var(--espacioChico);
+}
+
+.seccionLegal li {
+    margin-bottom: 0.4rem;
+    color: var(--textoSecundario);
+}
+
+.seccionLegal strong {
+    color: var(--textoPrimario);
+}

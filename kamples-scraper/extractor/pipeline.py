@@ -9,7 +9,7 @@ Python solo marca la cola como 'extraido' con la ruta del archivo.
 PHP (DevController::publicarExtracciones) se encarga de la publicacion real.
 
 Ejecutar:
-  python -m extractor.pipeline --limit 20
+  python -m extractor.pipeline --limit 100
   python -m extractor.pipeline --continuo --limite-diario 2000 --intervalo 60
 
 Modo continuo: procesa lotes, auto-encola relaciones sin samples cuando la cola
@@ -46,7 +46,7 @@ MAX_INTENTOS = 5
 BACKOFF_MAX_DIAS = 4
 
 
-def obtener_pendientes(limit: int = 10) -> list[dict]:
+def obtener_pendientes(limit: int = 100) -> list[dict]:
     """Obtener elementos pendientes de la cola de extracción (bilateral)."""
     conn = get_connection()
     try:
@@ -71,6 +71,7 @@ def obtener_pendientes(limit: int = 10) -> list[dict]:
                 "AND (ce.proximo_intento_at IS NULL OR ce.proximo_intento_at <= NOW()) "
                 "ORDER BY "
                 "  CASE WHEN ce.intentos = 0 THEN 0 ELSE 1 END ASC, "
+                "  GREATEST(COALESCE(a_fuente.prioridad, 0), COALESCE(a_dest.prioridad, 0)) DESC, "
                 "  rs.votos_total DESC NULLS LAST, "
                 "  ce.created_at ASC "
                 "LIMIT %s",
@@ -131,11 +132,16 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
     timing = item["timing_inicio_seg"]
     lado = item.get("lado", "fuente")
 
+    # QQ137: Usar artista/titulo del lado correspondiente para busqueda SoundCloud
+    prefijo_lado = "destino" if lado == "destino" else "fuente"
+    artista_lado = item.get(f"{prefijo_lado}_artista", "")
+    titulo_lado = item.get(f"{prefijo_lado}_titulo", "")
+
     logger.info(
         "Procesando cola_id=%d lado=%s: %s - %s [timing=%ds] yt=%s spotify=%s",
         cola_id, lado,
-        item.get("fuente_artista", ""),
-        item.get("fuente_titulo", ""),
+        artista_lado,
+        titulo_lado,
         timing,
         youtube_id or "N/A",
         spotify_id or "N/A",
@@ -152,8 +158,8 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         resultado_descarga = descargar_audio(
             youtube_id, output_dir,
             spotify_id=spotify_id,
-            artista=item.get("fuente_artista"),
-            titulo=item.get("fuente_titulo"),
+            artista=artista_lado,
+            titulo=titulo_lado,
             timing_seg=timing,
         )
         if not resultado_descarga:
@@ -232,6 +238,7 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
             audio_path=recorte_path,
             metadata_cancion=metadata_cancion,
             lado=lado,
+            ruta_audio_completo=wav_path,
         )
 
         if ok:
@@ -257,9 +264,12 @@ def procesar_elemento(item: dict, output_dir: str) -> bool:
         item["_motivo_fallo"] = f"excepcion: {type(e).__name__}"
         return False
     finally:
-        # Limpiar archivo descargado completo (no el recortado, ese se guarda)
+        # Limpiar audio completo SOLO si la extraccion fallo.
+        # Si fue exitosa, PHP copiara el archivo a uploads persistente y lo limpiara.
         if wav_path and wav_path != recorte_path:
-            limpiar_audio(wav_path)
+            extraccion_exitosa = item.get("_motivo_fallo") is None
+            if not extraccion_exitosa:
+                limpiar_audio(wav_path)
 
 
 def notificar_publicacion(exitosos: int) -> None:
@@ -335,8 +345,11 @@ def auto_encolar_pendientes(limit: int = 50) -> int:
                 "FROM relaciones_sample rs "
                 "JOIN canciones c_fuente ON rs.cancion_fuente_id = c_fuente.id "
                 "JOIN canciones c_dest ON rs.cancion_destino_id = c_dest.id "
+                "JOIN artistas_musicales a_fuente ON c_fuente.artista_id = a_fuente.id "
+                "JOIN artistas_musicales a_dest ON c_dest.artista_id = a_dest.id "
                 "WHERE rs.sample_fuente_id IS NULL OR rs.sample_destino_id IS NULL "
-                "ORDER BY rs.votos_total DESC NULLS LAST "
+                "ORDER BY GREATEST(COALESCE(a_fuente.prioridad, 0), COALESCE(a_dest.prioridad, 0)) DESC, "
+                "  rs.votos_total DESC NULLS LAST "
                 "LIMIT %s",
                 (limit,),
             )
@@ -393,7 +406,7 @@ def auto_encolar_pendientes(limit: int = 50) -> int:
 
 def main():
     parser = argparse.ArgumentParser(description="Pipeline de extraccion de audio Kamples")
-    parser.add_argument("--limit", type=int, default=10, help="Maximo de items a procesar por lote")
+    parser.add_argument("--limit", type=int, default=100, help="Maximo de items a procesar por lote")
     parser.add_argument("--output-dir", type=str, default=None, help="Directorio de salida")
     parser.add_argument(
         "--continuo", action="store_true",
@@ -411,6 +424,14 @@ def main():
         "--espera-vacio", type=int, default=1800,
         help="Segundos de espera cuando la cola esta vacia (default: 1800 = 30 min)",
     )
+    parser.add_argument(
+        "--jitter-min", type=float, default=60.0,
+        help="Jitter aleatorio minimo en segundos entre items (default: 60 = 1 min)",
+    )
+    parser.add_argument(
+        "--jitter-max", type=float, default=300.0,
+        help="Jitter aleatorio maximo en segundos entre items (default: 300 = 5 min)",
+    )
     args = parser.parse_args()
 
     output_dir = args.output_dir or os.getenv("AUDIO_TMP_DIR", tempfile.gettempdir())
@@ -419,11 +440,14 @@ def main():
     limiter = RateLimiter(
         intervalo_seg=args.intervalo,
         limite_diario=args.limite_diario,
+        jitter_min_seg=args.jitter_min,
+        jitter_max_seg=args.jitter_max,
     )
     logger.info(
-        "Pipeline iniciado — modo=%s, intervalo=%.0fs, limite_diario=%d, restantes_hoy=%d",
+        "Pipeline iniciado — modo=%s, intervalo=%.0fs, jitter=%.0fs-%.0fs, limite_diario=%d, restantes_hoy=%d",
         "continuo" if args.continuo else "lote",
-        args.intervalo, args.limite_diario, limiter.restantes_hoy,
+        args.intervalo, args.jitter_min, args.jitter_max,
+        args.limite_diario, limiter.restantes_hoy,
     )
 
     while True:

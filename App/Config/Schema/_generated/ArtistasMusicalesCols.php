@@ -17,9 +17,10 @@ final class ArtistasMusicalesCols
     const MUSICBRAINZ_ID = 'musicbrainz_id';
     const METADATA = 'metadata';
     const TOTAL_CANCIONES = 'total_canciones';
+    const PRIORIDAD = 'prioridad';
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     /* Lista completa de columnas para validación */
-    const TODAS = ['id', 'nombre', 'slug', 'imagen_url', 'whosampled_slug', 'musicbrainz_id', 'metadata', 'total_canciones', 'created_at', 'updated_at'];
+    const TODAS = ['id', 'nombre', 'slug', 'imagen_url', 'whosampled_slug', 'musicbrainz_id', 'metadata', 'total_canciones', 'prioridad', 'created_at', 'updated_at'];
 }

@@ -196,7 +196,17 @@ export const useAuth = () => {
         dispararGoogle();
     }, [dispararGoogle]);
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
+        /* QQ132-B: Limpiar Tauri Store antes de cerrar sesion (desktop) */
+        if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+            try {
+                const modPath = '@desktop' + '/services/authDesktopService';
+                const m = await import(/* @vite-ignore */ modPath);
+                await m.cerrarSesionDesktop();
+            } catch {
+                /* En web no existe el modulo — ignorar */
+            }
+        }
         cerrarSesion();
         useNavigationStore.getState().navegar('/');
     }, [cerrarSesion]);

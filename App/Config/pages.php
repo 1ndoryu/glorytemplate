@@ -176,6 +176,10 @@ PageManager::registrarRutaDinamica('artista', ':slug');
 PageManager::reactPage('componentes', 'ShowcaseIsland');
 PageManager::reactPage('dev/componentes', 'ShowcaseIsland');
 
+/* Paginas legales */
+PageManager::reactPage('privacy', 'PrivacidadIsland');
+PageManager::reactPage('terms', 'TerminosIsland');
+
 /* Paginas con templates PHP personalizados
  * Usa define() cuando necesitas:
  * - Logica PHP compleja para obtener props

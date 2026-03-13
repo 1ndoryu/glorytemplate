@@ -65,9 +65,6 @@ class ServicioExtensionRecorte
             }
 
             $youtubeId = $cola[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
-            if (!$youtubeId) {
-                return ['ok' => false, 'mensaje' => 'No hay YouTube ID asociado a este sample'];
-            }
 
             $inicioActual = (float) ($cola[ColaExtraccionSamplesCols::COMPAS_INICIO_SEG] ?? 0);
             $finActual = (float) ($cola[ColaExtraccionSamplesCols::COMPAS_FIN_SEG] ?? 0);
@@ -92,16 +89,34 @@ class ServicioExtensionRecorte
                 return ['ok' => false, 'mensaje' => 'La duracion resultante es muy corta'];
             }
 
-            /* 3. Descargar audio completo de YouTube */
+            /* 3. Obtener audio completo: usar guardado si existe, o descargar de YouTube */
             $tmpDir = null;
             try {
-                $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
-                $rutaDescarga = AyudanteDescargaAudio::descargarAudioYoutube($youtubeId, $tmpDir);
-                if (!$rutaDescarga) {
-                    return ['ok' => false, 'mensaje' => 'No se pudo descargar el audio de YouTube. Intenta de nuevo.'];
+                $rutaAudioCompleto = self::obtenerRutaAudioCompleto($cola);
+                $rutaDescarga = null;
+                $usaAudioGuardado = false;
+
+                if ($rutaAudioCompleto) {
+                    $rutaDescarga = $rutaAudioCompleto;
+                    $usaAudioGuardado = true;
+                    KamplesLogger::info('[QQ130] Usando audio completo guardado', [
+                        'sampleId' => $sampleId, 'ruta' => $rutaAudioCompleto,
+                    ]);
+                } else {
+                    if (!$youtubeId) {
+                        return ['ok' => false, 'mensaje' => 'No hay audio completo guardado ni YouTube ID para descargar'];
+                    }
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                    $rutaDescarga = AyudanteDescargaAudio::descargarAudioYoutube($youtubeId, $tmpDir);
+                    if (!$rutaDescarga) {
+                        return ['ok' => false, 'mensaje' => 'No se pudo descargar el audio de YouTube. Intenta de nuevo.'];
+                    }
                 }
 
                 /* 4. Recortar con nuevo timing */
+                if (!$tmpDir) {
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                }
                 $rutaRecorte = $tmpDir . '/recorte_' . $sampleId . '.mp3';
                 $exito = AyudanteDescargaAudio::recortarConFFmpeg($rutaDescarga, $nuevoInicio, $nuevaDuracion, $rutaRecorte);
                 if (!$exito) {
@@ -173,9 +188,6 @@ class ServicioExtensionRecorte
             }
 
             $youtubeId = $cola[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
-            if (!$youtubeId) {
-                return ['ok' => false, 'mensaje' => 'No hay YouTube ID asociado'];
-            }
 
             /* El nuevo segmento empieza donde termina el actual */
             $finActual = (float) ($cola[ColaExtraccionSamplesCols::COMPAS_FIN_SEG] ?? 0);
@@ -190,13 +202,25 @@ class ServicioExtensionRecorte
 
             $tmpDir = null;
             try {
-                $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
-                $rutaDescarga = AyudanteDescargaAudio::descargarAudioYoutube($youtubeId, $tmpDir);
-                if (!$rutaDescarga) {
-                    return ['ok' => false, 'mensaje' => 'No se pudo descargar el audio de YouTube'];
+                $rutaAudioCompleto = self::obtenerRutaAudioCompleto($cola);
+                $rutaDescarga = null;
+                $usaAudioGuardado = false;
+
+                if ($rutaAudioCompleto) {
+                    $rutaDescarga = $rutaAudioCompleto;
+                    $usaAudioGuardado = true;
+                } else {
+                    if (!$youtubeId) {
+                        return ['ok' => false, 'mensaje' => 'No hay audio completo guardado ni YouTube ID para descargar'];
+                    }
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                    $rutaDescarga = AyudanteDescargaAudio::descargarAudioYoutube($youtubeId, $tmpDir);
+                    if (!$rutaDescarga) {
+                        return ['ok' => false, 'mensaje' => 'No se pudo descargar el audio de YouTube'];
+                    }
                 }
 
-                /* Verificar que el audio descargado es suficientemente largo */
+                /* Verificar que el audio es suficientemente largo */
                 $ffprobeBin = FFmpegDetector::obtenerFFprobe();
                 if ($ffprobeBin) {
                     $duracionTotal = ProcesadorFFmpeg::calcularDuracion($rutaDescarga, $ffprobeBin);
@@ -206,6 +230,9 @@ class ServicioExtensionRecorte
                 }
 
                 /* Recortar nuevo segmento */
+                if (!$tmpDir) {
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                }
                 $rutaRecorte = $tmpDir . '/siguiente_' . $sampleId . '.mp3';
                 $exito = AyudanteDescargaAudio::recortarConFFmpeg($rutaDescarga, $nuevoInicio, $duracionSeg, $rutaRecorte);
                 if (!$exito) {
@@ -258,6 +285,26 @@ class ServicioExtensionRecorte
     private static function obtenerDatosExtraccion(int $sampleId): ?array
     {
         return ColaExtraccionSamplesRepository::buscarPorSampleId($sampleId);
+    }
+
+    /**
+     * QQ130-C: Obtiene la ruta del audio completo guardado, verificando que el archivo exista.
+     * Retorna null si no hay audio guardado o si el archivo fue eliminado.
+     */
+    private static function obtenerRutaAudioCompleto(array $cola): ?string
+    {
+        $ruta = $cola[ColaExtraccionSamplesCols::RUTA_AUDIO_COMPLETO] ?? '';
+        if ($ruta === '') {
+            return null;
+        }
+        if (!\file_exists($ruta)) {
+            KamplesLogger::warning('[QQ130-C] Audio completo registrado pero archivo no encontrado', [
+                'ruta' => $ruta,
+                'colaId' => $cola[ColaExtraccionSamplesCols::ID] ?? null,
+            ]);
+            return null;
+        }
+        return $ruta;
     }
 
     /**

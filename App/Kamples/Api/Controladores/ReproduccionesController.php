@@ -56,7 +56,7 @@ class ReproduccionesController
         register_rest_route($namespace, '/samples/(?P<id>\d+)/similares', [
             'methods' => 'GET', 'callback' => [self::class, 'similares'],
             'permission_callback' => '__return_true',
-            'args' => ['limite' => ['required' => false, 'type' => 'integer', 'default' => 5]],
+            'args' => ['limite' => ['required' => false, 'type' => 'integer', 'default' => 26, 'sanitize_callback' => function ($v) { return min(max(1, (int) $v), 50); }]],
         ]);
     }
 

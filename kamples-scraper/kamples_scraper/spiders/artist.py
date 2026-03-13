@@ -29,20 +29,43 @@ class ArtistSpider(scrapy.Spider):
     MAX_ARTIST_PAGES = 10
     MAX_TRACK_PAGES = 5
 
+    # Artistas con prioridad en el sistema, se scraper primero con -a priority=true
+    ARTISTAS_PRIORITARIOS = [
+        "https://www.whosampled.com/DJ-Smokey/",
+        "https://www.whosampled.com/Soudiere/",
+        "https://www.whosampled.com/Juicy-J/",
+        "https://www.whosampled.com/Three-6-Mafia/",
+        "https://www.whosampled.com/Project-Pat/",
+        "https://www.whosampled.com/Tyler,-The-Creator/",
+        "https://www.whosampled.com/Freddie-Dredd/",
+        "https://www.whosampled.com/Kanye-West/",
+        "https://www.whosampled.com/Daft-Punk/",
+    ]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_artists = int(getattr(self, "max_artists", "100"))
         self.artists_scraped = 0
+        self.priority_mode = getattr(self, "priority", "").lower() in ("true", "1", "yes")
 
     def start_requests(self):
         """
         Punto de entrada. Acepta:
         - start_url: URL directa de un artista
-        - Sin args: empieza por la lista de más sampleados
+        - priority=true: scrapea artistas prioritarios primero, luego continua con los mas sampleados
+        - Sin args: empieza por la lista de mas sampleados
+        Uso: scrapy crawl artist -a priority=true
         """
         start_url = getattr(self, "start_url", "")
         if start_url:
             yield scrapy.Request(start_url, callback=self.parse_artist)
+        elif self.priority_mode:
+            for url in self.ARTISTAS_PRIORITARIOS:
+                yield scrapy.Request(url, callback=self.parse_artist, priority=10)
+            yield scrapy.Request(
+                "https://www.whosampled.com/most-sampled-artists/",
+                callback=self.parse_artist_list,
+            )
         else:
             yield scrapy.Request(
                 "https://www.whosampled.com/most-sampled-artists/",

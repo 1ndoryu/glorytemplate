@@ -16,6 +16,7 @@ final class ArtistasMusicalesDTO
         public readonly ?string $musicbrainzId,
         public readonly array $metadata,
         public readonly int $totalCanciones,
+        public readonly int $prioridad,
         public readonly string $createdAt,
         public readonly string $updatedAt
     ) {}
@@ -35,6 +36,7 @@ final class ArtistasMusicalesDTO
             musicbrainzId: isset($row['musicbrainz_id']) ? $row['musicbrainz_id'] : null,
             metadata: isset($row['metadata']) ? (is_string($row['metadata']) ? json_decode($row['metadata'], true) ?? [] : $row['metadata']) : [],
             totalCanciones: (int) ($row['total_canciones'] ?? 0),
+            prioridad: (int) ($row['prioridad'] ?? 0),
             createdAt: ($row['created_at'] ?? date('Y-m-d H:i:s')),
             updatedAt: ($row['updated_at'] ?? date('Y-m-d H:i:s'))
         );
@@ -62,6 +64,7 @@ final class ArtistasMusicalesDTO
             'musicbrainz_id' => $this->musicbrainzId,
             'metadata' => $this->metadata,
             'total_canciones' => $this->totalCanciones,
+            'prioridad' => $this->prioridad,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt];
     }

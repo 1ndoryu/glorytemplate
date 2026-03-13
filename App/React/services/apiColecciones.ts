@@ -178,7 +178,12 @@ export const actualizarColeccion = async (
     id: number,
     datos: Partial<{ nombre: string; descripcion: string; esPublica: boolean; imagenUrl: string | null }>
 ): Promise<RespuestaApi<Coleccion>> => {
-    return apiPut<Coleccion>(`/colecciones/${id}`, datos);
+    const body: Record<string, unknown> = {};
+    if (datos.nombre !== undefined) body.nombre = datos.nombre;
+    if (datos.descripcion !== undefined) body.descripcion = datos.descripcion;
+    if (datos.esPublica !== undefined) body.publica = datos.esPublica;
+    if (datos.imagenUrl !== undefined) body.imagen_url = datos.imagenUrl;
+    return apiPut<Coleccion>(`/colecciones/${id}`, body);
 };
 
 /* Subir/reemplazar imagen de portada de la colección */

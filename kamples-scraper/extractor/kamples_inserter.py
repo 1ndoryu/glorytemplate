@@ -27,6 +27,7 @@ def registrar_extraccion(
     audio_path: str,
     metadata_cancion: dict,
     lado: str = "fuente",
+    ruta_audio_completo: str | None = None,
 ) -> bool:
     """
     Marca un item de la cola como extraido con la ruta del audio y metadata.
@@ -68,6 +69,7 @@ def registrar_extraccion(
                 "UPDATE cola_extraccion_samples "
                 "SET estado = %s, "
                 "    ruta_audio_extraido = %s, "
+                "    ruta_audio_completo = %s, "
                 "    metadata_extraccion = %s, "
                 "    bpm_detectado = %s, "
                 "    duracion_compas_seg = %s, "
@@ -77,6 +79,7 @@ def registrar_extraccion(
                 (
                     "extraido",
                     audio_path,
+                    ruta_audio_completo,
                     json.dumps(metadata_extraccion),
                     int(recorte.bpm) if recorte.bpm else None,
                     recorte.duracion_compas,

@@ -209,7 +209,44 @@ class PublicadorExtraccion
                 ]);
             }
 
-            /* Limpiar archivo temporal (ya copiado a uploads) */
+            /* QQ130-C: Copiar audio completo a uploads persistente para re-uso en extension de recortes */
+            $rutaAudioCompleto = $item[ColaExtraccionSamplesCols::RUTA_AUDIO_COMPLETO] ?? '';
+            if ($rutaAudioCompleto !== '' && \file_exists($rutaAudioCompleto)) {
+                try {
+                    $dirCompleto = self::directorioUploadsAudioCompleto();
+                    $nombreCompleto = \basename($rutaAudioCompleto);
+                    $rutaCompletoPersistente = $dirCompleto . '/' . $nombreCompleto;
+
+                    if (\copy($rutaAudioCompleto, $rutaCompletoPersistente)) {
+                        ColaExtraccionSamplesRepository::ejecutar(
+                            "UPDATE " . ColaExtraccionSamplesCols::TABLA
+                            . " SET " . ColaExtraccionSamplesCols::RUTA_AUDIO_COMPLETO . " = :ruta"
+                            . " WHERE " . ColaExtraccionSamplesCols::ID . " = :id",
+                            ['ruta' => $rutaCompletoPersistente, 'id' => $colaId]
+                        );
+
+                        /* Limpiar temporal del scraper */
+                        try {
+                            \unlink($rutaAudioCompleto);
+                        } catch (\Throwable $e) {
+                            KamplesLogger::warning('[PUB-EXTRACCION] No se pudo eliminar audio completo temporal', [
+                                'ruta' => $rutaAudioCompleto,
+                            ]);
+                        }
+                    } else {
+                        KamplesLogger::warning('[PUB-EXTRACCION] No se pudo copiar audio completo a uploads', [
+                            'origen' => $rutaAudioCompleto,
+                            'destino' => $rutaCompletoPersistente,
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    KamplesLogger::warning('[PUB-EXTRACCION] Error copiando audio completo', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            /* Limpiar archivo temporal del recorte (ya copiado a uploads) */
             if ($rutaAudio !== $rutaFinal && \file_exists($rutaAudio)) {
                 try {
                     \unlink($rutaAudio);
@@ -337,6 +374,22 @@ class PublicadorExtraccion
     {
         $uploadsDir = \wp_upload_dir();
         $base = $uploadsDir['basedir'] . '/kamples/0/' . date('Y') . '/' . date('m');
+
+        if (!\is_dir($base)) {
+            \wp_mkdir_p($base);
+        }
+
+        return $base;
+    }
+
+    /**
+     * QQ130-C: Directorio persistente para audio completo de YouTube/SoundCloud.
+     * Se usa para re-cortar sin re-descargar en extension de recortes.
+     */
+    private static function directorioUploadsAudioCompleto(): string
+    {
+        $uploadsDir = \wp_upload_dir();
+        $base = $uploadsDir['basedir'] . '/kamples/audio_completo/' . \date('Y') . '/' . \date('m');
 
         if (!\is_dir($base)) {
             \wp_mkdir_p($base);

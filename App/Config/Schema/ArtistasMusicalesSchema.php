@@ -22,6 +22,7 @@ class ArtistasMusicalesSchema extends TableSchema
             'musicbrainz_id'  => ['tipo' => 'string', 'max' => 36, 'nullable' => true],
             'metadata'        => ['tipo' => 'json', 'default' => '{}'],
             'total_canciones' => ['tipo' => 'int', 'default' => 0],
+            'prioridad'       => ['tipo' => 'int', 'default' => 0],
             'created_at'      => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'updated_at'      => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];

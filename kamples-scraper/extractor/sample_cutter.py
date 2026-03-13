@@ -4,11 +4,12 @@ Recorte inteligente de samples alineado a compás.
 Lógica:
 1. Encontrar el beat más cercano al timing indicado por WhoSampled.
 2. Retroceder 1 compás completo (margen de seguridad).
-3. Avanzar 8 compases desde el inicio (o límite de 30s).
+3. Avanzar N compases adaptativos desde el inicio (ajustado por BPM).
 4. Aplicar fade in/out para evitar clicks.
 """
 
 import logging
+import math
 import os
 import subprocess
 from dataclasses import dataclass
@@ -20,9 +21,15 @@ logger = logging.getLogger(__name__)
 # Límites de duración del recorte
 MAX_DURACION_SEG = 30.0
 MIN_DURACION_SEG = 3.0
-COMPASES_RECORTE = 8
+COMPASES_BASE = 8
 COMPASES_MARGEN = 1
 FADE_MS = 50
+
+# Adaptación por BPM: el algoritmo aumenta compases para que la duración
+# no baje de DURACION_OBJETIVO_SEG en tempos rápidos. Esto garantiza que
+# un clip contenga suficiente material musical independientemente del BPM.
+DURACION_OBJETIVO_SEG = 15.0
+MAX_COMPASES_ADAPTATIVO = 32
 
 
 @dataclass
@@ -35,6 +42,40 @@ class ResultadoRecorte:
     duracion_compas: float
     beat_referencia: float
     recorte_por_compas: bool   # True si alineado a compás, False si fallback simple
+
+
+def _calcular_compases_adaptativos(dur_compas: float) -> int:
+    """
+    Calcula cuántos compases usar para que el clip alcance DURACION_OBJETIVO_SEG.
+    Para BPM bajos (duración de compás grande) usa COMPASES_BASE (8).
+    Para BPM altos (duración de compás corta) escala proporcionalmente.
+
+    Ejemplo:
+        BPM 120 → dur_compas 2.0s → 8 compases = 16s (>15s ✓, usa 8)
+        BPM 180 → dur_compas 1.33s → 8*1.33=10.7s (<15s, necesita 12 compases)
+        BPM 240 → dur_compas 1.0s → necesita 16 compases
+        BPM 360 → dur_compas 0.67s → necesita 24 compases
+
+    Siempre redondea a múltiplo de 4 para alineación musical (frases de 4 compases).
+    """
+    if dur_compas <= 0:
+        return COMPASES_BASE
+
+    compases_necesarios = math.ceil(DURACION_OBJETIVO_SEG / dur_compas)
+    compases_necesarios = max(compases_necesarios, COMPASES_BASE)
+
+    # Redondear al siguiente múltiplo de 4 (fraseo musical natural)
+    compases_necesarios = math.ceil(compases_necesarios / 4) * 4
+    compases_necesarios = min(compases_necesarios, MAX_COMPASES_ADAPTATIVO)
+
+    if compases_necesarios != COMPASES_BASE:
+        logger.info(
+            "BPM adaptativo: dur_compas=%.2fs, compases %d->%d (duracion estimada: %.1fs)",
+            dur_compas, COMPASES_BASE, compases_necesarios,
+            dur_compas * compases_necesarios,
+        )
+
+    return compases_necesarios
 
 
 def calcular_recorte(
@@ -86,16 +127,14 @@ def calcular_recorte(
     else:
         inicio_recorte = max(0.0, inicio_compas - dur_compas * COMPASES_MARGEN)
 
-    # Avanzar COMPASES_RECORTE compases
-    fin_recorte = inicio_recorte + (dur_compas * COMPASES_RECORTE)
+    # Compases adaptativos: escala con BPM para mantener duración mínima
+    compases_recorte = _calcular_compases_adaptativos(dur_compas)
+    fin_recorte = inicio_recorte + (dur_compas * compases_recorte)
 
-    # Limitar duración
+    # Limitar duración máxima
     duracion = fin_recorte - inicio_recorte
     if duracion > MAX_DURACION_SEG:
         fin_recorte = inicio_recorte + MAX_DURACION_SEG
-    elif duracion < MIN_DURACION_SEG:
-        # Extender 2 compases extra
-        fin_recorte = inicio_recorte + (dur_compas * (COMPASES_RECORTE + 2))
 
     # No exceder duración del audio
     if analisis.duracion_total > 0:

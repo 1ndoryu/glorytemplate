@@ -69,10 +69,10 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     if (d.puedeEditar)
         items.push({ id: 'editar', etiqueta: 'Editar sample', onClick: () => d.abrirEditarSample(s) });
 
-    if (d.esAdmin && s.metadata?.relacion_id)
+    if (d.esAdmin && s.relacionSampleoId)
         items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', onClick: () => d.abrirCorregirIA(s) });
 
-    if (d.esAdmin && s.metadata?.relacion_id)
+    if (d.esAdmin && s.relacionSampleoId)
         items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', onClick: () => d.abrirExtenderRecorte(s) });
 
     if (d.esAdmin)
@@ -84,7 +84,7 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             });
         }});
 
-    if (d.puedeEditar && s.metadata?.relacion_id && s.metadata?.adjuncion_manual)
+    if (d.puedeEditar && s.relacionSampleoId && s.metadata?.adjuncion_manual)
         items.push({ id: 'quitar-sampleo', etiqueta: 'Quitar de este sampleo', peligro: true, separadorDespues: true, onClick: () => {
             if (!s.metadata?.relacion_id || !s.metadata?.lado_extraccion) return;
             const rId = Number(s.metadata.relacion_id);

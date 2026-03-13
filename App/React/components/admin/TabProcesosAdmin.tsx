@@ -180,7 +180,7 @@ export const TabProcesosAdmin = (): JSX.Element => {
             <div className="cookiesSeccion">
                 <div className="cookiesCabecera">
                     <Cookie size={16} />
-                    <h4 className="cookiesTitulo">Cookies yt-dlp</h4>
+                    <h4 className="cookiesTitulo">Cookies yt-dlp (YouTube + SoundCloud)</h4>
                     {cookiesInfo?.existe && (
                         <Badge variante="exito" tamano="sm">
                             <Check size={10} />
@@ -203,8 +203,9 @@ export const TabProcesosAdmin = (): JSX.Element => {
                 )}
 
                 <p className="cookiesDescripcion">
-                    Pega el contenido de cookies.txt (formato Netscape) para autenticacion de YouTube.
-                    Necesario cuando yt-dlp reporta errores de &quot;page needs to be reloaded&quot;.
+                    Pega el contenido de cookies.txt (formato Netscape) para autenticacion en yt-dlp.
+                    Se usa para YouTube y SoundCloud. Necesario cuando yt-dlp reporta errores de
+                    autenticacion o &quot;sign in to confirm&quot;.
                 </p>
 
                 <CampoTexto
