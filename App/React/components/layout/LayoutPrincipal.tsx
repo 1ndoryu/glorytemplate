@@ -23,6 +23,7 @@ import { useGenerosModalStore } from '@app/stores/generosModalStore';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { ModalEditar } from '../social/ModalEditar';
 import { ModalCorregirIA } from '../social/ModalCorregirIA';
+import { ModalExtenderRecorte } from '../social/ModalExtenderRecorte';
 import { ModalReportar } from '../social/ModalReportar';
 import { ModalCompra } from '../social/ModalCompra';
 import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
@@ -191,6 +192,9 @@ export const LayoutPrincipal = ({
 
             {/* C800: Modal de correccion de metadata IA */}
             <ModalCorregirIA />
+
+            {/* QQ130: Modal de extension de recorte de audio */}
+            <ModalExtenderRecorte />
 
             {/* QQ38: Modal centralizado de reportes (usuario, publicacion, comentario, sample, error) */}
             <ModalReportar />

@@ -211,6 +211,22 @@ class ColaExtraccionSamplesRepository extends BaseRepository
     }
 
     /**
+     * QQ130: Buscar entrada de la cola por sample_id publicado.
+     * Retorna la fila con datos de timing necesarios para re-corte.
+     */
+    public static function buscarPorSampleId(int $sampleId): ?array
+    {
+        $tabla = ColaExtraccionSamplesCols::TABLA;
+
+        $resultados = static::consultar(
+            "SELECT * FROM {$tabla} WHERE " . ColaExtraccionSamplesCols::SAMPLE_ID . " = :sid LIMIT 1",
+            ['sid' => $sampleId]
+        );
+
+        return !empty($resultados) ? $resultados[0] : null;
+    }
+
+    /**
      * Estadísticas de la cola por estado.
      */
     public static function estadisticasPorEstado(): array

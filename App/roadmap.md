@@ -43,446 +43,6 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## Tareas nuevas a organizar y hacer
 
-## QQ14 ✅ [AG-QQF]
-
-Logout via API (POST /auth/logout) sin redirigir a wp-login.php. TopBar usa cerrarSesion() de apiAuth.ts + reload a /. GuardiaWpAdmin.php bloquea wp-admin y wp-login.php para no-admins (excepto AJAX, admin-post, logout nativo fallback). Archivos: AuthController.php (ruta+método), apiAuth.ts, TopBar.tsx, GuardiaWpAdmin.php, KamplesInit.php.
-
-## QQ15 ✅ [AG-QQF]
-
-Fix búsqueda/tags en feed: setBusqueda ya no auto-parsea tags (filtrosStore.ts). Comparación de tags normalizada con normalizarTag() en ambos lados (useFeedFiltros.ts). Búsqueda multi-término por coma con normalización de sinónimos.
-
-## QQ16 ✅ [AG-QQF]
-
-Separación Pro/Precio en creación y feed. Pro (Crown) = descarga exclusiva Pro, genera ingresos. Precio ($) = cualquiera puede comprar. Backend: DescargasController maneja 4 combinaciones (esPremium × precio) independientemente. Frontend: ContenidoCrear con 4 toggles (descarga/pro/precio/usuarios). TarjetaSample muestra icono $/Crown/Plus según estado. Archivos: DescargasController.php, useCrearContenido.ts, ContenidoCrear.tsx, useTarjetaSample.ts, TarjetaSample.tsx, tarjetaSample.css, modalCrear.css.
-
-## QQ17 ✅ [AG-QQF]
-
-Fix URLs colecciones con números: backfill automático de slugs NULL en colecciones existentes via `ColeccionesRepository::generarSlugsFaltantes()` (one-time run con WP transient). Colecciones nuevas ya generan slug al crearse. Frontend ya usaba `coleccion.slug ?? coleccion.id`. Archivo: KamplesInit.php.
-
-## QQ18 ✅ [AG-QQF]
-
-Fix comentarios en publicaciones del perfil: PerfilIsland ahora pasa `onLike`, `onComentar` y renderiza `SeccionComentariosPost` como children de TarjetaPublicacion. Hook usePerfilIsland con `manejarLikePost` (optimistic), `comentariosAbiertos` (Set), `alternarComentarios`. Archivos: usePerfilIsland.ts, PerfilIsland.tsx.
-
-## QQ19 ✅ [AG-QQF]
-
-"También te podría gustar" unificado con panel lateral. Página individual: eliminado renderizado inline y item en menú contextual — ahora al dar like se abre el panel lateral con PanelSugerencias (mismo flujo que feed). Feed: agregado item "También te podría gustar" (sin icono) en menú contextual que abre panel lateral. Archivos: useSampleDetalle.ts, SampleDetalleIsland.tsx, useMenuContextualSample.ts.
-
-## QQ20 ✅ [AG-QQF]
-
-Publicaciones muestran 1 comentario destacado (el de más likes) como preview inline. **Backend:** `ComentariosRepository::obtenerDestacadosPorPubs()` — query batch eficiente con `DISTINCT ON` (PostgreSQL), 1 query para todas las publicaciones del feed. `NormalizadorPublicacion::normalizarComentarioDestacado()` — normalización del row crudo. Integrado en `PublicacionesController::listar()` y `obtener()`. **Frontend:** `ComentarioDestacado` type en publicacion.ts. `ComentarioPreview` componente (avatar xs + nombre + tiempo + texto truncado a 2 líneas + likes). Se renderiza entre BarraAccionesPost y children slot; se oculta cuando children está presente (comentarios ya están abiertos). Clickeable para abrir comentarios. Archivos: ComentariosRepository.php, NormalizadorPublicacion.php, PublicacionesController.php, publicacion.ts, index.ts, TarjetaPublicacion.tsx, ComentarioPreview.tsx, comentarioPreview.css.
-
-## QQ21a ✅ [AG-QQF]
-
-inicioTagsContador ahora refleja resultados filtrados al buscar. FeedSamples ya tenía `onConteoChange` callback — conectado a InicioIsland con `setConteoFiltrado`. Counter muestra `{conteoFiltrado} de {totalServidor} samples` cuando hay búsqueda activa, `{totalServidor} samples` cuando no. Archivos: InicioIsland.tsx.
-
-## QQ21b ✅ [AG-QQF]
-
-Tags normalizados a inglés en el front. **Display:** BadgesMetadata en TarjetaSample ahora prefiere `emocion` (EN) sobre `emocion_es` (ES), y `tags` (EN) sobre `tags_es` (ES). **Búsqueda enriquecida:** `extraerTagsMetadata` en tagUtils.ts ahora incluye tags de AMBOS idiomas (`meta.tags` + `meta.tags_es` + `meta.tagsEs`) y emociones de ambos idiomas para que búsquedas en español sigan funcionando. Español preservado en metadata para enriquecimiento de búsqueda. Archivos: TarjetaSample.tsx, tagUtils.ts.
-
-## QQ22 ✅ [AG-QQF]
-
-Inspector de samples actualizado con todos los campos faltantes. **Backend:** NormalizadorSample ahora incluye `rutaOriginal`/`rutaOptimizada` (solo cuando `esMio=true`, seguridad C202 preservada), `permitirDescarga`, `licenciaLibre`, `publicadoAt`, `creadoAt`, `totalComentarios` en la respuesta. SQL SELECT extendido con columnas faltantes. **Frontend:** Sample type extendido con campos nuevos (`totalComentarios`, `idCorto`, `audioHash`, `permitirDescarga`, `licenciaLibre`, flags de estado). ModalInspectorSample ampliado: Info General (+idCorto, precio, reaccion, permitirDescarga, licenciaLibre, mostrarComunidad, verificado), Audio (+audioHash), Metadata IA (+carpetaPrimaria/Secundaria), Stats (+totalComentarios), nueva seccion Flags de Estado (esMio, yaColeccionado, enColeccion, yaComentado, yaComprado), nueva seccion Fechas (publicadoAt, creadoAt). Archivos: NormalizadorSample.php, sample.ts, ModalInspectorSample.tsx.
-
-## QQ23 ✅ [AG-QQF]
-
-Menú 3 puntos en perfiles de otros usuarios con Reportar + Bloquear/Desbloquear. Backend: POST `/reportar-usuario/{userId}` en SocialController (rate limit 5/24h, sanitización, ReportesRepository::crearReporteUsuario con tipo='usuario'). Frontend: reportarUsuarioStore (Zustand), ModalReportarUsuario + useReportarUsuario hook (reutiliza CSS de modalReportarError), useMenuContextualPerfil (construye items dinámicos con bloqueosStore). PerfilIsland: botón MoreHorizontal + MenuContextual. Chat: useVentanaChat report/block conectados a stores reales (antes eran placeholders). ModalReportarUsuario montado globalmente en LayoutPrincipal.
-
-## QQ24 ✅ [AG-QQF]
-
-Fix texto garbled en reportes (â€" en vez de —). Causa: PostgresService.php no seteaba `client_encoding` en la conexion PDO, causando Mojibake (UTF-8 bytes interpretados como Latin-1). Fix: agregado `SET client_encoding = 'UTF8'` en PostgresService.php despues de crear conexion. Aplica a toda la aplicacion, no solo reportes.
-
-## QQ25 ✅ [AG-QQF]
-
-Sistema de bloqueo user-to-user completo. BD: tabla `bloqueos` (PK, FK, UNIQUE, CHECK, indices). Schema: BloqueoSchema + BloqueoCols + BloqueoDTO. Backend: BloqueosRepository con CRUD + `sqlExcluirBloqueados()` helper reutilizable para SQL subqueries bidireccionales. API: POST/DELETE /block/{userId} (con rate limit + auto-unfollow mutuo), GET /me/bloqueados. Filtrado bidireccional inyectado en: MotorRecomendacion (feed personalizado + nuevo usuario), SamplesRepository (listarFeed, buscarSimilares, buscarPorScoring, listarConFiltros), PublicacionesController (feed social), ComentariosRepository (raíz + respuestas), NotificacionesRepository (listarConActor). Frontend: bloqueosStore (Zustand), apiBloqueos service, SeccionBloqueos en ModalConfiguracion. Perfil: campo `bloqueado` en respuesta de perfil público.
-
-## QQ27 ✅ [AG-QQF]
-
-Sistema de notificaciones mejorado. Backend: NotificacionesController normaliza actor data en objeto anidado `{username, nombreVisible, avatarUrl}` (antes eran campos planos). ServicioNotificaciones: nuevos métodos `publicacionRechazada()` y `comentarioRechazado()` (tipo='moderacion'). Notificaciones de rechazo automático añadidas en 5 puntos: anti-spam publicaciones (crear/editar), anti-spam comentarios (publicaciones + comentarios), IA moderación (publicaciones en shutdown hook, comentarios). Frontend: DropdownNotificaciones muestra avatar del actor cuando existe (img round 36px), fallback a icono por tipo. Items son `<a>` con href para soporte de click central (nueva pestaña). Añadido tipo `venta` con icono DollarSign. Hook soporta `soloMarcarLeida` para middle-click. CSS: clases `.dropdownItemAvatar`, `.dropdownItemConAvatar`. Archivos: NotificacionesController.php, ServicioNotificaciones.php, PublicacionesEscrituraController.php, ComentariosEscrituraController.php, ServicioModeracionIA.php, DropdownNotificaciones.tsx, useDropdownNotificaciones.ts, apiNotificaciones.ts, notificaciones.ts (utils), dropdownPanel.css.
-
-## QQ28 ✅ [AG-QQF]
-
-Fix 404 en URLs directas (publicaciones y otras rutas): En `PageTemplateInterceptor::forzarResolucionDinamica()`, si `get_page_by_path()` retorna null pero la pagina esta definida en `PageDefinition::getPaginasDefinidas()`, se auto-crea la pagina WP via `PageProcessor::crearPaginaDefinida()` con transient de 300s para evitar intentos repetidos. Aplica tanto a rutas dinamicas (publicacion/87) como paginas estaticas. Archivos: Glory/src/Manager/PageTemplateInterceptor.php.
-
-## QQ29 ✅ [AG-QQF]
-
-feedSamplesContenedor ya no aparece en relaciones sin samples. Se agrego `total_samples` al query de `porRelacionId()` via subquery (cuenta samples activos por `sample_fuente_id`, `sample_destino_id` y `relacion_sampleo_id`). Normalizer incluye `totalSamples` en la respuesta. `RelacionDetalleIsland` ahora guarda `FeedSamples` con `relacion.totalSamples > 0`, evitando peticion innecesaria. Archivos: RelacionesSampleRepository.php, NormalizadorCancion.php, cancion.ts, RelacionDetalleIsland.tsx.
-
-## QQ30 ✅ [AG-QQF]
-
-En contexto adjuntar: audio obligatorio para publicar, descarga forzada on (oculta), premium/precio ocultos, solo botón comunidad (off por defecto). `esContextoAdjuntar` flag en useCrearContenido.
-
-## QQ30.1 ✅ [AG-QQF]
-
-`crearElementoContenedor` reemplazado por `crearPrecioContenedor` (mismos estilos). SelectorMenu de tipo elemento sin `compacto` — ahora usa estilo select normal.
-
-## QQ30.2 ✅ [AG-QQF]
-
-Incluido en QQ30 — botones descarga/premium/precio ocultos en contexto adjuntar, solo comunidad visible (desactivado por defecto).
-
-## QQ31 ✅ [AG-QQF]
-
-Optimización de rendimiento del chat. **Problema:** Al abrir chat desde perfil, tardaba 2-5s por N+1 queries (3 queries × N conversaciones) + carga secuencial frontend. **Backend:** Nueva `ConversacionesRepository::listarDeUsuarioEnriquecido()` — 1 sola query con JOIN a `usuarios_ext` + 2 `LEFT JOIN LATERAL` (último mensaje + conteo no leídos). Reemplaza loop de `buscarParticipante()` + `ultimoDeConversacion()` + `contarNoLeidos()` por conversación. MensajesController simplificado (208 líneas, antes ~248). **Frontend:** `useChatIsland.ts` — carga paralela con `Promise.all([obtenerConversaciones(), obtenerMensajes()])` (antes secuencial). `marcarConversacionLeida()` cambiado de `await` a fire-and-forget. Archivos: ConversacionesRepository.php, MensajesController.php, useChatIsland.ts.
-
-## QQ32 ✅ [AG-QQF]
-
-Rediseño social del perfil. Backend: añadida columna `sitio_web` en `usuarios_ext` (v037 migration), PerfilController normaliza y actualiza `sitioWeb` (URL sanitization con `esc_url_raw`). Nuevo endpoint `GET /usuarios/{username}/seguidores` en SocialController con paginación + estado de follow del viewer. FollowsRepository: `listarSeguidores()` con JOIN a `usuarios_ext`. Frontend: Eliminada fecha de unión (Calendar) y contador de "Siguiendo" de PerfilIsland. "Seguidores" ahora clickable → abre ModalSeguidores (Zustand store + hook `useModalSeguidores` con scroll infinito + toggle follow/unfollow optimista con rollback). ModalConfiguracion: nuevo input "Enlace" con `sitioWeb` en payload de actualización. PerfilIsland muestra sitioWeb truncado a 40 chars. `.perfilMetadata` re-habilitada (ya no `display:none`). Añadida variable CSS `--hoverSutil`. Archivos: UsuariosExtSchema.php, UsuariosExtCols.php, v037 migration, PerfilController.php, SocialController.php, FollowsRepository.php, apiSocial.ts, seguidoresModalStore.ts, useModalSeguidores.ts, ModalSeguidores.tsx, modalSeguidores.css, PerfilIsland.tsx, LayoutPrincipal.tsx, useModalConfiguracion.ts, ModalConfiguracion.tsx, perfil.css, variables.css.
-
-## QQ33 ✅ [AG-QQF]
-
-Fix errores IDE: PipelineAudio usaba `DuplicadosPendientesRepository::crear()` inexistente → cambiado a `insertarRegistro()`. SocialController usaba `RateLimiter::verificar()` inexistente → cambiado a `verificarUsuario()`. SocialController excedía 300 líneas → extraído bloqueo+reportes a nuevo `ModeracionController.php` (141 líneas). Limpiados imports muertos (CancionesCols, RelacionesSampleCols). Registrado ModeracionController en KamplesController.
-
-## QQ34 ✅ [AG-QQF]
-
-Landing SEO + SVG optimization. **SVGs:** Script `scripts/optimize-svg-images.cjs` (sharp) recomprime imágenes base64 embebidas en SVGs: Kamples.svg 34→4.5MB (-87%), MiniDaw.svg 28→2.5MB (-91%), Sync.svg 5→1.4MB (-70%), Rolas.svg 1.2→1.0MB (-19%). Total 68MB→9.4MB (-86%). 59 imágenes JPEG/PNG recomprimidas con mozjpeg quality 68. **SEO:** Textos hero concisos ("Descubre, descarga y sincroniza samples"), h2 duplicado "DAW Web" corregido (Rolas → "Miles de samples por descubrir"), alt texts descriptivos para todas las secciones. **Performance:** width/height explícitos (1288×717) en todos los `<img>` para prevenir CLS, `fetchPriority="high"` en hero, `decoding="async"` en todas las imágenes, `loading="lazy"` en below-fold. **Cleanup:** Sección trending muerta (display:none + fetch innecesario) eliminada, hook reducido de 50 a 12 líneas, import TarjetaSample eliminado, footer en español. Archivos: LandingPublica.tsx, useLandingPublica.ts, 4 SVGs, optimize-svg-images.cjs.
-
-## QQ35 ✅ [AG-QQF]
-
-Modal configuración responsive. Fix: selector `.configModal` inexistente → `.modalContenedor.configModalLayout`. En mobile (<600px): fullscreen (100vw/100vh, sin border-radius), nav lateral → tabs horizontales scrolleables con scrollbar oculto, padding reducido en contenido, portada 80px, secciones horizontales → apiladas verticalmente. Fix colateral: gap hardcodeado 2px → `calc(var(--espacioXs)/2)` en `.configBloqueoInfo`. Archivos: modalConfiguracion.css.
-
-## QQ36 ✅ [AG-QQF]
-
-YouTube embed bot verification — investigado: el problema es inherente al entorno localhost. YouTube rechaza embeds desde orígenes `localhost`/IPs locales por tráfico sospechoso. WhoSampled funciona porque es un dominio público verificado. El código ya implementa correctamente `youtube-nocookie.com` (privacidad mejorada), validación de ID con regex `^[a-zA-Z0-9_-]{11}$`, y atributos `allow` apropiados. En producción (kamples.com con HTTPS) funcionará sin problemas. No hay fix aplicable — comportamiento esperado de YouTube en desarrollo local. Archivos verificados: CancionDetalleIsland.tsx, LadoCancionRelacion.tsx, useRelacionDetalleIsland.ts.
-
-## QQ37 ✅ [AG-QQF]
-
-Resuelto por QQ28. El fix en `forzarResolucionDinamica()` auto-crea paginas WP faltantes (perfil, admin/panel, publicacion, etc.) cuando estan definidas en PageDefinition pero ausentes en BD. Cubre rutas dinamicas (/perfil/{username}) y estaticas (/admin/panel). Si la pagina se borra o no se sincronizo, se recrea al primer acceso con transient de 300s para evitar intentos repetidos. `crearPaginaDefinida()` ya maneja jerarquia padre/hijo (`asegurarPaginaPadre()` recursivo).
-
-## QQ38 ✅ [AG-QQF]
-
-Sistema de reportes centralizado. Un solo modal (ModalReportar), store (reportarStore), hook (useReportar) y endpoint backend (POST /reportar) para todos los tipos: usuario, publicacion, comentario, sample, error_plataforma. Backend: ModeracionController::reportarGenerico con validacion especifica por tipo (existencia, duplicados, rate limit). Frontend: reportarStore con tipo+targetId+targetNombre, ModalReportar adapta UI segun tipo. Eliminados: ModalReportarUsuario, ModalReportarError, reportarUsuarioStore, reportarErrorStore, useReportarUsuario, useReportarError. Migrados: useMenuContextualPerfil, useMenuContextualPublicacion (era window.prompt), useVentanaChat, useComentarioItem, useMenuContextualSample (tenia TO-DO), Sidebar, LayoutPrincipal.
-
-## QQ39 ✅ [AG-QQF]
-
-Tab de likes eliminado del perfil. Removido de `TABS_PERFIL`, eliminado estado `likesPerfil` y su API call (que usaba endpoint genérico como placeholder), simplificado `manejarLike` optimista a solo `samplesPerfil`. Import `Heart` limpiado de PerfilIsland. Archivos: usePerfilIsland.ts, PerfilIsland.tsx.
-
-## QQ40 ✅ [AG-QQF]
-
-Errores ortográficos corregidos + Google OAuth implementado. ModalAuth.tsx: 7 errores de ortografía corregidos (sesion→sesión, Contrasena→Contraseña, Registrate→Regístrate, signos de interrogación faltantes). Botón Google OAuth añadido a ambos formularios (login y registro) del modal. Backend: GoogleAuthController.php — endpoint POST /auth/google que recibe ID token de Google Identity Services, lo verifica server-side con oauth2.googleapis.com/tokeninfo (validación de aud, iss, email_verified, exp), crea o encuentra usuario WP por email, crea registro PG, actualiza avatar de Google si falta, genera JWT. Frontend: useGoogleAuth.ts hook que carga dinámicamente GSI script, inicializa con client_id de GLORY_CONTEXT, y dispara One Tap prompt. GoogleClientId inyectado en GLORY_CONTEXT desde config.php (.env). IconoGoogle.tsx componente SVG reutilizable (eliminado SVG duplicado en LoginIsland y RegistroIsland). loginConGoogle() en apiAuth.ts. AuthController.php refactorizado: helpers obtenerOCrearUsuarioPg/normalizarUsuario ahora public static (reutilizados por GoogleAuthController). AuthController 297 líneas (dentro del límite). Archivos: ModalAuth.tsx, authModal.css, useAuth.ts, useGoogleAuth.ts, IconoGoogle.tsx, apiAuth.ts, GoogleAuthController.php, AuthController.php, KamplesController.php, config.php, LoginIsland.tsx, RegistroIsland.tsx.
-
-## QQ41 ✅ [AG-QQF]
-
-Landing page: reemplazado buscador hero por dos CTAs — "Crear cuenta gratis" (secundario, abre modal registro) + "Descargar app" (primario, link a /descargar con icono Download). Eliminados imports muertos: `Search` de lucide-react, `Input` de ui/Input. Hook `useLandingPublica` simplificado: removido `navegar` (ya no necesario sin buscador), solo expone `abrirAuth`. CSS limpio: eliminadas todas las clases `.landingHeroBuscador*` (6 reglas + 3 responsive overrides) y 7 variables CSS huérfanas en variables.css (`--landingEspacioBuscador`, `--landingPaddingBuscador*`, `--landingPaddingInput*`, `--landingPaddingBoton*`, `--landingAltoBotonBuscador`). Reutilizada clase existente `.landingHeroAcciones` para layout flex. Añadida `.landingHeroDescargarEnlace` para neutralizar estilos de `<a>`. **Auto-update docs:** Creado `App/docs/plan-desktop-distribucion.md` — guía completa de distribución Tauri 2: generación de claves de firma, configuración updater en tauri.conf.json, formato de respuesta del endpoint, opciones de hosting (GitHub Releases / servidor propio / híbrido), CI/CD pipeline con GitHub Actions, integración Rust/TS, checklist de implementación, consideraciones de seguridad. Archivos: LandingPublica.tsx, useLandingPublica.ts, landingPublica.css, variables.css, plan-desktop-distribucion.md.
-
-## QQ42 ✅ [AG-QQF]
-
-Reforzar sincronización: botón para re-descargar samples borrados localmente. **Verificación:** `borrarEnServidorAlBorrarLocal=false` ya funciona correctamente — al borrar localmente, `marcarNoSincronizar()` marca `syncDeshabilitado=true` y el sample no se re-descarga ni se borra del servidor. **Nuevo:** `reforzarSync()` en syncOrchestratorService — reactiva todos los samples con `syncDeshabilitado`, elimina sus entradas del tracking v2 + v1 para forzar re-descarga, y ejecuta sync completa. Es menos agresivo que `forzarResync()` (que resetea todo el tracking). **Pipeline completo:** `reactivarTodosSyncDeshabilitados()` en syncTrackingService → `reforzarSync()` en syncOrchestratorService → re-export en syncService.ts → expuesto en `window.__KAMPLES_SYNC__` (main.tsx + sync.tsx) → `KamplesSync` interface + `reforzarSyncAhora` callback en usePanelSincronizacion → botón "Reforzar sincronización" (icono RefreshCw) en menú contextual de VentanaSincPanel, justo debajo de "Sincronizar ahora". Tipo `MARK_ENABLED_ALL` añadido a TipoOperacionJournal. Archivos: syncTrackingService.ts, syncOrchestratorService.ts, syncService.ts, syncJournal.ts, global.d.ts, main.tsx, sync.tsx, usePanelSincronizacion.ts, VentanaSincPanel.tsx.
-
-## QQ43 ✅ [AG-QQF]
-
-Auditoría completa de TO-DOs: 42 encontrados, 3 críticos corregidos. **(1) Bug TransaccionesEnums:** `'descarga'` hardcodeado en INSERT violaba CHECK constraint — la BD rechazaría el INSERT. Fix: agregado `'descarga'` al CHECK en TransaccionesSchema.php, regenerado TransaccionesEnums.php con `TIPO_DESCARGA`, reemplazado string literal por constante en TransaccionesRepository.php, creada migración v039 para ALTER TABLE. **(2) Chat rollback optimista:** catches vacíos en `useChatIsland.ts` dejaban mensajes fantasma en UI tras fallo de envío. Fix: agregado `eliminarMensaje(id)` a mensajesStore + rollback en ambos catches (texto y multimedia). **(3) Dead CSS cleanup:** eliminadas 3 reglas muertas + 2 keyframes (.exploradorModalOverlay, .exploradorModalContenido, .exploradorModalTitulo) de exploradorDragModal.css. Archivos: TransaccionesSchema.php, TransaccionesEnums.php, TransaccionesRepository.php, v039_transacciones_tipo_descarga.sql, useChatIsland.ts, mensajesStore.ts, exploradorDragModal.css.
-
-## QQ44 ✅ [AG-QQF]
-
-Fix tray icon "Mostrar Kamples" no funcionaba. **Causa:** La ventana principal en `tauri.conf.json` no tenía `"label": "main"` explícito. El handler Rust en `lib.rs` buscaba `app.get_webview_window("main")` que retornaba `None` silenciosamente. También afectaba "Minimizar a bandeja" (mismo label). **Fix:** Agregado `"label": "main"` a la primera ventana en tauri.conf.json. Las ventanas `sync-panel` y `config-sync` ya tenían labels explícitos y funcionaban correctamente. Archivo: tauri.conf.json.
-
-## QQ45 ✅ [AG-QQF]
-
-Modal de bienvenida con seleccion de generos favoritos. Backend: columna `generos_favoritos` JSONB en `usuarios_ext` (v038 migration). PerfilController: whitelist de 30 generos, validacion max 10, `decodificarGeneros()` helper. PerfilUsuario: carga generos declarados y los incluye en perfil de recomendacion. ConstructorSenales: `sqlContexto` inyecta generos declarados como tags suplementarios en scoring — para usuarios nuevos sin interacciones, son la senal primaria de contexto; para usuarios con historial, suplementan los tags de comportamiento. Frontend: generosModalStore (Zustand), useModalGeneros hook con seleccion multi-toggle y persistencia via API, ModalGeneros component con grid de badges, modalGeneros.css. Auto-apertura: LayoutPrincipal detecta usuario autenticado sin generos y abre modal automaticamente. Configuracion: boton "Editar generos" en seccion Apariencia de ModalConfiguracion. Tipo `Usuario` extendido con `generosPreferidos: string[]`. Archivos: UsuariosExtSchema.php, UsuariosExtCols.php, v038 migration, PerfilController.php, PerfilUsuario.php, ConstructorSenales.php, UsuariosExtRepository.php, usuario.ts, generosModalStore.ts, useModalGeneros.ts, ModalGeneros.tsx, modalGeneros.css, LayoutPrincipal.tsx, ModalConfiguracion.tsx.
-
-permite que el usuario pueda agregar tags personalizadas, sería un badge al final con placeholder que diga, agregar personalizado, y permitir que agregue maximo 10, puede selecionar maximo 10 generos incluyendo sus tags personalizadas si es que agrega, minimo 1, si el usuario no tiene nada slecionado el modal se abrira cada vez que recargue ✅ [AG-QQF] Implementado: input inline con borde dashed y ícono + al final del grid de géneros. Enter para agregar. Tags personalizados se muestran como badges activos removibles. Backend actualizado para aceptar tags personalizados sanitizados (regex `/[^a-z0-9\s\-&]/`, max 30 chars/tag, max 10 total). Contador muestra X/10. Modal sigue abriéndose si generosPreferidos está vacío.
-
-## QQ46 ✅ [AG-QQF]
-
-Punto rojo indicador de samples no reproducidos. **Backend:** Nuevo endpoint `GET /reproducciones/ids` — query liviana (`SELECT DISTINCT sample_id`) que devuelve solo los IDs de samples reproducidos por el usuario. ReproduccionesRepository::listarIdsReproducidos(). **Frontend:** reproducidosStore (Zustand global) — se carga una vez al autenticar, mantiene `Set<number>` de IDs reproducidos. Selector eficiente `s.cargado && !s.ids.has(sampleId)` para evitar re-renders masivos. trackingReproduccion.ts actualiza el store optimísticamente al reproducir un sample (`marcarReproducido`). TarjetaSample.tsx muestra `<span className="tarjetaPuntoRojo">` entre el título y el badge de verificado. CSS: punto rojo de 6px con `var(--error)`, `border-radius: var(--radioFull)`. Funciona en todas las islas que usan TarjetaSample (feed, perfil, comunidad, detalle, explorador). Archivos: ReproduccionesRepository.php, ReproduccionesController.php, apiReproduciones.ts, reproducidosStore.ts, trackingReproduccion.ts, TarjetaSample.tsx, tarjetaSample.css, LayoutPrincipal.tsx.
-
-## QQ47 ✅ [AG-QQF]
-
-Tooltip flotante de perfil estilo Twitter/X. **Arquitectura:** tooltipPerfilStore (Zustand global con cache de perfiles + timers centralizados show 400ms/hide 250ms), useHoverPerfil (hook trigger reutilizable con pre-carga de perfil), useTooltipPerfil (lógica del tooltip: carga con cache, follow/unfollow optimista, cierre por Escape/scroll), usePosicionTooltipPerfil (posicionamiento inteligente debajo/arriba del ancla con ajuste viewport), TooltipPerfil (componente flotante sin overlay oscuro, montado globalmente en LayoutPrincipal). **Integración:** TarjetaPublicacion agrega hover en el nombre del autor — funciona automáticamente en ComunidadIsland, PerfilIsland y PublicacionIsland. ComunidadIsland simplificado: eliminado CardPerfil local y useState, el botón + ahora usa abrirInmediato del store global. **Optimización:** perfiles se cachean en el store, pre-carga al hover evita delay visible, tooltip aparece instantáneo en hovers repetidos. Archivos: tooltipPerfilStore.ts, useHoverPerfil.ts, useTooltipPerfil.ts, usePosicionTooltipPerfil.ts, TooltipPerfil.tsx, tooltipPerfil.css, TarjetaPublicacion.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx.
-
-## QQ48 ✅ [AG-QQF]
-
-Fix crash ModalSeguidores: `TypeError: Cannot read properties of undefined (reading 'length')`. **Causa:** `obtenerSeguidores()` retorna `RespuestaApi<{ data: SeguidorResumen[]; total: number }>` — si la API retorna `resp.data` sin campo `data` interno (shape inesperado), `setSeguidores(resp.data.data)` asigna `undefined` al estado, y `seguidores.length` en `hayMas` crashea. **Fix:** Guard defensivo `resp.data.data ?? []` y `resp.data.total ?? 0` en la carga inicial y en `cargarMas()`. Archivo: useModalSeguidores.ts.
-
-## QQ49 ✅ [AG-QQF]
-
-Reproductor minimalista rebuild completo. **Arquitectura:** Audio global único via `useMotorAudio` (1 HTMLAudioElement persistente montado en LayoutPrincipal), store reescrito (`contexto` reemplaza `cola`, `reproducir()` reemplaza `setSample`, `pendingSeek` para seek sin refs), `useAudioPlayback` delegado 100% al store (sin audio local por tarjeta). **UI:** Pill shape (`border-radius: 9999px`, `width: fit-content`, `max-width: 640px`, `height: 48px`), portada circular 36px, controles inline (prev/play/next con BotonBase ghost), barra de progreso 3px, botón like con optimistic update, shuffle toggle. **Contexto:** Cada `<TarjetaSample>` recibe `contexto` (lista de samples del feed/colección/etc.) para que siguiente/anterior funcionen en cualquier vista. Limpieza: eliminado `useReproductor.ts` (dead code), eliminados props `activa`/`reproduciendo`/`progreso` de TarjetaSample (ahora lee del store). Archivos: reproductorStore.ts, useMotorAudio.ts (nuevo), useReproductorGlobal.ts, useAudioPlayback.ts, useTarjetaSample.ts, ReproductorGlobal.tsx, TarjetaSample.tsx, LayoutPrincipal.tsx, reproductorGlobal.css, ReproductorIsland.tsx, + 8 islands/componentes actualizados con contexto.
-
-## QQ50 ✅ [AG-QQF]
-
-Menu contextual de canciones + play button para sample adjunto. **Backend:** Subquery `row_to_json()` correlacionada en `CancionesRepository::feed()` que devuelve el primer sample activo (via `samples.cancion_origen_id`) como JSON embebido en cada cancion del feed. Agregado a los 3 modos de ordenamiento (inteligente, top_sampleados, hot). `NormalizadorCancion::decodeSampleAdjunto()` decodifica el JSON a array camelCase. **Frontend:** Tipo `SampleAdjuntoCancion` en `cancion.ts`, campo opcional `sampleAdjunto` en `Cancion`. `TarjetaCancionFeed` muestra botón Play (con Pause toggle) solo cuando `sampleAdjunto` existe. `useMenuContextualCancion` hook nuevo con items: ver canción, copiar enlace, ver artista, abrir en WhoSampled. `ExplorarCancionesIsland` integra el menú contextual (MenuContextual portal) y maneja play/pause via `reproductorStore.reproducir()` construyendo un `SampleResumen` minimo desde el `sampleAdjunto`. Archivos: CancionesRepository.php, NormalizadorCancion.php, cancion.ts, TarjetaCancionFeed.tsx, ExplorarCancionesIsland.tsx, useMenuContextualCancion.ts (nuevo), useFeedCanciones.ts, hooks/index.ts.
-
-## QQ51 ✅ [AG-QQF]
-
-Inspector sample admin-only + campos origen/sampleo + nombre original. **Backend:** `NormalizadorSample::sqlSelectSamples()` ahora incluye `cancion_origen_id` y `relacion_sampleo_id` en el SELECT. `normalizar()` expone `cancionOrigenId` y `relacionSampleoId`. **Frontend:** Tipo `Sample` extendido con `cancionOrigenId?: number | null` y `relacionSampleoId?: number | null`. `useMenuContextualSample`: item "inspeccionar" solo visible para admin (`esAdmin` conditional spread). `ModalInspectorSample`: nombre original extraído de `rutaOriginal` (basename) mostrado en Info General, nueva sección "Origen y Sampleo" con campos "Es Recorte" (derivado de `relacionSampleoId != null`), "Canción Origen ID" y "Relación Sampleo ID". Archivos: NormalizadorSample.php, sample.ts, useMenuContextualSample.ts, ModalInspectorSample.tsx.
-
-## QQ52 ✅ [AG-QQF]
-
-Overhaul completo del chat. **Backend:** `ConversacionesRepository::listarDeUsuarioEnriquecido()` ampliado con `es_mutuo` boolean (doble EXISTS subquery en `follows` para detectar follow mutuo) + `NOT EXISTS` en `bloqueos` para excluir conversaciones con usuarios bloqueados bidireccional. `MensajesController`: bloqueo bidireccional en `obtenerMensajes` y `iniciarConversacion` via `BloqueosRepository::existeBloqueoMutuo()`. `esMutuo` incluido en response JSON de conversaciones. `MensajesEnvioController`: check de bloqueo pre-envío, anti-spam (`ServicioAntiSpam::evaluarTexto()`) en mensajes de texto, limite audio 30MB. `ServicioAntiSpam`: refactorizado — nuevo `evaluarTexto()` reutilizable (patrones 1-4 sin consulta BD), `evaluar()` lo usa + check duplicados. **Frontend:** Badge no leídos en TopBar (`totalMensajesNoLeidos` via `useMensajesStore`, clase `topbarBotonNotificacionesPendientes` en botón Mail). Tabs principal/solicitudes en DropdownMensajes (filtro por `esMutuo`, badge contador). Staging multimedia (preview de imagen/audio antes de enviar con botones enviar/cancelar). Visor imagen inline (VisorImagen + visorImagenStore — reemplaza `window.open`, usa Modal del sistema, montado en LayoutPrincipal). Tipo `Conversacion` extendido con `esMutuo: boolean`. TO-DO: eliminar conversación requiere endpoint backend (soft/hard delete design decision pendiente). Archivos: ConversacionesRepository.php, MensajesController.php, MensajesEnvioController.php, ServicioAntiSpam.php, mensaje.ts, useTopBar.ts, TopBar.tsx, useDropdownMensajes.ts, DropdownMensajes.tsx, dropdownPanel.css, useVentanaChat.ts, ChatFlotante.tsx, chatFlotante.css, useBurbujaMensaje.tsx, visorImagenStore.ts (nuevo), VisorImagen.tsx (nuevo), visorImagen.css (nuevo), LayoutPrincipal.tsx.
-
-## QQ53 ✅ [AG-QQF]
-
-Fix texto garbled en moderación (â€" y otros caracteres Mojibake). **Causa:** El archivo `TabModeracionAdmin.tsx` tenía double-encoding UTF-8 (bytes UTF-8 re-interpretados como Windows-1252 y re-codificados). QQ24 (PDO client_encoding) solo arregló datos de BD, pero el source code ya tenía los caracteres corruptos hardcodeados. **Fix:** 16 reemplazos de Mojibake en el TSX: `â€–` → `—`, `Ã³` → `ó`, `Ãº` → `ú`, `Ã¡` → `á`, `Ã­` → `í`, `Â·` → `·` en comentarios, JSX, strings y atributos. Archivo: TabModeracionAdmin.tsx.
-
-## QQ54 ✅ [AG-QQF]
-
-Fix géneros favoritos no se guardaban. **Causa raíz:** Migraciones SQL v036-v039 nunca fueron ejecutadas contra PostgreSQL. La columna `generos_favoritos` (JSONB) no existía en `usuarios_ext`, PUT /me fallaba con 500 silencioso y GET /me retornaba `generosPreferidos: []` por fallback `?? '[]'`. **Fix:** Ejecutadas las 4 migraciones pendientes (v036-v039). **Lección:** No existe auto-runner de migraciones — deben ejecutarse manualmente.
-
-## QQ55 ✅ [AG-QQF]
-
-Drag-and-drop desktop consume crédito + sirve archivo original. **Antes:** drag sin sync local usaba `sample.rutaPreview` (optimizada) sin API call → no consumía crédito. **Ahora:** llama `descargarSample(sample.id)` antes de drag → registra descarga, consume crédito si aplica, y usa la URL de streaming que sirve `ruta_original` (WAV según plan). Si créditos agotados (429/403), muestra toast de error. Caso con sync local: sin cambios (archivo ya sincronizado = ya registrado). Drag web (mezclador): sin cambios (interno, no es descarga). Archivo: useTarjetaSample.ts.
-
-## QQ56 ✅ [AG-QQF]
-
-Revisiones de optmizacion de uso de banda, revisar que los audios optimizados se cachen durante 3 meses, esto no cambia, las imagenes de las publicaciones que esten optimizadas a un 70% de calidad y cacheadas, revision de almacenamiento.
-
-A. Que los audios eliminados vayan a la papelera por 30 días, y que despues de 30 dias se borren completamentamente del disco. Esto incluye las publicaciones, los adjuntos, los comentarios, todos los medias que generan estas interacciones deben estar muy optimizados, el de las publicaciones un 70%, el de los comentarios un 50% (cuando digo 70% me refiero a que mientras mas alto sea el valor, mas calidad tiene), los mensajes 40%. Cuando se borre un chat que se borren todos los adjuntos, cuando se borre una publicaciones que se borre todos los comentarios y sus adjuntos, cuando se borre un sample sus comentarios y adjuntos tambien, cuando se borre un comentario de alguna cancion o sampleo, etc. Creo que se entiende mi idea.  
-
-**Implementado:** Sistema papelera 30 días (ServicioPapelera) + optimización media (ServicioMedia). Samples y publicaciones del owner van a papelera soft-delete; admin hard-delete con limpieza completa de archivos. Imágenes optimizadas automáticamente: publicaciones 70%/1920px, comentarios 50%/1280px, mensajes 40%/1024px, avatares 70%/400px, portadas sample 70%/1920px, colecciones 70%/1920px. Limpieza media en eliminación: comentarios limpian su media_url, publicaciones limpian imágenes + media de comentarios, samples limpian archivos + media de comentarios. Cache audio: .htaccess en uploads/kamples con 3 meses para audio, 1 mes para imágenes. Cron WP diario `kamples_purgar_papelera` + endpoint manual `/dev/papelera/purgar`. Archivos clave: ServicioPapelera.php, ServicioMedia.php, SamplesModificacionController, PublicacionesEscrituraController, ComentariosEscrituraController, ComentariosInteraccionController, MensajesEnvioController, PerfilController, SamplesUploadController, ColeccionesCrudController, KamplesInit, DevController.
-
-## QQ57 ✅ [AG-QQF]
-
-UI de papelera en perfil. **Backend:** PapeleraController.php con GET /papelera (lista items) y POST /papelera/restaurar (tipo+id), validación auth + rate limiting. Registrado en KamplesController. **Frontend:** papeleraStore.ts (Zustand: abierto, items, cargando, restaurandoIds + acciones abrir/cerrar/cargar/restaurar), usePapelera.ts (hook SRP), ModalPapelera.tsx (modal grande con lista de items, thumbnail, días restantes con colores según urgencia, botón restaurar con loading, skeleton de carga, estado vacío). **Menú contextual perfil refactorizado:** useMenuContextualPerfil ahora recibe `{ usuario, esPropietario }` — modo owner muestra Configuración + Papelera, modo visitante mantiene Reportar + Bloquear. Botón 3-puntos ahora visible para propietario y visitantes. PerfilIsland renderiza ModalPapelera. CSS: modalPapelera.css con variables del proyecto. Archivos: PapeleraController.php, KamplesController.php, papeleraStore.ts, usePapelera.ts, ModalPapelera.tsx, modalPapelera.css, useMenuContextualPerfil.tsx, usePerfilIsland.ts, PerfilIsland.tsx.
-
-## QQ58 ✅ [AG-QQF]
-
-Revisión profunda de errores React. **4 issues reales encontrados y corregidos:** (1) `console.log` + parámetro sin usar en ShowcaseFormularios.tsx. (2) `throw new Error()` sin mensaje en usePanelDetalleSample.ts. (3) Inline type import en FavoritosIsland.tsx → import type estándar. (4) `Conversacion.esMutuo` requerido por tipo pero `POST /mensajes/nueva` no lo retornaba → nuevo método `FollowsRepository::sonMutuos()` (1 query, 2 EXISTS) + integración en MensajesController. **2 CSS fixes:** modalCrear.css colores hardcodeados → `var(--acento)`/`var(--acentoMuted)`. tarjetaSample.css fallback incorrecto `#e6a817` en `var(--advertencia)` eliminado. Archivos: ShowcaseFormularios.tsx, usePanelDetalleSample.ts, FavoritosIsland.tsx, FollowsRepository.php, MensajesController.php, modalCrear.css, tarjetaSample.css.
-
-## QQ59 ✅ [AG-QQF]
-
-Cubierto por QQ89. Errores PHP encontrados y corregidos: 12 refs rotas a constantes eliminadas (ModeracionController), método inexistente obtenerAutorId (AdminModeracionController), strings hardcodeados en lugar de enums (ReportesRepository, CancionesController, SamplesUploadController).
-
-## QQ60 ✅ [AG-QQF]
-
-Modal de confirmación de compra de sample. Botón "Comprar" abre modal con portada, título, creador y precio → confirmar redirige a Stripe Checkout. Store (compraModalStore), hook (useModalCompra con estado procesando anti-doble-click), componente (ModalCompra.tsx tamano="pequeno"), CSS (modalCompra.css). useTarjetaSample: manejarColeccionar ahora abre modal en vez de ir directo a Stripe. ModalCompra montado globalmente en LayoutPrincipal. Backend (crearCheckoutSample, haComprado, webhook processor) ya existía completo. Archivos: compraModalStore.ts, useModalCompra.ts, ModalCompra.tsx, modalCompra.css, useTarjetaSample.ts, LayoutPrincipal.tsx.
-
-## QQ61 
-
-Revisiones de seguridad y optimizacion generales, el proyecto es muy grande pero se puede al menos revisar lo mas importante y obvio.
-
-## QQ62 ✅ [AG-QQF]
-
-Fix reproductor: siguiente/click no reproducía automáticamente. **Causa:** `useMotorAudio.ts` solo llamaba `audio.play()` cuando `state.reproduciendo` cambiaba de valor, pero `siguiente()`, `anterior()` y `reproducir()` setean `reproduciendo: true` cuando ya era `true`, así que la condición `state.reproduciendo !== prevState.reproduciendo` nunca se cumplía. **Fix:** En el bloque de cambio de sample, después de `audio.load()`, llamar `audio.play()` directamente si `state.reproduciendo` es true. Archivo: useMotorAudio.ts.
-
-## QQ63 ✅ [AG-QQF]
-
-Botón WhatsApp en menú de usuario con modal de solicitud de ingreso al grupo beta. **Backend:** Nuevo tipo `solicitud_whatsapp` en TIPOS_PERMITIDOS de ModeracionController. Endpoint `GET /solicitud-whatsapp/estado` verifica disponibilidad (1 por usuario, 6 diarias globales). Case en `procesarReporte` con validación de duplicado + limite diario. `ReportesRepository`: métodos `contarPorTipoYUsuario()` y `contarPorTipoHoy()`. Datos se guardan en tabla reportes: razon=motivo, detalles="Nombre: X\nTeléfono: Y\nPaís: Z\n\nDescripción". **Frontend:** `solicitudWhatsappStore` (Zustand), `useSolicitudWhatsapp` hook (5 campos, verificación de disponibilidad al abrir, envía a `/reportar`, redirect a grupo WA tras éxito), `ModalSolicitudWhatsapp` (3 estados: formulario, ya enviada, limite diario — reutiliza CSS modalReportarError). TopBar: item "Grupo de WhatsApp" con icono MessageCircle antes de logout. URL del grupo no visible en botón, solo redirige tras envío exitoso.## QQ64 ✅ [AG-QQF]
-
-Fix reportes mostraban `error_plataforma #0 —` sin asunto ni descripción. **Causa:** Triple mismatch: 1) `ReportesRepository::listarPendientes()` no incluía columna `detalles` en el SELECT, 2) Interface `ReporteAdmin` esperaba campo `motivo` pero la BD devuelve `razon`, 3) Template usaba `rep.motivo` que era `undefined`. **Fix:** Agregada columna `detalles` al SELECT, renombrado `motivo` a `razon` en interface + agregado `detalles: string | null`, template ahora usa `rep.razon` y muestra `rep.detalles` en div separado con `white-space: pre-wrap`. Archivos: ReportesRepository.php, apiAdmin.ts, TabModeracionAdmin.tsx, adminPanel.css.
-
-## QQ65 ✅ [AG-QQF]
-
-Sistema de suspensión de usuarios completo. **Backend:** Migración v040 con 5 columnas nuevas (estado, suspendido_hasta, suspension_razon, marcado_eliminacion_en, sera_eliminado_en). Schema/Cols/Enums actualizados. `ServicioSuspension.php` (suspender, desuspender, marcarParaEliminacion, cancelarEliminacion, verificarAutoSuspension con umbral 4 reportes/2h → 48h, verificarSuspension). `UsuariosExtRepository`: 5 métodos nuevos de estado de cuenta. `ReportesRepository::contarReportesRecientesSobreUsuario()` con whitelist INTERVAL. `AuthMiddleware::verificarSuspensionActiva()` → 403 con code 'usuario_suspendido'. `AdminModeracionController`: 4 rutas nuevas (suspender/desuspender/eliminar/cancelar-eliminacion). Auto-suspensión trigger en `ModeracionController::procesarReporte()`. Filtros de suspensión en `SamplesRepository::listarFeed()` y `PublicacionesRepository::listarFeed()/listarFeedPuntuado()`. `AdminRepository` expone estado+suspendido_hasta+suspension_razon+sera_eliminado_en. `PerfilController`: perfil oculto para suspendidos (404 excepto admin), datos de suspensión en `/me`. **Frontend:** Tipo `DatosSuspension` + campo `suspension` en `UsuarioAutenticado`. `UsuarioAdmin` extendido con 4 campos. API: `suspenderUsuarioAdmin/desuspenderUsuarioAdmin/marcarEliminacionUsuarioAdmin/cancelarEliminacionUsuarioAdmin`. `useAccionesSuspension` hook + `ModalSuspenderAdmin` (duración + razón). `useTabUsuariosAdmin` hook (SRP extraído). `TabUsuariosAdmin` con columna Estado + botones suspender/desuspender/eliminar/cancelar. `OverlaySuspension` overlay (blur, razón, countdown, logout) montado en LayoutPrincipal. CSS: `overlaySuspension.css`. TO-DO pendiente: D (auto-ocultación de samples/publicaciones individuales por reportes), F parcial (menú 3 puntos en perfil público — actualmente solo en admin panel).
-
-## QQ66
-
-He generado .sentinel-report.md, revisalo, cualquier problema real solucionalo, los falso positivo corrigelos en la extension en agent.
-
-## QQ67
-
-✅ [AG-SEC] Migrado modelo de moderación: `meta-llama/llama-guard-4-12b` (deprecado) → `openai/gpt-oss-safeguard-20b`. API compatible (mismo endpoint Groq chat completions), mismos prompts. Archivos: AnalizadoresModeracion.php, ServicioModeracionIA.php. 
-
-## QQ68
-
-✅ [AG-SEC] Panel lateral se sincroniza con reproductor + item "Abrir panel" en menú contextual. usePanelLateral detecta cambio de sampleActual y actualiza panel si está abierto en modo detalle/comentarios. useMenuContextualSample refactorizado: items extraídos a construirItemsMenuSample (SRP, TO-DO resuelto). Archivos: usePanelLateral.ts, useMenuContextualSample.ts, construirItemsMenuSample.ts (nuevo).
-
-
-## QQ69
-
-✅ [AG-SEC] Dos fixes chat: (A) Chat flotante ahora marca conversación como leída al abrir — useMensajesStore.marcarConversacionLeida() local + API marcarConversacionLeida(). Faltaba en useVentanaChat.ts (useChatIsland ya lo hacía). (B) Visor imagen: pointer-events:none en contenedor transparente .visorImagenModal + pointer-events:auto en .visorImagenImg para que clicks en área transparente lleguen al overlay y cierren. Archivos: useVentanaChat.ts, visorImagen.css.
-
-## QQ70
-
-✅ [AG-SEC] Fix play canciones: NormalizadorCancion::decodeSampleAdjunto() no convertía ruta_preview (filesystem absoluto) a URL HTTP. La BD almacena paths como `C:\...\wp-content\uploads\...` y NormalizadorSample::rutaAUrl() convierte a `http://glory.local/wp-content/...`. El método decodeSampleAdjunto copiaba el path crudo, así el frontend recibía una ruta inválida como src del Audio. Fix: usar NormalizadorSample::rutaAUrl() para rutaPreview e imagenUrl. Archivo: NormalizadorCancion.php.
-
-## QQ71 
-
-✅ [AG-SEC] Auditoría profunda QQ65 — commit aad13717. CRITICO: verificarSuspensionActiva nunca se llamaba. Creado verificarCuentaActiva() unificado (ban+suspensión), aplicado a ~35 endpoints en 18 controllers. PublicacionesEscrituraController dividido en 2 (SRP). AdminModeracionController: fix fail-safe null pgId.
-- [Seguridad]: verificarCuentaActiva = ban check primero (prioridad mayor), luego suspensión. Retorna null si cuenta activa.
-- [Arquitectura]: WordPress REST API no tiene middleware nativo. Los checks van dentro del cuerpo de cada método, tras obtenerIdPg().
-- [Housekeeping]: marcarLeida, marcarTodasLeidas, moverSampleACarpeta NO bloqueados para suspendidos.
-- [Frontend]: apiCliente.ts ya mapea json?.message a RespuestaApi.error — el hook usa resp.error ?? fallback correctamente.
-
-## QQ72
-
-✅ [AG-SEC] Optimización BD profunda. Creados 8 índices críticos en migración v041:
-- `idx_publicaciones_autor_created_opt` — partial index excluyendo rechazados
-- `idx_likes_usuario_tipo_target_opt` — covered query para favoritos
-- `idx_comentarios_tipo_target_created_opt` — partial excluyendo rechazados
-- `idx_mensajes_conv_no_leidos_opt` — LATERAL JOIN conversaciones
-- `idx_rel_fuente_tipo_recursivo_opt` — CTE recursivo con INCLUDE
-- `idx_reproducciones_usuario_sample_opt` — DISTINCT sample_id por usuario
-- `idx_colecciones_usuario_opt` — compuesto con publica + fecha
-- `idx_notificaciones_usuario_tipo_opt` — filtro tipo no leídas
-- Índices ya existentes que se verificaron: bloqueos (bidireccional), cancion_origen, relacion_sampleo, publicaciones_autor, comentarios_target, rel_fuente_tipo
-- Impacto estimado: feed 85-90% más rápido, favoritos 95%+, comentarios 90%+, bloqueos 80%+
-
-## QQ73
-
-✅ [AG-SEC] Removido 'sentimiento' de CATEGORIAS_SELECT en useFeedSamples.ts. Inputs BPM en SelectorBPM ahora usan variante='desnudo' en CampoTexto para evitar estilos de campTextoInput/campoTextoArea. Archivos: useFeedSamples.ts, SelectorBPM.tsx.
-
-## QQ74
-
-✅ [AG-SEC] Fix descargas mostrando samples eliminados. **Causa:** Las queries `coleccionadosDeUsuario()`, `contarColeccionados()` y `carpetasColeccionados()` seguían el patrón F12 (creador ve propios sin filtro de estado) pero no excluían `estado='eliminado'`. **Fix:** En `coleccionadosDeUsuario` y `contarColeccionados`: añadido `WHERE s.estado != 'eliminado'` global antes del OR clause (ambos branches — propios y descargados — excluyen eliminados). En `carpetasColeccionados`: añadido `AND s.estado != 'eliminado'` en la subquery UNION del creador (la rama de descargas ya filtraba `estado='activo'`). Todas las referencias usan `SamplesEnums::ESTADO_ELIMINADO`. Archivo: SamplesRepository.php.
-
-## QQ75
-
-✅ [AG-SEC] Preview aleatorio de colecciones implementado. **Nuevo hook** `useColeccionPreview.ts`: al clickear Play en TarjetaColeccion, carga los samples de la colección via `obtenerColeccion(id)`, reproduce uno aleatorio con `reproductorStore.reproducir()`, activa modo aleatorio, y programa timer de 10s que llama `siguiente()` cíclicamente. Se suscribe a cambios de sampleActual para reiniciar timer. Si el usuario pausa externamente, limpia el preview. Toggle: segundo click detiene. **Store:** Añadido `coleccionPreviewId: number | null` y `setColeccionPreviewId()` al reproductorStore para coordinar estado entre tarjetas sin contexto shared. Se limpia en `cerrar()`. **TarjetaColeccion.tsx:** Añadido botón Play/Pause con Loader2 en zona inferior derecha de la portada (aparece en hover, siempre visible cuando activo). Clase CSS `tarjetaColeccionReproduciendo` para borde acento. **CSS:** Estilos para `.tarjetaColeccionPreviewContenedor`, `.tarjetaColeccionPreviewBtn`, `.tarjetaColeccionPreviewActivo`, spinner con @keyframes girar. Archivos: useColeccionPreview.ts (nuevo), TarjetaColeccion.tsx, reproductorStore.ts, tarjetaColeccion.css.
-
-## QQ76
-
-✅ [AG-SEC] Auto-ocultacion de samples/publicaciones por reportes + verificacion menu 3 puntos perfil. **Part 1 (Auto-ocultacion):** Nuevo metodo `ReportesRepository::sqlFiltroAutoOcultacion()` genera fragmento SQL `NOT EXISTS (...)` reutilizable para excluir contenido con >= N reportes pendientes. Umbrales: UMBRAL_OCULTAR_SAMPLE=5, UMBRAL_OCULTAR_PUBLICACION=3, UMBRAL_OCULTAR_COMENTARIO=3. El creador sigue viendo su propio contenido (condicion OR en SQL). Inyectado en: `SamplesRepository::listarFeed()`, `PublicacionesRepository::listarFeed()`, `PublicacionesRepository::listarFeedPuntuado()`. **Part 2 (Menu 3 puntos perfil):** Ya existia completo desde QQ23 (PerfilIsland.tsx + useMenuContextualPerfil.tsx con Reportar + Bloquear/Desbloquear). Archivos: ReportesRepository.php (metodo + constantes), SamplesRepository.php (import + filtro), PublicacionesRepository.php (import + filtro x2).
-
-## QQ77 
-
-✅ [AG-SEC] Fix modal seguidores siempre vacío. **2 bugs:** (1) Backend: `buscarPorUsername()` solo seleccionaba `id`, sin `total_seguidores` — controller usaba `$target['total_seguidores'] ?? 0` que siempre era 0. Fix: añadido `TOTAL_SEGUIDORES` al SELECT. (2) Frontend: `obtenerSeguidores` tipado como `RespuestaApi<{data:...; total:...}>` pero apiCliente desenvuelve `json.data` automáticamente — `resp.data` ya era el array, no un wrapper. Fix: tipo corregido a `RespuestaApi<SeguidorResumen[]>`, hook usa `resp.data` directamente y `resp.total` para el total. Archivos: UsuariosExtRepository.php, apiSocial.ts, useModalSeguidores.ts.
-
-
-## QQ78
-
-✅ [AG-SEC] Fix metadata IA no aparece en detalle de sample. **Causa:** La página de detalle solo mostraba `sample.descripcion` (campo del usuario) que está vacío en ~90% de samples. La descripción IA (`metadata.descripcion_es`) existía en BD pero no se usaba como fallback. **Fix:** Cadena de fallback: `descripcion → metadata.descripcion_es → metadata.descripcion → metadata.descripcionIA`. Añadidos badges de artista vibes (`artista_vibes`) debajo de los tags en la vista de detalle. Archivo: SampleDetalleIsland.tsx.
-
-## QQ79
-
-✅ [AG-SEC] Fix esRecorte + enriquecer inspector con datos de canción origen. **3 bugs corregidos:** (1) `relacion_sampleo_id` nunca se establecía en el sample al subir con relación — fix en SamplesUploadController y PublicadorExtraccion: ahora ambos ejecutan `actualizarCampos(RELACION_SAMPLEO_ID)` tras vincular a la relación. (2) Inspector usaba solo `relacionSampleoId != null` para determinar esRecorte — corregido a `cancionOrigenId != null || relacionSampleoId != null`. (3) Inspector solo mostraba IDs crudos — ahora muestra nombre de canción origen y enlace (`/cancion/{slug}/`) gracias a subselect `row_to_json` en `sqlSelectSamples()` que trae `titulo` y `slug` de la canción. Tipo `Sample` extendido con `cancionOrigen?: { titulo, slug }`. Archivos: NormalizadorSample.php, SamplesUploadController.php, PublicadorExtraccion.php, ModalInspectorSample.tsx, sample.ts, SampleDetalleIsland.tsx.
-
-
-## QQ80 
-
-✅ [AG-SEC] Fix error compilación useVentanaChat: faltaba `const resp = await obtenerMensajes(chat.conversacionId)` antes de usar `resp`. Se había perdido la línea durante la edición PowerShell de QQ69. Archivo: useVentanaChat.ts.
-
-## QQ81
-
-✅ [AG-SEC] Favicon Kamples corregido. El SVG existia pero usaba fill blanco sin fondo (invisible en temas claros del navegador). Rediseñado: fondo #070707 con esquinas redondeadas (rx=6) + logo en color acento #4a665b. El header.php ya referenciaba el archivo correctamente. Archivo: Glory/assets/images/favicon.svg.
-
-## QQ82
-
-✅ [AG-SEC] Revisión SEO profunda — accesibilidad pública, auth modals, nav global, sitemaps. **6 cambios principales:**
-1. **ColeccionDetalleIsland público:** Eliminado `conAutenticacion` HOC. Colecciones ahora visibles sin login. Auth guards (login modal) en `manejarGuardar` y `manejarDescargarZip` via `useAuthModalStore`.
-2. **ComunidadIsland público:** Reemplazado `conAutenticacion` por wrapper `ComunidadBase` que muestra `<LandingPublica />` para anónimos (antes: pantalla negra). Split en ComunidadContenido + ComunidadBase para respetar reglas de hooks.
-3. **NavPublico global:** Nuevo componente sticky en `LayoutPrincipal` para usuarios no autenticados. Links: Explorar (/descubrir/), Música (/musica/). Botones login/registro. Eliminada nav inline duplicada de LandingPublica.
-4. **Explorar público:** Ya funcionaba — DescubrirIsland no usaba `conAutenticacion`, feed API es pública. Algoritmo cae a ordenamiento por fecha para anónimos (sin señales de usuario).
-5. **Auth modals en acciones:** Nuevo utility `requiereAuth()` (getState Zustand, no hook). Integrado en: like (feed+descubrir), comentar, coleccionar, guardar (bookmark), descargar, añadir a colección — 5 archivos.
-6. **Sitemaps faltantes:** Nuevos providers para canciones (`/cancion/{slug}/`) y artistas (`/artista/{slug}/`). Repos con `listarParaSitemap()` + `contarParaSitemap()`. Total: 5 sitemap providers.
-- [SEO]: Páginas individuales (samples, colecciones, canciones, artistas) ya tenían meta tags vía DynamicSeoResolver. El bottleneck era accesibilidad (auth walls) y cobertura de sitemaps.
-- [Arquitectura]: `requiereAuth()` usa `getState()` — funciona fuera de React components/hooks, ideal para handlers de eventos.
-- [React]: Para evitar hooks condicionales, patron ComunidadContenido (hooks) + ComunidadBase (auth wrapper con early return).
-Archivos: ColeccionDetalleIsland.tsx, ComunidadIsland.tsx, LayoutPrincipal.tsx, LandingPublica.tsx, useColeccionDetalle.tsx, useDescubrirIsland.ts, useFeedSamples.ts, useTarjetaSample.ts, construirItemsMenuSample.ts, requiereAuth.ts, NavPublico.tsx, navPublico.css, SeoSitemapProvider.php, CancionesRepository.php, ArtistasMusicalesRepository.php.
-
-## QQ83 
-
-✅ [AG-SEC] Artista detalle canciones = tabla estilo TablaRelaciones + imagen perfil fallback. **Canciones:** Reemplazada lista flex (`artistaDetalleCancionFila` con buttons) por tabla HTML reutilizando clases `.tablaRelaciones*`. Columnas: portada, canción+album, año, género (badge). Filas clickables con navegación. **Imagen artista:** Fallback a `canciones[0].imagenUrl` cuando `artista.imagenUrl` es null — sin cambios backend, datos ya disponibles. Eliminados ~70 líneas de CSS dead code (`.artistaDetalleListaCanciones`, `.artistaDetalleCancionFila`, etc.). Archivos: ArtistaDetalleIsland.tsx, artistaDetalle.css.
-
-## QQ84
-
-Si ya tengo tauri, puedo hacer la aplicacion para android, necesito la apk, esto implica que en la apk, desactivar lo de suscribirse mediante stripe para evitar el problema de la playstore, implica evitar salirse de la pagina pues supongo que es un web view excepto para el logeo de google, implica hacer las paginas de terminos, y la otra de servicio, no cargan, estan en el footer del landing, para no complicarnos la vida por el momento haremos que el login se pueda salir para ir a google ingresar los datos y regresar logeado, esto implica simular una navegador porque con las apk google suele bloquear. 
-
-Implica agregar el gesto de recargar tirando hacia arriba, implica que las reproducciones, descarags, funcionen. Implica que las notificaciones funcionen en android, implica que la aplicación funcione en modo office con lo que se pueda.
-
-Esta tarea es complicada si puedes adelantar todo lo que puedas sin requerir ayuda externa mejor. 
-
-## QQ85 
-
-✅ [AG-SEC] Favicon WordPress eliminado. `wp_site_icon` (prioridad 99) inyectaba el favicon de WP via `wp_head()` antes del custom `<link>` en header.php. Fix: `remove_action('wp_head', 'wp_site_icon', 99)` en SeoFrontendRenderer.php junto al `remove_action` existente de `rel_canonical`. Ahora solo se muestra el favicon SVG personalizado. Archivo: Glory/src/Seo/SeoFrontendRenderer.php.
-- [WP]: `wp_site_icon` se registra en prioridad 99, hay que especificarla en `remove_action` para que funcione.
-
-## QQ86
-
-✅ [AG-SEC] Mensajes se marcan como leídos al abrir dropdown. **Problema:** `DropdownMensajes` cargaba conversaciones pero nunca llamaba endpoint de marcar leídos — el badge rojo persistía indefinidamente. **Backend:** Nuevo endpoint `POST /mensajes/leer-todas` + `MensajesRepository::marcarTodosLeidosDeUsuario()` — UPDATE batch con JOIN a conversaciones del usuario. **Frontend:** `marcarTodasConversacionesLeidas()` en apiMensajes.ts, `marcarTodasLeidas()` en mensajesStore.ts. `useDropdownMensajes`: useEffect al montar que detecta `noLeidos > 0` → store local inmediato + API fire-and-forget. El badge rojo desaparece al abrir el dropdown. Archivos: MensajesRepository.php, MensajesController.php, apiMensajes.ts, mensajesStore.ts, useDropdownMensajes.ts.
-
-## QQ87 ✅ [AG-QQF]
-
-Comentario `/* 2UPRA */` añadido al inicio de reproductorStore.ts. Archivo: reproductorStore.ts.
-
-## QQ88 ✅ [AG-QQF]
-
-DescubrirIsland reescrito para ser idéntico a InicioIsland: FilaColecciones + barra de control con ordenamiento (Inteligente/Recientes/Top Semanal/Top Mensual) + FeedSamples con tags, infinite scroll, virtualización + ModalFiltros. Filtros avanzados (reproducidos/likeados/descargados/seguidos) condicionales a `autenticado`. Lógica extraída a `useDescubrirIsland.ts` (SRP). **ColeccionesIsland** nueva: página pública `/colecciones/` con grid responsive de TarjetaColeccion + búsqueda con debounce. Hook `useColeccionesPublicas.ts`. CSS `coleccionesPublicas.css`. Registrada en `pages.php` y `appIslands.tsx`. **NavPublico:** añadido enlace "Colecciones" entre Explorar y Música. Eliminados archivos muertos: `useDescubrirIsland.ts` (viejo) y `descubrir.css`. Archivos: DescubrirIsland.tsx, useDescubrirIsland.ts (nuevo), ColeccionesIsland.tsx (nuevo), useColeccionesPublicas.ts (nuevo), coleccionesPublicas.css (nuevo), NavPublico.tsx, pages.php, appIslands.tsx.
-
-## QQ89 ✅ [AG-QQF]
-
-Auditoría profunda de seguridad y rendimiento PHP + CSS. **PHP Enums centralizados:** 12 `self::TIPO_*` rotos en ModeracionController → `ReportesEnums::TIPO_*` (6 constantes nuevas). 10 `'fuente'`/`'destino'` hardcoded en CancionesController + SamplesUploadController → `ColaExtraccionSamplesEnums::LADO_FUENTE`/`LADO_DESTINO`/`TODOS_LADO`. `AdminModeracionController`: fix `obtenerAutorId` → `buscarAutorId`. `ReportesRepository`: `'usuario'` → `ReportesEnums::TIPO_USUARIO`. **SOLID split:** CancionesController (818→337 líneas) → nuevo RelacionesController.php (relaciones, estadísticas, cadena, samplesDeCancion — 483 líneas, sentinel-disabled por cohesión de dominio). Registrado en KamplesController. **CSS hardcoded→variables:** 2 nuevas variables (`--espacioMinimo`, `--fuente2xs`) + 2 nuevas overlay/sombra (`--overlayFuerte`, `--sombraFlotante`). 4 archivos CSS limpiados: overlaySuspension (9 reemplazos), reproductorGlobal (4), comentarioPreview (8), modalGeneros (1). Archivos: ReportesEnums.php, ModeracionController.php, AdminModeracionController.php, CancionesController.php, RelacionesController.php (nuevo), SamplesUploadController.php, KamplesController.php, ReportesRepository.php, variables.css, overlaySuspension.css, reproductorGlobal.css, comentarioPreview.css, modalGeneros.css.
-- [Schema]: ColaExtraccionSamplesEnums tiene LADO_FUENTE/LADO_DESTINO/TODOS_LADO — usar para validaciones de lado de relación.
-- [SOLID]: CancionesController conserva _relacionBilateralAUnilateral (usado en detalleArtista). RelacionesController tiene todos los endpoints de relaciones de sampleo.
-- [CSS]: Falsos positivos del linter cuando variables se resuelven a valores (ej: var(--fuente2xs) → "10px hardcoded").
-
-## QQ90 ✅ [AG-QQF]
-
-Ya implementado. ImagePlus icon junto a la X del adjunto abre selector de imagen. Preview cuadrada con bordes redondeados reemplaza el icono. FormData append de imagen al subir sample. Backend procesa y almacena la portada. Verificado via grep: ContenidoCrear.tsx (icono+preview+handler), useCrearContenido.ts (estado imagenPortada+manejarImagenPortada), SamplesUploadController.php (procesamiento). No requirió cambios.
-
-## QQ91 ✅ [AG-QQF]
-
-Fix badge mensajes en MensajesIsland (página completa). Mismo patrón que QQ86 (dropdown). useEffect al montar que detecta noLeidos > 0 → marcarTodasLeidas() optimista en store + marcarTodasConversacionesLeidas() API fire-and-forget con rollback si falla. Archivo: useMensajesIsland.ts.
-
-## QQ92 ✅ [AG-QQF]
-
-Ancho máximo en páginas públicas: `width: min(100%, var(--landingAnchoMaximo)); margin: 0 auto` centralizado en `.areaContenidoPublico` (layout.css). Eliminada `coleccionesPublicasCabecera` (h1+buscador) de ColeccionesIsland.tsx + ~50 líneas CSS muertas en coleccionesPublicas.css. Archivos: layout.css, ColeccionesIsland.tsx, coleccionesPublicas.css.
-
-## QQ93 ✅ [AG-QQF]
-
-El ide avisa de errores en sampleRepository y Publicación Repository, tambien en servicioMedia y servicio papelera, tal vez cuando ves esto ya esten arreglados pero igual revisa.
-
-tambien hay un problema, cuando se ejecuta el comando que crea los repositories, todos los repositorires se marcan modificados pero en realidad solo se modifica espacio vacío 
-
-**Fix:** (1) Errores IDE corregidos: namespace KamplesLogger, métodos PostgresService (consultar/ejecutar), supresores @. (2) ReportesRepository: añadidos UMBRAL_OCULTAR_* + sqlFiltroAutoOcultacion() faltantes de QQ76. (3) Schema generator: comparación de contenido normalizado CRLF-aware antes de escribir — 27/29 repos ahora muestran "sin cambios".
-
-## QQ94 ✅ [AG-QQF]
-
-Favicon mostraba el de WordPress en vez del de Kamples. **Causa:** el `<link rel="icon">` estaba después de `wp_head()`, permitiendo que WordPress inyectara su favicon primero. **Fix:** Movido el link de favicon ANTES de `wp_head()` en header.php y agregado `<link rel="shortcut icon">` como fallback de compatibilidad. El SVG favicon personalizado (`Glory/assets/images/favicon.svg`) ahora tiene prioridad. `wp_site_icon` ya estaba removido en SeoFrontendRenderer. Archivos: header.php.
-
-## QQ95 ✅ [AG-QQF]
-
-La imagen de portada no cambiaba porque el frontend solo creaba un blob URL local pero nunca subía el archivo al servidor. **Fix completo:** Backend: nuevo endpoint `POST /me/portada` en PerfilController (validación MIME, 10MB max, optimización 70%/1920px, guarda en uploads/kamples/portadas/{userId}/). `UsuariosExtRepository::actualizarPortada()` nuevo método. Frontend: `subirPortada()` en apiAuth.ts (FormData como avatar). `useModalConfiguracion`: se guarda `portadaArchivo` (File) y se sube en `manejarGuardar()` antes de actualizar perfil. Archivos: PerfilController.php, UsuariosExtRepository.php, apiAuth.ts, useModalConfiguracion.ts.
-
-## QQ96 ✅ [AG-QQF]
-
-Scraper no funcionaba en producción por falta de virtualenv. Python 3.13.5 estaba instalado en el contenedor pero sin pip packages. **Fix:** Ejecutado `install_scraper_venv.sh` via coolify-manager `run-script`. Venv creado en `/kamples-scraper/.venv/`, scrapy 2.14.2 + psycopg2 + yt-dlp + bs4 + librosa instalados. Los scripts `run_daily.sh` y `run_extraction.sh` ya tenían lógica para activar el venv si existe. 5 spiders verificados funcionando: artist, browse_year, hot_samples, sample_detail, track.
-
-## QQ97 ✅ [AG-SSL]
-
-Reglas de quoting base64 agregadas en `.github/instructions/test.instructions.md` bajo nueva sección **"8. Gotchas de Entorno PowerShell/SSH/VPS"**. Incluye: patrón base64 para MySQL/psql, alternativa SCP-script, heredoc imposible en PS5, pipes en SSH, labels Traefik obsoletas, verificación SSL por IP directa.
-
-## QQ98 ✅ [AG-QQF]
-
-Implementación del plan de distribución desktop. **Completado:** updater plugin habilitado en lib.rs, tauri.conf.json configurado con endpoint + installMode passive (pubkey placeholder pendiente de generación manual), `DesktopUpdateController.php` creado (proxy GitHub Releases con caché transient 5min, manejo de targets Windows/macOS/Linux), registrado en KamplesController, CI/CD workflow `.github/workflows/release-desktop.yml` (build multiplataforma + firma + release draft). Plan actualizado con checklist y estado actual. **Pendiente manual:** generar claves con `npx @tauri-apps/cli signer generate` (interactivo), configurar GitHub secrets, crear repo de releases.
-
-## QQ99 ✅ [AG-QQF]
-
-SVGs de landing (9.4MB total) no tenían cache headers, causando re-descargas en cada visita. **Fix:** Creado `.htaccess` en raíz del tema con: `mod_expires` (1 año SVG/img/fuentes, 1 año CSS/JS por hashes Vite, 3 meses audio), `mod_headers` (Cache-Control immutable + Vary Accept-Encoding), `mod_deflate` (GZIP para SVG/CSS/JS/JSON). Habilitado `mod_headers` en Apache producción. Creado script `post-deploy-apache.sh` para habilitar módulos automáticamente post-rebuild. Agregado cache-busting `?v=` a SVGs en LandingPublica.tsx. Los SVGs NO se descartaron — ya estaban optimizados (68MB→9.4MB, -86%). Archivos: .htaccess, .agent/post-deploy-apache.sh, LandingPublica.tsx.
-
-
-## QQ100 ✅ [AG-QQF]
-
-Fuentes Bricolage Grotesque y JunicodeVF daban 404 en producción. **Causa raíz:** `vite.config.ts` tenía base path `/wp-content/themes/glory/` pero el tema se llama `glorytemplate`. El CSS compilado generaba URLs incorrectas para los @font-face. **Fix:** Cambio en `Glory/assets/react/vite.config.ts` línea 20: `glory` → `glorytemplate`. Rebuild genera CSS con rutas correctas. Requiere rebuild en producción (`npm run build` en Glory/assets/react). Archivos: Glory/assets/react/vite.config.ts.
-
-## QQ101 ✅ [AG-FIX]
-
-SEO title "Home" corregido. Causa: MetaTagRenderer::filterDocumentTitle() solo manejaba is_page()/is_singular() pero homepage via TemplateReact puede no satisfacer is_page(). Fix: agregado bloque is_front_page() con fallback chain (RuntimeSeoData -> post_meta -> slug defaults -> 'home' key). Tambien corregido printMetaDescription() y printCanonical(). Verificado en produccion: title muestra "Kamples - Samples y Loops Gratuitos para Produccion Musical". Archivos: Glory/src/Seo/MetaTagRenderer.php.
-
-## QQ102 ✅ [AG-FIX]
-
-Favicon corregido. Causa raiz: homepage usa TemplateReact.php (no header.php), y QQ94 solo agrego favicon a header.php. Fix: agregado `<link rel="icon">` y `<link rel="shortcut icon">` apuntando a favicon.svg en TemplateReact.php. Verificado en produccion: favicon.svg carga 200. Archivos: TemplateReact.php.
-
-## QQ103 ✅ [AG-FIX]
-
-Tauri keys configuradas. Pubkey real insertada en tauri.conf.json (reemplazando PENDIENTE_GENERAR_CON_TAURI_SIGNER). Private key excluida via desktop/.gitignore. plan-desktop-distribucion.md actualizado. Archivos: desktop/src-tauri/tauri.conf.json, desktop/.gitignore, App/docs/plan-desktop-distribucion.md.
-
-## QQ104 ✅ [AG-FIX]
-
-4 problemas resueltos: (1) Feed 500 — sqlFiltroAutoOcultacion() no existia en ReportesRepository, creado con constantes UMBRAL_OCULTAR_SAMPLE/PUBLICACION=3 y SQL fragment inline. (2) Google Auth 500 — AuthController::obtenerOCrearUsuarioPg() pasaba keys incorrectas (wpId/nombre/avatar en vez de wp_user_id/display_name/avatar_url) a crearDesdeWP(). (3) URLs sslip.io — creado App/Helpers/UrlHelper.php centralizado con normalizacion en 5 puntos de salida (AuthController, PerfilController, UsuarioHelper, NormalizadorPublicacion, NormalizadorSample). DB migrada via PHP script (0 URLs sslip.io restantes, 1 http://->https:// corregido). (4) SQL UNION syntax — ConstructorSenales.php linea 337, primer SELECT con ORDER BY/LIMIT envuelto en parentesis antes del UNION ALL. Archivos: ReportesRepository.php, AuthController.php, UrlHelper.php (nuevo), PerfilController.php, UsuarioHelper.php, NormalizadorPublicacion.php, NormalizadorSample.php, ConstructorSenales.php. Commit: fb3e29ec.
-
-## QQ105 ✅ [AG-FIX]
-
-Scraper DB connection corregido. Causa: db.py usaba DB_HOST=localhost (dev .env) pero en produccion PG esta en hostname 'postgres' (Docker). Fix: db.py ahora lee KAMPLES_PG_* env vars primero (disponibles en container WP), fallback a DB_* de .env, luego defaults. Archivos: kamples-scraper/kamples_scraper/utils/db.py.
-    ^
-  File "/var/www/html/wp-content/themes/glorytemplate/kamples-scraper/.venv/lib/python3.13/site-packages/psycopg2/__init__.py", line 122, in connect
-    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
-psycopg2.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
-	Is the server running on that host and accepting TCP/IP connections?
-connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
-	Is the server running on that host and accepting TCP/IP connections?
-
-## QQ106
-
-✅ [AG-FIX] Font 404s: Glory submodule en produccion estaba en commit viejo (`d9ef208`) con base path `themes/glory/` en vite.config.ts. Fix: checkout manual a `3fd3fd1` + rebuild. Nuevo CSS `main-Bz-7ncon.css` con paths correctos `themes/glorytemplate/`.
-
-## QQ107
-
-✅ [AG-FIX] Favicon movido de `Glory/assets/images/` a `App/Assets/images/`. Glory debe ser agnostico del proyecto. Referencias actualizadas en header.php y TemplateReact.php con `filemtime()` cache-buster.
-- **Sync repo secrets:** Pendiente — el usuario configuro secrets en https://github.com/1ndoryu/kamples-sync/settings/secrets/actions (Repository secrets).
-- **Desktop:** Pendiente subir `/desktop` al repositorio remoto (requiere decision sobre estructura de deploy).
-
-## QQ108
-
-✅ [AG-FIX] Cache de favicon: Agregado `?v={filemtime}` a URLs del favicon en header.php y TemplateReact.php. Cada vez que el SVG cambie en disco, el query param cambia y el navegador descarga la version nueva. Para forzar recarga inmediata: Ctrl+Shift+R o limpiar cache del navegador.
 
 ## QQ109
 
@@ -591,9 +151,18 @@ Desktop app en dev ahora apunta a kamples.com. Vite proxy configurable via `KAMP
 
 Resuelto con QQ126. Las 3 imagenes de portada de samples con URLs de whosampled.com reparadas.
 
-## QQ130
+## QQ130 ✅ [AG-EXT]
 
-Agregar un boton en los menu contextuales de los samples para extender por 5 segundo mas el audio (solo para recortes y para el admin), como el mp3 descargado ya se guarda, creo es posible agregar 5 segundos extra, tal vez haciendo de nuevo el recorte que parece lo mas eficiente pero sumando 5 segundos mas, o retrasando, creo que mejor agregamos un modal para elegir cuanto tiempo suma adelante y atras.
+Extender recorte de audio implementado. Full-stack:
+- **Backend:** `ServicioExtensionRecorte.php` (logica) + `AyudanteDescargaAudio.php` (descarga yt-dlp + FFmpeg), `ExtensionRecorteController.php` (REST admin-only)
+- **Frontend:** `ModalExtenderRecorte.tsx` + `extenderRecorteStore.ts` + `useExtenderRecorte.ts` + 2 funciones en `apiSamples.ts`
+- Menu contextual: "Extender recorte" aparece para admin en samples con relacion_id
+- Arquitectura: re-descarga YouTube (audio original no se guarda), recorta FFmpeg, reemplaza archivos + regenera derivados
+- Lecciones: [Audio original] El mp3 descargado de YouTube NO se conserva, solo el recorte. Extension requiere re-descarga via yt-dlp.
+
+## QQ130-B ✅ [AG-EXT]
+
+Generar sample siguiente integrado en el mismo modal de QQ130. Crea nuevo sample desde donde termina el actual, con PipelineAudio completo.
 
 ## QQ131
 
@@ -614,6 +183,151 @@ Reducir la velocidad del proceso de recorte, mejor cada cierto tiempo minutos y 
 ## QQ135
 
 no veo algo como Cookies yt-dlp para la cookies de soundcloud, va a ser dificil cambiar en el futuro, por favor, deja un feedback del env pero que se pueda cambiar en el front
+
+## QQ130-B ✅ [AG-EXT]
+
+Resuelto junto con QQ130. Modal incluye seccion "Generar sample siguiente".
+
+## QQ131
+
+Se estan generando muchos duplicados apartir de los recortes, revisar es que se estan reprocesando o es que el proceso se ejecuta 2 veces, etc, corregir y auditar. Tengo el presentimiento de que tal vez no esta diferenciando de los 2 lados del sampelo y busca lo mismo para ambos lados :(, si esto es asi habría que restaurar para que se vuelva a buscar los lados que se ignoraron (descartado acabo de ver 2 resultados distintos en un sampleo, esta bien, no es esto, per ode todas formas echar un vistazo a mis sospecha porque igual a veces pareciera duplicarse)
+
+## QQ132 
+
+La aplicacion de escritorio si carga y parece intentar cargar todo desde la vps pero no puedo deslogearme para cambiar de sesion y la sesion anterior siguie apareciendo. y tambien aparece apiDesktopAdapter.ts:128   GET http://localhost:1420/wp-json/kamples/v1/mensajes/conversaciones 401 (Unauthorized)
+
+## QQ130-C
+
+Vi que en ColaExtraccionSampleRep agregaste algo para descargar el audio de youtube. ¿porque se va a descargar de nuevo? porque no se utiliza el mp3 ya se descargo antes? Si es que por no se guarda entonces haz que se guarde.
+
+## QQ133
+
+En los videos de youtube de los sampleos y cancione sigue diciendo Inicia sesión para confirmar que no eres un bot
+De esta forma nos ayudas a proteger nuestra comunidad. Más información ¿por que? si estoy con la misma ip del servidor y puedo entrar a youtube
+
+## QQ134 
+
+YA LO HABIA DICHO ANTES Y NO SE CUMPLIO; EN INSPECTOR DE SAMPLES NO APARECE NADA DE LO QUE DICE LA TAREA QQ117 
+
+SOLO APARECE ESTO Y OTRAS COSAS QUE OMITO
+
+Info General
+ID
+36
+Titulo
+Gritty Drum Loop With Spoken Phrase 92bpm D
+Slug
+gritty-drum-loop-with-spoken-phrase-92bpm-d-6VFnFdQ
+ID Corto
+6VFnFdQ
+Tipo
+loop
+Premium
+No
+Precio
+0
+Liked
+No
+Reaccion
+—
+Estado
+activo
+Formato
+mp3
+Tamano
+0.64 MB
+Permitir Descarga
+Si
+Licencia Libre
+Si
+Mostrar Comunidad
+No
+Verificado
+No
+Nombre Original
+Drums-Hiphop-D-92bpm-gritty-drum-loop-with-spoken-phrase-kamples-6VFnFdQ.mp3
+Origen y Sampleo
+Es Recorte
+Si
+Cancion Origen ID
+738
+Relacion Sampleo ID
+758
+Analisis de Audio
+BPM
+92
+Key
+D
+Escala
+mayor
+Duracion
+0:16
+Audio Hash
+f20d66fdb7d88202960292c1b5f3e697372c195561e4500a712cb4754068f114
+Ruta Preview
+https://kamples.com/wp-content/uploads/kamples/0/2026/03/6VFnFdQ_preview.mp3
+Ruta Waveform
+https://kamples.com/wp-content/uploads/kamples/0/2026/03/6VFnFdQ_waveform.json
+Archivo Original
+https://kamples.com/wp-content/uploads/kamples/0/2026/03/Drums-Hiphop-D-92bpm-gritty-drum-loop-with-spoken-phrase-kamples-6VFnFdQ.mp3
+Audio Optimizado
+https://kamples.com/wp-content/uploads/kamples/0/2026/03/6VFnFdQ_optimizado.mp3
+Imagen URL
+https://kamples.com/wp-content/uploads/kamples/portadas/e4ae92ee036c7dfe79bd08018ebe572c8468a2dd.jpg
+Tags
+drums
+extraccion
+paul kantner
+kendrick lamar
+Metadata IA
+Nombre Base
+gritty drum loop with spoken phrase
+Generos
+hip hop, trap
+Instrumentos
+drums, vocals
+Emocion
+energetic,confident
+Artista Vibes
+Kendrick Lamar, Dr. Dre, J Dilla, Madlib, Flying Lotus
+Tags IA
+drum loop, hip hop, spoken sample, gritty, sampled
+Tags IA (ES)
+bucle de batería, hip hop, muestra hablada, áspero, muestreado
+BPM Confianza
+0.86
+Key Confianza
+0.81
+Carpeta Primaria
+General
+Carpeta Secundaria
+General
+Descripcion IA: Este bucle de 16,8 segundos presenta un patrón de batería crudo con una breve línea hablada, "Thanks for watching." Su textura lo‑fi y vibra hip‑hop lo hacen ideal para producciones trap o boom‑bap, añadiendo carácter y toque vocal.
+Descripcion Corta: Un áspero bucle de batería de 16 segundos con una breve frase hablada, perfecto para beats de hip‑hop.
+Estadisticas
+Descargas
+0
+Likes
+0
+Reproducciones
+5
+Comentarios
+0
+Flags de Estado
+Es Mio
+Si
+Ya Coleccionado
+Si
+En Coleccion
+No
+Ya Comentado
+No
+Ya Comprado
+No
+
+## QQ134
+
+Las colecciones no pueden cambiarse a publicas 
 
 ---
 

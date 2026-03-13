@@ -257,3 +257,41 @@ export const corregirMetadataIA = (
     instrucciones: string
 ): Promise<RespuestaApi<RespuestaCorreccionIA>> =>
     apiPost<RespuestaCorreccionIA>(`/samples/${sampleId}/corregir-ia`, { instrucciones });
+
+/*
+ * QQ130: Extender recorte de un sample de extraccion.
+ * Solo admin. Re-descarga de YouTube y re-corta con timing extendido.
+ */
+export interface RespuestaExtenderRecorte {
+    ok: boolean;
+    mensaje: string;
+    duracion?: number;
+}
+
+export const extenderRecorte = (
+    sampleId: number,
+    segundosAntes: number,
+    segundosDespues: number
+): Promise<RespuestaApi<RespuestaExtenderRecorte>> =>
+    apiPost<RespuestaExtenderRecorte>(`/samples/${sampleId}/extender-recorte`, {
+        segundosAntes,
+        segundosDespues,
+    });
+
+/*
+ * QQ130-B: Generar sample del segmento siguiente al actual.
+ * Solo admin. Crea un nuevo sample que empieza donde termina el actual.
+ */
+export interface RespuestaGenerarSiguiente {
+    ok: boolean;
+    mensaje: string;
+    nuevoSampleId?: number;
+}
+
+export const generarSiguienteSample = (
+    sampleId: number,
+    duracion: number
+): Promise<RespuestaApi<RespuestaGenerarSiguiente>> =>
+    apiPost<RespuestaGenerarSiguiente>(`/samples/${sampleId}/generar-siguiente`, {
+        duracion,
+    });

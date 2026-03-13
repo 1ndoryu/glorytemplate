@@ -82,6 +82,7 @@ class SamplesController
         SamplesModificacionController::registrarRutas($namespace);
         BibliotecaSamplesController::registrarRutas($namespace);
         SugerenciasController::registrarRutas($namespace);
+        ExtensionRecorteController::registrarRutas($namespace);
     }
 
     /**

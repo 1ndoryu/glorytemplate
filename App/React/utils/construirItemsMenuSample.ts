@@ -21,6 +21,7 @@ export interface DepsMenuSample {
     abrirColeccionPicker: (sample: SampleResumen) => void;
     abrirEditarSample: (sample: SampleResumen) => void;
     abrirCorregirIA: (sample: SampleResumen) => void;
+    abrirExtenderRecorte: (sample: SampleResumen) => void;
     abrirSugerencias: (sample: SampleResumen) => void;
     abrirDetalle: (sample: SampleResumen) => void;
     copiarAlPortapapeles: (texto: string) => void;
@@ -70,6 +71,9 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
 
     if (d.esAdmin && s.metadata?.relacion_id)
         items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', onClick: () => d.abrirCorregirIA(s) });
+
+    if (d.esAdmin && s.metadata?.relacion_id)
+        items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', onClick: () => d.abrirExtenderRecorte(s) });
 
     if (d.esAdmin)
         items.push({ id: 'verificar', etiqueta: s.verificado ? 'Quitar verificación' : 'Verificar sample', onClick: () => {

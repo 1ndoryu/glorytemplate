@@ -15,6 +15,7 @@ import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useEditarModalStore } from '@app/stores/editarModalStore';
 import { useCorregirIAStore } from '@app/stores/corregirIAStore';
+import { useExtenderRecorteStore } from '@app/stores/extenderRecorteStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { construirItemsMenuSample } from '@app/utils/construirItemsMenuSample';
 
@@ -55,6 +56,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
     const usuario = useAuthStore(s => s.usuario);
     const abrirEditarSample = useEditarModalStore(s => s.abrirSample);
     const abrirCorregirIA = useCorregirIAStore(s => s.abrir);
+    const abrirExtenderRecorte = useExtenderRecorteStore(s => s.abrir);
     const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
     const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
 
@@ -87,6 +89,7 @@ export const useMenuContextualSample = (): RetornoMenuSample => {
             abrirColeccionPicker,
             abrirEditarSample,
             abrirCorregirIA,
+            abrirExtenderRecorte,
             abrirSugerencias,
             abrirDetalle,
             copiarAlPortapapeles,
