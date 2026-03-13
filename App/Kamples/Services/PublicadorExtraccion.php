@@ -240,7 +240,7 @@ class PublicadorExtraccion
 
     /**
      * Resuelve el ID del creador para el sample extraido.
-     * Prioridad: contribuidor_id de la relacion > KAMPLES_SISTEMA_USUARIO_ID en .env > fallback 7.
+     * Prioridad: contribuidor_id de la relacion > KAMPLES_SISTEMA_USUARIO_ID en .env > fallback 1.
      */
     private static function resolverCreadorId(array $item): int
     {
@@ -251,7 +251,8 @@ class PublicadorExtraccion
 
         /* Dotenv::createImmutable() popula $_ENV, no putenv(). Usar patron $_ENV ?? getenv(). */
         $sistemaId = (int)($_ENV['KAMPLES_SISTEMA_USUARIO_ID'] ?? \getenv('KAMPLES_SISTEMA_USUARIO_ID') ?? 0);
-        return $sistemaId > 0 ? $sistemaId : 7;
+        /* Fallback 1 = usuario admin principal. Antes era 7 (seed user inexistente en produccion). */
+        return $sistemaId > 0 ? $sistemaId : 1;
     }
 
     /**
