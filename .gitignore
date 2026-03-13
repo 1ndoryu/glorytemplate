@@ -28,7 +28,7 @@ wp-config.php
 wp-config-sample.php
 
 # Database SQL
-
+temp/
 *.sql.gz
 .env
 .env.local

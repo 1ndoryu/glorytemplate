@@ -547,17 +547,32 @@ Auditoria profunda del proceso de extraccion audio creada en `App/docs/auditoria
 
 Auditoria de seguridad de audio completada en `App/docs/auditoria-seguridad-audio.md`. Hallazgo critico corregido: usuarios baneados podian streamear con tokens HMAC aun validos — ahora `DescargasStreamController::streamDescarga()` verifica `AuthMiddleware::verificarCuentaActiva()`. Sistema fundamentalmente seguro: WAV protegido por HMAC-SHA256, acceso por plan, limites diarios/mensuales. Pendientes para escalar: rate limiting streaming, UUIDs en URLs preview, audit logging.
 
-## QQ121
+## QQ121 ✅ [AG-SCR]
 
-trabaja en resolver todo lo de auditoria-extraccion-audio.md si es que aun no los haz hecho aun
+Implementadas todas las recomendaciones de auditoria-extraccion-audio.md: (1) Backoff exponencial — nueva columna `proximo_intento_at` (migracion v045), delay = min(2^intentos, 4) dias entre reintentos. (2) Prioridad items sin intentos — ORDER BY `CASE WHEN intentos=0 THEN 0 ELSE 1` en Python y PHP. (3) max_intentos subido de 3 a 5 (constante compartida `MAX_INTENTOS`). (4) Auto-mark `revision_humana` cuando se agotan intentos (tanto Python como PHP). (5) Campo `fuentes_descartadas` en metadata — `ResultadoDescarga.fuentes_intentadas` registra fuentes fallidas antes de la exitosa. Schema/Cols/DTO actualizados. Archivos: pipeline.py, audio_download.py, v045_cola_extraccion_backoff.sql, ColaExtraccionSamplesSchema/Cols/DTO.php, ColaExtraccionSamplesRepository.php.
 
-## QQ122 (ya se planifico, hacer)
+## QQ122 ✅ [AG-SCR]
 
-haz una investigacion en internet sobre los metodos eficientes y recientes que usan las paginas esas que siempre funcioan para descargar mp3 de youtube, algo estan haciendo que nosotros no, investiga profundamente todo lo que puedas, que estrategias recientes de 2026 hay para descargar mp3 de youtube o el video para luego a pasar a mp3 sin tener que usar proxy
+Investigacion YouTube download 2026 + script de test multi-metodo + endpoint admin. (1) Investigacion complementaria a `investigacion-s-youtube.md` — yt-dlp 2026.03.03 requiere Deno, issue #16212 UNPLAYABLE activo, ANDROID_VR degradado marzo 2026, TV_EMBEDDED removido de yt-dlp pero endpoint InnerTube sigue activo, IOS mejor opcion actual. (2) Script `test_youtube_download.py` con 6 metodos: ytdlp_default, ytdlp_cookies, ytdlp_clients (7 clientes individuales), innertube_direct (5 configs API), ytdlp_po_token, cobalt_api. (3) Endpoint `POST /dev/test-youtube-download` en DevController con validacion video_id (11 chars) y metodo enum. Documento consolidado en `App/docs/investigacion-youtube-descarga-2026.md`.
 
-revisa investigación-s-youtube.md , hice una investigacion que puedes complementar
+## QQ123 ✅ [AG-SCR]
 
-por favor, lo que sea que vayas implementar o intentar, intentalo en un proceso extra de prueba, agregamos un proceso extra en el panel admin para testear lo que vayamos a implementar, intenta todo lo que puedas sin modificar el script que ya tenemos haz uno nuevo de prueba, con varios metodos y formas, no importa que sea dificil, intenta y haz lo necesario hasta lograrlo
+Auditoria scraper WhoSampled (bandwidth). Veredicto: **scraper bien optimizado**, no requiere cambios urgentes. Medidas correctas: gzip/br compression, dedup multi-capa (sesion + persistente + imagenes SHA256), presupuesto hard-stop 5GB, autothrottle, re-scraping controlado (180d creciente). Mejoras opcionales identificadas: HTTP cache entre runs (-30-50% re-scrapes), retry 429 fix (-5%). Documento completo: `App/docs/auditoria-scraper-whosampled-bandwidth.md`.
+ 
+## QQ124 (prioritario)
+
+Desde hace rato hice varias extracciones con recortes en el vps pero aun no se publican, no se que pasa, ya pasaron 5 minutos. (en el servidor)
+
+## QQ125
+
+necesito que tu pruebes y testest test_youtube_download.py, intenta todo o que esta a alcance, prueba y error, coreccion hasta ver si funciona.
+
+## QQ126
+
+Algunas imagenes del scrapper se guardaron asi
+
+<img src="https://www.whosampled.com/static/images/media/track_images_200/lr31800_2019923_103832608693.jpg" alt="Pulsar City Alarm" loading="lazy"> y no cargar, por favor, evitar que esto suceda a demás de algo para corregir las imagenes que aparecen asi
+
 ---
 
 ## Despliegue Produccion (VPS Coolify)

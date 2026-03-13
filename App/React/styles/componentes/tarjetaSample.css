@@ -141,6 +141,7 @@
 .tarjetaMetaBadgeClickable {
     cursor: pointer;
     transition: color 0.15s ease;
+    border: unset !important;
 }
 
 .tarjetaMeta .badge:hover {
