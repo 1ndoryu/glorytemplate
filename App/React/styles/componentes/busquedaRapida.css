@@ -1,0 +1,189 @@
+/*
+ * Estilos: busquedaRapida
+ * Dropdown de resultados de búsqueda rápida en la TopBar.
+ * Diseño minimalista con fondos oscuros y bordes sutiles (Design System Kamples).
+ */
+
+.busquedaRapidaDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: var(--espacio3xs);
+    background: var(--fondoBase);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: var(--zMenu);
+    box-shadow: var(--sombraFlotante);
+}
+
+.busquedaRapidaDropdown::-webkit-scrollbar {
+    width: 4px;
+}
+
+.busquedaRapidaDropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.busquedaRapidaDropdown::-webkit-scrollbar-thumb {
+    background: var(--bordeSutil);
+    border-radius: var(--radioFull);
+}
+
+.busquedaRapidaCargando {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--espacioMd);
+}
+
+.busquedaRapidaSpinner {
+    animation: busquedaRapidaSpin 0.8s linear infinite;
+    color: var(--textoSecundario);
+}
+
+@keyframes busquedaRapidaSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.busquedaRapidaVacio {
+    padding: var(--espacioLg);
+    text-align: center;
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+.busquedaRapidaSeccion {
+    padding: var(--espacioXs) 0;
+}
+
+.busquedaRapidaSeccion + .busquedaRapidaSeccion {
+    border-top: 1px solid var(--bordeSutil);
+}
+
+.busquedaRapidaCabecera {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    font-size: var(--fuente2xs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: var(--pesoMedium);
+}
+
+.busquedaRapidaItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    width: 100%;
+    padding: var(--espacioXs) var(--espacioMd);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--textoPrimario);
+    font-family: var(--fuentePrincipal);
+    font-size: var(--fuenteSm);
+    transition: background var(--transicionRapida);
+}
+
+.busquedaRapidaItem:hover {
+    background: var(--hoverSutil);
+}
+
+.busquedaRapidaImagen {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: var(--radioSm);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--textoTerciario);
+}
+
+.busquedaRapidaImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.busquedaRapidaInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.busquedaRapidaTitulo {
+    font-size: var(--fuenteSm);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: var(--espacio3xs);
+}
+
+.busquedaRapidaSubtexto {
+    font-size: var(--fuente2xs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.busquedaRapidaMeta {
+    font-size: var(--fuente2xs);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.busquedaRapidaVerificado {
+    color: var(--acento);
+    flex-shrink: 0;
+}
+
+/* Sampleos — layout horizontal compacto fuente → destino */
+
+.busquedaRapidaInfoSampleo {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--espacioXs);
+}
+
+.busquedaRapidaSampleoTexto {
+    font-size: var(--fuente2xs);
+    max-width: 140px;
+}
+
+.busquedaRapidaSampleoFlecha {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Wrapper en TopBar para posicionar el dropdown */
+.topbarBusquedaConDropdown {
+    position: relative;
+}
+
+/* Dentro de modal móvil: dropdown inline, sin posición absoluta */
+.topbarBusquedaModalContenido .busquedaRapidaDropdown {
+    position: static;
+    margin-top: var(--espacioSm);
+    max-height: 300px;
+    box-shadow: none;
+    border: 1px solid var(--bordeSutil);
+}

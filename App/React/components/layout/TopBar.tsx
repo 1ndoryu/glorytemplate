@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu, MessageCircle } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
+import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import { Avatar } from '../ui/Avatar';
@@ -20,6 +21,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router/navigationStore';
 import { Modal } from '../ui/Modal';
 import { useTopBar } from '@app/hooks/useTopBar';
+import { useBusquedaRapida } from '@app/hooks/useBusquedaRapida';
 import { useEliminarSamples } from '@app/hooks/useEliminarSamples';
 import { useSolicitudWhatsappStore } from '@app/stores/solicitudWhatsappStore';
 import '../../styles/componentes/topbar.css';
@@ -61,6 +63,13 @@ export const TopBar = (): JSX.Element => {
         manejarClickAvatar,
         islaActual,
     } = useTopBar();
+
+    const {
+        resultados: resultadosBusqueda,
+        cargando: cargandoBusqueda,
+        visible: busquedaRapidaVisible,
+        cerrar: cerrarBusquedaRapida,
+    } = useBusquedaRapida(busqueda);
 
     const {
         eliminarSampleActual,
@@ -227,11 +236,17 @@ export const TopBar = (): JSX.Element => {
 
             {/* Ocultar buscador en AdminPanelIsland */}
             {islaActual !== 'AdminPanelIsland' ? (
-                <div className="topbarBusqueda">
+                <div className="topbarBusqueda topbarBusquedaConDropdown">
                     <InputBusqueda
                         placeholder={placeholderBusqueda}
                         valor={busqueda}
                         onChange={manejarBusqueda}
+                    />
+                    <ResultadosBusquedaRapidaDropdown
+                        resultados={resultadosBusqueda}
+                        cargando={cargandoBusqueda}
+                        visible={busquedaRapidaVisible}
+                        onCerrar={cerrarBusquedaRapida}
                     />
                 </div>
             ) : (
@@ -384,6 +399,16 @@ export const TopBar = (): JSX.Element => {
                                 valor={busqueda}
                                 onChange={manejarBusqueda}
                                 autoFocus
+                            />
+                            {/* Resultados rápidos dentro del modal móvil */}
+                            <ResultadosBusquedaRapidaDropdown
+                                resultados={resultadosBusqueda}
+                                cargando={cargandoBusqueda}
+                                visible={busquedaRapidaVisible}
+                                onCerrar={() => {
+                                    cerrarBusquedaRapida();
+                                    setBusquedaModalAbierta(false);
+                                }}
                             />
                             {/* S4.6: Enlace rápido a búsqueda de canciones si no estás en isla de canciones */}
                             {busqueda.trim().length >= 2

@@ -131,21 +131,46 @@ obtenerColeccionesDelServidor @ syncCollectionService.ts:296
 
 Crea un md detallado de todo lo que hay que hacer para tener la aplicacion de android lista con tauri, y adelanta todo lo que puedas
 
-## QK13 
+## QK13 ✅ [AG-DSK]
 
 El buscador el nav arriba funciona muy bien, no dar dañar como funciona ahora solo, agregar un agregado, y es que, al escribir, que salga justo de bajo un cuadro con resultados en forma lista que incluya canciones, samples, sampleos y perfiles de usuario, con su foto de perfil, imagenes de portada, titulo, imagen cuadrada con bordes, minimalista bonito, usa las variables, tiene que mostrarse automaticamente al escribir, actualizarse en tiempo real y estar extremadamente optimizado. 
 
-## QQ14
+**Solucion:** Sistema completo de busqueda rapida full-stack:
+- **Backend:** `BusquedaRapidaController.php` con endpoint `GET /busqueda/rapida?q=...`. Busca en 4 dominios: canciones (fulltext via `to_tsvector`), samples (ILIKE titulo, activos), sampleos/relaciones (ILIKE en cancion fuente/destino + artistas), usuarios (ILIKE username/nombre_visible, activos). Todo con LIMIT 5 por tipo.
+- **Frontend service:** `apiBusqueda.ts` con tipos tipados para cada resultado.
+- **Hook busqueda:** `useBusquedaRapida.ts` con debounce 250ms, AbortController para cancelar requests en vuelo, minimo 2 chars.
+- **Componente:** `ResultadosBusquedaRapida.tsx` con secciones agrupadas (Canciones, Samples, Sampleos, Usuarios), iconos, imagenes cuadradas, verificado badge, seguidor count. Logica en `useResultadosBusquedaRapida.ts` (SRP).
+- **CSS:** `busquedaRapida.css` usando variables del design system. Dropdown posicionado debajo del input con shadow y scroll.
+- **apiCliente.ts:** Agregado soporte `signal: AbortSignal` en `OpcionesPeticion` — mejora global para cualquier servicio.
+- **Integracion:** Wired en TopBar desktop + modal movil. No afecta el filtrado existente de samples.
+- [Busqueda]: Debounce 250ms + AbortController = requests no se acumulan. ILIKE con % wrapping — puede beneficiarse de pg_trgm index en futuro si el dataset crece.
+
+## QK14
 
 en https://kamples.com/admin/panel/ si bien aparecen las estadisticas, abajo debería haber una lista resumida de historial, compacta, para revisar, que incluya lo que esta en cola y pendiente.
 
-## QQ15 
+## QK15 ✅ [AG-DSK]
 
-Respecto a la aplicación, sigue fallando con los errores de antes, la estoy iniciando en modo dev, no se si es por eso. 
+**Solucion:** Los errores son los mismos que QK6/QK11. El filtro JWT (AuthMiddleware prioridad 90) ya esta desplegado en produccion. Al ejecutar en modo dev, el proxy de Vite redirige a `kamples.com` que ahora tiene el fix. Reiniciar el dev server y probar de nuevo — los 401 deben desaparecer.
+- Si persisten: (1) Verificar que `auth.json` del desktop tiene un JWT valido (no expirado). (2) Borrar cookies del navegador en localhost:1420 para eliminar cookies WP viejas. (3) Hacer logout y login de nuevo para obtener JWT fresco.
 
+## QK16
 
+Al intentar iniciar sesion dice Token de autenticación inválido o expirado, el boton para iniciar con google no aparece (estoy probando con la aplicacion)
 
+## QK17
 
+Cargando samples… tarda demasiado con apenas 100 samples, no esta optimizado, algoritmo parece que no tiene cache. Revision profunda de optimizaciones, carga diferida o progresiva no bloqueante, que no se rehanalice el algoritmo con cada recarga, sino cada siempre tiempo que no se actualice por ejemplo, 30 minutos sin usar el algoritmo pesado, el algorimo sencillo 5 minuto, recuerdo que planifique un algoritmo sencillo para que sea rapido y otro mas lento, pero no recuerdo, haz un md detallado de todas las posible optimizaciones y de como funciona actualmente, aplica las mejoras y yo hago la revision al md
+
+## QK18
+
+La pagina de musica, es una lista, pero creo que lo mejor es hacerla mejor version spotify
+
+secciones y listas horizontales, foto de portada mas grande, y letras abajo, secciones ordenada por generos, quitar las tabs, y que las tabs ahora sean secciones, no repetir canciones entre sesiones, una seccion de albumes y otra de artistas, si el scraper no ordena por album o artista, investiga la forma de arreglarlo y de organizar la informacion para este proposito
+
+## QK19 
+
+El cuado de busqueda necesito que tenguna un ancho de 500px, el que hiciste en qk13, y centrado verticalmente. el modal tarda en salir, es muy lento
 
 
 

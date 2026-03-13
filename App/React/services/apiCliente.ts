@@ -22,6 +22,7 @@ interface OpcionesPeticion {
     body?: unknown;
     headers?: Record<string, string>;
     params?: Record<string, string | number | boolean | undefined>;
+    signal?: AbortSignal;
 }
 
 /*
@@ -67,7 +68,7 @@ export const apiPeticion = async <T>(
     endpoint: string,
     opciones: OpcionesPeticion = {}
 ): Promise<RespuestaApi<T>> => {
-    const { method = 'GET', body, headers = {}, params } = opciones;
+    const { method = 'GET', body, headers = {}, params, signal } = opciones;
     const baseUrl = obtenerBaseUrl();
     const nonce = obtenerNonce();
     const url = `${baseUrl}/kamples/v1${endpoint}${construirParams(params)}`;
@@ -86,6 +87,7 @@ export const apiPeticion = async <T>(
             ...headers,
         },
         credentials: 'same-origin',
+        ...(signal ? { signal } : {}),
     };
 
     if (body && method !== 'GET') {

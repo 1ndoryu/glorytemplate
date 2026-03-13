@@ -44,6 +44,7 @@ use App\Kamples\Api\Controladores\DevController;
 use App\Kamples\Api\Controladores\ProcesosFondoController;
 use App\Kamples\Api\Controladores\PapeleraController;
 use App\Kamples\Api\Controladores\DesktopUpdateController;
+use App\Kamples\Api\Controladores\BusquedaRapidaController;
 
 class KamplesController
 {
@@ -98,6 +99,7 @@ class KamplesController
         ProcesosFondoController::registrarRutas($ns);
         PapeleraController::registrarRutas($ns);
         DesktopUpdateController::registrarRutas($ns);
+        BusquedaRapidaController::registrarRutas($ns);
         DevController::registrarRutas($ns);
     }
 }
