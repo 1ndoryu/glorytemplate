@@ -27,6 +27,7 @@ if [ -f "$PROJECT_DIR/.venv/bin/activate" ]; then
     source "$PROJECT_DIR/.venv/bin/activate"
 fi
 
-python -m extractor.pipeline --limit 20
+LIMIT=${KAMPLES_BATCH_LIMIT:-100}
+python -m extractor.pipeline --limit "$LIMIT"
 
 echo "[$(date)] Extraccion completada."

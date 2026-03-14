@@ -73,7 +73,7 @@ def ejecutar_daily() -> int:
     return result.returncode
 
 
-def ejecutar_extraction(limit: int = 20) -> int:
+def ejecutar_extraction(limit: int = int(os.environ.get('KAMPLES_BATCH_LIMIT', '100'))) -> int:
     """Ejecutar pipeline de extraccion de audio."""
     LOGS_DIR.mkdir(exist_ok=True)
 
@@ -90,7 +90,7 @@ def ejecutar_extraction(limit: int = 20) -> int:
 def main():
     parser = argparse.ArgumentParser(description="Cron runner para pipeline Kamples")
     parser.add_argument("tarea", choices=["daily", "extraction"], help="Tipo de tarea")
-    parser.add_argument("--limit", type=int, default=20, help="Limite de items (solo extraction)")
+    parser.add_argument("--limit", type=int, default=int(os.environ.get('KAMPLES_BATCH_LIMIT', '100')), help="Limite de items (solo extraction)")
     args = parser.parse_args()
 
     lock = adquirir_lock(args.tarea)
