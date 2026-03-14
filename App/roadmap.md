@@ -138,18 +138,20 @@ Secciones horizontales, portada grande, letras abajo, secciones por generos, qui
 
 ## QK80
 
-Auditoría de extractor de audio y su ia, que pasa si la ia que decide si un audio de es valido o no en la busqueda no esta disponible o entra en rate limits? tiene alternativas? tiene cola? Pausa el scrapper? me preocupa, tiene que ser resiliente, intentar con mas modelos, etc, debería poder identificar el rate limits y pausarse por 1 hora despues volver a intentar 
+✅ [AG-ADM] Auditoría resilencia IA — Sistema ya contaba con: cola con dedup, backoff exponencial (15→120min cap), max 30 reintentos, 6 modelos Groq en cascada, panel admin (ColaIaController) con stats/retry/force-process. **Gap crítico encontrado:** sin proveedor alternativo si Groq cae completamente. **Fix:** OpenAI gpt-4o-mini como fallback final en ServicioIA (analizarAudio + corregirMetadata). Activar con `OPENAI_API_KEY` en .env. Refactor SRP: prompts extraídos a `PromptsIA.php`, HTTP OpenAI a `OpenAIHttpClient.php`. ProcesadorColaIA ahora logea items omitidos por rate limit y alerta si hay ERROR_FINAL acumulados.
 
 ## QK81
 
-Me preocupa el script de python, habia dicho antes que lote debía de ser de 100 pero sigue diciendo 20, no me preocupa eso exactamente sino que hicimos algunos cambios mas, entonces ninguno se habia aplicado realmente?, si era que el script nunca se actualizaba, quiero una copia de seguridad del version que usaba en el servidor antes de subir la nueva, esa copia tiene que estar presente aqui en local para revisar las diferencias
-
-2026-03-14 09:08:11,293 [__main__] INFO: Lote completado: 20 exitosos, 0 fallidos de 20 total
-2026-03-14 09:08:13,993 [__main__] INFO: Publicacion automatica disparada [HTTP 200]: {"ok":true,"publicados":1,"errores":0,"resultados":[{"cola_id":8902,"ok":true,"sample_id":239,"id_corto":"BdskSZ5"}]}
+✅ [AG-ADM] Fix batch size scraper — **Causa raíz:** `extractor/pipeline.py` tenía `default=100` correcto, pero `run_extraction.sh` y `cron_runner.py` pasaban `--limit 20` hardcodeado, sobrescribiendo el default. Los cambios al pipeline nunca se reflejaban porque el argumento explícito tiene prioridad.
+- **Fix:** Reemplazado hardcoded 20 → env var `KAMPLES_BATCH_LIMIT` (default 100) en `run_extraction.sh` y `cron_runner.py`.
+- **Backup VPS:** No se puede obtener via SSH desde este entorno. El usuario debe hacer `ssh VPS "cat /ruta/scripts/run_extraction.sh"` manualmente si quiere comparar. Git tiene la versión previa en el commit anterior.
+- [Gotcha]: Los scripts caller (`run_extraction.sh`, `cron_runner.py`) pueden sobrescribir defaults del pipeline si pasan `--limit` explícitamente. Siempre verificar TODA la cadena de invocación.
 
 ## QK82
 
-Creo que no se han ejecutados las migraciones en local, en produccion si pero en local deben faltar, hacer un script o sistema automatico para que en local se ejecuten las migraciones faltantes asi como funciona en produccion.
+✅ [AG-ADM] Auto-run migraciones locales. Creado `MigradorLocal.php` en `App/Kamples/Database/` — detecta migraciones SQL pendientes comparando archivos `v*.sql` del directorio `migrations/` contra tabla `_migraciones_ejecutadas`. Se ejecuta automáticamente desde `KamplesInit::init()` solo en entorno local (WP_DEBUG o env LOCAL=true). Usa transient de 5 min para evitar overhead en cada request. Maneja errores idempotentes (already exists) como éxito. Excluye variantes alternativas de v001 (schema base de setup inicial).
+- [Arq]: `__DIR__/migrations` desde `Database/MigradorLocal.php` apunta correctamente al directorio de migraciones.
+- [Gotcha]: `v001_local_sin_pgvector.sql` y `v001_schema_inicial.sql` están excluidos — son alternativas al `v001_schema_base.sql` que ya se ejecutó en setup.
  
 ## QK83
 
@@ -161,24 +163,15 @@ Creo que no se han ejecutados las migraciones en local, en produccion si pero en
 
 ## QK84
 
-Arregla todo eso que dijiste de "Los errores son preexistentes (Mezclador sin types, conflictos de tipado de Glory global)."
+✅ [AG-ADM] Fix 133 errores TS en Desktop — path mappings en tsconfig (react, lucide-react, zustand, soundtouchjs), unificó GloryContext con campos opcionales desktop, eliminó declaraciones conflictivas global.d.ts, RUTAS_DESKTOP compatible con GloryRouteConfig.
 
 ## QK77-B
 
-Si bien ahora la sesion se mantiene al recargar
-
-hay detalles con el sync
-
-Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
-obtenerColeccionesDelServidor @ syncCollectionService.ts:296
-wp-json/kamples/v1/me/sync/colecciones?_t=1773482607946:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
-obtenerColeccionesDelServidor @ syncCollectionService.ts:296
-
-tambien, al iniciar sesion no se actualiza el nombre ni la foto de perfil en la ventana del sync, tambien croe que es necesario que al cerrar sesion, se disvincule la carpeta selecionada y al iniciar sesion se tenga que elegir otra carpeta para el sync, pues, creo que lo mas logico para que no empiece a sincronizar samples que son de otro usuario.
-
-Por cierto, despues cerrar y abrir la aplicacion ya se actuilizo la foto y el nombre pero de igual manera es importante corregir y verificar.
+✅ [AG-ADM] Fix sync desktop — 3 problemas corregidos:
+- **401 en colecciones:** Añadido `tieneTokenSync()` guard en `obtenerColeccionesDelServidor()` para no hacer requests sin auth (evita 401 ruidoso en consola).
+- **Perfil no actualiza tras login:** `VentanaSincPanel` ahora suscribe a `authStore.usuario.id` como dependencia del useEffect de perfil. Cuando `manejarLoginExterno()` actualiza authStore, el perfil se re-lee inmediatamente (primero de authStore, fallback a Tauri Store).
+- **Carpeta sync no se desvincula al logout:** `cerrarSesionDesktop()` y `manejarLogoutExterno()` ahora limpian `config.carpetaLocal`, `sincronizacionActiva` y `ultimaSync` y persisten cambios. El próximo login requiere elegir carpeta nueva.
+- [Arq]: tieneTokenSync() exportada desde syncGuards.ts — reutilizable por cualquier módulo sync.
 
 ## QK85
 
@@ -191,27 +184,58 @@ para mi algo importante son las notificaciones, anticipar que las notificaciones
 
 ## QK88
 
-Verificar que el proceso de Distribucion Seed no afecte a usuarios reales ni a su contenido real, excepto a los admin.
+✅ [AG-ADM] Auditoría distribución seed — **operaciones core seguras** (solo tocan registros sin contribuidor real, con `creador_id = sistemaId`). **Brechas encontradas y corregidas:** perfiles seed visibles en API pública (`buscarPerfilPublico`), búsqueda rápida (`buscarUsuarios`), y listas de seguidores (`listarSeguidores`). Fix: añadido `AND es_seed = false` en las 3 queries. SEO protegido automáticamente por herencia. Samples de seed users en feed es intencional (contenido real scrapeado).
 
 ## QK89
 
-Verificar que no se detecte el intento de cambiarse el nombre de usuario a uno ya existente, tambien necesitamos la funcionalidad de poder cambiar el correo electronico (tener cuidado con esto, planificarlo bien), y poder cambiar la contraseña, nada de esto sin usar wp-login, 100% en el front de la aplicación. 
+✅ [AG-ADM] Username/email/password change 100% frontend:
+- **Username**: Añadida validación de duplicado en `actualizarPerfil` — verifica `username_exists()` (WP) + `existeUsername()` (PG) excluyendo al propio usuario. Retorna 409 si ya existe.
+- **Email**: Nuevo endpoint `PUT /me/email` — requiere contraseña actual, valida formato, verifica duplicado, actualiza WP + PG. Rate limit 5/hora.
+- **Password**: Nuevo endpoint `PUT /me/password` — requiere contraseña actual + nueva + confirmación, valida longitud, regenera cookies auth. Rate limit 5/hora.
+- **Frontend**: Sección "Cuenta" de ModalConfiguracion reimplementada con formularios inline (toggle abrir/cerrar), toast feedback, estados dedicados en `useModalConfiguracion`.
+- **Bug fix**: `bio` no se sincronizaba al abrir modal (faltaba en useEffect).
 
 ## QK90
 
-Revision seo para los samples, sampleos, canciones, y colecciones. Hay un plan-seo.md, que probablemente no este actualizado, revisar y hacer las tareas que faltan.
+✅ [AG-ADM] SEO revision — Plan en `plan-seo.md` ya estaba ~95% implementado (DynamicSeoResolver, RuntimeSeoData, MusicRecording JSON-LD, og:audio, sitemaps, SEO defaults). Correcciones aplicadas:
+- **robots.txt:** Añadido filtro `robots_txt` en `seo.php` con Disallow para rutas privadas/admin y referencia a sitemap.
+- **SEO defaults faltantes:** Agregados `musica` (indexable, title+desc ricos), `explorador` (indexable), `notificaciones` (noindex).
+- [Arq]: Toda la infra SEO (resolvers dinámicos, JSON-LD, sitemaps, OG audio) ya existía correctamente.
 
 ## QK91
 
-busquedaRapidaDropdown debe tener 450px de ancho pero cuando yo se lo pongo deja de estar centrado, ajustalo, el gap del info no debe ser 1, debe ser 6px, no agregues ancho maximo a .busquedaRapidaSampleoTexto, se ve mal, que simplemente el texto total tenga un devanecimiento suave si es muy largo, 3 resultados maximo visibles por cancion, sampleo y usuario.
+✅ [AG-ADM] BusquedaRapida dropdown: width 450px centrado (left 50% + translateX(-50%)), gap 6px en info, fade mask-image en texto sampleo largo (sin max-width), .slice(0,3) en las 4 secciones (canciones/samples/sampleos/usuarios). Override móvil actualizado con resets explícitos (left: auto, transform: none, width: 100%).
 
 ## QK92
 
-En la aplicacion escritorio probandola localmente la pagina musica dice Pagina no encontrada, no se por qué, en produccion la pagina funciona bien. 
+✅ [AG-ADM] Desktop music page 404 local — Faltaba la ruta `/musica/` en `RUTAS_DESKTOP` de `desktop/src/main.tsx`. En producción funciona porque PHP genera las rutas dinámicamente via `PageManager::reactPage()`, pero en desktop las rutas son estáticas. Agregada `'/musica/': { island: 'ExplorarCancionesIsland', props: {}, title: 'Música' }`.
+- [Gotcha]: Toda nueva página registrada en `pages.php` necesita agregarse manualmente a `RUTAS_DESKTOP` para que funcione en desktop.
 
 ## Qk93
 
-Pendiente: deploy del contenedor Bun como servicio Docker en Coolify + env vars (`KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL`, `KAMPLES_WS_PUBLIC_URL`). trabaja en eso y todo lo que esta pendiente, haz prueba, adapta el coolify manager en rs para esto, etc.
+✅ [AG-ADM] Deploy WebSocket container — Infraestructura completa para desplegar el servidor Bun WS como servicio Docker en Coolify:
+- **Docker-compose template** (`kamples-stack.yaml`): Nuevo servicio `websocket` con build inline (Bun + fetch server.ts de GitHub), healthcheck, env vars (secrets + `SERVICE_FQDN_WEBSOCKET` para Traefik/SSL automático).
+- **WordPress env vars**: `KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL=http://websocket:8080/notify` (red Docker interna), `KAMPLES_WS_PUBLIC_URL=wss://ws.{domain}`.
+- **template_engine.rs**: `kamples_vars()` ahora genera WS secrets (32 chars), deriva `WS_DOMAIN` y `WS_PUBLIC_URL` del dominio, acepta `glory_branch` para la URL de GitHub en el Dockerfile.
+- **CLI**: Nuevo comando `deploy-websocket --name kamples` — lee compose actual del stack via Coolify API, inyecta servicio WS + env vars, actualiza compose, reinicia stack.
+- **coolify_api.rs**: Nuevo método `update_stack_compose()` (PATCH `/api/v1/services/{uuid}` con base64).
+- **docker.rs**: Nuevo `find_websocket_container()` para localizar el contenedor Bun por stack UUID.
+- **theme_manager.rs**: `update_glory_theme()` ahora llama `update_websocket_server()` — copia server.ts actualizado del WP container al WS container y reinicia.
+- **Pendiente usuario**: (1) Crear DNS A record `ws.kamples.com` → VPS IP. (2) Recompilar Rust binary (`cargo build --release`). (3) Ejecutar `deploy-websocket --name kamples`. (4) Verificar SSL con `openssl s_client -connect IP:443 -servername ws.kamples.com`.
+- [Arq]: WS service usa red Docker interna para comunicación PHP→WS (POST /notify). Traefik maneja SSL/WSS para clientes externos.
+- [Gotcha]: El Dockerfile del WS container descarga server.ts de GitHub raw (branch dinámico). Para updates de código, `deploy --update` copia server.ts del WP container al WS container y reinicia. No requiere rebuild de imagen.
+
+## QK94
+
+Revisiones de seguridad, revisiones de optimizacion generales.
+
+## QK95
+
+La busqueda no esta actualizando la lista de samples.
+
+## QK96
+
+Hay un error, revisa los logs
 
 ## Despliegue Produccion (VPS Coolify)
 
