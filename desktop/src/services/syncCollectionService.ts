@@ -15,7 +15,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, marcarMovimientoInterno, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta } from './syncGuards';
+import { marcarDescargaEnCurso, marcarMovimientoInterno, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta, tieneTokenSync } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
@@ -278,6 +278,9 @@ export function invalidarCacheColecciones(): void {
  */
 export async function obtenerColeccionesDelServidor(): Promise<RespuestaSyncColecciones | null> {
     if (!estaOnline()) return null;
+
+    /* QK77-B: No intentar si no hay token — evita 401 ruidoso en consola */
+    if (!tieneTokenSync()) return null;
 
     /* C289: Retornar caché si es suficientemente fresca */
     if (cacheColecciones && (Date.now() - cacheColecciones.timestamp) < CACHE_COLECCIONES_TTL_MS) {

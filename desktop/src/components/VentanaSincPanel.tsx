@@ -30,6 +30,7 @@ import { MenuContextual, type MenuItemDef } from '@app/components/ui/MenuContext
 import { usePanelSincronizacion } from '@app/hooks/usePanelSincronizacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useSyncStore } from '@app/stores/syncStore';
+import { useAuthStore } from '@app/stores/authStore';
 import { toast } from '@app/stores/toastStore';
 import type { EntradaHistorialSample, EstadoSampleHistorial } from '@app/stores/syncStore';
 import '@app/styles/componentes/sincronizacion.css';
@@ -240,6 +241,9 @@ export function VentanaSincPanel(): JSX.Element {
         avatarUrl: string | null;
     } | null>(null);
 
+    /* QK77-B: Reaccionar cuando el usuario cambia (login/logout cross-window) */
+    const authUsuarioId = useAuthStore(s => s.usuario?.id);
+
     const ocultarVentana = useCallback(async () => {
         useSyncStore.getState().cerrarPanel();
         try {
@@ -371,12 +375,25 @@ export function VentanaSincPanel(): JSX.Element {
         return () => desuscribir?.();
     }, []);
 
-    /* Cargar perfil real desde store desktop (sync window no monta auth completa) */
+    /* Cargar perfil real desde store desktop (sync window no monta auth completa).
+     * QK77-B: Se re-ejecuta cuando authUsuarioId cambia (login/logout cross-window)
+     * para mantener nombre y avatar actualizados sin necesidad de reiniciar la app. */
     useEffect(() => {
         let cancelado = false;
 
         (async () => {
             try {
+                /* Primero intentar authStore (actualizado por manejarLoginExterno) */
+                const authUsuario = useAuthStore.getState().usuario;
+                if (authUsuario && !cancelado) {
+                    setPerfilDesktop({
+                        nombre: authUsuario.nombreVisible || authUsuario.username || 'Usuario',
+                        avatarUrl: authUsuario.avatarUrl ?? null,
+                    });
+                    return;
+                }
+
+                /* Fallback: leer directamente de Tauri Store */
                 const { load } = await import('@tauri-apps/plugin-store');
                 const store = await load('auth.json');
                 const usuario = await store.get<Record<string, unknown>>('auth_usuario');
@@ -405,7 +422,7 @@ export function VentanaSincPanel(): JSX.Element {
         return () => {
             cancelado = true;
         };
-    }, []);
+    }, [authUsuarioId]);
 
     return (
         <>

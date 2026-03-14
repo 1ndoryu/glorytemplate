@@ -167,6 +167,14 @@ export function establecerTokenSync(token: string | null): void {
 }
 
 /**
+ * Indica si hay un token JWT disponible para hacer requests autenticados.
+ * Útil para que los módulos de sync eviten requests que resultarán en 401.
+ */
+export function tieneTokenSync(): boolean {
+    return tokenSync !== null && tokenSync.length > 0;
+}
+
+/**
  * Construye headers autenticados para peticiones del sync service.
  *
  * Envía el JWT por DOBLE vía:

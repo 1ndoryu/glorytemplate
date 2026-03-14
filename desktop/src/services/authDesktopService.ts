@@ -247,6 +247,16 @@ export async function cerrarSesionDesktop(): Promise<void> {
         await resetearTracking();
     } catch { /* Tracking no inicializado */ }
 
+    /* QK77-B: Desvincular carpeta sync — evita que otro usuario sincronice
+     * en la carpeta del usuario anterior. El próximo login deberá elegir carpeta nueva. */
+    try {
+        const { estado: syncEstado, guardarConfig } = await import('./syncState');
+        syncEstado.config.carpetaLocal = null;
+        syncEstado.config.sincronizacionActiva = false;
+        syncEstado.config.ultimaSync = 0;
+        await guardarConfig();
+    } catch { /* Sync state no inicializado */ }
+
     /* GLORY_CONTEXT limpio para evitar detección de sesión previa al recargar */
     const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
     if (ctx) {

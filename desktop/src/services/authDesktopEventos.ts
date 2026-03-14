@@ -99,6 +99,14 @@ function manejarLogoutExterno(): void {
         useAuthStore.getState().cerrarSesion();
     }).catch(() => { /* noop */ });
 
+    /* QK77-B: Desvincular carpeta sync en la ventana sync-panel también */
+    import('./syncState').then(({ estado: syncEstado, guardarConfig }) => {
+        syncEstado.config.carpetaLocal = null;
+        syncEstado.config.sincronizacionActiva = false;
+        syncEstado.config.ultimaSync = 0;
+        guardarConfig().catch(() => { /* noop */ });
+    }).catch(() => { /* noop */ });
+
     const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
     if (ctx) {
         ctx.isLoggedIn = false;
