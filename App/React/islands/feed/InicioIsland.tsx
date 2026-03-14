@@ -23,6 +23,8 @@ import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
+import { ComunidadIsland } from '../comunidad/ComunidadIsland';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
@@ -31,6 +33,7 @@ const TABS_INICIO = [{ id: 'inicio', etiqueta: 'Inicio' }];
 export const InicioIsland = (): JSX.Element => {
     const autenticado = useAuthStore(s => s.autenticado);
     const cargando = useAuthStore(s => s.cargando);
+    const esMovil = useEsMovil();
 
     /* F11: El skeleton se muestra solo en la zona de contenido, no en toda la página.
      * El layout (sidebar/topbar) ya está visible gracias a LayoutPrincipal. */
@@ -46,11 +49,18 @@ export const InicioIsland = (): JSX.Element => {
         return <LandingPublica />;
     }
 
+    /* QK104: En movil, la pagina inicio muestra comunidad.
+     * Los samples se acceden desde /samples (FeedSamplesIsland). */
+    if (esMovil) {
+        return <ComunidadIsland />;
+    }
+
     return <FeedUnificado />;
 };
 
 /* Feed unificado: barra de control + FeedSamples centralizado */
-const FeedUnificado = (): JSX.Element => {
+/* QK104: Exportado para reutilización en FeedSamplesIsland (mobile) */
+export const FeedUnificado = (): JSX.Element => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
     const [totalServidor, setTotalServidor] = useState<number | null>(null);

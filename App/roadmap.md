@@ -291,19 +291,18 @@ El boton de corazon cuando el like sea un me encanta y no un like normal, que br
 - **Pendiente QK101 (items restantes):** padding-left: 4px en tarjetaSample y areaTopbar, libreriaGridColecciones 2 columnas, coleccionHeader 100% width, botonVolver 0 padding, selectFiltroMenu/selectorBPMMenu overflow fix, desactivar text-selection móvil, reproductorBtn padding !important + gap móvil, desactivar mezclador móvil, detalleTarjetaSuperior flex-direction column, detallePortadaLateral max-width 100%.
 - [Arq]: Imports limpiados en Sidebar (Heart, ShieldCheck, useAuthStore removidos).
 
-## QK101-B (Pendiente — items restantes)
+## QK101-B
 
-Version movil pendiente:
-- .tarjetaSample padding-left: 4px
-- .areaTopbar padding-left: 4
-- .libreriaGridColecciones grid de 2 columnas
-- .coleccionHeader 100% width
-- .botonVolver padding 0 (general)
-- selectFiltroMenu/selectorBPMMenu no salirse de pantalla
-- Desactivar seleccion de texto en movil (mantener presionado menu contextual)
-- .reproductorBtn padding 0 !important (general) + mas gap en movil
-- Desactivar boton mezclador en movil
-- .detalleTarjetaSuperior flex-direction column + .detallePortadaLateral max-width 100%
+✅ [AG-WRK] Mobile remaining fixes — Commit `240fade8`:
+- padding-left: 4px en tarjetaSample y areaTopbar (mobile)
+- libreriaGridColecciones: grid 2 columnas (mobile)
+- coleccionHeader: width 100% (mobile)
+- botonVolver: padding 0 (general)
+- selectFiltroMenu/selectorBPMMenu: right-align + max-width 100vw evita overflow (mobile)
+- Desactivacion text-selection en body (mobile) con excepcion para inputs/textareas
+- reproductorBtn: padding 0 !important (general) + gap sm en controles (mobile)
+- Mezclador ya oculto en mobile (topbar.css existente: `.topbarBtnMezclador { display: none }`)
+- detalleTarjetaSuperior: flex-direction column (mobile) + detallePortadaLateral max-width 100%
 
 ## QK102
 
@@ -322,7 +321,15 @@ y el repositorio es [1ndoryu/kamples-sync](https://github.com/1ndoryu/kamples-sy
 
 ## QK104
 
-Olvide mencionar que en movil, la pagina inicio tiene que ser la comunidad, de samples, estar separada, esto solo movil, en movil el icono de la pagina de samples (en escritorio es de inicio) no se que podria ser porque ya hay un icono de musica, creo que de un disco vinilo queda bien
+✅ [AG-WRK] Pagina inicio movil = comunidad + pagina samples separada:
+- **Hook `useEsMovil`:** Nuevo hook reutilizable que detecta breakpoint 768px via `matchMedia`. Sincronizado con media queries CSS.
+- **InicioIsland:** En movil renderiza `ComunidadIsland` en lugar de `FeedUnificado`. Desktop sin cambios.
+- **FeedSamplesIsland:** Nueva isla thin wrapper en `/samples` que reutiliza `FeedUnificado` (exportado de InicioIsland).
+- **Sidebar:** En movil: quita Comunidad (/ ya muestra comunidad), agrega Samples (icono Disc, ruta /samples). Desktop sin cambios.
+- **pages.php:** Registrada ruta `/samples` → `FeedSamplesIsland`.
+- **appIslands.tsx:** Registrada FeedSamplesIsland.
+- **LayoutPrincipal:** Mapeada ruta `/samples` → id `samples` en MAPA_RUTAS.
+- Archivos: useEsMovil.ts, InicioIsland.tsx, FeedSamplesIsland.tsx (nuevo), Sidebar.tsx, pages.php, appIslands.tsx, LayoutPrincipal.tsx.
 
 
 ## Despliegue Produccion (VPS Coolify)

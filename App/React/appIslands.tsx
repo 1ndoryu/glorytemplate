@@ -18,6 +18,7 @@ import {ShowcaseIsland} from './islands/dev/ShowcaseIsland';
 /* SamplesIsland eliminado: explorar ya no existe como página */
 import {SampleDetalleIsland} from './islands/samples/SampleDetalleIsland';
 import {InicioIsland} from './islands/feed/InicioIsland';
+import {FeedSamplesIsland} from './islands/feed/FeedSamplesIsland';
 import {LibreriaIsland} from './islands/libreria/LibreriaIsland';
 import {DescargasIsland} from './islands/libreria/DescargasIsland';
 import {FavoritosIsland} from './islands/libreria/FavoritosIsland';
@@ -75,6 +76,7 @@ export const appIslands: Record<string, React.ComponentType<Record<string, unkno
     ShowcaseIsland: ShowcaseIsland as React.ComponentType<Record<string, unknown>>,
     SampleDetalleIsland: SampleDetalleIsland as React.ComponentType<Record<string, unknown>>,
     InicioIsland: InicioIsland as React.ComponentType<Record<string, unknown>>,
+    FeedSamplesIsland: FeedSamplesIsland as React.ComponentType<Record<string, unknown>>,
     LibreriaIsland: LibreriaIsland as React.ComponentType<Record<string, unknown>>,
     DescargasIsland: DescargasIsland as React.ComponentType<Record<string, unknown>>,
     FavoritosIsland: FavoritosIsland as React.ComponentType<Record<string, unknown>>,

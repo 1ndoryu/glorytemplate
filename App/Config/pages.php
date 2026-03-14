@@ -42,6 +42,9 @@ PageManager::reactPage('home-static', 'HomeStaticIsland', [
 // Home — Feed principal de Kamples
 PageManager::reactPage('home', 'InicioIsland');
 
+/* QK104: Pagina de samples independiente (en mobile, / muestra comunidad) */
+PageManager::reactPage('samples', 'FeedSamplesIsland');
+
 /* Paginas Kamples — Autenticacion y Perfiles (Fase 1) */
 PageManager::reactPage('auth/login', 'LoginIsland');
 PageManager::reactPage('auth/registro', 'RegistroIsland');

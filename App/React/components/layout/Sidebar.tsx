@@ -10,6 +10,7 @@ import {
     Users,
     Box,
     Download,
+    Disc,
     Music,
     Settings,
     Bug,
@@ -17,6 +18,7 @@ import {
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useReportarStore } from '@app/stores/reportarStore';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
 import { LogoKamples } from '../ui/LogoKamples';
@@ -29,9 +31,19 @@ export interface SidebarItemDef {
     accion?: 'modal-crear';
 }
 
-const itemsDefault: SidebarItemDef[] = [
+/* QK104: Items desktop — incluye Comunidad separada, Inicio muestra samples */
+const itemsDesktop: SidebarItemDef[] = [
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
+    { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
+    { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
+    { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
+];
+
+/* QK104: Items movil — Inicio (/) muestra comunidad, Samples (disco) es pagina aparte */
+const itemsMovil: SidebarItemDef[] = [
+    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
+    { id: 'samples', etiqueta: 'Samples', icono: <Disc size={20} />, ruta: '/samples' },
     { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
     { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
@@ -45,14 +57,19 @@ interface SidebarProps {
 
 export const Sidebar = ({
     activa = 'inicio',
-    items = itemsDefault,
+    items,
     onNavegar,
 }: SidebarProps): JSX.Element => {
     const navegar = useNavigationStore(s => s.navegar);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirReporte = useReportarStore(s => s.abrir);
+    const esMovil = useEsMovil();
+
+    /* QK104: Seleccionar items segun plataforma. Props custom tienen prioridad. */
+    const itemsBase = items ?? (esMovil ? itemsMovil : itemsDesktop);
+
     /* QK101: Admin panel y favoritos removidos de la sidebar; se mueven al menu hamburguesa */
-    const itemsFinales = items;
+    const itemsFinales = itemsBase;
 
     const manejarClick = (item: SidebarItemDef) => {
         if (item.accion === 'modal-crear') {
