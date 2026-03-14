@@ -86,7 +86,7 @@ Secciones horizontales, portada grande, letras abajo, secciones por generos, qui
 
 ## QK68
 
-Necesito que el chat y las notificaciones funciones con websocket, por favor, az un plan detallado de eso y luego trabaja en eso.
+✅ [AG-ADM] WebSocket real-time para chat y notificaciones. Implementado: servidor Bun WS (`websocket-server/server.ts`) con HMAC ticket auth, `NotificadorWebSocket.php` (bridge PHP→Bun), `WsController.php` (endpoint `/ws/ticket`), `wsService.ts` actualizado con ticket auth, `useWebSocket.ts` reescrito con ciclo de vida auth, polling adaptativo (5s sin WS / 30s con WS), listeners WS en `useVentanaChat` y `useTopBar`. Plan completo en `App/docs/plan-websocket.md`. Pendiente: deploy del contenedor Bun como servicio Docker en Coolify + env vars (`KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL`, `KAMPLES_WS_PUBLIC_URL`).
 
 ## QK69
 
@@ -134,7 +134,7 @@ Necesito que el chat y las notificaciones funciones con websocket, por favor, az
 
 ## QK77-A
 
-[EN CURSO — AG-ADM] La solución de localStorage fallback sigue sin funcionar. Requiere investigación más profunda del ciclo Tauri Store.
+✅ [AG-ADM] Auth desktop fix — window global persistence (`__KAMPLES_AUTH_PERSIST__`), pre-React /me call, diagnostic logging, write verification. Eliminó import dinámico @vite-ignore que fallaba silenciosamente.
 
 ## QK80
 
@@ -154,6 +154,8 @@ Creo que no se han ejecutados las migraciones en local, en produccion si pero en
 ## QK83
 
 La busqueda sigue funcionando extremadamente lenta, no tiene sentido. Algo esta mal, esto necesita mas revisiones, mas pruebas, mediciones, un md detallado, no se puede tomar a ligera, no es normal que aparezca un resultado cada 30 segundos (contando por mi misma).
+
+no me refiero a la busqueda en el modal, esa ironicamente es rapida.
 
 ## QK84
 
@@ -178,9 +180,32 @@ Por cierto, despues cerrar y abrir la aplicacion ya se actuilizo la foto y el no
 
 ## QK85
 
-En detalleDescripcionInterna se tiene que usar la descripcion corta, no la larga, verificar que haya una version de descripcion corta en ing
+En detalleDescripcionInterna se tiene que usar la descripcion corta, no la larga, verificar que haya una version de descripcion corta en ingles que se genere, y si no, que se genere tambien y usarla en ingles.
 
+## QK86 
 
+Empieza a trabajar en todo lo que puedas del plan-android.md
+para mi algo importante son las notificaciones, anticipar que las notificaciones de la app deben aparecer en el telefono, si es posible no usar cosas externas, mejor. 
+
+## QK87
+
+Cuando cambio de inteligente a reciente, no se actualiza, claramente es un error introducido por alguna tarea anterior. No siempre sucude, probalbmente sea por el cambio de pagina o la busqueda, o algo, no lo se.
+
+## QK88
+
+Verificar que el proceso de Distribucion Seed no afecte a usuarios reales ni a su contenido real, excepto a los admin.
+
+## QK89
+
+Verificar que no se detecte el intento de cambiarse el nombre de usuario a uno ya existente, tambien necesitamos la funcionalidad de poder cambiar el correo electronico (tener cuidado con esto, planificarlo bien), y poder cambiar la contraseña, nada de esto sin usar wp-login, 100% en el front de la aplicación. 
+
+## QK90
+
+Revision seo para los samples, sampleos, canciones, y colecciones. Hay un plan-seo.md, que probablemente no este actualizado, revisar y hacer las tareas que faltan.
+
+## QK91
+
+busquedaRapidaDropdown debe tener 450px de ancho pero cuando yo se lo pongo deja de estar centrado, ajustalo, el gap del info no debe ser 1, debe ser 6px, no agregues ancho maximo a .busquedaRapidaSampleoTexto, se ve mal, que simplemente el texto total tenga un devanecimiento suave si es muy largo, 3 resultados maximo visibles por cancion, sampleo y usuario.
 
 
 
