@@ -71,6 +71,7 @@ export type {
     CancionDetalle,
     ArtistaDetalle,
     EstadisticaRelaciones,
+    SeccionMusica,
     TipoRelacion,
     TipoElemento,
     FuenteRelacion,

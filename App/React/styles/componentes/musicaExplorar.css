@@ -1,0 +1,21 @@
+/*
+ * musicaExplorar.css — QK18/QK22
+ * Layout principal de la pagina de musica con secciones horizontales.
+ */
+
+.musicaExplorarContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xl);
+    padding: var(--espacioLg) var(--espacioXl);
+    max-width: var(--anchoMaximoContenido);
+    margin: 0 auto;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .musicaExplorarContenedor {
+        padding: var(--espacioMd) var(--espacioSm);
+        gap: var(--espacioXl);
+    }
+}

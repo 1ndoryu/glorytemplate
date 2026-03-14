@@ -207,53 +207,9 @@ class CancionesRepository extends BaseRepository
     public static function feed(string $orden, int $pagina = 1, int $porPagina = 20, ?int $userId = null): array
     {
         $tc = CancionesCols::TABLA;
-        $ta = ArtistasMusicalesCols::TABLA;
         $offset = ($pagina - 1) * $porPagina;
 
-        /*
-         * Subquery correlacionada para reaccion del usuario autenticado.
-         * Misma tecnica que NormalizadorSample::sqlSelectSamples().
-         * $userId es ?int tipado estricto, casteado a int por seguridad.
-         */
-        $tipoCancion = LikesEnums::TIPO_CANCION;
-        $reaccionExpr = $userId !== null
-            ? "(SELECT " . LikesCols::REACCION . " FROM " . LikesCols::TABLA
-              . " WHERE " . LikesCols::USUARIO_ID . " = " . (int) $userId
-              . " AND " . LikesCols::TIPO . " = '{$tipoCancion}'"
-              . " AND " . LikesCols::TARGET_ID . " = c." . CancionesCols::ID . " LIMIT 1)"
-            : "NULL";
-
-        /*
-         * Subquery correlacionada: primer sample activo con preview vinculado a la cancion.
-         * Devuelve JSON con los campos minimos para construir un SampleResumen en el frontend.
-         * Usa samples.cancion_origen_id = cancion.id (vinculo directo sample -> cancion).
-         */
-        $ts = SamplesCols::TABLA;
-        $eActivo = SamplesEnums::ESTADO_ACTIVO;
-        $sampleAdjuntoExpr = "(SELECT row_to_json(sq) FROM (
-            SELECT s." . SamplesCols::ID . ",
-                   s." . SamplesCols::TITULO . ",
-                   s." . SamplesCols::SLUG . ",
-                   s." . SamplesCols::RUTA_PREVIEW . ",
-                   s." . SamplesCols::IMAGEN_URL . ",
-                   s." . SamplesCols::CREADOR_ID . ",
-                   s." . SamplesCols::ID_CORTO . ",
-                   s." . SamplesCols::DURACION . ",
-                   s." . SamplesCols::TIPO . "
-            FROM {$ts} s
-            WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
-              AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
-              AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
-            ORDER BY s." . SamplesCols::TOTAL_REPRODUCCIONES . " DESC NULLS LAST
-            LIMIT 1
-        ) sq) AS sample_adjunto_json";
-
-        $baseSelect = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
-                        a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
-                        {$reaccionExpr} AS reaccion_usuario,
-                        {$sampleAdjuntoExpr}
-                 FROM {$tc} c
-                 JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID;
+        $baseSelect = self::buildSelectBase($userId);
 
         $countSql = "SELECT COUNT(*) FROM {$tc} c";
 
@@ -268,15 +224,22 @@ class CancionesRepository extends BaseRepository
                  * Hot = canciones con mas likes en los ultimos 7 dias.
                  * Likes usan tabla polimorfica: tipo='cancion' + target_id = cancion.id
                  * Fallback a total_sampleada para canciones sin likes recientes.
+                 * Se reconstruye el SELECT con LEFT JOIN de likes recientes.
                  */
+                $tc2 = CancionesCols::TABLA;
+                $ta2 = ArtistasMusicalesCols::TABLA;
                 $tl = LikesCols::TABLA;
+                $tipoCancion = LikesEnums::TIPO_CANCION;
+                $reaccionHot = self::buildReaccionExpr($userId);
+                $sampleHot = self::buildSampleAdjuntoExpr();
+
                 $sql = "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
                                a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
-                               {$reaccionExpr} AS reaccion_usuario,
-                               {$sampleAdjuntoExpr},
+                               {$reaccionHot} AS reaccion_usuario,
+                               {$sampleHot},
                                COALESCE(lr.likes_recientes, 0) AS likes_recientes
-                        FROM {$tc} c
-                        JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
+                        FROM {$tc2} c
+                        JOIN {$ta2} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID . "
                         LEFT JOIN (
                             SELECT " . LikesCols::TARGET_ID . " AS cancion_id,
                                    COUNT(*) AS likes_recientes
@@ -334,5 +297,211 @@ class CancionesRepository extends BaseRepository
         $tc = CancionesCols::TABLA;
         $sql = "SELECT COUNT(*) FROM {$tc}";
         return (int) (static::consultarValor($sql) ?? 0);
+    }
+
+    /*
+     * QK18/QK22: Secciones estilo Spotify para la pagina de musica.
+     * Un solo request retorna multiples secciones con dedup entre ellas.
+     * Cada seccion tiene tipo, titulo y lista de canciones o artistas.
+     * Dedup: una cancion nunca aparece en dos secciones.
+     *
+     * @return array Lista de secciones [{tipo, titulo, canciones/artistas}]
+     */
+    public static function secciones(int $porSeccion = 15, ?int $userId = null): array
+    {
+        $idsUsados = [];
+        $secciones = [];
+        $selectBase = self::buildSelectBase($userId);
+
+        /* 1. "Para Ti" — heuristico inteligente */
+        $paraTi = self::fetchSeccionOrdenada($selectBase, 'inteligente', $porSeccion, $idsUsados);
+        self::acumularIds($idsUsados, $paraTi);
+        if (!empty($paraTi)) {
+            $secciones[] = ['tipo' => 'para_ti', 'titulo' => 'Para Ti', 'canciones' => $paraTi];
+        }
+
+        /* 2. "Tendencia" — canciones mas populares por likes */
+        $hot = self::fetchSeccionOrdenada($selectBase, 'tendencia', $porSeccion, $idsUsados);
+        self::acumularIds($idsUsados, $hot);
+        if (!empty($hot)) {
+            $secciones[] = ['tipo' => 'tendencia', 'titulo' => 'Tendencia', 'canciones' => $hot];
+        }
+
+        /* 3. "Mas Sampleadas" — top all-time */
+        $top = self::fetchSeccionOrdenada($selectBase, 'top', $porSeccion, $idsUsados);
+        self::acumularIds($idsUsados, $top);
+        if (!empty($top)) {
+            $secciones[] = ['tipo' => 'top', 'titulo' => 'Más Sampleadas', 'canciones' => $top];
+        }
+
+        /* 4. Secciones por genero — top generos con minimo 5 canciones */
+        $generos = self::generosPopulares(6);
+        foreach ($generos as $genero) {
+            $cancionesGenero = self::fetchSeccionGenero($selectBase, $genero, $porSeccion, $idsUsados);
+            if (\count($cancionesGenero) >= 5) {
+                self::acumularIds($idsUsados, $cancionesGenero);
+                $secciones[] = [
+                    'tipo'      => 'genero',
+                    'titulo'    => $genero,
+                    'genero'    => $genero,
+                    'canciones' => $cancionesGenero,
+                ];
+            }
+        }
+
+        /* 5. Artistas populares */
+        $artistas = ArtistasMusicalesRepository::topPorCanciones($porSeccion);
+        if (!empty($artistas)) {
+            $secciones[] = ['tipo' => 'artistas', 'titulo' => 'Artistas Populares', 'artistas' => $artistas];
+        }
+
+        return $secciones;
+    }
+
+    /*
+     * SELECT base para canciones: artista JOIN + reaccion usuario + sample adjunto.
+     * Extraido de feed() para reutilizar en secciones() (DRY QK18).
+     */
+    private static function buildSelectBase(?int $userId): string
+    {
+        $tc = CancionesCols::TABLA;
+        $ta = ArtistasMusicalesCols::TABLA;
+        $reaccionExpr = self::buildReaccionExpr($userId);
+        $sampleExpr = self::buildSampleAdjuntoExpr();
+
+        return "SELECT c.*, a." . ArtistasMusicalesCols::NOMBRE . " AS artista_nombre,
+                a." . ArtistasMusicalesCols::SLUG . " AS artista_slug,
+                {$reaccionExpr} AS reaccion_usuario,
+                {$sampleExpr}
+         FROM {$tc} c
+         JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a." . ArtistasMusicalesCols::ID;
+    }
+
+    /* Subquery correlacionada: reaccion (like/encanta) del usuario sobre cancion */
+    private static function buildReaccionExpr(?int $userId): string
+    {
+        if ($userId === null) {
+            return 'NULL';
+        }
+        $tipoCancion = LikesEnums::TIPO_CANCION;
+        return "(SELECT " . LikesCols::REACCION . " FROM " . LikesCols::TABLA
+            . " WHERE " . LikesCols::USUARIO_ID . " = " . (int) $userId
+            . " AND " . LikesCols::TIPO . " = '{$tipoCancion}'"
+            . " AND " . LikesCols::TARGET_ID . " = c." . CancionesCols::ID . " LIMIT 1)";
+    }
+
+    /* Subquery correlacionada: primer sample activo con preview vinculado a la cancion */
+    private static function buildSampleAdjuntoExpr(): string
+    {
+        $ts = SamplesCols::TABLA;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+        return "(SELECT row_to_json(sq) FROM (
+            SELECT s." . SamplesCols::ID . ",
+                   s." . SamplesCols::TITULO . ",
+                   s." . SamplesCols::SLUG . ",
+                   s." . SamplesCols::RUTA_PREVIEW . ",
+                   s." . SamplesCols::IMAGEN_URL . ",
+                   s." . SamplesCols::CREADOR_ID . ",
+                   s." . SamplesCols::ID_CORTO . ",
+                   s." . SamplesCols::DURACION . ",
+                   s." . SamplesCols::TIPO . "
+            FROM {$ts} s
+            WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
+              AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
+              AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+            ORDER BY s." . SamplesCols::TOTAL_REPRODUCCIONES . " DESC NULLS LAST
+            LIMIT 1
+        ) sq) AS sample_adjunto_json";
+    }
+
+    /* Fetch una seccion con orden especifico, excluyendo IDs ya usados (dedup) */
+    private static function fetchSeccionOrdenada(
+        string $selectBase,
+        string $tipo,
+        int $limit,
+        array $idsUsados
+    ): array {
+        $exclusion = self::buildExclusion($idsUsados);
+        $params = \array_merge(['limit' => $limit], $exclusion['params']);
+
+        switch ($tipo) {
+            case 'inteligente':
+                $order = "ORDER BY (
+                    LN(c." . CancionesCols::TOTAL_SAMPLEADA . " + 1) * 3.0
+                    + GREATEST(0, 1.0 - EXTRACT(EPOCH FROM (NOW() - c." . CancionesCols::CREATED_AT . ")) / 31536000.0) * 2.0
+                    + RANDOM() * 1.5
+                ) DESC";
+                break;
+            case 'tendencia':
+                $order = "ORDER BY c." . CancionesCols::TOTAL_LIKES . " DESC, c." . CancionesCols::TOTAL_SAMPLEADA . " DESC";
+                break;
+            default: /* top */
+                $order = "ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC";
+                break;
+        }
+
+        $sql = "{$selectBase} WHERE 1=1 {$exclusion['sql']} {$order} LIMIT :limit";
+        return static::consultar($sql, $params);
+    }
+
+    /* Fetch canciones de un genero especifico con dedup */
+    private static function fetchSeccionGenero(
+        string $selectBase,
+        string $genero,
+        int $limit,
+        array $idsUsados
+    ): array {
+        $exclusion = self::buildExclusion($idsUsados);
+        $params = \array_merge(
+            ['genero' => $genero, 'limit' => $limit],
+            $exclusion['params']
+        );
+
+        $sql = "{$selectBase}
+                WHERE c." . CancionesCols::GENERO . " = :genero
+                {$exclusion['sql']}
+                ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC
+                LIMIT :limit";
+
+        return static::consultar($sql, $params);
+    }
+
+    /* Top generos por cantidad de canciones, minimo 5 para que la seccion tenga contenido */
+    private static function generosPopulares(int $limit = 6): array
+    {
+        $tc = CancionesCols::TABLA;
+        $rows = static::consultar(
+            "SELECT " . CancionesCols::GENERO . " AS genero, COUNT(*) AS total
+             FROM {$tc}
+             WHERE " . CancionesCols::GENERO . " IS NOT NULL
+               AND " . CancionesCols::GENERO . " != ''
+             GROUP BY " . CancionesCols::GENERO . "
+             HAVING COUNT(*) >= 5
+             ORDER BY total DESC
+             LIMIT :limit",
+            ['limit' => $limit]
+        );
+        return \array_map(fn($r) => $r['genero'], $rows);
+    }
+
+    /* Exclusion parametrizada con array PG para dedup entre secciones */
+    private static function buildExclusion(array $idsUsados): array
+    {
+        if (empty($idsUsados)) {
+            return ['sql' => '', 'params' => []];
+        }
+        $pgArray = '{' . \implode(',', \array_map('intval', $idsUsados)) . '}';
+        return [
+            'sql'    => ' AND NOT (c.' . CancionesCols::ID . ' = ANY(:ids_excluidos::int[]))',
+            'params' => ['ids_excluidos' => $pgArray],
+        ];
+    }
+
+    /* Acumula IDs de canciones para tracking de dedup entre secciones */
+    private static function acumularIds(array &$idsUsados, array $items): void
+    {
+        foreach ($items as $item) {
+            $idsUsados[] = (int) $item['id'];
+        }
     }
 }

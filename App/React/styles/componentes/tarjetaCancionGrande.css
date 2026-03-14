@@ -1,0 +1,174 @@
+/*
+ * tarjetaCancionGrande.css — QK18/QK22
+ * Tarjeta grande con portada cuadrada estilo Spotify.
+ * Imagen arriba, titulo y artista abajo, play overlay en hover.
+ */
+
+.tarjetaCancionGrande {
+    width: 165px;
+    min-width: 165px;
+    cursor: pointer;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.tarjetaCancionGrandeImagen {
+    width: 165px;
+    height: 165px;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+    position: relative;
+}
+
+.tarjetaCancionGrandeImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tarjetaCancionGrandeImagenPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Overlay de play: aparece al hacer hover sobre la tarjeta */
+.tarjetaCancionGrandeOverlay {
+    position: absolute;
+    bottom: var(--espacioSm);
+    right: var(--espacioSm);
+    width: 40px;
+    height: 40px;
+    min-width: unset;
+    padding: 0;
+    background: var(--acento);
+    border-radius: var(--radioFull);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity var(--transicionNormal), transform var(--transicionNormal);
+    color: var(--textoPrimarioInverso);
+    pointer-events: none;
+}
+
+.tarjetaCancionGrande:hover .tarjetaCancionGrandeOverlay {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.tarjetaCancionGrandeOverlayActivo {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.tarjetaCancionGrandeInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 var(--espacio2xs);
+    min-width: 0;
+}
+
+.tarjetaCancionGrandeTitulo {
+    margin: 0;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tarjetaCancionGrandeArtista {
+    margin: 0;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tarjeta de artista: circular */
+.tarjetaArtista {
+    width: 140px;
+    min-width: 140px;
+    cursor: pointer;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.tarjetaArtistaImagen {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--radioFull);
+    overflow: hidden;
+    background: var(--fondoElevado2);
+}
+
+.tarjetaArtistaImagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tarjetaArtistaImagenPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.tarjetaArtistaNombre {
+    margin: 0;
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.tarjetaArtistaCanciones {
+    margin: 0;
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+}
+
+@media (max-width: 768px) {
+    .tarjetaCancionGrande {
+        width: 130px;
+        min-width: 130px;
+    }
+
+    .tarjetaCancionGrandeImagen {
+        width: 130px;
+        height: 130px;
+    }
+
+    .tarjetaArtista {
+        width: 110px;
+        min-width: 110px;
+    }
+
+    .tarjetaArtistaImagen {
+        width: 96px;
+        height: 96px;
+    }
+}

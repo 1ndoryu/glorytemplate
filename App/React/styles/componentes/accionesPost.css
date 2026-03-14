@@ -53,8 +53,10 @@
 }
 
 /* Reacciones especiales (heredadas del sistema 3 reacciones) */
+/* QK99: Brillo sutil para distinguir "me encanta" de like normal */
 .reaccionPrincipalEncanta {
     color: var(--error);
+    filter: drop-shadow(0 0 3px var(--error));
 }
 
 .reaccionPrincipalDislike {

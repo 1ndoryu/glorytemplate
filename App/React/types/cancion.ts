@@ -79,6 +79,15 @@ export interface ArtistaMusicale {
     creadoAt: string;
 }
 
+/* QK18/QK22: Seccion de la pagina de musica estilo Spotify */
+export interface SeccionMusica {
+    tipo: 'para_ti' | 'tendencia' | 'top' | 'genero' | 'artistas';
+    titulo: string;
+    genero?: string;
+    canciones?: Cancion[];
+    artistas?: ArtistaMusicale[];
+}
+
 /* Relación entre dos canciones (sample, cover, remix, interpolation) */
 export interface RelacionSample {
     id: number;

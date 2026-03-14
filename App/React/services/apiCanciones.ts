@@ -12,6 +12,7 @@ import type {
     ArtistaDetalle,
     EstadisticaRelaciones,
     RelacionDetalleCompleta,
+    SeccionMusica,
 } from '@app/types/cancion';
 
 /* Listar canciones recientes */
@@ -110,6 +111,12 @@ export const feedCanciones = (
     porPagina = 20
 ): Promise<RespuestaApi<Cancion[]>> =>
     apiGet<Cancion[]>('/canciones/feed', { orden, page: pagina, per_page: porPagina });
+
+/* QK18/QK22: Secciones estilo Spotify — multiples secciones con dedup en un request */
+export const seccionesCanciones = (
+    porSeccion = 15
+): Promise<RespuestaApi<SeccionMusica[]>> =>
+    apiGet<SeccionMusica[]>('/canciones/secciones', { por_seccion: porSeccion });
 
 /* ── Endpoints de desarrollo (solo disponibles con WP_DEBUG = true) ── */
 

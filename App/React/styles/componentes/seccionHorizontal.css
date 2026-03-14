@@ -1,0 +1,64 @@
+/*
+ * seccionHorizontal.css — QK18/QK22
+ * Seccion horizontal con scroll tipo Spotify.
+ * Titulo + contenedor scrollable + ocultar barras.
+ */
+
+.seccionHorizontal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.seccionHorizontalCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--espacioXs);
+}
+
+.seccionHorizontalTitulo {
+    margin: 0;
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoBold);
+    color: var(--textoPrimario);
+}
+
+.seccionHorizontalVerTodo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    text-decoration: none;
+    transition: color var(--transicionRapida);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.seccionHorizontalVerTodo:hover {
+    color: var(--textoPrimario);
+}
+
+.seccionHorizontalScroll {
+    display: flex;
+    gap: var(--espacioMd);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: var(--espacioXs);
+}
+
+.seccionHorizontalScroll::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .seccionHorizontalTitulo {
+        font-size: var(--fuenteMd);
+    }
+
+    .seccionHorizontalScroll {
+        gap: var(--espacioSm);
+    }
+}

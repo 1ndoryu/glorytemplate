@@ -78,7 +78,12 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK18/QK22 — Rediseno pagina musica estilo Spotify
 
-Secciones horizontales, portada grande, letras abajo, secciones por generos, quitar tabs (ahora son secciones), no repetir canciones entre secciones, seccion albumes y artistas. Busqueda mantiene diseño de lista larga.
+✅ [AG-WRK] Rediseño completo pagina música estilo Spotify:
+- **Backend:** Nuevo endpoint `GET /canciones/secciones?por_seccion=15`. CancionesRepository refactorizado: `buildSelectBase()`, `buildReaccionExpr()`, `buildSampleAdjuntoExpr()` extraídos (DRY). Nuevo método `secciones()` con cross-section dedup via PG array (`NOT (c.id = ANY(:ids::int[]))`). Secciones: para_ti (heurística), tendencia (likes), top (sampleada), géneros populares (HAVING COUNT >= 5), artistas top. CancionesController: ruta registrada ANTES del catch-all slug.
+- **Frontend:** ExplorarCancionesIsland reescrita (175→20 líneas): renderiza SeccionesMusica (browse) o BusquedaCanciones (search). Nuevos componentes: SeccionHorizontal (scroll horizontal genérico), TarjetaCancionGrande (portada grande con overlay play), TarjetaArtista (circular), SeccionesMusica (orquestador secciones), BusquedaCanciones (lista extraída). Hook useSeccionesCanciones (fetch + like optimista cross-sección). Utilidad construirSampleDesdeCancion (DRY, usada en 2 componentes).
+- **CSS:** seccionHorizontal.css, tarjetaCancionGrande.css, musicaExplorar.css — todas variables verificadas.
+- [Arq]: Composición > herencia. SeccionHorizontal acepta children (OCP). BusquedaCanciones reutiliza TarjetaCancionFeed existente.
+- [Gotcha]: Ruta `/canciones/secciones` DEBE registrarse antes de `/canciones/(?P<slug>...)` para evitar colisión.
 
 ## QK67
 
@@ -269,7 +274,7 @@ Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajust
 
 ## QK99 
 
-El boton de corazon cuando el like sea un me encanta y no un like normal, que brille un poco (no mucho) solo es una pequeña distencion 
+✅ [AG-WRK] Heart glow para "me encanta" — `filter: drop-shadow(0 0 3px var(--error))` en `.reaccionPrincipalEncanta` (accionesPost.css). Aplica en todos los contextos (TarjetaSample, BarraAccionesPost, BotonLike, SampleDetalleAcciones) porque ningún selector de mayor especificidad sobreescribe `filter`. Brillo rojo sutil, distingue visualmente encanta de like normal.
 
 ## QK100
 

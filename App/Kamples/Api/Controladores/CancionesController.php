@@ -77,6 +77,16 @@ class CancionesController
             ],
         ]);
 
+        /* QK18/QK22: Secciones estilo Spotify — multiples secciones en un request con dedup */
+        \register_rest_route($namespace, '/canciones/secciones', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'secciones'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'por_seccion' => ['type' => 'integer', 'default' => 15, 'minimum' => 5, 'maximum' => 30],
+            ],
+        ]);
+
         \register_rest_route($namespace, '/canciones/(?P<slug>[a-zA-Z0-9_-]+)', [
             'methods'             => 'GET',
             'callback'            => [self::class, 'detalle'],
@@ -293,6 +303,45 @@ class CancionesController
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::detalleArtista] ' . $e->getMessage());
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * GET /canciones/secciones — Secciones estilo Spotify (QK18/QK22).
+     * Retorna multiples secciones de canciones agrupadas con dedup entre ellas.
+     */
+    public static function secciones(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $porSeccion = (int) $request->get_param('por_seccion');
+            $userId = UsuarioHelper::obtenerIdPg();
+
+            $seccionesRaw = CancionesRepository::secciones($porSeccion, $userId);
+
+            $secciones = \array_map(static function (array $sec): array {
+                $result = [
+                    'tipo'   => $sec['tipo'],
+                    'titulo' => $sec['titulo'],
+                ];
+                if (isset($sec['genero'])) {
+                    $result['genero'] = $sec['genero'];
+                }
+                if (isset($sec['canciones'])) {
+                    $result['canciones'] = \array_map([NormalizadorCancion::class, 'cancion'], $sec['canciones']);
+                }
+                if (isset($sec['artistas'])) {
+                    $result['artistas'] = \array_map([NormalizadorCancion::class, 'artista'], $sec['artistas']);
+                }
+                return $result;
+            }, $seccionesRaw);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => $secciones,
+            ]);
+        } catch (\Throwable $e) {
+            \error_log('[CancionesController::secciones] ' . $e->getMessage());
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
         }
     }
