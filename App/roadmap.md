@@ -307,7 +307,10 @@ Version movil pendiente:
 
 ## QK102
 
-El reproductor necesita un boton extra para cerrarlo, el boton de aleatoreo parece que no se puede desactivar cuando se activa
+✅ [AG-WRK] Reproductor: botón cerrar (X) + fix visual aleatorio:
+- **Botón cerrar:** Añadido `<X>` al final del reproductor que llama `cerrar()` del store (limpia sampleActual, detiene reproducción). Hover rojo como indicador destructivo.
+- **Fix aleatorio:** `reproductorBtnActivo` usaba `--acentoTexto` (color de texto sobre fondo acento, poco visible). Cambiado a `--acento` para contraste claro activado/desactivado.
+- Archivos: ReproductorGlobal.tsx, useReproductorGlobal.ts, reproductorGlobal.css.
 
 ## QK103 
 

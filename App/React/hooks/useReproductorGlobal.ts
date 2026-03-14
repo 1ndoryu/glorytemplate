@@ -29,6 +29,7 @@ export const useReproductorGlobal = () => {
     const anterior = useReproductorStore(s => s.anterior);
     const seek = useReproductorStore(s => s.seek);
     const actualizarLike = useReproductorStore(s => s.actualizarLike);
+    const cerrar = useReproductorStore(s => s.cerrar);
 
     const progresoBarraRef = useRef<HTMLDivElement>(null);
 
@@ -71,6 +72,7 @@ export const useReproductorGlobal = () => {
         toggleAleatorio,
         siguiente,
         anterior,
+        cerrar,
         manejarLike,
         manejarSeekProgreso,
         progresoBarraRef,

@@ -133,7 +133,12 @@
 }
 
 .reproductorBtnActivo {
-    color: var(--acentoTexto);
+    color: var(--acento);
+}
+
+/* QK102: Boton cerrar reproductor */
+.reproductorBtnCerrar:hover {
+    color: var(--error);
 }
 
 /* Play/pause central */
