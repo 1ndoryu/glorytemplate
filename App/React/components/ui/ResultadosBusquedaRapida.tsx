@@ -51,20 +51,21 @@ export const ResultadosBusquedaRapidaDropdown = ({
                 <div className="busquedaRapidaVacio">Sin resultados</div>
             )}
 
+            {/* QK91: Maximo 3 resultados visibles por seccion */}
             {canciones.length > 0 && (
-                <SeccionCancion items={canciones} onIr={irA} />
+                <SeccionCancion items={canciones.slice(0, 3)} onIr={irA} />
             )}
 
             {samples.length > 0 && (
-                <SeccionSample items={samples} onIr={irA} />
+                <SeccionSample items={samples.slice(0, 3)} onIr={irA} />
             )}
 
             {sampleos.length > 0 && (
-                <SeccionSampleo items={sampleos} onIr={irA} />
+                <SeccionSampleo items={sampleos.slice(0, 3)} onIr={irA} />
             )}
 
             {usuarios.length > 0 && (
-                <SeccionUsuario items={usuarios} onIr={irA} />
+                <SeccionUsuario items={usuarios.slice(0, 3)} onIr={irA} />
             )}
         </div>
     );
