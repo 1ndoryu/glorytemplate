@@ -122,6 +122,8 @@ export interface ExtraccionSample {
     lado: string | null;
     estado: string | null;
     rutaAudioExtraido: string | null;
+    /* QK61: Flag booleano — indica si el audio completo esta guardado para extensiones */
+    tieneAudioCompleto: boolean;
     fuenteUrl: string | null;
     fuenteTitulo: string | null;
     fuenteArtista: string | null;

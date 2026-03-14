@@ -319,6 +319,8 @@ class NormalizadorSample
             'estado'           => $data[ColaExtraccionSamplesCols::ESTADO] ?? null,
             'rutaAudioExtraido' => !empty($data[ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO])
                 ? self::rutaAUrl((string) $data[ColaExtraccionSamplesCols::RUTA_AUDIO_EXTRAIDO]) : null,
+            /* QK61: Flag para frontend — el backend necesita el audio completo para extensiones */
+            'tieneAudioCompleto' => !empty($data[ColaExtraccionSamplesCols::RUTA_AUDIO_COMPLETO]),
             /* Campos del JSONB metadata_extraccion */
             'fuenteUrl'        => $meta['descarga_fuente_url'] ?? null,
             'fuenteTitulo'     => $meta['descarga_fuente_titulo'] ?? null,
