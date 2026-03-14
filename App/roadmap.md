@@ -129,7 +129,7 @@ obtenerColeccionesDelServidor @ syncCollectionService.ts:296
 
 ## QK12 
 
-Crea un md detallado de todo lo que hay que hacer para tener la aplicacion de android lista con tauri, y adelanta todo lo que puedas
+Crea un md detallado de todo lo que hay que hacer para tener la aplicacion de android lista con tauri, y adelanta todo lo que puedas.
 
 ## QK13 ✅ [AG-DSK]
 
@@ -433,13 +433,18 @@ Ya veo los datos de extraccion, bien, ahora necesito que al dar click al id de y
 - **CSS (modalInspector.css):** Nuevo estilo `.inspectorLink` para campos clickables con color acento y hover.
 - [Gotcha]: Los datos de album/slug dependen del JOIN SQL. Samples sin `relacion_id` en cola no tendran estos campos. 
 
-# QK33
+## QK33 ✅ [AG-DSK]
 
-El extractor de audio, presiento que dejo de funcionar
+**Solución:** El extractor dejó de descargar audio de YouTube por cambios anti-bot (~marzo 2026). yt-dlp ahora requiere un JavaScript runtime para resolver retos de firma ("Sign in to confirm you're not a bot"). Root causes y acciones:
+1. **yt-dlp desactualizado** (2026.3.3) → Actualizado a `2026.3.13` en VPS (`pip install --upgrade yt-dlp`)
+2. **JS runtime no habilitado** → `--js-runtimes node` agregado a `base_cmd` en `_descargar_youtube()` y `cmd` en `_ejecutar_ytsearch()` de `audio_download.py`. Node.js v20.20.1 ya estaba instalado en `/usr/bin/node` pero yt-dlp no lo detectaba sin el flag explícito.
+3. **EJS plugin** → Instalado `yt-dlp-ejs 0.7.0` (`pip install yt-dlp-ejs`) para scripts externos de JS challenge.
+- Archivos: `kamples-scraper/extractor/audio_download.py` (2 líneas agregadas)
+- [yt-dlp JS runtimes]: yt-dlp 2026.3.x necesita `--js-runtimes node` para resolver challenges de firma YouTube. Sin esto, `[debug] JS runtimes: none` incluso con node instalado.
+- [SoundCloud]: Intermitente ("no se encontraron scripts JS en el frontend") — funciona a veces. No requiere fix inmediato.
+- [spotdl]: v4.4.3 instalado, funciona desde CLI pero crashea al importarse desde el extractor (traceback truncado en `spotdl/__init__.py`). Issue secundario.
 
-desde hace rato no veo que saque audios de soundcloud por favor revisa los ultimos logs de extractor de audio
-
-# QK34
+## QK34
 
 en la aplicación de escritorio 
 
@@ -458,7 +463,24 @@ kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed 
 (index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed to load resource: net::ERR_FAILED
 
-##
+## QK35
+
+Aplica todas las optimizaciones de "# Optimizacion del Feed de Samples — Analisis, Plan y Estrategia para 1M" si es que falta algo.
+
+## QK36
+
+aplicacion de escritorio
+
+Hay un problema, en la ventana de sync, dodne antes me aparecía el historial de sincornizacion y las opciones, ahora me aparece la pagina de inicio, supongo que es porque se inice sesion pero no se actualizo, despues reinicie la aplicación y la sesion estaba abierta en el sync pero no estaba abierta en la ventana, ahi ya son dos problemas (aparece asi en sync U Usuario
+)
+
+el boton de iniciar sesion con google en la aplicacion no funciona
+
+Una auditoría profunda acerca el sync, fue probado localmente cuando la aplicación corría en local, no en el vps servidor, revision de seguridad, optimización, la aplicación de sync se espera que este en muchos dispositivos, tiene que ser optima, eficiente, segura. Haz un md detallado.
+
+## QK37
+
+Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado
 
 
 ## Despliegue Produccion (VPS Coolify)
