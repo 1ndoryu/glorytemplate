@@ -10,9 +10,11 @@
 import { Music } from 'lucide-react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
+import { SkeletonTarjetaSample } from '@app/components/skeletons';
 import { useFeedSamples } from '@app/hooks/useFeedSamples';
 import type { SampleResumen } from '@app/types';
 
@@ -144,16 +146,21 @@ export const FeedSamples = ({
             {/* Centinela de infinite scroll */}
             {feed.infiniteScroll && !feed.requiereManual && (
                 <div ref={feed.sentinelaRef} className="feedSamplesSentinela" aria-hidden="true">
-                    {feed.cargandoMas && <p className="feedSamplesCargandoMas">Cargando más samples…</p>}
+                    {feed.cargandoMas && (
+                        <div className="feedSamplesSkeletonMas">
+                            <SkeletonTarjetaSample />
+                            <SkeletonTarjetaSample />
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* Botón manual cuando el throttle excede maxAutoCarga */}
             {feed.requiereManual && (
                 <div className="feedSamplesBotonManual">
-                    <button type="button" className="feedSamplesCargarMas" onClick={feed.cargarMasManual}>
+                    <BotonBase variante="secundario" className="feedSamplesCargarMas" onClick={feed.cargarMasManual}>
                         Cargar más samples
-                    </button>
+                    </BotonBase>
                 </div>
             )}
 

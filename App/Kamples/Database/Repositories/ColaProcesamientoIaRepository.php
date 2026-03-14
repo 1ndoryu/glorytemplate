@@ -89,7 +89,7 @@ class ColaProcesamientoIaRepository extends BaseRepository
             ColaProcesamientoIaCols::OPERACION => $operacion,
             ColaProcesamientoIaCols::ESTADO => ColaProcesamientoIaEnums::ESTADO_PENDIENTE,
             ColaProcesamientoIaCols::INTENTOS => 0,
-            ColaProcesamientoIaCols::MAX_INTENTOS => 2,
+            ColaProcesamientoIaCols::MAX_INTENTOS => 30,
             ColaProcesamientoIaCols::METADATA => \json_encode($metadata),
         ]);
     }
@@ -168,12 +168,14 @@ class ColaProcesamientoIaRepository extends BaseRepository
      * Marcar item como error con reintento programado.
      * Si ya excedio max_intentos, marca como error_final.
      *
+     * QK78: Backoff exponencial con cap — evita flood durante rate limits prolongados.
+     * Intento 1: 15min, 2: 30min, 3: 60min, 4+: 120min (cap).
+     *
      * @param int $id ID del item
      * @param string $error Mensaje de error
-     * @param int $minutosEspera Minutos hasta el proximo reintento
      * @return string Estado resultante (error_reintento|error_final)
      */
-    public static function marcarError(int $id, string $error, int $minutosEspera = 30): string
+    public static function marcarError(int $id, string $error): string
     {
         $item = static::buscarPorId($id);
         if (!$item) {
@@ -192,6 +194,8 @@ class ColaProcesamientoIaRepository extends BaseRepository
             return ColaProcesamientoIaEnums::ESTADO_ERROR_FINAL;
         }
 
+        /* QK78: Backoff exponencial con cap de 120 minutos */
+        $minutosEspera = \min(120, 15 * (int) \pow(2, \min($intentos - 1, 3)));
         $proximoIntento = \date('Y-m-d H:i:s', \time() + ($minutosEspera * 60));
         static::actualizarPorId($id, [
             ColaProcesamientoIaCols::ESTADO => ColaProcesamientoIaEnums::ESTADO_ERROR_REINTENTO,

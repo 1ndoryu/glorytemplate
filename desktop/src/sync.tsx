@@ -29,7 +29,8 @@ import { inicializarSyncService } from '@desktop/services/syncService';
 
 /* Auth: restaurar token JWT del store ANTES de configurar API.
  * Sin esto, configurarApiDesktop() no encuentra token y fetch va sin Authorization → 401. */
-import { inicializarAuthDesktop, escucharCambiosAuth } from '@desktop/services/authDesktopService';
+import { inicializarAuthDesktop } from '@desktop/services/authDesktopService';
+import { escucharCambiosAuth } from '@desktop/services/authDesktopEventos';
 
 /* Exponer syncService en window para que usePanelSincronizacion funcione */
 import {

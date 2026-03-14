@@ -40,11 +40,11 @@
     min-height: 1px;
 }
 
-.feedSamplesCargandoMas {
-    text-align: center;
-    color: var(--textoSecundario);
-    font-size: var(--fuenteSm);
-    padding: var(--espacioMd);
+/* QK76: Skeleton de carga en vez de texto */
+.feedSamplesSkeletonMas {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
 }
 
 /* Botón manual de "Cargar más" cuando el throttle de paginación lo requiere */

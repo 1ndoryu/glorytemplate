@@ -167,15 +167,12 @@ class ProcesadorColaIA
                     $resultado['exitosos']++;
                 } elseif (GroqHttpClient::fueRateLimited()) {
                     /*
-                     * Rate limit de nuevo — no contar como error del item.
-                     * Revertir a pendiente con proximo_intento futuro.
-                     * marcarError(id, mensaje, minutosEspera) — el repo gestiona intentos internamente.
+                     * Rate limit de nuevo — marcarError gestiona backoff exponencial (QK78).
+                     * 15min → 30min → 60min → 120min cap. Mucho más resiliente que fixed 30min.
                      */
-                    $retrySegundos = \max(GroqHttpClient::obtenerRetryAfterSegundos(), 900.0);
                     ColaProcesamientoIaRepository::marcarError(
                         $id,
-                        'Rate limit 429 durante reproceso',
-                        (int) \ceil($retrySegundos / 60)
+                        'Rate limit 429 durante reproceso'
                     );
                     $resultado['rateLimited'] = true;
                 } else {

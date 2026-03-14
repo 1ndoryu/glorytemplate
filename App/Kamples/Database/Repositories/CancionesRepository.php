@@ -92,6 +92,9 @@ class CancionesRepository extends BaseRepository
 
     /**
      * Búsqueda fulltext en canciones (titulo + artista + album).
+     * QK75: Split en dos tsvectors para que cada uno use su GIN index:
+     *   - idx_canciones_busqueda_fts (titulo + album)
+     *   - idx_artistas_nombre_fts (nombre artista)
      */
     public static function buscarTexto(string $query, int $limit = 20): array
     {
@@ -102,11 +105,12 @@ class CancionesRepository extends BaseRepository
             "SELECT c.*, a.nombre AS artista_nombre
              FROM {$tc} c
              JOIN {$ta} a ON c." . CancionesCols::ARTISTA_ID . " = a.id
-             WHERE to_tsvector('simple', c." . CancionesCols::TITULO . " || ' ' || a.nombre || ' ' || COALESCE(c." . CancionesCols::ALBUM . ", ''))
+             WHERE to_tsvector('simple', c." . CancionesCols::TITULO . " || ' ' || COALESCE(c." . CancionesCols::ALBUM . ", ''))
                 @@ plainto_tsquery('simple', :query)
+                OR to_tsvector('simple', a.nombre) @@ plainto_tsquery('simple', :queryArtista)
              ORDER BY (c." . CancionesCols::TOTAL_SAMPLEADA . " + c." . CancionesCols::TOTAL_SAMPLEA . ") DESC
              LIMIT :limit",
-            ['query' => $query, 'limit' => $limit]
+            ['query' => $query, 'queryArtista' => $query, 'limit' => $limit]
         );
     }
 

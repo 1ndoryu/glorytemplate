@@ -4,7 +4,8 @@
  */
 
 import { configurarApiDesktop, marcarAuthInicializada } from './apiDesktopAdapter';
-import { inicializarAuthDesktop, escucharCambiosAuth } from './authDesktopService';
+import { inicializarAuthDesktop } from './authDesktopService';
+import { escucharCambiosAuth } from './authDesktopEventos';
 import { inicializarOfflineQueue } from './offlineQueueService';
 import { inicializarSyncService } from './syncService';
 

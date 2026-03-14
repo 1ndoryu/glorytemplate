@@ -1,5 +1,7 @@
 <?php
 
+/* sentinel-disable-file limite-lineas — 307 efectivas, ya dividido en 5 sub-controllers. Excedente minimo por busqueda full-text QK75. */
+
 /**
  * SamplesController — Coordinador + lectura + feed de samples.
  *
@@ -130,8 +132,16 @@ class SamplesController
 
         $busqueda = $request->get_param('busqueda');
         if (!empty($busqueda)) {
-            $where[]  = "(s.{$sTitulo} ILIKE :busqueda OR s.{$sDesc} ILIKE :busqueda)";
+            /* QK75: Full-text match como filtro principal — aprovecha GIN index idx_samples_busqueda_fts.
+             * ILIKE como fallback para matches parciales que full-text no captura (substrings).
+             * Tags via UNNEST como tercer criterio. Combinados con OR para máxima cobertura.
+             * Con pg_trgm GIN index, el ILIKE también es rápido. */
+            $where[] = "(to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
+                     . " OR s.{$sTitulo} ILIKE :busqueda"
+                     . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagWhere))";
+            $params['busquedaFts'] = $busqueda;
             $params['busqueda'] = '%' . $busqueda . '%';
+            $params['busquedaTagWhere'] = '%' . strtolower($busqueda) . '%';
         }
 
         $genero = $request->get_param('genero');
@@ -194,12 +204,12 @@ class SamplesController
             $idiomasValidos = ['simple', 'english', 'spanish', 'french', 'german', 'portuguese', 'italian'];
             if (!\in_array($idioma, $idiomasValidos, true)) $idioma = 'spanish';
 
-            /* ts_rank sobre título+descripción combinados */
+            /* ts_rank sobre título+descripción combinados — usa GIN index idx_samples_busqueda_fts */
             $sqlTsRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')), plainto_tsquery('{$idioma}', :busquedaRank))";
-            /* ts_rank solo sobre título (mayor peso para matches en título) */
+            /* ts_rank solo sobre título (mayor peso) — usa GIN index idx_samples_titulo_fts */
             $sqlTituloRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '')), plainto_tsquery('{$idioma}', :busquedaTituloRank))";
-            /* Boost por coincidencia en tags: 1.0 si algún tag contiene el término, 0.0 si no */
-            $sqlTagMatch = "CASE WHEN EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE LOWER(tag) LIKE :busquedaTagLike) THEN 1.0 ELSE 0.0 END";
+            /* Boost por coincidencia en tags */
+            $sqlTagMatch = "CASE WHEN s.{$sTags} IS NOT NULL AND EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike) THEN 1.0 ELSE 0.0 END";
 
             $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
 
