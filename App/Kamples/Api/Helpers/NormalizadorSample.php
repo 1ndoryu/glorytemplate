@@ -325,6 +325,17 @@ class NormalizadorSample
             'descargaMetodo'   => $meta['descarga_metodo'] ?? null,
             'origen'           => $meta['origen'] ?? null,
             'ladoExtraccion'   => $meta['lado_extraccion'] ?? null,
+            /* QQ23: Campos adicionales del JSONB — contexto completo del sampleo */
+            'sampleoFuenteTitulo'  => $meta['fuente_titulo'] ?? null,
+            'sampleoFuenteArtista' => $meta['fuente_artista'] ?? null,
+            'sampleoDestinoTitulo' => $meta['destino_titulo'] ?? null,
+            'sampleoDestinoArtista' => $meta['destino_artista'] ?? null,
+            'votosTotal'       => isset($meta['votos_total']) ? (int) $meta['votos_total'] : null,
+            'tipoElemento'     => $meta['tipo_elemento'] ?? null,
+            'recortePorCompas' => $meta['recorte_por_compas'] ?? null,
+            'duracionExtraida' => isset($meta['duracion']) ? (float) $meta['duracion'] : null,
+            'formatoExtraido'  => $meta['formato'] ?? null,
+            'tamanoBytes'      => isset($meta['tamano_bytes']) ? (int) $meta['tamano_bytes'] : null,
         ];
     }
 

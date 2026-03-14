@@ -65,6 +65,23 @@ export const SeccionExtraccionInspector = ({extraccion}: SeccionExtraccionInspec
             {extraccion.rutaAudioExtraido && (
                 <Campo etiqueta="Ruta Audio Extraido" valor={extraccion.rutaAudioExtraido} ancho />
             )}
+            {/* QQ23: Contexto completo del sampleo desde metadata_extraccion */}
+            <Campo etiqueta="Sampleo: Titulo Fuente" valor={extraccion.sampleoFuenteTitulo} ancho />
+            <Campo etiqueta="Sampleo: Artista Fuente" valor={extraccion.sampleoFuenteArtista} />
+            <Campo etiqueta="Sampleo: Titulo Destino" valor={extraccion.sampleoDestinoTitulo} ancho />
+            <Campo etiqueta="Sampleo: Artista Destino" valor={extraccion.sampleoDestinoArtista} />
+            <Campo etiqueta="Tipo Elemento" valor={extraccion.tipoElemento} />
+            <Campo etiqueta="Votos Total" valor={extraccion.votosTotal} numerico />
+            <Campo etiqueta="Recorte por Compas" valor={extraccion.recortePorCompas} />
+            <Campo etiqueta="Duracion Extraida" valor={
+                extraccion.duracionExtraida != null ? `${extraccion.duracionExtraida}s` : null
+            } numerico />
+            <Campo etiqueta="Formato" valor={extraccion.formatoExtraido} />
+            <Campo etiqueta="Tamano" valor={
+                extraccion.tamanoBytes != null
+                    ? `${(extraccion.tamanoBytes / 1024).toFixed(1)} KB`
+                    : null
+            } numerico />
         </div>
     </div>
 );

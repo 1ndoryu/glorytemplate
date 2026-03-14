@@ -110,7 +110,7 @@ export interface Sample {
     extraccion?: ExtraccionSample | null;
 }
 
-/* QQ117: Metadata de extraccion vinculada desde cola_extraccion_samples */
+/* QQ117+QQ23: Metadata de extraccion vinculada desde cola_extraccion_samples */
 export interface ExtraccionSample {
     youtubeId: string | null;
     spotifyId: string | null;
@@ -128,6 +128,17 @@ export interface ExtraccionSample {
     descargaMetodo: string | null;
     origen: string | null;
     ladoExtraccion: string | null;
+    /* QQ23: Campos adicionales del JSONB metadata_extraccion */
+    sampleoFuenteTitulo: string | null;
+    sampleoFuenteArtista: string | null;
+    sampleoDestinoTitulo: string | null;
+    sampleoDestinoArtista: string | null;
+    votosTotal: number | null;
+    tipoElemento: string | null;
+    recortePorCompas: string | null;
+    duracionExtraida: number | null;
+    formatoExtraido: string | null;
+    tamanoBytes: number | null;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */
