@@ -37,7 +37,7 @@ export const useDescubrirIsland = () => {
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
 
-    useUrlFiltros();
+    useUrlFiltros('DescubrirIsland', 'descubrir');
 
     /* Filtros avanzados solo para autenticados */
     const { idsReproducidos } = useHistorialIds(autenticado && yaReproducidos);

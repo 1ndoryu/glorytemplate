@@ -35,6 +35,8 @@ interface EstadoMensajes {
     marcarConversacionLeida: (conversacionId: number) => void;
     marcarTodasLeidas: () => void;
     actualizarUltimoMensaje: (conversacionId: number, contenido: string) => void;
+    /* QK60: Marcar conversacion como aceptada (mover de solicitudes a principal) */
+    aceptarConversacion: (conversacionId: number) => void;
     totalNoLeidos: () => number;
     necesitaRefrescar: () => boolean;
 }
@@ -98,6 +100,14 @@ export const useMensajesStore = create<EstadoMensajes>((set, get) => ({
                 c.id === conversacionId
                     ? { ...c, ultimoMensaje: contenido, ultimoMensajeAt: new Date().toISOString() }
                     : c
+            ),
+        })),
+
+    /* QK60: Marcar conversacion como aceptada — optimistic update al enviar mensaje */
+    aceptarConversacion: (conversacionId) =>
+        set((state) => ({
+            conversaciones: state.conversaciones.map((c) =>
+                c.id === conversacionId && !c.aceptada ? { ...c, aceptada: true } : c
             ),
         })),
 

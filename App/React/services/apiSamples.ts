@@ -266,6 +266,7 @@ export interface RespuestaExtenderRecorte {
     ok: boolean;
     mensaje: string;
     duracion?: number;
+    audioHash?: string | null;
 }
 
 export const extenderRecorte = (
@@ -295,3 +296,19 @@ export const generarSiguienteSample = (
     apiPost<RespuestaGenerarSiguiente>(`/samples/${sampleId}/generar-siguiente`, {
         duracion,
     });
+
+/*
+ * QK59: Restaurar recorte al timing original (antes de extensiones).
+ * Solo admin.
+ */
+export interface RespuestaRestaurarRecorte {
+    ok: boolean;
+    mensaje: string;
+    duracion?: number;
+    audioHash?: string | null;
+}
+
+export const restaurarRecorte = (
+    sampleId: number,
+): Promise<RespuestaApi<RespuestaRestaurarRecorte>> =>
+    apiPost<RespuestaRestaurarRecorte>(`/samples/${sampleId}/restaurar-recorte`, {});

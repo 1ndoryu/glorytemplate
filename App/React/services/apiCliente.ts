@@ -15,6 +15,8 @@ export interface RespuestaApi<T> {
     status: number;
     /* Preservado cuando el servidor retorna un total de pagiación en la raiz */
     total?: number;
+    /* QK66: Conteo de registros por estado (admin tables) */
+    estadosCuenta?: Record<string, number>;
 }
 
 interface OpcionesPeticion {
@@ -150,6 +152,9 @@ export const apiPeticion = async <T>(
             error: null,
             status: response.status,
             ...(typeof json.total === 'number' ? { total: json.total } : {}),
+            ...(json.estadosCuenta && typeof json.estadosCuenta === 'object'
+                ? { estadosCuenta: json.estadosCuenta as Record<string, number> }
+                : {}),
         };
     } catch (err) {
         const mensaje = err instanceof Error ? err.message : 'Error de red';

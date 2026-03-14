@@ -42,6 +42,16 @@ class ExtensionRecorteController
                 'id' => ['required' => true, 'type' => 'integer', 'sanitize_callback' => 'absint'],
             ],
         ]);
+
+        /* QK59: Restaurar recorte al timing original */
+        \register_rest_route($namespace, '/samples/(?P<id>\d+)/restaurar-recorte', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'restaurar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAdmin'],
+            'args'                => [
+                'id' => ['required' => true, 'type' => 'integer', 'sanitize_callback' => 'absint'],
+            ],
+        ]);
     }
 
     /**
@@ -105,6 +115,29 @@ class ExtensionRecorteController
             return new \WP_REST_Response($resultado, $status);
         } catch (\Throwable $e) {
             KamplesLogger::error('ExtensionRecorteController::generarSiguiente error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response([
+                'ok'      => false,
+                'mensaje' => 'Error interno del servidor',
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /samples/{id}/restaurar-recorte
+     *
+     * QK59: Restaura el recorte al timing original (antes de cualquier extension).
+     */
+    public static function restaurar(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $sampleId = (int) $request->get_param('id');
+
+            $resultado = ServicioExtensionRecorte::restaurar($sampleId);
+
+            $status = $resultado['ok'] ? 200 : 400;
+            return new \WP_REST_Response($resultado, $status);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('ExtensionRecorteController::restaurar error', ['error' => $e->getMessage()]);
             return new \WP_REST_Response([
                 'ok'      => false,
                 'mensaje' => 'Error interno del servidor',

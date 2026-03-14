@@ -322,7 +322,7 @@ class AdminController
                 $sortDir
             );
 
-            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
+            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total'], 'estadosCuenta' => AdminRepository::conteoEstadosScraping()], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::listarScrapers fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
@@ -353,7 +353,7 @@ class AdminController
                 $lado
             );
 
-            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
+            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total'], 'estadosCuenta' => AdminRepository::conteoEstadosCola()], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::listarColaExtraccion fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);

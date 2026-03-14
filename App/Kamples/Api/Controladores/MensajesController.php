@@ -114,6 +114,7 @@ class MensajesController
                 'ultimoMensajeAt' => $fila['ultimo_msg_at'] ?? $fila[ConversacionesCols::CREATED_AT],
                 'noLeidos'        => (int) $fila['no_leidos'],
                 'esMutuo'         => (bool) ($fila['es_mutuo'] ?? false),
+                'aceptada'        => (bool) ($fila[ConversacionesCols::ACEPTADA] ?? false),
                 'enLinea'         => false,
             ];
         }
@@ -273,7 +274,7 @@ class MensajesController
                 'id' => (int) $convId, 'participante' => self::normalizarParticipante($otro),
                 'ultimoMensaje' => '', 'ultimoMensajeAt' => (new \DateTime())->format('c'),
                 'noLeidos' => 0, 'esMutuo' => FollowsRepository::sonMutuos($userId, $otroId),
-                'enLinea' => false,
+                'aceptada' => false, 'enLinea' => false,
             ]
         ], 201);
         } catch (\Throwable $e) {

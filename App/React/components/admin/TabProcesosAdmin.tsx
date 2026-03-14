@@ -255,7 +255,7 @@ export const TabProcesosAdmin = (): JSX.Element => {
                             {info?.existe && info.modificado && (
                                 <p className="cookiesInfo">
                                     Ultimo update: {new Date(info.modificado).toLocaleString()}
-                                    {info.tamano ? ` (${(info.tamano / 1024).toFixed(1)} KB)` : ''}
+                                    {info.tamano ? ` (${(Number(info.tamano) / 1024).toFixed(1)} KB)` : ''}
                                 </p>
                             )}
 

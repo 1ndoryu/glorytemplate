@@ -38,302 +38,61 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 4. Compactar secciones completadas cuando superen 10 items detallados
 
 
-## Tareas nuevas a organizar y hacer
+## Tareas QK — Estado actual
 
-> 44+ tareas QK completadas compactadas en `docs/roadmap/completado.md` (seccion "Sprint QK").
+> QK1-QK53, QK55, QK61, QK62 completadas. Ver `docs/roadmap/completado.md` (seccion "Sprint QK").
 
-## QK12
+### Completadas recientemente (verificadas en commits)
+- ✅ QK45: Fix generar-siguiente 400 (f805493f)
+- ✅ QK46: Reestructurar panel admin (cc28c58c)
+- ✅ QK47+QK48: Auditoria ban + cron limpieza moderacion (04e72017)
+- ✅ QK49: Tabla completa cola IA (f04be9b9)
+- ✅ QK50: Waveform en duplicados + SelectorMenu nowrap (6d1c9b02)
+- ✅ QK51: Grid procesos mayor altura (4a16c57f)
+- ✅ QK52: Filtros columna + sort en cola extraccion (924a8016)
+- ✅ QK53: Dedup extracciones + unificador retroactivo + migracion v051 (f3cf2512)
+- ✅ QK55: Feed refresh cada 5min + visibility change (6f600087)
+- ✅ QK61+QK62: Fix condicion extender recorte (tieneAudioCompleto) + dedup suma relaciones (813d4b06)
+- ✅ [AG-ADM] QK54: Tooltip global — sistema reutilizable en todas las islas
+- ✅ [AG-ADM] QK56: Persistir tabs/sort — URL params + PageRenderer keep-alive
+- ✅ [AG-ADM] QK57: PHP memory_limit → 1G en deploy config (domain/mod.rs)
+- ✅ [AG-ADM] QK58: Chat polling 5s — mensajes actualizan sin WebSocket, smart diff (length + lastId)
+- ✅ [AG-ADM] QK59: Fix extender recorte — audioHash cache bust en waveform, boton restaurar, guardar timing original en metadata
+- ✅ [AG-ADM] QK60: Solicitudes→Principal al responder — columna `aceptada` en conversaciones + migracion v052 + frontend optimistic update
+- ✅ [AG-ADM] QK64: Fix toFixed admin — Number() coercion en todos los formatters (4 archivos, 8 llamadas)
+- ✅ [AG-ADM] QK65: Counter feed inicio — useState(null) para evitar flash "0 samples", render condicional
+- ✅ [AG-ADM] QK66: Admin tables — estados dinámicos con conteo del backend, fix intentos (incrementa en descargando, no en completado/error), artista/titulo parseado de URL en tabla scraper
 
-Crea un md detallado de todo lo que hay que hacer para tener la aplicacion de android lista con tauri, y adelanta todo lo que puedas.
+### Pendientes
 
-## QK18
+## QK12/QK37 — Plan Android (Tauri/WebView) Urgente
 
-La pagina de musica, es una lista, pero creo que lo mejor es hacerla mejor version spotify
+Crear md detallado de todo lo pendiente para la app Android (WebView con Tauri). Android Studio instalado.
 
-secciones y listas horizontales, foto de portada mas grande, y letras abajo, secciones ordenada por generos, quitar las tabs, y que las tabs ahora sean secciones, no repetir canciones entre sesiones, una seccion de albumes y otra de artistas, si el scraper no ordena por album o artista, investiga la forma de arreglarlo y de organizar la informacion para este proposito
+## QK18/QK22 — Rediseno pagina musica estilo Spotify
 
-## QK22
+Secciones horizontales, portada grande, letras abajo, secciones por generos, quitar tabs (ahora son secciones), no repetir canciones entre secciones, seccion albumes y artistas. Busqueda mantiene diseño de lista larga.
 
-https://kamples.com/musica/?buscar=dj+smokey y respeecto al rediseño, de la pagina, olvide decir que el diseño actual de lista, se puede dejar para caundo se haga una busqueda no muestra las sesiones sino la lista larga.
+## QK63 — Deploy a produccion
 
-## QK37
+Compilar coolify-manager-rs y hacer deploy con `.\target\release\coolify-manager.exe deploy --name kamples --update`.
 
-Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado
+## QK67
 
-## QK45
+Siempre sale "No hay sugerencias disponibles para esta colección." ¿Esto esta funcionando?
 
-Sigue dando error
+## QK68
 
-wp-json/kamples/v1/samples/175/generar-siguiente:1  Failed to load resource: the server responded with a status of 400 ()
+Necesito que el chat y las notificaciones funciones con websocket, por favor, az un plan detallado de eso y luego trabaja en eso.
 
-## QK46
+## QK69
 
-Vamos a deshacernos de la tab de resumen en el panel admin, y lo de adminKpisGrid lo dejas arriba en la tab de usuario, un poco mas compacto.
+Auditoría al boton de descarga de las colecciones
 
-Quita todos los adminSeccionTitulo, son innecesarios
+## QK70
 
-En la tab de moderacion, cuando una publicacion tiene imagen, no deberia estar oculta por defecto
+De repente ningun motivo aparente estoy en una coleccion y aparece 
 
-## QK47
-
-Auditoria a los botones de banear, verificar que realmente funcionen como se espera en la tab de moderacion.
-
-## QK48
-
-verificar que todas las publicaciones aprobadas en moderacion, se borren del historial de moderacion a los 7 dias.
-
-## QK49
-
-En la tab de cola ia realmente falta ver una tabla con toda la cola y los datos.
-
-## QK50
-
-Antes habia dicho que en la tab de duplicados, en vez de ver un reproductor del navegador, hacia falta ver la onda para reproducir!!! asi como se ve la onda en los samples.
-
-pequeno ajuste visual, los select como selectorMenuContenedor no deben tener saltos de linea
-
-## QK51
-
-que los grid de la tab de proceso tengan mas altura y este disponible mas info en los logs,
-
-## QK52
-
-En cola de extraccion aparecen las paginas pero estan todas vacias
-
-1 / 28 (694 total)
-
-y cada columna deberia tener que a dar click se ordene por orden alfabetico y viceversa si de da click y un boton de filtro para filtrar por cada columna el valor que se quiera, sea como un select con los estilos del menu contextual donde se desactiva o activa ciertos valores
-
-## QK53
-
-descubri algo super interesante, mira, tengo 2 samples exactamente iguales, esta es la informacion de los dos
-
-¿que es lo que tienen de distinto? aclara esa duda, creo que es la cancion de destino, o sea, una cancion puede samplear la misma parte de una rola, y entonces el sistema hace doble recorte publicando el mismo sample, obviamente este es un problema, en la arquitectura del sistema no previo este problema, de un mismo trozo de una musica puede ser sampleado varias veces y por lo tanto, se podía cometer el error de que subiría varias veces el mismo trozo, esta es mi hipotesis, puedo estar equivocada, hay que investigarlo mas a fondo, entonces, hacer una solucion arquitectonica con cuidado
-
-y es que si ya esta recorda la parte de una cancion, entonces, ¿para que volverla a recortar solo porque tiene una diferente relacion en vez de relacionar el mismo recorte con las relaciones? Tambien tiene que haber alguna forma cuidadosa de resolverlo, y solo funcioanr si los recortes pues, son similares, 5 segundos de diferencia ya sea de rango o duracion ya se cuenta como diferente, y es valido pero si dos recortes son en tiempos similares entonces ya deberia unifcarse el recorte, no voy a borrar los duplicados, voy a dejar todo como esta, habra que diseñar un mecanismo que resuelva esto automaticamente no solo para los nuevos recortes sino para los que tienen el problema, toma esta tarea con cuidado, planificala bien para no dañar el sistema actual
-
-1
-
-ID
-186
-Titulo
-Late Night Hype Vocal 71bpm C
-Slug
-late-night-hype-vocal-71bpm-c-8ps9Doy
-ID Corto
-8ps9Doy
-Tipo
-oneshot
-Premium
-No
-Precio
-0
-Liked
-No
-Reaccion
-—
-Estado
-activo
-Formato
-mp3
-Tamano
-0.79 MB
-Permitir Descarga
-Si
-Licencia Libre
-Si
-Mostrar Comunidad
-No
-Verificado
-No
-Nombre Original
-Vocals-Hiphop-C-71bpm-late-night-hype-vocal-kamples-8ps9Doy.mp3
-Origen y Sampleo
-Es Recorte
-Si
-Cancion Origen ID
-3031
-Cancion Origen
-Mafia Niggaz
-Enlace Fuente
-/cancion/three-6-mafia-mafia-niggaz/
-Relacion Sampleo ID
-3047
-Extraccion
-Cancion Fuente
-Three 6 Mafia — Mafia Niggaz
-Album Fuente
-When the Smoke Clears: Sixty 6, Sixty 1
-Cancion Destino
-Jeremih — Don't Tell 'Em
-Album Destino
-Late Nights: The Album
-Tipo Elemento
-vocals_lyrics
-Votos Total
-2
-Sample en Kamples
-/sample/late-night-hype-vocal-71bpm-c-8ps9Doy/
-Origen
-—
-Metodo Descarga
-soundcloud
-YouTube
-FT9ScW8tk9k
-URL Descarga
-https://soundcloud.com/three-6-mafia/gangsta-ni-z
-Titulo en Fuente
-Three 6 Mafia — Gangsta Niggaz
-Lado
-fuente
-Estado Cola
-completado
-Rango Extraido
-0:00 a 0:21
-Timing Inicio
-0:02
-BPM Detectado
-140
-Duracion Compas
-1.72s
-Recorte por Compas
-Si
-Duracion Extraida
-20.616s
-Formato
-mp3
-Tamano
-
-2
-
-ID
-189
-Titulo
-Dark Hip Hop Vocals 71bpm C
-Slug
-dark-hip-hop-vocals-71bpm-c-uN5WbQx
-ID Corto
-uN5WbQx
-Tipo
-oneshot
-Premium
-No
-Precio
-0
-Liked
-No
-Reaccion
-—
-Estado
-activo
-Formato
-mp3
-Tamano
-0.79 MB
-Permitir Descarga
-Si
-Licencia Libre
-Si
-Mostrar Comunidad
-No
-Verificado
-No
-Nombre Original
-Drums-Hiphop-C-71bpm-dark-hip-hop-vocals-kamples-uN5WbQx.mp3
-Origen y Sampleo
-Es Recorte
-Si
-Cancion Origen ID
-3031
-Cancion Origen
-Mafia Niggaz
-Enlace Fuente
-/cancion/three-6-mafia-mafia-niggaz/
-Relacion Sampleo ID
-3045
-Extraccion
-Cancion Fuente
-Three 6 Mafia — Mafia Niggaz
-Album Fuente
-When the Smoke Clears: Sixty 6, Sixty 1
-Cancion Destino
-Freddie Gibbs — Shangri La
-Album Destino
-Alfredo 2
-Tipo Elemento
-vocals_lyrics
-Votos Total
-1
-Sample en Kamples
-/sample/dark-hip-hop-vocals-71bpm-c-uN5WbQx/
-Origen
-—
-Metodo Descarga
-soundcloud
-YouTube
-FT9ScW8tk9k
-URL Descarga
-https://soundcloud.com/three-6-mafia/gangsta-ni-z
-Titulo en Fuente
-Three 6 Mafia — Gangsta Niggaz
-Lado
-fuente
-Estado Cola
-completado
-Rango Extraido
-0:00 a 0:21
-Timing Inicio
-0:02
-BPM Detectado
-140
-Duracion Compas
-1.72s
-Recorte por Compas
-Si
-Duracion Extraida
-20.616s
-Formato
-mp3
-Tamano
-
-# QK54 
-
-Antes habiamos hecho un componente tooltip global, aparece en las acciones de las publicaciones, pero no es global, tiene que ser global y funcioanr en todas partes. 
-
-# QK55 
-
-Las optimizaciones del feed son muy agresivas, si bien ya no veo "cargando samples", literalmente el feed lleva horas congelados ni mostrar ni siquiera los samples nuevos, esto no era lo que esperaba, minimo cada 5 minutos tiene que actualizarse de fondo (si es que el usuario esta conctado o hizo alguna interacciom) pero no pasar litearlmente 1 hora varias viendo lo mismo ni siquiera agregando samples nuevos recien publicados que sean de interes
-
-# QK56
-
-Ante habia dicho que al recargar el ordenamiento de inteligente o reciente se guardara y no se perdiera al recargar, igual si tenia tal tab abierta, esa quedara en la url para poder compartir, bueno no funciona
-
-# QK57
-
-veo que al actualizar el proyecto dice PHP config aplicado: upload=64M, post=70M, memory=256M , aumentar la memoria a 1gb 
-
-## QK58
-
-Los mensajes si actualizan en tiempo real en la notificacion pero no en la ventana de chat :/, verificar que el sistema use websocket.
-
-## QK59
-
-No lo haiba comentado, pero lo de extender recorte no da error pero tampoco veo que haga algo relamente, su spone que publique extienda el audio pero no veo que haga eso! Ya disculpa, si funciona, pero no se actualiza el preview, el preview tambien tiene que subir el tiempo que se indique
-
-tambien, agregar un boton de restaurar al tiempo original, asegurarse de que el boton de extender solo sea visible para admin y audios que sean recortes, tambien asegurarse que los audios que se descargaron se esten guardando
-
-## Qk60 
-
-Cuando se responda un mensaje de solicitudes, que se mueva a principal
-
-# QK61
-
-no entiendo porque dices    /* QK45: Alinear condicion con backend — requiere youtubeId o rutaAudioExtraido para funcionar */ no todos los audios tienen un youtube id porque se pueden scrapear cosas que tienen un id de spotify o ningun id, aun asi se pueden hacer un recorte desde cualquier fuente, lo importante es que exista el audio que se descargo y este guardado, pedi explicitamente antes que los audios descarga para los recortes se tienen que guardar ,existir y estar relacionados con eel recorte, ea es la unica condicion para extender un audio o generar uno nuevo apartir de los siguientes segundos o los anteriores, pues logicamente es todo lo que se necesitas, piensa bien 
-
-
-# QK62
-
-Respecto a lo que dijiste de "n PublicadorExtraccion::publicarItem(): Antes de insertar un nuevo sample, buscar si ya existe uno con el mismo youtube_id + timing similar (±5s). Si existe, reutilizar el sample existente y solo vincularlo a la nueva relación." Espero que esto no remplace la relacion anterior sino que la sume, eso espero
 
 ## Despliegue Produccion (VPS Coolify)
 

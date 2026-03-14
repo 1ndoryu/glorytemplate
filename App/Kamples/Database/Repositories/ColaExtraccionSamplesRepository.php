@@ -87,12 +87,12 @@ class ColaExtraccionSamplesRepository extends BaseRepository
 
         if ($estado === ColaExtraccionSamplesEnums::ESTADO_COMPLETADO || $estado === ColaExtraccionSamplesEnums::ESTADO_ERROR) {
             $sets[] = ColaExtraccionSamplesCols::PROCESADO_AT . " = NOW()";
-            $sets[] = ColaExtraccionSamplesCols::INTENTOS . " = " . ColaExtraccionSamplesCols::INTENTOS . " + 1";
+            /* intentos se incrementa al inicio del procesamiento (Python descargando), no al final */
 
             /* Backoff exponencial en error: delay = min(2^intentos, 4) dias */
             if ($estado === ColaExtraccionSamplesEnums::ESTADO_ERROR) {
                 $sets[] = ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT
-                    . " = NOW() + (LEAST(POWER(2, " . ColaExtraccionSamplesCols::INTENTOS . " + 1), 4) || ' days')::INTERVAL";
+                    . " = NOW() + (LEAST(POWER(2, " . ColaExtraccionSamplesCols::INTENTOS . "), 4) || ' days')::INTERVAL";
             }
         }
 

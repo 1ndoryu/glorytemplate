@@ -36,13 +36,14 @@ const TABS_DASHBOARD: TabDefinicion[] = [
 ];
 
 /* Formatear moneda */
-const formatearMoneda = (monto: number): string => `$${monto.toFixed(2)}`;
+const formatearMoneda = (monto: number): string => `$${Number(monto).toFixed(2)}`;
 
 /* Formatear número con K/M */
 const formatearNumero = (n: number): string => {
-    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
-    return n.toString();
+    const num = Number(n);
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
 };
 
 /* Formatear fecha corta */

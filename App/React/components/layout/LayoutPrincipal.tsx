@@ -29,6 +29,7 @@ import { ModalCompra } from '../social/ModalCompra';
 import { ModalSolicitudWhatsapp } from '../social/ModalSolicitudWhatsapp';
 import { VisorImagen } from '../ui/VisorImagen';
 import { TooltipPerfil } from '../social/TooltipPerfil';
+import { TooltipGlobal } from '../ui/TooltipGlobal';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
@@ -145,6 +146,7 @@ export const LayoutPrincipal = ({
                 <ModalAuth />
                 <NotificacionesToastBridge />
                 <ContenedorToasts />
+                <TooltipGlobal />
                 <BotonDevTools />
             </div>
         );
@@ -232,6 +234,9 @@ export const LayoutPrincipal = ({
 
             {/* Toast notifications — esquina inferior derecha */}
             <ContenedorToasts />
+
+            {/* QK54: Tooltip global — cualquier elemento con data-tooltip muestra tooltip */}
+            <TooltipGlobal />
 
             {/* Dev tools: cambio de modo (solo admin) */}
             <BotonDevTools />

@@ -53,7 +53,7 @@ export const InicioIsland = (): JSX.Element => {
 const FeedUnificado = (): JSX.Element => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
-    const [totalServidor, setTotalServidor] = useState(0);
+    const [totalServidor, setTotalServidor] = useState<number | null>(null);
     const [conteoFiltrado, setConteoFiltrado] = useState(0);
 
     const abrirCrear = useCrearModalStore(s => s.abrir);
@@ -69,8 +69,8 @@ const FeedUnificado = (): JSX.Element => {
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
 
-    /* QQ3: Sincronizar filtros ↔ URL query params */
-    useUrlFiltros();
+    /* QQ3/QK56: Sincronizar filtros + tab ↔ URL query params (isla-aware) */
+    useUrlFiltros('InicioIsland', 'inicio');
 
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
@@ -128,12 +128,14 @@ const FeedUnificado = (): JSX.Element => {
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">
-                    <span className="inicioTagsContador">
-                        {busqueda.trim()
-                            ? `${conteoFiltrado} de ${totalServidor} samples`
-                            : `${totalServidor} samples`
-                        }
-                    </span>
+                    {totalServidor !== null && (
+                        <span className="inicioTagsContador">
+                            {busqueda.trim()
+                                ? `${conteoFiltrado} de ${totalServidor} samples`
+                                : `${totalServidor} samples`
+                            }
+                        </span>
+                    )}
                 </div>
 
                 <div className="inicioControlesDerecha">

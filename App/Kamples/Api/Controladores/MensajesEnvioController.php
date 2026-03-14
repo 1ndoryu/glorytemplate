@@ -138,6 +138,9 @@ class MensajesEnvioController
 
             ConversacionesRepository::actualizarUltimoMensaje($conversacionId);
 
+            /* QK60: Auto-aceptar solicitud al responder — mueve de solicitudes a principal */
+            ConversacionesRepository::aceptarConversacion($conversacionId);
+
             $mensaje = MensajesRepository::obtenerNormalizado($msgId);
 
             /* Parsear mediaMetadata de string JSONB a objeto */

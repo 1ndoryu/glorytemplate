@@ -123,13 +123,16 @@ class ServicioExtensionRecorte
                     return ['ok' => false, 'mensaje' => 'Error al recortar el audio con los nuevos tiempos'];
                 }
 
-                /* 5. Reemplazar archivos del sample */
+                /* 5. Guardar timing original en metadata (para restaurar despues) */
+                self::guardarTimingOriginal($sampleId, $sample, $inicioActual, $finActual);
+
+                /* 6. Reemplazar archivos del sample */
                 $resultado = AyudanteDescargaAudio::reemplazarArchivosSample($sampleId, $sample, $rutaRecorte);
                 if (!$resultado['ok']) {
                     return $resultado;
                 }
 
-                /* 6. Actualizar timing en cola_extraccion_samples */
+                /* 7. Actualizar timing en cola_extraccion_samples */
                 $colaId = (int) $cola[ColaExtraccionSamplesCols::ID];
                 self::actualizarTimingCola($colaId, $nuevoInicio, $nuevoFin);
 
@@ -142,9 +145,10 @@ class ServicioExtensionRecorte
                 ]);
 
                 return [
-                    'ok'       => true,
-                    'mensaje'  => 'Recorte extendido correctamente',
-                    'duracion' => $resultado['duracion'],
+                    'ok'        => true,
+                    'mensaje'   => 'Recorte extendido correctamente',
+                    'duracion'  => $resultado['duracion'],
+                    'audioHash' => $resultado['audioHash'] ?? null,
                 ];
             } finally {
                 if ($tmpDir) {
@@ -413,5 +417,143 @@ class ServicioExtensionRecorte
         }
 
         return $nuevoId;
+    }
+
+    /**
+     * QK59: Guarda el timing original en metadata del sample (solo la primera vez).
+     * Si ya hay timing original guardado, no lo sobreescribe para mantener referencia al estado pristino.
+     */
+    private static function guardarTimingOriginal(int $sampleId, array $sample, float $inicio, float $fin): void
+    {
+        $metadataRaw = $sample[SamplesCols::METADATA] ?? '{}';
+        $metadata = \json_decode($metadataRaw, true);
+        if (\json_last_error() !== JSON_ERROR_NONE || !\is_array($metadata)) {
+            $metadata = [];
+        }
+
+        /* Solo guardar si no existe timing original previo — preserva el estado pristino */
+        if (isset($metadata['timing_original_inicio_seg']) && isset($metadata['timing_original_fin_seg'])) {
+            return;
+        }
+
+        $metadata['timing_original_inicio_seg'] = \round($inicio, 2);
+        $metadata['timing_original_fin_seg'] = \round($fin, 2);
+        SamplesRepository::agregarMetadata($sampleId, $metadata);
+    }
+
+    /**
+     * QK59: Restaura el recorte al timing original antes de cualquier extension.
+     *
+     * Lee timing_original_inicio_seg/fin_seg de la metadata del sample,
+     * re-descarga o usa audio guardado, re-corta y reemplaza archivos.
+     *
+     * @param int $sampleId ID del sample a restaurar
+     * @return array{ok: bool, mensaje: string, duracion?: float, audioHash?: string|null}
+     */
+    public static function restaurar(int $sampleId): array
+    {
+        try {
+            $sample = SamplesRepository::buscarPorId($sampleId);
+            if (!$sample) {
+                return ['ok' => false, 'mensaje' => 'Sample no encontrado'];
+            }
+
+            /* Leer timing original de metadata */
+            $metadataRaw = $sample[SamplesCols::METADATA] ?? '{}';
+            $metadata = \json_decode($metadataRaw, true);
+            if (\json_last_error() !== JSON_ERROR_NONE || !\is_array($metadata)) {
+                return ['ok' => false, 'mensaje' => 'Metadata del sample invalida'];
+            }
+
+            $origenInicio = $metadata['timing_original_inicio_seg'] ?? null;
+            $origenFin = $metadata['timing_original_fin_seg'] ?? null;
+
+            if ($origenInicio === null || $origenFin === null) {
+                return ['ok' => false, 'mensaje' => 'Este sample no tiene timing original guardado (nunca fue extendido)'];
+            }
+
+            $origenInicio = (float) $origenInicio;
+            $origenFin = (float) $origenFin;
+            $duracionOriginal = $origenFin - $origenInicio;
+
+            if ($duracionOriginal < self::MIN_DURACION_SEG) {
+                return ['ok' => false, 'mensaje' => 'Duracion original invalida'];
+            }
+
+            /* Obtener datos de extraccion */
+            $cola = self::obtenerDatosExtraccion($sampleId);
+            if (!$cola) {
+                return ['ok' => false, 'mensaje' => 'Este sample no proviene de una extraccion automatica'];
+            }
+
+            $youtubeId = $cola[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
+
+            $tmpDir = null;
+            try {
+                $rutaAudioCompleto = self::obtenerRutaAudioCompleto($cola);
+                $rutaDescarga = null;
+
+                if ($rutaAudioCompleto) {
+                    $rutaDescarga = $rutaAudioCompleto;
+                } else {
+                    if (!$youtubeId) {
+                        return ['ok' => false, 'mensaje' => 'No hay audio completo guardado ni YouTube ID para descargar'];
+                    }
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                    $rutaDescarga = AyudanteDescargaAudio::descargarAudioYoutube($youtubeId, $tmpDir);
+                    if (!$rutaDescarga) {
+                        return ['ok' => false, 'mensaje' => 'No se pudo descargar el audio de YouTube'];
+                    }
+                }
+
+                /* Recortar con timing original */
+                if (!$tmpDir) {
+                    $tmpDir = AyudanteDescargaAudio::crearDirectorioTemporal();
+                }
+                $rutaRecorte = $tmpDir . '/restaurado_' . $sampleId . '.mp3';
+                $exito = AyudanteDescargaAudio::recortarConFFmpeg($rutaDescarga, $origenInicio, $duracionOriginal, $rutaRecorte);
+                if (!$exito) {
+                    return ['ok' => false, 'mensaje' => 'Error al recortar el audio con el timing original'];
+                }
+
+                /* Reemplazar archivos */
+                $resultado = AyudanteDescargaAudio::reemplazarArchivosSample($sampleId, $sample, $rutaRecorte);
+                if (!$resultado['ok']) {
+                    return $resultado;
+                }
+
+                /* Restaurar timing en cola_extraccion_samples */
+                $colaId = (int) $cola[ColaExtraccionSamplesCols::ID];
+                self::actualizarTimingCola($colaId, $origenInicio, $origenFin);
+
+                /* Limpiar timing original de metadata (ya no esta extendido) */
+                $metadata['timing_original_inicio_seg'] = null;
+                $metadata['timing_original_fin_seg'] = null;
+                SamplesRepository::agregarMetadata($sampleId, $metadata);
+
+                KamplesLogger::info('[QK59] Recorte restaurado al original', [
+                    'sampleId' => $sampleId,
+                    'rango'    => "{$origenInicio}s - {$origenFin}s",
+                    'duracion' => $resultado['duracion'],
+                ]);
+
+                return [
+                    'ok'        => true,
+                    'mensaje'   => 'Recorte restaurado al timing original',
+                    'duracion'  => $resultado['duracion'],
+                    'audioHash' => $resultado['audioHash'] ?? null,
+                ];
+            } finally {
+                if ($tmpDir) {
+                    AyudanteDescargaAudio::limpiarDirectorioTemporal($tmpDir);
+                }
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[QK59] Error restaurando recorte', [
+                'sampleId' => $sampleId,
+                'error'    => $e->getMessage(),
+            ]);
+            return ['ok' => false, 'mensaje' => 'Error interno al restaurar el recorte'];
+        }
     }
 }

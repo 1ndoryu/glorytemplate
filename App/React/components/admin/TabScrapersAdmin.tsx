@@ -13,18 +13,18 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { useTabScrapersAdmin } from '@app/hooks/useTabScrapersAdmin';
 import { Checkbox } from '../ui/Checkbox';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import '../../styles/componentes/adminTablas.css';
 
 const POR_PAGINA = 25;
 
-const OPCIONES_ESTADO: OpcionSelector[] = [
-    { valor: '', etiqueta: 'Todos los estados' },
-    { valor: 'pending', etiqueta: 'Pending' },
-    { valor: 'scraped', etiqueta: 'Scraped' },
-    { valor: 'error', etiqueta: 'Error' },
-    { valor: 'skipped', etiqueta: 'Skipped' },
-];
+/* QK66: Mapa de etiquetas para estados de scraping */
+const ETIQUETAS_ESTADO_SCRAPING: Record<string, string> = {
+    pending: 'Pending',
+    scraped: 'Scraped',
+    error: 'Error',
+    skipped: 'Skipped',
+};
 
 type VarianteBadge = 'neutro' | 'acento' | 'exito' | 'error' | 'advertencia' | 'info';
 
@@ -39,6 +39,7 @@ const colorEstado = (estado: string): VarianteBadge => {
 };
 
 const COLUMNAS = [
+    { id: 'contenido', etiqueta: 'Contenido', sortKey: 'url' },
     { id: 'url', etiqueta: 'URL', sortKey: 'url' },
     { id: 'tipo_pagina', etiqueta: 'Tipo', sortKey: 'tipo_pagina' },
     { id: 'estado', etiqueta: 'Estado', sortKey: 'estado' },
@@ -57,20 +58,48 @@ const formatearFecha = (fecha: string | null): string => {
 };
 
 const formatearBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
+    const n = Number(bytes);
+    if (!n || n <= 0) return '0 B';
     const k = 1024;
     const unidades = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${(bytes / Math.pow(k, i)).toFixed(1)} ${unidades[i]}`;
+    const i = Math.floor(Math.log(n) / Math.log(k));
+    return `${(n / Math.pow(k, i)).toFixed(1)} ${unidades[i]}`;
 };
 
 const truncarUrl = (url: string, max = 50): string =>
     url.length > max ? `${url.slice(0, max)}...` : url;
 
+/* QK66: Extraer artista/título legible del path de WhoSampled.
+ * Patrones: /Artista/Cancion/..., /Artista/, /hot-samples/, etc. */
+const extraerContenidoUrl = (url: string): string => {
+    try {
+        const path = new URL(url).pathname.replace(/^\/|\/$/g, '');
+        const segmentos = path.split('/').filter(Boolean);
+        /* Filtrar segmentos genéricos (sampled, contains, covered, etc.) */
+        const genericos = new Set(['sampled', 'contains', 'covered', 'remixed', 'samples', 'hot-samples']);
+        const relevantes = segmentos.filter(s => !genericos.has(s.toLowerCase()));
+        if (relevantes.length === 0) return segmentos[0] ?? '—';
+        return relevantes.map(s => s.replace(/-/g, ' ')).join(' — ');
+    } catch {
+        return '—';
+    }
+};
+
 export const TabScrapersAdmin = (): JSX.Element => {
     const tab = useTabScrapersAdmin();
     const totalPaginas = Math.ceil(tab.total / POR_PAGINA);
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
+
+    /* QK66: Construir opciones de estado dinámicamente */
+    const opcionesEstado = useMemo((): OpcionSelector[] => {
+        const base: OpcionSelector[] = [{ valor: '', etiqueta: 'Todos los estados' }];
+        return base.concat(
+            Object.entries(tab.estadosCuenta).map(([estado, total]) => ({
+                valor: estado,
+                etiqueta: `${ETIQUETAS_ESTADO_SCRAPING[estado] ?? estado} (${total})`,
+            }))
+        );
+    }, [tab.estadosCuenta]);
 
     const columnaVisible = (id: string): boolean => !tab.columnasOcultas.has(id);
 
@@ -105,7 +134,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
                     />
                 </div>
                 <SelectorMenu
-                    opciones={OPCIONES_ESTADO}
+                    opciones={opcionesEstado}
                     valor={tab.filtroEstado}
                     onChange={tab.cambiarFiltroEstado}
                 />
@@ -157,6 +186,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
                     <thead>
                         <tr>
                             {renderTh('id', 'ID')}
+                            {columnaVisible('contenido') && renderTh('url', 'Contenido')}
                             {columnaVisible('url') && renderTh('url', 'URL')}
                             {columnaVisible('tipo_pagina') && renderTh('tipo_pagina', 'Tipo')}
                             {columnaVisible('estado') && renderTh('estado', 'Estado')}
@@ -172,7 +202,7 @@ export const TabScrapersAdmin = (): JSX.Element => {
                     <tbody>
                         {tab.items.length === 0 && !tab.cargando && (
                             <tr>
-                                <td colSpan={11}>
+                                <td colSpan={12}>
                                     <EstadoVacio
                                         mensaje="No se encontraron registros de scraping"
                                         icono={<Search size={24} />}
@@ -183,6 +213,9 @@ export const TabScrapersAdmin = (): JSX.Element => {
                         {tab.items.map(item => (
                             <tr key={item.id}>
                                 <td className="adminTablaCeldaMono">{item.id}</td>
+                                {columnaVisible('contenido') && (
+                                    <td title={item.url}>{extraerContenidoUrl(item.url)}</td>
+                                )}
                                 {columnaVisible('url') && (
                                     <td title={item.url} className="adminTablaCeldaUrl">
                                         {truncarUrl(item.url)}

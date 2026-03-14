@@ -101,8 +101,8 @@ def actualizar_estado_cola(cola_id: int, estado: str, error: str | None = None) 
                 # Backoff: min(2^intentos, BACKOFF_MAX_DIAS) dias
                 cur.execute(
                     "UPDATE cola_extraccion_samples "
-                    "SET estado = %s, error_mensaje = %s, intentos = intentos + 1, "
-                    "    proximo_intento_at = NOW() + (LEAST(POWER(2, intentos + 1), %s) || ' days')::INTERVAL "
+                    "SET estado = %s, error_mensaje = %s, "
+                    "    proximo_intento_at = NOW() + (LEAST(POWER(2, intentos), %s) || ' days')::INTERVAL "
                     "WHERE id = %s",
                     (estado, error[:1000], BACKOFF_MAX_DIAS, cola_id),
                 )
@@ -112,6 +112,13 @@ def actualizar_estado_cola(cola_id: int, estado: str, error: str | None = None) 
                     "SET estado = 'revision_humana' "
                     "WHERE id = %s AND intentos >= %s AND estado = 'error'",
                     (cola_id, MAX_INTENTOS),
+                )
+            elif estado == "descargando":
+                # Inicio de intento de extraccion: incrementar intentos atomicamente
+                cur.execute(
+                    "UPDATE cola_extraccion_samples "
+                    "SET estado = %s, intentos = intentos + 1 WHERE id = %s",
+                    (estado, cola_id),
                 )
             else:
                 cur.execute(

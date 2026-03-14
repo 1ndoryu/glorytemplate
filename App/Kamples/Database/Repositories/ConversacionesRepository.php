@@ -104,6 +104,7 @@ class ConversacionesRepository extends BaseRepository
             "SELECT c.{$colConvId},
                     c.{$colUltimoMsgAt},
                     c.{$colConvCreatedAt},
+                    c.aceptada,
                     CASE WHEN c.participante_1 = :userId THEN c.participante_2
                          ELSE c.participante_1 END AS otro_id,
                     u.{$colUsername}      AS \"usr_username\",
@@ -220,6 +221,22 @@ class ConversacionesRepository extends BaseRepository
         return static::insertar(
             "INSERT INTO {$tabla} (participante_1, participante_2) VALUES (:p1, :p2) RETURNING " . ConversacionesCols::ID,
             ['p1' => $p1, 'p2' => $p2]
+        );
+    }
+
+    /*
+     * QK60: Marcar conversación como aceptada (mover de solicitudes a principal).
+     * Idempotente — si ya está aceptada, no hace nada.
+     */
+    public static function aceptarConversacion(int $convId): void
+    {
+        $tabla = ConversacionesCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . ConversacionesCols::ACEPTADA . " = TRUE"
+            . " WHERE " . ConversacionesCols::ID . " = :convId"
+            . " AND " . ConversacionesCols::ACEPTADA . " = FALSE",
+            ['convId' => $convId]
         );
     }
 }

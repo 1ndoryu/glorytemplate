@@ -1,13 +1,13 @@
 /*
- * Hook: useExtenderRecorte — Kamples (QQ130)
+ * Hook: useExtenderRecorte — Kamples (QQ130 + QK59)
  * Logica del modal de extension de recortes de audio.
  * Separada del componente visual (SRP).
  *
- * Gestiona: extension del recorte actual + generacion del segmento siguiente.
+ * Gestiona: extension del recorte actual + generacion del segmento siguiente + restauracion.
  */
 
 import { useState, useCallback } from 'react';
-import { extenderRecorte, generarSiguienteSample } from '@app/services/apiSamples';
+import { extenderRecorte, generarSiguienteSample, restaurarRecorte } from '@app/services/apiSamples';
 import { useExtenderRecorteStore } from '@app/stores/extenderRecorteStore';
 import { EVENTO_SAMPLE_ACTUALIZADO, EVENTO_SAMPLE_CREADO } from '@app/hooks/useMenuContextualSample';
 import { toast } from '@app/stores/toastStore';
@@ -25,6 +25,8 @@ interface RetornoExtenderRecorte {
     enviando: boolean;
     enviarExtension: () => Promise<boolean>;
     enviarSiguiente: () => Promise<boolean>;
+    enviarRestauracion: () => Promise<boolean>;
+    puedeRestaurar: boolean;
 }
 
 export const useExtenderRecorte = (): RetornoExtenderRecorte => {
@@ -35,6 +37,12 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
 
     const sample = useExtenderRecorteStore(s => s.sample);
     const cerrar = useExtenderRecorteStore(s => s.cerrar);
+
+    /* QK59: Determinar si el sample fue extendido previamente (tiene timing original guardado) */
+    const puedeRestaurar = Boolean(
+        sample?.metadata?.timing_original_inicio_seg != null
+        && sample?.metadata?.timing_original_fin_seg != null,
+    );
 
     const enviarExtension = useCallback(async (): Promise<boolean> => {
         if (!sample || enviando) return false;
@@ -57,7 +65,10 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
                     new CustomEvent(EVENTO_SAMPLE_ACTUALIZADO, {
                         detail: {
                             sampleId: sample.id,
-                            cambios: { duracion: resp.data.duracion },
+                            cambios: {
+                                duracion: resp.data.duracion,
+                                audioHash: resp.data.audioHash,
+                            },
                         },
                     })
                 );
@@ -118,6 +129,46 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         }
     }, [sample, duracionSiguiente, enviando, cerrar]);
 
+    /* QK59: Restaurar recorte al timing original */
+    const enviarRestauracion = useCallback(async (): Promise<boolean> => {
+        if (!sample || enviando) return false;
+
+        setEnviando(true);
+
+        try {
+            const resp = await restaurarRecorte(sample.id);
+
+            if (resp.ok && resp.data?.ok) {
+                toast.exito(resp.data.mensaje || 'Recorte restaurado al original');
+                log.info('Recorte restaurado', { sampleId: sample.id });
+
+                window.dispatchEvent(
+                    new CustomEvent(EVENTO_SAMPLE_ACTUALIZADO, {
+                        detail: {
+                            sampleId: sample.id,
+                            cambios: {
+                                duracion: resp.data.duracion,
+                                audioHash: resp.data.audioHash,
+                            },
+                        },
+                    })
+                );
+
+                cerrar();
+                return true;
+            }
+
+            toast.error(resp.data?.mensaje || resp.error || 'Error al restaurar recorte');
+            return false;
+        } catch (err) {
+            log.error('Error inesperado al restaurar recorte', err);
+            toast.error('Error de red al restaurar');
+            return false;
+        } finally {
+            setEnviando(false);
+        }
+    }, [sample, enviando, cerrar]);
+
     return {
         segAntes,
         setSegAntes,
@@ -128,5 +179,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         enviando,
         enviarExtension,
         enviarSiguiente,
+        enviarRestauracion,
+        puedeRestaurar,
     };
 };

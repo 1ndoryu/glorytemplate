@@ -77,6 +77,37 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
         }
     }, [mensajes]);
 
+    /*
+     * QK58: Polling de mensajes nuevos mientras la ventana esta abierta y visible.
+     * Sin WebSocket, esta es la unica forma de recibir mensajes del otro participante.
+     * Intervalo: 5s cuando esta visible, detenido si esta minimizado.
+     */
+    useEffect(() => {
+        if (chat.minimizado) return;
+
+        const intervalo = setInterval(async () => {
+            try {
+                const resp = await obtenerMensajes(chat.conversacionId);
+                if (resp.ok && resp.data) {
+                    const nuevosMensajes = resp.data;
+                    setMensajes(prev => {
+                        /* Solo actualizar si hay mensajes nuevos (evita re-render innecesario) */
+                        if (nuevosMensajes.length !== prev.length) return nuevosMensajes;
+                        const ultimoLocal = prev[prev.length - 1]?.id ?? 0;
+                        const ultimoRemoto = nuevosMensajes[nuevosMensajes.length - 1]?.id ?? 0;
+                        return ultimoRemoto !== ultimoLocal ? nuevosMensajes : prev;
+                    });
+                    /* Marcar leidos silenciosamente */
+                    useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
+                }
+            } catch {
+                /* Fallo silencioso en polling — se reintenta en el siguiente ciclo */
+            }
+        }, 5000);
+
+        return () => clearInterval(intervalo);
+    }, [chat.conversacionId, chat.minimizado]);
+
     /* Enfocar input al restaurar */
     useEffect(() => {
         if (!chat.minimizado) {
@@ -104,6 +135,8 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
 
         try {
             await enviarMensaje(chat.conversacionId, contenido);
+            /* QK60: Marcar conversacion como aceptada (optimistic — backend ya lo hizo) */
+            useMensajesStore.getState().aceptarConversacion(chat.conversacionId);
         } catch {
             setMensajes(prev => prev.filter(m => m.id !== mensajeOptimista.id));
             toast.error('Error al enviar mensaje');
@@ -151,6 +184,8 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
 
         try {
             await enviarMensajeMultimedia(chat.conversacionId, tipo, archivo);
+            /* QK60: Marcar conversacion como aceptada */
+            useMensajesStore.getState().aceptarConversacion(chat.conversacionId);
         } catch {
             setMensajes(prev => prev.filter(m => m.id !== msgOptimista.id));
             toast.error('Error al enviar archivo');

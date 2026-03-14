@@ -231,9 +231,10 @@ class AyudanteDescargaAudio
         );
 
         return [
-            'ok'       => true,
-            'mensaje'  => 'Archivos reemplazados',
-            'duracion' => \round($nuevaDuracion, 2),
+            'ok'        => true,
+            'mensaje'   => 'Archivos reemplazados',
+            'duracion'  => \round($nuevaDuracion, 2),
+            'audioHash' => $hash ?: null,
         ];
     }
 

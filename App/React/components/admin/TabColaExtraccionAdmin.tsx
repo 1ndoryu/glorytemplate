@@ -14,36 +14,25 @@ import { EstadoVacio } from '../ui/EstadoVacio';
 import { FiltroColumna, type OpcionFiltro } from '../ui/FiltroColumna';
 import { useTabColaExtraccionAdmin } from '@app/hooks/useTabColaExtraccionAdmin';
 import { Checkbox } from '../ui/Checkbox';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import '../../styles/componentes/adminTablas.css';
 
 const POR_PAGINA = 25;
 
-const OPCIONES_ESTADO: OpcionSelector[] = [
-    { valor: '', etiqueta: 'Todos los estados' },
-    { valor: 'pendiente', etiqueta: 'Pendiente' },
-    { valor: 'descargando', etiqueta: 'Descargando' },
-    { valor: 'analizando', etiqueta: 'Analizando' },
-    { valor: 'recortando', etiqueta: 'Recortando' },
-    { valor: 'extraido', etiqueta: 'Extraido' },
-    { valor: 'completado', etiqueta: 'Completado' },
-    { valor: 'error', etiqueta: 'Error' },
-    { valor: 'revision_humana', etiqueta: 'Rev. Humana' },
-    { valor: 'unificado', etiqueta: 'Unificado' },
-];
+/* QK66: Mapa de etiquetas para estados — se usa para construir opciones dinámicas */
+const ETIQUETAS_ESTADO: Record<string, string> = {
+    pendiente: 'Pendiente',
+    descargando: 'Descargando',
+    analizando: 'Analizando',
+    recortando: 'Recortando',
+    extraido: 'Extraido',
+    completado: 'Completado',
+    error: 'Error',
+    revision_humana: 'Rev. Humana',
+    unificado: 'Unificado',
+};
 
-/* Opciones para filtros inline por columna */
-const FILTRO_ESTADO: OpcionFiltro[] = [
-    { valor: 'pendiente', etiqueta: 'Pendiente' },
-    { valor: 'descargando', etiqueta: 'Descargando' },
-    { valor: 'analizando', etiqueta: 'Analizando' },
-    { valor: 'recortando', etiqueta: 'Recortando' },
-    { valor: 'extraido', etiqueta: 'Extraido' },
-    { valor: 'completado', etiqueta: 'Completado' },
-    { valor: 'error', etiqueta: 'Error' },
-    { valor: 'revision_humana', etiqueta: 'Rev. Humana' },
-    { valor: 'unificado', etiqueta: 'Unificado' },
-];
+/* Opciones para filtros inline por columna — se construyen dinámicamente en el componente */
 
 const FILTRO_LADO: OpcionFiltro[] = [
     { valor: 'fuente', etiqueta: 'Fuente' },
@@ -90,8 +79,8 @@ const formatearFecha = (fecha: string | null): string => {
 const formatearTiming = (inicio: number | null, compasInicio: number | null, compasFin: number | null): string => {
     if (inicio == null && compasInicio == null) return '—';
     const partes: string[] = [];
-    if (inicio != null) partes.push(`ini:${inicio.toFixed(1)}s`);
-    if (compasInicio != null && compasFin != null) partes.push(`c:${compasInicio.toFixed(1)}-${compasFin.toFixed(1)}s`);
+    if (inicio != null) partes.push(`ini:${Number(inicio).toFixed(1)}s`);
+    if (compasInicio != null && compasFin != null) partes.push(`c:${Number(compasInicio).toFixed(1)}-${Number(compasFin).toFixed(1)}s`);
     return partes.join(' ');
 };
 
@@ -99,6 +88,24 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
     const tab = useTabColaExtraccionAdmin();
     const totalPaginas = Math.ceil(tab.total / POR_PAGINA);
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
+
+    /* QK66: Construir opciones de estado dinámicamente desde estadosCuenta */
+    const opcionesEstado = useMemo((): OpcionSelector[] => {
+        const base: OpcionSelector[] = [{ valor: '', etiqueta: 'Todos los estados' }];
+        return base.concat(
+            Object.entries(tab.estadosCuenta).map(([estado, total]) => ({
+                valor: estado,
+                etiqueta: `${ETIQUETAS_ESTADO[estado] ?? estado} (${total})`,
+            }))
+        );
+    }, [tab.estadosCuenta]);
+
+    const filtroEstadoOpciones = useMemo((): OpcionFiltro[] => {
+        return Object.entries(tab.estadosCuenta).map(([estado, total]) => ({
+            valor: estado,
+            etiqueta: `${ETIQUETAS_ESTADO[estado] ?? estado} (${total})`,
+        }));
+    }, [tab.estadosCuenta]);
 
     const columnaVisible = (id: string): boolean => !tab.columnasOcultas.has(id);
 
@@ -140,7 +147,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                     />
                 </div>
                 <SelectorMenu
-                    opciones={OPCIONES_ESTADO}
+                    opciones={opcionesEstado}
                     valor={tab.filtroEstado}
                     onChange={tab.cambiarFiltroEstado}
                 />
@@ -195,7 +202,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                             {columnaVisible('relacion_id') && renderTh('relacion_id', 'Relación')}
                             {columnaVisible('youtube_id') && renderTh('youtube_id', 'YouTube')}
                             {columnaVisible('spotify_id') && renderTh('spotify_id', 'Spotify')}
-                            {columnaVisible('estado') && renderTh('estado', 'Estado', { opciones: FILTRO_ESTADO, columna: 'estado' })}
+                            {columnaVisible('estado') && renderTh('estado', 'Estado', { opciones: filtroEstadoOpciones, columna: 'estado' })}
                             {columnaVisible('intentos') && renderTh('intentos', 'Intentos')}
                             {columnaVisible('lado') && renderTh('lado', 'Lado', { opciones: FILTRO_LADO, columna: 'lado' })}
                             {columnaVisible('sample_id') && renderTh('sample_id', 'Sample')}

@@ -314,4 +314,41 @@ class AdminRepository
     {
         return strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
     }
+
+    /*
+     * QK66: Conteo de registros por estado en cola_extraccion_samples.
+     * Retorna solo estados con al menos 1 registro (para select dinámico).
+     */
+    public static function conteoEstadosCola(): array
+    {
+        $tc = ColaExtraccionSamplesCols::TABLA;
+        $rows = SamplesRepository::consultar(
+            "SELECT " . ColaExtraccionSamplesCols::ESTADO . " as estado, COUNT(*) as total "
+                . "FROM {$tc} GROUP BY " . ColaExtraccionSamplesCols::ESTADO
+                . " ORDER BY total DESC"
+        );
+        $result = [];
+        foreach ($rows as $row) {
+            $result[$row['estado']] = (int) $row['total'];
+        }
+        return $result;
+    }
+
+    /*
+     * QK66: Conteo de registros por estado en scraping_log.
+     */
+    public static function conteoEstadosScraping(): array
+    {
+        $t = ScrapingLogCols::TABLA;
+        $rows = SamplesRepository::consultar(
+            "SELECT " . ScrapingLogCols::ESTADO . " as estado, COUNT(*) as total "
+                . "FROM {$t} GROUP BY " . ScrapingLogCols::ESTADO
+                . " ORDER BY total DESC"
+        );
+        $result = [];
+        foreach ($rows as $row) {
+            $result[$row['estado']] = (int) $row['total'];
+        }
+        return $result;
+    }
 }

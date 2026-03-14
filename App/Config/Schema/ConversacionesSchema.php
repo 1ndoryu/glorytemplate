@@ -17,6 +17,7 @@ class ConversacionesSchema extends TableSchema
             'id'                => ['tipo' => 'int', 'pk' => true],
             'participante_1'    => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
             'participante_2'    => ['tipo' => 'int', 'ref' => 'usuarios_ext(id)'],
+            'aceptada'          => ['tipo' => 'bool', 'default' => 'FALSE'],
             'ultimo_mensaje_at' => ['tipo' => 'datetime', 'default' => 'NOW()'],
             'created_at'        => ['tipo' => 'datetime', 'default' => 'NOW()'],
         ];

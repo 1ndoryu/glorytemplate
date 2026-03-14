@@ -32,10 +32,15 @@ export const useTabsTopBarStore = create<EstadoTabsTopBar>((set, get) => ({
     activa: '',
     tabsPorIsla: {},
     setTabs: (tabs, activaInicial, islaId) => {
-        /* Si hay isla y tiene una tab guardada, restaurarla en vez de usar la inicial */
+        /* QK56: Prioridad de restauración: URL param > memoria keep-alive > inicial */
         const { tabsPorIsla } = get();
         let tabRestaurada = activaInicial ?? tabs[0]?.id ?? '';
-        if (islaId && tabsPorIsla[islaId]) {
+
+        /* Restaurar desde URL si hay ?tab= */
+        const urlTab = new URLSearchParams(window.location.search).get('tab');
+        if (urlTab && tabs.some(t => t.id === urlTab)) {
+            tabRestaurada = urlTab;
+        } else if (islaId && tabsPorIsla[islaId]) {
             /* Verificar que la tab guardada sigue existiendo en las tabs actuales */
             const existe = tabs.some(t => t.id === tabsPorIsla[islaId]);
             if (existe) {

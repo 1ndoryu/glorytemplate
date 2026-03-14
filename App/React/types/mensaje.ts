@@ -40,6 +40,8 @@ export interface Conversacion {
     ultimoMensajeAt: string;
     noLeidos: number;
     esMutuo: boolean;
+    /* QK60: true si el usuario acepto la solicitud (respondio). Independiente de follow mutuo. */
+    aceptada: boolean;
     enLinea: boolean;
 }
 

@@ -90,12 +90,12 @@ export const useDropdownMensajes = ({ onCerrar }: UseDropdownMensajesParams) => 
 
     const sinLeer = conversaciones.filter((c) => c.noLeidos > 0).length;
 
-    /* QQ52: Filtrar por tab — principal muestra mutuos, solicitudes muestra no mutuos */
+    /* QK60: Principal = mutuos O aceptadas. Solicitudes = no mutuos Y no aceptadas */
     const conversacionesFiltradas = conversaciones.filter((c) =>
-        tabActiva === 'principal' ? c.esMutuo : !c.esMutuo
+        tabActiva === 'principal' ? (c.esMutuo || c.aceptada) : (!c.esMutuo && !c.aceptada)
     );
 
-    const totalSolicitudes = conversaciones.filter((c) => !c.esMutuo).length;
+    const totalSolicitudes = conversaciones.filter((c) => !c.esMutuo && !c.aceptada).length;
 
     return {
         conversaciones: conversacionesFiltradas,

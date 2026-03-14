@@ -638,6 +638,7 @@ export const ContribucionesPendientesCols = {
 export const ConversacionesCols = {
   TABLA: 'conversaciones',
   ID: 'id',
+  ACEPTADA: 'aceptada',
   ULTIMO_MENSAJE_AT: 'ultimo_mensaje_at',
   CREATED_AT: 'created_at'
 } as const

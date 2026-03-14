@@ -1,7 +1,8 @@
 /*
- * Componente: ModalExtenderRecorte — Kamples (QQ130 + QQ130-B)
+ * Componente: ModalExtenderRecorte — Kamples (QQ130 + QK59)
  * Modal para extender el recorte de audio de un sample de extraccion.
- * Permite agregar segundos antes/despues y generar sample del segmento siguiente.
+ * Permite agregar segundos antes/despues, generar sample del segmento siguiente,
+ * y restaurar al timing original si fue extendido previamente.
  * Logica en useExtenderRecorte (SRP).
  */
 
@@ -12,7 +13,7 @@ import { CampoTexto } from '@app/components/ui/CampoTexto';
 import { Badge } from '@app/components/ui/Badge';
 import { useExtenderRecorteStore } from '@app/stores/extenderRecorteStore';
 import { useExtenderRecorte } from '@app/hooks/useExtenderRecorte';
-import { Scissors, Plus } from 'lucide-react';
+import { Scissors, Plus, RotateCcw } from 'lucide-react';
 import '../../styles/componentes/modalExtenderRecorte.css';
 
 export const ModalExtenderRecorte = (): JSX.Element | null => {
@@ -27,6 +28,8 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
         enviando,
         enviarExtension,
         enviarSiguiente,
+        enviarRestauracion,
+        puedeRestaurar,
     } = useExtenderRecorte();
 
     if (!abierto || !sample) return null;
@@ -148,6 +151,17 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
                 </div>
 
                 <ModalAcciones>
+                    {puedeRestaurar && (
+                        <BotonBase
+                            variante="peligro"
+                            onClick={enviarRestauracion}
+                            disabled={enviando}
+                            className="extenderRecorteBoton"
+                        >
+                            <RotateCcw size={14} />
+                            {enviando ? 'Restaurando...' : 'Restaurar al original'}
+                        </BotonBase>
+                    )}
                     <BotonBase variante="secundario" onClick={cerrar} disabled={enviando}>
                         Cerrar
                     </BotonBase>

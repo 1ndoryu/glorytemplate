@@ -43,7 +43,11 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
         const cargarWaveform = async () => {
             if (sample.rutaWaveform) {
                 try {
-                    const respWf = await fetch(sample.rutaWaveform);
+                    /* QK59: Agregar audioHash como cache buster para refrescar waveform tras extension */
+                    const urlWaveform = sample.audioHash
+                        ? `${sample.rutaWaveform}?v=${sample.audioHash}`
+                        : sample.rutaWaveform;
+                    const respWf = await fetch(urlWaveform);
                     if (respWf.ok) {
                         const json = await respWf.json();
                         if (!activo) return;
@@ -92,7 +96,7 @@ export function useAudioPlayback(opciones: UseAudioPlaybackOpciones) {
 
         cargarWaveform();
         return () => { activo = false; };
-    }, [sample.rutaWaveform, sample.rutaPreview]);
+    }, [sample.rutaWaveform, sample.rutaPreview, sample.audioHash]);
 
     /* Play/Pause: delega al store global */
     const manejarPlayPause = useCallback((e: MouseEvent) => {
