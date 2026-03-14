@@ -114,27 +114,49 @@ Necesito que el chat y las notificaciones funciones con websocket, por favor, az
  
 ## QK75
 
-Auditoría al algoritmo de busqueda, eficiencia, calidad de resultados, etc.
+✅ [AG-ADM] Auditoría búsqueda — 14 índices GIN (FTS + pg_trgm + array + subqueries), WHERE filter con to_tsvector @@ plainto_tsquery, split tsvector en CancionesRepository. Migración v053.
 
-Cosas que he visto, hay un sample que fue sampleado de una cancion llamada million, tenia un sampleo, el sample nunca aparecio, intuyo que pasa lo mismo con la otra informacion del artista aunque puse el nombre del artista aparece, pero es porque la ia lo puse en la metadata ¿y cuando lo ponga? son detalles
+## QK76
 
-Me he dado cuenta que la busqueda funciona extremadamente lenta, es falta, no exagero, pense que habia mostrado todos los resultados 3 sampples pero luego empezaron a aparecer mas despues de muchos segundos, esto quiere decir que la busqueda esta mal, no es un problema de optmizacion, es que algo esta mal para ser tan lento, obvio que esta mal, esto requiere una revision profunda y una planificación detallada. 
+✅ [AG-ADM] Skeleton carga — SkeletonTarjetaSample reemplaza texto "Cargando más samples", BotonBase para cargar manualmente.
 
-## QK76 
+## QK77
 
-Quita el "Cargando más samples…" la carga debería ser un skeleton
-
-## QK77 !SEGUNDA COSA MAS URGENTE!
-
-Sigue pasando que el login en la aplicacion de escritorio entra pero luego recargo y se deslogea a demas de que todo obviamente por eso da 401, llevamos mucho tiempo con este problema. Llevamos demasiado tiempo con este problema.
+✅ [AG-ADM] Auth desktop localStorage fallback — dual persistence (Tauri Store + localStorage), resync automático, módulo authDesktopEventos extraído.
 
 ## QK78
 
-Auditoría a la cola de IA, necesitamos estar seguro de que esto funciona bien, creo que si pero de todas formas revisa de nuevo porque planeo subir muchos samples y va a colapsar la subida, en la tabla de la cola vi algo de reintente 1/2, obviamente esto esta mal porque esa cifra va a subir demasiado, subirlo a 30, si los rate limits son muy frecuentes que tenga una pausa y luego reintente en una cantidad de tiempo no recuerdo cuanto habia especificado antes
+✅ [AG-ADM] Cola IA MAX_INTENTOS=30 + backoff exponencial (15→30→60→120min cap). Migración v054 reactiva items existentes.
 
 ## QK79
 
-Tambiene preocupa que cuando todas las ia esten exhautas, 
+✅ [AG-ADM] Auditoría cola IA resilencia — confirmado: comentarios y publicaciones YA usan la cola. Backoff exponencial + MAX_INTENTOS=30 cubre escenario de rate limits prolongados.
+
+## QK77-A
+
+[EN CURSO — AG-ADM] La solución de localStorage fallback sigue sin funcionar. Requiere investigación más profunda del ciclo Tauri Store.
+
+## QK80
+
+Auditoría de extractor de audio y su ia, que pasa si la ia que decide si un audio de es valido o no en la busqueda no esta disponible o entra en rate limits? tiene alternativas? tiene cola? Pausa el scrapper? me preocupa, tiene que ser resiliente, intentar con mas modelos, etc, debería poder identificar el rate limits y pausarse por 1 hora despues volver a intentar 
+
+## QK81
+
+Me preocupa el script de python, habia dicho antes que lote debía de ser de 100 pero sigue diciendo 20, no me preocupa eso exactamente sino que hicimos algunos cambios mas, entonces ninguno se habia aplicado realmente?, si era que el script nunca se actualizaba, quiero una copia de seguridad del version que usaba en el servidor antes de subir la nueva, esa copia tiene que estar presente aqui en local para revisar las diferencias
+
+2026-03-14 09:08:11,293 [__main__] INFO: Lote completado: 20 exitosos, 0 fallidos de 20 total
+2026-03-14 09:08:13,993 [__main__] INFO: Publicacion automatica disparada [HTTP 200]: {"ok":true,"publicados":1,"errores":0,"resultados":[{"cola_id":8902,"ok":true,"sample_id":239,"id_corto":"BdskSZ5"}]}
+
+## QK82
+
+Creo que no se han ejecutados las migraciones en local, en produccion si pero en local deben faltar, hacer un script o sistema automatico para que en local se ejecuten las migraciones faltantes asi como funciona en produccion.
+ 
+## QK83
+
+La busqueda sigue funcionando extremadamente lenta, no tiene sentido. Algo esta mal, esto necesita mas revisiones, mas pruebas, mediciones, un md detallado, no se puede tomar a ligera, no es normal que aparezca un resultado cada 30 segundos (contando por mi misma).
+
+## QK
+
 
 
 

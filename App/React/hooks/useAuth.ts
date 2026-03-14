@@ -53,20 +53,28 @@ function limpiarStoresUsuario(): void {
 }
 
 /*
- * Persiste token y usuario en el Tauri Store (solo en desktop).
- * El import usa una variable opaca para que Rollup del build web
- * no intente resolver @desktop/ (alias que solo existe en desktop/vite.config.ts).
+ * QK77-A: Persiste token y usuario via la interfaz global de desktop.
+ * En desktop, main.tsx registra las funciones de authDesktopService en
+ * window.__KAMPLES_AUTH_PERSIST__. Esto evita dynamic imports frágiles
+ * con @vite-ignore que fallaban silenciosamente en ciertos builds.
+ * En web, la interfaz no existe y el early return actúa como no-op.
  */
+interface AuthPersistInterface {
+    guardarToken: (token: string) => Promise<void>;
+    guardarUsuario: (usuario: Record<string, unknown>) => Promise<void>;
+    cerrarSesionDesktop: () => Promise<void>;
+}
+
+function obtenerPersistorDesktop(): AuthPersistInterface | null {
+    return (window as unknown as Record<string, unknown>).__KAMPLES_AUTH_PERSIST__ as AuthPersistInterface | null ?? null;
+}
+
 async function persistirTokenDesktop(token: string, usuario: UsuarioAutenticado | null): Promise<void> {
-    try {
-        /* Variable intermedia: Rollup no puede analizar imports dinamicos con expresiones */
-        const modPath = '@desktop' + '/services/authDesktopService';
-        const m = await import(/* @vite-ignore */ modPath);
-        await m.guardarToken(token);
-        if (usuario) await m.guardarUsuario(usuario);
-    } catch {
-        /* En web este modulo no existe — ignorar silenciosamente */
-    }
+    const persistor = obtenerPersistorDesktop();
+    if (!persistor) return;
+
+    await persistor.guardarToken(token);
+    if (usuario) await persistor.guardarUsuario(usuario as unknown as Record<string, unknown>);
 }
 
 interface DatosRegistro {
@@ -240,14 +248,10 @@ export const useAuth = () => {
          */
         try { await apiCerrarSesion(); } catch { /* best effort */ }
 
-        if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
-            try {
-                const modPath = '@desktop' + '/services/authDesktopService';
-                const m = await import(/* @vite-ignore */ modPath);
-                await m.cerrarSesionDesktop();
-            } catch {
-                /* En web no existe el modulo — ignorar */
-            }
+        /* QK77-A: Usa interfaz global en vez de dynamic import frágil */
+        const persistor = obtenerPersistorDesktop();
+        if (persistor) {
+            try { await persistor.cerrarSesionDesktop(); } catch { /* noop en web */ }
         }
         cerrarSesion();
 

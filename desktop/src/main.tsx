@@ -18,6 +18,7 @@ import appIslands, { AppProvider } from '@app/appIslands';
 
 /* Servicios desktop: configuración API, auth, storage */
 import { inicializarDesktop } from '@desktop/services/desktopService';
+import { guardarToken, guardarUsuario, cerrarSesionDesktop } from '@desktop/services/authDesktopService';
 
 /* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
 import {
@@ -145,7 +146,20 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
     /* Drag nativo: arrastar samples a DAW/escritorio/apps externas */
     window.__KAMPLES_DRAG__ = {
         iniciarDragNativo,
-    };}
+    };
+
+    /*
+     * QK77-A: Interfaz global de persistencia de auth.
+     * useAuth.ts (código compartido web/desktop) usa estas funciones en vez
+     * de un dynamic import frágil con @vite-ignore que falla silenciosamente.
+     * Patrón de inyección de dependencias: desktop registra, shared code consume.
+     */
+    window.__KAMPLES_AUTH_PERSIST__ = {
+        guardarToken,
+        guardarUsuario,
+        cerrarSesionDesktop,
+    };
+}
 
 async function init(): Promise<void> {
     marcarEntornoDesktop();

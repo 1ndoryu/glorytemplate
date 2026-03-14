@@ -51,6 +51,15 @@ interface Window {
     __KAMPLES_DRAG__?: {
         iniciarDragNativo: (sampleId: number, urlRemota: string, nombreArchivo: string) => Promise<boolean>;
     };
+    /*
+     * QK77-A: Interfaz de persistencia de auth — inyección de dependencias.
+     * Registrada por main.tsx, consumida por useAuth.ts (código compartido).
+     */
+    __KAMPLES_AUTH_PERSIST__?: {
+        guardarToken: (token: string) => Promise<void>;
+        guardarUsuario: (usuario: Record<string, unknown>) => Promise<void>;
+        cerrarSesionDesktop: () => Promise<void>;
+    };
     /* Configuración del servidor para apiDesktopAdapter */
     __KAMPLES_CONFIG__?: {
         serverUrl?: string;
