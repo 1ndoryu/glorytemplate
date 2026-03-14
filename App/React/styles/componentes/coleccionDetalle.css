@@ -151,6 +151,7 @@
 @media (max-width: 640px) {
     .coleccionHeader {
         grid-template-columns: 1fr;
+        width: 100%;
     }
     .coleccionHeaderImg {
         width: 100%;

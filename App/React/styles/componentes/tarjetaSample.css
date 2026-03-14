@@ -327,8 +327,9 @@
 @media (max-width: 640px) {
     .tarjetaSample {
         grid-template-columns: 40px 1fr auto;
-        /* QK101: Quitar padding derecho en móvil */
+        /* QK101: Ajustar padding en móvil */
         padding-right: 0;
+        padding-left: 4px;
     }
 
     /* Ocultar waveform */

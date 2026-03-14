@@ -108,3 +108,10 @@
 }
 
 /* Reemplazado por EstadoVacio centralizado (C359) */
+
+/* QK101-B: Grid 2 columnas en movil */
+@media (max-width: 640px) {
+    .libreriaGridColecciones {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

@@ -243,6 +243,19 @@
     opacity: 0.85;
 }
 
+/* QK101-B: Evitar que menus se salgan de pantalla en móvil */
+@media (max-width: 768px) {
+    .selectFiltroMenu {
+        left: auto;
+        right: 0;
+        max-width: calc(100vw - var(--espacioMd) * 2);
+    }
+
+    .selectorBPMMenu {
+        max-width: calc(100vw - var(--espacioMd) * 2);
+    }
+}
+
 @keyframes fadeInSelectFiltro {
     from {
         opacity: 0;

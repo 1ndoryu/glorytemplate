@@ -125,7 +125,7 @@
     border-radius: var(--radioFull);
     cursor: pointer;
     transition: color var(--transicionRapida);
-    padding: 0;
+    padding: 0 !important;
 }
 
 .reproductorBtn:hover {
@@ -180,6 +180,10 @@
 
     .reproductorInfo {
         max-width: 80px;
+    }
+
+    .reproductorControles {
+        gap: var(--espacioSm);
     }
 
     .reproductorTiempoCompacto {

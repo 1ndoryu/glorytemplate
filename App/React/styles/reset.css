@@ -94,3 +94,19 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--acentoMuted);
     color: var(--textoPrimario);
 }
+
+/* QK101-B: Desactivar seleccion de texto en movil para evitar seleccion accidental en long-press */
+@media (max-width: 768px) {
+    body {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Permitir seleccion en inputs y textareas */
+    input,
+    textarea,
+    [contenteditable="true"] {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+}

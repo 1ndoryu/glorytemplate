@@ -179,8 +179,16 @@ Secciones horizontales, portada grande, letras abajo, secciones por generos, qui
 
 ## QK86 
 
-Empieza a trabajar en todo lo que puedas del plan-android.md
-para mi algo importante son las notificaciones, anticipar que las notificaciones de la app deben aparecer en el telefono, si es posible no usar cosas externas, mejor. 
+✅ [AG-WRK] Push Notifications — Infraestructura VAPID self-hosted (sin Firebase):
+- **Backend completo:** Schema + migración v056 (push_subscriptions), Repository (upsert/desregistrar/cleanup), Service VAPID (batch send, 410 cleanup, graceful degradation), Controller REST (GET vapid-key, POST subscribe/unsubscribe)
+- **Integración:** ServicioNotificaciones dispatch push después de WebSocket. Service Worker (sw-push.js) servido desde raíz vía template_redirect en KamplesInit.
+- **Frontend:** apiPush.ts (API service), usePushNotifications.ts (hook con suscripción/permiso/plataforma), registrarServiceWorker.ts (registro automático al cargar app).
+- **Producción:** VAPID keys generadas y configuradas como env vars en Coolify (KAMPLES_VAPID_PUBLIC_KEY, KAMPLES_VAPID_PRIVATE_KEY, KAMPLES_VAPID_SUBJECT). API `/push/vapid-key` funcional. SW sirviéndose en `https://kamples.com/sw-push.js`.
+- **Dependencia:** minishlink/web-push ^10.0.3 (Guzzle, JWT library, PSR packages).
+- **Pendiente:** UI para activar push en ModalConfiguracion (usar usePushNotifications hook). Android scaffolding (Tauri v2). Cron para limpiar suscripciones inactivas.
+- [Arq]: Push dispatch es no-bloqueante — si VAPID no configurado, todo es no-op. 410/404 marcan suscripción como inactiva.
+- [Gotcha]: Coolify API actualiza compose en DB pero NO en disco. Para env vars persistentes, editar `/data/coolify/services/{uuid}/docker-compose.yml` + force-recreate.
+- [Gotcha]: TypeScript strict: `Uint8Array<ArrayBufferLike>` no asignable a `BufferSource`. Solución: crear con `new ArrayBuffer()` explícito → `Uint8Array<ArrayBuffer>`.
 
 ## QK88
 
@@ -274,21 +282,44 @@ El boton de corazon cuando el like sea un me encanta y no un like normal, que br
 
 ## QK101
 
-Version escritorio, el boton de inicio tiene que estar en el centro, el boton de administracion panel y de like se quita, de "mis favoritos" se mueve al menu de hamburgueza
+✅ [AG-WRK] UI fixes mobile/desktop — Commit `e5f618af`:
+- **Chat móvil fullscreen:** chatFlotanteContenedor cubre 100% pantalla (inset: 0, flex-direction: column, sin padding/border/shadow/radius).
+- **Sidebar reorder:** Items reordenados (Comunidad, Inicio centrado, Música, Librería, Coleccionados). Removidos favoritos y admin panel de sidebar, justify-content: center en sidebarNav.
+- **Hamburguesa menu:** Favoritos (Heart) y Admin Panel (ShieldCheck, condicional esAdmin) movidos al menú hamburguesa en TopBar.
+- **FilaColecciones:** MAX_COLECCIONES 8→20.
+- **Mobile fixes:** listaDeSamples sin borde, tarjetaSample padding-right: 0, tarjetaAcciones gap→lg, modal configuración flex-direction column con overflow-y.
+- **Pendiente QK101 (items restantes):** padding-left: 4px en tarjetaSample y areaTopbar, libreriaGridColecciones 2 columnas, coleccionHeader 100% width, botonVolver 0 padding, selectFiltroMenu/selectorBPMMenu overflow fix, desactivar text-selection móvil, reproductorBtn padding !important + gap móvil, desactivar mezclador móvil, detalleTarjetaSuperior flex-direction column, detallePortadaLateral max-width 100%.
+- [Arq]: Imports limpiados en Sidebar (Heart, ShieldCheck, useAuthStore removidos).
 
-la ventana de chat chatFlotanteContenedor tiene que cubrir el 100% de la pantala o sea el chat expandido completamente en la pantalla version movil, esto es logico, sin panding externos.
+## QK101-B (Pendiente — items restantes)
 
-filaColecciones debería tener scrol horizontal invisible, para escritorio tambien, tiene que mostrar maximo 20
+Version movil pendiente:
+- .tarjetaSample padding-left: 4px
+- .areaTopbar padding-left: 4
+- .libreriaGridColecciones grid de 2 columnas
+- .coleccionHeader 100% width
+- .botonVolver padding 0 (general)
+- selectFiltroMenu/selectorBPMMenu no salirse de pantalla
+- Desactivar seleccion de texto en movil (mantener presionado menu contextual)
+- .reproductorBtn padding 0 !important (general) + mas gap en movil
+- Desactivar boton mezclador en movil
+- .detalleTarjetaSuperior flex-direction column + .detallePortadaLateral max-width 100%
 
-El modal de configuracion se ve fatal en movil
+## QK102
 
-en movil, solo en movil todo esto:
-.listaDeSamples sin borde
-.tarjetaSample con  padding-right: 0; y padding-left: 4px;
-.tarjetaAcciones necesita mas gap, pasarlo a lg
-.areaTopbar con padding left 4
-.libreriaGridColecciones grid de 2 columnas
-.coleccionHeader
+El reproductor necesita un boton extra para cerrarlo, el boton de aleatoreo parece que no se puede desactivar cuando se activa
+
+## QK103 
+
+necesito tener ya la apk para probar, y el instalador de la aplicación de escritorio y distribuirla
+
+esto ya lo hice
+- **Secrets en GitHub:** ⚠️ PENDIENTE — Configurar `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_KEY_PASSWORD` en Settings > Secrets
+y el repositorio es [1ndoryu/kamples-sync](https://github.com/1ndoryu/kamples-sync) (aun no subo la apliacion ahi, puedes encargarte de eso creo)
+
+## QK104
+
+Olvide mencionar que en movil, la pagina inicio tiene que ser la comunidad, de samples, estar separada, esto solo movil, en movil el icono de la pagina de samples (en escritorio es de inicio) no se que podria ser porque ya hay un icono de musica, creo que de un disco vinilo queda bien
 
 
 ## Despliegue Produccion (VPS Coolify)

@@ -113,6 +113,10 @@
         overflow: visible;
     }
 
+    .areaTopbar {
+        padding-left: 4px;
+    }
+
     /* El contenido tiene padding inferior para no quedar bajo el nav */
     .areaContenido {
         padding-bottom: calc(var(--altoNavMobile) + env(safe-area-inset-bottom, 0px));

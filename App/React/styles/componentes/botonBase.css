@@ -128,7 +128,7 @@
     gap: var(--espacioXs);
     color: var(--textoSecundario);
     font-size: var(--fuenteSm);
-    padding: var(--espacioXs) var(--espacioSm) !important;
+    padding: 0 !important;
     transition: color var(--transicionRapida);
 }
 

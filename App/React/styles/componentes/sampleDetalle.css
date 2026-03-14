@@ -367,12 +367,14 @@
         padding: var(--espacioMd);
     }
 
+    /* QK101-B: Tarjeta superior en columna para móvil */
     .detalleTarjetaSuperior {
+        flex-direction: column;
         grid-template-columns: 1fr;
     }
 
     .detallePortadaLateral {
-        max-width: 280px;
+        max-width: 100%;
         margin: 0 auto;
     }
 
