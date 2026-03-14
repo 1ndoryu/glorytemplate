@@ -25,6 +25,7 @@ use App\Kamples\Services\ProcesadorColaIA;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\Services\PublicadorExtraccion;
 use App\Kamples\Services\ReprocesadorPostDuplicado;
+use App\Kamples\Database\MigradorLocal;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
 
@@ -91,6 +92,9 @@ class KamplesInit
 
         /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
         self::asegurarCacheMedia();
+
+        /* QK82: Auto-ejecutar migraciones pendientes en entorno local */
+        MigradorLocal::ejecutarSiLocal();
     }
 
     /*
