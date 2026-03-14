@@ -11,23 +11,7 @@
     align-items: flex-start;
 }
 
-.coleccionVolver {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    background: none;
-    border: none;
-    color: var(--textoSecundario);
-    font-size: var(--fuenteSm);
-    cursor: pointer;
-    padding: 0 !important;
-    transition: color var(--transicionRapida);
-}
-
-.coleccionVolver:hover {
-    color: var(--textoPrimario);
-    background: unset !important;
-}
+/* C347: clase .coleccionVolver eliminada — ahora usa .botonVolver (botonBase.css) */
 
 /* Header: imagen + info lado a lado */
 .coleccionHeader {

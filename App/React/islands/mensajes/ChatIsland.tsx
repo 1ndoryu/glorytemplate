@@ -30,7 +30,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
     return (
         <div className="chatIsland" id="chatIsland">
             <div className="chatHeader">
-                <BotonBase variante="ghost" className="chatVolver" onClick={() => navegar('/mensajes/')}
+                <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/mensajes/')}
                     type="button" aria-label="Volver a mensajes">
                     <ArrowLeft size={20} />
                 </BotonBase>

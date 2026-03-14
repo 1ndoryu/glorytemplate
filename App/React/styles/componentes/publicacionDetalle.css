@@ -19,21 +19,7 @@
     align-items: center;
 }
 
-.publicacionDetalleVolver {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    color: var(--textoSecundario);
-    font-size: var(--fuenteSm);
-    padding: var(--espacioXs) var(--espacioSm);
-    border-radius: var(--radioSm);
-    transition: color 0.15s ease, background 0.15s ease;
-}
-
-.publicacionDetalleVolver:hover {
-    color: var(--textoPrimario);
-    background: var(--fondoElevado2);
-}
+/* C347: clase .publicacionDetalleVolver eliminada — ahora usa .botonVolver (botonBase.css) */
 
 .publicacionDetalleCargando {
     text-align: center;

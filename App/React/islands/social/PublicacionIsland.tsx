@@ -63,8 +63,8 @@ const PublicacionBase = ({ publicacionId: idProp }: PublicacionIslandProps): JSX
                 <div className="publicacionDetalleError">
                     <AlertCircle size={40} />
                     <p>{error || 'Publicación no encontrada.'}</p>
-                    <BotonBase variante="ghost" onClick={() => window.history.back()}>
-                        Volver
+                    <BotonBase variante="ghost" className="botonVolver" onClick={() => window.history.back()}>
+                        <ArrowLeft size={18} /> Volver
                     </BotonBase>
                 </div>
             </div>
@@ -76,7 +76,7 @@ const PublicacionBase = ({ publicacionId: idProp }: PublicacionIslandProps): JSX
             <div className="publicacionDetalleCabecera">
                 <BotonBase
                     variante="ghost"
-                    className="publicacionDetalleVolver"
+                    className="botonVolver"
                     onClick={() => window.history.back()}
                     aria-label="Volver"
                 >

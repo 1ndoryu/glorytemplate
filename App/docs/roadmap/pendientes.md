@@ -91,14 +91,13 @@
 
 ## Sprint — Revisión + UI pendiente
 
-344. tarjetaMeta clickable + filtro vista actual: Metas de TarjetaSample (BPM, key, tipo, género) clickables para filtrar la vista actual (no global).
+344. ✅ [AG-WRK] tarjetaMeta clickable + filtro: Ya implementado. BadgesMetadata con onFiltrar callback, FeedSamples pasa manejarIncluirTag, CSS .tarjetaMetaBadgeClickable definido.
 
-346. Fix librería recarga constante: LibreriaIsland se recarga cada vez. Debería usar keep-alive (verificar useIslaActiva/useValorCongelado, guards `activa`). Patrón ref: useSampleDetalle con freeze.
+346. ✅ [AG-WRK] Fix librería recarga constante: ya implementado con useIslaActiva + useValorCongelado + ultimoFetchRef (skip si params no cambiaron). Verificado en useLibreriaIsland.ts.
 
-347. Botones volver consistentes: Unificar estilo botón volver en todas las páginas. Crear clase compartida `botonVolver` que no dependa de contexto CSS.
+347. ✅ [AG-WRK] Botones volver consistentes: Clase `.botonVolver` en botonBase.css. Aplicada en 9 islas (SampleDetalle, Publicacion, Chat, ColeccionDetalle, Favoritos, Descargas, RelacionDetalle, CancionDetalle, ArtistaDetalle). Eliminadas: .publicacionDetalleVolver, .coleccionVolver, .chatVolver.
 
-348. Subcarpetas alinear derecha: `justify-content: flex-end` en contenedor subcarpetas.
-    - Archivos: `explorador.css`
+348. ✅ [AG-WRK] Subcarpetas alinear derecha: `.exploradorSubcarpetasAlineadas { justify-content: end }` en explorador.css.
 
 363. [EN CURSO — AG-GIT] Evitar rastreo de backups de cookies y logs autogenerados en kamples-scraper.
 
@@ -108,14 +107,12 @@
     - **Componentes:** `TarjetaCarpeta.tsx`, `VistaExplorador.tsx`, `BarraHerramientasExplorador.tsx`, `useNavegacionCarpetas.ts`
     - **Estado:** carpetaActual (null=raíz), historial[], vista (grid/lista). Filtrado client-side useMemo.
 
-350. Rediseño gráfica admin "Actividad últimos 14 días": Barras CSS-only o canvas. Tooltips hover, eje X fechas cortas, responsive.
-    - Archivos: `TabResumenAdmin.tsx`, `useAdminPanel.ts`, CSS admin
+350. ✅ [AG-WRK] Rediseño gráfica admin: Ya implementado (C236+C350). Barras CSS agrupadas, tooltips hover, eje X fechas cortas, grid lines, leyenda con totales, responsive flexbox. Todo en TabResumenAdmin.tsx + adminPanel.css.
 
 351. [EN CURSO — AG-GRQ] Moderación: (a) Log sin razón — verificar campo `razon` en servicio. (b) Posts con audio quedan en revisión — manejar audio adjunto. (c) Imágenes no salen en panel moderación. **Estado:** subpunto (a) corregido con fallback de razón y envío Groq de imágenes locales vía data URL; pendientes audio y panel.
     - Archivos: `ServicioModeracionIA.php`, `AnalizadoresModeracion.php`, `LogModeracion.php`, `TabResumenAdmin.tsx`
 
-352. Créditos sin límite visible: Mostrar solo "Créditos: 5" (no "5/5"). Al límite: "Créditos: 0".
-    - Archivos: `useTopBar.ts`
+352. ✅ [AG-WRK] Créditos sin límite visible: Ya implementado (C352). Muestra "Créditos: N" sin mostrar el total.
 
 ---
 

@@ -7,7 +7,7 @@
  * Tarjeta de lado extraida a LadoCancionRelacion (SRP).
  */
 
-import { AlertCircle, MoreVertical } from 'lucide-react';
+import { AlertCircle, MoreVertical, ArrowLeft } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { BotonLike } from '@app/components/social/BotonLike';
@@ -60,7 +60,9 @@ export const RelacionDetalleIsland = ({ id, slug }: RelacionDetalleProps): JSX.E
                 <div className="relacionDetalleError">
                     <AlertCircle size={40} />
                     <p>{error || 'Relación no encontrada.'}</p>
-                    <BotonBase variante="ghost" onClick={() => window.history.back()}>Volver</BotonBase>
+                    <BotonBase variante="ghost" className="botonVolver" onClick={() => window.history.back()}>
+                        <ArrowLeft size={18} /> Volver
+                    </BotonBase>
                 </div>
             </div>
         );

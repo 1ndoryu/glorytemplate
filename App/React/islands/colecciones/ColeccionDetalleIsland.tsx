@@ -71,7 +71,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">
             {/* Botón volver */}
-            <BotonBase variante="ghost" className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
+            <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
             </BotonBase>

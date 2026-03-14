@@ -522,6 +522,11 @@
     margin-bottom: var(--espacioSm);
 }
 
+/* C348: Subcarpetas alineadas a la derecha cuando estamos dentro de una carpeta */
+.exploradorSubcarpetasAlineadas {
+    justify-content: end;
+}
+
 .exploradorSubcarpetasAlineadas .tarjetaCarpeta {
     width: 140px;
     flex-shrink: 0;

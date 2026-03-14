@@ -11,6 +11,7 @@ import {
     AlertCircle,
     Crown,
     BadgeCheck,
+    ArrowLeft,
 } from 'lucide-react';
 import {
     Badge,
@@ -93,7 +94,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 <div className="detalleError">
                     <AlertCircle size={40} />
                     <p>{error || 'Sample no encontrado.'}</p>
-                    <BotonBase variante="ghost" onClick={() => window.history.back()}>
+                    <BotonBase variante="ghost" className="botonVolver" onClick={() => window.history.back()}>
+                        <ArrowLeft size={18} />
                         Volver
                     </BotonBase>
                 </div>

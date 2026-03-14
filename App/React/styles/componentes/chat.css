@@ -21,23 +21,7 @@
     flex-shrink: 0;
 }
 
-.chatVolver {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
-    color: var(--textoSecundario);
-    cursor: pointer;
-    padding: var(--espacioXs);
-    border-radius: var(--radioMd);
-    transition: color var(--transicionRapida), background var(--transicionRapida);
-}
-
-.chatVolver:hover {
-    color: var(--textoPrimario);
-    background: var(--fondoElevado1);
-}
+/* C347: clase .chatVolver eliminada — ahora usa .botonVolver (botonBase.css) */
 
 .chatHeaderInfo {
     display: flex;

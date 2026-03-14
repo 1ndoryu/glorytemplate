@@ -79,7 +79,7 @@ const DescargasBase = (): JSX.Element => {
     return (
         <div className="coleccionDetalle" id="seccionDescargas">
             {/* Botón volver — misma clase que ColeccionDetalle */}
-            <BotonBase variante="ghost" className="coleccionVolver" onClick={() => navegar('/libreria/')} type="button">
+            <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
                 <ArrowLeft size={18} />
                 <span>Librería</span>
             </BotonBase>

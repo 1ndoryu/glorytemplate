@@ -117,6 +117,25 @@
 
 .botonBase.cargando::after {
     content: '';
+
+/*
+ * C347: Clase compartida para botones "volver" en todas las islas.
+ * Uso: <BotonBase variante="ghost" className="botonVolver" ...>
+ */
+.botonVolver {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    padding: var(--espacioXs) var(--espacioSm) !important;
+    transition: color var(--transicionRapida);
+}
+
+.botonVolver:hover {
+    color: var(--textoPrimario);
+    background: unset !important;
+}
     position: absolute;
     width: 16px;
     height: 16px;
