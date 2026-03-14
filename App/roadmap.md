@@ -175,7 +175,7 @@ Secciones horizontales, portada grande, letras abajo, secciones por generos, qui
 
 ## QK85
 
-En detalleDescripcionInterna se tiene que usar la descripcion corta, no la larga, verificar que haya una version de descripcion corta en ingles que se genere, y si no, que se genere tambien y usarla en ingles.
+✅ [AG-WRK] Verificado: `detalleDescripcionInterna` ya usa `descripcion_corta` (EN) con fallback a `descripcion_corta_es` (ES). PromptsIA genera ambas versiones (`descripcion_corta` EN 10-15 palabras + `descripcion_corta_es` ES). ProcesadorColaIA las almacena en metadata JSONB. SampleDetalleIsland.tsx lee con prioridad EN→ES. Tipos TypeScript incluyen ambos campos.
 
 ## QK86 
 
@@ -236,7 +236,7 @@ para mi algo importante son las notificaciones, anticipar que las notificaciones
 
 ## QK95 Importante
 
-La busqueda no esta actualizando la lista de samples en el feed. Solo actualiza el contador, ejemplo dice 12 de 29 sample pero no se acutaliza la lista seamples, es un error que se introdujo ocn las optmizaciones anteriores
+✅ [AG-WRK] Resuelto por QK83 — La búsqueda ahora es server-side FTS. `busquedaDebounced` incluido en `claveCache` y deps del `proveedor` (InicioIsland.tsx), lo que garantiza refetch completo de la lista al cambiar query. Tanto el contador como la lista de samples se actualizan juntos.
 
 ## QK96
 
@@ -271,6 +271,25 @@ El boton de corazon cuando el like sea un me encanta y no un like normal, que br
 - **Resultado:** El usuario SIEMPRE ve datos cacheados inmediatamente (stale o fresh). "Cargando samples..." solo aparece en la primera visita absoluta sin cache.
 - Archivos: `cacheFeedPersistente.ts`, `useFeedSamples.ts`
 - [Gotcha]: El TTL original con `localStorage.removeItem()` rompía el patrón SWR. El SWR solo funciona si hay datos stale disponibles. Separar "cuándo revalidar" de "cuándo borrar" es clave.
+
+## QK101
+
+Version escritorio, el boton de inicio tiene que estar en el centro, el boton de administracion panel y de like se quita, de "mis favoritos" se mueve al menu de hamburgueza
+
+la ventana de chat chatFlotanteContenedor tiene que cubrir el 100% de la pantala o sea el chat expandido completamente en la pantalla version movil, esto es logico, sin panding externos.
+
+filaColecciones debería tener scrol horizontal invisible, para escritorio tambien, tiene que mostrar maximo 20
+
+El modal de configuracion se ve fatal en movil
+
+en movil, solo en movil todo esto:
+.listaDeSamples sin borde
+.tarjetaSample con  padding-right: 0; y padding-left: 4px;
+.tarjetaAcciones necesita mas gap, pasarlo a lg
+.areaTopbar con padding left 4
+.libreriaGridColecciones grid de 2 columnas
+.coleccionHeader
+
 
 ## Despliegue Produccion (VPS Coolify)
 

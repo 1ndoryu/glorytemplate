@@ -93,6 +93,9 @@ class KamplesInit
         /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
         self::asegurarCacheMedia();
 
+        /* QK86: Servir Service Worker de push desde la raíz del dominio */
+        self::servirServiceWorkerPush();
+
         /* QK82: Auto-ejecutar migraciones pendientes en entorno local */
         MigradorLocal::ejecutarSiLocal();
     }
@@ -329,6 +332,37 @@ HTACCESS;
         if (!wp_next_scheduled('kamples_limpiar_zips_cache')) {
             wp_schedule_event(time(), 'daily', 'kamples_limpiar_zips_cache');
         }
+    }
+
+    /*
+     * QK86: Sirve sw-push.js desde /sw-push.js (raíz del dominio).
+     * El Service Worker requiere scope '/' para interceptar notificaciones push
+     * en cualquier página. Se inyecta via template_redirect para evitar que WP
+     * devuelva un 404.
+     */
+    private static function servirServiceWorkerPush(): void
+    {
+        add_action('template_redirect', function (): void {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+            /* Solo interceptar /sw-push.js exacto (sin query string) */
+            if (strtok($uri, '?') !== '/sw-push.js') {
+                return;
+            }
+
+            $archivo = get_template_directory() . '/App/Assets/sw-push.js';
+            if (!file_exists($archivo)) {
+                status_header(404);
+                exit;
+            }
+
+            header('Content-Type: application/javascript; charset=utf-8');
+            header('Service-Worker-Allowed: /');
+            header('Cache-Control: no-cache, must-revalidate');
+            header('X-Content-Type-Options: nosniff');
+            status_header(200);
+            readfile($archivo);
+            exit;
+        }, 1);
     }
 
     /*

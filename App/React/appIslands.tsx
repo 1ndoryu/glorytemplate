@@ -6,6 +6,7 @@
  */
 
 import {registerAppBlocks} from './blocks/index';
+import {registrarServiceWorker} from '@app/utils/registrarServiceWorker';
 
 // Importar Islas
 import {BienvenidaIsland} from './islands/BienvenidaIsland';
@@ -43,6 +44,9 @@ import {InicializadorAuth} from '@app/components/auth/InicializadorAuth';
 
 // Register blocks
 registerAppBlocks();
+
+/* QK86: Registrar Service Worker de push notifications */
+registrarServiceWorker();
 
 /**
  * AppProvider

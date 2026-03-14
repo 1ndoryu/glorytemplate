@@ -18,6 +18,7 @@ use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\Services\NotificadorWebSocket;
+use App\Kamples\Services\ServicioNotificacionesPush;
 
 class ServicioNotificaciones
 {
@@ -70,6 +71,18 @@ class ServicioNotificaciones
                 'enlace'  => $enlace,
                 'actor'   => $actorNombre ? ['username' => $actorNombre] : null,
             ]);
+
+            /* QK86: Push notification (VAPID) — llega incluso con app en background/cerrada.
+             * Fire-and-forget: si VAPID no esta configurado, no hace nada (graceful). */
+            ServicioNotificacionesPush::enviarAUsuario(
+                $destinatarioId,
+                $titulo !== '' ? $titulo : $tipo,
+                $mensaje,
+                array_merge($datos, [
+                    'tipo'   => $tipo,
+                    'enlace' => $enlace,
+                ])
+            );
         } catch (\Throwable $e) {
             KamplesLogger::error('ServicioNotificaciones: error creando notificacion', [
                 'destinatarioId' => $destinatarioId,
