@@ -1,0 +1,83 @@
+/*
+ * Estilos: FiltroColumna
+ * Dropdown de filtros por columna para tablas admin.
+ */
+
+.filtroColumnaContenedor {
+    display: inline-flex;
+    position: relative;
+}
+
+.filtroColumnaBoton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    background: none;
+    border: none;
+    color: var(--textoTerciario);
+    cursor: pointer;
+    border-radius: var(--radioSm);
+    transition: color var(--transicionRapida), background var(--transicionRapida);
+    opacity: 0.5;
+}
+
+.filtroColumnaBoton:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
+    opacity: 1;
+}
+
+.filtroColumnaActivo {
+    color: var(--acento);
+    opacity: 1;
+}
+
+.filtroColumnaDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: var(--zMenuPortal);
+    min-width: 160px;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    box-shadow: var(--sombraElevada);
+    padding: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: fadeInFiltroCol var(--transicionRapida) ease;
+}
+
+.filtroColumnaLimpiar {
+    font-size: var(--fuenteXs);
+    font-family: var(--fuentePrincipal);
+    color: var(--acento);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--bordeSutil);
+    padding: var(--espacioXs) var(--espacioSm);
+    margin-bottom: 2px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.filtroColumnaLimpiar:hover {
+    color: var(--textoPrimario);
+}
+
+.filtroColumnaOpcion {
+    font-size: var(--fuenteXs);
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioSm);
+}
+
+.filtroColumnaOpcion:hover {
+    background: var(--fondoElevado2);
+}
+
+@keyframes fadeInFiltroCol {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

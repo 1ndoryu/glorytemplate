@@ -339,6 +339,7 @@ class AdminController
             $page = max(1, (int) ($request->get_param('page') ?? 1));
             $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
             $estado = sanitize_text_field($request->get_param('estado') ?? '');
+            $lado = sanitize_text_field($request->get_param('lado') ?? '');
             $sortCol = sanitize_text_field($request->get_param('sort_col') ?? '');
             $sortDir = sanitize_text_field($request->get_param('sort_dir') ?? 'DESC');
 
@@ -348,7 +349,8 @@ class AdminController
                 $estado,
                 25,
                 $sortCol,
-                $sortDir
+                $sortDir,
+                $lado
             );
 
             return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);

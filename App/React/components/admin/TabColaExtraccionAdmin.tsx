@@ -11,6 +11,7 @@ import { SelectorMenu } from '../ui/SelectorMenu';
 import type { OpcionSelector } from '../ui/SelectorMenu';
 import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
+import { FiltroColumna, type OpcionFiltro } from '../ui/FiltroColumna';
 import { useTabColaExtraccionAdmin } from '@app/hooks/useTabColaExtraccionAdmin';
 import { Checkbox } from '../ui/Checkbox';
 import { useState } from 'react';
@@ -28,6 +29,25 @@ const OPCIONES_ESTADO: OpcionSelector[] = [
     { valor: 'completado', etiqueta: 'Completado' },
     { valor: 'error', etiqueta: 'Error' },
     { valor: 'revision_humana', etiqueta: 'Rev. Humana' },
+    { valor: 'unificado', etiqueta: 'Unificado' },
+];
+
+/* Opciones para filtros inline por columna */
+const FILTRO_ESTADO: OpcionFiltro[] = [
+    { valor: 'pendiente', etiqueta: 'Pendiente' },
+    { valor: 'descargando', etiqueta: 'Descargando' },
+    { valor: 'analizando', etiqueta: 'Analizando' },
+    { valor: 'recortando', etiqueta: 'Recortando' },
+    { valor: 'extraido', etiqueta: 'Extraido' },
+    { valor: 'completado', etiqueta: 'Completado' },
+    { valor: 'error', etiqueta: 'Error' },
+    { valor: 'revision_humana', etiqueta: 'Rev. Humana' },
+    { valor: 'unificado', etiqueta: 'Unificado' },
+];
+
+const FILTRO_LADO: OpcionFiltro[] = [
+    { valor: 'fuente', etiqueta: 'Fuente' },
+    { valor: 'destino', etiqueta: 'Destino' },
 ];
 
 type VarianteBadge = 'neutro' | 'acento' | 'exito' | 'error' | 'advertencia' | 'info';
@@ -82,7 +102,7 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
 
     const columnaVisible = (id: string): boolean => !tab.columnasOcultas.has(id);
 
-    const renderTh = (sortKey: string, etiqueta: string) => (
+    const renderTh = (sortKey: string, etiqueta: string, filtro?: { opciones: OpcionFiltro[]; columna: string }) => (
         <th
             className="adminThSortable"
             onClick={() => tab.cambiarOrden(sortKey)}
@@ -93,6 +113,13 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                     tab.sortDir === 'ASC'
                         ? <ArrowUp size={12} className="adminSortIcono" />
                         : <ArrowDown size={12} className="adminSortIcono" />
+                )}
+                {filtro && (
+                    <FiltroColumna
+                        opciones={filtro.opciones}
+                        activos={tab.filtrosColumna[filtro.columna] ?? new Set()}
+                        onChange={(activos) => tab.cambiarFiltroColumna(filtro.columna, activos)}
+                    />
                 )}
             </span>
         </th>
@@ -168,9 +195,9 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                             {columnaVisible('relacion_id') && renderTh('relacion_id', 'Relación')}
                             {columnaVisible('youtube_id') && renderTh('youtube_id', 'YouTube')}
                             {columnaVisible('spotify_id') && renderTh('spotify_id', 'Spotify')}
-                            {columnaVisible('estado') && renderTh('estado', 'Estado')}
+                            {columnaVisible('estado') && renderTh('estado', 'Estado', { opciones: FILTRO_ESTADO, columna: 'estado' })}
                             {columnaVisible('intentos') && renderTh('intentos', 'Intentos')}
-                            {columnaVisible('lado') && renderTh('lado', 'Lado')}
+                            {columnaVisible('lado') && renderTh('lado', 'Lado', { opciones: FILTRO_LADO, columna: 'lado' })}
                             {columnaVisible('sample_id') && renderTh('sample_id', 'Sample')}
                             {columnaVisible('timing') && renderTh('timing_inicio_seg', 'Timing')}
                             {columnaVisible('bpm_detectado') && renderTh('bpm_detectado', 'BPM')}

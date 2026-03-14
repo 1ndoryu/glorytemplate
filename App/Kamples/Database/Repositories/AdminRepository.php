@@ -19,6 +19,7 @@ use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ReportesCols;
 use App\Config\Schema\_generated\ScrapingLogCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
+use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\PublicacionesEnums;
@@ -220,7 +221,8 @@ class AdminRepository
         string $estado = '',
         int $porPagina = 25,
         string $sortCol = '',
-        string $sortDir = 'DESC'
+        string $sortDir = 'DESC',
+        string $lado = ''
     ): array {
         $tc = ColaExtraccionSamplesCols::TABLA;
         $params = ['offset' => $offset, 'porPagina' => $porPagina];
@@ -233,10 +235,32 @@ class AdminRepository
             $params['busqueda'] = '%' . $busqueda . '%';
         }
 
-        $estadosValidos = ['pendiente', 'descargando', 'analizando', 'recortando', 'extraido', 'completado', 'error', 'revision_humana'];
-        if (!empty($estado) && in_array($estado, $estadosValidos, true)) {
-            $where .= ' AND c.' . ColaExtraccionSamplesCols::ESTADO . ' = :estado';
-            $params['estado'] = $estado;
+        /* Filtro estado: soporta valor unico o comma-separated */
+        $estadosValidos = ColaExtraccionSamplesEnums::TODOS_ESTADO;
+        if (!empty($estado)) {
+            $estadosSolicitados = array_filter(
+                array_map('trim', explode(',', $estado)),
+                fn(string $e) => in_array($e, $estadosValidos, true)
+            );
+            if (count($estadosSolicitados) === 1) {
+                $where .= ' AND c.' . ColaExtraccionSamplesCols::ESTADO . ' = :estado';
+                $params['estado'] = $estadosSolicitados[0];
+            } elseif (count($estadosSolicitados) > 1) {
+                $placeholders = [];
+                foreach ($estadosSolicitados as $i => $e) {
+                    $key = "estado_{$i}";
+                    $placeholders[] = ":{$key}";
+                    $params[$key] = $e;
+                }
+                $where .= ' AND c.' . ColaExtraccionSamplesCols::ESTADO . ' IN (' . implode(',', $placeholders) . ')';
+            }
+        }
+
+        /* Filtro lado */
+        $ladosValidos = ColaExtraccionSamplesEnums::TODOS_LADO;
+        if (!empty($lado) && in_array($lado, $ladosValidos, true)) {
+            $where .= ' AND c.' . ColaExtraccionSamplesCols::LADO . ' = :lado';
+            $params['lado'] = $lado;
         }
 
         $data = SamplesRepository::consultar(

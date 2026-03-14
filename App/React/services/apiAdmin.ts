@@ -320,9 +320,10 @@ export const listarColaExtraccionAdmin = async (
     busqueda = '',
     estado = '',
     sortCol = '',
-    sortDir = ''
+    sortDir = '',
+    lado = ''
 ): Promise<RespuestaApi<ColaExtraccionItemAdmin[]>> => {
-    return apiGet<ColaExtraccionItemAdmin[]>('/admin/cola-extraccion', { page, busqueda, estado, sort_col: sortCol, sort_dir: sortDir });
+    return apiGet<ColaExtraccionItemAdmin[]>('/admin/cola-extraccion', { page, busqueda, estado, sort_col: sortCol, sort_dir: sortDir, lado });
 };
 
 export const marcarEliminacionUsuarioAdmin = async (

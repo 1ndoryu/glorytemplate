@@ -1,7 +1,7 @@
 /*
- * Hook: useTabColaExtraccionAdmin — QK40
- * Lógica de la tabla de cola de extracción del panel admin.
- * Carga paginada con búsqueda y filtro por estado.
+ * Hook: useTabColaExtraccionAdmin — QK40+QK52
+ * Logica de la tabla de cola de extraccion del panel admin.
+ * Carga paginada con busqueda, filtro por estado/lado, ordenamiento.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,15 +16,26 @@ export function useTabColaExtraccionAdmin() {
     const [pagina, setPagina] = useState(1);
     const [busqueda, setBusqueda] = useState('');
     const [filtroEstado, setFiltroEstado] = useState('');
+    const [filtroLado] = useState('');
+    const [filtrosColumna, setFiltrosColumna] = useState<Record<string, Set<string>>>({});
     const [cargando, setCargando] = useState(false);
     const [columnasOcultas, setColumnasOcultas] = useState<Set<string>>(new Set());
     const [sortCol, setSortCol] = useState('');
     const [sortDir, setSortDir] = useState<'ASC' | 'DESC'>('DESC');
 
+    /* Componer estado final: prioriza filtrosColumna.estado sobre filtroEstado si hay */
+    const estadoFinal = filtrosColumna.estado?.size
+        ? Array.from(filtrosColumna.estado).join(',')
+        : filtroEstado;
+
+    const ladoFinal = filtrosColumna.lado?.size
+        ? Array.from(filtrosColumna.lado).join(',')
+        : filtroLado;
+
     const cargar = useCallback(async () => {
         setCargando(true);
         try {
-            const res = await listarColaExtraccionAdmin(pagina, busqueda, filtroEstado, sortCol, sortDir);
+            const res = await listarColaExtraccionAdmin(pagina, busqueda, estadoFinal, sortCol, sortDir, ladoFinal);
             if (res.ok && res.data) {
                 setItems(res.data);
                 setTotal(res.total ?? 0);
@@ -33,7 +44,7 @@ export function useTabColaExtraccionAdmin() {
             log.error('Error cargando cola extraccion', err);
         }
         setCargando(false);
-    }, [pagina, busqueda, filtroEstado, sortCol, sortDir]);
+    }, [pagina, busqueda, estadoFinal, ladoFinal, sortCol, sortDir]);
 
     useEffect(() => { cargar(); }, [cargar]);
 
@@ -53,6 +64,12 @@ export function useTabColaExtraccionAdmin() {
 
     const cambiarFiltroEstado = useCallback((valor: string) => {
         setFiltroEstado(valor);
+        setFiltrosColumna(prev => ({ ...prev, estado: new Set() }));
+        setPagina(1);
+    }, []);
+
+    const cambiarFiltroColumna = useCallback((columna: string, activos: Set<string>) => {
+        setFiltrosColumna(prev => ({ ...prev, [columna]: activos }));
         setPagina(1);
     }, []);
 
@@ -67,9 +84,9 @@ export function useTabColaExtraccionAdmin() {
     }, [sortCol]);
 
     return {
-        items, total, pagina, busqueda, filtroEstado,
-        cargando, columnasOcultas, sortCol, sortDir,
+        items, total, pagina, busqueda, filtroEstado, filtroLado,
+        filtrosColumna, cargando, columnasOcultas, sortCol, sortDir,
         setPagina, cambiarBusqueda, cambiarFiltroEstado,
-        toggleColumna, refrescar: cargar, cambiarOrden,
+        cambiarFiltroColumna, toggleColumna, refrescar: cargar, cambiarOrden,
     };
 }
