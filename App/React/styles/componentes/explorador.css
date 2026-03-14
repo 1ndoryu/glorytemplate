@@ -219,24 +219,7 @@
     min-height: 0;
 }
 
-/* Estado vacío */
-.exploradorVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacioMd);
-    padding: var(--espacioXl);
-    color: var(--textoSecundario);
-    text-align: center;
-    flex: 1;
-}
-
-.exploradorVacio p {
-    margin: 0;
-    max-width: 300px;
-    line-height: 1.5;
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Estado de carga */
 .exploradorCargando {

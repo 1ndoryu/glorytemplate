@@ -19,6 +19,7 @@ use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\RateLimiter;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class PapeleraController
 {
@@ -82,6 +83,14 @@ class PapeleraController
 
             if ($tipo === ServicioPapelera::TIPO_SAMPLE) {
                 $ok = ServicioPapelera::restaurarSample($id, $userId);
+                /* C360: Re-sumar crédito bonus al restaurar sample de papelera */
+                if ($ok) {
+                    try {
+                        UsuariosExtRepository::incrementarCreditosBonus($userId);
+                    } catch (\Exception $e) {
+                        KamplesLogger::warning('No se pudo re-sumar crédito bonus al restaurar sample', ['error' => $e->getMessage()]);
+                    }
+                }
             } elseif ($tipo === ServicioPapelera::TIPO_PUBLICACION) {
                 $ok = ServicioPapelera::restaurarPublicacion($id, $userId);
             } else {

@@ -21,6 +21,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import type { Cancion } from '@app/types/cancion';
 import type { SampleResumen } from '@app/types/sample';
 import type { OrdenFeedCanciones } from '@app/services/apiCanciones';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/explorarCanciones.css';
 
 /* Tabs registradas en la TopBar — text-only, ids coinciden con OrdenFeedCanciones */
@@ -118,10 +119,10 @@ export const ExplorarCancionesIsland = (): JSX.Element => {
             {cargando ? (
                 <SkeletonFeed cantidad={6} />
             ) : canciones.length === 0 ? (
-                <div className="feedCancionesVacio">
-                    <Music size={40} />
-                    <p>{busqueda.trim() ? `Sin resultados para "${busqueda}"` : 'No hay canciones para mostrar'}</p>
-                </div>
+                <EstadoVacio
+                    icono={<Music size={40} />}
+                    mensaje={busqueda.trim() ? `Sin resultados para "${busqueda}"` : 'No hay canciones para mostrar'}
+                />
             ) : (
                 <div className="feedCancionesLista">
                     {canciones.map((cancion) => (

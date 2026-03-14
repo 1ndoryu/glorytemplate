@@ -14,6 +14,7 @@ import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
 import { Input } from '../../components/ui/Input';
 import { Skeleton } from '@app/components/skeletons';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 
 interface ChatIslandProps {
     conversacionId?: string;
@@ -58,7 +59,7 @@ const ChatIslandBase = ({ conversacionId: propId }: ChatIslandProps): JSX.Elemen
                         ))}
                     </div>
                 ) : mensajes.length === 0 ? (
-                    <div className="chatVacio"><p>Inicia la conversación</p></div>
+                    <EstadoVacio mensaje="Inicia la conversación" />
                 ) : (
                     gruposMensajes.map(grupo => (
                         <div key={grupo.fecha} className="chatGrupoFecha">

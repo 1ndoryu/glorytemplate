@@ -17,6 +17,7 @@ import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { useLibreriaIsland } from '@app/hooks/useLibreriaIsland';
 import type { OrdenColecciones } from '@app/hooks/useLibreriaIsland';
 import { useAuthStore } from '@app/stores/authStore';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/libreria.css';
 
 const TABS_LIBRERIA = [
@@ -130,17 +131,13 @@ export const LibreriaIsland = (): JSX.Element => {
                     {/* Contenido de tab activa */}
                     {tabActiva === 'explorar' ? (
                         coleccionesPublicas.length === 0 ? (
-                            <div className="libreriaVacio">
-                                <Globe size={32} />
-                                <h3 className="libreriaVacioTitulo">
-                                    {tagActivo ? 'Sin resultados' : 'Sin colecciones públicas'}
-                                </h3>
-                                <p className="libreriaVacioTexto">
-                                    {tagActivo
-                                        ? `No hay colecciones con el tag "${tagActivo}".`
-                                        : 'Aún no hay colecciones compartidas por otros usuarios.'}
-                                </p>
-                            </div>
+                            <EstadoVacio
+                                icono={<Globe size={32} />}
+                                titulo={tagActivo ? 'Sin resultados' : 'Sin colecciones públicas'}
+                                mensaje={tagActivo
+                                    ? `No hay colecciones con el tag "${tagActivo}".`
+                                    : 'Aún no hay colecciones compartidas por otros usuarios.'}
+                            />
                         ) : (
                             <div className="libreriaGridColecciones">
                                 {coleccionesPublicas.map(col => {
@@ -156,23 +153,19 @@ export const LibreriaIsland = (): JSX.Element => {
                         )
                     ) : (
                         colecciones.length === 0 ? (
-                            <div className="libreriaVacio">
-                                <FolderOpen size={32} />
-                                <h3 className="libreriaVacioTitulo">
-                                    {tagActivo ? 'Sin resultados' : 'Sin colecciones'}
-                                </h3>
-                                <p className="libreriaVacioTexto">
-                                    {tagActivo
-                                        ? `No hay colecciones con el tag "${tagActivo}".`
-                                        : 'Crea tu primera colección para organizar samples.'}
-                                </p>
-                                {!tagActivo && (
+                            <EstadoVacio
+                                icono={<FolderOpen size={32} />}
+                                titulo={tagActivo ? 'Sin resultados' : 'Sin colecciones'}
+                                mensaje={tagActivo
+                                    ? `No hay colecciones con el tag "${tagActivo}".`
+                                    : 'Crea tu primera colección para organizar samples.'}
+                                accion={!tagActivo ? (
                                     <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
                                         <Plus size={14} /> Nueva colección
                                     </BotonBase>
-                            )}
-                        </div>
-                    ) : (
+                                ) : undefined}
+                            />
+                        ) : (
                         <div className="libreriaGridColecciones">
                             {colecciones.map(col => (
                                 <TarjetaColeccion key={col.id} coleccion={col}

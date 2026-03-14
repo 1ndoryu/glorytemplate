@@ -13,6 +13,7 @@ import {useNavigationStore} from '@/core/router';
 import type {SampleResumen} from '@app/types';
 import '../../styles/componentes/reproductorIsland.css';
 import { BotonBase } from '../../components/ui/BotonBase';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { Input } from '../../components/ui/Input';
 
 /* Formatear segundos a mm:ss */
@@ -77,11 +78,11 @@ export const ReproductorIsland = (): JSX.Element => {
     if (!sampleActual) {
         return (
             <div className="reproductorIsland" id="reproductorIsland">
-                <div className="reproductorIslandVacio">
-                    <Music size={48} />
-                    <h2>Sin reproducción</h2>
-                    <p>Selecciona un sample para empezar a escuchar</p>
-                </div>
+                <EstadoVacio
+                    icono={<Music size={48} />}
+                    titulo="Sin reproducción"
+                    mensaje="Selecciona un sample para empezar a escuchar"
+                />
             </div>
         );
     }

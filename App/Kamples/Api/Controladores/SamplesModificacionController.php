@@ -28,6 +28,7 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Helpers\JsonHelper;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioMedia;
+use App\Kamples\Database\Repositories\UsuariosExtRepository;
 
 class SamplesModificacionController
 {
@@ -370,6 +371,12 @@ class SamplesModificacionController
             $ok = ServicioPapelera::enviarSample($sampleId);
             if (!$ok) {
                 return new \WP_REST_Response(['code' => 'error_papelera', 'message' => 'Error al enviar a papelera'], 500);
+            }
+            /* C360: Restar crédito bonus por eliminar sample propio */
+            try {
+                UsuariosExtRepository::decrementarCreditosBonus($usuarioId);
+            } catch (\Exception $e) {
+                KamplesLogger::warning('No se pudo restar crédito bonus al eliminar sample', ['error' => $e->getMessage()]);
             }
         }
 

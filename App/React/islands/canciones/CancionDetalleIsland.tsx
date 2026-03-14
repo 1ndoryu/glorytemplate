@@ -22,6 +22,7 @@ import { useCallback } from 'react';
 import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
 import { useAuthStore } from '@app/stores/authStore';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/cancionDetalle.css';
 import '../../styles/componentes/seccionRelaciones.css';
 
@@ -236,10 +237,10 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
 
             {/* Sin relaciones */}
             {samplesDe.length === 0 && sampleadaEn.length === 0 && (
-                <div className="cancionDetalleVacio">
-                    <Music size={32} />
-                    <p>Aún no se han identificado relaciones de sampling para esta canción.</p>
-                </div>
+                <EstadoVacio
+                    icono={<Music size={32} />}
+                    mensaje="Aún no se han identificado relaciones de sampling para esta canción."
+                />
             )}
 
             {/* S4.5: Widget cadena de samples */}

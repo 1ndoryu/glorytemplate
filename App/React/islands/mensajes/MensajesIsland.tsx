@@ -14,6 +14,7 @@ import { useMensajesIsland } from '@app/hooks/useMensajesIsland';
 import '../../styles/componentes/mensajes.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { SkeletonFeed } from '@app/components/skeletons';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 
 /* Formatear tiempo relativo */
 const formatearTiempo = (fecha: string): string => {
@@ -62,10 +63,10 @@ const MensajesIslandBase = (): JSX.Element => {
             {cargandoConversaciones && !conversacionesCargadas ? (
                 <SkeletonFeed cantidad={4} />
             ) : filtradas.length === 0 ? (
-                <div className="mensajesVacio">
-                    <MessageCircle size={32} />
-                    <p>{busqueda ? 'Sin resultados' : 'No tienes conversaciones aún'}</p>
-                </div>
+                <EstadoVacio
+                    icono={<MessageCircle size={32} />}
+                    mensaje={busqueda ? 'Sin resultados' : 'No tienes conversaciones aún'}
+                />
             ) : (
                 <div className="mensajesLista">
                     {filtradas.map((conv) => (

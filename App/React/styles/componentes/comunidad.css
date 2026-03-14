@@ -52,15 +52,7 @@
     gap: var(--espacioMd);
 }
 
-.comunidadCargando,
-.comunidadVacio {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    color: var(--textoSecundario);
-    font-size: var(--fuenteSm);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* -- Boton seguir (+) sobre el avatar -- exclusivo de ComunidadIsland
    Se posiciona sobre .tarjetaPubAvatarContenedor que tiene position:relative */

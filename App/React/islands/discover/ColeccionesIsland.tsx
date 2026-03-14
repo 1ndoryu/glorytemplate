@@ -8,6 +8,7 @@
 import { FolderOpen } from 'lucide-react';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { SkeletonFeed } from '@app/components/skeletons';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { useColeccionesPublicas } from '@app/hooks/useColeccionesPublicas';
 import '../../styles/componentes/coleccionesPublicas.css';
 
@@ -19,11 +20,11 @@ export const ColeccionesIsland = (): JSX.Element => {
             {cargando ? (
                 <SkeletonFeed cantidad={6} />
             ) : colecciones.length === 0 ? (
-                <div className="coleccionesPublicasVacio">
-                    <FolderOpen size={48} />
-                    <h2>No se encontraron colecciones</h2>
-                    <p>Intenta con otra búsqueda</p>
-                </div>
+                <EstadoVacio
+                    icono={<FolderOpen size={48} />}
+                    titulo="No se encontraron colecciones"
+                    mensaje="Intenta con otra búsqueda"
+                />
             ) : (
                 <div className="coleccionesPublicasGrid">
                     {colecciones.map((col) => (

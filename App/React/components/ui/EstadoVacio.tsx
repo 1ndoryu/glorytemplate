@@ -10,6 +10,7 @@ import '../../styles/componentes/estadoVacio.css';
 
 interface EstadoVacioProps {
     mensaje: string;
+    titulo?: string;
     icono?: ReactNode;
     accion?: ReactNode;
     className?: string;
@@ -17,6 +18,7 @@ interface EstadoVacioProps {
 
 export const EstadoVacio = ({
     mensaje,
+    titulo,
     icono,
     accion,
     className = '',
@@ -25,6 +27,7 @@ export const EstadoVacio = ({
         <span className="estadoVacioIcono">
             {icono ?? <Inbox size={32} />}
         </span>
+        {titulo && <h3 className="estadoVacioTitulo">{titulo}</h3>}
         <p className="estadoVacioMensaje">{mensaje}</p>
         {accion && <div className="estadoVacioAccion">{accion}</div>}
     </div>

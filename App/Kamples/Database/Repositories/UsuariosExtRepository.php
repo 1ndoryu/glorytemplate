@@ -365,6 +365,21 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
+     * C360: Decrementar créditos bonus (-1) al eliminar sample propio.
+     * GREATEST evita negativos si por alguna razón el usuario tiene 0.
+     */
+    public static function decrementarCreditosBonus(int $userId): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::CREDITOS_BONUS . " = GREATEST("
+            . UsuariosExtCols::CREDITOS_BONUS . " - 1, 0) WHERE " . UsuariosExtCols::ID . " = :userId",
+            ['userId' => $userId]
+        );
+    }
+
+    /*
      * Buscar usuario por username exacto.
      */
     public static function buscarPorUsername(string $username): ?array

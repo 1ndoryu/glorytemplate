@@ -19,6 +19,13 @@
     color: var(--textoTerciario);
 }
 
+.estadoVacioTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    margin: 0;
+}
+
 .estadoVacioMensaje {
     font-size: var(--fuenteSm);
     color: var(--textoTerciario);

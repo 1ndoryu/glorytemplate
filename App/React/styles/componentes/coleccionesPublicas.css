@@ -17,29 +17,7 @@
     gap: var(--espacioMd);
 }
 
-/* Estado vacío */
-.coleccionesPublicasVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacioMd);
-    min-height: 300px;
-    color: var(--textoTerciario);
-    text-align: center;
-}
-
-.coleccionesPublicasVacio h2 {
-    font-size: var(--fuenteLg);
-    color: var(--textoSecundario);
-    font-weight: var(--pesoMedio);
-    margin: 0;
-}
-
-.coleccionesPublicasVacio p {
-    font-size: var(--fuenteSm);
-    margin: 0;
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Responsive */
 @media (max-width: 600px) {

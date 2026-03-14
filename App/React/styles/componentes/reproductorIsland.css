@@ -10,27 +10,7 @@
     padding: var(--espacioXl);
 }
 
-/* Estado vacío */
-.reproductorIslandVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacioMd);
-    min-height: 400px;
-    color: var(--textoTerciario);
-    text-align: center;
-}
-
-.reproductorIslandVacio h2 {
-    font-size: var(--fuenteLg);
-    color: var(--textoSecundario);
-    font-weight: var(--pesoMedio);
-}
-
-.reproductorIslandVacio p {
-    font-size: var(--fuenteSm);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Grid principal: player + cola */
 .reproductorIslandGrid {

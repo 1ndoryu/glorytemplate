@@ -12,6 +12,7 @@ import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { SeccionPublicar } from '@app/components/social/SeccionPublicar';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { SkeletonTarjetaPublicacion } from '@app/components/skeletons';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
 import { LandingPublica } from '@app/components/social/LandingPublica';
@@ -101,7 +102,7 @@ const ComunidadContenido = (): JSX.Element => {
                         <SkeletonTarjetaPublicacion />
                     </>
                 ) : publicaciones.length === 0 ? (
-                    <div className="comunidadVacio">No hay publicaciones aún</div>
+                    <EstadoVacio mensaje="No hay publicaciones aún" />
                 ) : (
                     publicaciones.map((post) => (
                         <TarjetaPublicacion

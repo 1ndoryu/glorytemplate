@@ -140,8 +140,8 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 
 ## Pendientes sueltos
 
-359. Componente centralizado estados vacios/carga (coherencia visual).
-360. Al eliminar sample propio, restar crédito.
+359. ✅ [AG-WRK] Componente centralizado estados vacíos (C359): ExtendidoEstadoVacio con prop `titulo`. Migradas 10 islas (Comunidad, Chat, Mensajes, ExplorarCanciones, CancionDetalle, Explorador, ColeccionesPublicas, Reproductor, Perfil, Libreria). Eliminadas 12 clases CSS huérfanas en 11 archivos.
+360. ✅ [AG-WRK] Al eliminar sample propio, restar crédito (C360): `decrementarCreditosBonus` en UsuariosExtRepository (GREATEST contra negativos). Llamado en SamplesModificacionController::eliminar al enviar a papelera. Re-suma al restaurar en PapeleraController.
 361. ✅ [AG-FIX] Fix llamada a método indefinido `buscarPorTexto` a `buscarTexto` en ContribucionesController. La búsqueda fallaba porque el método renombrado en `CancionesRepository` no se había actualizado en el controlador.
 
 362. ✅ [AG-UI] Mover tarjetaCancionFeedSampleos al lado del botón de like y quitar padding de botones en canciones.

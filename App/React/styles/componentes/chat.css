@@ -201,15 +201,7 @@
     opacity: 0.9;
 }
 
-/* Empty state */
-.chatVacio {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    color: var(--textoTerciario);
-    font-size: var(--fuenteMd);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* En móvil el chat cubre toda la pantalla (topbar y nav quedan tapados) */
 @media (max-width: 768px) {

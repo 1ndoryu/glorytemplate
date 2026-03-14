@@ -144,16 +144,7 @@
     min-height: 300px;
 }
 
-.cancionDetalleVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--espacioSm);
-    padding: var(--espacioLg);
-    color: var(--textoTerciario);
-    text-align: center;
-    font-size: var(--fuenteSm);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 @media (max-width: 600px) {
     .cancionDetalleCabecera {

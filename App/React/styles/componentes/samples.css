@@ -132,32 +132,7 @@
     color: var(--textoSecundario);
 }
 
-/* Estado vacío */
-.exploradorVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--espacio4xl) var(--espacioLg);
-    text-align: center;
-}
-
-.exploradorVacioIcono {
-    color: var(--textoTerciario);
-    margin-bottom: var(--espacioLg);
-}
-
-.exploradorVacioTitulo {
-    font-size: var(--fuenteLg);
-    font-weight: var(--pesoMedio);
-    color: var(--textoSecundario);
-    margin-bottom: var(--espacioSm);
-}
-
-.exploradorVacioTexto {
-    font-size: var(--fuenteSm);
-    color: var(--textoTerciario);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Cargando */
 .exploradorCargando {

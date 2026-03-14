@@ -130,21 +130,7 @@
 
 /* Lista de samples — usa clase centralizada .listaDeSamples de feedSamples.css */
 
-/* Estado vacío */
-.perfilVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--espacio4xl) var(--espacioXl);
-    color: var(--textoTerciario);
-    text-align: center;
-}
-
-.perfilVacio svg {
-    margin-bottom: var(--espacioMd);
-    opacity: 0.5;
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Responsive */
 @media (max-width: 600px) {

@@ -134,19 +134,4 @@
     font-weight: var(--pesoMedio);
 }
 
-/* Empty state */
-.mensajesVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacioMd);
-    padding: var(--espacio3xl) var(--espacioLg);
-    color: var(--textoTerciario);
-    text-align: center;
-}
-
-.mensajesVacio p {
-    margin: 0;
-    font-size: var(--fuenteMd);
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */

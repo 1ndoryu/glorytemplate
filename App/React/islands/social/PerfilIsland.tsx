@@ -23,6 +23,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { useSeguidoresModalStore } from '@app/stores/seguidoresModalStore';
 import { crearLogger } from '@app/services/logger';
 import type { SampleResumen } from '@app/types/sample';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/perfil.css';
 
 const log = crearLogger('PerfilIsland');
@@ -72,10 +73,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
     if (!usuario) {
         return (
             <div className="perfilContenedor">
-                <div className="perfilVacio">
-                    <Music size={48} />
-                    <p>Usuario no encontrado</p>
-                </div>
+                <EstadoVacio icono={<Music size={48} />} mensaje="Usuario no encontrado" />
             </div>
         );
     }
@@ -87,10 +85,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
         }
         if (lista.length === 0) {
             return (
-                <div className="perfilVacio">
-                    {iconoVacio}
-                    <p>{mensajeVacio}</p>
-                </div>
+                <EstadoVacio icono={iconoVacio} mensaje={mensajeVacio} />
             );
         }
         return (
@@ -211,9 +206,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
                         {cargandoTab ? (
                             <SkeletonFeed cantidad={3} />
                         ) : publicacionesPerfil.length === 0 ? (
-                            <div className="perfilVacio">
-                                <p>No hay publicaciones aún</p>
-                            </div>
+                            <EstadoVacio mensaje="No hay publicaciones aún" />
                         ) : (
                             <div className="comunidadFeed">
                                 {publicacionesPerfil.map(post => (

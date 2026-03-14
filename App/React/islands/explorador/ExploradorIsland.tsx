@@ -19,6 +19,7 @@ import { ArbolCarpetas } from '@app/components/explorador/ArbolCarpetas';
 import { TarjetaCarpeta } from '@app/components/explorador/TarjetaCarpeta';
 import { BarraHerramientasExplorador } from '@app/components/explorador/BarraHerramientasExplorador';
 import { ModalMoverCarpeta } from '@app/components/explorador/ModalMoverCarpeta';
+import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/explorador.css';
 import '../../styles/componentes/exploradorDragModal.css';
 
@@ -168,15 +169,13 @@ const ExploradorBase = (): JSX.Element => {
 
                     {/* Lista/cuadrícula de samples del nivel actual */}
                     {!tieneArchivos && !tieneCarpetas ? (
-                        <div className="exploradorVacio">
-                            <FolderOpen size={32} />
-                            <p>
-                                {carpetaActiva
-                                    ? `No hay samples en "${subcarpetaActiva || carpetaActiva}".`
-                                    : 'Descarga o sube samples para verlos aquí. Se organizarán automáticamente por carpetas.'
-                                }
-                            </p>
-                        </div>
+                        <EstadoVacio
+                            icono={<FolderOpen size={32} />}
+                            mensaje={carpetaActiva
+                                ? `No hay samples en "${subcarpetaActiva || carpetaActiva}".`
+                                : 'Descarga o sube samples para verlos aquí. Se organizarán automáticamente por carpetas.'
+                            }
+                        />
                     ) : vistaActiva === 'cuadricula' ? (
                         <div className="cuadriculaDeSamples">
                             {samples.map((sample) => (

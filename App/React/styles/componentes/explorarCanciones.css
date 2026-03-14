@@ -178,16 +178,7 @@
     font-weight: var(--pesoMedium);
 }
 
-/* Estado vacio */
-.feedCancionesVacio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--espacioMd);
-    padding: var(--espacioXl);
-    color: var(--textoTerciario);
-    text-align: center;
-}
+/* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* Responsive */
 @media (max-width: 480px) {
