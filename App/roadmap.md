@@ -234,17 +234,27 @@ para mi algo importante son las notificaciones, anticipar que las notificaciones
 - **False alarm SSL:** `NotificadorWebSocket` no tiene SSL verify, pero es HTTP interno Docker (red interna, no HTTPS) — por diseño.
 - [Arq]: Los import de `KamplesLogger` se añadieron donde faltaban.
 
-## QK95
+## QK95 Importante
 
-La busqueda no esta actualizando la lista de samples.
+La busqueda no esta actualizando la lista de samples en el feed. Solo actualiza el contador, ejemplo dice 12 de 29 sample pero no se acutaliza la lista seamples, es un error que se introdujo ocn las optmizaciones anteriores
 
 ## QK96
 
-Hay un error, revisa los logs
+✅ [AG-ADM] Fix error crítico — PHP Fatal: `'\self' is an invalid class name` en `PromptsIA.php` línea 78. **Causa raíz:** Sintaxis `{${\self::INSTRUCCIONES_CAMPOS_JSON}}` dentro de heredoc PHP — `\self` se interpreta como nombre FQN de clase, pero `self` es keyword y no se puede prefijar con `\`. **Fix:** Asignar constante a variable local `$campos = self::INSTRUCCIONES_CAMPOS_JSON` antes del heredoc (mismo patrón ya usado en `construirCorreccion()` línea 108). Fixes adicionales en el mismo commit: `PostgresService` catch `\Throwable` (no solo `PDOException`), `MigradorLocal.esEntornoLocal()` solo usa env `LOCAL=true` (no WP_DEBUG), `pg_matviews` en whitelist, migración v055 columnas faltantes.
+- [Gotcha]: PHP heredoc interpreta `{${\Class::CONST}}` intentando crear instancia de la clase. Para constantes de clase en heredoc, asignar a variable primero.
+- [Gotcha]: `MigradorLocal` usaba `WP_DEBUG` como indicador de entorno local — en producción con `WP_DEBUG=true` ejecutaba migraciones en cada request (transient de 5min). Cambiar a env var explícita `LOCAL=true`.
 
 ## QK97
 
 Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajustar todo lo que este implica para que funcione bien.
+
+## QK98
+
+Encargate de (2) Recompilar Rust binary (`cargo build --release`). (3) Ejecutar `deploy-websocket --name kamples`. (4) Verificar SSL con `openssl s_client -connect IP:443 -servername ws.kamples.com`.
+
+## QK99 
+
+El boton de corazon cuando el like sea un me encanta y no un like normal, que brille un poco (no mucho) solo es una pequeña distencion 
 
 ## Despliegue Produccion (VPS Coolify)
 

@@ -711,6 +711,21 @@ async function procesarItemUpload(
         }
         rutasEnCola.delete(claveRutaEnCola(item.rutaArchivo));
 
+        /* QK97: Borrar archivo local tras upload exitoso si la opción está activa.
+         * Se ejecuta después de registrar hash y tracking para no perder referencia.
+         * Fallo de borrado NO afecta al estado del upload (ya está completado). */
+        if (estado.configAvanzada.borrarAlSubirExitoso) {
+            try {
+                const { remove } = await import('@tauri-apps/plugin-fs');
+                await remove(item.rutaArchivo);
+                logSync.info('uploadQueue', `Archivo local borrado tras subida: ${item.nombreArchivo}`);
+            } catch (errBorrado) {
+                logSync.warn('uploadQueue', `No se pudo borrar archivo local tras subida: ${item.nombreArchivo}`, {
+                    error: errBorrado instanceof Error ? errBorrado.message : String(errBorrado),
+                });
+            }
+        }
+
         /* Throttle inter-archivo: si hay límite de velocidad, esperar proporcionalmente */
         if (configAvanzada.velocidadMaximaSubidaMbps > 0 && item.hashParcial) {
             const tamanoEstimadoBytes = 5 * 1024 * 1024; /* ~5MB promedio */

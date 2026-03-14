@@ -166,9 +166,10 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
 
                         {(() => {
                             const meta = sample.metadata;
-                            /* QK85: Priorizar descripcion corta EN (generada por IA) sobre la larga */
-                            const desc = meta?.descripcion_corta || meta?.descripcionCorta
-                                || sample.descripcion || null;
+                            /* QK85: Usar descripcion corta EN (generada por IA). Fallback a ES si no existe EN. */
+                            const desc = meta?.descripcion_corta ?? meta?.descripcionCorta
+                                ?? meta?.descripcion_corta_es ?? meta?.descripcionCortaEs
+                                ?? null;
                             return desc ? <p className="detalleDescripcionInterna">{desc}</p> : null;
                         })()}
 

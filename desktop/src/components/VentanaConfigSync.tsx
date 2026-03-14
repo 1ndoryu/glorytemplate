@@ -43,6 +43,7 @@ export function VentanaConfigSync(): JSX.Element {
         setArchivosParalelos,
         setBorrarEnServidorAlBorrarLocal,
         setBorrarEnLocalAlBorrarEnServidor,
+        setBorrarAlSubirExitoso,
         setPapeleraActiva,
         setPapeleraDuracionDias,
         guardar,
@@ -169,6 +170,20 @@ export function VentanaConfigSync(): JSX.Element {
                             label="Al borrar en el servidor, borrar en local"
                             checked={config.borrarEnLocalAlBorrarEnServidor}
                             onChange={(e) => setBorrarEnLocalAlBorrarEnServidor(e.target.checked)}
+                        />
+                    </div>
+                </div>
+
+                {/* Borrar al subir */}
+                <div className="configSyncSeccion">
+                    <span className="configSyncLabel">Subida</span>
+                    <div className="configSyncToggleGrupo">
+                        <Checkbox
+                            id="configBorrarAlSubir"
+                            className="configSyncToggleLabel"
+                            label="Borrar archivo local después de subir exitosamente"
+                            checked={config.borrarAlSubirExitoso}
+                            onChange={(e) => setBorrarAlSubirExitoso(e.target.checked)}
                         />
                     </div>
                 </div>

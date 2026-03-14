@@ -26,6 +26,7 @@ interface UseConfiguracionSyncVentanaReturn {
     setArchivosParalelos: (valor: number) => void;
     setBorrarEnServidorAlBorrarLocal: (valor: boolean) => void;
     setBorrarEnLocalAlBorrarEnServidor: (valor: boolean) => void;
+    setBorrarAlSubirExitoso: (valor: boolean) => void;
     setPapeleraActiva: (valor: boolean) => void;
     setPapeleraDuracionDias: (valor: number) => void;
     guardar: () => Promise<void>;
@@ -124,6 +125,13 @@ export function useConfiguracionSyncVentana(): UseConfiguracionSyncVentanaReturn
         }));
     }, []);
 
+    const setBorrarAlSubirExitoso = useCallback((valor: boolean) => {
+        setConfig(prev => ({
+            ...prev,
+            borrarAlSubirExitoso: valor,
+        }));
+    }, []);
+
     const setPapeleraActiva = useCallback((valor: boolean) => {
         setConfig(prev => ({
             ...prev,
@@ -170,6 +178,7 @@ export function useConfiguracionSyncVentana(): UseConfiguracionSyncVentanaReturn
         setArchivosParalelos,
         setBorrarEnServidorAlBorrarLocal,
         setBorrarEnLocalAlBorrarEnServidor,
+        setBorrarAlSubirExitoso,
         setPapeleraActiva,
         setPapeleraDuracionDias,
         guardar,

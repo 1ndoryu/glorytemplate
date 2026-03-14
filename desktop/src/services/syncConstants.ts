@@ -24,6 +24,7 @@ export interface SyncConfigAvanzada {
     archivosParalelos: number;                /* 1-5, default 1 */
     borrarEnServidorAlBorrarLocal: boolean;   /* default false */
     borrarEnLocalAlBorrarEnServidor: boolean; /* default false */
+    borrarAlSubirExitoso: boolean;            /* default false — elimina archivo local tras upload exitoso */
     papeleraActiva: boolean;                  /* default true */
     papeleraDuracionDias: number;             /* default 30 */
 }
@@ -33,6 +34,7 @@ export const CONFIG_AVANZADA_DEFAULT: SyncConfigAvanzada = {
     archivosParalelos: 1,
     borrarEnServidorAlBorrarLocal: false,
     borrarEnLocalAlBorrarEnServidor: false,
+    borrarAlSubirExitoso: false,
     papeleraActiva: true,
     papeleraDuracionDias: 30,
 };

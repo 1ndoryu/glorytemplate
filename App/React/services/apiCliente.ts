@@ -157,6 +157,17 @@ export const apiPeticion = async <T>(
                 : {}),
         };
     } catch (err) {
+        /* AbortError es esperado cuando se cancela un request por debounce o unmount */
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            log.debug(`${method} ${endpoint} → cancelado (AbortController)`);
+            return {
+                ok: false,
+                data: null,
+                error: 'Solicitud cancelada',
+                status: 0,
+            };
+        }
+
         const mensaje = err instanceof Error ? err.message : 'Error de red';
         log.error(`${method} ${endpoint} → fallo`, err);
         return {
