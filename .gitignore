@@ -120,7 +120,7 @@ temp_dl/
 
 # Desktop Tauri
 desktop/dist/
-desktop/src-tauri/gen/
+desktop/src-tauri/gen/schemas/
 desktop/src-tauri/target/
 # Kamples Scraper
 kamples-scraper/cookies.txt

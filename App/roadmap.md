@@ -259,7 +259,11 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK97
 
-Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajustar todo lo que este implica para que funcione bien.
+✅ [AG-WRK] Ya implementado completamente:
+- **Tipo:** `borrarAlSubirExitoso: boolean` en `SyncConfigAvanzada` (default false).
+- **UI:** Checkbox en `ConfiguracionSync.tsx` — "Borrar archivo local después de subir exitosamente".
+- **Hook:** `setBorrarAlSubirExitoso()` en `useConfiguracionSync.ts`, persiste via Tauri Store key `sync_config_avanzada`.
+- **Lógica:** `uploadQueueService.ts` L717 — tras upload exitoso, si flag activo, borra via `@tauri-apps/plugin-fs` remove. Ejecuta DESPUÉS de registrar hash y tracking (seguro). Fallo de borrado no afecta estado del upload (try-catch, solo warn en log).
 
 ## QK98
 
