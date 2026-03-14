@@ -86,6 +86,7 @@ const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unkn
     '/admin/dashboard/': { island: 'DashboardCreadorIsland', props: {}, title: 'Dashboard' },
     '/admin/panel/': { island: 'AdminPanelIsland', props: {}, title: 'Admin' },
     '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' }, title: 'Sample' },
+    '/musica/': { island: 'ExplorarCancionesIsland', props: {}, title: 'Música' },
 };
 
 /*
