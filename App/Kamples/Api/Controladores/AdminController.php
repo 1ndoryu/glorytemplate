@@ -67,6 +67,19 @@ class AdminController
             'permission_callback' => $admin,
         ]);
 
+        /* QK40: Tablas de scrapers y cola de extracción */
+        register_rest_route($namespace, '/admin/scrapers', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'listarScrapers'],
+            'permission_callback' => $admin,
+        ]);
+
+        register_rest_route($namespace, '/admin/cola-extraccion', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'listarColaExtraccion'],
+            'permission_callback' => $admin,
+        ]);
+
         /* Moderación delegada a su propio controlador */
         AdminModeracionController::registrarRutas($namespace);
     }
@@ -276,6 +289,54 @@ class AdminController
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::eliminarTodosLosSamples fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * QK40: GET /admin/scrapers?page=1&busqueda=&estado=
+     * Lista paginada de scraping_log.
+     */
+    public static function listarScrapers(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $page = max(1, (int) ($request->get_param('page') ?? 1));
+            $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
+            $estado = sanitize_text_field($request->get_param('estado') ?? '');
+
+            $resultado = AdminRepository::listarScrapingLog(
+                ($page - 1) * 25,
+                $busqueda,
+                $estado
+            );
+
+            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::listarScrapers fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /*
+     * QK40: GET /admin/cola-extraccion?page=1&busqueda=&estado=
+     * Lista paginada de cola_extraccion_samples.
+     */
+    public static function listarColaExtraccion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $page = max(1, (int) ($request->get_param('page') ?? 1));
+            $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
+            $estado = sanitize_text_field($request->get_param('estado') ?? '');
+
+            $resultado = AdminRepository::listarColaExtraccion(
+                ($page - 1) * 25,
+                $busqueda,
+                $estado
+            );
+
+            return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::listarColaExtraccion fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }
 }

@@ -268,6 +268,59 @@ export const desuspenderUsuarioAdmin = async (
     return apiPost<{ ok: boolean }>(`/admin/usuarios/${id}/desuspender`, {});
 };
 
+/* QK40: Scrapers (scraping_log) */
+
+export interface ScraperItemAdmin {
+    id: number;
+    url: string;
+    tipo_pagina: string;
+    estado: string;
+    intentos: number;
+    bytes_descargados: number;
+    error_mensaje: string | null;
+    re_scrapeable: boolean;
+    veces_rescrapeado: number;
+    procesado_at: string | null;
+    created_at: string;
+}
+
+export const listarScrapersAdmin = async (
+    page = 1,
+    busqueda = '',
+    estado = ''
+): Promise<RespuestaApi<{ data: ScraperItemAdmin[]; total: number }>> => {
+    return apiGet<{ data: ScraperItemAdmin[]; total: number }>('/admin/scrapers', { page, busqueda, estado });
+};
+
+/* QK40: Cola de extracción (cola_extraccion_samples) */
+
+export interface ColaExtraccionItemAdmin {
+    id: number;
+    relacion_id: number;
+    youtube_id: string | null;
+    spotify_id: string | null;
+    estado: string;
+    intentos: number;
+    lado: string;
+    error_mensaje: string | null;
+    sample_id: number | null;
+    timing_inicio_seg: number | null;
+    compas_inicio_seg: number | null;
+    compas_fin_seg: number | null;
+    bpm_detectado: number | null;
+    procesado_at: string | null;
+    created_at: string;
+    proximo_intento_at: string | null;
+}
+
+export const listarColaExtraccionAdmin = async (
+    page = 1,
+    busqueda = '',
+    estado = ''
+): Promise<RespuestaApi<{ data: ColaExtraccionItemAdmin[]; total: number }>> => {
+    return apiGet<{ data: ColaExtraccionItemAdmin[]; total: number }>('/admin/cola-extraccion', { page, busqueda, estado });
+};
+
 export const marcarEliminacionUsuarioAdmin = async (
     id: number,
     razon: string

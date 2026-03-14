@@ -17,6 +17,8 @@ import { TabColaIaAdmin } from '@app/components/admin/TabColaIaAdmin';
 import { TabDuplicadosAdmin } from '@app/components/admin/TabDuplicadosAdmin';
 import { TabProcesosAdmin } from '@app/components/admin/TabProcesosAdmin';
 import { TabContribucionesAdmin } from '@app/components/admin/TabContribucionesAdmin';
+import { TabScrapersAdmin } from '@app/components/admin/TabScrapersAdmin';
+import { TabColaExtraccionAdmin } from '@app/components/admin/TabColaExtraccionAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
@@ -32,6 +34,8 @@ const TABS_ADMIN = [
     { id: 'duplicados', etiqueta: 'Duplicados' },
     { id: 'procesos', etiqueta: 'Procesos' },
     { id: 'contribuciones', etiqueta: 'Contribuciones' },
+    { id: 'scrapers', etiqueta: 'Scrapers' },
+    { id: 'cola-extraccion', etiqueta: 'Cola Extracción' },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -114,6 +118,14 @@ const AdminPanelBase = (): JSX.Element => {
 
             {admin.tabActiva === 'contribuciones' && (
                 <TabContribucionesAdmin />
+            )}
+
+            {admin.tabActiva === 'scrapers' && (
+                <TabScrapersAdmin />
+            )}
+
+            {admin.tabActiva === 'cola-extraccion' && (
+                <TabColaExtraccionAdmin />
             )}
         </div>
     );

@@ -1,0 +1,160 @@
+/*
+ * Estilos: adminTablas — QK40
+ * Estilos compartidos para las tablas de datos del panel admin
+ * (Scrapers, Cola Extraccion y futuras tablas de datos).
+ */
+
+.adminTablaDatos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioMd);
+}
+
+.adminTablaDatosControles {
+    display: flex;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.adminTablaDatosBusqueda .campTextoInput {
+    padding-left: var(--espacio2xl);
+}
+
+.adminTablaDatosAccionesExtra {
+    display: flex;
+    gap: var(--espacioXs);
+    align-items: center;
+}
+
+/* Menu de columnas */
+.adminColumnasMenu {
+    position: relative;
+}
+
+.adminColumnasDropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioSm);
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.adminColumnasOpcion {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    font-size: var(--fuenteXs);
+    color: var(--textoPrimario);
+    cursor: pointer;
+    padding: var(--espacioXs) var(--espacioSm);
+    border-radius: var(--radioSm);
+    transition: background 0.15s;
+}
+
+.adminColumnasOpcion:hover {
+    background: var(--fondoElevado2);
+}
+
+.adminColumnasOpcion input[type="checkbox"] {
+    accent-color: var(--acento);
+}
+
+/* Contenedor con scroll horizontal para tablas anchas */
+.adminTablaContenedorScroll {
+    overflow-x: auto;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+}
+
+/* Tabla de datos generica */
+.adminTablaDatosTabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteSm);
+    white-space: nowrap;
+}
+
+.adminTablaDatosTabla th {
+    text-align: left;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+    position: sticky;
+    top: 0;
+}
+
+.adminTablaDatosTabla td {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    color: var(--textoPrimario);
+}
+
+.adminTablaDatosTabla tr:hover td {
+    background: var(--fondoElevado2);
+}
+
+/* Celdas especiales */
+.adminTablaCeldaMono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fuenteXs);
+}
+
+.adminTablaCeldaUrl {
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+}
+
+.adminTablaCeldaError {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--colorError);
+    font-size: var(--fuenteXs);
+}
+
+.adminTablaEnlace {
+    color: var(--acento);
+    text-decoration: none;
+    font-size: var(--fuenteXs);
+}
+
+.adminTablaEnlace:hover {
+    text-decoration: underline;
+}
+
+/* Indicador de carga sutil */
+.adminTablaCargando {
+    text-align: center;
+    padding: var(--espacioSm);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteXs);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .adminTablaDatosTabla {
+        font-size: var(--fuenteXs);
+    }
+
+    .adminTablaDatosControles {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

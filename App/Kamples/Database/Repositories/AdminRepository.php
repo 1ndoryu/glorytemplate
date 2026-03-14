@@ -17,6 +17,8 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\DescargasCols;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\ReportesCols;
+use App\Config\Schema\_generated\ScrapingLogCols;
+use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\PublicacionesEnums;
@@ -141,6 +143,124 @@ class AdminRepository
         $paramsCount = array_diff_key($params, ['offset' => true, 'porPagina' => true]);
         $total = SamplesRepository::consultarUno(
             "SELECT COUNT(*) as total FROM {$tu} u WHERE {$where}",
+            $paramsCount
+        );
+
+        return [
+            'data'  => $data,
+            'total' => (int) ($total['total'] ?? 0),
+        ];
+    }
+
+    /*
+     * QK40: Lista paginada de scraping_log con búsqueda y filtro por estado.
+     */
+    public static function listarScrapingLog(
+        int $offset,
+        string $busqueda = '',
+        string $estado = '',
+        int $porPagina = 25
+    ): array {
+        $t = ScrapingLogCols::TABLA;
+        $params = ['offset' => $offset, 'porPagina' => $porPagina];
+        $where = '1=1';
+
+        if (!empty($busqueda)) {
+            $where .= ' AND (' . ScrapingLogCols::URL . ' ILIKE :busqueda'
+                . ' OR ' . ScrapingLogCols::TIPO_PAGINA . ' ILIKE :busqueda'
+                . ' OR ' . ScrapingLogCols::ERROR_MENSAJE . ' ILIKE :busqueda)';
+            $params['busqueda'] = '%' . $busqueda . '%';
+        }
+
+        $estadosValidos = ['pending', 'scraped', 'error', 'skipped'];
+        if (!empty($estado) && in_array($estado, $estadosValidos, true)) {
+            $where .= ' AND ' . ScrapingLogCols::ESTADO . ' = :estado';
+            $params['estado'] = $estado;
+        }
+
+        $data = SamplesRepository::consultar(
+            "SELECT " . ScrapingLogCols::ID
+                . ', ' . ScrapingLogCols::URL
+                . ', ' . ScrapingLogCols::TIPO_PAGINA
+                . ', ' . ScrapingLogCols::ESTADO
+                . ', ' . ScrapingLogCols::INTENTOS
+                . ', ' . ScrapingLogCols::BYTES_DESCARGADOS
+                . ', ' . ScrapingLogCols::ERROR_MENSAJE
+                . ', ' . ScrapingLogCols::RE_SCRAPEABLE
+                . ', ' . ScrapingLogCols::VECES_RESCRAPEADO
+                . ', ' . ScrapingLogCols::PROCESADO_AT
+                . ', ' . ScrapingLogCols::CREATED_AT
+                . " FROM {$t} WHERE {$where}"
+                . ' ORDER BY ' . ScrapingLogCols::CREATED_AT . ' DESC'
+                . ' LIMIT :porPagina OFFSET :offset',
+            $params
+        );
+
+        $paramsCount = array_diff_key($params, ['offset' => true, 'porPagina' => true]);
+        $total = SamplesRepository::consultarUno(
+            "SELECT COUNT(*) as total FROM {$t} WHERE {$where}",
+            $paramsCount
+        );
+
+        return [
+            'data'  => $data,
+            'total' => (int) ($total['total'] ?? 0),
+        ];
+    }
+
+    /*
+     * QK40: Lista paginada de cola_extraccion_samples con búsqueda y filtro por estado.
+     * Incluye datos de la relación (canción fuente/destino) para contexto.
+     */
+    public static function listarColaExtraccion(
+        int $offset,
+        string $busqueda = '',
+        string $estado = '',
+        int $porPagina = 25
+    ): array {
+        $tc = ColaExtraccionSamplesCols::TABLA;
+        $params = ['offset' => $offset, 'porPagina' => $porPagina];
+        $where = '1=1';
+
+        if (!empty($busqueda)) {
+            $where .= ' AND (c.' . ColaExtraccionSamplesCols::YOUTUBE_ID . ' ILIKE :busqueda'
+                . ' OR c.' . ColaExtraccionSamplesCols::ERROR_MENSAJE . ' ILIKE :busqueda'
+                . ' OR c.' . ColaExtraccionSamplesCols::SPOTIFY_ID . ' ILIKE :busqueda)';
+            $params['busqueda'] = '%' . $busqueda . '%';
+        }
+
+        $estadosValidos = ['pendiente', 'descargando', 'analizando', 'recortando', 'extraido', 'completado', 'error', 'revision_humana'];
+        if (!empty($estado) && in_array($estado, $estadosValidos, true)) {
+            $where .= ' AND c.' . ColaExtraccionSamplesCols::ESTADO . ' = :estado';
+            $params['estado'] = $estado;
+        }
+
+        $data = SamplesRepository::consultar(
+            "SELECT c." . ColaExtraccionSamplesCols::ID
+                . ', c.' . ColaExtraccionSamplesCols::RELACION_ID
+                . ', c.' . ColaExtraccionSamplesCols::YOUTUBE_ID
+                . ', c.' . ColaExtraccionSamplesCols::SPOTIFY_ID
+                . ', c.' . ColaExtraccionSamplesCols::ESTADO
+                . ', c.' . ColaExtraccionSamplesCols::INTENTOS
+                . ', c.' . ColaExtraccionSamplesCols::LADO
+                . ', c.' . ColaExtraccionSamplesCols::ERROR_MENSAJE
+                . ', c.' . ColaExtraccionSamplesCols::SAMPLE_ID
+                . ', c.' . ColaExtraccionSamplesCols::TIMING_INICIO_SEG
+                . ', c.' . ColaExtraccionSamplesCols::COMPAS_INICIO_SEG
+                . ', c.' . ColaExtraccionSamplesCols::COMPAS_FIN_SEG
+                . ', c.' . ColaExtraccionSamplesCols::BPM_DETECTADO
+                . ', c.' . ColaExtraccionSamplesCols::PROCESADO_AT
+                . ', c.' . ColaExtraccionSamplesCols::CREATED_AT
+                . ', c.' . ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT
+                . " FROM {$tc} c WHERE {$where}"
+                . ' ORDER BY c.' . ColaExtraccionSamplesCols::CREATED_AT . ' DESC'
+                . ' LIMIT :porPagina OFFSET :offset',
+            $params
+        );
+
+        $paramsCount = array_diff_key($params, ['offset' => true, 'porPagina' => true]);
+        $total = SamplesRepository::consultarUno(
+            "SELECT COUNT(*) as total FROM {$tc} c WHERE {$where}",
             $paramsCount
         );
 
