@@ -351,54 +351,15 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK105
 
-[EN CURSO — AG-WRK] Correciones de la tarea anterior
-
-se oculto la pagina de panel admin pero eso solo era para movil, necesito verla en escritorio, mejor al lado del mezclador
-en escritorio inico (feed de samples) tiene que estar en el medio es decir, bajarolo un lugar para que quede arriba del icono de musica y arriba del de librería
-el icono de la apk espero que sea el del mismo favicon de kamples
-
-estos son los estilos correctos de musicaExplorarContenedor para que se vea bien, para escritorio y telefono
-
-borrar los comentados /**/
-
-.musicaExplorarContenedor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacio2xl);
-    padding: var(--espacioLg) var(--espacioXl);
-    /* max-width: var(--anchoMaximoContenido); */
-    /* margin: 0 auto; */
-    padding-right: 0;
-    width: 100%;
-}
-
-.seccionHorizontalScroll mejor con gap: var(--espacioXl); en general
-
-la pagina de musica necesita una tab al menos para que no se bugue 
-
-es raro que cuando estoy en https://kamples.com/musica/ el icono que queda activo es el home y no el de musica
-
-estilos correctos para dropdownPanelTab
-
-borrar los comentados /**/
-
-.dropdownPanelTab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    border-radius: 0;
-    /* justify-content: center; */
-    /* gap: var(--espacioXs); */
-    /* padding: var(--espacioSm) var(--espacioMd); */
-    /* font-size: var(--fuenteSm); */
-    /* font-weight: var(--pesoMedium); */
-    /* color: var(--textoTerciario); */
-    /* background: none; */
-    /* border: none; */
-    /* border-bottom: 2px solid transparent; */
-    /* cursor: pointer; */
-    /* transition: color var(--transicionRapida), border-color var(--transicionRapida); */
-}
+✅ [AG-WRK] Correcciones UI post-QK104 (94b8cb22):
+- Admin panel visible en desktop (botón ShieldCheck al lado del mezclador, hidden en móvil)
+- Sidebar desktop reordenada: Comunidad → Música → Inicio → Librería → Coleccionados (Inicio centrado)
+- Iconos APK generados desde favicon.svg (sharp → mipmap-mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi + icon.png)
+- musicaExplorarContenedor: eliminados max-width/margin auto, añadido padding-right: 0
+- seccionHorizontalScroll: gap escalado a var(--espacioXl)
+- ExplorarCancionesIsland: tab "Música" registrada en TopBar (fix bug tabs vacías)
+- MAPA_RUTAS: añadida entrada '/musica' → 'musica' (fix icono activo en /musica/)
+- dropdownPanelTab: simplificado a flex:1 + display:flex + align-items:center + border-radius:0
 
 ## Despliegue Produccion (VPS Coolify)
 
