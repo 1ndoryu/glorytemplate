@@ -227,7 +227,12 @@ para mi algo importante son las notificaciones, anticipar que las notificaciones
 
 ## QK94
 
-Revisiones de seguridad, revisiones de optimizacion generales.
+✅ [AG-ADM] Auditoría seguridad + optimización general — Escaneo de 17 hallazgos (CRITICOS/HIGH/MEDIUM/LOW):
+- **Resultado general:** Positivo. Schema constants en SQL, prepared statements, AuthMiddleware, SSL verification en curl externo (OpenAI, Groq, ColaIa).
+- **Fix 1:** `ContribucionesService.php` — `json_decode()` sin validación de error. Añadido `json_last_error()` check + KamplesLogger warning.
+- **Fix 2:** `SamplesRepository.php` — 5 catch blocks vacíos (`/* best-effort */`). Añadido `KamplesLogger::debug()` a cada uno para visibilidad diagnóstica.
+- **False alarm SSL:** `NotificadorWebSocket` no tiene SSL verify, pero es HTTP interno Docker (red interna, no HTTPS) — por diseño.
+- [Arq]: Los import de `KamplesLogger` se añadieron donde faltaban.
 
 ## QK95
 
@@ -236,6 +241,10 @@ La busqueda no esta actualizando la lista de samples.
 ## QK96
 
 Hay un error, revisa los logs
+
+## QK97
+
+Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajustar todo lo que este implica para que funcione bien.
 
 ## Despliegue Produccion (VPS Coolify)
 
