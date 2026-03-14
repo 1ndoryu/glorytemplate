@@ -180,6 +180,7 @@ class ArtistSpider(scrapy.Spider):
         """
         Procesar una fila de tabla que contiene un link a detalle de relación.
         Busca links a /sample/, /cover/, /remix/ y los delega al SampleDetailSpider.
+        QK20: Cover/remix se scrape con prioridad baja (Scrapy priority=-5).
         """
         # Buscar link al detalle de la relación
         for a_tag in row.css("a[href]"):
@@ -192,13 +193,18 @@ class ArtistSpider(scrapy.Spider):
                     continue
 
                 tipo_detalle = "sample_detail"
+                scrapy_priority = 0
                 if "/cover/" in href:
                     tipo_detalle = "cover_detail"
+                    scrapy_priority = -5
                 elif "/remix/" in href:
                     tipo_detalle = "remix_detail"
+                    scrapy_priority = -5
 
                 registrar_url(detail_norm, tipo_detalle, "pendiente")
-                yield scrapy.Request(detail_url, callback=self._parse_detail)
+                yield scrapy.Request(
+                    detail_url, callback=self._parse_detail, priority=scrapy_priority,
+                )
                 return
 
         # Si no hay link directo a detalle, buscar link al track

@@ -3,11 +3,14 @@
  * Muestra una comparacion lado a lado de sample original vs duplicado.
  * 4 acciones: fusionar (conservar original), intercambiar (conservar duplicado),
  * aprobar (ambos coexisten) y rechazar (eliminar duplicado).
+ * QK25: Waveform visual para comparacion rapida sin escuchar.
  */
 
+import { useEffect, useState } from 'react';
 import { Loader2, Merge, ArrowLeftRight, Check, X } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
+import { WaveformPlayer } from '../ui/WaveformPlayer';
 import type { DuplicadoAdmin } from '../../services/apiAdmin';
 
 interface TarjetaDuplicadoProps {
@@ -39,7 +42,26 @@ const formatoFecha = (iso: string): string => {
     }
 };
 
-const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, slug }: {
+/* Cargar picos de waveform desde URL JSON */
+const usePicosWaveform = (rutaWaveform: string | null): number[] | null => {
+    const [picos, setPicos] = useState<number[] | null>(null);
+
+    useEffect(() => {
+        if (!rutaWaveform) return;
+        const ctrl = new AbortController();
+        fetch(rutaWaveform, { signal: ctrl.signal })
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                if (Array.isArray(data)) setPicos(data);
+            })
+            .catch(() => { /* abort o error de red — silenciar */ });
+        return () => ctrl.abort();
+    }, [rutaWaveform]);
+
+    return picos;
+};
+
+const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, slug, rutaWaveform }: {
     etiqueta: string;
     titulo: string;
     creador: string;
@@ -47,29 +69,43 @@ const LadoSample = ({ etiqueta, titulo, creador, fecha, sampleId, rutaPreview, s
     sampleId: number;
     rutaPreview: string | null;
     slug: string | null;
-}): JSX.Element => (
-    <div className="dupLado">
-        <span className="dupLadoEtiqueta">{etiqueta}</span>
-        {slug ? (
-            <a href={`/sample/${slug}/`} className="dupLadoTitulo dupLadoTituloEnlace" title={titulo} target="_blank" rel="noopener noreferrer">{titulo}</a>
-        ) : (
-            <span className="dupLadoTitulo" title={titulo}>{titulo}</span>
-        )}
-        <span className="dupLadoMeta">
-            por <strong>{creador}</strong> — {formatoFecha(fecha)}
-        </span>
-        <span className="dupLadoId">#{sampleId}</span>
-        {rutaPreview && (
-            /* sentinel-disable-next-line html-nativo-en-vez-de-componente — audio nativo para preview admin */
-            <audio
-                className="dupAudioPreview"
-                src={rutaPreview}
-                controls
-                preload="none"
+    rutaWaveform: string | null;
+}): JSX.Element => {
+    const picos = usePicosWaveform(rutaWaveform);
+
+    return (
+        <div className="dupLado">
+            <span className="dupLadoEtiqueta">{etiqueta}</span>
+            {slug ? (
+                <a href={`/sample/${slug}/`} className="dupLadoTitulo dupLadoTituloEnlace" title={titulo} target="_blank" rel="noopener noreferrer">{titulo}</a>
+            ) : (
+                <span className="dupLadoTitulo" title={titulo}>{titulo}</span>
+            )}
+            <span className="dupLadoMeta">
+                por <strong>{creador}</strong> — {formatoFecha(fecha)}
+            </span>
+            <span className="dupLadoId">#{sampleId}</span>
+            {/* QK25: Waveform visual para comparacion sin escuchar */}
+            <WaveformPlayer
+                picos={picos}
+                tamano="sm"
+                interactivo={false}
+                colorNoReproducido="var(--bordeSutil, #333)"
+                colorReproducido="var(--acento, #4a665b)"
+                className="dupWaveform"
             />
-        )}
-    </div>
-);
+            {rutaPreview && (
+                /* sentinel-disable-next-line html-nativo-en-vez-de-componente — audio nativo para preview admin */
+                <audio
+                    className="dupAudioPreview"
+                    src={rutaPreview}
+                    controls
+                    preload="none"
+                />
+            )}
+        </div>
+    );
+};
 
 export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDuplicadoProps): JSX.Element => {
     const d = duplicado;
@@ -94,6 +130,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     sampleId={d.original_id}
                     rutaPreview={d.original_ruta_preview}
                     slug={d.original_slug}
+                    rutaWaveform={d.original_ruta_waveform}
                 />
                 <div className="dupSeparador">
                     <span className="dupSeparadorLinea" />
@@ -108,6 +145,7 @@ export const TarjetaDuplicado = ({ duplicado, procesando, onAccion }: TarjetaDup
                     sampleId={d.duplicado_id}
                     rutaPreview={d.duplicado_ruta_preview}
                     slug={d.duplicado_slug}
+                    rutaWaveform={d.duplicado_ruta_waveform}
                 />
             </div>
 

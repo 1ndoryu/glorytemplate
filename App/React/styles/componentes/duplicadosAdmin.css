@@ -152,6 +152,14 @@
     font-family: var(--fuenteMono);
 }
 
+/* QK25: Waveform visual para comparacion rapida */
+.dupWaveform {
+    width: 100%;
+    margin-top: var(--espacioXs);
+    border-radius: var(--radioSm);
+    overflow: hidden;
+}
+
 .dupAudioPreview {
     width: 100%;
     height: 32px;

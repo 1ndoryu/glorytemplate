@@ -176,6 +176,7 @@ export interface DuplicadoAdmin {
     original_titulo: string;
     original_subido_at: string;
     original_ruta_preview: string | null;
+    original_ruta_waveform: string | null;
     original_creador: string;
     original_creador_id: number;
     original_slug: string | null;
@@ -183,6 +184,7 @@ export interface DuplicadoAdmin {
     duplicado_titulo: string;
     duplicado_subido_at: string;
     duplicado_ruta_preview: string | null;
+    duplicado_ruta_waveform: string | null;
     duplicado_creador: string;
     duplicado_creador_id: number;
     duplicado_slug: string | null;
