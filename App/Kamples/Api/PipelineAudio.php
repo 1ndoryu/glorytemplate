@@ -33,6 +33,7 @@ use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\Api\ProcesadorFFmpeg;
 use App\Kamples\Services\GeneradorEmbeddings;
 use App\Kamples\Services\MotorRecomendacion;
+use App\Kamples\Services\SelectorCandidatos;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Api\PipelineAudioHelpers;
 
@@ -453,6 +454,7 @@ class PipelineAudio
 
         /* Invalidar cache de feeds globalmente al publicar nuevo sample */
         MotorRecomendacion::invalidarCacheGlobal();
+        SelectorCandidatos::invalidarConteo();
 
         /* Paso 10: Programar cálculo de hash perceptual para deduplicación (background) */
         try {

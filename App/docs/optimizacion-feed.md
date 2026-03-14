@@ -1,201 +1,442 @@
-# Optimización del Feed de Samples — Análisis y Plan
+# Optimizacion del Feed de Samples — Analisis, Plan y Estrategia para 1M
 
-> **Versión:** 1.0 | **Fecha:** 2026-03-14 | **Contexto:** QK17
+> **Version:** 2.0 | **Ultima actualizacion:** 2026-03-15 | **Contexto:** QK17 + QK21
 
-## Problema Reportado
+## Estado de Optimizaciones
 
-"Cargando samples... tarda demasiado con apenas 100 samples, no está optimizado, algoritmo parece que no tiene cache."
+| ID | Optimizacion | Estado | Impacto |
+|----|-------------|--------|---------|
+| Opt-1 | Cache perfil usuario (30 min transient) | IMPLEMENTADA | Elimina 7 queries por cache miss |
+| Opt-2 | CTE unificado perfil (7 queries a 2) | IMPLEMENTADA | -5 roundtrips BD |
+| Opt-3 | Sincronizar invalidacion cache | IMPLEMENTADA | Perfil no se recalcula en cada miss |
+| Opt-4 | TTL diferenciado por pagina (5/15 min) | IMPLEMENTADA | -70% recalculos paginas 2+ |
+| Opt-5 | Stale-While-Revalidate frontend | IMPLEMENTADA | Percepcion instantanea |
+| Opt-6 | Pipeline dos etapas (candidatos/scoring) | IMPLEMENTADA | De O(N) a O(~1000) |
+| Opt-7 | Indices especializados feed 1M | IMPLEMENTADA | Candidate stage usa index scans |
+| Opt-8 | Vista materializada trending | IMPLEMENTADA | Elimina 4 subqueries correlacionadas |
+| Opt-9 | Tags enriquecidos pre-computados | PENDIENTE | Elimina ~7 JSONB parses por fila |
+| Opt-10 | Paginacion por cursor (keyset) | PENDIENTE | O(1) vs O(offset) en paginas profundas |
+| Opt-11 | Tabla materializada de scores por usuario | PENDIENTE | O(1) feed para usuarios activos |
+| Opt-12 | Read replica para queries de feed | PENDIENTE | Descarga del primary |
+| Opt-13 | Warming proactivo para usuarios activos | PENDIENTE | Cache hit rate 99%+ |
 
-## Diagnóstico: Cómo Funciona Actualmente
+---
 
-### Arquitectura Backend (5 capas)
+## Problema Central: Escalabilidad a 1M Samples
+
+### Diagnostico del cuello de botella principal
+
+El feed actual funciona asi:
+
+```
+GET /feed → MotorRecomendacion::feedPersonalizado()
+  1. Cache check (transient) → HIT: retorna inmediatamente
+  2. MISS: construir query CTE con 6 senales
+  3. FROM samples s WHERE estado = 'activo'  ← FULL TABLE SCAN
+     - POR CADA FILA (~20 subconsultas correlacionadas):
+       - 5 subfactores comportamiento (tags JSONB parse x7 por subfactor)
+       - 4 subfactores tendencias (COUNT en likes/repro/descargas/follows con filtro temporal)
+       - 2 subfactores grafo social (IN subquery follows)
+       - 1 distancia coseno pgvector
+       - 4 flags de estado (reaccion, coleccionado, guardado, comentado)
+       - 3 multiplicadores (penalizacion repro, pasiva, saturacion)
+  4. ORDER BY score DESC LIMIT 12
+```
+
+PostgreSQL **no puede** aplicar LIMIT antes de calcular el score de CADA sample porque el ORDER BY depende del score calculado. Esto significa:
+
+| Samples activos | Filas evaluadas | Subqueries ejecutadas | Tiempo estimado (sin cache) |
+|-----------------|-----------------|----------------------|----------------------------|
+| 100 | 100 | ~2,000 | 150-300ms |
+| 1,000 | 1,000 | ~20,000 | 500ms-1s |
+| 10,000 | 10,000 | ~200,000 | 2-5s |
+| 100,000 | 100,000 | ~2,000,000 | 20-50s |
+| **1,000,000** | **1,000,000** | **~20,000,000** | **INACEPTABLE** |
+
+### Solucion arquitectonica: Pipeline de dos etapas
+
+En vez de evaluar 1M samples con scoring completo, separar en dos fases:
+
+**Etapa 1 — Seleccion rapida de candidatos** (O(log N) con indices):
+Usar 5 fuentes de candidatos con index scans rapidos, cada una retorna ~200-300 IDs:
+
+| Fuente | Query | Indice usado | Max candidatos |
+|--------|-------|-------------|----------------|
+| Trending recientes | 14 dias, ORDER BY engagement | idx_samples_estado (btree) + Sort | 300 |
+| Similares embedding | ANN pgvector <=> perfil | idx_samples_embedding (HNSW) | 200 |
+| Creadores seguidos | WHERE creador_id IN (seguidos) | idx_follows_seguidor + idx_samples_creador | 200 |
+| Afinidad por tags | WHERE tags && userTags | idx_samples_tags (GIN) | 200 |
+| Populares all-time | ORDER BY engagement global | idx_samples_engagement_activo (btree) | 100 |
+
+Total: ~1000 candidatos unicos (UNION elimina duplicados).
+
+**Etapa 2 — Scoring completo** (solo ~1000 filas):
+Aplicar las 6 senales + multiplicadores + diversidad solo sobre los candidatos pre-seleccionados.
+
+**Resultado:** De O(1M * 20) subconsultas a O(1000 * 20) = **reduccion 1000x**.
+
+---
+
+## Arquitectura Actual (Post Opt-1 a Opt-8)
+
+### Backend
 
 ```
 GET /feed?tipo=descubrir&page=1&per_page=12
-  │
-  ├─ SamplesController::feed()
-  │   └─ Rate limit anónimos (60/min por IP)
-  │   └─ Delega a MotorRecomendacion::feedPersonalizado()
-  │
-  ├─ MotorRecomendacion::feedPersonalizado($userId, $limite, $offset)
-  │   ├─ Cache check: WP transient `kamples_feed_{userId}_{limite}_{offset}`
-  │   │   └─ TTL: 300s (5 minutos)
-  │   │   └─ Si HIT → retorna inmediatamente
-  │   │   └─ Si MISS → continúa...
-  │   │
-  │   ├─ PerfilUsuario::construir($userId) ← CUELLO DE BOTELLA #1
-  │   │   ├─ contarInteracciones()      → 1 query (3 COUNT subqueries)
-  │   │   ├─ bpmPromedio()              → 1 query (AVG con UNION)
-  │   │   ├─ keyFavorita()              → 1 query (GROUP BY + ORDER BY)
-  │   │   ├─ escalaFavorita()           → 1 query (GROUP BY + ORDER BY)
-  │   │   ├─ tipoFavorito()             → 1 query (GROUP BY + ORDER BY)
-  │   │   ├─ obtenerCreadoresFavoritos() → 1 query (3 UNION ALL + GROUP BY)
-  │   │   └─ obtenerGenerosDeclarados() → 1 query (campo JSONB)
-  │   │   = 7 queries secuenciales SIN cache
-  │   │
-  │   ├─ ConstructorSenales (6 señales SQL) ← CUELLO DE BOTELLA #2
-  │   │   ├─ Comportamiento (5 sub-factores: likes, reproducciones, tiempo, descargas, completadas)
-  │   │   ├─ Contexto (BPM, key, escala, tipo, género, creador favorito)
-  │   │   ├─ Tendencias (likes 24h, reproducciones 24h, descargas 7d, follows 7d)
-  │   │   ├─ Novedad (decay logarítmico)
-  │   │   ├─ Grafo social (seguidos + likes de seguidos)
-  │   │   └─ Similitud contenido (pgvector coseno — embedding perfil vs sample)
-  │   │   = Generan SQL string con interpolación PHP
-  │   │
-  │   ├─ Query SQL CTE 2 niveles ← CUELLO DE BOTELLA #3
-  │   │   └─ base_scores: calcula score para TODOS los 100+ samples
-  │   │   └─ scored: ROW_NUMBER PARTITION BY creador_id
-  │   │   └─ ORDER BY score DESC LIMIT 12 OFFSET 0
-  │   │   = PostgreSQL evalúa TODAS las filas antes de LIMIT
-  │   │
-  │   └─ Post-procesamiento (serendipia, normalización)
-  │
-  └─ NormalizadorSample::normalizarLista() → JSON response
+  |
+  +-> SamplesController::feed()
+  |     Rate limit anonimos (60/min por IP)
+  |
+  +-> MotorRecomendacion::feedPersonalizado($userId, $limite, $offset)
+  |     +-- Cache check: transient kamples_feed_{userId}_{limite}_{offset}
+  |     |   TTL: 300s pagina 1 / 900s paginas 2+
+  |     |   HIT -> retorna inmediatamente
+  |     |
+  |     +-- PerfilUsuario::construir($userId)
+  |     |   Cache: transient kamples_perfil_usr_{userId} (30 min)
+  |     |   CTE unificado: 2 queries (perfil base + creadores favoritos)
+  |     |
+  |     +-- [Opt-6] SelectorCandidatos::seleccionar($userId, $perfil, &$params)
+  |     |   Si totalActivos > umbral (5000): 5 fuentes UNION -> ~1000 IDs
+  |     |   Si totalActivos <= umbral: sin filtro (todas las filas, compatible legacy)
+  |     |
+  |     +-- ConstructorSenales (6 senales SQL)
+  |     |   Comportamiento(0.27) + Contexto(0.15) + Tendencias(0.12) + ...
+  |     |
+  |     +-- [Opt-8] JOIN mv_trending_samples (vista materializada)
+  |     |   Reemplaza 4 subqueries correlacionadas de tendencias
+  |     |   Refresh: cada 10 min via WP Cron / crontab VPS
+  |     |
+  |     +-- CTE 3 niveles: candidatos -> base_scores -> scored
+  |     |   Scoring solo sobre candidatos pre-filtrados
+  |     |   ROW_NUMBER PARTITION BY creador_id (diversidad)
+  |     |
+  |     +-- Serendipia: inyectar samples aleatorios cada N posiciones
+  |     +-- Cache: guardar en transient
+  |
+  +-> NormalizadorSample::normalizarLista() -> JSON response
 ```
 
-### Arquitectura Frontend
+### Frontend
 
 ```
 useFeedSamples (hook principal)
-  ├─ Carga paginada: page 1, 2, 3... (per_page=12)
-  ├─ Infinite scroll: IntersectionObserver + throttle progresivo
-  ├─ Virtualización: solo renderiza elementos visibles (max 50)
-  ├─ Cache in-memory: cacheFeedRef por clave+página
-  ├─ Race condition guard: requestIdRef
-  └─ CRUD listeners: eliminado, restaurado, actualizado, creado
+  +-- Carga paginada: page 1, 2, 3... (per_page=12)
+  +-- Infinite scroll: IntersectionObserver + throttle progresivo
+  +-- Virtualizacion: solo renderiza elementos visibles (max 50)
+  +-- Cache in-memory: cacheFeedRef por clave+pagina
+  +-- Stale-While-Revalidate: muestra datos y revalida en background
+  +-- Race condition guard: requestIdRef
+  +-- CRUD listeners: eliminado, restaurado, actualizado, creado
 ```
 
-### Cache Existente
+### Cache
 
-| Capa | Clave | TTL | Qué cachea |
-|------|-------|-----|------------|
-| Feed | `kamples_feed_{userId}_{limite}_{offset}` | 300s (5 min) | Resultado completo del feed paginado |
-| pgvector check | `kamples_pgvector_activo` | 3600s (1h) | Bool: extensión pgvector disponible |
-| Perfil vectorial | `kamples_perfil_vec_{userId}` | 3600s (1h) | Array 128 floats (embedding perfil) |
-| Saturación stats | `kamples_saturacion_stats` | 3600s (1h) | Percentiles P75/P95 de descargas |
-| **Perfil usuario** | **NINGUNO** | - | **7 queries sin cache** |
+| Capa | Clave | TTL | Que cachea | Invalidacion |
+|------|-------|-----|------------|--------------|
+| Feed pagina 1 | kamples_feed_{userId}_{limite}_0 | 300s (5 min) | Resultado JSON completo | Like/follow/nuevo sample |
+| Feed paginas 2+ | kamples_feed_{userId}_{limite}_{offset} | 900s (15 min) | Idem | Idem |
+| Perfil usuario | kamples_perfil_usr_{userId} | 1800s (30 min) | Preferencias calculadas | PlanificadorAlgoritmo |
+| Perfil vectorial | kamples_perfil_vec_{userId} | 3600s (1h) | Embedding 128 dims | GeneradorEmbeddings |
+| pgvector check | kamples_pgvector_activo | 3600s (1h) | Bool disponibilidad | Auto |
+| Saturacion stats | kamples_saturacion_stats | 3600s (1h) | Percentiles P75/P95 | Auto |
+| Total activos | kamples_total_samples_activos | 3600s (1h) | COUNT(*) samples activos | Publicar/eliminar sample |
+| Trending MV | mv_trending_samples | ~10 min | Aggregated trending scores | REFRESH MATERIALIZED VIEW |
+| Frontend | cacheFeedRef[key+page] | Session | Datos feed por pagina | Navegacion |
 
-### Invalidación
+---
 
-- `MotorRecomendacion::invalidarCache($userId)` — al dar like/dislike/follow
-- `MotorRecomendacion::invalidarCacheGlobal()` — al publicar nuevo sample
-- `PlanificadorAlgoritmo` — recálculo rápido (cada 5 interacciones) y preciso (cada 10)
-
-## Cuellos de Botella Identificados
-
-### #1: Perfil de Usuario — 7 Queries Secuenciales Sin Cache (CRÍTICO)
-
-Cada cache miss del feed ejecuta 7 queries a BD sin ningún tipo de cache:
-- Todas hacen UNION de likes + reproducciones (tablas grandes)
-- Las queries 2-5 repiten la misma lógica de "samples con los que interactuó"
-- `obtenerCreadoresFavoritos` es la más pesada: 3 UNION ALL + GROUP BY + HAVING
-
-**Impacto:** Con cache feed de 5 minutos, esto se ejecuta mínimo cada 5 minutos por usuario activo. Con invalidación tras like/dislike, puede ser mucho más frecuente.
-
-### #2: Query SQL Evalúa TODOS los Samples
-
-PostgreSQL no puede usar LIMIT antes de calcular el score de CADA sample activo porque el ORDER BY depende del score calculado. Con 100 samples el costo es moderado, pero crece linealmente.
-
-### #3: Invalidación Demasiado Agresiva
-
-Un simple like invalida TODO el cache del feed del usuario (todas las páginas). La próxima carga re-ejecuta perfil + 6 señales.
-
-## Optimizaciones Implementadas
+## Optimizaciones Implementadas (Detalle)
 
 ### Opt-1: Cache de Perfil de Usuario (WP Transient)
 
 **Archivo:** `App/Kamples/Services/PerfilUsuario.php`
 
-**Cambio:** Cachear el resultado de `construir()` en transient con TTL de 30 minutos. El perfil solo cambia significativamente con acumulación de interacciones (no con cada like individual).
+Cache del resultado de `construir()` en transient con TTL de 30 minutos.
+El perfil solo cambia con acumulacion de interacciones, no con cada like individual.
 
 - **Clave:** `kamples_perfil_usr_{userId}`
-- **TTL:** 1800s (30 minutos) — alineado con el intervalo rápido del PlanificadorAlgoritmo
-- **Invalidación:** Al ejecutarse recálculo rápido o preciso (PlanificadorAlgoritmo)
+- **TTL:** 1800s (30 minutos)
+- **Invalidacion:** PlanificadorAlgoritmo (recalculo rapido/preciso)
+- **Impacto:** Elimina 7 queries en cada cache miss del feed
 
-**Impacto:** Elimina 7 queries en cada cache miss del feed. El perfil se re-calcula máximo cada 30 minutos o cuando el planificador dispare recálculo.
-
-### Opt-2: Unificar 6 Queries del Perfil en 1 CTE
+### Opt-2: CTE Unificado del Perfil (7 queries a 2)
 
 **Archivo:** `App/Kamples/Database/Repositories/UsuariosExtRepository.php`
 
-**Cambio:** Nuevo método `perfilCompletoParaAlgoritmo($userId)` que combina las 6 queries en una sola CTE con sub-selects:
+Metodo `perfilCompletoParaAlgoritmo($userId)` combina interacciones + BPM + key + escala + tipo en una sola CTE. Creadores favoritos en query separada (estructura diferente).
 
-```sql
-WITH interacciones AS (
-    SELECT target_id AS sample_id FROM likes WHERE usuario_id = :userId AND tipo = 'sample' AND reaccion IN ('like','encanta')
-    UNION
-    SELECT sample_id FROM reproducciones WHERE usuario_id = :userId
-),
-total AS (
-    SELECT (SELECT COUNT(*) FROM likes WHERE usuario_id = :userId AND tipo = 'sample')
-         + (SELECT COUNT(*) FROM reproducciones WHERE usuario_id = :userId)
-         + (SELECT COUNT(*) FROM descargas WHERE usuario_id = :userId) AS total
-),
-bpm AS (SELECT AVG(s.bpm)::int AS val FROM samples s JOIN interacciones i ON s.id = i.sample_id WHERE s.bpm IS NOT NULL),
-key_fav AS (SELECT s.key AS val FROM samples s JOIN interacciones i ON s.id = i.sample_id WHERE s.key IS NOT NULL GROUP BY s.key ORDER BY COUNT(*) DESC LIMIT 1),
-escala_fav AS (SELECT LOWER(s.escala) AS val FROM samples s JOIN interacciones i ON s.id = i.sample_id WHERE s.escala IS NOT NULL AND s.escala != '' GROUP BY LOWER(s.escala) ORDER BY COUNT(*) DESC LIMIT 1),
-tipo_fav AS (SELECT s.tipo AS val FROM samples s JOIN interacciones i ON s.id = i.sample_id GROUP BY s.tipo ORDER BY COUNT(*) DESC LIMIT 1)
-SELECT
-    (SELECT total FROM total) AS interacciones,
-    (SELECT val FROM bpm) AS bpm_prom,
-    (SELECT val FROM key_fav) AS key_fav,
-    (SELECT val FROM escala_fav) AS escala_fav,
-    (SELECT val FROM tipo_fav) AS tipo_fav
-```
-
-**Impacto:** 7 queries → 1 query + 1 query separada para creadores favoritos (esta usa 3 UNION ALL y es más eficiente separada). Total: 7 → 2 roundtrips a BD.
-
-### Opt-3: Sincronizar Invalidación de Cache (Feed + Perfil)
+### Opt-3: Sincronizar Invalidacion de Cache
 
 **Archivo:** `App/Kamples/Services/PlanificadorAlgoritmo.php`
 
-**Cambio:** Al disparar recálculo rápido, además de invalidar cache del feed, invalidar cache del perfil. Al disparar recálculo preciso, también invalidar los embeddings.
+Recalculo rapido invalida cache feed + perfil. Recalculo preciso tambien invalida embeddings.
 
-**Impacto:** El perfil solo se re-calcula cuando es relevante (acumulación de interacciones), no en cada cache miss del feed.
-
-### Opt-4: TTL Diferenciado por Página
+### Opt-4: TTL Diferenciado por Pagina
 
 **Archivo:** `App/Kamples/Services/MotorRecomendacion.php`
 
-**Cambio:** 
-- Página 1: TTL 300s (5 minutos) — mantener frescura
-- Página 2+: TTL 900s (15 minutos) — páginas subsecuentes cambian menos
+Pagina 1: 5 min. Paginas 2+: 15 min. Reduce recalculos en infinite scroll.
 
-### Opt-5: Stale-While-Revalidate en Frontend
+### Opt-5: Stale-While-Revalidate Frontend
 
 **Archivo:** `App/React/hooks/useFeedSamples.ts`
 
-**Cambio:** Al tener datos en cache, mostrarlos inmediatamente y re-validar en background. El usuario ve contenido instantáneo y los datos se actualizan silenciosamente si cambiaron.
+Muestra datos en memoria inmediatamente mientras revalida en background.
 
-## Resultado Esperado
+---
 
-### Antes (cada carga de feed con cache miss):
-- 7 queries perfil (sin cache) + 1 query scoring CTE = ~8 roundtrips BD
-- Tiempo estimado: 150-300ms por request
+### Opt-6: Pipeline de Dos Etapas — SelectorCandidatos (IMPLEMENTADA)
 
-### Después:
-- 0 queries perfil (cacheado 30 min) + 1 query scoring CTE = ~1 roundtrip BD
-- Con cache hit: 0ms backend
-- Frontend: datos visibles instantáneamente (stale-while-revalidate)
+**Archivos:**
+- `App/Kamples/Services/SelectorCandidatos.php` (nuevo)
+- `App/Kamples/Services/MotorRecomendacion.php` (modificado)
+- `App/Kamples/Config/algoritmoPesos.php` (nuevo bloque `candidatos`)
 
-## Mejoras Futuras (No implementadas aún)
+**Problema:** El CTE evalua TODAS las filas de `samples` para calcular score. A 1M samples = 1M evaluaciones con 20+ subqueries correlacionadas por fila.
 
-### Tabla Materializada de Scores (Precálculo Batch)
-- Cron cada 2 horas: precalcular top 200 scores por usuario
-- Tabla `feed_cache_scores(usuario_id, sample_id, score, calculado_at)`
-- Query feed lee de tabla materializada en vez de calcular en tiempo real
-- Caer a recálculo en tiempo real si la tabla está muy vieja
+**Solucion:** Pre-seleccionar ~1000 candidatos via index scans rapidos, luego scoring solo sobre esos.
 
-### Índices Especializados
-- `CREATE INDEX CONCURRENTLY idx_samples_activo_creador ON samples(estado, creador_id, publicado_at)` — para el CTE con PARTITION BY
-- `CREATE INDEX CONCURRENTLY idx_likes_usuario_sample ON likes(usuario_id, tipo, target_id) WHERE reaccion IN ('like','encanta')` — para las queries de perfil
+**5 fuentes de candidatos:**
 
-### pg_trgm para Búsqueda
-- Si la búsqueda rápida (QK13) empieza a ser lenta con muchos samples, crear índice trigram
+1. **Trending recientes (300):** Samples de los ultimos 14 dias ordenados por engagement.
+   - Query: `WHERE estado = 'activo' AND publicado_at > NOW() - INTERVAL '14 days' ORDER BY (total_likes*2 + total_reproducciones + total_descargas*3) DESC`
+   - Indice: `idx_samples_estado` (btree on estado, publicado_at)
+
+2. **Similares por embedding (200):** ANN search con perfil vectorial del usuario.
+   - Query: `WHERE estado = 'activo' AND embedding IS NOT NULL ORDER BY embedding <=> :perfil_vector::vector`
+   - Indice: `idx_samples_embedding` (HNSW coseno)
+   - Solo si pgvector esta activo y el usuario tiene perfil vectorial
+
+3. **De creadores seguidos (200):** Samples de creadores que el usuario sigue.
+   - Query: `WHERE estado = 'activo' AND creador_id IN (SELECT seguido_id FROM follows WHERE seguidor_id = :userId) ORDER BY publicado_at DESC`
+   - Indice: `idx_follows_seguidor` (nuevo) + `idx_samples_creador`
+
+4. **Afinidad por tags (200):** Samples que comparten tags con los liked del usuario.
+   - Query: `WHERE estado = 'activo' AND tags && ARRAY[:topTags]::text[]`
+   - Indice: `idx_samples_tags` (GIN)
+
+5. **Populares all-time (100):** Top samples por engagement global.
+   - Query: `WHERE estado = 'activo' ORDER BY (total_likes + total_reproducciones + total_descargas) DESC`
+   - Indice: `idx_samples_engagement_activo` (nuevo, expression index)
+
+**Activacion:** Solo cuando `SelectorCandidatos::contarActivos() > umbral_candidatos` (default 5000). Debajo del umbral, el pipeline legacy (scan completo) sigue funcionando.
+
+**Complejidad resultado:**
+- Pre-seleccion: O(log N) por fuente (index scans) = ~5 * O(log 1M) = ~100 seeks
+- Scoring: O(1000 * 20 subqueries) = 20,000 operaciones
+- vs legacy: O(1M * 20) = 20,000,000 operaciones
+- **Mejora: ~1000x**
+
+---
+
+### Opt-7: Indices Especializados para Feed 1M (IMPLEMENTADA)
+
+**Archivo:** `App/Kamples/Database/migrations/v050_indices_feed_1m.sql`
+
+Indices creados para soportar el pipeline de dos etapas:
+
+| Indice | Tabla | Columnas | Tipo | Proposito |
+|--------|-------|----------|------|-----------|
+| idx_follows_seguidor | follows | seguidor_id, seguido_id | BTREE | Fuente "creadores seguidos" |
+| idx_samples_engagement_activo | samples | expression(engagement) DESC | BTREE partial | Fuente "populares all-time" |
+| idx_likes_trending_24h | likes | target_id, created_at | BTREE partial | Where tipo='sample' |
+| idx_reproducciones_sample_created | reproducciones | sample_id, created_at | BTREE | Trending counts |
+| idx_descargas_sample_created | descargas | sample_id, created_at | BTREE | Trending counts |
+
+---
+
+### Opt-8: Vista Materializada de Trending (IMPLEMENTADA)
+
+**Archivo:** `App/Kamples/Database/migrations/v050_indices_feed_1m.sql`
+
+Vista materializada `mv_trending_samples` que pre-agrega metricas de tendencia:
+- Likes 24h (ponderados: encanta=2, like=1, dislike=-1)
+- Reproducciones 24h
+- Descargas 7d
+- Follows del creador 7d
+
+**Refresh:** `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_trending_samples`
+- Cada 5 minutos via `kamples_algoritmo_cron` en `KamplesInit.php`
+- `CONCURRENTLY` permite lecturas durante refresh (requiere unique index)
+- Si la MV no existe, el cron la skipea silenciosamente
+
+**Integración:**
+- `MotorRecomendacion`: detecta existencia de MV (transient 1h), agrega `LEFT JOIN mv_trending_samples mvt`
+- `ConstructorSenales::sqlTendencias($usarVistaMatTrending)`: si true, usa `COALESCE(mvt.likes_24h, 0)` etc.
+- Si la MV no existe (pre-migration), el sistema usa subqueries correlacionadas como fallback
+
+**Impacto en scoring:** La senal de Tendencias ahora hace un JOIN en vez de 4 subqueries correlacionadas:
+```sql
+-- ANTES (por cada fila de sample):
+COALESCE((SELECT COUNT(*) FROM likes WHERE target_id = s.id AND created_at > NOW() - INTERVAL '24 hours'), 0)
+COALESCE((SELECT COUNT(*) FROM reproducciones WHERE sample_id = s.id AND created_at > NOW() - INTERVAL '24 hours'), 0)
+-- ... (x4 subqueries)
+
+-- DESPUES (un solo JOIN):
+LEFT JOIN mv_trending_samples mvt ON mvt.sample_id = s.id
+-- mvt.likes_24h, mvt.repro_24h, mvt.descargas_7d, mvt.follows_7d ya calculados
+```
+
+Elimina 4 subqueries correlacionadas por fila = a 1000 candidatos, -4000 subqueries.
+
+---
+
+## Optimizaciones Pendientes (Plan Detallado)
+
+### Opt-9: Tags Enriquecidos Pre-computados
+
+**Problema:**
+`sqlTagsEnriquecidos('s')` se llama ~7 veces por fila en la senal de comportamiento. Cada llamada:
+1. Lee `s.tags` (array text[])
+2. Parsea `s.metadata->'genero'` (JSONB)
+3. Parsea `s.metadata->'instrumentos'` (JSONB)
+4. Parsea `s.metadata->'emocion'` (JSONB)
+5. UNNEST + LOWER + ARRAY_AGG + filtro nulls
+
+A 1000 filas * 7 llamadas = 7000 JSONB parses que producen el mismo resultado.
+
+**Solucion:**
+1. Agregar columna `tags_enriquecidos text[]` a tabla `samples`
+2. Trigger (o logica PHP en save) que pre-computa los tags enriquecidos al guardar sample
+3. Migration backfill para samples existentes
+4. Usar `s.tags_enriquecidos` directamente en vez de llamar `sqlTagsEnriquecidos()`
+5. ConstructorSenales: verificar `tags_enriquecidos IS NOT NULL`, fallback a calculo inline
+
+**Impacto estimado:** -7000 JSONB parses por feed request = ~30-50ms ahorro.
+
+**Complejidad:** Media. Requiere migration + trigger + backfill + update de ConstructorSenales.
+
+---
+
+### Opt-10: Paginacion por Cursor (Keyset)
+
+**Problema:**
+`OFFSET 120` obliga a PostgreSQL a calcular y descartar 120 filas. A paginas profundas esto crece linealmente. Con 100 paginas * 12 items = OFFSET 1200.
+
+**Solucion:**
+Usar keyset pagination basado en score + id:
+```
+Pagina 1: ORDER BY score DESC, id DESC LIMIT 12
+Pagina 2: WHERE (score, id) < (:lastScore, :lastId) ORDER BY score DESC, id DESC LIMIT 12
+```
+
+**API cambio:**
+```
+GET /feed?cursor=eyJzY29yZSI6MC44NSwidWx0aW1vSWQiOjEyMzR9&per_page=12
+```
+
+El cursor es un JSON base64 con `{score, ultimoId}` del ultimo item de la pagina anterior.
+
+**Complejidad:** Media. Requiere cambio en API contract (backward compatible: cursor param opcional, OFFSET como fallback).
+
+**Impacto:** O(1) para cualquier pagina, vs O(offset) actual.
+
+---
+
+### Opt-11: Tabla Materializada de Scores por Usuario
+
+**Problema:**
+Incluso con el pipeline de dos etapas, el scoring completo se ejecuta en cada cache miss (cada 5 min para pagina 1). Con 10K usuarios activos concurrentes = 10K recalculos/5min = 33/segundo.
+
+**Solucion:**
+Tabla `feed_scores_precalculados`:
+```sql
+CREATE TABLE feed_scores_precalculados (
+    usuario_id INT NOT NULL,
+    sample_id INT NOT NULL,
+    score FLOAT NOT NULL,
+    calculado_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (usuario_id, sample_id)
+);
+CREATE INDEX idx_fsp_usuario_score ON feed_scores_precalculados(usuario_id, score DESC);
+```
+
+**Flujo:**
+1. Background job (cron cada 30 min): Para cada usuario activo, calcular top 200 scores y guardar en tabla
+2. Feed request: `SELECT * FROM feed_scores_precalculados WHERE usuario_id = :id ORDER BY score DESC LIMIT 12 OFFSET :offset`
+3. Si no hay datos pre-calculados o estan viejos (> 1h): fallback a calculo real-time
+
+**Feed de tabla materializada = O(1)** (index scan en PK compuesto).
+
+**Complejidad:** Alta. Requiere:
+- Migration crear tabla
+- Background worker (WP Cron o standalone script)
+- Logica de fallback cuando no hay datos
+- Invalidacion selectiva al publicar nuevo sample / interaccion significativa
+
+---
+
+### Opt-12: Read Replica para Queries de Feed
+
+**Problema:**
+A escala, queries pesadas del feed compiten con writes (likes, reproducciones, uploads).
+
+**Solucion:**
+PostgreSQL streaming replication con read-only replica:
+- Feed queries: replica
+- Writes (likes, uploads): primary
+- Lag aceptable: < 1 segundo
+
+**Implementacion:**
+- PHP: connection factory que rutea a replica para operaciones de lectura
+- Configuracion: env var `KAMPLES_PG_READ_HOST` apuntando a replica
+
+**Complejidad:** Alta (infra). Requiere segundo contenedor PostgreSQL + pg_hba.conf + streaming setup.
+
+---
+
+### Opt-13: Cache Warming Proactivo
+
+**Problema:**
+Primer request de un usuario activo despues del TTL siempre es un cache miss.
+
+**Solucion:**
+Background job que pre-calcula el feed para los N usuarios mas activos antes de que expire el cache:
+1. Mantener lista de usuarios activos (actualizacion en cada request)
+2. 1 minuto antes de que expire el cache: recalcular el feed y guardar en transient
+
+**Impacto:** Cache hit rate de ~99% para usuarios activos (solo el primer request del dia es miss).
+
+**Complejidad:** Media. Requiere tracking de usuarios activos + cron job.
+
+---
+
+## Estimaciones de Performance a Escala
+
+### Con Opt-1 a Opt-8 (implementadas)
+
+| Samples | Cache HIT | Cache MISS (scoring) | MISS + serendipia |
+|---------|-----------|---------------------|-------------------|
+| 100 | 0ms | ~100ms | ~120ms |
+| 1,000 | 0ms | ~100ms | ~120ms |
+| 10,000 | 0ms | ~150ms | ~170ms |
+| 100,000 | 0ms | ~200ms | ~220ms |
+| 1,000,000 | 0ms | ~300ms | ~320ms |
+
+El pipeline de dos etapas mantiene el scoring en ~1000 candidatos independiente del total.
+El cuello de botella pasa a ser la etapa 1 (5 index scans) que crece O(log N).
+
+### Con Opt-9 a Opt-13 (futuras)
+
+| Samples | Cache HIT | Cache MISS | Con tabla materializada |
+|---------|-----------|------------|------------------------|
+| 1,000,000 | 0ms | ~200ms | ~5ms (index scan) |
+| 5,000,000 | 0ms | ~300ms | ~5ms |
+| 10,000,000 | 0ms | ~400ms | ~5ms |
+
+---
 
 ## Lecciones
 
-- [Cache]: El perfil de usuario era el cuello de botella real, no el algoritmo de scoring en sí
-- [Invalidación]: Invalidar todo el cache en cada like es demasiado agresivo — los cambios son incrementales
-- [Frontend]: stale-while-revalidate es la forma correcta de que el usuario perciba carga instantánea
+- [Cache]: El perfil de usuario era el cuello de botella real con 100 samples, no el scoring
+- [Invalidacion]: Invalidar todo el cache en cada like es demasiado agresivo
+- [Frontend]: Stale-while-revalidate es la forma correcta de percibir carga instantanea
+- [Escalabilidad]: El scoring O(N) es aceptable hasta ~5K samples. Despues, filtrar candidatos primero
+- [pgvector HNSW]: ANN search es O(log N), ideal para candidate selection
+- [Vista materializada]: Ideal para aggregaciones costosas que cambian lentamente (trending 24h/7d)
+- [Indices parciales]: `WHERE estado = 'activo'` reduce el tamano del indice en ~50% (eliminados/inactivos)
+- [Expression index]: PG puede usar expression indices para ORDER BY si la expresion coincide exactamente
+- [Tags enriquecidos]: JSONB parsing es caro cuando se repite. Pre-computar en columna dedicada
+- [Cursor pagination]: OFFSET es O(offset), keyset es O(1). Critico para deep scrolling
 - [SQL]: Las 7 queries separadas del perfil comparten la misma lógica base (samples interactuados) — un CTE las unifica en 1 roundtrip

@@ -235,6 +235,26 @@ return [
     ],
 
     /*
+     * Pipeline de dos etapas (Opt-6): seleccion rapida de candidatos.
+     *
+     * Cuando el numero de samples activos supera umbral_activacion,
+     * SelectorCandidatos pre-filtra ~1000 candidatos via index scans
+     * antes de aplicar el scoring completo. Esto reduce la complejidad
+     * de O(N) a O(~1000) independiente del total de samples.
+     *
+     * 5 fuentes de candidatos (cada una retorna max IDs indicados):
+     */
+    'candidatos' => [
+        'umbral_activacion'  => 5000,   /* Activar cuando totalActivos > este valor */
+        'max_trending'       => 300,    /* Trending recientes (14 dias) */
+        'max_embedding'      => 200,    /* Similares por pgvector ANN */
+        'max_seguidos'       => 200,    /* De creadores seguidos */
+        'max_tags'           => 200,    /* Afinidad por tags del usuario */
+        'max_populares'      => 100,    /* Populares all-time */
+        'dias_trending'      => 14,     /* Ventana para trending recientes */
+    ],
+
+    /*
      * Frecuencia de recálculo del algoritmo (C45).
      *
      * Dos modos: rápido (light, menos señales) y preciso (full, todas las señales).

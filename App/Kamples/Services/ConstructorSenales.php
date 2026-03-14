@@ -386,22 +386,18 @@ class ConstructorSenales
      * Mide interacciones recientes sin sesgo por edad del sample.
      * Los samples no pierden valor con el tiempo — usa normalizadores
      * absolutos por ventana en vez de dividir por horas desde publicación.
+     *
+     * Opt-8: Si $usarVistaMatTrending=true, referencia mv_trending_samples (pre-agregado)
+     * en vez de ejecutar 4 subqueries correlacionadas por fila.
+     * El JOIN a mv_trending_samples lo agrega MotorRecomendacion en el CTE base_scores.
      */
-    public static function sqlTendencias(float $peso, array $ventanas, array $config): string
+    public static function sqlTendencias(float $peso, array $ventanas, array $config, bool $usarVistaMatTrending = false): string
     {
         $detalle = $config['tendencias_detalle'] ?? [];
         $pesoLikes24h = $detalle['likes_24h'] ?? 0.40;
         $pesoRepro24h = $detalle['reproducciones_24h'] ?? 0.30;
         $pesoDescargas7d = $detalle['descargas_7d'] ?? 0.20;
         $pesoFollows7d = $detalle['follows_creador_7d'] ?? 0.10;
-
-        $ventanaCorta = $ventanas['corta'] ?? '24 hours';
-        $ventanaMedia = $ventanas['media'] ?? '7 days';
-
-        /* P0-fix: Validar que las ventanas son intervalos PG válidos (whitelist) */
-        $ventanasValidas = ['1 hour','6 hours','12 hours','24 hours','48 hours','3 days','7 days','14 days','30 days','90 days','365 days'];
-        if (!\in_array($ventanaCorta, $ventanasValidas, true)) $ventanaCorta = '24 hours';
-        if (!\in_array($ventanaMedia, $ventanasValidas, true)) $ventanaMedia = '7 days';
 
         /*
          * Normalizadores absolutos por ventana.
@@ -414,38 +410,58 @@ class ConstructorSenales
         $maxDescargas = (int) ($norm['max_descargas_ventana_media'] ?? 20);
         $maxFollows = (int) ($norm['max_follows_ventana_media'] ?? 10);
 
-        $tl = LikesCols::TABLA;
-        $lReacc = LikesCols::REACCION;
-        $lTipo = LikesCols::TIPO;
-        $lTarget = LikesCols::TARGET_ID;
-        $lCreAt = LikesCols::CREATED_AT;
-        $ltSample = LikesEnums::TIPO_SAMPLE;
-        $lrEncanta = LikesEnums::REACCION_ENCANTA;
-        $lrLike = LikesEnums::REACCION_LIKE;
-        $lrDislike = LikesEnums::REACCION_DISLIKE;
-        $sId = SamplesCols::ID;
-        $sCreadorId = SamplesCols::CREADOR_ID;
-        $trep = ReproduccionesCols::TABLA;
-        $trSid = ReproduccionesCols::SAMPLE_ID;
-        $trCreAt = ReproduccionesCols::CREATED_AT;
-        $td = DescargasCols::TABLA;
-        $dSid = DescargasCols::SAMPLE_ID;
-        $dCreAt = DescargasCols::CREATED_AT;
-        $tf = FollowsCols::TABLA;
-        $fSeguidoId = FollowsCols::SEGUIDO_ID;
-        $fCreAt = FollowsCols::CREATED_AT;
+        /*
+         * Opt-8: Si la vista materializada existe y se pidio usarla,
+         * referirnos a columnas pre-calculadas del LEFT JOIN (alias 'mvt').
+         * Esto elimina 4 subqueries correlacionadas por fila.
+         */
+        if ($usarVistaMatTrending) {
+            $likes24h = "COALESCE(mvt.likes_24h, 0)";
+            $repro24h = "COALESCE(mvt.repro_24h, 0)";
+            $descargas7d = "COALESCE(mvt.descargas_7d, 0)";
+            $follows7d = "COALESCE(mvt.follows_7d, 0)";
+        } else {
+            /* Fallback: subqueries correlacionadas originales */
+            $ventanaCorta = $ventanas['corta'] ?? '24 hours';
+            $ventanaMedia = $ventanas['media'] ?? '7 days';
 
-        /* Reacciones en ventana corta: encanta=2, like=1, dislike=-1 */
-        /* @codeSentinel-ignore INTERVAL — $ventanaCorta y $ventanaMedia validadas con whitelist líneas 370-373 */
-        $likes24h = "COALESCE((SELECT SUM(CASE WHEN {$lReacc} = '{$lrEncanta}' THEN 2 WHEN {$lReacc} = '{$lrLike}' THEN 1 WHEN {$lReacc} = '{$lrDislike}' THEN -1 ELSE 0 END) FROM {$tl} WHERE {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} AND {$lCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+            /* P0-fix: Validar que las ventanas son intervalos PG válidos (whitelist) */
+            $ventanasValidas = ['1 hour','6 hours','12 hours','24 hours','48 hours','3 days','7 days','14 days','30 days','90 days','365 days'];
+            if (!\in_array($ventanaCorta, $ventanasValidas, true)) $ventanaCorta = '24 hours';
+            if (!\in_array($ventanaMedia, $ventanasValidas, true)) $ventanaMedia = '7 days';
 
-        $repro24h = "COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trSid} = s.{$sId} AND {$trCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+            $tl = LikesCols::TABLA;
+            $lReacc = LikesCols::REACCION;
+            $lTipo = LikesCols::TIPO;
+            $lTarget = LikesCols::TARGET_ID;
+            $lCreAt = LikesCols::CREATED_AT;
+            $ltSample = LikesEnums::TIPO_SAMPLE;
+            $lrEncanta = LikesEnums::REACCION_ENCANTA;
+            $lrLike = LikesEnums::REACCION_LIKE;
+            $lrDislike = LikesEnums::REACCION_DISLIKE;
+            $sId = SamplesCols::ID;
+            $sCreadorId = SamplesCols::CREADOR_ID;
+            $trep = ReproduccionesCols::TABLA;
+            $trSid = ReproduccionesCols::SAMPLE_ID;
+            $trCreAt = ReproduccionesCols::CREATED_AT;
+            $td = DescargasCols::TABLA;
+            $dSid = DescargasCols::SAMPLE_ID;
+            $dCreAt = DescargasCols::CREATED_AT;
+            $tf = FollowsCols::TABLA;
+            $fSeguidoId = FollowsCols::SEGUIDO_ID;
+            $fCreAt = FollowsCols::CREATED_AT;
 
-        /* @codeSentinel-ignore INTERVAL — misma whitelist líneas 370-373 */
-        $descargas7d = "COALESCE((SELECT COUNT(*) FROM {$td} WHERE {$dSid} = s.{$sId} AND {$dCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+            /* @codeSentinel-ignore INTERVAL — $ventanaCorta y $ventanaMedia validadas con whitelist */
+            $likes24h = "COALESCE((SELECT SUM(CASE WHEN {$lReacc} = '{$lrEncanta}' THEN 2 WHEN {$lReacc} = '{$lrLike}' THEN 1 WHEN {$lReacc} = '{$lrDislike}' THEN -1 ELSE 0 END) FROM {$tl} WHERE {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} AND {$lCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
 
-        /* @codeSentinel-ignore INTERVAL — misma whitelist líneas 370-373 */
-        $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+            $repro24h = "COALESCE((SELECT COUNT(*) FROM {$trep} WHERE {$trSid} = s.{$sId} AND {$trCreAt} > NOW() - INTERVAL '{$ventanaCorta}'), 0)";
+
+            /* @codeSentinel-ignore INTERVAL — misma whitelist */
+            $descargas7d = "COALESCE((SELECT COUNT(*) FROM {$td} WHERE {$dSid} = s.{$sId} AND {$dCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+
+            /* @codeSentinel-ignore INTERVAL — misma whitelist */
+            $follows7d = "COALESCE((SELECT COUNT(*) FROM {$tf} WHERE {$fSeguidoId} = s.{$sCreadorId} AND {$fCreAt} > NOW() - INTERVAL '{$ventanaMedia}'), 0)";
+        }
 
         /*
          * Normalización por valores máximos absolutos en vez de por edad.

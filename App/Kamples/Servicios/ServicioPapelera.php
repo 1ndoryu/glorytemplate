@@ -16,6 +16,7 @@ use App\Kamples\Database\Repositories\PublicacionesRepository;
 use App\Kamples\Database\Repositories\ComentariosRepository;
 use App\Kamples\Database\PostgresService;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\SelectorCandidatos;
 
 final class ServicioPapelera
 {
@@ -245,6 +246,7 @@ final class ServicioPapelera
 
         /* Cascada DB */
         SamplesRepository::eliminarConCascada($sampleId);
+        SelectorCandidatos::invalidarConteo();
     }
 
     /**

@@ -32,6 +32,7 @@ use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\PerfilUsuario;
+use App\Kamples\Services\SelectorCandidatos;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
@@ -131,6 +132,28 @@ class MotorRecomendacion
          * Construir query SQL con scoring multi-señal.
          * Cada señal genera una sub-expresión SQL ponderada (delegada a ConstructorSenales).
          */
+
+        /*
+         * Opt-8: Detectar si la vista materializada mv_trending_samples existe.
+         * Si existe, sqlTendencias() la usará en vez de 4 subqueries correlacionadas.
+         * Cache de 1h para no consultar pg_matviews en cada request.
+         */
+        $usarVistaMatTrending = (bool) \get_transient('kamples_mv_trending_existe');
+        if (!$usarVistaMatTrending) {
+            try {
+                $existe = SamplesRepository::consultarValor(
+                    "SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_trending_samples' LIMIT 1",
+                    []
+                );
+                $usarVistaMatTrending = ($existe !== null);
+                if ($usarVistaMatTrending) {
+                    \set_transient('kamples_mv_trending_existe', 1, HOUR_IN_SECONDS);
+                }
+            } catch (\Throwable $e) {
+                $usarVistaMatTrending = false;
+            }
+        }
+
         $additiveParts = [];
 
         /* Señal 1: Comportamiento — 5 sub-factores ponderados */
@@ -149,7 +172,7 @@ class MotorRecomendacion
         $pesoTendencias = $pesos['tendencias'] ?? 0.15;
         if ($pesoTendencias > 0) {
             $ventanas = $params['ventanas_tendencias'] ?? ['corta' => '24 hours'];
-            $additiveParts[] = ConstructorSenales::sqlTendencias($pesoTendencias, $ventanas, $config);
+            $additiveParts[] = ConstructorSenales::sqlTendencias($pesoTendencias, $ventanas, $config, $usarVistaMatTrending);
         }
 
         /* Señal 4: Novedad — boost logarítmico (inline, no necesita servicio) */
@@ -264,11 +287,34 @@ class MotorRecomendacion
         $userId_int = (int) $userId;
 
         /*
-         * CTE de dos niveles para evitar calcular el score dos veces:
-         * 1. base_scores: calcula score + flags de usuario
-         * 2. scored: añade ROW_NUMBER sobre el score ya calculado
+         * CTE de dos o tres niveles:
+         * [Opt-6] Si hay muchos samples (> umbral), pre-filtrar candidatos (etapa 1).
+         * 1. candidatos (opcional): UNION de fuentes rapidas (~1000 IDs)
+         * 2. base_scores: calcula score + flags de usuario
+         * 3. scored: ROW_NUMBER sobre el score ya calculado
          */
-        $sql = "WITH base_scores AS (
+        $umbralCandidatos = (int) ($config['candidatos']['umbral_activacion'] ?? 5000);
+        $totalActivos = SelectorCandidatos::contarActivos();
+        $usarCandidatos = $totalActivos > $umbralCandidatos;
+
+        $ctePrefijo = '';
+        $joinCandidatos = '';
+        $joinTrendingMV = '';
+        if ($usarCandidatos) {
+            $cteCandidatos = SelectorCandidatos::seleccionar($userId, $perfilUsuario, $queryParams, $config);
+            $ctePrefijo = $cteCandidatos . ",\n                ";
+            $joinCandidatos = "JOIN (SELECT id FROM candidatos) cand ON s.{$sId} = cand.id\n                    ";
+            KamplesLogger::info('Algoritmo: Usando pipeline de candidatos', [
+                'totalActivos' => $totalActivos, 'umbral' => $umbralCandidatos,
+            ]);
+        }
+
+        /* Opt-8: LEFT JOIN a la vista materializada de trending si existe */
+        if ($usarVistaMatTrending) {
+            $joinTrendingMV = "LEFT JOIN mv_trending_samples mvt ON mvt.sample_id = s.{$sId}\n                    ";
+        }
+
+        $sql = "WITH {$ctePrefijo}base_scores AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                            u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},
                            u.{$uWpId} AS creador_wp_user_id,
@@ -279,7 +325,7 @@ class MotorRecomendacion
                            (s.{$sCreadorId} = {$userId_int}) AS es_mio,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
-                    LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
+                    {$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
                     WHERE s.{$sEstado} = '{$eActivo}'"
                 . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
                 . "),

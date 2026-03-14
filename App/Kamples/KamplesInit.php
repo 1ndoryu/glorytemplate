@@ -17,6 +17,7 @@ use App\Kamples\Api\KamplesController;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Auth\GuardiaWpAdmin;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Services\PlanificadorAlgoritmo;
 use App\Kamples\Services\ProcesadorColaIA;
@@ -169,7 +170,23 @@ class KamplesInit
             try {
                 PlanificadorAlgoritmo::procesarTemporales();
             } catch (\Throwable $e) {
-                KamplesLogger::error('Cron', "Error en recalculo temporal: {$e->getMessage()}");
+                KamplesLogger::error('Cron: Error en recalculo temporal', ['error' => $e->getMessage()]);
+            }
+
+            /* Opt-8: Refrescar vista materializada de trending cada 5 min */
+            try {
+                $existe = SamplesRepository::consultarValor(
+                    "SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_trending_samples' LIMIT 1",
+                    []
+                );
+                if ($existe !== null) {
+                    SamplesRepository::ejecutar(
+                        "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_trending_samples",
+                        []
+                    );
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Cron: Error refrescando mv_trending_samples', ['error' => $e->getMessage()]);
             }
         });
 
