@@ -18,11 +18,13 @@ export function useTabColaExtraccionAdmin() {
     const [filtroEstado, setFiltroEstado] = useState('');
     const [cargando, setCargando] = useState(false);
     const [columnasOcultas, setColumnasOcultas] = useState<Set<string>>(new Set());
+    const [sortCol, setSortCol] = useState('');
+    const [sortDir, setSortDir] = useState<'ASC' | 'DESC'>('DESC');
 
     const cargar = useCallback(async () => {
         setCargando(true);
         try {
-            const res = await listarColaExtraccionAdmin(pagina, busqueda, filtroEstado);
+            const res = await listarColaExtraccionAdmin(pagina, busqueda, filtroEstado, sortCol, sortDir);
             if (res.ok && res.data) {
                 setItems(res.data);
                 setTotal(res.total ?? 0);
@@ -31,7 +33,7 @@ export function useTabColaExtraccionAdmin() {
             log.error('Error cargando cola extraccion', err);
         }
         setCargando(false);
-    }, [pagina, busqueda, filtroEstado]);
+    }, [pagina, busqueda, filtroEstado, sortCol, sortDir]);
 
     useEffect(() => { cargar(); }, [cargar]);
 
@@ -54,10 +56,20 @@ export function useTabColaExtraccionAdmin() {
         setPagina(1);
     }, []);
 
+    const cambiarOrden = useCallback((col: string) => {
+        if (col === sortCol) {
+            setSortDir(prev => prev === 'ASC' ? 'DESC' : 'ASC');
+        } else {
+            setSortCol(col);
+            setSortDir('ASC');
+        }
+        setPagina(1);
+    }, [sortCol]);
+
     return {
         items, total, pagina, busqueda, filtroEstado,
-        cargando, columnasOcultas,
+        cargando, columnasOcultas, sortCol, sortDir,
         setPagina, cambiarBusqueda, cambiarFiltroEstado,
-        toggleColumna, refrescar: cargar,
+        toggleColumna, refrescar: cargar, cambiarOrden,
     };
 }

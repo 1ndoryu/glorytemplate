@@ -97,6 +97,28 @@
     top: 0;
 }
 
+/* Cabeceras sortables — click para ordenar */
+.adminThSortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.adminThSortable:hover {
+    color: var(--textoPrimario);
+}
+
+.adminThContenido {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.adminSortIcono {
+    flex-shrink: 0;
+    color: var(--acento);
+}
+
 .adminTablaDatosTabla td {
     padding: var(--espacioSm) var(--espacioMd);
     border-bottom: 1px solid var(--bordeSutil);

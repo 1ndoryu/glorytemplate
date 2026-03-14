@@ -302,11 +302,16 @@ class AdminController
             $page = max(1, (int) ($request->get_param('page') ?? 1));
             $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
             $estado = sanitize_text_field($request->get_param('estado') ?? '');
+            $sortCol = sanitize_text_field($request->get_param('sort_col') ?? '');
+            $sortDir = sanitize_text_field($request->get_param('sort_dir') ?? 'DESC');
 
             $resultado = AdminRepository::listarScrapingLog(
                 ($page - 1) * 25,
                 $busqueda,
-                $estado
+                $estado,
+                25,
+                $sortCol,
+                $sortDir
             );
 
             return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
@@ -326,11 +331,16 @@ class AdminController
             $page = max(1, (int) ($request->get_param('page') ?? 1));
             $busqueda = sanitize_text_field($request->get_param('busqueda') ?? '');
             $estado = sanitize_text_field($request->get_param('estado') ?? '');
+            $sortCol = sanitize_text_field($request->get_param('sort_col') ?? '');
+            $sortDir = sanitize_text_field($request->get_param('sort_dir') ?? 'DESC');
 
             $resultado = AdminRepository::listarColaExtraccion(
                 ($page - 1) * 25,
                 $busqueda,
-                $estado
+                $estado,
+                25,
+                $sortCol,
+                $sortDir
             );
 
             return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);

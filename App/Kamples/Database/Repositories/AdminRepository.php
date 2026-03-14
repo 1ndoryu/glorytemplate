@@ -159,7 +159,9 @@ class AdminRepository
         int $offset,
         string $busqueda = '',
         string $estado = '',
-        int $porPagina = 25
+        int $porPagina = 25,
+        string $sortCol = '',
+        string $sortDir = 'DESC'
     ): array {
         $t = ScrapingLogCols::TABLA;
         $params = ['offset' => $offset, 'porPagina' => $porPagina];
@@ -191,7 +193,7 @@ class AdminRepository
                 . ', ' . ScrapingLogCols::PROCESADO_AT
                 . ', ' . ScrapingLogCols::CREATED_AT
                 . " FROM {$t} WHERE {$where}"
-                . ' ORDER BY ' . ScrapingLogCols::CREATED_AT . ' DESC'
+                . ' ORDER BY ' . self::resolverSort($sortCol, ScrapingLogCols::TODAS, ScrapingLogCols::CREATED_AT) . ' ' . self::resolverDir($sortDir) . ', ' . ScrapingLogCols::ID . ' DESC'
                 . ' LIMIT :porPagina OFFSET :offset',
             $params
         );
@@ -216,7 +218,9 @@ class AdminRepository
         int $offset,
         string $busqueda = '',
         string $estado = '',
-        int $porPagina = 25
+        int $porPagina = 25,
+        string $sortCol = '',
+        string $sortDir = 'DESC'
     ): array {
         $tc = ColaExtraccionSamplesCols::TABLA;
         $params = ['offset' => $offset, 'porPagina' => $porPagina];
@@ -253,7 +257,7 @@ class AdminRepository
                 . ', c.' . ColaExtraccionSamplesCols::CREATED_AT
                 . ', c.' . ColaExtraccionSamplesCols::PROXIMO_INTENTO_AT
                 . " FROM {$tc} c WHERE {$where}"
-                . ' ORDER BY c.' . ColaExtraccionSamplesCols::CREATED_AT . ' DESC'
+                . ' ORDER BY c.' . self::resolverSort($sortCol, ColaExtraccionSamplesCols::TODAS, ColaExtraccionSamplesCols::CREATED_AT) . ' ' . self::resolverDir($sortDir) . ', c.' . ColaExtraccionSamplesCols::ID . ' DESC'
                 . ' LIMIT :porPagina OFFSET :offset',
             $params
         );
@@ -268,5 +272,22 @@ class AdminRepository
             'data'  => $data,
             'total' => (int) ($total['total'] ?? 0),
         ];
+    }
+
+    /*
+     * Valida y resuelve columna de ordenamiento contra whitelist del Schema.
+     * Si la columna no es valida, retorna el default.
+     */
+    private static function resolverSort(string $col, array $permitidas, string $default): string
+    {
+        return in_array($col, $permitidas, true) ? $col : $default;
+    }
+
+    /*
+     * Valida dirección de ordenamiento. Solo ASC o DESC.
+     */
+    private static function resolverDir(string $dir): string
+    {
+        return strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
     }
 }

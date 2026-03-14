@@ -4,7 +4,7 @@
  * Lógica delegada a useTabColaExtraccionAdmin.
  */
 
-import { Search, ChevronLeft, ChevronRight, RefreshCw, Columns } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, RefreshCw, Columns, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
@@ -47,19 +47,19 @@ const colorEstado = (estado: string): VarianteBadge => {
 };
 
 const COLUMNAS = [
-    { id: 'relacion_id', etiqueta: 'Relación' },
-    { id: 'youtube_id', etiqueta: 'YouTube' },
-    { id: 'spotify_id', etiqueta: 'Spotify' },
-    { id: 'estado', etiqueta: 'Estado' },
-    { id: 'intentos', etiqueta: 'Intentos' },
-    { id: 'lado', etiqueta: 'Lado' },
-    { id: 'sample_id', etiqueta: 'Sample' },
-    { id: 'timing', etiqueta: 'Timing' },
-    { id: 'bpm_detectado', etiqueta: 'BPM' },
-    { id: 'error_mensaje', etiqueta: 'Error' },
-    { id: 'procesado_at', etiqueta: 'Procesado' },
-    { id: 'created_at', etiqueta: 'Creado' },
-    { id: 'proximo_intento_at', etiqueta: 'Prox. Intento' },
+    { id: 'relacion_id', etiqueta: 'Relación', sortKey: 'relacion_id' },
+    { id: 'youtube_id', etiqueta: 'YouTube', sortKey: 'youtube_id' },
+    { id: 'spotify_id', etiqueta: 'Spotify', sortKey: 'spotify_id' },
+    { id: 'estado', etiqueta: 'Estado', sortKey: 'estado' },
+    { id: 'intentos', etiqueta: 'Intentos', sortKey: 'intentos' },
+    { id: 'lado', etiqueta: 'Lado', sortKey: 'lado' },
+    { id: 'sample_id', etiqueta: 'Sample', sortKey: 'sample_id' },
+    { id: 'timing', etiqueta: 'Timing', sortKey: 'timing_inicio_seg' },
+    { id: 'bpm_detectado', etiqueta: 'BPM', sortKey: 'bpm_detectado' },
+    { id: 'error_mensaje', etiqueta: 'Error', sortKey: 'error_mensaje' },
+    { id: 'procesado_at', etiqueta: 'Procesado', sortKey: 'procesado_at' },
+    { id: 'created_at', etiqueta: 'Creado', sortKey: 'created_at' },
+    { id: 'proximo_intento_at', etiqueta: 'Prox. Intento', sortKey: 'proximo_intento_at' },
 ] as const;
 
 const formatearFecha = (fecha: string | null): string => {
@@ -81,6 +81,22 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
 
     const columnaVisible = (id: string): boolean => !tab.columnasOcultas.has(id);
+
+    const renderTh = (sortKey: string, etiqueta: string) => (
+        <th
+            className="adminThSortable"
+            onClick={() => tab.cambiarOrden(sortKey)}
+        >
+            <span className="adminThContenido">
+                {etiqueta}
+                {tab.sortCol === sortKey && (
+                    tab.sortDir === 'ASC'
+                        ? <ArrowUp size={12} className="adminSortIcono" />
+                        : <ArrowDown size={12} className="adminSortIcono" />
+                )}
+            </span>
+        </th>
+    );
 
     return (
         <div className="adminTablaDatos">
@@ -148,20 +164,20 @@ export const TabColaExtraccionAdmin = (): JSX.Element => {
                 <table className="adminTablaDatosTabla">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            {columnaVisible('relacion_id') && <th>Relación</th>}
-                            {columnaVisible('youtube_id') && <th>YouTube</th>}
-                            {columnaVisible('spotify_id') && <th>Spotify</th>}
-                            {columnaVisible('estado') && <th>Estado</th>}
-                            {columnaVisible('intentos') && <th>Intentos</th>}
-                            {columnaVisible('lado') && <th>Lado</th>}
-                            {columnaVisible('sample_id') && <th>Sample</th>}
-                            {columnaVisible('timing') && <th>Timing</th>}
-                            {columnaVisible('bpm_detectado') && <th>BPM</th>}
-                            {columnaVisible('error_mensaje') && <th>Error</th>}
-                            {columnaVisible('procesado_at') && <th>Procesado</th>}
-                            {columnaVisible('created_at') && <th>Creado</th>}
-                            {columnaVisible('proximo_intento_at') && <th>Prox. Intento</th>}
+                            {renderTh('id', 'ID')}
+                            {columnaVisible('relacion_id') && renderTh('relacion_id', 'Relación')}
+                            {columnaVisible('youtube_id') && renderTh('youtube_id', 'YouTube')}
+                            {columnaVisible('spotify_id') && renderTh('spotify_id', 'Spotify')}
+                            {columnaVisible('estado') && renderTh('estado', 'Estado')}
+                            {columnaVisible('intentos') && renderTh('intentos', 'Intentos')}
+                            {columnaVisible('lado') && renderTh('lado', 'Lado')}
+                            {columnaVisible('sample_id') && renderTh('sample_id', 'Sample')}
+                            {columnaVisible('timing') && renderTh('timing_inicio_seg', 'Timing')}
+                            {columnaVisible('bpm_detectado') && renderTh('bpm_detectado', 'BPM')}
+                            {columnaVisible('error_mensaje') && renderTh('error_mensaje', 'Error')}
+                            {columnaVisible('procesado_at') && renderTh('procesado_at', 'Procesado')}
+                            {columnaVisible('created_at') && renderTh('created_at', 'Creado')}
+                            {columnaVisible('proximo_intento_at') && renderTh('proximo_intento_at', 'Prox. Intento')}
                         </tr>
                     </thead>
                     <tbody>

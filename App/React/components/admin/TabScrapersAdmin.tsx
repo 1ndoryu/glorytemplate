@@ -4,7 +4,7 @@
  * Lógica delegada a useTabScrapersAdmin.
  */
 
-import { Search, ChevronLeft, ChevronRight, RefreshCw, Columns } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, RefreshCw, Columns, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
@@ -39,16 +39,16 @@ const colorEstado = (estado: string): VarianteBadge => {
 };
 
 const COLUMNAS = [
-    { id: 'url', etiqueta: 'URL' },
-    { id: 'tipo_pagina', etiqueta: 'Tipo' },
-    { id: 'estado', etiqueta: 'Estado' },
-    { id: 'intentos', etiqueta: 'Intentos' },
-    { id: 'bytes_descargados', etiqueta: 'Bytes' },
-    { id: 'error_mensaje', etiqueta: 'Error' },
-    { id: 're_scrapeable', etiqueta: 'Re-scrapeable' },
-    { id: 'veces_rescrapeado', etiqueta: 'Veces' },
-    { id: 'procesado_at', etiqueta: 'Procesado' },
-    { id: 'created_at', etiqueta: 'Creado' },
+    { id: 'url', etiqueta: 'URL', sortKey: 'url' },
+    { id: 'tipo_pagina', etiqueta: 'Tipo', sortKey: 'tipo_pagina' },
+    { id: 'estado', etiqueta: 'Estado', sortKey: 'estado' },
+    { id: 'intentos', etiqueta: 'Intentos', sortKey: 'intentos' },
+    { id: 'bytes_descargados', etiqueta: 'Bytes', sortKey: 'bytes_descargados' },
+    { id: 'error_mensaje', etiqueta: 'Error', sortKey: 'error_mensaje' },
+    { id: 're_scrapeable', etiqueta: 'Re-scrapeable', sortKey: 're_scrapeable' },
+    { id: 'veces_rescrapeado', etiqueta: 'Veces', sortKey: 'veces_rescrapeado' },
+    { id: 'procesado_at', etiqueta: 'Procesado', sortKey: 'procesado_at' },
+    { id: 'created_at', etiqueta: 'Creado', sortKey: 'created_at' },
 ] as const;
 
 const formatearFecha = (fecha: string | null): string => {
@@ -73,6 +73,22 @@ export const TabScrapersAdmin = (): JSX.Element => {
     const [menuColumnasAbierto, setMenuColumnasAbierto] = useState(false);
 
     const columnaVisible = (id: string): boolean => !tab.columnasOcultas.has(id);
+
+    const renderTh = (sortKey: string, etiqueta: string) => (
+        <th
+            className="adminThSortable"
+            onClick={() => tab.cambiarOrden(sortKey)}
+        >
+            <span className="adminThContenido">
+                {etiqueta}
+                {tab.sortCol === sortKey && (
+                    tab.sortDir === 'ASC'
+                        ? <ArrowUp size={12} className="adminSortIcono" />
+                        : <ArrowDown size={12} className="adminSortIcono" />
+                )}
+            </span>
+        </th>
+    );
 
     return (
         <div className="adminTablaDatos">
@@ -140,17 +156,17 @@ export const TabScrapersAdmin = (): JSX.Element => {
                 <table className="adminTablaDatosTabla">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            {columnaVisible('url') && <th>URL</th>}
-                            {columnaVisible('tipo_pagina') && <th>Tipo</th>}
-                            {columnaVisible('estado') && <th>Estado</th>}
-                            {columnaVisible('intentos') && <th>Intentos</th>}
-                            {columnaVisible('bytes_descargados') && <th>Bytes</th>}
-                            {columnaVisible('error_mensaje') && <th>Error</th>}
-                            {columnaVisible('re_scrapeable') && <th>Re-scrap.</th>}
-                            {columnaVisible('veces_rescrapeado') && <th>Veces</th>}
-                            {columnaVisible('procesado_at') && <th>Procesado</th>}
-                            {columnaVisible('created_at') && <th>Creado</th>}
+                            {renderTh('id', 'ID')}
+                            {columnaVisible('url') && renderTh('url', 'URL')}
+                            {columnaVisible('tipo_pagina') && renderTh('tipo_pagina', 'Tipo')}
+                            {columnaVisible('estado') && renderTh('estado', 'Estado')}
+                            {columnaVisible('intentos') && renderTh('intentos', 'Intentos')}
+                            {columnaVisible('bytes_descargados') && renderTh('bytes_descargados', 'Bytes')}
+                            {columnaVisible('error_mensaje') && renderTh('error_mensaje', 'Error')}
+                            {columnaVisible('re_scrapeable') && renderTh('re_scrapeable', 'Re-scrap.')}
+                            {columnaVisible('veces_rescrapeado') && renderTh('veces_rescrapeado', 'Veces')}
+                            {columnaVisible('procesado_at') && renderTh('procesado_at', 'Procesado')}
+                            {columnaVisible('created_at') && renderTh('created_at', 'Creado')}
                         </tr>
                     </thead>
                     <tbody>
