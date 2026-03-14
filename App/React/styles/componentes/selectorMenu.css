@@ -7,12 +7,11 @@
 .selectorMenuContenedor {
     position: relative;
     display: inline-flex;
-    width: 100%;
     gap: var(--espacioMd);
     flex-direction: column;
 }
 
-/* Trigger: el botón que abre el dropdown */
+/* Trigger: el boton que abre el dropdown */
 .selectorMenuTrigger {
     display: flex;
     align-items: center;
@@ -31,6 +30,7 @@
     text-align: left;
     line-height: 1.4;
     min-height: 32px;
+    white-space: nowrap;
 }
 
 .selectorMenuTrigger:hover {
