@@ -226,11 +226,11 @@ class SamplesRepository extends BaseRepository
             {$baseFrom}
             GROUP BY s.{$sTipo} ORDER BY conteo DESC";
 
-        /* Tags sueltos: IA-generated desde metadata (tags, tags_es, artista_vibes) */
+        /* Tags sueltos: IA-generated desde metadata (tags EN + artista_vibes).
+         * tags_es excluido del display — solo se usa para enriquecer búsqueda. */
         $sqlOtro = "SELECT t.val AS tag, COUNT(*) AS conteo
             FROM {$tabla} s, LATERAL jsonb_array_elements_text(
                 COALESCE(s.{$sMeta}->'tags', '[]'::jsonb)
-                || COALESCE(s.{$sMeta}->'tags_es', '[]'::jsonb)
                 || COALESCE(s.{$sMeta}->'artista_vibes', '[]'::jsonb)
             ) AS t(val)
             WHERE {$whereSQL} AND s.{$sMeta} IS NOT NULL

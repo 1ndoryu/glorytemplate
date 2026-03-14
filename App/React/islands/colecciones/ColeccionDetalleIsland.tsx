@@ -28,19 +28,21 @@ interface ColeccionDetalleIslandProps {
 const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
     const {
         coleccion, cargando, guardada, descargando, navegar,
-        tabActiva, usuario, id, samples, metasComunes,
+        tabActiva, usuario, samples, metasComunes,
         subcolecciones, subActiva, setSubActiva, cargandoSub,
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
     } = useColeccionDetalle({ propSlug });
 
-    /* Proveedor para tab "Más Ideas" */
+    /* Proveedor para tab "Más Ideas" — usa coleccion.id (numérico) en vez del
+     * segmento de URL, que es null cuando la ruta usa slug en lugar de ID. */
+    const coleccionId = coleccion?.id ?? null;
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
-        if (!id) return [];
-        const resp = await obtenerSugerencias(id, pagina);
+        if (!coleccionId) return [];
+        const resp = await obtenerSugerencias(coleccionId, pagina);
         return resp.ok && resp.data ? resp.data : [];
-    }, [id]);
+    }, [coleccionId]);
 
     if (cargando) {
         return (

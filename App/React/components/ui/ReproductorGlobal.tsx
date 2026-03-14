@@ -32,6 +32,20 @@ export const ReproductorGlobal = (): JSX.Element | null => {
 
     return (
         <div className="reproductorGlobal" id="reproductorGlobal">
+            {/* QK73: Linea de tiempo como borde superior con color acento */}
+            <div
+                ref={progresoBarraRef}
+                className="reproductorTimelineSuperior"
+                onClick={manejarSeekProgreso}
+                role="slider"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(progreso * 100)}
+                aria-label="Progreso"
+            >
+                <div className="reproductorTimelineRelleno" style={{ width: `${progreso * 100}%` }} />
+            </div>
+
             {/* Portada circular */}
             <div className="reproductorPortada">
                 {sampleActual.imagenUrl
@@ -61,23 +75,10 @@ export const ReproductorGlobal = (): JSX.Element | null => {
                 </BotonBase>
             </div>
 
-            {/* Barra de progreso */}
-            <div className="reproductorProgreso">
-                <span className="reproductorTiempo">{formatearTiempo(progreso * duracion)}</span>
-                <div
-                    ref={progresoBarraRef}
-                    className="reproductorBarra"
-                    onClick={manejarSeekProgreso}
-                    role="slider"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(progreso * 100)}
-                    aria-label="Progreso"
-                >
-                    <div className="reproductorBarraRelleno" style={{ width: `${progreso * 100}%` }} />
-                </div>
-                <span className="reproductorTiempo">{formatearTiempo(duracion)}</span>
-            </div>
+            {/* QK73: Tiempo compacto sin barra (la barra ahora es el borde superior) */}
+            <span className="reproductorTiempoCompacto">
+                {formatearTiempo(progreso * duracion)} / {formatearTiempo(duracion)}
+            </span>
 
             {/* Like */}
             <BotonBase

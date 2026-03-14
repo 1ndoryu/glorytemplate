@@ -1,13 +1,29 @@
 /*
  * Service: tagUtils — Kamples
  * Normalización y utilidades para tags de samples.
- * Maneja: singular/plural, inglés/español, case, deduplicación.
+ * Maneja: singular/plural, inglés/español, case, deduplicación, blacklist.
  * Preparado para integración con algoritmo de descubrimiento.
  */
 
+/*
+ * Tags genéricos o meta que no aportan valor al usuario.
+ * normalizarTag() retorna '' para estos, filtrándolos del display.
+ */
+const TAGS_BLACKLIST = new Set([
+    'muestra', 'muestras', 'sample', 'samples',
+    'extraido', 'extraído', 'extracted', 'extraction',
+    'audio', 'sonido', 'sound',
+    'musica', 'música', 'music',
+    'track', 'pista',
+    'archivo', 'file',
+    'descarga', 'download',
+    'original', 'remix',
+    'unknown', 'desconocido', 'otro', 'other', 'none', 'n/a',
+]);
+
 /* Mapeo de sinónimos: variantes → forma canónica */
 const SINONIMOS_TAGS: Record<string, string> = {
-    /* Inglés ↔ Español */
+    /* Inglés ↔ Español — instrumentos */
     guitarra: 'guitar',
     batería: 'drums',
     bajo: 'bass',
@@ -25,6 +41,13 @@ const SINONIMOS_TAGS: Record<string, string> = {
     efectos: 'fx',
     effects: 'fx',
     efecto: 'fx',
+    flauta: 'flute',
+    violín: 'violin',
+    violin: 'violin',
+    trompeta: 'trumpet',
+    saxofón: 'saxophone',
+    saxofon: 'saxophone',
+    arpa: 'harp',
 
     /* Plural → singular */
     loops: 'loop',
@@ -40,7 +63,6 @@ const SINONIMOS_TAGS: Record<string, string> = {
     hihats: 'hihat',
     'hi-hats': 'hihat',
     'hi-hat': 'hihat',
-    samples: 'sample',
     oneshots: 'oneshot',
     'one-shot': 'oneshot',
     'one-shots': 'oneshot',
@@ -60,28 +82,61 @@ const SINONIMOS_TAGS: Record<string, string> = {
     'r&b': 'rnb',
     'r & b': 'rnb',
     reggaetón: 'reggaeton',
+    cumbia: 'cumbia',
+    salsa: 'salsa',
+    bachata: 'bachata',
+    merengue: 'merengue',
+    bossa: 'bossa nova',
+    'bossa nova': 'bossa nova',
 
-    /* Sentimientos */
+    /* Sentimientos / mood */
     oscuro: 'dark',
     brillante: 'bright',
     suave: 'soft',
+    duro: 'hard',
     agresivo: 'aggressive',
     melancólico: 'melancholic',
     melancolico: 'melancholic',
+    triste: 'sad',
+    alegre: 'happy',
+    feliz: 'happy',
     épico: 'epic',
     epico: 'epic',
     relajado: 'chill',
     relaxed: 'chill',
+    tranquilo: 'chill',
     atmosférico: 'atmospheric',
     atmosferico: 'atmospheric',
     emotivo: 'emotional',
     cinematico: 'cinematic',
     cinemático: 'cinematic',
+    enérgico: 'energetic',
+    energico: 'energetic',
+    energetico: 'energetic',
+    misterioso: 'mysterious',
+    romántico: 'romantic',
+    romantico: 'romantic',
+    nostálgico: 'nostalgic',
+    nostalgico: 'nostalgic',
+    soñador: 'dreamy',
+    ethereal: 'ethereal',
+    etéreo: 'ethereal',
+    etereo: 'ethereal',
+    tenso: 'tension',
+    intenso: 'intense',
+
+    /* BPM categorías ES → EN (para tags que vienen del metadata) */
+    'muy lento': 'very slow',
+    lento: 'slow',
+    'rápido': 'fast',
+    rapido: 'fast',
+    'muy rápido': 'very fast',
+    'muy rapido': 'very fast',
 };
 
 /*
- * Normaliza un tag individual: limpieza, lowercase, sinónimos.
- * Devuelve la forma canónica del tag.
+ * Normaliza un tag individual: limpieza, lowercase, sinónimos, blacklist.
+ * Devuelve la forma canónica del tag o '' si está en blacklist.
  */
 export const normalizarTag = (tag: string): string => {
     /* Limpiar: quitar espacios extra, lowercase, quitar caracteres especiales excepto - */
@@ -91,10 +146,16 @@ export const normalizarTag = (tag: string): string => {
         .replace(/\s+/g, ' ')
         .replace(/[^a-záéíóúñü0-9\s\-&]/g, '');
 
+    /* Filtrar tags genéricos antes de buscar sinónimo */
+    if (TAGS_BLACKLIST.has(limpio)) return '';
+
     /* Buscar sinónimo */
     if (SINONIMOS_TAGS[limpio]) {
         limpio = SINONIMOS_TAGS[limpio];
     }
+
+    /* Filtrar también la forma canónica (ej: 'samples' → 'sample' → blacklisted) */
+    if (TAGS_BLACKLIST.has(limpio)) return '';
 
     return limpio;
 };
@@ -320,7 +381,7 @@ const TAGS_POR_CATEGORIA: Record<CategoriaTag, Set<string>> = {
     ]),
     tipo: new Set([
         'loop', 'oneshot', 'fx', 'vocal', 'stem', 'riser', 'hit',
-        'chop', 'beat', 'sample',
+        'chop', 'beat',
     ]),
     otro: new Set(),
 };

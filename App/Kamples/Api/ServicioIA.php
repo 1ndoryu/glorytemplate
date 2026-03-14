@@ -264,7 +264,25 @@ PROMPT;
     private static function construirPrompt(string $nombreArchivo, string $descripcionUsuario, array $contextoTecnico): string
     {
         $partes = [];
-        $partes[] = "El archivo se subió con este nombre: \"{$nombreArchivo}\".";
+
+        /* QK72: contexto de extraccion (recortes scraper) para que la IA tenga info del sample original */
+        $ext = $contextoTecnico['extraccion'] ?? null;
+        if (\is_array($ext) && !empty($ext)) {
+            $frag = [];
+            $ft = $ext['fuente_titulo'] ?? '';
+            $fa = $ext['fuente_artista'] ?? '';
+            if ($ft !== '') $frag[] = $fa !== '' ? "Sampled from \"{$ft}\" by {$fa}" : "Sampled from \"{$ft}\"";
+            $dt = $ext['destino_titulo'] ?? '';
+            $da = $ext['destino_artista'] ?? '';
+            if ($dt !== '') $frag[] = $da !== '' ? "Used in \"{$dt}\" by {$da}" : "Used in \"{$dt}\"";
+            if (!empty($ext['tipo_elemento'])) $frag[] = "Element: {$ext['tipo_elemento']}";
+            if (!empty($ext['votos_total'])) $frag[] = "Confidence: {$ext['votos_total']} votes";
+            if (!empty($frag)) {
+                $partes[] = \implode(' | ', $frag) . '. This is a sample extracted from another track — analyze considering origin genre/style.';
+            }
+        } else {
+            $partes[] = "El archivo se subió con este nombre: \"{$nombreArchivo}\".";
+        }
 
         if (!empty($descripcionUsuario)) {
             $partes[] = "El usuario ha descrito el audio de esta manera: \"{$descripcionUsuario}\".";

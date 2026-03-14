@@ -19,6 +19,35 @@
     pointer-events: auto;
     box-shadow: var(--sombraFlotante);
     animation: reproductorEntrar 300ms ease forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+/* QK73: Linea de tiempo como borde superior del reproductor */
+.reproductorTimelineSuperior {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: transparent;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.reproductorTimelineRelleno {
+    height: 100%;
+    background-color: var(--acento);
+    transition: width 100ms linear;
+    border-radius: 0 var(--radioFull) var(--radioFull) 0;
+}
+
+.reproductorTimelineSuperior:hover {
+    height: 5px;
+}
+
+.reproductorTimelineSuperior:hover .reproductorTimelineRelleno {
+    background-color: var(--acentoTexto);
 }
 
 @keyframes reproductorEntrar {
@@ -131,42 +160,14 @@
     transform: scale(0.95);
 }
 
-/* Barra de progreso */
-.reproductorProgreso {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    flex: 1;
-    min-width: 80px;
-}
-
-.reproductorTiempo {
+/* QK73: Tiempo compacto — reemplaza barra de progreso removida */
+.reproductorTiempoCompacto {
     font-size: var(--fuente2xs);
     color: var(--textoTerciario);
-    min-width: 30px;
-    text-align: center;
     font-variant-numeric: tabular-nums;
-}
-
-.reproductorBarra {
-    flex: 1;
-    height: 3px;
-    background-color: var(--fondoElevado3);
-    border-radius: var(--radioFull);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.reproductorBarraRelleno {
-    height: 100%;
-    background-color: var(--acento);
-    border-radius: var(--radioFull);
-    transition: width 100ms linear;
-}
-
-.reproductorBarra:hover .reproductorBarraRelleno {
-    background-color: var(--acentoTexto);
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
 }
 
 /* Responsive mobile */
@@ -181,11 +182,7 @@
         max-width: 80px;
     }
 
-    .reproductorProgreso {
-        min-width: 60px;
-    }
-
-    .reproductorTiempo {
+    .reproductorTiempoCompacto {
         display: none;
     }
 }

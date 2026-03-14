@@ -62,10 +62,17 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - ✅ [AG-ADM] QK64: Fix toFixed admin — Number() coercion en todos los formatters (4 archivos, 8 llamadas)
 - ✅ [AG-ADM] QK65: Counter feed inicio — useState(null) para evitar flash "0 samples", render condicional
 - ✅ [AG-ADM] QK66: Admin tables — estados dinámicos con conteo del backend, fix intentos (incrementa en descargando, no en completado/error), artista/titulo parseado de URL en tabla scraper
+- ✅ [AG-ADM] QK67: Fix sugerencias coleccion — usaba URL id (null en slugs), ahora usa coleccion?.id + params page/per_page
+- ✅ [AG-ADM] QK69: Auditoria descarga ZIP — flock, MAX_SAMPLES_ZIP=500, MAX_ZIP_BYTES=2GB, realpath, cron limpieza diaria
+- ✅ [AG-ADM] QK70: Fix samples desaparecen en coleccion — added `activa` a deps de fetch, guard !activa, error handling
+- ✅ [AG-ADM] QK71: Tags EN — bpmUtils EN categories, tagUtils blacklist+synonyms expandido, SamplesRepository excluye tags_es de display
+- ✅ [AG-ADM] QK72: Contexto IA recortes — PipelineAudio pasa metadataExtraccion a ServicioIA, prompt incluye cancion/artista/tipo
+- ✅ [AG-ADM] QK73: Timeline reproductor — ocultar reproductorProgreso, borde superior 3px acento, tiempo compacto
+- ✅ [AG-ADM] QK74: Fix "Cargando samples" — lazy useState desde localStorage, stale-while-revalidate instantaneo
 
 ### Pendientes
 
-## QK12/QK37 — Plan Android (Tauri/WebView) Urgente
+## QK12/QK37 — Plan Android (Tauri/WebView) Urgente!!!!!!!!!!!!!!!!!!!!!! Esto es lo mas importante.
 
 Crear md detallado de todo lo pendiente para la app Android (WebView con Tauri). Android Studio instalado.
 
@@ -73,13 +80,9 @@ Crear md detallado de todo lo pendiente para la app Android (WebView con Tauri).
 
 Secciones horizontales, portada grande, letras abajo, secciones por generos, quitar tabs (ahora son secciones), no repetir canciones entre secciones, seccion albumes y artistas. Busqueda mantiene diseño de lista larga.
 
-## QK63 — Deploy a produccion
-
-Compilar coolify-manager-rs y hacer deploy con `.\target\release\coolify-manager.exe deploy --name kamples --update`.
-
 ## QK67
 
-Siempre sale "No hay sugerencias disponibles para esta colección." ¿Esto esta funcionando?
+✅ [AG-ADM] Fix sugerencias coleccion — usaba URL id (null para slug URLs), ahora usa coleccion?.id + params page/per_page match
 
 ## QK68
 
@@ -87,11 +90,52 @@ Necesito que el chat y las notificaciones funciones con websocket, por favor, az
 
 ## QK69
 
-Auditoría al boton de descarga de las colecciones
+✅ [AG-ADM] Auditoria descarga ZIP — flock, MAX_SAMPLES_ZIP=500, MAX_ZIP_BYTES=2GB, realpath, cron limpieza
 
 ## QK70
 
-De repente ningun motivo aparente estoy en una coleccion y aparece 
+✅ [AG-ADM] Fix samples desaparecen en coleccion — added `activa` a deps, guard !activa, error handling
+
+## QK71
+
+✅ [AG-ADM] Tags EN — bpmUtils EN, tagUtils blacklist+synonyms, SamplesRepository excluye tags_es de display
+
+## QK72
+
+✅ [AG-ADM] Contexto IA recortes — PipelineAudio pasa metadataExtraccion a ServicioIA, prompt incluye cancion/artista/tipo
+
+## QK73
+
+✅ [AG-ADM] Timeline reproductor — borde superior 3px acento, tiempo compacto
+
+## QK74
+
+✅ [AG-ADM] Fix "Cargando samples" — lazy useState desde localStorage, stale-while-revalidate instantaneo
+ 
+## QK75
+
+Auditoría al algoritmo de busqueda, eficiencia, calidad de resultados, etc.
+
+Cosas que he visto, hay un sample que fue sampleado de una cancion llamada million, tenia un sampleo, el sample nunca aparecio, intuyo que pasa lo mismo con la otra informacion del artista aunque puse el nombre del artista aparece, pero es porque la ia lo puse en la metadata ¿y cuando lo ponga? son detalles
+
+Me he dado cuenta que la busqueda funciona extremadamente lenta, es falta, no exagero, pense que habia mostrado todos los resultados 3 sampples pero luego empezaron a aparecer mas despues de muchos segundos, esto quiere decir que la busqueda esta mal, no es un problema de optmizacion, es que algo esta mal para ser tan lento, obvio que esta mal, esto requiere una revision profunda y una planificación detallada. 
+
+## QK76 
+
+Quita el "Cargando más samples…" la carga debería ser un skeleton
+
+## QK77 !SEGUNDA COSA MAS URGENTE!
+
+Sigue pasando que el login en la aplicacion de escritorio entra pero luego recargo y se deslogea a demas de que todo obviamente por eso da 401, llevamos mucho tiempo con este problema. Llevamos demasiado tiempo con este problema.
+
+## QK78
+
+Auditoría a la cola de IA, necesitamos estar seguro de que esto funciona bien, creo que si pero de todas formas revisa de nuevo porque planeo subir muchos samples y va a colapsar la subida, en la tabla de la cola vi algo de reintente 1/2, obviamente esto esta mal porque esa cifra va a subir demasiado, subirlo a 30, si los rate limits son muy frecuentes que tenga una pausa y luego reintente en una cantidad de tiempo no recuerdo cuanto habia especificado antes
+
+## QK79
+
+Tambiene preocupa que cuando todas las ia esten exhautas, 
+
 
 
 ## Despliegue Produccion (VPS Coolify)

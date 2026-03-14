@@ -224,7 +224,8 @@ class PublicadorExtraccion
 
             /* Ejecutar PipelineAudio (mismo que upload web/sync) */
             try {
-                PipelineAudio::procesar($sampleId, $rutaFinal, $nombreArchivo, $idCorto, '', $tags);
+                /* QK72: Pasar metadata de extraccion para enriquecer el contexto IA */
+                PipelineAudio::procesar($sampleId, $rutaFinal, $nombreArchivo, $idCorto, '', $tags, false, $meta);
             } catch (\Throwable $e) {
                 KamplesLogger::error('[PUB-EXTRACCION] PipelineAudio error', [
                     'sampleId' => $sampleId, 'colaId' => $colaId, 'error' => $e->getMessage(),

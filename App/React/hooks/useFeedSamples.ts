@@ -72,8 +72,18 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         onConteoChange,
     } = opciones;
 
-    const [samples, setSamples] = useState<SampleResumen[]>(samplesIniciales ?? []);
-    const [cargando, setCargando] = useState(!samplesIniciales);
+    /* QK74: Inicializar samples desde cache persistente para evitar flash "Cargando samples..."
+     * Si hay datos en localStorage para esta claveCache, se muestran inmediatamente
+     * en el primer render. La revalidacion ocurre en background via useEffect. */
+    const [samples, setSamples] = useState<SampleResumen[]>(() => {
+        if (samplesIniciales) return samplesIniciales;
+        return leerCacheFeed(claveCache) ?? [];
+    });
+    const [cargando, setCargando] = useState(() => {
+        if (samplesIniciales) return false;
+        const cached = leerCacheFeed(claveCache);
+        return !cached || cached.length === 0;
+    });
     const [cargandoMas, setCargandoMas] = useState(false);
     const [paginaActual, setPaginaActual] = useState(1);
     const [hayMasPaginas, setHayMasPaginas] = useState(true);
@@ -117,7 +127,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Throttle progresivo para infinite scroll */
     const throttle = usePaginacionProgresiva();
 
-    /* Reset al cambiar claveCache */
+    /* Reset al cambiar claveCache — QK74: cargar cache persistente inmediatamente si existe */
     useEffect(() => {
         if (claveCacheAnteriorRef.current !== claveCache) {
             claveCacheAnteriorRef.current = claveCache;
@@ -126,6 +136,12 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             setHayMasPaginas(true);
             setIndiceInicio(0);
             throttle.resetear();
+            /* QK74: Restaurar datos stale del nuevo cache key para evitar "Cargando" */
+            const cached = leerCacheFeed(claveCache);
+            if (cached && cached.length > 0) {
+                setSamples(cached);
+                setCargando(false);
+            }
         }
     }, [claveCache, throttle.resetear]);
 

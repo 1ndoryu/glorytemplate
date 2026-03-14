@@ -217,13 +217,14 @@ export const quitarSampleDeColeccion = async (
     return apiDelete<{ eliminado: boolean }>(`/colecciones/${coleccionId}/samples/${sampleId}`);
 };
 
-/* Sugerencias "Más Ideas" — samples similares no incluidos en la colección */
+/* Sugerencias "Más Ideas" — samples similares no incluidos en la colección.
+ * Params: page/per_page (convención WP REST, registrados en la ruta). */
 export const obtenerSugerencias = async (
     coleccionId: number,
-    pagina = 1,
-    limite = 20
+    page = 1,
+    per_page = 20
 ): Promise<RespuestaApi<SampleResumen[]>> => {
-    return apiGet<SampleResumen[]>(`/colecciones/${coleccionId}/sugerencias`, { pagina, limite });
+    return apiGet<SampleResumen[]>(`/colecciones/${coleccionId}/sugerencias`, { page, per_page });
 };
 
 /* Colecciones más relevantes para un sample (para modal "Guardar en colección") */

@@ -14,6 +14,7 @@
 namespace App\Kamples;
 
 use App\Kamples\Api\KamplesController;
+use App\Kamples\Api\Controladores\DescargasZipController;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Auth\GuardiaWpAdmin;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
@@ -84,6 +85,9 @@ class KamplesInit
 
         /* QK48: Cron diario para limpiar metadata de moderacion aprobada (>7 dias) */
         self::registrarCronLimpiezaModeracion();
+
+        /* QK69: Cron diario para limpiar ZIPs de colecciones expirados (>7 dias) */
+        self::registrarCronLimpiezaZips();
 
         /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
         self::asegurarCacheMedia();
@@ -307,6 +311,19 @@ HTACCESS;
 
         if (!wp_next_scheduled('kamples_limpiar_moderacion')) {
             wp_schedule_event(time(), 'daily', 'kamples_limpiar_moderacion');
+        }
+    }
+
+    /*
+     * QK69: Cron diario para limpiar ZIPs de colecciones expirados (>7 dias).
+     * Tambien limpia archivos .lock huerfanos (>1 hora).
+     */
+    private static function registrarCronLimpiezaZips(): void
+    {
+        add_action('kamples_limpiar_zips_cache', [DescargasZipController::class, 'cronLimpiarZips']);
+
+        if (!wp_next_scheduled('kamples_limpiar_zips_cache')) {
+            wp_schedule_event(time(), 'daily', 'kamples_limpiar_zips_cache');
         }
     }
 

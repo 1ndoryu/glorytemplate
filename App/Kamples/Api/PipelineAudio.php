@@ -54,8 +54,11 @@ class PipelineAudio
     /**
      * @param bool $omitirDedup Si true, salta la verificacion de duplicados en paso 2.5.
      *  Usado al reprocesar un sample aprobado por admin desde el panel de duplicados.
+     * @param array|null $metadataExtraccion Metadata de la cola de extraccion (recortes del scraper).
+     *  Contiene fuente_titulo, fuente_artista, destino_titulo, destino_artista, tipo_elemento, etc.
+     *  Se inyecta en el contexto tecnico para que la IA tenga info del sample original.
      */
-    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false): void
+    public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false, ?array $metadataExtraccion = null): void
     {
         KamplesLogger::info("Pipeline: Iniciando procesamiento", [
             'sampleId' => $sampleId,
@@ -216,6 +219,20 @@ class PipelineAudio
             'duracion' => $duracion ?? 0,
             'tags'     => $tagsUsuario,
         ];
+
+        /* QK72: Enriquecer contexto IA con datos de extraccion (recortes del scraper) */
+        if ($metadataExtraccion !== null) {
+            $extraccion = [];
+            foreach (['fuente_titulo', 'fuente_artista', 'destino_titulo', 'destino_artista', 'tipo_elemento', 'votos_total', 'lado'] as $campo) {
+                $valor = $metadataExtraccion[$campo] ?? null;
+                if ($valor !== null && $valor !== '') {
+                    $extraccion[$campo] = $valor;
+                }
+            }
+            if (!empty($extraccion)) {
+                $contextoTecnico['extraccion'] = $extraccion;
+            }
+        }
 
         /*
          * C184.10 + QQ142: Optimización IA — enviar MP3 recortado a 10s en vez del WAV original.

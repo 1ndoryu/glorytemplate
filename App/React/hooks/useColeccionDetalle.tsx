@@ -86,25 +86,31 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         return !isNaN(n) && String(n) === segmento ? n : null;
     }, [segmento]);
 
-    /* Cargar coleccion con AbortController.
-     * Soporta slug y backward compat con ID numérico.
-     * incluirSubcolecciones=true para que "Todos" muestre samples de subs. */
+    /* QK70: Cargar coleccion con AbortController.
+     * Soporta slug y backward compat con ID numerico.
+     * incluirSubcolecciones=true para que "Todos" muestre samples de subs.
+     * Se incluye `activa` en deps para re-fetch al reactivar la isla
+     * (evita estado stuck si el fetch anterior fue abortado por keep-alive). */
     useEffect(() => {
-        if (!segmento) return;
+        if (!segmento || !activa) return;
         const controller = new AbortController();
 
         const cargar = async () => {
             setCargando(true);
             try {
-                /* Si el segmento es puramente numérico, usar endpoint por ID; si no, por slug */
                 const opts = { incluirSubcolecciones: true };
                 const resp = id !== null
                     ? await obtenerColeccion(id, opts)
                     : await obtenerColeccionPorSlug(segmento, opts);
                 if (controller.signal.aborted) return;
-                if (resp.ok && resp.data) setColeccion(resp.data);
+                if (resp.ok && resp.data) {
+                    setColeccion(resp.data);
+                } else if (!controller.signal.aborted) {
+                    /* QK70: Limpiar coleccion en fallo real (no abort) para evitar datos stale */
+                    setColeccion(null);
+                }
             } catch {
-                /* Fallo de carga silencioso */
+                if (!controller.signal.aborted) setColeccion(null);
             } finally {
                 if (!controller.signal.aborted) setCargando(false);
             }
@@ -112,7 +118,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
 
         cargar();
         return () => { controller.abort(); };
-    }, [segmento, id]);
+    }, [segmento, id, activa]);
 
     const manejarGuardar = useCallback(() => {
         if (!usuario) { abrirAuth('login'); return; }
