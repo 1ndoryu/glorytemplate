@@ -107,19 +107,17 @@ class PostgresService
      */
     public static function consultar(string $sql, array $params = []): array
     {
-        self::validarQueryContraSchema($sql);
-
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return [];
         }
 
         try {
+            self::validarQueryContraSchema($sql);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll();
-        } catch (PDOException $e) {
-            /* S37: SQL solo visible en logs cuando WP_DEBUG activo */
+        } catch (\Throwable $e) {
             $contexto = ['error' => $e->getMessage()];
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 $contexto['sql'] = mb_substr($sql, 0, 200);
@@ -135,19 +133,18 @@ class PostgresService
      */
     public static function consultarUno(string $sql, array $params = []): ?array
     {
-        self::validarQueryContraSchema($sql);
-
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return null;
         }
 
         try {
+            self::validarQueryContraSchema($sql);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $result = $stmt->fetch();
             return $result !== false ? $result : null;
-        } catch (PDOException $e) {
+        } catch (\Throwable $e) {
             $contexto = ['error' => $e->getMessage()];
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 $contexto['sql'] = mb_substr($sql, 0, 200);
@@ -163,18 +160,17 @@ class PostgresService
      */
     public static function ejecutar(string $sql, array $params = []): int
     {
-        self::validarQueryContraSchema($sql);
-
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return -1;
         }
 
         try {
+            self::validarQueryContraSchema($sql);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             return $stmt->rowCount();
-        } catch (PDOException $e) {
+        } catch (\Throwable $e) {
             $contexto = ['error' => $e->getMessage()];
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 $contexto['sql'] = mb_substr($sql, 0, 200);
@@ -194,14 +190,13 @@ class PostgresService
      */
     public static function insertar(string $sql, array $params = []): ?int
     {
-        self::validarQueryContraSchema($sql);
-
         $pdo = self::obtenerConexion();
         if ($pdo === null) {
             return null;
         }
 
         try {
+            self::validarQueryContraSchema($sql);
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
 
@@ -215,7 +210,7 @@ class PostgresService
 
             /* Fallback para INSERT sin RETURNING */
             return (int) $pdo->lastInsertId();
-        } catch (PDOException $e) {
+        } catch (\Throwable $e) {
             $contexto = ['error' => $e->getMessage()];
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 $contexto['sql'] = mb_substr($sql, 0, 200);
@@ -363,6 +358,7 @@ class PostgresService
             /* Funciones/keywords SQL que pueden aparecer despues de FROM/JOIN pero no son tablas */
             $ignorar = [
                 'information_schema', 'pg_extension', 'pg_indexes', 'pg_class', 'pg_attribute',
+                'pg_matviews', 'pg_stat_activity', 'pg_tables', 'pg_views', 'pg_catalog',
                 'lateral', 'select', 'set', 'now', 'generate_series', 'unnest',
                 'json_array_elements', 'jsonb_array_elements', 'json_each', 'jsonb_each',
                 'json_to_recordset', 'jsonb_to_recordset', 'regexp_split_to_table',

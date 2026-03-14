@@ -157,14 +157,11 @@ class MigradorLocal
 
     private static function esEntornoLocal(): bool
     {
-        /* Check env LOCAL=true */
+        /* Solo ejecutar con env LOCAL=true explicito.
+         * WP_DEBUG puede estar activo en produccion — NO usarlo como proxy para local.
+         * QK96: WP_DEBUG = true en produccion causaba ejecucion de migraciones no deseadas. */
         $envLocal = $_ENV['LOCAL'] ?? \getenv('LOCAL');
-        if ($envLocal !== null && $envLocal !== false && \filter_var($envLocal, FILTER_VALIDATE_BOOLEAN)) {
-            return true;
-        }
-
-        /* Check WP_DEBUG como fallback */
-        return \defined('WP_DEBUG') && WP_DEBUG;
+        return $envLocal !== null && $envLocal !== false && \filter_var($envLocal, FILTER_VALIDATE_BOOLEAN);
     }
 
     private static function dirMigraciones(): string
