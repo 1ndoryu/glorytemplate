@@ -8,7 +8,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { AlertTriangle, Flag, History, Loader2, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Flag, Loader2, CheckCircle } from 'lucide-react';
 import type { DatosModeracion, PublicacionModeracion } from '../../services/apiAdmin';
 import { BotonBase, EstadoVacio, MenuContextual, Modal, SelectorBase, Input } from '../ui';
 import type { MenuItemDef } from '../ui';
@@ -75,7 +75,6 @@ const TarjetaHistorial = ({
     onAbrirMenu: (e: React.MouseEvent, pub: PublicacionModeracion) => void;
 }): JSX.Element => {
     const jsonFormateado = formatearJson(pub.moderacion_detalle);
-    const tieneDetalles = (pub.imagenes?.length > 0) || !!jsonFormateado;
 
     return (
         <div className="historialTarjeta">
@@ -101,22 +100,22 @@ const TarjetaHistorial = ({
                 <p className="historialContenidoTexto">{pub.contenido}</p>
             )}
 
-            {tieneDetalles && (
+            {/* QK46: Imagenes visibles por defecto, sin ocultar en details */}
+            {pub.imagenes?.length > 0 && (
+                <div className="adminModeracionImagenes">
+                    {pub.imagenes.map(url => (
+                        <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="adminModeracionImagenLink">
+                            <img src={url} alt="Imagen" className="adminModeracionImagen" loading="lazy" />
+                        </a>
+                    ))}
+                </div>
+            )}
+
+            {jsonFormateado && (
                 <details className="historialExpander">
-                    <summary className="historialExpanderTrigger">Ver detalles</summary>
+                    <summary className="historialExpanderTrigger">Ver detalle IA</summary>
                     <div className="historialExpanderContenido">
-                        {pub.imagenes?.length > 0 && (
-                            <div className="adminModeracionImagenes">
-                                {pub.imagenes.map(url => (
-                                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="adminModeracionImagenLink">
-                                        <img src={url} alt="Imagen" className="adminModeracionImagen" loading="lazy" />
-                                    </a>
-                                ))}
-                            </div>
-                        )}
-                        {jsonFormateado && (
-                            <pre className="historialDetalleJson">{jsonFormateado}</pre>
-                        )}
+                        <pre className="historialDetalleJson">{jsonFormateado}</pre>
                     </div>
                 </details>
             )}
@@ -236,19 +235,19 @@ export const TabModeracionAdmin = ({
                 {/* Publicaciones pendientes */}
                 {publicaciones.length > 0 && (
                     <>
-                        <div className="adminSeccionTitulo">
-                            <AlertTriangle size={16} />
-                            Publicaciones pendientes ({publicaciones.length})
-                            <BotonBase
-                                variante="ghost"
-                                className="adminModeracionBotonDescartar"
-                                onClick={onRechazarTodosPendientes}
-                                type="button"
-                            >
-                                Rechazar todos
-                            </BotonBase>
-                        </div>
                         <div className="adminModeracionLista">
+                            <div className="adminModeracionCabeceraSeccion">
+                                <AlertTriangle size={14} />
+                                Publicaciones pendientes ({publicaciones.length})
+                                <BotonBase
+                                    variante="ghost"
+                                    className="adminModeracionBotonDescartar"
+                                    onClick={onRechazarTodosPendientes}
+                                    type="button"
+                                >
+                                    Rechazar todos
+                                </BotonBase>
+                            </div>
                             {publicaciones.map((pub) => (
                                 <div key={pub.id} className="adminModeracionTarjeta">
                                     <div className="adminModeracionCabecera">
@@ -276,11 +275,11 @@ export const TabModeracionAdmin = ({
                 {/* Reportes pendientes */}
                 {reportes.length > 0 && (
                     <>
-                        <div className="adminSeccionTitulo">
-                            <Flag size={16} />
-                            Reportes pendientes ({reportes.length})
-                        </div>
                         <div className="adminModeracionLista">
+                            <div className="adminModeracionCabeceraSeccion">
+                                <Flag size={14} />
+                                Reportes pendientes ({reportes.length})
+                            </div>
                             {reportes.map((rep) => (
                                 <div key={rep.id} className="adminModeracionTarjeta">
                                     <div className="adminModeracionCabecera">
@@ -303,13 +302,9 @@ export const TabModeracionAdmin = ({
                     </>
                 )}
 
-                {/* Historial IA: grid de 3 columnas con JSON acordeona y menú contextual */}
+                {/* Historial IA: grid de 3 columnas con JSON acordeona y menu contextual */}
                 {historialModeracion.length > 0 && (
                     <>
-                        <div className="adminSeccionTitulo">
-                            <History size={16} />
-                            Historial IA (últimas 48h)
-                        </div>
                         <div className="historialGrid">
                             {historialModeracion.map((pub) => (
                                 <TarjetaHistorial

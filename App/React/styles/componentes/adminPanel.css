@@ -21,6 +21,21 @@
     margin-bottom: var(--espacioXl);
 }
 
+/* QK46: Variante compacta de KPIs para la tab de usuarios */
+.adminKpisCompacto {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioLg);
+}
+
+.adminKpisCompacto .adminKpiTarjeta {
+    padding: var(--espacioMd);
+}
+
+.adminKpisCompacto .adminKpiValor {
+    font-size: var(--fuenteXl);
+}
+
 .adminKpiTarjeta {
     background: var(--fondoElevado1);
     border: 1px solid var(--bordeSutil);
@@ -635,11 +650,11 @@
 }
 
 /* Sección de reportes */
-.adminSeccionTitulo {
-    font-size: var(--fuenteLg);
+/* QK46: Cabecera de seccion inline dentro de listas de moderacion */
+.adminModeracionCabeceraSeccion {
+    font-size: var(--fuenteMd);
     font-weight: 600;
-    color: var(--textoPrimario);
-    margin-top: var(--espacioXl);
+    color: var(--textoSecundario);
     margin-bottom: var(--espacioMd);
     display: flex;
     align-items: center;
@@ -783,6 +798,7 @@
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

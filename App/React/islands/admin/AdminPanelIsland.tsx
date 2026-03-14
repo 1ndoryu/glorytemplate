@@ -10,7 +10,6 @@
 
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
-import { TabResumenAdmin } from '@app/components/admin/TabResumenAdmin';
 import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
 import { TabColaIaAdmin } from '@app/components/admin/TabColaIaAdmin';
@@ -25,17 +24,16 @@ import { useAuthStore } from '@app/stores/authStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import '../../styles/componentes/adminPanel.css';
 
-/* Definición de tabs — registradas en TopBar via useTabsIsla */
+/* QK46: Definicion de tabs — resumen eliminado, KPIs movidos a usuarios */
 const TABS_ADMIN = [
-    { id: 'resumen', etiqueta: 'Resumen' },
     { id: 'usuarios', etiqueta: 'Usuarios' },
-    { id: 'moderacion', etiqueta: 'Moderación' },
+    { id: 'moderacion', etiqueta: 'Moderacion' },
     { id: 'cola-ia', etiqueta: 'Cola IA' },
     { id: 'duplicados', etiqueta: 'Duplicados' },
     { id: 'procesos', etiqueta: 'Procesos' },
     { id: 'contribuciones', etiqueta: 'Contribuciones' },
     { id: 'scrapers', etiqueta: 'Scrapers' },
-    { id: 'cola-extraccion', etiqueta: 'Cola Extracción' },
+    { id: 'cola-extraccion', etiqueta: 'Cola Extraccion' },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -43,7 +41,7 @@ const AdminPanelBase = (): JSX.Element => {
     const admin = useAdminPanel();
 
     /* D4: Registrar tabs en el TopBar global */
-    useTabsIsla('AdminPanelIsland', TABS_ADMIN, 'resumen');
+    useTabsIsla('AdminPanelIsland', TABS_ADMIN, 'usuarios');
 
     /* Guard: solo admins pueden ver este panel */
     if (usuario?.rol !== 'admin') {
@@ -68,17 +66,9 @@ const AdminPanelBase = (): JSX.Element => {
 
     return (
         <div className="adminPanel" id="adminPanel">
-            {admin.tabActiva === 'resumen' && (
-                <TabResumenAdmin
-                    kpis={admin.kpis}
-                    actividad={admin.actividad}
-                    colaIaStats={admin.colaIaStats}
-                    colaIaRecientes={admin.colaIaRecientes}
-                />
-            )}
-
             {admin.tabActiva === 'usuarios' && (
                 <TabUsuariosAdmin
+                    kpis={admin.kpis}
                     usuarios={admin.usuarios}
                     totalUsuarios={admin.totalUsuarios}
                     pagina={admin.paginaUsuarios}

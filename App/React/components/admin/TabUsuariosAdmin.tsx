@@ -4,9 +4,11 @@
  * Solo vista; la lógica viene de useAdminPanel.
  */
 
-import { Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight, ShieldAlert, Trash2, Undo2 } from 'lucide-react';
+import {
+    Search, Shield, BadgeCheck, Ban, ChevronLeft, ChevronRight, ShieldAlert, Trash2, Undo2,
+} from 'lucide-react';
 import { Badge } from '../ui/Badge';
-import type { UsuarioAdmin } from '../../services/apiAdmin';
+import type { UsuarioAdmin, KpisAdmin } from '../../services/apiAdmin';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
 import type { OpcionSelector } from '../ui/SelectorMenu';
@@ -14,8 +16,10 @@ import { CampoTexto } from '../ui/CampoTexto';
 import { EstadoVacio } from '../ui/EstadoVacio';
 import { ModalSuspenderAdmin } from './ModalSuspenderAdmin';
 import { useTabUsuariosAdmin } from '@app/hooks/useTabUsuariosAdmin';
+import { KpisCompactosAdmin } from './KpisCompactosAdmin';
 
 interface TabUsuariosAdminProps {
+    kpis?: KpisAdmin | null;
     usuarios: UsuarioAdmin[];
     totalUsuarios: number;
     pagina: number;
@@ -62,6 +66,7 @@ const OPCIONES_PLAN: OpcionSelector[] = [
 ];
 
 export const TabUsuariosAdmin = ({
+    kpis,
     usuarios,
     totalUsuarios,
     pagina,
@@ -81,6 +86,9 @@ export const TabUsuariosAdmin = ({
 
     return (
         <div>
+            {/* QK46: KPIs compactos movidos desde TabResumen */}
+            {kpis && <KpisCompactosAdmin kpis={kpis} />}
+
             {/* Controles búsqueda + filtro */}
             <div className="adminUsuariosControles">
                 <div className="adminBusquedaContenedor">
