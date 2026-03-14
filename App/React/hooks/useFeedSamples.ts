@@ -72,15 +72,18 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         onConteoChange,
     } = opciones;
 
-    /* QK74: Inicializar samples desde cache persistente para evitar flash "Cargando samples..."
-     * Si hay datos en localStorage para esta claveCache, se muestran inmediatamente
-     * en el primer render. La revalidacion ocurre en background via useEffect. */
+    /* QK100: Inicializar samples desde cache persistente. leerCacheFeed() SIEMPRE
+     * devuelve datos si existen (sin importar antigüedad). Solo retorna null si
+     * el cache nunca existio o supero TTL maximo (7 dias). Esto garantiza que el
+     * usuario nunca ve "Cargando samples..." salvo en su primera visita absoluta.
+     * Revalidacion ocurre en background via esCacheStale(). */
     const [samples, setSamples] = useState<SampleResumen[]>(() => {
         if (samplesIniciales) return samplesIniciales;
         return leerCacheFeed(claveCache) ?? [];
     });
     const [cargando, setCargando] = useState(() => {
         if (samplesIniciales) return false;
+        /* QK100: Si hay datos cacheados (stale o fresh), no mostrar loading */
         const cached = leerCacheFeed(claveCache);
         return !cached || cached.length === 0;
     });
@@ -127,7 +130,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Throttle progresivo para infinite scroll */
     const throttle = usePaginacionProgresiva();
 
-    /* Reset al cambiar claveCache — QK74: cargar cache persistente inmediatamente si existe */
+    /* Reset al cambiar claveCache — QK100: cargar cache persistente siempre (stale o fresh) */
     useEffect(() => {
         if (claveCacheAnteriorRef.current !== claveCache) {
             claveCacheAnteriorRef.current = claveCache;
@@ -136,7 +139,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             setHayMasPaginas(true);
             setIndiceInicio(0);
             throttle.resetear();
-            /* QK74: Restaurar datos stale del nuevo cache key para evitar "Cargando" */
+            /* QK100: Restaurar datos del nuevo cache key (siempre disponibles si hay cache) */
             const cached = leerCacheFeed(claveCache);
             if (cached && cached.length > 0) {
                 setSamples(cached);

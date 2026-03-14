@@ -263,6 +263,15 @@ Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajust
 
 El boton de corazon cuando el like sea un me encanta y no un like normal, que brille un poco (no mucho) solo es una pequeña distencion 
 
+## QK100
+
+✅ [AG-WRK] Fix carga feed stale-while-revalidate real:
+- **Causa raíz:** `leerCacheFeed()` eliminaba datos del localStorage cuando el TTL (5 min) expiraba, retornando `null`. Esto causaba que `cargando=true` y el usuario veía "Cargando samples..." por toda la duración del fetch de red.
+- **Fix:** TTL de 5 min ahora solo señala "necesita revalidación en background", NUNCA borra datos. Datos solo se limpian si no se usan en 7 días (TTL_MAXIMO_MS). Nueva función `esCacheStale()` exportada para chequeos futuros.
+- **Resultado:** El usuario SIEMPRE ve datos cacheados inmediatamente (stale o fresh). "Cargando samples..." solo aparece en la primera visita absoluta sin cache.
+- Archivos: `cacheFeedPersistente.ts`, `useFeedSamples.ts`
+- [Gotcha]: El TTL original con `localStorage.removeItem()` rompía el patrón SWR. El SWR solo funciona si hay datos stale disponibles. Separar "cuándo revalidar" de "cuándo borrar" es clave.
+
 ## Despliegue Produccion (VPS Coolify)
 
 **Estado:**  Produccion  `https://kamples.com` activo con SSL Let's Encrypt (valido hasta Jun 11 2026).
