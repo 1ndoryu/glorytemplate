@@ -165,7 +165,8 @@
 @media (max-width: 768px) {
     .topbarAccionesBadge,
     .topbarBtnCrear,
-    .topbarBtnMezclador {
+    .topbarBtnMezclador,
+    .topbarBtnAdmin {
         display: none;
     }
 

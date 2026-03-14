@@ -60,6 +60,7 @@ const MAPA_RUTAS: Record<string, string> = {
     '/notificaciones': 'notificaciones',
     '/comunidad': 'comunidad',
     '/samples': 'samples',
+    '/musica': 'musica',
     '/sample': 'inicio',
     '/coleccion': 'libreria',
     '/publicacion': 'comunidad',

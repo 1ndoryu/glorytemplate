@@ -39,9 +39,10 @@
     color: var(--textoPrimario);
 }
 
+/* QK105: gap aumentado a espacioXl */
 .seccionHorizontalScroll {
     display: flex;
-    gap: var(--espacioMd);
+    gap: var(--espacioXl);
     overflow-x: auto;
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;

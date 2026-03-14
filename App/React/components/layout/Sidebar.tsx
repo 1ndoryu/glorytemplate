@@ -31,11 +31,11 @@ export interface SidebarItemDef {
     accion?: 'modal-crear';
 }
 
-/* QK104: Items desktop — incluye Comunidad separada, Inicio muestra samples */
+/* QK104+QK105: Items desktop — Inicio centrado (posicion 3 de 5) */
 const itemsDesktop: SidebarItemDef[] = [
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
-    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
+    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
 ];

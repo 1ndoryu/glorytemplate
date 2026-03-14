@@ -3,13 +3,13 @@
  * Layout principal de la pagina de musica con secciones horizontales.
  */
 
+/* QK105: Estilos corregidos — sin max-width ni margin auto */
 .musicaExplorarContenedor {
     display: flex;
     flex-direction: column;
     gap: var(--espacio2xl);
     padding: var(--espacioLg) var(--espacioXl);
-    max-width: var(--anchoMaximoContenido);
-    margin: 0 auto;
+    padding-right: 0;
     width: 100%;
 }
 

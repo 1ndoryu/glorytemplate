@@ -351,7 +351,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK105
 
-Correciones de la tare anterior
+[EN CURSO — AG-WRK] Correciones de la tarea anterior
 
 se oculto la pagina de panel admin pero eso solo era para movil, necesito verla en escritorio, mejor al lado del mezclador
 en escritorio inico (feed de samples) tiene que estar en el medio es decir, bajarolo un lugar para que quede arriba del icono de musica y arriba del de librería

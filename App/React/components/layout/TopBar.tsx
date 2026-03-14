@@ -327,6 +327,20 @@ export const TopBar = (): JSX.Element => {
                         <Music2 size={18} />
                     </BotonBase>
 
+                    {/* QK105: Admin panel visible en desktop, al lado del mezclador */}
+                    {esAdmin && (
+                        <BotonBase
+                            variante="ghost"
+                            tamano="md"
+                            soloIcono
+                            onClick={() => navegar('/admin/panel')}
+                            aria-label="Admin Panel"
+                            className="topbarBtnAdmin"
+                        >
+                            <ShieldCheck size={18} />
+                        </BotonBase>
+                    )}
+
                     <div className="topbarIconoWrapper">
                         <BotonBase
                             variante="ghost"
