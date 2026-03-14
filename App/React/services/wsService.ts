@@ -1,8 +1,8 @@
 /*
- * Service: wsService — Kamples (Fase 7)
+ * Service: wsService — Kamples (QK68)
  * Servicio singleton de WebSocket para mensajes y notificaciones en tiempo real.
  * Gestiona una única conexión compartida entre toda la aplicación.
- * Mientras no exista el servidor Bun, opera en modo simulado sin errores.
+ * Auth: HMAC ticket obtenido de /kamples/v1/ws/ticket.
  */
 
 import { crearLogger } from './logger';
@@ -32,22 +32,23 @@ class WSService {
     private reconexionId: number | null = null;
     private url: string | null = null;
     private userId: number | null = null;
-    private onEstadoCambio: ((estado: EstadoConexion) => void) | null = null;
+    private ticket: string | null = null;
+    private callbacksEstado = new Set<(estado: EstadoConexion) => void>();
 
     /*
-     * Configura la URL del servidor y el usuario.
-     * TO-DO: Llamar desde el auth flow cuando el servidor Bun esté listo.
+     * Configura la URL del servidor, el usuario y el ticket HMAC.
      */
-    configurar(url: string, userId: number) {
+    configurar(url: string, userId: number, ticket: string) {
         this.url = url;
         this.userId = userId;
+        this.ticket = ticket;
     }
 
     /*
-     * Conectar al servidor WebSocket.
+     * Conectar al servidor WebSocket con ticket HMAC.
      */
     conectar() {
-        if (!this.url || !this.userId) {
+        if (!this.url || !this.userId || !this.ticket) {
             log.debug('WS sin configurar (modo offline)');
             return;
         }
@@ -57,8 +58,7 @@ class WSService {
         this.setEstado('conectando');
 
         try {
-            /* TO-DO: Agregar JWT token cuando el auth backend esté implementado */
-            this.ws = new WebSocket(`${this.url}?userId=${this.userId}`);
+            this.ws = new WebSocket(`${this.url}?ticket=${this.ticket}`);
 
             this.ws.onopen = () => {
                 log.info('WS conectado');
@@ -106,6 +106,7 @@ class WSService {
 
         this.setEstado('desconectado');
         this.intentos = 0;
+        this.ticket = null;
     }
 
     /*
@@ -149,17 +150,32 @@ class WSService {
     }
 
     /*
-     * Registrar callback para cambios de estado.
+     * Si la conexión WebSocket está activa.
      */
-    onCambioEstado(callback: (estado: EstadoConexion) => void) {
-        this.onEstadoCambio = callback;
+    estaConectado(): boolean {
+        return this.estado === 'conectado';
+    }
+
+    /*
+     * Registrar callback para cambios de estado (soporta múltiples listeners).
+     */
+    onCambioEstado(callback: (estado: EstadoConexion) => void): () => void {
+        this.callbacksEstado.add(callback);
+        return () => { this.callbacksEstado.delete(callback); };
+    }
+
+    /*
+     * Actualizar ticket (para reconexiones con ticket renovado).
+     */
+    actualizarTicket(ticket: string) {
+        this.ticket = ticket;
     }
 
     /* Utilidades privadas */
 
     private setEstado(estado: EstadoConexion) {
         this.estado = estado;
-        this.onEstadoCambio?.(estado);
+        this.callbacksEstado.forEach(cb => cb(estado));
     }
 
     private despachar(tipo: string, datos: unknown) {

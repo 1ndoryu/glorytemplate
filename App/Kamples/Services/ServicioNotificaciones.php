@@ -17,6 +17,7 @@ use App\Kamples\Database\Repositories\NotificacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\LikesEnums;
+use App\Kamples\Services\NotificadorWebSocket;
 
 class ServicioNotificaciones
 {
@@ -58,6 +59,17 @@ class ServicioNotificaciones
                 $actorId,
                 $enlace
             );
+
+            /* QK68: Push WebSocket — notificación en tiempo real */
+            $actorNombre = $actorId ? self::obtenerNombreActor($actorId) : null;
+            NotificadorWebSocket::notificar('notificacion', [$destinatarioId], [
+                'tipo'    => $tipo,
+                'titulo'  => $titulo,
+                'mensaje' => $mensaje,
+                'datos'   => $datos,
+                'enlace'  => $enlace,
+                'actor'   => $actorNombre ? ['username' => $actorNombre] : null,
+            ]);
         } catch (\Throwable $e) {
             KamplesLogger::error('ServicioNotificaciones: error creando notificacion', [
                 'destinatarioId' => $destinatarioId,

@@ -13,6 +13,7 @@ import {useNavigationStore} from '@/core/router';
 import {toast} from '@app/stores/toastStore';
 import {useReportarStore} from '@app/stores/reportarStore';
 import {useBloqueosStore} from '@app/stores/bloqueosStore';
+import {wsService} from '@app/services/wsService';
 import type {Mensaje} from '@app/types';
 
 interface UseVentanaChatParams {
@@ -78,14 +79,39 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
     }, [mensajes]);
 
     /*
-     * QK58: Polling de mensajes nuevos mientras la ventana esta abierta y visible.
-     * Sin WebSocket, esta es la unica forma de recibir mensajes del otro participante.
-     * Intervalo: 5s cuando esta visible, detenido si esta minimizado.
+     * QK68: Recibir mensajes nuevos vía WebSocket en tiempo real.
+     * Si WS envía un mensaje para esta conversación, se agrega al estado local.
+     */
+    useEffect(() => {
+        const unsub = wsService.on('mensaje_nuevo', (datos: unknown) => {
+            const d = datos as { conversacionId: number; mensaje: Mensaje };
+            if (d.conversacionId === chat.conversacionId && d.mensaje) {
+                setMensajes(prev => {
+                    /* Evitar duplicados (el mismo mensaje puede llegar por polling + WS) */
+                    if (prev.some(m => m.id === d.mensaje.id)) return prev;
+                    return [...prev, d.mensaje];
+                });
+                useMensajesStore.getState().marcarConversacionLeida(chat.conversacionId);
+                marcarConversacionLeida(chat.conversacionId);
+            }
+        });
+        return unsub;
+    }, [chat.conversacionId]);
+
+    /*
+     * QK58/QK68: Polling de mensajes como fallback.
+     * Con WebSocket activo: polling cada 30s (backup).
+     * Sin WebSocket: polling cada 5s (modo original).
+     * Detenido si la ventana está minimizada.
      */
     useEffect(() => {
         if (chat.minimizado) return;
 
-        const intervalo = setInterval(async () => {
+        const obtenerIntervalo = () => wsService.estaConectado() ? 30000 : 5000;
+
+        let timeoutId: number;
+
+        const poll = async () => {
             try {
                 const resp = await obtenerMensajes(chat.conversacionId);
                 if (resp.ok && resp.data) {
@@ -103,9 +129,12 @@ export const useVentanaChat = ({chat}: UseVentanaChatParams) => {
             } catch {
                 /* Fallo silencioso en polling — se reintenta en el siguiente ciclo */
             }
-        }, 5000);
+            timeoutId = window.setTimeout(poll, obtenerIntervalo());
+        };
 
-        return () => clearInterval(intervalo);
+        timeoutId = window.setTimeout(poll, obtenerIntervalo());
+
+        return () => clearTimeout(timeoutId);
     }, [chat.conversacionId, chat.minimizado]);
 
     /* Enfocar input al restaurar */

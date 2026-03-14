@@ -21,6 +21,7 @@ use App\Kamples\Database\Repositories\MensajesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Services\ServicioAntiSpam;
+use App\Kamples\Services\NotificadorWebSocket;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Servicios\ServicioMedia;
 
@@ -146,6 +147,14 @@ class MensajesEnvioController
             /* Parsear mediaMetadata de string JSONB a objeto */
             if (isset($mensaje['mediaMetadata']) && is_string($mensaje['mediaMetadata'])) {
                 $mensaje['mediaMetadata'] = json_decode($mensaje['mediaMetadata'], true);
+            }
+
+            /* QK68: Push WebSocket al destinatario */
+            if ($otroId) {
+                NotificadorWebSocket::notificar('mensaje_nuevo', [$otroId], [
+                    'conversacionId' => $conversacionId,
+                    'mensaje'        => $mensaje,
+                ]);
             }
 
             return new \WP_REST_Response(['data' => $mensaje], 201);

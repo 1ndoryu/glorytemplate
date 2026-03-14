@@ -18,6 +18,7 @@ import { useMensajesStore } from '@app/stores/mensajesStore';
 import { useNotificacionesStore } from '@app/stores/notificacionesStore';
 import { obtenerConversaciones } from '@app/services/apiMensajes';
 import { marcarTodasLeidas, obtenerNotificaciones } from '@app/services/apiNotificaciones';
+import { wsService } from '@app/services/wsService';
 
 export const useTopBar = () => {
     const tabs = useTabsTopBarStore(s => s.tabs);
@@ -95,6 +96,38 @@ export const useTopBar = () => {
             clearInterval(intervalo);
         };
     }, [autenticado, hidratarNotificaciones, setConversaciones, setCargandoSilenciosoNotificaciones]);
+
+    /*
+     * QK68: Listeners WS para notificaciones y mensajes en tiempo real.
+     * Cuando WS recibe 'notificacion', refrescamos las notificaciones del store.
+     * Cuando WS recibe 'mensaje_nuevo', refrescamos la lista de conversaciones.
+     */
+    useEffect(() => {
+        if (!autenticado) return;
+
+        const unsubNotif = wsService.on('notificacion', () => {
+            /* Refrescar lista completa para mantener orden y datos normalizados */
+            obtenerNotificaciones().then(resp => {
+                if (resp.ok && resp.data) {
+                    hidratarNotificaciones(resp.data, true);
+                }
+            });
+        });
+
+        const unsubMsg = wsService.on('mensaje_nuevo', () => {
+            /* Refrescar lista de conversaciones para actualizar badge y preview */
+            obtenerConversaciones().then(resp => {
+                if (resp.ok && resp.data) {
+                    setConversaciones(resp.data);
+                }
+            });
+        });
+
+        return () => {
+            unsubNotif();
+            unsubMsg();
+        };
+    }, [autenticado, hidratarNotificaciones, setConversaciones]);
 
     const manejarBusqueda = useCallback((valor: string) => {
         setBusqueda(valor);
