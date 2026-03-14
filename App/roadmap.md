@@ -72,9 +72,9 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ### Pendientes
 
-## QK12/QK37 — Plan Android (Tauri/WebView) Urgente!!!!!!!!!!!!!!!!!!!!!! Esto es lo mas importante.
+## QK12/QK37 — Plan Android (Tauri/WebView)
 
-Crear md detallado de todo lo pendiente para la app Android (WebView con Tauri). Android Studio instalado.
+✅ [AG-ADM] Plan detallado creado en `App/docs/plan-android.md`. Cubre 4 fases: scaffolding → app base → sync/offline → nativo. Decisión: Tauri v2 Android (no Capacitor) — reutiliza 85-90% del código React + 70% Rust. Incluye: compatibilidad plugins, adaptaciones FS, pull-only sync, Google Play Billing, FCM push, deep linking, background audio.
 
 ## QK18/QK22 — Rediseno pagina musica estilo Spotify
 
@@ -155,7 +155,31 @@ Creo que no se han ejecutados las migraciones en local, en produccion si pero en
 
 La busqueda sigue funcionando extremadamente lenta, no tiene sentido. Algo esta mal, esto necesita mas revisiones, mas pruebas, mediciones, un md detallado, no se puede tomar a ligera, no es normal que aparezca un resultado cada 30 segundos (contando por mi misma).
 
-## QK
+## QK84
+
+Arregla todo eso que dijiste de "Los errores son preexistentes (Mezclador sin types, conflictos de tipado de Glory global)."
+
+## QK77-B
+
+Si bien ahora la sesion se mantiene al recargar
+
+hay detalles con el sync
+
+Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
+obtenerColeccionesDelServidor @ syncCollectionService.ts:296
+wp-json/kamples/v1/me/sync/colecciones?_t=1773482607946:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
+obtenerColeccionesDelServidor @ syncCollectionService.ts:296
+
+tambien, al iniciar sesion no se actualiza el nombre ni la foto de perfil en la ventana del sync, tambien croe que es necesario que al cerrar sesion, se disvincule la carpeta selecionada y al iniciar sesion se tenga que elegir otra carpeta para el sync, pues, creo que lo mas logico para que no empiece a sincronizar samples que son de otro usuario.
+
+Por cierto, despues cerrar y abrir la aplicacion ya se actuilizo la foto y el nombre pero de igual manera es importante corregir y verificar.
+
+## QK85
+
+En detalleDescripcionInterna se tiene que usar la descripcion corta, no la larga, verificar que haya una version de descripcion corta en ing
+
 
 
 
