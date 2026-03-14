@@ -25,6 +25,7 @@ use App\Kamples\Services\BackfillHashService;
 use App\Kamples\Services\PublicadorExtraccion;
 use App\Kamples\Services\ReprocesadorPostDuplicado;
 use App\Kamples\Servicios\ServicioPapelera;
+use App\Kamples\Servicios\ServicioLimpiezaModeracion;
 
 class KamplesInit
 {
@@ -80,6 +81,9 @@ class KamplesInit
 
         /* QQ56: Cron diario para purgar papelera expirada (>30 días) */
         self::registrarCronPurgaPapelera();
+
+        /* QK48: Cron diario para limpiar metadata de moderacion aprobada (>7 dias) */
+        self::registrarCronLimpiezaModeracion();
 
         /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
         self::asegurarCacheMedia();
@@ -281,6 +285,28 @@ HTACCESS;
 
         if (!wp_next_scheduled('kamples_purgar_papelera')) {
             wp_schedule_event(time(), 'daily', 'kamples_purgar_papelera');
+        }
+    }
+
+    /*
+     * QK48: Limpieza diaria de metadata de moderacion en publicaciones aprobadas >7 dias.
+     * Borra moderacion_detalle y moderacion_razon, conservando la publicacion.
+     */
+    private static function registrarCronLimpiezaModeracion(): void
+    {
+        add_action('kamples_limpiar_moderacion', function (): void {
+            try {
+                $resultado = ServicioLimpiezaModeracion::limpiarAprobadas();
+                if (($resultado['totalLimpiadas'] ?? 0) > 0) {
+                    KamplesLogger::info('[CRON] Moderacion aprobada limpiada', $resultado);
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::error('[CRON] Error limpiando moderacion', ['error' => $e->getMessage()]);
+            }
+        });
+
+        if (!wp_next_scheduled('kamples_limpiar_moderacion')) {
+            wp_schedule_event(time(), 'daily', 'kamples_limpiar_moderacion');
         }
     }
 
