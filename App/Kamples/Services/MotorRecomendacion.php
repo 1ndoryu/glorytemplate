@@ -40,7 +40,8 @@ class MotorRecomendacion
 {
     private static ?array $pesos = null;
     private static ?bool $pgvectorDisponible = null;
-    private const CACHE_TTL = 300; /* 5 minutos */
+    private const CACHE_TTL = 300; /* 5 minutos — pagina 1 */
+    private const CACHE_TTL_PAGINADOS = 900; /* 15 minutos — paginas subsecuentes */
     private const CACHE_PREFIX = 'kamples_feed_';
 
     /**
@@ -118,7 +119,8 @@ class MotorRecomendacion
             ]);
             $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
             if (!empty($resultado)) {
-                \set_transient($cacheKey, $resultado, self::CACHE_TTL);
+                $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
+                \set_transient($cacheKey, $resultado, $ttl);
             }
             return $resultado;
         }
@@ -300,9 +302,10 @@ class MotorRecomendacion
         /* Serendipia: inyectar samples de descubrimiento cada N posiciones */
         $resultado = self::inyectarSerendipia($resultado, $userId, $config);
 
-        /* Guardar en cache */
+        /* Guardar en cache — pagina 1 mas fresco, subsecuentes 15 min */
         if (!empty($resultado)) {
-            \set_transient(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, self::CACHE_TTL);
+            $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
+            \set_transient(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, $ttl);
         }
 
         return $resultado;

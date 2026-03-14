@@ -138,6 +138,9 @@ class PlanificadorAlgoritmo
         /* Borrar TODOS los transients del feed del usuario (cualquier limite/offset) */
         MotorRecomendacion::invalidarCache($userId);
 
+        /* Invalidar cache del perfil para que se reconstruya con datos frescos */
+        PerfilUsuario::invalidarCache($userId);
+
         /* Resetear contadores rápidos */
         AlgoritmoEstadoRepository::resetearContadoresRapidos($userId);
 

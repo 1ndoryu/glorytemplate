@@ -25,6 +25,12 @@ import {
     type DatosModeracion,
     type PublicacionModeracion,
 } from '../services/apiAdmin';
+import {
+    listarColaIa,
+    obtenerEstadisticasColaIa,
+    type ItemColaIa,
+    type EstadisticasColaIa,
+} from '../services/apiColaIa';
 import { useTabsTopBarStore } from '../stores/tabsTopBarStore';
 import { useIslaActiva } from './useIslaActiva';
 import { useValorCongelado } from './useValorCongelado';
@@ -42,6 +48,8 @@ export function useAdminPanel() {
     const [filtroPlannUsuarios, setFiltroPlannUsuarios] = useState('');
     const [moderacion, setModeracion] = useState<DatosModeracion | null>(null);
     const [historialModeracion, setHistorialModeracion] = useState<PublicacionModeracion[]>([]);
+    const [colaIaStats, setColaIaStats] = useState<EstadisticasColaIa | null>(null);
+    const [colaIaRecientes, setColaIaRecientes] = useState<ItemColaIa[]>([]);
     const [cargando, setCargando] = useState(true);
 
     /* D4: Tab viene del store global (TopBar), congelada cuando la isla está oculta */
@@ -49,18 +57,22 @@ export function useAdminPanel() {
     const activa = useIslaActiva('AdminPanelIsland');
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
 
-    /* Carga inicial: KPIs + actividad */
+    /* Carga inicial: KPIs + actividad + cola IA resumen */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
             try {
-                const [resKpis, resActividad] = await Promise.all([
+                const [resKpis, resActividad, resColaStats, resColaItems] = await Promise.all([
                     obtenerResumenAdmin(),
                     obtenerActividadAdmin(14),
+                    obtenerEstadisticasColaIa(),
+                    listarColaIa(1, 10),
                 ]);
 
                 if (resKpis.ok && resKpis.data) setKpis(resKpis.data);
                 if (resActividad.ok && resActividad.data) setActividad(resActividad.data);
+                if (resColaStats.ok && resColaStats.data) setColaIaStats(resColaStats.data);
+                if (resColaItems.ok && resColaItems.data) setColaIaRecientes(resColaItems.data);
             } catch (err) {
                 log.error('Error cargando KPIs y actividad', err);
             }
@@ -228,6 +240,8 @@ export function useAdminPanel() {
         filtroPlannUsuarios,
         moderacion,
         historialModeracion,
+        colaIaStats,
+        colaIaRecientes,
         cargando,
         tabActiva,
 

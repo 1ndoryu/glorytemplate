@@ -547,6 +547,77 @@ class UsuariosExtRepository extends BaseRepository
         return \array_column($resultado, SamplesCols::CREADOR_ID);
     }
 
+    /*
+     * Perfil completo para el algoritmo de recomendacion en 1 solo roundtrip.
+     * Unifica contarInteracciones + bpmPromedio + keyFavorita + escalaFavorita + tipoFavorito
+     * en una sola CTE que reutiliza la subquery de "samples interactuados".
+     * obtenerCreadoresFavoritos se ejecuta por separado (estructura UNION ALL diferente).
+     * Total: 2 queries en vez de 7.
+     */
+    public static function perfilCompletoParaAlgoritmo(int $userId): array
+    {
+        $tl = LikesCols::TABLA;
+        $lUid = LikesCols::USUARIO_ID;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $rLike = LikesEnums::REACCION_LIKE;
+        $rEncanta = LikesEnums::REACCION_ENCANTA;
+        $tr = ReproduccionesCols::TABLA;
+        $rUid = ReproduccionesCols::USUARIO_ID;
+        $rSid = ReproduccionesCols::SAMPLE_ID;
+        $td = DescargasCols::TABLA;
+        $dUid = DescargasCols::USUARIO_ID;
+        $ts = SamplesCols::TABLA;
+        $sId = SamplesCols::ID;
+        $sBpm = SamplesCols::BPM;
+        $sKey = SamplesCols::KEY;
+        $sEscala = SamplesCols::ESCALA;
+        $sTipo = SamplesCols::TIPO;
+
+        $sql = "WITH interacciones AS ("
+            . " SELECT {$lTarget} AS sample_id FROM {$tl}"
+            . " WHERE {$lUid} = :uid1 AND {$lTipo} = '{$ltSample}'"
+            . " AND {$lReacc} IN ('{$rLike}', '{$rEncanta}')"
+            . " UNION"
+            . " SELECT {$rSid} FROM {$tr} WHERE {$rUid} = :uid2"
+            . "),"
+            . " total AS ("
+            . " SELECT"
+            . " (SELECT COUNT(*) FROM {$tl} WHERE {$lUid} = :uid3 AND {$lTipo} = '{$ltSample}')"
+            . " + (SELECT COUNT(*) FROM {$tr} WHERE {$rUid} = :uid4)"
+            . " + (SELECT COUNT(*) FROM {$td} WHERE {$dUid} = :uid5) AS val"
+            . "),"
+            . " bpm AS (SELECT AVG(s.{$sBpm})::int AS val FROM {$ts} s JOIN interacciones i ON s.{$sId} = i.sample_id WHERE s.{$sBpm} IS NOT NULL),"
+            . " key_fav AS (SELECT s.{$sKey} AS val FROM {$ts} s JOIN interacciones i ON s.{$sId} = i.sample_id WHERE s.{$sKey} IS NOT NULL GROUP BY s.{$sKey} ORDER BY COUNT(*) DESC LIMIT 1),"
+            . " escala_fav AS (SELECT LOWER(s.{$sEscala}) AS val FROM {$ts} s JOIN interacciones i ON s.{$sId} = i.sample_id WHERE s.{$sEscala} IS NOT NULL AND s.{$sEscala} != '' GROUP BY LOWER(s.{$sEscala}) ORDER BY COUNT(*) DESC LIMIT 1),"
+            . " tipo_fav AS (SELECT s.{$sTipo} AS val FROM {$ts} s JOIN interacciones i ON s.{$sId} = i.sample_id GROUP BY s.{$sTipo} ORDER BY COUNT(*) DESC LIMIT 1)"
+            . " SELECT"
+            . " (SELECT val FROM total) AS interacciones,"
+            . " (SELECT val FROM bpm) AS bpm_prom,"
+            . " (SELECT val FROM key_fav) AS key_fav,"
+            . " (SELECT val FROM escala_fav) AS escala_fav,"
+            . " (SELECT val FROM tipo_fav) AS tipo_fav";
+
+        $row = static::consultarUno($sql, [
+            'uid1' => $userId, 'uid2' => $userId, 'uid3' => $userId,
+            'uid4' => $userId, 'uid5' => $userId,
+        ]);
+
+        if (!$row) {
+            return ['interacciones' => 0, 'bpmProm' => null, 'keyFav' => null, 'escalaFav' => null, 'tipoFav' => null];
+        }
+
+        return [
+            'interacciones' => (int) ($row['interacciones'] ?? 0),
+            'bpmProm'       => $row['bpm_prom'] !== null ? (int) $row['bpm_prom'] : null,
+            'keyFav'        => $row['key_fav'] ?? null,
+            'escalaFav'     => $row['escala_fav'] ?? null,
+            'tipoFav'       => $row['tipo_fav'] ?? null,
+        ];
+    }
+
     /* --- Metodos de gestion de bans --- */
 
     /*

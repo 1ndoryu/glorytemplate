@@ -16,11 +16,15 @@ import {
     BarChart3,
 } from 'lucide-react';
 import type { KpisAdmin, DatosActividad } from '../../services/apiAdmin';
+import type { ItemColaIa, EstadisticasColaIa } from '../../services/apiColaIa';
+import { ListaHistorialAdmin } from './ListaHistorialAdmin';
 import { EstadoVacio } from '../ui/EstadoVacio';
 
 interface TabResumenAdminProps {
     kpis: KpisAdmin | null;
     actividad: DatosActividad | null;
+    colaIaStats: EstadisticasColaIa | null;
+    colaIaRecientes: ItemColaIa[];
 }
 
 /* Tarjeta de KPI individual */
@@ -192,7 +196,7 @@ const GraficaActividad = ({ datos }: { datos: DatosActividad }): JSX.Element => 
     );
 };
 
-export const TabResumenAdmin = ({ kpis, actividad }: TabResumenAdminProps): JSX.Element => {
+export const TabResumenAdmin = ({ kpis, actividad, colaIaStats, colaIaRecientes }: TabResumenAdminProps): JSX.Element => {
     if (!kpis) {
         return <EstadoVacio mensaje="No hay datos disponibles" />;
     }
@@ -245,6 +249,8 @@ export const TabResumenAdmin = ({ kpis, actividad }: TabResumenAdminProps): JSX.
             </div>
 
             {actividad && <GraficaActividad datos={actividad} />}
+
+            <ListaHistorialAdmin stats={colaIaStats} items={colaIaRecientes} />
         </div>
     );
 };

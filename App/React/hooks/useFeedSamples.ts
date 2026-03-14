@@ -20,13 +20,13 @@ import {
     EVENTO_SAMPLE_ACTUALIZADO,
     EVENTO_SAMPLE_CREADO,
 } from '@app/hooks/useMenuContextualSample';
-import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { CategoriaTag } from '@app/services/tagUtils';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
-import type { SampleResumen, TipoReaccion } from '@app/types';
+import { useFeedLikes } from '@app/hooks/useFeedLikes';
+import type { SampleResumen } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
 
@@ -130,10 +130,25 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Guard contra race conditions */
     const requestIdRef = useRef(0);
 
-    /* Carga de datos paginada */
+    /* Carga de datos paginada con stale-while-revalidate en pagina 1 */
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
         const thisRequest = ++requestIdRef.current;
         const key = `${claveCache}_p${pagina}`;
+
+        /* Stale-while-revalidate: si tenemos cache local, mostrar inmediatamente
+         * y revalidar en background. El usuario ve datos instantaneos. */
+        const datosStale = cacheFeedRef.current[key];
+        if (datosStale && esNuevo) {
+            setSamples(datosStale);
+            setCargando(false);
+            /* Revalidar en background sin loader */
+            const frescos = await proveedor(pagina);
+            if (requestIdRef.current !== thisRequest) return;
+            cacheFeedRef.current[key] = frescos;
+            if (frescos.length === 0) setHayMasPaginas(false);
+            setSamples(frescos);
+            return;
+        }
 
         if (esNuevo) {
             setCargando(true);
@@ -144,8 +159,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
         let resultado: SampleResumen[] = [];
 
-        if (cacheFeedRef.current[key]) {
-            resultado = cacheFeedRef.current[key];
+        if (datosStale) {
+            resultado = datosStale;
         } else {
             resultado = await proveedor(pagina);
             if (requestIdRef.current !== thisRequest) return;
@@ -284,54 +299,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         onConteoChange?.(samplesFiltrados.length);
     }, [samplesFiltrados.length, onConteoChange]);
 
-    const abrirSugerencias = usePanelLateralStore(s => s.abrirSugerencias);
-
-    /* Like optimistic UI con soporte de reacciones */
-    const manejarLike = useCallback(async (sampleId: number, reaccion?: TipoReaccion) => {
-        if (!requiereAuth()) return;
-        const sampleRef = samples.find(s => s.id === sampleId) ?? null;
-
-        if (reaccion) {
-            const eraPositivo = sampleRef?.reaccion === 'like' || sampleRef?.reaccion === 'encanta';
-            const esPositivo = reaccion !== 'dislike';
-            const delta = (esPositivo ? 1 : 0) - (eraPositivo ? 1 : 0);
-            setSamples(prev =>
-                prev.map(s =>
-                    s.id === sampleId
-                        ? { ...s, liked: esPositivo, reaccion, totalLikes: Math.max(0, s.totalLikes + delta) }
-                        : s,
-                ),
-            );
-            cacheFeedRef.current = {};
-            await darLike('sample', sampleId, reaccion);
-            if (esPositivo && sampleRef) abrirSugerencias(sampleRef);
-            onLike?.(sampleId, true);
-        } else if (sampleRef?.liked || sampleRef?.reaccion) {
-            const eraPositivo = sampleRef?.reaccion === 'like' || sampleRef?.reaccion === 'encanta';
-            setSamples(prev =>
-                prev.map(s =>
-                    s.id === sampleId
-                        ? { ...s, liked: false, reaccion: null, totalLikes: Math.max(0, s.totalLikes - (eraPositivo ? 1 : 0)) }
-                        : s,
-                ),
-            );
-            cacheFeedRef.current = {};
-            await quitarLike('sample', sampleId);
-            onLike?.(sampleId, false);
-        } else {
-            setSamples(prev =>
-                prev.map(s =>
-                    s.id === sampleId
-                        ? { ...s, liked: true, reaccion: 'like' as const, totalLikes: s.totalLikes + 1 }
-                        : s,
-                ),
-            );
-            cacheFeedRef.current = {};
-            await darLike('sample', sampleId, 'like');
-            if (sampleRef) abrirSugerencias(sampleRef);
-            onLike?.(sampleId, true);
-        }
-    }, [samples, onLike, abrirSugerencias]);
+    /* Likes optimistas (extraido a hook dedicado) */
+    const invalidarCacheFeed = useCallback(() => { cacheFeedRef.current = {}; }, []);
+    const { manejarLike } = useFeedLikes({ samples, setSamples, invalidarCache: invalidarCacheFeed, onLike });
 
     /* Samples visibles (con virtualización aplicada) */
     const samplesVisibles = useMemo(() => {

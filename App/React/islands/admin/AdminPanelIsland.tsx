@@ -68,6 +68,8 @@ const AdminPanelBase = (): JSX.Element => {
                 <TabResumenAdmin
                     kpis={admin.kpis}
                     actividad={admin.actividad}
+                    colaIaStats={admin.colaIaStats}
+                    colaIaRecientes={admin.colaIaRecientes}
                 />
             )}
 

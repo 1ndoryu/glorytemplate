@@ -1013,3 +1013,143 @@
     opacity: 0.85;
 }
 
+/* QK14: Lista compacta de historial — cola de procesamiento en tab Resumen */
+.adminHistorialContenedor {
+    background: var(--fondoElevado1);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXl);
+}
+
+.adminHistorialCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--espacioLg);
+}
+
+.adminHistorialTitulo {
+    font-size: var(--fuenteMd);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+/* Stats compactos en fila */
+.adminHistorialStats {
+    display: flex;
+    gap: var(--espacioLg);
+    margin-bottom: var(--espacioLg);
+    padding-bottom: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+}
+
+.adminHistorialStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.adminHistorialStatValor {
+    font-size: var(--fuenteXl);
+    font-weight: 700;
+    color: var(--textoPrimario);
+    line-height: 1;
+}
+
+.adminHistorialStatEtiqueta {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Lista de items */
+.adminHistorialLista {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--espacioXs) / 2);
+}
+
+.adminHistorialItem {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radioSm);
+    transition: background-color 0.1s;
+}
+
+.adminHistorialItem:hover {
+    background: var(--fondoElevado2);
+}
+
+.adminHistorialItemIcono {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.adminHistorialItemInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.adminHistorialItemTipo {
+    font-size: var(--fuenteXs);
+    font-weight: 600;
+    color: var(--textoPrimario);
+    text-transform: capitalize;
+    flex-shrink: 0;
+}
+
+.adminHistorialItemOp {
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.adminHistorialItemError {
+    color: var(--error);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    cursor: help;
+}
+
+.adminHistorialItemTiempo {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* Estado vacio */
+.adminHistorialVacio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioXl);
+    color: var(--textoTerciario);
+    font-size: var(--fuenteSm);
+}
+
+@media (max-width: 768px) {
+    .adminHistorialStats {
+        flex-wrap: wrap;
+        gap: var(--espacioMd);
+    }
+}
+

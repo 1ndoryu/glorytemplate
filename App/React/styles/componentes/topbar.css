@@ -46,7 +46,7 @@
 
 /* Zona de búsqueda — columna central, siempre centrada */
 .topbarBusqueda {
-    width: min(420px, 100%);
+    width: min(500px, 100%);
     min-width: 220px;
 }
 
