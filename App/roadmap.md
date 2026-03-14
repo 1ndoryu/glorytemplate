@@ -322,11 +322,24 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK103 
 
-necesito tener ya la apk para probar, y el instalador de la aplicación de escritorio y distribuirla
-
-esto ya lo hice
-- **Secrets en GitHub:** ⚠️ PENDIENTE — Configurar `TAURI_SIGNING_PRIVATE_KEY` y `TAURI_KEY_PASSWORD` en Settings > Secrets
-y el repositorio es [1ndoryu/kamples-sync](https://github.com/1ndoryu/kamples-sync) (aun no subo la apliacion ahi, puedes encargarte de eso creo)
+✅ [AG-WRK] CI release + push a kamples-sync — Parcialmente completado (requiere acciones del usuario):
+- **Workflow CI:** `release-desktop.yml` actualizado con jobs para Desktop (Windows/macOS/Linux) + Android (APK). Trigger: tag `desktop-v*` o `workflow_dispatch` manual con selector de plataformas.
+- **Push kamples-sync:** Código completo pusheado a `1ndoryu/kamples-sync` branch `main`.
+- **Lockfile:** `desktop/package-lock.json` ya existía tracked. `npm ci` funciona.
+- **Gitignore:** `desktop/src-tauri/gen/` cambiado a solo excluir `gen/schemas/` — permite commitear `gen/android/` cuando se genere.
+- **PENDIENTE USUARIO — Para desktop installer:**
+  1. Configurar secrets en GitHub (`1ndoryu/glorytemplate` o `1ndoryu/kamples-sync` según donde quieras trigger):
+     - `TAURI_SIGNING_PRIVATE_KEY` — clave privada de firma Tauri (generada con `tauri signer generate`)
+     - `TAURI_KEY_PASSWORD` — password de la clave
+  2. Push un tag: `git tag desktop-v0.1.0 && git push origin desktop-v0.1.0`
+  3. El workflow genera MSI (Windows), DMG (macOS), AppImage/deb (Linux) como GitHub Release draft.
+- **PENDIENTE USUARIO — Para APK (Android):**
+  1. Instalar Android SDK 34+, NDK 27+, JDK 17+ (variables ANDROID_HOME, JAVA_HOME)
+  2. En `desktop/src-tauri/`: `cargo tauri android init` (genera `gen/android/` con proyecto Gradle)
+  3. Commit y push de `gen/android/`
+  4. El workflow CI compilará el APK automáticamente al push de tag
+- [Arq]: Desktop depende de código compartido (`../App/React/`, `../Glory/assets/react/src/`, `../Mezclador/`). El repo kamples-sync contiene TODO el proyecto para que el build funcione. NO separar desktop en repo standalone.
+- [Gotcha]: `kamples-sync` remote agregado localmente (`git remote add kamples-sync https://github.com/1ndoryu/kamples-sync.git`). Para sincronizar: `git push kamples-sync main-kamples:main`.
 
 ## QK104
 
