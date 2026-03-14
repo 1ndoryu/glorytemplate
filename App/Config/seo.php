@@ -130,6 +130,18 @@ PageManager::setDefaultSeoMap([
         'title'  => 'Reproductor | Kamples',
         'robots' => 'noindex,nofollow',
     ],
+    'musica' => [
+        'title' => 'Explorar Canciones y Samples de Música | Kamples',
+        'desc'  => 'Navega por miles de canciones sampleadas y descubre los samples originales detrás de tus tracks favoritos. Explora por artista, genero y epoca.',
+    ],
+    'explorador' => [
+        'title' => 'Explorador de Samples | Kamples',
+        'desc'  => 'Busca y filtra entre miles de samples gratuitos por genero, BPM, tonalidad, instrumento y tipo. Encuentra el sonido perfecto para tu produccion.',
+    ],
+    'notificaciones' => [
+        'title'  => 'Notificaciones | Kamples',
+        'robots' => 'noindex,nofollow',
+    ],
 ]);
 
 /*
@@ -138,3 +150,34 @@ PageManager::setDefaultSeoMap([
  */
 
 SeoSitemapProvider::register();
+
+/*
+ * ROBOTS.TXT
+ * Customiza el robots.txt servido por WordPress.
+ * Define Disallow para rutas privadas/admin y agrega referencia al sitemap.
+ */
+add_filter('robots_txt', function (string $output): string {
+    $siteUrl = get_option('siteurl');
+
+    return implode("\n", [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        'Disallow: /admin/',
+        'Disallow: /mensajes/',
+        'Disallow: /favoritos/',
+        'Disallow: /descargas/',
+        'Disallow: /libreria/',
+        'Disallow: /perfil/editar/',
+        'Disallow: /auth/',
+        'Disallow: /wp-admin/',
+        'Disallow: /wp-json/',
+        'Disallow: /componentes/',
+        'Disallow: /dev/',
+        'Disallow: /reproductor/',
+        'Disallow: /notificaciones/',
+        '',
+        "Sitemap: {$siteUrl}/wp-sitemap.xml",
+        '',
+    ]);
+}, 10, 1);
