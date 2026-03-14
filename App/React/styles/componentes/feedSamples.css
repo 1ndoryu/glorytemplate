@@ -20,6 +20,14 @@
     width: 100%;
 }
 
+/* QK101: Sin borde en móvil para maximizar espacio */
+@media (max-width: 768px) {
+    .listaDeSamples {
+        border: none;
+        border-radius: 0;
+    }
+}
+
 .feedSamplesVacio {
     display: flex;
     flex-direction: column;

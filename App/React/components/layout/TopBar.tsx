@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu, MessageCircle } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
@@ -80,6 +80,9 @@ export const TopBar = (): JSX.Element => {
     const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false);
     const [hamburguesaPos, setHamburguesaPos] = useState({ x: 0, y: 0 });
 
+    const esAdmin = usuario?.rol === 'admin';
+    const mostrarHerramientasDev = esAdmin && devModeActivo;
+
     const hamburguesaItems: MenuItemDef[] = [
         {
             id: 'hb-crear',
@@ -103,16 +106,32 @@ export const TopBar = (): JSX.Element => {
             id: 'hb-mensajes',
             etiqueta: 'Mensajes',
             icono: <Mail size={14} />,
-            separadorDespues: false,
             onClick: () => {
                 alternarMensajes();
                 setHamburguesaAbierta(false);
             },
         },
+        /* QK101: Favoritos movido de sidebar al menu hamburguesa */
+        {
+            id: 'hb-favoritos',
+            etiqueta: 'Favoritos',
+            icono: <Heart size={14} />,
+            onClick: () => {
+                navegar('/favoritos');
+                setHamburguesaAbierta(false);
+            },
+        },
+        /* QK101: Admin panel movido de sidebar al menu hamburguesa */
+        ...(esAdmin ? [{
+            id: 'hb-admin',
+            etiqueta: 'Admin Panel',
+            icono: <ShieldCheck size={14} />,
+            onClick: () => {
+                navegar('/admin/panel');
+                setHamburguesaAbierta(false);
+            },
+        } as MenuItemDef] : []),
     ];
-
-    const esAdmin = usuario?.rol === 'admin';
-    const mostrarHerramientasDev = esAdmin && devModeActivo;
 
     const menuItems: MenuItemDef[] = [
         {

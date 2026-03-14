@@ -31,6 +31,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* QK101: Centrar items de navegacion verticalmente */
+    justify-content: center;
     gap: var(--espacioXs);
     width: 100%;
     flex: 1;

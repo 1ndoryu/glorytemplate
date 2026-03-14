@@ -10,16 +10,13 @@ import {
     Users,
     Box,
     Download,
-    Heart,
     Music,
     Settings,
-    ShieldCheck,
     Bug,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useReportarStore } from '@app/stores/reportarStore';
-import { useAuthStore } from '@app/stores/authStore';
 import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
 import { LogoKamples } from '../ui/LogoKamples';
@@ -33,12 +30,11 @@ export interface SidebarItemDef {
 }
 
 const itemsDefault: SidebarItemDef[] = [
-    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'comunidad', etiqueta: 'Comunidad', icono: <Users size={20} />, ruta: '/comunidad' },
+    { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
     { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
-    { id: 'favoritos', etiqueta: 'Favoritos', icono: <Heart size={20} />, ruta: '/favoritos' },
 ];
 
 interface SidebarProps {
@@ -55,13 +51,8 @@ export const Sidebar = ({
     const navegar = useNavigationStore(s => s.navegar);
     const abrirConfiguracion = useConfiguracionModalStore(s => s.abrir);
     const abrirReporte = useReportarStore(s => s.abrir);
-    const usuario = useAuthStore(s => s.usuario);
-    const esAdmin = usuario?.rol === 'admin';
-
-    /* Agregar enlace admin condicionalmente */
-    const itemsFinales: SidebarItemDef[] = esAdmin
-        ? [...items, { id: 'admin', etiqueta: 'Admin', icono: <ShieldCheck size={20} />, ruta: '/admin/panel' }]
-        : items;
+    /* QK101: Admin panel y favoritos removidos de la sidebar; se mueven al menu hamburguesa */
+    const itemsFinales = items;
 
     const manejarClick = (item: SidebarItemDef) => {
         if (item.accion === 'modal-crear') {

@@ -327,6 +327,8 @@
 @media (max-width: 640px) {
     .tarjetaSample {
         grid-template-columns: 40px 1fr auto;
+        /* QK101: Quitar padding derecho en móvil */
+        padding-right: 0;
     }
 
     /* Ocultar waveform */
@@ -341,8 +343,8 @@
         display: none;
     }
 
-    /* Reducir gap de acciones */
+    /* QK101: Más gap en acciones para móvil */
     .tarjetaAcciones {
-        gap: var(--espacioSm);
+        gap: var(--espacioLg);
     }
 }

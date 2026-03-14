@@ -12,7 +12,8 @@ import { Avatar } from '../ui/Avatar';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import '../../styles/componentes/filaColecciones.css';
 
-const MAX_COLECCIONES = 8;
+/* QK101: Subido a 20 para mostrar más variedad con scroll horizontal */
+const MAX_COLECCIONES = 20;
 
 export const FilaColecciones = (): JSX.Element | null => {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
