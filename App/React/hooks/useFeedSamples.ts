@@ -26,6 +26,7 @@ import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 import { useFeedLikes } from '@app/hooks/useFeedLikes';
+import { leerCacheFeed, guardarCacheFeed, invalidarCacheFeed as limpiarCachePersistente } from '@app/utils/cacheFeedPersistente';
 import type { SampleResumen } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
@@ -130,14 +131,18 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Guard contra race conditions */
     const requestIdRef = useRef(0);
 
-    /* Carga de datos paginada con stale-while-revalidate en pagina 1 */
+    /* Carga de datos paginada con stale-while-revalidate en pagina 1.
+     * QK39: Lee cache persistente (localStorage) si no hay cache en memoria.
+     * El usuario ve datos instantaneos de la sesion anterior
+     * mientras los datos frescos se cargan en background. */
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
         const thisRequest = ++requestIdRef.current;
         const key = `${claveCache}_p${pagina}`;
 
-        /* Stale-while-revalidate: si tenemos cache local, mostrar inmediatamente
-         * y revalidar en background. El usuario ve datos instantaneos. */
-        const datosStale = cacheFeedRef.current[key];
+        /* Stale-while-revalidate: si tenemos cache (memoria o persistente),
+         * mostrar inmediatamente y revalidar en background. */
+        const datosStale = cacheFeedRef.current[key]
+            ?? (pagina === 1 ? leerCacheFeed(claveCache) : null);
         if (datosStale && esNuevo) {
             setSamples(datosStale);
             setCargando(false);
@@ -145,6 +150,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             const frescos = await proveedor(pagina);
             if (requestIdRef.current !== thisRequest) return;
             cacheFeedRef.current[key] = frescos;
+            if (pagina === 1) guardarCacheFeed(claveCache, frescos);
             if (frescos.length === 0) setHayMasPaginas(false);
             setSamples(frescos);
             return;
@@ -165,6 +171,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             resultado = await proveedor(pagina);
             if (requestIdRef.current !== thisRequest) return;
             cacheFeedRef.current[key] = resultado;
+            /* QK39: Persistir pagina 1 para stale-first en recargas */
+            if (pagina === 1) guardarCacheFeed(claveCache, resultado);
         }
 
         if (resultado.length === 0) setHayMasPaginas(false);
@@ -252,6 +260,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             if (detalle?.sampleId) {
                 setSamples(prev => prev.filter(s => s.id !== detalle.sampleId));
                 cacheFeedRef.current = {};
+                limpiarCachePersistente();
             }
         };
 
@@ -263,6 +272,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                     return [detalle.sample!, ...prev];
                 });
                 cacheFeedRef.current = {};
+                limpiarCachePersistente();
             }
         };
 
@@ -277,6 +287,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
         const manejarCreacion = () => {
             cacheFeedRef.current = {};
+            limpiarCachePersistente();
             setPaginaActual(1);
             setHayMasPaginas(true);
             cargarPaginaRef.current(1, true);
@@ -300,7 +311,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     }, [samplesFiltrados.length, onConteoChange]);
 
     /* Likes optimistas (extraido a hook dedicado) */
-    const invalidarCacheFeed = useCallback(() => { cacheFeedRef.current = {}; }, []);
+    const invalidarCacheFeed = useCallback(() => {
+        cacheFeedRef.current = {};
+        limpiarCachePersistente(claveCache);
+    }, [claveCache]);
     const { manejarLike } = useFeedLikes({ samples, setSamples, invalidarCache: invalidarCacheFeed, onLike });
 
     /* Samples visibles (con virtualización aplicada) */

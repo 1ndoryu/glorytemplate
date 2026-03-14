@@ -71,8 +71,10 @@ export const FeedSamples = ({
         onConteoChange,
     });
 
-    /* Loading state */
-    if (feed.cargando) {
+    /* QK39: Solo bloquear con "Cargando" si no hay datos en absoluto.
+     * Si hay datos stale (del cache persistente), se muestran directamente
+     * y la revalidacion ocurre en background (manejada por useFeedSamples). */
+    if (feed.cargando && feed.samplesFiltrados.length === 0) {
         return (
             <div className={`feedSamplesContenedor ${className}`} id={id}>
                 <div className="feedSamplesVacio">
