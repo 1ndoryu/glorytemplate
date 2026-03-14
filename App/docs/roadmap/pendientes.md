@@ -20,10 +20,10 @@
 
 ---
 
-## FASE 8 — Tiempo Real (WebSocket producción) — Prioridad BAJA
+## FASE 8 — Tiempo Real (WebSocket producción)
 
-- [ ] **8.1** Servidor Bun WebSocket VPS
-- [ ] **8.2** Auth JWT en WebSocket
+- [x] **8.1** Servidor Bun WebSocket VPS — ✅ QK98: contenedor `kamples-websocket` standalone en `wss://ws.kamples.com`
+- [x] **8.2** Auth HMAC ticket en WebSocket — ✅ QK68: ticket auth via `/ws/ticket` endpoint
 - [ ] **8.3** Notificaciones push tiempo real
 - [ ] **8.4** Sync reproductor entre tabs
 

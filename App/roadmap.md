@@ -86,7 +86,7 @@ Secciones horizontales, portada grande, letras abajo, secciones por generos, qui
 
 ## QK68
 
-✅ [AG-ADM] WebSocket real-time para chat y notificaciones. Implementado: servidor Bun WS (`websocket-server/server.ts`) con HMAC ticket auth, `NotificadorWebSocket.php` (bridge PHP→Bun), `WsController.php` (endpoint `/ws/ticket`), `wsService.ts` actualizado con ticket auth, `useWebSocket.ts` reescrito con ciclo de vida auth, polling adaptativo (5s sin WS / 30s con WS), listeners WS en `useVentanaChat` y `useTopBar`. Plan completo en `App/docs/plan-websocket.md`. Pendiente: deploy del contenedor Bun como servicio Docker en Coolify + env vars (`KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL`, `KAMPLES_WS_PUBLIC_URL`).
+✅ [AG-ADM] WebSocket real-time para chat y notificaciones. Implementado: servidor Bun WS (`websocket-server/server.ts`) con HMAC ticket auth, `NotificadorWebSocket.php` (bridge PHP→Bun), `WsController.php` (endpoint `/ws/ticket`), `wsService.ts` actualizado con ticket auth, `useWebSocket.ts` reescrito con ciclo de vida auth, polling adaptativo (5s sin WS / 30s con WS), listeners WS en `useVentanaChat` y `useTopBar`. Plan completo en `App/docs/plan-websocket.md`. ✅ Deploy completado en QK98.
 
 ## QK69
 
@@ -250,7 +250,14 @@ Agregar una opcion de "borrar al subir" en el sync, en la configuracion, y ajust
 
 ## QK98
 
-Encargate de (2) Recompilar Rust binary (`cargo build --release`). (3) Ejecutar `deploy-websocket --name kamples`. (4) Verificar SSL con `openssl s_client -connect IP:443 -servername ws.kamples.com`.
+✅ [AG-WRK] Deploy WebSocket produccion completado:
+- Contenedor standalone `kamples-websocket` (oven/bun:latest) en red `mo4so4440c488g8woow4cow0`
+- Traefik SSL/WSS auto en `wss://ws.kamples.com` (certresolver letsencrypt)
+- Health: `https://ws.kamples.com/health` → 200 `{"ok":true}`
+- Env vars WordPress: `KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL=http://kamples-websocket:8080/notify`, `KAMPLES_WS_PUBLIC_URL=wss://ws.kamples.com`
+- Server.ts en `/opt/kamples-ws/server.ts` (volumen read-only)
+- [Gotcha]: No usar `deploy-websocket` CLI — Coolify API sobrescribe compose. Contenedor standalone con `docker run` + labels Traefik es mas fiable.
+- [Gotcha]: PowerShell→SSH pierde backticks en labels Traefik (`Host(\`dom\`)`). Usar SCP-script (.sh) para deploy con labels.
 
 ## QK99 
 
