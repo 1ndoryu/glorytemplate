@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\UnificadorDuplicadosExtraccion;
 
 class AdminController
 {
@@ -77,6 +78,13 @@ class AdminController
         register_rest_route($namespace, '/admin/cola-extraccion', [
             'methods' => 'GET',
             'callback' => [self::class, 'listarColaExtraccion'],
+            'permission_callback' => $admin,
+        ]);
+
+        /* QK53: Unificacion retroactiva de samples duplicados */
+        register_rest_route($namespace, '/admin/unificar-duplicados', [
+            'methods' => 'POST',
+            'callback' => [self::class, 'unificarDuplicados'],
             'permission_callback' => $admin,
         ]);
 
@@ -346,6 +354,20 @@ class AdminController
             return new \WP_REST_Response(['data' => $resultado['data'], 'total' => $resultado['total']], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('AdminController::listarColaExtraccion fallo', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * POST /admin/unificar-duplicados — QK53: Ejecutar unificacion retroactiva.
+     */
+    public static function unificarDuplicados(): \WP_REST_Response
+    {
+        try {
+            $resultado = UnificadorDuplicadosExtraccion::ejecutar();
+            return new \WP_REST_Response(['data' => $resultado], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('AdminController::unificarDuplicados fallo', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno'], 500);
         }
     }

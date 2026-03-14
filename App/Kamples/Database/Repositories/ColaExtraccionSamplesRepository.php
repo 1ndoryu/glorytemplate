@@ -14,6 +14,8 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Config\Schema\_generated\ColaExtraccionSamplesDTO;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 
 class ColaExtraccionSamplesRepository extends BaseRepository
 {
@@ -313,5 +315,47 @@ class ColaExtraccionSamplesRepository extends BaseRepository
         }
 
         return $ids;
+    }
+
+    /**
+     * QK53: Busca un sample existente publicado desde la misma fuente YouTube con timing similar.
+     * Criterio de match: mismo youtube_id, mismo lado, timing±tolerancia(5s), duracion±tolerancia(5s).
+     * Retorna el sample_id si existe; null si no hay match.
+     */
+    public static function buscarSampleExistenteSimilar(
+        string $youtubeId,
+        string $lado,
+        float $timing,
+        float $duracion,
+        float $tolerancia = 5.0
+    ): ?int {
+        $tc = ColaExtraccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT ce." . ColaExtraccionSamplesCols::SAMPLE_ID
+            . " FROM {$tc} ce"
+            . " JOIN {$ts} s ON s." . SamplesCols::ID . " = ce." . ColaExtraccionSamplesCols::SAMPLE_ID
+            . " WHERE ce." . ColaExtraccionSamplesCols::YOUTUBE_ID . " = :youtube_id"
+            . " AND ce." . ColaExtraccionSamplesCols::LADO . " = :lado"
+            . " AND ce." . ColaExtraccionSamplesCols::SAMPLE_ID . " IS NOT NULL"
+            . " AND s." . SamplesCols::ESTADO . " IN ('" . SamplesEnums::ESTADO_ACTIVO . "', '" . SamplesEnums::ESTADO_PROCESANDO . "')"
+            . " AND ABS(COALESCE(ce." . ColaExtraccionSamplesCols::TIMING_INICIO_SEG . ", 0) - :timing) <= :tolerancia"
+            . " AND ABS(COALESCE(ce." . ColaExtraccionSamplesCols::DURACION_COMPAS_SEG . ", 0) - :duracion) <= :tolerancia_dur"
+            . " AND ce." . ColaExtraccionSamplesCols::ESTADO . " IN ('"
+                . ColaExtraccionSamplesEnums::ESTADO_COMPLETADO . "', '"
+                . ColaExtraccionSamplesEnums::ESTADO_UNIFICADO . "')"
+            . " ORDER BY ce." . ColaExtraccionSamplesCols::SAMPLE_ID . " ASC LIMIT 1",
+            [
+                'youtube_id'     => $youtubeId,
+                'lado'           => $lado,
+                'timing'         => $timing,
+                'tolerancia'     => $tolerancia,
+                'duracion'       => $duracion,
+                'tolerancia_dur' => $tolerancia,
+            ]
+        );
+
+        return $row ? (int) $row[ColaExtraccionSamplesCols::SAMPLE_ID] : null;
     }
 }

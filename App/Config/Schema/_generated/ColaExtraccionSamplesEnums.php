@@ -16,8 +16,9 @@ final class ColaExtraccionSamplesEnums
     const ESTADO_COMPLETADO = 'completado';
     const ESTADO_ERROR = 'error';
     const ESTADO_REVISION_HUMANA = 'revision_humana';
+    const ESTADO_UNIFICADO = 'unificado';
 
-    const TODOS_ESTADO = [self::ESTADO_PENDIENTE, self::ESTADO_DESCARGANDO, self::ESTADO_ANALIZANDO, self::ESTADO_RECORTANDO, self::ESTADO_EXTRAIDO, self::ESTADO_COMPLETADO, self::ESTADO_ERROR, self::ESTADO_REVISION_HUMANA];
+    const TODOS_ESTADO = [self::ESTADO_PENDIENTE, self::ESTADO_DESCARGANDO, self::ESTADO_ANALIZANDO, self::ESTADO_RECORTANDO, self::ESTADO_EXTRAIDO, self::ESTADO_COMPLETADO, self::ESTADO_ERROR, self::ESTADO_REVISION_HUMANA, self::ESTADO_UNIFICADO];
 
     /* Valores para columna "lado" */
     const LADO_FUENTE = 'fuente';

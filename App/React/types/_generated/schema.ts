@@ -30,6 +30,7 @@ export interface IArtistasMusicales {
   musicbrainzId: string | null
   metadata: Record<string, unknown>
   totalCanciones: number
+  prioridad: number
   createdAt: string
   updatedAt: string
 }
@@ -82,7 +83,7 @@ export interface IColaExtraccionSamples {
   duracionCompasSeg: number | null
   compasInicioSeg: number | null
   compasFinSeg: number | null
-  estado: 'pendiente' | 'descargando' | 'analizando' | 'recortando' | 'extraido' | 'completado' | 'error' | 'revision_humana'
+  estado: 'pendiente' | 'descargando' | 'analizando' | 'recortando' | 'extraido' | 'completado' | 'error' | 'revision_humana' | 'unificado'
   sampleId: number | null
   errorMensaje: string | null
   intentos: number
@@ -91,7 +92,9 @@ export interface IColaExtraccionSamples {
   lado: 'fuente' | 'destino'
   spotifyId: string | null
   rutaAudioExtraido: string | null
+  rutaAudioCompleto: string | null
   metadataExtraccion: Record<string, unknown> | null
+  proximoIntentoAt: string | null
 }
 
 export interface IColaProcesamientoIa {
@@ -477,6 +480,7 @@ export const ArtistasMusicalesCols = {
   MUSICBRAINZ_ID: 'musicbrainz_id',
   METADATA: 'metadata',
   TOTAL_CANCIONES: 'total_canciones',
+  PRIORIDAD: 'prioridad',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at'
 } as const
@@ -542,7 +546,9 @@ export const ColaExtraccionSamplesCols = {
   LADO: 'lado',
   SPOTIFY_ID: 'spotify_id',
   RUTA_AUDIO_EXTRAIDO: 'ruta_audio_extraido',
-  METADATA_EXTRACCION: 'metadata_extraccion'
+  RUTA_AUDIO_COMPLETO: 'ruta_audio_completo',
+  METADATA_EXTRACCION: 'metadata_extraccion',
+  PROXIMO_INTENTO_AT: 'proximo_intento_at'
 } as const
 
 export const ColaProcesamientoIaCols = {
@@ -935,6 +941,7 @@ export const ColaExtraccionSamplesEnums = {
   ESTADO_COMPLETADO: 'completado',
   ESTADO_ERROR: 'error',
   ESTADO_REVISION_HUMANA: 'revision_humana',
+  ESTADO_UNIFICADO: 'unificado',
   LADO_FUENTE: 'fuente',
   LADO_DESTINO: 'destino'
 } as const

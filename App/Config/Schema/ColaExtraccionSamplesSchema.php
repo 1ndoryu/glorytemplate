@@ -26,7 +26,7 @@ class ColaExtraccionSamplesSchema extends TableSchema
             'duracion_compas_seg' => ['tipo' => 'decimal', 'nullable' => true],
             'compas_inicio_seg'   => ['tipo' => 'decimal', 'nullable' => true],
             'compas_fin_seg'      => ['tipo' => 'decimal', 'nullable' => true],
-            'estado'              => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente', 'check' => ['pendiente', 'descargando', 'analizando', 'recortando', 'extraido', 'completado', 'error', 'revision_humana']],
+            'estado'              => ['tipo' => 'string', 'max' => 20, 'default' => 'pendiente', 'check' => ['pendiente', 'descargando', 'analizando', 'recortando', 'extraido', 'completado', 'error', 'revision_humana', 'unificado']],
             'sample_id'           => ['tipo' => 'int', 'nullable' => true, 'ref' => 'samples(id)'],
             'error_mensaje'       => ['tipo' => 'text', 'nullable' => true],
             'intentos'            => ['tipo' => 'int', 'default' => 0],

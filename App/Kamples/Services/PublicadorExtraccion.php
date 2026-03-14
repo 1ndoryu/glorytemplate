@@ -98,6 +98,28 @@ class PublicadorExtraccion
             /* Resolver creador: contribuidor de la relacion o usuario sistema */
             $creadorId = self::resolverCreadorId($item);
 
+            /*
+             * QK53: Dedup — buscar si ya existe un sample publicado
+             * desde la misma fuente YouTube con timing similar (±5s).
+             * Si existe, reutilizar ese sample en vez de crear uno nuevo.
+             */
+            $youtubeIdItem = $item[ColaExtraccionSamplesCols::YOUTUBE_ID] ?? null;
+            $timingItem = (float) ($item[ColaExtraccionSamplesCols::TIMING_INICIO_SEG] ?? 0);
+            $duracionItem = (float) ($item[ColaExtraccionSamplesCols::DURACION_COMPAS_SEG] ?? 0);
+
+            if ($youtubeIdItem) {
+                $sampleExistente = ColaExtraccionSamplesRepository::buscarSampleExistenteSimilar(
+                    $youtubeIdItem,
+                    $lado,
+                    $timingItem,
+                    $duracionItem
+                );
+
+                if ($sampleExistente) {
+                    return self::unificarConExistente($colaId, $sampleExistente, $relacionId, $lado, $rutaAudio, $rutaFinal);
+                }
+            }
+
             /* Insertar via el mismo SamplesRepository que usa el upload web */
             $sampleId = SamplesRepository::insertarSample([
                 'creadorId'    => $creadorId,
@@ -273,6 +295,67 @@ class PublicadorExtraccion
     {
         ColaExtraccionSamplesRepository::actualizarEstado($colaId, 'error', $msg);
         return ['cola_id' => $colaId, 'ok' => false, 'error' => $msg];
+    }
+
+    /**
+     * QK53: Reutiliza un sample existente en vez de crear uno nuevo.
+     * Vincula la relacion al sample existente, marca la cola como 'unificado'
+     * y limpia el archivo temporal extraido.
+     */
+    private static function unificarConExistente(
+        int $colaId,
+        int $sampleExistenteId,
+        int $relacionId,
+        string $lado,
+        string $rutaAudio,
+        string $rutaFinal
+    ): array {
+        try {
+            /* Vincular relacion al sample existente */
+            $colVinculo = $lado === ColaExtraccionSamplesEnums::LADO_FUENTE
+                ? RelacionesSampleCols::SAMPLE_FUENTE_ID
+                : RelacionesSampleCols::SAMPLE_DESTINO_ID;
+
+            RelacionesSampleRepository::actualizarPorId($relacionId, [
+                $colVinculo => $sampleExistenteId,
+            ]);
+
+            /* Marcar cola como unificado apuntando al sample existente */
+            ColaExtraccionSamplesRepository::vincularSample($colaId, $sampleExistenteId, []);
+            ColaExtraccionSamplesRepository::ejecutar(
+                "UPDATE " . ColaExtraccionSamplesCols::TABLA
+                . " SET " . ColaExtraccionSamplesCols::ESTADO . " = :estado"
+                . " WHERE " . ColaExtraccionSamplesCols::ID . " = :id",
+                ['estado' => ColaExtraccionSamplesEnums::ESTADO_UNIFICADO, 'id' => $colaId]
+            );
+
+            /* Limpiar archivos temporales: no se necesita audio duplicado */
+            foreach ([$rutaAudio, $rutaFinal] as $ruta) {
+                if ($ruta !== '' && \file_exists($ruta)) {
+                    try {
+                        \unlink($ruta);
+                    } catch (\Throwable $e) {
+                        KamplesLogger::warning('[PUB-EXTRACCION] No se pudo eliminar temporal en unificacion', [
+                            'ruta' => $ruta,
+                        ]);
+                    }
+                }
+            }
+
+            KamplesLogger::info('[PUB-EXTRACCION] Sample unificado (dedup QK53)', [
+                'colaId' => $colaId,
+                'sampleExistenteId' => $sampleExistenteId,
+                'relacionId' => $relacionId,
+                'lado' => $lado,
+            ]);
+
+            return ['cola_id' => $colaId, 'ok' => true, 'sample_id' => $sampleExistenteId, 'unificado' => true];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[PUB-EXTRACCION] Error al unificar sample', [
+                'colaId' => $colaId, 'sampleExistenteId' => $sampleExistenteId, 'error' => $e->getMessage(),
+            ]);
+            return self::marcarError($colaId, 'Error al unificar: ' . $e->getMessage());
+        }
     }
 
     /**
