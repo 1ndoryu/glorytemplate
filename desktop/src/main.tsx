@@ -65,27 +65,27 @@ islandRegistry.registerAll(appIslands);
  * En la web, PHP genera esto dinámicamente via __GLORY_ROUTES__.
  * En desktop, las rutas son fijas y conocidas.
  */
-const RUTAS_DESKTOP: Record<string, { island: string; props?: Record<string, unknown> }> = {
-    '/': { island: 'InicioIsland' },
-    '/auth/login/': { island: 'LoginIsland' },
-    '/auth/registro/': { island: 'RegistroIsland' },
-    '/perfil/': { island: 'PerfilIsland', props: { username: '' } },
-    '/perfil/editar/': { island: 'EditarPerfilIsland' },
-    '/libreria/': { island: 'LibreriaIsland' },
-    '/descargas/': { island: 'DescargasIsland' },
-    '/favoritos/': { island: 'FavoritosIsland' },
-    '/reproductor/': { island: 'ReproductorIsland' },
-    '/descubrir/': { island: 'DescubrirIsland' },
-    '/notificaciones/': { island: 'NotificacionesIsland' },
-    '/planes/': { island: 'PlanesIsland' },
-    '/comunidad/': { island: 'ComunidadIsland' },
-    '/explorador/': { island: 'ExploradorIsland' },
-    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' } },
-    '/mensajes/': { island: 'MensajesIsland' },
-    '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' } },
-    '/admin/dashboard/': { island: 'DashboardCreadorIsland' },
-    '/admin/panel/': { island: 'AdminPanelIsland' },
-    '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' } },
+const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unknown>; title: string }> = {
+    '/': { island: 'InicioIsland', props: {}, title: 'Inicio' },
+    '/auth/login/': { island: 'LoginIsland', props: {}, title: 'Login' },
+    '/auth/registro/': { island: 'RegistroIsland', props: {}, title: 'Registro' },
+    '/perfil/': { island: 'PerfilIsland', props: { username: '' }, title: 'Perfil' },
+    '/perfil/editar/': { island: 'EditarPerfilIsland', props: {}, title: 'Editar Perfil' },
+    '/libreria/': { island: 'LibreriaIsland', props: {}, title: 'Libreria' },
+    '/descargas/': { island: 'DescargasIsland', props: {}, title: 'Descargas' },
+    '/favoritos/': { island: 'FavoritosIsland', props: {}, title: 'Favoritos' },
+    '/reproductor/': { island: 'ReproductorIsland', props: {}, title: 'Reproductor' },
+    '/descubrir/': { island: 'DescubrirIsland', props: {}, title: 'Descubrir' },
+    '/notificaciones/': { island: 'NotificacionesIsland', props: {}, title: 'Notificaciones' },
+    '/planes/': { island: 'PlanesIsland', props: {}, title: 'Planes' },
+    '/comunidad/': { island: 'ComunidadIsland', props: {}, title: 'Comunidad' },
+    '/explorador/': { island: 'ExploradorIsland', props: {}, title: 'Explorador' },
+    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' }, title: 'Coleccion' },
+    '/mensajes/': { island: 'MensajesIsland', props: {}, title: 'Mensajes' },
+    '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' }, title: 'Chat' },
+    '/admin/dashboard/': { island: 'DashboardCreadorIsland', props: {}, title: 'Dashboard' },
+    '/admin/panel/': { island: 'AdminPanelIsland', props: {}, title: 'Admin' },
+    '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' }, title: 'Sample' },
 };
 
 /*

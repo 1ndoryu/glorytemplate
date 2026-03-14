@@ -153,9 +153,11 @@ Creo que no se han ejecutados las migraciones en local, en produccion si pero en
  
 ## QK83
 
-La busqueda sigue funcionando extremadamente lenta, no tiene sentido. Algo esta mal, esto necesita mas revisiones, mas pruebas, mediciones, un md detallado, no se puede tomar a ligera, no es normal que aparezca un resultado cada 30 segundos (contando por mi misma).
+✅ [AG-ADM] Búsqueda feed server-side FTS. **Causa raíz:** `obtenerFeed` no pasaba `busqueda` al backend; `useFeedFiltros` filtraba client-side con `String.includes()` sobre samples cargados → 50+ roundtrips para encontrar un match. **Fix:** backend `/feed` acepta `busqueda` param con FTS (GIN indexes QK75: `to_tsvector @@ plainto_tsquery` + ILIKE + tags UNNEST), relevancia ts_rank, debounce 350ms en InicioIsland, eliminado filtro client-side.
 
-no me refiero a la busqueda en el modal, esa ironicamente es rapida.
+## QK87
+
+✅ [AG-ADM] Corregido por QK83 — el sort no se actualizaba cuando había búsqueda activa porque el filtro client-side producía los mismos resultados sin importar el ordenamiento enviado al backend. Ahora `busquedaDebounced` está en `claveCache` y deps del proveedor, lo que garantiza refetch al cambiar sort con búsqueda activa.
 
 ## QK84
 
@@ -187,10 +189,6 @@ En detalleDescripcionInterna se tiene que usar la descripcion corta, no la larga
 Empieza a trabajar en todo lo que puedas del plan-android.md
 para mi algo importante son las notificaciones, anticipar que las notificaciones de la app deben aparecer en el telefono, si es posible no usar cosas externas, mejor. 
 
-## QK87
-
-Cuando cambio de inteligente a reciente, no se actualiza, claramente es un error introducido por alguna tarea anterior. No siempre sucude, probalbmente sea por el cambio de pagina o la busqueda, o algo, no lo se.
-
 ## QK88
 
 Verificar que el proceso de Distribucion Seed no afecte a usuarios reales ni a su contenido real, excepto a los admin.
@@ -207,7 +205,13 @@ Revision seo para los samples, sampleos, canciones, y colecciones. Hay un plan-s
 
 busquedaRapidaDropdown debe tener 450px de ancho pero cuando yo se lo pongo deja de estar centrado, ajustalo, el gap del info no debe ser 1, debe ser 6px, no agregues ancho maximo a .busquedaRapidaSampleoTexto, se ve mal, que simplemente el texto total tenga un devanecimiento suave si es muy largo, 3 resultados maximo visibles por cancion, sampleo y usuario.
 
+## QK92
 
+En la aplicacion escritorio probandola localmente la pagina musica dice Pagina no encontrada, no se por qué, en produccion la pagina funciona bien. 
+
+## Qk93
+
+Pendiente: deploy del contenedor Bun como servicio Docker en Coolify + env vars (`KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL`, `KAMPLES_WS_PUBLIC_URL`). trabaja en eso y todo lo que esta pendiente, haz prueba, adapta el coolify manager en rs para esto, etc.
 
 ## Despliegue Produccion (VPS Coolify)
 

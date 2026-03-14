@@ -5,18 +5,11 @@
 
 /* Globals inyectados por main.tsx */
 interface Window {
-    __GLORY_ROUTES__?: Record<string, { island: string; props?: Record<string, unknown> }>;
     __KAMPLES_DESKTOP__?: boolean;
     __KAMPLES_VERSION__?: string;
     __TAURI_INTERNALS__?: unknown;
-    GLORY_CONTEXT?: {
-        apiUrl?: string;
-        restUrl?: string;
-        nonce?: string;
-        isLoggedIn?: boolean;
-        userId?: unknown;
-        googleClientId?: string;
-    };
+    /* GLORY_CONTEXT y __GLORY_ROUTES__ se declaran en Glory/assets/react/src/types/glory.ts.
+     * No re-declararlos aqui para evitar conflictos de tipado (TS2717). */
     /* C341: Sync bidireccional — funciones expuestas en window */
     __KAMPLES_SYNC__?: {
         elegirCarpetaSync: () => Promise<string | null>;
