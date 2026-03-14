@@ -172,7 +172,8 @@ class UsuariosExtRepository extends BaseRepository
             . UsuariosExtCols::TOTAL_SEGUIDOS . ", " . UsuariosExtCols::TOTAL_SAMPLES . ", "
             . UsuariosExtCols::TOTAL_DESCARGAS . ", " . UsuariosExtCols::CREATED_AT . ", "
             . UsuariosExtCols::ESTADO
-            . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME,
+            . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :" . UsuariosExtCols::USERNAME
+            . " AND " . UsuariosExtCols::ES_SEED . " = false",
             [UsuariosExtCols::USERNAME => $username]
         );
     }

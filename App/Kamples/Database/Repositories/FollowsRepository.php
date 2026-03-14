@@ -169,6 +169,7 @@ class FollowsRepository extends BaseRepository
             . " FROM {$tf} f"
             . " JOIN {$tu} u ON u." . UsuariosExtCols::ID . " = f." . FollowsCols::SEGUIDOR_ID
             . " WHERE f." . FollowsCols::SEGUIDO_ID . " = :seguidoId"
+            . " AND u." . UsuariosExtCols::ES_SEED . " = false"
             . " ORDER BY f." . FollowsCols::CREATED_AT . " DESC"
             . " LIMIT :lim OFFSET :off",
             ['seguidoId' => $seguidoId, 'lim' => $limit, 'off' => $offset]

@@ -239,6 +239,7 @@ class BusquedaRapidaController
             . ", " . UsuariosExtCols::TOTAL_SEGUIDORES
             . " FROM {$tu}"
             . " WHERE " . UsuariosExtCols::ESTADO . " = :estado"
+            . " AND " . UsuariosExtCols::ES_SEED . " = false"
             . " AND (" . UsuariosExtCols::USERNAME . " ILIKE :busqueda"
             . " OR " . UsuariosExtCols::NOMBRE_VISIBLE . " ILIKE :busqueda)"
             . " ORDER BY " . UsuariosExtCols::TOTAL_SEGUIDORES . " DESC"
