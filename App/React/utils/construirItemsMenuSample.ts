@@ -72,7 +72,8 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     if (d.esAdmin && s.relacionSampleoId)
         items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', onClick: () => d.abrirCorregirIA(s) });
 
-    if (d.esAdmin && s.extraccion)
+    /* QK45: Alinear condicion con backend — requiere youtubeId o rutaAudioExtraido para funcionar */
+    if (d.esAdmin && s.extraccion && (s.extraccion.youtubeId || s.extraccion.rutaAudioExtraido))
         items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', onClick: () => d.abrirExtenderRecorte(s) });
 
     if (d.esAdmin)
