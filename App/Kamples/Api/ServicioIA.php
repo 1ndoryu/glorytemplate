@@ -3,9 +3,14 @@
 /**
  * ServicioIA — Orquestador de análisis creativo de audio con IA
  *
- * Cadena de fallback: Groq Whisper (audio→texto) → Groq LLM (texto→JSON)
+ * Cadena de fallback: Groq Whisper (audio→texto) → Groq LLM (texto→JSON) → OpenAI LLM (fallback)
  * Whisper: whisper-large-v3 → whisper-large-v3-turbo
  * LLM Groq: openai/gpt-oss-120b → llama-3.3-70b → kimi-k2 → qwen3-32b → llama-4-scout → gpt-oss-20b
+ * LLM OpenAI (fallback): gpt-4o-mini (si OPENAI_API_KEY está configurada)
+ *
+ * QK80: Cuando todos los modelos Groq fallan (rate limit de cuenta o downtime),
+ * se intenta OpenAI como proveedor alternativo para la etapa LLM.
+ * Whisper STT NO tiene fallback a OpenAI (Groq STT es gratuito; la cola retríes).
  *
  * Analiza archivos de audio para extraer metadata CREATIVA:
  * tags, emociones, instrumentos, géneros, descripción, artistas similares.
@@ -21,6 +26,8 @@ namespace App\Kamples\Api;
 
 use App\Kamples\LogIA as KamplesLogger;
 use App\Kamples\Api\GroqHttpClient;
+use App\Kamples\Api\OpenAIHttpClient;
+use App\Kamples\Api\PromptsIA;
 use App\Kamples\Api\JsonRepairer;
 
 class ServicioIA
@@ -45,6 +52,13 @@ class ServicioIA
         'openai/gpt-oss-20b',                           /* 20B fallback, 200K tok/dia */
     ];
 
+    /*
+     * QK80: Modelo OpenAI como fallback final cuando Groq falla completamente.
+     * gpt-4o-mini: bajo costo ($0.15/1M input, $0.60/1M output), 128K contexto.
+     * Solo se usa si OPENAI_API_KEY está configurada en .env.
+     */
+    private const MODELO_OPENAI_FALLBACK = 'gpt-4o-mini';
+
     private const TIMEOUT_AUDIO = 45;
     private const MAX_TAMANO_AUDIO = 25 * 1024 * 1024; /* 25 MB free tier Groq STT */
 
@@ -66,21 +80,23 @@ class ServicioIA
             return null;
         }
 
-        $prompt = self::construirPrompt($nombreOriginal, $descripcionUsuario, $contextoTecnico);
+        $prompt = PromptsIA::construirAnalisis($nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
         $resultadoGroq = self::intentarGroqDesdeAudio($rutaArchivo, $prompt);
         if ($resultadoGroq !== null) {
             return $resultadoGroq;
         }
 
-        KamplesLogger::critical('ServicioIA: Flujo Groq falló (Whisper + LLM)');
+        KamplesLogger::critical('ServicioIA: Todos los proveedores fallaron (Groq + OpenAI) — sin transcripción Whisper no se puede continuar');
         return null;
     }
 
     /**
      * Ejecuta el flujo Groq para audio:
      * 1) Whisper transcribe audio
-     * 2) LLM genera metadata creativa JSON
+     * 2) LLM genera metadata creativa JSON (Groq → OpenAI fallback)
+     *
+     * QK80: Si Groq LLM falla (rate limit o error), intenta OpenAI como fallback.
      */
     private static function intentarGroqDesdeAudio(string $rutaArchivo, string $promptBase): ?array
     {
@@ -102,8 +118,16 @@ class ServicioIA
             return null;
         }
 
-        $promptAnalisis = self::construirPromptDesdeTranscripcion($promptBase, $transcripcion);
-        return self::intentarGroq($promptAnalisis, $apiKey);
+        $promptAnalisis = PromptsIA::conTranscripcion($promptBase, $transcripcion);
+
+        /* Intentar todos los modelos Groq primero */
+        $resultado = self::intentarGroq($promptAnalisis, $apiKey);
+        if ($resultado !== null) {
+            return $resultado;
+        }
+
+        /* QK80: Fallback a OpenAI si Groq falla completamente */
+        return self::intentarOpenAIFallback($promptAnalisis);
     }
 
     /**
@@ -204,21 +228,27 @@ class ServicioIA
     }
 
     /**
-     * Crea prompt final para metadata incluyendo contexto transcrito por Whisper.
+     * QK80: Fallback a OpenAI cuando todos los modelos Groq fallan.
+     * Solo se activa si OPENAI_API_KEY está configurada en el entorno.
+     * Usa gpt-4o-mini: económico y suficiente para clasificación de audio JSON.
      */
-    private static function construirPromptDesdeTranscripcion(string $promptBase, string $transcripcion): string
+    private static function intentarOpenAIFallback(string $prompt): ?array
     {
-        $textoTranscripcion = \mb_substr(\trim($transcripcion), 0, 3000);
+        if (!OpenAIHttpClient::estaConfigurada()) {
+            KamplesLogger::warning('ServicioIA: OpenAI API key no configurada, sin fallback disponible');
+            return null;
+        }
 
-        return <<<PROMPT
-{$promptBase}
+        KamplesLogger::info('ServicioIA: Intentando fallback OpenAI/' . self::MODELO_OPENAI_FALLBACK);
 
-Contexto adicional obtenido por transcripción de audio (Whisper):
-"{$textoTranscripcion}"
+        $resultado = OpenAIHttpClient::chatCompletion(self::MODELO_OPENAI_FALLBACK, $prompt);
+        if ($resultado !== null) {
+            KamplesLogger::info('ServicioIA: Análisis exitoso con OpenAI/' . self::MODELO_OPENAI_FALLBACK);
+            return $resultado;
+        }
 
-Debes considerar ese contexto para inferir mejor emoción, género, instrumentos y artista_vibes.
-Si hay poco contenido verbal, responde igual con un JSON válido apoyándote en el resto del contexto.
-PROMPT;
+        KamplesLogger::critical('ServicioIA: Fallback OpenAI también falló — sin proveedores disponibles');
+        return null;
     }
 
     /**
@@ -242,7 +272,7 @@ PROMPT;
                 ],
             ],
             'temperature'   => 0.2,
-            'max_tokens'    => 1500, /* QQ142: reducido de 2500 — JSON respuesta tipica usa ~500 tokens */
+            'max_tokens'    => 1500,
             'response_format' => ['type' => 'json_object'],
         ];
 
@@ -258,88 +288,8 @@ PROMPT;
     }
 
     /**
-     * Construye el prompt enriquecido para análisis creativo de audio.
-     * Incluye: nombre de archivo, descripción del usuario, tags, BPM, tonalidad, duración.
-     */
-    private static function construirPrompt(string $nombreArchivo, string $descripcionUsuario, array $contextoTecnico): string
-    {
-        $partes = [];
-
-        /* QK72: contexto de extraccion (recortes scraper) para que la IA tenga info del sample original */
-        $ext = $contextoTecnico['extraccion'] ?? null;
-        if (\is_array($ext) && !empty($ext)) {
-            $frag = [];
-            $ft = $ext['fuente_titulo'] ?? '';
-            $fa = $ext['fuente_artista'] ?? '';
-            if ($ft !== '') $frag[] = $fa !== '' ? "Sampled from \"{$ft}\" by {$fa}" : "Sampled from \"{$ft}\"";
-            $dt = $ext['destino_titulo'] ?? '';
-            $da = $ext['destino_artista'] ?? '';
-            if ($dt !== '') $frag[] = $da !== '' ? "Used in \"{$dt}\" by {$da}" : "Used in \"{$dt}\"";
-            if (!empty($ext['tipo_elemento'])) $frag[] = "Element: {$ext['tipo_elemento']}";
-            if (!empty($ext['votos_total'])) $frag[] = "Confidence: {$ext['votos_total']} votes";
-            if (!empty($frag)) {
-                $partes[] = \implode(' | ', $frag) . '. This is a sample extracted from another track — analyze considering origin genre/style.';
-            }
-        } else {
-            $partes[] = "El archivo se subió con este nombre: \"{$nombreArchivo}\".";
-        }
-
-        if (!empty($descripcionUsuario)) {
-            $partes[] = "El usuario ha descrito el audio de esta manera: \"{$descripcionUsuario}\".";
-        }
-
-        $tagsUsuario = $contextoTecnico['tags'] ?? [];
-        if (!empty($tagsUsuario)) {
-            $tagsStr = \implode(', ', \array_map(fn($t) => "#{$t}", $tagsUsuario));
-            $partes[] = "El usuario ha colocado los siguientes tags: {$tagsStr}.";
-        }
-
-        $bpm = $contextoTecnico['bpm'] ?? null;
-        if ($bpm) {
-            $partes[] = "El archivo tiene un BPM de {$bpm}.";
-        }
-
-        $key = $contextoTecnico['key'] ?? null;
-        $escala = $contextoTecnico['escala'] ?? null;
-        if ($key) {
-            $tonalidad = $key . ($escala ? " {$escala}" : '');
-            $partes[] = "La tonalidad detectada es {$tonalidad}.";
-        }
-
-        $duracion = $contextoTecnico['duracion'] ?? 0;
-        if ($duracion > 0) {
-            $partes[] = \sprintf("Dura %.1f segundos.", $duracion);
-        }
-
-        $contexto = \implode(' ', $partes);
-
-        return <<<PROMPT
-Analiza este audio. {$contexto}
-Tu tarea es generar UNICAMENTE un objeto JSON valido con la siguiente estructura. Se creativo y preciso.
-NO incluyas en tu respuesta los campos puramente tecnicos (bpm, tonalidad, escala), ya que esos se anadiran despues. Tu respuesta DEBE ser solo el JSON.
-
-- "nombre_archivo_base": Un titulo corto y descriptivo para el sample, en ingles, en minusculas y usando espacios. Ej: "deep kick 808", "sad guitar melody".
-- "tags": Array de strings con etiquetas descriptivas en INGLES (ej: "melodic", "dark", "808", "lo-fi").
-- "tags_es": Array de strings con las mismas etiquetas que 'tags' pero traducidas al ESPANOL.
-- "tipo": String, debe ser "one shot" o "loop".
-- "genero": Array de strings con generos musicales en INGLES (ej: "hip hop", "trap", "electronic").
-- "emocion": Array de strings con emociones que evoca en INGLES (ej: "energetic", "sad", "chill").
-- "emocion_es": Array de strings con las mismas emociones que 'emocion' pero traducidas al ESPANOL.
-- "instrumentos": Array de strings con los instrumentos principales que detectes en INGLES (ej: "guitar", "piano", "synth", "drums").
-- "artista_vibes": Array de strings con nombres de artistas que tienen un estilo similar.
-- "descripcion_corta": Una descripcion muy breve (10-15 palabras) en INGLES.
-- "descripcion_corta_es": La misma 'descripcion_corta' traducida al ESPANOL.
-- "descripcion": Una descripcion detallada (30-50 palabras) en INGLES.
-- "descripcion_es": La misma 'descripcion' traducida al ESPANOL.
-- "carpeta_primaria": Elige UNA de estas carpetas principales segun el tipo de audio: "Drums", "Loops", "Samples", "FX", "Instruments", "Vocals". Reglas: Si es un hit/golpe de bateria (kick, snare, hihat, clap, tom, perc) -> "Drums". Si es un patron ritmico o melodico que se repite -> "Loops". Si es un trozo de cancion o atmosfera con genero definido -> "Samples". Si es un efecto sonoro (riser, impact, sweep, atmos) -> "FX". Si es un one-shot de instrumento tonal (piano, guitarra, bajo, synth, pad) -> "Instruments". Si contiene voz humana -> "Vocals".
-- "carpeta_secundaria": Subcarpeta dentro de carpeta_primaria. OBLIGATORIO, NUNCA null ni vacio. Opciones por carpeta: Drums: "Kicks","Snares","Claps","HiHats","Toms","Percussion". Loops: "Drum Loops","Perc Loops","Bass Loops","Melodic Loops". Samples: usa el genero principal (ej: "Hip Hop","Phonk","Trap","Lo-Fi","Jazz","R&B","Electronic","Pop","Rock","Reggaeton","Latin"). FX: "Impacts","Risers","Sweeps","Atmos". Instruments: "Bass","Chords","Leads","Pads","Keys","Strings". Vocals: "Phrases","One Shots","Chops". Si no encaja en ninguna subcarpeta, usa "General" como fallback.
-PROMPT;
-    }
-
-    /**
      * C800: Corrige metadata generada por IA basandose en instrucciones del usuario.
-     * Usa el LLM con un prompt de correccion que toma metadata actual + instrucciones.
-     * Retorna la metadata corregida con la misma estructura que analizarAudio().
+     * Usa el LLM con un prompt de correccion (delegado a PromptsIA).
      *
      * @param array $metadataActual Metadata JSONB actual del sample
      * @param string $titulo Titulo actual del sample
@@ -355,50 +305,20 @@ PROMPT;
             return null;
         }
 
-        $bpmStr = isset($contextoTecnico['bpm']) ? "BPM: {$contextoTecnico['bpm']}" : '';
-        $keyStr = isset($contextoTecnico['key']) ? "Key: {$contextoTecnico['key']}" : '';
-
-        $prompt = <<<PROMPT
-Tienes un sample musical con el titulo "{$titulo}". {$bpmStr} {$keyStr}
-
-Su metadata actual generada por IA es:
-```json
-{$metadataJson}
-```
-
-El administrador solicita la siguiente CORRECCION:
-"{$instrucciones}"
-
-Tu tarea es corregir la metadata segun las instrucciones. Mantén la misma estructura JSON exacta.
-Si las instrucciones mencionan un titulo o nombre correcto, actualiza "nombre_archivo_base" con ese nombre en ingles minusculas.
-Si mencionan genero, artista, emocion u otros campos, actualiza los campos correspondientes.
-Los campos que NO se mencionan en las instrucciones deben mantenerse IGUALES que la metadata actual.
-
-IMPORTANTE: Responde UNICAMENTE con un JSON valido que tenga EXACTAMENTE estos campos:
-- "nombre_archivo_base": string (titulo corto descriptivo en ingles, minusculas, con espacios)
-- "tags": array de strings en INGLES
-- "tags_es": array de strings en ESPANOL
-- "tipo": "one shot" o "loop"
-- "genero": array de strings en INGLES
-- "emocion": array de strings en INGLES
-- "emocion_es": array de strings en ESPANOL
-- "instrumentos": array de strings en INGLES
-- "artista_vibes": array de strings
-- "descripcion_corta": string en INGLES (10-15 palabras)
-- "descripcion_corta_es": string en ESPANOL
-- "descripcion": string en INGLES (30-50 palabras)
-- "descripcion_es": string en ESPANOL
-- "carpeta_primaria": una de: "Drums", "Loops", "Samples", "FX", "Instruments", "Vocals"
-- "carpeta_secundaria": subcarpeta segun carpeta_primaria (nunca null ni vacio)
-PROMPT;
+        $prompt = PromptsIA::construirCorreccion($metadataJson, $titulo, $instrucciones, $contextoTecnico);
 
         $apiKey = GroqHttpClient::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
             KamplesLogger::warning('ServicioIA::corregirMetadata: API key de Groq no configurada');
-            return null;
+            return self::intentarOpenAIFallback($prompt);
         }
 
-        return self::intentarGroq($prompt, $apiKey);
+        $resultado = self::intentarGroq($prompt, $apiKey);
+        if ($resultado !== null) {
+            return $resultado;
+        }
+
+        return self::intentarOpenAIFallback($prompt);
     }
 
     /**

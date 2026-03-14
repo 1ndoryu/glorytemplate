@@ -85,6 +85,7 @@ class ProcesadorColaIA
             'procesados' => 0,
             'exitosos' => 0,
             'errores' => 0,
+            'omitidos' => 0,
             'rateLimited' => false,
         ];
 
@@ -103,10 +104,14 @@ class ProcesadorColaIA
             'pendientes' => \count($pendientes),
         ]);
 
-        foreach ($pendientes as $item) {
+        foreach ($pendientes as $indice => $item) {
             /* C356: Si detectamos rate limit en item anterior, parar inmediatamente */
             if (GroqHttpClient::fueRateLimited()) {
-                KamplesLogger::warning('ProcesadorColaIA: Rate limit detectado, deteniendo procesamiento');
+                $omitidos = \count($pendientes) - $indice;
+                $resultado['omitidos'] = $omitidos;
+                KamplesLogger::warning('ProcesadorColaIA: Rate limit detectado, deteniendo procesamiento', [
+                    'omitidos' => $omitidos,
+                ]);
                 $resultado['rateLimited'] = true;
                 break;
             }
@@ -192,6 +197,22 @@ class ProcesadorColaIA
         }
 
         KamplesLogger::info('ProcesadorColaIA: Procesamiento completado', $resultado);
+
+        /* QK80: Alerta si hay items ERROR_FINAL acumulados sin atención */
+        try {
+            $stats = ColaProcesamientoIaRepository::obtenerEstadisticas();
+            $erroresFinales = $stats['errores'] ?? 0;
+            if ($erroresFinales > 0) {
+                KamplesLogger::warning('ProcesadorColaIA: Hay items en ERROR_FINAL sin resolver', [
+                    'error_final' => $erroresFinales,
+                    'en_reintento' => $stats['en_reintento'] ?? 0,
+                    'pendientes' => $stats['pendientes'] ?? 0,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            /* No bloquear el return por un error de stats */
+        }
+
         return $resultado;
     }
 
