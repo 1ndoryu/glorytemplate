@@ -10,7 +10,8 @@
 import type { SampleResumen } from '@app/types';
 
 const PREFIJO = 'feedCache_';
-const TTL_MS = 24 * 60 * 60 * 1000;
+/* QK55: TTL reducido a 5 minutos para evitar feed congelado por horas */
+const TTL_MS = 5 * 60 * 1000;
 
 interface EntradaCache {
     ts: number;

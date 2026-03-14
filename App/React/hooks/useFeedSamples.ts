@@ -27,6 +27,7 @@ import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 import { useFeedLikes } from '@app/hooks/useFeedLikes';
 import { leerCacheFeed, guardarCacheFeed, invalidarCacheFeed as limpiarCachePersistente } from '@app/utils/cacheFeedPersistente';
+import { useFeedRefresco } from '@app/hooks/useFeedRefresco';
 import type { SampleResumen } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import type { ProveedorSamples } from '@app/components/feed/FeedSamples';
@@ -197,6 +198,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         setHayMasPaginas(true);
         cargarPagina(1, true);
     }, [cargarPagina, samplesIniciales]);
+
+    /* QK55: Polling cada 5 min + refresco al volver a la pestana */
+    useFeedRefresco({ paginaActual, cargando, cargandoMas, cargarPagina });
 
     /* Actualizar samples si cambian los iniciales desde fuera */
     useEffect(() => {
