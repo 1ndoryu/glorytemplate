@@ -68,6 +68,7 @@ class SamplesController
                 'tipo'     => ['required' => false, 'type' => 'string', 'default' => 'descubrir', 'enum' => ['descubrir', 'trending', 'recientes']],
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1, 'minimum' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 12, 'minimum' => 1, 'maximum' => 100],
+                'busqueda' => ['required' => false, 'type' => 'string', 'default' => '', 'sanitize_callback' => 'sanitize_text_field'],
             ],
         ]);
 
@@ -293,16 +294,41 @@ class SamplesController
         $page    = (int) $request->get_param('page');
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
+        $busqueda = \trim((string) $request->get_param('busqueda'));
 
-        /* QQ2: Total de samples activos para el contador del feed (solo en page 1 para evitar query extra) */
+        /* Columnas para FTS */
+        $sTitulo = SamplesCols::TITULO;
+        $sDesc   = SamplesCols::DESCRIPCION;
+        $sTags   = SamplesCols::TAGS;
+        $sPubAt  = SamplesCols::PUBLICADO_AT;
         $sEstadoFeed = SamplesCols::ESTADO;
         $eActivoFeed = SamplesEnums::ESTADO_ACTIVO;
-        $totalActivos = ($page === 1)
-            ? SamplesRepository::contarConFiltros("s.{$sEstadoFeed} = '{$eActivoFeed}'", [])
-            : null;
 
-        /* Intentar usar el motor de recomendación para 'descubrir' */
-        if ($tipo === 'descubrir') {
+        /*
+         * QK83: Construir filtro FTS cuando hay búsqueda.
+         * Reutiliza los GIN indexes creados en QK75 (idx_samples_busqueda_fts, pg_trgm).
+         */
+        $whereExtra = '';
+        $extraParams = [];
+        if (!empty($busqueda) && \mb_strlen($busqueda) >= 2) {
+            $whereExtra = " AND (to_tsvector('spanish', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')) @@ plainto_tsquery('spanish', :busquedaFts)"
+                        . " OR s.{$sTitulo} ILIKE :busquedaLike"
+                        . " OR EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagLike))";
+            $extraParams['busquedaFts'] = $busqueda;
+            $extraParams['busquedaLike'] = '%' . $busqueda . '%';
+            $extraParams['busquedaTagLike'] = '%' . \strtolower($busqueda) . '%';
+        }
+
+        /* QQ2: Total — si hay búsqueda, contar solo los que coinciden */
+        if ($page === 1) {
+            $countWhere = "s.{$sEstadoFeed} = '{$eActivoFeed}'" . $whereExtra;
+            $totalActivos = SamplesRepository::contarConFiltros($countWhere, $extraParams);
+        } else {
+            $totalActivos = null;
+        }
+
+        /* Intentar usar el motor de recomendación para 'descubrir' (sin búsqueda activa) */
+        if ($tipo === 'descubrir' && empty($busqueda)) {
             $userId = UsuarioHelper::obtenerIdPg();
             KamplesLogger::info('Feed descubrir solicitado', [
                 'userId' => $userId, 'page' => $page, 'perPage' => $perPage,
@@ -340,18 +366,41 @@ class SamplesController
         $sTotDesc = SamplesCols::TOTAL_DESCARGAS;
         $sTotLk = SamplesCols::TOTAL_LIKES;
         $sTotRepro = SamplesCols::TOTAL_REPRODUCCIONES;
-        $sPubAt = SamplesCols::PUBLICADO_AT;
 
-        $orderBy = match ($tipo) {
-            'trending'  => "ORDER BY (s.{$sTotDesc} + s.{$sTotLk} * 2 + s.{$sTotRepro}) DESC",
-            'recientes' => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
-            default     => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
-        };
+        /*
+         * QK83: Cuando hay búsqueda, ordenar por relevancia FTS (ts_rank).
+         * Sin búsqueda, usar el ordenamiento del tipo seleccionado.
+         */
+        if (!empty($busqueda) && \mb_strlen($busqueda) >= 2) {
+            $config = require __DIR__ . '/../../Config/algoritmoPesos.php';
+            $busquedaConfig = $config['busqueda'] ?? [];
+            $tsWeight = (float) ($busquedaConfig['ts_rank_weight'] ?? 1.0);
+            $tagBoost = (float) ($busquedaConfig['tag_match_boost'] ?? 0.8);
+            $tituloBoost = (float) ($busquedaConfig['titulo_boost'] ?? 0.5);
+            $idioma = $busquedaConfig['idioma_ts'] ?? 'spanish';
+            $idiomasValidos = ['simple', 'english', 'spanish', 'french', 'german', 'portuguese', 'italian'];
+            if (!\in_array($idioma, $idiomasValidos, true)) $idioma = 'spanish';
+
+            $sqlTsRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '') || ' ' || COALESCE(s.{$sDesc}, '')), plainto_tsquery('{$idioma}', :busquedaRank))";
+            $sqlTituloRank = "ts_rank(to_tsvector('{$idioma}', COALESCE(s.{$sTitulo}, '')), plainto_tsquery('{$idioma}', :busquedaTituloRank))";
+            $sqlTagMatch = "CASE WHEN s.{$sTags} IS NOT NULL AND EXISTS (SELECT 1 FROM UNNEST(s.{$sTags}) tag WHERE tag ILIKE :busquedaTagRank) THEN 1.0 ELSE 0.0 END";
+
+            $orderBy = "ORDER BY ({$tsWeight} * {$sqlTsRank} + {$tagBoost} * {$sqlTagMatch} + {$tituloBoost} * {$sqlTituloRank}) DESC, s.{$sPubAt} DESC NULLS LAST";
+            $extraParams['busquedaRank'] = $busqueda;
+            $extraParams['busquedaTituloRank'] = $busqueda;
+            $extraParams['busquedaTagRank'] = '%' . \strtolower($busqueda) . '%';
+        } else {
+            $orderBy = match ($tipo) {
+                'trending'  => "ORDER BY (s.{$sTotDesc} + s.{$sTotLk} * 2 + s.{$sTotRepro}) DESC",
+                'recientes' => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
+                default     => "ORDER BY s.{$sPubAt} DESC NULLS LAST",
+            };
+        }
 
         /* Obtener userId para subquery liked en fallback */
         $userIdFallback = UsuarioHelper::obtenerIdPg();
 
-        $samples = SamplesRepository::listarFeed($userIdFallback, $orderBy, $perPage, $offset);
+        $samples = SamplesRepository::listarFeed($userIdFallback, $orderBy, $perPage, $offset, $whereExtra, $extraParams);
 
         $resp = [
             'data' => NormalizadorSample::normalizarLista($samples),

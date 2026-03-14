@@ -62,9 +62,12 @@ export const obtenerSample = async (slug: string): Promise<RespuestaApi<Sample>>
  */
 export const obtenerFeed = async (
     tipo: 'descubrir' | 'trending' | 'recientes' = 'descubrir',
-    page = 1
+    page = 1,
+    busqueda = ''
 ): Promise<RespuestaApi<SampleResumen[]>> => {
-    return apiGet<SampleResumen[]>('/feed', { tipo, page });
+    const params: Record<string, string | number> = { tipo, page };
+    if (busqueda.trim()) params.busqueda = busqueda.trim();
+    return apiGet<SampleResumen[]>('/feed', params);
 };
 
 /*

@@ -23,7 +23,6 @@ interface UseFeedFiltrosOpciones {
 export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }: UseFeedFiltrosOpciones) {
     const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
     const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
-    const busqueda = useFiltrosStore(s => s.busqueda);
     const bpmMin = useFiltrosStore(s => s.bpmMin);
     const bpmMax = useFiltrosStore(s => s.bpmMax);
     const filtroPrecio = useFiltrosStore(s => s.filtroPrecio);
@@ -91,30 +90,11 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
             resultado = resultado.filter(s => s.esPremium);
         }
 
-        if (busqueda && busqueda.trim() !== '') {
-            /*
-             * QQ15: Búsqueda textual con soporte de múltiples términos (coma),
-             * y normalización de sinónimos para que "hip hop" encuentre "hip-hop".
-             * Cada término debe coincidir con título, tags o tags normalizados.
-             */
-            const terminos = busqueda.split(',')
-                .map(t => t.trim().toLowerCase())
-                .filter(t => t.length > 0);
-
-            resultado = resultado.filter(s => {
-                const tituloLower = s.titulo.toLowerCase();
-                const tagsSample = extraerTagsMetadata(s);
-                const tagsLower = tagsSample.map(t => t.toLowerCase());
-                const tagsNorm = tagsSample.map(normalizarTag);
-
-                return terminos.every(termino => {
-                    const terminoNorm = normalizarTag(termino);
-                    return tituloLower.includes(termino)
-                        || tagsLower.some(t => t.includes(termino))
-                        || tagsNorm.some(t => t.includes(terminoNorm));
-                });
-            });
-        }
+        /*
+         * QK83: La búsqueda textual ahora es server-side (FTS + GIN indexes).
+         * El proveedor pasa `busqueda` al endpoint /feed que hace full-text search.
+         * Ya no se filtra client-side para evitar cargar 50+ páginas por resultado.
+         */
 
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
 
@@ -125,7 +105,7 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
             return tagsIncluidos.every(t => tagsNorm.includes(normalizarTag(t)))
                 && tagsExcluidos.every(t => !tagsNorm.includes(normalizarTag(t)));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, busqueda, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
 
     const manejarIncluirTag = useCallback((tag: string) => incluirTag(tag), [incluirTag]);
     const manejarExcluirTag = useCallback((tag: string) => excluirTag(tag), [excluirTag]);

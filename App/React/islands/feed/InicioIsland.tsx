@@ -5,7 +5,7 @@
  * Si el usuario no está autenticado, muestra LandingPublica.
  */
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { SlidersHorizontal, ChevronDown, ArrowDownWideNarrow } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { SkeletonFeed } from '@app/components/skeletons';
@@ -72,6 +72,17 @@ const FeedUnificado = (): JSX.Element => {
     /* QQ3/QK56: Sincronizar filtros + tab ↔ URL query params (isla-aware) */
     useUrlFiltros('InicioIsland', 'inicio');
 
+    /*
+     * QK83: Debounce de búsqueda para evitar request server en cada keystroke.
+     * 350ms de espera antes de enviar la query al backend (FTS server-side).
+     */
+    const [busquedaDebounced, setBusquedaDebounced] = useState(busqueda);
+    const timerBusquedaRef = useRef<ReturnType<typeof setTimeout>>();
+    useEffect(() => {
+        timerBusquedaRef.current = setTimeout(() => setBusquedaDebounced(busqueda), 350);
+        return () => clearTimeout(timerBusquedaRef.current);
+    }, [busqueda]);
+
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
 
@@ -99,19 +110,22 @@ const FeedUnificado = (): JSX.Element => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
 
-    /* Proveedor de datos para FeedSamples — cambia según ordenamiento */
+    /*
+     * QK83: Proveedor de datos — pasa búsqueda al backend para FTS server-side.
+     * El backend usa GIN indexes (QK75) para búsqueda full-text rápida (~400ms).
+     */
     const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
-        const resp = await obtenerFeed(tipo, pagina);
+        const resp = await obtenerFeed(tipo, pagina, busquedaDebounced);
         /* QQ2: El backend devuelve total en page 1; usarlo para el contador real */
         if (resp.total != null) setTotalServidor(resp.total);
         return resp.ok && resp.data ? resp.data : [];
-    }, [ordenamiento]);
+    }, [ordenamiento, busquedaDebounced]);
 
-    /* Clave de cache para invalidar al cambiar contexto (NO incluir busqueda — es filtro client-side) */
-    const claveCache = `${ordenamiento}_${periodoDestacados}`;
+    /* QK83: Incluir búsqueda en clave de cache para invalidar al cambiar query */
+    const claveCache = `${ordenamiento}_${periodoDestacados}_${busquedaDebounced}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {

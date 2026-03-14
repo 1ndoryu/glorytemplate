@@ -875,7 +875,7 @@ class SamplesRepository extends BaseRepository
      * Feed de samples con ordenamiento dinámico.
      * QQ76: Excluye samples con >= UMBRAL reportes pendientes (excepto del propio creador).
      */
-    public static function listarFeed(?int $userId, string $orderBy, int $limit, int $offset): array
+    public static function listarFeed(?int $userId, string $orderBy, int $limit, int $offset, string $whereExtra = '', array $extraParams = []): array
     {
         $filtroBloqueos = BloqueosRepository::sqlExcluirBloqueados('s.' . SamplesCols::CREADOR_ID, $userId);
 
@@ -891,14 +891,17 @@ class SamplesRepository extends BaseRepository
             $userId
         );
 
+        $params = \array_merge(['limit' => $limit, 'offset' => $offset], $extraParams);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . $filtroBloqueos
              . $filtroSuspension
              . $filtroReportes
+             . $whereExtra
              . " {$orderBy} LIMIT :limit OFFSET :offset";
 
-        return static::consultar($sql, ['limit' => $limit, 'offset' => $offset]);
+        return static::consultar($sql, $params);
     }
 
     /*
