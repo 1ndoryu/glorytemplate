@@ -332,6 +332,7 @@ class LikesRepository extends BaseRepository
             "SELECT COUNT(*) as total FROM {$tl} l JOIN {$ts} s ON l." . LikesCols::TARGET_ID . " = s."
             . SamplesCols::ID
             . " WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND l." . LikesCols::USUARIO_ID . " = :uid"
+            . " AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
             . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
             ['uid' => $userId]
         );

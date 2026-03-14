@@ -678,6 +678,7 @@ class SamplesRepository extends BaseRepository
              . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
              . " AND l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "'"
              . " AND l." . LikesCols::USUARIO_ID . " = :favUser"
+             . " AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
              . " ORDER BY l." . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
 

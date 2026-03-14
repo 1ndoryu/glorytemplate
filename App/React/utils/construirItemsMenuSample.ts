@@ -72,7 +72,7 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     if (d.esAdmin && s.relacionSampleoId)
         items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', onClick: () => d.abrirCorregirIA(s) });
 
-    if (d.esAdmin && s.relacionSampleoId)
+    if (d.esAdmin && s.extraccion)
         items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', onClick: () => d.abrirExtenderRecorte(s) });
 
     if (d.esAdmin)

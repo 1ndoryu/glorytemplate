@@ -49,7 +49,8 @@ BACKOFF_MAX_DIAS = 4
 def obtener_pendientes(limit: int = 100) -> list[dict]:
     """
     Obtener elementos pendientes de la cola de extracción (bilateral).
-    QK20: Cover/remix se depriorizan (prioridad 0) — sampleos normales primero.
+    QK20: Cover/remix se depriorizan. QK26: Cover/remix excluidos del pipeline.
+    Artistas prioritarios (prioridad > 0) se procesan primero.
     """
     conn = get_connection()
     try:
@@ -72,9 +73,9 @@ def obtener_pendientes(limit: int = 100) -> list[dict]:
                 "JOIN artistas_musicales a_fuente ON c_fuente.artista_id = a_fuente.id "
                 "WHERE ce.estado = 'pendiente' AND ce.intentos < %s "
                 "AND (ce.proximo_intento_at IS NULL OR ce.proximo_intento_at <= NOW()) "
+                "AND rs.tipo_relacion NOT IN ('cover', 'remix') "
                 "ORDER BY "
                 "  CASE WHEN ce.intentos = 0 THEN 0 ELSE 1 END ASC, "
-                "  CASE WHEN rs.tipo_relacion IN ('cover', 'remix') THEN 1 ELSE 0 END ASC, "
                 "  GREATEST(COALESCE(a_fuente.prioridad, 0), COALESCE(a_dest.prioridad, 0)) DESC, "
                 "  rs.votos_total DESC NULLS LAST, "
                 "  ce.created_at ASC "
@@ -351,9 +352,9 @@ def auto_encolar_pendientes(limit: int = 50) -> int:
                 "JOIN canciones c_dest ON rs.cancion_destino_id = c_dest.id "
                 "JOIN artistas_musicales a_fuente ON c_fuente.artista_id = a_fuente.id "
                 "JOIN artistas_musicales a_dest ON c_dest.artista_id = a_dest.id "
-                "WHERE rs.sample_fuente_id IS NULL OR rs.sample_destino_id IS NULL "
+                "WHERE (rs.sample_fuente_id IS NULL OR rs.sample_destino_id IS NULL) "
+                "AND rs.tipo_relacion NOT IN ('cover', 'remix') "
                 "ORDER BY "
-                "  CASE WHEN rs.tipo_relacion IN ('cover', 'remix') THEN 1 ELSE 0 END ASC, "
                 "  GREATEST(COALESCE(a_fuente.prioridad, 0), COALESCE(a_dest.prioridad, 0)) DESC, "
                 "  rs.votos_total DESC NULLS LAST "
                 "LIMIT %s",

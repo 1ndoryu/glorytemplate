@@ -28,6 +28,7 @@ import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useMenuContextualSample } from '@app/hooks/useMenuContextualSample';
+import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useSampleDetalle } from '@app/hooks/useSampleDetalle';
 import { useSampleAudio } from '@app/hooks/useSampleAudio';
@@ -244,6 +245,12 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                 items={menu.items}
                 x={menu.estado.x}
                 y={menu.estado.y}
+            />
+
+            <ModalInspectorSample
+                abierto={!!menu.sampleInspeccion}
+                onCerrar={menu.cerrarInspeccion}
+                sample={menu.sampleInspeccion}
             />
         </div>
     );

@@ -31,6 +31,7 @@ use App\Config\Schema\_generated\TransaccionesCols;
 use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
+use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Helpers\UrlHelper;
 
 class NormalizadorSample
@@ -336,6 +337,11 @@ class NormalizadorSample
             'duracionExtraida' => isset($meta['duracion']) ? (float) $meta['duracion'] : null,
             'formatoExtraido'  => $meta['formato'] ?? null,
             'tamanoBytes'      => isset($meta['tamano_bytes']) ? (int) $meta['tamano_bytes'] : null,
+            /* QK32: Slugs y albums de canciones fuente/destino para links en el inspector */
+            'fuenteSlug'       => $data['fuente_slug'] ?? null,
+            'fuenteAlbum'      => $data['fuente_album'] ?? null,
+            'destinoSlug'      => $data['destino_slug'] ?? null,
+            'destinoAlbum'     => $data['destino_album'] ?? null,
         ];
     }
 
@@ -447,6 +453,7 @@ class NormalizadorSample
         $cTitulo = CancionesCols::TITULO;
         $cSlug = CancionesCols::SLUG;
         $cId = CancionesCols::ID;
+        $cAlbum = CancionesCols::ALBUM;
         $cancionOrigenExpr = "(SELECT row_to_json(co.*) FROM (
             SELECT c.{$cTitulo}, c.{$cSlug}
             FROM {$tc} c WHERE c.{$cId} = s.{$sCancionOrigen}
@@ -465,12 +472,24 @@ class NormalizadorSample
         $ceBpmDetectado = ColaExtraccionSamplesCols::BPM_DETECTADO;
         $ceDuracionCompas = ColaExtraccionSamplesCols::DURACION_COMPAS_SEG;
         $ceEstado = ColaExtraccionSamplesCols::ESTADO;
+        $ceRelacionId = ColaExtraccionSamplesCols::RELACION_ID;
+        /* QK32: JOIN relaciones_sample → canciones para slug/album de ambas canciones */
+        $tRs = RelacionesSampleCols::TABLA;
+        $rsId = RelacionesSampleCols::ID;
+        $rsCancionFuente = RelacionesSampleCols::CANCION_FUENTE_ID;
+        $rsCancionDestino = RelacionesSampleCols::CANCION_DESTINO_ID;
         $extraccionExpr = "(SELECT row_to_json(ex.*) FROM (
             SELECT ce.{$ceMetadata}, ce.{$ceYoutubeId}, ce.{$ceTimingInicio},
                    ce.{$ceCompasInicio}, ce.{$ceCompasFin}, ce.{$ceRuta},
                    ce.{$ceLado}, ce.{$ceSpotifyId},
-                   ce.{$ceBpmDetectado}, ce.{$ceDuracionCompas}, ce.{$ceEstado}
-            FROM {$tCe} ce WHERE ce.{$ceSampleId} = s.{$sId}
+                   ce.{$ceBpmDetectado}, ce.{$ceDuracionCompas}, ce.{$ceEstado},
+                   cf.{$cSlug} AS fuente_slug, cf.{$cAlbum} AS fuente_album,
+                   cd.{$cSlug} AS destino_slug, cd.{$cAlbum} AS destino_album
+            FROM {$tCe} ce
+            LEFT JOIN {$tRs} rs ON ce.{$ceRelacionId} = rs.{$rsId}
+            LEFT JOIN {$tc} cf ON rs.{$rsCancionFuente} = cf.{$cId}
+            LEFT JOIN {$tc} cd ON rs.{$rsCancionDestino} = cd.{$cId}
+            WHERE ce.{$ceSampleId} = s.{$sId}
             LIMIT 1
         ) ex) AS extraccion_json";
         $ts = SamplesCols::TABLA;

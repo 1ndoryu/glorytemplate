@@ -55,20 +55,24 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
     const [jsonIaVisible, setJsonIaVisible] = useState(false);
     const [sampleCompleto, setSampleCompleto] = useState<Sample | null>(null);
 
-    /* Fetch del sample completo cuando se abre con un SampleResumen */
+    /* QK30: SIEMPRE re-fetchear el sample completo al abrir.
+     * El sample del feed puede no incluir extraccion u otros campos
+     * dependiendo de cache o tipo (SampleResumen vs Sample).
+     * Patrón SWR: muestra datos stale inmediatamente, revalida en background. */
     useEffect(() => {
         if (!abierto || !sample) {
             setSampleCompleto(null);
             return;
         }
+        /* Stale: mostrar datos inmediatos del sample recibido */
         if (esSampleCompleto(sample)) {
             setSampleCompleto(sample);
-            return;
         }
+        /* Revalidate: siempre fetchear datos frescos del servidor */
         let cancelado = false;
         obtenerSample(sample.slug).then((resp) => {
             if (!cancelado && resp.ok && resp.data) setSampleCompleto(resp.data);
-        }).catch(() => { /* best-effort: el inspector sigue mostrando datos del resumen */ });
+        }).catch(() => { /* best-effort: el inspector sigue mostrando datos stale */ });
         return () => { cancelado = true; };
     }, [abierto, sample]);
 
@@ -139,9 +143,9 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                     </div>
                 )}
 
-                {/* QQ117: Seccion Extraccion — fuente, timing, metodo descarga */}
+                {/* QQ117+QK32: Seccion Extraccion — fuente, timing, links, album */}
                 {completo && (datos as Sample).extraccion && (
-                    <SeccionExtraccionInspector extraccion={(datos as Sample).extraccion!} />
+                    <SeccionExtraccionInspector extraccion={(datos as Sample).extraccion!} sampleSlug={datos.slug} />
                 )}
 
                 {/* Sección: Análisis Audio */}

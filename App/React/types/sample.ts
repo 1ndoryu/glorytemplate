@@ -139,6 +139,11 @@ export interface ExtraccionSample {
     duracionExtraida: number | null;
     formatoExtraido: string | null;
     tamanoBytes: number | null;
+    /* QK32: Slugs y albums de canciones fuente/destino para links en inspector */
+    fuenteSlug: string | null;
+    fuenteAlbum: string | null;
+    destinoSlug: string | null;
+    destinoAlbum: string | null;
 }
 
 /* Tipos de reaccion — derivado del schema (CHECK en tabla likes) */
@@ -193,6 +198,8 @@ export interface SampleResumen {
     /* QQ51: relaciones de sampleo (columna DB, siempre viene del backend) */
     cancionOrigenId?: number | null;
     relacionSampleoId?: number | null;
+    /* QK30: El backend siempre retorna extraccion (null si no hay datos) */
+    extraccion?: ExtraccionSample | null;
 }
 
 /* Importamos referencia para evitar circular */

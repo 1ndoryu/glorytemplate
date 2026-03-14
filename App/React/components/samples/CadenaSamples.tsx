@@ -21,13 +21,11 @@ const NodoCancion = ({
     titulo,
     artista,
     slug,
-    nivel,
     esRaiz,
 }: {
     titulo: string;
     artista: string;
     slug: string;
-    nivel: number;
     esRaiz?: boolean;
 }): JSX.Element => {
     const navegar = useNavigationStore((s) => s.navegar);
@@ -37,12 +35,11 @@ const NodoCancion = ({
             variante="ghost"
             tamano="ninguno"
             className={`cadenaNodo ${esRaiz ? 'cadenaNodoRaiz' : ''}`}
-            style={{ marginLeft: `${nivel * 16}px` }}
             onClick={() => navegar(`/cancion/${slug}`)}
         >
             <Music size={14} />
             <span className="cadenaNodoTitulo">{titulo}</span>
-            <span className="cadenaNodoArtista">— {artista}</span>
+            {artista && <span className="cadenaNodoArtista">— {artista}</span>}
         </BotonBase>
     );
 };
@@ -82,7 +79,6 @@ export const CadenaSamples = ({ slug, titulo }: CadenaSamplesProps): JSX.Element
                     titulo={titulo}
                     artista=""
                     slug={slug}
-                    nivel={0}
                     esRaiz
                 />
                 {/* Nodos de la cadena */}
@@ -97,7 +93,6 @@ export const CadenaSamples = ({ slug, titulo }: CadenaSamplesProps): JSX.Element
                             titulo={nodo.destino_titulo}
                             artista={nodo.destino_artista}
                             slug={nodo.destino_slug}
-                            nivel={nodo.nivel}
                         />
                     </div>
                 ))}

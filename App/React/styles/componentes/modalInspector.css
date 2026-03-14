@@ -92,12 +92,26 @@ button.inspectorSeccionTitulo:hover {
 
 .inspectorCampoValor.inspectorNumerico {
     font-family: var(--fuenteMono);
-    color: var(--blanco); /* Destacar números ligeramente */
+    color: var(--blanco);
     background-color: var(--fondoElevado2);
     padding: calc(var(--espacioXs) / 2) calc(var(--espacioXs) * 1.5);
     border-radius: var(--radioSm);
     width: fit-content;
     font-size: var(--fuenteXs);
+}
+
+/* QK32: Links clickables en el inspector (YouTube, canciones, URLs) */
+a.inspectorCampoValor.inspectorLink {
+    color: var(--acento);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--espacioXs) / 2);
+    transition: color var(--transicionNormal);
+}
+a.inspectorCampoValor.inspectorLink:hover {
+    color: var(--textoPrimario);
+    text-decoration: underline;
 }
 
 .inspectorTags {
