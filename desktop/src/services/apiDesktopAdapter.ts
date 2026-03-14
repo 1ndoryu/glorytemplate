@@ -119,12 +119,54 @@ const fetchOriginal = window.fetch.bind(window);
  */
 let manejando401 = false;
 
+/*
+ * QK38: Flag de inicializacion completa.
+ * Los 401 durante la inicializacion (sync service, offline queue) se ignoran
+ * porque pueden ser transitorios (servidor arrancando, timing, etc.).
+ * Solo se procesan 401s DESPUES de que todos los servicios esten listos.
+ */
+let authInicializada = false;
+
+/*
+ * QK38: Marca el sistema de auth como completamente inicializado.
+ * Se llama desde desktopService DESPUES de que auth + sync + offline esten listos.
+ */
+export function marcarAuthInicializada(): void {
+    authInicializada = true;
+}
+
 async function manejarSesionExpirada(): Promise<void> {
+    /* QK38: No procesar 401s durante la inicializacion — pueden ser transitorios */
+    if (!authInicializada) return;
     if (manejando401) return;
     manejando401 = true;
 
     try {
-        /* Imports dinamicos para evitar dependencia circular con authDesktopService */
+        /* QK38: Verificar si el token realmente expiro antes de destruir la sesion.
+         * Usa fetchOriginal para evitar recursion con el interceptor. */
+        const { obtenerToken: leerToken } = await import('./authDesktopService');
+        const tokenActual = leerToken();
+
+        if (tokenActual) {
+            const baseUrl = (window.GLORY_CONTEXT as Record<string, string> | undefined)?.apiUrl ?? '/wp-json';
+            try {
+                const resp = await fetchOriginal(`${baseUrl}/kamples/v1/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${tokenActual}`,
+                        'X-Kamples-Auth': `Bearer ${tokenActual}`,
+                    },
+                });
+                if (resp.ok) {
+                    /* Token ES valido — el 401 original fue transitorio (cookie/nonce conflict, etc.) */
+                    return;
+                }
+            } catch {
+                /* Error de red — no hacer logout por fallo de conectividad */
+                return;
+            }
+        }
+
+        /* Token realmente invalido o inexistente — proceder con logout */
         const { cerrarSesionDesktop } = await import('./authDesktopService');
         await cerrarSesionDesktop();
 

@@ -3,7 +3,7 @@
  * Configura auth, offline storage, sync y API base URL.
  */
 
-import { configurarApiDesktop } from './apiDesktopAdapter';
+import { configurarApiDesktop, marcarAuthInicializada } from './apiDesktopAdapter';
 import { inicializarAuthDesktop, escucharCambiosAuth } from './authDesktopService';
 import { inicializarOfflineQueue } from './offlineQueueService';
 import { inicializarSyncService } from './syncService';
@@ -32,6 +32,10 @@ export async function inicializarDesktop(): Promise<void> {
 
     /* 4. Inicializar servicio de sincronización de archivos */
     await inicializarSyncService();
+
+    /* QK38: Marcar auth como inicializada DESPUES de todos los servicios.
+     * Los 401 durante la inicializacion se ignoran para evitar logouts espurios. */
+    marcarAuthInicializada();
 }
 
 /*
