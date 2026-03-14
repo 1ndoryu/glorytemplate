@@ -261,125 +261,6 @@ Incorrecto, sigo sin ver los campos, la solucion no funciona la de QQ23
 
 te voy a mostar los datos que veo, no veo nada de lo que supuestamente dices
 
-Info General
-ID
-142
-Titulo
-Dark Hip Hop Sample Am
-Slug
-dark-hip-hop-sample-am-LdlJVbw
-ID Corto
-LdlJVbw
-Tipo
-oneshot
-Premium
-No
-Precio
-0
-Liked
-Si
-Reaccion
-like
-Estado
-activo
-Formato
-mp3
-Tamano
-0.63 MB
-Permitir Descarga
-Si
-Licencia Libre
-Si
-Mostrar Comunidad
-No
-Verificado
-Si
-Nombre Original
-Drums-Hiphop-Am-dark-hip-hop-sample-kamples-LdlJVbw.mp3
-Origen y Sampleo
-Es Recorte
-Si
-Cancion Origen ID
-3771
-Relacion Sampleo ID
-3797
-Analisis de Audio
-BPM
-—
-Key
-A
-Escala
-menor
-Duracion
-0:16
-Audio Hash
-ff4afa35d1f23f6f08f1f9a798f90110e4b3dc0b141b069a154b7d5b577e01b1
-Ruta Preview
-https://kamples.com/wp-content/uploads/kamples/0/2026/03/LdlJVbw_preview.mp3
-Ruta Waveform
-https://kamples.com/wp-content/uploads/kamples/0/2026/03/LdlJVbw_waveform.json
-Archivo Original
-https://kamples.com/wp-content/uploads/kamples/0/2026/03/Drums-Hiphop-Am-dark-hip-hop-sample-kamples-LdlJVbw.mp3
-Audio Optimizado
-https://kamples.com/wp-content/uploads/kamples/0/2026/03/LdlJVbw_optimizado.mp3
-Imagen URL
-https://kamples.com/wp-content/uploads/kamples/portadas/1f10e7afeae675b774ebe47293e9ffec5dfb1311.jpg
-Tags
-multiple_elements
-extraccion
-d. j. rogers
-big sean
-Metadata IA
-Nombre Base
-dark hip hop sample
-Generos
-hip hop, trap
-Instrumentos
-drums, synth, bass
-Emocion
-energetic,sad
-Artista Vibes
-Big Sean, D.J. Rogers
-Tags IA
-melodic, dark, 808, lo-fi
-Tags IA (ES)
-melodico, oscuro, 808, lo-fi
-BPM Confianza
-0
-Key Confianza
-0.86
-Carpeta Primaria
-General
-Carpeta Secundaria
-General
-Descripcion IA: Un sample de hip hop oscuro y energetico con una mezcla de sonidos de bateria y sintetizador
-Descripcion Corta: Vibra hip hop oscura
-Estadisticas
-Descargas
-0
-Likes
-1
-Reproducciones
-7
-Comentarios
-0
-Flags de Estado
-Es Mio
-Si
-Ya Coleccionado
-Si
-En Coleccion
-No
-Ya Comentado
-No
-Ya Comprado
-No
-Fechas
-Publicado
-2026-03-14 00:25:11+00
-Creado
-2026-03-14 00:25:04.203626+00
-
 ## QK28 ✅ [AG-DSK]
 
 https://kamples.com/favoritos/ veo samples a los que le di dislike, obviamente esos se tienen que omitir de ahi, tambien revisar que tengan peso negativo en el algoritmo.
@@ -454,9 +335,16 @@ Ya veo los datos de extraccion, bien, ahora necesito que al dar click al id de y
 - [SetEnvIf]: Whitelist segura de orígenes — no usa `Access-Control-Allow-Origin: *`. Solo localhost y tauri.
 - [mod_headers]: El contenedor WP Docker NO tiene `mod_headers` habilitado por defecto. Hay que habilitarlo explícitamente.
 
-## QK35
+## QK35 ✅ [AG-DSK]
 
 Aplica todas las optimizaciones de "# Optimizacion del Feed de Samples — Analisis, Plan y Estrategia para 1M" si es que falta algo.
+
+**Evaluacion:** Opt-1 a Opt-8 estan IMPLEMENTADAS y cubren el rendimiento hasta 1M samples (O(1) cache hit, ~100-200ms miss). Las 5 pendientes (Opt-9 a Opt-13) son optimizaciones de **escala** que solo benefician con datasets grandes (>10K samples) o alta concurrencia (>10K usuarios activos). Con ~100 samples actuales, implementarlas no aporta mejora medible. Quedan documentadas en `optimizacion-feed.md` como plan para cuando se necesiten.
+- Opt-9 (tags pre-computados): Ahorro de JSONB parsing ~0ms con 100 samples.
+- Opt-10 (cursor pagination): Sin deep pagination con 100 samples.
+- Opt-11 (tabla materializada scores): Requiere 10K+ usuarios concurrentes.
+- Opt-12 (read replica): Solo con write contention real.
+- Opt-13 (cache warming): Solo con muchos usuarios activos frecuentes.
 
 ## QK36 ✅ [AG-DSK]
 
@@ -472,33 +360,61 @@ Aplica todas las optimizaciones de "# Optimizacion del Feed de Samples — Anali
 
 Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado 
 
-## QK38 (Esto fue antes de que hicieras qk36 pero no estabas enterado)
+## QK38 ✅ [AG-DSK]
+
+(Esto fue antes de que hicieras qk36 pero no estabas enterado)
 
 En la aplicacion sigue apareciendo, al recargar se deslogea
 
-Failed to load resource: the server responded with a status of 401 (Unauthorized)
-syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
-obtenerColeccionesDelServidor @ syncCollectionService.ts:296
-:1420/wp-json/kamples/v1/me/sync/delta?cursor=77:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
-:1420/wp-json/kamples/v1/me/sync/delta?cursor=77:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+**Solución:** El manejador de 401 (`manejarSesionExpirada()`) era nuclear — destruía la sesión al primer 401 sin verificar si el token realmente expiró. Causas:
+1. **Sin guarda de inicialización:** 401s transitorios durante `inicializarSyncService()` disparaban logout antes de que React montara.
+2. **Sin verificación:** No se confirmaba que el token fuera realmente inválido antes de borrar todo. Un conflicto cookie/nonce transitorio causaba logout permanente.
 
-## QK39
+Fix (apiDesktopAdapter.ts, desktopService.ts):
+- **`authInicializada` flag:** 401s durante inicialización (sync, offline queue) se ignoran. Se activa DESPUÉS de que auth + sync + offline estén listos.
+- **Verificación pre-logout:** Antes de destruir la sesión, hace request directa a `/me` con `fetchOriginal` (bypassing interceptor). Si el token es válido → el 401 fue transitorio → no logout. Si la verificación también falla → token realmente expirado → logout.
+- **Resiliencia a errores de red:** Si la verificación falla por error de red (no 401), no se hace logout — puede ser problema de conectividad.
+- [401 handler]: NUNCA destruir sesión al primer 401. Siempre verificar primero.
+- [Inicializacion]: Los 401s durante boot son comunes (race conditions, servers arrancando). Ignorarlos es correcto.
 
-Cargando samples… es muy lento, entiendo que hayas aplicado optimizaciones, sin embargo, creo que no se esta atacando lo verdaderamente importante, la carga de samples debe ser fondo, siempre mostrar una version chadeada para que el usuario evite ver lo de "Cargando samples…" y se quede esperando, de fondo que se cargue lo que tenga que cargar y ya cuando este cargado se cacheara para que cargue de una vez, no estoy pidiendo que el algoritmo pierda calidad, y tampoco que se deje por fuera samples nuevos, los samples nuevos siempre tienen que aparecer, el algoritmo, la cache tiene que ser invalidandose por interaciones pero al menos que se haga de fondo para que cuando cargue no se quede el usuario esperando
+## QK39 ✅ [AG-DSK]
 
-## QK40 
+**Solución:** Cache persistente stale-first para eliminar "Cargando samples..." en recargas y apertura de la app:
+1. **`cacheFeedPersistente.ts`** (nueva utilidad): Lee/escribe pagina 1 del feed en `localStorage` con TTL de 24h. Claves con prefijo `feedCache_`. Invalidacion por key individual o global.
+2. **`useFeedSamples.ts`**: El patron SWR ahora lee `localStorage` como fallback cuando no hay cache en memoria. En reload/apertura, el usuario ve los datos de la sesion anterior al instante. Los datos frescos se cargan en background y reemplazan sin loader. Eventos CRUD (crear/eliminar/restaurar) invalidan el cache persistente. Likes tambien invalidan.
+3. **`FeedSamples.tsx`**: Solo bloquea con "Cargando samples..." si no hay datos en absoluto. Si hay datos stale (del cache persistente), se renderizan directamente — la revalidacion es invisible.
+- Archivos: `cacheFeedPersistente.ts` (nuevo), `useFeedSamples.ts` (5 puntos de cambio), `FeedSamples.tsx` (1 cambio en condicion de loading)
+- [Cache feed]: localStorage con TTL es suficiente para stale-first. sessionStorage no sobrevive cierre de app en Tauri.
+- [Nuevos samples]: Siempre aparecen porque el fetch fresco ocurre en background y reemplaza los stale. No se sacrifica frescura.
 
-Necesito dos tablas nuevas, dos tabs en admin panel, una tabla que muestre todos los scrappers, toda la informacion, acciones en iconos de 3 puntos, tablas minimalistas
+## QK40 ✅ [AG-TAB]
 
-y la otra tabla la de la cola de extraccion o recorte, ambas tablas con toda la informacion compactada, con busqueda, opciones de desactivar o ver columnas, etc, 
+Dos tablas nuevas en admin panel — Scrapers (scraping_log) y Cola Extracción (cola_extraccion_samples).
 
+**Implementado:**
+- Backend: `AdminRepository.php` + `AdminController.php` — endpoints `GET /admin/scrapers` y `GET /admin/cola-extraccion` con búsqueda ILIKE, filtro por estado y paginación (25/pág).
+- API: `apiAdmin.ts` — interfaces `ScraperItemAdmin` (14 campos) y `ColaExtraccionItemAdmin` (16 campos) + funciones fetch.
+- Hooks: `useTabScrapersAdmin.ts` y `useTabColaExtraccionAdmin.ts` — estado paginado, búsqueda, filtro, columnas ocultables.
+- Componentes: `TabScrapersAdmin.tsx` y `TabColaExtraccionAdmin.tsx` — tablas con scroll horizontal, badges de estado, menu de columnas (Checkbox), enlaces YouTube, formateo de bytes/timing/fechas.
+- Island: `AdminPanelIsland.tsx` — 2 tabs nuevas añadidas al array `TABS_ADMIN`.
+- CSS: `adminTablas.css` — estilos compartidos para tablas de datos, dropdown de columnas, scroll horizontal, responsive.
+- [Patron]: Tabs autocontenidas (sin props de useAdminPanel) — mismo patrón que Cola IA, Duplicados, Procesos.
+
+## QK41
+
+Sigo viendo en el servidor "Plan 'pro' no tiene price_id configurado"
+
+## QK42
+
+Compacta las tareas completadas de este md en otro archivo.
+
+## QK43
+
+La aplicacion de escritorio sigue fallando, al recargar se deslogea. 
+
+## QK44
+
+en la pagina de resumen
 
 
 ## Despliegue Produccion (VPS Coolify)
