@@ -30,6 +30,12 @@ function obtenerServidorUrl(): string {    const config = window.__KAMPLES_CONFI
 }
 
 /*
+ * Google Client ID inyectado en build time por Vite (define en vite.config.ts).
+ * Lee de la .env del proyecto raiz — es un valor publico, no un secret.
+ */
+declare const __GOOGLE_CLIENT_ID__: string;
+
+/*
  * Inyecta GLORY_CONTEXT en window para que apiCliente.ts
  * funcione sin modificaciones.
  */
@@ -42,6 +48,8 @@ export function configurarApiDesktop(): void {
         restUrl: serverUrl,
         /* Nonce vacio: en desktop usamos JWT via Authorization header */
         nonce: '',
+        /* QK16: Google Client ID para GSI (login con Google en desktop) */
+        googleClientId: typeof __GOOGLE_CLIENT_ID__ !== 'undefined' ? __GOOGLE_CLIENT_ID__ : '',
     };    /* Configurar interceptor: si hay token, inyecta auth + proxy.
      * Si no hay token (primer uso), solo proxy de URLs. */
     if (token) {
@@ -101,8 +109,39 @@ function reescribirUrlsEnObjeto<T>(obj: T): T {
  * 1. Reescribir URLs de request a glory.local como relativas (proxy Vite).
  * 2. Anadir header Authorization con JWT en peticiones a la API.
  * 3. Reescribir URLs en las respuestas JSON (imagenes, audio, etc.).
+ * 4. QK16: Detectar 401 (token expirado) y auto-logout.
  */
 const fetchOriginal = window.fetch.bind(window);
+
+/*
+ * QK16: Guard de concurrencia para evitar que multiples 401 simultaneos
+ * disparen logout/redireccion multiples veces.
+ */
+let manejando401 = false;
+
+async function manejarSesionExpirada(): Promise<void> {
+    if (manejando401) return;
+    manejando401 = true;
+
+    try {
+        /* Imports dinamicos para evitar dependencia circular con authDesktopService */
+        const { cerrarSesionDesktop } = await import('./authDesktopService');
+        await cerrarSesionDesktop();
+
+        /* Limpiar estado de autenticacion en Zustand */
+        const { useAuthStore } = await import('@app/stores/authStore');
+        useAuthStore.getState().cerrarSesion();
+
+        /* Redirigir a home — el flujo normal mostrara el modal de auth */
+        const { useNavigationStore } = await import('@/core/router/navigationStore');
+        useNavigationStore.getState().navegar('/');
+    } catch (err) {
+        console.error('[ApiDesktop] Error al manejar sesion expirada:', err);
+    } finally {
+        /* Delay antes de permitir re-manejo para evitar loops rapidos */
+        setTimeout(() => { manejando401 = false; }, 2000);
+    }
+}
 
 export function inyectarAuthHeader(token: string): void {
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -129,6 +168,12 @@ export function inyectarAuthHeader(token: string): void {
             ...init,
             headers,
         });
+
+        /* QK16: Token expirado/invalido — auto-logout y redireccion.
+         * Se dispara async para que el caller reciba el 401 normalmente. */
+        if (response.status === 401 && url.includes('/wp-json/')) {
+            manejarSesionExpirada();
+        }
 
         /* Interceptar respuestas JSON para reescribir URLs del backend */
         if (import.meta.env.DEV && url.includes('/wp-json/')) {

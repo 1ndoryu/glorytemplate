@@ -157,9 +157,17 @@ en https://kamples.com/admin/panel/ si bien aparecen las estadisticas, abajo deb
 **Solucion:** Los errores son los mismos que QK6/QK11. El filtro JWT (AuthMiddleware prioridad 90) ya esta desplegado en produccion. Al ejecutar en modo dev, el proxy de Vite redirige a `kamples.com` que ahora tiene el fix. Reiniciar el dev server y probar de nuevo — los 401 deben desaparecer.
 - Si persisten: (1) Verificar que `auth.json` del desktop tiene un JWT valido (no expirado). (2) Borrar cookies del navegador en localhost:1420 para eliminar cookies WP viejas. (3) Hacer logout y login de nuevo para obtener JWT fresco.
 
-## QK16
+## QK16 ✅ [AG-DSK]
 
 Al intentar iniciar sesion dice Token de autenticación inválido o expirado, el boton para iniciar con google no aparece (estoy probando con la aplicacion)
+
+**Solucion (4 archivos, 2 root causes):**
+1. **Boton Google ausente:** `GLORY_CONTEXT.googleClientId` no se inyectaba en desktop. `useGoogleAuth.ts` lee `obtenerClientId()` → null → GSI nunca inicializa → boton no renderiza. Fix: `vite.config.ts` carga `.env` raiz con `loadEnv()` y define `__GOOGLE_CLIENT_ID__` en build-time. `apiDesktopAdapter.ts` inyecta el valor en `GLORY_CONTEXT.googleClientId`.
+2. **CSP bloqueaba GSI:** `script-src 'self' 'unsafe-inline'` impedia cargar `accounts.google.com/gsi/client`. Fix: `tauri.conf.json` CSP actualizado con `https://accounts.google.com` en `script-src`, `connect-src` y `frame-src`.
+3. **Token expirado sin auto-logout:** `apiCliente.ts` retornaba `{ ok: false, status: 401 }` pero nada disparaba logout/redireccion. Fix: `apiDesktopAdapter.ts::inyectarAuthHeader()` ahora detecta 401 en responses y ejecuta `manejarSesionExpirada()` — limpia sesion desktop, auth store, y redirige a home. Guard de concurrencia (`manejando401`) evita multiples logouts simultaneos.
+- Archivos: `desktop/src-tauri/tauri.conf.json`, `desktop/vite.config.ts`, `desktop/src/services/apiDesktopAdapter.ts`, `desktop/src/global.d.ts`.
+- [Desktop CSP]: Tauri CSP debe incluir explicitamente dominios externos para scripts y frames (Google, Stripe, etc.).
+- [Google Client ID]: Es valor publico, seguro inyectar via Vite `define` en build-time desde `.env` raiz.
 
 ## QK17 ✅ [AG-DSK]
 
@@ -200,9 +208,16 @@ Me parece que ## QK8  no se cumple, primero porque no empieza a escanear por eso
 
 segundo, quiero que deje de escanear cover y remix si es que es posible, y se enfoque primero en sampleos normales. No es que deje de hacerlo sino que los cover y remix tenga una prioridad 0 y que primero sean los sampleos normales.
 
-## QK21
+## QK21 ✅ [AG-OPT]
 
-"# Optimización del Feed de Samples — Análisis y Plan," me parece bien, pero siento que hay que profundizar mas con mas estrategias de optimizacion, porque la cantidad de samples se planea subir a 1 millon.
+**Solucion:** Implementacion completa de optimizacion para escalar el feed a 1M samples. 8 optimizaciones implementadas + 5 documentadas pendientes:
+- **Opt-6 (Pipeline dos etapas):** `SelectorCandidatos.php` pre-filtra ~1000 candidatos via UNION de 5 fuentes (trending recientes, embedding ANN, creadores seguidos, afinidad tags, populares all-time). Activacion condicional via umbral (5000 samples) — retrocompatible con dataset actual.
+- **Opt-7 (Indices especializados):** Migration `v050_indices_feed_1m.sql` con 5 indices (follows_seguidor, samples_engagement_activo expression, likes_trending_24h partial, reproducciones_sample_created, descargas_sample_created).
+- **Opt-8 (Vista materializada trending):** `mv_trending_samples` pre-agrega likes_24h, repro_24h, descargas_7d, follows_7d. Refresh cada 5min via `kamples_algoritmo_cron`. `ConstructorSenales::sqlTendencias()` detecta MV y usa `COALESCE(mvt.*, 0)` en vez de 4 subqueries correlacionadas por fila.
+- **Invalidacion:** `SelectorCandidatos::invalidarConteo()` en PipelineAudio (publicar) y ServicioPapelera (purgar).
+- **Config:** `algoritmoPesos.php['candidatos']` con umbrales y limites por fuente.
+- **Documentacion:** `optimizacion-feed.md` v2.0 con 13 optimizaciones detalladas, estimaciones de rendimiento a escala, y plan para Opt-9 a Opt-13.
+- Archivos: `SelectorCandidatos.php` (nuevo), `v050_indices_feed_1m.sql` (nuevo), `MotorRecomendacion.php`, `ConstructorSenales.php`, `algoritmoPesos.php`, `KamplesInit.php`, `PipelineAudio.php`, `ServicioPapelera.php`, `optimizacion-feed.md`.
 
 ## QK22
 
@@ -417,6 +432,34 @@ Ya veo los datos de extraccion, bien, ahora necesito que al dar click al id de y
   - Link al sample en kamples (`/sample/{slug}/`).
 - **CSS (modalInspector.css):** Nuevo estilo `.inspectorLink` para campos clickables con color acento y hover.
 - [Gotcha]: Los datos de album/slug dependen del JOIN SQL. Samples sin `relacion_id` en cola no tendran estos campos. 
+
+# QK33
+
+El extractor de audio, presiento que dejo de funcionar
+
+desde hace rato no veo que saque audios de soundcloud por favor revisa los ultimos logs de extractor de audio
+
+# QK34
+
+en la aplicación de escritorio 
+
+Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/0tC5olL_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/0tC5olL_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+
+##
+
 
 ## Despliegue Produccion (VPS Coolify)
 

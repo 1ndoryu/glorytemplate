@@ -15,6 +15,7 @@ interface Window {
         nonce?: string;
         isLoggedIn?: boolean;
         userId?: unknown;
+        googleClientId?: string;
     };
     /* C341: Sync bidireccional — funciones expuestas en window */
     __KAMPLES_SYNC__?: {

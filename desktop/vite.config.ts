@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
@@ -13,8 +13,20 @@ import { resolve } from 'path';
 
 const apiTarget = process.env.KAMPLES_API_TARGET || 'https://kamples.com';
 
+/*
+ * Cargar variables del .env del proyecto raiz (../) para reutilizar
+ * GOOGLE_CLIENT_ID sin duplicar archivos de configuracion.
+ * loadEnv() es la API oficial de Vite para cargar .env files.
+ */
+const envRaiz = loadEnv('production', resolve(__dirname, '..'), '');
+
 export default defineConfig({
     plugins: [react(), tailwindcss()],
+
+    /* Inyectar config publica del proyecto en el bundle (build time) */
+    define: {
+        '__GOOGLE_CLIENT_ID__': JSON.stringify(envRaiz.GOOGLE_CLIENT_ID || ''),
+    },
 
     /* Tauri espera un index.html estático servido por Vite */
     root: '.',
