@@ -111,7 +111,15 @@ class ColaIaController
                 return new \WP_REST_Response(['code' => 'filtro_invalido', 'message' => 'Tipo no valido'], 400);
             }
 
-            $items = ColaProcesamientoIaRepository::listarItems($pagina, $limite, $estado, $tipo);
+            $items = ColaProcesamientoIaRepository::listarItems(
+                $pagina,
+                $limite,
+                $estado,
+                $tipo,
+                sanitize_text_field($request->get_param('busqueda') ?? ''),
+                sanitize_text_field($request->get_param('sort_col') ?? ''),
+                sanitize_text_field($request->get_param('sort_dir') ?? 'DESC')
+            );
 
             return new \WP_REST_Response(['data' => $items], 200);
         } catch (\Throwable $e) {

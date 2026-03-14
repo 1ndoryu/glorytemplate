@@ -1,38 +1,24 @@
 /*
- * Componente: TabColaIaAdmin — C356
- * Tab del panel admin para visualizar y gestionar la cola de procesamiento IA.
- * Muestra estadisticas, lista de items con filtros, y acciones de reintento.
+ * Componente: TabColaIaAdmin — QK49
+ * Tab del panel admin para visualizar la cola de procesamiento IA.
+ * Tabla completa con busqueda, ordenamiento por columna y paginacion.
  * Solo vista — logica delegada a useTabColaIa.
  */
 
-import { RefreshCw, Play, RotateCcw, AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
-import { Badge } from '../ui/Badge';
+import { RefreshCw, Play, RotateCcw, Search, CheckCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
 import { EstadoVacio } from '../ui/EstadoVacio';
+import { CampoTexto } from '../ui/CampoTexto';
 import { useTabColaIa } from '../../hooks/useTabColaIa';
-import type { ItemColaIa, EstadisticasColaIa, CuotaGroq } from '../../services/apiColaIa';
+import {
+    EstadisticasResumen,
+    CuotaGroqResumen,
+    CabeceraOrdenable,
+    FilaItemColaIa,
+} from './ColaIaSubcomponentes';
 import '../../styles/componentes/colaIaAdmin.css';
 
-/* Mapa de colores para badges de estado */
-const COLORES_ESTADO: Record<string, 'exito' | 'advertencia' | 'error' | 'info' | 'neutro'> = {
-    pendiente: 'info',
-    procesando: 'advertencia',
-    completado: 'exito',
-    error_reintento: 'advertencia',
-    error_final: 'error',
-};
-
-/* Etiquetas legibles para estados */
-const ETIQUETAS_ESTADO: Record<string, string> = {
-    pendiente: 'Pendiente',
-    procesando: 'Procesando',
-    completado: 'Completado',
-    error_reintento: 'Reintento',
-    error_final: 'Error final',
-};
-
-/* Opciones de filtro */
 const OPCIONES_ESTADO = [
     { valor: '', etiqueta: 'Todos los estados' },
     { valor: 'pendiente', etiqueta: 'Pendiente' },
@@ -45,24 +31,45 @@ const OPCIONES_ESTADO = [
 const OPCIONES_TIPO = [
     { valor: '', etiqueta: 'Todos los tipos' },
     { valor: 'sample', etiqueta: 'Sample' },
-    { valor: 'publicacion', etiqueta: 'Publicación' },
+    { valor: 'publicacion', etiqueta: 'Publicacion' },
     { valor: 'comentario', etiqueta: 'Comentario' },
 ];
+
+/* Columnas ordenables del header */
+const COLUMNAS = [
+    { col: 'id', etiqueta: 'ID' },
+    { col: 'tipo', etiqueta: 'Tipo' },
+    { col: 'entidad_id', etiqueta: 'Entidad' },
+    { col: 'operacion', etiqueta: 'Operacion' },
+    { col: 'estado', etiqueta: 'Estado' },
+    { col: 'intentos', etiqueta: 'Intentos' },
+    { col: 'ultimo_error', etiqueta: 'Error' },
+    { col: 'proximo_intento', etiqueta: 'Proximo intento' },
+    { col: 'created_at', etiqueta: 'Creado' },
+    { col: 'procesado_at', etiqueta: 'Procesado' },
+] as const;
 
 export const TabColaIaAdmin = (): JSX.Element => {
     const cola = useTabColaIa();
 
     return (
         <div className="tabColaIa">
-            {/* Estadisticas resumidas */}
             {cola.estadisticas && <EstadisticasResumen stats={cola.estadisticas} />}
-
-            {/* Cuota Groq */}
             {cola.cuotaGroq && <CuotaGroqResumen cuota={cola.cuotaGroq} />}
 
-            {/* Barra de acciones */}
+            {/* Barra de controles: busqueda + filtros + acciones */}
             <div className="colaIaAcciones">
                 <div className="colaIaFiltros">
+                    <div className="adminBusquedaContenedor">
+                        <Search size={14} className="adminBusquedaIcono" />
+                        <CampoTexto
+                            className="adminUsuariosBusqueda"
+                            variante="bordado"
+                            placeholder="Buscar en operacion, error, metadata..."
+                            value={cola.busqueda}
+                            onChange={(e) => cola.setBusqueda(e.target.value)}
+                        />
+                    </div>
                     <SelectorMenu
                         opciones={OPCIONES_ESTADO}
                         valor={cola.filtroEstado}
@@ -74,34 +81,14 @@ export const TabColaIaAdmin = (): JSX.Element => {
                         onChange={cola.setFiltroTipo}
                     />
                 </div>
-
                 <div className="colaIaBotones">
-                    <BotonBase
-                        onClick={cola.recargar}
-                        variante="secundario"
-                        disabled={cola.cargando}
-                        title="Recargar"
-                    >
-                        <RefreshCw size={14} />
-                        Recargar
+                    <BotonBase onClick={cola.recargar} variante="secundario" disabled={cola.cargando}>
+                        <RefreshCw size={14} /> Recargar
                     </BotonBase>
-
-                    <BotonBase
-                        onClick={cola.reintentarTodos}
-                        variante="secundario"
-                        disabled={cola.procesando}
-                        title="Reintentar todos los items con error"
-                    >
-                        <RotateCcw size={14} />
-                        Reintentar todos
+                    <BotonBase onClick={cola.reintentarTodos} variante="secundario" disabled={cola.procesando}>
+                        <RotateCcw size={14} /> Reintentar todos
                     </BotonBase>
-
-                    <BotonBase
-                        onClick={cola.procesarAhora}
-                        variante="primario"
-                        disabled={cola.procesando}
-                        title="Procesar cola ahora (sin esperar cron)"
-                    >
+                    <BotonBase onClick={cola.procesarAhora} variante="primario" disabled={cola.procesando}>
                         {cola.procesando ? <Loader2 size={14} className="adminSpinner" /> : <Play size={14} />}
                         Procesar ahora
                     </BotonBase>
@@ -121,14 +108,12 @@ export const TabColaIaAdmin = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Loading */}
             {cola.cargando && (
                 <div className="colaIaCargando">
                     <Loader2 size={20} className="adminSpinner" />
                 </div>
             )}
 
-            {/* Lista de items */}
             {!cola.cargando && cola.items.length === 0 && (
                 <EstadoVacio
                     mensaje="No hay items en la cola con los filtros seleccionados."
@@ -136,25 +121,28 @@ export const TabColaIaAdmin = (): JSX.Element => {
                 />
             )}
 
+            {/* Tabla completa con headers ordenables */}
             {!cola.cargando && cola.items.length > 0 && (
-                <div className="colaIaTabla">
-                    <table>
+                <div className="colaIaTabla adminTablaContenedor">
+                    <table className="adminTabla">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Tipo</th>
-                                <th>Entidad</th>
-                                <th>Operación</th>
-                                <th>Estado</th>
-                                <th>Intentos</th>
-                                <th>Error</th>
-                                <th>Creado</th>
+                                {COLUMNAS.map(({ col, etiqueta }) => (
+                                    <CabeceraOrdenable
+                                        key={col}
+                                        columna={col}
+                                        etiqueta={etiqueta}
+                                        sortCol={cola.sortCol}
+                                        sortDir={cola.sortDir}
+                                        onOrdenar={cola.ordenarPor}
+                                    />
+                                ))}
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {cola.items.map(item => (
-                                <FilaItem
+                                <FilaItemColaIa
                                     key={item.id}
                                     item={item}
                                     onReintentar={cola.reintentarItem}
@@ -165,7 +153,7 @@ export const TabColaIaAdmin = (): JSX.Element => {
                 </div>
             )}
 
-            {/* Paginacion simple */}
+            {/* Paginacion con total */}
             {!cola.cargando && cola.items.length > 0 && (
                 <div className="colaIaPaginacion">
                     <BotonBase
@@ -173,139 +161,20 @@ export const TabColaIaAdmin = (): JSX.Element => {
                         variante="secundario"
                         disabled={cola.pagina <= 1}
                     >
-                        Anterior
+                        <ChevronLeft size={14} /> Anterior
                     </BotonBase>
-                    <span className="colaIaPaginaActual">Página {cola.pagina}</span>
+                    <span className="colaIaPaginaActual">
+                        {cola.pagina} / {cola.totalPaginas} ({cola.total} total)
+                    </span>
                     <BotonBase
                         onClick={() => cola.setPagina(cola.pagina + 1)}
                         variante="secundario"
-                        disabled={cola.items.length < 20}
+                        disabled={cola.pagina >= cola.totalPaginas}
                     >
-                        Siguiente
+                        Siguiente <ChevronRight size={14} />
                     </BotonBase>
                 </div>
             )}
         </div>
-    );
-};
-
-/* Subcomponente: Resumen de estadisticas */
-const EstadisticasResumen = ({ stats }: { stats: EstadisticasColaIa }): JSX.Element => (
-    <div className="colaIaEstadisticas">
-        <div className="colaIaStat">
-            <span className="colaIaStatNumero">{stats.total}</span>
-            <span className="colaIaStatLabel">Total</span>
-        </div>
-        <div className="colaIaStat colaIaStatPendiente">
-            <span className="colaIaStatNumero">{stats.pendientes}</span>
-            <span className="colaIaStatLabel">Pendientes</span>
-        </div>
-        <div className="colaIaStat colaIaStatProcesando">
-            <span className="colaIaStatNumero">{stats.procesando}</span>
-            <span className="colaIaStatLabel">Procesando</span>
-        </div>
-        <div className="colaIaStat colaIaStatExito">
-            <span className="colaIaStatNumero">{stats.completados_hoy}</span>
-            <span className="colaIaStatLabel">Completados hoy</span>
-        </div>
-        <div className="colaIaStat colaIaStatError">
-            <span className="colaIaStatNumero">{stats.errores + stats.en_reintento}</span>
-            <span className="colaIaStatLabel">Errores</span>
-        </div>
-    </div>
-);
-
-/* Subcomponente: Cuota de Groq */
-const CuotaGroqResumen = ({ cuota }: { cuota: CuotaGroq }): JSX.Element => {
-    const pctRequests = cuota.limitRequests > 0
-        ? Math.round((cuota.remainingRequests / cuota.limitRequests) * 100)
-        : 0;
-    const pctTokens = cuota.limitTokens > 0
-        ? Math.round((cuota.remainingTokens / cuota.limitTokens) * 100)
-        : 0;
-
-    const clasePctReq = pctRequests <= 10 ? 'colaIaStatError' : pctRequests <= 30 ? 'colaIaStatPendiente' : '';
-    const clasePctTok = pctTokens <= 10 ? 'colaIaStatError' : pctTokens <= 30 ? 'colaIaStatPendiente' : '';
-
-    return (
-        <div className="colaIaCuotaGroq">
-            <span className="colaIaCuotaTitulo">Cuota Groq</span>
-            <div className="colaIaEstadisticas">
-                <div className={`colaIaStat ${clasePctReq}`}>
-                    <span className="colaIaStatNumero">{cuota.remainingRequests.toLocaleString()}/{cuota.limitRequests.toLocaleString()}</span>
-                    <span className="colaIaStatLabel">Requests ({pctRequests}%)</span>
-                </div>
-                <div className={`colaIaStat ${clasePctTok}`}>
-                    <span className="colaIaStatNumero">{cuota.remainingTokens.toLocaleString()}/{cuota.limitTokens.toLocaleString()}</span>
-                    <span className="colaIaStatLabel">Tokens ({pctTokens}%)</span>
-                </div>
-                {cuota.resetRequests && (
-                    <div className="colaIaStat">
-                        <span className="colaIaStatNumero">{cuota.resetRequests}</span>
-                        <span className="colaIaStatLabel">Reset requests</span>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-/* Subcomponente: Fila de item en la tabla */
-const FilaItem = ({
-    item,
-    onReintentar,
-}: {
-    item: ItemColaIa;
-    onReintentar: (id: number) => Promise<void>;
-}): JSX.Element => {
-    const puedeReintentar = item.estado === 'error_reintento' || item.estado === 'error_final';
-    const fechaCreado = new Date(item.created_at).toLocaleString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-
-    return (
-        <tr>
-            <td>{item.id}</td>
-            <td>
-                <Badge variante="neutro">{item.tipo}</Badge>
-            </td>
-            <td>#{item.entidad_id}</td>
-            <td className="colaIaOperacion">{item.operacion.replace(/_/g, ' ')}</td>
-            <td>
-                <Badge variante={COLORES_ESTADO[item.estado] ?? 'neutro'}>
-                    {ETIQUETAS_ESTADO[item.estado] ?? item.estado}
-                </Badge>
-            </td>
-            <td>{item.intentos}/{item.max_intentos}</td>
-            <td className="colaIaError" title={item.ultimo_error ?? ''}>
-                {item.ultimo_error ? (
-                    <span className="colaIaErrorTexto">
-                        <AlertCircle size={12} />
-                        {item.ultimo_error.substring(0, 60)}
-                        {item.ultimo_error.length > 60 ? '...' : ''}
-                    </span>
-                ) : (
-                    <span className="colaIaSinError">
-                        <Clock size={12} />
-                    </span>
-                )}
-            </td>
-            <td>{fechaCreado}</td>
-            <td>
-                {puedeReintentar && (
-                    <BotonBase
-                        onClick={() => onReintentar(item.id)}
-                        variante="secundario"
-                        tamano="sm"
-                        title="Reintentar este item"
-                    >
-                        <RotateCcw size={12} />
-                    </BotonBase>
-                )}
-            </td>
-        </tr>
     );
 };

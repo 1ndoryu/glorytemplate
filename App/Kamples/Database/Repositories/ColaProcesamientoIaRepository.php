@@ -291,8 +291,15 @@ class ColaProcesamientoIaRepository extends BaseRepository
      *
      * @return array {data: array, pagination: array}
      */
-    public static function listarItems(int $pagina = 1, int $porPagina = 20, ?string $estado = null, ?string $tipo = null): array
-    {
+    public static function listarItems(
+        int $pagina = 1,
+        int $porPagina = 20,
+        ?string $estado = null,
+        ?string $tipo = null,
+        string $busqueda = '',
+        string $sortCol = '',
+        string $sortDir = 'DESC'
+    ): array {
         $tabla = ColaProcesamientoIaCols::TABLA;
         $colEstado = ColaProcesamientoIaCols::ESTADO;
         $colTipo = ColaProcesamientoIaCols::TIPO;
@@ -314,6 +321,16 @@ class ColaProcesamientoIaRepository extends BaseRepository
             $whereParams['tipo'] = $tipo;
         }
 
+        /* QK49: Busqueda ILIKE en operacion, ultimo_error y metadata */
+        if ($busqueda !== '') {
+            $colOp = ColaProcesamientoIaCols::OPERACION;
+            $colError = ColaProcesamientoIaCols::ULTIMO_ERROR;
+            $colMeta = ColaProcesamientoIaCols::METADATA;
+            $conditions[] = "({$colOp} ILIKE :busq OR {$colError} ILIKE :busq OR CAST({$colMeta} AS TEXT) ILIKE :busq)";
+            $params['busq'] = '%' . $busqueda . '%';
+            $whereParams['busq'] = '%' . $busqueda . '%';
+        }
+
         $whereSql = !empty($conditions) ? 'WHERE ' . \implode(' AND ', $conditions) : '';
 
         $totalRow = static::consultarUno(
@@ -324,8 +341,14 @@ class ColaProcesamientoIaRepository extends BaseRepository
 
         $columnas = \implode(', ', ColaProcesamientoIaCols::TODAS);
 
+        /* QK49: Ordenamiento dinamico validado contra whitelist del schema */
+        $sortColResuelto = \in_array($sortCol, ColaProcesamientoIaCols::TODAS, true)
+            ? $sortCol
+            : $colCreated;
+        $sortDirResuelto = \strtoupper($sortDir) === 'ASC' ? 'ASC' : 'DESC';
+
         $items = static::consultar(
-            "SELECT {$columnas} FROM {$tabla} {$whereSql} ORDER BY {$colCreated} DESC LIMIT :limite OFFSET :offset",
+            "SELECT {$columnas} FROM {$tabla} {$whereSql} ORDER BY {$sortColResuelto} {$sortDirResuelto}, " . ColaProcesamientoIaCols::ID . " DESC LIMIT :limite OFFSET :offset",
             $params
         );
 

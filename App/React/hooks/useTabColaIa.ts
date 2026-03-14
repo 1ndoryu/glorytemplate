@@ -26,10 +26,19 @@ interface UseTabColaIaReturn {
     /* Filtros */
     filtroEstado: string;
     filtroTipo: string;
+    busqueda: string;
     pagina: number;
+    totalPaginas: number;
+    total: number;
     setFiltroEstado: (v: string) => void;
     setFiltroTipo: (v: string) => void;
+    setBusqueda: (v: string) => void;
     setPagina: (p: number) => void;
+
+    /* Ordenamiento */
+    sortCol: string;
+    sortDir: 'ASC' | 'DESC';
+    ordenarPor: (col: string) => void;
 
     /* Acciones */
     reintentarItem: (id: number) => Promise<void>;
@@ -48,21 +57,53 @@ export function useTabColaIa(): UseTabColaIaReturn {
     const [procesando, setProcesando] = useState(false);
     const [filtroEstado, setFiltroEstado] = useState('');
     const [filtroTipo, setFiltroTipo] = useState('');
+    const [busqueda, setBusqueda] = useState('');
     const [pagina, setPagina] = useState(1);
+    const [totalPaginas, setTotalPaginas] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [sortCol, setSortCol] = useState('');
+    const [sortDir, setSortDir] = useState<'ASC' | 'DESC'>('DESC');
     const [ultimoResultado, setUltimoResultado] = useState<ResultadoProcesamiento | null>(null);
     const [cuotaGroq, setCuotaGroq] = useState<CuotaGroq | null>(null);
+
+    const ordenarPor = useCallback((col: string) => {
+        setSortCol(prev => {
+            if (prev === col) {
+                setSortDir(d => d === 'ASC' ? 'DESC' : 'ASC');
+                return col;
+            }
+            setSortDir('DESC');
+            return col;
+        });
+        setPagina(1);
+    }, []);
 
     const cargarDatos = useCallback(async () => {
         setCargando(true);
         try {
             const [respItems, respStats, respCuota] = await Promise.all([
-                listarColaIa(pagina, 20, filtroEstado || undefined, filtroTipo || undefined),
+                listarColaIa(
+                    pagina, 25,
+                    filtroEstado || undefined,
+                    filtroTipo || undefined,
+                    busqueda || undefined,
+                    sortCol || undefined,
+                    sortDir
+                ),
                 obtenerEstadisticasColaIa(),
                 obtenerCuotaGroq(),
             ]);
 
             if (respItems.ok && respItems.data) {
-                setItems(respItems.data);
+                /* respItems.data puede ser array directo o {data, pagination} */
+                const payload = respItems.data as unknown as { data?: ItemColaIa[]; pagination?: { total: number; pages: number } };
+                if (Array.isArray(payload)) {
+                    setItems(payload);
+                } else if (payload.data) {
+                    setItems(payload.data);
+                    setTotalPaginas(payload.pagination?.pages ?? 1);
+                    setTotal(payload.pagination?.total ?? 0);
+                }
             }
             if (respStats.ok && respStats.data) {
                 setEstadisticas(respStats.data);
@@ -73,7 +114,7 @@ export function useTabColaIa(): UseTabColaIaReturn {
         } finally {
             setCargando(false);
         }
-    }, [pagina, filtroEstado, filtroTipo]);
+    }, [pagina, filtroEstado, filtroTipo, busqueda, sortCol, sortDir]);
 
     /* Carga inicial + polling cada 15s para mantener datos actualizados */
     useEffect(() => {
@@ -127,10 +168,17 @@ export function useTabColaIa(): UseTabColaIaReturn {
         procesando,
         filtroEstado,
         filtroTipo,
+        busqueda,
         pagina,
+        totalPaginas,
+        total,
+        sortCol,
+        sortDir,
         setFiltroEstado,
         setFiltroTipo,
+        setBusqueda,
         setPagina,
+        ordenarPor,
         reintentarItem,
         reintentarTodos,
         procesarAhora,

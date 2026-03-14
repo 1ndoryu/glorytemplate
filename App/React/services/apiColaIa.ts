@@ -47,11 +47,17 @@ export const listarColaIa = async (
     pagina = 1,
     limite = 20,
     estado?: string,
-    tipo?: string
+    tipo?: string,
+    busqueda?: string,
+    sortCol?: string,
+    sortDir?: string
 ): Promise<RespuestaApi<ItemColaIa[]>> => {
     const params: Record<string, string | number | boolean | undefined> = { pagina, limite };
     if (estado) params.estado = estado;
     if (tipo) params.tipo = tipo;
+    if (busqueda) params.busqueda = busqueda;
+    if (sortCol) params.sort_col = sortCol;
+    if (sortDir) params.sort_dir = sortDir;
     return apiGet<ItemColaIa[]>('/admin/cola-ia', params);
 };
 
