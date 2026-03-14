@@ -69,13 +69,14 @@ class PromptsIA
         }
 
         $contexto = \implode(' ', $partes);
+        $campos = self::INSTRUCCIONES_CAMPOS_JSON;
 
         return <<<PROMPT
 Analiza este audio. {$contexto}
 Tu tarea es generar UNICAMENTE un objeto JSON valido con la siguiente estructura. Se creativo y preciso.
 NO incluyas en tu respuesta los campos puramente tecnicos (bpm, tonalidad, escala), ya que esos se anadiran despues. Tu respuesta DEBE ser solo el JSON.
 
-{${\self::INSTRUCCIONES_CAMPOS_JSON}}
+{$campos}
 PROMPT;
     }
 
