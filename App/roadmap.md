@@ -444,24 +444,15 @@ Ya veo los datos de extraccion, bien, ahora necesito que al dar click al id de y
 - [SoundCloud]: Intermitente ("no se encontraron scripts JS en el frontend") — funciona a veces. No requiere fix inmediato.
 - [spotdl]: v4.4.3 instalado, funciona desde CLI pero crashea al importarse desde el extractor (traceback truncado en `spotdl/__init__.py`). Issue secundario.
 
-## QK34
+## QK34 ✅ [AG-DSK]
 
-en la aplicación de escritorio 
-
-Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/0tC5olL_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/0tC5olL_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/DVo8zcj_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/jVVCa5w_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-(index):1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3' from origin 'http://localhost:1420' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/iuH4cbV_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+**Solución:** Los archivos MP3 servidos por Apache directamente (`/wp-content/uploads/kamples/...`) no pasaban por PHP, por lo que los headers CORS de `KamplesInit::registrarCors()` no aplicaban. La app desktop (`http://localhost:1420`) recibía error CORS al hacer `fetch()` de audio.
+1. **mod_headers no habilitado** → `a2enmod headers` ejecutado en el contenedor. Añadido al deploy (`theme_manager.rs`) para persistencia.
+2. **CORS para audio en `.htaccess`** → Inyectadas reglas SetEnvIf con whitelist de orígenes (`localhost:*`, `tauri://localhost`). Solo aplica a archivos audio (mp3/ogg/wav/webm/flac). Función `ensure_audio_cors_htaccess()` en `theme_manager.rs` inyecta automáticamente en cada deploy si no existe.
+- Archivos: `.agent/coolify-manager-rs/src/services/theme_manager.rs` (2 funciones + 1 cambio en deploy flow)
+- [CORS estáticos]: Apache sirve archivos estáticos sin pasar por PHP/WP. Los headers CORS deben ir en `.htaccess` con `mod_headers`.
+- [SetEnvIf]: Whitelist segura de orígenes — no usa `Access-Control-Allow-Origin: *`. Solo localhost y tauri.
+- [mod_headers]: El contenedor WP Docker NO tiene `mod_headers` habilitado por defecto. Hay que habilitarlo explícitamente.
 
 ## QK35
 
@@ -471,8 +462,7 @@ Aplica todas las optimizaciones de "# Optimizacion del Feed de Samples — Anali
 
 aplicacion de escritorio
 
-Hay un problema, en la ventana de sync, dodne antes me aparecía el historial de sincornizacion y las opciones, ahora me aparece la pagina de inicio, supongo que es porque se inice sesion pero no se actualizo, despues reinicie la aplicación y la sesion estaba abierta en el sync pero no estaba abierta en la ventana, ahi ya son dos problemas (aparece asi en sync U Usuario
-)
+Hay un problema, en la ventana de sync, dodne antes me aparecía el historial de sincornizacion y las opciones, ahora me aparece la pagina de inicio, supongo que es porque se inice sesion pero no se actualizo, despues reinicie la aplicación y la sesion estaba abierta en el sync pero no estaba abierta en la ventana, ahi ya son dos problemas (aparece asi en sync U Usuario) parece un estado deslogin en realidad
 
 el boton de iniciar sesion con google en la aplicacion no funciona
 
@@ -480,7 +470,24 @@ Una auditoría profunda acerca el sync, fue probado localmente cuando la aplicac
 
 ## QK37
 
-Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado
+Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado 
+
+## QK38
+
+En la aplicacion sigue apareciendo, al recargar se deslogea
+
+Failed to load resource: the server responded with a status of 401 (Unauthorized)
+syncCollectionService.ts:296  [SyncCollection] Error obteniendo colecciones: 401 Lo siento, no tienes permisos para hacer eso.
+obtenerColeccionesDelServidor @ syncCollectionService.ts:296
+:1420/wp-json/kamples/v1/me/sync/delta?cursor=77:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/reproducciones/ids:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/descargas/limites:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+:1420/wp-json/kamples/v1/me/sync/delta?cursor=77:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 
 
 ## Despliegue Produccion (VPS Coolify)
