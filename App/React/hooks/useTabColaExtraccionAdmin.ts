@@ -24,8 +24,8 @@ export function useTabColaExtraccionAdmin() {
         try {
             const res = await listarColaExtraccionAdmin(pagina, busqueda, filtroEstado);
             if (res.ok && res.data) {
-                setItems(res.data.data ?? []);
-                setTotal(res.data.total ?? 0);
+                setItems(res.data);
+                setTotal(res.total ?? 0);
             }
         } catch (err) {
             log.error('Error cargando cola extraccion', err);

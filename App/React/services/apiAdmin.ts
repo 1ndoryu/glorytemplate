@@ -288,8 +288,8 @@ export const listarScrapersAdmin = async (
     page = 1,
     busqueda = '',
     estado = ''
-): Promise<RespuestaApi<{ data: ScraperItemAdmin[]; total: number }>> => {
-    return apiGet<{ data: ScraperItemAdmin[]; total: number }>('/admin/scrapers', { page, busqueda, estado });
+): Promise<RespuestaApi<ScraperItemAdmin[]>> => {
+    return apiGet<ScraperItemAdmin[]>('/admin/scrapers', { page, busqueda, estado });
 };
 
 /* QK40: Cola de extracción (cola_extraccion_samples) */
@@ -317,8 +317,8 @@ export const listarColaExtraccionAdmin = async (
     page = 1,
     busqueda = '',
     estado = ''
-): Promise<RespuestaApi<{ data: ColaExtraccionItemAdmin[]; total: number }>> => {
-    return apiGet<{ data: ColaExtraccionItemAdmin[]; total: number }>('/admin/cola-extraccion', { page, busqueda, estado });
+): Promise<RespuestaApi<ColaExtraccionItemAdmin[]>> => {
+    return apiGet<ColaExtraccionItemAdmin[]>('/admin/cola-extraccion', { page, busqueda, estado });
 };
 
 export const marcarEliminacionUsuarioAdmin = async (

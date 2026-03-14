@@ -348,3 +348,73 @@ kamples-scraper/
 - **C904** ✅ Fix relevancia SC: `_score_relevancia_soundcloud()` requiere `title_score > 0` cuando el titulo tiene tokens significativos. Previene descargar otra cancion del mismo artista (ej: "Matrix" → "Salt Peanuts" de Dizzy Gillespie). Commit `deb4d24f`.
 
 - **C905** ✅ Pipeline robusto — 9 features: (1) `ResultadoDescarga` dataclass con metadata de fuente en JSONB. (2) `groq_validator.py` validacion IA pre-descarga via Groq LLM. (3) `SoundCloudAuthError` deteccion 401/403 → pausa pipeline. (4) `rate_limiter.py` intervalo start-to-start + limite diario persistido. (5) `auto_encolar_pendientes()` busca relaciones sin samples. (6) `desvincularSampleId()` resetea cola para re-extraccion. (7) `origen='extraccion'` + `descarga_metodo/fuente_url/titulo` en metadata sample. (8) Modo `--continuo` retry 30 min. (9) CLI args `--intervalo --limite-diario --espera-vacio`. Commit `4ca293ab`.
+
+---
+
+## Completado — Sprint QK (Quick-fixes Kamples)
+
+> 44 tareas (QK1-QK44) completadas. Agrupadas por dominio.
+
+### Desktop Auth/Sesión (QK1-QK6, QK11, QK15-QK16, QK38, QK43)
+- **QK1:** Logout limpieza — `cerrarSesionDesktop()` ahora detiene sync watcher, limpia `GLORY_CONTEXT.isLoggedIn/userId`, vacía stores (tooltipPerfil, notificaciones, mensajes, reproducidos).
+- **QK2:** `tooltipPerfilStore` cache invalidación post follow/unfollow — `invalidarCache(username)` fuerza re-fetch en hover.
+- **QK3:** Modal géneros flash — flag `perfilVerificado` en authStore; cache inicia como no verificado, refetch silencioso a `/me`, modal solo con datos reales.
+- **QK5:** Google One Tap solo funciona con cookie previa. Fix: `google.accounts.id.renderButton()` con popup mode para incógnito/nuevo.
+- **QK6:** JWT+Cookie conflict — WP `rest_cookie_check_errors` (prioridad 100) bloqueaba requests desktop que enviaban ambos. Fix: `AuthMiddleware::registrarFiltroRestJwt()` en prioridad 90 valida JWT primero.
+- **QK11/QK15:** Mismo root cause que QK6, resuelto al desplegar filtro JWT.
+- **QK16:** 2 root causes: (1) Google Client ID no inyectado en desktop → `vite.config.ts` + `apiDesktopAdapter.ts`. (2) CSP bloqueaba GSI → `tauri.conf.json` actualizado. (3) 401 sin auto-logout → handler en `inyectarAuthHeader()`.
+- **QK38:** `manejarSesionExpirada()` nuclear — destruía sesión al primer 401. Fix: flag `authInicializada` ignora 401s durante boot; verificación pre-logout contra `/me` con `fetchOriginal` confirma token real antes de destruir.
+- **QK43:** Duplicado de QK38.
+
+### Desktop Sync (QK36)
+- **QK36:** Auditoría sync: auth cross-window (cada ventana Tauri tiene JS context propio). Fix: eventos Tauri `auth-cambiada` propagan login/logout entre ventanas. Guards de re-entrancia. MD: `auditoria-sync-desktop.md`.
+
+### CORS/Deployment (QK34)
+- **QK34:** Audio CORS — archivos MP3 servidos por Apache no pasaban por PHP. Fix: `a2enmod headers` + `.htaccess` con reglas SetEnvIf whitelist (localhost, tauri). `theme_manager.rs` inyecta automáticamente en deploy.
+
+### Feed/Algoritmo (QK17, QK21, QK28, QK35, QK39)
+- **QK17:** 5 optimizaciones — cache perfil WP transients 30min, CTE 7→2 queries, TTL diferenciado (pág 1=5min, 2+=15min), SWR frontend, extracción useFeedLikes. MD: `optimizacion-feed.md`.
+- **QK21:** Escala 1M — pipeline 2 etapas (`SelectorCandidatos.php` UNION 5 fuentes), 5 índices especializados (v050), vista materializada `mv_trending_samples` refresh 5min. Config en `algoritmoPesos.php['candidatos']`. MD: `optimizacion-feed.md v2.0`.
+- **QK28:** Favoritos sin filtrar dislike — agregado `AND l.reaccion IN ('like', 'encanta')` en `favoritosDeUsuario()` y `contarFavoritosSamples()`.
+- **QK35:** Evaluación: Opt-1 a Opt-8 implementadas. Opt-9 a Opt-13 solo benefician >10K samples/usuarios, documentadas como plan futuro.
+- **QK39:** Cache persistente stale-first — `cacheFeedPersistente.ts` (localStorage 24h TTL). Feed muestra datos stale al instante, revalida en background. Elimina "Cargando samples..." en reload.
+
+### Scraper/Extracción (QK7-QK8, QK20, QK26, QK33)
+- **QK7:** WP Cron fix — `curl localhost` falla en Docker+Traefik. Fix: `docker exec php /var/www/html/wp-cron.php`.
+- **QK8:** Artistas prioridad — migración v049 con 9 artistas (DJ Smokey=100...Daft Punk=84). Pipeline ordena por GREATEST prioridad.
+- **QK20:** Cover/remix deprioritizados — `CASE WHEN tipo_relacion IN ('cover','remix') THEN 1 ELSE 0 END ASC` en pipeline + `priority=-5` en Scrapy.
+- **QK26:** Cover/remix excluidos completamente del pipeline extracción — `NOT IN ('cover','remix')` en `obtener_pendientes()` y `auto_encolar_pendientes()`.
+- **QK33:** yt-dlp JS runtime — actualizado a 2026.3.13, `--js-runtimes node` en `audio_download.py`, plugin `yt-dlp-ejs 0.7.0`.
+
+### Búsqueda/UI (QK13, QK19, QK29)
+- **QK13:** Búsqueda rápida full-stack — backend `BusquedaRapidaController` (4 dominios, fulltext+ILIKE), `useBusquedaRapida.ts` (debounce 250ms, AbortController), `ResultadosBusquedaRapida.tsx`, `busquedaRapida.css`. Wired en TopBar + modal móvil.
+- **QK19:** Búsqueda ancho 500px, modal animación 150ms (antes 250ms), eliminado scale, will-change GPU hints.
+- **QK29:** CadenaSamples CSS — eliminada doble indentación, text-overflow ellipsis, artista vacío sin separador.
+
+### Inspector/Detalle (QQ23, QK27, QK30-QK32)
+- **QQ23:** 10 campos extracción faltantes en `decodificarExtraccion()` — sampleoFuente/DestinoTitulo/Artista, votosTotal, tipoElemento, recortePorCompas, duracionExtraida, formatoExtraido, tamanoBytes.
+- **QK27:** Cache issue — deploy posterior al reporte del usuario.
+- **QK30:** Inspector SWR — `ModalInspectorSample` re-fetch via `obtenerSample(slug)` al abrir. `extraccion` añadido a `SampleResumen`. Inspector agregado a `SampleDetalleIsland.tsx`.
+- **QK31:** Guard "Extender recorte" — solo visible si `s.extraccion` existe (antes usaba `relacionSampleoId`).
+- **QK32:** Inspector links completo — YouTube/Spotify/SoundCloud clickables, rango extraído `1:43 a 2:10`, artista—título unificado, álbum, URLs canciones/sample en Kamples. Backend JOIN `relaciones_sample`→`canciones` para slug/álbum.
+
+### Admin Panel (QK14, QK25, QK40, QK44)
+- **QK14:** Tab Resumen — lista historial con stats cola IA (pendientes/procesando/completados/reintentos/errores) + 10 items recientes con badges. Carga paralela con KPIs.
+- **QK25:** Waveform en duplicados — `WaveformPlayer` estático en cada lado. `ruta_waveform` en SQL de duplicados. Hook `usePicosWaveform` con AbortController.
+- **QK40:** Tablas Scrapers + Cola Extracción — backend `AdminRepository` (ILIKE, estado filter, paginación 25/pág), 2 endpoints GET, 2 hooks con columnas ocultables, 2 componentes con scroll horizontal/badges/formateo, `adminTablas.css`. 9 tabs total en AdminPanelIsland.
+- **QK44:** Tablas vacías — `apiPeticion` hace `json.data ?? json`, los hooks accedían a `res.data.data` (doble anidación inexistente). Fix: tipos cambiados a `RespuestaApi<T[]>`, hooks leen `res.data` directo y `res.total`.
+
+### Stripe/Config (QK4, QK9-QK10, QK41)
+- **QK4:** Stripe price_id configurado en .env. Pendiente: webhook URL incorrecta en Stripe Dashboard.
+- **QK9:** Cookies separadas YouTube/SoundCloud — backend `guardarCookies($contenido, $tipo)` con whitelist, Python fallback `cookies_youtube.txt`>`cookies.txt` legacy.
+- **QK10:** Embedding dimension 1536→128 (migración v048). JsonRepairer max_tokens 2000→4000.
+- **QK41:** Server .env solo tenía 3 vars (DEV/LOCAL/WP_DEBUG). Fix: 4 vars Stripe añadidas via SSH+base64. Apache graceful restart.
+
+### Lecciones QK
+- [apiPeticion]: `json.data ?? json` extrae la clave `data`. Total solo via `res.total`. No envolver tipo genérico en `{ data: T; total }`.
+- [401 handler]: Nunca destruir sesión al primer 401. Verificar token con request directa antes.
+- [JWT+Cookie desktop]: WP bloquea cookie sin nonce. Filtro JWT prioridad 90 resuelve.
+- [Tauri auth cross-window]: Cada webview tiene JS context separado. Usar eventos Tauri para propagar.
+- [yt-dlp 2026.3.x]: Necesita `--js-runtimes node` para challenges firma YouTube.
+- [CORS estáticos]: Apache sirve sin PHP. Headers CORS en `.htaccess` con `mod_headers`.
+- [.env producción]: coolify-manager crea .env mínimo. Stripe vars manuales la primera vez.

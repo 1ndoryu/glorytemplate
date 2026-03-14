@@ -24,8 +24,8 @@ export function useTabScrapersAdmin() {
         try {
             const res = await listarScrapersAdmin(pagina, busqueda, filtroEstado);
             if (res.ok && res.data) {
-                setItems(res.data.data ?? []);
-                setTotal(res.data.total ?? 0);
+                setItems(res.data);
+                setTotal(res.total ?? 0);
             }
         } catch (err) {
             log.error('Error cargando scrapers', err);
