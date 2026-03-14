@@ -82,6 +82,13 @@ class ContribucionesService
             $cambiosRaw = $contribucion[ContribucionesPendientesCols::CAMBIOS_PROPUESTOS] ?? null;
             if ($cambiosRaw) {
                 $cambios = \is_string($cambiosRaw) ? \json_decode($cambiosRaw, true) : $cambiosRaw;
+                if (\json_last_error() !== JSON_ERROR_NONE) {
+                    KamplesLogger::warning('[ContribucionesService] json_decode falló en cambios_propuestos', [
+                        'error' => \json_last_error_msg(),
+                        'contribucion_id' => $contribucion[ContribucionesPendientesCols::ID] ?? 'unknown',
+                    ]);
+                    $cambios = null;
+                }
                 if (\is_array($cambios)) {
                     if (isset($cambios['timings_fuente']) && \is_array($cambios['timings_fuente'])) {
                         $tf = \array_filter(\array_map('intval', $cambios['timings_fuente']), fn($v) => $v >= 0);

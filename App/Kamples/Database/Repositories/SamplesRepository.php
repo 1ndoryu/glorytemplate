@@ -33,6 +33,7 @@ use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\ReproduccionesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
+use App\Kamples\KamplesLogger;
 
 class SamplesRepository extends BaseRepository
 {
@@ -249,30 +250,38 @@ class SamplesRepository extends BaseRepository
             $pGenero['lim_genero'] = $limite;
             $resultado[$gKey] = static::consultar($sqlGenero, $pGenero);
         } catch (\Throwable $e) {
-            /* best-effort: si la metadata no tiene formato esperado */
+            KamplesLogger::debug('[SamplesRepo] Agregacion genero falló (no crítico)', ['error' => $e->getMessage()]);
         }
 
         try {
             $pInstr = $params;
             $pInstr['lim_instrumento'] = $limite;
             $resultado['instrumento'] = static::consultar($sqlInstrumento, $pInstr);
-        } catch (\Throwable $e) { /* best-effort */ }
+        } catch (\Throwable $e) {
+            KamplesLogger::debug('[SamplesRepo] Agregacion instrumento falló (no crítico)', ['error' => $e->getMessage()]);
+        }
 
         try {
             $pSent = $params;
             $pSent['lim_sentimiento'] = $limite;
             $resultado['sentimiento'] = static::consultar($sqlSentimiento, $pSent);
-        } catch (\Throwable $e) { /* best-effort */ }
+        } catch (\Throwable $e) {
+            KamplesLogger::debug('[SamplesRepo] Agregacion sentimiento falló (no crítico)', ['error' => $e->getMessage()]);
+        }
 
         try {
             $resultado['tipo'] = static::consultar($sqlTipo, $params);
-        } catch (\Throwable $e) { /* best-effort */ }
+        } catch (\Throwable $e) {
+            KamplesLogger::debug('[SamplesRepo] Agregacion tipo falló (no crítico)', ['error' => $e->getMessage()]);
+        }
 
         try {
             $pOtro = $params;
             $pOtro['lim_otro'] = $limite;
             $resultado['otro'] = static::consultar($sqlOtro, $pOtro);
-        } catch (\Throwable $e) { /* best-effort */ }
+        } catch (\Throwable $e) {
+            KamplesLogger::debug('[SamplesRepo] Agregacion otro falló (no crítico)', ['error' => $e->getMessage()]);
+        }
 
         return $resultado;
     }
