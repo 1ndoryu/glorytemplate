@@ -75,6 +75,20 @@ class PerfilController
             'callback'            => [self::class, 'subirPortada'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* QK89: Cambio de email con verificación de contraseña */
+        register_rest_route($namespace, '/me/email', [
+            'methods'             => 'PUT',
+            'callback'            => [self::class, 'cambiarEmail'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* QK89: Cambio de contraseña */
+        register_rest_route($namespace, '/me/password', [
+            'methods'             => 'PUT',
+            'callback'            => [self::class, 'cambiarPassword'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /**
@@ -271,6 +285,16 @@ class PerfilController
         if (isset($body['username'])) {
             $errorUsername = Validador::validarUsername($body['username']);
             if ($errorUsername) return new \WP_REST_Response(['ok' => false, 'error' => $errorUsername], 400);
+
+            /* QK89: Verificar que el username no esté en uso por otro usuario */
+            $nuevoUsername = sanitize_user($body['username']);
+            if (username_exists($nuevoUsername) || UsuariosExtRepository::existeUsername($nuevoUsername, $wpUserId)) {
+                $currentExt = UsuariosExtRepository::buscarPorWpId($wpUserId);
+                $usernameActual = $currentExt[UsuariosExtCols::USERNAME] ?? '';
+                if (strtolower($nuevoUsername) !== strtolower($usernameActual)) {
+                    return new \WP_REST_Response(['ok' => false, 'error' => 'Ese nombre de usuario ya está en uso.'], 409);
+                }
+            }
         }
         if (isset($body['bio'])) {
             $errorBio = Validador::validarLongitud($body['bio'], Validador::MAX_BIO, 'La bio');
@@ -561,5 +585,141 @@ class PerfilController
         $decoded = json_decode($raw, true);
         if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) return [];
         return array_values($decoded);
+    }
+
+    /**
+     * PUT /me/email — Cambiar email del usuario.
+     * QK89: Requiere verificación de contraseña actual.
+     * Actualiza tanto WP como PG.
+     */
+    public static function cambiarEmail(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+            $pgId = UsuarioHelper::obtenerIdPg();
+            if ($pgId) {
+                $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+                if ($cuentaResp) return $cuentaResp;
+            }
+
+            $limitResp = RateLimiter::verificarIp('cambiar_email', 5, 3600);
+            if ($limitResp) return $limitResp;
+
+            $body = $request->get_json_params();
+            $nuevoEmail = sanitize_email($body['nuevoEmail'] ?? '');
+            $passwordActual = $body['passwordActual'] ?? '';
+
+            if (empty($nuevoEmail) || empty($passwordActual)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'El email y la contraseña actual son requeridos.'], 400);
+            }
+
+            if (!is_email($nuevoEmail)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'El email no es válido.'], 400);
+            }
+
+            /* Verificar contraseña actual */
+            $wpUser = \get_userdata($wpUserId);
+            if (!$wpUser || !\wp_check_password($passwordActual, $wpUser->user_pass, $wpUserId)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'La contraseña actual es incorrecta.'], 403);
+            }
+
+            /* Verificar que el email no esté ya en uso */
+            $existeEmail = \email_exists($nuevoEmail);
+            if ($existeEmail && (int) $existeEmail !== $wpUserId) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Ese email ya está registrado por otro usuario.'], 409);
+            }
+
+            /* No hacer nada si es el mismo email */
+            if (strtolower($nuevoEmail) === strtolower($wpUser->user_email)) {
+                return new \WP_REST_Response(['ok' => true, 'message' => 'El email es el mismo, no se realizaron cambios.'], 200);
+            }
+
+            /* Actualizar en WordPress */
+            $resultado = \wp_update_user([
+                'ID'         => $wpUserId,
+                'user_email' => $nuevoEmail,
+            ]);
+
+            if (\is_wp_error($resultado)) {
+                KamplesLogger::error('Error al cambiar email en WP', ['error' => $resultado->get_error_message()]);
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Error al actualizar el email.'], 500);
+            }
+
+            /* Actualizar en PostgreSQL */
+            UsuariosExtRepository::actualizarEmail($wpUserId, $nuevoEmail);
+
+            /* Devolver perfil actualizado */
+            $wpUserData = AuthMiddleware::obtenerUsuarioActual();
+            $extData = UsuariosExtRepository::buscarPorWpId($wpUserId);
+            $normalizado = self::normalizarUsuario(array_merge($wpUserData ?? [], $extData ?? []));
+
+            KamplesLogger::info('Email cambiado', ['wpUserId' => $wpUserId, 'nuevoEmail' => $nuevoEmail]);
+
+            return new \WP_REST_Response(['ok' => true, 'data' => $normalizado, 'message' => 'Email actualizado correctamente.'], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::cambiarEmail error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * PUT /me/password — Cambiar contraseña del usuario.
+     * QK89: Requiere contraseña actual + nueva + confirmación.
+     * 100% frontend, sin wp-login.
+     */
+    public static function cambiarPassword(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $wpUserId = AuthMiddleware::obtenerWpUserId();
+
+            $pgId = UsuarioHelper::obtenerIdPg();
+            if ($pgId) {
+                $cuentaResp = AuthMiddleware::verificarCuentaActiva($pgId);
+                if ($cuentaResp) return $cuentaResp;
+            }
+
+            $limitResp = RateLimiter::verificarIp('cambiar_password', 5, 3600);
+            if ($limitResp) return $limitResp;
+
+            $body = $request->get_json_params();
+            $passwordActual = $body['passwordActual'] ?? '';
+            $nuevaPassword = $body['nuevaPassword'] ?? '';
+            $confirmarPassword = $body['confirmarPassword'] ?? '';
+
+            if (empty($passwordActual) || empty($nuevaPassword) || empty($confirmarPassword)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Todos los campos son requeridos.'], 400);
+            }
+
+            /* Validar longitud de nueva contraseña */
+            $errorPass = Validador::validarTextoRequerido($nuevaPassword, Validador::MIN_PASSWORD, Validador::MAX_PASSWORD, 'La nueva contraseña');
+            if ($errorPass) {
+                return new \WP_REST_Response(['ok' => false, 'error' => $errorPass], 400);
+            }
+
+            if ($nuevaPassword !== $confirmarPassword) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Las contraseñas no coinciden.'], 400);
+            }
+
+            /* Verificar contraseña actual */
+            $wpUser = \get_userdata($wpUserId);
+            if (!$wpUser || !\wp_check_password($passwordActual, $wpUser->user_pass, $wpUserId)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'La contraseña actual es incorrecta.'], 403);
+            }
+
+            /* Cambiar contraseña en WordPress */
+            \wp_set_password($nuevaPassword, $wpUserId);
+
+            /* Regenerar cookies de autenticación (wp_set_password las invalida) */
+            \wp_set_current_user($wpUserId);
+            \wp_set_auth_cookie($wpUserId, true);
+
+            KamplesLogger::info('Contraseña cambiada', ['wpUserId' => $wpUserId]);
+
+            return new \WP_REST_Response(['ok' => true, 'message' => 'Contraseña actualizada correctamente.'], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('PerfilController::cambiarPassword error', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
     }
 }

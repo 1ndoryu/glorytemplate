@@ -7,8 +7,9 @@
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from 'react';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useAuthStore } from '@app/stores/authStore';
-import { actualizarPerfil, subirAvatar, subirPortada } from '@app/services/apiAuth';
+import { actualizarPerfil, subirAvatar, subirPortada, cambiarEmail, cambiarPassword } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
+import { crearToast } from '@app/components/ui/Notificacion';
 import type { UsuarioAutenticado } from '@app/types';
 import { aplicarTemaApp, guardarTemaApp, obtenerTemaAppActual, type TemaApp } from '@app/services/tema';
 
@@ -38,11 +39,25 @@ export function useModalConfiguracion() {
     const inputFotoRef = useRef<HTMLInputElement>(null);
     const inputPortadaRef = useRef<HTMLInputElement>(null);
 
+    /* QK89: Estados para cambio de email */
+    const [nuevoEmail, setNuevoEmail] = useState('');
+    const [emailPasswordActual, setEmailPasswordActual] = useState('');
+    const [cambiandoEmail, setCambiandoEmail] = useState(false);
+    const [emailEditando, setEmailEditando] = useState(false);
+
+    /* QK89: Estados para cambio de contraseña */
+    const [passwordActual, setPasswordActual] = useState('');
+    const [nuevaPassword, setNuevaPassword] = useState('');
+    const [confirmarPassword, setConfirmarPassword] = useState('');
+    const [cambiandoPassword, setCambiandoPassword] = useState(false);
+    const [passwordEditando, setPasswordEditando] = useState(false);
+
     /* Sincronizar campos cuando el modal se abre o los datos del usuario cambian */
     useEffect(() => {
         if (abierto && usuario) {
             setNombreVisible(usuario.nombreVisible ?? '');
             setUsername(usuario.username ?? '');
+            setBio(usuario.bio ?? '');
             setSitioWeb(usuario.sitioWeb ?? '');
             setTemaSeleccionado(obtenerTemaAppActual());
             setAvatarPreview(null);
@@ -50,6 +65,14 @@ export function useModalConfiguracion() {
             setPortadaPreview(null);
             setPortadaArchivo(null);
             setSeccionActiva('perfil');
+            /* QK89: Reset estados email/password */
+            setNuevoEmail('');
+            setEmailPasswordActual('');
+            setEmailEditando(false);
+            setPasswordActual('');
+            setNuevaPassword('');
+            setConfirmarPassword('');
+            setPasswordEditando(false);
         }
     }, [abierto, usuario]);
 
@@ -120,6 +143,64 @@ export function useModalConfiguracion() {
         cerrar();
     }, [guardando, usuario, nombreVisible, username, bio, sitioWeb, avatarArchivo, portadaArchivo, setUsuario, cerrar]);
 
+    /* QK89: Cambiar email con verificación de contraseña */
+    const manejarCambiarEmail = useCallback(async () => {
+        if (cambiandoEmail || !nuevoEmail.trim() || !emailPasswordActual) return;
+        setCambiandoEmail(true);
+
+        try {
+            const resp = await cambiarEmail(nuevoEmail.trim(), emailPasswordActual);
+            if (resp.ok && resp.data) {
+                setUsuario(resp.data as UsuarioAutenticado);
+                crearToast('exito', 'Email actualizado correctamente');
+                setEmailEditando(false);
+                setNuevoEmail('');
+                setEmailPasswordActual('');
+            } else {
+                crearToast('error', resp.error ?? 'Error al cambiar el email');
+            }
+        } catch (err) {
+            log.error('Error al cambiar email', err);
+            crearToast('error', 'Error de conexión');
+        }
+
+        setCambiandoEmail(false);
+    }, [cambiandoEmail, nuevoEmail, emailPasswordActual, setUsuario]);
+
+    /* QK89: Cambiar contraseña */
+    const manejarCambiarPassword = useCallback(async () => {
+        if (cambiandoPassword || !passwordActual || !nuevaPassword || !confirmarPassword) return;
+
+        if (nuevaPassword !== confirmarPassword) {
+            crearToast('error', 'Las contraseñas no coinciden');
+            return;
+        }
+        if (nuevaPassword.length < 6) {
+            crearToast('error', 'La contraseña debe tener al menos 6 caracteres');
+            return;
+        }
+
+        setCambiandoPassword(true);
+
+        try {
+            const resp = await cambiarPassword(passwordActual, nuevaPassword, confirmarPassword);
+            if (resp.ok) {
+                crearToast('exito', 'Contraseña actualizada correctamente');
+                setPasswordEditando(false);
+                setPasswordActual('');
+                setNuevaPassword('');
+                setConfirmarPassword('');
+            } else {
+                crearToast('error', resp.error ?? 'Error al cambiar la contraseña');
+            }
+        } catch (err) {
+            log.error('Error al cambiar contraseña', err);
+            crearToast('error', 'Error de conexión');
+        }
+
+        setCambiandoPassword(false);
+    }, [cambiandoPassword, passwordActual, nuevaPassword, confirmarPassword]);
+
     const manejarCerrar = useCallback(() => {
         if (guardando) return;
         cerrar();
@@ -145,5 +226,16 @@ export function useModalConfiguracion() {
         inputFotoRef, inputPortadaRef,
         manejarCambioTema, manejarCambioFoto, manejarCambioPortada,
         manejarGuardar, manejarCerrar,
+        /* QK89: Email */
+        nuevoEmail, setNuevoEmail,
+        emailPasswordActual, setEmailPasswordActual,
+        cambiandoEmail, emailEditando, setEmailEditando,
+        manejarCambiarEmail,
+        /* QK89: Password */
+        passwordActual, setPasswordActual,
+        nuevaPassword, setNuevaPassword,
+        confirmarPassword, setConfirmarPassword,
+        cambiandoPassword, passwordEditando, setPasswordEditando,
+        manejarCambiarPassword,
     };
 }

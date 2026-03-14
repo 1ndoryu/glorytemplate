@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -51,7 +51,7 @@ const SECCIONES_NAV: NavItemConfig[] = [
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
-    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, sitioWeb, setSitioWeb, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar} = useModalConfiguracion();
+    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, sitioWeb, setSitioWeb, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar, nuevoEmail, setNuevoEmail, emailPasswordActual, setEmailPasswordActual, cambiandoEmail, emailEditando, setEmailEditando, manejarCambiarEmail, passwordActual, setPasswordActual, nuevaPassword, setNuevaPassword, confirmarPassword, setConfirmarPassword, cambiandoPassword, passwordEditando, setPasswordEditando, manejarCambiarPassword} = useModalConfiguracion();
 
     if (!abierto || !autenticado) return null;
 
@@ -115,17 +115,54 @@ export const ModalConfiguracion = (): JSX.Element | null => {
             case 'cuenta':
                 return (
                     <>
+                        {/* QK89: Cambiar email */}
                         <div className="configSeccion">
-                            <label className="configLabel">Email</label>
-                            <CampoTexto type="email" variante="desnudo" className="configInput" value={usuario?.email ?? ''} disabled placeholder="tu@email.com" />
-                            <span className="configSubtexto">El email no se puede cambiar desde aquí.</span>
+                            <label className="configLabel"><Mail size={14} /> Email</label>
+                            <span className="configSubtexto">{usuario?.email ?? ''}</span>
+                            {!emailEditando ? (
+                                <BotonBase variante="secundario" tamano="sm" onClick={() => setEmailEditando(true)}>
+                                    Cambiar email
+                                </BotonBase>
+                            ) : (
+                                <div className="configFormInline">
+                                    <CampoTexto type="email" variante="desnudo" className="configInput" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} placeholder="Nuevo email" />
+                                    <CampoTexto type="password" variante="desnudo" className="configInput" value={emailPasswordActual} onChange={e => setEmailPasswordActual(e.target.value)} placeholder="Contraseña actual" autoComplete="current-password" />
+                                    <div className="configFormAcciones">
+                                        <BotonBase variante="primario" tamano="sm" onClick={manejarCambiarEmail} disabled={cambiandoEmail || !nuevoEmail.trim() || !emailPasswordActual}>
+                                            {cambiandoEmail ? 'Guardando...' : 'Confirmar'}
+                                        </BotonBase>
+                                        <BotonBase variante="ghost" tamano="sm" onClick={() => setEmailEditando(false)} disabled={cambiandoEmail}>
+                                            Cancelar
+                                        </BotonBase>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
+                        {/* QK89: Cambiar contraseña */}
                         <div className="configSeccion">
-                            <label className="configLabel">Contraseña</label>
-                            <BotonBase variante="secundario" tamano="sm" onClick={() => console.info('TO-DO: Cambiar contraseña')}>
-                                Cambiar contraseña
-                            </BotonBase>
+                            <label className="configLabel"><Lock size={14} /> Contraseña</label>
+                            {!passwordEditando ? (
+                                <BotonBase variante="secundario" tamano="sm" onClick={() => setPasswordEditando(true)}>
+                                    Cambiar contraseña
+                                </BotonBase>
+                            ) : (
+                                <div className="configFormInline">
+                                    <CampoTexto type="password" variante="desnudo" className="configInput" value={passwordActual} onChange={e => setPasswordActual(e.target.value)} placeholder="Contraseña actual" autoComplete="current-password" />
+                                    <CampoTexto type="password" variante="desnudo" className="configInput" value={nuevaPassword} onChange={e => setNuevaPassword(e.target.value)} placeholder="Nueva contraseña" autoComplete="new-password" />
+                                    <CampoTexto type="password" variante="desnudo" className="configInput" value={confirmarPassword} onChange={e => setConfirmarPassword(e.target.value)} placeholder="Confirmar nueva contraseña" autoComplete="new-password" />
+                                    <div className="configFormAcciones">
+                                        <BotonBase variante="primario" tamano="sm" onClick={manejarCambiarPassword} disabled={cambiandoPassword || !passwordActual || !nuevaPassword || !confirmarPassword}>
+                                            {cambiandoPassword ? 'Guardando...' : 'Confirmar'}
+                                        </BotonBase>
+                                        <BotonBase variante="ghost" tamano="sm" onClick={() => setPasswordEditando(false)} disabled={cambiandoPassword}>
+                                            Cancelar
+                                        </BotonBase>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
                         <div className="configSeccion">
                             <label className="configLabel configLabelPeligro">Zona de peligro</label>
                             <BotonBase variante="secundario" tamano="md" onClick={() => console.info('TO-DO: Eliminar cuenta')}>

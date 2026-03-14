@@ -953,4 +953,35 @@ class UsuariosExtRepository extends BaseRepository
 
         return $row[$columna] ?? null;
     }
+
+    /*
+     * Verificar si un username ya existe en PG (excluyendo un wp_user_id dado).
+     * Usado en actualizarPerfil para evitar duplicados al cambiar username.
+     */
+    public static function existeUsername(string $username, int $excluirWpId): bool
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT 1 FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :username AND "
+            . UsuariosExtCols::WP_USER_ID . " != :wpId",
+            ['username' => $username, 'wpId' => $excluirWpId]
+        );
+
+        return $row !== null;
+    }
+
+    /*
+     * Actualizar email en PG (complemento al cambio en WP).
+     */
+    public static function actualizarEmail(int $wpUserId, string $nuevoEmail): void
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET " . UsuariosExtCols::EMAIL . " = :email, "
+            . UsuariosExtCols::UPDATED_AT . " = NOW() WHERE " . UsuariosExtCols::WP_USER_ID . " = :wpId",
+            ['email' => $nuevoEmail, 'wpId' => $wpUserId]
+        );
+    }
 }

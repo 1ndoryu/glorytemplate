@@ -91,3 +91,19 @@ export const loginConGoogle = async (credential: string) => {
         credential,
     });
 };
+
+/*
+ * QK89: Cambiar email del usuario autenticado.
+ * Requiere la contraseña actual como verificación de identidad.
+ */
+export const cambiarEmail = async (nuevoEmail: string, passwordActual: string) => {
+    return apiPut<UsuarioAutenticado>('/me/email', { nuevoEmail, passwordActual });
+};
+
+/*
+ * QK89: Cambiar contraseña del usuario autenticado.
+ * Requiere la contraseña actual + nueva + confirmación.
+ */
+export const cambiarPassword = async (passwordActual: string, nuevaPassword: string, confirmarPassword: string) => {
+    return apiPut<{ ok: boolean; message: string }>('/me/password', { passwordActual, nuevaPassword, confirmarPassword });
+};

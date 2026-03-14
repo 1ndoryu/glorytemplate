@@ -419,3 +419,17 @@ nav.configNavLista button {
     padding: var(--espacioXl) 0;
     color: var(--textoSecundario);
 }
+
+/* QK89: Formulario inline para email/contraseña en sección cuenta */
+.configFormInline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+    margin-top: var(--espacioXs);
+}
+
+.configFormAcciones {
+    display: flex;
+    gap: var(--espacioSm);
+    align-items: center;
+}
