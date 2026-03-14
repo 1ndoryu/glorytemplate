@@ -19,6 +19,9 @@ const STORE_KEY_TOKEN = 'auth_token';
 const STORE_KEY_USUARIO = 'auth_usuario';
 const STORE_FILE = 'auth.json';
 
+/* Evento Tauri para sincronizar auth entre ventanas (main ↔ sync-panel) */
+const EVENTO_AUTH_CAMBIADA = 'auth-cambiada';
+
 /* Token en memoria para acceso rápido (evita async en cada petición) */
 let tokenEnMemoria: string | null = null;
 
@@ -88,6 +91,8 @@ export async function guardarToken(token: string): Promise<void> {
     } catch (err) {
         console.error('[AuthDesktop] Error guardando token:', err);
     }
+
+    emitirCambioAuth('login');
 }
 
 /*
@@ -166,5 +171,89 @@ export async function cerrarSesionDesktop(): Promise<void> {
         await store.save();
     } catch (err) {
         console.error('[AuthDesktop] Error cerrando sesión:', err);
+    }
+
+    emitirCambioAuth('logout');
+}
+
+/*
+ * Emite evento cross-window para que las demas ventanas se sincronicen.
+ * Usa el sistema de eventos de Tauri: emitTo('*') llega a todas las ventanas.
+ */
+function emitirCambioAuth(tipo: 'login' | 'logout'): void {
+    import('@tauri-apps/api/event').then(({ emit }) => {
+        emit(EVENTO_AUTH_CAMBIADA, { tipo }).catch(() => {
+            /* Silencioso: entorno no-Tauri o ventana ya cerrada */
+        });
+    }).catch(() => { /* Silencioso */ });
+}
+
+/* Guard para evitar re-entrancia en el listener de eventos */
+let procesandoEventoAuth = false;
+
+/*
+ * Escucha cambios de auth emitidos por otras ventanas y re-sincroniza.
+ * Debe llamarse una vez en cada ventana (main y sync-panel).
+ * Si la ventana emisora es la misma que recibe, ignora el evento
+ * (ya se actualizo localmente en guardarToken/cerrarSesion).
+ */
+export async function escucharCambiosAuth(): Promise<void> {
+    if (!esDesktop()) return;
+
+    try {
+        const { listen } = await import('@tauri-apps/api/event');
+        await listen<{ tipo: 'login' | 'logout' }>(EVENTO_AUTH_CAMBIADA, async (evento) => {
+            if (procesandoEventoAuth) return;
+            procesandoEventoAuth = true;
+
+            try {
+                if (evento.payload.tipo === 'login') {
+                    /* Otra ventana hizo login — re-leer token y usuario del store */
+                    const { load } = await import('@tauri-apps/plugin-store');
+                    const store = await load(STORE_FILE);
+                    const token = await store.get<string>(STORE_KEY_TOKEN);
+
+                    if (token && token !== tokenEnMemoria) {
+                        tokenEnMemoria = token;
+                        actualizarTokenApi(token);
+                        establecerTokenSync(token);
+
+                        /* Actualizar authStore con el usuario recien guardado */
+                        const usuario = await store.get<Record<string, unknown>>(STORE_KEY_USUARIO);
+                        if (usuario) {
+                            const { useAuthStore } = await import('@app/stores/authStore');
+                            useAuthStore.getState().setUsuario(usuario as never, false);
+                        }
+
+                        const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+                        if (ctx) {
+                            ctx.isLoggedIn = true;
+                            ctx.userId = (usuario as Record<string, unknown> | null)?.wpUserId
+                                ?? (usuario as Record<string, unknown> | null)?.id ?? 1;
+                        }
+                    }
+                } else if (evento.payload.tipo === 'logout') {
+                    /* Otra ventana cerro sesion — limpiar estado local */
+                    if (tokenEnMemoria) {
+                        tokenEnMemoria = null;
+                        limpiarAuthApi();
+                        establecerTokenSync(null);
+
+                        const { useAuthStore } = await import('@app/stores/authStore');
+                        useAuthStore.getState().cerrarSesion();
+
+                        const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+                        if (ctx) {
+                            ctx.isLoggedIn = false;
+                            ctx.userId = undefined;
+                        }
+                    }
+                }
+            } finally {
+                procesandoEventoAuth = false;
+            }
+        });
+    } catch {
+        /* Entorno no-Tauri */
     }
 }

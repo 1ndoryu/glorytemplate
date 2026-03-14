@@ -4,7 +4,7 @@
  */
 
 import { configurarApiDesktop } from './apiDesktopAdapter';
-import { inicializarAuthDesktop } from './authDesktopService';
+import { inicializarAuthDesktop, escucharCambiosAuth } from './authDesktopService';
 import { inicializarOfflineQueue } from './offlineQueueService';
 import { inicializarSyncService } from './syncService';
 
@@ -23,6 +23,9 @@ export async function inicializarDesktop(): Promise<void> {
 
     /* 2. Restaurar sesión de auth desde el store seguro */
     await inicializarAuthDesktop();
+
+    /* 2b. Escuchar cambios de auth de otras ventanas (sync-panel) */
+    escucharCambiosAuth();
 
     /* 3. Inicializar queue offline (reproducciones, likes pendientes) */
     await inicializarOfflineQueue();

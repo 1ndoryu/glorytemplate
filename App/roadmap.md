@@ -458,21 +458,21 @@ Ya veo los datos de extraccion, bien, ahora necesito que al dar click al id de y
 
 Aplica todas las optimizaciones de "# Optimizacion del Feed de Samples — Analisis, Plan y Estrategia para 1M" si es que falta algo.
 
-## QK36
+## QK36 ✅ [AG-DSK]
 
-aplicacion de escritorio
-
-Hay un problema, en la ventana de sync, dodne antes me aparecía el historial de sincornizacion y las opciones, ahora me aparece la pagina de inicio, supongo que es porque se inice sesion pero no se actualizo, despues reinicie la aplicación y la sesion estaba abierta en el sync pero no estaba abierta en la ventana, ahi ya son dos problemas (aparece asi en sync U Usuario) parece un estado deslogin en realidad
-
-el boton de iniciar sesion con google en la aplicacion no funciona
-
-Una auditoría profunda acerca el sync, fue probado localmente cuando la aplicación corría en local, no en el vps servidor, revision de seguridad, optimización, la aplicación de sync se espera que este en muchos dispositivos, tiene que ser optima, eficiente, segura. Haz un md detallado.
+**Solución:** Auditoría profunda del sistema de sincronización desktop. 3 bugs corregidos + MD detallado (`App/docs/auditoria-sync-desktop.md`):
+1. **Auth cross-window** (root cause): Cada ventana Tauri tiene su propio JS context. Login/logout en main no se propagaba a sync-panel. Fix: sistema de eventos Tauri (`auth-cambiada`) con guards de re-entrancia y self-processing. `guardarToken()` y `cerrarSesionDesktop()` emiten evento. `escucharCambiosAuth()` re-lee `auth.json` y actualiza fetch interceptor + authStore + GLORY_CONTEXT en la otra ventana.
+2. **Sync panel "pagina de inicio"**: Sin auth, el panel muestra "Sin actividad reciente" con "Usuario" — parece home. Con fix #1, al hacer login en main, sync panel recibe evento y actualiza.
+3. **Google login**: Ya resuelto en QK16 (CSP + Client ID).
+- Archivos: `authDesktopService.ts` (+60 líneas), `desktopService.ts` (+2), `sync.tsx` (+2), `App/docs/auditoria-sync-desktop.md` (nuevo)
+- [Tauri events]: `emit()` llega a TODAS las ventanas incluyendo emisora. Guard `token !== tokenEnMemoria` previene self-processing.
+- [Auth cross-window]: Cada webview tiene `window.fetch` y Zustand stores separados. No se comparten automáticamente.
 
 ## QK37
 
 Por fa haz la tarea del md para evaluar todo lo pendiente para hacer la aplicacion android (webwiew obviamente), tengo android studio instalado 
 
-## QK38
+## QK38 (Esto fue antes de que hicieras qk36 pero no estabas enterado)
 
 En la aplicacion sigue apareciendo, al recargar se deslogea
 
@@ -488,6 +488,17 @@ obtenerColeccionesDelServidor @ syncCollectionService.ts:296
 :1420/wp-json/kamples/v1/notificaciones?page=1:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 :1420/wp-json/kamples/v1/mensajes/conversaciones:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
 :1420/wp-json/kamples/v1/me/sync/delta?cursor=77:1   Failed to load resource: the server responded with a status of 401 (Unauthorized)
+
+## QK39
+
+Cargando samples… es muy lento, entiendo que hayas aplicado optimizaciones, sin embargo, creo que no se esta atacando lo verdaderamente importante, la carga de samples debe ser fondo, siempre mostrar una version chadeada para que el usuario evite ver lo de "Cargando samples…" y se quede esperando, de fondo que se cargue lo que tenga que cargar y ya cuando este cargado se cacheara para que cargue de una vez, no estoy pidiendo que el algoritmo pierda calidad, y tampoco que se deje por fuera samples nuevos, los samples nuevos siempre tienen que aparecer, el algoritmo, la cache tiene que ser invalidandose por interaciones pero al menos que se haga de fondo para que cuando cargue no se quede el usuario esperando
+
+## QK40 
+
+Necesito dos tablas nuevas, dos tabs en admin panel, una tabla que muestre todos los scrappers, toda la informacion, acciones en iconos de 3 puntos, tablas minimalistas
+
+y la otra tabla la de la cola de extraccion o recorte, ambas tablas con toda la informacion compactada, con busqueda, opciones de desactivar o ver columnas, etc, 
+
 
 
 ## Despliegue Produccion (VPS Coolify)

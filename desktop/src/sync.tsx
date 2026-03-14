@@ -29,7 +29,7 @@ import { inicializarSyncService } from '@desktop/services/syncService';
 
 /* Auth: restaurar token JWT del store ANTES de configurar API.
  * Sin esto, configurarApiDesktop() no encuentra token y fetch va sin Authorization → 401. */
-import { inicializarAuthDesktop } from '@desktop/services/authDesktopService';
+import { inicializarAuthDesktop, escucharCambiosAuth } from '@desktop/services/authDesktopService';
 
 /* Exponer syncService en window para que usePanelSincronizacion funcione */
 import {
@@ -109,6 +109,9 @@ async function inicializar(): Promise<void> {
 
     /* Restaurar token JWT del store de Tauri → sin esto, fetch no tiene Authorization header */
     await inicializarAuthDesktop();
+
+    /* Escuchar cambios de auth de la ventana principal (login/logout cross-window) */
+    escucharCambiosAuth();
 
     /*
      * Exponer origen del servidor para que:
