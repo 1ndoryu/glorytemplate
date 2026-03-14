@@ -65,7 +65,22 @@ const TarjetaProceso = ({
                         Inicio: {new Date(proceso.iniciado_at).toLocaleTimeString()}
                     </span>
                 )}
+                {proceso.ultimo_log && (
+                    <span className="procesoCardMetaItem">
+                        Ultimo log: {new Date(proceso.ultimo_log).toLocaleTimeString()}
+                    </span>
+                )}
             </div>
+
+            {/* Barra de progreso si disponible */}
+            {typeof proceso.progreso === 'number' && proceso.progreso > 0 && (
+                <div className="procesoCardProgreso">
+                    <div
+                        className="procesoCardProgresoRelleno"
+                        style={{ width: `${Math.min(100, proceso.progreso)}%` }}
+                    />
+                </div>
+            )}
 
             {/* Error */}
             {proceso.error && (
