@@ -21,9 +21,12 @@ tauri-plugin-os = "2"
 tauri-plugin-process = "2"
 tauri-plugin-shell = "2"
 tauri-plugin-store = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Dependencias solo desktop (tray, drag-and-drop, window state, updater, fs2)
+[target.'cfg(not(target_os = "android"))'.dependencies]
 tauri-plugin-updater = "2"
 tauri-plugin-window-state = "2"
 tauri-plugin-drag = "2.1.0"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 fs2 = "0.4"

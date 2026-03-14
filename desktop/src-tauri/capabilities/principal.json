@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicdelhi/tauri2-schema/main/capability.json",
   "identifier": "principal",
-  "description": "Permisos principales de la app Kamples Desktop",
+  "description": "Permisos compartidos entre desktop y mobile",
   "windows": ["main", "sync-panel", "config-sync"],
   "permissions": [
     "core:default",
@@ -60,14 +60,6 @@
     "store:allow-length",
     "store:allow-load",
     "store:allow-save",
-    "store:allow-clear",
-    "updater:default",
-    "updater:allow-check",
-    "updater:allow-download-and-install",
-    "window-state:default",
-    "window-state:allow-restore-state",
-    "window-state:allow-save-window-state",
-    "drag:default",
-    "drag:allow-start-drag"
+    "store:allow-clear"
   ]
 }

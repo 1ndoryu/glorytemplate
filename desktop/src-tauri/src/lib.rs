@@ -3,11 +3,15 @@
  * Registra plugins, comandos custom y tray icon.
  */
 
+#[cfg(desktop)]
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager, WindowEvent,
 };
+
+#[cfg(not(desktop))]
+use tauri::Manager;
 
 /* Comando: obtener version de la app */
 #[tauri::command]
@@ -36,6 +40,7 @@ fn obtener_tamano_archivo(ruta: String) -> Result<u64, String> {
 }
 
 /* Comando: obtener espacio disponible en disco para una ruta dada (bytes) */
+#[cfg(desktop)]
 #[tauri::command]
 fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
     fs2::available_space(&ruta)
@@ -43,6 +48,7 @@ fn obtener_espacio_disponible(ruta: String) -> Result<u64, String> {
 }
 
 /* Comando: abrir carpeta local en el explorador del sistema */
+#[cfg(desktop)]
 #[tauri::command]
 fn abrir_carpeta(ruta: String) -> Result<(), String> {
     let path = std::path::Path::new(&ruta);
@@ -83,6 +89,7 @@ fn abrir_carpeta(ruta: String) -> Result<(), String> {
 }
 
 /* Comando: seleccionar un archivo en el explorador (lo resalta en su carpeta) */
+#[cfg(desktop)]
 #[tauri::command]
 fn seleccionar_archivo(ruta: String) -> Result<(), String> {
     let _path = std::path::Path::new(&ruta);
@@ -132,6 +139,7 @@ fn seleccionar_archivo(ruta: String) -> Result<(), String> {
  * deadlock de WebView2 al crearla dinámicamente en Windows.
  * Este comando solo la muestra, centra y enfoca.
  */
+#[cfg(desktop)]
 #[tauri::command]
 fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
     let ventana = app
@@ -144,6 +152,7 @@ fn mostrar_ventana_config(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 /* Comando: toggle de ventana de sincronización (sync-panel) */
+#[cfg(desktop)]
 #[tauri::command]
 fn toggle_ventana_sync(app: tauri::AppHandle) -> Result<(), String> {
     mostrar_ventana_sync(&app);
@@ -155,6 +164,7 @@ fn toggle_ventana_sync(app: tauri::AppHandle) -> Result<(), String> {
  * Left-click y "Sincronización" abren la ventana sync-panel (popup).
  * "Mostrar Kamples" abre la ventana principal.
  */
+#[cfg(desktop)]
 fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let sincronizacion = MenuItem::with_id(app, "sincronizacion", "Sincronización", true, None::<&str>)?;
     let mostrar = MenuItem::with_id(app, "mostrar", "Mostrar Kamples", true, None::<&str>)?;
@@ -213,6 +223,7 @@ fn configurar_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
  * Si ya esta visible, la oculta (toggle).
  * Si no, la posiciona cerca del area de tray y la muestra.
  */
+#[cfg(desktop)]
 fn mostrar_ventana_sync(app: &tauri::AppHandle) {
     if let Some(ventana) = app.get_webview_window("sync-panel") {
         if ventana.is_visible().unwrap_or(false) {
@@ -240,62 +251,82 @@ fn mostrar_ventana_sync(app: &tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        /* Plugins oficiales de Tauri 2 */
+    /* Plugins compartidos (todos los targets) */
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_store::Builder::default().build());
+
+    /* Plugins desktop-only: updater, window-state, drag */
+    #[cfg(desktop)]
+    let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_window_state::Builder::default()
                 .with_denylist(&["sync-panel", "config-sync"])
                 .build(),
         )
-        .plugin(tauri_plugin_drag::init())
-        /* Comandos custom */
-        .invoke_handler(tauri::generate_handler![
-            obtener_version,
-            obtener_plataforma,
-            archivo_existe,
-            obtener_tamano_archivo,
-            obtener_espacio_disponible,
-            abrir_carpeta,
-            seleccionar_archivo,
-            mostrar_ventana_config,
-            toggle_ventana_sync,
-        ])
-        /* Setup: tray icon */
-        .setup(|app| {
-            configurar_tray(app)?;
+        .plugin(tauri_plugin_drag::init());
 
-            /* Cerrar popup sync al perder foco (click fuera).
-             * Delay de 220ms para que el toggle del tray icon tenga prioridad:
-             * si el usuario hace click en el icono de bandeja, el tray handler
-             * oculta la ventana primero; el delayed-hide aqui es no-op porque
-             * la ventana ya no esta enfocada (is_focused = false confirma). */
-            if let Some(ventana_sync) = app.get_webview_window("sync-panel") {
-                let app_handle_sync = app.handle().clone();
-                ventana_sync.on_window_event(move |evento| {
-                    if let WindowEvent::Focused(false) = evento {
-                        let handle = app_handle_sync.clone();
-                        std::thread::spawn(move || {
-                            std::thread::sleep(std::time::Duration::from_millis(220));
-                            if let Some(v) = handle.get_webview_window("sync-panel") {
-                                /* Solo ocultar si sigue sin foco (evita parpadeo en toggle) */
-                                if !v.is_focused().unwrap_or(true) {
-                                    let _ = v.hide();
-                                }
+    /* Comandos: desktop incluye todos, mobile solo los basicos */
+    #[cfg(desktop)]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        obtener_version,
+        obtener_plataforma,
+        archivo_existe,
+        obtener_tamano_archivo,
+        obtener_espacio_disponible,
+        abrir_carpeta,
+        seleccionar_archivo,
+        mostrar_ventana_config,
+        toggle_ventana_sync,
+    ]);
+
+    #[cfg(not(desktop))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        obtener_version,
+        obtener_plataforma,
+        archivo_existe,
+        obtener_tamano_archivo,
+    ]);
+
+    /* Setup: desktop configura tray + ventana sync behavior */
+    #[cfg(desktop)]
+    let builder = builder.setup(|app| {
+        configurar_tray(app)?;
+
+        /* Cerrar popup sync al perder foco (click fuera).
+         * Delay de 220ms para que el toggle del tray icon tenga prioridad:
+         * si el usuario hace click en el icono de bandeja, el tray handler
+         * oculta la ventana primero; el delayed-hide aqui es no-op porque
+         * la ventana ya no esta enfocada (is_focused = false confirma). */
+        if let Some(ventana_sync) = app.get_webview_window("sync-panel") {
+            let app_handle_sync = app.handle().clone();
+            ventana_sync.on_window_event(move |evento| {
+                if let WindowEvent::Focused(false) = evento {
+                    let handle = app_handle_sync.clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(220));
+                        if let Some(v) = handle.get_webview_window("sync-panel") {
+                            if !v.is_focused().unwrap_or(true) {
+                                let _ = v.hide();
                             }
-                        });
-                    }
-                });
-            }
+                        }
+                    });
+                }
+            });
+        }
 
-            Ok(())
-        })
+        Ok(())
+    });
+
+    #[cfg(not(desktop))]
+    let builder = builder.setup(|_app| Ok(()));
+
+    builder
         .run(tauri::generate_context!())
-        .expect("Error al iniciar Kamples Desktop");
+        .expect("Error al iniciar Kamples");
 }

@@ -121,7 +121,12 @@ temp_dl/
 # Desktop Tauri
 desktop/dist/
 desktop/src-tauri/gen/schemas/
+desktop/src-tauri/gen/android/app/build/
+desktop/src-tauri/gen/android/.gradle/
+desktop/src-tauri/gen/android/buildSrc/build/
+desktop/src-tauri/gen/android/local.properties
 desktop/src-tauri/target/
+*.apk
 # Kamples Scraper
 kamples-scraper/cookies.txt
 kamples-scraper/cookies_youtube.txt

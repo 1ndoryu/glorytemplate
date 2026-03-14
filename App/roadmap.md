@@ -322,24 +322,20 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QK103 
 
-✅ [AG-WRK] CI release + push a kamples-sync — Parcialmente completado (requiere acciones del usuario):
-- **Workflow CI:** `release-desktop.yml` actualizado con jobs para Desktop (Windows/macOS/Linux) + Android (APK). Trigger: tag `desktop-v*` o `workflow_dispatch` manual con selector de plataformas.
-- **Push kamples-sync:** Código completo pusheado a `1ndoryu/kamples-sync` branch `main`.
-- **Lockfile:** `desktop/package-lock.json` ya existía tracked. `npm ci` funciona.
-- **Gitignore:** `desktop/src-tauri/gen/` cambiado a solo excluir `gen/schemas/` — permite commitear `gen/android/` cuando se genere.
-- **PENDIENTE USUARIO — Para desktop installer:**
-  1. Configurar secrets en GitHub (`1ndoryu/glorytemplate` o `1ndoryu/kamples-sync` según donde quieras trigger):
-     - `TAURI_SIGNING_PRIVATE_KEY` — clave privada de firma Tauri (generada con `tauri signer generate`)
-     - `TAURI_KEY_PASSWORD` — password de la clave
-  2. Push un tag: `git tag desktop-v0.1.0 && git push origin desktop-v0.1.0`
-  3. El workflow genera MSI (Windows), DMG (macOS), AppImage/deb (Linux) como GitHub Release draft.
-- **PENDIENTE USUARIO — Para APK (Android):**
-  1. Instalar Android SDK 34+, NDK 27+, JDK 17+ (variables ANDROID_HOME, JAVA_HOME)
-  2. En `desktop/src-tauri/`: `cargo tauri android init` (genera `gen/android/` con proyecto Gradle)
-  3. Commit y push de `gen/android/`
-  4. El workflow CI compilará el APK automáticamente al push de tag
-- [Arq]: Desktop depende de código compartido (`../App/React/`, `../Glory/assets/react/src/`, `../Mezclador/`). El repo kamples-sync contiene TODO el proyecto para que el build funcione. NO separar desktop en repo standalone.
-- [Gotcha]: `kamples-sync` remote agregado localmente (`git remote add kamples-sync https://github.com/1ndoryu/kamples-sync.git`). Para sincronizar: `git push kamples-sync main-kamples:main`.
+✅ [AG-WRK] CI release + Android APK build local completado:
+- **Workflow CI:** `release-desktop.yml` con jobs Desktop + Android. Trigger: tag `desktop-v*` o `workflow_dispatch`.
+- **Push kamples-sync:** Código completo en `1ndoryu/kamples-sync` branch `main`.
+- **Android APK local:** Build exitoso — `kamples-arm64.apk` (14.91 MB, arm64, release, unsigned).
+- **Entorno Android configurado:** SDK 36, NDK 27.0.12077973, JDK 21 (Android Studio JBR), Rust targets instalados.
+- **Cargo.toml:** Dependencias desktop-only (`drag`, `window-state`, `updater`, `fs2`) condicionalizadas con `cfg(not(target_os = "android"))`.
+- **lib.rs:** Código de tray icon, drag-and-drop, window state gateado con `#[cfg(desktop)]`. Mobile solo registra comandos básicos.
+- **Capabilities:** Separadas en `principal.json` (compartido) + `desktop.json` (updater, window-state, drag con `platforms: ["linux","macOS","windows"]`).
+- **Developer Mode:** Activado en Windows para symlinks (requerido por Tauri Android build).
+- [Gotcha]: Gradle no encuentra npm desde subprocess en Windows. Workaround: correr `gradlew.bat assembleArm64Release -x rustBuildArm64Release` directo después de que Rust compile.
+- [Gotcha]: `rootDirRel` en `app/build.gradle.kts` debe ser `"../../../../"` (no `"../../../"`) para apuntar a `desktop/` donde está `package.json`.
+- [Gotcha]: `phf` crate falla cross-compilando para targets x86/armv7. Build solo para aarch64 funciona. CI workflow ya usa `--target aarch64`.
+- **Para firmar APK:** Necesita keystore. Crear con `keytool -genkey -v -keystore kamples.keystore -alias kamples -keyalg RSA -keysize 2048 -validity 10000`.
+- **Para desktop installer:** Push tag: `git tag desktop-v0.1.0 && git push kamples-sync desktop-v0.1.0`.
 
 ## QK104
 
@@ -353,6 +349,56 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - **LayoutPrincipal:** Mapeada ruta `/samples` → id `samples` en MAPA_RUTAS.
 - Archivos: useEsMovil.ts, InicioIsland.tsx, FeedSamplesIsland.tsx (nuevo), Sidebar.tsx, pages.php, appIslands.tsx, LayoutPrincipal.tsx.
 
+## QK105
+
+Correciones de la tare anterior
+
+se oculto la pagina de panel admin pero eso solo era para movil, necesito verla en escritorio, mejor al lado del mezclador
+en escritorio inico (feed de samples) tiene que estar en el medio es decir, bajarolo un lugar para que quede arriba del icono de musica y arriba del de librería
+el icono de la apk espero que sea el del mismo favicon de kamples
+
+estos son los estilos correctos de musicaExplorarContenedor para que se vea bien, para escritorio y telefono
+
+borrar los comentados /**/
+
+.musicaExplorarContenedor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio2xl);
+    padding: var(--espacioLg) var(--espacioXl);
+    /* max-width: var(--anchoMaximoContenido); */
+    /* margin: 0 auto; */
+    padding-right: 0;
+    width: 100%;
+}
+
+.seccionHorizontalScroll mejor con gap: var(--espacioXl); en general
+
+la pagina de musica necesita una tab al menos para que no se bugue 
+
+es raro que cuando estoy en https://kamples.com/musica/ el icono que queda activo es el home y no el de musica
+
+estilos correctos para dropdownPanelTab
+
+borrar los comentados /**/
+
+.dropdownPanelTab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    border-radius: 0;
+    /* justify-content: center; */
+    /* gap: var(--espacioXs); */
+    /* padding: var(--espacioSm) var(--espacioMd); */
+    /* font-size: var(--fuenteSm); */
+    /* font-weight: var(--pesoMedium); */
+    /* color: var(--textoTerciario); */
+    /* background: none; */
+    /* border: none; */
+    /* border-bottom: 2px solid transparent; */
+    /* cursor: pointer; */
+    /* transition: color var(--transicionRapida), border-color var(--transicionRapida); */
+}
 
 ## Despliegue Produccion (VPS Coolify)
 

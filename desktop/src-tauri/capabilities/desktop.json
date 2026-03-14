@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicdelhi/tauri2-schema/main/capability.json",
+  "identifier": "desktop-only",
+  "description": "Permisos exclusivos de desktop: updater, window-state, drag",
+  "platforms": ["linux", "macOS", "windows"],
+  "windows": ["main", "sync-panel", "config-sync"],
+  "permissions": [
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download-and-install",
+    "window-state:default",
+    "window-state:allow-restore-state",
+    "window-state:allow-save-window-state",
+    "drag:default",
+    "drag:allow-start-drag"
+  ]
+}
