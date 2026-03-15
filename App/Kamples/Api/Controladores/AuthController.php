@@ -59,14 +59,14 @@ class AuthController
             $limitResp = RateLimiter::verificarIp('login', 100, 900);
             if ($limitResp) return $limitResp;
 
-            $body     = $request->get_json_params();
-
-            /* Fallback: get_json_params() devuelve vacío si el Content-Type no llega
-             * limpio al PHP-FPM (proxy, nginx, WebView móvil). Leer php://input directamente. */
+            /* get_json_params() falla cuando Content-Type llega modificado (nginx, WebView Android).
+             * WordPress ya leyó php://input y lo almacenó en $request->body durante el routing.
+             * Usar get_body() como fallback — evita releer el stream (ya consumido). */
+            $body = $request->get_json_params();
             if (empty($body)) {
-                $rawInput = file_get_contents('php://input');
-                if ($rawInput !== false && $rawInput !== '') {
-                    $decoded = json_decode($rawInput, true);
+                $rawBody = $request->get_body();
+                if ($rawBody !== '' && $rawBody !== null) {
+                    $decoded = json_decode($rawBody, true);
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                         $body = $decoded;
                     }
@@ -77,6 +77,15 @@ class AuthController
             $password = $body['password'] ?? '';
 
             if (empty($login) || empty($password)) {
+                /* DEBUG-TEMP: loguear exactamente qué ve PHP para diagnosticar */
+                KamplesLogger::error('LOGIN DEBUG: body vacio', [
+                    'content_type'     => $request->get_header('Content-Type'),
+                    'get_json_params'  => $request->get_json_params(),
+                    'get_body_length'  => strlen($request->get_body() ?? ''),
+                    'get_body_preview' => substr($request->get_body() ?? '', 0, 100),
+                    'login_val'        => $login,
+                    'pass_empty'       => empty($password),
+                ]);
                 return new \WP_REST_Response([
                     'ok'    => false,
                     'error' => 'Email/usuario y contraseña son requeridos.',
@@ -134,17 +143,17 @@ class AuthController
             $limitResp = RateLimiter::verificarIp('registro', 3, 3600);
             if ($limitResp) return $limitResp;
 
-            $body     = $request->get_json_params();
-
-            /* Fallback: mismo patrón que login — php://input por si get_json_params() falla */
+            /* Mismo patrón que login: fallback a get_body() si get_json_params() falla */
+            $body = $request->get_json_params();
             if (empty($body)) {
-                $rawInput = file_get_contents('php://input');
-                if ($rawInput !== false && $rawInput !== '') {
-                    $decoded = json_decode($rawInput, true);
+                $rawBody = $request->get_body();
+                if ($rawBody !== '' && $rawBody !== null) {
+                    $decoded = json_decode($rawBody, true);
                     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                         $body = $decoded;
                     }
                 }
+                unset($decoded, $rawBody);
             }
 
             $username = sanitize_user($body['username'] ?? '');
