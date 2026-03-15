@@ -120,6 +120,11 @@ class KamplesInit
             /* Tauri 2.0 en Windows puede usar estos origenes dependiendo de la version */
             'http://127.0.0.1',
             'https://127.0.0.1',
+            /* Tauri Android prod: el WebView de Android usa http://tauri.localhost
+             * como origen (NO tauri://localhost que es solo Windows/macOS).
+             * https variante incluida por si futuras versiones cambian el scheme. */
+            'http://tauri.localhost',
+            'https://tauri.localhost',
             /* Tauri Android dev: el emulador accede via IP del host en la red virtual.
              * 10.0.2.2 es la IP tipica del host en el emulador Android,
              * 10.8.0.2 es la IP Vite bind en VPN/red local. */
@@ -128,8 +133,9 @@ class KamplesInit
         ];
 
         /* Headers CORS permitidos. X-Kamples-Auth es el fallback de Authorization
-         * para nginx/PHP-FPM que no pasan HTTP_AUTHORIZATION a PHP. */
-        $headersCorsPermitidos = 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth';
+         * para nginx/PHP-FPM que no pasan HTTP_AUTHORIZATION a PHP.
+         * Cache-Control incluido porque el fetch interceptor del desktop puede enviarlo. */
+        $headersCorsPermitidos = 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Cache-Control';
 
         /* Manejar preflight OPTIONS antes de que WP responda */
         add_action('init', function () use ($origenesPermitidos, $headersCorsPermitidos): void {
@@ -167,13 +173,13 @@ class KamplesInit
             3
         );
 
-        /* Ampliar headers CORS del built-in de WordPress para incluir X-Kamples-Auth.
+        /* Ampliar headers CORS del built-in de WordPress para incluir X-Kamples-Auth + Cache-Control.
          * WP solo permite: Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type.
-         * Sin esto, requests cross-origin con X-Kamples-Auth fallan en preflight CORS. */
+         * Sin esto, requests cross-origin con X-Kamples-Auth o Cache-Control fallan en preflight CORS. */
         add_filter('rest_pre_serve_request', function (bool $served): bool {
             $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
             if ($origin !== '') {
-                header('Access-Control-Allow-Headers: ' . 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Content-Disposition, Content-MD5');
+                header('Access-Control-Allow-Headers: ' . 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Content-Disposition, Content-MD5, Cache-Control');
             }
             return $served;
         }, 99, 1);
