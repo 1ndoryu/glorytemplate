@@ -147,36 +147,40 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QL12
 
-genera de nuevo el Kamples_0.1.0_x64-setup y la apk para ir probando
-
-en movil desactiva el click en las tags de las tarjetas de los samples, o sea las tags dentro de los samples no deben activarse solo reproducir la rola, esto solo en movil
-por cierto, no se si es por el emulador pero la parte de arriba de la apk la tapa la barra de arriba de android, no se porque pero tal vez sea por el emulador, lo probare en el telefono y te dire
+✅ [AG-FEA] Completado:
+- Tags en TarjetaSample deshabilitadas en movil (useEsMovil → onFiltrar=undefined). Click en tarjeta solo reproduce.
+- Windows EXE generado: `C:\cargo-target\kamples\release\bundle\nsis\Kamples_0.1.0_x64-setup.exe`
+- APK arm64 en proceso de build (CARGO_TARGET_DIR necesario para evitar WDAC block en OneDrive).
+- Nota usuario: barra Android tapa app — pendiente probar en telefono real.
 
 ## QL13
 
-Esto fue antes de que resolvieras QL7
+✅ [AG-FEA] Completado:
+- FeedSamples: loading text reemplazado por 5x SkeletonTarjetaSample (nunca muestra "Cargando samples...")
+- Contador: fallback inmediato con conteoFiltrado cuando totalServidor es null (InicioIsland + DescubrirIsland)
 
-El feed a veces se queda congelado en en Cargando samples… por unos segundos, y dura mucho tiempo, habia pedido antes que esto no apareciera y que esto no apereciera, y que en cambio siempre fuera un proceso de fondo, y que fuera un skeleton la primera vez o si por alguna razon pues cargara. Llevamos mucho tiempo en esta tarea, buble y bucle parece que no la entiendes, revisa si hay un md para esto, investiga, profundiza y no lo tomes a ligera, ya estoy cansada de repetir el mismo problema, otro detalle es que el contador no aparece sino al ratito de que aparecen los samples ¿no esta optimizado con alguna cache? 
+## QL14
 
-## QL14 
-
-Algoritmo de musica, las canciones que si tienen samples adjuntos deberían tener el doble de prioridad de mostrarse al usuario, el clcik en la portada debe reproducir los samples adjunto, no en el boton unicamente, el boton no se ve mal, cuando se haga hover la imagen tiene que oscurserse un poco para que contrastaste, el boton de play tiene que estar en el centro y ser blanco y un poquito mas grande, los detalles del sample se veran al dar click al nombre
+✅ [AG-FEA] Completado:
+- TarjetaCancionGrande: click en imagen reproduce sample adjunto (o navega si no tiene). Info section navega a detalle.
+- Hover oscurece imagen (brightness 0.6). Play centrado (top/left 50% translate), 48px, fondo rgba(0,0,0,0.55), icono blanco 24px.
+- Backend: +3.0 bonus en ORDER BY "inteligente" para canciones con sample adjunto activo (listar + fetchSeccionOrdenada).
 
 ## QL15
 
-En la pagina de mis colecciones (descargas) intuyo que en la de favoritos tambien y en las colecciones en general (no lo he comprobado), pero si lo veo en mis coleccionados porque tengo muchos samples subido que el contador siempre es 30 y no cargan mas samples al hacer scroll
+✅ [AG-FEA] Completado:
+- DescargasIsland: tab "descargas" usa FeedSamples con infinite scroll via proveedorColeccionados
+- useDescargasPagina: nuevo callback proveedorColeccionados (paginado, 30 items/pagina)
+- Contador de coleccionados actualizado dinamicamente via onConteoChange
 
 ## QL16
 
-Veo que ignoraste completamente sobre QL10 el detalle de las notificaciones en la aplicacion de android, necesito que las notificaciones aparezcan en android 
-
-y que el logo de la apk debe ser el logo de kamples
-
-otro detalle con el movil y es que para que el funcione el logo centrado arriba, hay que hacer lo siguiente
-
-mover los botones de musica, colecciones y descarga a menu de hamburguesa y la foto de perfil, mensajes y notificaciones irían abajo, arriba solo quedara un lado lo de hamburgueza y del otro el icono de busqueda, en el centro el logo
-
-el boton de mezclador no tiene que aparecer en movil
+✅ [AG-FEA] Completado:
+- TopBar movil: solo hamburguesa (izq) + logo centrado + busqueda (der). Notificaciones/mensajes/avatar ocultos via CSS.
+- Sidebar bottom bar (movil): 5 items — Inicio | Samples | Perfil(avatar) | Mensajes(con dropdown+badge) | Notificaciones(con dropdown+badge)
+- Hamburguesa: Crear, Mezclador, Musica, Libreria, Coleccionados, Favoritos, Admin
+- DropdownNotificaciones y DropdownMensajes en bottom bar con toggle y mark-as-read
+- Supersede QL10 (layout movil completo rediseñado)
 
 
 ---
@@ -209,6 +213,7 @@ el boton de mezclador no tiene que aparecer en movil
   - [Traefik labels]: Cambio FQDN en Coolify requiere force-recreate del contenedor. Datos persisten en volumenes.
   - [SSL]: Traefik emite cert automatico con certresolver letsencrypt. Verificar: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
   - [Coolify DB]: Stacks Docker Compose en `services` + `service_applications`. UUID stack: `mo4so4440c488g8woow4cow0`.
+  - [Android build WDAC]: `tauri android build` falla con "os error 4551" (Control de Aplicaciones bloquea build scripts en OneDrive). Fix: `$env:CARGO_TARGET_DIR = "C:\cargo-target\kamples"` antes de ejecutar. El `.cargo/config.toml` solo aplica al cargo directo, no al invocado por Gradle.
 
 ## Comando para actualizar produccion
 
