@@ -83,12 +83,21 @@ const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unkn
     '/comunidad/': { island: 'ComunidadIsland', props: {}, title: 'Comunidad' },
     '/explorador/': { island: 'ExploradorIsland', props: {}, title: 'Explorador' },
     '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' }, title: 'Coleccion' },
+    '/colecciones/': { island: 'ColeccionesIsland', props: {}, title: 'Colecciones' },
     '/mensajes/': { island: 'MensajesIsland', props: {}, title: 'Mensajes' },
     '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' }, title: 'Chat' },
     '/admin/dashboard/': { island: 'DashboardCreadorIsland', props: {}, title: 'Dashboard' },
     '/admin/panel/': { island: 'AdminPanelIsland', props: {}, title: 'Admin' },
     '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' }, title: 'Sample' },
+    /* QK104: En movil, / muestra comunidad; /samples/ da acceso directo al feed */
+    '/samples/': { island: 'FeedSamplesIsland', props: {}, title: 'Samples' },
     '/musica/': { island: 'ExplorarCancionesIsland', props: {}, title: 'Música' },
+    '/cancion/': { island: 'CancionDetalleIsland', props: { slug: '' }, title: 'Canción' },
+    '/sampleo/': { island: 'RelacionDetalleIsland', props: { id: '' }, title: 'Sampleo' },
+    '/artista/': { island: 'ArtistaDetalleIsland', props: { slug: '' }, title: 'Artista' },
+    '/publicacion/': { island: 'PublicacionIsland', props: { publicacionId: '' }, title: 'Publicación' },
+    '/privacy/': { island: 'PrivacidadIsland', props: {}, title: 'Privacidad' },
+    '/terms/': { island: 'TerminosIsland', props: {}, title: 'Términos' },
 };
 
 /*

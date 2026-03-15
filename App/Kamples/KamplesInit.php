@@ -120,10 +120,19 @@ class KamplesInit
             /* Tauri 2.0 en Windows puede usar estos origenes dependiendo de la version */
             'http://127.0.0.1',
             'https://127.0.0.1',
+            /* Tauri Android dev: el emulador accede via IP del host en la red virtual.
+             * 10.0.2.2 es la IP tipica del host en el emulador Android,
+             * 10.8.0.2 es la IP Vite bind en VPN/red local. */
+            'http://10.0.2.2:1420',
+            'http://10.8.0.2:1420',
         ];
 
+        /* Headers CORS permitidos. X-Kamples-Auth es el fallback de Authorization
+         * para nginx/PHP-FPM que no pasan HTTP_AUTHORIZATION a PHP. */
+        $headersCorsPermitidos = 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth';
+
         /* Manejar preflight OPTIONS antes de que WP responda */
-        add_action('init', function () use ($origenesPermitidos): void {
+        add_action('init', function () use ($origenesPermitidos, $headersCorsPermitidos): void {
             $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
             if (!in_array($origin, $origenesPermitidos, true)) {
                 return;
@@ -132,7 +141,7 @@ class KamplesInit
             if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
                 header('Access-Control-Allow-Origin: ' . $origin);
                 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-                header('Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce, X-Requested-With');
+                header('Access-Control-Allow-Headers: ' . $headersCorsPermitidos);
                 header('Access-Control-Allow-Credentials: true');
                 header('Access-Control-Max-Age: 86400');
                 status_header(204);
@@ -143,12 +152,12 @@ class KamplesInit
         /* Inyectar headers CORS en todas las respuestas REST para origenes permitidos */
         add_filter(
             'rest_pre_serve_request',
-            function (bool $served, \WP_REST_Response $resultado, \WP_REST_Request $peticion) use ($origenesPermitidos): bool {
+            function (bool $served, \WP_REST_Response $resultado, \WP_REST_Request $peticion) use ($origenesPermitidos, $headersCorsPermitidos): bool {
                 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
                 if (in_array($origin, $origenesPermitidos, true)) {
                     header('Access-Control-Allow-Origin: ' . $origin);
                     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-                    header('Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce, X-Requested-With');
+                    header('Access-Control-Allow-Headers: ' . $headersCorsPermitidos);
                     header('Access-Control-Allow-Credentials: true');
                     header('Vary: Origin');
                 }
@@ -157,6 +166,17 @@ class KamplesInit
             10,
             3
         );
+
+        /* Ampliar headers CORS del built-in de WordPress para incluir X-Kamples-Auth.
+         * WP solo permite: Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type.
+         * Sin esto, requests cross-origin con X-Kamples-Auth fallan en preflight CORS. */
+        add_filter('rest_pre_serve_request', function (bool $served): bool {
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+            if ($origin !== '') {
+                header('Access-Control-Allow-Headers: ' . 'Authorization, Content-Type, X-WP-Nonce, X-Requested-With, X-Kamples-Auth, Content-Disposition, Content-MD5');
+            }
+            return $served;
+        }, 99, 1);
     }
     /*
      * Registra y programa el cron de WP para publicar samples extraidos.
