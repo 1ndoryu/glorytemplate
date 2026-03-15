@@ -16,9 +16,15 @@ export const LoginIsland = (): JSX.Element => {
     const [password, setPassword] = useState('');
     const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
-    const manejarSubmit = (e: FormEvent) => {
+    const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        iniciarSesion(email, password);
+        /* Bug Android WebView IME: onChange de React no dispara en cada keystroke
+         * del teclado virtual. Leer del DOM via FormData es la fuente autoritativa
+         * al hacer submit. El estado React actúa como fallback para web normal. */
+        const fd = new FormData(e.currentTarget);
+        const emailFinal = ((fd.get('email') as string | null) ?? email).trim();
+        const pwFinal = (fd.get('password') as string | null) ?? password;
+        iniciarSesion(emailFinal, pwFinal);
     };
 
     return (
@@ -55,21 +61,23 @@ export const LoginIsland = (): JSX.Element => {
 
                 <form className="loginFormulario" onSubmit={manejarSubmit}>
                     <CampoTexto
-                        etiqueta="Email"
-                        type="email"
-                        placeholder="tu@email.com"
+                        etiqueta="Email o usuario"
+                        name="email"
+                        type="text"
+                        placeholder="Email o usuario"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        required
+                        autoComplete="username"
                     />
 
                     <CampoTexto
                         etiqueta="Contraseña"
+                        name="password"
                         type="password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
+                        autoComplete="current-password"
                     />
 
                     <BotonBase

@@ -1,7 +1,8 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
+import { existsSync } from 'fs';
 
 /*
  * Vite config para Kamples Desktop (Tauri 2.0)
@@ -14,6 +15,47 @@ import { resolve } from 'path';
 const apiTarget = process.env.KAMPLES_API_TARGET || 'https://kamples.com';
 
 /*
+ * Raiz del tema (glorytemplate/) — los assets del tema estan aqui.
+ * En dev, las rutas /wp-content/themes/glorytemplate/... deben servirse
+ * del filesystem local, no proxiarse al servidor remoto.
+ * Solo /wp-content/uploads/ (imagenes subidas por usuarios) va al proxy remoto.
+ */
+const THEME_ROOT = resolve(__dirname, '..');
+const THEME_URL_PREFIX = '/wp-content/themes/glorytemplate/';
+
+/*
+ * Plugin Vite para servir assets locales del tema.
+ * Intercepta requests a /wp-content/themes/glorytemplate/... y los sirve
+ * del filesystem local. Todo lo demas (/wp-content/uploads/, etc.) va al proxy.
+ */
+function servirAssetsLocales(): Plugin {
+    return {
+        name: 'servir-assets-tema-local',
+        configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+                if (!req.url?.startsWith(THEME_URL_PREFIX)) {
+                    next();
+                    return;
+                }
+                /* Extraer ruta relativa dentro del tema y buscar en filesystem */
+                const rutaRelativa = req.url.slice(THEME_URL_PREFIX.length).split('?')[0];
+                const rutaLocal = resolve(THEME_ROOT, rutaRelativa ?? '');
+
+                /* Seguridad: verificar que la ruta no escapa del tema (path traversal) */
+                if (!rutaLocal.startsWith(THEME_ROOT) || !existsSync(rutaLocal)) {
+                    next();
+                    return;
+                }
+
+                /* Dejar que el middleware statico de Vite sirva el archivo */
+                req.url = '/@fs/' + rutaLocal.replace(/\\/g, '/');
+                next();
+            });
+        },
+    };
+}
+
+/*
  * Cargar variables del .env del proyecto raiz (../) para reutilizar
  * GOOGLE_CLIENT_ID sin duplicar archivos de configuracion.
  * loadEnv() es la API oficial de Vite para cargar .env files.
@@ -21,7 +63,7 @@ const apiTarget = process.env.KAMPLES_API_TARGET || 'https://kamples.com';
 const envRaiz = loadEnv('production', resolve(__dirname, '..'), '');
 
 export default defineConfig({
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), servirAssetsLocales()],
 
     /* Inyectar config publica del proyecto en el bundle (build time) */
     define: {
@@ -49,7 +91,11 @@ export default defineConfig({
     server: {
         port: 1420,
         strictPort: true,
-        host: 'localhost',
+        /* 0.0.0.0 para escuchar en TODAS las interfaces (WiFi, VPN, loopback).
+         * TAURI_DEV_HOST controla QUÉ IP se le dice al emulador Android,
+         * pero Vite debe estar disponible en todas para que cualquier IP funcione.
+         * Setear TAURI_DEV_HOST=192.168.0.X (IP WiFi) al correr android dev. */
+        host: '0.0.0.0',
         /*
          * Proxy: redirige peticiones al API target (kamples.com por defecto).
          * Elimina CORS porque las peticiones salen de Vite (mismo origen).
@@ -61,7 +107,9 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: false,
             },
-            '/wp-content': {
+            /* Solo proxiar uploads (contenido subido por usuarios) al servidor.
+             * Los assets del tema se sirven localmente via servirAssetsLocales(). */
+            '/wp-content/uploads': {
                 target: apiTarget,
                 changeOrigin: true,
                 secure: false,
@@ -74,6 +122,7 @@ export default defineConfig({
         fs: {
             allow: [
                 '.',
+                '..',
                 '../App/React',
                 '../App/Assets',
                 '../Glory/assets/react/src',
@@ -82,7 +131,9 @@ export default defineConfig({
             ],
         },
         hmr: {
-            host: 'localhost',
+            /* TAURI_DEV_HOST es la IP WiFi del host (192.168.0.127) que el emulador
+             * Android puede alcanzar. Usar localhost solo funciona en desktop. */
+            host: process.env.TAURI_DEV_HOST ?? 'localhost',
             port: 1420,
             protocol: 'ws',
         },

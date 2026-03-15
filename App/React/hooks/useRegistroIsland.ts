@@ -15,11 +15,19 @@ export const useRegistroIsland = () => {
     const [confirmarPassword, setConfirmarPassword] = useState('');
     const { cargando, error, registrar, iniciarSesionGoogle, googleBotonRef } = useAuth();
 
-    const manejarSubmit = useCallback((e: FormEvent) => {
+    const manejarSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (password !== confirmarPassword) return;
-        registrar({ nombreVisible: nombre, username, email, password });
-    }, [password, confirmarPassword, nombre, username, email, registrar]);
+        /* Bug Android WebView IME: onChange de React no dispara en cada keystroke.
+         * FormData lee los valores reales del DOM al hacer submit. */
+        const fd = new FormData(e.currentTarget);
+        const nombreFinal = ((fd.get('nombre') as string | null) ?? nombre).trim();
+        const usernameFinal = ((fd.get('username') as string | null) ?? username).trim();
+        const emailFinal = ((fd.get('email') as string | null) ?? email).trim();
+        const pwFinal = (fd.get('password') as string | null) ?? password;
+        const confirmarFinal = (fd.get('confirmar_password') as string | null) ?? confirmarPassword;
+        if (pwFinal !== confirmarFinal) return;
+        registrar({ nombreVisible: nombreFinal, username: usernameFinal, email: emailFinal, password: pwFinal });
+    }, [nombre, username, email, password, confirmarPassword, registrar]);
 
     const errorPassword =
         confirmarPassword.length > 0 && password !== confirmarPassword

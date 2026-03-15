@@ -53,46 +53,51 @@ export const RegistroIsland = (): JSX.Element => {
                 <form className="loginFormulario" onSubmit={manejarSubmit}>
                     <CampoTexto
                         etiqueta="Nombre"
+                        name="nombre"
                         placeholder="Tu nombre"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
-                        required
+                        autoComplete="name"
                     />
 
                     <CampoTexto
                         etiqueta="Username"
+                        name="username"
                         placeholder="tu_usuario"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        required
+                        autoComplete="username"
                     />
 
                     <CampoTexto
                         etiqueta="Email"
-                        type="email"
+                        name="email"
+                        type="text"
                         placeholder="tu@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        required
+                        autoComplete="email"
                     />
 
                     <CampoTexto
                         etiqueta="Contraseña"
+                        name="password"
                         type="password"
                         placeholder="Mínimo 8 caracteres"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
+                        autoComplete="new-password"
                     />
 
                     <CampoTexto
                         etiqueta="Confirmar contraseña"
+                        name="confirmar_password"
                         type="password"
                         placeholder="Repite la contraseña"
                         value={confirmarPassword}
                         onChange={(e) => setConfirmarPassword(e.target.value)}
                         error={errorPassword}
-                        required
+                        autoComplete="new-password"
                     />
 
                     <BotonBase
