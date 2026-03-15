@@ -109,25 +109,41 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QL7
 
-[EN CURSO — AG-FEA] Hay un problema con el scroll del feed inicio, no cargan mas samples cuando claramente hay mas, cargan despues de al rato como si se bloquera, no se si necesita optimizacion, no creo que sea el sistema de que pausar el scroll cuando baja muy rapido aunque eso tambien se puede revisar, la cosa es que de repente tarda mucho en cargar la siguiente pagina, y eso esta mal, escenario: el feed de inicio de samples
+✅ [AG-FEA] Completado:
+- IntersectionObserver estabilizado con refs (evita churn destroy/recreate en cada cambio de estado)
+- rootMargin: 200px → 600px (mayor buffer de prefetch)
+- usePaginacionProgresiva: paginasMinimasInicio 3→5, umbralRapidoMs 2000→1500, tiempoAutoOcultarMs 6000→3000
+- Timestamps solo se registran en cargas exitosas (no en bloqueadas)
 
 ## QL8
 
-[EN CURSO — AG-FEA] En la pagina de musica, la lista de canciones no tienen scroll horizontal, espero que esta parte de la pagina tenga paginacion horizontal y falta algo como una flecha para pasar a los siguientes y poder retroceder cuando se pueda. Creo que se puede agregar mas secciones basandose en los generos, y los artistas no tienen imagen de perfil, investiga una api o alguna forma de obtener imagen de todos los artistas.
-
-me di cuenta que si tiene scroll pero en escritorio no se puede arrastrar con el mouse y deberia, faltan las felchas
+✅ [AG-FEA] Completado:
+- SeccionHorizontal: flechas izq/der con ChevronLeft/ChevronRight
+- Hook useScrollHorizontal reutilizable (flechas + arrastre mouse en escritorio)
+- CSS: cursor grab/grabbing, ocultar flechas en touch devices (@media hover:none)
+- Secciones por genero ya existian en backend (CancionesRepository::secciones, top 6 generos con ≥5 canciones)
+- Imagenes artistas: campo imagenUrl existe pero vacio. TO-DO: cron backend para buscar en Spotify/MusicBrainz/Discogs via nombre
 
 ## QL9
 
-[EN CURSO — AG-FEA] Las tags que esten activas o que marquen negativas tienen que ponerse de primeras
+✅ [AG-FEA] Completado:
+- FiltroTags: useMemo ordena tags — incluidos primero, excluidos segundo, inactivos al final
 
 ## QL10 
 
-[EN CURSO — AG-FEA] Ya tengo la apk para testear, hay algunos detalles, las notificacioens no las veo en el emulador, llegan a la aplicación pero no llegan al sistema de notificacaciones, los mensajes tambien deberian tener notificacion en el telefono, el icono de mensaje no tiene que estar dentro del menu de hamburguesa sino al lado de las notificaciones, quita las tabs en el movil, siempre mostrara la primera y mas nada, en ese espacio vacío pon el boton de hamburgueza a la izquierda y el logo de kamples en el centro, la aplicacion deberia tener el logo de kamples con fondo negro, el logo blanco
+✅ [AG-FEA] Parcial (QL16 redefine layout movil):
+- Hamburguesa movida a izquierda del topbar
+- Logo Kamples centrado en topbar movil
+- Tabs ocultas en movil
+- Mensajes visible en movil (sacado del hamburguesa)
+- NOTA: QL16 redefine la estructura completa — se continua ahi
 
 ## QL11
 
-[EN CURSO — AG-FEA] Coolify manager tiene que avisar cuando se haga update si hubo algun cambio en los repositorios o no, o sea decir cuales cambios se hicieron asi el estado git donde se muestra los archivos cambios o cuando no haya avisar que todo estaba actualizado
+✅ [AG-FEA] Completado:
+- deploy_theme.rs: reportar_cambios_git() captura hashes antes/despues para tema y Glory
+- Muestra git log --oneline --stat entre commits, o "sin cambios" si no hay diff
+- Binario recompilado y testeado exitosamente
 
 ## QL12
 
@@ -158,7 +174,9 @@ y que el logo de la apk debe ser el logo de kamples
 
 otro detalle con el movil y es que para que el funcione el logo centrado arriba, hay que hacer lo siguiente
 
-mover los botones de 
+mover los botones de musica, colecciones y descarga a menu de hamburguesa y la foto de perfil, mensajes y notificaciones irían abajo, arriba solo quedara un lado lo de hamburgueza y del otro el icono de busqueda, en el centro el logo
+
+el boton de mezclador no tiene que aparecer en movil
 
 ---
 
