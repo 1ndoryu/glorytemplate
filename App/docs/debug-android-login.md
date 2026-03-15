@@ -1,6 +1,6 @@
 # Debug: Login Android — "Email/usuario y contraseña son requeridos"
 
-> **Creado:** 15/03/2026 | **Estado:** RESUELTO — fix en `apiDesktopAdapter.ts` (C215)
+> **Creado:** 15/03/2026 | **Estado:** RESUELTO — 3 fixes en C215/C215b
 
 ---
 
