@@ -18,8 +18,10 @@ export const LoginIsland = (): JSX.Element => {
     const [password, setPassword] = useState('');
     const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
+    /* DEBUG-TEMP: alert para ver exactamente qué valores captura el form */
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        alert(`DEBUG submit\nemail=[${email}] len=${email.length}\npass=[${password.replace(/./g, '*')}] len=${password.length}`);
         iniciarSesion(email.trim(), password);
     };
 
@@ -80,7 +82,8 @@ export const LoginIsland = (): JSX.Element => {
                         anchoCompleto
                         cargando={cargando}
                     >
-                        Iniciar sesión
+                        {/* DEBUG-TEMP: muestra longitud del estado para verificar onChange */}
+                        Iniciar sesión (e:{email.length} p:{password.length})
                     </BotonBase>
                 </form>
 
