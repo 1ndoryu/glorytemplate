@@ -151,6 +151,9 @@ export default defineConfig({
             '@desktop': resolve(__dirname, 'src'),
             /* Dependencias compartidas: resolver desde node_modules del desktop */
             'soundtouchjs': resolve(__dirname, 'node_modules/soundtouchjs'),
+            /* QL17: Plugin notification vive en desktop/node_modules pero se importa
+             * desde App/React/ (fuera del root). Vite no lo encuentra sin alias explicito. */
+            '@tauri-apps/plugin-notification': resolve(__dirname, 'node_modules/@tauri-apps/plugin-notification'),
         },
         dedupe: [
             'react',
