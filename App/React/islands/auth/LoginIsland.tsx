@@ -18,10 +18,10 @@ export const LoginIsland = (): JSX.Element => {
 
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        /* useRef lee directamente el .value del DOM — inmune al bug de Android WebView
-         * donde FormData y onChange pueden leer vacío por IME composition. */
         const email = (emailRef.current?.value ?? '').trim();
         const password = passwordRef.current?.value ?? '';
+        /* DEBUG TEMPORAL: confirmar valores leidos en Android */
+        console.error('[LOGIN-DEBUG] email="' + email + '" pw_len=' + password.length + ' ref_ok=' + !!emailRef.current);
         iniciarSesion(email, password);
     };
 
@@ -80,7 +80,7 @@ export const LoginIsland = (): JSX.Element => {
                         anchoCompleto
                         cargando={cargando}
                     >
-                        Iniciar sesión
+                        Iniciar sesión v2
                     </BotonBase>
                 </form>
 

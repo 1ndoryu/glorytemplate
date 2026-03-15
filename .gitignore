@@ -140,3 +140,4 @@ kamples-scraper/**/.rate_limiter_state
 kamples-scraper/extractor/temp/
 artistas.html
 toprated.html
+kamples-release.apk.idsig
