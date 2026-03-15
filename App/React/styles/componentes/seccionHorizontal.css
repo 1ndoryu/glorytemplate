@@ -96,7 +96,4 @@
         font-size: var(--fuenteMd);
     }
 
-    .seccionHorizontalScroll {
-        gap: var(--espacioSm);
-    }
 }

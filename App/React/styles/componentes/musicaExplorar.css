@@ -13,9 +13,3 @@
     width: 100%;
 }
 
-@media (max-width: 768px) {
-    .musicaExplorarContenedor {
-        padding: var(--espacioMd) var(--espacioSm);
-        gap: var(--espacioXl);
-    }
-}

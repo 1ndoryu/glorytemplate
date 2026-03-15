@@ -178,6 +178,7 @@ mover los botones de musica, colecciones y descarga a menu de hamburguesa y la f
 
 el boton de mezclador no tiene que aparecer en movil
 
+
 ---
 
 ## Despliegue Produccion (VPS Coolify)
