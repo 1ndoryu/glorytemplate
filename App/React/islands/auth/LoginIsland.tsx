@@ -20,8 +20,6 @@ export const LoginIsland = (): JSX.Element => {
         e.preventDefault();
         const email = (emailRef.current?.value ?? '').trim();
         const password = passwordRef.current?.value ?? '';
-        /* DEBUG TEMPORAL: confirmar valores leidos en Android */
-        console.error('[LOGIN-DEBUG] email="' + email + '" pw_len=' + password.length + ' ref_ok=' + !!emailRef.current);
         iniciarSesion(email, password);
     };
 
@@ -80,7 +78,7 @@ export const LoginIsland = (): JSX.Element => {
                         anchoCompleto
                         cargando={cargando}
                     >
-                        Iniciar sesión v2
+                        Iniciar sesión
                     </BotonBase>
                 </form>
 
