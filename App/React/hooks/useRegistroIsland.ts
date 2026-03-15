@@ -1,55 +1,51 @@
 /*
  * Hook: useRegistroIsland
- * Lógica del formulario de registro: estado de campos, validación, submit.
- * Extraído de RegistroIsland.tsx para cumplir SRP.
+ * Lógica del formulario de registro: validación de contraseñas, submit.
+ * Inputs NO controlados — sin value/onChange — para evitar el bug de Android WebView
+ * donde React resetea el .value del DOM después de cada re-render, vaciando lo que
+ * el usuario escribió con el teclado virtual (IME).
  */
 
 import { useState, useCallback, type FormEvent } from 'react';
 import { useAuth } from './useAuth';
 
 export const useRegistroIsland = () => {
-    const [nombre, setNombre] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmarPassword, setConfirmarPassword] = useState('');
+    /* Solo necesitamos estado para el error de contraseñas (feedback en tiempo real).
+     * Los valores del formulario se leen de FormData en submit. */
+    const [errorPassword, setErrorPassword] = useState<string | undefined>(undefined);
     const { cargando, error, registrar, iniciarSesionGoogle, googleBotonRef } = useAuth();
+
+    const manejarCambioPassword = useCallback((e: React.FormEvent<HTMLInputElement>) => {
+        const form = e.currentTarget.form;
+        if (!form) return;
+        const fd = new FormData(form);
+        const pw = (fd.get('password') as string | null) ?? '';
+        const confirm = (fd.get('confirmar_password') as string | null) ?? '';
+        setErrorPassword(confirm.length > 0 && pw !== confirm ? 'Las contraseñas no coinciden' : undefined);
+    }, []);
 
     const manejarSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        /* Bug Android WebView IME: onChange de React no dispara en cada keystroke.
-         * FormData lee los valores reales del DOM al hacer submit. */
         const fd = new FormData(e.currentTarget);
-        const nombreFinal = ((fd.get('nombre') as string | null) ?? nombre).trim();
-        const usernameFinal = ((fd.get('username') as string | null) ?? username).trim();
-        const emailFinal = ((fd.get('email') as string | null) ?? email).trim();
-        const pwFinal = (fd.get('password') as string | null) ?? password;
-        const confirmarFinal = (fd.get('confirmar_password') as string | null) ?? confirmarPassword;
-        if (pwFinal !== confirmarFinal) return;
+        const nombreFinal = ((fd.get('nombre') as string | null) ?? '').trim();
+        const usernameFinal = ((fd.get('username') as string | null) ?? '').trim();
+        const emailFinal = ((fd.get('email') as string | null) ?? '').trim();
+        const pwFinal = (fd.get('password') as string | null) ?? '';
+        const confirmarFinal = (fd.get('confirmar_password') as string | null) ?? '';
+        if (pwFinal !== confirmarFinal) {
+            setErrorPassword('Las contraseñas no coinciden');
+            return;
+        }
         registrar({ nombreVisible: nombreFinal, username: usernameFinal, email: emailFinal, password: pwFinal });
-    }, [nombre, username, email, password, confirmarPassword, registrar]);
-
-    const errorPassword =
-        confirmarPassword.length > 0 && password !== confirmarPassword
-            ? 'Las contraseñas no coinciden'
-            : undefined;
+    }, [registrar]);
 
     return {
-        nombre,
-        setNombre,
-        username,
-        setUsername,
-        email,
-        setEmail,
-        password,
-        setPassword,
-        confirmarPassword,
-        setConfirmarPassword,
         cargando,
         error,
         iniciarSesionGoogle,
         googleBotonRef,
         manejarSubmit,
+        manejarCambioPassword,
         errorPassword,
     };
 };

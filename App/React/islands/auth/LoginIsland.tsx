@@ -3,7 +3,7 @@
  * Formulario de autenticación con Google OAuth y credenciales.
  */
 
-import { useState, type FormEvent } from 'react';
+import { type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
@@ -12,19 +12,17 @@ import { useAuth } from '../../hooks/useAuth';
 import '../../styles/componentes/login.css';
 
 export const LoginIsland = (): JSX.Element => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        /* Bug Android WebView IME: onChange de React no dispara en cada keystroke
-         * del teclado virtual. Leer del DOM via FormData es la fuente autoritativa
-         * al hacer submit. El estado React actúa como fallback para web normal. */
+        /* Inputs NO controlados (sin value prop): React nunca resetea el .value del
+         * DOM, por lo que el texto escrito con el teclado virtual Android persiste.
+         * FormData lee los valores reales incluso cuando onChange no dispara (IME bug). */
         const fd = new FormData(e.currentTarget);
-        const emailFinal = ((fd.get('email') as string | null) ?? email).trim();
-        const pwFinal = (fd.get('password') as string | null) ?? password;
-        iniciarSesion(emailFinal, pwFinal);
+        const email = ((fd.get('email') as string | null) ?? '').trim();
+        const password = (fd.get('password') as string | null) ?? '';
+        iniciarSesion(email, password);
     };
 
     return (
@@ -65,8 +63,6 @@ export const LoginIsland = (): JSX.Element => {
                         name="email"
                         type="text"
                         placeholder="Email o usuario"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
                         autoComplete="username"
                     />
 
@@ -75,8 +71,6 @@ export const LoginIsland = (): JSX.Element => {
                         name="password"
                         type="password"
                         placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
                         autoComplete="current-password"
                     />
 

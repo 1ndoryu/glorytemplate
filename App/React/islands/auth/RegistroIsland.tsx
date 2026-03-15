@@ -12,20 +12,11 @@ import '../../styles/componentes/login.css';
 
 export const RegistroIsland = (): JSX.Element => {
     const {
-        nombre,
-        setNombre,
-        username,
-        setUsername,
-        email,
-        setEmail,
-        password,
-        setPassword,
-        confirmarPassword,
-        setConfirmarPassword,
         cargando,
         error,
         googleBotonRef,
         manejarSubmit,
+        manejarCambioPassword,
         errorPassword,
     } = useRegistroIsland();
 
@@ -55,8 +46,6 @@ export const RegistroIsland = (): JSX.Element => {
                         etiqueta="Nombre"
                         name="nombre"
                         placeholder="Tu nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
                         autoComplete="name"
                     />
 
@@ -64,8 +53,6 @@ export const RegistroIsland = (): JSX.Element => {
                         etiqueta="Username"
                         name="username"
                         placeholder="tu_usuario"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
                         autoComplete="username"
                     />
 
@@ -74,8 +61,6 @@ export const RegistroIsland = (): JSX.Element => {
                         name="email"
                         type="text"
                         placeholder="tu@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
                         autoComplete="email"
                     />
 
@@ -84,9 +69,8 @@ export const RegistroIsland = (): JSX.Element => {
                         name="password"
                         type="password"
                         placeholder="Mínimo 8 caracteres"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
                         autoComplete="new-password"
+                        onInput={manejarCambioPassword}
                     />
 
                     <CampoTexto
@@ -94,10 +78,9 @@ export const RegistroIsland = (): JSX.Element => {
                         name="confirmar_password"
                         type="password"
                         placeholder="Repite la contraseña"
-                        value={confirmarPassword}
-                        onChange={(e) => setConfirmarPassword(e.target.value)}
                         error={errorPassword}
                         autoComplete="new-password"
+                        onInput={manejarCambioPassword}
                     />
 
                     <BotonBase
