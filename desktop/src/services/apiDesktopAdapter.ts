@@ -22,10 +22,25 @@ import { obtenerToken } from './authDesktopService';
 const SERVIDOR_DEV = '/wp-json';
 const SERVIDOR_PROD = 'https://kamples.com/wp-json';
 
-function obtenerServidorUrl(): string {    const config = window.__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;    if (config?.serverUrl) return config.serverUrl;
+/*
+ * Android: Tauri intercepta TODOS los requests al host del dev server (10.x.x.x:1420)
+ * via shouldInterceptRequest. Al recrear el WebResourceRequest sin el body (limitacion
+ * de la API de Android), el POST llega sin cuerpo a Vite/PHP.
+ * Solucion: en Android dev, requests directos a kamples.com — Tauri no los intercepta.
+ * kamples.com devuelve CORS dinamico (echo del Origin), asi que funciona cross-origin.
+ */
+const esAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
-    /* En dev, Vite proxy redirige /wp-json al target (kamples.com por defecto) */
-    if (import.meta.env.DEV) return SERVIDOR_DEV;
+function obtenerServidorUrl(): string {
+    const config = window.__KAMPLES_CONFIG__ as { serverUrl?: string } | undefined;
+    if (config?.serverUrl) return config.serverUrl;
+
+    if (import.meta.env.DEV) {
+        /* Android dev: ir directo a produccion para evitar que Tauri intercepte y pierda el body */
+        if (esAndroid) return SERVIDOR_PROD;
+        /* Desktop dev: Vite proxy redirige /wp-json al target (kamples.com por defecto) */
+        return SERVIDOR_DEV;
+    }
     return SERVIDOR_PROD;
 }
 
@@ -74,6 +89,23 @@ function reescribirUrlParaProxy(url: string): string {
         }
     }
     return url;
+}
+
+/*
+ * Resuelve una URL segun el entorno y plataforma:
+ * - Android dev: relativas /wp-json/* -> absolutas kamples.com (bypass interceptor Tauri)
+ * - Desktop dev: absolutas kamples.com/* -> relativas /wp-json/* (proxy Vite)
+ * - Prod: sin cambio
+ */
+function resolverUrlParaEntorno(url: string): string {
+    if (!import.meta.env.DEV) return url;
+    if (esAndroid) {
+        /* Relativas que van al dev server: convertir a absolutas para esquivar Tauri */
+        if (url.startsWith('/')) return `https://kamples.com${url}`;
+        return url;
+    }
+    /* Desktop: absolutas kamples.com -> relativas para Vite proxy */
+    return reescribirUrlParaProxy(url);
 }
 
 /*
@@ -189,11 +221,11 @@ export function inyectarAuthHeader(token: string): void {
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         let url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
 
-        /* Reescribir URLs absolutas a glory.local como relativas (proxy) */
-        const urlProxy = reescribirUrlParaProxy(url);
-        if (urlProxy !== url) {
-            input = urlProxy;
-            url = urlProxy;
+        /* Resolver URL segun plataforma: Android->absoluta kamples.com, Desktop dev->proxy Vite */
+        const urlResuelta = resolverUrlParaEntorno(url);
+        if (urlResuelta !== url) {
+            input = urlResuelta;
+            url = urlResuelta;
         }
 
         /* Preparar headers */
@@ -217,8 +249,8 @@ export function inyectarAuthHeader(token: string): void {
             manejarSesionExpirada();
         }
 
-        /* Interceptar respuestas JSON para reescribir URLs del backend */
-        if (import.meta.env.DEV && url.includes('/wp-json/')) {
+        /* Interceptar respuestas JSON para reescribir URLs del backend (solo desktop dev) */
+        if (import.meta.env.DEV && !esAndroid && url.includes('/wp-json/')) {
             const contentType = response.headers.get('content-type') ?? '';
             if (contentType.includes('application/json')) {
                 const json = await response.json();
@@ -237,19 +269,22 @@ export function inyectarAuthHeader(token: string): void {
 
 /*
  * Configura solo la reescritura de URLs (sin token, antes de login).
- * Necesario para que las imagenes/audio carguen antes de autenticarse.
+ * En desktop dev: reescribe absolutas a relativas para Vite proxy.
+ * En Android dev: reescribe relativas a absolutas kamples.com para evitar
+ * que Tauri intercepte el request al dev server y pierda el body POST.
  */
 export function configurarProxyFetch(): void {
     if (!import.meta.env.DEV) return;
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-        const urlProxy = reescribirUrlParaProxy(url);
+        const urlResuelta = resolverUrlParaEntorno(url);
+        const targetInput = urlResuelta !== url ? urlResuelta : input;
 
-        const response = await fetchOriginal(urlProxy !== url ? urlProxy : input, init);
+        const response = await fetchOriginal(targetInput, init);
 
-        /* Interceptar respuestas JSON para reescribir URLs */
-        if (url.includes('/wp-json/')) {
+        /* Reescribir URLs en respuestas JSON (solo desktop dev; Android usa URLs absolutas directas) */
+        if (!esAndroid && url.includes('/wp-json/')) {
             const contentType = response.headers.get('content-type') ?? '';
             if (contentType.includes('application/json')) {
                 const json = await response.json();

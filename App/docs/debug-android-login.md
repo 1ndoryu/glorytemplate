@@ -1,6 +1,189 @@
 # Debug: Login Android — "Email/usuario y contraseña son requeridos"
 
-> **Creado:** 15/03/2026 | **Estado:** RESUELTO (migración a estado controlado)
+> **Creado:** 15/03/2026 | **Estado:** RESUELTO — fix en `apiDesktopAdapter.ts` (C215)
+
+---
+
+## Síntoma
+
+El formulario de login muestra el error **"Email/usuario y contraseña son requeridos."** aunque el usuario tiene texto visible en ambos campos. El backend recibe `email` y/o `password` como strings vacíos.
+
+---
+
+## Diagnóstico Realizado (Cronológico)
+
+### Paso 1 — Hipótesis inicial: Android IME Composition Buffer
+
+Hipótesis: `useRef.current.value` leía vacío porque el teclado IME de Android no confirmaba el texto al DOM antes del submit.
+
+**Acción:** Migrar `LoginIsland.tsx` de `useRef` a `useState` controlado.
+
+**Resultado:** El error persistió. Además se descubrió que el componente real de login es `ModalAuth.tsx`, no `LoginIsland.tsx`. `ModalAuth.tsx` YA usaba `useState` correcto.
+
+---
+
+### Paso 2 — Confirmar que el estado JS captura los valores
+
+Se añadió debug al botón: `Iniciar [{email.length}/{password.length}]`
+
+**Resultado:** El botón mostró `[4/8]` — el estado React SÍ captura los valores correctamente. El problema NO es frontend.
+
+---
+
+### Paso 3 — Fetch directo a kamples.com (CORS cross-origin)
+
+```js
+await fetch('https://kamples.com/wp-json/kamples/v1/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+});
+```
+
+**Resultado:** `status=400` — `{"ok":false,"error":"Email/usuario y contraseña son requeridos."}`
+
+El servidor recibe el request pero devuelve 400. El body llega vacío al PHP.
+
+---
+
+### Paso 4 — Fetch via proxy Vite (URL relativa, sin CORS)
+
+```js
+await fetch('/wp-json/kamples/v1/auth/login', { ... });
+```
+
+**Resultado:** `status=400` — mismo error. El proxy Vite tampoco ayuda. Descarta problema CORS.
+
+**Conclusión:** El problema es **100% server-side**. PHP no está leyendo el body del request.
+
+---
+
+### Paso 5 — Fix 1: Fallback `php://input` en PHP (INCORRECTO)
+
+```php
+$rawInput = file_get_contents('php://input');
+```
+
+**Resultado:** FALLÓ. Razón: WordPress REST Server lee `php://input` durante el routing REST y lo almacena en `$request->body`. Al llamar `file_get_contents('php://input')` de nuevo, el stream ya está consumido y retorna vacío.
+
+---
+
+### Paso 6 — Fix 2: Fallback `$request->get_body()` (CORRECTO en teoría)
+
+```php
+$body = $request->get_json_params();
+if (empty($body)) {
+    $rawBody = $request->get_body();
+    $body = json_decode($rawBody, true);
+}
+```
+
+`get_body()` lee de `$request->body` (ya en memoria, no del stream). También se añadió logging a nivel `KamplesLogger::error` cuando el 400 se dispara.
+
+**Estado:** Desplegado — pendiente verificación con logs del servidor.
+
+---
+
+## Root Cause — CONFIRMADO
+
+**Tauri Android intercepta TODOS los requests HTTP al host del dev server (`10.x.x.x:1420`) via `shouldInterceptRequest` de Android WebView.** Al interceptarlo, Android recrea el request desde un `WebResourceRequest` — y esta API de Android **no expone el body** de requests POST/PUT. El body se pierde antes de llegar a Vite proxy.
+
+Evidencia:
+- `curl` desde el host del desarrollador → Vite proxy → kamples.com → body llega OK (`rest_invalid_json` por quoting de PowerShell)
+- `fetch()` desde Android WebView → Tauri intercepta → pierde body → `get_body_length=0` en PHP
+- `new XHR()` desde Android WebView → mismo resultado (también pasa por `shouldInterceptRequest`)
+- El `Content-Type` SÍ llega (los headers no se pierden, solo el body)
+
+---
+
+## Solución Implementada (C215)
+
+**`desktop/src/services/apiDesktopAdapter.ts`** — detección de Android en tiempo de ejecución:
+
+```ts
+const esAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+```
+
+En Android dev mode, `obtenerServidorUrl()` retorna `https://kamples.com/wp-json` (SERVIDOR_PROD), y `resolverUrlParaEntorno()` convierte URLs relativas `/wp-json/*` a absolutas `https://kamples.com/wp-json/*`.
+
+**Por qué funciona:** Tauri solo intercepta requests al host del dev server (`10.x.x.x:1420`). Requests a `https://kamples.com` se dejan pasar al stack de red normal del WebView, donde el body POST está intacto.
+
+**CORS funciona:** kamples.com usa CORS dinámico (echo del `Origin` header), permitiendo cualquier origen cross-origin.
+
+Cambios concretos:
+- `obtenerServidorUrl()`: Android → `SERVIDOR_PROD`; Desktop dev → `SERVIDOR_DEV` (sin cambio)
+- `resolverUrlParaEntorno()`: función nueva que reemplaza el mapeo de URLs por plataforma
+- `configurarProxyFetch()`: usa `resolverUrlParaEntorno`, salta reescritura de respuestas en Android
+- `inyectarAuthHeader()`: usa `resolverUrlParaEntorno`, salta reescritura de respuestas en Android
+
+**Requiere rebuild APK:** NO — el fix es pure JS/TS, se despliega via Vite HMR.
+
+---
+
+## Pasos de Debug Realizados (Cronológico)
+
+---
+
+## Guía: Arrancar la App en el Emulador Android
+
+### Requisitos Previos
+
+1. **Android Studio** con SDK API 34+, AVD (Medium_Phone_API_36 o similar), `ANDROID_HOME`, `JAVA_HOME` (JDK 17+)
+
+2. **Vite dev server corriendo** — el emulador usa `10.8.0.2:1420`:
+   ```powershell
+   cd desktop
+   npm run dev
+   # Verificar: Network: http://10.8.0.2:1420/
+   ```
+
+### Flujo de Desarrollo Normal (APK ya instalada)
+
+```powershell
+# 1. Iniciar servidor Vite (OBLIGATORIO antes de abrir la app)
+cd "c:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate\desktop"
+npm run dev
+
+# 2. Abrir la app Kamples en el emulador
+```
+
+### Ver Logs del Servidor (Para Diagnóstico)
+
+```powershell
+ssh root@66.94.100.241 "docker exec wordpress-mo4so4440c488g8woow4cow0 tail -100 /var/www/html/wp-content/themes/glorytemplate/App/logs/kamples.log"
+```
+
+### Deploy a Producción
+
+```powershell
+cd ".agent\coolify-manager-rs"
+.\target\release\coolify-manager.exe deploy --name kamples --update
+```
+
+### Si la App Muestra "Failed to request http://10.8.0.2:1420"
+
+El servidor Vite no está corriendo. Ejecutar `npm run dev` en `desktop/`.
+
+### Diagrama de Conexión
+
+```
+Emulador Android
+  └── App Kamples (WebView)
+        ├── [DEV APK]  → http://10.8.0.2:1420  → npm run dev (host)
+        └── [PROD APK] → https://kamples.com   → VPS (deploy requerido)
+```
+
+---
+
+## Historial de Intentos
+
+| Intento | Resultado | Descartado porque |
+|---------|-----------|-------------------|
+| `useRef` → `useState` en LoginIsland | No cambió nada | LoginIsland no es el componente real de login |
+| Subir rate limit a 100 | No era el problema | El error es pre-auth (body vacío) |
+| Fallback `php://input` | Falló | Stream ya consumido por WP REST antes de llegar al controller |
+| Fallback `$request->get_body()` | Pendiente verificación | — |
+
 
 ---
 

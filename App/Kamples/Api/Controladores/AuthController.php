@@ -55,8 +55,7 @@ class AuthController
     {
         try {
             /* C164: Rate limiting — 5 intentos por 15 minutos por IP */
-            /* TODO-REVERTIR: limite subido a 100 para testing. Restaurar a (5, 900) tras pruebas. */
-            $limitResp = RateLimiter::verificarIp('login', 100, 900);
+            $limitResp = RateLimiter::verificarIp('login', 5, 900);
             if ($limitResp) return $limitResp;
 
             /* get_json_params() falla cuando Content-Type llega modificado (nginx, WebView Android).
@@ -77,15 +76,6 @@ class AuthController
             $password = $body['password'] ?? '';
 
             if (empty($login) || empty($password)) {
-                /* DEBUG-TEMP: loguear exactamente qué ve PHP para diagnosticar */
-                KamplesLogger::error('LOGIN DEBUG: body vacio', [
-                    'content_type'     => $request->get_header('Content-Type'),
-                    'get_json_params'  => $request->get_json_params(),
-                    'get_body_length'  => strlen($request->get_body() ?? ''),
-                    'get_body_preview' => substr($request->get_body() ?? '', 0, 100),
-                    'login_val'        => $login,
-                    'pass_empty'       => empty($password),
-                ]);
                 return new \WP_REST_Response([
                     'ok'    => false,
                     'error' => 'Email/usuario y contraseña son requeridos.',
