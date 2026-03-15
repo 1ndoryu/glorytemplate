@@ -60,6 +60,19 @@ class AuthController
             if ($limitResp) return $limitResp;
 
             $body     = $request->get_json_params();
+
+            /* Fallback: get_json_params() devuelve vacío si el Content-Type no llega
+             * limpio al PHP-FPM (proxy, nginx, WebView móvil). Leer php://input directamente. */
+            if (empty($body)) {
+                $rawInput = file_get_contents('php://input');
+                if ($rawInput !== false && $rawInput !== '') {
+                    $decoded = json_decode($rawInput, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $body = $decoded;
+                    }
+                }
+            }
+
             $login    = sanitize_text_field($body['email'] ?? '');
             $password = $body['password'] ?? '';
 
@@ -122,6 +135,18 @@ class AuthController
             if ($limitResp) return $limitResp;
 
             $body     = $request->get_json_params();
+
+            /* Fallback: mismo patrón que login — php://input por si get_json_params() falla */
+            if (empty($body)) {
+                $rawInput = file_get_contents('php://input');
+                if ($rawInput !== false && $rawInput !== '') {
+                    $decoded = json_decode($rawInput, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $body = $decoded;
+                    }
+                }
+            }
+
             $username = sanitize_user($body['username'] ?? '');
             $email    = sanitize_email($body['email'] ?? '');
             $password = $body['password'] ?? '';
