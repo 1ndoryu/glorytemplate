@@ -73,10 +73,13 @@ export const FeedSamples = ({
         onConteoChange,
     });
 
-    /* QL13: Mostrar skeletons (no texto) cuando no hay datos.
-     * Si hay cache stale, useFeedSamples ya lo muestra directamente y revalida en background.
-     * Solo se llega aqui en primera visita sin cache — mostrar skeletons en vez de bloquear con texto. */
-    if (feed.cargando && feed.samplesFiltrados.length === 0) {
+    /* QL20: Mostrar skeleton hasta que haya al menos una carga exitosa.
+     * primeraCargaCompleta es false solo cuando: no hay cache persistente Y la API no ha
+     * respondido todavia. Esto elimina el flash de "No se encontraron samples" que ocurria
+     * por race conditions entre re-renders y callbacks async del proveedor.
+     * Una vez que primeraCargaCompleta es true, si samplesFiltrados esta vacio,
+     * es un vacio real (el usuario no tiene samples o los filtros excluyeron todo). */
+    if (feed.samplesFiltrados.length === 0 && !feed.primeraCargaCompleta) {
         return (
             <div className={`feedSamplesContenedor ${className}`} id={id}>
                 <div className="feedSamplesSkeletonInicial">

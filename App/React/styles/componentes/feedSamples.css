@@ -55,12 +55,13 @@
     width: 100%;
 }
 
-/* QL13: Skeletons de carga inicial — reemplazan "Cargando samples..." */
+/* QL13/QL20: Skeletons de carga inicial — visualmente coherentes con listaDeSamples */
 .feedSamplesSkeletonInicial {
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding: var(--espacioMd) 0;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioLg);
 }
 
 /* Botón manual de "Cargar más" cuando el throttle de paginación lo requiere */

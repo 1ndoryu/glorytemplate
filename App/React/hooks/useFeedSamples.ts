@@ -87,6 +87,17 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         const cached = leerCacheFeed(claveCache);
         return !cached || cached.length === 0;
     });
+
+    /* QL20: Flag robusto que indica si al menos una carga exitosa (API o cache) ha ocurrido.
+     * Sin esto, race conditions entre useCallback/useEffect/proveedor pueden generar un
+     * render intermedio donde cargando=false y samples=[] — mostrando "No se encontraron
+     * samples" en vez del skeleton. primeraCargaCompleta solo se activa cuando HAY datos
+     * reales (cache persistente o respuesta API), eliminando cualquier flash del estado vacio. */
+    const [primeraCargaCompleta, setPrimeraCargaCompleta] = useState(() => {
+        if (samplesIniciales && samplesIniciales.length > 0) return true;
+        const cached = leerCacheFeed(claveCache);
+        return cached !== null && cached.length > 0;
+    });
     const [cargandoMas, setCargandoMas] = useState(false);
     const [paginaActual, setPaginaActual] = useState(1);
     const [hayMasPaginas, setHayMasPaginas] = useState(true);
@@ -159,6 +170,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             if (cached && cached.length > 0) {
                 setSamples(cached);
                 setCargando(false);
+                setPrimeraCargaCompleta(true);
+            } else {
+                /* QL20: Nuevo cache key sin datos — volver a skeleton hasta que la API responda */
+                setPrimeraCargaCompleta(false);
             }
         }
     }, [claveCache, throttle.resetear]);
@@ -181,6 +196,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         if (datosStale && esNuevo) {
             setSamples(datosStale);
             setCargando(false);
+            setPrimeraCargaCompleta(true);
             /* Revalidar en background sin loader */
             const frescos = await proveedor(pagina);
             if (requestIdRef.current !== thisRequest) return;
@@ -215,6 +231,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         if (esNuevo) {
             setSamples(resultado);
             setCargando(false);
+            setPrimeraCargaCompleta(true);
         } else {
             setSamples(prev => {
                 const idsExistentes = new Set(prev.map(s => s.id));
@@ -375,6 +392,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         /* Estado de carga */
         cargando,
         cargandoMas,
+        primeraCargaCompleta,
 
         /* Samples */
         samplesFiltrados,
