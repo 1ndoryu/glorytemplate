@@ -8,9 +8,10 @@
  * Items son enlaces <a> para permitir apertura en nueva pestana (click central).
  */
 
-import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard, DollarSign } from 'lucide-react';
+import { Bell, Heart, Download, UserPlus, MessageCircle, Loader2, ShieldAlert, AlertTriangle, Sparkles, CreditCard, DollarSign, X } from 'lucide-react';
 import { useDropdownNotificaciones } from '../../hooks/useDropdownNotificaciones';
 import type { NotificacionUI } from '@app/types/notificaciones';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import '../../styles/componentes/dropdownPanel.css';
 
 const ICONOS_NOTIFICACION: Record<string, JSX.Element> = {
@@ -58,11 +59,20 @@ export const DropdownNotificaciones = ({ onCerrar }: DropdownNotificacionesProps
         notificacionesCargadas,
         manejarClickNotif,
     } = useDropdownNotificaciones({ onCerrar });
+    const esMovil = useEsMovil();
 
     return (
         <>
-            <div className="dropdownOverlay" onClick={onCerrar} />
+            {!esMovil && <div className="dropdownOverlay" onClick={onCerrar} />}
             <div className="dropdownPanel">
+                {esMovil && (
+                    <div className="dropdownPanelCabecera">
+                        <span className="dropdownPanelTitulo">Notificaciones</span>
+                        <button className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label="Cerrar">
+                            <X size={20} />
+                        </button>
+                    </div>
+                )}
                 <div className="dropdownPanelLista">
                     {cargando && !notificacionesCargadas ? (
                         <div className="dropdownPanelVacio">

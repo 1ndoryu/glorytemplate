@@ -27,6 +27,7 @@ import { useNotificacionesStore } from '@app/stores/notificacionesStore';
 import { useMensajesStore } from '@app/stores/mensajesStore';
 import { marcarTodasLeidas } from '@app/services/apiNotificaciones';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useRegistrarCapa } from '@app/hooks/useRegistrarCapa';
 import { BotonBase } from '../ui/BotonBase';
 import { LogoKamples } from '../ui/LogoKamples';
 import { Avatar } from '../ui/Avatar';
@@ -78,6 +79,13 @@ export const Sidebar = ({
     const autenticado = useAuthStore(s => s.autenticado);
     const [notisAbiertas, setNotisAbiertas] = useState(false);
     const [msgsAbiertos, setMsgsAbiertos] = useState(false);
+
+    /* QL17: Registrar dropdowns en el sistema de capas para que el boton atras los cierre */
+    const cerrarNotis = useCallback(() => setNotisAbiertas(false), []);
+    const cerrarMsgs = useCallback(() => setMsgsAbiertos(false), []);
+    useRegistrarCapa('dropdownNotificaciones', notisAbiertas, cerrarNotis);
+    useRegistrarCapa('dropdownMensajes', msgsAbiertos, cerrarMsgs);
+
     const totalNotisNoLeidas = useNotificacionesStore(s => s.totalNoLeidas());
     const totalMsgsNoLeidos = useMensajesStore(
         s => s.conversaciones.reduce((acc, c) => acc + c.noLeidos, 0)
@@ -113,7 +121,7 @@ export const Sidebar = ({
     /* QK101: Admin panel y favoritos removidos de la sidebar; se mueven al menu hamburguesa */
     const itemsFinales = itemsBase;
 
-    /* QL16: Barra inferior movil — Inicio, Samples, Perfil, Mensajes, Notificaciones */
+    /* QL16: Barra inferior movil — Inicio, Samples, Mensajes, Notificaciones, Perfil (QL17: perfil al final) */
     if (esMovil) {
         return (
             <div className="sidebar">
@@ -133,19 +141,6 @@ export const Sidebar = ({
 
                     {autenticado && (
                         <>
-                            <a
-                                href={`/perfil/${usuario?.username}/`}
-                                className={`sidebarItem ${activa === 'perfil' ? 'sidebarItemActivo' : ''}`}
-                                onClick={irA(`/perfil/${usuario?.username}/`)}
-                                aria-label="Perfil"
-                            >
-                                <Avatar
-                                    src={usuario?.avatarUrl ?? null}
-                                    nombre={usuario?.nombreVisible ?? ''}
-                                    tamano="xs"
-                                />
-                            </a>
-
                             <div className="sidebarItemWrapper">
                                 <BotonBase
                                     variante="ghost"
@@ -173,6 +168,19 @@ export const Sidebar = ({
                                 </BotonBase>
                                 {notisAbiertas && <DropdownNotificaciones onCerrar={() => setNotisAbiertas(false)} />}
                             </div>
+
+                            <a
+                                href={`/perfil/${usuario?.username}/`}
+                                className={`sidebarItem ${activa === 'perfil' ? 'sidebarItemActivo' : ''}`}
+                                onClick={irA(`/perfil/${usuario?.username}/`)}
+                                aria-label="Perfil"
+                            >
+                                <Avatar
+                                    src={usuario?.avatarUrl ?? null}
+                                    nombre={usuario?.nombreVisible ?? ''}
+                                    tamano="xs"
+                                />
+                            </a>
                         </>
                     )}
                 </nav>

@@ -5,10 +5,11 @@
  * C192: Usa mensajesStore como cache (stale-while-revalidate) via useDropdownMensajes hook.
  */
 
-import { Mail, Loader2, Users, UserPlus } from 'lucide-react';
+import { Mail, Loader2, Users, UserPlus, X } from 'lucide-react';
 import { Avatar } from './Avatar';
 import { BotonBase } from './BotonBase';
 import { useDropdownMensajes } from '../../hooks/useDropdownMensajes';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import '../../styles/componentes/dropdownPanel.css';
 
 /* Formatea fecha ISO a texto relativo */
@@ -36,11 +37,20 @@ export const DropdownMensajes = ({ onCerrar }: DropdownMensajesProps): JSX.Eleme
         totalSolicitudes,
         abrirConversacion,
     } = useDropdownMensajes({ onCerrar });
+    const esMovil = useEsMovil();
 
     return (
         <>
-            <div className="dropdownOverlay" onClick={onCerrar} />
+            {!esMovil && <div className="dropdownOverlay" onClick={onCerrar} />}
             <div className="dropdownPanel">
+                {esMovil && (
+                    <div className="dropdownPanelCabecera">
+                        <span className="dropdownPanelTitulo">Mensajes</span>
+                        <button className="dropdownPanelCerrar" onClick={onCerrar} type="button" aria-label="Cerrar">
+                            <X size={20} />
+                        </button>
+                    </div>
+                )}
                 {/* QQ52: Tabs principal / solicitudes */}
                 <div className="dropdownPanelTabs">
                     <BotonBase

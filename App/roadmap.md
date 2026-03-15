@@ -198,17 +198,164 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 # QL17
 
-El orden de la navegacion en movil es incorrecto, el perfil tiene que ir al final
+✅ El orden de la navegacion en movil es incorrecto, el perfil tiene que ir al final
 
-Todos los menu contextuales tienen que ser tipo drowdown inferior, o sea aparecer desde abajo con una animacion sutil, minalista como en las aplicaciones de celular.
+✅ Todos los menu contextuales tienen que ser tipo drowdown inferior, o sea aparecer desde abajo con una animacion sutil, minalista como en las aplicaciones de celular.
 
-las notificaciones tienen que cubrir toda la pantalla cuando se abra, igualmente la lista de mensajes.
+✅ las notificaciones tienen que cubrir toda la pantalla cuando se abra, igualmente la lista de mensajes.
 
-dar atras tiene que cerrar modales, cerrar chat, etc.
+✅ dar atras tiene que cerrar modales, cerrar chat, etc.
+- registroCapas.ts: pila de capas modales cerrables
+- useRegistrarCapa.ts: hook para registrar capas (usado en Sidebar dropdowns)
+- useBackHandler.ts: intercepta popstate capture-phase, cierra capas o fallback a stores Zustand
+- Cubre 15+ modales via fallback + cualquier componente nuevo via registro dinamico
 
-especificarme aca como puedo especificar un estilo que solo afecte la apk pero no la version movil web
+✅ especificarme aca como puedo especificar un estilo que solo afecte la apk pero no la version movil web
 
-cuando se reproduzca algo tambien tiene que salir en las notificaciones con la imagen de portada y el nombre, asi como pasa en spotify
+**Respuesta — Estilos condicionales por plataforma (QL17):**
+En `desktop/src/main.tsx` se inyectan clases CSS en `<body>` al iniciar:
+- `plataformaTauri` — cualquier build Tauri (desktop + APK)
+- `plataformaAndroid` — solo APK Android
+- `plataformaEscritorio` — solo desktop (Windows/Mac/Linux)
+
+Uso en CSS:
+```css
+/* Solo APK Android */
+body.plataformaAndroid .miClase { padding: 20px; }
+/* Solo desktop instalado */
+body.plataformaEscritorio .miClase { width: 300px; }
+/* Solo web (no Tauri) */
+body:not(.plataformaTauri) .miClase { margin: 10px; }
+/* Movil web (no APK): combinar con media query */
+@media (max-width: 768px) { body:not(.plataformaTauri) .miClase { ... } }
+```
+
+✅ cuando se reproduzca algo tambien tiene que salir en las notificaciones con la imagen de portada y el nombre, asi como pasa en spotify
+- useMediaSession.ts: integra navigator.mediaSession con reproductorStore
+- Muestra titulo, artista (username), portada en notificacion del sistema
+- Controles play/pause/next/prev desde lock screen y barra de notificaciones
+
+# QL18
+
+Sigo sin ver las notificaciones en el sistema, esoy viendo el emulador
+
+# QL19
+
+En la aplicación de escritorio (no la version web) los samples que subo no se ven sin fotos, y la foto de coleccionados tampoco, falta la pagina de me gustas en la wersion web, lo que se puede hacer es agregar una pestaña de eso en /descargas
+
+tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguales, no puedo ver los logs en la aplicacion instalada para saber porque (instale el ultimo .exe)
+
+Y sigo sin ver el logo de kamples en la apk en la lista de aplicaciones de android
+
+# QL20
+
+HE REPETIDO MUCHISIMA VECES ESTA TAREA; HE DICHO QUE EN VEZ DE MOSTRAR EL COSTO ni el cargando samples pero tampoco esto!!! ESTO SALE CUANDO LOS SAMPLES NO HAN CARGADO
+
+<div class="feedSamplesVacio"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-music feedSamplesVacioIcono" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg><p>No se encontraron samples.</p><button class="botonBase variantePrimario tamanoMd">Sube el primero</button></div>
+
+SE MUESTRE EL SKELETON 
+
+OTRO DETALLE VISUAL; EL EL SKLETON DE DENTRO DE LAS COLECCIONES ES VE CONTRAIDO Y NO EXPANDIDO AL 100% DE ANCHO
+
+# QL20-A
+
+ACTUALIZA optimizacion-feed.md
+
+EL PROBLEMA NUNCA SE RESOLVIO PORQUE PROBABLMENTE NI ENTENDISTE EL PUNTO
+
+LA CARGA DE SAMPLES NUNCA SE HACE DE FONDO 
+
+AHORA MUESTRA "No se encontraron samples." Y DESPUES APARECEN LOS SAMPLES
+
+¿ACASO NO SE PUEDE MOSTRAR EL SKELETON HASTA QUE LOS SAMPLES SE CARGUEN?
+
+PERO NO SOLO ESO; SINO QUE LA INTENCION ES EVITAR LA CARGA EN EL FRONT Y QUE MOSTRARA UNA VERSION CACHEADA EN VEZ DE CARGAR; ESTO NO SIGNIFICA QUE NUNCA SE ACTUALIZARA SINO QUE AL RECARGAR SI YA HABIA UNA VERSION NUUEVA PUES QUE LA MOSTRARA Y SI NO; QUE MOSTRARA EL CACHE; HE DICHO ESTO TANTAS VECES Y NO SE LOGRA NO SE CUAL ES EL PROBLEMA O PORQUE ESTAN DIFICIL 
+
+# QL21
+
+Antes que empezaras con ql17, la aplicacion de andorid en el emulador dejo de funcionar
+dice en la consola 
+INFO         | Created VkInstance:000001269E5CDDC0 for application:'' engine:''.
+INFO         | Destroyed VkInstance:000001269E5CDDC0 for application:'' engine:''.
+
+# QL19-A
+
+Antes de que empezaras QL19 logre ver estos logs en la aplicacion de escritorio
+
+Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/ApzyTCK_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/ApzyTCK_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/eI7zbEX_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/eI7zbEX_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/6NWZuQZ_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/0/2026/03/6NWZuQZ_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_waveform.json?v=49f764d9762757b6d63aec73a375a605e11b957358a0f59c90ec36c55d3687e0' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_waveform.json?v=49f764d9762757b6d63aec73a375a605e11b957358a0f59c90ec36c55d3687e0:1   Failed to load resource: net::ERR_FAILED
+descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_preview.mp3:1   Failed to load resource: net::ERR_FAILED
+uploadQueueService-xAFqT2fl.js:49 [sync:syncWatcher] Reconciliación de descargas: 300s sin sync completa, forzando 
+descargas/:1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614203118' from origin 'http://tauri.localhost' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614203118:1   Failed to load resource: net::ERR_FAILED
+syncCollectionService-BjvsoUeH.js:2  [SyncCollection] Error en fetch colecciones: TypeError: Failed to fetch
+    at Lt.window.fetch (uploadQueueService-xAFqT2fl.js:50:12923)
+    at he (syncCollectionService-BjvsoUeH.js:2:3468)
+    at Module.ra (syncCollectionService-BjvsoUeH.js:2:4932)
+    at Kt (uploadQueueService-xAFqT2fl.js:50:37676)
+    at async uploadQueueService-xAFqT2fl.js:50:36377
+he @ syncCollectionService-BjvsoUeH.js:2
+uploadQueueService-xAFqT2fl.js:49 [sync:syncWatcher] Reconciliación de descargas: 300s sin sync completa, forzando 
+descargas/:1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614503622' from origin 'http://tauri.localhost' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
+kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614503622:1   Failed to load resource: net::ERR_FAILED
+syncCollectionService-BjvsoUeH.js:2  [SyncCollection] Error en fetch colecciones: TypeError: Failed to fetch
+    at Lt.window.fetch (uploadQueueService-xAFqT2fl.js:50:12923)
+    at he (syncCollectionService-BjvsoUeH.js:2:3468)
+    at Module.ra (syncCollectionService-BjvsoUeH.js:2:4932)
+    at Kt (uploadQueueService-xAFqT2fl.js:50:37676)
+    at async uploadQueueService-xAFqT2fl.js:50:36377
+he @ syncCollectionService-BjvsoUeH.js:2
+
+## QL20
+
+Remplazar las tabs de https://kamples.com/admin/panel/ por iconos
+y agregar una tab con una tabla de todas las canciones
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Mantener lo distancia
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -244,6 +391,26 @@ cuando se reproduzca algo tambien tiene que salir en las notificaciones con la i
   - [SSL]: Traefik emite cert automatico con certresolver letsencrypt. Verificar: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
   - [Coolify DB]: Stacks Docker Compose en `services` + `service_applications`. UUID stack: `mo4so4440c488g8woow4cow0`.
   - [Android build WDAC]: `tauri android build` falla con "os error 4551" (Control de Aplicaciones bloquea build scripts en OneDrive). Fix: `$env:CARGO_TARGET_DIR = "C:\cargo-target\kamples"` antes de ejecutar. El `.cargo/config.toml` solo aplica al cargo directo, no al invocado por Gradle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Comando para actualizar produccion
 

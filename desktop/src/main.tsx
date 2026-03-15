@@ -116,6 +116,20 @@ function inyectarRutas(): void {    window.__GLORY_ROUTES__ = RUTAS_DESKTOP;}
 function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
     window.__KAMPLES_VERSION__ = '0.1.0';
 
+    /*
+     * QL17: Inyectar clases de plataforma en <body> para CSS condicional.
+     * - plataformaTauri: cualquier build de Tauri (desktop + APK)
+     * - plataformaAndroid: solo APK Android
+     * - plataformaEscritorio: solo desktop (Windows/Mac/Linux)
+     * Uso en CSS: body.plataformaAndroid .miClase { ... }
+     */
+    document.body.classList.add('plataformaTauri');
+    if (/android/i.test(navigator.userAgent)) {
+        document.body.classList.add('plataformaAndroid');
+    } else {
+        document.body.classList.add('plataformaEscritorio');
+    }
+
     const toggleVentanaSync = async (): Promise<void> => {
         const { invoke } = await import('@tauri-apps/api/core');
         await invoke('toggle_ventana_sync');

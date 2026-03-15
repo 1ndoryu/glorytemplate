@@ -58,6 +58,25 @@
     text-decoration: underline;
 }
 
+/* QL17: Botón cerrar para bottom-sheet móvil */
+.dropdownPanelCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    color: var(--textoSecundario);
+    cursor: pointer;
+    border-radius: var(--radioMd);
+    transition: background-color var(--transicionRapida);
+}
+
+.dropdownPanelCerrar:hover {
+    background-color: var(--fondoElevado2);
+}
+
 .dropdownPanelLista {
     padding: var(--espacioMd);
     display: flex;
@@ -167,17 +186,40 @@
     z-index: calc(var(--zModal) - 1);
 }
 
-/* En móvil los dropdowns se centran y son fixed para no salirse de pantalla */
+/* QL17: En móvil, dropdowns se convierten en bottom-sheet a pantalla completa */
 @media (max-width: 768px) {
     .dropdownPanel {
         position: fixed;
-        top: var(--altoTopbar);
-        left: 50%;
-        transform: translateX(-50%);
-        right: auto;
-        width: calc(100vw - 48px);
-        max-width: 400px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        border: none;
+        transform: none;
+        animation: bottomSheetEntrar 0.25s ease-out;
     }
+
+    @keyframes bottomSheetEntrar {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .dropdownPanelLista {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
 }
 
 /* QQ52: Tabs principal/solicitudes para mensajes */

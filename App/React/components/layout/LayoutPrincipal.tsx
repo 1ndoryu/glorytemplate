@@ -13,6 +13,7 @@ import { TopBar } from './TopBar';
 import { PanelLateral } from './PanelLateral';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
 import { useMotorAudio } from '@app/hooks/useMotorAudio';
+import { useMediaSession } from '@app/hooks/useMediaSession';
 import { ModalCrear } from '../social/ModalCrear';
 import { ModalPublicar } from '../social/ModalPublicar';
 import { ModalSeleccionColeccion } from '../social/ModalSeleccionColeccion';
@@ -99,6 +100,10 @@ export const LayoutPrincipal = ({
 
     /* QQ49: Motor de audio global — crea y gestiona el unico HTMLAudioElement persistente */
     useMotorAudio();
+
+    /* QL17: Sincroniza metadatos del reproductor con MediaSession API.
+     * Muestra notificacion "now playing" con portada y controles en Android / lock screen. */
+    useMediaSession();
 
     /* Se suscribe al store SPA para reaccionar a cambios de ruta sin recarga */
     const rutaActual = useNavigationStore((s) => s.rutaActual);
