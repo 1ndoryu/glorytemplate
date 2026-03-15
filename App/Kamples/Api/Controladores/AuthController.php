@@ -55,7 +55,8 @@ class AuthController
     {
         try {
             /* C164: Rate limiting — 5 intentos por 15 minutos por IP */
-            $limitResp = RateLimiter::verificarIp('login', 5, 900);
+            /* TODO-REVERTIR: limite subido a 100 para testing. Restaurar a (5, 900) tras pruebas. */
+            $limitResp = RateLimiter::verificarIp('login', 100, 900);
             if ($limitResp) return $limitResp;
 
             $body     = $request->get_json_params();
