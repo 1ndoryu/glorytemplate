@@ -93,6 +93,23 @@ export const loginConGoogle = async (credential: string) => {
 };
 
 /*
+ * Desktop OAuth 2.0 PKCE: intercambia el authorization code capturado
+ * por el proceso nativo por los tokens de sesión finales.
+ * El intercambio real (code ↔ tokens) ocurre server-side en PHP.
+ */
+export const loginConGoogleDesktop = async (params: {
+    code: string;
+    codeVerifier: string;
+    redirectUri: string;
+}) => {
+    return apiPost<{ token: string; usuario: UsuarioAutenticado }>('/auth/google/desktop', {
+        code: params.code,
+        code_verifier: params.codeVerifier,
+        redirect_uri: params.redirectUri,
+    });
+};
+
+/*
  * QK89: Cambiar email del usuario autenticado.
  * Requiere la contraseña actual como verificación de identidad.
  */

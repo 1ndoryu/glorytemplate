@@ -47,7 +47,8 @@
     {
       "identifier": "shell:allow-open",
       "allow": [
-        { "url": "^https://(www\\.)?kamples\\.com(/|$)" }
+        { "url": "^https://(www\\.)?kamples\\.com(/|$)" },
+        { "url": "^https://accounts\\.google\\.com(/|$)" }
       ]
     },
     "store:default",

@@ -13,6 +13,174 @@ use tauri::{
 #[cfg(not(desktop))]
 use tauri::Manager;
 
+/* Comando: toggle DevTools (inspector de WebView2) — disponible en produccion para diagnostico */
+#[cfg(desktop)]
+#[tauri::command]
+fn toggle_devtools(window: tauri::WebviewWindow) {
+    if window.is_devtools_open() {
+        window.close_devtools();
+    } else {
+        window.open_devtools();
+    }
+}
+
+/*
+ * Comando: iniciar flujo OAuth 2.0 Authorization Code + PKCE con Google.
+ * Abre el navegador del sistema con la URL de autorización, luego escucha
+ * en un puerto local aleatorio para capturar el authorization code del callback.
+ * El code_challenge se genera en JavaScript (WebCrypto) y se pasa aquí.
+ * La app entonces llama al backend PHP para intercambiar el código por tokens
+ * (sin exponer el client_secret en el bundle de la app).
+ *
+ * Retorna { code, redirect_uri } al llamador en JavaScript.
+ */
+#[cfg(desktop)]
+#[tauri::command]
+async fn iniciar_oauth_google(
+    app: tauri::AppHandle,
+    code_challenge: String,
+) -> Result<serde_json::Value, String> {
+    use std::io::{BufRead, BufReader, Write};
+    use std::net::TcpListener;
+
+    const GOOGLE_CLIENT_ID: &str =
+        "481587675160-g24onokgnnuhnghplrl1q3iscfnfc0ea.apps.googleusercontent.com";
+
+    /* Bind en un puerto aleatorio disponible en loopback */
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .map_err(|e| format!("Error iniciando servidor OAuth local: {}", e))?;
+    let port = listener
+        .local_addr()
+        .map_err(|e| format!("Error obteniendo puerto OAuth: {}", e))?
+        .port();
+
+    let redirect_uri = format!("http://127.0.0.1:{}/callback", port);
+
+    /* Percent-encode el redirect_uri para incluirlo en la URL de OAuth */
+    let redirect_encoded = percent_encode_url(&redirect_uri);
+
+    /* Construir URL de autorización con PKCE */
+    let auth_url = format!(
+        "https://accounts.google.com/o/oauth2/v2/auth\
+         ?response_type=code\
+         &client_id={client_id}\
+         &redirect_uri={redirect}\
+         &scope=openid%20email%20profile\
+         &code_challenge={challenge}\
+         &code_challenge_method=S256\
+         &access_type=offline\
+         &prompt=select_account",
+        client_id = GOOGLE_CLIENT_ID,
+        redirect = redirect_encoded,
+        challenge = code_challenge,
+    );
+
+    /* Abrir el navegador del sistema
+     * TODO: Migrar a tauri-plugin-opener cuando se actualice Tauri (reemplazo de shell.open) */
+    #[allow(deprecated)]
+    use tauri_plugin_shell::ShellExt;
+    app.shell()
+        .open(&auth_url, None)
+        .map_err(|e| format!("Error abriendo navegador para OAuth: {}", e))?;
+
+    /* Canal para recibir el código de autorización desde el hilo bloqueante */
+    let (tx, rx) = std::sync::mpsc::sync_channel::<Result<String, String>>(1);
+
+    /* Hilo dedicado para aceptar la conexión HTTP del browser */
+    std::thread::Builder::new()
+        .name("kamples-oauth-callback".to_string())
+        .spawn(move || {
+            match listener.accept() {
+                Ok((stream, _)) => {
+                    let mut stream_write = match stream.try_clone() {
+                        Ok(s) => s,
+                        Err(e) => {
+                            let _ = tx.send(Err(format!("Error clonando stream: {}", e)));
+                            return;
+                        }
+                    };
+                    let reader = BufReader::new(stream);
+                    /* Leer solo la primera línea: "GET /callback?code=XXX HTTP/1.1" */
+                    let first_line = reader.lines().next()
+                        .and_then(|l| l.ok())
+                        .unwrap_or_default();
+
+                    /* Extraer el parámetro "code" de la query string */
+                    let code = first_line
+                        .split_whitespace()
+                        .nth(1)
+                        .and_then(|path| path.split('?').nth(1))
+                        .and_then(|query| {
+                            query.split('&')
+                                .find(|p| p.starts_with("code="))
+                                .map(|p| p["code=".len()..].to_string())
+                        });
+
+                    /* Responder al browser para que el usuario sepa que puede cerrar la ventana */
+                    let html = b"<!DOCTYPE html><html><head><meta charset='utf-8'>\
+                        <title>Kamples</title></head>\
+                        <body style='font-family:system-ui,sans-serif;text-align:center;padding:60px;background:#0f0f0f;color:#fff'>\
+                        <h2>Autenticacion completada</h2>\
+                        <p>Puedes cerrar esta ventana y volver a Kamples.</p>\
+                        <script>setTimeout(()=>window.close(),2000)</script>\
+                        </body></html>";
+                    let http_response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\
+                         Content-Length: {}\r\nConnection: close\r\n\r\n",
+                        html.len()
+                    );
+                    let _ = stream_write.write_all(http_response.as_bytes());
+                    let _ = stream_write.write_all(html);
+
+                    match code {
+                        Some(c) => { let _ = tx.send(Ok(c)); }
+                        None => {
+                            let _ = tx.send(Err(
+                                "Código OAuth no encontrado en la URL de callback".to_string()
+                            ));
+                        }
+                    }
+                }
+                Err(e) => {
+                    let _ = tx.send(Err(format!("Error esperando callback OAuth: {}", e)));
+                }
+            }
+        })
+        .map_err(|e| format!("Error iniciando hilo OAuth: {}", e))?;
+
+    /* Esperar el código con timeout de 5 minutos usando el runtime de Tauri */
+    let code = tauri::async_runtime::spawn_blocking(move || {
+        rx.recv_timeout(std::time::Duration::from_secs(300))
+            .map_err(|_| {
+                "Timeout: la autenticación con Google no se completó en 5 minutos".to_string()
+            })?
+    })
+    .await
+    .map_err(|e| format!("Error interno en espera OAuth: {}", e))??;
+
+    Ok(serde_json::json!({
+        "code": code,
+        "redirect_uri": redirect_uri,
+    }))
+}
+
+/* Percent-encode una URL completa (solo los caracteres especiales) */
+fn percent_encode_url(input: &str) -> String {
+    let mut encoded = String::with_capacity(input.len() * 3);
+    for byte in input.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9'
+            | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            _ => {
+                encoded.push_str(&format!("%{:02X}", byte));
+            }
+        }
+    }
+    encoded
+}
+
 /* Comando: obtener version de la app */
 #[tauri::command]
 fn obtener_version() -> String {
@@ -283,6 +451,8 @@ pub fn run() {
         seleccionar_archivo,
         mostrar_ventana_config,
         toggle_ventana_sync,
+        toggle_devtools,
+        iniciar_oauth_google,
     ]);
 
     #[cfg(not(desktop))]

@@ -233,13 +233,49 @@ export const useAuth = () => {
         }
     }, [setUsuario]);
 
-    /* GSI: disparar popup de Google Sign-In */
+    /* GSI: disparar popup de Google Sign-In — solo activo en web */
+    const esDesktopApp = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
     const { disparar: dispararGoogle, botonContenedorRef: googleBotonRef } = useGoogleAuth(manejarCredencialGoogle);
 
     const iniciarSesionGoogle = useCallback(() => {
-        log.info('Iniciando flujo OAuth Google');
+        log.info('Iniciando flujo OAuth Google (web)');
         dispararGoogle();
     }, [dispararGoogle]);
+
+    /*
+     * Desktop: abre el browser del sistema con Google OAuth PKCE.
+     * La implementación se inyecta en window.__KAMPLES_GOOGLE_OAUTH__ por main.tsx
+     * del desktop, siguiendo el patrón de inyección de dependencias del proyecto
+     * (igual que __KAMPLES_AUTH_PERSIST__, __KAMPLES_SYNC__, etc.).
+     * Esto evita imports directos de código Tauri en hooks compartidos web/desktop.
+     */
+    const loginGoogleDesktop = useCallback(async () => {
+        setError(null);
+        setCargando(true);
+        try {
+            const googleOAuth = (window as unknown as Record<string, unknown>).__KAMPLES_GOOGLE_OAUTH__ as
+                | (() => Promise<{ token: string; usuario: UsuarioAutenticado }>) | undefined;
+
+            if (!googleOAuth) {
+                throw new Error('Google OAuth desktop no disponible');
+            }
+
+            const datos = await googleOAuth();
+            setUsuario(datos.usuario);
+
+            if (datos.token) {
+                await persistirTokenDesktop(datos.token, datos.usuario ?? null);
+            }
+
+            useAuthModalStore.getState().cerrar();
+            useNavigationStore.getState().navegar('/');
+        } catch (err) {
+            log.error('Error en Google OAuth desktop', err);
+            setError('No se pudo completar la autenticación con Google. Intenta de nuevo.');
+        } finally {
+            setCargando(false);
+        }
+    }, [setUsuario]);
 
     const logout = useCallback(async () => {
         /*
@@ -270,7 +306,9 @@ export const useAuth = () => {
         iniciarSesion,
         registrar,
         iniciarSesionGoogle,
-        googleBotonRef,
+        loginGoogleDesktop,
+        googleBotonRef: esDesktopApp ? null : googleBotonRef,
+        esDesktopApp,
         logout,
     };
 };

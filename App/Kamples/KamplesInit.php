@@ -116,6 +116,10 @@ class KamplesInit
             'https://localhost:1420',
             'tauri://localhost',
             'http://localhost',
+            'https://localhost',
+            /* Tauri 2.0 en Windows puede usar estos origenes dependiendo de la version */
+            'http://127.0.0.1',
+            'https://127.0.0.1',
         ];
 
         /* Manejar preflight OPTIONS antes de que WP responda */

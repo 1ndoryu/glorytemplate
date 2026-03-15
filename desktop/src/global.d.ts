@@ -53,6 +53,9 @@ interface Window {
         guardarUsuario: (usuario: Record<string, unknown>) => Promise<void>;
         cerrarSesionDesktop: () => Promise<void>;
     };
+    /* Google OAuth PKCE — inyectada por main.tsx, consumida por useAuth.ts.
+     * Mismo patrón de inyección que AUTH_PERSIST para evitar imports cross-project. */
+    __KAMPLES_GOOGLE_OAUTH__?: () => Promise<{ token: string; usuario: import('@app/types/usuario').UsuarioAutenticado }>;
     /* Configuración del servidor para apiDesktopAdapter */
     __KAMPLES_CONFIG__?: {
         serverUrl?: string;

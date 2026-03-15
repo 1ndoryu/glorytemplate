@@ -14,7 +14,7 @@ import '../../styles/componentes/login.css';
 export const LoginIsland = (): JSX.Element => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion, googleBotonRef } = useAuth();
+    const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -34,9 +34,20 @@ export const LoginIsland = (): JSX.Element => {
                     Descubre los mejores samples del mundo
                 </p>
 
-                {/* QK5: Botón de Google renderizado por GSI — abre popup nativo,
-                 * funciona en incógnito sin third-party cookies. */}
-                <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
+                {/* En desktop: botón nativo que abre el browser del sistema con Google OAuth PKCE.
+                 * En web: Google Identity Services renderiza su propio botón en el div. */}
+                {esDesktopApp ? (
+                    <BotonBase
+                        variante="secundario"
+                        anchoCompleto
+                        cargando={cargando}
+                        onClick={loginGoogleDesktop}
+                    >
+                        Continuar con Google
+                    </BotonBase>
+                ) : (
+                    <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
+                )}
 
                 <div className="loginSeparador">o</div>
 

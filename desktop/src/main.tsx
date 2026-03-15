@@ -19,6 +19,8 @@ import appIslands, { AppProvider } from '@app/appIslands';
 /* Servicios desktop: configuración API, auth, storage */
 import { inicializarDesktop } from '@desktop/services/desktopService';
 import { guardarToken, guardarUsuario, cerrarSesionDesktop } from '@desktop/services/authDesktopService';
+/* Google OAuth PKCE para desktop — inyectado en window para evitar imports cross-project */
+import { iniciarGoogleOAuthDesktop } from '@desktop/services/googleAuthDesktopService';
 
 /* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
 import {
@@ -160,11 +162,25 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         guardarUsuario,
         cerrarSesionDesktop,
     };
+
+    /* Google OAuth PKCE — expuesto via window para que useAuth.ts (código compartido)
+     * no necesite importar código Tauri directamente. Mismo patrón que AUTH_PERSIST. */
+    window.__KAMPLES_GOOGLE_OAUTH__ = iniciarGoogleOAuthDesktop;
 }
 
 async function init(): Promise<void> {
     marcarEntornoDesktop();
     inyectarRutas();
+
+    /* F12 → abrir/cerrar DevTools en la app instalada para diagnostico */
+    window.addEventListener('keydown', async (e) => {
+        if (e.key === 'F12') {
+            try {
+                const { invoke } = await import('@tauri-apps/api/core');
+                await invoke('toggle_devtools');
+            } catch { /* no-op en web */ }
+        }
+    });
 
     /* Inicializar servicios desktop (auth store, sync, offline queue) */
     await inicializarDesktop();

@@ -127,6 +127,9 @@ desktop/src-tauri/gen/android/buildSrc/build/
 desktop/src-tauri/gen/android/local.properties
 desktop/src-tauri/target/
 *.apk
+# Keystore de produccion Android — contiene claves privadas, NO commitear
+*.keystore
+KEYSTORE-INFO.md
 # Kamples Scraper
 kamples-scraper/cookies.txt
 kamples-scraper/cookies_youtube.txt
