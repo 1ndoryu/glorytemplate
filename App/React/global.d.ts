@@ -75,3 +75,34 @@ interface Window {
     };
     __TAURI_INTERNALS__?: unknown;
 }
+
+/*
+ * Declaración de módulo para tauri-plugin-notification.
+ * El módulo real vive en desktop/node_modules/ y solo se resuelve en builds Tauri.
+ * En web, el import dinámico nunca se ejecuta (guardado por esTauri()).
+ * Esta declaración permite que el type-check de Glory/assets/react pase sin error.
+ */
+declare module '@tauri-apps/plugin-notification' {
+    export function isPermissionGranted(): Promise<boolean>;
+    export function requestPermission(): Promise<'granted' | 'denied' | 'default'>;
+    export function sendNotification(options: {
+        id?: number;
+        title: string;
+        body?: string;
+        channelId?: string;
+        icon?: string;
+        largeBody?: string;
+        summary?: string;
+        sound?: string;
+        group?: string;
+    }): Promise<void>;
+    export function createChannel(channel: {
+        id: string;
+        name: string;
+        description?: string;
+        importance?: number;
+        visibility?: number;
+        vibration?: boolean;
+        sound?: string;
+    }): Promise<void>;
+}

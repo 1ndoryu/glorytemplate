@@ -61,6 +61,17 @@
     "store:allow-length",
     "store:allow-load",
     "store:allow-save",
-    "store:allow-clear"
+    "store:allow-clear",
+    "notification:default",
+    "notification:allow-is-permission-granted",
+    "notification:allow-request-permission",
+    "notification:allow-notify",
+    "notification:allow-register-action-types",
+    "notification:allow-cancel",
+    "notification:allow-get-active",
+    "notification:allow-remove-active",
+    "notification:allow-create-channel",
+    "notification:allow-delete-channel",
+    "notification:allow-list-channels"
   ]
 }

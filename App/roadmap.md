@@ -149,8 +149,8 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ✅ [AG-FEA] Completado:
 - Tags en TarjetaSample deshabilitadas en movil (useEsMovil → onFiltrar=undefined). Click en tarjeta solo reproduce.
-- Windows EXE generado: `C:\cargo-target\kamples\release\bundle\nsis\Kamples_0.1.0_x64-setup.exe`
-- APK arm64 en proceso de build (CARGO_TARGET_DIR necesario para evitar WDAC block en OneDrive).
+- Windows EXE generado: `C:\cargo-target\kamples\release\bundle\nsis\Kamples_0.1.0_x64-setup.exe` (4.3 MB)
+- APK firmado: `kamples-release.apk` en raiz del tema (15 MB). CARGO_TARGET_DIR necesario para evitar WDAC block en OneDrive.
 - Nota usuario: barra Android tapa app — pendiente probar en telefono real.
 
 ## QL13
@@ -181,6 +181,36 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - Hamburguesa: Crear, Mezclador, Musica, Libreria, Coleccionados, Favoritos, Admin
 - DropdownNotificaciones y DropdownMensajes en bottom bar con toggle y mark-as-read
 - Supersede QL10 (layout movil completo rediseñado)
+
+
+## QL16-B — Notificaciones nativas Android/Desktop
+
+✅ [AG-NTF] Completado:
+- `tauri-plugin-notification` integrado: Cargo.toml + lib.rs + capability principal.json
+- Android: permiso POST_NOTIFICATIONS en AndroidManifest.xml, canales "notificaciones" (importance HIGH) y "mensajes" (importance MAX/heads-up)
+- Servicio `notificacionNativa.ts`: abstracción sobre el plugin, import dinámico (solo se carga en Tauri), formateo de tipos de notificación
+- Hook `useNotificacionesNativas.ts`: escucha eventos WS ('notificacion' + 'mensaje_nuevo') y despacha notificaciones nativas del sistema
+- Wired en `InicializadorAuth.tsx` junto a useWebSocket
+- Module declaration en `global.d.ts` para type-check cross-project
+- npm: `@tauri-apps/plugin-notification` instalado en desktop/
+- [Limitación]: Solo funciona cuando la app está en primer/segundo plano con WS conectado. Para notificaciones con app cerrada se necesitaría FCM (fase futura).
+- [Lección]: Android WebView (Tauri) NO soporta Push API (PushManager). VAPID web push solo funciona en navegadores. Para Android nativo: tauri-plugin-notification (local) + FCM (remoto).
+
+# QL17
+
+El orden de la navegacion en movil es incorrecto, el perfil tiene que ir al final
+
+Todos los menu contextuales tienen que ser tipo drowdown inferior, o sea aparecer desde abajo con una animacion sutil, minalista como en las aplicaciones de celular.
+
+las notificaciones tienen que cubrir toda la pantalla cuando se abra, igualmente la lista de mensajes.
+
+dar atras tiene que cerrar modales, cerrar chat, etc.
+
+especificarme aca como puedo especificar un estilo que solo afecte la apk pero no la version movil web
+
+cuando se reproduzca algo tambien tiene que salir en las notificaciones con la imagen de portada y el nombre, asi como pasa en spotify
+
+
 
 
 ---

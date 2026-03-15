@@ -265,6 +265,8 @@
 
 ### Tauri Permisos
 - [Tauri 2 core:default permisos]: `core:default` incluye `core:window:default` que es SOLO lectura (isMinimized, isVisible, size, etc.). Mutaciones como `minimize()`, `hide()`, `show()`, `setFocus()`, `center()`, `close()` requieren permisos explícitos: `core:window:allow-minimize`, etc. Sin ellos, las llamadas JS fallan silenciosamente — los catch vacíos ocultan el error.
+- [Android WebView NO soporta Push API]: El PushManager y la Web Push API (VAPID) solo funcionan en navegadores completos (Chrome, Firefox). Android WebView (usado por Tauri) NO soporta Push API. Para notificaciones nativas en Tauri Android: usar `tauri-plugin-notification` para notificaciones locales (disparadas por WS). Para notificaciones con app cerrada: se necesita FCM (Firebase Cloud Messaging) — fase futura.
+- [POST_NOTIFICATIONS Android 13+]: API 33+ requiere permiso explícito `android.permission.POST_NOTIFICATIONS` en AndroidManifest.xml. Sin él, las notificaciones se bloquean silenciosamente. También requiere `requestPermission()` en runtime.
 
 ### Rehidratación
 - [Rehidratación historial]: Corregir solo el fetch de imagen post-upload no arregla entradas YA persistidas con `imagenUrl: null`. Al iniciar sync, `rehidratarImagenesPendientes()` hace batch GET `/samples?creador=username&per_page=100`, construye mapa sampleId→imagenUrl y actualiza todas las entradas sin imagen. Una request, N actualizaciones. El endpoint de listado envuelve en doble envelope: `{ data: { data: [...], pagination } }`.
