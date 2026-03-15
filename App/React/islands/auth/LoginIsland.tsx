@@ -3,7 +3,7 @@
  * Formulario de autenticación con Google OAuth y credenciales.
  */
 
-import { useRef, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
@@ -12,15 +12,15 @@ import { useAuth } from '../../hooks/useAuth';
 import '../../styles/componentes/login.css';
 
 export const LoginIsland = (): JSX.Element => {
-    const emailRef = useRef<HTMLInputElement>(null);
-    const passwordRef = useRef<HTMLInputElement>(null);
+    /* Estado controlado — useRef falla en Android porque el IME no confirma el valor
+     * al DOM antes del submit. onChange sincroniza el estado en cada keystroke. */
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const email = (emailRef.current?.value ?? '').trim();
-        const password = passwordRef.current?.value ?? '';
-        iniciarSesion(email, password);
+        iniciarSesion(email.trim(), password);
     };
 
     return (
@@ -58,18 +58,20 @@ export const LoginIsland = (): JSX.Element => {
                 <form className="loginFormulario" onSubmit={manejarSubmit}>
                     <CampoTexto
                         etiqueta="Email o usuario"
-                        ref={emailRef}
                         type="text"
                         placeholder="Email o usuario"
                         autoComplete="username"
+                        value={email}
+                        onChange={e => setEmail((e.target as HTMLInputElement).value)}
                     />
 
                     <CampoTexto
                         etiqueta="Contraseña"
-                        ref={passwordRef}
                         type="password"
                         placeholder="••••••••"
                         autoComplete="current-password"
+                        value={password}
+                        onChange={e => setPassword((e.target as HTMLInputElement).value)}
                     />
 
                     <BotonBase
