@@ -1,6 +1,6 @@
-﻿# Kamples -- Roadmap Integral de Producto
+# Kamples -- Roadmap Integral de Producto
 
-> **Version:** 4.2 | **Ultima actualizacion:** 06/03/2026 | **Stack:** Glory Framework (WP + React Islands + TS)
+> **Version:** 4.3 | **Ultima actualizacion:** 08/06/2026 | **Stack:** Glory Framework (WP + React Islands + TS)
 
 ## Indice de Modulos
 
@@ -10,23 +10,57 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 | --------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | Arquitectura    | [docs/roadmap/arquitectura.md](docs/roadmap/arquitectura.md)           | Vision, stack, paginas, planes, notas compactas                      |
 | Pendientes      | [docs/roadmap/pendientes.md](docs/roadmap/pendientes.md)               | Tareas pendientes por fase (8-13), sprint revision, auditorias       |
-| Completado      | [docs/roadmap/completado.md](docs/roadmap/completado.md)               | Todo el trabajo completado (F0-F7, Sync, Algoritmo, Desktop)         |
+| Completado      | [docs/roadmap/completado.md](docs/roadmap/completado.md)               | Todo el trabajo completado (F0-F7, Sync, Algoritmo, Desktop, QK-II, QL) |
 | Referencia Sync | [docs/roadmap/referencia-sync.md](docs/roadmap/referencia-sync.md)     | Arquitectura de referencia Sync v2 + Cola IA                         |
 | Lecciones       | [docs/roadmap/lecciones.md](docs/roadmap/lecciones.md)                 | Gotchas y lecciones aprendidas por dominio                           |
 | Dedup Global    | [docs/roadmap/plan-dedup-global.md](docs/roadmap/plan-dedup-global.md) | Plan "1 sample = 1 existencia"  dedup server + desktop + moderacion |
 
-### Documentacion adicional
+### Documentacion adicional por categoria
 
-- `App/docs/algoritmo.md` -- Algoritmo de descubrimiento (changelog de auditorias)
-- `App/docs/plan-sync-optimizacion.md` -- Plan de optimizacion sync (fases completadas)
-- `App/docs/plan-sync-mejoras-v3.md` -- Auditoria de seguridad sync (v3)
-- `App/docs/moderacion.md` -- Sistema de moderacion IA
-- `App/docs/monetizacion.md` -- Modelo de monetizacion y revenue share
-- `App/docs/plan-daw-channelrack-mixer.md` -- Plan DAW (Channel Rack + Mixer)
-- `App/docs/plan-piano-roll.md` -- Plan Piano Roll
-- `App/solid-seguridad-optimizacion.md` -- SOLID, seguridad y optimizacion
-- `App/docs/roadmap/plan-dedup-global.md` -- Plan de deduplicacion global (1 sample = 1 existencia)
-- `App/docs/plan-samples-metadata.md` -- Plan Sample Discovery & Metadata Engine (scraping + extraccion audio + whosampled data)
+**Producto & Features:**
+- `App/docs/algoritmo.md` -- Algoritmo de descubrimiento (6 senales, embeddings 128d, auditorias v1-v4)
+- `App/docs/moderacion.md` -- Sistema de moderacion IA (4 capas, escalado sanciones)
+- `App/docs/monetizacion.md` -- Modelo de monetizacion (freemium, Stripe, revenue share)
+- `App/docs/plan-samples-metadata.md` -- Sample Discovery & Metadata Engine (scraping + extraccion audio)
+- `App/docs/plan-seo.md` -- Plan SEO dinamico (RuntimeSeoData, JSON-LD, sitemaps)
+- `App/docs/plan-notificaciones.md` -- Sistema notificaciones (5 canales, push, WebSocket)
+- `App/docs/plan-legal-contribuciones.md` -- Plan legal/contribuciones (DMCA, moderacion L1-L7)
+
+**Infraestructura & Deploy:**
+- `App/docs/plan-websocket.md` -- WebSocket Bun standalone (chat/notif, Traefik SSL)
+- `App/docs/plan-desktop-distribucion.md` -- Distribucion desktop (exe/MSI/NSIS, auto-updates)
+- `App/docs/plan-android.md` -- Plan Android Tauri v2 (4 fases, scaffolding a nativo)
+
+**Sync & Desktop:**
+- `App/docs/plan-sync-optimizacion.md` -- Optimizacion sync (delta, indices, cache)
+- `App/docs/plan-sync-mejoras-v3.md` -- Auditoria seguridad sync v3
+- `App/docs/auditoria-sync-desktop.md` -- Auditoria sync desktop Tauri (race conditions, bidireccional)
+
+**DAW / Mezclador:**
+- `App/docs/plan-daw-channelrack-mixer.md` -- Channel Rack + Mixer (20 pistas, insert mixer)
+- `App/docs/plan-piano-roll.md` -- Piano Roll (patterns, velocidad, BPM sync)
+- `App/docs/analisis-daw-recursos.md` -- Analisis recursos DAW (RAM/CPU, Tauri)
+
+**Auditorias & Investigacion:**
+- `App/solid-seguridad-optimizacion.md` -- SOLID, seguridad y optimizacion (S01-S43)
+- `App/docs/auditoria-cola-ia.md` -- Auditoria Cola IA (bugs, polling, reintentos)
+- `App/docs/auditoria-extraccion-audio.md` -- Auditoria pipeline extraccion audio
+- `App/docs/auditoria-seguridad-audio.md` -- Auditoria seguridad audio (cuotas, MIME)
+- `App/docs/auditoria-scraper-whosampled-bandwidth.md` -- Auditoria scraper WhoSampled
+- `App/docs/investigacion-fuentes-audio.md` -- Investigacion fuentes audio v2 (SoundCloud, fallbacks)
+- `App/docs/investigacion-youtube-descarga-2026.md` -- Investigacion YouTube descarga 2026
+- `App/investigacion-s-youtube.md` -- Analisis arquitectonico YouTube 2026 (InnerTube, SABR)
+
+**Coolify Manager RS:**
+- `.agent/coolify-manager-rs/README.md` -- Documentacion principal
+- `.agent/coolify-manager-rs/plan-cm.md` -- Plan detallado (11 fases)
+- `.agent/coolify-manager-rs/GUI-WINDOWS-EVAL.md` -- Evaluacion GUI Windows (Tauri)
+- `.agent/coolify-manager-rs/MCP-VSCODE.md` -- MCP VS Code setup
+- `.agent/coolify-manager-rs/TESTING-OFFLINE.md` -- Testing offline (mocks, harness)
+
+**Glory Framework:**
+- `Glory/readme.md` -- Quick start y arquitectura
+- `Glory/docs/index.md` -- Indice documentacion (PHP, CLI, API, guias)
 
 ---
 
@@ -38,328 +72,58 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 4. Compactar secciones completadas cuando superen 10 items detallados
 
 
-## Tareas QK — Estado actual
+## Tareas QK -- Estado actual
 
-> QK1-QK53, QK55, QK61, QK62 completadas. Ver `docs/roadmap/completado.md` (seccion "Sprint QK").
+> **QK1-QK105** completadas. Detalle en `docs/roadmap/completado.md` (secciones "Sprint QK" y "Sprint QK-II").
+> **QK12/QK37** Plan Android en `App/docs/plan-android.md`. **QK18/QK22** Rediseno musica Spotify. **QK68** WebSocket real-time.
 
-### Completadas recientemente (verificadas en commits)
-- ✅ QK45: Fix generar-siguiente 400 (f805493f)
-- ✅ QK46: Reestructurar panel admin (cc28c58c)
-- ✅ QK47+QK48: Auditoria ban + cron limpieza moderacion (04e72017)
-- ✅ QK49: Tabla completa cola IA (f04be9b9)
-- ✅ QK50: Waveform en duplicados + SelectorMenu nowrap (6d1c9b02)
-- ✅ QK51: Grid procesos mayor altura (4a16c57f)
-- ✅ QK52: Filtros columna + sort en cola extraccion (924a8016)
-- ✅ QK53: Dedup extracciones + unificador retroactivo + migracion v051 (f3cf2512)
-- ✅ QK55: Feed refresh cada 5min + visibility change (6f600087)
-- ✅ QK61+QK62: Fix condicion extender recorte (tieneAudioCompleto) + dedup suma relaciones (813d4b06)
-- ✅ [AG-ADM] QK54: Tooltip global — sistema reutilizable en todas las islas
-- ✅ [AG-ADM] QK56: Persistir tabs/sort — URL params + PageRenderer keep-alive
-- ✅ [AG-ADM] QK57: PHP memory_limit → 1G en deploy config (domain/mod.rs)
-- ✅ [AG-ADM] QK58: Chat polling 5s — mensajes actualizan sin WebSocket, smart diff (length + lastId)
-- ✅ [AG-ADM] QK59: Fix extender recorte — audioHash cache bust en waveform, boton restaurar, guardar timing original en metadata
-- ✅ [AG-ADM] QK60: Solicitudes→Principal al responder — columna `aceptada` en conversaciones + migracion v052 + frontend optimistic update
-- ✅ [AG-ADM] QK64: Fix toFixed admin — Number() coercion en todos los formatters (4 archivos, 8 llamadas)
-- ✅ [AG-ADM] QK65: Counter feed inicio — useState(null) para evitar flash "0 samples", render condicional
-- ✅ [AG-ADM] QK66: Admin tables — estados dinámicos con conteo del backend, fix intentos (incrementa en descargando, no en completado/error), artista/titulo parseado de URL en tabla scraper
-- ✅ [AG-ADM] QK67: Fix sugerencias coleccion — usaba URL id (null en slugs), ahora usa coleccion?.id + params page/per_page
-- ✅ [AG-ADM] QK69: Auditoria descarga ZIP — flock, MAX_SAMPLES_ZIP=500, MAX_ZIP_BYTES=2GB, realpath, cron limpieza diaria
-- ✅ [AG-ADM] QK70: Fix samples desaparecen en coleccion — added `activa` a deps de fetch, guard !activa, error handling
-- ✅ [AG-ADM] QK71: Tags EN — bpmUtils EN categories, tagUtils blacklist+synonyms expandido, SamplesRepository excluye tags_es de display
-- ✅ [AG-ADM] QK72: Contexto IA recortes — PipelineAudio pasa metadataExtraccion a ServicioIA, prompt incluye cancion/artista/tipo
-- ✅ [AG-ADM] QK73: Timeline reproductor — ocultar reproductorProgreso, borde superior 3px acento, tiempo compacto
-- ✅ [AG-ADM] QK74: Fix "Cargando samples" — lazy useState desde localStorage, stale-while-revalidate instantaneo
+## Tareas QL -- Coolify Manager RS + Mantenimiento
+
+> **QL1-QL4** completadas. Detalle en `docs/roadmap/completado.md` (seccion "Coolify Manager RS: QL1-QL4").
 
 ### Pendientes
 
-## QK12/QK37 — Plan Android (Tauri/WebView)
+## QL5 
 
-✅ [AG-ADM] Plan detallado creado en `App/docs/plan-android.md`. Cubre 4 fases: scaffolding → app base → sync/offline → nativo. Decisión: Tauri v2 Android (no Capacitor) — reutiliza 85-90% del código React + 70% Rust. Incluye: compatibilidad plugins, adaptaciones FS, pull-only sync, Google Play Billing, FCM push, deep linking, background audio.
+✅ [AG-GUI] Compactado:
+- roadmap.md: 460→155 lineas. QK67-QK105 y QL1-QL4 movidos a completado.md (secciones "Sprint QK-II" y "Coolify Manager RS: QL1-QL4").
+- Indice de docs reorganizado por categoria (7 categorias, 27 archivos documentados).
+- Lecciones de despliegue compactadas en roadmap.md (17→12 bullet points).
+- Consolidacion sugerida: plan-sync-mejoras v1/v2/v3 → referencia-sync.md (historicos). PLAN_* de code-sentinel → ROADMAP-SENTINEL.md unico.
 
-## QK18/QK22 — Rediseno pagina musica estilo Spotify
+## QL6
 
-✅ [AG-WRK] Rediseño completo pagina música estilo Spotify:
-- **Backend:** Nuevo endpoint `GET /canciones/secciones?por_seccion=15`. CancionesRepository refactorizado: `buildSelectBase()`, `buildReaccionExpr()`, `buildSampleAdjuntoExpr()` extraídos (DRY). Nuevo método `secciones()` con cross-section dedup via PG array (`NOT (c.id = ANY(:ids::int[]))`). Secciones: para_ti (heurística), tendencia (likes), top (sampleada), géneros populares (HAVING COUNT >= 5), artistas top. CancionesController: ruta registrada ANTES del catch-all slug.
-- **Frontend:** ExplorarCancionesIsland reescrita (175→20 líneas): renderiza SeccionesMusica (browse) o BusquedaCanciones (search). Nuevos componentes: SeccionHorizontal (scroll horizontal genérico), TarjetaCancionGrande (portada grande con overlay play), TarjetaArtista (circular), SeccionesMusica (orquestador secciones), BusquedaCanciones (lista extraída). Hook useSeccionesCanciones (fetch + like optimista cross-sección). Utilidad construirSampleDesdeCancion (DRY, usada en 2 componentes).
-- **CSS:** seccionHorizontal.css, tarjetaCancionGrande.css, musicaExplorar.css — todas variables verificadas.
-- [Arq]: Composición > herencia. SeccionHorizontal acepta children (OCP). BusquedaCanciones reutiliza TarjetaCancionFeed existente.
-- [Gotcha]: Ruta `/canciones/secciones` DEBE registrarse antes de `/canciones/(?P<slug>...)` para evitar colisión.
+✅ [AG-AUD] Completado:
+- README actualizado: arquitectura dual lib+bin+GUI, 26 MCP tools, 61 tests, failover CLI, deploy-websocket CLI.
+- Auditoria de despliegue completa (10 areas):
+  - Deploy+Rollback: OK (rollback no validaba exito, estable por diseno).
+  - Backup: OK (SHA256, Drive upload, retencion).
+  - Restore: OK (pre-restore snapshot, dual validation).
+  - Failover: **Corregido** -- polling reemplaza sleep(30s) hardcodeado, health check ahora retorna error si falla.
+  - Health: OK (HTTP, app probe, fatal log detect).
+  - Migrate: OK (preflight completo, validaciones).
+  - **Redeploy: Bug corregido** -- health check post-redeploy retornaba Ok() incluso si el sitio estaba unhealthy. Ahora propaga error.
+  - Config: OK (expansion ${VAR}, resolucion paths).
+- Archivos corregidos: `redeploy.rs` (health check propaga error), `failover.rs` (polling containers + health error), `docker.rs` (nueva fn `wait_for_stack_container` con polling+timeout).
+- 61/61 tests pasan.
 
-## QK67
+## QL7
 
-✅ [AG-ADM] Fix sugerencias coleccion — usaba URL id (null para slug URLs), ahora usa coleccion?.id + params page/per_page match
+Hay un problema con el scroll del feed inicio, no cargan mas samples cuando claramente hay mas, cargan despues de al rato como si se bloquera, no se si necesita optimizacion, no creo que sea el sistema de que pausar el scroll cuando baja muy rapido aunque eso tambien se puede revisar, la cosa es que de repente tarda mucho en cargar la siguiente pagina, y eso esta mal, escenario: el feed de inicio de samples
 
-## QK68
+## QL8
 
-✅ [AG-ADM] WebSocket real-time para chat y notificaciones. Implementado: servidor Bun WS (`websocket-server/server.ts`) con HMAC ticket auth, `NotificadorWebSocket.php` (bridge PHP→Bun), `WsController.php` (endpoint `/ws/ticket`), `wsService.ts` actualizado con ticket auth, `useWebSocket.ts` reescrito con ciclo de vida auth, polling adaptativo (5s sin WS / 30s con WS), listeners WS en `useVentanaChat` y `useTopBar`. Plan completo en `App/docs/plan-websocket.md`. ✅ Deploy completado en QK98.
+En la pagina de musica, la lista de canciones no tienen scroll horizontal, espero que esta parte de la pagina tenga paginacion horizontal y falta algo como una flecha para pasar a los siguientes y poder retroceder cuando se pueda. Creo que se puede agregar mas secciones basandose en los generos, y los artistas no tienen imagen de perfil, investiga una api o alguna forma de obtener imagen de todos los artistas.
 
-## QK69
+## QL9
 
-✅ [AG-ADM] Auditoria descarga ZIP — flock, MAX_SAMPLES_ZIP=500, MAX_ZIP_BYTES=2GB, realpath, cron limpieza
+✅ [AG-GUI] Respondido:
+- **APK:** Existe en `desktop/src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk` (14.91 MB, arm64, unsigned). Para firmar: generar keystore con `keytool -genkey -v -keystore kamples.keystore -alias kamples -keyalg RSA -keysize 2048 -validity 10000` y luego `apksigner sign`.
+- **Desktop:** No hay ejecutable construido aún. Para construirlo: `cd desktop && npm ci && npm run tauri:build`. O push tag: `git tag desktop-v0.1.0 && git push origin desktop-v0.1.0` para que CI genere instaladores (Windows .exe, macOS .dmg, Linux .AppImage).
+- **CI:** Workflow en `.github/workflows/release-desktop.yml` con `workflow_dispatch` manual o trigger por tag `desktop-v*`.
 
-## QK70
 
-✅ [AG-ADM] Fix samples desaparecen en coleccion — added `activa` a deps, guard !activa, error handling
-
-## QK71
-
-✅ [AG-ADM] Tags EN — bpmUtils EN, tagUtils blacklist+synonyms, SamplesRepository excluye tags_es de display
-
-## QK72
-
-✅ [AG-ADM] Contexto IA recortes — PipelineAudio pasa metadataExtraccion a ServicioIA, prompt incluye cancion/artista/tipo
-
-## QK73
-
-✅ [AG-ADM] Timeline reproductor — borde superior 3px acento, tiempo compacto
-
-## QK74
-
-✅ [AG-ADM] Fix "Cargando samples" — lazy useState desde localStorage, stale-while-revalidate instantaneo
- 
-## QK75
-
-✅ [AG-ADM] Auditoría búsqueda — 14 índices GIN (FTS + pg_trgm + array + subqueries), WHERE filter con to_tsvector @@ plainto_tsquery, split tsvector en CancionesRepository. Migración v053.
-
-## QK76
-
-✅ [AG-ADM] Skeleton carga — SkeletonTarjetaSample reemplaza texto "Cargando más samples", BotonBase para cargar manualmente.
-
-## QK77
-
-✅ [AG-ADM] Auth desktop localStorage fallback — dual persistence (Tauri Store + localStorage), resync automático, módulo authDesktopEventos extraído.
-
-## QK78
-
-✅ [AG-ADM] Cola IA MAX_INTENTOS=30 + backoff exponencial (15→30→60→120min cap). Migración v054 reactiva items existentes.
-
-## QK79
-
-✅ [AG-ADM] Auditoría cola IA resilencia — confirmado: comentarios y publicaciones YA usan la cola. Backoff exponencial + MAX_INTENTOS=30 cubre escenario de rate limits prolongados.
-
-## QK77-A
-
-✅ [AG-ADM] Auth desktop fix — window global persistence (`__KAMPLES_AUTH_PERSIST__`), pre-React /me call, diagnostic logging, write verification. Eliminó import dinámico @vite-ignore que fallaba silenciosamente.
-
-## QK80
-
-✅ [AG-ADM] Auditoría resilencia IA — Sistema ya contaba con: cola con dedup, backoff exponencial (15→120min cap), max 30 reintentos, 6 modelos Groq en cascada, panel admin (ColaIaController) con stats/retry/force-process. **Gap crítico encontrado:** sin proveedor alternativo si Groq cae completamente. **Fix:** OpenAI gpt-4o-mini como fallback final en ServicioIA (analizarAudio + corregirMetadata). Activar con `OPENAI_API_KEY` en .env. Refactor SRP: prompts extraídos a `PromptsIA.php`, HTTP OpenAI a `OpenAIHttpClient.php`. ProcesadorColaIA ahora logea items omitidos por rate limit y alerta si hay ERROR_FINAL acumulados.
-
-## QK81
-
-✅ [AG-ADM] Fix batch size scraper — **Causa raíz:** `extractor/pipeline.py` tenía `default=100` correcto, pero `run_extraction.sh` y `cron_runner.py` pasaban `--limit 20` hardcodeado, sobrescribiendo el default. Los cambios al pipeline nunca se reflejaban porque el argumento explícito tiene prioridad.
-- **Fix:** Reemplazado hardcoded 20 → env var `KAMPLES_BATCH_LIMIT` (default 100) en `run_extraction.sh` y `cron_runner.py`.
-- **Backup VPS:** No se puede obtener via SSH desde este entorno. El usuario debe hacer `ssh VPS "cat /ruta/scripts/run_extraction.sh"` manualmente si quiere comparar. Git tiene la versión previa en el commit anterior.
-- [Gotcha]: Los scripts caller (`run_extraction.sh`, `cron_runner.py`) pueden sobrescribir defaults del pipeline si pasan `--limit` explícitamente. Siempre verificar TODA la cadena de invocación.
-
-## QK82
-
-✅ [AG-ADM] Auto-run migraciones locales. Creado `MigradorLocal.php` en `App/Kamples/Database/` — detecta migraciones SQL pendientes comparando archivos `v*.sql` del directorio `migrations/` contra tabla `_migraciones_ejecutadas`. Se ejecuta automáticamente desde `KamplesInit::init()` solo en entorno local (WP_DEBUG o env LOCAL=true). Usa transient de 5 min para evitar overhead en cada request. Maneja errores idempotentes (already exists) como éxito. Excluye variantes alternativas de v001 (schema base de setup inicial).
-- [Arq]: `__DIR__/migrations` desde `Database/MigradorLocal.php` apunta correctamente al directorio de migraciones.
-- [Gotcha]: `v001_local_sin_pgvector.sql` y `v001_schema_inicial.sql` están excluidos — son alternativas al `v001_schema_base.sql` que ya se ejecutó en setup.
- 
-## QK83
-
-✅ [AG-ADM] Búsqueda feed server-side FTS. **Causa raíz:** `obtenerFeed` no pasaba `busqueda` al backend; `useFeedFiltros` filtraba client-side con `String.includes()` sobre samples cargados → 50+ roundtrips para encontrar un match. **Fix:** backend `/feed` acepta `busqueda` param con FTS (GIN indexes QK75: `to_tsvector @@ plainto_tsquery` + ILIKE + tags UNNEST), relevancia ts_rank, debounce 350ms en InicioIsland, eliminado filtro client-side.
-
-## QK87
-
-✅ [AG-ADM] Corregido por QK83 — el sort no se actualizaba cuando había búsqueda activa porque el filtro client-side producía los mismos resultados sin importar el ordenamiento enviado al backend. Ahora `busquedaDebounced` está en `claveCache` y deps del proveedor, lo que garantiza refetch al cambiar sort con búsqueda activa.
-
-## QK84
-
-✅ [AG-ADM] Fix 133 errores TS en Desktop — path mappings en tsconfig (react, lucide-react, zustand, soundtouchjs), unificó GloryContext con campos opcionales desktop, eliminó declaraciones conflictivas global.d.ts, RUTAS_DESKTOP compatible con GloryRouteConfig.
-
-## QK77-B
-
-✅ [AG-ADM] Fix sync desktop — 3 problemas corregidos:
-- **401 en colecciones:** Añadido `tieneTokenSync()` guard en `obtenerColeccionesDelServidor()` para no hacer requests sin auth (evita 401 ruidoso en consola).
-- **Perfil no actualiza tras login:** `VentanaSincPanel` ahora suscribe a `authStore.usuario.id` como dependencia del useEffect de perfil. Cuando `manejarLoginExterno()` actualiza authStore, el perfil se re-lee inmediatamente (primero de authStore, fallback a Tauri Store).
-- **Carpeta sync no se desvincula al logout:** `cerrarSesionDesktop()` y `manejarLogoutExterno()` ahora limpian `config.carpetaLocal`, `sincronizacionActiva` y `ultimaSync` y persisten cambios. El próximo login requiere elegir carpeta nueva.
-- [Arq]: tieneTokenSync() exportada desde syncGuards.ts — reutilizable por cualquier módulo sync.
-
-## QK85
-
-✅ [AG-WRK] Verificado: `detalleDescripcionInterna` ya usa `descripcion_corta` (EN) con fallback a `descripcion_corta_es` (ES). PromptsIA genera ambas versiones (`descripcion_corta` EN 10-15 palabras + `descripcion_corta_es` ES). ProcesadorColaIA las almacena en metadata JSONB. SampleDetalleIsland.tsx lee con prioridad EN→ES. Tipos TypeScript incluyen ambos campos.
-
-## QK86 
-
-✅ [AG-WRK] Push Notifications — Infraestructura VAPID self-hosted (sin Firebase):
-- **Backend completo:** Schema + migración v056 (push_subscriptions), Repository (upsert/desregistrar/cleanup), Service VAPID (batch send, 410 cleanup, graceful degradation), Controller REST (GET vapid-key, POST subscribe/unsubscribe)
-- **Integración:** ServicioNotificaciones dispatch push después de WebSocket. Service Worker (sw-push.js) servido desde raíz vía template_redirect en KamplesInit.
-- **Frontend:** apiPush.ts (API service), usePushNotifications.ts (hook con suscripción/permiso/plataforma), registrarServiceWorker.ts (registro automático al cargar app).
-- **Producción:** VAPID keys generadas y configuradas como env vars en Coolify (KAMPLES_VAPID_PUBLIC_KEY, KAMPLES_VAPID_PRIVATE_KEY, KAMPLES_VAPID_SUBJECT). API `/push/vapid-key` funcional. SW sirviéndose en `https://kamples.com/sw-push.js`.
-- **Dependencia:** minishlink/web-push ^10.0.3 (Guzzle, JWT library, PSR packages).
-- **Pendiente:** UI para activar push en ModalConfiguracion (usar usePushNotifications hook). Android scaffolding (Tauri v2). Cron para limpiar suscripciones inactivas.
-- [Arq]: Push dispatch es no-bloqueante — si VAPID no configurado, todo es no-op. 410/404 marcan suscripción como inactiva.
-- [Gotcha]: Coolify API actualiza compose en DB pero NO en disco. Para env vars persistentes, editar `/data/coolify/services/{uuid}/docker-compose.yml` + force-recreate.
-- [Gotcha]: TypeScript strict: `Uint8Array<ArrayBufferLike>` no asignable a `BufferSource`. Solución: crear con `new ArrayBuffer()` explícito → `Uint8Array<ArrayBuffer>`.
-
-## QK88
-
-✅ [AG-ADM] Auditoría distribución seed — **operaciones core seguras** (solo tocan registros sin contribuidor real, con `creador_id = sistemaId`). **Brechas encontradas y corregidas:** perfiles seed visibles en API pública (`buscarPerfilPublico`), búsqueda rápida (`buscarUsuarios`), y listas de seguidores (`listarSeguidores`). Fix: añadido `AND es_seed = false` en las 3 queries. SEO protegido automáticamente por herencia. Samples de seed users en feed es intencional (contenido real scrapeado).
-
-## QK89
-
-✅ [AG-ADM] Username/email/password change 100% frontend:
-- **Username**: Añadida validación de duplicado en `actualizarPerfil` — verifica `username_exists()` (WP) + `existeUsername()` (PG) excluyendo al propio usuario. Retorna 409 si ya existe.
-- **Email**: Nuevo endpoint `PUT /me/email` — requiere contraseña actual, valida formato, verifica duplicado, actualiza WP + PG. Rate limit 5/hora.
-- **Password**: Nuevo endpoint `PUT /me/password` — requiere contraseña actual + nueva + confirmación, valida longitud, regenera cookies auth. Rate limit 5/hora.
-- **Frontend**: Sección "Cuenta" de ModalConfiguracion reimplementada con formularios inline (toggle abrir/cerrar), toast feedback, estados dedicados en `useModalConfiguracion`.
-- **Bug fix**: `bio` no se sincronizaba al abrir modal (faltaba en useEffect).
-
-## QK90
-
-✅ [AG-ADM] SEO revision — Plan en `plan-seo.md` ya estaba ~95% implementado (DynamicSeoResolver, RuntimeSeoData, MusicRecording JSON-LD, og:audio, sitemaps, SEO defaults). Correcciones aplicadas:
-- **robots.txt:** Añadido filtro `robots_txt` en `seo.php` con Disallow para rutas privadas/admin y referencia a sitemap.
-- **SEO defaults faltantes:** Agregados `musica` (indexable, title+desc ricos), `explorador` (indexable), `notificaciones` (noindex).
-- [Arq]: Toda la infra SEO (resolvers dinámicos, JSON-LD, sitemaps, OG audio) ya existía correctamente.
-
-## QK91
-
-✅ [AG-ADM] BusquedaRapida dropdown: width 450px centrado (left 50% + translateX(-50%)), gap 6px en info, fade mask-image en texto sampleo largo (sin max-width), .slice(0,3) en las 4 secciones (canciones/samples/sampleos/usuarios). Override móvil actualizado con resets explícitos (left: auto, transform: none, width: 100%).
-
-## QK92
-
-✅ [AG-ADM] Desktop music page 404 local — Faltaba la ruta `/musica/` en `RUTAS_DESKTOP` de `desktop/src/main.tsx`. En producción funciona porque PHP genera las rutas dinámicamente via `PageManager::reactPage()`, pero en desktop las rutas son estáticas. Agregada `'/musica/': { island: 'ExplorarCancionesIsland', props: {}, title: 'Música' }`.
-- [Gotcha]: Toda nueva página registrada en `pages.php` necesita agregarse manualmente a `RUTAS_DESKTOP` para que funcione en desktop.
-
-## Qk93
-
-✅ [AG-ADM] Deploy WebSocket container — Infraestructura completa para desplegar el servidor Bun WS como servicio Docker en Coolify:
-- **Docker-compose template** (`kamples-stack.yaml`): Nuevo servicio `websocket` con build inline (Bun + fetch server.ts de GitHub), healthcheck, env vars (secrets + `SERVICE_FQDN_WEBSOCKET` para Traefik/SSL automático).
-- **WordPress env vars**: `KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL=http://websocket:8080/notify` (red Docker interna), `KAMPLES_WS_PUBLIC_URL=wss://ws.{domain}`.
-- **template_engine.rs**: `kamples_vars()` ahora genera WS secrets (32 chars), deriva `WS_DOMAIN` y `WS_PUBLIC_URL` del dominio, acepta `glory_branch` para la URL de GitHub en el Dockerfile.
-- **CLI**: Nuevo comando `deploy-websocket --name kamples` — lee compose actual del stack via Coolify API, inyecta servicio WS + env vars, actualiza compose, reinicia stack.
-- **coolify_api.rs**: Nuevo método `update_stack_compose()` (PATCH `/api/v1/services/{uuid}` con base64).
-- **docker.rs**: Nuevo `find_websocket_container()` para localizar el contenedor Bun por stack UUID.
-- **theme_manager.rs**: `update_glory_theme()` ahora llama `update_websocket_server()` — copia server.ts actualizado del WP container al WS container y reinicia.
-- **Pendiente usuario**: (1) Crear DNS A record `ws.kamples.com` → VPS IP. (2) Recompilar Rust binary (`cargo build --release`). (3) Ejecutar `deploy-websocket --name kamples`. (4) Verificar SSL con `openssl s_client -connect IP:443 -servername ws.kamples.com`.
-- [Arq]: WS service usa red Docker interna para comunicación PHP→WS (POST /notify). Traefik maneja SSL/WSS para clientes externos.
-- [Gotcha]: El Dockerfile del WS container descarga server.ts de GitHub raw (branch dinámico). Para updates de código, `deploy --update` copia server.ts del WP container al WS container y reinicia. No requiere rebuild de imagen.
-
-## QK94
-
-✅ [AG-ADM] Auditoría seguridad + optimización general — Escaneo de 17 hallazgos (CRITICOS/HIGH/MEDIUM/LOW):
-- **Resultado general:** Positivo. Schema constants en SQL, prepared statements, AuthMiddleware, SSL verification en curl externo (OpenAI, Groq, ColaIa).
-- **Fix 1:** `ContribucionesService.php` — `json_decode()` sin validación de error. Añadido `json_last_error()` check + KamplesLogger warning.
-- **Fix 2:** `SamplesRepository.php` — 5 catch blocks vacíos (`/* best-effort */`). Añadido `KamplesLogger::debug()` a cada uno para visibilidad diagnóstica.
-- **False alarm SSL:** `NotificadorWebSocket` no tiene SSL verify, pero es HTTP interno Docker (red interna, no HTTPS) — por diseño.
-- [Arq]: Los import de `KamplesLogger` se añadieron donde faltaban.
-
-## QK95 Importante
-
-✅ [AG-WRK] Resuelto por QK83 — La búsqueda ahora es server-side FTS. `busquedaDebounced` incluido en `claveCache` y deps del `proveedor` (InicioIsland.tsx), lo que garantiza refetch completo de la lista al cambiar query. Tanto el contador como la lista de samples se actualizan juntos.
-
-## QK96
-
-✅ [AG-ADM] Fix error crítico — PHP Fatal: `'\self' is an invalid class name` en `PromptsIA.php` línea 78. **Causa raíz:** Sintaxis `{${\self::INSTRUCCIONES_CAMPOS_JSON}}` dentro de heredoc PHP — `\self` se interpreta como nombre FQN de clase, pero `self` es keyword y no se puede prefijar con `\`. **Fix:** Asignar constante a variable local `$campos = self::INSTRUCCIONES_CAMPOS_JSON` antes del heredoc (mismo patrón ya usado en `construirCorreccion()` línea 108). Fixes adicionales en el mismo commit: `PostgresService` catch `\Throwable` (no solo `PDOException`), `MigradorLocal.esEntornoLocal()` solo usa env `LOCAL=true` (no WP_DEBUG), `pg_matviews` en whitelist, migración v055 columnas faltantes.
-- [Gotcha]: PHP heredoc interpreta `{${\Class::CONST}}` intentando crear instancia de la clase. Para constantes de clase en heredoc, asignar a variable primero.
-- [Gotcha]: `MigradorLocal` usaba `WP_DEBUG` como indicador de entorno local — en producción con `WP_DEBUG=true` ejecutaba migraciones en cada request (transient de 5min). Cambiar a env var explícita `LOCAL=true`.
-
-## QK97
-
-✅ [AG-WRK] Ya implementado completamente:
-- **Tipo:** `borrarAlSubirExitoso: boolean` en `SyncConfigAvanzada` (default false).
-- **UI:** Checkbox en `ConfiguracionSync.tsx` — "Borrar archivo local después de subir exitosamente".
-- **Hook:** `setBorrarAlSubirExitoso()` en `useConfiguracionSync.ts`, persiste via Tauri Store key `sync_config_avanzada`.
-- **Lógica:** `uploadQueueService.ts` L717 — tras upload exitoso, si flag activo, borra via `@tauri-apps/plugin-fs` remove. Ejecuta DESPUÉS de registrar hash y tracking (seguro). Fallo de borrado no afecta estado del upload (try-catch, solo warn en log).
-
-## QK98
-
-✅ [AG-WRK] Deploy WebSocket produccion completado:
-- Contenedor standalone `kamples-websocket` (oven/bun:latest) en red `mo4so4440c488g8woow4cow0`
-- Traefik SSL/WSS auto en `wss://ws.kamples.com` (certresolver letsencrypt)
-- Health: `https://ws.kamples.com/health` → 200 `{"ok":true}`
-- Env vars WordPress: `KAMPLES_WS_INTERNAL_SECRET`, `KAMPLES_WS_TICKET_SECRET`, `KAMPLES_WS_NOTIFY_URL=http://kamples-websocket:8080/notify`, `KAMPLES_WS_PUBLIC_URL=wss://ws.kamples.com`
-- Server.ts en `/opt/kamples-ws/server.ts` (volumen read-only)
-- [Gotcha]: No usar `deploy-websocket` CLI — Coolify API sobrescribe compose. Contenedor standalone con `docker run` + labels Traefik es mas fiable.
-- [Gotcha]: PowerShell→SSH pierde backticks en labels Traefik (`Host(\`dom\`)`). Usar SCP-script (.sh) para deploy con labels.
-
-## QK99 
-
-✅ [AG-WRK] Heart glow para "me encanta" — `filter: drop-shadow(0 0 3px var(--error))` en `.reaccionPrincipalEncanta` (accionesPost.css). Aplica en todos los contextos (TarjetaSample, BarraAccionesPost, BotonLike, SampleDetalleAcciones) porque ningún selector de mayor especificidad sobreescribe `filter`. Brillo rojo sutil, distingue visualmente encanta de like normal.
-
-## QK100
-
-✅ [AG-WRK] Fix carga feed stale-while-revalidate real:
-- **Causa raíz:** `leerCacheFeed()` eliminaba datos del localStorage cuando el TTL (5 min) expiraba, retornando `null`. Esto causaba que `cargando=true` y el usuario veía "Cargando samples..." por toda la duración del fetch de red.
-- **Fix:** TTL de 5 min ahora solo señala "necesita revalidación en background", NUNCA borra datos. Datos solo se limpian si no se usan en 7 días (TTL_MAXIMO_MS). Nueva función `esCacheStale()` exportada para chequeos futuros.
-- **Resultado:** El usuario SIEMPRE ve datos cacheados inmediatamente (stale o fresh). "Cargando samples..." solo aparece en la primera visita absoluta sin cache.
-- Archivos: `cacheFeedPersistente.ts`, `useFeedSamples.ts`
-- [Gotcha]: El TTL original con `localStorage.removeItem()` rompía el patrón SWR. El SWR solo funciona si hay datos stale disponibles. Separar "cuándo revalidar" de "cuándo borrar" es clave.
-
-## QK101
-
-✅ [AG-WRK] UI fixes mobile/desktop — Commit `e5f618af`:
-- **Chat móvil fullscreen:** chatFlotanteContenedor cubre 100% pantalla (inset: 0, flex-direction: column, sin padding/border/shadow/radius).
-- **Sidebar reorder:** Items reordenados (Comunidad, Inicio centrado, Música, Librería, Coleccionados). Removidos favoritos y admin panel de sidebar, justify-content: center en sidebarNav.
-- **Hamburguesa menu:** Favoritos (Heart) y Admin Panel (ShieldCheck, condicional esAdmin) movidos al menú hamburguesa en TopBar.
-- **FilaColecciones:** MAX_COLECCIONES 8→20.
-- **Mobile fixes:** listaDeSamples sin borde, tarjetaSample padding-right: 0, tarjetaAcciones gap→lg, modal configuración flex-direction column con overflow-y.
-- **Pendiente QK101 (items restantes):** padding-left: 4px en tarjetaSample y areaTopbar, libreriaGridColecciones 2 columnas, coleccionHeader 100% width, botonVolver 0 padding, selectFiltroMenu/selectorBPMMenu overflow fix, desactivar text-selection móvil, reproductorBtn padding !important + gap móvil, desactivar mezclador móvil, detalleTarjetaSuperior flex-direction column, detallePortadaLateral max-width 100%.
-- [Arq]: Imports limpiados en Sidebar (Heart, ShieldCheck, useAuthStore removidos).
-
-## QK101-B
-
-✅ [AG-WRK] Mobile remaining fixes — Commit `240fade8`:
-- padding-left: 4px en tarjetaSample y areaTopbar (mobile)
-- libreriaGridColecciones: grid 2 columnas (mobile)
-- coleccionHeader: width 100% (mobile)
-- botonVolver: padding 0 (general)
-- selectFiltroMenu/selectorBPMMenu: right-align + max-width 100vw evita overflow (mobile)
-- Desactivacion text-selection en body (mobile) con excepcion para inputs/textareas
-- reproductorBtn: padding 0 !important (general) + gap sm en controles (mobile)
-- Mezclador ya oculto en mobile (topbar.css existente: `.topbarBtnMezclador { display: none }`)
-- detalleTarjetaSuperior: flex-direction column (mobile) + detallePortadaLateral max-width 100%
-
-## QK102
-
-✅ [AG-WRK] Reproductor: botón cerrar (X) + fix visual aleatorio:
-- **Botón cerrar:** Añadido `<X>` al final del reproductor que llama `cerrar()` del store (limpia sampleActual, detiene reproducción). Hover rojo como indicador destructivo.
-- **Fix aleatorio:** `reproductorBtnActivo` usaba `--acentoTexto` (color de texto sobre fondo acento, poco visible). Cambiado a `--acento` para contraste claro activado/desactivado.
-- Archivos: ReproductorGlobal.tsx, useReproductorGlobal.ts, reproductorGlobal.css.
-
-## QK103 
-
-✅ [AG-WRK] CI release + Android APK build local completado:
-- **Workflow CI:** `release-desktop.yml` con jobs Desktop + Android. Trigger: tag `desktop-v*` o `workflow_dispatch`.
-- **Push kamples-sync:** Código completo en `1ndoryu/kamples-sync` branch `main`.
-- **Android APK local:** Build exitoso — `kamples-arm64.apk` (14.91 MB, arm64, release, unsigned).
-- **Entorno Android configurado:** SDK 36, NDK 27.0.12077973, JDK 21 (Android Studio JBR), Rust targets instalados.
-- **Cargo.toml:** Dependencias desktop-only (`drag`, `window-state`, `updater`, `fs2`) condicionalizadas con `cfg(not(target_os = "android"))`.
-- **lib.rs:** Código de tray icon, drag-and-drop, window state gateado con `#[cfg(desktop)]`. Mobile solo registra comandos básicos.
-- **Capabilities:** Separadas en `principal.json` (compartido) + `desktop.json` (updater, window-state, drag con `platforms: ["linux","macOS","windows"]`).
-- **Developer Mode:** Activado en Windows para symlinks (requerido por Tauri Android build).
-- [Gotcha]: Gradle no encuentra npm desde subprocess en Windows. Workaround: correr `gradlew.bat assembleArm64Release -x rustBuildArm64Release` directo después de que Rust compile.
-- [Gotcha]: `rootDirRel` en `app/build.gradle.kts` debe ser `"../../../../"` (no `"../../../"`) para apuntar a `desktop/` donde está `package.json`.
-- [Gotcha]: `phf` crate falla cross-compilando para targets x86/armv7. Build solo para aarch64 funciona. CI workflow ya usa `--target aarch64`.
-- **Para firmar APK:** Necesita keystore. Crear con `keytool -genkey -v -keystore kamples.keystore -alias kamples -keyalg RSA -keysize 2048 -validity 10000`.
-- **Para desktop installer:** Push tag: `git tag desktop-v0.1.0 && git push kamples-sync desktop-v0.1.0`.
-
-## QK104
-
-✅ [AG-WRK] Pagina inicio movil = comunidad + pagina samples separada:
-- **Hook `useEsMovil`:** Nuevo hook reutilizable que detecta breakpoint 768px via `matchMedia`. Sincronizado con media queries CSS.
-- **InicioIsland:** En movil renderiza `ComunidadIsland` en lugar de `FeedUnificado`. Desktop sin cambios.
-- **FeedSamplesIsland:** Nueva isla thin wrapper en `/samples` que reutiliza `FeedUnificado` (exportado de InicioIsland).
-- **Sidebar:** En movil: quita Comunidad (/ ya muestra comunidad), agrega Samples (icono Disc, ruta /samples). Desktop sin cambios.
-- **pages.php:** Registrada ruta `/samples` → `FeedSamplesIsland`.
-- **appIslands.tsx:** Registrada FeedSamplesIsland.
-- **LayoutPrincipal:** Mapeada ruta `/samples` → id `samples` en MAPA_RUTAS.
-- Archivos: useEsMovil.ts, InicioIsland.tsx, FeedSamplesIsland.tsx (nuevo), Sidebar.tsx, pages.php, appIslands.tsx, LayoutPrincipal.tsx.
-
-## QK105
-
-✅ [AG-WRK] Correcciones UI post-QK104 (94b8cb22):
-- Admin panel visible en desktop (botón ShieldCheck al lado del mezclador, hidden en móvil)
-- Sidebar desktop reordenada: Comunidad → Música → Inicio → Librería → Coleccionados (Inicio centrado)
-- Iconos APK generados desde favicon.svg (sharp → mipmap-mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi + icon.png)
-- musicaExplorarContenedor: eliminados max-width/margin auto, añadido padding-right: 0
-- seccionHorizontalScroll: gap escalado a var(--espacioXl)
-- ExplorarCancionesIsland: tab "Música" registrada en TopBar (fix bug tabs vacías)
-- MAPA_RUTAS: añadida entrada '/musica' → 'musica' (fix icono activo en /musica/)
-- dropdownPanelTab: simplificado a flex:1 + display:flex + align-items:center + border-radius:0
+---
 
 ## Despliegue Produccion (VPS Coolify)
 
@@ -372,26 +136,21 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - **React build:** Completado (Vite + prerender, dist/assets + dist/ssg)
 - **Glory submodule:** Commit `d9ef2085` en `main` (fix `registrarRutaDinamica`)
 - **Env vars:** Todas presentes (Stripe, Google OAuth, Groq, DataImpulse, PG)
-- **Pendiente:** `GLORY_STRIPE_WEBHOOK_SECRET` vacio  configurar en Coolify cuando se conecte dominio
-- **Pendiente:** Conectar dominio `kamples.com` en Coolify
+- **Pendiente:** `GLORY_STRIPE_WEBHOOK_SECRET` vacio -- configurar en Coolify cuando se conecte dominio
 - **Lecciones:**
-  - [Submodule]: Glory en servidor estaba en `glory-react` (branch viejo sin `registrarRutaDinamica`). Fix: `git stash` + `git submodule update --init Glory`
-  - [PG18]: Mount en `/var/lib/postgresql` (no `/var/lib/postgresql/data`)  breaking change PG18
+  - [Submodule]: Glory en servidor estaba en `glory-react` (branch viejo). Fix: `git stash` + `git submodule update --init Glory`
+  - [PG18]: Mount en `/var/lib/postgresql` (no `/var/lib/postgresql/data`) -- breaking change PG18
   - [Migraciones]: No hay auto-runner. Ejecutar manualmente con PHP runner base64-encoded
   - [React build]: `npm install` necesario en servidor antes de `npm run build` (soundtouchjs faltaba)
   - [coolify-manager-rs `deploy --update`]: env var del DB es `KAMPLES_PG_DBNAME` (no `KAMPLES_PG_DB`). Fix aplicado.
-  - [OPcache]: Apache/mod_php usa OPcache que cachea PHP bytecode. Despues de un git pull, hacer `service apache2 reload` para limpiar cache. Sin reload, el PHP viejo sigue ejecutandose aunque los archivos cambien.
-  - [bloqueos]: Tabla `bloqueos` creada en QQ25 via Schema System pero sin migracion SQL. Nunca se ejecuto en produccion. Sin esta tabla, todas las queries del feed/comentarios/notificaciones crasheaban silenciosamente (error 42P01). Migracion v043 creada y aplicada.
-  - [diagnostico]: Revisar logs en `App/logs/kamples-YYYY-MM-DD.log` y `App/logs/kamples-algoritmo-YYYY-MM-DD.log` para detectar errores de BD. El error 42P01 (Undefined table) es criticamente grave  mata queries silenciosamente.
-  - [WAV upload]: `$audio['type']` (browser MIME) es NO fiable  varia por OS/browser. Fix: validar por extension + finfo magic bytes RIFF/WAVE como fallback. `audio/x-wav` es lo que devuelve finfo en este servidor Linux (ya en la whitelist).
-  - [OPcache/Docker]: `service apache2 reload` NO limpia OPcache de mod_php. `apachectl graceful` (SIGUSR1) es el comando correcto  reemplaza workers sin matar PID 1 (el contenedor). Ahora se ejecuta automaticamente en cada `deploy --update`.
-  - [npm build logging]: El npm build tardaba ~7s pero no tenia tracing::info!. Ahora muestra "Compilando React..." y "React compilado exitosamente." en los logs del deploy.
-  - [SMTP/Docker]: `sendmail` no existe en el contenedor Docker WP. Usar mu-plugin que configura PHPMailer via SMTP externo. El mu-plugin `00-smtp-config.php` se genera y despliega automaticamente en cada `deploy --update` si existe config `smtp` en `settings.json` del coolify-manager-rs. Proveedor: Brevo (smtp-relay.brevo.com:587, TLS). Credenciales en `coolify-manager-rs/config/settings.json` bloque `smtp`.
-  - [coolify-manager-rs settings.json]: El binario usa `config/settings.json` relativo a donde corre (`.agent/coolify-manager-rs/config/settings.json`), NO el del PowerShell manager (`.agent/coolify-manager/config/settings.json`).
-  - [Traefik labels/dominio]: Cuando se cambia el FQDN en Coolify, el archivo docker-compose en disco (`/data/coolify/services/{uuid}/docker-compose.yml`) se actualiza, pero el contenedor corriendo mantiene las labels antiguas. Para aplicar el nuevo dominio y obtener el certificado SSL, hay que recrear el contenedor: `cd /data/coolify/services/{uuid} && docker compose up -d --no-build --force-recreate wordpress`. Los datos persisten en volumenes Docker.
-  - [SSL Let's Encrypt/Traefik]: Traefik emite el certificado automaticamente al detectar labels `traefik.http.routers.*.tls.certresolver=letsencrypt`. El cert se guarda en `/traefik/acme.json` dentro del contenedor `coolify-proxy`. Verificar emision: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
-  - [DNS VPS interno]: El VPS puede resolver `kamples.com` a una IP diferente (DNS interno del proveedor). No afecta a usuarios externos (Google 8.8.8.8 y Cloudflare 1.1.1.1 resuelven a la IP correcta). Verificar SSL desde el servidor con `openssl s_client -connect {IP}:443 -servername kamples.com`.
-  - [Coolify DB]: Las "applications" de git/imagen estan en tabla `applications`. Los stacks Docker Compose estan en `services` + `service_applications` (con columna `fqdn`). El UUID del stack es `mo4so4440c488g8woow4cow0`, subapp wordpress tiene UUID `ng4kko8k0k4k0cswswos0ooo`.
+  - [OPcache/Docker]: `apachectl graceful` (SIGUSR1) es el comando correcto para limpiar OPcache sin matar PID 1.
+  - [bloqueos]: Tabla `bloqueos` sin migracion SQL causaba error 42P01 silencioso. Migracion v043 aplicada.
+  - [WAV upload]: `$audio['type']` no fiable -- validar por extension + finfo magic bytes RIFF/WAVE.
+  - [SMTP/Docker]: mu-plugin `00-smtp-config.php` auto-generado en deploy si config `smtp` existe. Brevo SMTP.
+  - [settings.json]: Binario usa `.agent/coolify-manager-rs/config/settings.json`, NO el de PowerShell manager.
+  - [Traefik labels]: Cambio FQDN en Coolify requiere force-recreate del contenedor. Datos persisten en volumenes.
+  - [SSL]: Traefik emite cert automatico con certresolver letsencrypt. Verificar: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
+  - [Coolify DB]: Stacks Docker Compose en `services` + `service_applications`. UUID stack: `mo4so4440c488g8woow4cow0`.
 
 ## Comando para actualizar produccion
 
@@ -406,14 +165,13 @@ cd .agent/coolify-manager-rs
 3. `composer install --no-dev` (dependencias PHP)
 4. Verifica que Node.js este instalado (instala si falta)
 5. `npm install` si node_modules no existe
-6. `npm run build` (Vite  compila React/SSG)  **loggea "Compilando React..." y "React compilado."**
+6. `npm run build` (Vite -- compila React/SSG) -- loggea "Compilando React..." y "React compilado."
 7. Ejecuta migraciones SQL pendientes (lee `migrations/*.sql`, compara con `_migraciones_ejecutadas`)
 8. `chown -R www-data:www-data` (permisos)
-9. `apachectl graceful`  **limpia OPcache sin matar el contenedor Docker**
+9. `apachectl graceful` -- limpia OPcache sin matar el contenedor Docker
 
 **Si el build del binary Rust cambio**, tambien ejecutar:
 ```powershell
 cd .agent/coolify-manager-rs
 cargo build --release
-# Luego hacer git add + commit del .exe o simplemente correr el nuevo .exe localmente
 ```

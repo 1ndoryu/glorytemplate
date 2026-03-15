@@ -418,3 +418,81 @@ kamples-scraper/
 - [yt-dlp 2026.3.x]: Necesita `--js-runtimes node` para challenges firma YouTube.
 - [CORS estáticos]: Apache sirve sin PHP. Headers CORS en `.htaccess` con `mod_headers`.
 - [.env producción]: coolify-manager crea .env mínimo. Stripe vars manuales la primera vez.
+
+---
+
+## Completado — Sprint QK-II (QK67-QK105)
+
+> 39 tareas quick-fix. Agrupadas por dominio.
+
+### Feed/Búsqueda/Algoritmo (QK74-QK76, QK83, QK87, QK95, QK100)
+- **QK74:** Fix "Cargando samples" — lazy useState desde localStorage, stale-while-revalidate instantáneo.
+- **QK75:** Auditoría búsqueda — 14 índices GIN (FTS+pg_trgm+array+subqueries), migración v053.
+- **QK76:** Skeleton carga — SkeletonTarjetaSample reemplaza texto "Cargando".
+- **QK83:** Búsqueda feed server-side FTS — reemplaza filtro client-side String.includes (50+ roundtrips), backend `/feed` acepta `busqueda` con FTS+ILIKE+UNNEST, debounce 350ms.
+- **QK87/QK95:** Resueltos por QK83 — sort+contador se actualizan con búsqueda activa (busquedaDebounced en claveCache).
+- **QK100:** Fix stale-while-revalidate real — TTL señala revalidación, NUNCA borra datos. Datos stale siempre disponibles.
+
+### Cola IA/Pipeline (QK72, QK78-QK81)
+- **QK72:** Contexto IA recortes — PipelineAudio pasa metadataExtraccion a ServicioIA, prompt incluye canción/artista/tipo.
+- **QK78:** Cola IA MAX_INTENTOS=30 + backoff exponencial (15→30→60→120min cap), migración v054.
+- **QK79:** Auditoría resilencia cola IA — confirmado: comentarios/publicaciones ya usan cola.
+- **QK80:** Auditoría resilencia IA — OpenAI gpt-4o-mini como fallback final. SRP: prompts→PromptsIA.php, HTTP→OpenAIHttpClient.php.
+- **QK81:** Fix batch size scraper — run_extraction.sh/cron_runner.py hardcodeaban --limit 20. Env var KAMPLES_BATCH_LIMIT (default 100).
+
+### Auth/Desktop/Sync (QK70, QK77, QK77-A, QK77-B, QK84, QK92, QK97)
+- **QK70:** Fix samples desaparecen en colección — `activa` en deps de fetch, guard !activa.
+- **QK77:** Auth desktop localStorage fallback — dual persistence (Tauri Store + localStorage), resync automático.
+- **QK77-A:** Auth desktop fix — window global persistence, pre-React /me call, diagnostic logging.
+- **QK77-B:** Fix sync desktop — 401 colecciones (guard tieneTokenSync), perfil no actualiza (suscribe a authStore.usuario.id), carpeta no desvincula (logout limpia config).
+- **QK84:** Fix 133 errores TS Desktop — path mappings, GloryContext campos opcionales, global.d.ts unificado.
+- **QK92:** Desktop music page 404 — ruta /musica/ faltante en RUTAS_DESKTOP.
+- **QK97:** borrarAlSubirExitoso — checkbox sync config, borra archivo local post-upload exitoso.
+
+### Infraestructura/Deploy (QK82, QK86, QK93, QK94, QK96, QK98)
+- **QK82:** Auto-run migraciones locales — MigradorLocal.php detecta pendientes, se ejecuta en entorno local, transient 5min.
+- **QK86:** Push Notifications VAPID — schema v056, Repository, Service batch, Controller REST, Service Worker, frontend hook+API.
+- **QK93:** Deploy WebSocket container — Docker compose template, template_engine.rs genera WS secrets, CLI deploy-websocket.
+- **QK94:** Auditoría seguridad + optimización — 17 hallazgos escaneados. Fixes: json_decode sin validación, catch blocks vacíos.
+- **QK96:** Fix PHP Fatal \self en heredoc — constante a variable local antes de heredoc. MigradorLocal solo env LOCAL=true.
+- **QK98:** Deploy WebSocket producción — contenedor standalone Bun, wss://ws.kamples.com con Traefik SSL.
+
+### SEO/Seguridad/Admin (QK67, QK69, QK71, QK85, QK88, QK89, QK90)
+- **QK67:** Fix sugerencias colección — usaba URL id (null para slugs), ahora usa coleccion?.id.
+- **QK69:** Auditoría descarga ZIP — flock, MAX_SAMPLES_ZIP=500, MAX_ZIP_BYTES=2GB, realpath, cron limpieza.
+- **QK71:** Tags EN — bpmUtils EN, tagUtils blacklist+synonyms, SamplesRepository excluye tags_es.
+- **QK85:** detalleDescripcionInterna verificado — descripcion_corta EN con fallback ES. Pipeline genera ambas.
+- **QK88:** Auditoría distribución seed — perfiles seed ocultos en API pública (3 queries corregidas).
+- **QK89:** Username/email/password change — endpoints PUT /me/email y /me/password, rate limit 5/hora, formularios inline.
+- **QK90:** SEO revision — robots.txt con Disallow privadas, SEO defaults para musica/explorador/notificaciones.
+
+### UI/UX (QK73, QK91, QK99, QK101, QK101-B, QK102, QK103, QK104, QK105)
+- **QK73:** Timeline reproductor — borde superior 3px acento, tiempo compacto.
+- **QK91:** BusquedaRapida dropdown — width 450px centrado, fade mask-image, .slice(0,3), override móvil.
+- **QK99:** Heart glow "me encanta" — drop-shadow rojo en .reaccionPrincipalEncanta.
+- **QK101+QK101-B:** Mobile/desktop UI fixes — chat fullscreen, sidebar reorder, hamburguesa menu, FilaColecciones 20, padding/grid/overflow fixes.
+- **QK102:** Reproductor botón cerrar (X) + fix color aleatorio activado.
+- **QK103:** CI release workflow + Android APK build local (14.91 MB, arm64, unsigned).
+- **QK104:** Pagina inicio móvil = comunidad + /samples separada (useEsMovil hook, FeedSamplesIsland nueva isla).
+- **QK105:** Correcciones UI post-QK104 — admin panel desktop, iconos APK, sidebar reorder, explorarCanciones fix, MAPA_RUTAS.
+
+### Lecciones QK-II
+- [PHP heredoc]: `{${\self::CONST}}` intenta crear instancia. Asignar constante a variable primero.
+- [MigradorLocal]: No usar WP_DEBUG como indicador local — en producción con WP_DEBUG=true ejecuta migraciones.
+- [batch-size]: Scripts caller (run_extraction.sh) sobrescriben defaults del pipeline con --limit explícito. Verificar toda la cadena.
+- [stale-while-revalidate]: TTL solo señala revalidación, NUNCA debe borrar datos. Separar "cuándo revalidar" de "cuándo borrar".
+- [RUTAS_DESKTOP]: Toda página nueva en pages.php necesita agregarse manualmente a RUTAS_DESKTOP para desktop.
+- [Coolify compose]: API actualiza DB pero NO disco. Para env vars persistentes, editar compose en disco + force-recreate.
+- [WS standalone]: No usar deploy-websocket CLI para WS — Coolify API sobrescribe compose. Docker run standalone + labels Traefik.
+- [Tauri __cmd__]: generate_handler! necesita funciones en main.rs o re-exportadas (macros __cmd__ son privadas al módulo).
+
+---
+
+## Completado — Coolify Manager RS: QL1-QL4
+
+- **QL1:** APK en `desktop/src-tauri/gen/android/.../app-arm64-release-unsigned.apk` (14.91 MB). Desktop build: `npm run tauri:build` → exe+MSI+NSIS. CI: `.github/workflows/release-desktop.yml` (tag desktop-v* o workflow_dispatch).
+- **QL2:** Backup 8 sitios programados (Task Scheduler daily+weekly staggered 15min). Failover VPS2 sin depender de VPS1 (`failover.rs`). Redeploy health check (15s + assert_site_healthy). Commit `2489949`.
+- **QL3:** MCP server 26 tools. Fixes: --mcp flag, config_path propagation, tracing→stderr/file (stdout limpio para JSON-RPC), disconnect detection, param validation, 3 tools nuevos. E2E testeado. Commit `c21c173`.
+- **QL4:** Tauri v2 GUI scaffold. lib.rs re-export, src/api 4 funciones + tipos serializables, gui/src-tauri 5 comandos Tauri, gui/src React 19 frontend (4 vistas, sidebar, tema Kamples). Workspace dual lib+bin, 61/61 tests. Commit `dd7cbda`.
+- [Lección CM]: tracing-subscriber fmt::layer() default es stdout. En modo MCP: .with_writer(stderr) o solo file layer.
+- [Lección CM]: Dual lib+bin en Rust: main.rs usa `use crate_name::*`, solo módulos binary-specific con `mod`.
