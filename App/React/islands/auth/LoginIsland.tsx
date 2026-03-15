@@ -3,7 +3,7 @@
  * Formulario de autenticación con Google OAuth y credenciales.
  */
 
-import { type FormEvent } from 'react';
+import { useRef, type FormEvent } from 'react';
 import { Music } from 'lucide-react';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { CampoTexto } from '../../components/ui/CampoTexto';
@@ -12,16 +12,16 @@ import { useAuth } from '../../hooks/useAuth';
 import '../../styles/componentes/login.css';
 
 export const LoginIsland = (): JSX.Element => {
+    const emailRef = useRef<HTMLInputElement>(null);
+    const passwordRef = useRef<HTMLInputElement>(null);
     const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
 
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        /* Inputs NO controlados (sin value prop): React nunca resetea el .value del
-         * DOM, por lo que el texto escrito con el teclado virtual Android persiste.
-         * FormData lee los valores reales incluso cuando onChange no dispara (IME bug). */
-        const fd = new FormData(e.currentTarget);
-        const email = ((fd.get('email') as string | null) ?? '').trim();
-        const password = (fd.get('password') as string | null) ?? '';
+        /* useRef lee directamente el .value del DOM — inmune al bug de Android WebView
+         * donde FormData y onChange pueden leer vacío por IME composition. */
+        const email = (emailRef.current?.value ?? '').trim();
+        const password = passwordRef.current?.value ?? '';
         iniciarSesion(email, password);
     };
 
@@ -60,7 +60,7 @@ export const LoginIsland = (): JSX.Element => {
                 <form className="loginFormulario" onSubmit={manejarSubmit}>
                     <CampoTexto
                         etiqueta="Email o usuario"
-                        name="email"
+                        ref={emailRef}
                         type="text"
                         placeholder="Email o usuario"
                         autoComplete="username"
@@ -68,7 +68,7 @@ export const LoginIsland = (): JSX.Element => {
 
                     <CampoTexto
                         etiqueta="Contraseña"
-                        name="password"
+                        ref={passwordRef}
                         type="password"
                         placeholder="••••••••"
                         autoComplete="current-password"
