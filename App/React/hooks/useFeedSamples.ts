@@ -130,6 +130,21 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Throttle progresivo para infinite scroll */
     const throttle = usePaginacionProgresiva();
 
+    /* Refs para mantener el IntersectionObserver estable.
+     * Sin refs, el observer se destruye/recrea en cada cambio de estado
+     * (cargandoMas, hayMasPaginas, paginaActual, etc.), causando delay perceptible
+     * al cargar paginas siguientes. Con refs, el observer vive toda la sesion del feed. */
+    const cargandoMasRef = useRef(cargandoMas);
+    cargandoMasRef.current = cargandoMas;
+    const hayMasPaginasRef = useRef(hayMasPaginas);
+    hayMasPaginasRef.current = hayMasPaginas;
+    const cargandoRef = useRef(cargando);
+    cargandoRef.current = cargando;
+    const paginaActualRef = useRef(paginaActual);
+    paginaActualRef.current = paginaActual;
+    const requiereManualRef = useRef(throttle.requiereManual);
+    requiereManualRef.current = throttle.requiereManual;
+
     /* Reset al cambiar claveCache — QK100: cargar cache persistente siempre (stale o fresh) */
     useEffect(() => {
         if (claveCacheAnteriorRef.current !== claveCache) {
@@ -238,28 +253,36 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         });
     }, [paginaActual, throttle.cargarManual, cargarPagina]);
 
-    /* Infinite scroll con IntersectionObserver + throttle progresivo */
+    /* Infinite scroll con IntersectionObserver estable + throttle progresivo.
+     * El observer se crea una sola vez y lee estado desde refs para evitar churn.
+     * rootMargin: 600px da mas buffer de prefetch para carga fluida. */
     useEffect(() => {
-        if (!infiniteScroll || throttle.requiereManual) return;
+        if (!infiniteScroll) return;
         const sentinela = sentinelaRef.current;
         if (!sentinela) return;
 
         const observer = new IntersectionObserver(
             entries => {
-                if (entries[0].isIntersecting && !cargandoMas && hayMasPaginas && !cargando) {
-                    const nuevaPagina = paginaActual + 1;
+                if (
+                    entries[0].isIntersecting
+                    && !cargandoMasRef.current
+                    && hayMasPaginasRef.current
+                    && !cargandoRef.current
+                    && !requiereManualRef.current
+                ) {
+                    const nuevaPagina = paginaActualRef.current + 1;
                     throttle.programarCarga(nuevaPagina, () => {
                         setPaginaActual(nuevaPagina);
                         cargarPagina(nuevaPagina, false);
                     });
                 }
             },
-            { rootMargin: '200px' },
+            { rootMargin: '600px' },
         );
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [infiniteScroll, cargandoMas, hayMasPaginas, cargando, paginaActual, cargarPagina, throttle.requiereManual, throttle.programarCarga]);
+    }, [infiniteScroll, cargarPagina, throttle.programarCarga]);
 
     /* Virtualización: ajustar rango visible al scroll */
     useEffect(() => {

@@ -114,8 +114,14 @@
     display: none;
 }
 
-/* Hamburguesa móvil — oculta en escritorio */
+/* Hamburguesa móvil — oculta en escritorio (ahora en topbarMovilIzquierda) */
 .topbarHamburguesa {
+    display: none;
+}
+
+/* QL10: Contenedores movil — ocultos en escritorio */
+.topbarMovilIzquierda,
+.topbarLogoMovil {
     display: none;
 }
 
@@ -161,8 +167,30 @@
     }
 }
 
-/* En móvil: agrupar acciones en hamburguesa */
+/* QL10: Mobile — hamburguesa izquierda, logo centro, acciones derecha */
 @media (max-width: 768px) {
+    .topbar {
+        grid-template-columns: auto 1fr auto;
+    }
+
+    /* Mostrar contenedores movil */
+    .topbarMovilIzquierda {
+        display: flex;
+        align-items: center;
+    }
+
+    .topbarLogoMovil {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--textoPrimario);
+    }
+
+    /* Ocultar tabs en movil — siempre se selecciona la primera automaticamente */
+    .topbarTabs {
+        display: none;
+    }
+
     .topbarAccionesBadge,
     .topbarBtnCrear,
     .topbarBtnMezclador,
@@ -170,23 +198,15 @@
         display: none;
     }
 
-    /*
-     * Sacamos el wrapper del flujo con position: absolute (0 espacio en layout).
-     * overflow: visible permite que el DropdownMensajes (position: fixed) sea visible.
-     * El botón Mail se oculta; el dropdown lo abre la hamburguesa via alternarMensajes().
-     */
+    /* QL10: Mensajes visible en movil, junto a notificaciones */
     .topbarIconoMensajes {
-        position: absolute;
-        width: 0;
-        height: 0;
+        position: static;
+        width: auto;
+        height: auto;
         overflow: visible;
     }
 
     .topbarIconoMensajes > button {
-        display: none;
-    }
-
-    .topbarHamburguesa {
         display: flex;
     }
 }

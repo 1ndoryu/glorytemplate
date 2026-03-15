@@ -109,19 +109,56 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 
 ## QL7
 
-Hay un problema con el scroll del feed inicio, no cargan mas samples cuando claramente hay mas, cargan despues de al rato como si se bloquera, no se si necesita optimizacion, no creo que sea el sistema de que pausar el scroll cuando baja muy rapido aunque eso tambien se puede revisar, la cosa es que de repente tarda mucho en cargar la siguiente pagina, y eso esta mal, escenario: el feed de inicio de samples
+[EN CURSO — AG-FEA] Hay un problema con el scroll del feed inicio, no cargan mas samples cuando claramente hay mas, cargan despues de al rato como si se bloquera, no se si necesita optimizacion, no creo que sea el sistema de que pausar el scroll cuando baja muy rapido aunque eso tambien se puede revisar, la cosa es que de repente tarda mucho en cargar la siguiente pagina, y eso esta mal, escenario: el feed de inicio de samples
 
 ## QL8
 
-En la pagina de musica, la lista de canciones no tienen scroll horizontal, espero que esta parte de la pagina tenga paginacion horizontal y falta algo como una flecha para pasar a los siguientes y poder retroceder cuando se pueda. Creo que se puede agregar mas secciones basandose en los generos, y los artistas no tienen imagen de perfil, investiga una api o alguna forma de obtener imagen de todos los artistas.
+[EN CURSO — AG-FEA] En la pagina de musica, la lista de canciones no tienen scroll horizontal, espero que esta parte de la pagina tenga paginacion horizontal y falta algo como una flecha para pasar a los siguientes y poder retroceder cuando se pueda. Creo que se puede agregar mas secciones basandose en los generos, y los artistas no tienen imagen de perfil, investiga una api o alguna forma de obtener imagen de todos los artistas.
+
+me di cuenta que si tiene scroll pero en escritorio no se puede arrastrar con el mouse y deberia, faltan las felchas
 
 ## QL9
 
-✅ [AG-GUI] Respondido:
-- **APK:** Existe en `desktop/src-tauri/gen/android/app/build/outputs/apk/arm64/release/app-arm64-release-unsigned.apk` (14.91 MB, arm64, unsigned). Para firmar: generar keystore con `keytool -genkey -v -keystore kamples.keystore -alias kamples -keyalg RSA -keysize 2048 -validity 10000` y luego `apksigner sign`.
-- **Desktop:** No hay ejecutable construido aún. Para construirlo: `cd desktop && npm ci && npm run tauri:build`. O push tag: `git tag desktop-v0.1.0 && git push origin desktop-v0.1.0` para que CI genere instaladores (Windows .exe, macOS .dmg, Linux .AppImage).
-- **CI:** Workflow en `.github/workflows/release-desktop.yml` con `workflow_dispatch` manual o trigger por tag `desktop-v*`.
+[EN CURSO — AG-FEA] Las tags que esten activas o que marquen negativas tienen que ponerse de primeras
 
+## QL10 
+
+[EN CURSO — AG-FEA] Ya tengo la apk para testear, hay algunos detalles, las notificacioens no las veo en el emulador, llegan a la aplicación pero no llegan al sistema de notificacaciones, los mensajes tambien deberian tener notificacion en el telefono, el icono de mensaje no tiene que estar dentro del menu de hamburguesa sino al lado de las notificaciones, quita las tabs en el movil, siempre mostrara la primera y mas nada, en ese espacio vacío pon el boton de hamburgueza a la izquierda y el logo de kamples en el centro, la aplicacion deberia tener el logo de kamples con fondo negro, el logo blanco
+
+## QL11
+
+[EN CURSO — AG-FEA] Coolify manager tiene que avisar cuando se haga update si hubo algun cambio en los repositorios o no, o sea decir cuales cambios se hicieron asi el estado git donde se muestra los archivos cambios o cuando no haya avisar que todo estaba actualizado
+
+## QL12
+
+genera de nuevo el Kamples_0.1.0_x64-setup y la apk para ir probando
+
+en movil desactiva el click en las tags de las tarjetas de los samples, o sea las tags dentro de los samples no deben activarse solo reproducir la rola, esto solo en movil
+por cierto, no se si es por el emulador pero la parte de arriba de la apk la tapa la barra de arriba de android, no se porque pero tal vez sea por el emulador, lo probare en el telefono y te dire
+
+## QL13
+
+Esto fue antes de que resolvieras QL7
+
+El feed a veces se queda congelado en en Cargando samples… por unos segundos, y dura mucho tiempo, habia pedido antes que esto no apareciera y que esto no apereciera, y que en cambio siempre fuera un proceso de fondo, y que fuera un skeleton la primera vez o si por alguna razon pues cargara. Llevamos mucho tiempo en esta tarea, buble y bucle parece que no la entiendes, revisa si hay un md para esto, investiga, profundiza y no lo tomes a ligera, ya estoy cansada de repetir el mismo problema, otro detalle es que el contador no aparece sino al ratito de que aparecen los samples ¿no esta optimizado con alguna cache? 
+
+## QL14 
+
+Algoritmo de musica, las canciones que si tienen samples adjuntos deberían tener el doble de prioridad de mostrarse al usuario, el clcik en la portada debe reproducir los samples adjunto, no en el boton unicamente, el boton no se ve mal, cuando se haga hover la imagen tiene que oscurserse un poco para que contrastaste, el boton de play tiene que estar en el centro y ser blanco y un poquito mas grande, los detalles del sample se veran al dar click al nombre
+
+## QL15
+
+En la pagina de mis colecciones (descargas) intuyo que en la de favoritos tambien y en las colecciones en general (no lo he comprobado), pero si lo veo en mis coleccionados porque tengo muchos samples subido que el contador siempre es 30 y no cargan mas samples al hacer scroll
+
+## QL16
+
+Veo que ignoraste completamente sobre QL10 el detalle de las notificaciones en la aplicacion de android, necesito que las notificaciones aparezcan en android 
+
+y que el logo de la apk debe ser el logo de kamples
+
+otro detalle con el movil y es que para que el funcione el logo centrado arriba, hay que hacer lo siguiente
+
+mover los botones de 
 
 ---
 

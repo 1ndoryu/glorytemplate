@@ -10,7 +10,7 @@
  * - Fila de tags sueltos ("otro") con arrastre horizontal
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { SelectFiltro } from '@app/components/ui/SelectFiltro';
 import { SelectorBPM } from '@app/components/ui/SelectorBPM';
@@ -47,6 +47,16 @@ export const FiltroTags = ({
     className = '',
 }: FiltroTagsProps): JSX.Element => {
     const { listaTagsRef, arrastrandoTags, iniciarArrastre, moverArrastre, finalizarArrastre } = useFeedArrastreTags();
+
+    /* QL9: Ordenar tags — incluidos primero, excluidos segundo, inactivos al final */
+    const tagsOrdenados = useMemo(() => {
+        if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return tagsSueltos;
+        return [...tagsSueltos].sort((a, b) => {
+            const pesoA = tagsIncluidos.includes(a) ? -2 : tagsExcluidos.includes(a) ? -1 : 0;
+            const pesoB = tagsIncluidos.includes(b) ? -2 : tagsExcluidos.includes(b) ? -1 : 0;
+            return pesoA - pesoB;
+        });
+    }, [tagsSueltos, tagsIncluidos, tagsExcluidos]);
 
     /* Renderizar un tag con botones +/- */
     const renderizarTag = useCallback((tag: string) => (
@@ -119,7 +129,7 @@ export const FiltroTags = ({
                     onTouchMove={e => moverArrastre(e.touches[0].clientX)}
                     onTouchEnd={finalizarArrastre}
                 >
-                    {tagsSueltos.map(renderizarTag)}
+                    {tagsOrdenados.map(renderizarTag)}
                 </div>
             )}
         </div>

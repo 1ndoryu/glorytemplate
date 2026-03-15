@@ -1,7 +1,6 @@
 /*
- * seccionHorizontal.css — QK18/QK22
- * Seccion horizontal con scroll tipo Spotify.
- * Titulo + contenedor scrollable + ocultar barras.
+ * seccionHorizontal.css — QK18/QK22 + QL8
+ * Seccion horizontal con scroll, flechas de navegacion y arrastre mouse.
  */
 
 .seccionHorizontal {
@@ -24,6 +23,28 @@
     color: var(--textoPrimario);
 }
 
+/* QL8: Flechas de navegacion horizontal */
+.seccionHorizontalFlechas {
+    display: flex;
+    gap: var(--espacioXs);
+}
+
+.seccionHorizontalFlecha {
+    width: 32px;
+    height: 32px;
+    min-width: unset;
+    padding: 0;
+    border-radius: var(--radioFull);
+    background: var(--fondoElevado2);
+    color: var(--textoSecundario);
+    transition: background var(--transicionRapida), color var(--transicionRapida);
+}
+
+.seccionHorizontalFlecha:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
 .seccionHorizontalVerTodo {
     font-size: var(--fuenteSm);
     color: var(--textoSecundario);
@@ -39,7 +60,7 @@
     color: var(--textoPrimario);
 }
 
-/* QK105: gap aumentado a espacioXl */
+/* QL8: cursor grab para indicar arrastre; scroll-snap + barras ocultas */
 .seccionHorizontalScroll {
     display: flex;
     gap: var(--espacioXl);
@@ -48,10 +69,26 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding: var(--espacioXs);
+    cursor: grab;
+}
+
+.seccionHorizontalScroll:active {
+    cursor: grabbing;
 }
 
 .seccionHorizontalScroll::-webkit-scrollbar {
     display: none;
+}
+
+/* Ocultar flechas en dispositivos tactiles (sin hover) */
+@media (hover: none) {
+    .seccionHorizontalFlechas {
+        display: none;
+    }
+
+    .seccionHorizontalScroll {
+        cursor: default;
+    }
 }
 
 @media (max-width: 768px) {

@@ -26,10 +26,10 @@ interface ConfigPaginacionProgresiva {
 }
 
 const DEFAULTS = {
-    paginasMinimasInicio: 3,
+    paginasMinimasInicio: 5,
     ventanaDeteccion: 3,
-    umbralRapidoMs: 2000,
-    tiempoAutoOcultarMs: 6000,
+    umbralRapidoMs: 1500,
+    tiempoAutoOcultarMs: 3000,
 } as const;
 
 export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {}) {
@@ -55,22 +55,19 @@ export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {})
         }
 
         const ahora = Date.now();
-        timestampsRef.current.push(ahora);
-
-        /* Mantener solo las ultimas N timestamps */
-        if (timestampsRef.current.length > ventanaDeteccion + 1) {
-            timestampsRef.current = timestampsRef.current.slice(-(ventanaDeteccion + 1));
-        }
-
-        /* Verificar velocidad promedio entre cargas recientes */
         const ts = timestampsRef.current;
-        if (ts.length >= ventanaDeteccion + 1) {
+
+        /* Verificar velocidad promedio ANTES de registrar timestamp.
+         * Solo las cargas exitosas se registran; las bloqueadas no inflan
+         * la deteccion de velocidad. */
+        if (ts.length >= ventanaDeteccion) {
+            const recientes = ts.slice(-ventanaDeteccion);
             let sumaGaps = 0;
-            const numGaps = Math.min(ventanaDeteccion, ts.length - 1);
-            for (let i = ts.length - numGaps; i < ts.length; i++) {
-                sumaGaps += ts[i] - ts[i - 1];
+            for (let i = 1; i < recientes.length; i++) {
+                sumaGaps += recientes[i] - recientes[i - 1];
             }
-            const promedioGap = sumaGaps / numGaps;
+            sumaGaps += ahora - recientes[recientes.length - 1];
+            const promedioGap = sumaGaps / recientes.length;
 
             if (promedioGap < umbralRapidoMs) {
                 /* Carga demasiado rapida — pausar y mostrar boton */
@@ -78,14 +75,17 @@ export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {})
                 clearTimeout(autoOcultarRef.current);
                 autoOcultarRef.current = setTimeout(() => {
                     setRequiereManual(false);
-                    /* Reset timestamps para que no se dispare inmediatamente al reanudar */
                     timestampsRef.current = [];
                 }, tiempoAutoOcultarMs);
                 return false;
             }
         }
 
-        /* Velocidad normal — ejecutar */
+        /* Velocidad normal — registrar timestamp y ejecutar */
+        timestampsRef.current.push(ahora);
+        if (timestampsRef.current.length > ventanaDeteccion + 1) {
+            timestampsRef.current = timestampsRef.current.slice(-(ventanaDeteccion + 1));
+        }
         callback();
         return true;
     }, [paginasMinimasInicio, ventanaDeteccion, umbralRapidoMs, tiempoAutoOcultarMs]);

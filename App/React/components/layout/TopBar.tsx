@@ -16,6 +16,7 @@ import { Avatar } from '../ui/Avatar';
 import { MenuContextual, type MenuItemDef } from '../ui/MenuContextual';
 import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
 import { DropdownMensajes } from '../ui/DropdownMensajes';
+import { LogoKamples } from '../ui/LogoKamples';
 import { cerrarSesion as apiCerrarSesion } from '@app/services/apiAuth';
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router/navigationStore';
@@ -102,15 +103,7 @@ export const TopBar = (): JSX.Element => {
                 setHamburguesaAbierta(false);
             },
         },
-        {
-            id: 'hb-mensajes',
-            etiqueta: 'Mensajes',
-            icono: <Mail size={14} />,
-            onClick: () => {
-                alternarMensajes();
-                setHamburguesaAbierta(false);
-            },
-        },
+        /* QL10: Mensajes sacado del hamburguesa — ahora visible directamente en movil */
         /* QK101: Favoritos movido de sidebar al menu hamburguesa */
         {
             id: 'hb-favoritos',
@@ -238,7 +231,29 @@ export const TopBar = (): JSX.Element => {
 
     return (
         <div className="topbar">
-            {/* Tabs dinámicas (definidas por cada isla) */}
+            {/* QL10: Mobile — hamburguesa a la izquierda */}
+            <div className="topbarMovilIzquierda">
+                <BotonBase
+                    variante="ghost"
+                    tamano="md"
+                    soloIcono
+                    onClick={(e) => {
+                        const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+                        setHamburguesaPos({ x: rect.left, y: rect.bottom });
+                        setHamburguesaAbierta((prev) => !prev);
+                    }}
+                    aria-label="Más opciones"
+                >
+                    <Menu size={20} />
+                </BotonBase>
+            </div>
+
+            {/* QL10: Mobile — logo Kamples centrado */}
+            <div className="topbarLogoMovil">
+                <LogoKamples tamano={22} />
+            </div>
+
+            {/* Tabs dinámicas (definidas por cada isla) — ocultas en movil via CSS */}
             <div className="topbarTabs">
                 {tabs.map((tab) => (
                     <BotonBase variante="ghost"
@@ -373,21 +388,7 @@ export const TopBar = (): JSX.Element => {
                         )}
                     </div>
 
-                    {/* Hamburguesa — visible solo en móvil, agrupa crear/mezclador/mensajes */}
-                    <BotonBase
-                        variante="ghost"
-                        tamano="md"
-                        soloIcono
-                        className="topbarHamburguesa"
-                        onClick={(e) => {
-                            const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
-                            setHamburguesaPos({ x: rect.right, y: rect.bottom });
-                            setHamburguesaAbierta((prev) => !prev);
-                        }}
-                        aria-label="Más opciones"
-                    >
-                        <Menu size={20} />
-                    </BotonBase>
+                    {/* QL10: Hamburguesa movida a topbarMovilIzquierda */}
 
                     <div
                         className="topbarAvatarWrapper"
@@ -411,14 +412,13 @@ export const TopBar = (): JSX.Element => {
                         alinearDerecha
                     />
 
-                    {/* Menu hamburguesa móvil */}
+                    {/* Menu hamburguesa móvil — QL10: posicionado desde la izquierda */}
                     <MenuContextual
                         abierto={hamburguesaAbierta}
                         onCerrar={() => setHamburguesaAbierta(false)}
                         items={hamburguesaItems}
                         x={hamburguesaPos.x}
                         y={hamburguesaPos.y}
-                        alinearDerecha
                     />
 
                     <Modal
