@@ -146,6 +146,9 @@
 - Dynamic imports `@desktop/` rompen build web → exponer en `window.__KAMPLES_*__` desde entry desktop.
 - `obtenerWpUserId()` intentar JWT si `get_current_user_id()==0` (endpoints públicos /feed).
 - Tray: solo uno (conf o Rust builder). `inicializarAuthDesktop()` token+usuario ANTES de montar React.
+- [WebView2 JS origin producción]: En Tauri 2.0 instalado en Windows, el origen JS es `http://localhost` (sin puerto). En dev es `http://localhost:1420`. Esto rompe Google GSI popup (requiere origen exacto registrado en Google Cloud Console). Solución: OAuth 2.0 PKCE via navegador del sistema (no GSI). No requiere registro de origen para apps nativas.
+- [Google OAuth PKCE desktop]: Patrón — Rust inicia `TcpListener::bind("127.0.0.1:0")` → puerto aleatorio → abre navegador vía `app.shell().open()` → captura callback con code → JS llama PHP backend que intercambia code+code_verifier+client_secret por id_token. El secret nunca sale del servidor.
+- [KamplesLogger::warning no warn]: El método del logger es `KamplesLogger::warning()`, NO `::warn()`. El segundo no existe y PHP silencia la llamada sin error visible.
 
 ### FileWatcher y Sync
 - tauri-plugin-fs watch: `features = ["watch"]` en Cargo.toml. Sync: hash parcial 8KB+tamaño. MOVE=DELETE+CREATE (grace 5s). Self-trigger: `descargasEnCurso` Set. Carpetas server implícitas. Post-upload PUT carpeta prioridad local.
@@ -160,6 +163,11 @@
 
 ### Build y Entorno
 - [Build WDAC]: OneDrive sincroniza `target/` → WDAC bloquea build-script-build.exe (os error 4551). Fix: `.cargo/config.toml` con `target-dir = "C:\\cargo-target\\kamples"` redirige fuera de OneDrive. Bundles en `C:\cargo-target\kamples\release\bundle\`.
+- [devtools Cargo feature]: `open_devtools()`/`close_devtools()`/`is_devtools_open()` en `WebviewWindow` requieren `features = ["devtools"]` en `Cargo.toml` para builds de release. En dev funcionan sin el feature. Sin él, el comando Rust `toggle_devtools` compila pero falla en runtime en producción.
+- [shell.open deprecated Tauri 2]: `app.shell().open()` está deprecated en favor de `tauri-plugin-opener`. Usar `#[allow(deprecated)]` temporalmente. Migrar cuando se actualice Tauri.
+- [tauri::async_runtime::spawn_blocking]: Para ejecutar código síncrono bloqueante dentro de un comando async de Tauri 2, usar `tauri::async_runtime::spawn_blocking(closure).await`. No requiere dependencia explícita de tokio.
+- [Vite proxy oculta CORS en dev]: Dev Vite proxy hace todas las llamadas API same-origin. Producción no tiene proxy → CORS real requerido. Toda nueva ruta API que funcione en dev DEBE probarse en build producción. `http://localhost` y `http://127.0.0.1` deben estar en `$origenesPermitidos` del backend PHP.
+- [APK signing Android]: `keytool.exe` en Android Studio JBR (`jbr\bin\keytool.exe`). `apksigner.bat` en `build-tools\{version}\apksigner.bat`. Keystore: RSA 4096, 10000 días. **CRÍTICO:** respaldar `*.keystore` externamente — si se pierde, no se puede actualizar la app en Play Store. V2+V3 signature schemes requeridos para Android 9+.
 - [VarSense mappings extra]: `--superficie`→`--fondoElevado2`, `--colorAlerta`→`--advertencia`, `--colorExito`→`--exito`, `--colorError`→`--error`, `--colorTextoSecundario`→`--textoSecundario`, `--colorSuperficieHover`→`--fondoElevado2`, `--borderRadiusSm`→`--radioSm`, `--fuenteBase`→`--fuenteMd`. `rgba(0,0,0,0.7)`→`var(--overlayOscuro)`, `rgba(0,0,0,0.4-0.55)`→`var(--overlaySuave)`.
 - [Sentinel splits]: AdminController → AdminModeracionController (moderación routes delegadas via `AdminModeracionController::registrarRutas($namespace)` desde registrarRutas del padre). PipelineAudio helpers → PipelineAudioHelpers (construirNombreArchivo + actualizarSample). ColaProcesamientoIaCols::TODAS para `SELECT` explícito.
 
