@@ -1,13 +1,12 @@
 /*
- * TarjetaCancionGrande — QK18/QK22
+ * TarjetaCancionGrande — QK18/QK22 + QL14
  * Tarjeta grande con portada cuadrada estilo Spotify.
- * Imagen arriba, titulo + artista abajo, play overlay en hover.
- * Play solo visible si la cancion tiene sample adjunto.
+ * Click en portada reproduce sample adjunto. Click en titulo navega a detalles.
+ * Hover oscurece imagen con boton play centrado, blanco, sobre overlay.
  */
 
 import { type MouseEvent } from 'react';
 import { Music, Play, Pause } from 'lucide-react';
-import { BotonBase } from '@app/components/ui/BotonBase';
 import type { Cancion } from '@app/types/cancion';
 
 interface Props {
@@ -26,20 +25,27 @@ export const TarjetaCancionGrande = ({
 }: Props): JSX.Element => {
     const tieneSample = !!cancion.sampleAdjunto;
 
-    const manejarPlayClick = (e: MouseEvent) => {
+    /* QL14: Click en portada reproduce sample; si no hay sample, navega a detalle */
+    const manejarClickImagen = (e: MouseEvent) => {
         e.stopPropagation();
-        onPlay(cancion);
+        if (tieneSample) {
+            onPlay(cancion);
+        } else {
+            onClick();
+        }
     };
 
     return (
-        <div
-            className="tarjetaCancionGrande"
-            role="article"
-            tabIndex={0}
-            onClick={onClick}
-            onKeyDown={e => { if (e.key === 'Enter') onClick(); }}
-        >
-            <div className="tarjetaCancionGrandeImagen">
+        <div className="tarjetaCancionGrande" role="article" tabIndex={0}>
+            {/* QL14: Portada clickeable — reproduce sample adjunto o navega si no hay */}
+            <div
+                className={`tarjetaCancionGrandeImagen${tieneSample ? ' tarjetaCancionGrandeImagenPlayable' : ''}`}
+                onClick={manejarClickImagen}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => { if (e.key === 'Enter') manejarClickImagen(e as unknown as MouseEvent); }}
+                aria-label={tieneSample ? (reproduciendo ? 'Pausar' : 'Reproducir sample') : cancion.titulo}
+            >
                 {cancion.imagenUrl ? (
                     <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
                 ) : (
@@ -47,22 +53,18 @@ export const TarjetaCancionGrande = ({
                         <Music size={32} color="var(--textoTerciario)" />
                     </div>
                 )}
+                {/* QL14: Overlay oscuro + boton play centrado, blanco, mas grande */}
                 {tieneSample && (
-                    <BotonBase
-                        variante="ghost"
-                        className={`tarjetaCancionGrandeOverlay ${reproduciendo ? 'tarjetaCancionGrandeOverlayActivo' : ''}`}
-                        onClick={manejarPlayClick}
-                        type="button"
-                        aria-label={reproduciendo ? 'Pausar' : 'Reproducir'}
-                    >
+                    <div className={`tarjetaCancionGrandeOverlay${reproduciendo ? ' tarjetaCancionGrandeOverlayActivo' : ''}`}>
                         {reproduciendo
-                            ? <Pause size={18} fill="currentColor" />
-                            : <Play size={18} fill="currentColor" />
+                            ? <Pause size={24} fill="currentColor" />
+                            : <Play size={24} fill="currentColor" />
                         }
-                    </BotonBase>
+                    </div>
                 )}
             </div>
-            <div className="tarjetaCancionGrandeInfo">
+            {/* QL14: Click en titulo/info navega a detalles de la cancion */}
+            <div className="tarjetaCancionGrandeInfo" onClick={onClick} role="button" tabIndex={0}>
                 <p className="tarjetaCancionGrandeTitulo">{cancion.titulo}</p>
                 <p className="tarjetaCancionGrandeArtista">
                     {cancion.artistaNombre ?? 'Artista desconocido'}

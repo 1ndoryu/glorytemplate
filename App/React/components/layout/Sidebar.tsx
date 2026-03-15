@@ -1,10 +1,12 @@
 /*
  * Componente: Sidebar
  * Navegación lateral mínima con iconos y tooltips.
- * Incluye: Inicio, Explorar, Comunidad, Librería, Crear (modal).
- * Mensajes, notificaciones y perfil se manejan desde el TopBar.
+ * Desktop: Comunidad, Musica, Inicio, Libreria, Coleccionados + config/reportar en footer.
+ * Movil (QL16): Barra inferior con Inicio, Samples, Perfil(avatar), Mensajes, Notificaciones.
+ * Musica/Libreria/Coleccionados se mueven al menu hamburguesa del TopBar en movil.
  */
 
+import { useState, useCallback } from 'react';
 import {
     Home,
     Users,
@@ -14,14 +16,23 @@ import {
     Music,
     Settings,
     Bug,
+    Bell,
+    Mail,
 } from 'lucide-react';
 import { useNavigationStore } from '@/core/router';
 import { useConfiguracionModalStore } from '@app/stores/configuracionModalStore';
 import { useReportarStore } from '@app/stores/reportarStore';
+import { useAuthStore } from '@app/stores/authStore';
+import { useNotificacionesStore } from '@app/stores/notificacionesStore';
+import { useMensajesStore } from '@app/stores/mensajesStore';
+import { marcarTodasLeidas } from '@app/services/apiNotificaciones';
 import { useEsMovil } from '@app/hooks/useEsMovil';
-import '../../styles/componentes/sidebar.css';
 import { BotonBase } from '../ui/BotonBase';
 import { LogoKamples } from '../ui/LogoKamples';
+import { Avatar } from '../ui/Avatar';
+import { DropdownNotificaciones } from '../ui/DropdownNotificaciones';
+import { DropdownMensajes } from '../ui/DropdownMensajes';
+import '../../styles/componentes/sidebar.css';
 
 export interface SidebarItemDef {
     id: string;
@@ -40,13 +51,10 @@ const itemsDesktop: SidebarItemDef[] = [
     { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
 ];
 
-/* QK104: Items movil — Inicio (/) muestra comunidad, Samples (disco) es pagina aparte */
+/* QK104: Items movil — solo navegacion basica; perfil/mensajes/notificaciones se renderizan aparte (QL16) */
 const itemsMovil: SidebarItemDef[] = [
     { id: 'inicio', etiqueta: 'Inicio', icono: <Home size={20} />, ruta: '/' },
     { id: 'samples', etiqueta: 'Samples', icono: <Disc size={20} />, ruta: '/samples' },
-    { id: 'musica', etiqueta: 'Música', icono: <Music size={20} />, ruta: '/musica' },
-    { id: 'libreria', etiqueta: 'Librería', icono: <Box size={20} />, ruta: '/libreria' },
-    { id: 'descargas', etiqueta: 'Coleccionados', icono: <Download size={20} />, ruta: '/descargas' },
 ];
 
 interface SidebarProps {
@@ -65,23 +73,112 @@ export const Sidebar = ({
     const abrirReporte = useReportarStore(s => s.abrir);
     const esMovil = useEsMovil();
 
+    /* QL16: Estado movil — dropdowns de mensajes y notificaciones en barra inferior */
+    const usuario = useAuthStore(s => s.usuario);
+    const autenticado = useAuthStore(s => s.autenticado);
+    const [notisAbiertas, setNotisAbiertas] = useState(false);
+    const [msgsAbiertos, setMsgsAbiertos] = useState(false);
+    const totalNotisNoLeidas = useNotificacionesStore(s => s.totalNoLeidas());
+    const totalMsgsNoLeidos = useMensajesStore(
+        s => s.conversaciones.reduce((acc, c) => acc + c.noLeidos, 0)
+    );
+    const marcarTodasLeidasLocal = useNotificacionesStore(s => s.marcarTodasLeidasLocal);
+
+    const alternarNotisMovil = useCallback(() => {
+        setMsgsAbiertos(false);
+        setNotisAbiertas(prev => {
+            if (!prev && totalNotisNoLeidas > 0) {
+                marcarTodasLeidasLocal();
+                void marcarTodasLeidas();
+            }
+            return !prev;
+        });
+    }, [marcarTodasLeidasLocal, totalNotisNoLeidas]);
+
+    const alternarMsgsMovil = useCallback(() => {
+        setNotisAbiertas(false);
+        setMsgsAbiertos(prev => !prev);
+    }, []);
+
+    const irA = (ruta: string) => (e: React.MouseEvent) => {
+        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+            e.preventDefault();
+            onNavegar ? onNavegar(ruta) : navegar(ruta);
+        }
+    };
+
     /* QK104: Seleccionar items segun plataforma. Props custom tienen prioridad. */
     const itemsBase = items ?? (esMovil ? itemsMovil : itemsDesktop);
 
     /* QK101: Admin panel y favoritos removidos de la sidebar; se mueven al menu hamburguesa */
     const itemsFinales = itemsBase;
 
-    const manejarClick = (item: SidebarItemDef) => {
-        if (item.accion === 'modal-crear') {
-            return;
-        }
+    /* QL16: Barra inferior movil — Inicio, Samples, Perfil, Mensajes, Notificaciones */
+    if (esMovil) {
+        return (
+            <div className="sidebar">
+                <nav className="sidebarNav">
+                    {itemsMovil.map(item => (
+                        <a
+                            key={item.id}
+                            href={item.ruta || '/'}
+                            className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
+                            data-tooltip={item.etiqueta}
+                            onClick={irA(item.ruta)}
+                            aria-label={item.etiqueta}
+                        >
+                            {item.icono}
+                        </a>
+                    ))}
 
-        if (onNavegar) {
-            onNavegar(item.ruta);
-        } else {
-            navegar(item.ruta);
-        }
-    };
+                    {autenticado && (
+                        <>
+                            <a
+                                href={`/perfil/${usuario?.username}/`}
+                                className={`sidebarItem ${activa === 'perfil' ? 'sidebarItemActivo' : ''}`}
+                                onClick={irA(`/perfil/${usuario?.username}/`)}
+                                aria-label="Perfil"
+                            >
+                                <Avatar
+                                    src={usuario?.avatarUrl ?? null}
+                                    nombre={usuario?.nombreVisible ?? ''}
+                                    tamano="xs"
+                                />
+                            </a>
+
+                            <div className="sidebarItemWrapper">
+                                <BotonBase
+                                    variante="ghost"
+                                    className={`sidebarItem${totalMsgsNoLeidos > 0 ? ' sidebarItemConBadge' : ''}`}
+                                    onClick={alternarMsgsMovil}
+                                    type="button"
+                                    aria-label="Mensajes"
+                                >
+                                    <Mail size={20} />
+                                    {totalMsgsNoLeidos > 0 && <span className="sidebarBadge" />}
+                                </BotonBase>
+                                {msgsAbiertos && <DropdownMensajes onCerrar={() => setMsgsAbiertos(false)} />}
+                            </div>
+
+                            <div className="sidebarItemWrapper">
+                                <BotonBase
+                                    variante="ghost"
+                                    className={`sidebarItem${totalNotisNoLeidas > 0 ? ' sidebarItemConBadge' : ''}`}
+                                    onClick={alternarNotisMovil}
+                                    type="button"
+                                    aria-label="Notificaciones"
+                                >
+                                    <Bell size={20} />
+                                    {totalNotisNoLeidas > 0 && <span className="sidebarBadge" />}
+                                </BotonBase>
+                                {notisAbiertas && <DropdownNotificaciones onCerrar={() => setNotisAbiertas(false)} />}
+                            </div>
+                        </>
+                    )}
+                </nav>
+            </div>
+        );
+    }
 
     return (
         <div className="sidebar">
@@ -107,7 +204,9 @@ export const Sidebar = ({
                                 key={item.id}
                                 className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
                                 data-tooltip={item.etiqueta}
-                                onClick={() => manejarClick(item)}
+                                onClick={() => {
+                                    onNavegar ? onNavegar(item.ruta) : navegar(item.ruta);
+                                }}
                                 type="button"
                                 aria-label={item.etiqueta}
                             >
@@ -123,12 +222,7 @@ export const Sidebar = ({
                             href={item.ruta || '/'}
                             className={`sidebarItem ${activa === item.id ? 'sidebarItemActivo' : ''}`}
                             data-tooltip={item.etiqueta}
-                            onClick={(e) => {
-                                if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-                                    e.preventDefault();
-                                    manejarClick(item);
-                                }
-                            }}
+                            onClick={irA(item.ruta)}
                             aria-label={item.etiqueta}
                         >
                             {item.icono}

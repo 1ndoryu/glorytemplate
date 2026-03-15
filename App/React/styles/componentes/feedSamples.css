@@ -55,6 +55,14 @@
     width: 100%;
 }
 
+/* QL13: Skeletons de carga inicial — reemplazan "Cargando samples..." */
+.feedSamplesSkeletonInicial {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--espacioMd) 0;
+}
+
 /* Botón manual de "Cargar más" cuando el throttle de paginación lo requiere */
 .feedSamplesBotonManual {
     display: flex;

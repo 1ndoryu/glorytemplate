@@ -73,15 +73,18 @@ export const FeedSamples = ({
         onConteoChange,
     });
 
-    /* QK39: Solo bloquear con "Cargando" si no hay datos en absoluto.
-     * Si hay datos stale (del cache persistente), se muestran directamente
-     * y la revalidacion ocurre en background (manejada por useFeedSamples). */
+    /* QL13: Mostrar skeletons (no texto) cuando no hay datos.
+     * Si hay cache stale, useFeedSamples ya lo muestra directamente y revalida en background.
+     * Solo se llega aqui en primera visita sin cache — mostrar skeletons en vez de bloquear con texto. */
     if (feed.cargando && feed.samplesFiltrados.length === 0) {
         return (
             <div className={`feedSamplesContenedor ${className}`} id={id}>
-                <div className="feedSamplesVacio">
-                    <Music size={40} className="feedSamplesVacioIcono" />
-                    <p>Cargando samples…</p>
+                <div className="feedSamplesSkeletonInicial">
+                    <SkeletonTarjetaSample />
+                    <SkeletonTarjetaSample />
+                    <SkeletonTarjetaSample />
+                    <SkeletonTarjetaSample />
+                    <SkeletonTarjetaSample />
                 </div>
             </div>
         );

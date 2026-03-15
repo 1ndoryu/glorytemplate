@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck } from 'lucide-react';
+import { Bell, Mail, User, Settings, LogOut, Plus, Crown, Sparkles, Search, Download, Music, Music2, Trash2, Trash, Menu, MessageCircle, Heart, ShieldCheck, Box } from 'lucide-react';
 import { InputBusqueda } from '../ui/InputBusqueda';
 import { ResultadosBusquedaRapidaDropdown } from '../ui/ResultadosBusquedaRapida';
 import { Badge } from '../ui/Badge';
@@ -103,7 +103,34 @@ export const TopBar = (): JSX.Element => {
                 setHamburguesaAbierta(false);
             },
         },
-        /* QL10: Mensajes sacado del hamburguesa — ahora visible directamente en movil */
+        /* QL16: Musica, Libreria, Coleccionados movidos aqui desde la barra inferior */
+        {
+            id: 'hb-musica',
+            etiqueta: 'Música',
+            icono: <Music size={14} />,
+            onClick: () => {
+                navegar('/musica');
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-libreria',
+            etiqueta: 'Librería',
+            icono: <Box size={14} />,
+            onClick: () => {
+                navegar('/libreria');
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-coleccionados',
+            etiqueta: 'Coleccionados',
+            icono: <Download size={14} />,
+            onClick: () => {
+                navegar('/descargas');
+                setHamburguesaAbierta(false);
+            },
+        },
         /* QK101: Favoritos movido de sidebar al menu hamburguesa */
         {
             id: 'hb-favoritos',

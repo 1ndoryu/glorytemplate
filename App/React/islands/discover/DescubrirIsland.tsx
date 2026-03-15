@@ -34,12 +34,15 @@ export const DescubrirIsland = (): JSX.Element => {
 
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">
-                    <span className="inicioTagsContador">
-                        {busqueda.trim()
-                            ? `${conteoFiltrado} de ${totalServidor} samples`
-                            : `${totalServidor} samples`
-                        }
-                    </span>
+                    {/* QL13: Contador con fallback a conteoFiltrado */}
+                    {(totalServidor != null || conteoFiltrado > 0) && (
+                        <span className="inicioTagsContador">
+                            {busqueda.trim()
+                                ? `${conteoFiltrado} de ${totalServidor ?? conteoFiltrado} samples`
+                                : `${totalServidor ?? conteoFiltrado} samples`
+                            }
+                        </span>
+                    )}
                 </div>
 
                 <div className="inicioControlesDerecha">

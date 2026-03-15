@@ -254,16 +254,24 @@ class CancionesRepository extends BaseRepository
 
             default: /* inteligente */
                 /*
-                 * Algoritmo heuristico: puntaje = log(total_sampleada+1) * 3 + freshness * 2 + random.
+                 * Algoritmo heuristico: puntaje = log(total_sampleada+1) * 3 + freshness * 2 + random + bonus_sample.
                  * freshness = 1 - (dias_desde_creacion / 365), clamped 0..1.
-                 * Variable aleatoria (md5 rotativo) para diversidad sin ser completamente random.
-                 * Esto produce un feed mezclado que prioriza canciones relevantes + recientes.
+                 * QL14: +3.0 bonus si la cancion tiene al menos un sample adjunto reproducible.
+                 * Esto da ~2x prioridad a canciones con samples vs canciones sin.
                  */
+                $ts = SamplesCols::TABLA;
+                $eActivo = SamplesEnums::ESTADO_ACTIVO;
                 $sql = $baseSelect . "
                         ORDER BY (
                             LN(c." . CancionesCols::TOTAL_SAMPLEADA . " + 1) * 3.0
                             + GREATEST(0, 1.0 - EXTRACT(EPOCH FROM (NOW() - c." . CancionesCols::CREATED_AT . ")) / 31536000.0) * 2.0
                             + RANDOM() * 1.5
+                            + (CASE WHEN EXISTS (
+                                SELECT 1 FROM {$ts} s
+                                WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
+                                  AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
+                                  AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+                            ) THEN 3.0 ELSE 0.0 END)
                         ) DESC
                         LIMIT :limit OFFSET :offset";
                 break;
@@ -426,10 +434,19 @@ class CancionesRepository extends BaseRepository
 
         switch ($tipo) {
             case 'inteligente':
+                /* QL14: +3.0 bonus para canciones con sample adjunto reproducible */
+                $ts = SamplesCols::TABLA;
+                $eActivo = SamplesEnums::ESTADO_ACTIVO;
                 $order = "ORDER BY (
                     LN(c." . CancionesCols::TOTAL_SAMPLEADA . " + 1) * 3.0
                     + GREATEST(0, 1.0 - EXTRACT(EPOCH FROM (NOW() - c." . CancionesCols::CREATED_AT . ")) / 31536000.0) * 2.0
                     + RANDOM() * 1.5
+                    + (CASE WHEN EXISTS (
+                        SELECT 1 FROM {$ts} s
+                        WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
+                          AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
+                          AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+                    ) THEN 3.0 ELSE 0.0 END)
                 ) DESC";
                 break;
             case 'tendencia':

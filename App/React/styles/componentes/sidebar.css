@@ -158,6 +158,33 @@
         color: var(--textoSecundario);
     }
 
+    /* QL16: Wrapper para items con dropdown (mensajes, notificaciones) */
+    .sidebarItemWrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 48px;
+    }
+
+    .sidebarItemWrapper .sidebarItem {
+        flex: unset;
+        width: 100%;
+    }
+
+    /* QL16: Indicador de notificaciones no leidas en barra inferior */
+    .sidebarItemConBadge {
+        color: var(--acento) !important;
+    }
+
+    /* QL16: Avatar en barra inferior — ajustar tamano */
+    .sidebarItem .avatarContenedor {
+        width: 24px;
+        height: 24px;
+    }
+
     /* Ocultar tooltips en mobile */
     .sidebarItem::after {
         display: none;

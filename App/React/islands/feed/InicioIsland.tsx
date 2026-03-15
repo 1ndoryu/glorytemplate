@@ -152,11 +152,14 @@ export const FeedUnificado = (): JSX.Element => {
             {/* Barra de ordenamientos + filtros */}
             <div className="inicioBarraControl">
                 <div className="inicioControlesIzquierda">
-                    {totalServidor !== null && (
+                    {/* QL13: Mostrar contador inmediatamente con conteoFiltrado como fallback.
+                     * totalServidor se actualiza cuando la API responde (puede tardar).
+                     * conteoFiltrado esta disponible casi inmediatamente desde cache. */}
+                    {(totalServidor !== null || conteoFiltrado > 0) && (
                         <span className="inicioTagsContador">
                             {busqueda.trim()
-                                ? `${conteoFiltrado} de ${totalServidor} samples`
-                                : `${totalServidor} samples`
+                                ? `${conteoFiltrado} de ${totalServidor ?? conteoFiltrado} samples`
+                                : `${totalServidor ?? conteoFiltrado} samples`
                             }
                         </span>
                     )}

@@ -4,14 +4,12 @@
  * Header con imagen + info + acciones. Tabs: "Mis Coleccionados" y "Más Ideas".
  */
 
-import { useEffect, useCallback } from 'react';
-import { Download, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { useEffect, useCallback, useState } from 'react';
+import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
-import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
-import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
@@ -32,7 +30,7 @@ const TABS_DESCARGAS = [
 ];
 
 const DescargasBase = (): JSX.Element => {
-    const { samples, comprados, cargando, cargandoComprados, proveedorSugerencias, manejarLike } = useDescargasPagina();
+    const { comprados, cargando, cargandoComprados, proveedorColeccionados, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -41,12 +39,12 @@ const DescargasBase = (): JSX.Element => {
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
+    /* QL15: Contador de coleccionados via FeedSamples */
+    const [totalColeccionados, setTotalColeccionados] = useState(0);
+
     /* Keep-alive: congelar tabActiva cuando la isla está oculta */
     const activa = useIslaActiva('DescargasIsland');
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
-
-    /* Filtrado client-side por tags/BPM para la lista principal */
-    const filtros = useFeedFiltros({ samples });
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('DescargasIsland', TABS_DESCARGAS, 'descargas');
@@ -64,9 +62,9 @@ const DescargasBase = (): JSX.Element => {
     }, [abrirDetalle]);
 
     const manejarComentar = useCallback((sampleId: number) => {
-        const sample = samples.find((s) => s.id === sampleId);
+        const sample = comprados.find((s) => s.id === sampleId);
         if (sample) abrirComentarios(sample);
-    }, [samples, abrirComentarios]);
+    }, [comprados, abrirComentarios]);
 
     if (cargando) {
         return (
@@ -95,49 +93,28 @@ const DescargasBase = (): JSX.Element => {
                     <h1 className="coleccionNombre">Mis Coleccionados</h1>
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
-                            {samples.length} sample{samples.length !== 1 ? 's' : ''}
+                            {totalColeccionados > 0
+                                ? `${totalColeccionados} sample${totalColeccionados !== 1 ? 's' : ''}`
+                                : 'Cargando...'
+                            }
                         </span>
                     </div>
                 </div>
             </div>
 
             {/* Contenido según tab activa — key distinta fuerza desmontaje (C46) */}
+            {/* QL15: Coleccionados con scroll infinito via FeedSamples */}
             {tabActiva === 'descargas' && (
-                samples.length === 0 ? (
-                    <div className="coleccionVacia" style={{ flexDirection: 'column', gap: 'var(--espacioMd)' }}>
-                        <Download size={32} />
-                        <p>Los samples que colecciones aparecerán aquí.</p>
-                    </div>
-                ) : (
-                    <>
-                        <FiltroTags
-                            tagsAgrupados={filtros.tagsAgrupados}
-                            tagsSueltos={filtros.tagsSueltos}
-                            tagsIncluidos={filtros.tagsIncluidos}
-                            tagsExcluidos={filtros.tagsExcluidos}
-                            bpmMin={filtros.bpmMin}
-                            bpmMax={filtros.bpmMax}
-                            onIncluirTag={filtros.manejarIncluirTag}
-                            onExcluirTag={filtros.manejarExcluirTag}
-                            onQuitarTag={filtros.quitarTag}
-                            onCambiarBpm={filtros.setBpmRango}
-                        />
-                        <div className="listaDeSamples">
-                            {filtros.samplesFiltrados.map((sample) => (
-                                <TarjetaSample
-                                    key={sample.id}
-                                    sample={sample}
-                                    contexto={filtros.samplesFiltrados}
-                                    onLike={manejarLike}
-                                    onMenu={menu.abrirMenu}
-                                    onClickCreador={(u) => navegar(`/perfil/${u}`)}
-                                    onClickTitulo={manejarClickTitulo}
-                                    onComentar={manejarComentar}
-                                />
-                        ))}
-                    </div>
-                    </>
-                )
+                <FeedSamples
+                    key="descargas-coleccionados"
+                    proveedor={proveedorColeccionados}
+                    claveCache="coleccionados"
+                    mostrarTags
+                    infiniteScroll
+                    virtualizar={false}
+                    mensajeVacio="Los samples que colecciones aparecerán aquí."
+                    onConteoChange={setTotalColeccionados}
+                />
             )}
 
             {tabActiva === 'comprados' && (

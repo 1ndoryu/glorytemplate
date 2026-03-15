@@ -198,16 +198,11 @@
         display: none;
     }
 
-    /* QL10: Mensajes visible en movil, junto a notificaciones */
-    .topbarIconoMensajes {
-        position: static;
-        width: auto;
-        height: auto;
-        overflow: visible;
-    }
-
-    .topbarIconoMensajes > button {
-        display: flex;
+    /* QL16: Ocultar notificaciones, mensajes y avatar — se mueven a la barra inferior (Sidebar) */
+    .topbarIconoWrapper,
+    .topbarIconoMensajes,
+    .topbarAvatarWrapper {
+        display: none !important;
     }
 }
 

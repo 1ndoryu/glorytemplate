@@ -1,13 +1,12 @@
 /*
- * tarjetaCancionGrande.css — QK18/QK22
+ * tarjetaCancionGrande.css — QK18/QK22 + QL14
  * Tarjeta grande con portada cuadrada estilo Spotify.
- * Imagen arriba, titulo y artista abajo, play overlay en hover.
+ * QL14: Click portada reproduce, hover oscurece, play centrado blanco.
  */
 
 .tarjetaCancionGrande {
     width: 165px;
     min-width: 165px;
-    cursor: pointer;
     scroll-snap-align: start;
     display: flex;
     flex-direction: column;
@@ -21,6 +20,7 @@
     overflow: hidden;
     background: var(--fondoElevado2);
     position: relative;
+    cursor: pointer;
 }
 
 .tarjetaCancionGrandeImagen img {
@@ -28,6 +28,12 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: filter var(--transicionNormal);
+}
+
+/* QL14: Hover oscurece la imagen para contrastar con el play */
+.tarjetaCancionGrandeImagenPlayable:hover img {
+    filter: brightness(0.6);
 }
 
 .tarjetaCancionGrandeImagenPlaceholder {
@@ -38,45 +44,45 @@
     height: 100%;
 }
 
-/* Overlay de play: aparece al hacer hover sobre la tarjeta */
+/* QL14: Play centrado, blanco, mas grande sobre overlay oscuro */
 .tarjetaCancionGrandeOverlay {
     position: absolute;
-    bottom: var(--espacioSm);
-    right: var(--espacioSm);
-    width: 40px;
-    height: 40px;
-    min-width: unset;
-    padding: 0;
-    background: var(--acento);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.55);
     border-radius: var(--radioFull);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transform: translateY(8px);
     transition: opacity var(--transicionNormal), transform var(--transicionNormal);
-    color: var(--textoPrimarioInverso);
+    color: var(--blanco);
     pointer-events: none;
 }
 
-.tarjetaCancionGrande:hover .tarjetaCancionGrandeOverlay {
+.tarjetaCancionGrandeImagen:hover .tarjetaCancionGrandeOverlay {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
     pointer-events: auto;
 }
 
 .tarjetaCancionGrandeOverlayActivo {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
     pointer-events: auto;
 }
 
+/* QL14: Info clickeable con cursor pointer */
 .tarjetaCancionGrandeInfo {
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding: 0 var(--espacio2xs);
     min-width: 0;
+    cursor: pointer;
 }
 
 .tarjetaCancionGrandeTitulo {

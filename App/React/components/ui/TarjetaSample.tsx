@@ -7,6 +7,7 @@
 
 import { useRef, type MouseEvent } from 'react';
 import { Play, Pause, Heart, MessageCircle, Plus, MoreHorizontal, BadgeCheck, Bookmark, DollarSign, Crown } from 'lucide-react';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import type { SampleResumen, TipoReaccion } from '../../types';
 import { WaveformPlayer } from './WaveformPlayer';
 import { Badge } from './Badge';
@@ -46,6 +47,9 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
 
     /* QQ46: Punto rojo para samples no reproducidos */
     const noReproducido = useReproducidosStore(s => s.cargado && !s.ids.has(sample.id));
+
+    /* QL12: En movil, tags no filtran — click en tarjeta solo reproduce */
+    const esMovil = useEsMovil();
 
     /* Long press en mobile para abrir menú contextual (500ms) */
     const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,7 +124,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                 </div>
 
                 <div className="tarjetaMeta">
-                    <BadgesMetadata sample={sample} onFiltrar={props.onFiltrarMeta} />
+                    <BadgesMetadata sample={sample} onFiltrar={esMovil ? undefined : props.onFiltrarMeta} />
                 </div>
             </div>
 

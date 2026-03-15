@@ -21,6 +21,7 @@ export interface UseDescargasPaginaResultado {
     limites: LimitesDescarga | null;
     cargando: boolean;
     cargandoComprados: boolean;
+    proveedorColeccionados: (pagina: number) => Promise<SampleResumen[]>;
     proveedorSugerencias: (pagina: number) => Promise<SampleResumen[]>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
@@ -32,20 +33,16 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
     const [cargando, setCargando] = useState(true);
     const [cargandoComprados, setCargandoComprados] = useState(true);
 
-    /* Carga inicial: descargas + límites + comprados en paralelo */
+    /* Carga inicial: limites + comprados (coleccionados ahora van por FeedSamples con scroll infinito) */
     useEffect(() => {
         const cargar = async () => {
             setCargando(true);
             setCargandoComprados(true);
             try {
-                const [respDescargas, respLimites, respComprados] = await Promise.all([
-                    obtenerColeccionados(1, 30),
+                const [respLimites, respComprados] = await Promise.all([
                     obtenerLimites(),
                     obtenerComprados(),
                 ]);
-                if (respDescargas.ok && respDescargas.data) {
-                    setSamples(respDescargas.data.data ?? []);
-                }
                 if (respLimites.ok && respLimites.data) {
                     setLimites(respLimites.data);
                 }
@@ -59,6 +56,17 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
             setCargandoComprados(false);
         };
         cargar();
+    }, []);
+
+    /* QL15: Proveedor paginado para tab "Mis Coleccionados" — scroll infinito */
+    const proveedorColeccionados = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+        try {
+            const resp = await obtenerColeccionados(pagina, 30);
+            return resp.ok && resp.data?.data ? resp.data.data : [];
+        } catch (err) {
+            log.error('Error cargando coleccionados', err);
+            return [];
+        }
     }, []);
 
     /* Proveedor paginado para tab "Más Ideas" */
@@ -140,5 +148,5 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         }
     }, [samples]);
 
-    return { samples, comprados, limites, cargando, cargandoComprados, proveedorSugerencias, manejarLike };
+    return { samples, comprados, limites, cargando, cargandoComprados, proveedorColeccionados, proveedorSugerencias, manejarLike };
 }
