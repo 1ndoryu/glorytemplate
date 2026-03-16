@@ -115,6 +115,11 @@
     gap: var(--espacioSm);
 }
 
+.seleccionColeccionItemGuardado {
+    opacity: 1 !important;
+    border: unset !important;
+}
+
 /* Item colección: imagen + nombre (sin icono, sin contador — C106) */
 .seleccionColeccionItem {
     display: flex;

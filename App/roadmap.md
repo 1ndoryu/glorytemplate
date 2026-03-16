@@ -465,6 +465,12 @@ El panel lateral debería funcionar como un dropdown, pero no abrirse cuando se 
 
 Y creo que los menu contextuales en escritorio necesitan max-height: 400px; ya que se hace muy largo a veces con overflow auto
 
+# QL56
+
+El like a través del reproductor a los samples no funciona, y cuando funcione debe actualizar el like en el sample tambien. 
+
+El reproductor se pone por encima de dropdown cuando se abre, no debería.
+
 
 
 
