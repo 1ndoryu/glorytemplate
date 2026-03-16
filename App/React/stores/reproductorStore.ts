@@ -23,6 +23,7 @@ interface EstadoReproductor {
     muted: boolean;
     repetir: boolean;
     aleatorio: boolean;
+    autoplay: boolean;
     habilitado: boolean;
     pendingSeek: number | null;
     /* QQ75: ID de coleccion en modo preview (null = no preview) */
@@ -40,6 +41,7 @@ interface EstadoReproductor {
     setDuracion: (duracion: number) => void;
     toggleRepetir: () => void;
     toggleAleatorio: () => void;
+    toggleAutoplay: () => void;
     siguiente: () => void;
     anterior: () => void;
     cerrar: () => void;
@@ -58,6 +60,7 @@ export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
     muted: false,
     repetir: false,
     aleatorio: false,
+    autoplay: false,
     habilitado: true,
     pendingSeek: null,
     coleccionPreviewId: null,
@@ -88,6 +91,7 @@ export const useReproductorStore = create<EstadoReproductor>((set, get) => ({
 
     toggleRepetir: () => set(s => ({repetir: !s.repetir})),
     toggleAleatorio: () => set(s => ({aleatorio: !s.aleatorio})),
+    toggleAutoplay: () => set(s => ({autoplay: !s.autoplay})),
 
     siguiente: () => {
         const {contexto, sampleActual, aleatorio} = get();

@@ -22,6 +22,7 @@ import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
 import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import { ComunidadIsland } from '../comunidad/ComunidadIsland';
 import { useEsMovil } from '@app/hooks/useEsMovil';
@@ -70,9 +71,7 @@ export const FeedUnificado = (): JSX.Element => {
     const ordenamiento = useFiltrosStore(s => s.ordenamiento);
     const periodoDestacados = useFiltrosStore(s => s.periodoDestacados);
     const yaReproducidos = useFiltrosStore(s => s.yaReproducidos);
-    const likeados = useFiltrosStore(s => s.likeados);
     const deSeguidos = useFiltrosStore(s => s.deSeguidos);
-    const descargados = useFiltrosStore(s => s.descargados);
     const setOrdenamiento = useFiltrosStore(s => s.setOrdenamiento);
     const setPeriodoDestacados = useFiltrosStore(s => s.setPeriodoDestacados);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -95,17 +94,25 @@ export const FeedUnificado = (): JSX.Element => {
     /* Cargar historial para filtro "Ya reproducidos" */
     const { idsReproducidos } = useHistorialIds(yaReproducidos);
 
-    /* Cargar IDs para filtros de likeados, descargados y seguidos */
-    const { idsLikeados, idsDescargados, idsSeguidos } = useFiltroIds(likeados, descargados, deSeguidos);
+    /* Cargar IDs de seguidos para filtro "Solo de seguidos" */
+    const { idsSeguidos } = useFiltroIds(false, false, deSeguidos);
 
-    /* Combinar IDs de exclusión: reproducidos + likeados + descargados */
+    /*
+     * QL87: Filtros de contenido locales (independientes por pagina).
+     * Reemplaza el viejo sistema de IDs para descargados/likeados con filtrado
+     * client-side usando campos yaColeccionado/liked del SampleResumen.
+     */
+    const filtrosContenido = useFiltrosContenido({
+        disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados', 'ocultarColeccionados', 'ocultarReproducidos', 'ocultarLikeados', 'soloDeSeguidos'],
+        idsReproducidos: yaReproducidos ? idsReproducidos : undefined,
+        idsSeguidos: deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined,
+    });
+
+    /* IDs de exclusión: solo reproducidos (el resto se maneja via filtrosContenido) */
     const idsExcluidosCombinados = useMemo(() => {
-        const set = new Set<number>();
-        if (yaReproducidos) idsReproducidos.forEach((id) => set.add(id));
-        if (likeados) idsLikeados.forEach((id) => set.add(id));
-        if (descargados) idsDescargados.forEach((id) => set.add(id));
-        return set.size > 0 ? set : undefined;
-    }, [yaReproducidos, idsReproducidos, likeados, idsLikeados, descargados, idsDescargados]);
+        if (yaReproducidos && idsReproducidos.size > 0) return idsReproducidos;
+        return undefined;
+    }, [yaReproducidos, idsReproducidos]);
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('InicioIsland', TABS_INICIO, 'inicio');
@@ -238,6 +245,7 @@ export const FeedUnificado = (): JSX.Element => {
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}
                 onConteoChange={setConteoFiltrado}
+                filtroAdicional={filtrosContenido.aplicar}
                 accionVacia={
                     <BotonBase variante="primario" onClick={() => abrirCrear()}>
                         Sube el primero
@@ -248,6 +256,11 @@ export const FeedUnificado = (): JSX.Element => {
             <ModalFiltros
                 abierto={filtrosAbierto}
                 onCerrar={() => setFiltrosAbierto(false)}
+                filtrosContenido={filtrosContenido.filtros}
+                estaActivo={filtrosContenido.estaActivo}
+                onToggleFiltro={filtrosContenido.toggle}
+                hayFiltrosContenidoActivos={filtrosContenido.hayActivos}
+                onResetContenido={filtrosContenido.resetear}
             />
         </div>
     );

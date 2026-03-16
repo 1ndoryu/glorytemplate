@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown } from 'lucide-react';
+import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown, Bookmark } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
@@ -23,6 +23,7 @@ import '../../styles/componentes/libreria.css';
 const TABS_LIBRERIA = [
     { id: 'explorar', etiqueta: 'Explorar' },
     { id: 'colecciones', etiqueta: 'Mis Colecciones' },
+    { id: 'guardadas', etiqueta: 'Guardadas' },
 ];
 
 /* C388: Opciones de ordenamiento para el menú dropdown */
@@ -34,7 +35,7 @@ const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
 
 export const LibreriaIsland = (): JSX.Element => {
     const {
-        colecciones, coleccionesPublicas, cargando,
+        colecciones, coleccionesPublicas, coleccionesGuardadas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         tagsFrecuentes, tagActivo, setTagActivo,
@@ -93,7 +94,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                 )}
                             </div>
 
-                            {tabActiva !== 'explorar' && (
+                            {tabActiva === 'colecciones' && (
                                 <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
                                     <Plus size={14} /> Nueva
                                 </BotonBase>
@@ -150,6 +151,20 @@ export const LibreriaIsland = (): JSX.Element => {
                                         />
                                     );
                                 })}
+                            </div>
+                        )
+                    ) : tabActiva === 'guardadas' ? (
+                        coleccionesGuardadas.length === 0 ? (
+                            <EstadoVacio
+                                icono={<Bookmark size={32} />}
+                                titulo="Sin colecciones guardadas"
+                                mensaje="Las colecciones que guardes de otros usuarios aparecerán aquí."
+                            />
+                        ) : (
+                            <div className="libreriaGridColecciones">
+                                {coleccionesGuardadas.map(col => (
+                                    <TarjetaColeccion key={col.id} coleccion={col} />
+                                ))}
                             </div>
                         )
                     ) : (

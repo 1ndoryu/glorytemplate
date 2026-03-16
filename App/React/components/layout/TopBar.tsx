@@ -320,8 +320,8 @@ export const TopBar = (): JSX.Element => {
                 </BotonBase>
             </div>
 
-            {/* QL10: Mobile — logo Kamples centrado */}
-            <div className="topbarLogoMovil">
+            {/* QL10: Mobile — logo Kamples centrado. QL85: clickeable para ir al inicio */}
+            <div className="topbarLogoMovil" onClick={() => useNavigationStore.getState().navegar('/')} role="button" tabIndex={0}>
                 <LogoKamples tamano={22} />
             </div>
 

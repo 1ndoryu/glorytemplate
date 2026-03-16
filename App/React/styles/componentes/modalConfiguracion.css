@@ -1,10 +1,10 @@
 /*
  * modalConfiguracion.css — Kamples
- * Modal de configuración con panel lateral de navegación.
- * Usa componente Modal base — overrides de layout para nav lateral.
+ * Desktop: modal con panel lateral de navegación.
+ * Móvil (QL89): pantalla completa con drill-down, sin wrapper Modal.
  */
 
-/* Override del contenedor Modal para tamaño y fondo del config */
+/* Override del contenedor Modal para tamaño y fondo del config (solo desktop) */
 .modalContenedor.configModalLayout {
     background-color: var(--fondoElevado1);
     width: 90vw;
@@ -332,7 +332,7 @@ nav.configNavLista button {
     border-top: 1px solid var(--bordeSutil);
 }
 
-/* QL51: Chevron de navegacion en items — oculto en desktop, visible en movil */
+/* QL51: Chevron de navegacion en items — solo visible en pantalla móvil */
 .configNavChevron {
     display: none;
     margin-left: auto;
@@ -340,108 +340,120 @@ nav.configNavLista button {
     flex-shrink: 0;
 }
 
-/* QL51: Boton volver movil — oculto en desktop */
+/* QL51 (legacy): Boton volver — solo visible en versión móvil */
 .configMovilVolver {
-    display: none;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    padding: 0;
+    background: none;
+    border: none;
 }
 
-/* Responsive: en pantallas pequeñas, nav lateral se convierte en drill-down (QL51) */
-@media (max-width: 600px) {
-    .modalContenedor.configModalLayout {
-        width: 100vw;
-        max-width: 100vw;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-    }
+/*
+ * QL89: Pantalla completa móvil (sin Modal wrapper)
+ * Renderizado como portal directo a body, con animación slide-up.
+ */
+.configMovilPantalla {
+    position: fixed;
+    inset: 0;
+    z-index: var(--zModal);
+    background-color: var(--fondoBase);
+    display: flex;
+    flex-direction: column;
+    animation: configSlideUp 0.25s ease-out;
+}
 
-    .configModalLayout .modalCuerpo {
-        flex-direction: column;
-    }
+@keyframes configSlideUp {
+    from { transform: translateY(100%); opacity: 0.5; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
-    /* QL51: Drill-down — nav ocupa todo cuando movilEnMenu, contenido oculto */
-    .configMovilEnMenu .configNavLateral {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        min-width: 0;
-        border-right: none;
-        border-bottom: none;
-        padding: var(--espacioMd);
-        flex: 1;
-        overflow-y: auto;
-    }
+/* Cabecera móvil — título/volver + botón cerrar */
+.configMovilCabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    min-height: 48px;
+}
 
-    .configMovilEnMenu .configContenido {
-        display: none;
-    }
+.configMovilCabecera .configNavTitulo {
+    margin: 0;
+    padding: 0;
+}
 
-    /* QL51: Cuando estamos en contenido, ocultar nav y mostrar contenido */
-    .configMovilEnContenido .configNavLateral {
-        display: none;
-    }
+.configMovilCerrar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--textoSecundario);
+    flex-shrink: 0;
+}
 
-    .configMovilEnContenido .configContenido {
-        display: flex;
-        flex: 1;
-        overflow-y: auto;
-    }
+/* Nav — lista de secciones a pantalla completa */
+.configMovilNav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+}
 
-    /* QL51: Items de nav como lista con chevron */
-    .configNavLista {
-        flex-direction: column;
-        gap: 0;
-    }
+.configMovilNav .configNavLista {
+    gap: 0;
+}
 
-    .configNavItem {
-        padding: var(--espacioMd) var(--espacioSm);
-        font-size: var(--fuenteSm);
-        border-bottom: 1px solid var(--bordeSutil);
-        border-radius: 0;
-    }
+.configMovilNav .configNavItem {
+    padding: var(--espacioMd) var(--espacioLg);
+    font-size: var(--fuenteSm);
+    border-bottom: 1px solid var(--bordeSutil);
+    border-radius: 0;
+    min-height: 48px;
+}
 
-    .configNavItem:last-child {
-        border-bottom: none;
-    }
+.configMovilNav .configNavItem:last-child {
+    border-bottom: none;
+}
 
-    .configNavChevron {
-        display: block;
-    }
+.configMovilNav .configNavChevron {
+    display: block;
+}
 
-    /* QL51: Boton volver visible en movil */
-    .configMovilVolver {
-        display: flex;
-        align-items: center;
-        gap: var(--espacioSm);
-        padding: var(--espacioSm) var(--espacioMd);
-        color: var(--textoSecundario);
-        font-size: var(--fuenteSm);
-        font-weight: var(--pesoSemibold);
-        border-bottom: 1px solid var(--bordeSutil);
-    }
+/* Detalle — contenido de sección con scroll */
+.configMovilDetalle {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
 
-    .configSeccionContenido {
-        padding: var(--espacioMd);
-    }
+.configMovilContenido {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--espacioMd) var(--espacioLg);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
 
-    .configPortadaContenedor {
-        height: 80px;
-    }
+.configMovilDetalle .configAcciones {
+    padding: var(--espacioSm) var(--espacioMd);
+}
 
-    .configAcciones {
-        padding: var(--espacioSm) var(--espacioMd);
-    }
+.configMovilDetalle .configPortadaContenedor {
+    height: 80px;
+}
 
-    .configSeccionHorizontal {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--espacioSm);
-    }
-
-    .configCerrarBtn {
-        top: var(--espacioXs);
-        right: var(--espacioXs);
-    }
+.configMovilDetalle .configSeccionHorizontal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espacioSm);
 }
 
 /* QQ25: Sección de bloqueos */

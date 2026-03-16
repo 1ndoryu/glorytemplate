@@ -42,8 +42,11 @@ export const useMotorAudio = (): void => {
             if (state.repetir) {
                 audio.currentTime = 0;
                 audio.play().catch(() => undefined);
-            } else {
+            } else if (state.autoplay) {
                 state.siguiente();
+            } else {
+                /* QL80: Autoplay desactivado — pausar al terminar sin avanzar */
+                state.pause();
             }
         };
 

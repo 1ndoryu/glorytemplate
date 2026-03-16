@@ -5,9 +5,8 @@
  */
 
 import { useRef, useState, type MouseEvent } from 'react';
-import { Repeat2, MoreHorizontal, X } from 'lucide-react';
+import { Repeat2, MoreHorizontal, X, BadgeCheck } from 'lucide-react';
 import { Avatar } from '@app/components/ui/Avatar';
-import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { EnlaceNavegacion } from '@app/components/ui/EnlaceNavegacion';
 import { BadgeModeracion } from '@app/components/ui/BadgeModeracion';
@@ -125,7 +124,7 @@ export const TarjetaPublicacion = ({
                             <span className="tarjetaPubNombre">
                                 {publicacion.autor.nombreVisible}
                                 {publicacion.autor.verificado && (
-                                    <Badge variante="acento" tamano="xs">✓</Badge>
+                                    <BadgeCheck size={14} className="tarjetaVerificado" />
                                 )}
                             </span>
                         </EnlaceNavegacion>

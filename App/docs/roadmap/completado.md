@@ -496,3 +496,124 @@ kamples-scraper/
 - **QL4:** Tauri v2 GUI scaffold. lib.rs re-export, src/api 4 funciones + tipos serializables, gui/src-tauri 5 comandos Tauri, gui/src React 19 frontend (4 vistas, sidebar, tema Kamples). Workspace dual lib+bin, 61/61 tests. Commit `dd7cbda`.
 - [Lección CM]: tracing-subscriber fmt::layer() default es stdout. En modo MCP: .with_writer(stderr) o solo file layer.
 - [Lección CM]: Dual lib+bin en Rust: main.rs usa `use crate_name::*`, solo módulos binary-specific con `mod`.
+
+---
+
+## Completado — Sprint QL: QL5-QL95
+
+> 91 tareas de mantenimiento, features y optimización. Agrupadas por dominio.
+
+### Infraestructura/Roadmap (QL5-QL6, QL11, QL27, QL47, QL57-QL58)
+- **QL5:** Roadmap compactado 460→155 líneas, índice docs reorganizado (7 categorias).
+- **QL6:** Auditoría deploy coolify-manager (10 áreas). Bugs corregidos: failover polling reemplaza sleep(30s), redeploy health check propaga error. 61/61 tests.
+- **QL11:** deploy_theme.rs: reportar_cambios_git() captura hashes antes/después del deploy.
+- **QL27:** Auditado: theme_manager.rs ejecuta git pull→composer→npm build, orden correcto.
+- **QL47:** Redis en VPS: redis:7-alpine 128mb, ServicioRedis singleton, ServicioCache fallback WP transients, locks SETNX atómico.
+- **QL57:** Fix benchmark VPS: container ID viejo→nombre correcto. ~81ms promedio feed sin cache.
+- **QL58:** Log TRIP PO en audio_download.py para debug descargas YouTube.
+
+### Feed/Optimización (QL7, QL9, QL13, QL24, QL37-QL38, QL50, QL77, QL79)
+- **QL7:** IntersectionObserver refs estabilizados, rootMargin 600px, paginación inicio 5 páginas.
+- **QL9:** FiltroTags: tags ordenados (incluidos→excluidos→inactivos).
+- **QL13:** Skeleton reemplaza texto "Cargando", contador fallback con conteoFiltrado.
+- **QL24:** 3 root causes: total siempre enviado, cargandoMas try/finally, totalServidor reset al cambiar orden.
+- **QL37-QL38:** Optimización query feed: >30,000ms→127ms (99.6%) con CTEs pre-agregados y hash joins.
+- **QL50:** BN-5 serendipia cache 30min, BN-3 percentiles cron 5min, stampede SETNX, BN-2 columna tags_enriquecidos + trigger + GIN. Migration v058.
+- **QL77:** Fix proveedorSamples ColeccionDetalle: proveedor real reemplaza hardcoded `[]` que corrompía polling.
+- **QL79:** Scroll infinito: removido div spacer+botón, sistema pausa 2s automático, siempre carga más.
+
+### UI/UX Desktop+Móvil (QL8, QL10, QL12, QL14-QL17, QL20-QL21, QL25-QL26, QL28, QL31-QL33, QL41, QL43, QL46, QL51-QL52, QL54-QL56, QL59-QL60, QL84-QL85, QL90)
+- **QL8:** SeccionHorizontal: flechas+arrastre mouse, hook useScrollHorizontal reutilizable.
+- **QL10+QL16:** Layout móvil completo: TopBar (hamburguesa+logo+busqueda), bottom bar (5 items), dropdowns notif/msg, hamburguesa con 7 items.
+- **QL12:** Tags deshabilitadas en móvil, Windows EXE+APK generados.
+- **QL14:** TarjetaCancionGrande: click reproduce sample adjunto, hover oscurece, +3.0 bonus ORDER BY.
+- **QL17:** Menú contextual bottom sheet móvil, sistema registroCapas para back handler (popstate), clases plataforma CSS (plataformaAndroid/Escritorio/Tauri).
+- **QL20:** Fix skeleton flash: primeraCargaCompleta flag, stale-while-revalidate.
+- **QL21:** Admin tabs con iconos lucide, tab Canciones paginada.
+- **QL25:** MenuContextual bottom sheet nativo en móvil, 24 usos heredan automáticamente.
+- **QL26:** Logo APK reducido, splash #070707, CSP wss.
+- **QL28:** Bottom sheet: sin cabecera, padding/min-height, iconos derecha.
+- **QL31:** Búsqueda rápida unificada: colecciones+scoring relevancia, lista plana max 12.
+- **QL32:** Botón Google alternativo APK (GSI no funciona en WebView).
+- **QL33:** Fix legal.css: variables inexistentes→variables sistema.
+- **QL41:** Header dinámico DescargasIsland: título/imagen/contador por tab.
+- **QL43:** Preview button 52px fijo, ColeccionDetalle preview conectado a hook.
+- **QL46:** Hamburguesa: +Configuración/WhatsApp/Logout. SVGs APK: resolverRutaAsset util.
+- **QL51:** Modal configuración móvil drill-down iOS: nav vertical→contenido con Volver.
+- **QL52:** Iconos lucide en menú contextual (17 iconos), separadores visuales, max-height 400px.
+- **QL54:** Waveform oculta @870px y con panel lateral @1120px.
+- **QL55:** Panel lateral solo desde menú contextual, no auto-abrir en móvil, click título navega.
+- **QL56:** Like sync reproductor↔feed via CustomEvent, z-index menú→zMenuPortal 1100.
+- **QL59:** Prop forzarDropdown en MenuContextual para VentanaSincPanel.
+- **QL60:** "Corregir metadata IA" visible para admins en todos los samples.
+- **QL84:** Badge verificado publicaciones = badge verificado samples.
+- **QL85:** topbarLogoMovil redirige al inicio.
+- **QL90:** Click nombre sample en móvil reproduce, no abre detalle.
+
+### APK/Android (QL19-A, QL34, QL36, QL45, QL48-QL49)
+- **QL19-A:** CORS fix: tauri.localhost en KamplesInit.php + .htaccess expandido.
+- **QL34:** FCM Android completo: KamplesFirebaseService.kt, backend PHP (migration v057, FcmController, ServicioFcm OAuth2 JWT), fcmToken.ts bridge. Pendiente: configurar KAMPLES_FCM_SERVICE_ACCOUNT_JSON.
+- **QL36:** APK actualizado 49.4MB. Notificaciones nativas funcionan.
+- **QL45:** Icono notif Android→ic_launcher, safe areas CSS env(safe-area-inset-top).
+- **QL48:** Fix imágenes desktop/APK: resolverRutaAsset() para builds Tauri. Verificador versión APK (useVerificadorVersion + endpoint /app/version).
+- **QL49:** Modal suscripción APK redirige web. Política privacidad en ModalConfiguracion. Util plataforma centralizada.
+
+### QL16-B: Notificaciones nativas
+- tauri-plugin-notification integrado. Android canales notificaciones+mensajes. Hook useNotificacionesNativas escucha WS. Limitación: solo con app abierta (FCM para cerrada=fase futura).
+
+### Backend/API (QL22-QL23, QL30, QL39-QL40, QL42, QL53, QL61, QL64-QL65, QL67, QL71-QL72, QL74, QL93-QL94)
+- **QL22:** 221/22007 canciones con género (backfill parcial, requiere scraper WhoSampled).
+- **QL23:** Fix tagsFrecuentes: UNNEST(tags)→jsonb_array_elements_text(metadata->'tags_es') con fallback.
+- **QL30:** Tags inglés priorizados en colecciones (metadata->'tags' con fallback tags_es).
+- **QL39:** Fix json_validate_failed OpenAI/Groq: retry sin response_format + JsonRepairer.
+- **QL40+QL58:** Logs TRIP PO en descargarAudioYoutube() PHP+Python.
+- **QL42:** Sugerencias fusionan descargas+coleccionados (contextoColeccionadosUsuario).
+- **QL53:** Ordenamiento centralizado OrdenamientoHelper (recientes/nombre/populares/bpm/posicion), param orden en 5 endpoints, BarraControlFeed reutilizable.
+- **QL61:** Verificado: colecciones default public=true ya implementado.
+- **QL64:** Fix auto-modificación admin: guard granular (solo bloquea auto-ban/degradación).
+- **QL65:** Fix DeduplicadorAudio: notificación al uploader (no al dueño original), inserción en duplicados_pendientes.
+- **QL67:** Rotación 8 modelos IA Groq + OpenAI fallback, reintentos 60s, pausa 60s entre items, ServicioImagenIA retry, AnalizadoresModeracion rotación.
+- **QL71:** Fix rechazar/fusionar/intercambiar duplicados: eliminan archivos físicos (audio+preview+waveform).
+- **QL72:** Eliminado UMBRAL_429_CONSECUTIVOS, se intentan todos los modelos.
+- **QL74:** Admin bypass propiedad en TODAS las operaciones colección (5 endpoints + LibreriaIsland UI).
+- **QL93:** Herencia imagen colección→samples: portada colección propietario se hereda si sample tiene imagen colors, con respeto a ediciones directas.
+- **QL94:** Búsqueda en descargas: backend ILIKE titulo+tags en 4 métodos repo, frontend debounce 350ms desde filtrosStore.
+
+### Seguridad/Dedup (QL47-B, QL62-QL63, QL66-EXTRA, QL69-QL70)
+- **QL47-B:** Dedup notificaciones centralizado: ventanas por tipo (like/encanta/follow=24h, comentario=5min, venta=1h).
+- **QL62-QL63:** Auditoría sync seguridad: upload confirmation seguro, borrarAlSubirExitoso/borrarEnServidorAlBorrarLocal mutuamente excluyentes, cola reintentos para rate-limited deletes.
+- **QL66-EXTRA:** Desktop sync NO bloquea subida duplicados, eliminado moverADuplicados() (server pipeline decide).
+- **QL69:** CPU Queue semáforo Redis max 2 concurrentes, dedup limit 5 pendientes/hash, antispam client-side 6+ detecciones.
+- **QL70:** "Sin colección" y "duplicados" ahora suben archivos normalmente, guard anti-colección por nombre.
+
+### Sync Desktop (QL68, QL73, QL76, QL78, QL91)
+- **QL68:** Heurística pareceArchivoConExtension() para extensiones desconocidas.
+- **QL73:** Guard ejecutarSync(): borrarAlSubirExitoso omite descarga. Guard a nivel orquestador.
+- **QL76:** Batch accumulation buffer: quiet period 5s + max wait 30s para bulk I/O.
+- **QL78:** Limpieza retroactiva archivos subidos: limpiarArchivosSubidosEnDisco() al activar opción + startup.
+- **QL91:** Análisis periódico huérfanos (30min): orphan→encolar, synced+borrar→delete, error>1h→retry.
+
+### Autoplay/Filtros/Config (QL80, QL82, QL83, QL86-QL89, QL92, QL95)
+- **QL80:** Autoplay desactivado por defecto, botón aleatorio oculto.
+- **QL82:** Contador descargas muestra total real (no página).
+- **QL83:** Sample oculto del feed música sin eliminar de resultados.
+- **QL86:** Audios cortos se marcan como reproducidos.
+- **QL87:** Filtros contenido: soloWav, soloMeEncanta, ocultarDescargados, ocultarColeccionados, ocultarReproducidos, ocultarLikeados, soloDeSeguidos. Fix ocultarDescargados. Filtros independientes por página.
+- **QL88:** Autoplay activable en configuraciones, por defecto apagado.
+- **QL89:** Modal configuración móvil: versión full-screen con drill-down, ConfiguracionSecciones.tsx extraído.
+- **QL92:** Tab "Guardadas" en librería: tabla colecciones_guardadas (migration v060), ColeccionesGuardadasRepository, endpoints POST/DELETE, frontend completo.
+- **QL95:** Fix FileAudio TypeError: lucide-react v0.559.0 usa forwardRef (object), createElement() en vez de llamada directa.
+
+### Lecciones QL
+- [Feed optimization]: CTEs pre-agregados + hash joins dramáticamente más rápidos que LATERAL UNNEST correlacionado.
+- [PG PDO]: PostgreSQL PDO falla con params extras no referenciados (MySQL los ignora).
+- [Deploy]: Coolify deploy no siempre hace git pull. Verificar commit en container.
+- [Proveedores FeedSamples]: NUNCA retornar `[]` para errores, solo `{ ok: false }`. Proveedor hardcodeado + polling = time bomb.
+- [lucide-react forwardRef]: v0.559.0 iconos son objetos forwardRef, no funciones. Usar createElement().
+- [CustomEvent]: Patrón existente para sync cross-componente (EVENTO_LIKE_CAMBIADO, EVENTO_SAMPLE_GUARDADO). Más escalable que stores adicionales.
+- [Groq rate limits]: Per-model, no per-cuenta. 429 en un modelo no afecta otros.
+- [Android WebView]: No soporta Push API. VAPID solo browsers. Android nativo: tauri-plugin-notification (local) + FCM (remoto).
+- [Dedup]: Dos flujos: PipelineAudio (SHA-256 exacto) y DeduplicadorAudio (hash perceptual). Ambos deben insertar en duplicados_pendientes.
+- [Sync guards]: Guard de negocio en orquestador, no en cada servicio individual.
+- [Batch I/O]: Debounce per-file insuficiente para copias masivas. Quiet-period batch + max-wait correcto.
+- [Limpieza retroactiva]: No basta "de ahora en adelante" — el usuario espera que archivos previos se limpien.

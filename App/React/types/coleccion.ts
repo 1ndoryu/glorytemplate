@@ -31,6 +31,9 @@ export interface Coleccion {
 
     /* Campo calculado: indica si un sample específico ya está en esta colección */
     contieneElSample?: boolean;
+
+    /* Campo calculado: indica si el usuario autenticado tiene esta colección guardada */
+    estaGuardada?: boolean;
 }
 
 export interface ColeccionResumen {

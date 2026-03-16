@@ -258,3 +258,51 @@ export const descargarColeccionZip = async (
 ): Promise<RespuestaApi<ResultadoDescargaZip>> => {
     return apiPost<ResultadoDescargaZip>(`/colecciones/${coleccionId}/descargar-zip`);
 };
+
+/*
+ * QL92: Guardar (bookmark) coleccion ajena.
+ * Idempotente: llamar multiples veces no falla.
+ */
+export const guardarColeccionBookmark = async (
+    coleccionId: number
+): Promise<RespuestaApi<{ guardada: boolean }>> => {
+    return apiPost<{ guardada: boolean }>(`/colecciones/${coleccionId}/guardar`);
+};
+
+/* QL92: Quitar bookmark de coleccion */
+export const desguardarColeccionBookmark = async (
+    coleccionId: number
+): Promise<RespuestaApi<{ guardada: boolean }>> => {
+    return apiDelete<{ guardada: boolean }>(`/colecciones/${coleccionId}/guardar`);
+};
+
+/* QL92: Listar colecciones guardadas (bookmarkeadas) del usuario con paginacion */
+export interface RespuestaGuardadas {
+    colecciones: Coleccion[];
+    total: number;
+    page: number;
+}
+
+export const listarColeccionesGuardadas = async (
+    page = 1,
+    perPage = 30
+): Promise<RespuestaApi<RespuestaGuardadas>> => {
+    const resp = await apiGet<{ colecciones: unknown[]; total: number; page: number }>(
+        '/colecciones/guardadas', { page, per_page: perPage }
+    );
+
+    if (resp.ok && resp.data) {
+        return {
+            ok: true,
+            data: {
+                colecciones: normalizarLista(resp.data.colecciones),
+                total: resp.data.total ?? 0,
+                page: resp.data.page ?? page,
+            },
+            error: null,
+            status: resp.status,
+        };
+    }
+
+    return { ok: false, data: null, error: resp.error, status: resp.status };
+};

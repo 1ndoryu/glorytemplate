@@ -23,6 +23,8 @@ import type { SampleResumen } from '@app/types';
 export interface ResultadoProveedor {
     ok: boolean;
     data: SampleResumen[];
+    /* QL82: Total real del servidor para contadores precisos */
+    total?: number;
 }
 
 /* Tipo del proveedor de datos: recibe pagina, devuelve resultado con flag de exito */
@@ -45,6 +47,8 @@ export interface FeedSamplesProps {
     idsExcluidos?: Set<number>;
     idsCreadoresIncluidos?: Set<number>;
     onConteoChange?: (total: number) => void;
+    /** QL87: Filtro post-procesamiento adicional (useFiltrosContenido.aplicar) */
+    filtroAdicional?: (samples: SampleResumen[]) => SampleResumen[];
 }
 
 export const FeedSamples = ({
@@ -64,6 +68,7 @@ export const FeedSamples = ({
     idsExcluidos,
     idsCreadoresIncluidos,
     onConteoChange,
+    filtroAdicional,
 }: FeedSamplesProps): JSX.Element => {
     const feed = useFeedSamples({
         proveedor,
@@ -78,6 +83,7 @@ export const FeedSamples = ({
         idsExcluidos,
         idsCreadoresIncluidos,
         onConteoChange,
+        filtroAdicional,
     });
 
     /* QL20: Mostrar skeleton hasta que haya al menos una carga exitosa.

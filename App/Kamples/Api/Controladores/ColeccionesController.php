@@ -20,6 +20,7 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\ColeccionesRepository;
+use App\Kamples\Database\Repositories\ColeccionesGuardadasRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
@@ -108,6 +109,26 @@ class ColeccionesController
             'methods' => 'GET', 'callback' => [self::class, 'relevantesParaSample'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* QL92: Bookmark de colecciones ajenas */
+        register_rest_route($namespace, '/colecciones/guardadas', [
+            'methods' => 'GET', 'callback' => [self::class, 'listarGuardadas'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+            'args' => [
+                'page' => ['required' => false, 'type' => 'integer', 'default' => 1],
+                'per_page' => ['required' => false, 'type' => 'integer', 'default' => 30],
+            ],
+        ]);
+
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/guardar', [
+            'methods' => 'POST', 'callback' => [self::class, 'guardarColeccion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/guardar', [
+            'methods' => 'DELETE', 'callback' => [self::class, 'desguardarColeccion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /* C169: Soporte busqueda en mis colecciones. C388: tags_frecuentes. */
@@ -154,13 +175,14 @@ class ColeccionesController
 
         $colecciones = ColeccionesRepository::explorarPublicas($offset, $busqueda, $userId);
 
-        /* C193: Fallback avatar a WP Gravatar */
+        /* C193: Fallback avatar a WP Gravatar + QL81: parsear tags PG array */
         foreach ($colecciones as &$col) {
             $col[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
                 $col[UsuariosExtCols::AVATAR_URL] ?? null,
                 isset($col[UsuariosExtCols::WP_USER_ID]) ? (int) $col[UsuariosExtCols::WP_USER_ID] : null
             );
             unset($col[UsuariosExtCols::WP_USER_ID]);
+            $col['tags'] = NormalizadorSample::pgArrayToPhp($col['tags'] ?? '{}');
         }
         unset($col);
 
@@ -241,6 +263,11 @@ class ColeccionesController
         );
         unset($coleccion[UsuariosExtCols::WP_USER_ID]);
 
+        /* QL92: Flag de coleccion guardada (bookmark) */
+        if ($userId) {
+            $coleccion['esta_guardada'] = ColeccionesGuardadasRepository::estaGuardada($userId, $id);
+        }
+
         return new \WP_REST_Response(['data' => $coleccion], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::obtener', [
@@ -307,6 +334,11 @@ class ColeccionesController
                 isset($coleccion[UsuariosExtCols::WP_USER_ID]) ? (int) $coleccion[UsuariosExtCols::WP_USER_ID] : null
             );
             unset($coleccion[UsuariosExtCols::WP_USER_ID]);
+
+            /* QL92: Flag de coleccion guardada (bookmark) */
+            if ($userId) {
+                $coleccion['esta_guardada'] = ColeccionesGuardadasRepository::estaGuardada($userId, $id);
+            }
 
             return new \WP_REST_Response(['data' => $coleccion], 200);
         } catch (\Throwable $e) {
@@ -406,6 +438,95 @@ class ColeccionesController
         return new \WP_REST_Response(['data' => $colecciones], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::relevantesParaSample', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * QL92: Guardar (bookmark) coleccion ajena para acceso rapido.
+     * Optimista: si ya esta guardada, retorna 200 igualmente.
+     */
+    public static function guardarColeccion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $coleccionId = (int) $request->get_param('id');
+
+            /* Verificar que la coleccion existe y es publica */
+            if (!ColeccionesRepository::esPublica($coleccionId)) {
+                return new \WP_REST_Response(['code' => 'no_encontrada', 'message' => 'Coleccion no encontrada o privada'], 404);
+            }
+
+            ColeccionesGuardadasRepository::guardar($userId, $coleccionId);
+
+            return new \WP_REST_Response(['guardada' => true], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::guardarColeccion', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * QL92: Quitar bookmark de coleccion.
+     */
+    public static function desguardarColeccion(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $coleccionId = (int) $request->get_param('id');
+            ColeccionesGuardadasRepository::desguardar($userId, $coleccionId);
+
+            return new \WP_REST_Response(['guardada' => false], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::desguardarColeccion', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * QL92: Listar colecciones guardadas del usuario con paginacion.
+     */
+    public static function listarGuardadas(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $page = \max(1, (int) ($request->get_param('page') ?? 1));
+            $perPage = \min(50, \max(1, (int) ($request->get_param('per_page') ?? 30)));
+            $offset = ($page - 1) * $perPage;
+
+            $colecciones = ColeccionesGuardadasRepository::listarDelUsuario($userId, $perPage, $offset);
+            $total = ColeccionesGuardadasRepository::contarDelUsuario($userId);
+
+            /* Resolver avatar y parsear tags como en explorar */
+            foreach ($colecciones as &$col) {
+                $col[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(
+                    $col[UsuariosExtCols::AVATAR_URL] ?? null,
+                    null
+                );
+                $col['tags'] = NormalizadorSample::pgArrayToPhp($col['tags'] ?? '{}');
+            }
+
+            return new \WP_REST_Response([
+                'data' => [
+                    'colecciones' => $colecciones,
+                    'total' => $total,
+                    'page' => $page,
+                ],
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::listarGuardadas', [
                 'error' => $e->getMessage(),
             ]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

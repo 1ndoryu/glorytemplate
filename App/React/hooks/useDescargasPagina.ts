@@ -34,7 +34,7 @@ export interface UseDescargasPaginaResultado {
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
-export function useDescargasPagina(): UseDescargasPaginaResultado {
+export function useDescargasPagina(busqueda = ''): UseDescargasPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [comprados, setComprados] = useState<SampleResumen[]>([]);
     const [limites, setLimites] = useState<LimitesDescarga | null>(null);
@@ -71,11 +71,15 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
     const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
 
     /* QL53: Fábricas internas de proveedores que aceptan orden */
-    const crearProveedorColeccionados = useCallback((orden: string) => {
+    const crearProveedorColeccionados = useCallback((orden: string, busq: string) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerColeccionados(pagina, 30, '', orden);
-                return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
+                const resp = await obtenerColeccionados(pagina, 30, '', orden, busq);
+                return {
+                    ok: resp.ok,
+                    data: resp.ok && resp.data?.data ? resp.data.data : [],
+                    total: resp.ok && resp.data?.pagination ? resp.data.pagination.total : undefined,
+                };
             } catch (err) {
                 log.error('Error cargando coleccionados', err);
                 return { ok: false, data: [] };
@@ -84,11 +88,15 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
     }, []);
 
     /* QL53: Proveedor de favoritos con sorting */
-    const crearProveedorFavoritos = useCallback((orden: string) => {
+    const crearProveedorFavoritos = useCallback((orden: string, busq: string) => {
         return async (pagina: number): Promise<ResultadoProveedor> => {
             try {
-                const resp = await obtenerMisFavoritos(pagina, 30, orden);
-                return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
+                const resp = await obtenerMisFavoritos(pagina, 30, orden, busq);
+                return {
+                    ok: resp.ok,
+                    data: resp.ok && resp.data?.data ? resp.data.data : [],
+                    total: resp.ok && resp.data?.pagination ? resp.data.pagination.total : undefined,
+                };
             } catch (err) {
                 log.error('Error cargando favoritos', err);
                 return { ok: false, data: [] };
@@ -96,14 +104,14 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         };
     }, []);
 
-    /* QL53: Proveedores memoizados que se recrean cuando cambia el orden */
+    /* QL53: Proveedores memoizados que se recrean cuando cambia el orden o busqueda */
     const proveedorColeccionados = useMemo(
-        () => crearProveedorColeccionados(ordenColeccionados),
-        [crearProveedorColeccionados, ordenColeccionados]
+        () => crearProveedorColeccionados(ordenColeccionados, busqueda),
+        [crearProveedorColeccionados, ordenColeccionados, busqueda]
     );
     const proveedorFavoritos = useMemo(
-        () => crearProveedorFavoritos(ordenFavoritos),
-        [crearProveedorFavoritos, ordenFavoritos]
+        () => crearProveedorFavoritos(ordenFavoritos, busqueda),
+        [crearProveedorFavoritos, ordenFavoritos, busqueda]
     );
 
     /* Proveedor paginado para tab "Más Ideas" */

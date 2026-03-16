@@ -15,11 +15,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-/* Rutas del proyecto */
-$raizTema = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+# Rutas del proyecto
+$raizTema = Split-Path -Parent $PSScriptRoot
 $dirDesktop = Join-Path $raizTema "desktop"
 
-/* CARGO_TARGET_DIR fuera de OneDrive para evitar WDAC */
+# CARGO_TARGET_DIR fuera de OneDrive para evitar WDAC
 $env:CARGO_TARGET_DIR = "C:\cargo-target\kamples"
 
 Write-Host "`n=== Build Desktop Kamples ===" -ForegroundColor Cyan
@@ -37,7 +37,7 @@ try {
         exit 0
     }
 
-    /* Build completo Tauri */
+    # Build completo Tauri
     if ($Debug) {
         Write-Host "Compilando en modo DEBUG..." -ForegroundColor Yellow
         npx tauri build --debug
@@ -51,7 +51,7 @@ try {
         exit 1
     }
 
-    /* Buscar el instalador generado */
+    # Buscar el instalador generado
     $modo = if ($Debug) { "debug" } else { "release" }
     $dirBundle = Join-Path $env:CARGO_TARGET_DIR "x86_64-pc-windows-msvc\$modo\bundle\nsis"
 

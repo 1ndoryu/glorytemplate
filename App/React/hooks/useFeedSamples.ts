@@ -45,6 +45,8 @@ export interface UseFeedSamplesOpciones {
     idsExcluidos?: Set<number>;
     idsCreadoresIncluidos?: Set<number>;
     onConteoChange?: (total: number) => void;
+    /** QL87: Filtro post-procesamiento adicional (useFiltrosContenido.aplicar) */
+    filtroAdicional?: (samples: SampleResumen[]) => SampleResumen[];
 }
 
 export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
@@ -70,6 +72,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         idsExcluidos,
         idsCreadoresIncluidos,
         onConteoChange,
+        filtroAdicional,
     } = opciones;
 
     /* QK100: Inicializar samples desde cache persistente. leerCacheFeed() SIEMPRE
@@ -109,6 +112,12 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         samplesFiltrados, manejarIncluirTag, manejarExcluirTag,
     } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos });
 
+    /* QL87: Aplicar filtro adicional de useFiltrosContenido (WAV, me encanta, etc.) */
+    const samplesPostFiltro = useMemo(
+        () => filtroAdicional ? filtroAdicional(samplesFiltrados) : samplesFiltrados,
+        [samplesFiltrados, filtroAdicional]
+    );
+
     /* Arrastre horizontal de tags */
     const { listaTagsRef, arrastrandoTags, iniciarArrastre, moverArrastre, finalizarArrastre } = useFeedArrastreTags();
 
@@ -119,6 +128,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Cache por clave */
     const cacheFeedRef = useRef<Record<string, SampleResumen[]>>({});
     const claveCacheAnteriorRef = useRef(claveCache);
+    /* QL82: Total real del servidor para contadores precisos */
+    const totalServidorRef = useRef<number | null>(null);
 
     const navegar = useNavigationStore(s => s.navegar);
     const menu = useMenuContextualSample();
@@ -209,6 +220,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                     cacheFeedRef.current[key] = resultado.data;
                     if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
                     if (resultado.data.length === 0) setHayMasPaginas(false);
+                    if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
                     setSamples(resultado.data);
                 }
             } catch {
@@ -237,6 +249,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                 if (resultado.ok) {
                     cacheFeedRef.current[key] = resultado.data;
                     if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
+                    if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
                 }
                 datos = resultado.data;
             }
@@ -384,10 +397,11 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         };
     }, []);
 
-    /* Notificar conteo al padre */
+    /* QL82: Notificar conteo al padre — usa total del servidor si disponible */
     useEffect(() => {
-        onConteoChange?.(samplesFiltrados.length);
-    }, [samplesFiltrados.length, onConteoChange]);
+        const total = totalServidorRef.current ?? samplesPostFiltro.length;
+        onConteoChange?.(total);
+    }, [samplesPostFiltro.length, onConteoChange]);
 
     /* Likes optimistas (extraido a hook dedicado) */
     const invalidarCacheFeed = useCallback(() => {
@@ -399,10 +413,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Samples visibles (con virtualización aplicada) */
     const samplesVisibles = useMemo(() => {
         if (virtualizar) {
-            return samplesFiltrados.slice(indiceInicio, indiceInicio + maxRenderizados);
+            return samplesPostFiltro.slice(indiceInicio, indiceInicio + maxRenderizados);
         }
-        return samplesFiltrados;
-    }, [virtualizar, samplesFiltrados, indiceInicio, maxRenderizados]);
+        return samplesPostFiltro;
+    }, [virtualizar, samplesPostFiltro, indiceInicio, maxRenderizados]);
 
     return {
         /* Estado de carga */
@@ -411,7 +425,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         primeraCargaCompleta,
 
         /* Samples */
-        samplesFiltrados,
+        samplesFiltrados: samplesPostFiltro,
         samplesVisibles,
 
         /* Virtualización */

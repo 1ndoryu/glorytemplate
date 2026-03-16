@@ -686,12 +686,21 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar samples favoritos de un usuario (JOIN likes).
      */
-    public static function favoritosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes'): array
+    public static function favoritosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes', string $busqueda = ''): array
     {
         $orderBy = OrdenamientoHelper::construirOrderBy(
             $orden,
             'l.' . LikesCols::CREATED_AT . ' DESC'
         );
+
+        $params = ['favUser' => $userId, 'limit' => $limit, 'offset' => $offset];
+        $busquedaClause = '';
+        if ($busqueda !== '') {
+            $busquedaClause = " AND (s." . SamplesCols::TITULO . " ILIKE :busqueda"
+                            . " OR EXISTS (SELECT 1 FROM UNNEST(s." . SamplesCols::TAGS . ") tag WHERE tag ILIKE :busquedaTag))";
+            $params['busqueda'] = '%' . $busqueda . '%';
+            $params['busquedaTag'] = '%' . $busqueda . '%';
+        }
 
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . LikesCols::TABLA . " l ON l."
@@ -700,9 +709,10 @@ class SamplesRepository extends BaseRepository
              . " AND l." . LikesCols::USUARIO_ID . " = :favUser"
              . " AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+             . $busquedaClause
              . " ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
 
-        return static::consultar($sql, ['favUser' => $userId, 'limit' => $limit, 'offset' => $offset]);
+        return static::consultar($sql, $params);
     }
 
     /*
@@ -728,7 +738,7 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar coleccionados (UNION descargas + subidos) con soporte de carpeta.
      */
-    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = '', string $orden = 'recientes'): array
+    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = '', string $orden = 'recientes', string $busqueda = ''): array
     {
         $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $limit, 'offset' => $offset];
         $carpetaClause = '';
@@ -754,6 +764,15 @@ class SamplesRepository extends BaseRepository
          */
         $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
 
+        /* QL94: Busqueda por titulo y tags */
+        $busquedaClause = '';
+        if ($busqueda !== '') {
+            $busquedaClause = " AND (s." . SamplesCols::TITULO . " ILIKE :busqueda"
+                            . " OR EXISTS (SELECT 1 FROM UNNEST(s." . SamplesCols::TAGS . ") tag WHERE tag ILIKE :busquedaTag))";
+            $params['busqueda'] = '%' . $busqueda . '%';
+            $params['busquedaTag'] = '%' . $busqueda . '%';
+        }
+
         $ordenRecientes = "GREATEST(COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp), s." . SamplesCols::PUBLICADO_AT . ") DESC";
         $orderBy = OrdenamientoHelper::construirOrderBy($orden, $ordenRecientes);
 
@@ -765,7 +784,7 @@ class SamplesRepository extends BaseRepository
              . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
-             . " ){$carpetaClause}"
+             . " ){$carpetaClause}{$busquedaClause}"
              . " ORDER BY {$orderBy}"
              . " LIMIT :limit OFFSET :offset";
 
@@ -775,7 +794,7 @@ class SamplesRepository extends BaseRepository
     /*
      * Contar coleccionados (descargas + subidos) para paginación.
      */
-    public static function contarColeccionados(int $userId, string $carpeta = ''): int
+    public static function contarColeccionados(int $userId, string $carpeta = '', string $busqueda = ''): int
     {
         $ts = SamplesCols::TABLA;
         $td = DescargasCols::TABLA;
@@ -796,6 +815,15 @@ class SamplesRepository extends BaseRepository
             }
         }
 
+        /* QL94: Busqueda por titulo y tags */
+        $busquedaClause = '';
+        if ($busqueda !== '') {
+            $busquedaClause = " AND (s." . SamplesCols::TITULO . " ILIKE :busqueda"
+                            . " OR EXISTS (SELECT 1 FROM UNNEST(s." . SamplesCols::TAGS . ") tag WHERE tag ILIKE :busquedaTag))";
+            $params['busqueda'] = '%' . $busqueda . '%';
+            $params['busquedaTag'] = '%' . $busqueda . '%';
+        }
+
         /* F12: Consistente con coleccionadosDeUsuario — propios sin filtro de estado, QQ74: excepto eliminados */
         $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
         $sql = "SELECT COUNT(DISTINCT s." . SamplesCols::ID . ") AS total"
@@ -806,7 +834,7 @@ class SamplesRepository extends BaseRepository
              . " AND ("
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
-             . " ){$carpetaClause}";
+             . " ){$carpetaClause}{$busquedaClause}";
 
         $row = static::consultarUno($sql, $params);
         return (int) ($row['total'] ?? 0);

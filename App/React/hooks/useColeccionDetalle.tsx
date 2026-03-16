@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
-import { obtenerColeccion, obtenerColeccionPorSlug, descargarColeccionZip } from '@app/services/apiColecciones';
+import { obtenerColeccion, obtenerColeccionPorSlug, descargarColeccionZip, guardarColeccionBookmark, desguardarColeccionBookmark } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
@@ -105,6 +105,9 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
                 if (controller.signal.aborted) return;
                 if (resp.ok && resp.data) {
                     setColeccion(resp.data);
+                    /* QL92: Cargar estado de bookmark desde la respuesta del servidor */
+                    const rawData = resp.data as unknown as Record<string, unknown>;
+                    setGuardada(Boolean(rawData.esta_guardada ?? rawData.estaGuardada ?? false));
                 } else if (!controller.signal.aborted) {
                     /* QK70: Limpiar coleccion en fallo real (no abort) para evitar datos stale */
                     setColeccion(null);
@@ -120,10 +123,26 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         return () => { controller.abort(); };
     }, [segmento, id, activa]);
 
-    const manejarGuardar = useCallback(() => {
+    /*
+     * QL92: Guardar/desguardar coleccion con persistencia en backend.
+     * Optimista: actualiza UI inmediatamente, rollback si falla.
+     */
+    const manejarGuardar = useCallback(async () => {
         if (!usuario) { abrirAuth('login'); return; }
-        setGuardada((prev) => !prev);
-    }, [usuario, abrirAuth]);
+        if (!coleccion?.id) return;
+
+        const valorAnterior = guardada;
+        setGuardada(!valorAnterior);
+
+        const resp = valorAnterior
+            ? await desguardarColeccionBookmark(coleccion.id)
+            : await guardarColeccionBookmark(coleccion.id);
+
+        if (!resp.ok) {
+            setGuardada(valorAnterior);
+            toast.error(valorAnterior ? 'Error al quitar de guardadas' : 'Error al guardar coleccion');
+        }
+    }, [usuario, abrirAuth, coleccion?.id, guardada]);
 
     /* Descargar coleccion como ZIP */
     const manejarDescargarZip = useCallback(async () => {

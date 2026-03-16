@@ -79,7 +79,7 @@
 
 /* QL52: Separador visual entre grupos de opciones */
 .menuContextualSeparador {
-    height: 1px;
+    height: 0.8px;
     background-color: var(--bordeSutil);
     margin: var(--espacioXs) 0;
 }

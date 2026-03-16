@@ -1206,6 +1206,17 @@ export async function inicializarSyncBidireccional(): Promise<void> {
             });
         }, RECONCILIACION_CARPETAS_MS);
 
+        /* QL91: Analisis periodico de archivos huerfanos (cada 30min).
+         * Detecta archivos no subidos, no borrados, o en error permanente. */
+        try {
+            const { iniciarAnalisisPeriodicoHuerfanos, analizarArchivosHuerfanos } = await import('./syncOrphanAnalysis');
+            iniciarAnalisisPeriodicoHuerfanos();
+            /* Ejecutar un analisis inicial tras 60s para no competir con el escaneo de arranque */
+            setTimeout(() => {
+                analizarArchivosHuerfanos().catch(() => {});
+            }, 60_000);
+        } catch { /* Modulo no disponible */ }
+
     } catch (err) {
         logSync.error('syncWatcher', 'Error inicializando sync bidireccional', { error: err instanceof Error ? err.message : String(err) });
     }
@@ -1456,6 +1467,11 @@ export async function detenerSyncBidireccional(): Promise<void> {
         clearInterval(reconciliacionCarpetasInterval);
         reconciliacionCarpetasInterval = null;
     }
+    /* QL91: Detener analisis periodico de huerfanos */
+    try {
+        const { detenerAnalisisPeriodicoHuerfanos } = await import('./syncOrphanAnalysis');
+        detenerAnalisisPeriodicoHuerfanos();
+    } catch { /* Modulo no disponible */ }
     try {
         const { detenerObservacion } = await import('./fileWatcherService');
         await detenerObservacion();

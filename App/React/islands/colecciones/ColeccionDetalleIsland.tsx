@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2 } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
@@ -22,6 +22,8 @@ import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
+import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
 
@@ -32,6 +34,10 @@ interface ColeccionDetalleIslandProps {
 const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
     /* QL53: Estado de ordenamiento — default 'posicion' para colecciones */
     const [ordenColeccion, setOrdenColeccion] = useState<TipoOrdenFeed>('posicion');
+    const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+
+    /* QL87: Filtros locales para colecciones (no mostrar "ocultar coleccionados" porque ya estás en una) */
+    const filtrosColeccion = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarDescargados'] });
 
     const {
         coleccion, cargando, guardada, descargando, navegar,
@@ -201,7 +207,11 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                         opciones={OPCIONES_ORDEN_COLECCION}
                         ordenActual={ordenColeccion}
                         onOrdenCambiar={setOrdenColeccion}
-                    />
+                    >
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
+                            <SlidersHorizontal size={16} />
+                        </BotonBase>
+                    </BarraControlFeed>
                     <FeedSamples
                         key={`coleccion-samples-${subActiva ?? 'raiz'}-${ordenColeccion}`}
                         samplesIniciales={ordenColeccion === 'posicion' ? samples : undefined}
@@ -212,6 +222,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                         mostrarTags
                         mensajeVacio="Esta colección aún no tiene samples."
                         onLike={manejarLikeSamples}
+                        filtroAdicional={filtrosColeccion.aplicar}
                     />
                 </>
             ) : (
@@ -225,6 +236,18 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                     mensajeVacio="No hay sugerencias disponibles para esta colección."
                 />
             )}
+
+            {/* QL87: Modal de filtros para colecciones */}
+            <ModalFiltros
+                abierto={filtrosAbierto}
+                onCerrar={() => setFiltrosAbierto(false)}
+                filtrosContenido={filtrosColeccion.filtros}
+                estaActivo={filtrosColeccion.estaActivo}
+                onToggleFiltro={filtrosColeccion.toggle}
+                hayFiltrosContenidoActivos={filtrosColeccion.hayActivos}
+                onResetContenido={filtrosColeccion.resetear}
+                mostrarPrecio={false}
+            />
 
             {/* C127: MenuContextual de la colección */}
             <MenuContextual

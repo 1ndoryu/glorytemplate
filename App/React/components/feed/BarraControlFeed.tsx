@@ -40,6 +40,8 @@ interface BarraControlFeedProps {
     onOrdenCambiar: (orden: TipoOrdenFeed) => void;
     contador?: number;
     etiquetaContador?: string;
+    /** QL87: Contenido extra a la derecha (ej: botón de filtros) */
+    children?: React.ReactNode;
 }
 
 export const BarraControlFeed = ({
@@ -48,6 +50,7 @@ export const BarraControlFeed = ({
     onOrdenCambiar,
     contador,
     etiquetaContador,
+    children,
 }: BarraControlFeedProps): JSX.Element => {
     const [menuAbierto, setMenuAbierto] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -76,6 +79,7 @@ export const BarraControlFeed = ({
                 )}
             </div>
             <div className="barraControlFeedDerecha">
+                {children}
                 <div className="barraControlFeedOrdenWrapper" ref={wrapperRef}>
                     <BotonBase
                         variante="ghost"

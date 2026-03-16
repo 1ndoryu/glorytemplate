@@ -161,6 +161,8 @@ export interface SampleResumen {
     key: NotaMusical | null;
     escala: EscalaMusical | null;
     duracion: number;
+    /* QL87: formato viene del backend (wav, mp3, flac, etc.) */
+    formato?: string;
     tags: string[];
     tipo: TipoSample;
     esPremium: boolean;

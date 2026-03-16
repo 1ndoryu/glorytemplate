@@ -13,8 +13,11 @@
 import { registrarReproduccion } from '../services/apiReproduciones';
 import { useReproducidosStore } from '../stores/reproducidosStore';
 
-/* Umbral mínimo (seg) para considerar una escucha trackeable — evita clicks accidentales */
-const UMBRAL_MINIMO_SEG = 0.5;
+/*
+ * QL86: Umbral reducido a 0 — todos los audios se marcan como reproducidos
+ * independientemente de su duración. El backend ya tiene debounce de 30s.
+ */
+const UMBRAL_MINIMO_SEG = 0;
 
 /*
  * Envía tracking de reproducción al backend con duración real.

@@ -5,7 +5,7 @@
  * QQ49: Rediseño completo.
  */
 
-import { Play, Pause, SkipBack, SkipForward, Heart, Shuffle, Music, X } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Heart, Music, X } from 'lucide-react';
 import { useReproductorGlobal } from '../../hooks/useReproductorGlobal';
 import { BotonBase } from './BotonBase';
 import '../../styles/componentes/reproductorGlobal.css';
@@ -16,10 +16,8 @@ export const ReproductorGlobal = (): JSX.Element | null => {
         reproduciendo,
         progreso,
         duracion,
-        aleatorio,
         liked,
         togglePlay,
-        toggleAleatorio,
         siguiente,
         anterior,
         cerrar,
@@ -91,18 +89,6 @@ export const ReproductorGlobal = (): JSX.Element | null => {
                 aria-label="Like"
             >
                 <Heart size={14} fill={liked ? 'currentColor' : 'none'} />
-            </BotonBase>
-
-            {/* Aleatorio */}
-            <BotonBase
-                variante="ghost"
-                tamano="ninguno"
-                soloIcono
-                className={`reproductorBtn ${aleatorio ? 'reproductorBtnActivo' : ''}`}
-                onClick={toggleAleatorio}
-                aria-label="Aleatorio"
-            >
-                <Shuffle size={14} />
             </BotonBase>
 
             {/* QK102: Cerrar reproductor */}

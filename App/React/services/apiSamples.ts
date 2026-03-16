@@ -234,8 +234,10 @@ export const obtenerSamplesDeCancion = async (
 /*
  * C87: Obtiene los samples favoritos (liked) del usuario autenticado.
  */
-export const obtenerMisFavoritos = async (page = 1, perPage = 20, orden = 'recientes'): Promise<RespuestaApi<RespuestaListaSamples>> => {
-    return apiGet<RespuestaListaSamples>('/me/favoritos', { page, per_page: perPage, orden });
+export const obtenerMisFavoritos = async (page = 1, perPage = 20, orden = 'recientes', busqueda = ''): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    const params: Record<string, string | number> = { page, per_page: perPage, orden };
+    if (busqueda) params.busqueda = busqueda;
+    return apiGet<RespuestaListaSamples>('/me/favoritos', params);
 };
 
 /*

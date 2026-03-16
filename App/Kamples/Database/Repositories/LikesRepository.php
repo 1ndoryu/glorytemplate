@@ -323,18 +323,28 @@ class LikesRepository extends BaseRepository
     /*
      * Contar samples favoritos de un usuario (para paginación).
      */
-    public static function contarFavoritosSamples(int $userId): int
+    public static function contarFavoritosSamples(int $userId, string $busqueda = ''): int
     {
         $tl = LikesCols::TABLA;
         $ts = SamplesCols::TABLA;
+
+        $params = ['uid' => $userId];
+        $busquedaClause = '';
+        if ($busqueda !== '') {
+            $busquedaClause = " AND (s." . SamplesCols::TITULO . " ILIKE :busqueda"
+                            . " OR EXISTS (SELECT 1 FROM UNNEST(s." . SamplesCols::TAGS . ") tag WHERE tag ILIKE :busquedaTag))";
+            $params['busqueda'] = '%' . $busqueda . '%';
+            $params['busquedaTag'] = '%' . $busqueda . '%';
+        }
 
         $row = static::consultarUno(
             "SELECT COUNT(*) as total FROM {$tl} l JOIN {$ts} s ON l." . LikesCols::TARGET_ID . " = s."
             . SamplesCols::ID
             . " WHERE l." . LikesCols::TIPO . " = '" . LikesEnums::TIPO_SAMPLE . "' AND l." . LikesCols::USUARIO_ID . " = :uid"
             . " AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
-            . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
-            ['uid' => $userId]
+            . " AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
+            . $busquedaClause,
+            $params
         );
         return (int) ($row['total'] ?? 0);
     }

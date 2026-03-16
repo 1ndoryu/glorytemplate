@@ -93,11 +93,12 @@ class ColeccionesRepository extends BaseRepository
         }
 
         /*
-         * C388: Subquery para tags agregados de cada colección.
-         * UNNEST + DISTINCT sobre los tags de samples activos vinculados.
+         * QL81: Subquery para tags agregados de cada colección.
+         * Usa metadata->'tags' (IA) con fallback a metadata->'tags_es',
+         * misma fuente que tagsFrecuentesDelUsuario para que el filtrado funcione.
          */
         $sampleId = SamplesCols::ID;
-        $sampleTags = SamplesCols::TAGS;
+        $sampleMeta = SamplesCols::METADATA;
         $sampleEstado = SamplesCols::ESTADO;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
@@ -111,9 +112,16 @@ class ColeccionesRepository extends BaseRepository
                         (SELECT array_agg(DISTINCT tag_val)
                          FROM {$tcs} cs2
                          JOIN {$ts} s ON cs2.{$csSampleId} = s.{$sampleId}
-                         CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+                         CROSS JOIN LATERAL jsonb_array_elements_text(
+                             COALESCE(
+                                 CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                                 CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
+                                 '[]'::jsonb
+                             )
+                         ) as tag_val
                          WHERE cs2.{$csColeccionId} = c.{$colId}
-                           AND s.{$sampleEstado} = '{$estadoActivo}'),
+                           AND s.{$sampleEstado} = '{$estadoActivo}'
+                           AND s.{$sampleMeta} IS NOT NULL),
                         ARRAY[]::TEXT[]
                     ) as tags
              FROM {$t} c WHERE {$where} ORDER BY c." . ColeccionesCols::UPDATED_AT . " DESC",
@@ -242,6 +250,35 @@ class ColeccionesRepository extends BaseRepository
          */
         $colUsuarioId = ColeccionesCols::USUARIO_ID;
         $colPublica = ColeccionesCols::PUBLICA;
+        $sampleMeta = SamplesCols::METADATA;
+
+        /*
+         * QL81: Subquery reutilizable para tags de metadata por colección.
+         * Misma fuente que tagsFrecuentesExplorar (metadata->'tags' / 'tags_es').
+         */
+        $colId = ColeccionesCols::ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
+        $sampleId = SamplesCols::ID;
+        $sampleEstado = SamplesCols::ESTADO;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        $subqueryTagsMeta = "COALESCE(
+            (SELECT array_agg(DISTINCT tag_val)
+             FROM {$tcs} cs_t
+             JOIN {$ts} s_t ON cs_t.{$csSampleId} = s_t.{$sampleId}
+             CROSS JOIN LATERAL jsonb_array_elements_text(
+                 COALESCE(
+                     CASE WHEN jsonb_typeof(s_t.{$sampleMeta}->'tags') = 'array' THEN s_t.{$sampleMeta}->'tags' END,
+                     CASE WHEN jsonb_typeof(s_t.{$sampleMeta}->'tags_es') = 'array' THEN s_t.{$sampleMeta}->'tags_es' END,
+                     '[]'::jsonb
+                 )
+             ) as tag_val
+             WHERE cs_t.{$csColeccionId} = c.{$colId}
+               AND s_t.{$sampleEstado} = '{$estadoActivo}'
+               AND s_t.{$sampleMeta} IS NOT NULL),
+            ARRAY[]::TEXT[]
+        )";
 
         if ($userId) {
             $params['userId'] = $userId;
@@ -283,6 +320,7 @@ class ColeccionesRepository extends BaseRepository
                 SELECT sub.* FROM (
                     SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
                            COALESCE(ct.items, 0) as total_items,
+                           {$subqueryTagsMeta} as tags,
                            COALESCE((
                                SELECT SUM(ut.afinidad)
                                FROM user_tags ut
@@ -313,7 +351,8 @@ class ColeccionesRepository extends BaseRepository
         } else {
             $sql = "
                 SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
-                       (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items
+                       (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items,
+                       {$subqueryTagsMeta} as tags
                 FROM {$t} c
                 JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                 WHERE c." . ColeccionesCols::PUBLICA . " = true

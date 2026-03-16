@@ -149,6 +149,13 @@ class NormalizadorSample
     public const ALIAS_ES_MIO = 'es_mio';
     /* QQ11: Flag que indica si el usuario ya compro este sample (transaccion compra_sample completada) */
     public const ALIAS_YA_COMPRADO = 'ya_comprado';
+    /*
+     * QL93: Imagen heredada de coleccion del propietario.
+     * Si un sample no tiene imagen directa (imagen_url IS NULL), se busca la portada de
+     * la primera coleccion del creador del sample que tenga imagen personalizada.
+     * Cadena: imagen directa > portada coleccion propietario > fallback colors (frontend).
+     */
+    public const ALIAS_IMAGEN_COLECCION_PROPIETARIO = 'imagen_coleccion_propietario';
 
     public static function normalizar(array $row): array
     {
@@ -218,9 +225,17 @@ class NormalizadorSample
              * imagenUrl puede persistirse como ruta absoluta de filesystem
              * (igual que preview/waveform). Normalizar siempre a URL HTTP.
              */
+            /*
+             * QL93: Cadena de fallback para imagen del sample:
+             * 1. Imagen directa del sample (upload manual o extraida de cancion origen)
+             * 2. Portada de coleccion del propietario (si existe y tiene imagen custom)
+             * 3. null → frontend aplica colors determinista por ID
+             */
             'imagenUrl'        => !empty($row[SamplesCols::IMAGEN_URL])
                 ? self::rutaAUrl((string) $row[SamplesCols::IMAGEN_URL])
-                : null,
+                : (!empty($row[self::ALIAS_IMAGEN_COLECCION_PROPIETARIO])
+                    ? self::rutaAUrl((string) $row[self::ALIAS_IMAGEN_COLECCION_PROPIETARIO])
+                    : null),
             'totalDescargas'   => (int) ($row[SamplesCols::TOTAL_DESCARGAS] ?? 0),
             'totalLikes'       => (int) ($row[SamplesCols::TOTAL_LIKES] ?? 0),
             'totalReproducciones' => (int) ($row[SamplesCols::TOTAL_REPRODUCCIONES] ?? 0),
@@ -503,6 +518,32 @@ class NormalizadorSample
         $uVerif = UsuariosExtCols::VERIFICADO;
         $uWpId = UsuariosExtCols::WP_USER_ID;
 
+        /*
+         * QL93: Imagen heredada de coleccion del propietario.
+         * Solo se busca si el sample NO tiene imagen directa (CASE WHEN).
+         * Busca la primera coleccion del creador del sample que tenga imagen personalizada.
+         * Condiciones: coleccion.usuario_id = sample.creador_id AND coleccion.imagen_url IS NOT NULL.
+         */
+        $csTablaImg = ColeccionSamplesCols::TABLA;
+        $csColIdImg = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleIdImg = ColeccionSamplesCols::SAMPLE_ID;
+        $csAddedAtImg = ColeccionSamplesCols::ADDED_AT;
+        $cTablaImg = ColeccionesCols::TABLA;
+        $cIdImg = ColeccionesCols::ID;
+        $cUsuarioIdImg = ColeccionesCols::USUARIO_ID;
+        $cImagenUrlImg = ColeccionesCols::IMAGEN_URL;
+
+        $imagenColeccionExpr = "CASE WHEN s.{$sImagen} IS NOT NULL THEN NULL ELSE (
+            SELECT c_img.{$cImagenUrlImg}
+            FROM {$csTablaImg} cs_img
+            JOIN {$cTablaImg} c_img ON cs_img.{$csColIdImg} = c_img.{$cIdImg}
+            WHERE cs_img.{$csSampleIdImg} = s.{$sId}
+              AND c_img.{$cUsuarioIdImg} = s.{$sCreadorId}
+              AND c_img.{$cImagenUrlImg} IS NOT NULL
+            ORDER BY cs_img.{$csAddedAtImg} ASC
+            LIMIT 1
+        ) END";
+
         return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
                        {$cancionOrigenExpr},
                        {$extraccionExpr},
@@ -522,7 +563,8 @@ class NormalizadorSample
                        {$yaGuardadoEnColeccionExpr} AS ya_guardado_en_coleccion,
                        {$yaComentadoExpr} AS ya_comentado,
                        {$esMioExpr} AS es_mio,
-                       {$yaCompradoExpr} AS ya_comprado
+                       {$yaCompradoExpr} AS ya_comprado,
+                       {$imagenColeccionExpr} AS imagen_coleccion_propietario
                 FROM {$ts} s
                 LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
     }

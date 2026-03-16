@@ -4,7 +4,7 @@
  * Header con imagen + info + acciones. Tabs: "Mis Coleccionados" y "Más Ideas".
  */
 
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_PERSONAL } from '@app/components/feed/BarraControlFeed';
@@ -20,9 +20,13 @@ import { useIslaActiva } from '@app/hooks/useIslaActiva';
 import { useValorCongelado } from '@app/hooks/useValorCongelado';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
 import { obtenerImagenColor } from '@app/services/imagenesColor';
+import { useFiltrosStore } from '@app/stores/filtrosStore';
 import '../../styles/componentes/coleccionDetalle.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
+import { ModalFiltros } from '@app/components/ui/ModalFiltros';
+import { useFiltrosContenido } from '@app/hooks/useFiltrosContenido';
+import { SlidersHorizontal } from 'lucide-react';
 
 /* TO-DO: Extraer lógica de vista (infoHeader, totalHeader, tabs, panel lateral)
  * a un hook useDescargasIsland.ts para cumplir SRP estricto. Pre-existente. */
@@ -34,13 +38,22 @@ const TABS_DESCARGAS = [
 ];
 
 const DescargasBase = (): JSX.Element => {
+    /* QL94: Busqueda global con debounce */
+    const busqueda = useFiltrosStore(s => s.busqueda);
+    const [busquedaDebounced, setBusquedaDebounced] = useState('');
+    const timerBusquedaRef = useRef<ReturnType<typeof setTimeout>>();
+    useEffect(() => {
+        timerBusquedaRef.current = setTimeout(() => setBusquedaDebounced(busqueda), 350);
+        return () => clearTimeout(timerBusquedaRef.current);
+    }, [busqueda]);
+
     const {
         comprados, cargando, cargandoComprados,
         proveedorColeccionados, proveedorFavoritos, proveedorSugerencias,
         ordenColeccionados, setOrdenColeccionados,
         ordenFavoritos, setOrdenFavoritos,
         manejarLike,
-    } = useDescargasPagina();
+    } = useDescargasPagina(busquedaDebounced);
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -55,6 +68,12 @@ const DescargasBase = (): JSX.Element => {
     /* Keep-alive: congelar tabActiva cuando la isla está oculta */
     const activa = useIslaActiva('DescargasIsland');
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
+
+    /* QL87: Filtros por tab (independientes) */
+    const [filtrosAbierto, setFiltrosAbierto] = useState(false);
+    const filtrosDescargas = useFiltrosContenido({ disponibles: ['soloWav', 'soloMeEncanta', 'ocultarColeccionados'] });
+    const filtrosFavoritos = useFiltrosContenido({ disponibles: ['soloWav', 'ocultarDescargados', 'ocultarColeccionados'] });
+    const filtrosActivos = tabActiva === 'favoritos' ? filtrosFavoritos : filtrosDescargas;
 
     /* QL41: Header dinámico según tab activa */
     const infoHeader = useMemo(() => {
@@ -136,16 +155,21 @@ const DescargasBase = (): JSX.Element => {
                         opciones={OPCIONES_ORDEN_PERSONAL}
                         ordenActual={ordenColeccionados}
                         onOrdenCambiar={setOrdenColeccionados}
-                    />
+                    >
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
+                            <SlidersHorizontal size={16} />
+                        </BotonBase>
+                    </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-coleccionados-${ordenColeccionados}`}
+                        key={`descargas-coleccionados-${ordenColeccionados}-${busquedaDebounced}`}
                         proveedor={proveedorColeccionados}
-                        claveCache={`coleccionados_${ordenColeccionados}`}
+                        claveCache={`coleccionados_${ordenColeccionados}_${busquedaDebounced}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
                         mensajeVacio="Los samples que colecciones aparecerán aquí."
                         onConteoChange={setTotalColeccionados}
+                        filtroAdicional={filtrosDescargas.aplicar}
                     />
                 </>
             )}
@@ -156,16 +180,21 @@ const DescargasBase = (): JSX.Element => {
                         opciones={OPCIONES_ORDEN_PERSONAL}
                         ordenActual={ordenFavoritos}
                         onOrdenCambiar={setOrdenFavoritos}
-                    />
+                    >
+                        <BotonBase variante="ghost" tamano="ninguno" onClick={() => setFiltrosAbierto(true)} type="button" aria-label="Filtros">
+                            <SlidersHorizontal size={16} />
+                        </BotonBase>
+                    </BarraControlFeed>
                     <FeedSamples
-                        key={`descargas-favoritos-${ordenFavoritos}`}
+                        key={`descargas-favoritos-${ordenFavoritos}-${busquedaDebounced}`}
                         proveedor={proveedorFavoritos}
-                        claveCache={`favoritos_descargas_${ordenFavoritos}`}
+                        claveCache={`favoritos_descargas_${ordenFavoritos}_${busquedaDebounced}`}
                         mostrarTags
                         infiniteScroll
                         virtualizar={false}
                         mensajeVacio="Dale like a un sample para guardarlo aquí."
                         onConteoChange={setTotalFavoritos}
+                        filtroAdicional={filtrosFavoritos.aplicar}
                     />
                 </>
             )}
@@ -206,6 +235,17 @@ const DescargasBase = (): JSX.Element => {
                     mensajeVacio="Descarga algunos samples para recibir sugerencias personalizadas."
                 />
             )}
+
+            <ModalFiltros
+                abierto={filtrosAbierto}
+                onCerrar={() => setFiltrosAbierto(false)}
+                filtrosContenido={filtrosActivos.filtros}
+                estaActivo={filtrosActivos.estaActivo}
+                onToggleFiltro={filtrosActivos.toggle}
+                hayFiltrosContenidoActivos={filtrosActivos.hayActivos}
+                onResetContenido={filtrosActivos.resetear}
+                mostrarPrecio={false}
+            />
 
             <MenuContextual
                 abierto={menu.estado.abierto}

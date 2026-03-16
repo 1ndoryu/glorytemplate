@@ -10,6 +10,9 @@ import { darLike, quitarLike } from '@app/services/apiSocial';
 import { toast } from '@app/stores/toastStore';
 import type { SeccionMusica, Cancion } from '@app/types/cancion';
 
+/* QL83: Slugs de canciones ocultas en el feed de musica (no en busqueda) */
+const CANCIONES_OCULTAS_FEED = new Set(['blowfly-sesame-street']);
+
 export function useSeccionesCanciones() {
     const [secciones, setSecciones] = useState<SeccionMusica[]>([]);
     const [cargando, setCargando] = useState(true);
@@ -19,7 +22,11 @@ export function useSeccionesCanciones() {
         seccionesCanciones().then(resp => {
             if (cancelado) return;
             if (resp.ok && resp.data) {
-                setSecciones(resp.data);
+                const filtradas = resp.data.map(sec => ({
+                    ...sec,
+                    canciones: sec.canciones?.filter(c => !CANCIONES_OCULTAS_FEED.has(c.slug)),
+                }));
+                setSecciones(filtradas);
             }
             setCargando(false);
         });

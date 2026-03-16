@@ -37,6 +37,7 @@ class BibliotecaSamplesController
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
+                'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
             ],
         ]);
 
@@ -61,6 +62,7 @@ class BibliotecaSamplesController
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 100],
                 'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
+                'busqueda' => ['required' => false, 'type' => 'string', 'default' => ''],
             ],
         ]);
 
@@ -96,12 +98,13 @@ class BibliotecaSamplesController
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
         $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
+        $busqueda = \trim((string) $request->get_param('busqueda'));
 
-        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden);
+        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden, $busqueda);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = LikesRepository::contarFavoritosSamples($userId);
+        $total = LikesRepository::contarFavoritosSamples($userId, $busqueda);
 
         return new \WP_REST_Response([
             'data' => [
@@ -184,11 +187,12 @@ class BibliotecaSamplesController
         $offset  = ($page - 1) * $perPage;
         $carpeta = \trim((string) $request->get_param('carpeta'));
         $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
+        $busqueda = \trim((string) $request->get_param('busqueda'));
 
-        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden);
+        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden, $busqueda);
         $samples = NormalizadorSample::normalizarLista($rows);
 
-        $total = SamplesRepository::contarColeccionados($userId, $carpeta);
+        $total = SamplesRepository::contarColeccionados($userId, $carpeta, $busqueda);
 
         return new \WP_REST_Response([
             'data' => [

@@ -110,6 +110,9 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                                 e.stopPropagation();
                                 if (onClickTitulo) {
                                     onClickTitulo(sample);
+                                } else if (esMovil) {
+                                    /* QL90: En movil, click en titulo reproduce en vez de abrir detalles */
+                                    manejarPlayPause(e as unknown as MouseEvent);
                                 } else {
                                     navegar(`/sample/${sample.slug}/`);
                                 }

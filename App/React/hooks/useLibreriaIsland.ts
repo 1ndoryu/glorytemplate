@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { listarColecciones, listarColeccionesPublicas, eliminarColeccion } from '@app/services/apiColecciones';
+import { listarColecciones, listarColeccionesPublicas, eliminarColeccion, listarColeccionesGuardadas } from '@app/services/apiColecciones';
 import { useTabsTopBarStore } from '@app/stores/tabsTopBarStore';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
@@ -24,6 +24,8 @@ export type OrdenColecciones = 'recientes' | 'nombre' | 'totalSamples';
 export function useLibreriaIsland() {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
     const [coleccionesPublicas, setColeccionesPublicas] = useState<Coleccion[]>([]);
+    const [coleccionesGuardadas, setColeccionesGuardadas] = useState<Coleccion[]>([]);
+    const [totalGuardadas, setTotalGuardadas] = useState(0);
     const [cargando, setCargando] = useState(true);
     const [modalColeccionAbierto, setModalColeccionAbierto] = useState(false);
     const [coleccionEditando, setColeccionEditando] = useState<Coleccion | null>(null);
@@ -94,6 +96,16 @@ export function useLibreriaIsland() {
                     } else {
                         setColecciones([]);
                         setTagsFrecuentes([]);
+                    }
+                } else if (tabActiva === 'guardadas') {
+                    const resp = await listarColeccionesGuardadas(1, 100);
+                    if (!activo) return;
+                    if (resp.ok && resp.data) {
+                        setColeccionesGuardadas(resp.data.colecciones);
+                        setTotalGuardadas(resp.data.total);
+                    } else {
+                        setColeccionesGuardadas([]);
+                        setTotalGuardadas(0);
                     }
                 }
                 if (activo) {
@@ -209,6 +221,8 @@ export function useLibreriaIsland() {
     /* C388: Total de colecciones para el contador (varía según tab activa) */
     const totalColecciones = tabActiva === 'explorar'
         ? publicasFiltradas.length
+        : tabActiva === 'guardadas'
+        ? totalGuardadas
         : coleccionesFiltradas.length;
 
     const abrirNuevaColeccion = useCallback(() => {
@@ -246,7 +260,8 @@ export function useLibreriaIsland() {
     }, []);
 
     return {
-        colecciones: coleccionesFiltradas, coleccionesPublicas: publicasFiltradas, cargando,
+        colecciones: coleccionesFiltradas, coleccionesPublicas: publicasFiltradas,
+        coleccionesGuardadas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         /* C388: Filtros y ordenamiento */
