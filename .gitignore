@@ -130,6 +130,8 @@ desktop/src-tauri/target/
 # Keystore de produccion Android — contiene claves privadas, NO commitear
 *.keystore
 KEYSTORE-INFO.md
+# Firebase config — API keys de cliente, no commitear en repo publico
+**/google-services.json
 # Kamples Scraper
 kamples-scraper/cookies.txt
 kamples-scraper/cookies_youtube.txt
