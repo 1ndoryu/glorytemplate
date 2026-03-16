@@ -13,6 +13,7 @@ import { useDevAccionesRelacion } from '@app/hooks/useDevAccionesRelacion';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
 import { obtenerSamplesDeRelacion } from '@app/services/apiSamples';
+import type { SampleResumen } from '@app/types';
 
 const TABS_RELACION = [{ id: 'relacion', etiqueta: 'Sampleo' }];
 
@@ -42,8 +43,8 @@ export const useRelacionDetalleIsland = (idEfectivo?: string) => {
     const proveedorSamplesRelacion = useCallback(
         (_pagina: number) =>
             obtenerSamplesDeRelacion(relacionId)
-                .then((r) => (r.ok && r.data ? r.data : []))
-                .catch(() => []),
+                .then((r) => ({ ok: r.ok, data: r.ok && r.data ? r.data : [] as SampleResumen[] }))
+                .catch(() => ({ ok: false, data: [] as SampleResumen[] })),
         [relacionId]
     );
 

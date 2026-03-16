@@ -9,6 +9,7 @@ import { obtenerMisFavoritos } from '@app/services/apiSamples';
 import { obtenerSugerenciasFavoritos } from '@app/services/apiSugerencias';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
+import type { ResultadoProveedor } from '@app/components/feed/FeedSamples';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 
@@ -18,7 +19,7 @@ export interface UseFavoritosPaginaResultado {
     samples: SampleResumen[];
     totalFavoritos: number;
     cargando: boolean;
-    proveedorSugerencias: (pagina: number) => Promise<SampleResumen[]>;
+    proveedorSugerencias: (pagina: number) => Promise<ResultadoProveedor>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
@@ -46,13 +47,13 @@ export function useFavoritosPagina(): UseFavoritosPaginaResultado {
     }, []);
 
     /* Proveedor paginado para tab "Más Ideas" */
-    const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedorSugerencias = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
         try {
             const resp = await obtenerSugerenciasFavoritos(pagina);
-            return resp.ok && resp.data ? resp.data : [];
+            return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
         } catch (err) {
             log.error('Error cargando sugerencias de favoritos', err);
-            return [];
+            return { ok: false, data: [] };
         }
     }, []);
 

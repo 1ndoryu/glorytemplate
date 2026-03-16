@@ -38,10 +38,10 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
     /* Proveedor para tab "Más Ideas" — usa coleccion.id (numérico) en vez del
      * segmento de URL, que es null cuando la ruta usa slug en lugar de ID. */
     const coleccionId = coleccion?.id ?? null;
-    const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
-        if (!coleccionId) return [];
+    const proveedorSugerencias = useCallback(async (pagina: number) => {
+        if (!coleccionId) return { ok: true, data: [] as SampleResumen[] };
         const resp = await obtenerSugerencias(coleccionId, pagina);
-        return resp.ok && resp.data ? resp.data : [];
+        return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
     }, [coleccionId]);
 
     if (cargando) {
@@ -171,7 +171,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                 <FeedSamples
                     key={`coleccion-samples-${subActiva ?? 'raiz'}`}
                     samplesIniciales={samples}
-                    proveedor={async () => []}
+                    proveedor={async () => ({ ok: true, data: [] })}
                     claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}`}
                     infiniteScroll={false}
                     virtualizar={false}

@@ -20,6 +20,7 @@ import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
 import { useMenuCancionDetalle } from '@app/hooks/useMenuCancionDetalle';
 import { useCallback } from 'react';
 import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
+import type { SampleResumen } from '@app/types';
 import { useAuthStore } from '@app/stores/authStore';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
@@ -65,8 +66,8 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
     const proveedorSamples = useCallback(
         (_pagina: number) =>
             obtenerSamplesDeCancion(slug ?? '')
-                .then((r) => (r.ok && r.data ? r.data : []))
-                .catch(() => []),
+                .then((r) => ({ ok: r.ok, data: r.ok && r.data ? r.data : [] as SampleResumen[] }))
+                .catch(() => ({ ok: false, data: [] as SampleResumen[] })),
         [slug]
     );
 

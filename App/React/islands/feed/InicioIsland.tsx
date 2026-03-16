@@ -25,7 +25,6 @@ import { ModalFiltros } from '@app/components/ui/ModalFiltros';
 import { FilaColecciones } from '@app/components/social/FilaColecciones';
 import { ComunidadIsland } from '../comunidad/ComunidadIsland';
 import { useEsMovil } from '@app/hooks/useEsMovil';
-import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/inicio.css';
 
 const TABS_INICIO = [{ id: 'inicio', etiqueta: 'Inicio' }];
@@ -125,13 +124,13 @@ export const FeedUnificado = (): JSX.Element => {
      * El backend usa GIN indexes (QK75) para búsqueda full-text rápida (~400ms).
      * QL24: El backend ahora envía total en TODAS las páginas, no solo page 1.
      */
-    const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedor = useCallback(async (pagina: number) => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
         const resp = await obtenerFeed(tipo, pagina, busquedaDebounced);
         if (resp.total != null) setTotalServidor(resp.total);
-        return resp.ok && resp.data ? resp.data : [];
+        return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
     }, [ordenamiento, busquedaDebounced]);
 
     /* QL24: Resetear totalServidor al cambiar ordenamiento/búsqueda para evitar

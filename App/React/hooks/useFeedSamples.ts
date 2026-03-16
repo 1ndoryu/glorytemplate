@@ -200,13 +200,22 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             setSamples(datosStale);
             setCargando(false);
             setPrimeraCargaCompleta(true);
-            /* Revalidar en background sin loader */
-            const frescos = await proveedor(pagina);
-            if (requestIdRef.current !== thisRequest) return;
-            cacheFeedRef.current[key] = frescos;
-            if (pagina === 1) guardarCacheFeed(claveCache, frescos);
-            if (frescos.length === 0) setHayMasPaginas(false);
-            setSamples(frescos);
+            /* QL35: Revalidar en background. try-catch protege datos stale si la API falla.
+             * Solo actualizamos UI y cache si la revalidacion fue exitosa (resultado.ok).
+             * Sin esto, un error de red reemplazaba datos validos con array vacio y
+             * corrompia el cache persistente — causando feedSamplesVacio intermitente. */
+            try {
+                const resultado = await proveedor(pagina);
+                if (requestIdRef.current !== thisRequest) return;
+                if (resultado.ok) {
+                    cacheFeedRef.current[key] = resultado.data;
+                    if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
+                    if (resultado.data.length === 0) setHayMasPaginas(false);
+                    setSamples(resultado.data);
+                }
+            } catch {
+                /* Error inesperado: mantener datos stale visibles, no corromper cache */
+            }
             return;
         }
 
@@ -218,27 +227,31 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         }
 
         try {
-            let resultado: SampleResumen[] = [];
+            let datos: SampleResumen[] = [];
 
             if (datosStale) {
-                resultado = datosStale;
+                datos = datosStale;
             } else {
-                resultado = await proveedor(pagina);
+                const resultado = await proveedor(pagina);
                 if (requestIdRef.current !== thisRequest) return;
-                cacheFeedRef.current[key] = resultado;
-                /* QK39: Persistir pagina 1 para stale-first en recargas */
-                if (pagina === 1) guardarCacheFeed(claveCache, resultado);
+                /* QL35: Solo cachear resultados exitosos — un error de API no debe
+                 * persistir array vacio en localStorage corrompiendo futuras cargas. */
+                if (resultado.ok) {
+                    cacheFeedRef.current[key] = resultado.data;
+                    if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
+                }
+                datos = resultado.data;
             }
 
-            if (resultado.length === 0) setHayMasPaginas(false);
+            if (datos.length === 0) setHayMasPaginas(false);
 
             if (esNuevo) {
-                setSamples(resultado);
+                setSamples(datos);
                 setPrimeraCargaCompleta(true);
             } else {
                 setSamples(prev => {
                     const idsExistentes = new Set(prev.map(s => s.id));
-                    const nuevos = resultado.filter(s => !idsExistentes.has(s.id));
+                    const nuevos = datos.filter(s => !idsExistentes.has(s.id));
                     return [...prev, ...nuevos];
                 });
             }

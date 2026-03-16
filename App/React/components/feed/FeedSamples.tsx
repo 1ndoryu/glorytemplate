@@ -18,8 +18,15 @@ import { SkeletonTarjetaSample } from '@app/components/skeletons';
 import { useFeedSamples } from '@app/hooks/useFeedSamples';
 import type { SampleResumen } from '@app/types';
 
-/* Tipo del proveedor de datos: recibe página, devuelve samples */
-export type ProveedorSamples = (pagina: number) => Promise<SampleResumen[]>;
+/* QL35: Resultado del proveedor — distingue exito de error para que el hook
+ * no reemplace datos validos en cache con arrays vacios de fallos de red/API. */
+export interface ResultadoProveedor {
+    ok: boolean;
+    data: SampleResumen[];
+}
+
+/* Tipo del proveedor de datos: recibe pagina, devuelve resultado con flag de exito */
+export type ProveedorSamples = (pagina: number) => Promise<ResultadoProveedor>;
 
 export interface FeedSamplesProps {
     proveedor: ProveedorSamples;

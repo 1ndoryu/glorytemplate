@@ -14,7 +14,6 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useHistorialIds } from '@app/hooks/useHistorialIds';
 import { useFiltroIds } from '@app/hooks/useFiltroIds';
 import { useUrlFiltros } from '@app/hooks/useUrlFiltros';
-import type { SampleResumen } from '@app/types';
 
 const TABS_DESCUBRIR = [{ id: 'descubrir', etiqueta: 'Explorar' }];
 
@@ -66,13 +65,13 @@ export const useDescubrirIsland = () => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
 
-    const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedor = useCallback(async (pagina: number) => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
         const resp = await obtenerFeed(tipo, pagina);
         if (resp.total != null) setTotalServidor(resp.total);
-        return resp.ok && resp.data ? resp.data : [];
+        return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
     }, [ordenamiento]);
 
     /* QL24: Resetear totalServidor al cambiar ordenamiento */

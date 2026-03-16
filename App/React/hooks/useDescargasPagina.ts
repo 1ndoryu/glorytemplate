@@ -11,6 +11,7 @@ import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
 import { obtenerMisFavoritos } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
+import type { ResultadoProveedor } from '@app/components/feed/FeedSamples';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 
@@ -22,9 +23,9 @@ export interface UseDescargasPaginaResultado {
     limites: LimitesDescarga | null;
     cargando: boolean;
     cargandoComprados: boolean;
-    proveedorColeccionados: (pagina: number) => Promise<SampleResumen[]>;
-    proveedorFavoritos: (pagina: number) => Promise<SampleResumen[]>;
-    proveedorSugerencias: (pagina: number) => Promise<SampleResumen[]>;
+    proveedorColeccionados: (pagina: number) => Promise<ResultadoProveedor>;
+    proveedorFavoritos: (pagina: number) => Promise<ResultadoProveedor>;
+    proveedorSugerencias: (pagina: number) => Promise<ResultadoProveedor>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
@@ -61,35 +62,35 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
     }, []);
 
     /* QL15: Proveedor paginado para tab "Mis Coleccionados" — scroll infinito */
-    const proveedorColeccionados = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedorColeccionados = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
         try {
             const resp = await obtenerColeccionados(pagina, 30);
-            return resp.ok && resp.data?.data ? resp.data.data : [];
+            return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
         } catch (err) {
             log.error('Error cargando coleccionados', err);
-            return [];
+            return { ok: false, data: [] };
         }
     }, []);
 
     /* Proveedor paginado para tab "Me Gustas" — scroll infinito */
-    const proveedorFavoritos = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedorFavoritos = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
         try {
             const resp = await obtenerMisFavoritos(pagina, 30);
-            return resp.ok && resp.data?.data ? resp.data.data : [];
+            return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
         } catch (err) {
             log.error('Error cargando favoritos', err);
-            return [];
+            return { ok: false, data: [] };
         }
     }, []);
 
     /* Proveedor paginado para tab "Más Ideas" */
-    const proveedorSugerencias = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+    const proveedorSugerencias = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
         try {
             const resp = await obtenerSugerenciasDescargas(pagina);
-            return resp.ok && resp.data ? resp.data : [];
+            return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
         } catch (err) {
             log.error('Error cargando sugerencias de descargas', err);
-            return [];
+            return { ok: false, data: [] };
         }
     }, []);
 
