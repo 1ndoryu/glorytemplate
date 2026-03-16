@@ -63,7 +63,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         samplesIniciales,
         claveCache = 'default',
         infiniteScroll = true,
-        virtualizar = true,
+        virtualizar = false,
         maxRenderizados = 50,
         alturaTarjeta = 72,
         onLike,
@@ -153,8 +153,6 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     cargandoRef.current = cargando;
     const paginaActualRef = useRef(paginaActual);
     paginaActualRef.current = paginaActual;
-    const requiereManualRef = useRef(throttle.requiereManual);
-    requiereManualRef.current = throttle.requiereManual;
 
     /* Reset al cambiar claveCache — QK100: cargar cache persistente siempre (stale o fresh) */
     useEffect(() => {
@@ -286,14 +284,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         }
     }, [samplesIniciales]);
 
-    /* Carga manual cuando throttle excede maxAutoCarga */
-    const cargarMasManual = useCallback(() => {
-        const nuevaPagina = paginaActual + 1;
-        throttle.cargarManual(() => {
-            setPaginaActual(nuevaPagina);
-            cargarPagina(nuevaPagina, false);
-        });
-    }, [paginaActual, throttle.cargarManual, cargarPagina]);
+    /* Carga manual cuando throttle excede maxAutoCarga — removido en QL79.
+     * El throttle ahora pausa 2s y reanuda automaticamente. */
 
     /* Infinite scroll con IntersectionObserver estable + throttle progresivo.
      * El observer se crea una sola vez y lee estado desde refs para evitar churn.
@@ -310,7 +302,6 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                     && !cargandoMasRef.current
                     && hayMasPaginasRef.current
                     && !cargandoRef.current
-                    && !requiereManualRef.current
                 ) {
                     const nuevaPagina = paginaActualRef.current + 1;
                     throttle.programarCarga(nuevaPagina, () => {
@@ -460,8 +451,6 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         manejarClickTitulo,
         manejarComentar,
 
-        /* Throttle paginacion */
-        requiereManual: throttle.requiereManual,
-        cargarMasManual,
+        /* Throttle paginacion — pausa automatica, sin boton manual */
     };
 }

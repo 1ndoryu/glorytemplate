@@ -107,18 +107,11 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         cargarPagina(1, true);
     }, [cargarPagina, busqueda, throttle.resetear]);
 
-    /* Carga manual cuando throttle excede maxAutoCarga */
-    const cargarMasManual = useCallback(() => {
-        const nuevaPagina = paginaActual + 1;
-        throttle.cargarManual(() => {
-            setPaginaActual(nuevaPagina);
-            cargarPagina(nuevaPagina, false);
-        });
-    }, [paginaActual, throttle.cargarManual, cargarPagina]);
+    /* Carga manual removida en QL79 — throttle pausa 2s automaticamente */
 
     /* Infinite scroll con throttle progresivo — omitido en modo busqueda */
     useEffect(() => {
-        if (busqueda.trim() || throttle.requiereManual) return;
+        if (busqueda.trim()) return;
         const sentinela = sentinelaRef.current;
         if (!sentinela) return;
 
@@ -137,7 +130,7 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina, busqueda, throttle.requiereManual, throttle.programarCarga]);
+    }, [cargandoMas, hayMas, cargando, paginaActual, cargarPagina, busqueda, throttle.programarCarga]);
 
     /* Like optimista con rollback */
     const manejarLike = useCallback(async (cancionId: number) => {
@@ -185,7 +178,5 @@ export function useFeedCanciones(ordenExterno: OrdenFeedCanciones, busqueda = ''
         manejarLike,
         manejarMenu,
         irACancion,
-        requiereManual: throttle.requiereManual,
-        cargarMasManual,
     };
 }

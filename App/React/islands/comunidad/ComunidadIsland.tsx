@@ -57,7 +57,6 @@ const ComunidadContenido = (): JSX.Element => {
         comentariosAbiertos, navegar, usuario,
         menuSample, menuPublicacion, sentinelRef,
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
-        requiereManual, cargarMasManual,
     } = useComunidadIsland();
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
@@ -139,16 +138,8 @@ const ComunidadContenido = (): JSX.Element => {
                 )}
 
                 {/* Sentinel para IntersectionObserver — scroll infinito */}
-                {!cargando && hayMas && !requiereManual && (
+                {!cargando && hayMas && (
                     <div ref={sentinelRef} className="comunidadSentinel" aria-hidden="true" />
-                )}
-                {/* Botón manual cuando el throttle excede maxAutoCarga */}
-                {requiereManual && (
-                    <div className="comunidadBotonManual">
-                        <button type="button" className="comunidadCargarMas" onClick={cargarMasManual}>
-                            Cargar más publicaciones
-                        </button>
-                    </div>
                 )}
                 {cargandoMas && (
                     <>

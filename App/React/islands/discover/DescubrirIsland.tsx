@@ -108,7 +108,6 @@ export const DescubrirIsland = (): JSX.Element => {
                 claveCache={claveCache}
                 mostrarTags
                 infiniteScroll
-                virtualizar
                 mensajeVacio="No se encontraron samples."
                 idsExcluidos={idsExcluidosCombinados}
                 idsCreadoresIncluidos={autenticado && deSeguidos && idsSeguidos.size > 0 ? idsSeguidos : undefined}

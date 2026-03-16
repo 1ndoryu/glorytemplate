@@ -10,7 +10,7 @@
 import { Music } from 'lucide-react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
-import { BotonBase } from '@app/components/ui/BotonBase';
+
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
@@ -53,7 +53,7 @@ export const FeedSamples = ({
     claveCache = 'default',
     mostrarTags = false,
     infiniteScroll = true,
-    virtualizar = true,
+    virtualizar = false,
     maxRenderizados = 50,
     alturaTarjeta = 72,
     mensajeVacio = 'No se encontraron samples.',
@@ -157,7 +157,7 @@ export const FeedSamples = ({
             )}
 
             {/* Centinela de infinite scroll */}
-            {feed.infiniteScroll && !feed.requiereManual && (
+            {feed.infiniteScroll && (
                 <div ref={feed.sentinelaRef} className="feedSamplesSentinela" aria-hidden="true">
                     {feed.cargandoMas && (
                         <div className="feedSamplesSkeletonMas">
@@ -165,15 +165,6 @@ export const FeedSamples = ({
                             <SkeletonTarjetaSample />
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* Botón manual cuando el throttle excede maxAutoCarga */}
-            {feed.requiereManual && (
-                <div className="feedSamplesBotonManual">
-                    <BotonBase variante="secundario" className="feedSamplesCargarMas" onClick={feed.cargarMasManual}>
-                        Cargar más samples
-                    </BotonBase>
                 </div>
             )}
 

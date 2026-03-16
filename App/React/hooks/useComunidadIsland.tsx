@@ -109,7 +109,7 @@ export function useComunidadIsland() {
     /* IntersectionObserver: dispara cargarMas con throttle progresivo */
     useEffect(() => {
         const sentinel = sentinelRef.current;
-        if (!sentinel || !hayMas || throttle.requiereManual) return;
+        if (!sentinel || !hayMas) return;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -122,12 +122,9 @@ export function useComunidadIsland() {
         );
         observer.observe(sentinel);
         return () => observer.disconnect();
-    }, [cargarMas, hayMas, throttle.requiereManual, throttle.programarCarga]);
+    }, [cargarMas, hayMas, throttle.programarCarga]);
 
-    /* Carga manual cuando throttle excede maxAutoCarga */
-    const cargarMasManual = useCallback(() => {
-        throttle.cargarManual(() => cargarMas());
-    }, [throttle.cargarManual, cargarMas]);
+    /* Carga manual removida en QL79 — throttle pausa 2s automaticamente */
 
     /* Callback para recargar feed tras publicar — resetea paginación */
     const recargarFeed = useCallback(async () => {
@@ -249,6 +246,5 @@ export function useComunidadIsland() {
         comentariosAbiertos, navegar, usuario,
         menuSample, menuPublicacion, sentinelRef,
         recargarFeed, manejarLikePost, manejarLikeSample, manejarRepost, alternarComentarios,
-        requiereManual: throttle.requiereManual, cargarMasManual,
     };
 }

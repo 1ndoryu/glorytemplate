@@ -2,51 +2,51 @@
  * usePaginacionProgresiva
  * Throttle basado en velocidad para infinite scroll que previene carga descontrolada.
  *
- * QQ118 — Comportamiento:
+ * QL79 — Comportamiento:
  *   - Primeras N paginas: carga inmediata sin deteccion.
  *   - Despues: mide el tiempo entre cargas recientes.
- *   - Si las cargas promedio son mas rapidas que el umbral: pausa y muestra boton.
- *   - El boton desaparece automaticamente despues de unos segundos.
- *   - Si el usuario vuelve a scrollear rapido: reaparece.
- *
- * La API externa es compatible con la version anterior (programarCarga, cargarManual, resetear, requiereManual).
+ *   - Si las cargas promedio son mas rapidas que el umbral: pausa 2 segundos
+ *     y luego ejecuta la carga automaticamente. Sin boton manual.
  */
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 interface ConfigPaginacionProgresiva {
-    /** Paginas iniciales sin chequeo de velocidad (default: 3) */
+    /** Paginas iniciales sin chequeo de velocidad (default: 5) */
     paginasMinimasInicio?: number;
     /** Cuantas cargas recientes se analizan para deteccion (default: 3) */
     ventanaDeteccion?: number;
-    /** Umbral en ms: si el promedio entre cargas es menor, se considera rapido (default: 2000) */
+    /** Umbral en ms: si el promedio entre cargas es menor, se considera rapido (default: 1500) */
     umbralRapidoMs?: number;
-    /** Tiempo en ms para auto-ocultar el boton (default: 6000) */
-    tiempoAutoOcultarMs?: number;
+    /** Duracion de la pausa en ms cuando se detecta scroll rapido (default: 2000) */
+    pausaMs?: number;
 }
 
 const DEFAULTS = {
     paginasMinimasInicio: 5,
     ventanaDeteccion: 3,
     umbralRapidoMs: 1500,
-    tiempoAutoOcultarMs: 3000,
+    pausaMs: 2000,
 } as const;
 
 export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {}) {
     const paginasMinimasInicio = config.paginasMinimasInicio ?? DEFAULTS.paginasMinimasInicio;
     const ventanaDeteccion = config.ventanaDeteccion ?? DEFAULTS.ventanaDeteccion;
     const umbralRapidoMs = config.umbralRapidoMs ?? DEFAULTS.umbralRapidoMs;
-    const tiempoAutoOcultarMs = config.tiempoAutoOcultarMs ?? DEFAULTS.tiempoAutoOcultarMs;
+    const pausaMs = config.pausaMs ?? DEFAULTS.pausaMs;
 
     const timestampsRef = useRef<number[]>([]);
-    const autoOcultarRef = useRef<ReturnType<typeof setTimeout>>();
-    const [requiereManual, setRequiereManual] = useState(false);
+    const esperandoRef = useRef(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
     /**
      * Programa la carga de la siguiente pagina.
-     * Retorna true si se ejecuta, false si se bloquea por velocidad excesiva.
+     * Retorna true si se ejecuta o se agenda, false si ya hay pausa activa.
      */
     const programarCarga = useCallback((pagina: number, callback: () => void): boolean => {
+        /* Si ya hay una pausa activa, ignorar hasta que se resuelva */
+        if (esperandoRef.current) return false;
+
         /* Primeras paginas: carga libre sin deteccion */
         if (pagina <= paginasMinimasInicio) {
             timestampsRef.current.push(Date.now());
@@ -70,14 +70,15 @@ export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {})
             const promedioGap = sumaGaps / recientes.length;
 
             if (promedioGap < umbralRapidoMs) {
-                /* Carga demasiado rapida — pausar y mostrar boton */
-                setRequiereManual(true);
-                clearTimeout(autoOcultarRef.current);
-                autoOcultarRef.current = setTimeout(() => {
-                    setRequiereManual(false);
+                /* Scroll rapido — pausar 2s y ejecutar automaticamente */
+                esperandoRef.current = true;
+                clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(() => {
+                    esperandoRef.current = false;
                     timestampsRef.current = [];
-                }, tiempoAutoOcultarMs);
-                return false;
+                    callback();
+                }, pausaMs);
+                return true;
             }
         }
 
@@ -88,27 +89,19 @@ export function usePaginacionProgresiva(config: ConfigPaginacionProgresiva = {})
         }
         callback();
         return true;
-    }, [paginasMinimasInicio, ventanaDeteccion, umbralRapidoMs, tiempoAutoOcultarMs]);
-
-    /** Carga manual (click en boton) — resetea deteccion y ejecuta */
-    const cargarManual = useCallback((callback: () => void) => {
-        clearTimeout(autoOcultarRef.current);
-        setRequiereManual(false);
-        timestampsRef.current = [];
-        callback();
-    }, []);
+    }, [paginasMinimasInicio, ventanaDeteccion, umbralRapidoMs, pausaMs]);
 
     /** Reset completo (cambio de filtros, busqueda, tab) */
     const resetear = useCallback(() => {
-        clearTimeout(autoOcultarRef.current);
+        clearTimeout(timerRef.current);
         timestampsRef.current = [];
-        setRequiereManual(false);
+        esperandoRef.current = false;
     }, []);
 
     /* Cleanup al desmontar */
     useEffect(() => {
-        return () => clearTimeout(autoOcultarRef.current);
+        return () => clearTimeout(timerRef.current);
     }, []);
 
-    return { programarCarga, cargarManual, resetear, requiereManual };
+    return { programarCarga, resetear };
 }
