@@ -156,6 +156,9 @@ export default defineConfig({
             '@tauri-apps/plugin-notification': resolve(__dirname, 'node_modules/@tauri-apps/plugin-notification'),
             /* QL34: Plugin FS — mismo caso, importado desde App/React/services/fcmToken.ts */
             '@tauri-apps/plugin-fs': resolve(__dirname, 'node_modules/@tauri-apps/plugin-fs'),
+            /* QL49: Plugin shell + API app — usados desde App/React/utils/plataforma.ts */
+            '@tauri-apps/plugin-shell': resolve(__dirname, 'node_modules/@tauri-apps/plugin-shell'),
+            '@tauri-apps/api/app': resolve(__dirname, 'node_modules/@tauri-apps/api/app'),
         },
         dedupe: [
             'react',
