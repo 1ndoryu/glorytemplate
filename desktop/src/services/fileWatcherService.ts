@@ -48,6 +48,20 @@ const EXTENSIONES_ARCHIVO_CONOCIDAS = new Set([
     'log', 'bak', 'old', 'orig', 'swp', 'swo',
 ]);
 
+/*
+ * QL68: Heuristica para detectar si un nombre tiene extension de archivo.
+ * Si tiene un punto seguido de 1-10 caracteres alfanumericos al final → es archivo, no carpeta.
+ * Esto cubre extensiones inventadas/desconocidas no presentes en EXTENSIONES_ARCHIVO_CONOCIDAS.
+ * Carpetas con puntos en el nombre (ej: "v2.0") siguen pasando porque el check
+ * de EXTENSIONES_AUDIO y EXTENSIONES_ARCHIVO_CONOCIDAS se hace primero.
+ */
+function pareceArchivoConExtension(nombre: string): boolean {
+    const ultimoPunto = nombre.lastIndexOf('.');
+    if (ultimoPunto <= 0 || ultimoPunto === nombre.length - 1) return false;
+    const sufijo = nombre.slice(ultimoPunto + 1);
+    return sufijo.length <= 10 && /^[a-zA-Z0-9]+$/.test(sufijo);
+}
+
 /* Archivos temporales que los editores/DAWs crean durante grabación */
 const PATRONES_TEMPORALES = [
     /^\./, /~$/, /\.tmp$/i, /\.part$/i, /\.crdownload$/i,
@@ -545,8 +559,8 @@ function procesarEvento(
         const extension = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
 
         if (relativa && !relativa.includes('/') && !EXTENSIONES_AUDIO.has(extension)) {
-            /* QL62: Archivos con extensión conocida no son carpetas — ignorar silenciosamente */
-            if (extension && EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension)) {
+            /* QL62+QL68: Archivos con extensión conocida o desconocida no son carpetas */
+            if (extension && (EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension) || pareceArchivoConExtension(nombreArchivo))) {
                 logSync.warn('watcher', `Archivo no-audio ignorado en raiz sync: ${nombreArchivo}`);
                 continue;
             }
@@ -562,7 +576,7 @@ function procesarEvento(
          * QL62: Misma proteccion que nivel 1 — ignorar si tiene extension conocida.
          */
         if (segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extension)) {
-            if (extension && EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension)) {
+            if (extension && (EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension) || pareceArchivoConExtension(segmentosRuta[1]))) {
                 logSync.warn('watcher', `Archivo no-audio ignorado en subcarpeta: ${relativa}`);
                 continue;
             }

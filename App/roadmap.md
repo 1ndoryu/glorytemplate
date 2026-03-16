@@ -570,7 +570,10 @@ las ia que se usan en los script de python esos procesos son aparte y no tocarlo
 
 # QL68
 
-respecto a EXTENSIONES_ARCHIVO_CONOCIDAS, entonces, si el usuario sube un archivo con una extension inventada, se a subir ? xd
+✅ [AG-MNT] Completado:
+- Agregada heuristica `pareceArchivoConExtension()` en `fileWatcherService.ts`: si un nombre tiene `.` seguido de 1-10 chars alfanumericos, se trata como archivo, no carpeta. Esto cubre extensiones inventadas (`.xyz`, `.abc123`) que no estan en `EXTENSIONES_ARCHIVO_CONOCIDAS`.
+- La lista de extensiones conocidas sigue como primera linea de defensa (match rapido en Set); la heuristica es fallback para extensiones desconocidas.
+- Respuesta: no, un archivo con extension inventada NO se sube ni crea coleccion — se ignora con warning log.
 
 
 ## Mantener lo distancia
