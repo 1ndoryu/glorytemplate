@@ -15,8 +15,9 @@ import { IconoGoogle } from '../ui/IconoGoogle';
 import { useAuth } from '../../hooks/useAuth';
 import { useModalAuth } from '../../hooks/useModalAuth';
 import '../../styles/componentes/authModal.css';
+import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 
-const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/2.jpg';
+const imagenAuth = resolverRutaAsset('/wp-content/themes/glorytemplate/App/Assets/images/2.jpg');
 
 /* Formulario de Login */
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {

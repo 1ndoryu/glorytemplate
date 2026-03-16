@@ -10,6 +10,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
+import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 import type { PeriodoPlan } from '@app/services/apiPagos';
 
 export type PlanId = 'free' | 'pro' | 'premium';
@@ -117,7 +118,7 @@ export const usePlanesIsland = () => {
     const abrirAuth = useAuthModalStore(s => s.abrir);
 
     const planActual: PlanId = (usuario as { plan?: PlanId } | null)?.plan ?? 'free';
-    const imagenPlanes = '/wp-content/themes/glorytemplate/App/Assets/images/1.jpg';
+    const imagenPlanes = resolverRutaAsset('/wp-content/themes/glorytemplate/App/Assets/images/1.jpg');
     const planVisible = PLANES.find(plan => plan.id === 'pro');
     const esActualVisible = Boolean(autenticado && planVisible && planVisible.id === planActual);
 
