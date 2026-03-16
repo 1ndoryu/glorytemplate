@@ -9,22 +9,59 @@
 
 # NOTAs NUEVAs DEL USUARIO
 
+## NOTA 1
+~~VEO QUE ESTAS CORRIENDO EL TEST Y NO SUBES LOS CAMBIOS AL VPS PARA PROBAR TUS NUEVAS MEJRAS!! COMO SE VA A ACTUALIZAR EL VPS SI NO HACES PULL PRIMERO LOCALMENTE???!~~
+> **Resuelto:** Secuencia corregida: commit → push → deploy → verificar commit en VPS → benchmark.
 
-## NN1
+## NOTA 2
+Evualua esto, imagina que de repente hay 1.000.000, no digo que haya que calcular todos pero en se caso supongo que habría que filtrar para el feed, pero el punto es que hay que ajustar el plan a imaginar la situación en la que llegamos a 1.000.000 de samples, ¿lo va a soportar? pues tiene que soportarlo, sin perder calidad el algortimo, cualquier cosa que se tenga que hacer, cualquier mejora para ese escenario que aún no llega pero va a llegar, hay que prepararse para esa escalada masiva 
 
-antes de ejecutar # Optimizacion del Feed, Busqueda y Algoritmo — Escalabilidad a Cientos de Usuarios Concurrentes 
-
-Necesitamos saber cuanto tarda calcular el el algortimo (de forma detallada) todos los samples para el usuario 1 (yo admin) en la vps actual, tiene que ser un calculo preciso, calcurse varias veces y ver un tiempo promedio, calculo para 30 samples, pasar a la siguiente pagina todos los samples actuales, version de algoritmo, para llevar un registro, medir el tiempo de busqueda, cada senal, una tabla detallada, no tanto porque el proposito es saber si realmente estamos mejorando o no la velocidad, asi podemos hacer un antes y un despues
-
-## NN2
-
-"Voy a crear el script de benchmark PHP" sobre eso que dijiste, asegurate de que haya un historial para ver la evolución 
 
 ---
 
 ## Historial de Benchmarks
 
 > Script: `App/Kamples/Cli/benchmarkAlgoritmo.php` — ejecutar con: `php wp-content/themes/glorytemplate/App/Kamples/Cli/benchmarkAlgoritmo.php [userId] [perPage]`
+
+### Benchmark #2 — Post CTE Optimization (2026-03-16)
+
+| Dato | Valor |
+|------|-------|
+| Fecha | 2026-03-16 07:03 UTC |
+| Commit | 7bd83825 |
+| Config hash | df224c3e |
+| Samples activos | 294 |
+| pgvector | SI |
+| Pipeline candidatos | NO (<5000) |
+| MV trending | SI |
+| Pesos | sim=0.28, comp=0.27, ctx=0.15, trend=0.12, social=0.10, nov=0.08 |
+
+| Componente | Tiempo |
+|------------|--------|
+| PerfilUsuario::construir (sin cache) | 38.9ms |
+| Conteo samples activos (SQL COUNT) | 1.5ms |
+| Verificacion pgvector | 4.2ms |
+| SQL gen: Comportamiento (0.27) | 0.20ms |
+| SQL gen: Contexto (0.15) | 0.04ms |
+| SQL gen: Tendencias (0.12) | 0.01ms |
+| SQL gen: Grafo Social (0.10) | 0.00ms |
+| SQL gen: Similitud pgvector (0.28) | 0.88ms |
+| **FEED pag1 sin cache** | **835.6ms (33 samples)** |
+| **FEED pag2 sin cache** | **663.7ms (33 samples)** |
+| **FEED pag3 sin cache** | **702.2ms (33 samples)** |
+| Feed pag3 cache hit | 0.7ms |
+| **Promedio feed sin cache** | **733.8ms** |
+
+**Cambios aplicados (commit `7bd83825`):**
+- **BN-1 resuelto:** 4 EXISTS per-row → 4 LEFT JOINs contra CTEs pre-computados (`user_likes`, `user_descargas`, `user_colecciones`, `user_comentarios`).
+- **BN-2 resuelto:** `sqlTagsEnriquecidos` llamado 9× → 1× en CTE `enriched`. Los 5 sub-factores de comportamiento + dislike + contexto ahora hacen `@>` array containment sobre `e.etags` pre-computado.
+- **Señales de afinidad vectorizadas:** Pre-computan tag affinity por fuente (likes, repro, tiempo, descargas, completadas, dislikes) en CTEs separados. El scoring es O(tags_candidato) en vez de O(N_interacciones × tags_candidato).
+- **Grafo social optimizado:** CTE `followed_ids` evita repetir subquery de seguidos.
+- **Penalización pasiva optimizada:** Usa `ul.sample_id IS NULL` (LEFT JOIN) en vez de 3 NOT EXISTS.
+
+**Resultado: >30,000ms → 734ms (promedio). Mejora: 97.5%.**
+
+**Siguiente paso:** El promedio de 734ms aún es alto para producción (objetivo <300ms). Quedan optimizaciones posibles: EXPLAIN ANALYZE para identificar nodos lentos restantes, materializar CTE `enriched`, reducir penalización de reproducción (correlated subquery por candidato).
 
 ### Benchmark #1 — Baseline (2026-03-16)
 

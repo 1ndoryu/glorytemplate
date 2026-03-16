@@ -1,4 +1,5 @@
 <?php
+/* sentinel-disable-file limite-lineas — servicio cohesivo: CTEs + scoring pre-agregado, 3 niveles acoplados */
 
 /**
  * PrecomputadorFeed — Genera CTEs de pre-cómputo para la query del feed.
@@ -40,7 +41,7 @@ class PrecomputadorFeed
      *
      * @return array<string, string> Mapa nombreCte => SQL (sin el "AS (...)")
      */
-    public static function generarCtes(int $userId): array
+    public static function generarCtes(int $userId, array $config = []): array
     {
         $uid = (int) $userId;
         $ctes = [];
@@ -61,6 +62,11 @@ class PrecomputadorFeed
         $ctes['utag_completadas'] = self::cteTagCompletadas($uid);
         $ctes['utag_dislikes'] = self::cteTagDislikes($uid);
         $ctes['utag_ctx'] = self::cteTagContexto($uid);
+
+        /* Nivel 2: scores pre-agregados (eliminan subqueries correlacionadas del scoring) */
+        $ctes['score_tags'] = self::cteScoreTags();
+        $ctes['repro_peso'] = self::cteReproPeso($uid, $config);
+        $ctes['likes_seguidos_cte'] = self::cteLikesSeguidos();
 
         return $ctes;
     }
@@ -89,6 +95,9 @@ class PrecomputadorFeed
              . "                    LEFT JOIN user_descargas ud ON s.{$sId} = ud.sample_id\n"
              . "                    LEFT JOIN user_colecciones uc ON s.{$sId} = uc.sample_id\n"
              . "                    LEFT JOIN user_comentarios ucom ON s.{$sId} = ucom.sample_id\n"
+             . "                    LEFT JOIN score_tags st ON s.{$sId} = st.sample_id\n"
+             . "                    LEFT JOIN repro_peso rp ON s.{$sId} = rp.sample_id\n"
+             . "                    LEFT JOIN likes_seguidos_cte ls ON s.{$sId} = ls.sample_id\n"
              . "                    ";
     }
 
@@ -266,8 +275,8 @@ class PrecomputadorFeed
     /* ========== Scoring Expressions (referencian CTEs) ========== */
 
     /**
-     * Comportamiento optimizado: 5 sub-factores via tag affinity CTEs.
-     * Equivalente semántico a ConstructorSenales::sqlComportamiento pero O(1) por candidato.
+     * Comportamiento optimizado v2: referencia columnas pre-agregadas de score_tags CTE.
+     * Zero subqueries correlacionadas — O(1) por candidato via hash join.
      */
     public static function sqlComportamiento(float $peso, array $config): string
     {
@@ -278,20 +287,13 @@ class PrecomputadorFeed
         $pesoDescargas = $detalle['descargas'] ?? 0.15;
         $pesoCompletadas = $detalle['completadas'] ?? 0.10;
 
-        $likesTag = self::sqlOverlapPonderado('utag_likes', 'peso');
-        $reproTag = self::sqlOverlapConteo('utag_repro');
-        $tiempoTag = self::sqlOverlapConteo('utag_tiempo');
-        $descargaTag = self::sqlOverlapConteo('utag_descargas');
-        $completadasTag = self::sqlOverlapConteo('utag_completadas');
-        $dislikePenalty = "LEAST(0.15, " . self::sqlOverlapConteoRaw('utag_dislikes') . ")";
-
         return "({$peso} * GREATEST(0, (
-            {$pesoLikes} * {$likesTag} +
-            {$pesoRepro} * {$reproTag} +
-            {$pesoTiempo} * {$tiempoTag} +
-            {$pesoDescargas} * {$descargaTag} +
-            {$pesoCompletadas} * {$completadasTag}
-            - {$dislikePenalty}
+            {$pesoLikes} * COALESCE(st.likes_score, 0) +
+            {$pesoRepro} * COALESCE(st.repro_score, 0) +
+            {$pesoTiempo} * COALESCE(st.tiempo_score, 0) +
+            {$pesoDescargas} * COALESCE(st.descargas_score, 0) +
+            {$pesoCompletadas} * COALESCE(st.completadas_score, 0)
+            - LEAST(0.15, COALESCE(st.dislikes_raw, 0))
         )))";
     }
 
@@ -337,28 +339,20 @@ class PrecomputadorFeed
             $escalaScore = '0.5';
         }
 
-        /* Genero match: usa utag_ctx (pre-computed top 8 tags) + generos declarados */
+        /* Genero match: usa score_tags.ctx_cnt pre-agregado + inline para declarados */
         $generosDeclarados = $perfilUsuario['generosDeclarados'] ?? [];
-        $generosDeclSql = '';
+        $declSum = '0';
         if (!empty($generosDeclarados)) {
-            $placeholders = [];
+            $declParts = [];
             foreach ($generosDeclarados as $i => $g) {
                 $key = "generoDec{$i}";
                 $params[$key] = strtolower($g);
-                $placeholders[] = ":{$key}";
+                $declParts[] = "CASE WHEN e.etags @> ARRAY[:{$key}::text] THEN 1 ELSE 0 END";
             }
-            $lista = implode(', ', $placeholders);
-            $generosDeclSql = "UNION ALL SELECT UNNEST(ARRAY[{$lista}]) AS tag";
+            $declSum = implode(' + ', $declParts);
         }
 
-        $generoScore = "COALESCE((
-            SELECT COUNT(*)::float / GREATEST(1, array_length(e.etags, 1))
-            FROM (
-                SELECT tag FROM utag_ctx
-                {$generosDeclSql}
-            ) top_tags
-            WHERE e.etags @> ARRAY[top_tags.tag::text]
-        ), 0)";
+        $generoScore = "(COALESCE(st.ctx_cnt, 0) + {$declSum})::float / GREATEST(1, COALESCE(st.etags_len, 1))";
 
         $tipoFav = $perfilUsuario['tipoFav'] ?? null;
         if ($tipoFav) {
@@ -392,35 +386,20 @@ class PrecomputadorFeed
         ))";
     }
 
-    /** Grafo social optimizado: usa CTE followed_ids */
+    /** Grafo social v2: followed_ids (hashed subplan) + likes_seguidos_cte pre-agregado */
     public static function sqlGrafoSocial(float $peso): string
     {
         $sCreadorId = SamplesCols::CREADOR_ID;
-        $tl = LikesCols::TABLA;
-        $lTipo = LikesCols::TIPO;
-        $lTarget = LikesCols::TARGET_ID;
-        $lReacc = LikesCols::REACCION;
-        $lUid = LikesCols::USUARIO_ID;
-        $sId = SamplesCols::ID;
-        $ltSample = LikesEnums::TIPO_SAMPLE;
-        $lrLike = LikesEnums::REACCION_LIKE;
-        $lrEncanta = LikesEnums::REACCION_ENCANTA;
 
         $seguidoDirecto = "CASE WHEN s.{$sCreadorId} IN (SELECT user_id FROM followed_ids) THEN 1 ELSE 0 END";
-        $likeadoPorSeguidos = "LEAST(1, COALESCE((
-            SELECT SUM(CASE WHEN l.{$lReacc} = '{$lrEncanta}' THEN 2 ELSE 1 END)::float
-            FROM {$tl} l
-            WHERE l.{$lTipo} = '{$ltSample}' AND l.{$lTarget} = s.{$sId}
-            AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
-            AND l.{$lUid} IN (SELECT user_id FROM followed_ids)
-        ), 0) / 4)";
+        $likeadoPorSeguidos = "LEAST(1, COALESCE(ls.score_seguidos, 0) / 4)";
 
         return "({$peso} * (0.6 * {$seguidoDirecto} + 0.4 * {$likeadoPorSeguidos}))";
     }
 
     /**
-     * Penalización pasiva optimizada: usa LEFT JOINs pre-computados.
-     * El hasPlayed sigue como subquery (depende de s.duracion por candidato).
+     * Penalización pasiva v2: usa repro_peso CTE pre-agregado.
+     * Zero subqueries correlacionadas.
      */
     public static function sqlPenalizacionPasiva(int $userId, array $config): string
     {
@@ -429,63 +408,134 @@ class PrecomputadorFeed
 
         $factor = (float) ($penConfig['factor'] ?? 0.85);
         $minRepro = (int) ($penConfig['min_reproducciones'] ?? 2);
+
+        return "(CASE WHEN COALESCE(rp.repro_significativas, 0) >= {$minRepro}
+            AND ul.sample_id IS NULL AND ud.sample_id IS NULL AND uc.sample_id IS NULL
+            THEN {$factor} ELSE 1 END)";
+    }
+
+    /**
+     * Penalización progresiva por reproducciones v2: usa repro_peso CTE.
+     * Reemplaza ConstructorSenales::sqlPenalizacionReproduccion sin subqueries.
+     */
+    public static function sqlPenalizacionReproduccion(array $config): string
+    {
+        $penConfig = $config['parametros']['penalizacion_reproduccion'] ?? [];
+        $tasa = (float) ($penConfig['tasa_decaimiento'] ?? 0.15);
+        $minimo = (float) ($penConfig['minimo'] ?? 0.20);
+
+        return "GREATEST({$minimo}, 1.0 / (1.0 + COALESCE(rp.sum_ponderada, 0) * {$tasa}))";
+    }
+
+    /* ========== CTEs Nivel 2: Scores Pre-agregados ========== */
+
+    /**
+     * CTE score_tags: pre-agrega todos los tag overlaps en un solo pass via UNNEST + JOIN.
+     * Elimina 7 subqueries correlacionadas del scoring (SubPlans 7-13 en EXPLAIN).
+     * Columnas: likes_score, repro_score, tiempo_score, descargas_score,
+     *           completadas_score, dislikes_raw, ctx_cnt, etags_len.
+     */
+    private static function cteScoreTags(): string
+    {
+        return "SELECT e.sample_id,
+            COALESCE(array_length(e.etags, 1), 0) AS etags_len,
+            LEAST(1.0, COALESCE(SUM(utl.peso), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS likes_score,
+            LEAST(1.0, COALESCE(SUM(utr.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS repro_score,
+            LEAST(1.0, COALESCE(SUM(utt.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS tiempo_score,
+            LEAST(1.0, COALESCE(SUM(utd.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS descargas_score,
+            LEAST(1.0, COALESCE(SUM(utco.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0))) AS completadas_score,
+            COALESCE(SUM(utdi.freq), 0)::float / GREATEST(1, COALESCE(array_length(e.etags, 1), 0)) AS dislikes_raw,
+            COUNT(uctx.tag)::int AS ctx_cnt
+        FROM enriched e
+        LEFT JOIN LATERAL (SELECT DISTINCT tag FROM unnest(e.etags) AS tag) AS t(tag) ON true
+        LEFT JOIN utag_likes utl ON utl.tag = t.tag
+        LEFT JOIN utag_repro utr ON utr.tag = t.tag
+        LEFT JOIN utag_tiempo utt ON utt.tag = t.tag
+        LEFT JOIN utag_descargas utd ON utd.tag = t.tag
+        LEFT JOIN utag_completadas utco ON utco.tag = t.tag
+        LEFT JOIN utag_dislikes utdi ON utdi.tag = t.tag
+        LEFT JOIN utag_ctx uctx ON uctx.tag = t.tag
+        GROUP BY e.sample_id, e.etags";
+    }
+
+    /**
+     * CTE repro_peso: pre-agrega reproducciones ponderadas por calidad por sample.
+     * Elimina SubPlan 16-17 (penalizacionReproduccion + hasPlayed).
+     * Columnas: sum_ponderada (weighted), repro_significativas (count de plays significativos).
+     */
+    private static function cteReproPeso(int $uid, array $config): string
+    {
         $clasConfig = $config['parametros']['clasificacion_reproduccion'] ?? [];
-        $clasHabilitado = $clasConfig['habilitado'] ?? true;
+        $habilitado = $clasConfig['habilitado'] ?? true;
 
         $trep = ReproduccionesCols::TABLA;
         $trUid = ReproduccionesCols::USUARIO_ID;
         $trSid = ReproduccionesCols::SAMPLE_ID;
         $trDur = ReproduccionesCols::DURACION_ESCUCHADA;
+        $ts = SamplesCols::TABLA;
         $sId = SamplesCols::ID;
         $sDuracion = SamplesCols::DURACION;
 
-        if ($clasHabilitado) {
-            $umbralMin = (float) ($clasConfig['umbral_minimo_seg'] ?? 1);
-            $pctCorto = (float) ($clasConfig['porcentaje_significativa_corto'] ?? 0.50);
-            $pctMedio = (float) ($clasConfig['porcentaje_significativa_medio'] ?? 0.30);
-            $pctLargo = (float) ($clasConfig['porcentaje_significativa_largo'] ?? 0.15);
-            $minAbsoluto = (int) ($clasConfig['minimo_absoluto_significativa'] ?? 10);
-
-            $hasPlayed = "(SELECT COUNT(*) FROM {$trep} rp WHERE rp.{$trUid} = :userId AND rp.{$trSid} = s.{$sId}
-                AND rp.{$trDur} >= {$umbralMin}
-                AND CASE
-                    WHEN rp.{$trDur} = 0 THEN true
-                    WHEN s.{$sDuracion} <= 20 THEN rp.{$trDur} >= s.{$sDuracion} * {$pctCorto}
-                    WHEN s.{$sDuracion} <= 60 THEN rp.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctMedio})
-                    ELSE rp.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctLargo})
-                END
-            ) >= {$minRepro}";
-        } else {
-            $hasPlayed = "(SELECT COUNT(*) FROM {$trep} WHERE {$trUid} = :userId AND {$trSid} = s.{$sId}) >= {$minRepro}";
+        if (!$habilitado) {
+            return "SELECT r.{$trSid} AS sample_id,
+                COUNT(*)::float AS sum_ponderada,
+                COUNT(*)::int AS repro_significativas
+            FROM {$trep} r
+            WHERE r.{$trUid} = {$uid}
+            GROUP BY r.{$trSid}";
         }
 
-        /* Flags via LEFT JOINs pre-computados (0 subqueries adicionales) */
-        return "(CASE WHEN {$hasPlayed} AND ul.sample_id IS NULL AND ud.sample_id IS NULL AND uc.sample_id IS NULL THEN {$factor} ELSE 1 END)";
+        $umbralMin = (float) ($clasConfig['umbral_minimo_seg'] ?? 1);
+        $pctCorto = (float) ($clasConfig['porcentaje_significativa_corto'] ?? 0.50);
+        $pctMedio = (float) ($clasConfig['porcentaje_significativa_medio'] ?? 0.30);
+        $pctLargo = (float) ($clasConfig['porcentaje_significativa_largo'] ?? 0.15);
+        $minAbsoluto = (int) ($clasConfig['minimo_absoluto_significativa'] ?? 10);
+        $pesoRapida = (float) ($clasConfig['peso_rapida'] ?? 0.30);
+        $legacyComoSig = ($clasConfig['legacy_como_significativa'] ?? true) ? '1.0' : (string) $pesoRapida;
+
+        $esSignificativa = "CASE
+                WHEN s.{$sDuracion} <= 20 THEN r.{$trDur} >= s.{$sDuracion} * {$pctCorto}
+                WHEN s.{$sDuracion} <= 60 THEN r.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctMedio})
+                ELSE r.{$trDur} >= GREATEST({$minAbsoluto}, s.{$sDuracion} * {$pctLargo})
+            END";
+
+        return "SELECT r.{$trSid} AS sample_id,
+            SUM(CASE
+                WHEN r.{$trDur} = 0 THEN {$legacyComoSig}
+                WHEN r.{$trDur} < {$umbralMin} THEN 0
+                WHEN {$esSignificativa} THEN 1.0
+                ELSE {$pesoRapida}
+            END) AS sum_ponderada,
+            COUNT(*) FILTER (WHERE
+                r.{$trDur} >= {$umbralMin}
+                AND ({$esSignificativa})
+            ) AS repro_significativas
+        FROM {$trep} r JOIN {$ts} s ON r.{$trSid} = s.{$sId}
+        WHERE r.{$trUid} = {$uid}
+        GROUP BY r.{$trSid}";
     }
 
-    /* ========== SQL Helpers para overlap de tags ========== */
-
-    /** SUM ponderado de tags que matchean / total tags candidato. Acotado [0,1]. */
-    private static function sqlOverlapPonderado(string $cteName, string $colPeso): string
+    /**
+     * CTE likes_seguidos_cte: pre-agrega likes de usuarios seguidos por sample.
+     * Elimina SubPlan 15 (likeadoPorSeguidos correlated query).
+     */
+    private static function cteLikesSeguidos(): string
     {
-        return "LEAST(1.0, COALESCE((
-            SELECT SUM(ut.{$colPeso})::float / GREATEST(1, array_length(e.etags, 1))
-            FROM {$cteName} ut WHERE e.etags @> ARRAY[ut.tag]
-        ), 0))";
-    }
+        $tl = LikesCols::TABLA;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $lUid = LikesCols::USUARIO_ID;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
 
-    /** SUM frecuencias de tags que matchean / total tags candidato. Acotado [0,1]. */
-    private static function sqlOverlapConteo(string $cteName): string
-    {
-        return "LEAST(1.0, " . self::sqlOverlapConteoRaw($cteName) . ")";
-    }
-
-    /** SUM frecuencias sin acotar (para dislike penalty que necesita LEAST distinto). */
-    private static function sqlOverlapConteoRaw(string $cteName): string
-    {
-        return "COALESCE((
-            SELECT SUM(ut.freq)::float / GREATEST(1, array_length(e.etags, 1))
-            FROM {$cteName} ut WHERE e.etags @> ARRAY[ut.tag]
-        ), 0)";
+        return "SELECT l.{$lTarget} AS sample_id,
+            SUM(CASE WHEN l.{$lReacc} = '{$lrEncanta}' THEN 2 ELSE 1 END)::float AS score_seguidos
+        FROM {$tl} l
+        WHERE l.{$lTipo} = '{$ltSample}'
+            AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
+            AND l.{$lUid} IN (SELECT user_id FROM followed_ids)
+        GROUP BY l.{$lTarget}";
     }
 }

@@ -208,8 +208,8 @@ class MotorRecomendacion
             'tipoFav' => $perfilUsuario['tipoFav'] ?? null,
         ]);
 
-        /* Multiplicador: penalización progresiva por reproducciones (reemplaza binaria) */
-        $penalizacion = ConstructorSenales::sqlPenalizacionReproduccion($userId, $config);
+        /* Multiplicador: penalización progresiva por reproducciones (via CTE repro_peso) */
+        $penalizacion = PrecomputadorFeed::sqlPenalizacionReproduccion($config);
 
         /* Multiplicador: penalización pasiva (reproducción sin like/descarga/guardar) */
         $penalizacionPasiva = PrecomputadorFeed::sqlPenalizacionPasiva($userId, $config);
@@ -232,7 +232,7 @@ class MotorRecomendacion
          * flags usuario (LEFT JOIN en vez de 4 EXISTS), vectores de afinidad.
          * FIX verificado_sample: alias obligatorio para NormalizadorSample.
          */
-        $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId);
+        $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId, $config);
         $ctesPrecomputoPrefijo = PrecomputadorFeed::serializarCtes($ctesPrecomputo);
 
         $ts = SamplesCols::TABLA;
