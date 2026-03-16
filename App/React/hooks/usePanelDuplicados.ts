@@ -4,7 +4,7 @@
  * Maneja: carga, filtros, paginacion y acciones de resolucion.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
     listarDuplicados,
     contarDuplicados,
@@ -14,6 +14,7 @@ import {
     intercambiarDuplicado,
     ejecutarBackfillHash,
     type DuplicadoAdmin,
+    type GrupoDuplicados,
     type StatsBackfill,
 } from '../services/apiAdmin';
 import { crearLogger } from '../services/logger';
@@ -33,6 +34,7 @@ const ACCIONES: Record<AccionDuplicado, (id: number) => ReturnType<typeof fusion
 export interface UsePanelDuplicadosReturn {
     /* Datos */
     duplicados: DuplicadoAdmin[];
+    grupos: GrupoDuplicados[];
     total: number;
     cargando: boolean;
     procesandoId: number | null;
@@ -51,6 +53,39 @@ export interface UsePanelDuplicadosReturn {
     ejecutarBackfill: () => Promise<void>;
     backfillStats: StatsBackfill | null;
     backfillEnCurso: boolean;
+}
+
+/*
+ * QL70: Agrupa duplicados planos por original_id.
+ * Cada grupo contiene la info del original + array de instancias duplicadas.
+ * Preserva el orden de aparición del primer registro de cada grupo.
+ */
+function agruparPorOriginal(duplicados: DuplicadoAdmin[]): GrupoDuplicados[] {
+    const mapa = new Map<number, GrupoDuplicados>();
+    const orden: number[] = [];
+
+    for (const d of duplicados) {
+        const existente = mapa.get(d.original_id);
+        if (existente) {
+            existente.instancias.push(d);
+        } else {
+            orden.push(d.original_id);
+            mapa.set(d.original_id, {
+                originalId: d.original_id,
+                originalTitulo: d.original_titulo,
+                originalCreador: d.original_creador,
+                originalCreadorId: d.original_creador_id,
+                originalSubidoAt: d.original_subido_at,
+                originalRutaPreview: d.original_ruta_preview,
+                originalRutaWaveform: d.original_ruta_waveform,
+                originalSlug: d.original_slug,
+                originalHash: d.original_hash,
+                instancias: [d],
+            });
+        }
+    }
+
+    return orden.map(id => mapa.get(id)!);
 }
 
 export function usePanelDuplicados(): UsePanelDuplicadosReturn {
@@ -158,8 +193,12 @@ export function usePanelDuplicados(): UsePanelDuplicadosReturn {
         setBackfillEnCurso(false);
     }, [cargarDatos]);
 
+    /* QL70: Agrupación por original_id, reactiva a cambios en la lista plana */
+    const grupos = useMemo(() => agruparPorOriginal(duplicados), [duplicados]);
+
     return {
         duplicados,
+        grupos,
         total,
         cargando,
         procesandoId,

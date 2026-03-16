@@ -71,18 +71,26 @@ const PATRONES_TEMPORALES = [
 /*
  * P1+P7: Carpetas internas excluidas del watcher.
  * CARPETAS_EXCLUIDAS_TOTAL: se ignora TODO evento (create, delete, modify).
- * CARPETAS_SOLO_DELETE: se ignoran CREATEs pero se procesan DELETEs
- *   (para que manejarBorradoLocal funcione si alguien borra desde ahí).
+ * CARPETAS_SISTEMA_NO_COLECCION: carpetas que permiten subida de archivos de audio
+ *   pero NO deben generar colecciones en el servidor. El watcher procesa CREATEs
+ *   de archivos pero bloquea eventos de creacion de carpeta para estos nombres.
+ *   QL70: "Sin colección" y "duplicados" ahora suben archivos al servidor.
  * El filtro se aplica por segmento de ruta (split('/')) para evitar falsos
  * positivos con nombres como "carpeta.papelera-mix/".
  */
 const CARPETAS_EXCLUIDAS_TOTAL = new Set([
     '.papelera',
-    'duplicados',
 ]);
-const CARPETAS_SOLO_DELETE = new Set([
+
+/*
+ * QL70: Carpetas del sistema sync que permiten subida de archivos pero NO deben
+ * generar colecciones. En manejarArchivoNuevo se descartan estos nombres de
+ * la lista de carpetas para que el server los trate como "sin colección".
+ */
+const CARPETAS_SISTEMA_NO_COLECCION = new Set([
     'sin colecci\u00f3n',
     'sin coleccion',
+    'duplicados',
 ]);
 
 /* Cache de archivos recientemente procesados para ignorar eventos duplicados */
@@ -600,16 +608,11 @@ function procesarEvento(
         /* Exclusión total: ignorar TODO evento dentro de .papelera/ */
         if (segmentosRuta.some(s => CARPETAS_EXCLUIDAS_TOTAL.has(s))) continue;
 
-        /* Exclusión parcial: ignorar CREATEs pero permitir DELETEs en Sin colección */
         /*
-         * Exclusión parcial: ignorar CREATEs de archivos dentro de Sin colección.
-         * C3: Permitir CREATEs de subcarpetas (nivel 2) para poder moverlas fuera.
+         * QL70: Carpetas sistema (sin colección, duplicados) permiten CREATEs de archivos
+         * pero NO deben generar eventos de carpeta (procesarEventoCarpeta).
+         * El filtro de carpeta se aplica más abajo en la detección de nivel 1.
          */
-        if (esEventoCreacion(tipo) && segmentosRuta.some(s => CARPETAS_SOLO_DELETE.has(s.toLowerCase()))) {
-            const extensionTemprana = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
-            const esPosibleSubcarpeta = segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extensionTemprana);
-            if (!esPosibleSubcarpeta) continue;
-        }
 
         /*
          * C357: Detectar eventos de carpetas de nivel 1 (hijas directas de carpetaBase).
@@ -625,6 +628,11 @@ function procesarEvento(
             /* QL62+QL68: Archivos con extensión conocida o desconocida no son carpetas */
             if (extension && (EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension) || pareceArchivoConExtension(nombreArchivo))) {
                 logSync.warn('watcher', `Archivo no-audio ignorado en raiz sync: ${nombreArchivo}`);
+                continue;
+            }
+            /* QL70: No crear colección para carpetas de sistema (sin colección, duplicados).
+             * Archivos de audio dentro de ellas sí se suben (procesados abajo). */
+            if (CARPETAS_SISTEMA_NO_COLECCION.has(relativa.toLowerCase())) {
                 continue;
             }
             /* Es un path directo bajo carpetaBase sin extensión de audio → posible carpeta */
@@ -724,8 +732,15 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
 
     const partes = relativa.split('/');
     const nombreArchivo = partes.pop() ?? '';
-    /* Carpetas entre la base de sync y el archivo (max 3 niveles) */
-    const carpetas = partes.slice(0, 3);
+    /*
+     * Carpetas entre la base de sync y el archivo (max 3 niveles).
+     * QL70: Filtrar nombres de carpetas de sistema (sin colección, duplicados)
+     * para que el server trate estos archivos como "sin colección" en vez
+     * de crear una colección con ese nombre.
+     */
+    const carpetas = partes.slice(0, 3).filter(
+        c => !CARPETAS_SISTEMA_NO_COLECCION.has(c.toLowerCase()),
+    );
 
     /* Verificar si hay una eliminación pendiente con el mismo nombre */
     const clave = nombreArchivo.toLowerCase();

@@ -17,12 +17,16 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\DuplicadosPendientesRepository;
+use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Config\Schema\_generated\DuplicadosPendientesCols;
 use App\Config\Schema\_generated\DuplicadosPendientesEnums;
+use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Api\Controladores\SamplesModificacionController;
 
 class DuplicadosController
 {
@@ -124,6 +128,9 @@ class DuplicadosController
 
     /**
      * POST /admin/duplicados/{id}/fusionar — Conservar original, transferir relaciones, eliminar duplicado.
+     *
+     * QL71: Despues de fusionar, elimina archivos fisicos del sample absorbido
+     * para liberar espacio en disco.
      */
     public static function fusionar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -132,10 +139,21 @@ class DuplicadosController
             $adminId = UsuarioHelper::obtenerIdPg();
             if (!$adminId) return UsuarioHelper::respuestaNoEncontrado();
 
+            /* Obtener el ID del sample duplicado ANTES de fusionar */
+            $registro = DuplicadosPendientesRepository::obtenerRegistro($registroId);
+            $duplicadoSampleId = $registro
+                ? (int) $registro[DuplicadosPendientesCols::SAMPLE_DUPLICADO_ID]
+                : null;
+
             $ok = DuplicadosPendientesRepository::fusionar($registroId, $adminId);
 
             if (!$ok) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Registro no encontrado'], 404);
+            }
+
+            /* QL71: Limpiar archivos fisicos del sample absorbido */
+            if ($duplicadoSampleId) {
+                self::eliminarArchivosDeSample($duplicadoSampleId);
             }
 
             KamplesLogger::info('DuplicadosController: Fusionado', ['registroId' => $registroId, 'adminId' => $adminId]);
@@ -172,6 +190,9 @@ class DuplicadosController
 
     /**
      * POST /admin/duplicados/{id}/rechazar — Eliminar sample duplicado.
+     *
+     * QL71: Además del soft-delete en BD, elimina archivos físicos del servidor
+     * (audio original, preview, waveform) para liberar espacio en disco.
      */
     public static function rechazar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -180,10 +201,21 @@ class DuplicadosController
             $adminId = UsuarioHelper::obtenerIdPg();
             if (!$adminId) return UsuarioHelper::respuestaNoEncontrado();
 
+            /* Obtener el ID del sample duplicado ANTES del soft-delete */
+            $registro = DuplicadosPendientesRepository::obtenerRegistro($registroId);
+            $duplicadoSampleId = $registro
+                ? (int) $registro[DuplicadosPendientesCols::SAMPLE_DUPLICADO_ID]
+                : null;
+
             $ok = DuplicadosPendientesRepository::rechazar($registroId, $adminId);
 
             if (!$ok) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Registro no encontrado'], 404);
+            }
+
+            /* QL71: Limpiar archivos fisicos del sample rechazado */
+            if ($duplicadoSampleId) {
+                self::eliminarArchivosDeSample($duplicadoSampleId);
             }
 
             KamplesLogger::info('DuplicadosController: Rechazado', ['registroId' => $registroId, 'adminId' => $adminId]);
@@ -196,6 +228,11 @@ class DuplicadosController
 
     /**
      * POST /admin/duplicados/{id}/intercambiar — Invertir roles y fusionar.
+     *
+     * QL71: Intercambiar invierte original<->duplicado y luego fusiona.
+     * El sample que queda eliminado (el antiguo "original") necesita limpieza de archivos.
+     * Despues del intercambio, el sample_original_id del registro original
+     * pasa a ser el duplicado absorbido.
      */
     public static function intercambiar(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -204,10 +241,25 @@ class DuplicadosController
             $adminId = UsuarioHelper::obtenerIdPg();
             if (!$adminId) return UsuarioHelper::respuestaNoEncontrado();
 
+            /*
+             * En intercambiar, el repo invierte los IDs y luego fusiona.
+             * El sample "absorbido" sera el antiguo original (ahora duplicado).
+             * Pre-fetch para capturar el original_id ANTES del swap.
+             */
+            $registro = DuplicadosPendientesRepository::obtenerRegistro($registroId);
+            $sampleAbsorbidoId = $registro
+                ? (int) $registro[DuplicadosPendientesCols::SAMPLE_ORIGINAL_ID]
+                : null;
+
             $ok = DuplicadosPendientesRepository::intercambiar($registroId, $adminId);
 
             if (!$ok) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Registro no encontrado'], 404);
+            }
+
+            /* QL71: Limpiar archivos del sample absorbido (antiguo original) */
+            if ($sampleAbsorbidoId) {
+                self::eliminarArchivosDeSample($sampleAbsorbidoId);
             }
 
             KamplesLogger::info('DuplicadosController: Intercambiado y fusionado', ['registroId' => $registroId, 'adminId' => $adminId]);
@@ -234,6 +286,29 @@ class DuplicadosController
         } catch (\Throwable $e) {
             KamplesLogger::error('DuplicadosController: Error en backfill', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno'], 500);
+        }
+    }
+
+    /**
+     * QL71: Busca el sample por ID y elimina sus archivos fisicos del disco.
+     * Encapsula la consulta + limpieza para reutilizar en rechazar/fusionar/intercambiar.
+     */
+    private static function eliminarArchivosDeSample(int $sampleId): void
+    {
+        try {
+            $sample = SamplesRepository::buscarParaEliminar($sampleId);
+            if ($sample) {
+                SamplesModificacionController::eliminarArchivosFisicos($sample);
+                KamplesLogger::info('DuplicadosController: Archivos fisicos eliminados', ['sampleId' => $sampleId]);
+            } else {
+                KamplesLogger::warning('DuplicadosController: Sample no encontrado para limpieza de archivos', ['sampleId' => $sampleId]);
+            }
+        } catch (\Throwable $e) {
+            /* No propagar: la operacion principal (soft-delete) ya se completo */
+            KamplesLogger::error('DuplicadosController: Error eliminando archivos fisicos', [
+                'sampleId' => $sampleId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

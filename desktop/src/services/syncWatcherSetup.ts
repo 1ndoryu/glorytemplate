@@ -30,7 +30,9 @@ import { sincronizarEstructuraCarpetasV1 } from './syncDownloadV1';
 import { inicializarPapelera, purgarExpirados } from './papeleraService';
 import { logSync } from './syncLogger';
 
-/* Carpetas locales del sistema que NO deben crear colecciones en el servidor. */
+/* Carpetas locales del sistema que NO deben crear colecciones en el servidor.
+ * QL70: Archivos dentro de estas carpetas sí se escanean y encolan para subida,
+ * pero con carpetas vacías para que el server los trate como "sin colección". */
 const CARPETAS_SISTEMA_SYNC = new Set([
     'sin colecci\u00f3n',
     'sin coleccion',
@@ -93,7 +95,12 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
             if (CARPETAS_EXCLUIDAS_SCAN.has(nombreLower)) continue;
 
             if (entrada.isDirectory) {
-                if (CARPETAS_SISTEMA_SYNC.has(nombreLower)) continue;
+                /*
+                 * QL70: Carpetas de sistema (sin colección, duplicados) se escanean
+                 * pero sus archivos se encolan con carpetas vacías para que el server
+                 * los trate como "sin colección" en vez de crear una colección homonima.
+                 */
+                const esCarpetaSistema = CARPETAS_SISTEMA_SYNC.has(nombreLower);
 
                 const rutaCarpeta = await join(carpetaBase, entrada.name);
                 try {
@@ -108,6 +115,8 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
                         if (sub.isDirectory) {
                             if (CARPETAS_EXCLUIDAS_SCAN.has(sub.name.toLowerCase())) continue;
                             if (CARPETAS_SISTEMA_SYNC.has(sub.name.toLowerCase())) continue;
+                            /* No crear subcolecciones dentro de carpetas de sistema */
+                            if (esCarpetaSistema) continue;
 
                             const rutaSubcarpeta = await join(rutaCarpeta, sub.name);
                             try {
@@ -128,7 +137,8 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
                         const ext = sub.name.split('.').pop()?.toLowerCase() ?? '';
                         if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
                         const rutaArchivo = await join(rutaCarpeta, sub.name);
-                        await procesarArchivo(rutaArchivo, sub.name, [entrada.name]);
+                        /* QL70: Carpetas sistema → carpetas vacías para no crear colección */
+                        await procesarArchivo(rutaArchivo, sub.name, esCarpetaSistema ? [] : [entrada.name]);
                     }
                 } catch (errSub) {
                     console.warn('[Sync] Error escaneando carpeta colección:', rutaCarpeta, errSub);

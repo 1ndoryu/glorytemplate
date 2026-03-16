@@ -180,6 +180,8 @@ export interface DuplicadoAdmin {
     original_creador: string;
     original_creador_id: number;
     original_slug: string | null;
+    /* QL70: Hashes para agrupación de duplicados */
+    original_hash: string | null;
     duplicado_id: number;
     duplicado_titulo: string;
     duplicado_subido_at: string;
@@ -188,6 +190,24 @@ export interface DuplicadoAdmin {
     duplicado_creador: string;
     duplicado_creador_id: number;
     duplicado_slug: string | null;
+    duplicado_hash: string | null;
+}
+
+/*
+ * QL70: Grupo de duplicados del mismo original.
+ * Agrupa registros de duplicados_pendientes que comparten el mismo sample_original_id.
+ */
+export interface GrupoDuplicados {
+    originalId: number;
+    originalTitulo: string;
+    originalCreador: string;
+    originalCreadorId: number;
+    originalSubidoAt: string;
+    originalRutaPreview: string | null;
+    originalRutaWaveform: string | null;
+    originalSlug: string | null;
+    originalHash: string | null;
+    instancias: DuplicadoAdmin[];
 }
 
 export interface ListaDuplicados {

@@ -4,13 +4,15 @@
  * Carga incremental por scroll — logica delegada a usePanelDuplicados.
  */
 
-import { useRef, useEffect } from 'react';
-import { RefreshCw, Loader2, CheckCircle, Hash } from 'lucide-react';
+import { useRef, useEffect, useState } from 'react';
+import { RefreshCw, Loader2, CheckCircle, Hash, ChevronDown, ChevronRight } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { SelectorMenu } from '../ui/SelectorMenu';
 import { EstadoVacio } from '../ui/EstadoVacio';
+import { Badge } from '../ui/Badge';
 import { TarjetaDuplicado } from './TarjetaDuplicado';
 import { usePanelDuplicados } from '../../hooks/usePanelDuplicados';
+import type { GrupoDuplicados } from '../../services/apiAdmin';
 import '../../styles/componentes/duplicadosAdmin.css';
 
 /* Opciones de filtro */
@@ -27,6 +29,70 @@ const OPCIONES_TIPO = [
     { valor: 'mismo_usuario', etiqueta: 'Mismo usuario' },
     { valor: 'backfill', etiqueta: 'Backfill' },
 ];
+
+/*
+ * QL70: Grupo colapsable de duplicados del mismo original.
+ * Si el grupo tiene una sola instancia, se muestra directo sin cabecera.
+ * Si tiene varias, se muestra cabecera expandible con conteo.
+ */
+const GrupoColapsable = ({ grupo, procesandoId, onAccion }: {
+    grupo: GrupoDuplicados;
+    procesandoId: number | null;
+    onAccion: (id: number, accion: 'fusionar' | 'aprobar' | 'rechazar' | 'intercambiar') => void;
+}): JSX.Element => {
+    const [expandido, setExpandido] = useState(true);
+    const { instancias } = grupo;
+
+    /* Grupo de 1: renderizar tarjeta directa sin wrapper */
+    if (instancias.length === 1) {
+        return (
+            <TarjetaDuplicado
+                duplicado={instancias[0]}
+                procesando={procesandoId === instancias[0].id}
+                onAccion={onAccion}
+            />
+        );
+    }
+
+    return (
+        <div className="dupGrupo">
+            <BotonBase
+                variante="ghost"
+                tamano="sm"
+                className="dupGrupoCabecera"
+                onClick={() => setExpandido(p => !p)}
+            >
+                {expandido
+                    ? <ChevronDown size={16} />
+                    : <ChevronRight size={16} />}
+                <span className="dupGrupoTitulo">
+                    {grupo.originalTitulo || `Sample #${grupo.originalId}`}
+                </span>
+                <Badge variante="neutro" tamano="xs">
+                    {instancias.length} duplicados
+                </Badge>
+                {grupo.originalHash && (
+                    <span className="dupGrupoHash" title={grupo.originalHash}>
+                        {grupo.originalHash.slice(0, 8)}…
+                    </span>
+                )}
+            </BotonBase>
+
+            {expandido && (
+                <div className="dupGrupoContenido">
+                    {instancias.map(d => (
+                        <TarjetaDuplicado
+                            key={d.id}
+                            duplicado={d}
+                            procesando={procesandoId === d.id}
+                            onAccion={onAccion}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const TabDuplicadosAdmin = (): JSX.Element => {
     const dup = usePanelDuplicados();
@@ -124,14 +190,14 @@ export const TabDuplicadosAdmin = (): JSX.Element => {
                 />
             )}
 
-            {/* Lista de tarjetas */}
-            {!dup.cargando && dup.duplicados.length > 0 && (
+            {/* QL70: Lista agrupada por original */}
+            {!dup.cargando && dup.grupos.length > 0 && (
                 <div className="dupLista">
-                    {dup.duplicados.map(d => (
-                        <TarjetaDuplicado
-                            key={d.id}
-                            duplicado={d}
-                            procesando={dup.procesandoId === d.id}
+                    {dup.grupos.map(grupo => (
+                        <GrupoColapsable
+                            key={grupo.originalId}
+                            grupo={grupo}
+                            procesandoId={dup.procesandoId}
                             onAccion={dup.ejecutarAccion}
                         />
                     ))}

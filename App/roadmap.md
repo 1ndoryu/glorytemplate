@@ -585,13 +585,26 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 
 # QL70
 
-los samples que estan en la caperta Sin colección no se elimian despues de subir, bueno algunos si pero algunos no, entiendo exactamente porque (con la opcion activada de borrar archivo despues de subir automaticamente), el sistema debe ser mejor, y rastrear, omitir la papelera ahora tiene que dejar de omitir la carpeta de duplicados para los suba
-
-otro detalle, el sistema de duplicados en el panel de admin tiene que ser capaz detectar multiplies audios duplicados, es decir, ahora los debería de agrupoar en caso de un audio se suba varias veces, revisar que todas las opciones funcionen correctamente. 
+✅ [AG-MNT] Completado:
+- **"Sin colección" ahora sube archivos:** Removido de `CARPETAS_SOLO_DELETE` (que bloqueaba CREATEs). Archivos de audio en esta carpeta se detectan, encolan, suben, y borran post-upload si `borrarAlSubirExitoso` está activo.
+- **"duplicados" ahora sube archivos:** Removido de `CARPETAS_EXCLUIDAS_TOTAL`. Archivos en esta carpeta se encolan normalmente para subida al servidor para revisión admin.
+- **Guard anti-colección:** Nuevo set `CARPETAS_SISTEMA_NO_COLECCION` bloquea creación de colecciones para estos nombres. En `manejarArchivoNuevo`, se filtran de la ruta `carpetas[]` para que el server los trate como "sin colección".
+- **Scan actualizado:** `syncWatcherSetup.ts` ya no salta estas carpetas en el escaneo. Archivos se encolan con `carpetas: []` (sin colección) en vez de crear colección homónima.
+- **Admin dedup grouping:** Panel de duplicados agrupa registros por `original_id`. Grupos con múltiples instancias muestran cabecera colapsable con conteo + hash truncado. Grupos de 1 renderizan tarjeta directa sin wrapper.
+- Archivos: `fileWatcherService.ts`, `syncWatcherSetup.ts`, `apiAdmin.ts` (+`GrupoDuplicados` interface + hashes), `usePanelDuplicados.ts` (+`agruparPorOriginal` + `useMemo`), `TabDuplicadosAdmin.tsx` (+`GrupoColapsable`), `duplicadosAdmin.css`.
+- [Leccion]: La agrupación en frontend (useMemo sobre datos planos) es más flexible que GROUP BY en SQL porque la paginación ya opera sobre registros planos. 
 
 # QL71
 
-aun no confio en el sistema duplicados, revisar que realmente al publicar un duplicado (a decir que no es un duplicado quede en cola para procesarse o publicarse de una vez si no hay cola), y que cuando se rechace realmente se elimine del servidor con todo y info
+✅ [AG-MNT] Completado:
+- **Verificacion del flujo aprobar:** Correcto. `aprobar()` cambia estado a `procesando` y agenda `ReprocesadorPostDuplicado` via WP cron (5s delay), que ejecuta `PipelineAudio::procesar()` con `omitirDedup=true`. Pipeline completo (preview, waveform, IA tags) se ejecuta.
+- **rechazar() ahora elimina archivos fisicos:** Pre-fetch del registro para obtener `sample_duplicado_id`, luego soft-delete via repo, y despues `SamplesModificacionController::eliminarArchivosFisicos()` elimina audio original, optimizado, preview, waveform y waveform JSON derivado.
+- **fusionar() ahora elimina archivos fisicos:** Mismo patron — el sample absorbido (duplicado) se limpia fisicamente despues de transferir relaciones y soft-delete.
+- **intercambiar() ahora elimina archivos fisicos:** Pre-fetch captura `sample_original_id` (que sera el absorbido post-swap), despues del intercambio+fusion se limpian sus archivos.
+- **Helper reutilizable:** `eliminarArchivosDeSample(int $sampleId)` encapsula busqueda + limpieza con try-catch (no propaga errores al caller, la operacion principal ya se completo).
+- **Nuevo metodo publico:** `DuplicadosPendientesRepository::obtenerRegistro(int $registroId)` expone `buscarPorId()` para acceso desde controllers.
+- Archivos: `DuplicadosController.php`, `DuplicadosPendientesRepository.php`.
+- [Leccion]: La limpieza de archivos debe ser post-accion (no pre-accion) para evitar dejar la BD inconsistente si la operacion falla. El try-catch aislado asegura que un fallo de I/O no revierta el soft-delete ya exitoso.
 
 # QL72 
 
@@ -626,6 +639,10 @@ que hace el boton de guardar? en las coleciones cuando veo la coleccion de otro 
 # QL77
 
 De repente estoy viendo una coleccion, y a los minutos desaparece todo, y sale "Esta colección aún no tiene samples." no se porque
+
+# QL78
+
+porque siguen habiendo archivos en la carpeta si tengo la opcion de borrar archivos despues de subir activada? no se supone que se borra el archivo despues de subirlo? algo pasa, o hay nada que revise y reanilice para comprobar que hacer con los archivos que quedan
 
 
 

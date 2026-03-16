@@ -51,6 +51,16 @@ class DuplicadosPendientesRepository extends BaseRepository
     /* === METODOS CUSTOM (seguro para editar debajo de esta linea) === */
 
     /**
+     * Obtener un registro de duplicado por ID (público, para uso en controllers).
+     * @return array|null El registro o null si no existe.
+     */
+    public static function obtenerRegistro(int $registroId): ?array
+    {
+        $registro = static::buscarPorId($registroId);
+        return $registro ?: null;
+    }
+
+    /**
      * Contar duplicados con estado 'pendiente' (para badge en navegacion admin).
      */
     public static function contarPendientes(): int
