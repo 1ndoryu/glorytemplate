@@ -7,6 +7,7 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
+import { BarraControlFeed, OPCIONES_ORDEN_PERSONAL } from '@app/components/feed/BarraControlFeed';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { useDescargasPagina } from '@app/hooks/useDescargasPagina';
@@ -23,6 +24,8 @@ import '../../styles/componentes/coleccionDetalle.css';
 import { BotonBase } from '../../components/ui/BotonBase';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 
+/* TO-DO: Extraer lógica de vista (infoHeader, totalHeader, tabs, panel lateral)
+ * a un hook useDescargasIsland.ts para cumplir SRP estricto. Pre-existente. */
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Coleccionados' },
     { id: 'favoritos', etiqueta: 'Me Gustas' },
@@ -31,7 +34,13 @@ const TABS_DESCARGAS = [
 ];
 
 const DescargasBase = (): JSX.Element => {
-    const { comprados, cargando, cargandoComprados, proveedorColeccionados, proveedorFavoritos, proveedorSugerencias, manejarLike } = useDescargasPagina();
+    const {
+        comprados, cargando, cargandoComprados,
+        proveedorColeccionados, proveedorFavoritos, proveedorSugerencias,
+        ordenColeccionados, setOrdenColeccionados,
+        ordenFavoritos, setOrdenFavoritos,
+        manejarLike,
+    } = useDescargasPagina();
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -122,29 +131,43 @@ const DescargasBase = (): JSX.Element => {
             {/* Contenido según tab activa — key distinta fuerza desmontaje (C46) */}
             {/* QL15: Coleccionados con scroll infinito via FeedSamples */}
             {tabActiva === 'descargas' && (
-                <FeedSamples
-                    key="descargas-coleccionados"
-                    proveedor={proveedorColeccionados}
-                    claveCache="coleccionados"
-                    mostrarTags
-                    infiniteScroll
-                    virtualizar={false}
-                    mensajeVacio="Los samples que colecciones aparecerán aquí."
-                    onConteoChange={setTotalColeccionados}
-                />
+                <>
+                    <BarraControlFeed
+                        opciones={OPCIONES_ORDEN_PERSONAL}
+                        ordenActual={ordenColeccionados}
+                        onOrdenCambiar={setOrdenColeccionados}
+                    />
+                    <FeedSamples
+                        key={`descargas-coleccionados-${ordenColeccionados}`}
+                        proveedor={proveedorColeccionados}
+                        claveCache={`coleccionados_${ordenColeccionados}`}
+                        mostrarTags
+                        infiniteScroll
+                        virtualizar={false}
+                        mensajeVacio="Los samples que colecciones aparecerán aquí."
+                        onConteoChange={setTotalColeccionados}
+                    />
+                </>
             )}
 
             {tabActiva === 'favoritos' && (
-                <FeedSamples
-                    key="descargas-favoritos"
-                    proveedor={proveedorFavoritos}
-                    claveCache="favoritos_descargas"
-                    mostrarTags
-                    infiniteScroll
-                    virtualizar={false}
-                    mensajeVacio="Dale like a un sample para guardarlo aquí."
-                    onConteoChange={setTotalFavoritos}
-                />
+                <>
+                    <BarraControlFeed
+                        opciones={OPCIONES_ORDEN_PERSONAL}
+                        ordenActual={ordenFavoritos}
+                        onOrdenCambiar={setOrdenFavoritos}
+                    />
+                    <FeedSamples
+                        key={`descargas-favoritos-${ordenFavoritos}`}
+                        proveedor={proveedorFavoritos}
+                        claveCache={`favoritos_descargas_${ordenFavoritos}`}
+                        mostrarTags
+                        infiniteScroll
+                        virtualizar={false}
+                        mensajeVacio="Dale like a un sample para guardarlo aquí."
+                        onConteoChange={setTotalFavoritos}
+                    />
+                </>
             )}
 
             {tabActiva === 'comprados' && (

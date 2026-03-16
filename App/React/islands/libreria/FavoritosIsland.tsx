@@ -4,9 +4,11 @@
  * Header con imagen + info. Tabs: "Mis Favoritos" y "Más Ideas".
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { Heart, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
+import { BarraControlFeed, OPCIONES_ORDEN_PERSONAL } from '@app/components/feed/BarraControlFeed';
+import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -31,7 +33,9 @@ const TABS_FAVORITOS = [
 ];
 
 const FavoritosBase = (): JSX.Element => {
-    const { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike } = useFavoritosPagina();
+    /* QL53: Estado de ordenamiento */
+    const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
+    const { samples, totalFavoritos, cargando, proveedorSugerencias, manejarLike } = useFavoritosPagina(ordenFavoritos);
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -104,6 +108,11 @@ const FavoritosBase = (): JSX.Element => {
                     </div>
                 ) : (
                     <>
+                        <BarraControlFeed
+                            opciones={OPCIONES_ORDEN_PERSONAL}
+                            ordenActual={ordenFavoritos}
+                            onOrdenCambiar={setOrdenFavoritos}
+                        />
                         <FiltroTags
                             tagsAgrupados={filtros.tagsAgrupados}
                             tagsSueltos={filtros.tagsSueltos}

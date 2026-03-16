@@ -4,7 +4,7 @@
  * límites y provee sugerencias. Separado del componente para cumplir SRP.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { obtenerColeccionados } from '@app/services/apiExplorador';
 import { obtenerLimites, obtenerComprados, type LimitesDescarga } from '@app/services/apiDescargas';
 import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
@@ -14,6 +14,7 @@ import type { SampleResumen, TipoReaccion } from '@app/types';
 import type { ResultadoProveedor } from '@app/components/feed/FeedSamples';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
+import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
 
 const log = crearLogger('useDescargasPagina');
 
@@ -25,6 +26,10 @@ export interface UseDescargasPaginaResultado {
     cargandoComprados: boolean;
     proveedorColeccionados: (pagina: number) => Promise<ResultadoProveedor>;
     proveedorFavoritos: (pagina: number) => Promise<ResultadoProveedor>;
+    ordenColeccionados: TipoOrdenFeed;
+    setOrdenColeccionados: (orden: TipoOrdenFeed) => void;
+    ordenFavoritos: TipoOrdenFeed;
+    setOrdenFavoritos: (orden: TipoOrdenFeed) => void;
     proveedorSugerencias: (pagina: number) => Promise<ResultadoProveedor>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
@@ -61,27 +66,45 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         cargar();
     }, []);
 
-    /* QL15: Proveedor paginado para tab "Mis Coleccionados" — scroll infinito */
-    const proveedorColeccionados = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
-        try {
-            const resp = await obtenerColeccionados(pagina, 30);
-            return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
-        } catch (err) {
-            log.error('Error cargando coleccionados', err);
-            return { ok: false, data: [] };
-        }
+    /* QL53: Estado de ordenamiento por tab, gestionado en el hook para mantener isla limpia */
+    const [ordenColeccionados, setOrdenColeccionados] = useState<TipoOrdenFeed>('recientes');
+    const [ordenFavoritos, setOrdenFavoritos] = useState<TipoOrdenFeed>('recientes');
+
+    /* QL53: Fábricas internas de proveedores que aceptan orden */
+    const crearProveedorColeccionados = useCallback((orden: string) => {
+        return async (pagina: number): Promise<ResultadoProveedor> => {
+            try {
+                const resp = await obtenerColeccionados(pagina, 30, '', orden);
+                return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
+            } catch (err) {
+                log.error('Error cargando coleccionados', err);
+                return { ok: false, data: [] };
+            }
+        };
     }, []);
 
-    /* Proveedor paginado para tab "Me Gustas" — scroll infinito */
-    const proveedorFavoritos = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
-        try {
-            const resp = await obtenerMisFavoritos(pagina, 30);
-            return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
-        } catch (err) {
-            log.error('Error cargando favoritos', err);
-            return { ok: false, data: [] };
-        }
+    /* QL53: Proveedor de favoritos con sorting */
+    const crearProveedorFavoritos = useCallback((orden: string) => {
+        return async (pagina: number): Promise<ResultadoProveedor> => {
+            try {
+                const resp = await obtenerMisFavoritos(pagina, 30, orden);
+                return { ok: resp.ok, data: resp.ok && resp.data?.data ? resp.data.data : [] };
+            } catch (err) {
+                log.error('Error cargando favoritos', err);
+                return { ok: false, data: [] };
+            }
+        };
     }, []);
+
+    /* QL53: Proveedores memoizados que se recrean cuando cambia el orden */
+    const proveedorColeccionados = useMemo(
+        () => crearProveedorColeccionados(ordenColeccionados),
+        [crearProveedorColeccionados, ordenColeccionados]
+    );
+    const proveedorFavoritos = useMemo(
+        () => crearProveedorFavoritos(ordenFavoritos),
+        [crearProveedorFavoritos, ordenFavoritos]
+    );
 
     /* Proveedor paginado para tab "Más Ideas" */
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {
@@ -162,5 +185,5 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         }
     }, [samples]);
 
-    return { samples, comprados, limites, cargando, cargandoComprados, proveedorColeccionados, proveedorFavoritos, proveedorSugerencias, manejarLike };
+    return { samples, comprados, limites, cargando, cargandoComprados, proveedorColeccionados, proveedorFavoritos, ordenColeccionados, setOrdenColeccionados, ordenFavoritos, setOrdenFavoritos, proveedorSugerencias, manejarLike };
 }

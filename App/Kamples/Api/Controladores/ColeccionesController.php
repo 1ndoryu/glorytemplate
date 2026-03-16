@@ -25,6 +25,7 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\OrdenamientoHelper;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\ColeccionesCols;
@@ -209,17 +210,18 @@ class ColeccionesController
         $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
         $incluirSub = \filter_var($request->get_param('incluirSubcolecciones') ?? 'false', FILTER_VALIDATE_BOOLEAN);
         $userId = UsuarioHelper::obtenerIdPg();
+        $orden = OrdenamientoHelper::sanitizar((string) ($request->get_param('orden') ?? ''), OrdenamientoHelper::ORDEN_POSICION);
 
         if ($incluirSub && $parentId === null) {
             /* D3: Vista virtual — incluir samples de subcolecciones */
             $subIds = ColeccionesRepository::idsSubcolecciones($id);
             if (!empty($subIds)) {
-                $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId);
+                $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId, $orden);
             } else {
-                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId, $orden);
             }
         } else {
-            $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+            $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId, $orden);
         }
 
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
@@ -278,16 +280,17 @@ class ColeccionesController
             $parentId = $coleccion[ColeccionesCols::PARENT_ID] ?? null;
             $incluirSub = \filter_var($request->get_param('incluirSubcolecciones') ?? 'false', FILTER_VALIDATE_BOOLEAN);
             $userId = UsuarioHelper::obtenerIdPg();
+            $orden = OrdenamientoHelper::sanitizar((string) ($request->get_param('orden') ?? ''), OrdenamientoHelper::ORDEN_POSICION);
 
             if ($incluirSub && $parentId === null) {
                 $subIds = ColeccionesRepository::idsSubcolecciones($id);
                 if (!empty($subIds)) {
-                    $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId);
+                    $samples = ColeccionSamplesRepository::samplesConSubcolecciones($id, $subIds, $userId, $orden);
                 } else {
-                    $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+                    $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId, $orden);
                 }
             } else {
-                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId);
+                $samples = ColeccionSamplesRepository::samplesDeColeccion($id, $userId, $orden);
             }
 
             $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);

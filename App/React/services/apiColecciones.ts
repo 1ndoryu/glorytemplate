@@ -140,10 +140,13 @@ export const listarColeccionesPublicas = async (
 /* Detalle de una colección por ID numérico */
 export const obtenerColeccion = async (
     id: number,
-    opciones?: { incluirSubcolecciones?: boolean },
+    opciones?: { incluirSubcolecciones?: boolean; orden?: string },
 ): Promise<RespuestaApi<Coleccion>> => {
-    const params = opciones?.incluirSubcolecciones ? '?incluirSubcolecciones=1' : '';
-    const resp = await apiGet<Coleccion>(`/colecciones/${id}${params}`);
+    const searchParams = new URLSearchParams();
+    if (opciones?.incluirSubcolecciones) searchParams.set('incluirSubcolecciones', '1');
+    if (opciones?.orden) searchParams.set('orden', opciones.orden);
+    const qs = searchParams.toString();
+    const resp = await apiGet<Coleccion>(`/colecciones/${id}${qs ? `?${qs}` : ''}`);
     if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
     return resp;
 };
@@ -151,10 +154,13 @@ export const obtenerColeccion = async (
 /* Detalle de una colección por slug */
 export const obtenerColeccionPorSlug = async (
     slug: string,
-    opciones?: { incluirSubcolecciones?: boolean },
+    opciones?: { incluirSubcolecciones?: boolean; orden?: string },
 ): Promise<RespuestaApi<Coleccion>> => {
-    const params = opciones?.incluirSubcolecciones ? '?incluirSubcolecciones=1' : '';
-    const resp = await apiGet<Coleccion>(`/colecciones/por-slug/${encodeURIComponent(slug)}${params}`);
+    const searchParams = new URLSearchParams();
+    if (opciones?.incluirSubcolecciones) searchParams.set('incluirSubcolecciones', '1');
+    if (opciones?.orden) searchParams.set('orden', opciones.orden);
+    const qs = searchParams.toString();
+    const resp = await apiGet<Coleccion>(`/colecciones/por-slug/${encodeURIComponent(slug)}${qs ? `?${qs}` : ''}`);
     if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
     return resp;
 };

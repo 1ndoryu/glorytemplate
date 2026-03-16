@@ -234,15 +234,15 @@ export const obtenerSamplesDeCancion = async (
 /*
  * C87: Obtiene los samples favoritos (liked) del usuario autenticado.
  */
-export const obtenerMisFavoritos = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
-    return apiGet<RespuestaListaSamples>('/me/favoritos', { page, per_page: perPage });
+export const obtenerMisFavoritos = async (page = 1, perPage = 20, orden = 'recientes'): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    return apiGet<RespuestaListaSamples>('/me/favoritos', { page, per_page: perPage, orden });
 };
 
 /*
  * C87: Obtiene los samples descargados por el usuario autenticado.
  */
-export const obtenerMisDescargas = async (page = 1, perPage = 20): Promise<RespuestaApi<RespuestaListaSamples>> => {
-    return apiGet<RespuestaListaSamples>('/me/descargas', { page, per_page: perPage });
+export const obtenerMisDescargas = async (page = 1, perPage = 20, orden = 'recientes'): Promise<RespuestaApi<RespuestaListaSamples>> => {
+    return apiGet<RespuestaListaSamples>('/me/descargas', { page, per_page: perPage, orden });
 };
 
 /*

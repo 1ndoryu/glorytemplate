@@ -1,0 +1,99 @@
+/*
+ * barraControlFeed.css — Kamples (QL53)
+ * Estilos para la barra de ordenamiento reutilizable.
+ * Patron visual consistente con inicioBarraControl y libreriaBarraControl.
+ */
+
+.barraControlFeed {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacioMd);
+    margin-bottom: var(--espacioSm);
+}
+
+.barraControlFeedIzquierda {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.barraControlFeedContador {
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    white-space: nowrap;
+}
+
+.barraControlFeedDerecha {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+}
+
+.barraControlFeedOrdenWrapper {
+    position: relative;
+}
+
+.barraControlFeedOrdenBtn {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radioFull);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
+}
+
+.barraControlFeedOrdenBtn:hover {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado2);
+}
+
+.barraControlFeedOrdenBtnActivo {
+    color: var(--textoPrimario);
+    background: var(--fondoElevado3);
+    border-color: var(--bordeSutil);
+}
+
+.barraControlFeedOrdenMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--espacioXs);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+    padding: var(--espacioXs);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    min-width: 140px;
+}
+
+.barraControlFeedOrdenMenu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: var(--espacioXs) var(--espacioSm);
+    background: none;
+    border: none;
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    font-size: var(--fuenteSm);
+    cursor: pointer;
+    transition: all var(--transicionRapida);
+}
+
+.barraControlFeedOrdenMenu button:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
+.barraControlFeedOrdenActivo {
+    color: var(--acento) !important;
+}

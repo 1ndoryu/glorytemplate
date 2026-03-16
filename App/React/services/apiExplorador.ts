@@ -45,10 +45,11 @@ export interface RespuestaColeccionados {
 export const obtenerColeccionados = async (
     page = 1,
     perPage = 100,
-    carpeta = ''
+    carpeta = '',
+    orden = 'recientes'
 ): Promise<RespuestaApi<RespuestaColeccionados>> => {
     try {
-        const params: Record<string, string | number | boolean | undefined> = { page, per_page: perPage };
+        const params: Record<string, string | number | boolean | undefined> = { page, per_page: perPage, orden };
         if (carpeta) params.carpeta = carpeta;
         return await apiGet<RespuestaColeccionados>('/me/coleccionados', params);
     } catch (err) {

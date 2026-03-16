@@ -23,28 +23,31 @@ export interface UseFavoritosPaginaResultado {
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
 
-export function useFavoritosPagina(): UseFavoritosPaginaResultado {
+/* QL53: Acepta orden para ordenar favoritos server-side */
+export function useFavoritosPagina(orden: string = 'recientes'): UseFavoritosPaginaResultado {
     const [samples, setSamples] = useState<SampleResumen[]>([]);
     const [totalFavoritos, setTotalFavoritos] = useState(0);
     const [cargando, setCargando] = useState(true);
 
-    /* Carga inicial */
+    /* Carga inicial — refetches cuando cambia el orden */
     useEffect(() => {
+        let cancelado = false;
         const cargar = async () => {
             setCargando(true);
             try {
-                const resp = await obtenerMisFavoritos(1, 30);
-                if (resp.ok && resp.data) {
+                const resp = await obtenerMisFavoritos(1, 30, orden);
+                if (!cancelado && resp.ok && resp.data) {
                     setSamples(resp.data.data ?? []);
                     setTotalFavoritos(resp.data.pagination?.total ?? 0);
                 }
             } catch (err) {
                 log.error('Error cargando favoritos', err);
             }
-            setCargando(false);
+            if (!cancelado) setCargando(false);
         };
         cargar();
-    }, []);
+        return () => { cancelado = true; };
+    }, [orden]);
 
     /* Proveedor paginado para tab "Más Ideas" */
     const proveedorSugerencias = useCallback(async (pagina: number): Promise<ResultadoProveedor> => {

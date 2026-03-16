@@ -16,6 +16,7 @@ use App\Config\Schema\_generated\ColeccionSamplesDTO;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\OrdenamientoHelper;
 
 class ColeccionSamplesRepository extends BaseRepository
 {
@@ -55,15 +56,19 @@ class ColeccionSamplesRepository extends BaseRepository
     /*
      * Obtener samples de una colección con datos normalizados (JOIN samples + usuarios_ext).
      */
-    public static function samplesDeColeccion(int $colId, ?int $userId = null): array
+    public static function samplesDeColeccion(int $colId, ?int $userId = null, string $orden = 'posicion'): array
     {
         $t = ColeccionSamplesCols::TABLA;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
 
+        $clausulaPosicion = 'cs.' . ColeccionSamplesCols::POSICION . ' ASC, cs.' . ColeccionSamplesCols::ADDED_AT . ' DESC';
+        $clausulaRecientes = 'cs.' . ColeccionSamplesCols::ADDED_AT . ' DESC';
+        $orderBy = OrdenamientoHelper::construirOrderBy($orden, $clausulaRecientes, $clausulaPosicion);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN {$t} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = :colId AND s." . SamplesCols::ESTADO . " = '{$estadoActivo}'"
-             . " ORDER BY cs." . ColeccionSamplesCols::POSICION . " ASC, cs." . ColeccionSamplesCols::ADDED_AT . " DESC";
+             . " ORDER BY {$orderBy}";
 
         return static::consultar($sql, ['colId' => $colId]);
     }
@@ -258,7 +263,7 @@ class ColeccionSamplesRepository extends BaseRepository
      * D3: Obtener samples de una coleccion padre incluyendo sus subcolecciones.
      * Agrega el campo 'coleccion_origen' para que el frontend distinga heredados.
      */
-    public static function samplesConSubcolecciones(int $colId, array $subcoleccionIds, ?int $userId = null): array
+    public static function samplesConSubcolecciones(int $colId, array $subcoleccionIds, ?int $userId = null, string $orden = 'posicion'): array
     {
         $t = ColeccionSamplesCols::TABLA;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
@@ -285,11 +290,15 @@ class ColeccionSamplesRepository extends BaseRepository
          * Concatenar columnas extra (cs.coleccion_id) con coma despues del FROM rompe el SQL.
          * Solucion: JOIN coleccion_samples PRIMERO, luego filtrar por estado en WHERE.
          */
+        $clausulaPosicion = "cs.{$csPos} ASC, cs.{$csAdded} DESC";
+        $clausulaRecientes = "cs.{$csAdded} DESC";
+        $orderBy = OrdenamientoHelper::construirOrderBy($orden, $clausulaRecientes, $clausulaPosicion);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN {$t} cs ON cs.{$csSampleId} = s.{$sId}"
              . " WHERE cs.{$csColId} IN ({$inClause})"
              . " AND s.{$sEstado} = '{$estadoActivo}'"
-             . " ORDER BY cs.{$csPos} ASC, cs.{$csAdded} DESC";
+             . " ORDER BY {$orderBy}";
 
         return static::consultar($sql, $params);
     }

@@ -19,6 +19,7 @@ namespace App\Kamples\Api\Controladores;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
+use App\Kamples\Api\Helpers\OrdenamientoHelper;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
@@ -35,6 +36,7 @@ class BibliotecaSamplesController
             'args'                => [
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
+                'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
             ],
         ]);
 
@@ -45,6 +47,7 @@ class BibliotecaSamplesController
             'args'                => [
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 20],
+                'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
             ],
         ]);
 
@@ -57,6 +60,7 @@ class BibliotecaSamplesController
                 'carpeta'  => ['required' => false, 'type' => 'string', 'default' => ''],
                 'page'     => ['required' => false, 'type' => 'integer', 'default' => 1],
                 'per_page' => ['required' => false, 'type' => 'integer', 'default' => 100],
+                'orden'    => ['required' => false, 'type' => 'string', 'default' => 'recientes'],
             ],
         ]);
 
@@ -91,8 +95,9 @@ class BibliotecaSamplesController
         $page    = (int) $request->get_param('page');
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
+        $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
 
-        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset);
+        $rows = SamplesRepository::favoritosDeUsuario($userId, $perPage, $offset, $orden);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
@@ -133,8 +138,9 @@ class BibliotecaSamplesController
         $page    = (int) $request->get_param('page');
         $perPage = (int) $request->get_param('per_page');
         $offset  = ($page - 1) * $perPage;
+        $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
 
-        $rows = SamplesRepository::descargadosDeUsuario($userId, $perPage, $offset);
+        $rows = SamplesRepository::descargadosDeUsuario($userId, $perPage, $offset, $orden);
 
         $samples = NormalizadorSample::normalizarLista($rows);
 
@@ -177,8 +183,9 @@ class BibliotecaSamplesController
         $perPage = \min(200, \max(1, (int) $request->get_param('per_page')));
         $offset  = ($page - 1) * $perPage;
         $carpeta = \trim((string) $request->get_param('carpeta'));
+        $orden   = OrdenamientoHelper::sanitizar((string) $request->get_param('orden'));
 
-        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta);
+        $rows = SamplesRepository::coleccionadosDeUsuario($userId, $perPage, $offset, $carpeta, $orden);
         $samples = NormalizadorSample::normalizarLista($rows);
 
         $total = SamplesRepository::contarColeccionados($userId, $carpeta);

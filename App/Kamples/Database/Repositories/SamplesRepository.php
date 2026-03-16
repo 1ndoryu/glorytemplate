@@ -26,6 +26,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\OrdenamientoHelper;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
@@ -685,8 +686,13 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar samples favoritos de un usuario (JOIN likes).
      */
-    public static function favoritosDeUsuario(int $userId, int $limit, int $offset): array
+    public static function favoritosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes'): array
     {
+        $orderBy = OrdenamientoHelper::construirOrderBy(
+            $orden,
+            'l.' . LikesCols::CREATED_AT . ' DESC'
+        );
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . LikesCols::TABLA . " l ON l."
              . LikesCols::TARGET_ID . " = s." . SamplesCols::ID
@@ -694,7 +700,7 @@ class SamplesRepository extends BaseRepository
              . " AND l." . LikesCols::USUARIO_ID . " = :favUser"
              . " AND l." . LikesCols::REACCION . " IN ('" . LikesEnums::REACCION_LIKE . "', '" . LikesEnums::REACCION_ENCANTA . "')"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-             . " ORDER BY l." . LikesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
+             . " ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['favUser' => $userId, 'limit' => $limit, 'offset' => $offset]);
     }
@@ -702,14 +708,19 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar samples descargados por un usuario (JOIN descargas).
      */
-    public static function descargadosDeUsuario(int $userId, int $limit, int $offset): array
+    public static function descargadosDeUsuario(int $userId, int $limit, int $offset, string $orden = 'recientes'): array
     {
+        $orderBy = OrdenamientoHelper::construirOrderBy(
+            $orden,
+            'd.' . DescargasCols::CREATED_AT . ' DESC'
+        );
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " JOIN " . DescargasCols::TABLA . " d ON d."
              . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
              . " AND d." . DescargasCols::USUARIO_ID . " = :dlUser"
              . " WHERE s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'"
-             . " ORDER BY d." . DescargasCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset";
+             . " ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, ['dlUser' => $userId, 'limit' => $limit, 'offset' => $offset]);
     }
@@ -717,7 +728,7 @@ class SamplesRepository extends BaseRepository
     /*
      * Listar coleccionados (UNION descargas + subidos) con soporte de carpeta.
      */
-    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = ''): array
+    public static function coleccionadosDeUsuario(int $userId, int $limit, int $offset, string $carpeta = '', string $orden = 'recientes'): array
     {
         $params = ['uid' => $userId, 'uid2' => $userId, 'limit' => $limit, 'offset' => $offset];
         $carpetaClause = '';
@@ -742,6 +753,10 @@ class SamplesRepository extends BaseRepository
          * QQ74: Eliminados no se muestran ni al creador.
          */
         $eEliminado = SamplesEnums::ESTADO_ELIMINADO;
+
+        $ordenRecientes = "GREATEST(COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp), s." . SamplesCols::PUBLICADO_AT . ") DESC";
+        $orderBy = OrdenamientoHelper::construirOrderBy($orden, $ordenRecientes);
+
         $sql = NormalizadorSample::sqlSelectSamples($userId)
              . " LEFT JOIN " . DescargasCols::TABLA . " d ON d."
              . DescargasCols::SAMPLE_ID . " = s." . SamplesCols::ID
@@ -751,10 +766,7 @@ class SamplesRepository extends BaseRepository
              . "   (s." . SamplesCols::CREADOR_ID . " = :uid2)"
              . "   OR (d." . DescargasCols::ID . " IS NOT NULL AND s." . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "')"
              . " ){$carpetaClause}"
-             . " ORDER BY GREATEST("
-             . "   COALESCE(d." . DescargasCols::CREATED_AT . ", '1970-01-01'::timestamp),"
-             . "   s." . SamplesCols::PUBLICADO_AT
-             . " ) DESC"
+             . " ORDER BY {$orderBy}"
              . " LIMIT :limit OFFSET :offset";
 
         return static::consultar($sql, $params);

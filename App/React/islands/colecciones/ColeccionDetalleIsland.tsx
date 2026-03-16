@@ -4,9 +4,11 @@
  * Logica extraida a useColeccionDetalle (SRP).
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2 } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
+import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
+import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
@@ -28,6 +30,9 @@ interface ColeccionDetalleIslandProps {
 }
 
 const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslandProps): JSX.Element => {
+    /* QL53: Estado de ordenamiento — default 'posicion' para colecciones */
+    const [ordenColeccion, setOrdenColeccion] = useState<TipoOrdenFeed>('posicion');
+
     const {
         coleccion, cargando, guardada, descargando, navegar,
         tabActiva, usuario, samples, metasComunes,
@@ -56,9 +61,9 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
     const proveedorSamples = useCallback(async () => {
         const targetId = subActiva ?? coleccionId;
         if (!targetId) return { ok: true, data: [] as SampleResumen[] };
-        const resp = await obtenerColeccion(targetId, { incluirSubcolecciones: subActiva === null });
+        const resp = await obtenerColeccion(targetId, { incluirSubcolecciones: subActiva === null, orden: ordenColeccion });
         return { ok: resp.ok, data: resp.ok && resp.data?.samples ? resp.data.samples : [] };
-    }, [coleccionId, subActiva]);
+    }, [coleccionId, subActiva, ordenColeccion]);
 
     const proveedorSugerencias = useCallback(async (pagina: number) => {
         if (!coleccionId) return { ok: true, data: [] as SampleResumen[] };
@@ -191,17 +196,24 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
             {cargandoSub ? (
                 <SkeletonFeed cantidad={3} />
             ) : tabActiva === 'samples' ? (
-                <FeedSamples
-                    key={`coleccion-samples-${subActiva ?? 'raiz'}`}
-                    samplesIniciales={samples}
-                    proveedor={proveedorSamples}
-                    claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}`}
-                    infiniteScroll={false}
-                    virtualizar={false}
-                    mostrarTags
-                    mensajeVacio="Esta colección aún no tiene samples."
-                    onLike={manejarLikeSamples}
-                />
+                <>
+                    <BarraControlFeed
+                        opciones={OPCIONES_ORDEN_COLECCION}
+                        ordenActual={ordenColeccion}
+                        onOrdenCambiar={setOrdenColeccion}
+                    />
+                    <FeedSamples
+                        key={`coleccion-samples-${subActiva ?? 'raiz'}-${ordenColeccion}`}
+                        samplesIniciales={ordenColeccion === 'posicion' ? samples : undefined}
+                        proveedor={proveedorSamples}
+                        claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}_${ordenColeccion}`}
+                        infiniteScroll={false}
+                        virtualizar={false}
+                        mostrarTags
+                        mensajeVacio="Esta colección aún no tiene samples."
+                        onLike={manejarLikeSamples}
+                    />
+                </>
             ) : (
                 <FeedSamples
                     key="coleccion-ideas"
