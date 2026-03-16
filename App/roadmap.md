@@ -462,7 +462,13 @@ En movil, el modal de configuracion debería ser algo como Luma iOS 103.png, un 
 
 # QL53
 
-todas las colecciones incluyendo favoritos, descargas, etc deberían tener ordenamiento y filtrado como inicioBarraControl, y los filtros y ordenamiento tienen que funcionar individualmeente para cada feedsample.  
+✅ [AG-MNT] Completado — Ordenamiento en todas las colecciones:
+- **Backend:** OrdenamientoHelper centralizado (recientes/nombre/populares/bpm/posicion) con sanitización whitelist. Integrado en SamplesRepository (favoritos, descargas, coleccionados) y ColeccionSamplesRepository.
+- **API:** Param `orden` añadido a `/me/favoritos`, `/me/descargas`, `/me/coleccionados`, `/colecciones/{id}`, `/colecciones/slug/{slug}`.
+- **Frontend:** BarraControlFeed reutilizable (dropdown con click-outside close). Wiring en DescargasIsland (2 tabs), FavoritosIsland (refetch al cambiar orden), ColeccionDetalleIsland (default posicion).
+- **Arquitectura:** useDescargasPagina gestiona estado de orden + proveedores memoizados internamente. useFavoritosPagina acepta `orden` param con cleanup de efecto.
+- [CSS]: barraControlFeed.css sigue patrón de inicioBarraControl.
+- [TO-DO]: Extraer lógica de vista de DescargasIsland a hook dedicado (pre-existente, no bloqueante).
 
 # QL54
 
