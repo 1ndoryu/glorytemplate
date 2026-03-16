@@ -86,6 +86,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all var(--transicionRapida);
+    white-space: nowrap;
 }
 
 /* Icono dentro de tab — reemplaza texto cuando está presente */
@@ -93,9 +95,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-    transition: all var(--transicionRapida);
-    white-space: nowrap;
 }
 
 .topbarTab:hover {
