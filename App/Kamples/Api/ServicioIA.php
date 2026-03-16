@@ -42,7 +42,7 @@ class ServicioIA
      * QL67: Modelos Groq ordenados por inteligencia (fallback por cuota/error).
      * Cada modelo se reintenta hasta MAX_REINTENTOS_POR_MODELO veces antes de pasar al siguiente.
      * 429 en un modelo NO cancela la cadena — cada modelo tiene cuota independiente en Groq.
-     * Solo si >3 modelos consecutivos dan 429 se considera limite de cuenta.
+     * Se intenta TODOS los modelos sin importar cuantos den 429 (Groq no tiene rate limit de cuenta).
      */
     private const MODELOS_GROQ = [
         'openai/gpt-oss-120b',                         /* 120B — mejor calidad, 200K tok/dia */
@@ -68,9 +68,6 @@ class ServicioIA
     /* QL67: Reintentos y pausas para modo cola (cron) */
     private const MAX_REINTENTOS_POR_MODELO = 3;
     private const PAUSA_REINTENTO_SEGUNDOS = 60;
-
-    /* QL67: Umbral para considerar rate limit de cuenta (no individual) */
-    private const UMBRAL_429_CONSECUTIVOS = 3;
 
     /**
      * Analiza un archivo de audio y retorna metadata creativa.
@@ -213,7 +210,7 @@ class ServicioIA
      * Cada modelo se reintenta hasta MAX_REINTENTOS_POR_MODELO veces.
      * En modoCola, espera PAUSA_REINTENTO_SEGUNDOS entre reintentos.
      * 429 en un modelo solo salta ese modelo (no cancela la cadena).
-     * Si UMBRAL_429_CONSECUTIVOS modelos consecutivos dan 429, asume rate limit de cuenta.
+     * Se intenta TODOS los modelos sin excepcion.
      */
     private static function intentarGroq(string $prompt, ?string $apiKey = null, bool $modoCola = false): ?array
     {
@@ -225,16 +222,8 @@ class ServicioIA
 
         $maxReintentos = $modoCola ? self::MAX_REINTENTOS_POR_MODELO : 1;
         $pausa = $modoCola ? self::PAUSA_REINTENTO_SEGUNDOS : 0;
-        $consecutivos429 = 0;
 
         foreach (self::MODELOS_GROQ as $modelo) {
-            /* QL67: Si demasiados modelos consecutivos dan 429, es rate limit de cuenta */
-            if ($consecutivos429 >= self::UMBRAL_429_CONSECUTIVOS) {
-                KamplesLogger::warning('ServicioIA: Rate limit de cuenta detectado (>= ' . self::UMBRAL_429_CONSECUTIVOS . ' modelos consecutivos con 429)');
-                break;
-            }
-
-            $exitoModelo = false;
             for ($intento = 1; $intento <= $maxReintentos; $intento++) {
                 if ($intento > 1 && $pausa > 0) {
                     KamplesLogger::info("ServicioIA: Esperando {$pausa}s antes de reintento {$intento}/{$maxReintentos} con {$modelo}");
@@ -262,13 +251,8 @@ class ServicioIA
                 break;
             }
 
-            /* Verificar si este modelo dio 429 para el contador consecutivo */
-            if (GroqHttpClient::fueRateLimited()) {
-                $consecutivos429++;
-                GroqHttpClient::resetearEstadoRateLimit();
-            } else {
-                $consecutivos429 = 0; /* Resetear si un modelo fallo por razón distinta a 429 */
-            }
+            /* Resetear flag 429 antes de intentar siguiente modelo */
+            GroqHttpClient::resetearEstadoRateLimit();
         }
 
         KamplesLogger::warning('ServicioIA: Todos los modelos Groq fallaron');

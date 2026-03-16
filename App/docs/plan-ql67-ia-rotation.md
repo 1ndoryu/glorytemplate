@@ -13,8 +13,7 @@ Refactorización del sistema de IA para: (1) rotar modelos por inteligencia con 
   - `MODELOS_GROQ` reordenado: gpt-oss-120b > kimi-k2-0905 > kimi-k2 > groq/compound > llama-3.3-70b > qwen3-32b > llama-4-scout > gpt-oss-20b
   - Reintentos: max 3 por modelo en modo cola, 1 en modo live
   - Pausa: 60s entre reintentos (solo en cola)
-  - 429 per-model: no cancela la cadena, solo salta al siguiente
-  - Umbral cuenta: 3 modelos consecutivos con 429 = rate limit de cuenta
+  - 429 per-model: NO cancela cadena, se intentan TODOS los modelos (Groq no tiene rate limit de cuenta)
 - **Modelos Whisper (STT):** Sin cambios (whisper-large-v3, whisper-large-v3-turbo)
 - **OpenAI fallback:** gpt-4o-mini si todos los Groq fallan
 
@@ -69,7 +68,7 @@ Refactorización del sistema de IA para: (1) rotar modelos por inteligencia con 
 ## Decisiones técnicas
 
 - [Groq rate limits]: Los límites son per-model (cada modelo tiene su RPM/TPM). 429 en gpt-oss-120b NO significa que llama-3.3-70b esté limitado.
-- [Umbral cuenta]: Si 3+ modelos consecutivos dan 429, probablemente es rate limit de cuenta → parar.
+- [Sin umbral cuenta]: Groq no tiene rate limit de cuenta. Se intentan todos los modelos sin excepcion.
 - [Sleep solo en cola]: En modo live (upload directo), no se espera — se intenta siguiente modelo inmediatamente.
 - [Moderación sin sleep]: Moderación corre sincrónica durante la creación de posts. Sleep bloquearía al usuario. Ya tiene encolado para 429.
 - [ImagenIA con sleep]: Ejecuta en shutdown hook (after response). 30s de sleep no bloquea usuarios.

@@ -551,7 +551,7 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 
 ✅ [AG-MNT] Completado:
 - **Rotacion de modelos IA por inteligencia**: `ServicioIA` ahora tiene 8 modelos Groq ordenados (gpt-oss-120b > kimi-k2-0905 > kimi-k2 > compound > llama-3.3-70b > qwen3-32b > llama-4-scout > gpt-oss-20b) + fallback OpenAI (gpt-4o-mini).
-- **Reintentos con espera**: max 3 intentos por modelo en modo cola con 60s entre reintentos. 429 per-model: NO cancela cadena completa. Umbral: 3 modelos consecutivos con 429 = rate limit de cuenta → parar.
+- **Reintentos con espera**: max 3 intentos por modelo en modo cola con 60s entre reintentos. 429 per-model: NO cancela cadena completa, se intentan TODOS los modelos (Groq no tiene rate limit de cuenta).
 - **Pausa entre samples**: `ProcesadorColaIA` espera 60s entre cada item procesado.
 - **Retroalimentacion del flag global 429**: `GroqHttpClient::fueRateLimited()` era flag global que mataba toda la cadena. Ahora se resetea entre modelos/reintentos.
 - **origen_subida en prompt IA**: `PipelineAudio` lee metadata JSONB (`SamplesRepository::obtenerMetadataJsonb()`), extrae `origen_subida` (ruta carpetas sync), la pasa a `PromptsIA::construirAnalisis()` como contexto para inferir genero/estilo.
@@ -594,6 +594,37 @@ otro detalle, el sistema de duplicados en el panel de admin tiene que ser capaz 
 # QL71
 
 aun no confio en el sistema duplicados, revisar que realmente al publicar un duplicado (a decir que no es un duplicado quede en cola para procesarse o publicarse de una vez si no hay cola), y que cuando se rechace realmente se elimine del servidor con todo y info
+
+# QL72 
+
+✅ [AG-MNT] Corregido: eliminado UMBRAL_429_CONSECUTIVOS. Se intentan todos los modelos sin early-break por 429s consecutivos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Mantener lo distancia
 
