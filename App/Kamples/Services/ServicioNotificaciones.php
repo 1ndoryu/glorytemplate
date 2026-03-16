@@ -19,6 +19,7 @@ use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\Services\NotificadorWebSocket;
 use App\Kamples\Services\ServicioNotificacionesPush;
+use App\Kamples\Services\ServicioFcm;
 
 class ServicioNotificaciones
 {
@@ -75,6 +76,18 @@ class ServicioNotificaciones
             /* QK86: Push notification (VAPID) — llega incluso con app en background/cerrada.
              * Fire-and-forget: si VAPID no esta configurado, no hace nada (graceful). */
             ServicioNotificacionesPush::enviarAUsuario(
+                $destinatarioId,
+                $titulo !== '' ? $titulo : $tipo,
+                $mensaje,
+                array_merge($datos, [
+                    'tipo'   => $tipo,
+                    'enlace' => $enlace,
+                ])
+            );
+
+            /* QL34: FCM push (Android nativo) — llega con app cerrada.
+             * Fire-and-forget: si FCM no esta configurado, no hace nada (graceful). */
+            ServicioFcm::enviarAUsuario(
                 $destinatarioId,
                 $titulo !== '' ? $titulo : $tipo,
                 $mensaje,

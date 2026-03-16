@@ -106,3 +106,51 @@ declare module '@tauri-apps/plugin-notification' {
         sound?: string;
     }): Promise<void>;
 }
+
+/*
+ * Declaración de módulo para tauri-plugin-fs.
+ * Solo se ejecuta en Tauri (desktop/Android). En web, el import dinámico no llega.
+ * QL34: necesario para leer fcm_token.txt desde el servicio nativo Android.
+ */
+declare module '@tauri-apps/plugin-fs' {
+    export enum BaseDirectory {
+        Audio = 1,
+        Cache = 2,
+        Config = 3,
+        Data = 4,
+        LocalData = 5,
+        Document = 6,
+        Download = 7,
+        Picture = 8,
+        Public = 9,
+        Video = 10,
+        Resource = 11,
+        Temp = 12,
+        AppConfig = 13,
+        AppData = 14,
+        AppLocalData = 15,
+        AppCache = 16,
+        AppLog = 17,
+        Desktop = 18,
+        Executable = 19,
+        Font = 20,
+        Home = 21,
+        Runtime = 22,
+        Template = 23,
+    }
+
+    interface FsOptions {
+        baseDir?: BaseDirectory;
+    }
+
+    export function readTextFile(path: string, options?: FsOptions): Promise<string>;
+    export function exists(path: string, options?: FsOptions): Promise<boolean>;
+    export function writeTextFile(path: string, contents: string, options?: FsOptions): Promise<void>;
+    export function readFile(path: string, options?: FsOptions): Promise<Uint8Array>;
+    export function writeFile(path: string, contents: Uint8Array, options?: FsOptions): Promise<void>;
+    export function mkdir(path: string, options?: FsOptions & { recursive?: boolean }): Promise<void>;
+    export function remove(path: string, options?: FsOptions & { recursive?: boolean }): Promise<void>;
+    export function rename(oldPath: string, newPath: string, options?: { oldPathBaseDir?: BaseDirectory; newPathBaseDir?: BaseDirectory }): Promise<void>;
+    export function stat(path: string, options?: FsOptions): Promise<{ isFile: boolean; isDirectory: boolean; size: number }>;
+    export function readDir(path: string, options?: FsOptions): Promise<Array<{ name: string; isFile: boolean; isDirectory: boolean }>>;
+}

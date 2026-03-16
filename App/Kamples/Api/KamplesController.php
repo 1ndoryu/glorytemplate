@@ -47,6 +47,7 @@ use App\Kamples\Api\Controladores\DesktopUpdateController;
 use App\Kamples\Api\Controladores\BusquedaRapidaController;
 use App\Kamples\Api\Controladores\WsController;
 use App\Kamples\Api\Controladores\PushController;
+use App\Kamples\Api\Controladores\FcmController;
 
 class KamplesController
 {
@@ -104,6 +105,7 @@ class KamplesController
         BusquedaRapidaController::registrarRutas($ns);
         WsController::registrarRutas($ns);
         PushController::registrarRutas($ns);
+        FcmController::registrarRutas($ns);
         DevController::registrarRutas($ns);
     }
 }

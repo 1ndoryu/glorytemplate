@@ -20,6 +20,7 @@ import {
     mostrarNotificacionNativa,
     mostrarNotificacionMensaje,
 } from '@app/services/notificacionNativa';
+import { registrarTokenFcmSiDisponible } from '@app/services/fcmToken';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useNotificacionesNativas');
@@ -41,6 +42,9 @@ export const useNotificacionesNativas = (): void => {
                 log.info('Notificaciones nativas inicializadas');
             }
         });
+
+        /* QL34: Registrar token FCM en backend (Android) */
+        registrarTokenFcmSiDisponible();
     }, [autenticado]);
 
     /* Suscribir a eventos WS para despachar notificaciones nativas */

@@ -293,46 +293,45 @@ tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguale
 
 # QL26
 
-Se reinstalo la apk, hay detalles
-
-el logo en la apk es muy grande, tiene que ser un poco mas pequeño, mas espacio alrededor, y el logo que aparece al abrir hace que se note que es un png y no svg
-
-y las notificaciones siguen sin aparecer en android.
+✅ [AG-APK] Logo icono reducido (scale 3.047→2.95 + SVG 19.83→14), splash screen con tema windowBackground #070707, CSP connect-src wss://ws.kamples.com. Deployado.
 
 # QL27
 
-tengo el presentimiento que coolify manager primero hace build y luego ejecuta el pull o push no es la diferencia, o sea es una sospecha no digo que si pase, revisa porque el orden es importante
+✅ [AG-APK] Auditado: No hay bug. `theme_manager.rs` (lines 266-350) ejecuta git pull → composer install → npm build. Orden correcto.
 
 # QL28
 
-menuContextualBottomSheetCabecera no es necesario
-
-estos son los estilos correctos
-.menuContextualBottomSheetItems {
-    padding: 0 0 var(--espacioSm);
-    padding: var(--espacioLg);
-}
-
-.menuContextualBottomSheetItems .menuContextualItem {
-    padding: var(--espacioMd) var(--espacioLg);
-    font-size: var(--fuenteMd);
-    min-height: 42px; (ajusta aqui va 42)
-}
-
-y un poco mas oscuro el overlay del bottomseet
-
-en el bottomseet los iconos tienen que en estar al final a la derecha y el texto a la izquierda
+✅ [AG-APK] Bottom sheet: Removido cabecera (boton X), padding items var(--espacioLg), min-height 42px, overlay oscuro (--overlayOscuro), iconos a la derecha con order:1 + margin-left:auto. Deployado.
 
 # QL29
 
-Deja una guia para FCM y adelanta todo lo que puedas, y un script automatico que regenera la apk sin tener que escribir todos los comandos, 1 solo comando para regenerar el apk, y otro para el exe de la aplicación de escritorio
+✅ [AG-APK] Guia FCM en `App/docs/guia-fcm-android.md`. Scripts: `scripts/build-apk.ps1` (build+sign+install 1 comando) y `scripts/build-desktop.ps1` (EXE/NSIS 1 comando). Deployado.
 
 # QL30
 
-Los tags de libreriaTagsFrecuentes deben ser en ingles
+✅ [AG-APK] Tags en ingles: `ColeccionesRepository::tagsFrecuentesDelUsuario()` y `tagsFrecuentesExplorar()` ahora priorizan `metadata->'tags'` (ingles) con fallback a `metadata->'tags_es'`. Deployado.
 
-Todos los botones de Volver
+# QL31
 
+✅ [AG-APK] Busqueda rapida unificada: Backend agrega busqueda de colecciones + scoring de relevancia (exact=100, starts-with=80, contains=60, position penalty). Frontend: lista plana sin secciones/cabeceras, max 12 items ordenados por score. Nuevo tipo `ResultadoColeccion` + `ResultadoUnificado`. CSS limpiado (removidas clases seccion/cabecera/meta). Deployado.
+- [Leccion]: botonBase.css tenia `.botonVolver` corrupto (anidado dentro de `::after`). Corregido en este commit.
+
+# QL32
+
+✅ [AG-APK] Boton Google en APK: `esDesktopApp` causaba `googleBotonRef=null` (Google GSI no funciona en WebView). Agregado boton alternativo con `IconoGoogle` + `loginGoogleDesktop` en ModalAuth (login y registro). CSS `.authGoogleBtnDesktop` con layout flex. En web sigue usando GSI nativo.
+
+# QL33 
+
+✅ [AG-APK] Estilos legales: `legal.css` usaba variables inexistentes (`--espacioGrande/Medio/Chico`). Corregidas a variables del sistema (`--espacio2xl/Lg/Md/Xl`). Tambien hardcoded font-sizes → variables tipograficas. Agregados estilos para links.
+
+# QL34
+
+✅ [AG-APK] FCM Android completo:
+- **Android nativo:** google-services plugin 4.4.2 + firebase-bom 33.7.0 + firebase-messaging en Gradle. `KamplesFirebaseService.kt` (onNewToken→SharedPreferences+file, onMessageReceived→notificacion nativa con canal routing). `MainActivity.kt` obtiene token en onCreate. AndroidManifest actualizado.
+- **Backend PHP:** Migracion `v057_fcm_tokens.sql` (tabla + indices). `FcmTokensCols.php`, `FcmTokensRepository.php` (upsert, eliminar, marcarInactivo). `ServicioFcm.php` (OAuth2 JWT via firebase/php-jwt, FCM HTTP v1 API, manejo 404/410 tokens invalidos). `FcmController.php` (POST registrar/eliminar, auth required). Integrado en `ServicioNotificaciones::crear()` y `KamplesController.php`.
+- **Frontend bridge:** `fcmToken.ts` lee `fcm_token.txt` via Tauri FS plugin (AppData/AppLocalData fallback), registra en backend. Integrado en `useNotificacionesNativas.ts`. Module declaration `@tauri-apps/plugin-fs` en `global.d.ts`.
+- **Pendiente:** Configurar `KAMPLES_FCM_SERVICE_ACCOUNT_JSON` env var en Coolify (Firebase Console → Service Accounts → Generate key).
+- [Leccion]: Google GSI (Identity Services) no funciona en WebView (Tauri Android). Necesita flujo OAuth PKCE propio (`loginGoogleDesktop`). El bridge Kotlin→JS mas simple es file-based (SharedPreferences + filesDir + Tauri FS plugin).
 
 
 

@@ -145,6 +145,15 @@
     min-height: 44px;
 }
 
+/* QL32: Botón Google para desktop/APK (sin GSI) */
+.authGoogleBtnDesktop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioSm);
+    min-height: 44px;
+}
+
 /* Separador "o" entre Google y formulario */
 .authSeparador {
     display: flex;

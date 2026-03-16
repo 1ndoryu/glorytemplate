@@ -11,6 +11,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { BotonBase } from '../ui/BotonBase';
 import { CampoTexto } from '../ui/CampoTexto';
+import { IconoGoogle } from '../ui/IconoGoogle';
 import { useAuth } from '../../hooks/useAuth';
 import { useModalAuth } from '../../hooks/useModalAuth';
 import '../../styles/componentes/authModal.css';
@@ -21,7 +22,7 @@ const imagenAuth = '/wp-content/themes/glorytemplate/App/Assets/images/2.jpg';
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion, googleBotonRef } = useAuth();
+    const { cargando, error, iniciarSesion, googleBotonRef, esDesktopApp, loginGoogleDesktop } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -32,8 +33,22 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
         <div className="authFormContenedor">
             <h2 className="authTitulo">Inicia sesión</h2>
 
-            {/* QK5: Botón de Google renderizado por GSI */}
-            <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
+            {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
+            {esDesktopApp ? (
+                <BotonBase
+                    variante="secundario"
+                    anchoCompleto
+                    onClick={loginGoogleDesktop}
+                    cargando={cargando}
+                    className="authGoogleBtnDesktop"
+                    type="button"
+                >
+                    <IconoGoogle />
+                    Continuar con Google
+                </BotonBase>
+            ) : (
+                <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
+            )}
 
             <div className="authSeparador">o</div>
 
@@ -83,7 +98,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, registrar, googleBotonRef } = useAuth();
+    const { cargando, error, registrar, googleBotonRef, esDesktopApp, loginGoogleDesktop } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -94,8 +109,22 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
         <div className="authFormContenedor">
             <h2 className="authTitulo">Crea tu cuenta</h2>
 
-            {/* QK5: Botón de Google renderizado por GSI */}
-            <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
+            {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
+            {esDesktopApp ? (
+                <BotonBase
+                    variante="secundario"
+                    anchoCompleto
+                    onClick={loginGoogleDesktop}
+                    cargando={cargando}
+                    className="authGoogleBtnDesktop"
+                    type="button"
+                >
+                    <IconoGoogle />
+                    Continuar con Google
+                </BotonBase>
+            ) : (
+                <div ref={googleBotonRef} className="authGoogleBtnContenedor" />
+            )}
 
             <div className="authSeparador">o</div>
 

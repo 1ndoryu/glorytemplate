@@ -1,57 +1,68 @@
 /*
  * Estilos para paginas legales (Privacidad, Terminos).
  * Diseno limpio y legible con la paleta oscura de Kamples.
+ * QL33: Corregido variables inexistentes por las del sistema de diseno.
  */
 
 .contenedorLegal {
     max-width: 720px;
     margin: 0 auto;
-    padding: var(--espacioGrande) var(--espacioMedio);
+    padding: var(--espacio3xl) var(--espacioXl);
     color: var(--textoPrimario);
     line-height: 1.7;
 }
 
 .tituloLegal {
-    font-size: 1.8rem;
+    font-size: var(--fuenteXl);
     font-weight: 600;
-    margin-bottom: var(--espacioChico);
+    margin-bottom: var(--espacioMd);
     color: var(--blanco);
 }
 
 .fechaLegal {
-    font-size: 0.85rem;
+    font-size: var(--fuenteSm);
     color: var(--textoSecundario);
-    margin-bottom: var(--espacioGrande);
+    margin-bottom: var(--espacio2xl);
     border-bottom: 1px solid var(--bordeSutil);
-    padding-bottom: var(--espacioMedio);
+    padding-bottom: var(--espacioLg);
 }
 
 .seccionLegal {
-    margin-bottom: var(--espacioGrande);
+    margin-bottom: var(--espacio2xl);
 }
 
 .seccionLegal h2 {
-    font-size: 1.15rem;
+    font-size: var(--fuenteLg);
     font-weight: 600;
     color: var(--blanco);
-    margin-bottom: var(--espacioChico);
+    margin-bottom: var(--espacioMd);
 }
 
 .seccionLegal p {
-    margin-bottom: var(--espacioChico);
+    margin-bottom: var(--espacioMd);
     color: var(--textoSecundario);
 }
 
 .seccionLegal ul {
-    padding-left: 1.5rem;
-    margin-bottom: var(--espacioChico);
+    padding-left: var(--espacioXl);
+    margin-bottom: var(--espacioMd);
 }
 
 .seccionLegal li {
-    margin-bottom: 0.4rem;
+    margin-bottom: var(--espacioXs);
     color: var(--textoSecundario);
 }
 
 .seccionLegal strong {
     color: var(--textoPrimario);
+}
+
+.seccionLegal a {
+    color: var(--acento);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.seccionLegal a:hover {
+    color: var(--acentoHover);
 }
