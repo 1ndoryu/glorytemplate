@@ -261,11 +261,32 @@ tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguale
 
 # QL21
 
-Remplazar las tabs de https://kamples.com/admin/panel/ por iconos
-y agregar una tab con una tabla de todas las canciones
+✅ [AG-APK] Completado:
+- Tabs del admin panel reemplazadas por iconos (Users, Shield, BrainCircuit, Copy, Cog, HandHeart, Globe, Headphones, Music) via campo `icono` en `TabTopBar`.
+- `tabsTopBarStore.ts`: nueva propiedad opcional `icono?: React.ReactNode` en la interfaz.
+- `TopBar.tsx`: renderiza icono cuando está presente, fallback a texto (`etiqueta`). Atributo `title` para tooltip de accesibilidad.
+- Nueva tab "Canciones" con tabla paginada (50/pag): ID, Titulo, Artista, Genero, Año, BPM, Sampleada, Samplea, Fecha.
+- Nuevo hook `useTabCancionesAdmin.ts`: paginación server-side + búsqueda vía `/canciones/buscar`.
+- Nuevo componente `TabCancionesAdmin.tsx` + CSS `cancionesAdmin.css`.
+- Backend: `CancionesController::listar` actualizado para devolver `total` + `page` (usa `BaseRepository::buscarTodos` + `contar`).
+- Frontend: nueva función `listarCancionesPaginado(pagina, porPagina)` en `apiCanciones.ts`.
+- [Lección]: `BaseRepository` ya tiene `buscarTodos(limit, offset)` y `contar()` — no es necesario crear nuevos métodos de repo para paginación básica.
 
+# QL22 
 
+En la tabla de canciones todas las canciones aparecen sin genero, es un error? 
 
+# QL23 
+
+libreriaTagsFrecuentes esta recogiendo las tags incorrectas, tiene que ser igual como las feedtag que recogen las tags generadas por la IA. 
+
+# QL24
+
+NO CARGAN MAS SAMPLES AL HACER EL SCROLL Y CONTADOR NO DICE LOS SAMPLES COMPLETOS; EN EL FEED DE SAMPLES
+
+# QL25 
+
+DIJE QUE ABSOLUTAMENTE TODOS LOS MENU CONTEXTUALES DEBEN SER DROPDOWNS INFERIORRES COMO EN LAS APPS DE CELULAR
 
 
 

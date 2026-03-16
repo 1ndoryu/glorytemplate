@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { obtenerColeccionados } from '@app/services/apiExplorador';
 import { obtenerLimites, obtenerComprados, type LimitesDescarga } from '@app/services/apiDescargas';
 import { obtenerSugerenciasDescargas } from '@app/services/apiSugerencias';
+import { obtenerMisFavoritos } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
@@ -22,6 +23,7 @@ export interface UseDescargasPaginaResultado {
     cargando: boolean;
     cargandoComprados: boolean;
     proveedorColeccionados: (pagina: number) => Promise<SampleResumen[]>;
+    proveedorFavoritos: (pagina: number) => Promise<SampleResumen[]>;
     proveedorSugerencias: (pagina: number) => Promise<SampleResumen[]>;
     manejarLike: (sampleId: number, reaccion?: TipoReaccion) => Promise<void>;
 }
@@ -65,6 +67,17 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
             return resp.ok && resp.data?.data ? resp.data.data : [];
         } catch (err) {
             log.error('Error cargando coleccionados', err);
+            return [];
+        }
+    }, []);
+
+    /* Proveedor paginado para tab "Me Gustas" — scroll infinito */
+    const proveedorFavoritos = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
+        try {
+            const resp = await obtenerMisFavoritos(pagina, 30);
+            return resp.ok && resp.data?.data ? resp.data.data : [];
+        } catch (err) {
+            log.error('Error cargando favoritos', err);
             return [];
         }
     }, []);
@@ -148,5 +161,5 @@ export function useDescargasPagina(): UseDescargasPaginaResultado {
         }
     }, [samples]);
 
-    return { samples, comprados, limites, cargando, cargandoComprados, proveedorColeccionados, proveedorSugerencias, manejarLike };
+    return { samples, comprados, limites, cargando, cargandoComprados, proveedorColeccionados, proveedorFavoritos, proveedorSugerencias, manejarLike };
 }

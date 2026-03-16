@@ -258,7 +258,10 @@ class KamplesInit
      */
     private static function asegurarCacheMedia(): void
     {
-        $transientKey = 'kamples_cache_htaccess_v1';
+        /* v2: CORS para app Tauri (desktop/Android) + cache agresivo.
+         * Sin CORS en archivos estaticos, fetch() cross-origin falla para
+         * waveform JSON, audio preview y cualquier recurso cargado via JS. */
+        $transientKey = 'kamples_cache_htaccess_v2';
         if (get_transient($transientKey)) {
             return;
         }
@@ -272,7 +275,7 @@ class KamplesInit
         }
 
         $contenido = <<<'HTACCESS'
-# QQ56: Cache agresivo para media estatica de Kamples
+# Cache agresivo para media estatica de Kamples
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType audio/mpeg "access plus 3 months"
@@ -285,6 +288,7 @@ class KamplesInit
     ExpiresByType image/png "access plus 1 month"
     ExpiresByType image/webp "access plus 1 month"
     ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType application/json "access plus 1 hour"
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -293,6 +297,12 @@ class KamplesInit
     </FilesMatch>
     <FilesMatch "\.(jpg|jpeg|png|webp|gif)$">
         Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    # CORS: permite fetch() cross-origin desde Tauri (desktop/Android).
+    # Archivos publicos — Access-Control-Allow-Origin: * es patron estandar CDN.
+    <FilesMatch "\.(json|mp3|m4a|ogg|wav|webm|flac|jpg|jpeg|png|webp|gif)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
     </FilesMatch>
 </IfModule>
 HTACCESS;

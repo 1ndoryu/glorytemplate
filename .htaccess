@@ -41,6 +41,13 @@
         Header set Vary "Accept-Encoding"
     </FilesMatch>
 
+    # CORS: permite fetch/img cross-origin desde Tauri (desktop/Android).
+    # Archivos publicos del tema — patron CDN Access-Control-Allow-Origin: *
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|json|mp3|ogg|wav)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    </FilesMatch>
+
     # PHP: sin cache
     <FilesMatch "\.php$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"

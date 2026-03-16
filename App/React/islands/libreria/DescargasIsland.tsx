@@ -25,12 +25,13 @@ import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 
 const TABS_DESCARGAS = [
     { id: 'descargas', etiqueta: 'Mis Coleccionados' },
+    { id: 'favoritos', etiqueta: 'Me Gustas' },
     { id: 'comprados', etiqueta: 'Comprados' },
     { id: 'ideas', etiqueta: 'Más Ideas' },
 ];
 
 const DescargasBase = (): JSX.Element => {
-    const { comprados, cargando, cargandoComprados, proveedorColeccionados, proveedorSugerencias, manejarLike } = useDescargasPagina();
+    const { comprados, cargando, cargandoComprados, proveedorColeccionados, proveedorFavoritos, proveedorSugerencias, manejarLike } = useDescargasPagina();
     const navegar = useNavigationStore(s => s.navegar);
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
@@ -114,6 +115,18 @@ const DescargasBase = (): JSX.Element => {
                     virtualizar={false}
                     mensajeVacio="Los samples que colecciones aparecerán aquí."
                     onConteoChange={setTotalColeccionados}
+                />
+            )}
+
+            {tabActiva === 'favoritos' && (
+                <FeedSamples
+                    key="descargas-favoritos"
+                    proveedor={proveedorFavoritos}
+                    claveCache="favoritos_descargas"
+                    mostrarTags
+                    infiniteScroll
+                    virtualizar={false}
+                    mensajeVacio="Dale like a un sample para guardarlo aquí."
                 />
             )}
 
