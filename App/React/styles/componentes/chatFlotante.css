@@ -96,7 +96,7 @@
     flex-direction: column;
     gap: var(--espacioXs);
     min-height: 330px;
-    /* max-height: 300px; */
+    max-height: 330px;
     height: 100%;
 }
 
@@ -214,6 +214,7 @@
     .chatFlotanteMensajes {
         min-height: 0;
         flex: 1;
+        max-height: unset;
     }
 }
 
