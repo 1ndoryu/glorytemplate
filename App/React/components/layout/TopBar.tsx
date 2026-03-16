@@ -151,6 +151,51 @@ export const TopBar = (): JSX.Element => {
                 setHamburguesaAbierta(false);
             },
         } as MenuItemDef] : []),
+        /* QL46: Items de sesión — en móvil el avatar navega a perfil, no abre dropdown.
+         * Configuración, WhatsApp y cerrar sesión deben estar accesibles aquí. */
+        {
+            id: 'hb-configuracion',
+            etiqueta: 'Configuración',
+            icono: <Settings size={14} />,
+            separadorDespues: true,
+            onClick: () => {
+                abrirConfiguracion();
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-whatsapp',
+            etiqueta: 'Grupo de WhatsApp',
+            icono: <MessageCircle size={14} />,
+            onClick: () => {
+                useSolicitudWhatsappStore.getState().abrir();
+                setHamburguesaAbierta(false);
+            },
+        },
+        {
+            id: 'hb-cerrarSesion',
+            etiqueta: 'Cerrar sesión',
+            icono: <LogOut size={14} />,
+            peligro: true,
+            onClick: async () => {
+                setHamburguesaAbierta(false);
+                await apiCerrarSesion();
+                const esDesktop = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
+                if (esDesktop) {
+                    try {
+                        const modPath = '@desktop' + '/services/authDesktopService';
+                        const m = await import(/* @vite-ignore */ modPath);
+                        await m.cerrarSesionDesktop();
+                    } catch { /* En web no existe el modulo */ }
+                }
+                useAuthStore.getState().cerrarSesion();
+                if (esDesktop) {
+                    useNavigationStore.getState().navegar('/');
+                } else {
+                    window.location.href = '/';
+                }
+            },
+        },
     ];
 
     const menuItems: MenuItemDef[] = [

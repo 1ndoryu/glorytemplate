@@ -45,6 +45,8 @@ class AyudanteDescargaAudio
      */
     public static function descargarAudioYoutube(string $youtubeId, string $outputDir): ?string
     {
+        KamplesLogger::info('TRIP PO', ['youtubeId' => $youtubeId]);
+
         /* Validar formato youtube_id para prevenir inyeccion */
         if (!\preg_match('/^[a-zA-Z0-9_-]{11}$/', $youtubeId)) {
             KamplesLogger::error('[QQ130] YouTube ID invalido', ['id' => $youtubeId]);

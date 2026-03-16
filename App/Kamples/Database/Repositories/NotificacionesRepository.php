@@ -173,4 +173,47 @@ class NotificacionesRepository extends BaseRepository
             ]
         );
     }
+
+    /**
+     * QL47-B: Verifica si existe una notificacion reciente identica dentro de una ventana temporal.
+     * Dedup key: tipo + actor_id + usuario_id dentro de $intervaloSegundos.
+     * Evita spam por acciones repetidas (like/unlike/like, follow/unfollow/follow).
+     *
+     * @param int $destinatarioId Destinatario de la notificacion
+     * @param string $tipo Tipo de notificacion
+     * @param int|null $actorId Quien genera la accion
+     * @param int $intervaloSegundos Ventana de dedup (default 24h)
+     * @return bool true si ya existe una notificacion reciente identica
+     */
+    public static function existeReciente(
+        int $destinatarioId,
+        string $tipo,
+        ?int $actorId,
+        int $intervaloSegundos = 86400
+    ): bool {
+        $tabla = NotificacionesCols::TABLA;
+
+        $sql = "SELECT 1 FROM {$tabla}"
+            . " WHERE " . NotificacionesCols::USUARIO_ID . " = :userId"
+            . " AND " . NotificacionesCols::TIPO . " = :tipo"
+            . " AND " . NotificacionesCols::CREATED_AT . " > NOW() - INTERVAL '1 second' * :intervalo";
+
+        $params = [
+            'userId'    => $destinatarioId,
+            'tipo'      => $tipo,
+            'intervalo' => $intervaloSegundos,
+        ];
+
+        if ($actorId !== null) {
+            $sql .= " AND " . NotificacionesCols::ACTOR_ID . " = :actorId";
+            $params['actorId'] = $actorId;
+        } else {
+            $sql .= " AND " . NotificacionesCols::ACTOR_ID . " IS NULL";
+        }
+
+        $sql .= " LIMIT 1";
+
+        $row = static::consultarUno($sql, $params);
+        return $row !== null && $row !== false;
+    }
 }

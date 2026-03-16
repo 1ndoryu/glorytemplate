@@ -4,7 +4,7 @@
  * Header con imagen + info + acciones. Tabs: "Mis Coleccionados" y "Más Ideas".
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
@@ -42,10 +42,29 @@ const DescargasBase = (): JSX.Element => {
 
     /* QL15: Contador de coleccionados via FeedSamples */
     const [totalColeccionados, setTotalColeccionados] = useState(0);
+    const [totalFavoritos, setTotalFavoritos] = useState(0);
 
     /* Keep-alive: congelar tabActiva cuando la isla está oculta */
     const activa = useIslaActiva('DescargasIsland');
     const tabActiva = useValorCongelado(tabActivaGlobal, !activa);
+
+    /* QL41: Header dinámico según tab activa */
+    const infoHeader = useMemo(() => {
+        const configs: Record<string, { titulo: string; imagenId: number }> = {
+            descargas: { titulo: 'Mis Coleccionados', imagenId: 1001 },
+            favoritos: { titulo: 'Me Gustas', imagenId: 1002 },
+            comprados: { titulo: 'Comprados', imagenId: 1003 },
+            ideas: { titulo: 'Más Ideas', imagenId: 1004 },
+        };
+        return configs[tabActiva] ?? configs.descargas;
+    }, [tabActiva]);
+
+    const totalHeader = useMemo(() => {
+        if (tabActiva === 'descargas') return totalColeccionados;
+        if (tabActiva === 'favoritos') return totalFavoritos;
+        if (tabActiva === 'comprados') return comprados.length;
+        return 0;
+    }, [tabActiva, totalColeccionados, totalFavoritos, comprados.length]);
 
     /* C174: Re-registrar tabs al volver a esta isla (keep-alive) */
     useTabsIsla('DescargasIsland', TABS_DESCARGAS, 'descargas');
@@ -83,20 +102,22 @@ const DescargasBase = (): JSX.Element => {
                 <span>Librería</span>
             </BotonBase>
 
-            {/* Header idéntico a ColeccionDetalle */}
+            {/* QL41: Header dinámico según tab activa */}
             <div className="coleccionHeader">
                 <img
                     className="coleccionHeaderImg"
-                    src={obtenerImagenColor(1001)}
-                    alt="Mis Coleccionados"
+                    src={obtenerImagenColor(infoHeader.imagenId)}
+                    alt={infoHeader.titulo}
                 />
                 <div className="coleccionHeaderInfo">
-                    <h1 className="coleccionNombre">Mis Coleccionados</h1>
+                    <h1 className="coleccionNombre">{infoHeader.titulo}</h1>
                     <div className="coleccionMeta">
                         <span className="coleccionStats">
-                            {totalColeccionados > 0
-                                ? `${totalColeccionados} sample${totalColeccionados !== 1 ? 's' : ''}`
-                                : 'Cargando...'
+                            {tabActiva === 'ideas'
+                                ? 'Sugerencias personalizadas'
+                                : totalHeader > 0
+                                    ? `${totalHeader} sample${totalHeader !== 1 ? 's' : ''}`
+                                    : 'Cargando...'
                             }
                         </span>
                     </div>
@@ -127,6 +148,7 @@ const DescargasBase = (): JSX.Element => {
                     infiniteScroll
                     virtualizar={false}
                     mensajeVacio="Dale like a un sample para guardarlo aquí."
+                    onConteoChange={setTotalFavoritos}
                 />
             )}
 

@@ -231,23 +231,6 @@ body:not(.plataformaTauri) .miClase { margin: 10px; }
 @media (max-width: 768px) { body:not(.plataformaTauri) .miClase { ... } }
 ```
 
-✅ cuando se reproduzca algo tambien tiene que salir en las notificaciones con la imagen de portada y el nombre, asi como pasa en spotify
-- useMediaSession.ts: integra navigator.mediaSession con reproductorStore
-- Muestra titulo, artista (username), portada en notificacion del sistema
-- Controles play/pause/next/prev desde lock screen y barra de notificaciones
-
-# QL18
-
-Sigo sin ver las notificaciones en el sistema, esoy viendo el emulador
-
-# QL19
-
-En la aplicación de escritorio (no la version web) los samples que subo no se ven sin fotos, y la foto de coleccionados tampoco, falta la pagina de me gustas en la wersion web, lo que se puede hacer es agregar una pestaña de eso en /descargas
-
-tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguales, no puedo ver los logs en la aplicacion instalada para saber porque (instale el ultimo .exe)
-
-✅ [AG-APK] Logo Kamples en APK: Generado con `tauri icon` desde favicon.svg + manifest (bg_color #070707). Vector drawables, PNGs multi-densidad y adaptive icon config reemplazados en icons/android/ y gen/android/. APK compilada, firmada (v2+v3) e instalada en emulador.
-
 # QL19-A
 
 ✅ [AG-APK] CORS fix: `http://tauri.localhost` + `https://tauri.localhost` en KamplesInit.php y .htaccess expandido (mp3/json/img + Cache-Control header). Deployado.
@@ -380,7 +363,9 @@ me doy cuenta que las paginas no cargan, solo que son extremadamente lentas.
 
 # QL39
 
-Me doy cuenta que 
+✅ [AG-MNT] Fix json_validate_failed en OpenAI/Groq: retry sin response_format en HTTP 400, JsonRepairer extrae JSON de texto libre. Aplicado en ServicioIA::llamarGroq() y OpenAIHttpClient::chatCompletion().
+
+Original: 
 
 Error: Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.
 Type: invalid_request_error
@@ -390,48 +375,69 @@ Es un error comun en el modelo de openai/gpt-oss-120b, revisa en donde de usa, e
 
 # QL40
 
-Presiento que el proceso de extrasion de audio el script no se actualiza, no pido que lo cambies, dejalo tal como esta, solo agrega un log al ejecutar con esta frase "TRIP PO" 
+✅ [AG-MNT] Log "TRIP PO" agregado al inicio de AyudanteDescargaAudio::descargarAudioYoutube(). 
 
-# QL41 
+# QL41
 
-coleccionHeader tiene que actualizarse segun la tab activa (en descargas)
+✅ [AG-MNT] Header dinamico en DescargasIsland: titulo, imagen y contador cambian segun tab activa (Coleccionados/Me Gustas/Comprados/Mas Ideas). Implementado con useMemo configs por tab.
 
 # QL42
 
-Esto siempre sale en descargas "Descarga algunos samples para recibir sugerencias personalizadas." nunca muestra mas ideas para los coleccionados.
+✅ [AG-MNT] Sugerencias ahora fusionan contexto de descargas + coleccionados (coleccion_samples). Nuevos metodos: ColeccionSamplesRepository::contextoColeccionadosUsuario() e idsColeccionadosUsuario(). SugerenciasController::sugerenciasDescargas() merger ambas fuentes.
 
 # QL43
 
-El boton de tarjetaColeccionPreviewContenedor funciona pero no debe estar centrado y cuando se haga hover escureser un poco la imagen, y el boton de preview dentro de detalles de la coleccion debería funcionar igual pero no lo hace
+✅ [AG-MNT] Preview button: reposicionado de 42% magico a 52px fijo. Hover oscurece imagen (filter: brightness 0.8). Preview en ColeccionDetalleIsland conectado a useColeccionPreview (antes era TO-DO vacio).
 
 # QL45 (cuando trabajabas en QL 35 vi)
 
-que las notificaciones ya funcionan, pero el logo de la notificacion no es el kamples
+✅ [AG-MNT] Parcial: Icono notif Android cambiado a R.mipmap.ic_launcher. Safe areas CSS: padding-top env(safe-area-inset-top) para topbar Android + viewport-fit=cover en meta tag.
+**Pendiente:** Notificaciones con foto usuario, descripcion completa y redirect al contenido.
+
+Original: que las notificaciones ya funcionan, pero el logo de la notificacion no es el kamples
 ademas, las notificaciones debería ser iguales a las notificaciones de la app, con la foto del usuario, la descripcion, etc, y debe redirigir al contenido relacionado al hacer click dentro de la app
 
 tambien veo que falta un paddin top en la app porque al menos en el emulador, la barra de arriba de android tapa un poco el contenido. No se si es el emulador. Y BOTTON, creo que el problema es otro, el view no encaja con el telefono y nav de abajo difiere en mi telefono y en el emulador areaSidebar la linea tiene diferente altura y choca con los iconos pero la distancia de choque no es igual en mi telefono que en el emulador asi que no se puede arreglar simplemente ajustando medidas, algo mas pas
 
 # QL46
 
-Al menu de hamburgueza en el movil de le falta de cerrar sesion, configuracion y grupo de whatsapp. 
+✅ [AG-MNT] Hamburguesa: agregados Configuracion, Grupo de WhatsApp y Cerrar sesion a hamburguesaItems en TopBar.tsx. SVGs APK: creado resolverRutaAsset util compartida, LandingPublica usa resolucion lazy con server prod en Tauri. 
 
 # QL47
 
-Implementar redis en kamples en la vps, automatizar el despliegue de redis en coolify manager rs
+[EN CURSO — AG-MNT] Implementar redis en kamples en la vps, automatizar el despliegue de redis en coolify manager rs
 
 # QL45-Actualziacion despues de que leyeras QL45
 
 creo que el problema es otro, el view no encaja con el telefono y nav de abajo difiere en mi telefono y en el emulador areaSidebar la linea tiene diferente altura y choca con los iconos pero la distancia de choque no es igual en mi telefono que en el emulador asi que no se puede arreglar simplemente ajustando medidas, algo mas pasa
 
-# QL46
+# QL46 (SVGs APK)
 
-En la apk, los svg del inicio no cargan
+✅ [AG-MNT] Incluido en fix QL46 arriba — resolverRutaAsset util + LandingPublica lazy resolution.
 
-# QL47
+Original: En la apk, los svg del inicio no cargan
 
-Es posible spamear notificaciones a los usuarios, lo cual es malo, debe de haber un control centralizado para no repetir notificaciones, por ejemplo veo que si doy like a un sample y repetio la accion se envia la notifacion con cada like, y estas cosas asi estan mal, claramente hay cosas que corregir y mejorar.
+# QL47-B
 
+✅ [AG-MNT] Sistema dedup centralizado: ServicioNotificaciones::crear() verifica existeReciente() antes de insertar. Ventanas por tipo: like/encanta/follow=24h, comentario=5min, venta=1h. Fallback graceful si dedup falla.
 
+Original: Es posible spamear notificaciones a los usuarios, lo cual es malo, debe de haber un control centralizado para no repetir notificaciones, por ejemplo veo que si doy like a un sample y repetio la accion se envia la notifacion con cada like, y estas cosas asi estan mal, claramente hay cosas que corregir y mejorar.
+
+# QL48
+
+La aplicacion de escritorio no funciona, en modo dev si funcionan cosas como subir un sample pero desde el sync pero con la app creada desde el instalador no, algo malo pasa, n ose si ya lo mencione antes pero algunas imagenes de algunas cosas no cargan, darle click "mostrar kamples" no abre la ventana y esto era un problema viejo que se resolvio hace tiempo, no se si el instalador esta actualizado
+
+otra cosa que me pregunto es que si kamples esta preparada para detectar las versiones del apk y el windows para avisar desatualizaciones. 
+
+# QL49 
+
+Despues de corregir lo de la apk, regenerala, activa el emulador e instala la aplicación en el emulador para probarla, deja el apok actualizado en la raiz para proborlo enun telefono real, asegura de que los permisos para guardar archivos este disponible, las subidas, etc, 
+
+ajusta el modal de suscribirse en la apk para que diga "Suscribete en la web" ya que no podemos activar suscripciones en apk porque vamos a publicar en la apk store, y deja un plan para activar suscripciones en la apk store y adelantalo
+
+tambien hay que revisar si la apk cumple con lo necesario para publicar en la apk store, y si no cumple con algo, hacer los ajustes necesarios para cumplir con eso, revisiones de seguridad, rendimiento, ¿que pasa cuando no hay internet?
+
+creo que ya habia dicho antes que los svg no cargan en la apk
 
 
 

@@ -221,6 +221,40 @@ class ColeccionSamplesRepository extends BaseRepository
     }
 
     /*
+     * Contexto de tags/BPM/key de TODOS los samples coleccionados de un usuario.
+     * Usado por sugerencias "Más Ideas" en /descargas para considerar coleccionados además de descargas.
+     */
+    public static function contextoColeccionadosUsuario(int $userId): array
+    {
+        $t  = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        return static::consultar(
+            "SELECT s." . SamplesCols::TAGS . ", s." . SamplesCols::BPM . ", s." . SamplesCols::KEY
+            . " FROM {$ts} s"
+            . " JOIN {$t} cs ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s." . SamplesCols::ID
+            . " WHERE cs." . ColeccionSamplesCols::USUARIO_ID . " = :uid AND s." . SamplesCols::ESTADO . " = '{$estadoActivo}'",
+            ['uid' => $userId]
+        );
+    }
+
+    /*
+     * IDs de samples coleccionados por un usuario (para exclusión en sugerencias).
+     */
+    public static function idsColeccionadosUsuario(int $userId): array
+    {
+        $t = ColeccionSamplesCols::TABLA;
+
+        $rows = static::consultar(
+            "SELECT DISTINCT " . ColeccionSamplesCols::SAMPLE_ID . " FROM {$t} WHERE " . ColeccionSamplesCols::USUARIO_ID . " = :uid",
+            ['uid' => $userId]
+        );
+
+        return array_map(fn($r) => (int) $r[ColeccionSamplesCols::SAMPLE_ID], $rows);
+    }
+
+    /*
      * D3: Obtener samples de una coleccion padre incluyendo sus subcolecciones.
      * Agrega el campo 'coleccion_origen' para que el frontend distinga heredados.
      */

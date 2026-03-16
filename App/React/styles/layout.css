@@ -117,6 +117,15 @@
         padding-left: 16px;
     }
 
+    /* QL45: Safe area top para Android — la barra de estado tapa el contenido */
+    body.plataformaAndroid .areaTopbar {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    body.plataformaAndroid .layoutPrincipal {
+        grid-template-rows: calc(var(--altoTopbar) + env(safe-area-inset-top, 0px)) 1fr;
+    }
+
     /* El contenido tiene padding inferior para no quedar bajo el nav */
     .areaContenido {
         padding-bottom: calc(var(--altoNavMobile) + env(safe-area-inset-bottom, 0px));

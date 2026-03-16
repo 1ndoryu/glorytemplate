@@ -25,9 +25,25 @@ class ServicioNotificaciones
 {
     /* TC16: Cache estatico para evitar N+1 en obtenerNombreActor */
     private static array $cacheNombres = [];
+
+    /**
+     * QL47-B: Reglas de deduplicacion por tipo de notificacion.
+     * Clave: tipo de notificacion. Valor: ventana en segundos.
+     * Si un tipo no aparece aqui, no tiene dedup (se crea siempre).
+     * Tipos no listados: moderacion, sistema, pago — se envian siempre.
+     */
+    private const DEDUP_VENTANAS = [
+        'like'       => 86400,  /* 24h — like/unlike/like repetido */
+        'encanta'    => 86400,  /* 24h — encanta toggle */
+        'follow'     => 86400,  /* 24h — follow/unfollow/follow */
+        'comentario' => 300,    /* 5min — comentarios rapidos consecutivos */
+        'venta'      => 3600,   /* 1h — compras del mismo usuario */
+    ];
+
     /**
      * Crear una notificacion.
      * Si $actorId === $destinatarioId, no se crea (excluye auto-notificaciones).
+     * QL47-B: Dedup — si existe una notificacion identica reciente, no se crea.
      *
      * @param int    $destinatarioId  usuario_id que recibe la notificacion
      * @param string $tipo            tipo de notificacion (like, follow, comentario, etc.)
@@ -49,6 +65,21 @@ class ServicioNotificaciones
         /* Excluir auto-notificaciones */
         if ($actorId !== null && $actorId === $destinatarioId) {
             return;
+        }
+
+        /* QL47-B: Dedup — evitar spam por acciones repetidas (like/unlike/like, follow/unfollow) */
+        $ventanaDedup = self::DEDUP_VENTANAS[$tipo] ?? null;
+        if ($ventanaDedup !== null && $actorId !== null) {
+            try {
+                if (NotificacionesRepository::existeReciente($destinatarioId, $tipo, $actorId, $ventanaDedup)) {
+                    return;
+                }
+            } catch (\Throwable $e) {
+                /* Si falla la verificacion de dedup, mejor crear la notificacion que perderla */
+                KamplesLogger::warning('ServicioNotificaciones: error en dedup, creando de todas formas', [
+                    'tipo' => $tipo, 'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         try {

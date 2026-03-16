@@ -9,14 +9,21 @@ import {Download} from 'lucide-react';
 import {BotonBase} from '@app/components/ui/BotonBase';
 import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
+import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 import '../../styles/componentes/landingPublica.css';
 
 /* Versión de assets SVG para cache-busting (incrementar al modificar los SVGs) */
 const SVG_V = '2';
-const SVG_KAMPLES = `/wp-content/themes/glorytemplate/App/Assets/svg/Kamples.svg?v=${SVG_V}`;
-const SVG_SYNC = `/wp-content/themes/glorytemplate/App/Assets/svg/Sync.svg?v=${SVG_V}`;
-const MINI_DAW = `/wp-content/themes/glorytemplate/App/Assets/svg/MiniDaw.svg?v=${SVG_V}`;
-const ROLAS = `/wp-content/themes/glorytemplate/App/Assets/svg/Rolas.svg?v=${SVG_V}`;
+const SVG_BASE = '/wp-content/themes/glorytemplate/App/Assets/svg';
+
+/* Rutas resueltas lazily al renderizar: en Tauri, __KAMPLES_DESKTOP__ se inyecta
+ * en runtime DESPUÉS de la evaluación de módulos estáticos (QL46). */
+const rutasSvg = () => ({
+    kamples: resolverRutaAsset(`${SVG_BASE}/Kamples.svg?v=${SVG_V}`),
+    sync: resolverRutaAsset(`${SVG_BASE}/Sync.svg?v=${SVG_V}`),
+    miniDaw: resolverRutaAsset(`${SVG_BASE}/MiniDaw.svg?v=${SVG_V}`),
+    rolas: resolverRutaAsset(`${SVG_BASE}/Rolas.svg?v=${SVG_V}`),
+});
 
 /* Dimensiones nativas de los SVGs para prevenir CLS */
 const SVG_W = 1288;
@@ -24,6 +31,7 @@ const SVG_H = 717;
 
 export const LandingPublica = (): JSX.Element => {
     const {abrirAuth} = useLandingPublica();
+    const svgs = rutasSvg();
 
     return (
         <div className="landingPublica" id="landingPublica">
@@ -52,7 +60,7 @@ export const LandingPublica = (): JSX.Element => {
 
             <section className="landingHeroVisual">
                 <img
-                    src={SVG_KAMPLES}
+                    src={svgs.kamples}
                     alt="Interfaz de Kamples mostrando la biblioteca de samples con reproductor integrado"
                     className="landingSeccionSync"
                     width={SVG_W}
@@ -68,7 +76,7 @@ export const LandingPublica = (): JSX.Element => {
                     <span className="subtitleSeccion">Sincronización bidireccional automática entre web y escritorio</span>
                 </div>
                 <img
-                    src={SVG_SYNC}
+                    src={svgs.sync}
                     alt="Sincronización bidireccional de samples entre plataformas web y escritorio"
                     className="landingSeccionSync"
                     width={SVG_W}
@@ -84,7 +92,7 @@ export const LandingPublica = (): JSX.Element => {
                     <span className="subtitleSeccion">Prueba y combina samples en el DAW integrado antes de descargar</span>
                 </div>
                 <img
-                    src={MINI_DAW}
+                    src={svgs.miniDaw}
                     alt="DAW integrado en el navegador para mezclar y editar samples"
                     className="landingSeccionSync"
                     width={SVG_W}
@@ -100,7 +108,7 @@ export const LandingPublica = (): JSX.Element => {
                     <span className="subtitleSeccion">Catálogo curado con algoritmo de recomendación personalizado</span>
                 </div>
                 <img
-                    src={ROLAS}
+                    src={svgs.rolas}
                     alt="Catálogo de samples con portadas de canciones y algoritmo de descubrimiento"
                     className="landingSeccionSync"
                     width={SVG_W}

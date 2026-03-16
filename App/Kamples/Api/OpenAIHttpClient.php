@@ -42,6 +42,9 @@ class OpenAIHttpClient
      * Envía un chat completion a OpenAI y retorna el contenido parseado como array.
      * Compatible con JsonRepairer::parsearRespuestaGroq (mismo formato de respuesta).
      *
+     * QL39: Si responde con json_validate_failed (HTTP 400), reintenta sin response_format
+     * y usa JsonRepairer para extraer JSON del texto libre.
+     *
      * @param string $modelo Modelo a usar (ej: 'gpt-4o-mini')
      * @param string $prompt Prompt del usuario
      * @param string $systemPrompt Instrucciones del sistema
@@ -62,12 +65,14 @@ class OpenAIHttpClient
             return null;
         }
 
+        $mensajes = [
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $prompt],
+        ];
+
         $payload = [
             'model'    => $modelo,
-            'messages' => [
-                ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'user', 'content' => $prompt],
-            ],
+            'messages' => $mensajes,
             'temperature'     => $temperature,
             'max_tokens'      => $maxTokens,
             'response_format' => ['type' => 'json_object'],
@@ -78,11 +83,27 @@ class OpenAIHttpClient
             'Authorization: Bearer ' . $apiKey,
         ];
 
+        $resultado = self::ejecutarPeticion($payload, $headers, $modelo);
+        if ($resultado !== null) {
+            return $resultado;
+        }
+
+        /* QL39: Reintentar sin response_format si el modelo no pudo generar JSON estructurado */
+        KamplesLogger::warning("OpenAIHttpClient: reintentando {$modelo} sin response_format");
+        unset($payload['response_format']);
+        return self::ejecutarPeticion($payload, $headers, "{$modelo}-sinJSON");
+    }
+
+    /**
+     * Ejecuta la petición cURL a OpenAI y parsea la respuesta.
+     */
+    private static function ejecutarPeticion(array $payload, array $headers, string $etiqueta): ?array
+    {
         $ch = null;
         try {
             $ch = \curl_init(self::BASE_URL);
             if ($ch === false) {
-                KamplesLogger::error("OpenAIHttpClient: curl_init() falló ({$modelo})");
+                KamplesLogger::error("OpenAIHttpClient: curl_init() falló ({$etiqueta})");
                 return null;
             }
 
@@ -104,13 +125,13 @@ class OpenAIHttpClient
             $ch = null;
 
             if ($curlError) {
-                KamplesLogger::error("OpenAIHttpClient: cURL error ({$modelo})", ['error' => $curlError]);
+                KamplesLogger::error("OpenAIHttpClient: cURL error ({$etiqueta})", ['error' => $curlError]);
                 return null;
             }
 
             if ($httpCode !== 200) {
                 $respuestaTexto = \is_string($respuesta) ? $respuesta : '';
-                KamplesLogger::error("OpenAIHttpClient: HTTP {$httpCode} ({$modelo})", [
+                KamplesLogger::error("OpenAIHttpClient: HTTP {$httpCode} ({$etiqueta})", [
                     'respuesta' => \mb_substr($respuestaTexto, 0, 800),
                 ]);
                 return null;
@@ -123,7 +144,7 @@ class OpenAIHttpClient
             /* Mismo parser que Groq — formato de respuesta idéntico (OpenAI API spec) */
             return JsonRepairer::parsearRespuestaGroq($respuesta);
         } catch (\Throwable $e) {
-            KamplesLogger::error("OpenAIHttpClient: excepción ({$modelo})", ['error' => $e->getMessage()]);
+            KamplesLogger::error("OpenAIHttpClient: excepción ({$etiqueta})", ['error' => $e->getMessage()]);
             return null;
         } finally {
             if ($ch !== null) {

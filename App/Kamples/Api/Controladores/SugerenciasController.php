@@ -20,6 +20,7 @@ use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\DescargasRepository;
 use App\Kamples\Database\Repositories\LikesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
@@ -52,7 +53,9 @@ class SugerenciasController
     }
 
     /**
-     * GET /me/descargas/sugerencias — "Más Ideas" basadas en descargas.
+     * GET /me/descargas/sugerencias — "Más Ideas" basadas en descargas + coleccionados.
+     * Fusiona contexto de ambas fuentes para generar sugerencias incluso si
+     * el usuario no descargó archivos pero sí coleccionó samples.
      */
     public static function sugerenciasDescargas(\WP_REST_Request $request): \WP_REST_Response
     {
@@ -60,8 +63,13 @@ class SugerenciasController
             $userId = UsuarioHelper::obtenerIdPg();
             if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
 
-            $contexto = DescargasRepository::contextoDescargas($userId);
-            $idsExcluir = DescargasRepository::idsDescargados($userId);
+            $ctxDescargas     = DescargasRepository::contextoDescargas($userId);
+            $ctxColeccionados = ColeccionSamplesRepository::contextoColeccionadosUsuario($userId);
+            $contexto         = \array_merge($ctxDescargas, $ctxColeccionados);
+
+            $idsDescargas     = DescargasRepository::idsDescargados($userId);
+            $idsColeccionados = ColeccionSamplesRepository::idsColeccionadosUsuario($userId);
+            $idsExcluir       = \array_values(\array_unique(\array_merge($idsDescargas, $idsColeccionados)));
 
             return self::calcularSugerencias($contexto, $idsExcluir, $request);
         } catch (\Throwable $e) {

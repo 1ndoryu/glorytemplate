@@ -6,20 +6,17 @@
  */
 
 import { IMAGENES_COLOR } from './datos/imagenesColorLista';
+import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 
 const RUTA_RELATIVA = '/wp-content/themes/glorytemplate/colors/';
-const SERVIDOR_PROD = 'https://kamples.com';
 const TOTAL = IMAGENES_COLOR.length;
 
 /*
  * En Tauri (desktop/Android) las rutas relativas no resuelven al servidor.
- * Se evalua lazily porque __KAMPLES_DESKTOP__ se inyecta en runtime.
+ * Delegado a resolverRutaAsset (util compartida QL46).
  */
 function obtenerRutaBase(): string {
-    if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
-        return `${SERVIDOR_PROD}${RUTA_RELATIVA}`;
-    }
-    return RUTA_RELATIVA;
+    return resolverRutaAsset(RUTA_RELATIVA);
 }
 
 /*

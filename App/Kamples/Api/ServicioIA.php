@@ -254,25 +254,30 @@ class ServicioIA
     /**
      * Llama a la API de Groq (OpenAI-compatible) con un modelo específico.
      * HTTP delegado a GroqHttpClient, parsing a JsonRepairer.
+     *
+     * QL39: Si el modelo falla con json_validate_failed (HTTP 400), reintenta
+     * sin response_format y usa JsonRepairer para extraer JSON del texto libre.
      */
     private static function llamarGroq(string $modelo, string $apiKey, string $prompt): ?array
     {
         $url = 'https://api.groq.com/openai/v1/chat/completions';
 
-        $payload = [
-            'model'    => $modelo,
-            'messages' => [
-                [
-                    'role'    => 'system',
-                    'content' => 'Eres un experto en producción musical y clasificación de audio. Responde ÚNICAMENTE con JSON válido, sin texto adicional.',
-                ],
-                [
-                    'role'    => 'user',
-                    'content' => $prompt,
-                ],
+        $mensajes = [
+            [
+                'role'    => 'system',
+                'content' => 'Eres un experto en producción musical y clasificación de audio. Responde ÚNICAMENTE con JSON válido, sin texto adicional.',
             ],
-            'temperature'   => 0.2,
-            'max_tokens'    => 1500,
+            [
+                'role'    => 'user',
+                'content' => $prompt,
+            ],
+        ];
+
+        $payload = [
+            'model'           => $modelo,
+            'messages'        => $mensajes,
+            'temperature'     => 0.2,
+            'max_tokens'      => 1500,
             'response_format' => ['type' => 'json_object'],
         ];
 
@@ -281,7 +286,25 @@ class ServicioIA
             'Authorization: Bearer ' . $apiKey,
         ];
 
-        $respuesta = GroqHttpClient::peticionCurl($url, $payload, $headers, "Groq/{$modelo}");
+        $httpCode = null;
+        $respuesta = GroqHttpClient::peticionCurl($url, $payload, $headers, "Groq/{$modelo}", 0, $httpCode);
+
+        /* QL39: json_validate_failed — el modelo no pudo generar JSON estructurado.
+         * Reintentar sin response_format y dejar que JsonRepairer extraiga el JSON. */
+        if ($respuesta === null && $httpCode === 400) {
+            KamplesLogger::warning("ServicioIA: json_validate_failed en {$modelo}, reintentando sin response_format");
+            unset($payload['response_format']);
+            $respuesta = GroqHttpClient::peticionCurl($url, $payload, $headers, "Groq/{$modelo}-sinJSON");
+            if ($respuesta !== null) {
+                $resultado = JsonRepairer::parsearRespuestaGroq($respuesta);
+                if ($resultado !== null) {
+                    KamplesLogger::info("ServicioIA: JSON recuperado de {$modelo} sin response_format via JsonRepairer");
+                    return $resultado;
+                }
+            }
+            return null;
+        }
+
         if ($respuesta === null) return null;
 
         return JsonRepairer::parsearRespuestaGroq($respuesta);

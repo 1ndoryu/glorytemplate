@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2 } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import EnlaceCreador from '@app/components/social/EnlaceCreador';
 import { BotonBase } from '@app/components/ui/BotonBase';
@@ -17,6 +17,8 @@ import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerSugerencias } from '@app/services/apiColecciones';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
+import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
+import { useReproductorStore } from '@app/stores/reproductorStore';
 import { FiltroSubcolecciones } from '@app/components/colecciones/FiltroSubcolecciones';
 import type { SampleResumen } from '@app/types';
 import '../../styles/componentes/coleccionDetalle.css';
@@ -34,6 +36,12 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
     } = useColeccionDetalle({ propSlug });
+
+    /* QQ75/QL43: Preview de la colección — misma lógica que TarjetaColeccion */
+    const { iniciarPreview, cargando: cargandoPreview } = useColeccionPreview();
+    const coleccionPreviewId = useReproductorStore(s => s.coleccionPreviewId);
+    const reproduciendo = useReproductorStore(s => s.reproduciendo);
+    const esPreviewActiva = coleccion ? (coleccionPreviewId === coleccion.id && reproduciendo) : false;
 
     /* Proveedor para tab "Más Ideas" — usa coleccion.id (numérico) en vez del
      * segmento de URL, que es null cuando la ruta usa slug en lugar de ID. */
@@ -136,13 +144,14 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                             <span>{descargando ? 'Descargando...' : 'Descargar'}</span>
                         </BotonBase>
                         <BotonBase variante="ghost"
-                            className="coleccionAccionBtn"
+                            className={`coleccionAccionBtn ${esPreviewActiva ? 'coleccionAccionActivo' : ''}`}
                             type="button"
-                            title="Preview"
-                            onClick={() => { /* TO-DO: reproducir preview de la colección */ }}
+                            title={esPreviewActiva ? 'Detener preview' : 'Preview'}
+                            onClick={() => coleccion && iniciarPreview(coleccion.id)}
+                            disabled={cargandoPreview}
                         >
-                            <Play size={16} />
-                            <span>Preview</span>
+                            {cargandoPreview ? <Loader2 size={16} className="tarjetaColeccionSpinner" /> : esPreviewActiva ? <Pause size={16} /> : <Play size={16} />}
+                            <span>{cargandoPreview ? 'Cargando...' : esPreviewActiva ? 'Detener' : 'Preview'}</span>
                         </BotonBase>
                         {/* C127: Menú 3 puntos */}
                         <BotonBase variante="ghost"

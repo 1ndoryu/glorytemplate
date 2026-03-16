@@ -50,11 +50,16 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform var(--transicionNormal);
+    transition: transform var(--transicionNormal), filter var(--transicionRapida);
     aspect-ratio: 1 / 1;
     padding: var(--espacioLg);
     border-radius: var(--radioMd);
     overflow: hidden;
+}
+
+/* Hover: oscurecer ligeramente la imagen de portada */
+.tarjetaColeccion:hover .tarjetaColeccionPortada img {
+    filter: brightness(0.8);
 }
 /* C141: Botón 3 puntos — esquina superior derecha sobre la imagen */
 .tarjetaColeccionMenuContenedor {
@@ -144,10 +149,12 @@
     z-index: 3;
 }
 
-/* QQ75: Botón preview — esquina inferior derecha sobre la portada */
+/* QQ75: Botón preview — esquina inferior derecha sobre la portada.
+ * Posición calculada: la sección info ocupa ~52px (padding + 2 líneas de texto).
+ * Usar espacioXs offset para no pegar el botón al borde exacto de la portada. */
 .tarjetaColeccionPreviewContenedor {
     position: absolute;
-    bottom: calc(var(--espacioXs) + 42%);
+    bottom: calc(52px + var(--espacioXs));
     right: var(--espacioSm);
     z-index: 5;
 }
