@@ -128,7 +128,7 @@ class RateLimiter:
                             self._fecha_hoy = fecha
                             self._cuenta_hoy = int(cuenta)
                             logger.info(
-                                "Rate limiter: estado restaurado — %d operaciones hoy",
+                                "Rate limiterr: estado restaurado — %d operaciones hoy",
                                 self._cuenta_hoy,
                             )
         except (OSError, ValueError):
