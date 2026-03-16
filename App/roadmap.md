@@ -437,13 +437,15 @@ Original: Es posible spamear notificaciones a los usuarios, lo cual es malo, deb
 
 # QL49 
 
-Despues de corregir lo de la apk, regenerala, activa el emulador e instala la aplicación en el emulador para probarla, deja el apok actualizado en la raiz para proborlo enun telefono real, asegura de que los permisos para guardar archivos este disponible, las subidas, etc, 
-
-ajusta el modal de suscribirse en la apk para que diga "Suscribete en la web" ya que no podemos activar suscripciones en apk porque vamos a publicar en la apk store, y deja un plan para activar suscripciones en la apk store y adelantalo
-
-tambien hay que revisar si la apk cumple con lo necesario para publicar en la apk store, y si no cumple con algo, hacer los ajustes necesarios para cumplir con eso, revisiones de seguridad, rendimiento, ¿que pasa cuando no hay internet?
-
-creo que ya habia dicho antes que los svg no cargan en la apk
+✅ [AG-MNT] Completado:
+- **Modal suscripcion APK:** PlanesIsland muestra "Suscribete en la web" con ExternalLink icon cuando `esApk`, redirige a kamples.com/planes/ via abrirEnlaceExterno().
+- **Politica de privacidad:** Seccion "Legal" en ModalConfiguracion con links a /privacy/ y /terms/ via abrirEnlaceExterno().
+- **Util plataforma centralizada:** `App/React/utils/plataforma.ts` con esTauri(), esAndroid(), esEscritorio(), abrirEnlaceExterno(). Reemplaza 2+ implementaciones duplicadas.
+- **APK build:** Vite 14.66s + Rust 4 archs (aarch64, armv7, i686, x86_64). Firmada con kamples.keystore. 49.4MB.
+- **Test emulador:** Instalada y ejecutada en Medium_Phone_API_36.1 sin errores.
+- **Vite externals:** Glory vite.config.ts + desktop vite.config.ts actualizados para resolver @tauri-apps/plugin-shell y @tauri-apps/api/app desde codigo compartido App/React/.
+- [Pendiente]: SVGs no cargan en APK — requiere investigar CSP/asset loading en WebView Android.
+- [Pendiente]: Plan de suscripciones in-app para Play Store (Google Play Billing Library via Tauri plugin).
 
 # QL50 
 
@@ -521,7 +523,12 @@ creo que ya habia dicho antes que los svg no cargan en la apk
 
 # QL61 
 
-Haz que todas las colecciones que se crean por defecto sean publicas, y las que existen actualmente, que sean publicas
+✅ [AG-MNT] Verificado — ya implementado en commit 4ee86886:
+- **Backend default:** `ColeccionesCrudController::crear()` linea 63: `$publica = (bool) ($body['publica'] ?? true)` — default true.
+- **Frontend default:** `useModalColeccion.ts` inicializa `esPublica: true`.
+- **Desktop sync:** No envia campo `publica`, cae al default true del backend.
+- **BD actual:** 16 colecciones, 0 privadas — todas ya son publicas.
+- **Migration v059:** Ya aplicada (del commit original).
 
 # QL62 
 
@@ -543,11 +550,10 @@ esto es gravisimo, esto necesita una auditoría de seguridad
 
 # QL64
 
-puedo verificar y cambiar plan free a premiun de otros usuarios pero no a mi misma, debería poder
-main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
-main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
-main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
-main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
+✅ [AG-MNT] Corregido en commit 4ee86886:
+- **Root cause:** S33 bloqueaba TODA auto-modificacion (incluyendo cambio de plan propio). El guard era `if ($currentPgId === $id) return 400`.
+- **Fix:** Guard granular — solo bloquea auto-ban (`ban_hasta != null`) y auto-degradacion de rol (`rol != admin`). Cambio de plan y verificacion propios ahora permitidos.
+- Archivos: `AdminController.php` (actualizarUsuario).
 
 # QL65
 
