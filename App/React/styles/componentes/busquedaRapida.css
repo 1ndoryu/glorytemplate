@@ -1,7 +1,7 @@
 /*
  * Estilos: busquedaRapida
  * Dropdown de resultados de búsqueda rápida en la TopBar.
- * Diseño minimalista con fondos oscuros y bordes sutiles (Design System Kamples).
+ * QL31: Lista unificada plana, sin agrupación por tipo. Ordenada por relevancia.
  */
 
 .busquedaRapidaDropdown {
@@ -18,6 +18,7 @@
     overflow-y: auto;
     z-index: var(--zMenu);
     box-shadow: var(--sombraFlotante);
+    padding: var(--espacioXs) 0;
 }
 
 .busquedaRapidaDropdown::-webkit-scrollbar {
@@ -55,26 +56,6 @@
     text-align: center;
     color: var(--textoTerciario);
     font-size: var(--fuenteSm);
-}
-
-.busquedaRapidaSeccion {
-    padding: var(--espacioXs) 0;
-}
-
-.busquedaRapidaSeccion + .busquedaRapidaSeccion {
-    border-top: 1px solid var(--bordeSutil);
-}
-
-.busquedaRapidaCabecera {
-    display: flex;
-    align-items: center;
-    gap: var(--espacioXs);
-    padding: var(--espacioXs) var(--espacioMd);
-    font-size: var(--fuente2xs);
-    color: var(--textoTerciario);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: var(--pesoMedium);
 }
 
 .busquedaRapidaItem {
@@ -121,7 +102,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--espacio3xs);
 }
 
 .busquedaRapidaTitulo {
@@ -143,11 +124,13 @@
     text-overflow: ellipsis;
 }
 
-.busquedaRapidaMeta {
-    font-size: var(--fuente2xs);
-    color: var(--textoTerciario);
-    white-space: nowrap;
+/* QL31: Indicador de tipo — icono sutil a la derecha de cada item */
+.busquedaRapidaTipo {
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
+    color: var(--textoTerciario);
+    opacity: 0.5;
 }
 
 .busquedaRapidaVerificado {
@@ -155,7 +138,7 @@
     flex-shrink: 0;
 }
 
-/* Sampleos — layout horizontal compacto fuente → destino */
+/* Sampleos — layout horizontal compacto fuente -> destino */
 
 .busquedaRapidaInfoSampleo {
     flex-direction: row;

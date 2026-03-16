@@ -155,7 +155,7 @@ class ColeccionesRepository extends BaseRepository
     /*
      * C388/QL23: Tags más frecuentes del usuario (agregados de sus colecciones).
      * Usa metadata JSONB (tags IA) en vez de s.tags (nombres de artistas WhoSampled).
-     * Prioriza tags_es (español) con fallback a tags (inglés).
+     * QL30: Prioriza tags (inglés) con fallback a tags_es (español).
      */
     public static function tagsFrecuentesDelUsuario(int $userId, int $limite = 15): array
     {
@@ -179,8 +179,8 @@ class ColeccionesRepository extends BaseRepository
              JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
              CROSS JOIN LATERAL jsonb_array_elements_text(
                  COALESCE(
-                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
                      CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
                      '[]'::jsonb
                  )
              ) as tag_val
@@ -330,7 +330,7 @@ class ColeccionesRepository extends BaseRepository
     /*
      * B1/QL23: Tags más frecuentes de colecciones públicas (explorar).
      * Usa metadata JSONB (tags IA) en vez de s.tags (nombres de artistas WhoSampled).
-     * Prioriza tags_es (español) con fallback a tags (inglés).
+     * QL30: Prioriza tags (inglés) con fallback a tags_es (español).
      */
     public static function tagsFrecuentesExplorar(int $limite = 15): array
     {
@@ -354,8 +354,8 @@ class ColeccionesRepository extends BaseRepository
              JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
              CROSS JOIN LATERAL jsonb_array_elements_text(
                  COALESCE(
-                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
                      CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
                      '[]'::jsonb
                  )
              ) as tag_val

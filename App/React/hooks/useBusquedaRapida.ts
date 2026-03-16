@@ -16,6 +16,8 @@ const RESULTADOS_VACIOS: ResultadosBusquedaRapida = {
     samples: [],
     sampleos: [],
     usuarios: [],
+    colecciones: [],
+    todos: [],
 };
 
 interface UseBusquedaRapidaRetorno {
@@ -71,11 +73,7 @@ export const useBusquedaRapida = (query: string): UseBusquedaRapidaRetorno => {
 
             if (resp.ok && resp.data) {
                 setResultados(resp.data);
-                const tiene = resp.data.canciones.length > 0
-                    || resp.data.samples.length > 0
-                    || resp.data.sampleos.length > 0
-                    || resp.data.usuarios.length > 0;
-                setVisible(tiene);
+                setVisible(resp.data.todos.length > 0);
             } else {
                 setResultados(RESULTADOS_VACIOS);
                 setVisible(false);

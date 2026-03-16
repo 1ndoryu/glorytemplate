@@ -1,11 +1,11 @@
 /*
  * Componente: ResultadosBusquedaRapida
- * Dropdown con resultados agrupados por tipo: canciones, samples, sampleos, usuarios.
+ * Dropdown con resultados unificados por relevancia (sin agrupación por tipo).
+ * QL31: Lista plana — el resultado que más coincide aparece primero, sin importar tipo.
  * Aparece debajo del InputBusqueda en la TopBar al escribir.
- * Lógica extraída a useResultadosBusquedaRapida hook (SRP).
  */
 
-import { Music, Disc3, ArrowRight, User, BadgeCheck, Loader2 } from 'lucide-react';
+import { Music, Disc3, ArrowRight, User, BadgeCheck, Loader2, FolderOpen } from 'lucide-react';
 import { BotonBase } from './BotonBase';
 import { Avatar } from './Avatar';
 import { useResultadosBusquedaRapida } from '@app/hooks/useResultadosBusquedaRapida';
@@ -14,6 +14,8 @@ import type {
     ResultadoSample,
     ResultadoSampleo,
     ResultadoUsuario,
+    ResultadoColeccion,
+    ResultadoUnificado,
     ResultadosBusquedaRapida,
 } from '@app/services/apiBusqueda';
 import '../../styles/componentes/busquedaRapida.css';
@@ -35,9 +37,8 @@ export const ResultadosBusquedaRapidaDropdown = ({
 
     if (!visible) return null;
 
-    const { canciones, samples, sampleos, usuarios } = resultados;
-    const sinResultados = canciones.length === 0 && samples.length === 0
-        && sampleos.length === 0 && usuarios.length === 0;
+    const { todos } = resultados;
+    const sinResultados = todos.length === 0;
 
     return (
         <div className="busquedaRapidaDropdown" ref={contenedorRef} role="listbox">
@@ -51,170 +52,170 @@ export const ResultadosBusquedaRapidaDropdown = ({
                 <div className="busquedaRapidaVacio">Sin resultados</div>
             )}
 
-            {/* QK91: Maximo 3 resultados visibles por seccion */}
-            {canciones.length > 0 && (
-                <SeccionCancion items={canciones.slice(0, 3)} onIr={irA} />
-            )}
-
-            {samples.length > 0 && (
-                <SeccionSample items={samples.slice(0, 3)} onIr={irA} />
-            )}
-
-            {sampleos.length > 0 && (
-                <SeccionSampleo items={sampleos.slice(0, 3)} onIr={irA} />
-            )}
-
-            {usuarios.length > 0 && (
-                <SeccionUsuario items={usuarios.slice(0, 3)} onIr={irA} />
-            )}
+            {todos.map((item, idx) => (
+                <ItemUnificado key={`${item.tipo}-${idx}`} item={item} onIr={irA} />
+            ))}
         </div>
     );
 };
 
-/* Secciones internas — cada una renderiza su grupo de resultados */
+/* Item unificado — delega renderizado según tipo */
+const ItemUnificado = ({ item, onIr }: { item: ResultadoUnificado; onIr: (r: string) => void }) => {
+    switch (item.tipo) {
+        case 'cancion':
+            return <ItemCancion datos={item.datos as ResultadoCancion} onIr={onIr} />;
+        case 'sample':
+            return <ItemSample datos={item.datos as ResultadoSample} onIr={onIr} />;
+        case 'sampleo':
+            return <ItemSampleo datos={item.datos as ResultadoSampleo} onIr={onIr} />;
+        case 'usuario':
+            return <ItemUsuario datos={item.datos as ResultadoUsuario} onIr={onIr} />;
+        case 'coleccion':
+            return <ItemColeccion datos={item.datos as ResultadoColeccion} onIr={onIr} />;
+        default:
+            return null;
+    }
+};
 
-const SeccionCancion = ({ items, onIr }: { items: ResultadoCancion[]; onIr: (r: string) => void }) => (
-    <div className="busquedaRapidaSeccion">
-        <div className="busquedaRapidaCabecera">
-            <Music size={12} />
-            <span>Canciones</span>
+/* Items individuales por tipo */
+
+const ItemCancion = ({ datos: c, onIr }: { datos: ResultadoCancion; onIr: (r: string) => void }) => (
+    <BotonBase
+        variante="ghost"
+        tamano="ninguno"
+        className="busquedaRapidaItem"
+        onClick={() => onIr(`/cancion/${c.slug}`)}
+        type="button"
+    >
+        <div className="busquedaRapidaImagen">
+            {c.imagenUrl ? (
+                <img src={c.imagenUrl} alt={c.titulo} loading="lazy" />
+            ) : (
+                <Music size={16} />
+            )}
         </div>
-        {items.map((c) => (
-            <BotonBase
-                key={`cancion-${c.id}`}
-                variante="ghost"
-                tamano="ninguno"
-                className="busquedaRapidaItem"
-                onClick={() => onIr(`/cancion/${c.slug}`)}
-                type="button"
-            >
-                <div className="busquedaRapidaImagen">
-                    {c.imagenUrl ? (
-                        <img src={c.imagenUrl} alt={c.titulo} loading="lazy" />
-                    ) : (
-                        <Music size={16} />
-                    )}
-                </div>
-                <div className="busquedaRapidaInfo">
-                    <span className="busquedaRapidaTitulo">{c.titulo}</span>
-                    {c.artistaNombre && (
-                        <span className="busquedaRapidaSubtexto">{c.artistaNombre}</span>
-                    )}
-                </div>
-                {c.totalSampleada > 0 && (
-                    <span className="busquedaRapidaMeta">{c.totalSampleada} sampleos</span>
-                )}
-            </BotonBase>
-        ))}
-    </div>
+        <div className="busquedaRapidaInfo">
+            <span className="busquedaRapidaTitulo">{c.titulo}</span>
+            {c.artistaNombre && (
+                <span className="busquedaRapidaSubtexto">{c.artistaNombre}</span>
+            )}
+        </div>
+        <span className="busquedaRapidaTipo">
+            <Music size={10} />
+        </span>
+    </BotonBase>
 );
 
-const SeccionSample = ({ items, onIr }: { items: ResultadoSample[]; onIr: (r: string) => void }) => (
-    <div className="busquedaRapidaSeccion">
-        <div className="busquedaRapidaCabecera">
-            <Disc3 size={12} />
-            <span>Samples</span>
+const ItemSample = ({ datos: s, onIr }: { datos: ResultadoSample; onIr: (r: string) => void }) => (
+    <BotonBase
+        variante="ghost"
+        tamano="ninguno"
+        className="busquedaRapidaItem"
+        onClick={() => onIr(`/sample/${s.slug}/`)}
+        type="button"
+    >
+        <div className="busquedaRapidaImagen">
+            {s.imagenUrl ? (
+                <img src={s.imagenUrl} alt={s.titulo} loading="lazy" />
+            ) : (
+                <Disc3 size={16} />
+            )}
         </div>
-        {items.map((s) => (
-            <BotonBase
-                key={`sample-${s.id}`}
-                variante="ghost"
-                tamano="ninguno"
-                className="busquedaRapidaItem"
-                onClick={() => onIr(`/sample/${s.slug}/`)}
-                type="button"
-            >
-                <div className="busquedaRapidaImagen">
-                    {s.imagenUrl ? (
-                        <img src={s.imagenUrl} alt={s.titulo} loading="lazy" />
-                    ) : (
-                        <Disc3 size={16} />
-                    )}
-                </div>
-                <div className="busquedaRapidaInfo">
-                    <span className="busquedaRapidaTitulo">{s.titulo}</span>
-                    <span className="busquedaRapidaSubtexto">
-                        por {s.creador.nombreVisible}
-                    </span>
-                </div>
-            </BotonBase>
-        ))}
-    </div>
+        <div className="busquedaRapidaInfo">
+            <span className="busquedaRapidaTitulo">{s.titulo}</span>
+            <span className="busquedaRapidaSubtexto">
+                por {s.creador.nombreVisible}
+            </span>
+        </div>
+        <span className="busquedaRapidaTipo">
+            <Disc3 size={10} />
+        </span>
+    </BotonBase>
 );
 
-const SeccionSampleo = ({ items, onIr }: { items: ResultadoSampleo[]; onIr: (r: string) => void }) => (
-    <div className="busquedaRapidaSeccion">
-        <div className="busquedaRapidaCabecera">
-            <ArrowRight size={12} />
-            <span>Sampleos</span>
+const ItemSampleo = ({ datos: rel, onIr }: { datos: ResultadoSampleo; onIr: (r: string) => void }) => (
+    <BotonBase
+        variante="ghost"
+        tamano="ninguno"
+        className="busquedaRapidaItem busquedaRapidaItemSampleo"
+        onClick={() => onIr(`/cancion/${rel.destino.slug}`)}
+        type="button"
+    >
+        <div className="busquedaRapidaImagen">
+            {rel.fuente.imagenUrl ? (
+                <img src={rel.fuente.imagenUrl} alt={rel.fuente.titulo} loading="lazy" />
+            ) : (
+                <Music size={14} />
+            )}
         </div>
-        {items.map((rel) => (
-            <BotonBase
-                key={`sampleo-${rel.id}`}
-                variante="ghost"
-                tamano="ninguno"
-                className="busquedaRapidaItem busquedaRapidaItemSampleo"
-                onClick={() => onIr(`/cancion/${rel.destino.slug}`)}
-                type="button"
-            >
-                <div className="busquedaRapidaImagen">
-                    {rel.fuente.imagenUrl ? (
-                        <img src={rel.fuente.imagenUrl} alt={rel.fuente.titulo} loading="lazy" />
-                    ) : (
-                        <Music size={14} />
-                    )}
-                </div>
-                <div className="busquedaRapidaInfo busquedaRapidaInfoSampleo">
-                    <span className="busquedaRapidaTitulo busquedaRapidaSampleoTexto">
-                        {rel.fuente.artista} — {rel.fuente.titulo}
-                    </span>
-                    <span className="busquedaRapidaSampleoFlecha">
-                        <ArrowRight size={10} />
-                    </span>
-                    <span className="busquedaRapidaTitulo busquedaRapidaSampleoTexto">
-                        {rel.destino.artista} — {rel.destino.titulo}
-                    </span>
-                </div>
-            </BotonBase>
-        ))}
-    </div>
+        <div className="busquedaRapidaInfo busquedaRapidaInfoSampleo">
+            <span className="busquedaRapidaTitulo busquedaRapidaSampleoTexto">
+                {rel.fuente.artista} — {rel.fuente.titulo}
+            </span>
+            <span className="busquedaRapidaSampleoFlecha">
+                <ArrowRight size={10} />
+            </span>
+            <span className="busquedaRapidaTitulo busquedaRapidaSampleoTexto">
+                {rel.destino.artista} — {rel.destino.titulo}
+            </span>
+        </div>
+        <span className="busquedaRapidaTipo">
+            <ArrowRight size={10} />
+        </span>
+    </BotonBase>
 );
 
-const SeccionUsuario = ({ items, onIr }: { items: ResultadoUsuario[]; onIr: (r: string) => void }) => (
-    <div className="busquedaRapidaSeccion">
-        <div className="busquedaRapidaCabecera">
-            <User size={12} />
-            <span>Usuarios</span>
+const ItemUsuario = ({ datos: u, onIr }: { datos: ResultadoUsuario; onIr: (r: string) => void }) => (
+    <BotonBase
+        variante="ghost"
+        tamano="ninguno"
+        className="busquedaRapidaItem"
+        onClick={() => onIr(`/perfil/${u.username}/`)}
+        type="button"
+    >
+        <Avatar
+            src={u.avatarUrl}
+            nombre={u.nombreVisible}
+            tamano="xs"
+        />
+        <div className="busquedaRapidaInfo">
+            <span className="busquedaRapidaTitulo">
+                {u.nombreVisible}
+                {u.verificado && <BadgeCheck size={12} className="busquedaRapidaVerificado" />}
+            </span>
+            <span className="busquedaRapidaSubtexto">@{u.username}</span>
         </div>
-        {items.map((u) => (
-            <BotonBase
-                key={`usuario-${u.id}`}
-                variante="ghost"
-                tamano="ninguno"
-                className="busquedaRapidaItem"
-                onClick={() => onIr(`/perfil/${u.username}/`)}
-                type="button"
-            >
-                <Avatar
-                    src={u.avatarUrl}
-                    nombre={u.nombreVisible}
-                    tamano="xs"
-                />
-                <div className="busquedaRapidaInfo">
-                    <span className="busquedaRapidaTitulo">
-                        {u.nombreVisible}
-                        {u.verificado && <BadgeCheck size={12} className="busquedaRapidaVerificado" />}
-                    </span>
-                    <span className="busquedaRapidaSubtexto">@{u.username}</span>
-                </div>
-                {u.totalSeguidores > 0 && (
-                    <span className="busquedaRapidaMeta">
-                        {u.totalSeguidores} {u.totalSeguidores === 1 ? 'seguidor' : 'seguidores'}
-                    </span>
-                )}
-            </BotonBase>
-        ))}
-    </div>
+        <span className="busquedaRapidaTipo">
+            <User size={10} />
+        </span>
+    </BotonBase>
+);
+
+const ItemColeccion = ({ datos: col, onIr }: { datos: ResultadoColeccion; onIr: (r: string) => void }) => (
+    <BotonBase
+        variante="ghost"
+        tamano="ninguno"
+        className="busquedaRapidaItem"
+        onClick={() => onIr(`/coleccion/${col.slug}/`)}
+        type="button"
+    >
+        <div className="busquedaRapidaImagen">
+            {col.portadaUrl ? (
+                <img src={col.portadaUrl} alt={col.nombre} loading="lazy" />
+            ) : (
+                <FolderOpen size={16} />
+            )}
+        </div>
+        <div className="busquedaRapidaInfo">
+            <span className="busquedaRapidaTitulo">{col.nombre}</span>
+            <span className="busquedaRapidaSubtexto">
+                {col.creador} · {col.totalSamples} samples
+            </span>
+        </div>
+        <span className="busquedaRapidaTipo">
+            <FolderOpen size={10} />
+        </span>
+    </BotonBase>
 );
 
 export default ResultadosBusquedaRapidaDropdown;

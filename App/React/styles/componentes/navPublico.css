@@ -59,9 +59,6 @@
 
 /* Responsivo */
 @media (max-width: 600px) {
-    .navPublico {
-        padding: var(--espacioSm) var(--espacioMd);
-    }
 
     .navPublicoEnlaces {
         display: none;

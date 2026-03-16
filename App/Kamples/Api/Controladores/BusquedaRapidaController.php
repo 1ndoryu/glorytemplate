@@ -25,6 +25,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ArtistasMusicalesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
+use App\Config\Schema\_generated\ColeccionesCols;
 use App\Helpers\UrlHelper;
 use App\Kamples\Database\Repositories\BaseRepository;
 use App\Kamples\KamplesLogger;
@@ -62,25 +63,34 @@ class BusquedaRapidaController
 
             if (mb_strlen($q) < 2) {
                 return new \WP_REST_Response([
-                    'canciones'  => [],
-                    'samples'    => [],
-                    'sampleos'   => [],
-                    'usuarios'   => [],
+                    'canciones'   => [],
+                    'samples'     => [],
+                    'sampleos'    => [],
+                    'usuarios'    => [],
+                    'colecciones' => [],
+                    'todos'       => [],
                 ], 200);
             }
 
             $limite = self::LIMITE_POR_TIPO;
+            $qLower = mb_strtolower($q);
 
-            $canciones = self::buscarCanciones($q, $limite);
-            $samples   = self::buscarSamples($q, $limite);
-            $sampleos  = self::buscarSampleos($q, $limite);
-            $usuarios  = self::buscarUsuarios($q, $limite);
+            $canciones   = self::buscarCanciones($q, $limite);
+            $samples     = self::buscarSamples($q, $limite);
+            $sampleos    = self::buscarSampleos($q, $limite);
+            $usuarios    = self::buscarUsuarios($q, $limite);
+            $colecciones = self::buscarColecciones($q, $limite);
+
+            /* Lista unificada ordenada por relevancia del match */
+            $todos = self::unificarResultados($qLower, $canciones, $samples, $sampleos, $usuarios, $colecciones);
 
             return new \WP_REST_Response([
-                'canciones'  => $canciones,
-                'samples'    => $samples,
-                'sampleos'   => $sampleos,
-                'usuarios'   => $usuarios,
+                'canciones'   => $canciones,
+                'samples'     => $samples,
+                'sampleos'    => $sampleos,
+                'usuarios'    => $usuarios,
+                'colecciones' => $colecciones,
+                'todos'       => $todos,
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('BusquedaRapida: error en búsqueda', [
@@ -264,5 +274,147 @@ class BusquedaRapidaController
                 'totalSeguidores' => (int) ($row[UsuariosExtCols::TOTAL_SEGUIDORES] ?? 0),
             ];
         }, $rows);
+    }
+
+    /**
+     * Colecciones — ILIKE en nombre y descripcion, solo públicas con al menos 1 sample.
+     */
+    private static function buscarColecciones(string $q, int $limite): array
+    {
+        $tc = ColeccionesCols::TABLA;
+        $tu = UsuariosExtCols::TABLA;
+
+        $rows = BaseRepository::consultar(
+            "SELECT c." . ColeccionesCols::ID
+            . ", c." . ColeccionesCols::NOMBRE
+            . ", c." . ColeccionesCols::SLUG
+            . ", c." . ColeccionesCols::PORTADA_URL
+            . ", c." . ColeccionesCols::TOTAL_SAMPLES
+            . ", u." . UsuariosExtCols::USERNAME
+            . ", u." . UsuariosExtCols::NOMBRE_VISIBLE
+            . " FROM {$tc} c"
+            . " LEFT JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID
+            . " WHERE c." . ColeccionesCols::PUBLICA . " = true"
+            . " AND c." . ColeccionesCols::TOTAL_SAMPLES . " > 0"
+            . " AND (c." . ColeccionesCols::NOMBRE . " ILIKE :busqueda"
+            . " OR c." . ColeccionesCols::DESCRIPCION . " ILIKE :busqueda)"
+            . " ORDER BY c." . ColeccionesCols::TOTAL_SAMPLES . " DESC, c." . ColeccionesCols::ID . " DESC"
+            . " LIMIT :limite",
+            [
+                'busqueda' => '%' . $q . '%',
+                'limite'   => $limite,
+            ]
+        );
+
+        return array_map(function (array $row): array {
+            return [
+                'id'           => (int) $row[ColeccionesCols::ID],
+                'nombre'       => $row[ColeccionesCols::NOMBRE] ?? '',
+                'slug'         => $row[ColeccionesCols::SLUG] ?? '',
+                'portadaUrl'   => UrlHelper::normalizar($row[ColeccionesCols::PORTADA_URL] ?? null),
+                'totalSamples' => (int) ($row[ColeccionesCols::TOTAL_SAMPLES] ?? 0),
+                'creador'      => $row[UsuariosExtCols::NOMBRE_VISIBLE] ?? $row[UsuariosExtCols::USERNAME] ?? '',
+            ];
+        }, $rows);
+    }
+
+    /**
+     * Unifica resultados de todos los tipos en una lista plana ordenada por relevancia.
+     *
+     * Score: coincidencia exacta al inicio > contiene > posición del match.
+     * Intercala tipos para diversidad cuando scores son iguales.
+     */
+    private static function unificarResultados(
+        string $qLower,
+        array $canciones,
+        array $samples,
+        array $sampleos,
+        array $usuarios,
+        array $colecciones
+    ): array {
+        $todos = [];
+
+        foreach ($canciones as $i => $c) {
+            $textoMatch = mb_strtolower($c['titulo'] . ' ' . ($c['artistaNombre'] ?? ''));
+            $todos[] = [
+                'tipo'  => 'cancion',
+                'score' => self::calcularScore($qLower, $textoMatch, $i),
+                'datos' => $c,
+            ];
+        }
+
+        foreach ($samples as $i => $s) {
+            $textoMatch = mb_strtolower($s['titulo']);
+            $todos[] = [
+                'tipo'  => 'sample',
+                'score' => self::calcularScore($qLower, $textoMatch, $i),
+                'datos' => $s,
+            ];
+        }
+
+        foreach ($sampleos as $i => $rel) {
+            $textoMatch = mb_strtolower(
+                $rel['fuente']['titulo'] . ' ' . $rel['fuente']['artista']
+                . ' ' . $rel['destino']['titulo'] . ' ' . $rel['destino']['artista']
+            );
+            $todos[] = [
+                'tipo'  => 'sampleo',
+                'score' => self::calcularScore($qLower, $textoMatch, $i),
+                'datos' => $rel,
+            ];
+        }
+
+        foreach ($usuarios as $i => $u) {
+            $textoMatch = mb_strtolower($u['username'] . ' ' . $u['nombreVisible']);
+            $todos[] = [
+                'tipo'  => 'usuario',
+                'score' => self::calcularScore($qLower, $textoMatch, $i),
+                'datos' => $u,
+            ];
+        }
+
+        foreach ($colecciones as $i => $col) {
+            $textoMatch = mb_strtolower($col['nombre']);
+            $todos[] = [
+                'tipo'  => 'coleccion',
+                'score' => self::calcularScore($qLower, $textoMatch, $i),
+                'datos' => $col,
+            ];
+        }
+
+        /* Ordenar por score descendente — los más relevantes primero */
+        usort($todos, static function ($a, $b) {
+            return $b['score'] <=> $a['score'];
+        });
+
+        return array_slice($todos, 0, 12);
+    }
+
+    /**
+     * Calcula score de relevancia para un resultado.
+     *
+     * - Match exacto: 100
+     * - Empieza con la query: 80
+     * - Contiene la query: 60
+     * - Cuanto antes en su grupo (orden del backend), más score
+     */
+    private static function calcularScore(string $query, string $texto, int $posicion): float
+    {
+        $base = 0;
+
+        if ($texto === $query) {
+            $base = 100;
+        } elseif (mb_strpos($texto, $query) === 0) {
+            $base = 80;
+        } elseif (mb_strpos($texto, $query) !== false) {
+            $base = 60;
+        } else {
+            $base = 40;
+        }
+
+        /* Posición dentro de su grupo (máx 5 items) — penalizar resultados más bajos */
+        $penalizacionPosicion = $posicion * 2;
+
+        return $base - $penalizacionPosicion;
     }
 }

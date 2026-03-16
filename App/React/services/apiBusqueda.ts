@@ -53,11 +53,30 @@ export interface ResultadoUsuario {
     totalSeguidores: number;
 }
 
+export interface ResultadoColeccion {
+    id: number;
+    nombre: string;
+    slug: string;
+    portadaUrl: string | null;
+    totalSamples: number;
+    creador: string;
+}
+
+export type TipoResultado = 'cancion' | 'sample' | 'sampleo' | 'usuario' | 'coleccion';
+
+export interface ResultadoUnificado {
+    tipo: TipoResultado;
+    score: number;
+    datos: ResultadoCancion | ResultadoSample | ResultadoSampleo | ResultadoUsuario | ResultadoColeccion;
+}
+
 export interface ResultadosBusquedaRapida {
     canciones: ResultadoCancion[];
     samples: ResultadoSample[];
     sampleos: ResultadoSampleo[];
     usuarios: ResultadoUsuario[];
+    colecciones: ResultadoColeccion[];
+    todos: ResultadoUnificado[];
 }
 
 /**

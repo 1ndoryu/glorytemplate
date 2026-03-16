@@ -365,12 +365,6 @@
     .landingNavDerecha {
         gap: var(--espacioXs);
     }
-
-    .landingHeroAcciones {
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
     .landingHeroTitulo {
         font-size: var(--landingTituloMovil);
     }
