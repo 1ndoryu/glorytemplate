@@ -23,6 +23,36 @@ Evualua esto, imagina que de repente hay 1.000.000, no digo que haya que calcula
 
 > Script: `App/Kamples/Cli/benchmarkAlgoritmo.php` — ejecutar con: `php wp-content/themes/glorytemplate/App/Kamples/Cli/benchmarkAlgoritmo.php [userId] [perPage]`
 
+### Benchmark #3 — Post CTEs Pre-agregados (2026-03-16)
+
+| Dato | Valor |
+|------|-------|
+| Fecha | 2026-03-16 07:34 UTC |
+| Commit | fa1b5286 |
+| Config hash | df224c3e |
+| Samples activos | 294 |
+| pgvector | SI |
+| Pipeline candidatos | NO (<5000) |
+| MV trending | SI |
+
+| Componente | Tiempo |
+|------------|--------|
+| PerfilUsuario::construir (sin cache) | 34.1ms |
+| FEED pag1 sin cache | **178.3ms (33 samples)** |
+| FEED pag2 sin cache | **99.8ms (33 samples)** |
+| FEED pag3 sin cache | **103.0ms (33 samples)** |
+| Feed pag3 cache hit | 1.5ms |
+| **Promedio feed sin cache** | **127.0ms** |
+
+**Cambios aplicados (commits `7fb6b92e` + `fa1b5286`):**
+- **CTE `score_tags`:** Pre-agrega 7 tag affinity scores en 1 pass via LATERAL UNNEST + hash JOINs a utag_* CTEs. Elimina SubPlans 7-13 (7 correlated subqueries del comportamiento + genero_match).
+- **CTE `repro_peso`:** Pre-agrega reproducciones ponderadas (sum_ponderada + repro_significativas) por sample con clasificacion adaptativa (corto/medio/largo). Elimina SubPlans 16-17 (penalizacionReproduccion + hasPlayed).
+- **CTE `likes_seguidos_cte`:** Pre-agrega likes de followed users por sample. Elimina SubPlan 15 (likeadoPorSeguidos).
+- **Scoring sin subqueries:** Comportamiento usa `st.*`, contexto usa `st.ctx_cnt`, grafo social usa `ls.*`, penalizaciones usan `rp.*`.
+- **Fix PDO:** Remover param `:userId` no referenciado — PG PDO falla con params extras (a diferencia de MySQL que los ignora).
+
+**Resultado: 734ms → 127ms (promedio). Mejora: 82.7% vs Benchmark #2. Total: >30,000ms → 127ms = 99.6%.**
+
 ### Benchmark #2 — Post CTE Optimization (2026-03-16)
 
 | Dato | Valor |

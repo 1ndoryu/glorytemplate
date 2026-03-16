@@ -24,6 +24,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 - `App/docs/plan-samples-metadata.md` -- Sample Discovery & Metadata Engine (scraping + extraccion audio)
 - `App/docs/plan-seo.md` -- Plan SEO dinamico (RuntimeSeoData, JSON-LD, sitemaps)
 - `App/docs/plan-notificaciones.md` -- Sistema notificaciones (5 canales, push, WebSocket)
+- `App/docs/optimizacion-feed-busqueda.md` -- Optimizacion feed/busqueda/algoritmo (escalabilidad, bottlenecks, Redis, relevancia adaptativa)
 - `App/docs/plan-legal-contribuciones.md` -- Plan legal/contribuciones (DMCA, moderacion L1-L7)
 
 **Infraestructura & Deploy:**
@@ -332,6 +333,103 @@ tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguale
 - **Frontend bridge:** `fcmToken.ts` lee `fcm_token.txt` via Tauri FS plugin (AppData/AppLocalData fallback), registra en backend. Integrado en `useNotificacionesNativas.ts`. Module declaration `@tauri-apps/plugin-fs` en `global.d.ts`.
 - **Pendiente:** Configurar `KAMPLES_FCM_SERVICE_ACCOUNT_JSON` env var en Coolify (Firebase Console → Service Accounts → Generate key).
 - [Leccion]: Google GSI (Identity Services) no funciona en WebView (Tauri Android). Necesita flujo OAuth PKCE propio (`loginGoogleDesktop`). El bridge Kotlin→JS mas simple es file-based (SharedPreferences + filesDir + Tauri FS plugin).
+
+# QL35
+
+✅ [AG-APK] Fix feedSamplesVacio intermitente:
+- **Root cause:** En stale-while-revalidate, cuando la API fallaba, el proveedor retornaba `[]` (error disfrazado de vacio). Esto: (1) reemplazaba datos stale validos con array vacio, (2) persistía `[]` en localStorage corrompiendo cache futuro.
+- **Fix arquitectónico:** Nuevo tipo `ResultadoProveedor { ok: boolean, data: SampleResumen[] }`. `ProveedorSamples` ahora retorna resultado con flag de éxito. El hook solo actualiza UI y cache cuando `ok === true`. Si la revalidación falla, datos stale permanecen visibles.
+- **Archivos:** FeedSamples.tsx (tipo), useFeedSamples.ts (cargarPagina con try-catch en stale path), 7 proveedores actualizados (InicioIsland, useDescubrirIsland, useDescargasPagina x3, useFavoritosPagina, ColeccionDetalleIsland, CancionDetalleIsland, useRelacionDetalleIsland).
+- **Fix adicional:** `@tauri-apps/plugin-fs` agregado a `external` del build web Glory (mismo patrón que plugin-notification). Corregía fallo del `npm run build` en servidor.
+- [Leccion]: Los proveedores NO deben retornar `[]` para errores — eso hace imposible distinguir error de resultado vacio real. Siempre retornar `{ ok, data }`.
+
+# QL36
+
+✅ [AG-APK] APK actualizado y listo:
+- **APK:** `kamples-release.apk` en raíz del tema (49.4 MB, 2026-03-16).
+- **Notificaciones:** Las notificaciones nativas del sistema SÍ funcionan (confirmado en QL45). El FCM push requiere configurar `KAMPLES_FCM_SERVICE_ACCOUNT_JSON` en Coolify (Firebase Console → Service Accounts → Generate key).
+- **Ruta del APK build:** `desktop/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk`. Después de firmar, copiar a raíz como `kamples-release.apk`.
+
+# QL37 (antes de que empezaras QL35)
+
+EL PROBLEMA DE QUE EL CONTADOR DEL FEED SAMPLE DICE 13 samples cuando hay mas y que al bajar no carguen mas smaples! ESE PROBLEMA SIGUE NO PASA SIEMPRE NO SE CUALES SON LAS CIRCUSTANCIA QUE LO LLEVAN A ESO!!!
+
+Y SIGUE QUE AL HACER SCROLL NO CARGAN LOS SAMPLES; A VECES SI; A VECES NO; A VECES UNA PAGINA SI; A VECES UNA PAGINA NO
+
+EL CONTADOR DE https://kamples.com/descargas/ y el de las colecciones debe decir el total que hay, no el total de la pagina!!
+
+Cada vez que cargo el feed veo el proceso de select de postgres consumir todos los recursos y dar varios segundos procesando
+
+me doy cuenta que las paginas no cargan, solo que son extremadamente lentas.
+
+# QL38 ✅ [AG-OPT] Optimizacion feed query completada
+
+- **Benchmark #1 (baseline):** >30,000ms timeout por query 
+- **Benchmark #2 (CTE v1):** 734ms promedio — CTEs basicos + LEFT JOINs flags
+- **Benchmark #3 (CTEs pre-agregados):** 127ms promedio — score_tags, repro_peso, likes_seguidos_cte
+- **Mejora total: >30,000ms → 127ms (99.6%)**
+- **Commits:** `7bd83825`, `7fb6b92e`, `fa1b5286`
+- Detalles en `App/docs/optimizacion-feed-busqueda.md`
+- **Lecciones:**
+  - [PG PDO]: PostgreSQL PDO falla con params extras no referenciados en SQL (SQLSTATE[HY093]). MySQL los ignora. Siempre verificar que `$queryParams` solo tiene keys usadas en el SQL.
+  - [CTEs]: `LATERAL UNNEST + LEFT JOIN` a multiples CTEs es dramaticamente mas rapido que `@> ARRAY[ut.tag]` correlacionado por fila. 294 samples × 7 subqueries → 1 pass con hash joins.
+  - [Deploy]: Coolify manager deploy no siempre hace git pull. Verificar commit en container y hacer pull manual si necesario.
+
+
+
+
+# QL39
+
+Me doy cuenta que 
+
+Error: Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.
+Type: invalid_request_error
+Code: json_validate_failed
+
+Es un error comun en el modelo de openai/gpt-oss-120b, revisa en donde de usa, e intenta corregir
+
+# QL40
+
+Presiento que el proceso de extrasion de audio el script no se actualiza, no pido que lo cambies, dejalo tal como esta, solo agrega un log al ejecutar con esta frase "TRIP PO" 
+
+# QL41 
+
+coleccionHeader tiene que actualizarse segun la tab activa (en descargas)
+
+# QL42
+
+Esto siempre sale en descargas "Descarga algunos samples para recibir sugerencias personalizadas." nunca muestra mas ideas para los coleccionados.
+
+# QL43
+
+El boton de tarjetaColeccionPreviewContenedor funciona pero no debe estar centrado y cuando se haga hover escureser un poco la imagen, y el boton de preview dentro de detalles de la coleccion debería funcionar igual pero no lo hace
+
+# QL45 (cuando trabajabas en QL 35 vi)
+
+que las notificaciones ya funcionan, pero el logo de la notificacion no es el kamples
+ademas, las notificaciones debería ser iguales a las notificaciones de la app, con la foto del usuario, la descripcion, etc, y debe redirigir al contenido relacionado al hacer click dentro de la app
+
+tambien veo que falta un paddin top en la app porque al menos en el emulador, la barra de arriba de android tapa un poco el contenido. No se si es el emulador. Y BOTTON, creo que el problema es otro, el view no encaja con el telefono y nav de abajo difiere en mi telefono y en el emulador areaSidebar la linea tiene diferente altura y choca con los iconos pero la distancia de choque no es igual en mi telefono que en el emulador asi que no se puede arreglar simplemente ajustando medidas, algo mas pas
+
+# QL46
+
+Al menu de hamburgueza en el movil de le falta de cerrar sesion, configuracion y grupo de whatsapp. 
+
+# QL47
+
+Implementar redis en kamples en la vps, automatizar el despliegue de redis en coolify manager rs
+
+# QL45-Actualziacion despues de que leyeras QL45
+
+creo que el problema es otro, el view no encaja con el telefono y nav de abajo difiere en mi telefono y en el emulador areaSidebar la linea tiene diferente altura y choca con los iconos pero la distancia de choque no es igual en mi telefono que en el emulador asi que no se puede arreglar simplemente ajustando medidas, algo mas pasa
+
+# QL46
+
+En la apk, los svg del inicio no cargan
+
+# QL47
+
+Es posible spamear notificaciones a los usuarios, lo cual es malo, debe de haber un control centralizado para no repetir notificaciones, por ejemplo veo que si doy like a un sample y repetio la accion se envia la notifacion con cada like, y estas cosas asi estan mal, claramente hay cosas que corregir y mejorar.
 
 
 
