@@ -10,6 +10,7 @@
     justify-content: space-between;
     gap: var(--espacioMd);
     margin-bottom: var(--espacioSm);
+    width: 100%;
 }
 
 .barraControlFeedIzquierda {

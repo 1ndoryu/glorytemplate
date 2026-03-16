@@ -682,9 +682,18 @@ esto es gravisimo, esto necesita una auditoría de seguridad
 - Archivos: `uploadQueueService.ts`, `syncWatcherSetup.ts`, `syncInitService.ts`.
 - [Leccion]: Las opciones de limpieza retroactiva necesitan un mecanismo explicito. No basta con activar borrado "de ahora en adelante" — el usuario espera que todos los archivos ya subidos se limpien.
 
+# QL79
 
+la aplicacion se queda en negro en el emulador
+veo cosas que dicen pendiente en el roadmap
+donde esta en instalador de la aplicacion y la apk para probar?
+el scroll de los samples si funciona mal
+de repente si bajo muy rapido aparece esta cosa que no se que es y no debería aparecer no tiene sentido
+<div aria-hidden="true" style="height: 792px;"></div> y el boton de cargar mas desaparece y deja de cargar mas, quitar ese boton y simplemente el sistema spam que pause por 2 segundos pero se pueda cargar mas samples
 
+# QL80
 
+Desactiva la reproduccion automatica, no reproducir el siguiente sample a dar click y ocultar el boton de aleatoreo del reproductor
 
 
 

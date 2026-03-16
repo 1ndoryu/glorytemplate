@@ -11,6 +11,11 @@
     align-items: flex-start;
 }
 
+.coleccionDetalle button.botonBase.varianteGhost.tamanoMd.barraControlFeedOrdenBtn {
+    padding: 0;
+    /* margin-left: 100%; */
+}
+
 /* C347: clase .coleccionVolver eliminada — ahora usa .botonVolver (botonBase.css) */
 
 /* Header: imagen + info lado a lado */
