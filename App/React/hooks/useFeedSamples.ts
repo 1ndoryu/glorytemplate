@@ -184,7 +184,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Carga de datos paginada con stale-while-revalidate en pagina 1.
      * QK39: Lee cache persistente (localStorage) si no hay cache en memoria.
      * El usuario ve datos instantaneos de la sesion anterior
-     * mientras los datos frescos se cargan en background. */
+     * mientras los datos frescos se cargan en background.
+     * QL24: try/finally garantiza que cargando/cargandoMas se resetean
+     * incluso cuando el requestId guard cancela la operación. Sin esto,
+     * cargandoMas quedaba true permanentemente bloqueando el infinite scroll. */
     const cargarPagina = useCallback(async (pagina: number, esNuevo: boolean) => {
         const thisRequest = ++requestIdRef.current;
         const key = `${claveCache}_p${pagina}`;
@@ -214,31 +217,40 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             setCargandoMas(true);
         }
 
-        let resultado: SampleResumen[] = [];
+        try {
+            let resultado: SampleResumen[] = [];
 
-        if (datosStale) {
-            resultado = datosStale;
-        } else {
-            resultado = await proveedor(pagina);
-            if (requestIdRef.current !== thisRequest) return;
-            cacheFeedRef.current[key] = resultado;
-            /* QK39: Persistir pagina 1 para stale-first en recargas */
-            if (pagina === 1) guardarCacheFeed(claveCache, resultado);
-        }
+            if (datosStale) {
+                resultado = datosStale;
+            } else {
+                resultado = await proveedor(pagina);
+                if (requestIdRef.current !== thisRequest) return;
+                cacheFeedRef.current[key] = resultado;
+                /* QK39: Persistir pagina 1 para stale-first en recargas */
+                if (pagina === 1) guardarCacheFeed(claveCache, resultado);
+            }
 
-        if (resultado.length === 0) setHayMasPaginas(false);
+            if (resultado.length === 0) setHayMasPaginas(false);
 
-        if (esNuevo) {
-            setSamples(resultado);
-            setCargando(false);
-            setPrimeraCargaCompleta(true);
-        } else {
-            setSamples(prev => {
-                const idsExistentes = new Set(prev.map(s => s.id));
-                const nuevos = resultado.filter(s => !idsExistentes.has(s.id));
-                return [...prev, ...nuevos];
-            });
-            setCargandoMas(false);
+            if (esNuevo) {
+                setSamples(resultado);
+                setPrimeraCargaCompleta(true);
+            } else {
+                setSamples(prev => {
+                    const idsExistentes = new Set(prev.map(s => s.id));
+                    const nuevos = resultado.filter(s => !idsExistentes.has(s.id));
+                    return [...prev, ...nuevos];
+                });
+            }
+        } finally {
+            /* QL24: Resetear flags de carga SIEMPRE, incluso si requestId guard canceló.
+             * Sin este finally, cargandoMas quedaba true permanentemente cuando el proveedor
+             * cambiaba durante una carga, bloqueando el IntersectionObserver para siempre. */
+            if (esNuevo) {
+                setCargando(false);
+            } else {
+                setCargandoMas(false);
+            }
         }
     }, [claveCache, proveedor]);
 

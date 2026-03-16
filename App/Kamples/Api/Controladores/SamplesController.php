@@ -319,13 +319,11 @@ class SamplesController
             $extraParams['busquedaTagLike'] = '%' . \strtolower($busqueda) . '%';
         }
 
-        /* QQ2: Total — si hay búsqueda, contar solo los que coinciden */
-        if ($page === 1) {
-            $countWhere = "s.{$sEstadoFeed} = '{$eActivoFeed}'" . $whereExtra;
-            $totalActivos = SamplesRepository::contarConFiltros($countWhere, $extraParams);
-        } else {
-            $totalActivos = null;
-        }
+        /* QQ2/QL24: Total en TODAS las páginas para que el frontend tenga el contador correcto.
+         * Antes solo se calculaba en page 1, causando que totalServidor quedara null
+         * si la primera carga venía de cache y el race condition perdía el valor. */
+        $countWhere = "s.{$sEstadoFeed} = '{$eActivoFeed}'" . $whereExtra;
+        $totalActivos = SamplesRepository::contarConFiltros($countWhere, $extraParams);
 
         /* Intentar usar el motor de recomendación para 'descubrir' (sin búsqueda activa) */
         if ($tipo === 'descubrir' && empty($busqueda)) {
@@ -347,8 +345,8 @@ class SamplesController
                             'feed' => 'descubrir',
                             'page' => $page,
                             'algoritmo' => true,
+                            'total' => $totalActivos,
                         ];
-                        if ($totalActivos !== null) $resp['total'] = $totalActivos;
                         return new \WP_REST_Response($resp, 200);
                     }
                 } catch (\Throwable $e) {
@@ -406,8 +404,8 @@ class SamplesController
             'data' => NormalizadorSample::normalizarLista($samples),
             'feed' => $tipo,
             'page' => $page,
+            'total' => $totalActivos,
         ];
-        if ($totalActivos !== null) $resp['total'] = $totalActivos;
         return new \WP_REST_Response($resp, 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('SamplesController::feed error', ['error' => $e->getMessage()]);

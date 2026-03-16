@@ -1,6 +1,7 @@
 /*
  * MenuContextual — Kamples
- * Menú desplegable que aparece al hacer click derecho o click en botón.
+ * Desktop: menú desplegable posicionado en coordenadas absolutas.
+ * Móvil (QL25): bottom sheet como apps nativas.
  */
 
 .menuContextualOverlay {
@@ -41,7 +42,8 @@
 }
 
 /* Override BotonBase (0,2,0) — usar 3 clases para ganar en especificidad (0,3,0) */
-.menuContextual .botonBase.menuContextualItem {
+.menuContextual .botonBase.menuContextualItem,
+.menuContextualBottomSheet .botonBase.menuContextualItem {
     justify-content: flex-start;
     padding: var(--espacioSm) var(--espacioMd);
     height: auto;
@@ -58,8 +60,6 @@
     color: var(--error);
 }
 
-/* Separador eliminado por C102 */
-
 .menuContextualItemIcono {
     display: flex;
     align-items: center;
@@ -74,5 +74,66 @@
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+/* QL25: Bottom sheet para móvil */
+.menuContextualBottomSheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--zMenu);
+    background-color: var(--fondoElevado1);
+    border-radius: var(--radioLg) var(--radioLg) 0 0;
+    box-shadow: var(--sombraElevada);
+    padding-bottom: env(safe-area-inset-bottom, var(--espacioMd));
+    animation: bottomSheetEntrar 0.25s ease-out;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.menuContextualBottomSheetBarra {
+    width: 36px;
+    height: 4px;
+    background-color: var(--bordeSutil);
+    border-radius: var(--radioSm);
+    margin: var(--espacioSm) auto 0;
+}
+
+.menuContextualBottomSheetCabecera {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--espacioXs) var(--espacioSm) 0;
+}
+
+.menuContextualBottomSheetCerrar {
+    color: var(--textoSecundario);
+}
+
+.menuContextualBottomSheetItems {
+    padding: 0 0 var(--espacioSm);
+}
+
+.menuContextualBottomSheetItems .menuContextualItem {
+    padding: var(--espacioMd) var(--espacioLg);
+    font-size: var(--fuenteMd);
+    min-height: 48px;
+}
+
+@keyframes bottomSheetEntrar {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .menuContextualOverlay {
+        background-color: var(--overlaySuave);
     }
 }

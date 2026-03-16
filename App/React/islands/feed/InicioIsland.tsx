@@ -123,15 +123,21 @@ export const FeedUnificado = (): JSX.Element => {
     /*
      * QK83: Proveedor de datos — pasa búsqueda al backend para FTS server-side.
      * El backend usa GIN indexes (QK75) para búsqueda full-text rápida (~400ms).
+     * QL24: El backend ahora envía total en TODAS las páginas, no solo page 1.
      */
     const proveedor = useCallback(async (pagina: number): Promise<SampleResumen[]> => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
         const resp = await obtenerFeed(tipo, pagina, busquedaDebounced);
-        /* QQ2: El backend devuelve total en page 1; usarlo para el contador real */
         if (resp.total != null) setTotalServidor(resp.total);
         return resp.ok && resp.data ? resp.data : [];
+    }, [ordenamiento, busquedaDebounced]);
+
+    /* QL24: Resetear totalServidor al cambiar ordenamiento/búsqueda para evitar
+     * mostrar total stale de un ordenamiento anterior mientras la nueva API responde. */
+    useEffect(() => {
+        setTotalServidor(null);
     }, [ordenamiento, busquedaDebounced]);
 
     /* QK83: Incluir búsqueda en clave de cache para invalidar al cambiar query */

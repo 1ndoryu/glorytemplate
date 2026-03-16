@@ -153,8 +153,9 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
-     * C388: Tags más frecuentes del usuario (agregados de sus colecciones).
-     * Devuelve array de strings ordenados por frecuencia descendente.
+     * C388/QL23: Tags más frecuentes del usuario (agregados de sus colecciones).
+     * Usa metadata JSONB (tags IA) en vez de s.tags (nombres de artistas WhoSampled).
+     * Prioriza tags_es (español) con fallback a tags (inglés).
      */
     public static function tagsFrecuentesDelUsuario(int $userId, int $limite = 15): array
     {
@@ -165,7 +166,7 @@ class ColeccionesRepository extends BaseRepository
         $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
         $sampleId = SamplesCols::ID;
-        $sampleTags = SamplesCols::TAGS;
+        $sampleMeta = SamplesCols::METADATA;
         $sampleEstado = SamplesCols::ESTADO;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
         $colUsuarioId = ColeccionesCols::USUARIO_ID;
@@ -176,9 +177,16 @@ class ColeccionesRepository extends BaseRepository
              FROM {$tcs} cs
              JOIN {$t} c ON cs.{$csColeccionId} = c.{$colId}
              JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
-             CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+             CROSS JOIN LATERAL jsonb_array_elements_text(
+                 COALESCE(
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                     '[]'::jsonb
+                 )
+             ) as tag_val
              WHERE c.{$colUsuarioId} = :userId
                AND s.{$sampleEstado} = '{$estadoActivo}'
+               AND s.{$sampleMeta} IS NOT NULL
              GROUP BY tag_val
              ORDER BY frecuencia DESC
              LIMIT :limite",
@@ -320,8 +328,9 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
-     * B1: Tags más frecuentes de colecciones públicas (explorar).
-     * Agrega tags de todos los samples activos en colecciones públicas.
+     * B1/QL23: Tags más frecuentes de colecciones públicas (explorar).
+     * Usa metadata JSONB (tags IA) en vez de s.tags (nombres de artistas WhoSampled).
+     * Prioriza tags_es (español) con fallback a tags (inglés).
      */
     public static function tagsFrecuentesExplorar(int $limite = 15): array
     {
@@ -332,7 +341,7 @@ class ColeccionesRepository extends BaseRepository
         $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
         $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
         $sampleId = SamplesCols::ID;
-        $sampleTags = SamplesCols::TAGS;
+        $sampleMeta = SamplesCols::METADATA;
         $sampleEstado = SamplesCols::ESTADO;
         $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
         $colPublica = ColeccionesCols::PUBLICA;
@@ -343,9 +352,16 @@ class ColeccionesRepository extends BaseRepository
              FROM {$tcs} cs
              JOIN {$t} c ON cs.{$csColeccionId} = c.{$colId}
              JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
-             CROSS JOIN LATERAL UNNEST(s.{$sampleTags}) as tag_val
+             CROSS JOIN LATERAL jsonb_array_elements_text(
+                 COALESCE(
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
+                     CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                     '[]'::jsonb
+                 )
+             ) as tag_val
              WHERE c.{$colPublica} = true
                AND s.{$sampleEstado} = '{$estadoActivo}'
+               AND s.{$sampleMeta} IS NOT NULL
              GROUP BY tag_val
              ORDER BY frecuencia DESC
              LIMIT :limite",

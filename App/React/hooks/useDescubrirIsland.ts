@@ -21,7 +21,7 @@ const TABS_DESCUBRIR = [{ id: 'descubrir', etiqueta: 'Explorar' }];
 export const useDescubrirIsland = () => {
     const [filtrosAbierto, setFiltrosAbierto] = useState(false);
     const [menuOrdenamiento, setMenuOrdenamiento] = useState(false);
-    const [totalServidor, setTotalServidor] = useState(0);
+    const [totalServidor, setTotalServidor] = useState<number | null>(null);
     const [conteoFiltrado, setConteoFiltrado] = useState(0);
 
     const autenticado = useAuthStore(s => s.autenticado);
@@ -73,6 +73,11 @@ export const useDescubrirIsland = () => {
         const resp = await obtenerFeed(tipo, pagina);
         if (resp.total != null) setTotalServidor(resp.total);
         return resp.ok && resp.data ? resp.data : [];
+    }, [ordenamiento]);
+
+    /* QL24: Resetear totalServidor al cambiar ordenamiento */
+    useEffect(() => {
+        setTotalServidor(null);
     }, [ordenamiento]);
 
     const claveCache = `descubrir_${ordenamiento}_${periodoDestacados}`;

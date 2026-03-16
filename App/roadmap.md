@@ -274,22 +274,30 @@ tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguale
 
 # QL22 
 
-En la tabla de canciones todas las canciones aparecen sin genero, es un error? 
+✅ [AG-FIX] Investigado: 221/22,007 canciones tienen genero (backfill parcial desde metadata de samples). Las 21,786 restantes requieren run del scraper WhoSampled (track overview) para extraer genero. No es bug de display, es falta de datos en pipeline.
 
 # QL23 
 
-libreriaTagsFrecuentes esta recogiendo las tags incorrectas, tiene que ser igual como las feedtag que recogen las tags generadas por la IA. 
+✅ [AG-FIX] Corregido: `ColeccionesRepository::tagsFrecuentesDelUsuario()` y `tagsFrecuentesExplorar()` usaban `UNNEST(s.tags)` (nombres de artistas WhoSampled). Cambiado a `jsonb_array_elements_text(COALESCE(metadata->'tags_es', metadata->'tags', '[]'))` para usar tags IA. Prioriza traducciones español.
 
 # QL24
 
-NO CARGAN MAS SAMPLES AL HACER EL SCROLL Y CONTADOR NO DICE LOS SAMPLES COMPLETOS; EN EL FEED DE SAMPLES
+✅ [AG-FIX] Tres root causes corregidos:
+- Backend (`SamplesController`): `total` se calculaba solo en page 1 — ahora siempre se envía.
+- Frontend (`useFeedSamples`): `cargandoMas` podía quedarse `true` permanentemente por race condition del requestId — envuelto en try/finally.
+- Frontend (`InicioIsland` + `useDescubrirIsland`): `totalServidor` no se reseteaba al cambiar ordenamiento — añadido useEffect reset. `totalServidor` inicializado como `null` en vez de `0`.
 
 # QL25 
 
-DIJE QUE ABSOLUTAMENTE TODOS LOS MENU CONTEXTUALES DEBEN SER DROPDOWNS INFERIORRES COMO EN LAS APPS DE CELULAR
+✅ [AG-FIX] Implementado: `MenuContextual` detecta móvil con `useEsMovil()` y renderiza como bottom sheet nativo. CSS con animación `bottomSheetEntrar` (translateY), overlay oscuro, barra de agarre, ítems con touch targets de 48px. Desktop sin cambios. Los 24 usos del componente heredan el comportamiento automáticamente.
 
+# QL26
 
+Se reinstalo la apk, hay detalles
 
+el logo en la apk es muy grande, tiene que ser un poco mas pequeño, mas espacio alrededor, y el logo que aparece al abrir hace que se note que es un png y no svg
+
+y las notificaciones siguen sin aparecer en android.
 
 
 

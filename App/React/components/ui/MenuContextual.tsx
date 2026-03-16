@@ -1,13 +1,16 @@
 /*
  * Componente: MenuContextual
- * Menú desplegable posicionado en coordenadas absolutas.
- * Se cierra al hacer click fuera o presionar Escape.
+ * Desktop: menú desplegable posicionado en coordenadas absolutas.
+ * Móvil (QL25): bottom sheet a pantalla completa, como apps nativas.
+ * Se cierra al hacer click fuera, presionar Escape o botón de cierre.
  */
 
 import { type ReactNode, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import '../../styles/componentes/menuContextual.css';
 import { BotonBase } from './BotonBase';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 
 export interface MenuItemDef {
     id: string;
@@ -36,6 +39,8 @@ export const MenuContextual = ({
     y,
     alinearDerecha = false,
 }: MenuContextualProps): JSX.Element | null => {
+    const esMovil = useEsMovil();
+
     const manejarKeyDown = useCallback(
         (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -53,7 +58,70 @@ export const MenuContextual = ({
 
     if (!abierto) return null;
 
-    /* Ajustar posición para que no se salga de pantalla */
+    /* Contenido de items reutilizado en ambos modos */
+    const contenidoItems = items.map((item) => (
+        <div key={item.id}>
+            {item.href ? (
+                <a
+                    className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
+                    href={item.href}
+                    onClick={(e) => {
+                        if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                            e.preventDefault();
+                            item.onClick();
+                            onCerrar();
+                        }
+                    }}
+                    onAuxClick={() => onCerrar()}
+                    role="menuitem"
+                >
+                    {item.icono && (
+                        <span className="menuContextualItemIcono">{item.icono}</span>
+                    )}
+                    {item.etiqueta}
+                </a>
+            ) : (
+                <BotonBase variante="ghost"
+                    className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
+                    onClick={() => {
+                        item.onClick();
+                        onCerrar();
+                    }}
+                    role="menuitem"
+                    type="button"
+                >
+                    {item.icono && (
+                        <span className="menuContextualItemIcono">{item.icono}</span>
+                    )}
+                    {item.etiqueta}
+                </BotonBase>
+            )}
+        </div>
+    ));
+
+    /* QL25: Bottom sheet en móvil */
+    if (esMovil) {
+        return createPortal(
+            <>
+                <div className="menuContextualOverlay" onClick={onCerrar} />
+                <div className="menuContextualBottomSheet" role="menu">
+                    <div className="menuContextualBottomSheetBarra" />
+                    <div className="menuContextualBottomSheetCabecera">
+                        <BotonBase variante="ghost" className="menuContextualBottomSheetCerrar"
+                            onClick={onCerrar} type="button" aria-label="Cerrar">
+                            <X size={20} />
+                        </BotonBase>
+                    </div>
+                    <div className="menuContextualBottomSheetItems">
+                        {contenidoItems}
+                    </div>
+                </div>
+            </>,
+            document.body
+        );
+    }
+
+    /* Desktop: posicionamiento absoluto */
     const menuAncho = 160;
     const menuAlto = items.length * 36 + 8;
     const posX = alinearDerecha ? x - menuAncho : x;
@@ -70,48 +138,7 @@ export const MenuContextual = ({
                 style={{ left: ajusteX, top: ajusteY }}
                 role="menu"
             >
-                {items.map((item) => (
-                    <div key={item.id}>
-                        {item.href ? (
-                            /* Usar <a> para items con href: permite middle-click en nueva pestaña */
-                            <a
-                                className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
-                                href={item.href}
-                                onClick={(e) => {
-                                    /* Solo interceptar click izquierdo sin modificadores para SPA */
-                                    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-                                        e.preventDefault();
-                                        item.onClick();
-                                        onCerrar();
-                                    }
-                                }}
-                                onAuxClick={() => onCerrar()}
-                                role="menuitem"
-                            >
-                                {item.icono && (
-                                    <span className="menuContextualItemIcono">{item.icono}</span>
-                                )}
-                                {item.etiqueta}
-                            </a>
-                        ) : (
-                            <BotonBase variante="ghost"
-                                className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
-                                onClick={() => {
-                                    item.onClick();
-                                    onCerrar();
-                                }}
-                                role="menuitem"
-                                type="button"
-                            >
-                                {item.icono && (
-                                    <span className="menuContextualItemIcono">{item.icono}</span>
-                                )}
-                                {item.etiqueta}
-                            </BotonBase>
-                        )}
-                        {/* Separador eliminado por C102 */}
-                    </div>
-                ))}
+                {contenidoItems}
             </div>
         </>,
         document.body
