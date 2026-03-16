@@ -22,15 +22,9 @@ use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
-use App\Config\Schema\_generated\LikesCols;
-use App\Config\Schema\_generated\LikesEnums;
-use App\Config\Schema\_generated\DescargasCols;
-use App\Config\Schema\_generated\ColeccionSamplesCols;
-use App\Config\Schema\_generated\ColeccionesCols;
-use App\Config\Schema\_generated\ComentariosCols;
-use App\Config\Schema\_generated\ComentariosEnums;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Services\ConstructorSenales;
+use App\Kamples\Services\PrecomputadorFeed;
 use App\Kamples\Services\PerfilUsuario;
 use App\Kamples\Services\SelectorCandidatos;
 use App\Config\Schema\_generated\ReproduccionesCols;
@@ -159,13 +153,13 @@ class MotorRecomendacion
         /* Señal 1: Comportamiento — 5 sub-factores ponderados */
         $pesoComportamiento = $pesos['comportamiento'] ?? 0.25;
         if ($pesoComportamiento > 0) {
-            $additiveParts[] = ConstructorSenales::sqlComportamiento($userId, $pesoComportamiento, $config, $queryParams);
+            $additiveParts[] = PrecomputadorFeed::sqlComportamiento($pesoComportamiento, $config);
         }
 
         /* Señal 2: Contexto — BPM proximidad, key match, género match, tipo match */
         $pesoContexto = $pesos['contexto'] ?? 0.15;
         if ($pesoContexto > 0) {
-            $additiveParts[] = ConstructorSenales::sqlContexto($userId, $pesoContexto, $perfilUsuario, $config, $queryParams);
+            $additiveParts[] = PrecomputadorFeed::sqlContexto($pesoContexto, $perfilUsuario, $config, $queryParams);
         }
 
         /* Señal 3: Tendencias — engagement velocity multi-ventana */
@@ -186,7 +180,7 @@ class MotorRecomendacion
         /* Señal 5: Grafo social — samples de seguidos + likes de seguidos */
         $pesoSocial = $pesos['grafo_social'] ?? 0.10;
         if ($pesoSocial > 0) {
-            $additiveParts[] = ConstructorSenales::sqlGrafoSocial($userId, $pesoSocial, $queryParams);
+            $additiveParts[] = PrecomputadorFeed::sqlGrafoSocial($pesoSocial);
         }
 
         /* Señal 6: Similitud de contenido — pgvector coseno */
@@ -218,7 +212,7 @@ class MotorRecomendacion
         $penalizacion = ConstructorSenales::sqlPenalizacionReproduccion($userId, $config);
 
         /* Multiplicador: penalización pasiva (reproducción sin like/descarga/guardar) */
-        $penalizacionPasiva = ConstructorSenales::sqlPenalizacionPasiva($userId, $config);
+        $penalizacionPasiva = PrecomputadorFeed::sqlPenalizacionPasiva($userId, $config);
 
         /* Multiplicador: saturación de popularidad (samples sobreusados pierden valor) */
         $saturacionPop = ConstructorSenales::sqlSaturacionPopularidad($config);
@@ -234,15 +228,13 @@ class MotorRecomendacion
         $maxPorCreador = (int) ($params['max_por_creador'] ?? 3);
 
         /*
-         * C74: Penalización suave a partir del Nº sample por creador.
-         * Los primeros rankean alto, los siguientes bajan pero NUNCA se excluyen.
+         * CTEs de pre-cómputo: tags enriquecidos (1× en vez de 9×),
+         * flags usuario (LEFT JOIN en vez de 4 EXISTS), vectores de afinidad.
+         * FIX verificado_sample: alias obligatorio para NormalizadorSample.
          */
-        /*
-         * FIX verificado_sample: El CTE debe usar los mismos aliases que sqlSelectSamples()
-         * para que NormalizadorSample::normalizar() encuentre 'verificado_sample'.
-         * Sin el alias, s.verificado es sobreescrito por u.verificado en el array asociativo
-         * de PDO (último valor con mismo key gana), y 'verificado_sample' no existe → siempre false.
-         */
+        $ctesPrecomputo = PrecomputadorFeed::generarCtes($userId);
+        $ctesPrecomputoPrefijo = PrecomputadorFeed::serializarCtes($ctesPrecomputo);
+
         $ts = SamplesCols::TABLA;
         $tu = UsuariosExtCols::TABLA;
         $sId = SamplesCols::ID;
@@ -255,77 +247,48 @@ class MotorRecomendacion
         $uAvatar = UsuariosExtCols::AVATAR_URL;
         $uVerif = UsuariosExtCols::VERIFICADO;
         $uWpId = UsuariosExtCols::WP_USER_ID;
-        $tl = LikesCols::TABLA;
-        $lUid = LikesCols::USUARIO_ID;
-        $lTipo = LikesCols::TIPO;
-        $lTarget = LikesCols::TARGET_ID;
-        $lReacc = LikesCols::REACCION;
-        $ltSample = LikesEnums::TIPO_SAMPLE;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
-        /*
-         * Tablas para flags de estado del usuario en el CTE.
-         * TERMINOLOGIA:
-         * - ya_coleccionado: tabla descargas (boton +, coleccionar/descargar)
-         * - ya_guardado_en_coleccion: coleccion_samples (boton Bookmark, guardar en coleccion)
-         * - ya_comentado: comentarios del usuario en este sample
-         * - es_mio: sample creado por el usuario (se muestra como coleccionado)
-         */
-        $td = DescargasCols::TABLA;
-        $dUid = DescargasCols::USUARIO_ID;
-        $dSid = DescargasCols::SAMPLE_ID;
-        $tcs = ColeccionSamplesCols::TABLA;
-        $csSid = ColeccionSamplesCols::SAMPLE_ID;
-        $tcCol = ColeccionesCols::TABLA;
-        $colId = ColeccionesCols::ID;
-        $colUid = ColeccionesCols::USUARIO_ID;
-        $csColId = ColeccionSamplesCols::COLECCION_ID;
-        $tcom = ComentariosCols::TABLA;
-        $comAutor = ComentariosCols::AUTOR_ID;
-        $comTipo = ComentariosCols::TIPO;
-        $comTarget = ComentariosCols::TARGET_ID;
-        $comTipoSample = ComentariosEnums::TIPO_SAMPLE;
         $userId_int = (int) $userId;
 
         /*
-         * CTE de dos o tres niveles:
-         * [Opt-6] Si hay muchos samples (> umbral), pre-filtrar candidatos (etapa 1).
-         * 1. candidatos (opcional): UNION de fuentes rapidas (~1000 IDs)
-         * 2. base_scores: calcula score + flags de usuario
-         * 3. scored: ROW_NUMBER sobre el score ya calculado
+         * Pipeline de candidatos: pre-filtro rápido si >5000 samples activos.
+         * Se inserta como CTE adicional entre pre-cómputo y base_scores.
          */
         $umbralCandidatos = (int) ($config['candidatos']['umbral_activacion'] ?? 5000);
         $totalActivos = SelectorCandidatos::contarActivos();
         $usarCandidatos = $totalActivos > $umbralCandidatos;
 
-        $ctePrefijo = '';
+        $cteCandidatosSql = '';
         $joinCandidatos = '';
         $joinTrendingMV = '';
         if ($usarCandidatos) {
             $cteCandidatos = SelectorCandidatos::seleccionar($userId, $perfilUsuario, $queryParams, $config);
-            $ctePrefijo = $cteCandidatos . ",\n                ";
+            $cteCandidatosSql = ",\n                " . $cteCandidatos;
             $joinCandidatos = "JOIN (SELECT id FROM candidatos) cand ON s.{$sId} = cand.id\n                    ";
             KamplesLogger::info('Algoritmo: Usando pipeline de candidatos', [
                 'totalActivos' => $totalActivos, 'umbral' => $umbralCandidatos,
             ]);
         }
 
-        /* Opt-8: LEFT JOIN a la vista materializada de trending si existe */
         if ($usarVistaMatTrending) {
             $joinTrendingMV = "LEFT JOIN mv_trending_samples mvt ON mvt.sample_id = s.{$sId}\n                    ";
         }
 
-        $sql = "WITH {$ctePrefijo}base_scores AS (
+        $joinsPrecomputo = PrecomputadorFeed::joinsPrecomputo();
+
+        $sql = "WITH {$ctesPrecomputoPrefijo}{$cteCandidatosSql},
+                base_scores AS (
                     SELECT s.*, s.{$sVerif} AS verificado_sample, s.{$sMostrar},
                            u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif},
                            u.{$uWpId} AS creador_wp_user_id,
-                           (SELECT {$lReacc} FROM {$tl} WHERE {$lUid} = :userId AND {$lTipo} = '{$ltSample}' AND {$lTarget} = s.{$sId} LIMIT 1) AS reaccion_usuario,
-                           (SELECT 1 FROM {$td} WHERE {$dUid} = {$userId_int} AND {$dSid} = s.{$sId} LIMIT 1) AS ya_coleccionado,
-                           (SELECT 1 FROM {$tcs} cs_f JOIN {$tcCol} c_f ON cs_f.{$csColId} = c_f.{$colId} WHERE c_f.{$colUid} = {$userId_int} AND cs_f.{$csSid} = s.{$sId} LIMIT 1) AS ya_guardado_en_coleccion,
-                           (SELECT 1 FROM {$tcom} WHERE {$comAutor} = {$userId_int} AND {$comTipo} = '{$comTipoSample}' AND {$comTarget} = s.{$sId} LIMIT 1) AS ya_comentado,
+                           ul.reaccion AS reaccion_usuario,
+                           ud.sample_id IS NOT NULL AS ya_coleccionado,
+                           uc.sample_id IS NOT NULL AS ya_guardado_en_coleccion,
+                           ucom.sample_id IS NOT NULL AS ya_comentado,
                            (s.{$sCreadorId} = {$userId_int}) AS es_mio,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
-                    {$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
+                    {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
                     WHERE s.{$sEstado} = '{$eActivo}'"
                 . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
                 . "),
