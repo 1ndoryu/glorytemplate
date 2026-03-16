@@ -19,9 +19,11 @@
 namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\DuplicadosPendientesRepository;
 use App\Kamples\Api\FFmpegDetector;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\DuplicadosPendientesEnums;
 
 class DeduplicadorAudio
 {
@@ -100,17 +102,31 @@ class DeduplicadorAudio
                 /* Duplicado de otro creador: marcar para supervisión */
                 SamplesRepository::marcarEnSupervision($sampleId);
 
-                /* C266: Notificar al dueño original via ServicioNotificaciones */
+                /* Insertar en duplicados_pendientes para que aparezca en el panel admin */
+                try {
+                    DuplicadosPendientesRepository::insertarRegistro([
+                        'sample_original_id' => (int) $dup[SamplesCols::ID],
+                        'sample_duplicado_id' => $sampleId,
+                        'tipo' => DuplicadosPendientesEnums::TIPO_CROSS_USUARIO,
+                    ]);
+                } catch (\Throwable $e) {
+                    KamplesLogger::error('DeduplicadorAudio: error creando registro duplicados_pendientes', [
+                        'sampleId' => $sampleId,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                /* Notificar al UPLOADER (creadorId) que su sample fue flaggeado, no al dueño original */
                 ServicioNotificaciones::crear(
-                    $dupCreadorId,
+                    $creadorId,
                     'duplicado_detectado',
-                    "Se detecto un posible duplicado de tu sample \"{$dup[SamplesCols::TITULO]}\"",
+                    "Tu sample fue detectado como posible duplicado de \"{$dup[SamplesCols::TITULO]}\"",
                     [
                         'sampleOriginalId'   => (int) $dup[SamplesCols::ID],
                         'sampleDuplicadoId'  => $sampleId,
                         'tituloOriginal'     => $dup[SamplesCols::TITULO],
                     ],
-                    $creadorId,
+                    null,
                     'Duplicado detectado'
                 );
 

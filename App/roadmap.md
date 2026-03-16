@@ -530,7 +530,11 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 
 # QL65
 
-Los duplicados que se suben a través del sync, llegan las notificaciones a mi en vez de llegarle al usuario que lo subio, a demás, en el panel de admin, no me salen esos duplicados para revisarlos si realmente son duplicados o no. 
+✅ [AG-MNT] Completado:
+- **Bug 1 (notificacion):** `DeduplicadorAudio` enviaba la notificacion al dueño del sample original (`$dupCreadorId`, usualmente admin/user 1) en vez del uploader (`$creadorId`). Corregido: ahora notifica al uploader que su sample fue flaggeado como posible duplicado.
+- **Bug 2 (admin panel):** `DeduplicadorAudio` (deteccion por hash perceptual en background) NO insertaba registro en `duplicados_pendientes`. Solo `PipelineAudio` (SHA-256 exacto) lo hacia. Los duplicados detectados por hash perceptual nunca aparecian en `TabDuplicadosAdmin`. Corregido: se agrego `DuplicadosPendientesRepository::insertarRegistro()` con tipo `TIPO_CROSS_USUARIO`.
+- Archivos: `DeduplicadorAudio.php` (imports + logica de notificacion + insercion duplicados_pendientes).
+- [Leccion]: Hay dos flujos de dedup: PipelineAudio (SHA-256 exacto, sincrono) y DeduplicadorAudio (hash perceptual, background/cron). Ambos deben insertar en duplicados_pendientes para que el admin los vea.
 
 # QL66-EXTRA 
 
@@ -563,6 +567,10 @@ tambien quiero asegurarme de que cuando se sube un archivo mediante el sync, la 
 esto requiere un MD detallado de todos los procesos de ia que neceisitan estos modelos de reserva, y el tiempo de espera de 1 minuto por reintento  
 
 las ia que se usan en los script de python esos procesos son aparte y no tocarlos, dejarlo como estan 
+
+# QL68
+
+respecto a EXTENSIONES_ARCHIVO_CONOCIDAS, entonces, si el usuario sube un archivo con una extension inventada, se a subir ? xd
 
 
 ## Mantener lo distancia
