@@ -94,14 +94,17 @@
             "contenido";
     }
 
-    /* Sidebar se convierte en barra fija inferior */
+    /* QL45-B: Sidebar se convierte en barra fija inferior.
+     * height INCLUYE el safe-area-inset-bottom para que los iconos siempre
+     * tengan var(--altoNavMobile) de espacio util, independiente del dispositivo.
+     * El padding-bottom empuja el contenido visible arriba de la zona segura. */
     .areaSidebar {
         display: flex;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        height: var(--altoNavMobile);
+        height: calc(var(--altoNavMobile) + env(safe-area-inset-bottom, 0px));
         width: 100%;
         flex-direction: row;
         border-right: none;

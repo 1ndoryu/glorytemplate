@@ -28,6 +28,7 @@ use App\Kamples\Services\ReprocesadorPostDuplicado;
 use App\Kamples\Database\MigradorLocal;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
+use App\Kamples\Services\ServicioCache;
 
 class KamplesInit
 {
@@ -262,7 +263,7 @@ class KamplesInit
          * Sin CORS en archivos estaticos, fetch() cross-origin falla para
          * waveform JSON, audio preview y cualquier recurso cargado via JS. */
         $transientKey = 'kamples_cache_htaccess_v2';
-        if (get_transient($transientKey)) {
+        if (ServicioCache::obtener($transientKey)) {
             return;
         }
 
@@ -309,7 +310,7 @@ HTACCESS;
 
         try {
             \file_put_contents($htaccess, $contenido);
-            set_transient($transientKey, true, 90 * DAY_IN_SECONDS);
+            ServicioCache::guardar($transientKey, true, 90 * DAY_IN_SECONDS);
         } catch (\Throwable $e) {
             KamplesLogger::warning('[Cache] No se pudo escribir .htaccess en uploads/kamples', [
                 'error' => $e->getMessage(),
@@ -413,7 +414,7 @@ HTACCESS;
     private static function backfillSlugsColecciones(): void
     {
         $transientKey = 'kamples_slugs_colecciones_backfill';
-        if (get_transient($transientKey)) {
+        if (ServicioCache::obtener($transientKey)) {
             return;
         }
 
@@ -424,7 +425,7 @@ HTACCESS;
                     KamplesLogger::info('[Backfill] Slugs generados para colecciones', ['total' => $actualizados]);
                 }
                 /* Marcar como completado — no re-ejecutar por 30 días */
-                set_transient($transientKey, true, 30 * DAY_IN_SECONDS);
+                ServicioCache::guardar($transientKey, true, 30 * DAY_IN_SECONDS);
             } catch (\Throwable $e) {
                 KamplesLogger::error('[Backfill] Error generando slugs de colecciones', ['error' => $e->getMessage()]);
             }

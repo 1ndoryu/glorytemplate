@@ -21,6 +21,7 @@ use App\Config\Schema\_generated\SamplesCols;
 use App\Kamples\Database\Repositories\ReproduccionesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 
 class ReproduccionesController
 {
@@ -168,7 +169,7 @@ class ReproduccionesController
 
         /* F10: Cache de similares por sample — evita recalcular en cada apertura de detalle */
         $cacheKey = "kamples_similares_{$sampleId}_{$limite}";
-        $cached = \get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false) {
             return new \WP_REST_Response(['data' => $cached], 200);
         }
@@ -188,7 +189,7 @@ class ReproduccionesController
         $resultado = NormalizadorSample::normalizarLista($similares);
 
         /* Cache 15 minutos — los similares no cambian frecuentemente */
-        \set_transient($cacheKey, $resultado, 15 * MINUTE_IN_SECONDS);
+        ServicioCache::guardar($cacheKey, $resultado, 15 * MINUTE_IN_SECONDS);
 
         return new \WP_REST_Response(['data' => $resultado], 200);
         } catch (\Throwable $e) {

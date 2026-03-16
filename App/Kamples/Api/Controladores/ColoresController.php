@@ -11,6 +11,7 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 
 class ColoresController
 {
@@ -27,7 +28,7 @@ class ColoresController
     {
         try {
         $cacheKey = 'kamples_colors_list';
-        $cached = get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
 
         if ($cached !== false) {
             return new \WP_REST_Response([
@@ -52,7 +53,7 @@ class ColoresController
             sort($imagenes);
         }
 
-        set_transient($cacheKey, $imagenes, DAY_IN_SECONDS);
+        ServicioCache::guardar($cacheKey, $imagenes, DAY_IN_SECONDS);
 
         return new \WP_REST_Response([
             'ok' => true, 'imagenes' => $imagenes, 'total' => count($imagenes), 'cache' => false,

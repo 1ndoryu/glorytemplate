@@ -15,6 +15,7 @@
 namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 
 class DesktopUpdateController
 {
@@ -153,7 +154,7 @@ class DesktopUpdateController
      */
     private static function obtenerUltimaRelease(): ?array
     {
-        $cached = get_transient(self::TRANSIENT_KEY);
+        $cached = ServicioCache::obtener(self::TRANSIENT_KEY);
         if ($cached !== false) {
             return $cached;
         }
@@ -191,7 +192,7 @@ class DesktopUpdateController
             return null;
         }
 
-        set_transient(self::TRANSIENT_KEY, $data, self::CACHE_TTL);
+        ServicioCache::guardar(self::TRANSIENT_KEY, $data, self::CACHE_TTL);
 
         return $data;
     }

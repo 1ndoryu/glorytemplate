@@ -15,6 +15,7 @@ namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\NotificacionesRepository;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Api\Helpers\UsuarioHelper;
 use App\Kamples\KamplesLogger;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\Services\NotificadorWebSocket;
@@ -23,8 +24,8 @@ use App\Kamples\Services\ServicioFcm;
 
 class ServicioNotificaciones
 {
-    /* TC16: Cache estatico para evitar N+1 en obtenerNombreActor */
-    private static array $cacheNombres = [];
+    /* QL45: Cache estatico para evitar N+1 en datos de actor (username + avatar) */
+    private static array $cacheActores = [];
 
     /**
      * QL47-B: Reglas de deduplicacion por tipo de notificacion.
@@ -93,15 +94,29 @@ class ServicioNotificaciones
                 $enlace
             );
 
-            /* QK68: Push WebSocket — notificación en tiempo real */
-            $actorNombre = $actorId ? self::obtenerNombreActor($actorId) : null;
+            /* QL45: Resolver datos del actor (username + avatar) para push enriquecido */
+            $actorDatos = $actorId ? self::obtenerDatosActor($actorId) : null;
+            $actorNombre = $actorDatos['username'] ?? null;
+            $actorAvatarUrl = $actorDatos['avatarUrl'] ?? null;
+
+            /* QK68: Push WebSocket — notificacion en tiempo real */
             NotificadorWebSocket::notificar('notificacion', [$destinatarioId], [
                 'tipo'    => $tipo,
                 'titulo'  => $titulo,
                 'mensaje' => $mensaje,
                 'datos'   => $datos,
                 'enlace'  => $enlace,
-                'actor'   => $actorNombre ? ['username' => $actorNombre] : null,
+                'actor'   => $actorNombre ? [
+                    'username'  => $actorNombre,
+                    'avatarUrl' => $actorAvatarUrl,
+                ] : null,
+            ]);
+
+            /* Datos compartidos para VAPID y FCM */
+            $datosCanalesPush = array_merge($datos, [
+                'tipo'           => $tipo,
+                'enlace'         => $enlace,
+                'actorAvatarUrl' => $actorAvatarUrl,
             ]);
 
             /* QK86: Push notification (VAPID) — llega incluso con app en background/cerrada.
@@ -110,10 +125,7 @@ class ServicioNotificaciones
                 $destinatarioId,
                 $titulo !== '' ? $titulo : $tipo,
                 $mensaje,
-                array_merge($datos, [
-                    'tipo'   => $tipo,
-                    'enlace' => $enlace,
-                ])
+                $datosCanalesPush
             );
 
             /* QL34: FCM push (Android nativo) — llega con app cerrada.
@@ -122,10 +134,7 @@ class ServicioNotificaciones
                 $destinatarioId,
                 $titulo !== '' ? $titulo : $tipo,
                 $mensaje,
-                array_merge($datos, [
-                    'tipo'   => $tipo,
-                    'enlace' => $enlace,
-                ])
+                $datosCanalesPush
             );
         } catch (\Throwable $e) {
             KamplesLogger::error('ServicioNotificaciones: error creando notificacion', [
@@ -352,22 +361,42 @@ class ServicioNotificaciones
     }
 
     /**
-     * Obtener username para mensajes legibles.
+     * QL45: Obtener username + avatarUrl del actor.
      * Cache estatico evita queries repetidas para el mismo actor (N+1).
+     * Usa buscarParticipante (id, username, nombre, avatar_url, verificado, wp_user_id) + UsuarioHelper::resolverAvatarUrl.
      */
-    private static function obtenerNombreActor(int $actorId): string
+    private static function obtenerDatosActor(int $actorId): array
     {
-        if (isset(self::$cacheNombres[$actorId])) {
-            return self::$cacheNombres[$actorId];
+        if (isset(self::$cacheActores[$actorId])) {
+            return self::$cacheActores[$actorId];
         }
 
         try {
-            $nombre = UsuariosExtRepository::buscarUsername($actorId);
-            self::$cacheNombres[$actorId] = $nombre;
-            return $nombre;
+            $row = UsuariosExtRepository::buscarParticipante($actorId);
+            $username = $row['username'] ?? 'usuario';
+            $avatarUrl = UsuarioHelper::resolverAvatarUrl(
+                $row['avatar_url'] ?? null,
+                isset($row['wp_user_id']) ? (int) $row['wp_user_id'] : null
+            );
+
+            $datos = [
+                'username'  => $username,
+                'avatarUrl' => $avatarUrl,
+            ];
+            self::$cacheActores[$actorId] = $datos;
+            return $datos;
         } catch (\Throwable $e) {
-            return 'usuario';
+            return ['username' => 'usuario', 'avatarUrl' => null];
         }
+    }
+
+    /**
+     * Obtener username para mensajes legibles.
+     * Delega a obtenerDatosActor para aprovechar el cache compartido.
+     */
+    private static function obtenerNombreActor(int $actorId): string
+    {
+        return self::obtenerDatosActor($actorId)['username'];
     }
 
     /**

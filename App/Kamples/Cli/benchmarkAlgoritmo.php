@@ -53,6 +53,7 @@ use App\Kamples\Services\SelectorCandidatos;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Kamples\Services\ServicioCache;
 
 /* Parametros CLI */
 $userId = (int) ($argv[1] ?? 1);
@@ -122,9 +123,9 @@ function medirMs(callable $fn): array
 function invalidarCaches(int $userId): void
 {
     MotorRecomendacion::invalidarCache($userId);
-    delete_transient('kamples_perfil_usr_' . $userId);
-    delete_transient('kamples_pgvector_activo');
-    delete_transient('kamples_total_activos');
+    ServicioCache::eliminar('kamples_perfil_usr_' . $userId);
+    ServicioCache::eliminar('kamples_pgvector_activo');
+    ServicioCache::eliminar('kamples_total_activos');
 }
 
 $tiempos = [];
@@ -137,7 +138,7 @@ $perfilUsuario = $m['resultado'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
 
 echo "[2/8] Conteo samples activos...\n";
-delete_transient('kamples_total_activos');
+ServicioCache::eliminar('kamples_total_activos');
 $m = medirMs(function () {
     $sEstado = SamplesCols::ESTADO;
     $eActivo = SamplesEnums::ESTADO_ACTIVO;
@@ -147,7 +148,7 @@ $tiempos['conteo_activos'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms ({$m['resultado']} samples)\n";
 
 echo "[3/8] Verificacion pgvector...\n";
-delete_transient('kamples_pgvector_activo');
+ServicioCache::eliminar('kamples_pgvector_activo');
 $m = medirMs(fn() => SamplesRepository::verificarPgvector());
 $tiempos['verificar_pgvector'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";

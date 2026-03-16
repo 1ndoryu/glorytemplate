@@ -27,6 +27,7 @@ use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Services\ServicioCache;
 
 class SelectorCandidatos
 {
@@ -39,7 +40,7 @@ class SelectorCandidatos
      */
     public static function contarActivos(): int
     {
-        $cached = \get_transient(self::CACHE_KEY_TOTAL);
+        $cached = ServicioCache::obtener(self::CACHE_KEY_TOTAL);
         if ($cached !== false) {
             return (int) $cached;
         }
@@ -53,7 +54,7 @@ class SelectorCandidatos
         );
 
         $resultado = (int) ($total ?? 0);
-        \set_transient(self::CACHE_KEY_TOTAL, $resultado, self::CACHE_TTL_TOTAL);
+        ServicioCache::guardar(self::CACHE_KEY_TOTAL, $resultado, self::CACHE_TTL_TOTAL);
         return $resultado;
     }
 
@@ -63,7 +64,7 @@ class SelectorCandidatos
      */
     public static function invalidarConteo(): void
     {
-        \delete_transient(self::CACHE_KEY_TOTAL);
+        ServicioCache::eliminar(self::CACHE_KEY_TOTAL);
     }
 
     /**

@@ -35,6 +35,7 @@ use App\Kamples\Services\GeneradorEmbeddings;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\LogAlgoritmo;
+use App\Kamples\Services\ServicioCache;
 
 class ConstructorSenales
 {
@@ -722,7 +723,7 @@ class ConstructorSenales
         $cacheKey = 'kamples_sat_pop_stats';
 
         /* Intentar leer de cache */
-        $cached = \get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false && \is_array($cached)) {
             return $cached;
         }
@@ -757,7 +758,7 @@ class ConstructorSenales
                 if ($escalaCalc < 2) $escalaCalc = (int) ($satConfig['escala'] ?? 100);
 
                 $stats = ['umbral' => $pUmbral, 'escala' => $escalaCalc];
-                \set_transient($cacheKey, $stats, $ttl);
+                ServicioCache::guardar($cacheKey, $stats, $ttl);
                 return $stats;
             }
         } catch (\Throwable $e) {

@@ -25,6 +25,7 @@
 namespace App\Kamples\Database;
 
 use App\Kamples\KamplesLogger;
+use App\Kamples\Services\ServicioCache;
 use PDO;
 
 class MigradorLocal
@@ -50,8 +51,8 @@ class MigradorLocal
             return;
         }
 
-        /* Cachear check con transient para no impactar rendimiento */
-        if (\get_transient(self::TRANSIENT_KEY)) {
+        /* Cachear check para no impactar rendimiento */
+        if (ServicioCache::obtener(self::TRANSIENT_KEY)) {
             return;
         }
 
@@ -67,7 +68,7 @@ class MigradorLocal
         }
 
         /* Marcar como chequeado aunque falle — no reintentar cada request */
-        \set_transient(self::TRANSIENT_KEY, true, self::TRANSIENT_TTL);
+        ServicioCache::guardar(self::TRANSIENT_KEY, true, self::TRANSIENT_TTL);
     }
 
     /**
@@ -152,7 +153,7 @@ class MigradorLocal
      */
     public static function invalidarCache(): void
     {
-        \delete_transient(self::TRANSIENT_KEY);
+        ServicioCache::eliminar(self::TRANSIENT_KEY);
     }
 
     private static function esEntornoLocal(): bool

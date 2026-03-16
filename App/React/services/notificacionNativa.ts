@@ -98,12 +98,13 @@ export async function inicializarCanalesNotificacion(): Promise<boolean> {
 
 /**
  * Datos del evento WS tipo 'notificacion'.
+ * QL45: Enriquecido con avatarUrl del actor y enlace para click-to-navigate.
  */
 interface DatosNotificacionWS {
     tipo?: string;
     titulo?: string;
     mensaje?: string;
-    actor?: { username: string } | null;
+    actor?: { username: string; avatarUrl?: string | null } | null;
     enlace?: string | null;
 }
 

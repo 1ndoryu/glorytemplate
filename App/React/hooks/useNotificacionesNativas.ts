@@ -10,6 +10,7 @@
  * 1. Al montar: inicializa canales Android y solicita permiso.
  * 2. Suscribe handlers WS para 'notificacion' y 'mensaje_nuevo'.
  * 3. Al recibir evento: muestra notificación nativa via tauri-plugin-notification.
+ * 4. QL45: Al volver a primer plano en Android, procesa click-to-navigate de FCM.
  */
 
 import { useEffect, useRef } from 'react';
@@ -21,6 +22,7 @@ import {
     mostrarNotificacionMensaje,
 } from '@app/services/notificacionNativa';
 import { registrarTokenFcmSiDisponible } from '@app/services/fcmToken';
+import { procesarNavegacionFcm } from '@app/services/navegacionFcm';
 import { crearLogger } from '@app/services/logger';
 
 const log = crearLogger('useNotificacionesNativas');
@@ -62,6 +64,25 @@ export const useNotificacionesNativas = (): void => {
         return () => {
             unsubNotif();
             unsubMsg();
+        };
+    }, [autenticado]);
+
+    /* QL45: Procesar click-to-navigate de FCM al volver a primer plano (Android) */
+    useEffect(() => {
+        if (!esTauri || !autenticado) return;
+
+        const manejarVisibilidad = () => {
+            if (document.visibilityState === 'visible') {
+                procesarNavegacionFcm();
+            }
+        };
+
+        /* Verificar al montar (en caso de que la app se abriera desde la notificacion) */
+        procesarNavegacionFcm();
+
+        document.addEventListener('visibilitychange', manejarVisibilidad);
+        return () => {
+            document.removeEventListener('visibilitychange', manejarVisibilidad);
         };
     }, [autenticado]);
 };

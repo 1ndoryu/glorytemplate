@@ -29,6 +29,7 @@ use App\Kamples\Services\PerfilUsuario;
 use App\Kamples\Services\SelectorCandidatos;
 use App\Config\Schema\_generated\ReproduccionesCols;
 use App\Kamples\Database\Repositories\BloqueosRepository;
+use App\Kamples\Services\ServicioCache;
 use App\Kamples\LogAlgoritmo as KamplesLogger;
 
 class MotorRecomendacion
@@ -68,15 +69,15 @@ class MotorRecomendacion
     {
         if (self::$pgvectorDisponible !== null) return self::$pgvectorDisponible;
 
-        /* Cache en transient para evitar query SQL por request */
-        $cached = \get_transient('kamples_pgvector_activo');
+        /* Cache en Redis/transient para evitar query SQL por request */
+        $cached = ServicioCache::obtener('kamples_pgvector_activo');
         if ($cached !== false) {
             self::$pgvectorDisponible = ($cached === '1');
             return self::$pgvectorDisponible;
         }
 
         self::$pgvectorDisponible = SamplesRepository::verificarPgvector();
-        \set_transient('kamples_pgvector_activo', self::$pgvectorDisponible ? '1' : '0', 3600);
+        ServicioCache::guardar('kamples_pgvector_activo', self::$pgvectorDisponible ? '1' : '0', 3600);
         return self::$pgvectorDisponible;
     }
 
@@ -93,7 +94,7 @@ class MotorRecomendacion
 
         /* Intentar leer de cache (todas las páginas) */
         $cacheKey = self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset;
-        $cached = \get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false && \is_array($cached)) {
             KamplesLogger::debug('Algoritmo: Sirviendo desde cache', [
                 'cacheKey' => $cacheKey, 'resultados' => \count($cached),
@@ -115,7 +116,7 @@ class MotorRecomendacion
             $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
             if (!empty($resultado)) {
                 $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
-                \set_transient($cacheKey, $resultado, $ttl);
+                ServicioCache::guardar($cacheKey, $resultado, $ttl);
             }
             return $resultado;
         }
@@ -132,7 +133,7 @@ class MotorRecomendacion
          * Si existe, sqlTendencias() la usará en vez de 4 subqueries correlacionadas.
          * Cache de 1h para no consultar pg_matviews en cada request.
          */
-        $usarVistaMatTrending = (bool) \get_transient('kamples_mv_trending_existe');
+        $usarVistaMatTrending = (bool) ServicioCache::obtener('kamples_mv_trending_existe');
         if (!$usarVistaMatTrending) {
             try {
                 $existe = SamplesRepository::consultarValor(
@@ -141,7 +142,7 @@ class MotorRecomendacion
                 );
                 $usarVistaMatTrending = ($existe !== null);
                 if ($usarVistaMatTrending) {
-                    \set_transient('kamples_mv_trending_existe', 1, HOUR_IN_SECONDS);
+                    ServicioCache::guardar('kamples_mv_trending_existe', 1, HOUR_IN_SECONDS);
                 }
             } catch (\Throwable $e) {
                 $usarVistaMatTrending = false;
@@ -314,7 +315,7 @@ class MotorRecomendacion
         /* Guardar en cache — pagina 1 mas fresco, subsecuentes 15 min */
         if (!empty($resultado)) {
             $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
-            \set_transient(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, $ttl);
+            ServicioCache::guardar(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, $ttl);
         }
 
         return $resultado;
@@ -371,13 +372,7 @@ class MotorRecomendacion
      */
     public static function invalidarCache(int $userId): void
     {
-        global $wpdb;
-        $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-                '_transient_' . self::CACHE_PREFIX . $userId . '_%'
-            )
-        );
+        ServicioCache::eliminarPatron(self::CACHE_PREFIX . $userId . '_*');
     }
 
     /**
@@ -387,13 +382,7 @@ class MotorRecomendacion
     public static function invalidarCacheGlobal(): void
     {
         KamplesLogger::debug('Algoritmo: Invalidando cache global de feeds');
-        global $wpdb;
-        $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-                '_transient_' . self::CACHE_PREFIX . '%'
-            )
-        );
+        ServicioCache::eliminarPatron(self::CACHE_PREFIX . '*');
     }
 
     /**

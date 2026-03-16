@@ -21,6 +21,7 @@ namespace App\Kamples\Services;
 
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Kamples\Database\Repositories\UsuariosExtRepository;
+use App\Kamples\Services\ServicioCache;
 
 class PerfilUsuario
 {
@@ -36,7 +37,7 @@ class PerfilUsuario
     {
         /* Intentar leer de cache */
         $cacheKey = self::CACHE_PREFIX . $userId;
-        $cached = \get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false && \is_array($cached)) {
             return $cached;
         }
@@ -49,7 +50,7 @@ class PerfilUsuario
 
         if ($datos['interacciones'] === 0) {
             $resultado = ['interacciones' => 0, 'userId' => $userId, 'generosDeclarados' => $generosDeclarados];
-            \set_transient($cacheKey, $resultado, self::CACHE_TTL);
+            ServicioCache::guardar($cacheKey, $resultado, self::CACHE_TTL);
             return $resultado;
         }
 
@@ -67,7 +68,7 @@ class PerfilUsuario
             'generosDeclarados' => $generosDeclarados,
         ];
 
-        \set_transient($cacheKey, $resultado, self::CACHE_TTL);
+        ServicioCache::guardar($cacheKey, $resultado, self::CACHE_TTL);
         return $resultado;
     }
 
@@ -77,7 +78,7 @@ class PerfilUsuario
      */
     public static function invalidarCache(int $userId): void
     {
-        \delete_transient(self::CACHE_PREFIX . $userId);
+        ServicioCache::eliminar(self::CACHE_PREFIX . $userId);
     }
 
     /**

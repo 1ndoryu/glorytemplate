@@ -27,6 +27,7 @@ namespace App\Kamples\Services;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesCols;
+use App\Kamples\Services\ServicioCache;
 
 class GeneradorEmbeddings
 {
@@ -203,7 +204,7 @@ class GeneradorEmbeddings
     {
         /* Intentar leer de cache */
         $cacheKey = 'kamples_perfil_vec_' . $userId;
-        $cached = \get_transient($cacheKey);
+        $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false && \is_array($cached) && \count($cached) === self::DIMENSION) {
             return $cached;
         }
@@ -247,7 +248,7 @@ class GeneradorEmbeddings
         }
 
         /* Persistir en cache — 1 hora de TTL, se invalida en recálculo preciso */
-        \set_transient($cacheKey, $resultado, 3600);
+        ServicioCache::guardar($cacheKey, $resultado, 3600);
 
         return $resultado;
     }
@@ -258,7 +259,7 @@ class GeneradorEmbeddings
      */
     public static function invalidarPerfilCache(int $userId): void
     {
-        \delete_transient('kamples_perfil_vec_' . $userId);
+        ServicioCache::eliminar('kamples_perfil_vec_' . $userId);
     }
 
     /**

@@ -11,10 +11,14 @@
 
 namespace App\Kamples\Api\Helpers;
 
+use App\Kamples\Services\ServicioCache;
+
 class RateLimiter
 {
     /**
      * Verificar si una acción excede el límite de tasa.
+     * Con Redis: usa INCR atomico (elimina race conditions entre requests concurrentes).
+     * Con WP transients: mantiene comportamiento original como fallback.
      *
      * @param string $clave   Identificador unico (ej: "comentar_12" para userId 12)
      * @param int    $maximo  Numero maximo de acciones permitidas
@@ -23,22 +27,9 @@ class RateLimiter
      */
     public static function excedeLimite(string $clave, int $maximo, int $ventana): bool
     {
-        $transientKey = 'krl_' . md5($clave);
-        $actual = get_transient($transientKey);
-
-        if ($actual === false) {
-            /* Primera peticion en esta ventana */
-            set_transient($transientKey, 1, $ventana);
-            return false;
-        }
-
-        if ((int) $actual >= $maximo) {
-            return true;
-        }
-
-        /* Incrementar contador manteniendo el TTL original */
-        set_transient($transientKey, (int) $actual + 1, $ventana);
-        return false;
+        $cacheKey = 'krl_' . md5($clave);
+        $nuevoValor = ServicioCache::incrementar($cacheKey, $ventana);
+        return $nuevoValor > $maximo;
     }
 
     /**

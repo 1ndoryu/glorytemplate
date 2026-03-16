@@ -439,7 +439,31 @@ tambien hay que revisar si la apk cumple con lo necesario para publicar en la ap
 
 creo que ya habia dicho antes que los svg no cargan en la apk
 
+# QL50 
 
+Aplica lo pendiente de # Optimizacion del Feed, Busqueda y Algoritmo — Escalabilidad a Cientos de Usuarios Concurrentes
+
+# QL51
+
+En movil, el modal de configuracion debería ser algo como Luma iOS 103.png, un dropdown (no es necesaria la info de usuario), con cada tab del modal como un item del dropdown, y al selecionar cambia al contenido de esa tab en el mismo dropdown
+
+# QL52
+
+El menu contextual de los samples que tenga iconos cada boton , y creo que el los drowdown hay agregar separadores para agrupar opciones (no tantos grupos, 2 o 3 dependiendo del menu) se ven mal todos juntas, por ejemplo en el menu contextual/dropdown las opciones de reportar y eliminar con un separador, en realidad la mayoría de menu necesitan 1 separador
+
+# QL53
+
+todas las colecciones incluyendo favoritos, descargas, etc deberían tener ordenamiento y filtrado como inicioBarraControl, y los filtros y ordenamiento tienen que funcionar individualmeente para cada feedsample.  
+
+# QL54
+
+A 870px de ancho las waveform de los samples se deben ocultar por responsividad, y a 1120px cuando el panel lateral este abierto
+
+# QL55
+
+El panel lateral debería funcionar como un dropdown, pero no abrirse cuando se hace click en el nombre del sample, solo si es desde el menu contextual, asi mismo lo "te prodria gustar" no abrire automaticamente en el telefono solo si se da click en el menu y en un dropdown. 
+
+Y creo que los menu contextuales en escritorio necesitan max-height: 400px; ya que se hace muy largo a veces con overflow auto
 
 
 

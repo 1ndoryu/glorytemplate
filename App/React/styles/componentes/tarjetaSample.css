@@ -133,6 +133,10 @@
     overflow: hidden;
 }
 
+.tarjetaMeta .badgeNeutro {
+    border: unset !important;
+}
+
 .tarjetaMeta .badge {
     padding: 0;
 }

@@ -32,6 +32,7 @@ use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Config\Schema\_generated\RelacionesSampleEnums;
 use App\Config\Schema\_generated\ColaExtraccionSamplesEnums;
 use App\Kamples\Servicios\ServicioMedia;
+use App\Kamples\Services\ServicioCache;
 
 class SamplesUploadController
 {
@@ -85,7 +86,7 @@ class SamplesUploadController
         if ($idempotencyKey) {
             $idempotencyKey = \substr(\preg_replace('/[^a-zA-Z0-9\-]/', '', $idempotencyKey), 0, 64);
             $cacheKey = 'idem_upload_' . $idempotencyKey;
-            $cached = \get_transient($cacheKey);
+            $cached = ServicioCache::obtener($cacheKey);
             if ($cached && \is_array($cached)) {
                 KamplesLogger::info('Upload idempotente: retornando resultado cacheado', [
                     'idempotencyKey' => $idempotencyKey,
@@ -481,7 +482,7 @@ class SamplesUploadController
 
         /* P5: Cachear resultado para idempotencia (TTL 1 hora) */
         if (isset($cacheKey)) {
-            \set_transient($cacheKey, $respuestaExitosa, 3600);
+            ServicioCache::guardar($cacheKey, $respuestaExitosa, 3600);
         }
 
         return new \WP_REST_Response($respuestaExitosa, 201);
