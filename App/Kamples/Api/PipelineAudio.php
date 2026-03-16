@@ -36,9 +36,25 @@ use App\Kamples\Services\MotorRecomendacion;
 use App\Kamples\Services\SelectorCandidatos;
 use App\Kamples\Services\DeduplicadorAudio;
 use App\Kamples\Api\PipelineAudioHelpers;
+use App\Kamples\Services\ServicioCache;
 
 class PipelineAudio
 {
+    /*
+     * QL69: Limite de pipelines ejecutandose simultaneamente.
+     * Evita que multiples uploads concurrentes saturen CPU con FFmpeg.
+     * Si se alcanza el limite, el sample se encola para procesamiento en background.
+     */
+    private const MAX_PIPELINE_CONCURRENTES = 2;
+    private const CLAVE_SEMAFORO = 'kamples_pipeline_audio_concurrentes';
+    private const TTL_SEMAFORO = 300;
+
+    /*
+     * QL69: Limite de duplicados pendientes por hash.
+     * Si un hash ya tiene N registros pendientes en duplicados_pendientes,
+     * no crear mas — el admin ya tiene suficiente para decidir.
+     */
+    private const MAX_DUPLICADOS_PENDIENTES_POR_HASH = 5;
 
     /*
      * Ejecuta el pipeline completo para un sample.
@@ -59,6 +75,111 @@ class PipelineAudio
      *  Se inyecta en el contexto tecnico para que la IA tenga info del sample original.
      */
     public static function procesar(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario = '', array $tagsUsuario = [], bool $omitirDedup = false, ?array $metadataExtraccion = null): void
+    {
+        /*
+         * QL69: Semaforo de concurrencia para limitar FFmpeg simultaneos.
+         * Usa Redis INCR atomico. Si hay mas de MAX_PIPELINE_CONCURRENTES,
+         * encolar para procesamiento background y retornar sin bloquear.
+         */
+        $semaforoAdquirido = false;
+        try {
+            $semaforoAdquirido = self::adquirirSemaforoPipeline();
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Pipeline: Error adquiriendo semaforo, continuando sin limite', [
+                'error' => $e->getMessage(),
+            ]);
+            $semaforoAdquirido = true;
+        }
+
+        if (!$semaforoAdquirido) {
+            KamplesLogger::info('Pipeline: Concurrencia maxima alcanzada, encolando para background', [
+                'sampleId' => $sampleId,
+                'max' => self::MAX_PIPELINE_CONCURRENTES,
+            ]);
+
+            try {
+                ColaProcesamientoIaRepository::encolar(
+                    ColaProcesamientoIaEnums::TIPO_SAMPLE,
+                    $sampleId,
+                    ColaProcesamientoIaEnums::OPERACION_ANALISIS_AUDIO,
+                    [
+                        'rutaArchivo' => $rutaArchivo,
+                        'nombreOriginal' => $nombreOriginal,
+                        'descripcionUsuario' => $descripcionUsuario,
+                        'tagsUsuario' => $tagsUsuario,
+                        'pipeline_diferido' => true,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Pipeline: Error encolando pipeline diferido', [
+                    'sampleId' => $sampleId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+            return;
+        }
+
+        try {
+            self::ejecutarPipeline($sampleId, $rutaArchivo, $nombreOriginal, $idCorto, $descripcionUsuario, $tagsUsuario, $omitirDedup, $metadataExtraccion);
+        } finally {
+            self::liberarSemaforoPipeline();
+        }
+    }
+
+    /*
+     * QL69: Adquirir slot en semaforo Redis.
+     * Usa INCR atomico + TTL safety net contra deadlocks.
+     */
+    private static function adquirirSemaforoPipeline(): bool
+    {
+        $redis = \App\Kamples\Services\ServicioRedis::obtenerInstancia();
+        if (!$redis->estaDisponible()) {
+            return true;
+        }
+
+        try {
+            $cliente = $redis->obtenerCliente();
+            $actual = (int) $cliente->incr(self::CLAVE_SEMAFORO);
+
+            /* Asegurar TTL en primera adquisicion (safety net contra deadlock) */
+            if ($actual === 1) {
+                $cliente->expire(self::CLAVE_SEMAFORO, self::TTL_SEMAFORO);
+            }
+
+            if ($actual > self::MAX_PIPELINE_CONCURRENTES) {
+                /* Revertir el INCR ya que no procesaremos */
+                $cliente->decr(self::CLAVE_SEMAFORO);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Pipeline: Error en semaforo Redis', ['error' => $e->getMessage()]);
+            return true;
+        }
+    }
+
+    private static function liberarSemaforoPipeline(): void
+    {
+        $redis = \App\Kamples\Services\ServicioRedis::obtenerInstancia();
+        if (!$redis->estaDisponible()) return;
+
+        try {
+            $cliente = $redis->obtenerCliente();
+            $val = (int) $cliente->decr(self::CLAVE_SEMAFORO);
+            /* Evitar contador negativo por crash/restart */
+            if ($val < 0) {
+                $cliente->set(self::CLAVE_SEMAFORO, 0);
+            }
+        } catch (\Throwable $e) {
+            KamplesLogger::warning('Pipeline: Error liberando semaforo', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /*
+     * Implementacion real del pipeline, extraida para envolver con semaforo.
+     */
+    private static function ejecutarPipeline(int $sampleId, string $rutaArchivo, string $nombreOriginal, string $idCorto, string $descripcionUsuario, array $tagsUsuario, bool $omitirDedup, ?array $metadataExtraccion): void
     {
         KamplesLogger::info("Pipeline: Iniciando procesamiento", [
             'sampleId' => $sampleId,
@@ -147,7 +268,21 @@ class PipelineAudio
                      * Duplicado del mismo usuario: NO eliminar archivos.
                      * Marcar como en_supervision y crear registro en duplicados_pendientes
                      * para que admin pueda escuchar ambos audios y decidir.
+                     *
+                     * QL69: Verificar limite de duplicados pendientes por hash.
+                     * Si ya hay demasiados, rechazar automaticamente.
                      */
+                    $pendientesExistentes = DuplicadosPendientesRepository::contarPendientesPorHash($hashArchivo);
+                    if ($pendientesExistentes >= self::MAX_DUPLICADOS_PENDIENTES_POR_HASH) {
+                        KamplesLogger::warning('Pipeline: Limite de duplicados alcanzado, rechazando automaticamente', [
+                            'sampleId' => $sampleId, 'hash' => \substr($hashArchivo, 0, 12),
+                            'pendientes' => $pendientesExistentes,
+                        ]);
+                        $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
+                        PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
+                        return;
+                    }
+
                     $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
                     $actualizaciones['publicado_at'] = \date('Y-m-d H:i:s');
                     PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
@@ -175,6 +310,21 @@ class PipelineAudio
 
                 /* Duplicado de otro usuario: crear flag de moderacion */
                 $primerDup = $duplicados[0];
+
+                /*
+                 * QL69: Verificar limite de duplicados pendientes por hash.
+                 * Si ya hay demasiados, rechazar automaticamente sin crear mas registros.
+                 */
+                $pendientesExistentes = DuplicadosPendientesRepository::contarPendientesPorHash($hashArchivo);
+                if ($pendientesExistentes >= self::MAX_DUPLICADOS_PENDIENTES_POR_HASH) {
+                    KamplesLogger::warning('Pipeline: Limite de duplicados cross-usuario alcanzado', [
+                        'sampleId' => $sampleId, 'hash' => \substr($hashArchivo, 0, 12),
+                        'pendientes' => $pendientesExistentes,
+                    ]);
+                    $actualizaciones['estado'] = SamplesEnums::ESTADO_EN_SUPERVISION;
+                    PipelineAudioHelpers::actualizarSample($sampleId, $actualizaciones);
+                    return;
+                }
 
                 try {
                     DuplicadosPendientesRepository::insertarRegistro([

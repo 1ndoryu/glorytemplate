@@ -573,22 +573,15 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 - La lista de extensiones conocidas sigue como primera linea de defensa (match rapido en Set); la heuristica es fallback para extensiones desconocidas.
 - Respuesta: no, un archivo con extension inventada NO se sube ni crea coleccion — se ignora con warning log.
 
-
 # QL69
 
-Respecto al plan-ql 66
-
-dice
-
-"Que TODOS los archivos (incluso duplicados) se suban al servidor para que el admin los revise. El desktop NO debe bloquear ni mover archivos a `duplicados/`."
-
-En realidad solo me refería a los duplicados, no a todos, o sea solo se van a revisar los posibles duplicados
-
-al menos un limite maximo de posibles duplicados por archivo, 
-
-esto me hizo pensar en un sistema antispam, pero es dificil porque un usuario puede subir o debería poder subir 10.000 archivos si los arrastra al sync, tiene que ser un antispam inteligente por ejemplo si detecta el mismo archivo varias veces, una 6 veces deja sincronizar ese archivo y no permite mas la subida, pero esto puede dar falsos positivo, hay que mejorar la deteción para evitar falsos positivos
-
-tambien hay algo que no planifique, la cola de subida, si bien, ahora que hay mas modelos de reserva, el proceso que genera los mp3 de preview optimizados puede consumir mucho cpu si se procesan muchos audios al mismo tiempo, esto tiene que gestionarse bien con cola 
+✅ [AG-MNT] Completado:
+- **CPU Queue (semaforo Redis):** `PipelineAudio` ahora adquiere slot via `Redis INCR` atomico (max 2 concurrentes, TTL 300s safety). Si no hay slot, encola a `ColaProcesamientoIaRepository` con flag `pipeline_diferido: true` para procesamiento background.
+- **Dedup limit server-side:** Antes de insertar en `duplicados_pendientes`, verifica `contarPendientesPorHash()`. Si hay >= 5 pendientes del mismo hash, marca `en_supervision` y retorna sin crear nuevo registro duplicado.
+- **Antispam client-side:** `uploadQueueService.ts` trackea detecciones por hash. Si un mismo archivo se detecta 6+ veces, se bloquea permanentemente en esa sesion. Contador persistido en Tauri Store.
+- Archivos: `PipelineAudio.php`, `DuplicadosPendientesRepository.php`, `uploadQueueService.ts`.
+- [Leccion]: Redis INCR+TTL es un semaforo confiable sin locks distribuidos. DECR con guard negativo evita underflow si TTL expira antes del release.
+- [Pendiente]: `ProcesadorColaIA` necesita manejar items con `pipeline_diferido: true` ejecutando `PipelineAudio::procesar()` en vez de solo `ServicioIA::analizarAudio()` 
 
 # QL70
 
@@ -606,7 +599,11 @@ aun no confio en el sistema duplicados, revisar que realmente al publicar un dup
 
 # QL73
 
-detalles, el boton de reforzar sincornizacion no tiene que descargar samples, ni se tiene que descargar samples nunca si la opcion de (borrar archivo local despues de subir) esta activada, esto es algo obvio.
+✅ [AG-MNT] Completado:
+- **Guard centralizado en `ejecutarSync()`**: Si `borrarAlSubirExitoso` esta activo, se omite toda descarga (tanto V2/colecciones como V1/legacy). La logica de retry de colas de subida sigue ejecutandose.
+- **Guard en `sincronizarSampleIndividual()`**: Descarga individual tambien bloqueada con `borrarAlSubirExitoso`.
+- **Arquitectura:** Guard a nivel orquestador (syncOrchestratorService.ts) cubre ambos paths. Removida guard redundante en syncDownloadV1.ts.
+- [Leccion]: Poner guards de negocio en el orquestador, no en cada servicio individual, evita duplicacion y gaps.
 
 # QL74
 
@@ -618,9 +615,17 @@ que hace el boton de guardar? en las coleciones cuando veo la coleccion de otro 
 
 # QL76
 
-Cuando se estan copiando varios archivos o moviendo a la carpeta de sync, el sistema se relentiza, probablmente porque el sync intenta procesarlo todos al mismo tiempo mientras se estan copiando, esto es falta, debe mejorar a un sistema mejor y mas eficiente, no lo se, qe analice por partes o despues de 5 segundos de un cambio y hay algun cambio que pause por 6 segundos para evitar que se procese todo al mismo tiempo mientras se estan moviendo archivos
+✅ [AG-MNT] Completado:
+- **Batch accumulation buffer** en `fileWatcherService.ts`: archivos nuevos se acumulan en buffer en lugar de procesarse individualmente.
+- **Quiet period (5s):** Timer se resetea con cada nuevo archivo. Flush solo cuando no llegan archivos por 5 segundos.
+- **Max wait (30s):** Si archivos siguen llegando sin pausa, flush parcial a los 30s para evitar starvation.
+- **Cleanup:** `detenerObservacion()` hace flush del buffer antes de parar.
+- Deteccion de movimientos (`onArchivoMovido`) sigue siendo inmediata (no buffered) — solo archivos nuevos se acumulan.
+- [Leccion]: El debounce per-file de 3s no era suficiente para copias masivas (1000+ archivos). Quiet-period batch con max-wait es el patron correcto para bulk I/O operations.
 
+# QL77
 
+De repente estoy viendo una coleccion, y a los minutos desaparece todo, y sale "Esta colección aún no tiene samples." no se porque
 
 
 

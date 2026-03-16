@@ -194,6 +194,26 @@ const rutasEnVuelo = new Set<string>();
  */
 const hashesPendientesEncola = new Set<string>();
 
+/*
+ * QL69: Antispam — contador de detecciones por hash.
+ * Si un mismo contenido (hash) se detecta mas de MAX_DETECCIONES_HASH veces,
+ * el sistema deja de sincronizarlo. Previene que un archivo problematico
+ * (ej: copia repetida, loop de watcher) sature la cola indefinidamente.
+ * Se persiste con la cola para sobrevivir reinicios.
+ */
+const MAX_DETECCIONES_HASH = 6;
+const contadorHashDetectado = new Map<string, number>();
+
+function registrarDeteccionHash(hash: string): number {
+    const actual = (contadorHashDetectado.get(hash) ?? 0) + 1;
+    contadorHashDetectado.set(hash, actual);
+    return actual;
+}
+
+function esHashBloqueadoPorAntispam(hash: string): boolean {
+    return (contadorHashDetectado.get(hash) ?? 0) >= MAX_DETECCIONES_HASH;
+}
+
 function normalizarRutaCola(ruta: string): string {
     return ruta.replace(/\\/g, '/');
 }
@@ -325,6 +345,13 @@ export async function inicializarUploadQueue(): Promise<void> {
             hashARutas = new Map();
             for (const [h, v] of Object.entries(mapaGuardado)) {
                 hashARutas.set(h, new Set(Array.isArray(v) ? v : [v]));
+            }
+        }
+        /* QL69: Restaurar contador antispam */
+        const antispamGuardado = await store.get<Record<string, number>>('antispam_hash_contador');
+        if (antispamGuardado) {
+            for (const [h, c] of Object.entries(antispamGuardado)) {
+                contadorHashDetectado.set(h, c);
             }
         }
     } catch {
@@ -472,6 +499,19 @@ async function encolarArchivoInterno(
 
     /* Calcular hash parcial para detectar duplicados por contenido */
     const hash = await calcularHashParcial(rutaArchivo);
+
+    /*
+     * QL69: Antispam — verificar si este hash ha sido detectado demasiadas veces.
+     * Si un archivo se detecta 6+ veces, el sistema lo bloquea para evitar
+     * saturar la cola con el mismo contenido repetidamente.
+     */
+    if (hash) {
+        const detecciones = registrarDeteccionHash(hash);
+        if (detecciones >= MAX_DETECCIONES_HASH) {
+            logSync.warn('uploadQueue', `Antispam: hash bloqueado tras ${detecciones} detecciones: ${nombreNormalizado}`);
+            return false;
+        }
+    }
 
     /*
      * QL66-EXTRA: Pre-check contra servidor ELIMINADO.
@@ -1350,6 +1390,10 @@ async function guardarHashes(): Promise<void> {
         const mapaObj: Record<string, string[]> = {};
         for (const [h, rutas] of hashARutas) mapaObj[h] = Array.from(rutas);
         await store.set('hash_a_ruta', mapaObj);
+        /* QL69: Persistir contador antispam */
+        const antispamObj: Record<string, number> = {};
+        for (const [h, c] of contadorHashDetectado) antispamObj[h] = c;
+        await store.set('antispam_hash_contador', antispamObj);
         await store.save();
     } catch {
         /* Fallo silencioso */

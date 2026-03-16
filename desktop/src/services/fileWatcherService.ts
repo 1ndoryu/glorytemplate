@@ -125,6 +125,66 @@ const NOMBRES_CARPETA_TEMPORAL = new Set([
 ]);
 const DELAY_CARPETA_TEMPORAL_MS = 60_000;
 
+/*
+ * QL76: Buffer de acumulacion para copias masivas.
+ * Cuando el usuario copia/mueve muchos archivos a la carpeta de sync,
+ * el sistema acumulaba cada deteccion y procesaba inmediatamente (hash I/O + upload),
+ * compitiendo por I/O con la copia en curso y ralentizando el sistema.
+ *
+ * Solucion: acumular archivos nuevos en buffer y procesarlos despues de un
+ * periodo de quietud (sin nuevos archivos detectados). Si siguen llegando
+ * archivos, el timer se reinicia. Hay un tope maximo para no bloquear
+ * indefinidamente en copias muy grandes.
+ */
+const QUIETUD_BATCH_MS = 5_000;
+const MAX_ESPERA_BATCH_MS = 30_000;
+
+interface ArchivoBufferado {
+    ruta: string;
+    nombre: string;
+    carpetas: string[];
+}
+
+let bufferArchivosNuevos: ArchivoBufferado[] = [];
+let timeoutFlushBatch: ReturnType<typeof setTimeout> | null = null;
+let timestampInicioBatch: number | null = null;
+
+function acumularArchivoNuevo(ruta: string, nombre: string, carpetas: string[]): void {
+    bufferArchivosNuevos.push({ ruta, nombre, carpetas });
+
+    const ahora = Date.now();
+    if (!timestampInicioBatch) timestampInicioBatch = ahora;
+
+    /* Si llevamos mas de MAX_ESPERA_BATCH_MS acumulando, flush parcial */
+    if (ahora - timestampInicioBatch >= MAX_ESPERA_BATCH_MS) {
+        flushBufferArchivos();
+        return;
+    }
+
+    /* Reiniciar timer de quietud */
+    if (timeoutFlushBatch) clearTimeout(timeoutFlushBatch);
+    timeoutFlushBatch = setTimeout(flushBufferArchivos, QUIETUD_BATCH_MS);
+}
+
+function flushBufferArchivos(): void {
+    if (timeoutFlushBatch) {
+        clearTimeout(timeoutFlushBatch);
+        timeoutFlushBatch = null;
+    }
+    timestampInicioBatch = null;
+
+    const batch = bufferArchivosNuevos.splice(0);
+    if (batch.length === 0) return;
+
+    logSync.info('watcher', `Flush batch: ${batch.length} archivos nuevos acumulados`);
+
+    for (const { ruta, nombre, carpetas } of batch) {
+        if (onArchivoNuevo) {
+            onArchivoNuevo(ruta, nombre, carpetas);
+        }
+    }
+}
+
 /* Purga periódica del cache para evitar crecimiento ilimitado en batches grandes */
 const PURGA_INTERVALO_MS = 10_000;
 const PURGA_TTL_MS = 30_000;
@@ -352,6 +412,9 @@ export async function detenerObservacion(): Promise<void> {
         clearTimeout(renamePendienteNoPareado.timeout);
         renamePendienteNoPareado = null;
     }
+
+    /* QL76: Flush inmediato del buffer de archivos pendientes al detener */
+    flushBufferArchivos();
 
     logSync.info('watcher', 'Observación detenida');
 }
@@ -683,9 +746,13 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
 
     logSync.info('watcher', `Archivo nuevo detectado: ${nombreArchivo} carpetas: ${carpetas.join('/')}`);
 
-    if (onArchivoNuevo) {
-        onArchivoNuevo(rutaOriginal, nombreArchivo, carpetas);
-    }
+    /*
+     * QL76: Acumular en buffer en vez de procesar inmediatamente.
+     * Cuando se copian muchos archivos, el hash I/O y los uploads compiten
+     * con la copia en curso. El buffer espera un periodo de quietud antes
+     * de despachar el batch completo al uploadQueue.
+     */
+    acumularArchivoNuevo(rutaOriginal, nombreArchivo, carpetas);
 }
 
 /*

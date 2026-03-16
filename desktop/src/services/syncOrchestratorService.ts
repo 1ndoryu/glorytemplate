@@ -185,6 +185,20 @@ async function ejecutarSync(
         logSync.warn('syncService', 'No se pudo reintentar colas de subida/offline antes de sync', { error: e instanceof Error ? e.message : String(e) });
     }
 
+    /*
+     * QL73: Si borrarAlSubirExitoso esta activo, no descargar archivos del servidor.
+     * El proposito de esa opcion es que los archivos locales se borren al subir;
+     * descargarlos de vuelta contradice esa intencion.
+     * La logica de retry de colas de subida (arriba) sigue ejecutandose porque
+     * el usuario aun quiere que sus uploads pendientes se reintenten.
+     */
+    if (estado.configAvanzada.borrarAlSubirExitoso) {
+        logSync.info('syncOrchestrator', 'Descarga omitida: borrarAlSubirExitoso activo');
+        estado.config.ultimaSync = Date.now();
+        await guardarConfig();
+        return { nuevos: 0, eliminados: 0 };
+    }
+
     if (collectionModule) {
         try {
             const resultado = await collectionModule.sincronizarColecciones(
@@ -230,6 +244,9 @@ export async function sincronizarSampleIndividual(
 ): Promise<string | null> {
     if (!esDesktop() || !estaOnline()) return null;
     if (!estado.config.carpetaLocal || !estado.config.sincronizacionActiva) return null;
+
+    /* QL73: No descargar si el usuario quiere borrar tras subir */
+    if (estado.configAvanzada.borrarAlSubirExitoso) return null;
 
     /* Verificar si ya está descargado (inline para evitar circular con syncService) */
     const { trackingModule, indiceArchivos } = estado;

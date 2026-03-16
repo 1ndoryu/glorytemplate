@@ -64,6 +64,26 @@ class DuplicadosPendientesRepository extends BaseRepository
     }
 
     /**
+     * QL69: Contar duplicados pendientes cuyo sample original o duplicado tiene un hash dado.
+     * Permite limitar cuantos registros de dedup se crean para el mismo contenido.
+     */
+    public static function contarPendientesPorHash(string $audioHash): int
+    {
+        $tabla = DuplicadosPendientesCols::TABLA;
+        $tSamples = SamplesCols::TABLA;
+
+        $val = static::consultarValor(
+            "SELECT COUNT(*) FROM {$tabla} dp
+             JOIN {$tSamples} so ON dp." . DuplicadosPendientesCols::SAMPLE_ORIGINAL_ID . " = so." . SamplesCols::ID . "
+             WHERE dp." . DuplicadosPendientesCols::ESTADO . " = :estado
+             AND so." . SamplesCols::AUDIO_HASH . " = :hash",
+            ['estado' => DuplicadosPendientesEnums::ESTADO_PENDIENTE, 'hash' => $audioHash]
+        );
+
+        return (int) ($val ?? 0);
+    }
+
+    /**
      * Listar duplicados paginados con datos basicos de los dos samples (JOINs).
      */
     public static function listar(string $estado, ?string $tipo, int $pagina, int $porPagina): array
