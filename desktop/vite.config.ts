@@ -154,6 +154,8 @@ export default defineConfig({
             /* QL17: Plugin notification vive en desktop/node_modules pero se importa
              * desde App/React/ (fuera del root). Vite no lo encuentra sin alias explicito. */
             '@tauri-apps/plugin-notification': resolve(__dirname, 'node_modules/@tauri-apps/plugin-notification'),
+            /* QL34: Plugin FS — mismo caso, importado desde App/React/services/fcmToken.ts */
+            '@tauri-apps/plugin-fs': resolve(__dirname, 'node_modules/@tauri-apps/plugin-fs'),
         },
         dedupe: [
             'react',
