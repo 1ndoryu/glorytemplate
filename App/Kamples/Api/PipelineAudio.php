@@ -220,6 +220,18 @@ class PipelineAudio
             'tags'     => $tagsUsuario,
         ];
 
+        /* QL67: Incluir origen_subida (ruta de carpetas sync) como contexto para la IA */
+        try {
+            $metadataExistente = SamplesRepository::obtenerMetadataJsonb($sampleId);
+            $origenSubida = $metadataExistente['origen_subida'] ?? null;
+            if ($origenSubida !== null && $origenSubida !== '') {
+                $contextoTecnico['origen_subida'] = $origenSubida;
+            }
+        } catch (\Throwable $e) {
+            /* No bloquear pipeline por error al leer metadata */
+            KamplesLogger::warning('Pipeline: Error leyendo metadata existente para origen_subida', ['error' => $e->getMessage()]);
+        }
+
         /* QK72: Enriquecer contexto IA con datos de extraccion (recortes del scraper) */
         if ($metadataExtraccion !== null) {
             $extraccion = [];

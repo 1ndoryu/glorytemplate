@@ -40,6 +40,9 @@ class ProcesadorColaIA
      */
     private const MAX_ITEMS_POR_EJECUCION = 5;
 
+    /* QL67: Pausa entre procesamiento de items para no saturar rate limits */
+    private const PAUSA_ENTRE_ITEMS_SEGUNDOS = 60;
+
     /* Nombre del hook WP Cron */
     public const CRON_HOOK = 'kamples_cola_ia_cron';
 
@@ -105,6 +108,12 @@ class ProcesadorColaIA
         ]);
 
         foreach ($pendientes as $indice => $item) {
+            /* QL67: Pausa entre items para no saturar rate limits de Groq */
+            if ($indice > 0) {
+                KamplesLogger::info('ProcesadorColaIA: Pausa de ' . self::PAUSA_ENTRE_ITEMS_SEGUNDOS . 's antes del siguiente item');
+                \sleep(self::PAUSA_ENTRE_ITEMS_SEGUNDOS);
+            }
+
             /* C356: Si detectamos rate limit en item anterior, parar inmediatamente */
             if (GroqHttpClient::fueRateLimited()) {
                 $omitidos = \count($pendientes) - $indice;
@@ -243,7 +252,7 @@ class ProcesadorColaIA
             return false;
         }
 
-        $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario, $contextoTecnico);
+        $metadataIA = ServicioIA::analizarAudio($rutaArchivo, $nombreOriginal, $descripcionUsuario, $contextoTecnico, true);
         if ($metadataIA === null) {
             return false;
         }

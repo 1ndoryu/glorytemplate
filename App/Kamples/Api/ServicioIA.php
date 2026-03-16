@@ -39,17 +39,20 @@ class ServicioIA
     ];
 
     /*
-     * QQ142: Modelos Groq en orden de inteligencia (fallback por cuota/error).
-     * Si un modelo falla o esta rate-limited, se intenta el siguiente.
-     * Todos los modelos utiles disponibles en la cuenta Groq.
+     * QL67: Modelos Groq ordenados por inteligencia (fallback por cuota/error).
+     * Cada modelo se reintenta hasta MAX_REINTENTOS_POR_MODELO veces antes de pasar al siguiente.
+     * 429 en un modelo NO cancela la cadena — cada modelo tiene cuota independiente en Groq.
+     * Solo si >3 modelos consecutivos dan 429 se considera limite de cuenta.
      */
     private const MODELOS_GROQ = [
         'openai/gpt-oss-120b',                         /* 120B — mejor calidad, 200K tok/dia */
+        'moonshotai/kimi-k2-instruct-0905',             /* Kimi K2 actualizado, alta calidad */
+        'moonshotai/kimi-k2-instruct',                  /* Kimi K2, 300K tok/dia, 60 RPM */
         'llama-3.3-70b-versatile',                      /* 70B — buena calidad, 100K tok/dia */
-        'moonshotai/kimi-k2-instruct',                  /* Alta calidad, 300K tok/dia, 60 RPM */
         'qwen/qwen3-32b',                               /* 32B MoE, 500K tok/dia, 60 RPM */
         'meta-llama/llama-4-scout-17b-16e-instruct',    /* 17B x 16 expertos MoE, 500K tok/dia */
         'openai/gpt-oss-20b',                           /* 20B fallback, 200K tok/dia */
+        'groq/compound',                                /* Router — selecciona mejor modelo internamente */
     ];
 
     /*
@@ -62,18 +65,26 @@ class ServicioIA
     private const TIMEOUT_AUDIO = 45;
     private const MAX_TAMANO_AUDIO = 25 * 1024 * 1024; /* 25 MB free tier Groq STT */
 
+    /* QL67: Reintentos y pausas para modo cola (cron) */
+    private const MAX_REINTENTOS_POR_MODELO = 3;
+    private const PAUSA_REINTENTO_SEGUNDOS = 60;
+
+    /* QL67: Umbral para considerar rate limit de cuenta (no individual) */
+    private const UMBRAL_429_CONSECUTIVOS = 3;
+
     /**
      * Analiza un archivo de audio y retorna metadata creativa.
-     * Flujo solo Groq: Whisper (audio→texto) + LLM (texto→JSON).
+     * Flujo solo Groq: Whisper (audio->texto) + LLM (texto->JSON).
      * NO incluye campos técnicos (BPM, key, escala) — esos vienen de AnalizadorAudio.
      *
      * @param string $rutaArchivo Ruta absoluta al archivo de audio
      * @param string $nombreOriginal Nombre original del archivo
      * @param string $descripcionUsuario Descripción proporcionada por el usuario
      * @param array $contextoTecnico Datos técnicos calculados previamente (bpm, key, escala, duracion, tags)
+     * @param bool $modoCola Si true, reintentos lentos con sleep(60) por modelo (usado en ProcesadorColaIA)
      * @return array|null Metadata creativa extraída o null si falla
      */
-    public static function analizarAudio(string $rutaArchivo, string $nombreOriginal, string $descripcionUsuario = '', array $contextoTecnico = []): ?array
+    public static function analizarAudio(string $rutaArchivo, string $nombreOriginal, string $descripcionUsuario = '', array $contextoTecnico = [], bool $modoCola = false): ?array
     {
         if (!\file_exists($rutaArchivo)) {
             KamplesLogger::error('ServicioIA: Archivo no encontrado', ['ruta' => $rutaArchivo]);
@@ -82,7 +93,7 @@ class ServicioIA
 
         $prompt = PromptsIA::construirAnalisis($nombreOriginal, $descripcionUsuario, $contextoTecnico);
 
-        $resultadoGroq = self::intentarGroqDesdeAudio($rutaArchivo, $prompt);
+        $resultadoGroq = self::intentarGroqDesdeAudio($rutaArchivo, $prompt, $modoCola);
         if ($resultadoGroq !== null) {
             return $resultadoGroq;
         }
@@ -98,7 +109,7 @@ class ServicioIA
      *
      * QK80: Si Groq LLM falla (rate limit o error), intenta OpenAI como fallback.
      */
-    private static function intentarGroqDesdeAudio(string $rutaArchivo, string $promptBase): ?array
+    private static function intentarGroqDesdeAudio(string $rutaArchivo, string $promptBase, bool $modoCola = false): ?array
     {
         $apiKey = GroqHttpClient::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
@@ -121,7 +132,7 @@ class ServicioIA
         $promptAnalisis = PromptsIA::conTranscripcion($promptBase, $transcripcion);
 
         /* Intentar todos los modelos Groq primero */
-        $resultado = self::intentarGroq($promptAnalisis, $apiKey);
+        $resultado = self::intentarGroq($promptAnalisis, $apiKey, $modoCola);
         if ($resultado !== null) {
             return $resultado;
         }
@@ -198,9 +209,13 @@ class ServicioIA
     }
 
     /**
-     * Intenta analizar con todos los modelos LLM Groq disponibles.
+     * QL67: Intenta analizar con todos los modelos LLM Groq disponibles.
+     * Cada modelo se reintenta hasta MAX_REINTENTOS_POR_MODELO veces.
+     * En modoCola, espera PAUSA_REINTENTO_SEGUNDOS entre reintentos.
+     * 429 en un modelo solo salta ese modelo (no cancela la cadena).
+     * Si UMBRAL_429_CONSECUTIVOS modelos consecutivos dan 429, asume rate limit de cuenta.
      */
-    private static function intentarGroq(string $prompt, ?string $apiKey = null): ?array
+    private static function intentarGroq(string $prompt, ?string $apiKey = null, bool $modoCola = false): ?array
     {
         $apiKey = $apiKey ?: GroqHttpClient::obtenerApiKey('GROQ_API');
         if (!$apiKey) {
@@ -208,18 +223,51 @@ class ServicioIA
             return null;
         }
 
+        $maxReintentos = $modoCola ? self::MAX_REINTENTOS_POR_MODELO : 1;
+        $pausa = $modoCola ? self::PAUSA_REINTENTO_SEGUNDOS : 0;
+        $consecutivos429 = 0;
+
         foreach (self::MODELOS_GROQ as $modelo) {
-            /* C356: Cortar cadena de fallback si Groq esta rate-limited */
-            if (GroqHttpClient::fueRateLimited()) {
-                KamplesLogger::warning('ServicioIA: Rate limit Groq detectado, cancelando LLM restante');
-                return null;
+            /* QL67: Si demasiados modelos consecutivos dan 429, es rate limit de cuenta */
+            if ($consecutivos429 >= self::UMBRAL_429_CONSECUTIVOS) {
+                KamplesLogger::warning('ServicioIA: Rate limit de cuenta detectado (>= ' . self::UMBRAL_429_CONSECUTIVOS . ' modelos consecutivos con 429)');
+                break;
             }
 
-            KamplesLogger::info('ServicioIA: Intentando Groq/' . $modelo);
-            $resultado = self::llamarGroq($modelo, $apiKey, $prompt);
-            if ($resultado !== null) {
-                KamplesLogger::info('ServicioIA: Análisis exitoso con Groq/' . $modelo);
-                return $resultado;
+            $exitoModelo = false;
+            for ($intento = 1; $intento <= $maxReintentos; $intento++) {
+                if ($intento > 1 && $pausa > 0) {
+                    KamplesLogger::info("ServicioIA: Esperando {$pausa}s antes de reintento {$intento}/{$maxReintentos} con {$modelo}");
+                    \sleep($pausa);
+                    /* Resetear flag de rate limit antes de reintentar (puede haberse recuperado) */
+                    GroqHttpClient::resetearEstadoRateLimit();
+                }
+
+                KamplesLogger::info("ServicioIA: Intentando Groq/{$modelo} (intento {$intento}/{$maxReintentos})");
+                $resultado = self::llamarGroq($modelo, $apiKey, $prompt);
+
+                if ($resultado !== null) {
+                    KamplesLogger::info("ServicioIA: Analisis exitoso con Groq/{$modelo}");
+                    return $resultado;
+                }
+
+                /* Si fue 429, incrementar contador pero no cancelar toda la cadena */
+                if (GroqHttpClient::fueRateLimited()) {
+                    KamplesLogger::warning("ServicioIA: 429 en {$modelo} (intento {$intento}/{$maxReintentos})");
+                    if (!$modoCola) break; /* En modo live, no esperar — saltar a siguiente modelo */
+                    continue; /* En modo cola, reintentar con pausa */
+                }
+
+                /* Error no-429: saltar a siguiente modelo inmediatamente */
+                break;
+            }
+
+            /* Verificar si este modelo dio 429 para el contador consecutivo */
+            if (GroqHttpClient::fueRateLimited()) {
+                $consecutivos429++;
+                GroqHttpClient::resetearEstadoRateLimit();
+            } else {
+                $consecutivos429 = 0; /* Resetear si un modelo fallo por razón distinta a 429 */
             }
         }
 

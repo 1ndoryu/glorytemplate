@@ -422,6 +422,11 @@ class SamplesRepository extends BaseRepository
             throw new \RuntimeException('agregarMetadata: json_encode fallo — ' . \json_last_error_msg());
         }
 
+        /* Defensa: JSONB soporta ~1GB pero datos de metadata no deberian superar 64KB */
+        if (\strlen($json) > 65536) {
+            throw new \RuntimeException('agregarMetadata: JSON excede 64KB (' . \strlen($json) . ' bytes)');
+        }
+
         static::ejecutar(
             "UPDATE {$tabla} SET {$colMeta} = COALESCE({$colMeta}, '{}'::jsonb) || :datos::jsonb, "
             . SamplesCols::UPDATED_AT . " = NOW() WHERE " . SamplesCols::ID . " = :id",
@@ -1377,5 +1382,42 @@ class SamplesRepository extends BaseRepository
         );
 
         return $filasAfectadas > 0;
+    }
+
+    /*
+     * QL67: Obtener metadata JSONB decodificada de un sample.
+     * Retorna array asociativo con los campos del JSONB, o array vacío si no tiene metadata.
+     */
+    public static function obtenerMetadataJsonb(int $id): array
+    {
+        $tabla = SamplesCols::TABLA;
+
+        $fila = static::consultarUno(
+            "SELECT " . SamplesCols::METADATA . " FROM {$tabla} WHERE " . SamplesCols::ID . " = :id",
+            ['id' => $id]
+        );
+
+        if ($fila === null || empty($fila[SamplesCols::METADATA])) {
+            return [];
+        }
+
+        $metadata = $fila[SamplesCols::METADATA];
+
+        /* Si el driver PDO ya decodificó el JSONB como array */
+        if (\is_array($metadata)) {
+            return $metadata;
+        }
+
+        /* Si viene como string JSON, decodificar */
+        $decoded = \json_decode($metadata, true);
+        if (\json_last_error() !== \JSON_ERROR_NONE) {
+            KamplesLogger::warning('SamplesRepository: Error decodificando metadata JSONB', [
+                'id' => $id,
+                'error' => \json_last_error_msg(),
+            ]);
+            return [];
+        }
+
+        return $decoded;
     }
 }

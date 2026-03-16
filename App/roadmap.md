@@ -538,35 +538,28 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 
 # QL66-EXTRA 
 
-Asegurarse de que los samples se intentan subir en el servidor queden en cola de revision, que se suban, y procesen, etc, (que no se procesen con IA, primero se tiene que detectar el duplicado para no pasar por los procesos que consumen recursos), esto para que cuando se apruebe se publique automaticamente o quede en cola para ser procesado en verdad, esta tarea no hay que tomarsela a la ligera, hay que hacerla bien, primero hay que planificarla bien en un md
-
-esto implica no solo al proceso de subida mediante sync sino tambien cuando se publica normal en la aplicacion o en la web, el audio se recibe, se retiene si es un duplicado y se deja pasar en el proceso normal si pasa la revision 
-
-esto tambien implica, el sync tiene que dejar qeu suban los duplicados, ya no moverlos a la carpeta de duplicados, esto tambien implica que tiene que dejar subir posibiles duplicados porque es la unica forma de que un administrador revise en el servidor. 
+✅ [AG-MNT] Completado:
+- **Desktop sync ya NO bloquea subida de duplicados**: eliminado pre-check a `/check-duplicate` que bloqueaba same-user dups antes de subir.
+- **Eliminado `moverADuplicados()`**: los 3 guards de concurrencia (hashesPendientesEncola, cola[], hashesConocidos) ahora solo hacen skip+log sin mover archivos a `duplicados/`.
+- **Server pipeline ya era correcto**: PipelineAudio paso 2.5 detecta duplicados por SHA-256 ANTES de IA (paso 3). Marca `en_supervision` + insert `duplicados_pendientes`. Admin aprueba → `ReprocesadorPostDuplicado` → pipeline completo → activo.
+- **Web/app upload ya era correcto**: usa mismo PipelineAudio.
+- Imports limpiados: `marcarDescargaEnCurso`, `marcarMovimientoInterno`, `obtenerHeadersSyncGet` removidos.
+- MD de planificacion: `App/docs/plan-ql66-dedup-restructure.md`.
+- [Leccion]: El desktop tenia 4 puntos de bloqueo de duplicados con `moverADuplicados()`. El server solo necesita que el archivo llegue para decidir.
 
 # QL67
 
-PAra la cola de IA de procesamiento de metadata de los samples qeu suben el unico log de ia que veo que usa es este 	openai/gpt-oss-120b ¿no hay rotamiento de mas ias? pues no deberia rotar a otra ia en caso de fallar o rate limit, tambien veo que los reintentes son muy rapidos, tiene que esperar 1 minuto para reintentar (con el mismo modelo, max 3 intentos por modelo para pasar a siguiente) y 1 minuto para pasar de un sample a otro
-
-mira, el procesamiento de la metadata o la que genera el jsonb de la ia debería poder usar mas modelos de reservas si es que no tiene, existen estos en groq
-
-qwen/qwen3-32b
-moonshotai/kimi-k2-instruct-0905
-moonshotai/kimi-k2-instruct
-llama-3.3-70b-versatile
-llama-3.3-70b-versatile
-groq/compound
-allam-2-7b
-
-investiga la inteligencia de cad uno y pon los mas inteligentes primero
-
-esto aplica para los otros procesos de ia 
-
-tambien quiero asegurarme de que cuando se sube un archivo mediante el sync, la tengo el contexto de la ubicacion del archivo a 4 niveles porque eso aporta informacion
-
-esto requiere un MD detallado de todos los procesos de ia que neceisitan estos modelos de reserva, y el tiempo de espera de 1 minuto por reintento  
-
-las ia que se usan en los script de python esos procesos son aparte y no tocarlos, dejarlo como estan 
+✅ [AG-MNT] Completado:
+- **Rotacion de modelos IA por inteligencia**: `ServicioIA` ahora tiene 8 modelos Groq ordenados (gpt-oss-120b > kimi-k2-0905 > kimi-k2 > compound > llama-3.3-70b > qwen3-32b > llama-4-scout > gpt-oss-20b) + fallback OpenAI (gpt-4o-mini).
+- **Reintentos con espera**: max 3 intentos por modelo en modo cola con 60s entre reintentos. 429 per-model: NO cancela cadena completa. Umbral: 3 modelos consecutivos con 429 = rate limit de cuenta → parar.
+- **Pausa entre samples**: `ProcesadorColaIA` espera 60s entre cada item procesado.
+- **Retroalimentacion del flag global 429**: `GroqHttpClient::fueRateLimited()` era flag global que mataba toda la cadena. Ahora se resetea entre modelos/reintentos.
+- **origen_subida en prompt IA**: `PipelineAudio` lee metadata JSONB (`SamplesRepository::obtenerMetadataJsonb()`), extrae `origen_subida` (ruta carpetas sync), la pasa a `PromptsIA::construirAnalisis()` como contexto para inferir genero/estilo.
+- **ServicioImagenIA retry**: 2 reintentos por modelo vision con 30s de pausa (ejecuta en shutdown hook, no bloquea).
+- **AnalizadoresModeracion rotacion**: vision (scout > maverick) y contextual (gpt-oss-120b > kimi-k2-0905 > llama-3.3-70b) ahora rotan en 429. Guard (safeguard-20b) sigue fijo por ser modelo especializado.
+- **MD de planificacion**: `App/docs/plan-ql67-ia-rotation.md` con detalle de todos los procesos IA.
+- [Leccion]: Groq rate limits son per-model — cada modelo tiene cuota independiente. 429 en gpt-oss-120b no significa que llama-3.3-70b este limitado.
+- [Leccion]: Scripts Python no tocados (kamples-scraper tiene sus propios procesos IA separados).
 
 # QL68
 
@@ -575,6 +568,32 @@ las ia que se usan en los script de python esos procesos son aparte y no tocarlo
 - La lista de extensiones conocidas sigue como primera linea de defensa (match rapido en Set); la heuristica es fallback para extensiones desconocidas.
 - Respuesta: no, un archivo con extension inventada NO se sube ni crea coleccion — se ignora con warning log.
 
+
+# QL69
+
+Respecto al plan-ql 66
+
+dice
+
+"Que TODOS los archivos (incluso duplicados) se suban al servidor para que el admin los revise. El desktop NO debe bloquear ni mover archivos a `duplicados/`."
+
+En realidad solo me refería a los duplicados, no a todos, o sea solo se van a revisar los posibles duplicados
+
+al menos un limite maximo de posibles duplicados por archivo, 
+
+esto me hizo pensar en un sistema antispam, pero es dificil porque un usuario puede subir o debería poder subir 10.000 archivos si los arrastra al sync, tiene que ser un antispam inteligente por ejemplo si detecta el mismo archivo varias veces, una 6 veces deja sincronizar ese archivo y no permite mas la subida, pero esto puede dar falsos positivo, hay que mejorar la deteción para evitar falsos positivos
+
+tambien hay algo que no planifique, la cola de subida, si bien, ahora que hay mas modelos de reserva, el proceso que genera los mp3 de preview optimizados puede consumir mucho cpu si se procesan muchos audios al mismo tiempo, esto tiene que gestionarse bien con cola 
+
+# QL70
+
+los samples que estan en la caperta Sin colección no se elimian despues de subir, bueno algunos si pero algunos no, entiendo exactamente porque (con la opcion activada de borrar archivo despues de subir automaticamente), el sistema debe ser mejor, y rastrear, omitir la papelera ahora tiene que dejar de omitir la carpeta de duplicados para los suba
+
+otro detalle, el sistema de duplicados en el panel de admin tiene que ser capaz detectar multiplies audios duplicados, es decir, ahora los debería de agrupoar en caso de un audio se suba varias veces, revisar que todas las opciones funcionen correctamente. 
+
+# QL71
+
+aun no confio en el sistema duplicados, revisar que realmente al publicar un duplicado (a decir que no es un duplicado quede en cola para procesarse o publicarse de una vez si no hay cola), y que cuando se rechace realmente se elimine del servidor con todo y info
 
 ## Mantener lo distancia
 

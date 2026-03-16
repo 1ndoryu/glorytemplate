@@ -68,6 +68,12 @@ class PromptsIA
             $partes[] = \sprintf("Dura %.1f segundos.", $duracion);
         }
 
+        /* QL67: Contexto de carpetas de origen (sync desktop) para inferir genero/estilo */
+        $origenSubida = $contextoTecnico['origen_subida'] ?? null;
+        if ($origenSubida !== null && $origenSubida !== '') {
+            $partes[] = "El archivo fue subido desde la siguiente ruta de carpetas: \"{$origenSubida}\". Usa los nombres de las carpetas como pistas contextuales para inferir género, artista y estilo.";
+        }
+
         $contexto = \implode(' ', $partes);
         $campos = self::INSTRUCCIONES_CAMPOS_JSON;
 

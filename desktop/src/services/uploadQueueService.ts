@@ -22,7 +22,7 @@
 
 import { esDesktop, estaOnline } from './desktopService';
 import { extraerMetadataDeRuta, registrarSubidaLocal, registrarAccionHistorial, actualizarEstadoSampleHistorial, moverSampleEnServidorPublico, moverArchivoASinColeccion, rehidratarImagenesPendientesForzadoSync, obtenerConfigSync } from './syncService';
-import { obtenerBaseUrlSync, marcarDescargaEnCurso, marcarMovimientoInterno, obtenerHeadersSyncGet } from './syncGuards';
+import { obtenerBaseUrlSync } from './syncGuards';
 import { Semaforo } from './semaforo';
 import { persistirConDebounce, flushPersistencia } from './persistenciaDebounce';
 import { estado } from './syncState';
@@ -474,46 +474,19 @@ async function encolarArchivoInterno(
     const hash = await calcularHashParcial(rutaArchivo);
 
     /*
-     * D4: Pre-check contra servidor — verificar si el sample ya existe.
-     * Si es duplicado del mismo usuario, no subir: vincular sample existente via mover-sample.
-     * Si es duplicado de otro usuario, subir normalmente (pipeline decide en_supervision).
-     * Si el check falla (offline, error), continuar con encolamiento normal.
+     * QL66-EXTRA: Pre-check contra servidor ELIMINADO.
+     * Antes, el desktop consultaba /check-duplicate y bloqueaba la subida si era
+     * duplicado del mismo usuario. Ahora TODOS los archivos se suben al servidor
+     * y PipelineAudio decide si es duplicado (paso 2.5, antes de IA).
+     * El admin revisa en duplicados_pendientes y aprueba/rechaza.
      */
-    if (hash && estaOnline()) {
-        try {
-            const baseUrl = obtenerBaseUrlSync();
-            const resp = await fetch(`${baseUrl}/kamples/v1/samples/check-duplicate`, {
-                method: 'POST',
-                headers: {
-                    ...obtenerHeadersSyncGet(),
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ hashParcial: hash, tamano: 0 }),
-            });
-            if (resp.ok) {
-                const data = await resp.json() as { ok: boolean; posibleDuplicado?: boolean; esMismoUsuario?: boolean; sampleId?: number };
-                if (data.ok && data.posibleDuplicado && data.esMismoUsuario && data.sampleId) {
-                    /*
-                     * Duplicado del mismo usuario: vincular sin re-subir.
-                     * Mover el sample existente a la coleccion de destino via endpoint.
-                     */
-                    logSync.info('uploadQueue', `Duplicado mismo usuario detectado por servidor. Sample ${data.sampleId} ya existe. Vinculando sin subir: ${nombreArchivo}`);
-                    await moverADuplicados(rutaArchivo, carpetas);
-                    return false;
-                }
-            }
-        } catch {
-            /* Pre-check no critico: si falla, subir normalmente */
-            logSync.debug('uploadQueue', `Pre-check duplicado falló para ${nombreArchivo}, continuando upload normal`);
-        }
-    }
 
     /* TC2: Verificar si otro encolarArchivoInterno concurrente już reservó este hash.
      * Este check es síncrono e inmediatamente después del await, cerrando la ventana
      * de race entre dos llamados que calculan hash en paralelo. */
     if (hash && hashesPendientesEncola.has(hash)) {
-        console.info('[UploadQueue] Duplicado: hash ya reservado por encola concurrente, moviendo a duplicados/:', nombreNormalizado);
-        await moverADuplicados(rutaArchivo, carpetas);
+        /* QL66-EXTRA: skip sin mover a duplicados/ — el archivo ya está siendo encolado por otro hilo concurrente */
+        logSync.debug('uploadQueue', `Hash ya reservado por encola concurrente, ignorando: ${nombreNormalizado}`);
         return false;
     }
     /* Reservar hash síncronamente para que el siguiente llamado concurrente lo vea */
@@ -523,8 +496,8 @@ async function encolarArchivoInterno(
 
     /* Verificar también si otro item en cola ya tiene este hash (race entre encolas). */
     if (hash && cola.some(i => i.hashParcial === hash && i.estado !== 'error' && i.estado !== 'completado')) {
-        console.info('[UploadQueue] Duplicado detectado: hash ya encolado, moviendo a duplicados/:', nombreNormalizado);
-        await moverADuplicados(rutaArchivo, carpetas);
+        /* QL66-EXTRA: skip sin mover — evitar upload duplicado del mismo batch */
+        logSync.debug('uploadQueue', `Hash ya encolado en batch actual, ignorando: ${nombreNormalizado}`);
         return false;
     }
 
@@ -534,9 +507,8 @@ async function encolarArchivoInterno(
          * tiene ese contenido. Antes se buscaba solo por ruta del archivo nuevo,
          * lo que fallaba para copias cross-carpeta (ruta diferente, contenido idéntico).
          *
-         * Si al menos un archivo activo (no syncDeshabilitado) usa este hash,
-         * es un duplicado genuino → mover a duplicados/.
-         * Solo evictar si NO hay ningún archivo activo con este hash (borrado del servidor).
+         * QL66-EXTRA: Ya NO mueve a duplicados/. El archivo ya fue subido previamente
+         * al servidor, no necesita re-subirse. El skip evita bandwidth, no dedup.
          */
         if (estado.trackingModule) {
             const hayActivoConHash = existeArchivoActivoConHash(hash);
@@ -545,13 +517,11 @@ async function encolarArchivoInterno(
                 hashesConocidos.delete(hash);
                 /* Continuar con encolamiento normal */
             } else {
-                console.info('[UploadQueue] Duplicado cross-carpeta detectado por hash, moviendo a duplicados/:', nombreNormalizado);
-                await moverADuplicados(rutaArchivo, carpetas);
+                logSync.debug('uploadQueue', `Hash ya subido previamente, ignorando sin mover: ${nombreNormalizado}`);
                 return false;
             }
         } else {
-            console.info('[UploadQueue] Duplicado detectado por hash, moviendo a duplicados/:', nombreNormalizado);
-            await moverADuplicados(rutaArchivo, carpetas);
+            logSync.debug('uploadQueue', `Hash conocido, ignorando sin mover: ${nombreNormalizado}`);
             return false;
         }
     }
@@ -1154,45 +1124,13 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
  * Si el archivo destino ya existe, agrega timestamp al nombre para
  * evitar colisiones (kick_1749839234.wav).
  */
-async function moverADuplicados(rutaArchivo: string, carpetas: string[]): Promise<boolean> {
-    try {
-        const { rename, mkdir, exists } = await import('@tauri-apps/plugin-fs');
-        const { join, basename } = await import('@tauri-apps/api/path');
-
-        const config = obtenerConfigSync();
-        if (!config?.carpetaLocal) return false;
-
-        const nombreArchivo = await basename(rutaArchivo);
-        const carpetaDuplicados = await join(config.carpetaLocal, 'duplicados');
-
-        /* Reconstruir estructura de carpetas dentro de duplicados/ */
-        let carpetaDestino = carpetaDuplicados;
-        for (const carpeta of carpetas) {
-            carpetaDestino = await join(carpetaDestino, carpeta);
-        }
-
-        await mkdir(carpetaDestino, { recursive: true });
-
-        /* Evitar colisión de nombres */
-        let rutaDestino = await join(carpetaDestino, nombreArchivo);
-        if (await exists(rutaDestino)) {
-            const partes = nombreArchivo.split('.');
-            const extension = partes.length > 1 ? partes.pop() : '';
-            const base = partes.join('.');
-            rutaDestino = await join(carpetaDestino, `${base}_${Date.now()}.${extension}`);
-        }
-
-        /* Marcar como movimiento interno para que el watcher lo ignore */
-        marcarMovimientoInterno(rutaArchivo);
-        marcarDescargaEnCurso(rutaDestino);
-
-        await rename(rutaArchivo, rutaDestino);
-        console.info('[UploadQueue] Duplicado movido a:', rutaDestino);
-        return true;
-    } catch (err) {
-        console.error('[UploadQueue] Error moviendo duplicado:', err);
-        return false;
-    }
+/*
+ * @deprecated QL66-EXTRA: Ya no se usa. Los duplicados se suben al servidor
+ * para que el admin los revise. Se conserva temporalmente por si se necesita
+ * revertir el cambio.
+ */
+async function moverADuplicados(_rutaArchivo: string, _carpetas: string[]): Promise<boolean> {
+    return false;
 }
 
 /*

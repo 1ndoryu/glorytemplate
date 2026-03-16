@@ -21,8 +21,16 @@ use App\Kamples\Api\Helpers\GroqVisionInputHelper;
 class AnalizadoresModeracion
 {
     private const MODELO_GUARD = 'openai/gpt-oss-safeguard-20b';
-    private const MODELO_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct';
-    private const MODELO_CONTEXTUAL = 'openai/gpt-oss-120b';
+    /* QL67: Listas de fallback — vision y contextual pueden rotar si el primero da 429 */
+    private const MODELOS_VISION = [
+        'meta-llama/llama-4-scout-17b-16e-instruct',
+        'meta-llama/llama-4-maverick-17b-128e-instruct',
+    ];
+    private const MODELOS_CONTEXTUAL = [
+        'openai/gpt-oss-120b',
+        'moonshotai/kimi-k2-instruct-0905',
+        'llama-3.3-70b-versatile',
+    ];
     private const TIMEOUT = 25;
 
     /**
@@ -75,7 +83,7 @@ class AnalizadoresModeracion
         if ($bloqueImagen === null) {
             return [
                 'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
-                'modelo' => self::MODELO_VISION,
+                'modelo' => self::MODELOS_VISION[0],
                 'error' => 'imagen_no_accesible_para_groq',
             ];
         }
@@ -100,10 +108,20 @@ class AnalizadoresModeracion
             ],
         ];
 
-        $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
+        /* QL67: Rotar modelos vision si el primero falla por 429 */
+        $respuesta = null;
+        $modeloUsado = self::MODELOS_VISION[0];
+        foreach (self::MODELOS_VISION as $modelo) {
+            $modeloUsado = $modelo;
+            GroqHttpClient::resetearEstadoRateLimit();
+            $respuesta = self::llamarGroqVision($apiKey, $modelo, $mensajes);
+            if ($respuesta !== null) break;
+            if (!GroqHttpClient::fueRateLimited()) break;
+            KamplesLogger::warning("AnalizadoresModeracion: 429 en vision/{$modelo}, intentando siguiente");
+        }
 
         if ($respuesta === null) {
-            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_VISION, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => $modeloUsado, 'error' => 'timeout'];
         }
 
         $respuestaLimpia = \strtolower(\trim($respuesta));
@@ -113,12 +131,12 @@ class AnalizadoresModeracion
             $categoria = isset($partes[1]) ? \trim($partes[1]) : 'sexual';
             return [
                 'nivel' => PublicacionesEnums::MODERACION_ESTADO_RECHAZADO,
-                'modelo' => self::MODELO_VISION,
+                'modelo' => $modeloUsado,
                 'categoria' => $categoria,
             ];
         }
 
-        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_VISION];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => $modeloUsado];
     }
 
     /**
@@ -161,6 +179,7 @@ class AnalizadoresModeracion
         $peorNivel = PublicacionesEnums::MODERACION_ESTADO_APROBADO;
         $detalles = [];
         $huboErrores = false;
+        $modeloUsado = self::MODELOS_VISION[0];
 
         foreach ($imagenes as $url) {
             if (empty($url)) continue;
@@ -191,7 +210,16 @@ class AnalizadoresModeracion
                 ],
             ];
 
-            $respuesta = self::llamarGroqVision($apiKey, self::MODELO_VISION, $mensajes);
+            /* QL67: Rotar modelos vision por imagen si 429 */
+            $respuesta = null;
+            foreach (self::MODELOS_VISION as $modelo) {
+                $modeloUsado = $modelo;
+                GroqHttpClient::resetearEstadoRateLimit();
+                $respuesta = self::llamarGroqVision($apiKey, $modelo, $mensajes);
+                if ($respuesta !== null) break;
+                if (!GroqHttpClient::fueRateLimited()) break;
+                KamplesLogger::warning("AnalizadoresModeracion: 429 en vision/{$modelo} para imagen, intentando siguiente");
+            }
 
             if ($respuesta === null) {
                 $huboErrores = true;
@@ -213,7 +241,7 @@ class AnalizadoresModeracion
 
         return [
             'nivel' => $peorNivel,
-            'modelo' => self::MODELO_VISION,
+            'modelo' => $modeloUsado,
             'imagenes' => $detalles,
             'error' => $huboErrores ? 'analisis_imagen_incompleto' : '',
         ];
@@ -242,10 +270,21 @@ class AnalizadoresModeracion
             . '{"safe": true, "confidence": 0.95, "reason": ""}' . "\n"
             . "If unsafe: " . '{"safe": false, "confidence": 0.85, "reason": "brief reason"}';
 
-        $respuesta = self::llamarGroq($apiKey, self::MODELO_CONTEXTUAL, $prompt);
+        /* QL67: Rotar modelos contextual si el primero falla (429 o error) */
+        $respuesta = null;
+        $modeloUsado = self::MODELOS_CONTEXTUAL[0];
+        foreach (self::MODELOS_CONTEXTUAL as $modelo) {
+            $modeloUsado = $modelo;
+            GroqHttpClient::resetearEstadoRateLimit();
+            $respuesta = self::llamarGroq($apiKey, $modelo, $prompt);
+            if ($respuesta !== null) break;
+            /* Si no fue 429, no intentar otro modelo (error real, no quota) */
+            if (!GroqHttpClient::fueRateLimited()) break;
+            KamplesLogger::warning("AnalizadoresModeracion: 429 en contextual/{$modelo}, intentando siguiente");
+        }
 
         if ($respuesta === null) {
-            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'timeout'];
+            return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => $modeloUsado, 'error' => 'timeout'];
         }
 
         $json = \json_decode($respuesta, true);
@@ -261,19 +300,19 @@ class AnalizadoresModeracion
                 $confianza = (float) ($json['confidence'] ?? 0.5);
                 return [
                     'nivel' => $confianza >= 0.8 ? PublicacionesEnums::MODERACION_ESTADO_RECHAZADO : PublicacionesEnums::MODERACION_ESTADO_REVISION,
-                    'modelo' => self::MODELO_CONTEXTUAL,
+                    'modelo' => $modeloUsado,
                     'razon' => $json['reason'] ?? '',
                     'confianza' => $confianza,
                 ];
             }
             return [
                 'nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO,
-                'modelo' => self::MODELO_CONTEXTUAL,
+                'modelo' => $modeloUsado,
                 'confianza' => (float) ($json['confidence'] ?? 0.95),
             ];
         }
 
-        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => self::MODELO_CONTEXTUAL, 'error' => 'parse_failed'];
+        return ['nivel' => PublicacionesEnums::MODERACION_ESTADO_APROBADO, 'modelo' => $modeloUsado, 'error' => 'parse_failed'];
     }
 
     /**

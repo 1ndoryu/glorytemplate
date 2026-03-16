@@ -32,6 +32,10 @@ class ServicioImagenIA
 
     private const TIMEOUT = 30;
 
+    /* QL67: Reintentos por modelo al recibir 429 (se ejecuta en shutdown hook, no bloquea usuarios) */
+    private const MAX_REINTENTOS_POR_MODELO = 2;
+    private const PAUSA_REINTENTO_SEGUNDOS = 30;
+
     /*
      * Analiza una imagen por referencia y retorna metadata descriptiva.
      * Si la URL no es accesible externamente, se envía a Groq como data URL base64.
@@ -52,11 +56,24 @@ class ServicioImagenIA
         }
 
         foreach (self::MODELOS_VISION as $modelo) {
-            KamplesLogger::info('ServicioImagenIA: Intentando ' . $modelo, ['url' => $urlImagen]);
-            $resultado = self::llamarGroqVision($modelo, $apiKey, $urlImagen);
-            if ($resultado !== null) {
-                KamplesLogger::info('ServicioImagenIA: Análisis exitoso con ' . $modelo);
-                return $resultado;
+            for ($intento = 1; $intento <= self::MAX_REINTENTOS_POR_MODELO; $intento++) {
+                if ($intento > 1) {
+                    KamplesLogger::info("ServicioImagenIA: Esperando " . self::PAUSA_REINTENTO_SEGUNDOS . "s antes de reintento {$intento} con {$modelo}");
+                    \sleep(self::PAUSA_REINTENTO_SEGUNDOS);
+                    GroqHttpClient::resetearEstadoRateLimit();
+                }
+
+                KamplesLogger::info("ServicioImagenIA: Intentando {$modelo} (intento {$intento})", ['url' => $urlImagen]);
+                $resultado = self::llamarGroqVision($modelo, $apiKey, $urlImagen);
+                if ($resultado !== null) {
+                    KamplesLogger::info('ServicioImagenIA: Análisis exitoso con ' . $modelo);
+                    return $resultado;
+                }
+
+                /* Si NO fue 429, no tiene sentido reintentar mismo modelo */
+                if (!GroqHttpClient::fueRateLimited()) {
+                    break;
+                }
             }
         }
 
