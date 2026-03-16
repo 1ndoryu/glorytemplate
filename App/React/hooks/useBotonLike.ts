@@ -4,10 +4,11 @@
  * Extraído de BotonLike para cumplir SRP (max 3 useState).
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { TipoLikeable } from '@app/services/apiSocial';
 import type { TipoReaccion } from '@app/types';
+import { EVENTO_LIKE_CAMBIADO } from '@app/hooks/useFeedLikes';
 
 interface UseBotonLikeParams {
     tipo: TipoLikeable;
@@ -30,6 +31,19 @@ export const useBotonLike = ({
     const [animando, setAnimando] = useState(false);
     const [cargando, setCargando] = useState(false);
 
+    /* QL56: Sincronizar likes desde reproductor/feed */
+    useEffect(() => {
+        if (tipo !== 'sample') return;
+        const manejar = (e: Event) => {
+            const { sampleId, liked: nuevoLiked } = (e as CustomEvent<{ sampleId: number; liked: boolean }>).detail;
+            if (sampleId === targetId) {
+                setLiked(prev => prev === nuevoLiked ? prev : nuevoLiked);
+            }
+        };
+        window.addEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+        return () => window.removeEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+    }, [tipo, targetId]);
+
     /* Click directo: toggle like simple */
     const manejarClickDirecto = useCallback(async () => {
         if (cargando) return;
@@ -41,11 +55,16 @@ export const useBotonLike = ({
             setLiked(false);
             setReaccion(null);
             setTotal(total - 1);
+            if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: false, reaccion: null } }));
             try {
                 const resp = await quitarLike(tipo, targetId);
-                if (!resp.ok) { setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total); }
+                if (!resp.ok) {
+                    setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total);
+                    if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: snapshot.liked, reaccion: snapshot.reaccion } }));
+                }
             } catch {
                 setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total);
+                if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: snapshot.liked, reaccion: snapshot.reaccion } }));
             }
         } else {
             setLiked(true);
@@ -53,11 +72,16 @@ export const useBotonLike = ({
             setTotal(total + 1);
             setAnimando(true);
             setTimeout(() => setAnimando(false), 300);
+            if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: true, reaccion: 'like' } }));
             try {
                 const resp = await darLike(tipo, targetId, 'like');
-                if (!resp.ok) { setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total); }
+                if (!resp.ok) {
+                    setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total);
+                    if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: snapshot.liked, reaccion: snapshot.reaccion } }));
+                }
             } catch {
                 setLiked(snapshot.liked); setReaccion(snapshot.reaccion); setTotal(snapshot.total);
+                if (tipo === 'sample') window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId: targetId, liked: snapshot.liked, reaccion: snapshot.reaccion } }));
             }
         }
         setCargando(false);

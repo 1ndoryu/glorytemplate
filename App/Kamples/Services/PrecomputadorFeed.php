@@ -32,6 +32,8 @@ use App\Config\Schema\_generated\ColeccionesCols;
 use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\FollowsCols;
+use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Services\ServicioCache;
 
 class PrecomputadorFeed
 {
@@ -103,12 +105,49 @@ class PrecomputadorFeed
 
     /* ========== CTEs Nivel 0 ========== */
 
+    /**
+     * CTE enriched: tags enriquecidos por sample.
+     *
+     * BN-2 Opt B: Si la columna materializada tags_enriquecidos existe (v058),
+     * la usa directamente (0 cost). Si no, calcula dinamicamente con JSONB
+     * como fallback (retrocompatible).
+     * El flag se cachea en memoria estatica para no consultar BD en cada request.
+     */
+    private static ?bool $columnaTagsEnriquecidosExiste = null;
+
     private static function cteEnriched(): string
     {
         $sId = SamplesCols::ID;
         $sEstado = SamplesCols::ESTADO;
         $eActivo = SamplesEnums::ESTADO_ACTIVO;
         $ts = SamplesCols::TABLA;
+
+        if (self::$columnaTagsEnriquecidosExiste === null) {
+            $cached = ServicioCache::obtener('kamples_col_tags_enr_ok');
+            if ($cached !== false) {
+                self::$columnaTagsEnriquecidosExiste = ($cached === '1');
+            } else {
+                try {
+                    $existe = SamplesRepository::consultarValor(
+                        "SELECT 1 FROM information_schema.columns WHERE table_name = :tabla AND column_name = :col LIMIT 1",
+                        ['tabla' => SamplesCols::TABLA, 'col' => SamplesCols::TAGS_ENRIQUECIDOS]
+                    );
+                    self::$columnaTagsEnriquecidosExiste = ($existe !== null);
+                    ServicioCache::guardar('kamples_col_tags_enr_ok', self::$columnaTagsEnriquecidosExiste ? '1' : '0', 3600);
+                } catch (\Throwable) {
+                    self::$columnaTagsEnriquecidosExiste = false;
+                }
+            }
+        }
+
+        if (self::$columnaTagsEnriquecidosExiste) {
+            /* Columna materializada: 0 cost de computacion */
+            $sCol = SamplesCols::TAGS_ENRIQUECIDOS;
+            return "SELECT s.{$sId} AS sample_id, s.{$sCol} AS etags
+                FROM {$ts} s WHERE s.{$sEstado} = '{$eActivo}'";
+        }
+
+        /* Fallback: calculo dinamico con JSONB (pre-v058) */
         $etagsExpr = ConstructorSenales::sqlTagsEnriquecidos('s');
 
         return "SELECT s.{$sId} AS sample_id, {$etagsExpr} AS etags

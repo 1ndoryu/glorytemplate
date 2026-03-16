@@ -5,9 +5,10 @@
  * QQ49: Reescrito minimalista.
  */
 
-import { useCallback, useRef, type MouseEvent } from 'react';
+import { useCallback, useRef, useEffect, type MouseEvent } from 'react';
 import { useReproductorStore } from '../stores/reproductorStore';
 import { darLike, quitarLike } from '../services/apiSocial';
+import { EVENTO_LIKE_CAMBIADO } from './useFeedLikes';
 
 const formatearTiempo = (segundos: number): string => {
     if (!segundos || isNaN(segundos)) return '0:00';
@@ -50,6 +51,9 @@ export const useReproductorGlobal = () => {
         if (!sampleActual) return;
         const nuevoLiked = !liked;
         actualizarLike(nuevoLiked);
+        window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, {
+            detail: { sampleId: sampleActual.id, liked: nuevoLiked },
+        }));
         try {
             if (nuevoLiked) {
                 await darLike('sample', sampleActual.id);
@@ -58,8 +62,24 @@ export const useReproductorGlobal = () => {
             }
         } catch {
             actualizarLike(!nuevoLiked);
+            window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, {
+                detail: { sampleId: sampleActual.id, liked: !nuevoLiked },
+            }));
         }
     }, [sampleActual, liked, actualizarLike]);
+
+    /* QL56: Sincronizar likes desde feed/BotonLike externos al reproductor */
+    useEffect(() => {
+        const manejar = (e: Event) => {
+            const { sampleId, liked: nuevoLiked } = (e as CustomEvent<{ sampleId: number; liked: boolean }>).detail;
+            const actual = useReproductorStore.getState().sampleActual;
+            if (actual && actual.id === sampleId && actual.liked !== nuevoLiked) {
+                actualizarLike(nuevoLiked);
+            }
+        };
+        window.addEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+        return () => window.removeEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+    }, [actualizarLike]);
 
     return {
         sampleActual,

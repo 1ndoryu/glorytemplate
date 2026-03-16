@@ -4,11 +4,14 @@
  * Extraido de useFeedSamples para cumplir SRP y limite de 300 lineas.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import type { SampleResumen, TipoReaccion } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
+
+/* QL56: Evento global para sincronizar likes entre feed, reproductor y BotonLike aislados */
+export const EVENTO_LIKE_CAMBIADO = 'kamples:like-cambiado';
 
 interface UseFeedLikesOpciones {
     samples: SampleResumen[];
@@ -36,6 +39,7 @@ export function useFeedLikes({ samples, setSamples, invalidarCache, onLike }: Us
                 ),
             );
             invalidarCache();
+            window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId, liked: esPositivo, reaccion } }));
             await darLike('sample', sampleId, reaccion);
             if (esPositivo && sampleRef) abrirSugerencias(sampleRef);
             onLike?.(sampleId, true);
@@ -49,6 +53,7 @@ export function useFeedLikes({ samples, setSamples, invalidarCache, onLike }: Us
                 ),
             );
             invalidarCache();
+            window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId, liked: false, reaccion: null } }));
             await quitarLike('sample', sampleId);
             onLike?.(sampleId, false);
         } else {
@@ -60,11 +65,25 @@ export function useFeedLikes({ samples, setSamples, invalidarCache, onLike }: Us
                 ),
             );
             invalidarCache();
+            window.dispatchEvent(new CustomEvent(EVENTO_LIKE_CAMBIADO, { detail: { sampleId, liked: true, reaccion: 'like' as const } }));
             await darLike('sample', sampleId, 'like');
             if (sampleRef) abrirSugerencias(sampleRef);
             onLike?.(sampleId, true);
         }
     }, [samples, onLike, abrirSugerencias, setSamples, invalidarCache]);
+
+    /* QL56: Escuchar likes externos (reproductor, BotonLike) y sincronizar el array local del feed */
+    useEffect(() => {
+        const manejar = (e: Event) => {
+            const { sampleId, liked, reaccion: reac } = (e as CustomEvent<{ sampleId: number; liked: boolean; reaccion?: TipoReaccion | null }>).detail;
+            setSamples(prev => prev.map(s => {
+                if (s.id !== sampleId || s.liked === liked) return s;
+                return { ...s, liked, reaccion: reac ?? (liked ? 'like' : null) };
+            }));
+        };
+        window.addEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+        return () => window.removeEventListener(EVENTO_LIKE_CAMBIADO, manejar);
+    }, [setSamples]);
 
     return { manejarLike, abrirSugerencias };
 }

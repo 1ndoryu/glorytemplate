@@ -102,6 +102,23 @@ class MotorRecomendacion
             return $cached;
         }
 
+        /*
+         * Stampede protection: si el cache esta vacio y otro request ya esta
+         * recalculando, esperar brevemente en vez de duplicar la query pesada.
+         */
+        $lockKey = 'kamples_lock_feed_' . $userId . '_' . $limite . '_' . $offset;
+        $lockAdquirido = ServicioCache::adquirirLock($lockKey, 30);
+
+        if (!$lockAdquirido) {
+            /* Otro request esta recalculando — esperar 80ms y reintentar cache */
+            \usleep(80000);
+            $cached = ServicioCache::obtener($cacheKey);
+            if ($cached !== false && \is_array($cached)) {
+                return $cached;
+            }
+            /* Sin cache disponible aun — seguir con calculo propio como fallback */
+        }
+
         $config = self::cargarPesos();
         $pesos = $config['senales'] ?? [];
         $params = $config['parametros'] ?? [];
@@ -316,6 +333,11 @@ class MotorRecomendacion
         if (!empty($resultado)) {
             $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
             ServicioCache::guardar(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, $ttl);
+        }
+
+        /* Liberar stampede lock tras guardar en cache */
+        if ($lockAdquirido) {
+            ServicioCache::liberarLock($lockKey);
         }
 
         return $resultado;
@@ -553,6 +575,10 @@ class MotorRecomendacion
      *
      * Con pgvector: samples a distancia coseno moderada (ni muy similar ni opuesto).
      * Sin pgvector: samples aleatorios con buen engagement que el usuario no ha oído.
+     *
+     * BN-5: Resultados cacheados 30 min por usuario. La serendipia no depende de
+     * interacciones recientes (RANDOM + distancia moderada), asi que es seguro
+     * cachear sin invalidacion por eventos.
      */
     private static function obtenerSamplesDescubrimiento(
         int $userId,
@@ -560,6 +586,21 @@ class MotorRecomendacion
         array $idsExcluir,
         array $serendipConfig
     ): array {
+        $cacheTtl = (int) ($serendipConfig['cache_ttl'] ?? 1800);
+        $cacheKey = "kamples_serendipia_{$userId}";
+        $cached = ServicioCache::obtener($cacheKey);
+        if ($cached !== false && \is_array($cached) && !empty($cached)) {
+            /* Filtrar los que ya estan en el feed actual */
+            $idsSet = \array_flip($idsExcluir);
+            $filtrados = \array_values(\array_filter($cached, function ($s) use ($idsSet) {
+                return !isset($idsSet[$s[SamplesCols::ID] ?? -1]);
+            }));
+            if (!empty($filtrados)) {
+                return \array_slice($filtrados, 0, $limite);
+            }
+            /* Si todos los cacheados ya estan en el feed, recalcular */
+        }
+
         $distMin = (float) ($serendipConfig['distancia_min'] ?? 0.3);
         $distMax = (float) ($serendipConfig['distancia_max'] ?? 1.0);
         $minEngagement = (int) ($serendipConfig['min_engagement'] ?? 5);
@@ -611,7 +652,10 @@ class MotorRecomendacion
                     . " LIMIT :limit";
 
                 $candidatos = SamplesRepository::consultar($sql, $paramsVector);
-                if (!empty($candidatos)) return $candidatos;
+                if (!empty($candidatos)) {
+                    ServicioCache::guardar($cacheKey, $candidatos, $cacheTtl);
+                    return $candidatos;
+                }
             }
         }
 
@@ -631,7 +675,11 @@ class MotorRecomendacion
         $paramsFallback = $params;
         unset($paramsFallback['discoveryVector']);
 
-        return SamplesRepository::consultar($sql, $paramsFallback);
+        $candidatos = SamplesRepository::consultar($sql, $paramsFallback);
+        if (!empty($candidatos)) {
+            ServicioCache::guardar($cacheKey, $candidatos, $cacheTtl);
+        }
+        return $candidatos;
     }
 
     /*

@@ -154,4 +154,51 @@ class ServicioCache
     {
         return ServicioRedis::obtenerInstancia()->estaDisponible();
     }
+
+    /**
+     * Adquirir lock optimista para proteccion de stampede.
+     *
+     * Devuelve true si el lock fue adquirido (este request debe recalcular).
+     * Devuelve false si otro request ya esta recalculando.
+     *
+     * Usa Redis SETNX (atomico). Fallback a wp_cache_add (object cache).
+     *
+     * @param string $clave Clave del lock, ej: 'kamples_lock_feed_15'
+     * @param int $ttl Segundos maximo de vida del lock (proteccion contra deadlock)
+     */
+    public static function adquirirLock(string $clave, int $ttl = 30): bool
+    {
+        $redis = ServicioRedis::obtenerInstancia();
+
+        if ($redis->estaDisponible()) {
+            try {
+                /* SET con NX (solo si no existe) + EX (con TTL) — atomico */
+                return (bool) $redis->obtenerCliente()->set($clave, 1, ['NX', 'EX' => $ttl]);
+            } catch (\Throwable $e) {
+                error_log('[ServicioCache] Error lock ' . $clave . ': ' . $e->getMessage());
+            }
+        }
+
+        /* Fallback: wp_cache_add retorna false si la clave ya existe */
+        return (bool) \wp_cache_add($clave, 1, '', $ttl);
+    }
+
+    /**
+     * Liberar lock de proteccion de stampede.
+     */
+    public static function liberarLock(string $clave): void
+    {
+        $redis = ServicioRedis::obtenerInstancia();
+
+        if ($redis->estaDisponible()) {
+            try {
+                $redis->obtenerCliente()->del($clave);
+                return;
+            } catch (\Throwable $e) {
+                error_log('[ServicioCache] Error liberarLock ' . $clave . ': ' . $e->getMessage());
+            }
+        }
+
+        \wp_cache_delete($clave);
+    }
 }

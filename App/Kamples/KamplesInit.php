@@ -29,6 +29,7 @@ use App\Kamples\Database\MigradorLocal;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
 use App\Kamples\Services\ServicioCache;
+use App\Kamples\Services\ConstructorSenales;
 
 class KamplesInit
 {
@@ -233,6 +234,13 @@ class KamplesInit
                 }
             } catch (\Throwable $e) {
                 KamplesLogger::error('Cron: Error refrescando mv_trending_samples', ['error' => $e->getMessage()]);
+            }
+
+            /* BN-3: Pre-calcular percentiles de saturacion si cache expiro (TTL 1h) */
+            try {
+                ConstructorSenales::precalcularPercentiles();
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Cron: Error precalculando percentiles', ['error' => $e->getMessage()]);
             }
         });
 

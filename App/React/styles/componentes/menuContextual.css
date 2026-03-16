@@ -7,7 +7,7 @@
 .menuContextualOverlay {
     position: fixed;
     inset: 0;
-    z-index: var(--zMenu);
+    z-index: var(--zMenuPortal);
 }
 
 .menuContextual {
@@ -19,7 +19,7 @@
     border-radius: var(--radioMd);
     box-shadow: var(--sombraElevada);
     padding: var(--espacioXs) 0;
-    z-index: var(--zMenu);
+    z-index: var(--zMenuPortal);
     animation: fadeInMenu var(--transicionRapida) ease;
 }
 
@@ -92,7 +92,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: var(--zMenu);
+    z-index: var(--zMenuPortal);
     background-color: var(--fondoElevado1);
     border-radius: var(--radioLg) var(--radioLg) 0 0;
     box-shadow: var(--sombraElevada);

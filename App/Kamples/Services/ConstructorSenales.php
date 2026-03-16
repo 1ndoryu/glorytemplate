@@ -683,6 +683,23 @@ class ConstructorSenales
      * @param array $config Configuración completa del algoritmo
      * @return string Fragmento SQL multiplicativo
      */
+    /**
+     * Pre-calcula percentiles de saturacion y los guarda en cache.
+     * Llamado por cron cada 5 min; solo recalcula si cache ya expiro (TTL 1h).
+     * Elimina el cold-start penalty del BN-3 para requests del feed.
+     */
+    public static function precalcularPercentiles(): void
+    {
+        $cacheKey = 'kamples_sat_pop_stats';
+        $cached = ServicioCache::obtener($cacheKey);
+        if ($cached !== false && \is_array($cached)) {
+            return; /* Cache aun vigente, nada que hacer */
+        }
+
+        /* Forzar recalculo: obtenerStatsDescargas ya hace query + guarda en cache */
+        self::obtenerStatsDescargas([]);
+    }
+
     public static function sqlSaturacionPopularidad(array $config): string
     {
         $satConfig = $config['parametros']['saturacion_popularidad'] ?? [];
