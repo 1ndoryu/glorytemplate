@@ -47,7 +47,7 @@ class SamplesUploadController
     ];
 
     /* Extensiones aceptadas — el navegador reporta MIME de forma no fiable según OS/browser */
-    private const EXTENSIONES_AUDIO_VALIDAS = ['wav', 'mp3', 'flac', 'aiff', 'aif'];
+    private const EXTENSIONES_AUDIO_VALIDAS = ['wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg'];
     private const MAX_TAMANO_AUDIO = 50 * 1024 * 1024;
 
     /* QQ90: Validación de imagen de portada — MIME por magic bytes */

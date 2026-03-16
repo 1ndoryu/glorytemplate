@@ -181,10 +181,20 @@ class AdminController
             $id = (int) $request->get_param('id');
             $body = $request->get_json_params();
 
-            /* S33 fix: prevenir auto-modificación (admin no puede banearse/degradarse a sí mismo) */
+            /*
+             * S33 fix: prevenir auto-degradacion y auto-ban.
+             * QL64: Permitir que admin cambie su propio plan y verificacion.
+             * Solo bloquear operaciones peligrosas sobre si mismo (ban, degradar rol).
+             */
             $currentPgId = UsuarioHelper::obtenerIdPg();
-            if ($currentPgId && $id === $currentPgId) {
-                return new \WP_REST_Response(['code' => 'auto_modificacion', 'message' => 'No puedes modificar tu propia cuenta desde el panel'], 400);
+            $esAutoModificacion = $currentPgId && $id === $currentPgId;
+            if ($esAutoModificacion) {
+                if (isset($body['ban_hasta']) && $body['ban_hasta'] !== null) {
+                    return new \WP_REST_Response(['code' => 'auto_ban', 'message' => 'No puedes banearte a ti mismo'], 400);
+                }
+                if (isset($body['rol']) && $body['rol'] !== UsuariosExtEnums::ROL_ADMIN) {
+                    return new \WP_REST_Response(['code' => 'auto_degradacion', 'message' => 'No puedes degradar tu propio rol'], 400);
+                }
             }
 
             /* Verificar que el usuario existe antes de actualizar */

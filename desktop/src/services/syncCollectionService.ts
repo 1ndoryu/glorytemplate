@@ -152,7 +152,7 @@ function encolarCreacionColeccion(nombreNormalizado: string): void {
         tipo: 'crear_coleccion',
         endpoint: `${baseUrl}/kamples/v1/colecciones`,
         method: 'POST',
-        body: { nombre: nombreNormalizado, descripcion: '', publica: false },
+        body: { nombre: nombreNormalizado, descripcion: '', publica: true },
         claveDuplicacion: `crear_coleccion_${nombreNormalizado.toLowerCase()}`,
     }).catch(err => {
         console.error('[SyncCollection] Error encolando creación de colección:', err);
@@ -1272,7 +1272,7 @@ export async function crearColeccionDesdeLocal(nombre: string, parentId: number 
             }
 
             const baseUrl = obtenerBaseUrlSync();
-            const bodyCrear: Record<string, unknown> = { nombre: nombreNormalizado, descripcion: '', publica: false };
+            const bodyCrear: Record<string, unknown> = { nombre: nombreNormalizado, descripcion: '', publica: true };
             if (parentId !== null) bodyCrear.parent_id = parentId;
 
             for (let intento = 1; intento <= MAX_REINTENTOS_CREAR_COLECCION; intento++) {

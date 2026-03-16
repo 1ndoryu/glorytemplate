@@ -474,9 +474,11 @@ todas las colecciones incluyendo favoritos, descargas, etc deberían tener orden
 
 # QL55
 
-El panel lateral debería funcionar como un dropdown, pero no abrirse cuando se hace click en el nombre del sample, solo si es desde el menu contextual, asi mismo lo "te prodria gustar" no abrire automaticamente en el telefono solo si se da click en el menu y en un dropdown. 
-
-Y creo que los menu contextuales en escritorio necesitan max-height: 400px; ya que se hace muy largo a veces con overflow auto
+✅ [AG-MNT] Completado:
+- **Panel lateral solo desde menu contextual:** Removido `onClickTitulo` que abria panel en FeedSamples, FavoritosIsland, DescargasIsland y ExploradorIsland. Click en titulo ahora navega a `/sample/{slug}/` (fallback nativo de TarjetaSample).
+- **Sugerencias no auto-abrir en movil:** `abrirSugerencias()` en panelLateralStore verifica `window.innerWidth <= 1024` y no abre en viewport movil.
+- **TarjetaSampleCuadricula:** Agregado fallback de navegacion cuando `onClickTitulo` es undefined.
+- **Max-height menu contextual desktop:** Ya implementado en QL52 (400px + overflow-y:auto).
 
 # QL56
 
@@ -487,20 +489,80 @@ Y creo que los menu contextuales en escritorio necesitan max-height: 400px; ya q
 
 # QL57
 
-quiero ejecutar el test pero no se porque no funciona 
-
-PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate> ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"
-Ejecutando benchmark: userId=1 perPage=30
-Timeout: 120s
-
-Error response from daemon: No such container: 4cfb6b17cce6
-
-Exit code: 1
+✅ [AG-MNT] Fix: Script `/tmp/run-benchmark.sh` en VPS usaba container ID viejo (`4cfb6b17cce6`). Actualizado a nombre `wordpress-mo4so4440c488g8woow4cow0`. Benchmark funciona: ~81ms promedio feed sin cache.
 
 # QL58
 
-QL40 esta mal, me refiero al proceso de script, o sea, en el scrip de python, solo pon ese log
+✅ [AG-MNT] Log `TRIP PO` agregado al inicio de `_descargar_youtube()` en `kamples-scraper/extractor/audio_download.py`.
 
+# QL59
+
+✅ [AG-MNT] Nuevo prop `forzarDropdown` en MenuContextual. VentanaSincPanel lo usa para forzar modo dropdown desktop (viewport estrecho no activa bottom sheet).
+
+# QL60
+
+✅ [AG-MNT] Removida condicion `s.relacionSampleoId` del item 'corregir-ia' en `construirItemsMenuSample.ts`. Admins ven "Corregir metadata IA" en todos los samples.
+
+# QL61 
+
+Haz que todas las colecciones que se crean por defecto sean publicas, y las que existen actualmente, que sean publicas
+
+# QL62 
+
+Problema grave con el sync, los archivo los maneja como colecciones y los sube al servidor asi con estos nombre
+READ ME!.txt
+PandaFX.gif
+
+
+esto es gravisimo, esto necesita una auditoría de seguridad 
+
+# QL63
+
+Auditoría de optimizacion de la subida del sync, seguridad: evitar perdida de datos con el mecanismo de (borrar archivo local despues de subir, o sea asegurarse de que realmente suba antes de borrar) y siento que entra en conflicto con la opcion de (al borrar en local, borrar en el servidor), obviamente ninguna de las dos debe estar activa al mismo tiempo, 
+
+# QL64
+
+puedo verificar y cambiar plan free a premiun de otros usuarios pero no a mi misma, debería poder
+main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
+main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
+main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
+main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/1 400 (Bad Request)
+
+# QL65
+
+Los duplicados que se suben a través del sync, llegan las notificaciones a mi en vez de llegarle al usuario que lo subio, a demás, en el panel de admin, no me salen esos duplicados para revisarlos si realmente son duplicados o no. 
+
+# QL66-EXTRA 
+
+Asegurarse de que los samples se intentan subir en el servidor queden en cola de revision, que se suban, y procesen, etc, (que no se procesen con IA, primero se tiene que detectar el duplicado para no pasar por los procesos que consumen recursos), esto para que cuando se apruebe se publique automaticamente o quede en cola para ser procesado en verdad, esta tarea no hay que tomarsela a la ligera, hay que hacerla bien, primero hay que planificarla bien en un md
+
+esto implica no solo al proceso de subida mediante sync sino tambien cuando se publica normal en la aplicacion o en la web, el audio se recibe, se retiene si es un duplicado y se deja pasar en el proceso normal si pasa la revision 
+
+esto tambien implica, el sync tiene que dejar qeu suban los duplicados, ya no moverlos a la carpeta de duplicados, esto tambien implica que tiene que dejar subir posibiles duplicados porque es la unica forma de que un administrador revise en el servidor. 
+
+# QL67
+
+PAra la cola de IA de procesamiento de metadata de los samples qeu suben el unico log de ia que veo que usa es este 	openai/gpt-oss-120b ¿no hay rotamiento de mas ias? pues no deberia rotar a otra ia en caso de fallar o rate limit, tambien veo que los reintentes son muy rapidos, tiene que esperar 1 minuto para reintentar (con el mismo modelo, max 3 intentos por modelo para pasar a siguiente) y 1 minuto para pasar de un sample a otro
+
+mira, el procesamiento de la metadata o la que genera el jsonb de la ia debería poder usar mas modelos de reservas si es que no tiene, existen estos en groq
+
+qwen/qwen3-32b
+moonshotai/kimi-k2-instruct-0905
+moonshotai/kimi-k2-instruct
+llama-3.3-70b-versatile
+llama-3.3-70b-versatile
+groq/compound
+allam-2-7b
+
+investiga la inteligencia de cad uno y pon los mas inteligentes primero
+
+esto aplica para los otros procesos de ia 
+
+tambien quiero asegurarme de que cuando se sube un archivo mediante el sync, la tengo el contexto de la ubicacion del archivo a 4 niveles porque eso aporta informacion
+
+esto requiere un MD detallado de todos los procesos de ia que neceisitan estos modelos de reserva, y el tiempo de espera de 1 minuto por reintento  
+
+las ia que se usan en los script de python esos procesos son aparte y no tocarlos, dejarlo como estan 
 
 
 ## Mantener lo distancia

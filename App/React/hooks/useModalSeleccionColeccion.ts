@@ -121,7 +121,7 @@ export const useModalSeleccionColeccion = () => {
             const resp = await crearColeccion({
                 nombre: busqueda.trim(),
                 descripcion: '',
-                esPublica: false,
+                esPublica: true,
             });
             if (resp.ok && resp.data) {
                 await agregarSampleAColeccion(resp.data.id, sample.id);

@@ -81,7 +81,7 @@ const publicacionInicial: FormularioPublicacion = {
 const coleccionInicial: FormularioColeccion = {
     nombre: '',
     descripcion: '',
-    esPublica: false,
+    esPublica: true,
 };
 
 export const useEditar = (

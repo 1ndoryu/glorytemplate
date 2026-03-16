@@ -29,7 +29,7 @@ export const useModalColeccion = ({
 
     const [nombre, setNombre] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [esPublica, setEsPublica] = useState(false);
+    const [esPublica, setEsPublica] = useState(true);
     const [guardando, setGuardando] = useState(false);
     /* Estado de imagen — solo relevante en modo edición */
     const [archivoImagen, setArchivoImagen] = useState<File | null>(null);
@@ -45,7 +45,7 @@ export const useModalColeccion = ({
         } else {
             setNombre('');
             setDescripcion('');
-            setEsPublica(false);
+            setEsPublica(true);
             setPreviewImagen(null);
         }
         setArchivoImagen(null);

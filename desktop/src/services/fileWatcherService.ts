@@ -29,6 +29,25 @@ const EXTENSIONES_AUDIO = new Set([
     'wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg',
 ]);
 
+/*
+ * QL62: Extensiones conocidas de archivos no-audio.
+ * Si un path de nivel 1 tiene alguna de estas extensiones, NO es una carpeta,
+ * es un archivo suelto que el usuario colocó en la raíz de la carpeta sync.
+ * Esto previene que "READ ME!.txt" o "PandaFX.gif" se traten como colecciones.
+ */
+const EXTENSIONES_ARCHIVO_CONOCIDAS = new Set([
+    'txt', 'md', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv',
+    'gif', 'png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'psd', 'ai',
+    'exe', 'msi', 'dmg', 'app', 'bat', 'sh', 'ps1', 'cmd',
+    'zip', 'rar', 'tar', 'gz', '7z', 'bz2', 'xz', 'iso',
+    'json', 'xml', 'html', 'htm', 'css', 'js', 'ts', 'jsx', 'tsx', 'py', 'rb', 'php',
+    'avi', 'mov', 'mp4', 'mkv', 'wmv', 'flv', 'webm', 'm4v',
+    'mid', 'midi', 'sf2', 'sfz', 'vst', 'dll', 'so', 'dylib',
+    'als', 'flp', 'logic', 'cpr', 'ptx', 'rpp',
+    'torrent', 'lnk', 'url', 'desktop',
+    'log', 'bak', 'old', 'orig', 'swp', 'swo',
+]);
+
 /* Archivos temporales que los editores/DAWs crean durante grabación */
 const PATRONES_TEMPORALES = [
     /^\./, /~$/, /\.tmp$/i, /\.part$/i, /\.crdownload$/i,
@@ -520,10 +539,17 @@ function procesarEvento(
          * Una carpeta de nivel 1 = carpeta de colección. Si se crea o renombra, sincronizar.
          * Heurística: si el path NO tiene extensión de audio y es hijo directo de base,
          * tratarlo como posible evento de carpeta.
+         * QL62: Si tiene extensión de archivo conocida (txt, gif, png, etc.) NO es carpeta.
+         * Evita que archivos sueltos como "READ ME!.txt" creen colecciones fantasma.
          */
         const extension = nombreArchivo.split('.').pop()?.toLowerCase() ?? '';
 
         if (relativa && !relativa.includes('/') && !EXTENSIONES_AUDIO.has(extension)) {
+            /* QL62: Archivos con extensión conocida no son carpetas — ignorar silenciosamente */
+            if (extension && EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension)) {
+                logSync.warn('watcher', `Archivo no-audio ignorado en raiz sync: ${nombreArchivo}`);
+                continue;
+            }
             /* Es un path directo bajo carpetaBase sin extensión de audio → posible carpeta */
             procesarEventoCarpeta(tipo, normalizada, relativa, baseNormalizada);
             continue;
@@ -533,8 +559,13 @@ function procesarEvento(
          * C387: Detectar eventos de subcarpetas de nivel 2 (subcolecciones).
          * Exactamente 2 segmentos en la ruta relativa: carpetaPadre/nombreSub.
          * Ej: "MiColeccion/Kicks" → carpetaPadre="MiColeccion", nombreSub="Kicks".
+         * QL62: Misma proteccion que nivel 1 — ignorar si tiene extension conocida.
          */
         if (segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extension)) {
+            if (extension && EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension)) {
+                logSync.warn('watcher', `Archivo no-audio ignorado en subcarpeta: ${relativa}`);
+                continue;
+            }
             const [carpetaPadre, nombreSubcarpeta] = segmentosRuta;
             procesarEventoSubcarpeta(tipo, normalizada, nombreSubcarpeta, carpetaPadre, baseNormalizada);
             continue;
