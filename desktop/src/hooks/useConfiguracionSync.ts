@@ -71,6 +71,8 @@ export function useConfiguracionSync(): UseConfiguracionSyncReturn {
         setConfig(prev => ({
             ...prev,
             borrarEnServidorAlBorrarLocal: valor,
+            /* QL63: Exclusion mutua — borrar-en-servidor y borrar-tras-subir no pueden coexistir */
+            ...(valor ? { borrarAlSubirExitoso: false } : {}),
         }));
     }, []);
 
@@ -85,6 +87,8 @@ export function useConfiguracionSync(): UseConfiguracionSyncReturn {
         setConfig(prev => ({
             ...prev,
             borrarAlSubirExitoso: valor,
+            /* QL63: Exclusion mutua — borrar-tras-subir y borrar-en-servidor no pueden coexistir */
+            ...(valor ? { borrarEnServidorAlBorrarLocal: false } : {}),
         }));
     }, []);
 

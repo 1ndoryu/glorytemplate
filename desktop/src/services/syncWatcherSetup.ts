@@ -727,6 +727,8 @@ async function sincronizarEstructuraCarpetas(): Promise<boolean> {
 const LIMITE_BORRADOS_POR_CICLO = 50;
 let borradosEnCiclo = 0;
 let ultimoResetBorrados = Date.now();
+/* QL63: Cola de reintentos para soft-deletes que superan el rate limit */
+const colaBorradosPendientes: number[] = [];
 
 async function manejarBorradoLocal(ruta: string): Promise<void> {
     /*
@@ -746,15 +748,28 @@ async function manejarBorradoLocal(ruta: string): Promise<void> {
     /* Verificar si borrado bidireccional local→servidor esta activo */
     if (!estado.configAvanzada.borrarEnServidorAlBorrarLocal) return;
 
-    /* Rate-limit: resetear contador cada 5 minutos */
+    /* Rate-limit: resetear contador cada 5 minutos y drenar cola pendiente */
     const ahora = Date.now();
     if (ahora - ultimoResetBorrados > 5 * 60 * 1000) {
         borradosEnCiclo = 0;
         ultimoResetBorrados = ahora;
+        /* QL63: Drenar cola de borrados pendientes del ciclo anterior */
+        while (colaBorradosPendientes.length > 0 && borradosEnCiclo < LIMITE_BORRADOS_POR_CICLO) {
+            const pendienteId = colaBorradosPendientes.shift()!;
+            await softDeleteEnServidor(pendienteId);
+            borradosEnCiclo++;
+        }
     }
 
     if (borradosEnCiclo >= LIMITE_BORRADOS_POR_CICLO) {
-        console.warn('[Sync] Limite de borrados en servidor alcanzado (50/ciclo). Ignorando:', ruta);
+        /* QL63: Encolar para siguiente ciclo en vez de ignorar silenciosamente */
+        const rutaNorm = ruta.replace(/\\/g, '/');
+        const archivo = buscarEnIndicePorRuta(rutaNorm);
+        const sid = archivo?.sampleId ?? estado.trackingModule?.buscarArchivoPorRuta(ruta)?.sampleId;
+        if (sid) {
+            colaBorradosPendientes.push(sid);
+            console.warn(`[Sync] Limite borrados alcanzado (${LIMITE_BORRADOS_POR_CICLO}/ciclo). Encolado para siguiente ciclo:`, sid);
+        }
         return;
     }
 

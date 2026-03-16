@@ -161,6 +161,10 @@ export async function cargarConfigAvanzada(): Promise<SyncConfigAvanzada> {
         if (guardada) {
             /* Merge con defaults para campos nuevos que no existan en versiones anteriores */
             estado.configAvanzada = { ...CONFIG_AVANZADA_DEFAULT, ...guardada };
+            /* QL63: Enforcement de exclusion mutua — si ambos flags estan activos, priorizar borrarAlSubirExitoso */
+            if (estado.configAvanzada.borrarAlSubirExitoso && estado.configAvanzada.borrarEnServidorAlBorrarLocal) {
+                estado.configAvanzada.borrarEnServidorAlBorrarLocal = false;
+            }
         }
     } catch (err) {
         console.error('[SyncState] Error cargando config avanzada:', err);

@@ -518,7 +518,12 @@ esto es gravisimo, esto necesita una auditoría de seguridad
 
 # QL63
 
-Auditoría de optimizacion de la subida del sync, seguridad: evitar perdida de datos con el mecanismo de (borrar archivo local despues de subir, o sea asegurarse de que realmente suba antes de borrar) y siento que entra en conflicto con la opcion de (al borrar en local, borrar en el servidor), obviamente ninguna de las dos debe estar activa al mismo tiempo, 
+✅ [AG-MNT] Completado:
+- **Auditoria completa del flujo upload+delete**: Upload confirmation es seguro (HTTP 200 + JSON validado + sampleId persistido en Tauri Store ANTES de cualquier borrado local).
+- **Exclusion mutua de opciones**: `borrarAlSubirExitoso` y `borrarEnServidorAlBorrarLocal` ahora son mutuamente excluyentes. Activar uno desactiva el otro (en hook UI + defense in depth al cargar config).
+- **Cola de reintentos para rate-limited deletes**: Borrados que excedan el limite de 50/5min se encolan en `colaBorradosPendientes[]` y se procesan en el siguiente ciclo. Antes se ignoraban silenciosamente.
+- **MD de planificacion**: `App/docs/plan-ql63-sync-safety.md`.
+- [Leccion]: El flujo upload->delete ya era seguro por diseño (registrarSubidaLocal antes de remove). El riesgo real era en rate-limited soft-deletes que se perdían.
 
 # QL64
 
@@ -598,6 +603,22 @@ aun no confio en el sistema duplicados, revisar que realmente al publicar un dup
 # QL72 
 
 ✅ [AG-MNT] Corregido: eliminado UMBRAL_429_CONSECUTIVOS. Se intentan todos los modelos sin early-break por 429s consecutivos.
+
+# QL73
+
+detalles, el boton de reforzar sincornizacion no tiene que descargar samples, ni se tiene que descargar samples nunca si la opcion de (borrar archivo local despues de subir) esta activada, esto es algo obvio.
+
+# QL74
+
+Como admin debería poder elimiar modificar y cualquier cosa de otras colecciones
+
+# QL75 
+
+que hace el boton de guardar? en las coleciones cuando veo la coleccion de otro usuario exactamente, aclaralo aqui abajo.
+
+# QL76
+
+Cuando se estan copiando varios archivos o moviendo a la carpeta de sync, el sistema se relentiza, probablmente porque el sync intenta procesarlo todos al mismo tiempo mientras se estan copiando, esto es falta, debe mejorar a un sistema mejor y mas eficiente, no lo se, qe analice por partes o despues de 5 segundos de un cambio y hay algun cambio que pause por 6 segundos para evitar que se procese todo al mismo tiempo mientras se estan moviendo archivos
 
 
 
