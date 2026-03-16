@@ -35,19 +35,34 @@ if (file_exists($control_config)) {
     include_once $control_config;
 }
 
+/*
+ * Directorios excluidos del auto-include: scripts CLI que hacen exit()
+ * fuera de contexto web, y directorios no-PHP (logs, docs, ref, etc).
+ */
+$directoriosExcluidos = ['Cli', 'logs', 'docs', 'ref'];
+
 function incluirArchivos($directorio)
 {
+    global $directoriosExcluidos;
     $ruta_completa = get_template_directory() . "/$directorio";
 
     $archivos = glob($ruta_completa . "*.php");
-    foreach ($archivos as $archivo) {
-        include_once $archivo;
+    if (\is_array($archivos)) {
+        foreach ($archivos as $archivo) {
+            include_once $archivo;
+        }
     }
 
     $subdirectorios = glob($ruta_completa . "*/", GLOB_ONLYDIR);
-    foreach ($subdirectorios as $subdirectorio) {
-        $ruta_relativa = str_replace(get_template_directory() . '/', '', $subdirectorio);
-        incluirArchivos($ruta_relativa);
+    if (\is_array($subdirectorios)) {
+        foreach ($subdirectorios as $subdirectorio) {
+            $nombreDir = basename($subdirectorio);
+            if (\in_array($nombreDir, $directoriosExcluidos, true)) {
+                continue;
+            }
+            $ruta_relativa = str_replace(get_template_directory() . '/', '', $subdirectorio);
+            incluirArchivos($ruta_relativa);
+        }
     }
 }
 
