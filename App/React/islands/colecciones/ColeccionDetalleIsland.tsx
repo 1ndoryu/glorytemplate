@@ -14,7 +14,7 @@ import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
-import { obtenerSugerencias } from '@app/services/apiColecciones';
+import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useColeccionDetalle } from '@app/hooks/useColeccionDetalle';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
@@ -46,6 +46,20 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
     /* Proveedor para tab "Más Ideas" — usa coleccion.id (numérico) en vez del
      * segmento de URL, que es null cuando la ruta usa slug en lugar de ID. */
     const coleccionId = coleccion?.id ?? null;
+
+    /*
+     * QL77 fix: Proveedor real para el tab "Samples".
+     * Antes estaba hardcodeado a devolver [] — el polling de useFeedRefresco
+     * cada 5 min provocaba que los samples desaparecieran.
+     * Ahora re-fetcha la coleccion (o subcoleccion activa) y extrae samples.
+     */
+    const proveedorSamples = useCallback(async () => {
+        const targetId = subActiva ?? coleccionId;
+        if (!targetId) return { ok: true, data: [] as SampleResumen[] };
+        const resp = await obtenerColeccion(targetId, { incluirSubcolecciones: subActiva === null });
+        return { ok: resp.ok, data: resp.ok && resp.data?.samples ? resp.data.samples : [] };
+    }, [coleccionId, subActiva]);
+
     const proveedorSugerencias = useCallback(async (pagina: number) => {
         if (!coleccionId) return { ok: true, data: [] as SampleResumen[] };
         const resp = await obtenerSugerencias(coleccionId, pagina);
@@ -180,7 +194,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                 <FeedSamples
                     key={`coleccion-samples-${subActiva ?? 'raiz'}`}
                     samplesIniciales={samples}
-                    proveedor={async () => ({ ok: true, data: [] })}
+                    proveedor={proveedorSamples}
                     claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}`}
                     infiniteScroll={false}
                     virtualizar={false}

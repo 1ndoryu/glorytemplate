@@ -1520,3 +1520,61 @@ export async function limpiarHashesConocidos(): Promise<void> {
     await guardarHashes();
 }
 
+/*
+ * QL78: Limpieza retroactiva de archivos ya subidos exitosamente.
+ * Cuando borrarAlSubirExitoso está activo, itera hashARutas (hash→rutas)
+ * y elimina archivos que aún existan en disco. Cubre:
+ * - Archivos subidos ANTES de que el usuario activara la opción.
+ * - Archivos cuyo borrado falló en el primer intento (lock, permisos).
+ * Se invoca al activar la opción y al iniciar la app si ya está activa.
+ */
+export async function limpiarArchivosSubidosEnDisco(): Promise<void> {
+    if (!estado.configAvanzada.borrarAlSubirExitoso) return;
+
+    try {
+        const { exists, remove } = await import('@tauri-apps/plugin-fs');
+        let eliminados = 0;
+        let fallidos = 0;
+
+        for (const [, rutas] of hashARutas) {
+            for (const ruta of rutas) {
+                try {
+                    const existe = await exists(ruta);
+                    if (!existe) continue;
+
+                    await remove(ruta);
+                    eliminados++;
+                    logSync.info('uploadQueue', `QL78: Archivo eliminado retroactivamente: ${ruta.split('/').pop()}`);
+                } catch (err) {
+                    fallidos++;
+                    logSync.warn('uploadQueue', `QL78: No se pudo eliminar archivo: ${ruta.split('/').pop()}`, {
+                        error: err instanceof Error ? err.message : String(err),
+                    });
+                }
+            }
+        }
+
+        /* También limpiar archivos de items completados en cola */
+        for (const item of cola) {
+            if (item.estado !== 'completado') continue;
+            try {
+                const existe = await exists(item.rutaArchivo);
+                if (!existe) continue;
+                await remove(item.rutaArchivo);
+                eliminados++;
+                logSync.info('uploadQueue', `QL78: Archivo de cola completada eliminado: ${item.nombreArchivo}`);
+            } catch {
+                fallidos++;
+            }
+        }
+
+        if (eliminados > 0 || fallidos > 0) {
+            logSync.info('uploadQueue', `QL78: Limpieza retroactiva finalizada`, { eliminados, fallidos });
+        }
+    } catch (err) {
+        logSync.error('uploadQueue', 'QL78: Error en limpieza retroactiva', {
+            error: err instanceof Error ? err.message : String(err),
+        });
+    }
+}
+

@@ -1140,6 +1140,13 @@ export async function inicializarSyncBidireccional(): Promise<void> {
 
         await inicializarUploadQueue();
 
+        /* QL78: Limpieza retroactiva de archivos subidos que quedaron en disco.
+         * Se ejecuta tras inicializar la cola (donde se restauran hashARutas). */
+        try {
+            const { limpiarArchivosSubidosEnDisco } = await import('./uploadQueueService');
+            limpiarArchivosSubidosEnDisco().catch(() => {});
+        } catch { /* plugin-fs no disponible */ }
+
         const iniciado = await iniciarObservacion();
         if (iniciado) {
             console.info('[Sync] Sync bidireccional activado');

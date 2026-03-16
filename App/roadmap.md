@@ -620,11 +620,18 @@ main-BTVgTlN8.js:820  PUT https://kamples.com/wp-json/kamples/v1/admin/usuarios/
 
 # QL74
 
-Como admin debería poder elimiar modificar y cualquier cosa de otras colecciones
+✅ [AG-MNT] Completado:
+- **Backend bypass admin en TODAS las operaciones de coleccion:** `actualizar()`, `subirImagen()`, `agregarSample()`, `quitarSample()`, `moverSample()` ahora verifican `UsuarioHelper::esAdmin()` antes de `verificarPropiedad()`. Admin puede CRUD completo en cualquier coleccion. `eliminar()` ya tenia bypass admin.
+- **Frontend:** En `LibreriaIsland.tsx` tab explorar, los admins ahora ven botones editar/eliminar en colecciones ajenas (check `usuario?.rol === 'admin'`).
+- Archivos: `ColeccionesCrudController.php` (5 endpoints), `LibreriaIsland.tsx`.
+- [Leccion]: El frontend en `ColeccionDetalleIsland` ya tenia el check admin para el menu contextual (editar/eliminar), pero LibreriaIsland no. Siempre verificar TODOS los puntos de entrada UI.
 
 # QL75 
 
-que hace el boton de guardar? en las coleciones cuando veo la coleccion de otro usuario exactamente, aclaralo aqui abajo.
+✅ [AG-MNT] Documentado:
+- **Respuesta:** El boton "Guardar" (BookmarkPlus) en colecciones ajenas es un **bookmark/favorito** — la intencion es guardar la coleccion ajena en tu libreria personal para acceso rapido. Similar a "guardar playlist" en Spotify.
+- **Estado actual:** La implementacion esta INCOMPLETA. `manejarGuardar()` solo cambia estado local React (`setGuardada(!prev)`) sin persistir al backend. No hay API endpoint `/colecciones/{id}/guardar` ni tabla `colecciones_guardadas` en BD.
+- **TO-DO para implementacion completa:** (1) Crear tabla `colecciones_guardadas(usuario_id, coleccion_id, created_at)`, (2) Endpoints POST/DELETE `/colecciones/{id}/guardar`, (3) Conectar `manejarGuardar` a la API, (4) Mostrar colecciones guardadas en libreria del usuario, (5) Cargar estado `guardada` al abrir detalle.
 
 # QL76
 
@@ -638,11 +645,20 @@ que hace el boton de guardar? en las coleciones cuando veo la coleccion de otro 
 
 # QL77
 
-De repente estoy viendo una coleccion, y a los minutos desaparece todo, y sale "Esta colección aún no tiene samples." no se porque
+✅ [AG-MNT] Completado:
+- **Root cause:** `ColeccionDetalleIsland.tsx` pasaba `proveedor={async () => ({ ok: true, data: [] })}` al FeedSamples. El polling de `useFeedRefresco` (cada 5 min) llamaba este proveedor y reemplazaba los samples con array vacio.
+- **Fix:** Creado `proveedorSamples` que re-fetcha la coleccion (o subcoleccion activa) via `obtenerColeccion()` y extrae sus samples. El polling ahora obtiene datos reales.
+- Archivos: `ColeccionDetalleIsland.tsx` (import + proveedor real + uso).
+- [Leccion]: Un proveedor hardcodeado a `data: []` combinado con polling automatico es un time-bomb garantizado. Siempre que FeedSamples usa polling, el proveedor debe ser funcional.
 
 # QL78
 
-porque siguen habiendo archivos en la carpeta si tengo la opcion de borrar archivos despues de subir activada? no se supone que se borra el archivo despues de subirlo? algo pasa, o hay nada que revise y reanilice para comprobar que hacer con los archivos que quedan
+✅ [AG-MNT] Completado:
+- **Root cause:** No habia mecanismo para limpiar archivos subidos ANTES de que el usuario activara `borrarAlSubirExitoso`. Solo se borraban archivos nuevos subidos con la opcion activa.
+- **Fix:** Nueva funcion `limpiarArchivosSubidosEnDisco()` en `uploadQueueService.ts` que itera `hashARutas` (hash→rutas de archivos subidos) y elimina los que aun existan en disco. Tambien limpia archivos de items completados en cola.
+- **Activacion:** Se ejecuta (1) al startup si la opcion esta activa (en `syncWatcherSetup.ts` tras `inicializarUploadQueue()`), y (2) cuando el usuario activa la opcion desde el panel (via `config-sync-actualizada` listener en `syncInitService.ts`).
+- Archivos: `uploadQueueService.ts`, `syncWatcherSetup.ts`, `syncInitService.ts`.
+- [Leccion]: Las opciones de limpieza retroactiva necesitan un mecanismo explicito. No basta con activar borrado "de ahora en adelante" — el usuario espera que todos los archivos ya subidos se limpien.
 
 
 

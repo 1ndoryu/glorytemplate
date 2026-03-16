@@ -142,10 +142,11 @@ export const LibreriaIsland = (): JSX.Element => {
                             <div className="libreriaGridColecciones">
                                 {coleccionesPublicas.map(col => {
                                     const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
+                                    const esAdmin = usuario?.rol === 'admin';
                                     return (
                                         <TarjetaColeccion key={col.id} coleccion={col}
-                                            onEditar={esPropia ? manejarEditarColeccion : undefined}
-                                            onEliminar={esPropia ? manejarEliminarColeccion : undefined}
+                                            onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
+                                            onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
                                         />
                                     );
                                 })}

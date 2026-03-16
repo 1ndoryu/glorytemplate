@@ -119,9 +119,18 @@ class ColeccionesCrudController
         $id = (int) $request->get_param('id');
         $body = $request->get_json_params();
 
-        $coleccion = ColeccionesRepository::verificarPropiedad($id, $userId);
-        if (!$coleccion) {
-            return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+        /* QL74: Admin puede editar cualquier coleccion, usuario normal solo las propias */
+        $esAdmin = UsuarioHelper::esAdmin();
+        if (!$esAdmin) {
+            $coleccion = ColeccionesRepository::verificarPropiedad($id, $userId);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            }
+        } else {
+            $coleccion = ColeccionesRepository::obtenerConCreador($id);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_encontrado'], 404);
+            }
         }
 
         $campos = [];
@@ -244,9 +253,12 @@ class ColeccionesCrudController
 
             $id = (int) $request->get_param('id');
 
-            $coleccion = ColeccionesRepository::verificarPropiedad($id, $userId);
-            if (!$coleccion) {
-                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            /* QL74: Admin puede subir imagen a cualquier coleccion */
+            if (!UsuarioHelper::esAdmin()) {
+                $coleccion = ColeccionesRepository::verificarPropiedad($id, $userId);
+                if (!$coleccion) {
+                    return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+                }
             }
 
             $files = $request->get_file_params();
@@ -320,9 +332,12 @@ class ColeccionesCrudController
             return new \WP_REST_Response(['code' => 'sample_id_requerido'], 400);
         }
 
-        $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
-        if (!$coleccion) {
-            return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+        /* QL74: Admin puede agregar samples a cualquier coleccion */
+        if (!UsuarioHelper::esAdmin()) {
+            $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            }
         }
 
         /*
@@ -377,9 +392,12 @@ class ColeccionesCrudController
         $body = $request->get_json_params();
         $sampleId = (int) ($body['sampleId'] ?? 0);
 
-        $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
-        if (!$coleccion) {
-            return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+        /* QL74: Admin puede quitar samples de cualquier coleccion */
+        if (!UsuarioHelper::esAdmin()) {
+            $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
+            if (!$coleccion) {
+                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            }
         }
 
         ColeccionSamplesRepository::quitar($colId, $sampleId);
@@ -422,9 +440,12 @@ class ColeccionesCrudController
                 return new \WP_REST_Response(['code' => 'sample_id_requerido'], 400);
             }
 
-            $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
-            if (!$coleccion) {
-                return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+            /* QL74: Admin puede mover samples en cualquier coleccion */
+            if (!UsuarioHelper::esAdmin()) {
+                $coleccion = ColeccionesRepository::verificarPropiedad($colId, $userId);
+                if (!$coleccion) {
+                    return new \WP_REST_Response(['code' => 'no_autorizado'], 403);
+                }
             }
 
             $resultado = ColeccionSamplesRepository::moverAColeccion($colId, $sampleId, $userId);

@@ -129,6 +129,13 @@ export async function inicializarSyncService(
         await listen('config-sync-actualizada', async () => {
             console.info('[Sync] Config actualizada desde ventana independiente, recargando...');
             await cargarConfigAvanzada();
+
+            /* QL78: Si borrarAlSubirExitoso se acaba de activar, limpiar archivos
+             * ya subidos que quedaron en disco de subidas previas. */
+            try {
+                const { limpiarArchivosSubidosEnDisco } = await import('./uploadQueueService');
+                await limpiarArchivosSubidosEnDisco();
+            } catch { /* plugin-fs no disponible — ignorar */ }
         });
     } catch (err) {
         logSync.error('syncService', 'Error registrando listener de config', { error: err instanceof Error ? err.message : String(err) });
