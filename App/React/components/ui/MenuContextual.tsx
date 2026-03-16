@@ -7,7 +7,6 @@
 
 import { type ReactNode, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import '../../styles/componentes/menuContextual.css';
 import { BotonBase } from './BotonBase';
 import { useEsMovil } from '@app/hooks/useEsMovil';
@@ -106,12 +105,6 @@ export const MenuContextual = ({
                 <div className="menuContextualOverlay" onClick={onCerrar} />
                 <div className="menuContextualBottomSheet" role="menu">
                     <div className="menuContextualBottomSheetBarra" />
-                    <div className="menuContextualBottomSheetCabecera">
-                        <BotonBase variante="ghost" className="menuContextualBottomSheetCerrar"
-                            onClick={onCerrar} type="button" aria-label="Cerrar">
-                            <X size={20} />
-                        </BotonBase>
-                    </div>
                     <div className="menuContextualBottomSheetItems">
                         {contenidoItems}
                     </div>

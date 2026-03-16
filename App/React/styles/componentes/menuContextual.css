@@ -42,13 +42,22 @@
 }
 
 /* Override BotonBase (0,2,0) — usar 3 clases para ganar en especificidad (0,3,0) */
-.menuContextual .botonBase.menuContextualItem,
-.menuContextualBottomSheet .botonBase.menuContextualItem {
+.menuContextual .botonBase.menuContextualItem {
     justify-content: flex-start;
     padding: var(--espacioSm) var(--espacioMd);
     height: auto;
     min-width: unset;
     font-size: var(--fuenteSm);
+    line-height: normal;
+}
+
+.menuContextualBottomSheet .botonBase.menuContextualItem {
+    justify-content: flex-start;
+    padding: var(--espacioMd) var(--espacioLg);
+    height: auto;
+    min-width: unset;
+    min-height: 42px;
+    font-size: var(--fuenteMd);
     line-height: normal;
 }
 
@@ -101,24 +110,20 @@
     margin: var(--espacioSm) auto 0;
 }
 
-.menuContextualBottomSheetCabecera {
-    display: flex;
-    justify-content: flex-end;
-    padding: var(--espacioXs) var(--espacioSm) 0;
-}
-
-.menuContextualBottomSheetCerrar {
-    color: var(--textoSecundario);
-}
-
 .menuContextualBottomSheetItems {
-    padding: 0 0 var(--espacioSm);
+    padding: var(--espacioLg);
 }
 
 .menuContextualBottomSheetItems .menuContextualItem {
     padding: var(--espacioMd) var(--espacioLg);
     font-size: var(--fuenteMd);
-    min-height: 48px;
+    min-height: 42px;
+}
+
+/* QL28: Iconos a la derecha, texto a la izquierda en bottom sheet */
+.menuContextualBottomSheetItems .menuContextualItemIcono {
+    order: 1;
+    margin-left: auto;
 }
 
 @keyframes bottomSheetEntrar {
@@ -134,6 +139,6 @@
 
 @media (max-width: 768px) {
     .menuContextualOverlay {
-        background-color: var(--overlaySuave);
+        background-color: var(--overlayOscuro);
     }
 }

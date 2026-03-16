@@ -1,7 +1,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme (dark). -->
+    <!-- Android 12+ Splash Screen API (QL26) -->
     <style name="Theme.kamples_desktop" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- QL26: Fondo oscuro para evitar flash blanco al abrir -->
         <item name="android:windowBackground">#070707</item>
+        <item name="android:windowSplashScreenBackground">#070707</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 </resources>

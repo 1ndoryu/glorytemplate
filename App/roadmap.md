@@ -299,7 +299,39 @@ el logo en la apk es muy grande, tiene que ser un poco mas pequeño, mas espacio
 
 y las notificaciones siguen sin aparecer en android.
 
+# QL27
 
+tengo el presentimiento que coolify manager primero hace build y luego ejecuta el pull o push no es la diferencia, o sea es una sospecha no digo que si pase, revisa porque el orden es importante
+
+# QL28
+
+menuContextualBottomSheetCabecera no es necesario
+
+estos son los estilos correctos
+.menuContextualBottomSheetItems {
+    padding: 0 0 var(--espacioSm);
+    padding: var(--espacioLg);
+}
+
+.menuContextualBottomSheetItems .menuContextualItem {
+    padding: var(--espacioMd) var(--espacioLg);
+    font-size: var(--fuenteMd);
+    min-height: 42px; (ajusta aqui va 42)
+}
+
+y un poco mas oscuro el overlay del bottomseet
+
+en el bottomseet los iconos tienen que en estar al final a la derecha y el texto a la izquierda
+
+# QL29
+
+Deja una guia para FCM y adelanta todo lo que puedas, y un script automatico que regenera la apk sin tener que escribir todos los comandos, 1 solo comando para regenerar el apk, y otro para el exe de la aplicación de escritorio
+
+# QL30
+
+Los tags de libreriaTagsFrecuentes deben ser en ingles
+
+Todos los botones de Volver
 
 
 
