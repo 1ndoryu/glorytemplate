@@ -45,7 +45,6 @@ const ExploradorBase = (): JSX.Element => {
         sidebarAbierto,
         toggleSidebar,
         inputCrearRef,
-        manejarClickTitulo,
         manejarComentar,
         manejarDragStart,
         manejarDragEnd,
@@ -195,7 +194,6 @@ const ExploradorBase = (): JSX.Element => {
                                     <SyncBadge sampleId={sample.id} />
                                     <TarjetaSampleCuadricula
                                         sample={sample}
-                                        onClickTitulo={manejarClickTitulo}
                                         onMenu={menu.abrirMenu}
                                     />
                                 </div>
@@ -224,7 +222,6 @@ const ExploradorBase = (): JSX.Element => {
                                         onLike={manejarLike}
                                         onMenu={menu.abrirMenu}
                                         onClickCreador={(u) => navegar(`/perfil/${u}`)}
-                                        onClickTitulo={manejarClickTitulo}
                                         onComentar={manejarComentar}
                                     />
                                 </div>

@@ -458,6 +458,7 @@ export function VentanaSincPanel(): JSX.Element {
                     x={menu.x}
                     y={menu.y}
                     alinearDerecha
+                    forzarDropdown
                 />
             </div>
 

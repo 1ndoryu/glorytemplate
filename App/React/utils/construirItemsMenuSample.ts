@@ -78,7 +78,7 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     if (d.puedeEditar)
         items.push({ id: 'editar', etiqueta: 'Editar sample', icono: ic(Pencil), onClick: () => d.abrirEditarSample(s) });
 
-    if (d.esAdmin && s.relacionSampleoId)
+    if (d.esAdmin)
         items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', icono: ic(BrainCircuit), onClick: () => d.abrirCorregirIA(s) });
 
     /* QK61: Extender recorte necesita audio completo guardado o youtubeId para re-descargar */

@@ -8,6 +8,7 @@ import { useCallback, type MouseEvent } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { obtenerImagenColor } from '../../services/imagenesColor';
 import { useSamplePreview } from '../../hooks/useSamplePreview';
+import { useNavigationStore } from '@/core/router';
 import type { SampleResumen } from '../../types';
 
 interface PropsTarjetaCuadricula {
@@ -32,10 +33,14 @@ export const TarjetaSampleCuadricula = ({ sample, onClickTitulo, onMenu }: Props
         onMenu?.(e, sample);
     }, [onMenu, sample]);
 
-    /* Click en el nombre → abrir detalle */
+    /* Click en el nombre → panel (si callback) o navegar a detalle */
     const manejarClickTitulo = useCallback((e: MouseEvent) => {
         e.stopPropagation();
-        onClickTitulo?.(sample);
+        if (onClickTitulo) {
+            onClickTitulo(sample);
+        } else {
+            useNavigationStore.getState().navegar(`/sample/${sample.slug}/`);
+        }
     }, [onClickTitulo, sample]);
 
     return (

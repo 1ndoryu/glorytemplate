@@ -830,6 +830,7 @@ def _descargar_youtube(
     NOTA bgutil GVS: PO tokens de bgutil (1.3.1) rechazados por GVS experiment.
     Se omite web+fetch_pot hasta que bgutil actualice.
     """
+    logger.info("TRIP PO youtube_id=%s", youtube_id)
     output_path = os.path.join(output_dir, f"{youtube_id}.mp3")
 
     if os.path.exists(output_path):

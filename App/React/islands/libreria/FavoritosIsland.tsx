@@ -5,7 +5,6 @@
  */
 
 import { useEffect, useCallback } from 'react';
-import type { SampleResumen } from '@app/types';
 import { Heart, ArrowLeft } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
@@ -37,7 +36,6 @@ const FavoritosBase = (): JSX.Element => {
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
-    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
@@ -58,10 +56,6 @@ const FavoritosBase = (): JSX.Element => {
     useEffect(() => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
-
-    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
-        abrirDetalle(sample);
-    }, [abrirDetalle]);
 
     const manejarComentar = useCallback((sampleId: number) => {
         const sample = samples.find((s) => s.id === sampleId);
@@ -131,7 +125,6 @@ const FavoritosBase = (): JSX.Element => {
                                     onLike={manejarLike}
                                     onMenu={menu.abrirMenu}
                                     onClickCreador={(u) => navegar(`/perfil/${u}`)}
-                                    onClickTitulo={manejarClickTitulo}
                                     onComentar={manejarComentar}
                                 />
                             ))}

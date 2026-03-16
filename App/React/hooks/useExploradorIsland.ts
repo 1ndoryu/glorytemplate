@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useCallback, useState, useMemo, useRef } from 'react';
-import type { SampleResumen } from '@app/types';
 import { useExploradorPagina } from '@app/hooks/useExploradorPagina';
 import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { useNavigationStore } from '@/core/router';
@@ -22,7 +21,6 @@ export const useExploradorIsland = () => {
     const navegar = useNavigationStore(s => s.navegar);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
-    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
@@ -43,10 +41,6 @@ export const useExploradorIsland = () => {
     useEffect(() => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
-
-    const manejarClickTitulo = useCallback((sample: SampleResumen) => {
-        abrirDetalle(sample);
-    }, [abrirDetalle]);
 
     const manejarComentar = useCallback((sampleId: number) => {
         const sample = pagina.samples.find((s) => s.id === sampleId);
@@ -250,7 +244,6 @@ export const useExploradorIsland = () => {
         sidebarAbierto,
         toggleSidebar,
         inputCrearRef,
-        manejarClickTitulo,
         manejarComentar,
         manejarDragStart,
         manejarDragEnd,

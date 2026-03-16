@@ -28,6 +28,8 @@ interface MenuContextualProps {
     x: number;
     y: number;
     alinearDerecha?: boolean;
+    /** QL59: Forzar modo dropdown (desktop) aunque el viewport sea estrecho */
+    forzarDropdown?: boolean;
 }
 
 export const MenuContextual = ({
@@ -37,8 +39,9 @@ export const MenuContextual = ({
     x,
     y,
     alinearDerecha = false,
+    forzarDropdown = false,
 }: MenuContextualProps): JSX.Element | null => {
-    const esMovil = useEsMovil();
+    const esMovil = useEsMovil() && !forzarDropdown;
 
     const manejarKeyDown = useCallback(
         (e: KeyboardEvent) => {

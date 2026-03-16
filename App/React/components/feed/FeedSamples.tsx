@@ -140,7 +140,7 @@ export const FeedSamples = ({
                             onLike={feed.manejarLike}
                             onMenu={feed.menu.abrirMenu}
                             onClickCreador={u => feed.navegar(`/perfil/${u}`)}
-                            onClickTitulo={feed.panelHabilitado ? feed.manejarClickTitulo : undefined}
+                            onClickTitulo={undefined}
                             onComentar={feed.panelHabilitado ? feed.manejarComentar : undefined}
                             onFiltrarMeta={feed.manejarIncluirTag}
                         />

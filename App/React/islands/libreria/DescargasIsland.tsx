@@ -36,7 +36,6 @@ const DescargasBase = (): JSX.Element => {
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
     const habilitarPanel = usePanelLateralStore(s => s.habilitar);
     const deshabilitarPanel = usePanelLateralStore(s => s.deshabilitar);
-    const abrirDetalle = usePanelLateralStore(s => s.abrirDetalle);
     const abrirComentarios = usePanelLateralStore(s => s.abrirComentarios);
     const menu = useMenuContextualSample();
 
@@ -76,10 +75,6 @@ const DescargasBase = (): JSX.Element => {
     useEffect(() => {
         return () => deshabilitarPanel();
     }, [deshabilitarPanel]);
-
-    const manejarClickTitulo = useCallback((sample: import('@app/types').SampleResumen) => {
-        abrirDetalle(sample);
-    }, [abrirDetalle]);
 
     const manejarComentar = useCallback((sampleId: number) => {
         const sample = comprados.find((s) => s.id === sampleId);
@@ -170,7 +165,6 @@ const DescargasBase = (): JSX.Element => {
                                 onLike={manejarLike}
                                 onMenu={menu.abrirMenu}
                                 onClickCreador={(u) => navegar(`/perfil/${u}`)}
-                                onClickTitulo={manejarClickTitulo}
                                 onComentar={manejarComentar}
                             />
                         ))}

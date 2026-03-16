@@ -102,6 +102,8 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     abrirSugerencias: (sample) => {
         /* C155: Solo abrir si la preferencia esta activa */
         if (!get().sugerenciasAlDarLike) return;
+        /* QL55: No auto-abrir sugerencias en movil (panel no visible) */
+        if (typeof window !== 'undefined' && window.innerWidth <= 1024) return;
         set({
             modo: 'sugerencias',
             sampleId: sample.id,
