@@ -120,7 +120,7 @@ class MotorRecomendacion
             return $resultado;
         }
 
-        $queryParams = ['userId' => $userId, 'limit' => $limite, 'offset' => $offset];
+        $queryParams = ['limit' => $limite, 'offset' => $offset];
 
         /*
          * Construir query SQL con scoring multi-señal.
