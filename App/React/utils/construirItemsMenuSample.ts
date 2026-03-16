@@ -4,6 +4,7 @@
  * Extraído de useMenuContextualSample para cumplir SRP.
  */
 
+import { createElement } from 'react';
 import type { SampleResumen } from '@app/types';
 import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
@@ -13,6 +14,11 @@ import { toast } from '@app/stores/toastStore';
 import { useReportarStore } from '@app/stores/reportarStore';
 import { requiereAuth } from '@app/utils/requiereAuth';
 import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
+import {
+    Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight,
+    ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2,
+    Search, Trash2, Flag,
+} from 'lucide-react';
 
 export interface DepsMenuSample {
     sample: SampleResumen;
@@ -34,13 +40,16 @@ export interface DepsMenuSample {
 const emitirEvento = (nombre: string, detail: unknown) =>
     window.dispatchEvent(new CustomEvent(nombre, { detail }));
 
+/* QL52: Helper para crear icono de 16px sin JSX */
+const ic = (componente: typeof Play) => createElement(componente, { size: 16 });
+
 export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     const s = d.sample;
     const items: MenuItemDef[] = [
-        { id: 'reproducir', etiqueta: 'Reproducir', onClick: () => d.reproducir(s) },
-        { id: 'detalle', etiqueta: 'Ver detalle', href: `/sample/${s.slug}/`, onClick: () => d.navegar(`/sample/${s.slug}/`), separadorDespues: true },
-        { id: 'coleccion', etiqueta: 'Añadir a colección', onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
-        { id: 'descargar', etiqueta: 'Descargar archivo', separadorDespues: true, onClick: async () => {
+        { id: 'reproducir', etiqueta: 'Reproducir', icono: ic(Play), onClick: () => d.reproducir(s) },
+        { id: 'detalle', etiqueta: 'Ver detalle', icono: ic(Eye), href: `/sample/${s.slug}/`, onClick: () => d.navegar(`/sample/${s.slug}/`), separadorDespues: true },
+        { id: 'coleccion', etiqueta: 'Añadir a colección', icono: ic(FolderPlus), onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
+        { id: 'descargar', etiqueta: 'Descargar archivo', icono: ic(Download), onClick: async () => {
             if (!requiereAuth()) return;
             try {
                 const resp = await descargarSample(s.id);
@@ -56,28 +65,28 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
                 }
             } catch { toast.error('Error de red al descargar'); }
         }},
-        { id: 'creador', etiqueta: `Ir a ${s.creador.nombreVisible || s.creador.username}`, href: `/perfil/${s.creador.username}/`, onClick: () => d.navegar(`/perfil/${s.creador.username}/`) },
-        { id: 'compartir', etiqueta: 'Copiar enlace', separadorDespues: true, onClick: () => d.copiarAlPortapapeles(`${window.location.origin}/sample/${s.slug}/`) },
-        { id: 'sugerencias', etiqueta: 'También te podría gustar', onClick: () => d.abrirSugerencias(s) },
-        { id: 'abrir-panel', etiqueta: 'Abrir panel', separadorDespues: true, onClick: () => d.abrirDetalle(s) },
+        { id: 'creador', etiqueta: `Ir a ${s.creador.nombreVisible || s.creador.username}`, icono: ic(User), href: `/perfil/${s.creador.username}/`, onClick: () => d.navegar(`/perfil/${s.creador.username}/`) },
+        { id: 'compartir', etiqueta: 'Copiar enlace', icono: ic(Link), onClick: () => d.copiarAlPortapapeles(`${window.location.origin}/sample/${s.slug}/`) },
+        { id: 'sugerencias', etiqueta: 'También te podría gustar', icono: ic(Sparkles), onClick: () => d.abrirSugerencias(s) },
+        { id: 'abrir-panel', etiqueta: 'Abrir panel', icono: ic(PanelRight), separadorDespues: true, onClick: () => d.abrirDetalle(s) },
     ];
 
     const ytId = s.metadata?.youtube_id;
     if (typeof ytId === 'string' && /^[a-zA-Z0-9_-]{11}$/.test(ytId))
-        items.push({ id: 'youtube', etiqueta: 'Ver en YouTube', separadorDespues: true, onClick: () => window.open(`https://www.youtube.com/watch?v=${ytId}`, '_blank', 'noopener,noreferrer') });
+        items.push({ id: 'youtube', etiqueta: 'Ver en YouTube', icono: ic(ExternalLink), onClick: () => window.open(`https://www.youtube.com/watch?v=${ytId}`, '_blank', 'noopener,noreferrer') });
 
     if (d.puedeEditar)
-        items.push({ id: 'editar', etiqueta: 'Editar sample', onClick: () => d.abrirEditarSample(s) });
+        items.push({ id: 'editar', etiqueta: 'Editar sample', icono: ic(Pencil), onClick: () => d.abrirEditarSample(s) });
 
     if (d.esAdmin && s.relacionSampleoId)
-        items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', onClick: () => d.abrirCorregirIA(s) });
+        items.push({ id: 'corregir-ia', etiqueta: 'Corregir metadata IA', icono: ic(BrainCircuit), onClick: () => d.abrirCorregirIA(s) });
 
     /* QK61: Extender recorte necesita audio completo guardado o youtubeId para re-descargar */
     if (d.esAdmin && s.extraccion && (s.extraccion.tieneAudioCompleto || s.extraccion.youtubeId))
-        items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', onClick: () => d.abrirExtenderRecorte(s) });
+        items.push({ id: 'extender-recorte', etiqueta: 'Extender recorte', icono: ic(Scissors), onClick: () => d.abrirExtenderRecorte(s) });
 
     if (d.esAdmin)
-        items.push({ id: 'verificar', etiqueta: s.verificado ? 'Quitar verificación' : 'Verificar sample', onClick: () => {
+        items.push({ id: 'verificar', etiqueta: s.verificado ? 'Quitar verificación' : 'Verificar sample', icono: ic(BadgeCheck), separadorDespues: true, onClick: () => {
             const nv = !s.verificado;
             actualizarSample(s.id, { verificado: nv }).then((r) => {
                 if (r.ok) { toast.exito(nv ? 'Sample verificado' : 'Verificación removida'); emitirEvento(EVENTO_SAMPLE_ACTUALIZADO, { sampleId: s.id, cambios: { verificado: nv } }); }
@@ -86,7 +95,7 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
         }});
 
     if (d.puedeEditar && s.relacionSampleoId && s.metadata?.adjuncion_manual)
-        items.push({ id: 'quitar-sampleo', etiqueta: 'Quitar de este sampleo', peligro: true, separadorDespues: true, onClick: () => {
+        items.push({ id: 'quitar-sampleo', etiqueta: 'Quitar de este sampleo', icono: ic(Unlink2), peligro: true, separadorDespues: true, onClick: () => {
             if (!s.metadata?.relacion_id || !s.metadata?.lado_extraccion) return;
             const rId = Number(s.metadata.relacion_id);
             const lado = String(s.metadata.lado_extraccion) as 'fuente' | 'destino';
@@ -98,10 +107,10 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
         }});
 
     if (d.esAdmin)
-        items.push({ id: 'inspeccionar', etiqueta: 'Inspeccionar datos', separadorDespues: true, onClick: () => d.setSampleInspeccion(s) });
+        items.push({ id: 'inspeccionar', etiqueta: 'Inspeccionar datos', icono: ic(Search), separadorDespues: true, onClick: () => d.setSampleInspeccion(s) });
 
     if (d.puedeEliminar)
-        items.push({ id: 'eliminar', etiqueta: 'Eliminar sample', peligro: true, onClick: () => {
+        items.push({ id: 'eliminar', etiqueta: 'Eliminar sample', icono: ic(Trash2), peligro: true, onClick: () => {
             toast.confirmar(`¿Eliminar "${s.titulo}"?`, async () => {
                 emitirEvento(EVENTO_SAMPLE_ELIMINADO, { sampleId: s.id });
                 const resp = await eliminarSample(s.id);
@@ -110,6 +119,6 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             });
         }});
 
-    items.push({ id: 'reportar', etiqueta: 'Reportar', peligro: true, onClick: () => useReportarStore.getState().abrir('sample', s.id, s.titulo) });
+    items.push({ id: 'reportar', etiqueta: 'Reportar', icono: ic(Flag), peligro: true, onClick: () => useReportarStore.getState().abrir('sample', s.id, s.titulo) });
     return items;
 };

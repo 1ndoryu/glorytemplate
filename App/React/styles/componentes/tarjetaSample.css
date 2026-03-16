@@ -327,18 +327,27 @@
     z-index: 99999;
 }
 
-/* Responsive mobile: ocultar waveform y botones secundarios */
+/* QL54: Ocultar waveform en pantallas medianas por responsividad */
+@media (max-width: 870px) {
+    .tarjetaWaveform {
+        display: none;
+    }
+}
+
+/* QL54: Ocultar waveform cuando el panel lateral reduce el espacio disponible */
+@media (max-width: 1120px) {
+    .contenedorContenidoConPanel:has(.panelLateral) .tarjetaWaveform {
+        display: none;
+    }
+}
+
+/* Responsive mobile: ocultar botones secundarios */
 @media (max-width: 640px) {
     .tarjetaSample {
         grid-template-columns: 40px 1fr auto;
         /* QK101: Ajustar padding en móvil */
         padding-right: 0;
-        padding-left: 4px;
-    }
-
-    /* Ocultar waveform */
-    .tarjetaWaveform {
-        display: none;
+        padding-left: var(--espacioXs);
     }
 
     /* Ocultar Guardar/Comentar/3puntos — disponibles via long press → menú contextual */

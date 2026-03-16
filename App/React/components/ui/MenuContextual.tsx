@@ -5,7 +5,7 @@
  * Se cierra al hacer click fuera, presionar Escape o botón de cierre.
  */
 
-import { type ReactNode, useEffect, useCallback } from 'react';
+import { type ReactNode, useEffect, useCallback, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import '../../styles/componentes/menuContextual.css';
 import { BotonBase } from './BotonBase';
@@ -59,7 +59,7 @@ export const MenuContextual = ({
 
     /* Contenido de items reutilizado en ambos modos */
     const contenidoItems = items.map((item) => (
-        <div key={item.id}>
+        <Fragment key={item.id}>
             {item.href ? (
                 <a
                     className={`menuContextualItem ${item.peligro ? 'itemPeligro' : ''}`}
@@ -95,7 +95,8 @@ export const MenuContextual = ({
                     {item.etiqueta}
                 </BotonBase>
             )}
-        </div>
+            {item.separadorDespues && <div className="menuContextualSeparador" />}
+        </Fragment>
     ));
 
     /* QL25: Bottom sheet en móvil */

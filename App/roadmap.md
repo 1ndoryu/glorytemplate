@@ -405,7 +405,7 @@ tambien veo que falta un paddin top en la app porque al menos en el emulador, la
 
 # QL47
 
-[EN CURSO — AG-MNT] Implementar redis en kamples en la vps, automatizar el despliegue de redis en coolify manager rs
+✅ [AG-MNT] Redis implementado en VPS: contenedor redis:7-alpine (128mb maxmemory, allkeys-lru), phpredis en Dockerfile, ServicioRedis singleton, ServicioCache con fallback WP transients, adquirirLock/liberarLock con SETNX atomico. Verificado: PONG + hello_redis desde PHP.
 
 # QL45-Actualziacion despues de que leyeras QL45
 
@@ -441,7 +441,12 @@ creo que ya habia dicho antes que los svg no cargan en la apk
 
 # QL50 
 
-Aplica lo pendiente de # Optimizacion del Feed, Busqueda y Algoritmo — Escalabilidad a Cientos de Usuarios Concurrentes
+✅ [AG-MNT] Optimizacion feed completada:
+- BN-5: Serendipia cache por usuario (TTL 30min, key `kamples_serendipia_{userId}`), filtra resultados ya presentes en feed actual.
+- BN-3: Percentiles pre-calculados en cron (cada 5min via KamplesInit), cache `kamples_sat_pop_stats` evita recalculo si fresco.
+- Stampede protection: lock SETNX atomico (`kamples_lock_feed_{userId}_{limite}_{offset}`) con 80ms wait, evita queries duplicadas en requests concurrentes.
+- BN-2 Option B: Columna materializada `tags_enriquecidos` (text[] con GIN index), trigger PL/pgSQL auto-recalcula en INSERT/UPDATE, backfill initial, PrecomputadorFeed::cteEnriched() detecta columna via information_schema (cached 1h) y usa directamente si existe.
+- Migration: v058_tags_enriquecidos.sql deployada.
 
 # QL51
 
@@ -449,7 +454,11 @@ En movil, el modal de configuracion debería ser algo como Luma iOS 103.png, un 
 
 # QL52
 
-El menu contextual de los samples que tenga iconos cada boton , y creo que el los drowdown hay agregar separadores para agrupar opciones (no tantos grupos, 2 o 3 dependiendo del menu) se ven mal todos juntas, por ejemplo en el menu contextual/dropdown las opciones de reportar y eliminar con un separador, en realidad la mayoría de menu necesitan 1 separador
+✅ [AG-MNT] Completado:
+- **Iconos en menu contextual:** Todos los items del menu de samples tienen icono lucide-react (Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight, ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2, Search, Trash2, Flag). Usando `createElement` para evitar JSX en archivo `.ts`.
+- **Separadores visuales:** `separadorDespues` ya existia en `MenuItemDef` pero no se renderizaba. Implementado en `MenuContextual.tsx` con `<div className="menuContextualSeparador">`. CSS: 1px bordeSutil con margin espacioXs.
+- **Grupos:** 2 separadores para usuarios normales (tras "Ver detalle" y "Abrir panel"), 3 para admins (+ tras "Verificar sample"). Reportar y Eliminar quedan separados como zona de peligro.
+- **Max-height desktop (QL55 parcial):** `.menuContextual` ahora tiene `max-height: 400px; overflow-y: auto` para menus largos.
 
 # QL53
 
@@ -457,7 +466,11 @@ todas las colecciones incluyendo favoritos, descargas, etc deberían tener orden
 
 # QL54
 
-A 870px de ancho las waveform de los samples se deben ocultar por responsividad, y a 1120px cuando el panel lateral este abierto
+✅ [AG-MNT] Completado:
+- `@media (max-width: 870px)` oculta `.tarjetaWaveform` en todas las vistas.
+- `@media (max-width: 1120px)` con `:has(.panelLateral)` oculta waveforms cuando el panel lateral reduce el espacio disponible.
+- Waveform hiding movido de 640px a 870px. El breakpoint 640px conserva solo ajustes de grid y ocultamiento de botones secundarios.
+- Fix pre-existente: `padding-left: 4px` → `var(--espacioXs)` en breakpoint movil.
 
 # QL55
 
@@ -467,10 +480,26 @@ Y creo que los menu contextuales en escritorio necesitan max-height: 400px; ya q
 
 # QL56
 
-El like a través del reproductor a los samples no funciona, y cuando funcione debe actualizar el like en el sample tambien. 
+✅ [AG-MNT] Completado:
+- **Like sync reproductor-feed:** Nuevo evento global `EVENTO_LIKE_CAMBIADO` (CustomEvent, patron ya existente en el proyecto). `useFeedLikes`, `useReproductorGlobal` y `useBotonLike` emiten y escuchan el evento. Like desde reproductor actualiza TarjetaSample del feed y viceversa. Rollback optimista propagado correctamente si API falla.
+- **z-index menuContextual:** `menuContextualOverlay`, `.menuContextual` y `.menuContextualBottomSheet` cambiados de `var(--zMenu)` (100) a `var(--zMenuPortal)` (1100). Los menus contextuales ahora aparecen por encima del reproductor (z-index 500).
+- [Leccion]: El proyecto ya usaba CustomEvent para sync cross-componente (EVENTO_SAMPLE_GUARDADO_EN_COLECCION, EVENTO_SAMPLE_COMENTADO). Seguir ese patron es mas escalable que crear stores Zustand adicionales. 
 
-El reproductor se pone por encima de dropdown cuando se abre, no debería.
+# QL57
 
+quiero ejecutar el test pero no se porque no funciona 
+
+PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate> ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"
+Ejecutando benchmark: userId=1 perPage=30
+Timeout: 120s
+
+Error response from daemon: No such container: 4cfb6b17cce6
+
+Exit code: 1
+
+# QL58
+
+QL40 esta mal, me refiero al proceso de script, o sea, en el scrip de python, solo pon ese log
 
 
 
