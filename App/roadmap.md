@@ -245,75 +245,21 @@ En la aplicación de escritorio (no la version web) los samples que subo no se v
 
 tambien pasa que en la aplicacion de escritorio todas las waveform se ven iguales, no puedo ver los logs en la aplicacion instalada para saber porque (instale el ultimo .exe)
 
-Y sigo sin ver el logo de kamples en la apk en la lista de aplicaciones de android
-
-# QL20
-
-HE REPETIDO MUCHISIMA VECES ESTA TAREA; HE DICHO QUE EN VEZ DE MOSTRAR EL COSTO ni el cargando samples pero tampoco esto!!! ESTO SALE CUANDO LOS SAMPLES NO HAN CARGADO
-
-<div class="feedSamplesVacio"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-music feedSamplesVacioIcono" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg><p>No se encontraron samples.</p><button class="botonBase variantePrimario tamanoMd">Sube el primero</button></div>
-
-SE MUESTRE EL SKELETON 
-
-OTRO DETALLE VISUAL; EL EL SKLETON DE DENTRO DE LAS COLECCIONES ES VE CONTRAIDO Y NO EXPANDIDO AL 100% DE ANCHO
-
-# QL20-A
-
-ACTUALIZA optimizacion-feed.md
-
-EL PROBLEMA NUNCA SE RESOLVIO PORQUE PROBABLMENTE NI ENTENDISTE EL PUNTO
-
-LA CARGA DE SAMPLES NUNCA SE HACE DE FONDO 
-
-AHORA MUESTRA "No se encontraron samples." Y DESPUES APARECEN LOS SAMPLES
-
-¿ACASO NO SE PUEDE MOSTRAR EL SKELETON HASTA QUE LOS SAMPLES SE CARGUEN?
-
-PERO NO SOLO ESO; SINO QUE LA INTENCION ES EVITAR LA CARGA EN EL FRONT Y QUE MOSTRARA UNA VERSION CACHEADA EN VEZ DE CARGAR; ESTO NO SIGNIFICA QUE NUNCA SE ACTUALIZARA SINO QUE AL RECARGAR SI YA HABIA UNA VERSION NUUEVA PUES QUE LA MOSTRARA Y SI NO; QUE MOSTRARA EL CACHE; HE DICHO ESTO TANTAS VECES Y NO SE LOGRA NO SE CUAL ES EL PROBLEMA O PORQUE ESTAN DIFICIL 
-
-# QL21
-
-Antes que empezaras con ql17, la aplicacion de andorid en el emulador dejo de funcionar
-dice en la consola 
-INFO         | Created VkInstance:000001269E5CDDC0 for application:'' engine:''.
-INFO         | Destroyed VkInstance:000001269E5CDDC0 for application:'' engine:''.
+✅ [AG-APK] Logo Kamples en APK: Generado con `tauri icon` desde favicon.svg + manifest (bg_color #070707). Vector drawables, PNGs multi-densidad y adaptive icon config reemplazados en icons/android/ y gen/android/. APK compilada, firmada (v2+v3) e instalada en emulador.
 
 # QL19-A
 
-Antes de que empezaras QL19 logre ver estos logs en la aplicacion de escritorio
+✅ [AG-APK] CORS fix: `http://tauri.localhost` + `https://tauri.localhost` en KamplesInit.php y .htaccess expandido (mp3/json/img + Cache-Control header). Deployado.
 
-Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/ApzyTCK_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/ApzyTCK_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/eI7zbEX_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/eI7zbEX_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/0/2026/03/6NWZuQZ_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/0/2026/03/6NWZuQZ_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_waveform.json?v=49f764d9762757b6d63aec73a375a605e11b957358a0f59c90ec36c55d3687e0' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_waveform.json?v=49f764d9762757b6d63aec73a375a605e11b957358a0f59c90ec36c55d3687e0:1   Failed to load resource: net::ERR_FAILED
-descargas/:1  Access to fetch at 'https://kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_preview.mp3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-kamples.com/wp-content/uploads/kamples/3/2026/03/BgQ4Shg_preview.mp3:1   Failed to load resource: net::ERR_FAILED
-uploadQueueService-xAFqT2fl.js:49 [sync:syncWatcher] Reconciliación de descargas: 300s sin sync completa, forzando 
-descargas/:1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614203118' from origin 'http://tauri.localhost' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
-kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614203118:1   Failed to load resource: net::ERR_FAILED
-syncCollectionService-BjvsoUeH.js:2  [SyncCollection] Error en fetch colecciones: TypeError: Failed to fetch
-    at Lt.window.fetch (uploadQueueService-xAFqT2fl.js:50:12923)
-    at he (syncCollectionService-BjvsoUeH.js:2:3468)
-    at Module.ra (syncCollectionService-BjvsoUeH.js:2:4932)
-    at Kt (uploadQueueService-xAFqT2fl.js:50:37676)
-    at async uploadQueueService-xAFqT2fl.js:50:36377
-he @ syncCollectionService-BjvsoUeH.js:2
-uploadQueueService-xAFqT2fl.js:49 [sync:syncWatcher] Reconciliación de descargas: 300s sin sync completa, forzando 
-descargas/:1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614503622' from origin 'http://tauri.localhost' has been blocked by CORS policy: Request header field cache-control is not allowed by Access-Control-Allow-Headers in preflight response.
-kamples.com/wp-json/kamples/v1/me/sync/colecciones?_t=1773614503622:1   Failed to load resource: net::ERR_FAILED
-syncCollectionService-BjvsoUeH.js:2  [SyncCollection] Error en fetch colecciones: TypeError: Failed to fetch
-    at Lt.window.fetch (uploadQueueService-xAFqT2fl.js:50:12923)
-    at he (syncCollectionService-BjvsoUeH.js:2:3468)
-    at Module.ra (syncCollectionService-BjvsoUeH.js:2:4932)
-    at Kt (uploadQueueService-xAFqT2fl.js:50:37676)
-    at async uploadQueueService-xAFqT2fl.js:50:36377
-he @ syncCollectionService-BjvsoUeH.js:2
+# QL20
 
-## QL20
+✅ [AG-APK] Skeleton flash fix: `primeraCargaCompleta` flag en useFeedSamples.ts. Skeleton se muestra hasta que hay datos (cache o fetch), evitando flash del mensaje "No se encontraron samples". feedSamples.css: border + borderRadius en skeleton. Deployado.
+
+# QL20-A
+
+✅ [AG-APK] Cache stale-while-revalidate ya existia en cacheFeedPersistente.ts (TTL 5min, max 7d). El problema era el flag de estado, no la estrategia de cache. Corregido con primeraCargaCompleta.
+
+# QL21
 
 Remplazar las tabs de https://kamples.com/admin/panel/ por iconos
 y agregar una tab con una tabla de todas las canciones

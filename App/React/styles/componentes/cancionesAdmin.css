@@ -1,0 +1,129 @@
+/*
+ * Estilos: TabCancionesAdmin — QL21
+ * Tabla de canciones en el panel de administración.
+ * Reutiliza estilos base de adminPanel.css/adminTablas.css.
+ */
+
+.tabCancionesAdmin {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+/* Barra de controles */
+.cancionesAdminAcciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--espacioMd);
+    flex-wrap: wrap;
+}
+
+.cancionesAdminBotones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.cancionesAdminTotal {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    white-space: nowrap;
+}
+
+/* Tabla */
+.tabCancionesAdmin .adminTablaContenedor {
+    overflow-x: auto;
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioMd);
+}
+
+.tabCancionesAdmin .adminTabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fuenteSm);
+    white-space: nowrap;
+}
+
+.tabCancionesAdmin .adminTabla th {
+    text-align: left;
+    padding: var(--espacioSm) var(--espacioMd);
+    font-weight: 600;
+    color: var(--textoSecundario);
+    font-size: var(--fuenteXs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--bordeSutil);
+    background: var(--fondoElevado1);
+    position: sticky;
+    top: 0;
+}
+
+.tabCancionesAdmin .adminTabla td {
+    padding: var(--espacioSm) var(--espacioMd);
+    border-bottom: 1px solid var(--bordeSutil);
+    color: var(--textoPrimario);
+}
+
+.tabCancionesAdmin .adminTabla tr:hover td {
+    background: var(--fondoElevado2);
+}
+
+/* Columnas especificas */
+.cancionesAdminId {
+    color: var(--textoTerciario);
+    font-variant-numeric: tabular-nums;
+}
+
+.cancionesAdminTitulo {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cancionesAdminTitulo a {
+    color: var(--textoPrimario);
+    text-decoration: none;
+}
+
+.cancionesAdminTitulo a:hover {
+    color: var(--acento);
+    text-decoration: underline;
+}
+
+.cancionesAdminArtista {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cancionesAdminNumero {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.cancionesAdminFecha {
+    color: var(--textoSecundario);
+    white-space: nowrap;
+}
+
+/* Cargando */
+.cancionesAdminCargando {
+    display: flex;
+    justify-content: center;
+    padding: var(--espacioXl);
+}
+
+/* Paginación */
+.cancionesAdminPaginacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacioMd);
+    padding: var(--espacioMd) 0;
+}
+
+.cancionesAdminPaginaInfo {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}

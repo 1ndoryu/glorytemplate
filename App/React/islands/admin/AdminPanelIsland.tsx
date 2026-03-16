@@ -1,14 +1,15 @@
 /*
  * Isla: AdminPanelIsland — Kamples (FASE 13)
- * Panel de administración principal con tabs: Resumen, Usuarios, Moderación, Cola IA, Duplicados, Procesos.
+ * Panel de administración principal con tabs iconizadas en TopBar.
  * D4: Tabs migradas al TopBar global via useTabsIsla (consistencia con otras islas).
  * D5: Tab Duplicados para moderación de samples duplicados.
  * C808: Tab Procesos para gestión de procesos de fondo (scraping, extraccion, seed).
  * C807: Tab Contribuciones para moderación de contribuciones comunitarias.
+ * QL21: Tabs con iconos + nueva tab Canciones.
  * Protegido por conAutenticacion + guard rol admin.
  */
 
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2, ShieldAlert, Users, Shield, BrainCircuit, Copy, Cog, HandHeart, Globe, Headphones, Music } from 'lucide-react';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import { TabUsuariosAdmin } from '@app/components/admin/TabUsuariosAdmin';
 import { TabModeracionAdmin } from '@app/components/admin/TabModeracionAdmin';
@@ -18,22 +19,27 @@ import { TabProcesosAdmin } from '@app/components/admin/TabProcesosAdmin';
 import { TabContribucionesAdmin } from '@app/components/admin/TabContribucionesAdmin';
 import { TabScrapersAdmin } from '@app/components/admin/TabScrapersAdmin';
 import { TabColaExtraccionAdmin } from '@app/components/admin/TabColaExtraccionAdmin';
+import { TabCancionesAdmin } from '@app/components/admin/TabCancionesAdmin';
 import { useAdminPanel } from '@app/hooks/useAdminPanel';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useAuthStore } from '@app/stores/authStore';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
+import type { TabTopBar } from '@app/stores/tabsTopBarStore';
 import '../../styles/componentes/adminPanel.css';
 
-/* QK46: Definicion de tabs — resumen eliminado, KPIs movidos a usuarios */
-const TABS_ADMIN = [
-    { id: 'usuarios', etiqueta: 'Usuarios' },
-    { id: 'moderacion', etiqueta: 'Moderacion' },
-    { id: 'cola-ia', etiqueta: 'Cola IA' },
-    { id: 'duplicados', etiqueta: 'Duplicados' },
-    { id: 'procesos', etiqueta: 'Procesos' },
-    { id: 'contribuciones', etiqueta: 'Contribuciones' },
-    { id: 'scrapers', etiqueta: 'Scrapers' },
-    { id: 'cola-extraccion', etiqueta: 'Cola Extraccion' },
+/* QL21: Tabs con iconos — tamaño 16px para consistencia en TopBar */
+const TAM_ICONO = 16;
+
+const TABS_ADMIN: TabTopBar[] = [
+    { id: 'usuarios', etiqueta: 'Usuarios', icono: <Users size={TAM_ICONO} /> },
+    { id: 'moderacion', etiqueta: 'Moderacion', icono: <Shield size={TAM_ICONO} /> },
+    { id: 'cola-ia', etiqueta: 'Cola IA', icono: <BrainCircuit size={TAM_ICONO} /> },
+    { id: 'duplicados', etiqueta: 'Duplicados', icono: <Copy size={TAM_ICONO} /> },
+    { id: 'procesos', etiqueta: 'Procesos', icono: <Cog size={TAM_ICONO} /> },
+    { id: 'contribuciones', etiqueta: 'Contribuciones', icono: <HandHeart size={TAM_ICONO} /> },
+    { id: 'scrapers', etiqueta: 'Scrapers', icono: <Globe size={TAM_ICONO} /> },
+    { id: 'cola-extraccion', etiqueta: 'Cola Extraccion', icono: <Headphones size={TAM_ICONO} /> },
+    { id: 'canciones', etiqueta: 'Canciones', icono: <Music size={TAM_ICONO} /> },
 ];
 
 const AdminPanelBase = (): JSX.Element => {
@@ -116,6 +122,10 @@ const AdminPanelBase = (): JSX.Element => {
 
             {admin.tabActiva === 'cola-extraccion' && (
                 <TabColaExtraccionAdmin />
+            )}
+
+            {admin.tabActiva === 'canciones' && (
+                <TabCancionesAdmin />
             )}
         </div>
     );

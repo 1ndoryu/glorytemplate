@@ -19,6 +19,13 @@ import type {
 export const listarCanciones = (perPage = 20): Promise<RespuestaApi<Cancion[]>> =>
     apiGet<Cancion[]>('/canciones', { per_page: perPage });
 
+/* Listar canciones paginadas con total (QL21 — admin table) */
+export const listarCancionesPaginado = (
+    pagina = 1,
+    porPagina = 50
+): Promise<RespuestaApi<Cancion[]>> =>
+    apiGet<Cancion[]>('/canciones', { page: pagina, per_page: porPagina });
+
 /* Buscar canciones por texto */
 export const buscarCanciones = (
     query: string,

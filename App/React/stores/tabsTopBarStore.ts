@@ -13,6 +13,7 @@ import { create } from 'zustand';
 export interface TabTopBar {
     id: string;
     etiqueta: string;
+    icono?: React.ReactNode;
 }
 
 interface EstadoTabsTopBar {

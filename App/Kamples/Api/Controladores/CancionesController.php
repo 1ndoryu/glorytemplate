@@ -122,12 +122,18 @@ class CancionesController
     public static function listar(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
+            $pagina  = (int) $request->get_param('page');
             $perPage = (int) $request->get_param('per_page');
-            $canciones = CancionesRepository::buscarRecientes($perPage);
+            $offset  = ($pagina - 1) * $perPage;
+
+            $canciones = CancionesRepository::buscarTodos($perPage, $offset);
+            $total     = CancionesRepository::contar();
 
             return new \WP_REST_Response([
-                'ok'   => true,
-                'data' => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
+                'ok'    => true,
+                'data'  => \array_map([NormalizadorCancion::class, 'cancion'], $canciones),
+                'total' => $total,
+                'page'  => $pagina,
             ]);
         } catch (\Throwable $e) {
             \error_log('[CancionesController::listar] ' . $e->getMessage());

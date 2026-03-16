@@ -83,6 +83,17 @@
     color: var(--textoSecundario);
     cursor: pointer;
     border-radius: var(--radioMd);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Icono dentro de tab — reemplaza texto cuando está presente */
+.topbarTabIcono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
     transition: all var(--transicionRapida);
     white-space: nowrap;
 }

@@ -289,8 +289,10 @@ export const TopBar = (): JSX.Element => {
                         tamano="ninguno"
                         onClick={() => setActiva(tab.id)}
                         type="button"
+                        title={tab.etiqueta}
                     >
-                        {tab.etiqueta}
+                        {tab.icono && <span className="topbarTabIcono">{tab.icono}</span>}
+                        {!tab.icono && tab.etiqueta}
                     </BotonBase>
                 ))}
             </div>
