@@ -50,8 +50,42 @@ class DesktopUpdateController
         ],
     ];
 
+    /**
+     * Plataformas válidas para el check de versión de app móvil/desktop.
+     * Extensible: añadir 'ios' cuando se soporte.
+     */
+    private const PLATAFORMAS_APP = ['android'];
+
+    /**
+     * Clave de WP option donde se almacena la versión más reciente por plataforma.
+     * Formato JSON: { version: string, url: string, notes: string, pub_date: string }
+     */
+    private const OPCION_VERSION_PREFIJO = 'kamples_app_version_';
+
     public static function registrarRutas(string $namespace): void
     {
+        /* GET /app/version/{platform}/{current_version}
+         * Público: la app no requiere sesión WP, solo consulta versión */
+        register_rest_route($namespace, '/app/version/(?P<platform>[a-z]+)/(?P<current_version>[0-9]+\.[0-9]+\.[0-9]+)', [
+            'methods'             => 'GET',
+            'callback'            => [self::class, 'verificarVersionApp'],
+            'permission_callback' => '__return_true',
+            'args'                => [
+                'platform' => [
+                    'required'          => true,
+                    'validate_callback' => function ($valor): bool {
+                        return in_array($valor, self::PLATAFORMAS_APP, true);
+                    },
+                ],
+                'current_version' => [
+                    'required'          => true,
+                    'validate_callback' => function ($valor): bool {
+                        return (bool) preg_match('/^\d+\.\d+\.\d+$/', $valor);
+                    },
+                ],
+            ],
+        ]);
+
         /* GET /desktop/update/{target}/{arch}/{current_version}
          * Público: la app desktop no tiene sesión WP, se autentica por firma del updater */
         register_rest_route($namespace, '/desktop/update/(?P<target>[a-z]+)/(?P<arch>[a-z0-9_]+)/(?P<current_version>[0-9]+\.[0-9]+\.[0-9]+)', [
@@ -79,6 +113,52 @@ class DesktopUpdateController
                 ],
             ],
         ]);
+    }
+
+    /**
+     * GET /app/version/{platform}/{current_version}
+     *
+     * Check de versión para apps móviles (Android).
+     * Lee la versión más reciente de una WP option configurable.
+     * - 200 + JSON si hay versión más nueva
+     * - 204 No Content si está al día
+     */
+    public static function verificarVersionApp(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $plataforma    = $request->get_param('platform');
+            $versionActual = $request->get_param('current_version');
+
+            $opcion = get_option(self::OPCION_VERSION_PREFIJO . $plataforma, '');
+            if (empty($opcion)) {
+                return new \WP_REST_Response(null, 204);
+            }
+
+            $data = is_string($opcion) ? json_decode($opcion, true) : $opcion;
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+                return new \WP_REST_Response(null, 204);
+            }
+
+            $versionNueva = $data['version'] ?? '';
+            if (!$versionNueva || version_compare($versionActual, $versionNueva, '>=')) {
+                return new \WP_REST_Response(null, 204);
+            }
+
+            return new \WP_REST_Response([
+                'version'    => $versionNueva,
+                'url'        => $data['url'] ?? '',
+                'notes'      => $data['notes'] ?? '',
+                'pub_date'   => $data['pub_date'] ?? gmdate('c'),
+                'obligatoria' => $data['obligatoria'] ?? false,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error verificando version app', [
+                'error'      => $e->getMessage(),
+                'plataforma' => $request->get_param('platform'),
+                'version'    => $request->get_param('current_version'),
+            ]);
+            return new \WP_REST_Response(null, 204);
+        }
     }
 
     /**

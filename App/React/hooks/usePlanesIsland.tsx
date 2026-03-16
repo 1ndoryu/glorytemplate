@@ -2,6 +2,8 @@
  * Hook: usePlanesIsland — Kamples
  * Lógica de planes: toggle periodo, checkout Stripe, portal facturación.
  * Datos estáticos PLANES exportados para renderizado.
+ * QL49: En APK Android, Stripe Checkout no funciona en WebView.
+ *       Se muestra mensaje alternativo redirigiendo a la web.
  */
 
 import { useState, useEffect } from 'react';
@@ -11,6 +13,7 @@ import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { crearSesionCheckout, abrirPortalFacturacion } from '@app/services/apiPagos';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
+import { esAndroid, abrirEnlaceExterno } from '@app/utils/plataforma';
 import type { PeriodoPlan } from '@app/services/apiPagos';
 
 export type PlanId = 'free' | 'pro' | 'premium';
@@ -152,6 +155,13 @@ export const usePlanesIsland = () => {
         if (!autenticado) { abrirAuth('registro'); return; }
         if (planId === planActual || planId === 'free') return;
 
+        /* QL49: En APK Android, Stripe Checkout no funciona en WebView.
+         * Abrir la web de Kamples en el navegador externo del dispositivo. */
+        if (esAndroid()) {
+            abrirEnlaceExterno('https://kamples.com/planes/');
+            return;
+        }
+
         setError(null);
         setCargando(planId);
         try {
@@ -186,11 +196,12 @@ export const usePlanesIsland = () => {
     };
 
     const cerrarModalPlanes = () => cerrarPlanes();
+    const esApk = esAndroid();
 
     return {
         periodoAnual, setPeriodoAnual, cargando, error, setError, checkoutExito,
         autenticado, planActual, abierto, imagenPlanes, planVisible, esActualVisible,
         obtenerPrecio, obtenerEtiquetaBoton, manejarSeleccion, manejarPortal,
-        cerrarModalPlanes, calcularAnual,
+        cerrarModalPlanes, calcularAnual, esApk,
     };
 };

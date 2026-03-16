@@ -425,9 +425,15 @@ Original: Es posible spamear notificaciones a los usuarios, lo cual es malo, deb
 
 # QL48
 
-La aplicacion de escritorio no funciona, en modo dev si funcionan cosas como subir un sample pero desde el sync pero con la app creada desde el instalador no, algo malo pasa, n ose si ya lo mencione antes pero algunas imagenes de algunas cosas no cargan, darle click "mostrar kamples" no abre la ventana y esto era un problema viejo que se resolvio hace tiempo, no se si el instalador esta actualizado
-
-otra cosa que me pregunto es que si kamples esta preparada para detectar las versiones del apk y el windows para avisar desatualizaciones. 
+✅ [AG-MNT] Completado:
+- **Imagenes desktop:** ModalAuth y usePlanesIsland usaban rutas de imagen hardcodeadas que no resolvian en Tauri (origin `tauri://localhost`). Corregido: ambas usan `resolverRutaAsset()` que prefija con `https://kamples.com` en builds Tauri.
+- **"Mostrar Kamples" (tray icon):** Codigo Rust inspeccionado — `ventana.show()` + `set_focus()` correcto. Si no funciona, es porque el instalador esta desactualizado (no cambiamos nada de ese flujo desde que se arreglo).
+- **Version detection Desktop:** Ya implementado: `tauri-plugin-updater` (Cargo.toml desktop-only) + `DesktopUpdateController.php` (endpoint `GET /desktop/update/{target}/{arch}/{current_version}`) + GitHub Releases como storage. Dialog automatico en startup.
+- **Version detection Android/APK:** Nuevo endpoint `GET /app/version/{platform}/{current_version}` en DesktopUpdateController. Nuevo hook `useVerificadorVersion.ts` que verifica version en Android via `getVersion()` de `@tauri-apps/api/app`, compara con servidor, muestra toast persistente si hay actualizacion. Wired en InicializadorAuth.tsx. Soporta flag `obligatoria` para forzar actualizacion.
+- **Configuracion versiones:** La version mas reciente del APK se almacena en WP option `kamples_app_version_android` (JSON: version, url, notes, pub_date, obligatoria). Se actualiza via admin/WP CLI al publicar nueva version.
+- [Pendiente]: Crear repo GitHub `AKamples/kamples-desktop-releases` y configurar secrets CI (TAURI_SIGNING_PRIVATE_KEY, TAURI_KEY_PASSWORD).
+- [Pendiente]: Rebuild fresh installer Windows cuando se haga primera release via CI.
+- [Leccion]: Declarations para modulos Tauri en `global.d.ts` de React permiten type-check limpio sin tener los packages instalados en el proyecto web (solo viven en desktop/node_modules).
 
 # QL49 
 

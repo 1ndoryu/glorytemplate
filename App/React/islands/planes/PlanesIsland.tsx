@@ -3,7 +3,7 @@
  * Lógica y datos estáticos extraídos a usePlanesIsland (SRP).
  */
 
-import { Check, X, Loader2, Settings, PartyPopper, ArrowRight } from 'lucide-react';
+import { Check, X, Loader2, Settings, PartyPopper, ArrowRight, ExternalLink } from 'lucide-react';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { Modal } from '@app/components/ui/Modal';
@@ -15,7 +15,7 @@ export const PlanesIsland = (): JSX.Element => {
         periodoAnual, setPeriodoAnual, cargando, error, setError, checkoutExito,
         autenticado, planActual, abierto, imagenPlanes, planVisible, esActualVisible,
         obtenerPrecio, obtenerEtiquetaBoton, manejarSeleccion, manejarPortal,
-        cerrarModalPlanes, calcularAnual,
+        cerrarModalPlanes, calcularAnual, esApk,
     } = usePlanesIsland();
 
     if (!abierto) return <></>;
@@ -94,6 +94,8 @@ export const PlanesIsland = (): JSX.Element => {
                                     <><Loader2 size={16} className="planBotonCargando" />Redirigiendo...</>
                                 ) : esActualVisible ? (
                                     <><Check size={16} />{obtenerEtiquetaBoton(planVisible.id)}</>
+                                ) : esApk ? (
+                                    <>Suscríbete en la web<ExternalLink size={16} /></>
                                 ) : (
                                     <>{obtenerEtiquetaBoton(planVisible.id)}<ArrowRight size={16} /></>
                                 )}

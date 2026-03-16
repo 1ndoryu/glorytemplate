@@ -154,3 +154,21 @@ declare module '@tauri-apps/plugin-fs' {
     export function stat(path: string, options?: FsOptions): Promise<{ isFile: boolean; isDirectory: boolean; size: number }>;
     export function readDir(path: string, options?: FsOptions): Promise<Array<{ name: string; isFile: boolean; isDirectory: boolean }>>;
 }
+
+/*
+ * Declaración de módulo para @tauri-apps/api/app.
+ * QL48: necesario para obtener la versión de la app en Android (verificador de versión).
+ */
+declare module '@tauri-apps/api/app' {
+    export function getVersion(): Promise<string>;
+    export function getName(): Promise<string>;
+    export function getTauriVersion(): Promise<string>;
+}
+
+/*
+ * Declaración de módulo para tauri-plugin-shell.
+ * QL48: necesario para abrir enlaces externos desde Android/desktop.
+ */
+declare module '@tauri-apps/plugin-shell' {
+    export function open(path: string): Promise<void>;
+}

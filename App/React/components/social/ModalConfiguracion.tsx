@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock, ChevronRight, ArrowLeft} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock, ChevronRight, ArrowLeft, Scale, ExternalLink} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -13,6 +13,7 @@ import {usePanelLateralStore} from '@app/stores/panelLateralStore';
 import {useModalConfiguracion, type SeccionConfig} from '@app/hooks/useModalConfiguracion';
 import {SeccionBloqueos} from './SeccionBloqueos';
 import {useGenerosModalStore} from '@app/stores/generosModalStore';
+import {abrirEnlaceExterno} from '@app/utils/plataforma';
 import '../../styles/componentes/modalConfiguracion.css';
 import {CampoTexto} from '../ui/CampoTexto';
 import {Input} from '../ui/Input';
@@ -47,7 +48,8 @@ const SECCIONES_NAV: NavItemConfig[] = [
     {id: 'cuenta', etiqueta: 'Cuenta', icono: <Shield size={16} />},
     {id: 'notificaciones', etiqueta: 'Notificaciones', icono: <Bell size={16} />},
     {id: 'apariencia', etiqueta: 'Apariencia', icono: <Palette size={16} />},
-    {id: 'bloqueos', etiqueta: 'Bloqueos', icono: <Ban size={16} />}
+    {id: 'bloqueos', etiqueta: 'Bloqueos', icono: <Ban size={16} />},
+    {id: 'legal', etiqueta: 'Legal', icono: <Scale size={16} />}
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
@@ -237,6 +239,26 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
             case 'bloqueos':
                 return <SeccionBloqueos />;
+
+            case 'legal':
+                return (
+                    <>
+                        <div className="configSeccion">
+                            <label className="configLabel">Información legal</label>
+                            <span className="configSubtexto">Consulta nuestras políticas y condiciones de uso.</span>
+                        </div>
+                        <div className="configSeccion">
+                            <BotonBase variante="secundario" tamano="sm" onClick={() => abrirEnlaceExterno('https://kamples.com/privacy/')}>
+                                <Scale size={14} /> Política de Privacidad <ExternalLink size={12} />
+                            </BotonBase>
+                        </div>
+                        <div className="configSeccion">
+                            <BotonBase variante="secundario" tamano="sm" onClick={() => abrirEnlaceExterno('https://kamples.com/terms/')}>
+                                <Scale size={14} /> Términos de Servicio <ExternalLink size={12} />
+                            </BotonBase>
+                        </div>
+                    </>
+                );
 
             default:
                 return null;
