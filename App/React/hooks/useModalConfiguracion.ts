@@ -25,6 +25,8 @@ export function useModalConfiguracion() {
     const setUsuario = useAuthStore(s => s.setUsuario);
 
     const [seccionActiva, setSeccionActiva] = useState<SeccionConfig>('perfil');
+    /* QL51: En móvil, controla si mostramos la nav o el contenido de la sección */
+    const [movilEnMenu, setMovilEnMenu] = useState(true);
     const [nombreVisible, setNombreVisible] = useState(usuario?.nombreVisible ?? '');
     const [username, setUsername] = useState(usuario?.username ?? '');
     const [bio, setBio] = useState('');
@@ -65,6 +67,7 @@ export function useModalConfiguracion() {
             setPortadaPreview(null);
             setPortadaArchivo(null);
             setSeccionActiva('perfil');
+            setMovilEnMenu(true);
             /* QK89: Reset estados email/password */
             setNuevoEmail('');
             setEmailPasswordActual('');
@@ -211,9 +214,20 @@ export function useModalConfiguracion() {
 
     const avatarActual = avatarPreview || usuario?.avatarUrl || null;
 
+    /* QL51: Seleccionar sección en móvil — navega al contenido */
+    const seleccionarSeccionMovil = useCallback((seccion: SeccionConfig) => {
+        setSeccionActiva(seccion);
+        setMovilEnMenu(false);
+    }, []);
+
+    const volverAlMenuMovil = useCallback(() => {
+        setMovilEnMenu(true);
+    }, []);
+
     return {
         abierto, autenticado, usuario,
         seccionActiva, setSeccionActiva,
+        movilEnMenu, seleccionarSeccionMovil, volverAlMenuMovil,
         nombreVisible, setNombreVisible,
         username, setUsername,
         bio, setBio,

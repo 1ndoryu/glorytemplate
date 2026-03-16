@@ -450,7 +450,11 @@ creo que ya habia dicho antes que los svg no cargan en la apk
 
 # QL51
 
-En movil, el modal de configuracion debería ser algo como Luma iOS 103.png, un dropdown (no es necesaria la info de usuario), con cada tab del modal como un item del dropdown, y al selecionar cambia al contenido de esa tab en el mismo dropdown
+✅ [AG-MNT] Completado — Modal configuración mobile drill-down iOS:
+- **Patrón drill-down:** En móvil (≤600px), la nav lateral se convierte en lista vertical full-height con ChevronRight por item. Al seleccionar una sección, la nav desaparece y aparece el contenido con botón Volver.
+- **Hook:** `movilEnMenu`, `seleccionarSeccionMovil()`, `volverAlMenuMovil()` gestionan el estado de navegación drill-down.
+- **CSS:** Clases `configMovilEnMenu`/`configMovilEnContenido` controlan visibilidad con `display: none/flex`. `.configNavChevron` oculto en desktop, visible en móvil. `.configMovilVolver` con ArrowLeft + nombre de sección.
+- [CSS]: Sin variables nuevas — reutiliza variables existentes del sistema.
 
 # QL52
 

@@ -332,7 +332,20 @@ nav.configNavLista button {
     border-top: 1px solid var(--bordeSutil);
 }
 
-/* Responsive: en pantallas pequeñas, nav lateral se convierte en tabs horizontales */
+/* QL51: Chevron de navegacion en items — oculto en desktop, visible en movil */
+.configNavChevron {
+    display: none;
+    margin-left: auto;
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+/* QL51: Boton volver movil — oculto en desktop */
+.configMovilVolver {
+    display: none;
+}
+
+/* Responsive: en pantallas pequeñas, nav lateral se convierte en drill-down (QL51) */
 @media (max-width: 600px) {
     .modalContenedor.configModalLayout {
         width: 100vw;
@@ -342,41 +355,69 @@ nav.configNavLista button {
         border-radius: 0;
     }
 
-    .configNavLateral {
+    .configModalLayout .modalCuerpo {
+        flex-direction: column;
+    }
+
+    /* QL51: Drill-down — nav ocupa todo cuando movilEnMenu, contenido oculto */
+    .configMovilEnMenu .configNavLateral {
+        display: flex;
+        flex-direction: column;
         width: 100%;
         min-width: 0;
-        flex-direction: row;
         border-right: none;
-        border-bottom: 1px solid var(--bordeSutil);
-        padding: var(--espacioXs) var(--espacioSm);
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        border-bottom: none;
+        padding: var(--espacioMd);
+        flex: 1;
+        overflow-y: auto;
     }
 
-    .configNavLateral::-webkit-scrollbar {
+    .configMovilEnMenu .configContenido {
         display: none;
     }
 
-    .configNavTitulo {
+    /* QL51: Cuando estamos en contenido, ocultar nav y mostrar contenido */
+    .configMovilEnContenido .configNavLateral {
         display: none;
     }
 
+    .configMovilEnContenido .configContenido {
+        display: flex;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    /* QL51: Items de nav como lista con chevron */
     .configNavLista {
-        flex-direction: row;
-        gap: var(--espacioXs);
-        width: max-content;
+        flex-direction: column;
+        gap: 0;
     }
 
     .configNavItem {
-        white-space: nowrap;
-        padding: var(--espacioXs) var(--espacioSm);
-        font-size: var(--fuenteXs);
+        padding: var(--espacioMd) var(--espacioSm);
+        font-size: var(--fuenteSm);
+        border-bottom: 1px solid var(--bordeSutil);
+        border-radius: 0;
     }
 
-    /* Ocultar label de nav, solo mostrar icono en pantallas muy estrechas */
-    .configNavItem svg {
-        flex-shrink: 0;
+    .configNavItem:last-child {
+        border-bottom: none;
+    }
+
+    .configNavChevron {
+        display: block;
+    }
+
+    /* QL51: Boton volver visible en movil */
+    .configMovilVolver {
+        display: flex;
+        align-items: center;
+        gap: var(--espacioSm);
+        padding: var(--espacioSm) var(--espacioMd);
+        color: var(--textoSecundario);
+        font-size: var(--fuenteSm);
+        font-weight: var(--pesoSemibold);
+        border-bottom: 1px solid var(--bordeSutil);
     }
 
     .configSeccionContenido {
@@ -395,15 +436,6 @@ nav.configNavLista button {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--espacioSm);
-    }
-
-    /* QK101: Mejorar modal configuracion en movil — layout vertical, flex-direction column, nav como tabs */
-    .configModalLayout .modalCuerpo {
-        flex-direction: column;
-    }
-
-    .configContenido {
-        overflow-y: auto;
     }
 
     .configCerrarBtn {

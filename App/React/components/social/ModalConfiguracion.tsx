@@ -4,7 +4,7 @@
  * Lógica extraída a useModalConfiguracion (SRP).
  */
 
-import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock} from 'lucide-react';
+import {ImagePlus, Save, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock, ChevronRight, ArrowLeft} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -51,7 +51,7 @@ const SECCIONES_NAV: NavItemConfig[] = [
 ];
 
 export const ModalConfiguracion = (): JSX.Element | null => {
-    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, sitioWeb, setSitioWeb, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar, nuevoEmail, setNuevoEmail, emailPasswordActual, setEmailPasswordActual, cambiandoEmail, emailEditando, setEmailEditando, manejarCambiarEmail, passwordActual, setPasswordActual, nuevaPassword, setNuevaPassword, confirmarPassword, setConfirmarPassword, cambiandoPassword, passwordEditando, setPasswordEditando, manejarCambiarPassword} = useModalConfiguracion();
+    const {abierto, autenticado, usuario, seccionActiva, setSeccionActiva, movilEnMenu, seleccionarSeccionMovil, volverAlMenuMovil, nombreVisible, setNombreVisible, username, setUsername, bio, setBio, sitioWeb, setSitioWeb, notificaciones, setNotificaciones, temaSeleccionado, avatarActual, portadaPreview, guardando, inputFotoRef, inputPortadaRef, manejarCambioTema, manejarCambioFoto, manejarCambioPortada, manejarGuardar, manejarCerrar, nuevoEmail, setNuevoEmail, emailPasswordActual, setEmailPasswordActual, cambiandoEmail, emailEditando, setEmailEditando, manejarCambiarEmail, passwordActual, setPasswordActual, nuevaPassword, setNuevaPassword, confirmarPassword, setConfirmarPassword, cambiandoPassword, passwordEditando, setPasswordEditando, manejarCambiarPassword} = useModalConfiguracion();
 
     if (!abierto || !autenticado) return null;
 
@@ -244,15 +244,20 @@ export const ModalConfiguracion = (): JSX.Element | null => {
     };
 
     return (
-        <Modal abierto={abierto && autenticado} onCerrar={manejarCerrar} className="configModalLayout">
-            {/* Panel de navegación lateral */}
+        <Modal abierto={abierto && autenticado} onCerrar={manejarCerrar} className={`configModalLayout ${movilEnMenu ? 'configMovilEnMenu' : 'configMovilEnContenido'}`}>
+            {/* Panel de navegación lateral (desktop) / lista drill-down (móvil QL51) */}
             <div className="configNavLateral">
                 <h3 className="configNavTitulo">Configuración</h3>
                 <nav className="configNavLista">
                     {SECCIONES_NAV.map(item => (
-                        <BotonBase variante="ghost" key={item.id} className={`configNavItem ${seccionActiva === item.id ? 'configNavItemActivo' : ''}`} onClick={() => setSeccionActiva(item.id)} type="button">
+                        <BotonBase variante="ghost" key={item.id}
+                            className={`configNavItem ${seccionActiva === item.id ? 'configNavItemActivo' : ''}`}
+                            onClick={() => { setSeccionActiva(item.id); seleccionarSeccionMovil(item.id); }}
+                            type="button"
+                        >
                             {item.icono}
                             {item.etiqueta}
+                            <ChevronRight size={14} className="configNavChevron" />
                         </BotonBase>
                     ))}
                 </nav>
@@ -260,6 +265,11 @@ export const ModalConfiguracion = (): JSX.Element | null => {
 
             {/* Contenido de la sección */}
             <div className="configContenido">
+                {/* QL51: Botón volver solo visible en móvil */}
+                <BotonBase variante="ghost" className="configMovilVolver" onClick={volverAlMenuMovil} type="button">
+                    <ArrowLeft size={16} />
+                    <span>{SECCIONES_NAV.find(s => s.id === seccionActiva)?.etiqueta ?? 'Configuración'}</span>
+                </BotonBase>
                 <div className="configSeccionContenido">{renderizarSeccion()}</div>
 
                 {/* Acciones: guardar / cancelar */}
