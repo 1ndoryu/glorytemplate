@@ -14,6 +14,7 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\NotificacionesCols;
 use App\Config\Schema\_generated\NotificacionesDTO;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 
 class NotificacionesRepository extends BaseRepository
@@ -78,6 +79,7 @@ class NotificacionesRepository extends BaseRepository
             . " u." . UsuariosExtCols::AVATAR_URL . " as \"actorAvatar\", u." . UsuariosExtCols::WP_USER_ID . " as \"actorWpUserId\""
             . " FROM {$tabla} n LEFT JOIN " . UsuariosExtCols::TABLA . " u ON u." . UsuariosExtCols::ID . " = n." . NotificacionesCols::ACTOR_ID
             . " WHERE n." . NotificacionesCols::USUARIO_ID . " = :userId"
+            . " AND (u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "' OR u." . UsuariosExtCols::ID . " IS NULL)"
             . $filtroBloqueos
             . " ORDER BY n." . NotificacionesCols::CREATED_AT . " DESC LIMIT :limit OFFSET :offset",
             ['userId' => $userId, 'limit' => $limit, 'offset' => $offset]

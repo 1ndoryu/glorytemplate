@@ -200,7 +200,25 @@ descarte los cambios de que hiciste sobre ql08, en realidad era una revision al 
 
 ## QL112
 
-Revisar que cuando se elimine a un usuario, todo su contenido se borre tambien, o cuando este suspendido o baneando su contenido incluyendo samples, publicaciones, colecciones, esten ocultos. 
+✅ [AG-MNT] Visibilidad + cascada de eliminacion de usuario.
+
+**Filtros de visibilidad (contenido oculto si creador suspendido/en_eliminacion):**
+- NormalizadorSample::sqlSelectSamples() — nuevo param `$soloCreadorActivo=true` (default). Cambia LEFT JOIN a INNER JOIN con `u.estado='activo'`. Afecta 20+ callers automaticamente (buscarPorIds, sugerencias, coleccionados, historial, motor recomendacion, etc.).
+- ColeccionesRepository: explorarPublicas (2 variantes), obtenerConCreador, tagsFrecuentesExplorar — filtro `u.estado='activo'`.
+- ComentariosRepository: listarDePublicacion, listarRaizConAutor, listarRespuestasConAutor, obtenerDestacadosPorPubs — filtro `u.estado='activo'`.
+- FollowsRepository: listarSeguidores — filtro `u.estado='activo'`.
+- NotificacionesRepository: listarConActor — filtro `u.estado='activo' OR u.id IS NULL`.
+- ConversacionesRepository: listarDeUsuarioEnriquecido — filtro `u.estado='activo'` en JOIN.
+- PerfilController::obtenerPerfil ya tenia check QQ65 (no modificado).
+
+**Cascada de eliminacion:**
+- Nuevo: `ServicioEliminacionUsuario.php` — `eliminarConCascada(int $usuarioId)`: elimina TODO contenido en orden de FK inverso (21 tablas), llama SamplesRepository::eliminarConCascada y PublicacionesRepository::eliminarConCascada para cada item, luego wp_delete_user().
+- Nuevo: `procesarEliminacionesPendientes()` — cron diario busca `estado=en_eliminacion AND sera_eliminado_en <= NOW()`.
+- Registrado en KamplesInit::init() como cron diario `kamples_purgar_usuarios_eliminados`.
+
+**Lecciones:**
+- [sqlSelectSamples]: El LEFT JOIN sin filtro era la raiz de 14 gaps de visibilidad. Solucion arquitectonica: param con default seguro, no parches en cada caller.
+- [ConversacionesRepo]: Para SQL en string interpolada ($var), asignar constantes a var locales ($colEstado, $estadoActivo) antes del string.
 
 ## QL113
 
@@ -221,7 +239,7 @@ tampoco hay una forma de cambiar la estructura, creo que para mantenerlo sencill
 
 Esto tiene que funcionar bien.
 
-Lo de las colecciones padre funciona bien, tienen 
+Lo de las colecciones padre funciona bien, tienen filtroSubcolecciones pero, creo que filtroSubcolecciones tiene que estar de bajo de barraControlFeed, es todo, a demás de que las colecciones padre el contador funciona bien internamente pero en la lista de colecciones es 0
 
 # Tarea final
 

@@ -14,6 +14,7 @@ namespace App\Kamples\Database\Repositories;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\FollowsDTO;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 
 class FollowsRepository extends BaseRepository
 {
@@ -170,6 +171,7 @@ class FollowsRepository extends BaseRepository
             . " JOIN {$tu} u ON u." . UsuariosExtCols::ID . " = f." . FollowsCols::SEGUIDOR_ID
             . " WHERE f." . FollowsCols::SEGUIDO_ID . " = :seguidoId"
             . " AND u." . UsuariosExtCols::ES_SEED . " = false"
+            . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " ORDER BY f." . FollowsCols::CREATED_AT . " DESC"
             . " LIMIT :lim OFFSET :off",
             ['seguidoId' => $seguidoId, 'lim' => $limit, 'off' => $offset]

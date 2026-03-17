@@ -20,6 +20,7 @@ use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\FollowsCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 
@@ -335,6 +336,7 @@ class ColeccionesRepository extends BaseRepository
                     JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                     LEFT JOIN coleccion_tags ct ON ct.{$coleccionId} = c." . ColeccionesCols::ID . "
                     WHERE {$whereVisibilidad}
+                      AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
                       AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2 WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ")) >= 0
                       {$whereBusqueda}
                 ) sub
@@ -356,6 +358,7 @@ class ColeccionesRepository extends BaseRepository
                 FROM {$t} c
                 JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                 WHERE c." . ColeccionesCols::PUBLICA . " = true
+                  AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
                   AND (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") > 0
                   {$whereBusqueda}
                 ORDER BY c." . ColeccionesCols::UPDATED_AT . " DESC
@@ -390,6 +393,7 @@ class ColeccionesRepository extends BaseRepository
             "SELECT tag_val, COUNT(*) as frecuencia
              FROM {$tcs} cs
              JOIN {$t} c ON cs.{$csColeccionId} = c.{$colId}
+             JOIN " . UsuariosExtCols::TABLA . " u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
              JOIN {$ts} s ON cs.{$csSampleId} = s.{$sampleId}
              CROSS JOIN LATERAL jsonb_array_elements_text(
                  COALESCE(
@@ -399,6 +403,7 @@ class ColeccionesRepository extends BaseRepository
                  )
              ) as tag_val
              WHERE c.{$colPublica} = true
+               AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
                AND s.{$sampleEstado} = '{$estadoActivo}'
                AND s.{$sampleMeta} IS NOT NULL
              GROUP BY tag_val
@@ -420,7 +425,9 @@ class ColeccionesRepository extends BaseRepository
 
         return static::consultarUno(
             "SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . "
-             FROM {$t} c JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . " WHERE c." . ColeccionesCols::ID . " = :id",
+             FROM {$t} c JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
+             WHERE c." . ColeccionesCols::ID . " = :id
+               AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'",
             ['id' => $id]
         );
     }

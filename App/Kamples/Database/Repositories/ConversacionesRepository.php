@@ -15,6 +15,7 @@ use App\Config\Schema\_generated\ConversacionesCols;
 use App\Config\Schema\_generated\ConversacionesDTO;
 use App\Config\Schema\_generated\MensajesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\BloqueoCols;
 
@@ -99,6 +100,8 @@ class ConversacionesRepository extends BaseRepository
         $colSeguidoId    = FollowsCols::SEGUIDO_ID;
         $colBloqueadorId = BloqueoCols::BLOQUEADOR_ID;
         $colBloqueadoId  = BloqueoCols::BLOQUEADO_ID;
+        $colEstado       = UsuariosExtCols::ESTADO;
+        $estadoActivo    = UsuariosExtEnums::ESTADO_ACTIVO;
 
         return static::consultar(
             "SELECT c.{$colConvId},
@@ -130,6 +133,7 @@ class ConversacionesRepository extends BaseRepository
              JOIN {$tUsr} u
                ON u.{$colUsrId} = CASE WHEN c.participante_1 = :userId THEN c.participante_2
                                        ELSE c.participante_1 END
+               AND u.{$colEstado} = '{$estadoActivo}'
              LEFT JOIN LATERAL (
                  SELECT m.{$colMsgContenido}, m.{$colMsgTipo}, m.{$colMsgCreatedAt}
                  FROM {$tMsg} m

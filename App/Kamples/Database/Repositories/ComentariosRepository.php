@@ -15,6 +15,7 @@ use App\Config\Schema\_generated\ComentariosCols;
 use App\Config\Schema\_generated\ComentariosEnums;
 use App\Config\Schema\_generated\ComentariosDTO;
 use App\Config\Schema\_generated\UsuariosExtCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\PublicacionesCols;
 use App\Config\Schema\_generated\CancionesCols;
@@ -110,6 +111,7 @@ class ComentariosRepository extends BaseRepository
             . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::TIPO . " = '" . ComentariosEnums::TIPO_PUBLICACION . "'"
             . " AND c." . ComentariosCols::TARGET_ID . " = :pubId"
+            . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
             ['pubId' => $pubId, 'limit' => $limit, 'offset' => $offset]
         );
@@ -139,6 +141,7 @@ class ComentariosRepository extends BaseRepository
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::TIPO . " = :tipo AND c." . ComentariosCols::TARGET_ID . " = :targetId"
             . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
+            . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
             . $filtroBloqueos
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit OFFSET :offset",
@@ -168,6 +171,7 @@ class ComentariosRepository extends BaseRepository
             . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID
             . " FROM {$tc} c JOIN {$tu} u ON c." . ComentariosCols::AUTOR_ID . " = u." . UsuariosExtCols::ID
             . " WHERE c." . ComentariosCols::PARENT_ID . " = :parentId"
+            . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
             . $filtroBloqueos
             . " ORDER BY c." . ComentariosCols::CREATED_AT . " ASC LIMIT :limit",
@@ -421,6 +425,7 @@ class ComentariosRepository extends BaseRepository
             . " WHERE c." . ComentariosCols::TIPO . " = '" . ComentariosEnums::TIPO_PUBLICACION . "'"
             . " AND c." . ComentariosCols::TARGET_ID . " IN ({$inClause})"
             . " AND c." . ComentariosCols::PARENT_ID . " IS NULL"
+            . " AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'"
             . " AND (c." . ComentariosCols::MODERACION_ESTADO . " IS NULL OR c." . ComentariosCols::MODERACION_ESTADO . " != '" . ComentariosEnums::MODERACION_ESTADO_RECHAZADO . "')"
             . $filtroBloqueos
             . " ORDER BY c." . ComentariosCols::TARGET_ID . ", c." . ComentariosCols::TOTAL_LIKES . " DESC, c." . ComentariosCols::CREATED_AT . " DESC",

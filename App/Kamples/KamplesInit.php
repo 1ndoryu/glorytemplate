@@ -25,6 +25,7 @@ use App\Kamples\Services\ProcesadorColaIA;
 use App\Kamples\Services\BackfillHashService;
 use App\Kamples\Services\PublicadorExtraccion;
 use App\Kamples\Services\ReprocesadorPostDuplicado;
+use App\Kamples\Services\ServicioEliminacionUsuario;
 use App\Kamples\Database\MigradorLocal;
 use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
@@ -91,6 +92,9 @@ class KamplesInit
 
         /* QK69: Cron diario para limpiar ZIPs de colecciones expirados (>7 dias) */
         self::registrarCronLimpiezaZips();
+
+        /* QL112: Cron diario para purgar usuarios marcados para eliminacion (>15 dias) */
+        ServicioEliminacionUsuario::registrarCron();
 
         /* QQ56: Asegurar headers de cache para media estática (audio/imágenes) */
         self::asegurarCacheMedia();

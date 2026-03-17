@@ -32,6 +32,7 @@ use App\Config\Schema\_generated\TransaccionesEnums;
 use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\ColaExtraccionSamplesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
+use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Helpers\UrlHelper;
 
 class NormalizadorSample
@@ -380,7 +381,7 @@ class NormalizadorSample
      * PDO no puede parametrizar dentro de subqueries correlacionadas con la query principal,
      * pero validamos el tipo estrictamente para prevenir inyección.
      */
-    public static function sqlSelectSamples(?int $userId = null): string
+    public static function sqlSelectSamples(?int $userId = null, bool $soloCreadorActivo = true): string
     {
         /*
          * Si se pasa userId, incluimos subquery para la reacción del usuario.
@@ -544,6 +545,17 @@ class NormalizadorSample
             LIMIT 1
         ) END";
 
+        /*
+         * QL112: Cuando $soloCreadorActivo=true (default), usar INNER JOIN para ocultar
+         * samples de creadores suspendidos/en_eliminacion. Solo se muestran creadores activos.
+         * Pasar false para queries admin o de propiedad donde se necesita ver TODO.
+         */
+        $uEstado = UsuariosExtCols::ESTADO;
+        $estadoActivo = UsuariosExtEnums::ESTADO_ACTIVO;
+        $joinUsuario = $soloCreadorActivo
+            ? "JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId} AND u.{$uEstado} = '{$estadoActivo}'"
+            : "LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
+
         return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
                        {$cancionOrigenExpr},
                        {$extraccionExpr},
@@ -566,6 +578,6 @@ class NormalizadorSample
                        {$yaCompradoExpr} AS ya_comprado,
                        {$imagenColeccionExpr} AS imagen_coleccion_propietario
                 FROM {$ts} s
-                LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}";
+                {$joinUsuario}";
     }
 }
