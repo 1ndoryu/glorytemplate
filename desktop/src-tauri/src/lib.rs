@@ -427,8 +427,11 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_deep_link::init());
+        .plugin(tauri_plugin_store::Builder::default().build());
+
+    /* Plugin mobile-only: deep-link (OAuth Android via kamples://auth) */
+    #[cfg(mobile)]
+    let builder = builder.plugin(tauri_plugin_deep_link::init());
 
     /* Plugins desktop-only: updater, window-state, drag */
     #[cfg(desktop)]

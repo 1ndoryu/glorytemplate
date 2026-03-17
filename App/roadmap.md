@@ -122,77 +122,125 @@ Completado [AG-MNT] -- QL5-QL95 movidos a `docs/roadmap/completado.md` (seccion 
 
 ✅ [AG-MNT] CORS fix: endpoint `/descargas/stream` usa readfile()+exit (bypasea rest_pre_serve_request).
 Headers CORS manuales agregados en DescargasStreamController.php para origenes Tauri/dev.
-uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 676 {error: 'Failed to fetch'}
-xa @ uploadQueueService-CloPPvVM.js:49
-error @ uploadQueueService-CloPPvVM.js:50
-Ye @ syncCollectionService-BFD-5feJ.js:2
-await in Ye
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-Promise.then
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-ra @ syncCollectionService-BFD-5feJ.js:2
-await in ra
-Xt @ uploadQueueService-CloPPvVM.js:50
-(index):1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc3OjQ6MTc3MzcwNzA2ODplNWE3Mjc0MTkyODc5MWNjNGJmY2IzNWJlZTgzMzdjMTFiZTE2OWMyNmQ3OWNiMGJlMjAyNTY2YmExZWRiMGJl' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-uploadQueueService-CloPPvVM.js:50   GET https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc3OjQ6MTc3MzcwNzA2ODplNWE3Mjc0MTkyODc5MWNjNGJmY2IzNWJlZTgzMzdjMTFiZTE2OWMyNmQ3OWNiMGJlMjAyNTY2YmExZWRiMGJl net::ERR_FAILED 200 (OK)
-Rt.window.fetch @ uploadQueueService-CloPPvVM.js:50
-Ye @ syncCollectionService-BFD-5feJ.js:2
-await in Ye
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-Promise.then
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-ra @ syncCollectionService-BFD-5feJ.js:2
-await in ra
-Xt @ uploadQueueService-CloPPvVM.js:50
-uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 677 {error: 'Failed to fetch'}
-xa @ uploadQueueService-CloPPvVM.js:49
-error @ uploadQueueService-CloPPvVM.js:50
-Ye @ syncCollectionService-BFD-5feJ.js:2
-await in Ye
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-Promise.then
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-ra @ syncCollectionService-BFD-5feJ.js:2
-await in ra
-Xt @ uploadQueueService-CloPPvVM.js:50
-(index):1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc5OjQ6MTc3MzcwNzA2OTo0OGZkMTdkYWMyMTAxOWRlMzQ2ZDllMDRmMjBkMWIyMzU2ODQ1NDY0YzIwZWI3ZWMyOGVkYWY1MzhlOWFiODc3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-uploadQueueService-CloPPvVM.js:50   GET https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc5OjQ6MTc3MzcwNzA2OTo0OGZkMTdkYWMyMTAxOWRlMzQ2ZDllMDRmMjBkMWIyMzU2ODQ1NDY0YzIwZWI3ZWMyOGVkYWY1MzhlOWFiODc3 net::ERR_FAILED 200 (OK)
-Rt.window.fetch @ uploadQueueService-CloPPvVM.js:50
-Ye @ syncCollectionService-BFD-5feJ.js:2
-await in Ye
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-Promise.then
-(anonymous) @ syncCollectionService-BFD-5feJ.js:2
-ra @ syncCollectionService-BFD-5feJ.js:2
-await in ra
-Xt @ uploadQueueService-CloPPvVM.js:50
-uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 679 {error: 'Failed to fetch'}
 
-</body>
+### QL100
 
-### QL100 
-
-La aplicación la instale en mi telefono, varios problemas que vi
-
-los svg de landing de inicio no carga, pero no vamos a arreglar esto, dejamos que el modal de inicia sesion de quede encima sin quitarse (sin la x), y se pueda cambiar entre de iniciar sesion y registrar, esto es lo normal en una apk, solo el login (no confundas el landing de login con los modales de login, el landing o isla de login no se usa)
-
-el loggin con google no funciona, dice: no se puede completar la autenticación con google, intenta de nuevo
-
-los audios no se descargan, intente descargar y la aplicacion se quedo colgada
-
-el modal de notifiaciones no tiene un padding top y parte superior de android de la hora y notificaciones lo cubre, pero en realidad lo son todos los modales, todo lo que abre y cubra la pantalla completa choca con la barra superior de android, el chat, la lista de mensajes, etc
-
-las notificaciones no tienen el logo de kamples
+✅ [AG-MNT] Multiples fixes APK Android:
+- **QL100a** Login persistente: modal sin X en APK, auto-abre si no autenticado, layout single-column
+- **QL100b** Google OAuth Mobile: deep-link `kamples://auth`, servicio `googleAuthMobileService.ts`, PHP `mobileCallback()` con PKCE, plugin deep-link en Tauri. **NOTA:** redirect URI `https://kamples.com/wp-json/kamples/v1/auth/google/mobile-callback` debe registrarse en Google Cloud Console.
+- **QL100c** Descargas: reemplazado `<a download>` (no funciona en WebView) por `fetch()` + `@tauri-apps/plugin-fs writeFile` a Downloads
+- **QL100d** Safe-area: variables CSS `--safeAreaTop`/`--safeAreaBottom`, aplicadas a 8 archivos CSS (modals, chat, dropdown, notificaciones)
+- **QL100e** Icono notificacion: drawable vector `ic_notification.xml` monocromatico, metadata FCM default icon en AndroidManifest
 
 ### QL101
 
-DIJE ANTERIROMENTE QUE EL MODAL DE CONFIGURAICON DEBE SER UNO DIFERENTE PARA EL MOVIL 
-
-NO DEBE SER UN MODAL SI NO PARECER UN DROPDOWN COMO CUANDO ABRES UN MENU CONTEXTUAL EN MOVIL; DEBE SER IGUAL PERO CON EL AGREGADO DE LAS OPCIONES SE ABREN Y CADA BOTON ES INNECESARIO QUE TENGA UN SEPARADOR
+✅ [AG-MNT] Config movil: bottom-sheet parcial (max-height 75vh) con overlay backdrop en vez de fullscreen. Separadores entre botones eliminados.
 
 ### QL102
 
-Parece que las notificaciones si se reciben en la apk pero no cuando esta cerrado.
+✅ [AG-MNT] FCM background: agregado campo `notification` al payload FCM (antes solo data). Android muestra automaticamente la notificacion cuando la app esta cerrada. Canal configurable por tipo (mensajes vs notificaciones).
+
+### QL103
+
+✅ [AG-MNT] Sync loop fix: flag `descargaMasivaActiva` en syncGuards, suprime eventos de carpeta/subcarpeta durante descarga masiva. Guard de tracking en subcarpeta callback. Gracia de descarga aumentada 10s→30s.
+
+---
+
+## Lecciones aprendidas (sesion actual)
+
+- [APK/Download]: `<a download>` no funciona en Android WebView — cuelga la app intentando renderizar binario como HTML. Usar fetch+fs plugin.
+- [APK/OAuth]: Android no soporta TcpListener localhost. Flujo mobile: browser → server callback → deep link `kamples://auth?payload=base64url`
+- [FCM]: Data-only messages con `high` priority pueden no entregarse en background en algunos OEMs Android. Siempre incluir campo `notification` junto con `data`.
+- [CSS/Safe-area]: Variables centralizadas `--safeAreaTop`/`--safeAreaBottom` con override en `body.plataformaAndroid` usando `env(safe-area-inset-top)`. Requiere `viewport-fit=cover` en meta viewport.
+- [Sync/Loop]: Los eventos NTFS de carpeta/subcarpeta se disparan con cada `mkdir`/`writeFile` durante sync masivo. Flag global `descargaMasivaActiva` es la solucion mas limpia.
+- [Toast API]: El store usa `toast.exito()` no `toast.success()` (esta en espanol).
+- [Config modal]: Tauri plugin deep-link v2 expone `onOpenUrl()` en JS — el plugin maneja forwarding automatico sin necesidad de emitir eventos desde Rust.
+
+## QL104
+
+[EN CURSO — AG-MNT] Samples que no suben/eliminan durante sync. Crear diagnostico de estado de archivos locales vs servidor.
+- Si estan duplicados, se suben igualmente y se eliminan (con opcion de eliminar al subir activa). El servidor resuelve dedup.
+
+## QL105
+
+[EN CURSO — AG-MNT] Desktop crash: deep-link plugin config espera sequence, no string.
+Error: `invalid type: string "kamples", expected a sequence` en `plugins.deep-link`.
+
+## L106
+
+ya vi quen o quearon archivos, esta resuelto lo de QL104, solo creo falta una revision para ver que realmente no se borren archivos 
+
+vi eeste error en la aplicacion de escritorio
+
+notificacionesStore.ts:84 
+ Warning: Cannot update a component (`Sidebar`) while rendering a different component (`TopBar`). To locate the bad setState() call inside `TopBar`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
+    at TopBar (
+
+Probando un poco el comportamiento noto que bien, no vuelve a subir los archivos duplicados
+
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+authDesktopService.ts:72 [AuthDesktop] Init — LS: OK | tokenLS: true | userLS: true
+authDesktopService.ts:84 [AuthDesktop] TauriStore — token: true | user: true
+authDesktopService.ts:149 [AuthDesktop] Init OK — token: true, user: true
+syncLogger.ts:108 [sync:syncService] Inicializando sync service Object
+syncLogger.ts:108 [sync:journal] Checkpoint cargado correctamente 
+syncLogger.ts:108 [sync:tracking] Estado recuperado desde journal 
+syncLogger.ts:108 [sync:watcher] Observando carpeta: C:\Users\Owner\OneDrive\Documentos\test 
+syncWatcherSetup.ts:1159 [Sync] Sync bidireccional activado
+syncLogger.ts:108 [sync:syncWatcher] Reconciliación de descargas: 1773712298s sin sync completa, forzando 
+syncCollectionService.ts:471 [SyncCollection] Omitiendo purge por ventana de gracia (sample reciente): 829 Rim-Reverb_KgmE_2upra.wav
+syncLogger.ts:108 [sync:orphanAnalysis] Analisis periodico de huerfanos iniciado (cada 30min) 
+(index):1 [Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
+syncWatcherSetup.ts:155 [Sync] Escaneo local: 1 archivo(s) nuevo(s) encolado(s) para subida
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: SM_PW_synth_bass_connection_F#.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
+uploadQueueService.ts:556 [UploadQueue] Hash conocido pero sin archivo activo en tracking, evictando hash stale: SM_PW_synth_bass_connection_F#.wav
+uploadQueueService.ts:600 [UploadQueue] Archivo encolado: SM_PW_synth_bass_connection_F#.wav
+syncRegistroService.ts:183 [Sync] Archivo movido a Sin colección: SM_PW_synth_bass_connection_F#.wav
+uploadQueueService.ts:1125 [UploadQueue] Subido exitosamente: SM_PW_synth_bass_connection_F#.wav → sample_id: 830
+syncLogger.ts:108 [sync:uploadQueue] Archivo local borrado tras subida: SM_PW_synth_bass_connection_F#.wav 
+syncLogger.ts:108 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav 
+syncLogger.ts:108 [sync:orphanAnalysis] Archivo huerfano encolado: Rim-Reverb_KgmE_2upra.wav 
+syncLogger.ts:108 [sync:orphanAnalysis] Analisis completado {encolados: 1, eliminados: 0, reintentados: 0, carpetasVacias: 1}
+syncLogger.ts:108 [sync:watcher] Eliminación confirmada (no fue move): C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav 
+syncWatcherSetup.ts:751 [Sync] Ignorando DELETE de ruta movida internamente: C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: SM_PW_synth_bass_connection_F#.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 2 archivos nuevos acumulados 
+uploadQueueService.ts:465 [UploadQueue] Archivo ya en proceso de encolamiento, ignorando: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
+uploadQueueService.ts:556 [UploadQueue] Hash conocido pero sin archivo activo en tracking, evictando hash stale: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
+uploadQueueService.ts:600 [UploadQueue] Archivo encolado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
+syncRegistroService.ts:183 [Sync] Archivo movido a Sin colección: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
+uploadQueueService.ts:1125 [UploadQueue] Subido exitosamente: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav → sample_id: 831
+syncLogger.ts:108 [sync:uploadQueue] Archivo local borrado tras subida: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
+syncLogger.ts:108 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
+syncLogger.ts:108 [sync:watcher] Eliminación confirmada (no fue move): C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
+syncWatcherSetup.ts:751 [Sync] Ignorando DELETE de ruta movida internamente: C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
+
+voy a probar cambiar el nombre de uno pero con el mismo sonido
+
+[sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient-nombrecambiado.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
+
+no lo sube, no digo que este compartamiento este mal, digo que ahora debe ser menos agresivo la detección duplicados, tambien pasa que no deja claro la razon por la cual no lo sube, osea que al menos diga, no se sube porque esta duplicado, pero en ese caso al menos tiene que borrarlo y no dejarlo ahi, realmente tiene que borrar si el duplicado es seguro, si no es seguro subirlo al servidor y dejar que se decida alla manualmente si se publica o no, es todo, revisa bien
+
+tambien vi que intenta descargar samples o los descarga cuando la opcion de borrar archivo local al subir esta activa, esto no debe pasar, es fatal
+
+[SyncCollection] Omitiendo purge por ventana de gracia (sample reciente): 829 Rim-Reverb_KgmE_2upra.wav
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: F Sharp Synth Bass One Shot F#.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
+syncWatcherSetup.ts:868 [Sync] Ignorando create propio (descarga en curso): F Sharp Synth Bass One Shot F#.wav
+syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: Ethereal Chopped Ambient Loop 126bpm Fm.wav carpetas:  
+syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
+syncWatcherSetup.ts:868 [Sync] Ignorando create propio (descarga en curso): Ethereal Chopped Ambient Loop 126bpm Fm.wav
+
+# Tarea final
+
+Cuando se resuelva QL104+QL105: actualizar APK + instalador desktop.
+
+
 
 ---
 

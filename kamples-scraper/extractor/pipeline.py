@@ -485,7 +485,7 @@ def main():
             time.sleep(args.espera_vacio)
             continue
 
-        logger.info("Procesando %d elementos de la cola", len(pendientes))
+        logger.info("Procesando %d elementos de la cola!", len(pendientes))
 
         exitosos = 0
         fallidos = 0
