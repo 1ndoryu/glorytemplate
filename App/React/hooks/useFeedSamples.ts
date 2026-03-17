@@ -47,6 +47,8 @@ export interface UseFeedSamplesOpciones {
     onConteoChange?: (total: number) => void;
     /** QL87: Filtro post-procesamiento adicional (useFiltrosContenido.aplicar) */
     filtroAdicional?: (samples: SampleResumen[]) => SampleResumen[];
+    /** QL127: Activar filtrado textual client-side (colecciones) */
+    busquedaLocal?: boolean;
 }
 
 export const ETIQUETAS_CATEGORIA: Record<CategoriaTag, string> = {
@@ -73,6 +75,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         idsCreadoresIncluidos,
         onConteoChange,
         filtroAdicional,
+        busquedaLocal = false,
     } = opciones;
 
     /* QK100: Inicializar samples desde cache persistente. leerCacheFeed() SIEMPRE
@@ -110,7 +113,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         tagsAgrupados, tagsSueltos, tagsIncluidos, tagsExcluidos,
         bpmMin, bpmMax, incluirTag, excluirTag, quitarTag, setBpmRango,
         samplesFiltrados, manejarIncluirTag, manejarExcluirTag,
-    } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos });
+    } = useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide: busquedaLocal });
 
     /* QL87: Aplicar filtro adicional de useFiltrosContenido (WAV, me encanta, etc.) */
     const samplesPostFiltro = useMemo(

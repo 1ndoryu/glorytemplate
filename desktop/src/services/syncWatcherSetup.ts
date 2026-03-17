@@ -60,7 +60,13 @@ const CARPETAS_EXCLUIDAS_SCAN = new Set(['.papelera']);
  */
 export async function escanearCarpetaYEncolar(): Promise<number> {
     const { config, trackingModule } = estado;
-    if (!config.carpetaLocal || !config.sincronizacionActiva) return 0;
+    if (!config.carpetaLocal || !config.sincronizacionActiva) {
+        logSync.warn('syncWatcher', 'escanearCarpetaYEncolar ABORTADO — config incompleta', {
+            carpetaLocal: !!config.carpetaLocal,
+            sincronizacionActiva: config.sincronizacionActiva,
+        });
+        return 0;
+    }
 
     try {
         const { readDir } = await import('@tauri-apps/plugin-fs');
@@ -81,7 +87,19 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
                 const enTracking = trackingModule.buscarArchivoPorRuta(rutaNorm);
                 if (enTracking && !enTracking.syncDeshabilitado) return;
             }
-            if (buscarEnIndicePorRuta(rutaNorm)) return;
+            /* QL130: Si tracking v2 no tiene el archivo pero indice legacy si,
+             * la entrada es stale (ej: samples eliminados del servidor). Limpiar. */
+            const porRutaScan = buscarEnIndicePorRuta(rutaNorm);
+            if (porRutaScan) {
+                const idx = estado.indiceArchivos.indexOf(porRutaScan);
+                if (idx >= 0) estado.indiceArchivos.splice(idx, 1);
+                estado.indiceArchivosPorRuta.delete(rutaNorm);
+                if (porRutaScan.nombreServidor) estado.indiceArchivosPorNombre.delete(porRutaScan.nombreServidor);
+                if (porRutaScan.nombreOriginal && porRutaScan.nombreOriginal !== porRutaScan.nombreServidor) {
+                    estado.indiceArchivosPorNombre.delete(porRutaScan.nombreOriginal);
+                }
+                guardarIndice();
+            }
 
             encolados++;
             await encolarArchivo(rutaArchivo, nombreArchivo, carpetas);
@@ -854,7 +872,16 @@ async function softDeleteEnServidor(sampleId: number): Promise<boolean> {
  */
 export async function inicializarSyncBidireccional(): Promise<void> {
     const { config, trackingModule, collectionModule } = estado;
-    if (!config.carpetaLocal || !config.sincronizacionActiva) return;
+    if (!config.carpetaLocal || !config.sincronizacionActiva) {
+        logSync.warn('syncWatcher', 'inicializarSyncBidireccional ABORTADO — config incompleta', {
+            carpetaLocal: config.carpetaLocal ?? '(null)',
+            sincronizacionActiva: config.sincronizacionActiva,
+            razon: !config.carpetaLocal
+                ? 'No hay carpeta de sync configurada. Ve a Configuracion > Sync para seleccionar una carpeta.'
+                : 'Sincronizacion desactivada en la configuracion.',
+        });
+        return;
+    }
 
     try {
         const { registrarCallbacks, registrarCallbacksCarpeta, registrarCallbacksSubcarpeta, iniciarObservacion } = await import('./fileWatcherService');
@@ -897,8 +924,21 @@ export async function inicializarSyncBidireccional(): Promise<void> {
 
                 const porRuta = buscarEnIndicePorRuta(rutaNorm);
                 if (porRuta) {
-                    console.info('[Sync] Archivo ya en índice (por ruta), ignorando:', nombreArchivo);
-                    return;
+                    /*
+                     * QL130: Si tracking v2 no tiene este archivo (ya se verifico arriba y no retorno),
+                     * la entrada del indice legacy es obsoleta (ej: samples eliminados del servidor).
+                     * Limpiar la entrada stale y permitir re-upload.
+                     */
+                    console.warn('[Sync] Entrada stale en indice legacy (tracking v2 no la tiene), limpiando:', nombreArchivo);
+                    const idx = estado.indiceArchivos.indexOf(porRuta);
+                    if (idx >= 0) estado.indiceArchivos.splice(idx, 1);
+                    estado.indiceArchivosPorRuta.delete(rutaNorm);
+                    if (porRuta.nombreServidor) estado.indiceArchivosPorNombre.delete(porRuta.nombreServidor);
+                    if (porRuta.nombreOriginal && porRuta.nombreOriginal !== porRuta.nombreServidor) {
+                        estado.indiceArchivosPorNombre.delete(porRuta.nombreOriginal);
+                    }
+                    guardarIndice();
+                    /* No return — continuar al enqueue */
                 }
 
                 /*
@@ -952,25 +992,35 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                                 }
                             }
 
-                            const huerfana = await colMod.buscarColeccionHuerfana(nombre);
-                            if (huerfana) {
-                                console.info('[Sync] Carpeta nueva detectada como posible rename (huérfana encontrada):', huerfana.id, huerfana.nombre, '→', nombre);
-                                const exito = await colMod.renombrarColeccionEnServidor(huerfana.id, nombre);
-                                if (!exito && trackingModule) {
-                                    /*
-                                     * Si la colección aún existe en tracking (fallo por red/conflict),
-                                     * actualizar nombre local como fallback optimista.
-                                     * Si ya no existe (403 → desvinculada), crear una nueva.
-                                     */
-                                    const aunExiste = trackingModule.obtenerColeccion(huerfana.id);
-                                    if (aunExiste) {
-                                        await trackingModule.actualizarNombreColeccion(huerfana.id, nombre, nombre);
-                                    } else {
-                                        console.info('[Sync] Colección huérfana desvinculada (403), creando nueva para:', nombre);
-                                        await colMod.crearColeccionDesdeLocal(nombre);
+                            /*
+                             * QL121: Cuando borrarAlSubirExitoso esta activo, las carpetas
+                             * se vacian tras subir y pueden desaparecer del disco.
+                             * buscarColeccionHuerfana detectaria esas carpetas vacias/borradas
+                             * como "huerfanas" y las renombraria a la carpeta nueva, causando
+                             * merge destructivo de colecciones. PROHIBIDO usar deteccion de
+                             * huerfanas en modo borrar-tras-subida: siempre crear nueva.
+                             */
+                            if (!estado.configAvanzada.borrarAlSubirExitoso) {
+                                const huerfana = await colMod.buscarColeccionHuerfana(nombre);
+                                if (huerfana) {
+                                    console.info('[Sync] Carpeta nueva detectada como posible rename (huérfana encontrada):', huerfana.id, huerfana.nombre, '→', nombre);
+                                    const exito = await colMod.renombrarColeccionEnServidor(huerfana.id, nombre);
+                                    if (!exito && trackingModule) {
+                                        /*
+                                         * Si la colección aún existe en tracking (fallo por red/conflict),
+                                         * actualizar nombre local como fallback optimista.
+                                         * Si ya no existe (403 → desvinculada), crear una nueva.
+                                         */
+                                        const aunExiste = trackingModule.obtenerColeccion(huerfana.id);
+                                        if (aunExiste) {
+                                            await trackingModule.actualizarNombreColeccion(huerfana.id, nombre, nombre);
+                                        } else {
+                                            console.info('[Sync] Colección huérfana desvinculada (403), creando nueva para:', nombre);
+                                            await colMod.crearColeccionDesdeLocal(nombre);
+                                        }
                                     }
+                                    return;
                                 }
-                                return;
                             }
                             console.info('[Sync] Carpeta nueva detectada → crear colección:', nombre);
                             await colMod.crearColeccionDesdeLocal(nombre);
@@ -1024,15 +1074,19 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                                 /* 2. Colección huérfana: buscar en tracking alguna cuya carpeta ya NO existe en disco.
                                  * Esto detecta el caso donde buscarColeccionPorCarpeta falla por
                                  * diferencia de nombre (sanitización, case, etc.) pero la carpeta
-                                 * fue efectivamente renombrada → la vieja ya no existe. */
-                                const huerfana = await colMod.buscarColeccionHuerfana(nombreNuevo);
-                                if (huerfana) {
-                                    console.info('[Sync] Colección huérfana detectada como rename:', huerfana.id, huerfana.nombre, '→', nombreNuevo);
-                                    const exito = await colMod.renombrarColeccionEnServidor(huerfana.id, nombreNuevo);
-                                    if (!exito && trackingModule) {
-                                        await trackingModule.actualizarNombreColeccion(huerfana.id, nombreNuevo, nombreNuevo);
+                                 * fue efectivamente renombrada → la vieja ya no existe.
+                                 * QL121: Desactivado con borrarAlSubirExitoso — carpetas vacias/borradas
+                                 * son normales, no renames. */
+                                if (!estado.configAvanzada.borrarAlSubirExitoso) {
+                                    const huerfana = await colMod.buscarColeccionHuerfana(nombreNuevo);
+                                    if (huerfana) {
+                                        console.info('[Sync] Colección huérfana detectada como rename:', huerfana.id, huerfana.nombre, '→', nombreNuevo);
+                                        const exito = await colMod.renombrarColeccionEnServidor(huerfana.id, nombreNuevo);
+                                        if (!exito && trackingModule) {
+                                            await trackingModule.actualizarNombreColeccion(huerfana.id, nombreNuevo, nombreNuevo);
+                                        }
+                                        return;
                                     }
-                                    return;
                                 }
 
                                 /* 3. Buscar en servidor por nombre anterior */
@@ -1298,6 +1352,19 @@ let reconciliacionCarpetasInterval: ReturnType<typeof setInterval> | null = null
 async function reconciliarEstructuraCarpetas(): Promise<void> {
     const { config, trackingModule, collectionModule } = estado;
     if (!config.carpetaLocal || !trackingModule || !collectionModule) return;
+
+    /*
+     * QL121: Cuando borrarAlSubirExitoso esta activo, las carpetas de colecciones
+     * anteriores se vacian (archivos borrados tras subir) y pueden ser eliminadas
+     * por el usuario o el OS. La reconciliacion interpreta esto como "rename"
+     * (1 desaparecida + 1 nueva = rename) y RENOMBRA la coleccion vieja a la nueva,
+     * causando merge destructivo. SOLUCION: omitir reconciliacion de renames en este
+     * modo. Las carpetas nuevas se crean correctamente via el callback onCarpetaNueva.
+     */
+    if (estado.configAvanzada.borrarAlSubirExitoso) {
+        logSync.debug('syncWatcher', 'Reconciliacion omitida — borrarAlSubirExitoso activo (QL121)');
+        return;
+    }
 
     try {
         const { readDir, exists } = await import('@tauri-apps/plugin-fs');

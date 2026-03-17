@@ -654,6 +654,137 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
+     * QL119: Eliminar coleccion con opciones configurables.
+     * @param int $id ID de la coleccion a eliminar
+     * @param int $userId ID del usuario (para verificar propiedad, ignorado si esAdmin)
+     * @param bool $esAdmin Si el usuario es admin (no verifica propiedad)
+     * @param array $opciones {
+     *   borrarSamples: bool (default false) — eliminar los samples de la BD,
+     *   manejoHijas: 'eliminar'|'huerfanas' (default 'huerfanas'),
+     *   borrarSamplesHijas: bool (default false) — solo si manejoHijas=eliminar
+     * }
+     * @return array{eliminada: bool, samplesEliminados: int, hijasEliminadas: int, hijasHuerfanas: int}
+     */
+    public static function eliminarConOpcionesEnTransaccion(
+        int $id,
+        int $userId,
+        bool $esAdmin,
+        array $opciones
+    ): array {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+
+        $borrarSamples = $opciones['borrarSamples'] ?? false;
+        $manejoHijas = $opciones['manejoHijas'] ?? 'huerfanas';
+        /* 'borrarSamplesHijas' aplica solo si se eliminan las hijas */
+        $borrarSamplesHijas = ($manejoHijas === 'eliminar') && ($opciones['borrarSamplesHijas'] ?? false);
+
+        /* Verificar propiedad si no es admin */
+        if (!$esAdmin) {
+            $col = static::consultarUno(
+                "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE "
+                . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
+                ['id' => $id, 'userId' => $userId]
+            );
+            if (!$col) return ['eliminada' => false, 'samplesEliminados' => 0, 'hijasEliminadas' => 0, 'hijasHuerfanas' => 0];
+        }
+
+        $db = \App\Kamples\Database\PostgresService::class;
+        $db::iniciarTransaccion();
+
+        try {
+            $resultado = ['eliminada' => false, 'samplesEliminados' => 0, 'hijasEliminadas' => 0, 'hijasHuerfanas' => 0];
+
+            /* 1. Obtener IDs de samples de esta coleccion (antes de borrar relaciones) */
+            $sampleIds = [];
+            if ($borrarSamples) {
+                $rows = static::consultar(
+                    "SELECT " . ColeccionSamplesCols::SAMPLE_ID . " FROM {$tcs} WHERE "
+                    . ColeccionSamplesCols::COLECCION_ID . " = :id",
+                    ['id' => $id]
+                );
+                $sampleIds = array_column($rows, ColeccionSamplesCols::SAMPLE_ID);
+            }
+
+            /* 2. Manejar subcolecciones */
+            $hijas = static::consultar(
+                "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE "
+                . ColeccionesCols::PARENT_ID . " = :id",
+                ['id' => $id]
+            );
+            $hijasIds = array_column($hijas, ColeccionesCols::ID);
+
+            if (!empty($hijasIds)) {
+                if ($manejoHijas === 'eliminar') {
+                    /* Eliminar cada hija (con o sin sus samples) */
+                    foreach ($hijasIds as $hijaId) {
+                        $hijaId = (int)$hijaId;
+
+                        if ($borrarSamplesHijas) {
+                            $rowsHija = static::consultar(
+                                "SELECT " . ColeccionSamplesCols::SAMPLE_ID . " FROM {$tcs} WHERE "
+                                . ColeccionSamplesCols::COLECCION_ID . " = :id",
+                                ['id' => $hijaId]
+                            );
+                            foreach ($rowsHija as $row) {
+                                SamplesRepository::eliminarConCascada((int)$row[ColeccionSamplesCols::SAMPLE_ID]);
+                                $resultado['samplesEliminados']++;
+                            }
+                        }
+
+                        /* Borrar relaciones sample-coleccion de la hija */
+                        static::ejecutar(
+                            "DELETE FROM {$tcs} WHERE " . ColeccionSamplesCols::COLECCION_ID . " = :id",
+                            ['id' => $hijaId]
+                        );
+                        /* Borrar la hija */
+                        static::ejecutar(
+                            "DELETE FROM {$t} WHERE " . ColeccionesCols::ID . " = :id",
+                            ['id' => $hijaId]
+                        );
+                        $resultado['hijasEliminadas']++;
+                    }
+                } else {
+                    /* Dejar huerfanas: quitar parent_id */
+                    static::ejecutar(
+                        "UPDATE {$t} SET " . ColeccionesCols::PARENT_ID . " = NULL WHERE "
+                        . ColeccionesCols::PARENT_ID . " = :id",
+                        ['id' => $id]
+                    );
+                    $resultado['hijasHuerfanas'] = count($hijasIds);
+                }
+            }
+
+            /* 3. Eliminar samples de la coleccion principal si se pidio */
+            if ($borrarSamples && !empty($sampleIds)) {
+                foreach ($sampleIds as $sampleId) {
+                    SamplesRepository::eliminarConCascada((int)$sampleId);
+                    $resultado['samplesEliminados']++;
+                }
+            }
+
+            /* 4. Borrar relaciones sample-coleccion de la principal */
+            static::ejecutar(
+                "DELETE FROM {$tcs} WHERE " . ColeccionSamplesCols::COLECCION_ID . " = :id",
+                ['id' => $id]
+            );
+
+            /* 5. Borrar la coleccion */
+            $rows = static::ejecutar(
+                "DELETE FROM {$t} WHERE " . ColeccionesCols::ID . " = :id",
+                ['id' => $id]
+            );
+            $resultado['eliminada'] = $rows > 0;
+
+            $db::confirmar();
+            return $resultado;
+        } catch (\Throwable $e) {
+            $db::revertir();
+            throw $e;
+        }
+    }
+
+    /*
      * Obtener colecciones del usuario relevantes para un sample (ranking por tags comunes).
      */
     public static function relevantesParaSample(int $userId, array $sampleTags): array
@@ -829,5 +960,401 @@ class ColeccionesRepository extends BaseRepository
         }
 
         return $actualizados;
+    }
+
+    /*
+     * QL115: Combinar colección origen → destino en una transaccion atómica.
+     * Mueve samples, maneja subcolecciones y retorna datos de backup para undo.
+     *
+     * @param int $origenId       Colección que desaparece
+     * @param int $destinoId      Colección que absorbe
+     * @param string $nombreFinal Nombre a conservar
+     * @param string|null $imagenFinal Imagen de portada a conservar
+     * @param string $manejoHijas 'mover'|'aplanar' — mover hijas al destino o fusionar sus samples
+     * @param int|null $usuarioDestinoId Si admin combina de distintos usuarios, ID del propietario final
+     * @return array{backupMeta: array, samplesMovidos: int}|null  null si falla
+     */
+    public static function combinarEnTransaccion(
+        int $origenId,
+        int $destinoId,
+        string $nombreFinal,
+        ?string $imagenFinal,
+        string $manejoHijas = 'mover',
+        ?int $usuarioDestinoId = null
+    ): ?array {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $colId = ColeccionesCols::ID;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $parentIdCol = ColeccionesCols::PARENT_ID;
+        $colUsuarioId = ColeccionesCols::USUARIO_ID;
+
+        /* Obtener datos de ambas colecciones para backup */
+        $origen = static::buscarPorId($origenId);
+        $destino = static::buscarPorId($destinoId);
+        if (!$origen || !$destino) return null;
+
+        /* IDs de samples en la colección origen (para backup) */
+        $samplesOrigen = static::consultar(
+            "SELECT {$csSampleId} FROM {$tcs} WHERE {$csColId} = :id",
+            ['id' => $origenId]
+        );
+        $idsSamplesOrigen = \array_map(fn($r) => (int) $r[$csSampleId], $samplesOrigen);
+
+        /* Hijas de la colección origen */
+        $hijasOrigen = static::listarSubcolecciones($origenId);
+        $idsHijas = \array_map(fn($h) => (int) $h[$colId], $hijasOrigen);
+
+        /* Backup de hijas (nombre, samples) para undo */
+        $hijasBackup = [];
+        foreach ($hijasOrigen as $hija) {
+            $hijaId = (int) $hija[$colId];
+            $samplesHija = static::consultar(
+                "SELECT {$csSampleId} FROM {$tcs} WHERE {$csColId} = :id",
+                ['id' => $hijaId]
+            );
+            $hijasBackup[] = [
+                'id' => $hijaId,
+                'nombre' => $hija[ColeccionesCols::NOMBRE] ?? '',
+                'parentId' => $origenId,
+                'sampleIds' => \array_map(fn($r) => (int) $r[$csSampleId], $samplesHija),
+            ];
+        }
+
+        /* Construir backup completo para undo */
+        $backupMeta = [
+            'tipo_operacion' => 'combinacion',
+            'origenId' => $origenId,
+            'origenNombre' => $origen[ColeccionesCols::NOMBRE],
+            'origenDescripcion' => $origen[ColeccionesCols::DESCRIPCION] ?? '',
+            'origenImagenUrl' => $origen[ColeccionesCols::IMAGEN_URL] ?? null,
+            'origenPublica' => (bool) ($origen[ColeccionesCols::PUBLICA] ?? true),
+            'origenParentId' => $origen[$parentIdCol] ?? null,
+            'origenUsuarioId' => (int) $origen[$colUsuarioId],
+            'destinoNombreAnterior' => $destino[ColeccionesCols::NOMBRE],
+            'destinoImagenAnterior' => $destino[ColeccionesCols::IMAGEN_URL] ?? null,
+            'destinoUsuarioId' => (int) $destino[$colUsuarioId],
+            'samplesOrigenIds' => $idsSamplesOrigen,
+            'hijasBackup' => $hijasBackup,
+            'manejoHijas' => $manejoHijas,
+            'combinadoEn' => date('c'),
+        ];
+
+        $db = \App\Kamples\Database\PostgresService::class;
+        $db::iniciarTransaccion();
+
+        try {
+            /* 1. Mover samples de origen a destino (ON CONFLICT ignora duplicados) */
+            if (!empty($idsSamplesOrigen)) {
+                static::ejecutar(
+                    "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
+                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
+                    . " SELECT :destId, {$csSampleId}, "
+                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
+                    . " FROM {$tcs} WHERE {$csColId} = :origId"
+                    . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                    ['destId' => $destinoId, 'origId' => $origenId]
+                );
+
+                /* Limpiar samples del origen */
+                static::ejecutar(
+                    "DELETE FROM {$tcs} WHERE {$csColId} = :id",
+                    ['id' => $origenId]
+                );
+            }
+
+            /* 2. Manejar subcolecciones del origen */
+            if (!empty($idsHijas)) {
+                if ($manejoHijas === 'aplanar') {
+                    /* Aplanar: mover samples de cada hija al destino, luego eliminar hijas */
+                    foreach ($idsHijas as $hijaId) {
+                        static::ejecutar(
+                            "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
+                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
+                            . " SELECT :destId, {$csSampleId}, "
+                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
+                            . " FROM {$tcs} WHERE {$csColId} = :hijaId"
+                            . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                            ['destId' => $destinoId, 'hijaId' => $hijaId]
+                        );
+                        static::ejecutar(
+                            "DELETE FROM {$tcs} WHERE {$csColId} = :id",
+                            ['id' => $hijaId]
+                        );
+                        static::ejecutar(
+                            "DELETE FROM {$t} WHERE {$colId} = :id",
+                            ['id' => $hijaId]
+                        );
+                    }
+                } else {
+                    /* Mover: reasignar parent_id de las hijas al destino */
+                    static::ejecutar(
+                        "UPDATE {$t} SET {$parentIdCol} = :destId WHERE {$parentIdCol} = :origId",
+                        ['destId' => $destinoId, 'origId' => $origenId]
+                    );
+
+                    /* Si el destino es subcolección (tiene parent), las hijas no pueden ser sub-sub.
+                       En ese caso, forzar aplanar */
+                    if (!empty($destino[$parentIdCol])) {
+                        foreach ($idsHijas as $hijaId) {
+                            static::ejecutar(
+                                "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
+                                . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
+                                . " SELECT :destId, {$csSampleId}, "
+                                . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
+                                . " FROM {$tcs} WHERE {$csColId} = :hijaId"
+                                . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                                ['destId' => $destinoId, 'hijaId' => $hijaId]
+                            );
+                            static::ejecutar(
+                                "DELETE FROM {$tcs} WHERE {$csColId} = :id",
+                                ['id' => $hijaId]
+                            );
+                            static::ejecutar(
+                                "DELETE FROM {$t} WHERE {$colId} = :id",
+                                ['id' => $hijaId]
+                            );
+                        }
+                    }
+                }
+            }
+
+            /* 3. Si admin cambia el propietario de la colección destino */
+            if ($usuarioDestinoId !== null && $usuarioDestinoId !== (int) $destino[$colUsuarioId]) {
+                static::ejecutar(
+                    "UPDATE {$t} SET {$colUsuarioId} = :nuevoUser WHERE {$colId} = :id",
+                    ['nuevoUser' => $usuarioDestinoId, 'id' => $destinoId]
+                );
+            }
+
+            /* 4. Actualizar nombre e imagen del destino */
+            $setCampos = [ColeccionesCols::NOMBRE . " = :nombre"];
+            $paramsUpd = ['nombre' => $nombreFinal, 'id' => $destinoId];
+
+            if ($imagenFinal !== null) {
+                $setCampos[] = ColeccionesCols::IMAGEN_URL . " = :imagen";
+                $paramsUpd['imagen'] = $imagenFinal;
+            }
+
+            /* Regenerar slug con nuevo nombre */
+            $nuevoSlug = static::generarSlug($nombreFinal, $destinoId);
+            $setCampos[] = ColeccionesCols::SLUG . " = :slug";
+            $paramsUpd['slug'] = $nuevoSlug;
+
+            $setCampos[] = ColeccionesCols::UPDATED_AT . " = NOW()";
+            static::ejecutar(
+                "UPDATE {$t} SET " . implode(', ', $setCampos) . " WHERE {$colId} = :id",
+                $paramsUpd
+            );
+
+            /* 5. Eliminar la colección origen */
+            static::ejecutar(
+                "DELETE FROM {$t} WHERE {$colId} = :id",
+                ['id' => $origenId]
+            );
+
+            $db::confirmar();
+
+            /* Contar samples movidos realmente (excluyendo duplicados) */
+            $totalEnDestino = (int) static::consultarValor(
+                "SELECT COUNT(*) FROM {$tcs} WHERE {$csColId} = :id",
+                ['id' => $destinoId]
+            );
+
+            return [
+                'backupMeta' => $backupMeta,
+                'samplesMovidos' => count($idsSamplesOrigen),
+                'totalEnDestino' => $totalEnDestino,
+            ];
+        } catch (\Throwable $e) {
+            $db::revertir();
+            throw $e;
+        }
+    }
+
+    /*
+     * QL115: Restaurar colección combinada usando datos de backup del changelog.
+     * Recrea la colección origen, devuelve sus samples y restaura hijas.
+     *
+     * @param array $backupMeta Datos de backup guardados en sync_changelog.metadata
+     * @return bool true si se restauró correctamente
+     */
+    public static function deshacerCombinacionEnTransaccion(array $backupMeta): bool
+    {
+        $t = ColeccionesCols::TABLA;
+        $tcs = ColeccionSamplesCols::TABLA;
+        $colId = ColeccionesCols::ID;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+
+        $origenId = (int) ($backupMeta['origenId'] ?? 0);
+        $destinoId = (int) ($backupMeta['destinoId'] ?? 0);
+        if ($origenId === 0 || $destinoId === 0) return false;
+
+        /* Verificar que el destino todavía existe */
+        $destino = static::buscarPorId($destinoId);
+        if (!$destino) return false;
+
+        $db = \App\Kamples\Database\PostgresService::class;
+        $db::iniciarTransaccion();
+
+        try {
+            /* 1. Recrear colección origen con ID original usando INSERT con id explícito */
+            $origenNombre = $backupMeta['origenNombre'] ?? 'Colección restaurada';
+            $origenUsuarioId = (int) ($backupMeta['origenUsuarioId'] ?? $destino[ColeccionesCols::USUARIO_ID]);
+            $origenDesc = $backupMeta['origenDescripcion'] ?? '';
+            $origenImagen = $backupMeta['origenImagenUrl'] ?? null;
+            $origenPublica = ($backupMeta['origenPublica'] ?? true) ? 'true' : 'false';
+            $origenParentId = $backupMeta['origenParentId'] ?? null;
+
+            static::ejecutar(
+                "INSERT INTO {$t} (" . ColeccionesCols::ID . ", " . ColeccionesCols::USUARIO_ID . ", "
+                . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", "
+                . ColeccionesCols::IMAGEN_URL . ", " . ColeccionesCols::PUBLICA . ", "
+                . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::SLUG . ")"
+                . " VALUES (:id, :userId, :nombre, :desc, :imagen, {$origenPublica}, :parentId, :slug)"
+                . " ON CONFLICT (" . ColeccionesCols::ID . ") DO NOTHING",
+                [
+                    'id' => $origenId,
+                    'userId' => $origenUsuarioId,
+                    'nombre' => $origenNombre,
+                    'desc' => $origenDesc,
+                    'imagen' => $origenImagen,
+                    'parentId' => $origenParentId,
+                    'slug' => static::generarSlug($origenNombre, $origenId),
+                ]
+            );
+
+            /* 2. Devolver samples al origen (copiar del destino, no mover — evita perder si hay error) */
+            $samplesOrigenIds = $backupMeta['samplesOrigenIds'] ?? [];
+            if (!empty($samplesOrigenIds)) {
+                /* Mover de vuelta: los que aún existen en el destino */
+                $placeholders = implode(',', array_map(fn($i) => ':s' . $i, range(0, count($samplesOrigenIds) - 1)));
+                $p = ['origId' => $origenId, 'destId' => $destinoId];
+                foreach ($samplesOrigenIds as $i => $sid) {
+                    $p['s' . $i] = $sid;
+                }
+
+                /* Copiar al origen */
+                static::ejecutar(
+                    "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
+                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
+                    . " SELECT :origId, {$csSampleId}, "
+                    . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
+                    . " FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$placeholders})"
+                    . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                    $p
+                );
+
+                /* Quitar del destino */
+                $pDel = ['destId' => $destinoId];
+                foreach ($samplesOrigenIds as $i => $sid) {
+                    $pDel['s' . $i] = $sid;
+                }
+                static::ejecutar(
+                    "DELETE FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$placeholders})",
+                    $pDel
+                );
+            }
+
+            /* 3. Restaurar hijas si corresponde */
+            $hijasBackup = $backupMeta['hijasBackup'] ?? [];
+            $manejoHijas = $backupMeta['manejoHijas'] ?? 'mover';
+
+            foreach ($hijasBackup as $hijaData) {
+                $hijaId = (int) ($hijaData['id'] ?? 0);
+                if ($hijaId === 0) continue;
+
+                if ($manejoHijas === 'aplanar') {
+                    /* Las hijas fueron eliminadas + sus samples aplanados al destino.
+                       Recrear la hija y devolver sus samples */
+                    static::ejecutar(
+                        "INSERT INTO {$t} (" . ColeccionesCols::ID . ", " . ColeccionesCols::USUARIO_ID . ", "
+                        . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::SLUG . ")"
+                        . " VALUES (:id, :userId, :nombre, :parentId, :slug)"
+                        . " ON CONFLICT (" . ColeccionesCols::ID . ") DO NOTHING",
+                        [
+                            'id' => $hijaId,
+                            'userId' => $origenUsuarioId,
+                            'nombre' => $hijaData['nombre'] ?? 'Subcolección restaurada',
+                            'parentId' => $origenId,
+                            'slug' => static::generarSlug($hijaData['nombre'] ?? 'subcol', $hijaId),
+                        ]
+                    );
+
+                    /* Devolver samples de la hija */
+                    $hijaSampleIds = $hijaData['sampleIds'] ?? [];
+                    if (!empty($hijaSampleIds)) {
+                        $ph = implode(',', array_map(fn($i) => ':hs' . $i, range(0, count($hijaSampleIds) - 1)));
+                        $hp = ['hijaId' => $hijaId, 'destId' => $destinoId];
+                        foreach ($hijaSampleIds as $i => $sid) {
+                            $hp['hs' . $i] = $sid;
+                        }
+                        static::ejecutar(
+                            "INSERT INTO {$tcs} ({$csColId}, {$csSampleId}, "
+                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT . ")"
+                            . " SELECT :hijaId, {$csSampleId}, "
+                            . ColeccionSamplesCols::USUARIO_ID . ", " . ColeccionSamplesCols::ADDED_AT
+                            . " FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$ph})"
+                            . " ON CONFLICT ({$csColId}, {$csSampleId}) DO NOTHING",
+                            $hp
+                        );
+                        $hpDel = ['destId' => $destinoId];
+                        foreach ($hijaSampleIds as $i => $sid) {
+                            $hpDel['hs' . $i] = $sid;
+                        }
+                        static::ejecutar(
+                            "DELETE FROM {$tcs} WHERE {$csColId} = :destId AND {$csSampleId} IN ({$ph})",
+                            $hpDel
+                        );
+                    }
+                } else {
+                    /* Las hijas fueron movidas al destino como parent — reasignar al origen */
+                    static::ejecutar(
+                        "UPDATE {$t} SET " . ColeccionesCols::PARENT_ID . " = :origId WHERE {$colId} = :hijaId",
+                        ['origId' => $origenId, 'hijaId' => $hijaId]
+                    );
+                }
+            }
+
+            /* 4. Restaurar nombre e imagen del destino */
+            $setRestore = [ColeccionesCols::NOMBRE . " = :nombre"];
+            $prRestore = ['nombre' => $backupMeta['destinoNombreAnterior'] ?? $destino[ColeccionesCols::NOMBRE], 'id' => $destinoId];
+
+            if (isset($backupMeta['destinoImagenAnterior'])) {
+                $setRestore[] = ColeccionesCols::IMAGEN_URL . " = :imagen";
+                $prRestore['imagen'] = $backupMeta['destinoImagenAnterior'];
+            }
+
+            /* Restaurar slug */
+            $slugRestore = static::generarSlug($prRestore['nombre'], $destinoId);
+            $setRestore[] = ColeccionesCols::SLUG . " = :slug";
+            $prRestore['slug'] = $slugRestore;
+
+            $setRestore[] = ColeccionesCols::UPDATED_AT . " = NOW()";
+            static::ejecutar(
+                "UPDATE {$t} SET " . implode(', ', $setRestore) . " WHERE {$colId} = :id",
+                $prRestore
+            );
+
+            /* 5. Restaurar propietario si se cambió */
+            if (isset($backupMeta['destinoUsuarioId'])) {
+                $ownerAnterior = (int) $backupMeta['destinoUsuarioId'];
+                $ownerActual = (int) ($destino[ColeccionesCols::USUARIO_ID] ?? 0);
+                if ($ownerAnterior !== $ownerActual) {
+                    static::ejecutar(
+                        "UPDATE {$t} SET {$colId} = :userId WHERE {$colId} = :id",
+                        ['userId' => $ownerAnterior, 'id' => $destinoId]
+                    );
+                }
+            }
+
+            $db::confirmar();
+            return true;
+        } catch (\Throwable $e) {
+            $db::revertir();
+            throw $e;
+        }
     }
 }

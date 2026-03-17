@@ -9,6 +9,7 @@
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree, Play, Pause, Loader2 } from 'lucide-react';
 import type { Coleccion } from '@app/types';
+import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import { useReproductorStore } from '@app/stores/reproductorStore';
@@ -22,6 +23,8 @@ interface TarjetaColeccionProps {
     coleccion: Coleccion;
     /** C388: Indica visualmente que es subcoleccion (tiene parentId) */
     esSubcoleccion?: boolean;
+    /** QL118: Modo de visualización (cuadrícula o lista) */
+    vista?: VistaColecciones;
     onEditar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
     className?: string;
@@ -30,6 +33,7 @@ interface TarjetaColeccionProps {
 export const TarjetaColeccion = ({
     coleccion,
     esSubcoleccion = false,
+    vista = 'cuadricula',
     onEditar,
     onEliminar,
     className = '',
@@ -99,6 +103,7 @@ export const TarjetaColeccion = ({
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = [
         'tarjetaColeccion',
+        (vista === 'lista' || vista === 'arbol') ? 'tarjetaColeccionLista' : '',
         esSubcoleccion ? 'tarjetaColeccionSub' : '',
         esPreviewActiva ? 'tarjetaColeccionReproduciendo' : '',
         className,

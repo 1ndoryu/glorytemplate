@@ -1,0 +1,82 @@
+/*
+ * barraSeleccionMultiple.css -- Kamples
+ * QL116: Barra inferior para acciones en lote.
+ * Mismo tamaño y posición que el ReproductorGlobal.
+ */
+
+.barraSeleccionMultiple {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioMd);
+    height: 48px;
+    padding: 0 var(--espacioLg);
+    border-radius: var(--radioFull);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    pointer-events: auto;
+    box-shadow: var(--sombraMedia);
+}
+
+.barraSeleccionInfo {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    flex-shrink: 0;
+}
+
+.barraSeleccionConteo {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+    white-space: nowrap;
+}
+
+.barraSeleccionAcciones {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    flex: 1;
+    justify-content: center;
+}
+
+.barraSeleccionBtn {
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    color: var(--textoSecundario);
+    transition: color var(--transicionRapida), background-color var(--transicionRapida);
+}
+
+.barraSeleccionBtn:hover {
+    color: var(--textoPrimario);
+    background-color: var(--fondoElevado3);
+}
+
+.barraSeleccionBtnPeligro {
+    color: var(--peligro, #e55353);
+}
+
+.barraSeleccionBtnPeligro:hover {
+    color: var(--peligro, #e55353);
+    background-color: var(--fondoPeligroSutil, rgba(229, 83, 83, 0.1));
+}
+
+.barraSeleccionCerrar {
+    flex-shrink: 0;
+    padding: var(--espacioXs);
+    border-radius: var(--radioSm);
+    color: var(--textoTerciario);
+}
+
+.barraSeleccionCerrar:hover {
+    color: var(--textoPrimario);
+}
+
+@keyframes girarSeleccion {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.barraSeleccionSpinner {
+    animation: girarSeleccion 1s linear infinite;
+    color: var(--acento);
+}

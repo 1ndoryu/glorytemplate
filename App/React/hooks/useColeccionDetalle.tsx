@@ -18,6 +18,7 @@ import { useAuthModalStore } from '@app/stores/authModalStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { useColeccionDetalleMenu } from '@app/hooks/useColeccionDetalleMenu';
+import { useColeccionCombinacionPendiente } from '@app/hooks/useColeccionCombinacionPendiente';
 import type { Coleccion, ColeccionResumen, SampleResumen } from '@app/types';
 
 const TABS_COLECCION_DETALLE = [
@@ -35,6 +36,8 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [guardada, setGuardada] = useState(false);
     const [descargando, setDescargando] = useState(false);
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
+    const [modalCombinarAbierto, setModalCombinarAbierto] = useState(false);
+    const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
 
     /* QL114: Info del padre para breadcrumbs en subcolecciones */
     const [coleccionPadre, setColeccionPadre] = useState<{ id: number; nombre: string; slug: string | null } | null>(null);
@@ -294,10 +297,21 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
             .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
     }, [samplesVisibles]);
 
+    /* QL115: Combinación pendiente — extraído a hook separado (SRP) */
+    const {
+        combinacionPendiente, deshaciendoCombinacion,
+        manejarDeshacerCombinacion, manejarCombinado,
+    } = useColeccionCombinacionPendiente({ coleccionId: coleccion?.id ?? null, activa, navegar });
+
+    /* QL119: Callback tras eliminar — navegar a librería */
+    const manejarEliminado = useCallback(() => {
+        navegar('/libreria/');
+    }, [navegar]);
+
     /* Menu contextual — extraído a hook separado (SRP) */
     const {
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
-    } = useColeccionDetalleMenu({ coleccion, usuario, navegar, setModalEditarAbierto });
+    } = useColeccionDetalleMenu({ coleccion, usuario, navegar, setModalEditarAbierto, setModalCombinarAbierto, setModalEliminarAbierto });
 
     /* Actualiza el estado local de la coleccion tras una edicion en el modal */
     const manejarGuardarEdicion = useCallback((coleccionActualizada: Coleccion) => {
@@ -331,5 +345,14 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         manejarGuardar,
         manejarDescargarZip,
         manejarLikeSamples,
+        modalCombinarAbierto,
+        setModalCombinarAbierto,
+        combinacionPendiente,
+        manejarDeshacerCombinacion,
+        deshaciendoCombinacion,
+        manejarCombinado,
+        modalEliminarAbierto,
+        setModalEliminarAbierto,
+        manejarEliminado,
     };
 }

@@ -46,12 +46,22 @@ export async function inicializarSyncService(
         const store = await load(STORE_FILE);
 
         const configGuardada = await store.get<SyncConfig>(STORE_KEY_CONFIG);
-        if (configGuardada) estado.config = configGuardada;
+        if (configGuardada) {
+            estado.config = configGuardada;
+            logSync.info('syncService', 'Config cargada desde store', {
+                carpetaLocal: !!configGuardada.carpetaLocal,
+                sincronizacionActiva: configGuardada.sincronizacionActiva,
+            });
+        } else {
+            logSync.warn('syncService', 'No hay config guardada en store — sync no se iniciara hasta que el usuario configure la carpeta');
+        }
 
         const indiceGuardado = await store.get<ArchivoLocal[]>(STORE_KEY_INDICE);
         if (indiceGuardado) estado.indiceArchivos = indiceGuardado;
-    } catch {
-        /* Config no disponible — usar defaults */
+    } catch (err) {
+        logSync.error('syncService', 'Error cargando config desde Tauri Store — sync usara defaults (desactivado)', {
+            error: err instanceof Error ? err.message : String(err),
+        });
     }
 
     /* Reconstruir índices O(1) para lookups rápidos del watcher */
@@ -120,6 +130,10 @@ export async function inicializarSyncService(
      * en persistir() que borran imagenUrl de otras ventanas.
      */
     if (!soloLectura) {
+        logSync.info('syncService', 'Lanzando inicializacion bidireccional', {
+            carpetaLocal: estado.config.carpetaLocal ?? '(no configurada)',
+            sincronizacionActiva: estado.config.sincronizacionActiva,
+        });
         await inicializarSyncBidireccional();
     }
 

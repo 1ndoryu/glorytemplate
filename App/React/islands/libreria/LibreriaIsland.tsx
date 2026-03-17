@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown, Bookmark } from 'lucide-react';
+import { FolderOpen, Plus, Globe, ArrowDownWideNarrow, ChevronDown, Bookmark, LayoutGrid, List, ListTree } from 'lucide-react';
 import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
@@ -35,11 +35,12 @@ const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
 
 export const LibreriaIsland = (): JSX.Element => {
     const {
-        colecciones, coleccionesPublicas, coleccionesGuardadas, cargando,
+        colecciones, coleccionesEnArbol, coleccionesPublicas, coleccionesGuardadas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         tagsFrecuentes, tagActivo, setTagActivo,
         orden, setOrden, totalColecciones,
+        vista, setVista,
         abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     } = useLibreriaIsland();
     const usuario = useAuthStore(s => s.usuario);
@@ -94,6 +95,34 @@ export const LibreriaIsland = (): JSX.Element => {
                                 )}
                             </div>
 
+                            {/* QL118: Toggle cuadrícula / lista */}
+                            <div className="libreriaVistaToggle">
+                                <BotonBase variante="ghost"
+                                    className={`libreriaVistaBtn ${vista === 'cuadricula' ? 'libreriaVistaBtnActivo' : ''}`}
+                                    onClick={() => setVista('cuadricula')}
+                                    type="button"
+                                    aria-label="Vista cuadrícula"
+                                >
+                                    <LayoutGrid size={16} />
+                                </BotonBase>
+                                <BotonBase variante="ghost"
+                                    className={`libreriaVistaBtn ${vista === 'lista' ? 'libreriaVistaBtnActivo' : ''}`}
+                                    onClick={() => setVista('lista')}
+                                    type="button"
+                                    aria-label="Vista lista"
+                                >
+                                    <List size={16} />
+                                </BotonBase>
+                                <BotonBase variante="ghost"
+                                    className={`libreriaVistaBtn ${vista === 'arbol' ? 'libreriaVistaBtnActivo' : ''}`}
+                                    onClick={() => setVista('arbol')}
+                                    type="button"
+                                    aria-label="Vista árbol"
+                                >
+                                    <ListTree size={16} />
+                                </BotonBase>
+                            </div>
+
                             {tabActiva === 'colecciones' && (
                                 <BotonBase variante="primario" tamano="sm" onClick={abrirNuevaColeccion}>
                                     <Plus size={14} /> Nueva
@@ -140,12 +169,13 @@ export const LibreriaIsland = (): JSX.Element => {
                                     : 'Aún no hay colecciones compartidas por otros usuarios.'}
                             />
                         ) : (
-                            <div className="libreriaGridColecciones">
+                            <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
                                 {coleccionesPublicas.map(col => {
                                     const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
                                     const esAdmin = usuario?.rol === 'admin';
                                     return (
-                                        <TarjetaColeccion key={col.id} coleccion={col}
+                                        <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
+                                            esSubcoleccion={col.parentId !== null}
                                             onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
                                             onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
                                         />
@@ -161,9 +191,11 @@ export const LibreriaIsland = (): JSX.Element => {
                                 mensaje="Las colecciones que guardes de otros usuarios aparecerán aquí."
                             />
                         ) : (
-                            <div className="libreriaGridColecciones">
+                            <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
                                 {coleccionesGuardadas.map(col => (
-                                    <TarjetaColeccion key={col.id} coleccion={col} />
+                                    <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
+                                        esSubcoleccion={col.parentId !== null}
+                                    />
                                 ))}
                             </div>
                         )
@@ -182,9 +214,9 @@ export const LibreriaIsland = (): JSX.Element => {
                                 ) : undefined}
                             />
                         ) : (
-                        <div className="libreriaGridColecciones">
-                            {colecciones.map(col => (
-                                <TarjetaColeccion key={col.id} coleccion={col}
+                        <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
+                            {(vista === 'arbol' ? coleccionesEnArbol : colecciones).map(col => (
+                                <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
                                     esSubcoleccion={col.parentId !== null}
                                     onEditar={manejarEditarColeccion}
                                     onEliminar={manejarEliminarColeccion}

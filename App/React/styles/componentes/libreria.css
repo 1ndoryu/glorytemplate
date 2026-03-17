@@ -107,6 +107,54 @@
     gap: var(--espacioMd);
 }
 
+/* QL118: Vista lista — columna vertical */
+.libreriaListaColecciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+/* QL118-EXTRA: Vista árbol — columna vertical con hijas indentadas */
+.libreriaArbolColecciones {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioSm);
+}
+
+.libreriaArbolColecciones .tarjetaColeccionSub {
+    margin-left: var(--espacioXl);
+}
+
+/* QL118: Toggle cuadrícula/lista */
+.libreriaVistaToggle {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    padding: 2px;
+}
+
+.libreriaVistaBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radioSm);
+    color: var(--textoTerciario);
+    transition: all var(--transicionRapida);
+}
+
+.libreriaVistaBtn:hover {
+    color: var(--textoPrimario);
+}
+
+.libreriaVistaBtnActivo {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}
+
 /* Reemplazado por EstadoVacio centralizado (C359) */
 
 /* QK101-B: Grid 2 columnas en movil */

@@ -72,6 +72,16 @@ function pareceArchivoConExtension(nombre: string): boolean {
     return sufijo.length <= 10 && /^[a-zA-Z0-9]+$/.test(sufijo);
 }
 
+async function esDirectorioReal(ruta: string): Promise<boolean> {
+    try {
+        const { stat } = await import('@tauri-apps/plugin-fs');
+        const info = await stat(ruta);
+        return Boolean((info as { isDirectory?: boolean }).isDirectory);
+    } catch {
+        return false;
+    }
+}
+
 /* Archivos temporales que los editores/DAWs crean durante grabación */
 const PATRONES_TEMPORALES = [
     /^\./, /~$/, /\.tmp$/i, /\.part$/i, /\.crdownload$/i,
@@ -362,7 +372,13 @@ export async function iniciarObservacion(): Promise<boolean> {
     if (!esDesktop() || observando) return false;
 
     const config = obtenerConfigSync();
-    if (!config.carpetaLocal || !config.sincronizacionActiva) return false;
+    if (!config.carpetaLocal || !config.sincronizacionActiva) {
+        logSync.warn('watcher', 'iniciarObservacion ABORTADO — config incompleta', {
+            carpetaLocal: !!config.carpetaLocal,
+            sincronizacionActiva: config.sincronizacionActiva,
+        });
+        return false;
+    }
 
     try {
         const fsModule = await import('@tauri-apps/plugin-fs');
@@ -376,7 +392,7 @@ export async function iniciarObservacion(): Promise<boolean> {
 
         unwatchFn = await watchFn(
             config.carpetaLocal,
-            (evento: EventoWatch) => { procesarEvento(evento, config.carpetaLocal!); },
+            (evento: EventoWatch) => { void procesarEvento(evento, config.carpetaLocal!); },
             { recursive: true, delayMs: 1500 },
         );
 
@@ -456,10 +472,10 @@ export function estaObservando(): boolean {
  * Filtra por tipos relevantes (create, remove) y valida extensiones.
  * C357: También detecta eventos de carpetas de nivel 1 (colecciones).
  */
-function procesarEvento(
+async function procesarEvento(
     evento: { type: unknown; paths: string[] },
     carpetaBase: string,
-): void {
+): Promise<void> {
     const tipo = evento.type;
 
     const baseNormalizada = carpetaBase.replace(/\\/g, '/').replace(/\/$/, '');
@@ -502,6 +518,10 @@ function procesarEvento(
             && !EXTENSIONES_AUDIO.has(extensionDestino);
 
         if (esCarpetaNivel1Rename) {
+            if (!await esDirectorioReal(destinoNorm)) {
+                logSync.warn('watcher', `Rename ignorado: destino sin extension pero no es carpeta real: ${nombreDestino}`);
+                return;
+            }
             const nombreOrigen = relativaOrigen;
             const nombreNueva = relativaDestino;
 
@@ -538,6 +558,10 @@ function procesarEvento(
             && !EXTENSIONES_AUDIO.has(extensionDestino);
 
         if (esSubcarpetaRename) {
+            if (!await esDirectorioReal(destinoNorm)) {
+                logSync.warn('watcher', `Rename subcarpeta ignorado: destino no es carpeta real: ${relativaDestino}`);
+                return;
+            }
             const carpetaPadre = segDestinoArr[0];
             const subOrigen = segOrigenArr[1];
             const subNuevo = segDestinoArr[1];
@@ -647,6 +671,10 @@ function procesarEvento(
                 logSync.warn('watcher', `Archivo no-audio ignorado en raiz sync: ${nombreArchivo}`);
                 continue;
             }
+            if (esEventoCreacion(tipo) && !await esDirectorioReal(normalizada)) {
+                logSync.warn('watcher', `Archivo sin extension ignorado en raiz sync (no es carpeta real): ${nombreArchivo}`);
+                continue;
+            }
             /* QL70: No crear colección para carpetas de sistema (sin colección, duplicados).
              * Archivos de audio dentro de ellas sí se suben (procesados abajo). */
             if (CARPETAS_SISTEMA_NO_COLECCION.has(relativa.toLowerCase())) {
@@ -666,6 +694,10 @@ function procesarEvento(
         if (segmentosRuta.length === 2 && !EXTENSIONES_AUDIO.has(extension)) {
             if (extension && (EXTENSIONES_ARCHIVO_CONOCIDAS.has(extension) || pareceArchivoConExtension(segmentosRuta[1]))) {
                 logSync.warn('watcher', `Archivo no-audio ignorado en subcarpeta: ${relativa}`);
+                continue;
+            }
+            if (esEventoCreacion(tipo) && !await esDirectorioReal(normalizada)) {
+                logSync.warn('watcher', `Archivo sin extension ignorado en subcarpeta (no es carpeta real): ${relativa}`);
                 continue;
             }
             const [carpetaPadre, nombreSubcarpeta] = segmentosRuta;
@@ -1094,7 +1126,7 @@ function manejarRenameNoPareado(
         logSync.info('watcher', `Rename pareado desde eventos separados: ${origenRuta} → ${ruta}`);
 
         /* Re-despachar: el handler de rename pareado (2 paths) resuelve nivel 1, 2 y archivos */
-        procesarEvento(
+        void procesarEvento(
             { type: { modify: { kind: 'name' } }, paths: [origenRuta, ruta] },
             carpetaBase,
         );

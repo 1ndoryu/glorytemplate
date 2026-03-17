@@ -16,6 +16,7 @@ import { etiquetaBpm } from '../../services/bpmUtils';
 import { TooltipReacciones } from './TooltipReacciones';
 import { useTarjetaSample, formatearKey } from '@app/hooks/useTarjetaSample';
 import { useReproducidosStore } from '@app/stores/reproducidosStore';
+import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import '../../styles/componentes/tarjetaSample.css';
 import { BotonBase } from './BotonBase';
 
@@ -48,6 +49,35 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
     /* QQ46: Punto rojo para samples no reproducidos */
     const noReproducido = useReproducidosStore(s => s.cargado && !s.ids.has(sample.id));
 
+    /* QL116: Selección múltiple (Ctrl+Click / Shift+Click) */
+    const seleccionado = useSeleccionSamplesStore(s => s.seleccionados.has(sample.id));
+    const haySeleccion = useSeleccionSamplesStore(s => s.seleccionados.size > 0);
+    const toggleSeleccion = useSeleccionSamplesStore(s => s.toggleSeleccion);
+    const seleccionarRango = useSeleccionSamplesStore(s => s.seleccionarRango);
+
+    const manejarClick = (e: MouseEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSeleccion(sample);
+            return;
+        }
+        if (e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            seleccionarRango(sample.id);
+            return;
+        }
+        /* Si hay selección activa, click normal tambien togglea */
+        if (haySeleccion) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSeleccion(sample);
+            return;
+        }
+        manejarPlayPause(e);
+    };
+
     /* QL12: En movil, tags no filtran — click en tarjeta solo reproduce */
     const esMovil = useEsMovil();
 
@@ -79,9 +109,9 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
 
     return (
         <div
-            className={clases}
+            className={`${clases}${seleccionado ? ' tarjetaSampleSeleccionado' : ''}`}
             onContextMenu={manejarMenu}
-            onClick={manejarPlayPause}
+            onClick={manejarClick}
             role="button"
             tabIndex={0}
             draggable

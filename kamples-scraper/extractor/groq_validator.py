@@ -7,7 +7,7 @@ Arquitectura de 2 capas para reducir falsos positivos:
      Si es <= UMBRAL_SIMILITUD_BAJA se rechaza sin LLM.
   2. Para la zona gris intermedia, validacion con LLM (Groq).
 
-Modelo: llama-3.3-70b-versatile (mejor razonamiento que 8b, igual de rapido en Groq).
+Modelos: rotacion automatica llama-3.3-70b -> qwen3-32b -> llama-4-scout (QL117).
 
 Manejo de errores (QL111):
   - 429 rate limit / errores de red: permisivo (True) — transitorios, no bloquean pipeline.
@@ -28,8 +28,15 @@ from difflib import SequenceMatcher
 logger = logging.getLogger(__name__)
 
 _GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-_GROQ_MODEL = "llama-3.3-70b-versatile"
 _GROQ_TIMEOUT = 12
+
+# QL117: Rotacion de modelos — si el primario falla (429/5xx), se intenta el siguiente.
+# Cada modelo tiene cuota independiente en Groq, asi que un 429 en uno no afecta a otro.
+_GROQ_MODELOS = [
+    "llama-3.3-70b-versatile",
+    "qwen/qwen3-32b",
+    "meta-llama/llama-4-scout-17b-16e-instruct",
+]
 
 # Umbrales para pre-screening textual (0.0 - 1.0)
 UMBRAL_SIMILITUD_ALTA = 0.80
@@ -159,8 +166,36 @@ def _validar_con_llm(
         "Answer ONLY 'yes' or 'no'."
     )
 
+    # QL117: Intentar cada modelo en orden; si falla con 429/5xx, probar el siguiente.
+    for modelo in _GROQ_MODELOS:
+        resultado = _intentar_modelo(
+            modelo, api_key, prompt,
+            busqueda_artista, busqueda_titulo,
+            resultado_artista, resultado_titulo,
+            score_textual,
+        )
+        if resultado is not None:
+            return resultado
+        # None = error reintentable, probar siguiente modelo
+
+    # Todos los modelos fallaron: permisivo para no bloquear pipeline
+    logger.warning("Todos los modelos Groq fallaron — permitiendo sin validacion")
+    return True
+
+
+def _intentar_modelo(
+    modelo: str,
+    api_key: str,
+    prompt: str,
+    busqueda_artista: str,
+    busqueda_titulo: str,
+    resultado_artista: str,
+    resultado_titulo: str,
+    score_textual: float,
+) -> bool | None:
+    """Intenta validar con un modelo especifico. Retorna bool si exito, None si reintentable."""
     payload = json.dumps({
-        "model": _GROQ_MODEL,
+        "model": modelo,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 5,
         "temperature": 0,
@@ -173,10 +208,6 @@ def _validar_con_llm(
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "groq-python/0.13.0",
-                "x-stainless-lang": "python",
-                "x-stainless-os": "Windows",
-                "x-stainless-runtime": "CPython",
             },
         )
         with urllib.request.urlopen(req, timeout=_GROQ_TIMEOUT) as resp:
@@ -186,8 +217,8 @@ def _validar_con_llm(
         es_match = respuesta.startswith("yes") or respuesta.startswith("si")
 
         logger.info(
-            "Groq LLM (score_textual=%.2f): '%s - %s' vs '%s - %s' -> %s (%s)",
-            score_textual,
+            "Groq LLM [%s] (score=%.2f): '%s - %s' vs '%s - %s' -> %s (%s)",
+            modelo, score_textual,
             busqueda_artista, busqueda_titulo,
             resultado_artista, resultado_titulo,
             "MATCH" if es_match else "RECHAZADO",
@@ -197,27 +228,27 @@ def _validar_con_llm(
 
     except urllib.error.HTTPError as e:
         if e.code == 429:
-            # QL111: Extraer tiempo de retry sugerido del body para logging
             retry_info = ""
             try:
                 body = e.read().decode("utf-8", errors="replace")
                 import re as _re
-                match = _re.search(r"Please retry in\s*([0-9]+(?:\.[0-9]+)?)s", body)
-                if match:
-                    retry_info = f" (retry sugerido: {match.group(1)}s)"
+                m = _re.search(r"Please retry in\s*([0-9]+(?:\.[0-9]+)?)s", body)
+                if m:
+                    retry_info = f" (retry sugerido: {m.group(1)}s)"
             except Exception:
                 pass
-            logger.warning("Groq rate limit (429)%s — permitiendo sin validacion", retry_info)
-        else:
-            logger.warning("Groq HTTP error %d — permitiendo sin validacion", e.code)
-        # Errores HTTP transitorios: permisivo para no bloquear pipeline
+            logger.warning("Groq [%s] rate limit (429)%s — probando siguiente modelo", modelo, retry_info)
+            return None
+        if e.code >= 500:
+            logger.warning("Groq [%s] server error %d — probando siguiente modelo", modelo, e.code)
+            return None
+        # 400/401/403: error permanente, no reintentar con otro modelo
+        logger.warning("Groq [%s] HTTP %d — permitiendo sin validacion", modelo, e.code)
         return True
     except (urllib.error.URLError, OSError) as e:
-        # Errores de red transitorios: permisivo
-        logger.warning("Groq conexion fallida — permitiendo sin validacion: %s", e)
-        return True
+        logger.warning("Groq [%s] conexion fallida — probando siguiente modelo: %s", modelo, e)
+        return None
     except (json.JSONDecodeError, KeyError, IndexError) as e:
-        # QL111: Respuesta corrupta o formato inesperado = datos no confiables.
-        # Rechazar match (False) en vez de aceptar ciegamente.
-        logger.error("Groq respuesta invalida — rechazando match por datos no confiables: %s", e)
+        # QL111: Respuesta corrupta = datos no confiables → rechazar match
+        logger.error("Groq [%s] respuesta invalida — rechazando match: %s", modelo, e)
         return False

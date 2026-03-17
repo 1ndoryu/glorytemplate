@@ -11,6 +11,9 @@ namespace App\Kamples\Database\Repositories;
 
 use App\Config\Schema\_generated\ColeccionesGuardadasCols;
 use App\Config\Schema\_generated\ColeccionesCols;
+use App\Config\Schema\_generated\ColeccionSamplesCols;
+use App\Config\Schema\_generated\SamplesCols;
+use App\Config\Schema\_generated\SamplesEnums;
 use App\Config\Schema\_generated\UsuariosExtCols;
 
 class ColeccionesGuardadasRepository extends BaseRepository
@@ -37,9 +40,9 @@ class ColeccionesGuardadasRepository extends BaseRepository
 
         $afectadas = static::ejecutar(
             "INSERT INTO {$t} ({$cUsuario}, {$cColeccion})
-             VALUES (:usuario_id, :coleccion_id)
+             VALUES (:usuario_id, :coleccionId)
              ON CONFLICT ({$cUsuario}, {$cColeccion}) DO NOTHING",
-            ['usuario_id' => $usuarioId, 'coleccion_id' => $coleccionId]
+            ['usuario_id' => $usuarioId, 'coleccionId' => $coleccionId]
         );
 
         return $afectadas > 0;
@@ -55,8 +58,8 @@ class ColeccionesGuardadasRepository extends BaseRepository
         $cColeccion = ColeccionesGuardadasCols::COLECCION_ID;
 
         $afectadas = static::ejecutar(
-            "DELETE FROM {$t} WHERE {$cUsuario} = :usuario_id AND {$cColeccion} = :coleccion_id",
-            ['usuario_id' => $usuarioId, 'coleccion_id' => $coleccionId]
+            "DELETE FROM {$t} WHERE {$cUsuario} = :usuario_id AND {$cColeccion} = :coleccionId",
+            ['usuario_id' => $usuarioId, 'coleccionId' => $coleccionId]
         );
 
         return $afectadas > 0;
@@ -72,8 +75,8 @@ class ColeccionesGuardadasRepository extends BaseRepository
         $cColeccion = ColeccionesGuardadasCols::COLECCION_ID;
 
         $existe = static::consultarValor(
-            "SELECT 1 FROM {$t} WHERE {$cUsuario} = :usuario_id AND {$cColeccion} = :coleccion_id LIMIT 1",
-            ['usuario_id' => $usuarioId, 'coleccion_id' => $coleccionId]
+            "SELECT 1 FROM {$t} WHERE {$cUsuario} = :usuario_id AND {$cColeccion} = :coleccionId LIMIT 1",
+            ['usuario_id' => $usuarioId, 'coleccionId' => $coleccionId]
         );
 
         return $existe !== null;
@@ -102,8 +105,41 @@ class ColeccionesGuardadasRepository extends BaseRepository
         $uAvatar = UsuariosExtCols::AVATAR_URL;
         $uVerif = UsuariosExtCols::VERIFICADO;
 
+        $tcs = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+        $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $sampleId = SamplesCols::ID;
+        $sampleMeta = SamplesCols::METADATA;
+        $sampleEstado = SamplesCols::ESTADO;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        $parentIdCol = ColeccionesCols::PARENT_ID;
+
         return static::consultar(
-            "SELECT c.*, g.{$gCreatedAt} AS guardada_at,
+            "SELECT c.*,
+                    g.{$gCreatedAt} AS guardada_at,
+                    (SELECT COUNT(*) FROM {$tcs} cs
+                     WHERE cs.{$csColeccionId} = c.{$cId}
+                        OR cs.{$csColeccionId} IN (
+                            SELECT sub.{$cId} FROM {$tc} sub WHERE sub.{$parentIdCol} = c.{$cId}
+                        )
+                    ) as total_items,
+                    COALESCE(
+                        (SELECT array_agg(DISTINCT tag_val)
+                         FROM {$tcs} cs2
+                         JOIN {$ts} s ON cs2.{$csSampleId} = s.{$sampleId}
+                         CROSS JOIN LATERAL jsonb_array_elements_text(
+                             COALESCE(
+                                 CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags') = 'array' THEN s.{$sampleMeta}->'tags' END,
+                                 CASE WHEN jsonb_typeof(s.{$sampleMeta}->'tags_es') = 'array' THEN s.{$sampleMeta}->'tags_es' END,
+                                 '[]'::jsonb
+                             )
+                         ) as tag_val
+                         WHERE cs2.{$csColeccionId} = c.{$cId}
+                           AND s.{$sampleEstado} = '{$estadoActivo}'
+                           AND s.{$sampleMeta} IS NOT NULL),
+                        ARRAY[]::TEXT[]
+                    ) as tags,
                     u.{$uUser}, u.{$uNombre}, u.{$uAvatar}, u.{$uVerif}
              FROM {$tg} g
              JOIN {$tc} c ON g.{$gColeccion} = c.{$cId}

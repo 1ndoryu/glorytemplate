@@ -80,15 +80,11 @@ const filtrosIniciales = {
 };
 
 /*
- * C115: Sincroniza tags → busqueda (genera representación textual).
- * Tags incluidos se muestran como "tag1, tag2", excluidos como "-tag".
+ * C115/QL128: Tags y busqueda son filtros INDEPENDIENTES (QQ15).
+ * Antes, tags se sincronizaban a busqueda via generarBusquedaDesdeTags,
+ * lo que activaba el dropdown de busqueda rapida en el TopBar al clickear tags.
+ * Eliminado: las acciones incluirTag/excluirTag/quitarTag ya no tocan busqueda.
  */
-const generarBusquedaDesdeTags = (incluidos: string[], excluidos: string[]): string => {
-    const partes: string[] = [];
-    incluidos.forEach((t) => partes.push(t));
-    excluidos.forEach((t) => partes.push(`-${t}`));
-    return partes.join(', ');
-};
 
 /*
  * C115: Parsea string de búsqueda a tags incluidos/excluidos.
@@ -133,42 +129,31 @@ export const useFiltrosStore = create<EstadoFiltros>((set) => ({
     setOrdenamiento: (ordenamiento) => set({ ordenamiento, pagina: 1 }),
     setPeriodoDestacados: (periodo) => set({ periodoDestacados: periodo, pagina: 1 }),
 
-    /* C115: Tags — toggle incluir/excluir con sync a búsqueda */
+    /*
+     * QL128: Tags y busqueda son INDEPENDIENTES (QQ15).
+     * Clickear un tag NO actualiza busqueda — evita que el dropdown de
+     * busqueda rapida se abra involuntariamente en el TopBar.
+     */
     incluirTag: (tag) => set((s) => {
         const excluidos = s.tagsExcluidos.filter((t) => t !== tag);
         const incluidos = s.tagsIncluidos.includes(tag)
             ? s.tagsIncluidos.filter((t) => t !== tag)
             : [...s.tagsIncluidos, tag];
-        return {
-            tagsIncluidos: incluidos,
-            tagsExcluidos: excluidos,
-            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
-            pagina: 1,
-        };
+        return { tagsIncluidos: incluidos, tagsExcluidos: excluidos, pagina: 1 };
     }),
     excluirTag: (tag) => set((s) => {
         const incluidos = s.tagsIncluidos.filter((t) => t !== tag);
         const excluidos = s.tagsExcluidos.includes(tag)
             ? s.tagsExcluidos.filter((t) => t !== tag)
             : [...s.tagsExcluidos, tag];
-        return {
-            tagsIncluidos: incluidos,
-            tagsExcluidos: excluidos,
-            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
-            pagina: 1,
-        };
+        return { tagsIncluidos: incluidos, tagsExcluidos: excluidos, pagina: 1 };
     }),
     quitarTag: (tag) => set((s) => {
         const incluidos = s.tagsIncluidos.filter((t) => t !== tag);
         const excluidos = s.tagsExcluidos.filter((t) => t !== tag);
-        return {
-            tagsIncluidos: incluidos,
-            tagsExcluidos: excluidos,
-            busqueda: generarBusquedaDesdeTags(incluidos, excluidos),
-            pagina: 1,
-        };
+        return { tagsIncluidos: incluidos, tagsExcluidos: excluidos, pagina: 1 };
     }),
-    limpiarTags: () => set({ tagsIncluidos: [], tagsExcluidos: [], busqueda: '', pagina: 1 }),
+    limpiarTags: () => set({ tagsIncluidos: [], tagsExcluidos: [], pagina: 1 }),
 
     /* C116: BPM rango */
     setBpmRango: (min, max) => set({ bpmMin: min, bpmMax: max, pagina: 1 }),

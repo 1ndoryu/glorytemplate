@@ -733,14 +733,18 @@ async function procesarItemUpload(
          * Se ejecuta después de registrar hash y tracking para no perder referencia.
          * Fallo de borrado NO afecta al estado del upload (ya está completado). */
         if (estado.configAvanzada.borrarAlSubirExitoso) {
-            try {
-                const { remove } = await import('@tauri-apps/plugin-fs');
-                await remove(item.rutaArchivo);
-                logSync.info('uploadQueue', `Archivo local borrado tras subida: ${item.nombreArchivo}`);
-            } catch (errBorrado) {
-                logSync.warn('uploadQueue', `No se pudo borrar archivo local tras subida: ${item.nombreArchivo}`, {
-                    error: errBorrado instanceof Error ? errBorrado.message : String(errBorrado),
-                });
+            if (!tieneSubidaPersistidaConfirmada(item)) {
+                logSync.warn('uploadQueue', `Borrado local omitido por falta de confirmacion persistida: ${item.nombreArchivo}`);
+            } else {
+                try {
+                    const { remove } = await import('@tauri-apps/plugin-fs');
+                    await remove(item.rutaArchivo);
+                    logSync.info('uploadQueue', `Archivo local borrado tras subida: ${item.nombreArchivo}`);
+                } catch (errBorrado) {
+                    logSync.warn('uploadQueue', `No se pudo borrar archivo local tras subida: ${item.nombreArchivo}`, {
+                        error: errBorrado instanceof Error ? errBorrado.message : String(errBorrado),
+                    });
+                }
             }
         }
 
@@ -1548,6 +1552,7 @@ export async function limpiarArchivosSubidosEnDisco(): Promise<void> {
         for (const [, rutas] of hashARutas) {
             for (const ruta of rutas) {
                 try {
+                    if (!tieneSubidaPersistidaConfirmada({ rutaArchivo: ruta })) continue;
                     const existe = await exists(ruta);
                     if (!existe) continue;
 
@@ -1567,6 +1572,7 @@ export async function limpiarArchivosSubidosEnDisco(): Promise<void> {
         for (const item of cola) {
             if (item.estado !== 'completado') continue;
             try {
+                if (!tieneSubidaPersistidaConfirmada(item)) continue;
                 const existe = await exists(item.rutaArchivo);
                 if (!existe) continue;
                 await remove(item.rutaArchivo);
@@ -1585,5 +1591,14 @@ export async function limpiarArchivosSubidosEnDisco(): Promise<void> {
             error: err instanceof Error ? err.message : String(err),
         });
     }
+}
+
+function tieneSubidaPersistidaConfirmada(
+    item: Pick<ItemUploadCola, 'rutaArchivo' | 'sampleIdServidor'>,
+): boolean {
+    const rutaNorm = normalizarRutaCola(item.rutaArchivo);
+    const enTracking = estado.trackingModule?.buscarArchivoPorRuta(rutaNorm);
+    if (enTracking && !enTracking.syncDeshabilitado) return true;
+    return typeof item.sampleIdServidor === 'number' && item.sampleIdServidor > 0;
 }
 

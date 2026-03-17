@@ -18,9 +18,12 @@ interface UseFeedFiltrosOpciones {
     samples: SampleResumen[];
     idsExcluidos?: Set<number>;
     idsCreadoresIncluidos?: Set<number>;
+    /** QL127: Activar filtrado textual client-side (para contextos sin busqueda server-side, ej: colecciones) */
+    busquedaClientSide?: boolean;
 }
 
-export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }: UseFeedFiltrosOpciones) {
+export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide = false }: UseFeedFiltrosOpciones) {
+    const busqueda = useFiltrosStore(s => s.busqueda);
     const tagsIncluidos = useFiltrosStore(s => s.tagsIncluidos);
     const tagsExcluidos = useFiltrosStore(s => s.tagsExcluidos);
     const bpmMin = useFiltrosStore(s => s.bpmMin);
@@ -91,10 +94,21 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
         }
 
         /*
-         * QK83: La búsqueda textual ahora es server-side (FTS + GIN indexes).
-         * El proveedor pasa `busqueda` al endpoint /feed que hace full-text search.
-         * Ya no se filtra client-side para evitar cargar 50+ páginas por resultado.
+         * QK83: La búsqueda textual es server-side para el feed global (FTS + GIN indexes).
+         * QL127: Para contextos sin busqueda server-side (colecciones), se filtra client-side
+         * por titulo, creador y tags. Seguro porque colecciones cargan todos los samples.
          */
+        if (busquedaClientSide && busqueda.trim().length > 0) {
+            const termino = busqueda.trim().toLowerCase();
+            resultado = resultado.filter(s => {
+                const titulo = (s.titulo ?? '').toLowerCase();
+                const creador = (s.creador?.nombreVisible ?? '').toLowerCase();
+                const tags = extraerTagsMetadata(s).map(t => t.toLowerCase());
+                return titulo.includes(termino)
+                    || creador.includes(termino)
+                    || tags.some(t => t.includes(termino));
+            });
+        }
 
         if (tagsIncluidos.length === 0 && tagsExcluidos.length === 0) return resultado;
 
@@ -105,7 +119,7 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos }:
             return tagsIncluidos.every(t => tagsNorm.includes(normalizarTag(t)))
                 && tagsExcluidos.every(t => !tagsNorm.includes(normalizarTag(t)));
         });
-    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos]);
+    }, [samples, tagsIncluidos, tagsExcluidos, bpmMin, bpmMax, filtroPrecio, idsExcluidos, idsCreadoresIncluidos, busquedaClientSide, busqueda]);
 
     const manejarIncluirTag = useCallback((tag: string) => incluirTag(tag), [incluirTag]);
     const manejarExcluirTag = useCallback((tag: string) => excluirTag(tag), [excluirTag]);

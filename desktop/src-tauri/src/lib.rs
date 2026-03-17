@@ -10,9 +10,6 @@ use tauri::{
     Manager, WindowEvent,
 };
 
-#[cfg(not(desktop))]
-use tauri::Manager;
-
 /* Comando: toggle DevTools (inspector de WebView2) — disponible en produccion para diagnostico */
 #[cfg(desktop)]
 #[tauri::command]
@@ -165,6 +162,7 @@ async fn iniciar_oauth_google(
 }
 
 /* Percent-encode una URL completa (solo los caracteres especiales) */
+#[cfg(desktop)]
 fn percent_encode_url(input: &str) -> String {
     let mut encoded = String::with_capacity(input.len() * 3);
     for byte in input.bytes() {
@@ -491,6 +489,21 @@ pub fn run() {
                             }
                         }
                     });
+                }
+            });
+        }
+
+        /* QL124: Interceptar cierre de ventana principal — ocultar en lugar de destruir.
+         * Asi "Mostrar Kamples" del tray siempre puede reabrir la ventana.
+         * Para cerrar de verdad, el usuario usa "Salir" del menu del tray. */
+        if let Some(ventana_main) = app.get_webview_window("main") {
+            let app_handle_main = app.handle().clone();
+            ventana_main.on_window_event(move |evento| {
+                if let WindowEvent::CloseRequested { api, .. } = evento {
+                    api.prevent_close();
+                    if let Some(w) = app_handle_main.get_webview_window("main") {
+                        let _ = w.hide();
+                    }
                 }
             });
         }

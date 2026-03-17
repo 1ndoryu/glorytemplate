@@ -209,3 +209,61 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* QL118: Vista lista — tarjeta horizontal compacta */
+.tarjetaColeccionLista {
+    flex-direction: row;
+    align-items: center;
+    padding: var(--espacioSm);
+    gap: var(--espacioMd);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionEnlace {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--espacioMd);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionPortada {
+    width: 56px;
+    height: 56px;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: var(--radioMd);
+    overflow: hidden;
+}
+
+.tarjetaColeccionLista .tarjetaColeccionPortada img {
+    padding: 0;
+    border-radius: var(--radioSm);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionInfo {
+    padding: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.tarjetaColeccionLista .tarjetaColeccionPreviewContenedor {
+    display: none;
+}
+
+.tarjetaColeccionLista .tarjetaColeccionSubBadge {
+    display: none;
+}
+
+.tarjetaColeccionLista .tarjetaColeccionMenuContenedor {
+    position: static;
+    flex-shrink: 0;
+}
+
+.tarjetaColeccionLista .tarjetaColeccionMenuBtn {
+    opacity: 1;
+    background: transparent;
+    color: var(--textoTerciario);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionMenuBtn:hover {
+    background: var(--fondoElevado3);
+    color: var(--textoPrimario);
+}

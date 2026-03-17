@@ -25,6 +25,17 @@
     background-color: var(--fondoElevado2);
 }
 
+/* QL116: Estado de selección múltiple */
+.tarjetaSampleSeleccionado {
+    background-color: var(--fondoSeleccion, rgba(74, 102, 91, 0.15));
+    outline: 1px solid var(--acento);
+    outline-offset: -1px;
+}
+
+.tarjetaSampleSeleccionado:hover {
+    background-color: var(--fondoSeleccion, rgba(74, 102, 91, 0.2));
+}
+
 /* Portada con imagen de color */
 .tarjetaPortada {
     position: relative;

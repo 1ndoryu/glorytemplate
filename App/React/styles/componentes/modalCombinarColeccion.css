@@ -1,0 +1,87 @@
+/*
+ * modalCombinarColeccion.css -- Kamples
+ * QL115: Estilos para el modal de combinar colecciones.
+ */
+
+.modalCombinarContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.modalCombinarIcono {
+    display: flex;
+    justify-content: center;
+    color: var(--textoTerciario);
+}
+
+.modalCombinarTitulo {
+    margin: 0;
+    text-align: center;
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.modalCombinarDescripcion {
+    margin: 0;
+    text-align: center;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+}
+
+.modalCombinarCargando {
+    text-align: center;
+    font-size: var(--fuenteSm);
+    color: var(--textoTerciario);
+    padding: var(--espacioLg) 0;
+}
+
+.modalCombinarCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalCombinarCampoEtiqueta {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+}
+
+.modalCombinarCampoHint {
+    font-size: var(--fuenteXs);
+    color: var(--textoTerciario);
+    line-height: 1.4;
+}
+
+.modalCombinarResumen {
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+    border-radius: var(--radioMd);
+    padding: var(--espacioMd);
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* Botón de deshacer combinación en vista de colección */
+.botonDeshacerCombinacion {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    padding: var(--espacioXs) var(--espacioMd);
+    font-size: var(--fuenteXs);
+    color: var(--textoSecundario);
+    background-color: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioSm);
+    cursor: pointer;
+    transition: background-color var(--transicionRapida), border-color var(--transicionRapida);
+}
+
+.botonDeshacerCombinacion:hover {
+    background-color: var(--fondoElevado3);
+    border-color: var(--bordeActivo);
+}

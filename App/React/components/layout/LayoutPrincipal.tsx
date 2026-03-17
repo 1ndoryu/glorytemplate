@@ -12,6 +12,8 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { PanelLateral } from './PanelLateral';
 import { ReproductorGlobal } from '../ui/ReproductorGlobal';
+import { BarraSeleccionMultiple } from '../ui/BarraSeleccionMultiple';
+import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import { useMotorAudio } from '@app/hooks/useMotorAudio';
 import { useMediaSession } from '@app/hooks/useMediaSession';
 import { ModalCrear } from '../social/ModalCrear';
@@ -112,6 +114,9 @@ export const LayoutPrincipal = ({
     const override = useDevToolsStore((s) => s.override);
     const usuario = useAuthStore(s => s.usuario);
 
+    /* QL116: Mostrar barra de selección múltiple en lugar del reproductor */
+    const haySeleccion = useSeleccionSamplesStore(s => s.seleccionados.size > 0);
+
     /* QQ45+QK3: Auto-abrir modal de generos para usuarios sin preferencias.
      * Solo se abre si perfilVerificado=true (datos de API /me, no de cache parcial).
      * Sin esta guarda, el modal destella brevemente con datos del Tauri Store
@@ -130,6 +135,11 @@ export const LayoutPrincipal = ({
         if (!autenticado || cargandoAuth) return;
         useReproducidosStore.getState().cargar();
     }, [autenticado, cargandoAuth]);
+
+    /* QL116: Limpiar selección múltiple al cambiar de ruta */
+    useEffect(() => {
+        useSeleccionSamplesStore.getState().limpiarSeleccion();
+    }, [rutaActual]);
 
     /* Modo de autenticación efectivo: real o simulado */
     const autenticadoEfectivo = override?.simulaDeslogueado ? false : autenticado;
@@ -179,7 +189,7 @@ export const LayoutPrincipal = ({
             </main>
 
             <div className="areaReproductor">
-                <ReproductorGlobal />
+                {haySeleccion ? <BarraSeleccionMultiple /> : <ReproductorGlobal />}
             </div>
 
             {/* Modal unificado de creación (subir sample + publicar) */}

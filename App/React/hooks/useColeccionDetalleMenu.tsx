@@ -4,8 +4,7 @@
  */
 
 import { useState, useCallback, useMemo } from 'react';
-import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
-import { toast } from '@app/stores/toastStore';
+import { Link2, Trash2, Flag, Edit3, Combine } from 'lucide-react';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
 import type { Coleccion } from '@app/types';
 import type { UsuarioAutenticado } from '@app/types';
@@ -15,6 +14,8 @@ interface UseColeccionDetalleMenuParams {
     usuario: UsuarioAutenticado | null;
     navegar: (ruta: string) => void;
     setModalEditarAbierto: (v: boolean) => void;
+    setModalCombinarAbierto?: (v: boolean) => void;
+    setModalEliminarAbierto?: (v: boolean) => void;
 }
 
 export function useColeccionDetalleMenu({
@@ -22,6 +23,8 @@ export function useColeccionDetalleMenu({
     usuario,
     navegar,
     setModalEditarAbierto,
+    setModalCombinarAbierto,
+    setModalEliminarAbierto,
 }: UseColeccionDetalleMenuParams) {
     const [menuColeccion, setMenuColeccion] = useState<{ abierto: boolean; x: number; y: number }>({
         abierto: false, x: 0, y: 0,
@@ -58,10 +61,20 @@ export function useColeccionDetalleMenu({
                 id: 'editar',
                 etiqueta: 'Editar colección',
                 icono: <Edit3 size={16} />,
-                separadorDespues: true,
                 onClick: () => {
                     cerrarMenuColeccion();
                     setModalEditarAbierto(true);
+                },
+            });
+
+            items.push({
+                id: 'combinar',
+                etiqueta: 'Combinar colecciones',
+                icono: <Combine size={16} />,
+                separadorDespues: true,
+                onClick: () => {
+                    cerrarMenuColeccion();
+                    setModalCombinarAbierto?.(true);
                 },
             });
         }
@@ -73,15 +86,8 @@ export function useColeccionDetalleMenu({
                 icono: <Trash2 size={16} />,
                 peligro: true,
                 onClick: () => {
-                    toast.confirmar('¿Eliminar esta colección?', async () => {
-                        const { apiDelete } = await import('@app/services/apiCliente');
-                        const resp = await apiDelete(`/colecciones/${coleccion.id}`);
-                        if (resp.ok) {
-                            toast.exito('Colección eliminada');
-                            navegar('/libreria/');
-                        }
-                    });
                     cerrarMenuColeccion();
+                    setModalEliminarAbierto?.(true);
                 },
             });
         }
@@ -94,7 +100,7 @@ export function useColeccionDetalleMenu({
         });
 
         return items;
-    }, [coleccion, usuario, navegar, cerrarMenuColeccion, setModalEditarAbierto]);
+    }, [coleccion, usuario, navegar, cerrarMenuColeccion, setModalEditarAbierto, setModalCombinarAbierto, setModalEliminarAbierto]);
 
     return {
         menuColeccion,

@@ -8,6 +8,7 @@
  */
 
 import { Music, WifiOff, RefreshCw } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 
@@ -19,6 +20,7 @@ import { useFeedSamples } from '@app/hooks/useFeedSamples';
 import { useConectividad } from '@app/hooks/useConectividad';
 import { usePullToRefresh } from '@app/hooks/usePullToRefresh';
 import { useEsMovil } from '@app/hooks/useEsMovil';
+import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import type { SampleResumen } from '@app/types';
 
 /* QL35: Resultado del proveedor — distingue exito de error para que el hook
@@ -52,6 +54,8 @@ export interface FeedSamplesProps {
     onConteoChange?: (total: number) => void;
     /** QL87: Filtro post-procesamiento adicional (useFiltrosContenido.aplicar) */
     filtroAdicional?: (samples: SampleResumen[]) => SampleResumen[];
+    /** QL127: Activar filtrado textual client-side (colecciones) */
+    busquedaLocal?: boolean;
 }
 
 export const FeedSamples = ({
@@ -72,6 +76,7 @@ export const FeedSamples = ({
     idsCreadoresIncluidos,
     onConteoChange,
     filtroAdicional,
+    busquedaLocal = false,
 }: FeedSamplesProps): JSX.Element => {
     const feed = useFeedSamples({
         proveedor,
@@ -87,11 +92,23 @@ export const FeedSamples = ({
         idsCreadoresIncluidos,
         onConteoChange,
         filtroAdicional,
+        busquedaLocal,
     });
 
     /* QL109: Estado de conectividad y pull-to-refresh */
     const enLinea = useConectividad();
     const esMovil = useEsMovil();
+
+    /* QL116: Actualizar contexto de selección cuando cambian los samples visibles */
+    const setContextoSeleccion = useSeleccionSamplesStore(s => s.setContexto);
+    const idsAnteriorRef = useRef<string>('');
+    useEffect(() => {
+        const claveIds = feed.samplesVisibles.map(s => s.id).join(',');
+        if (claveIds !== idsAnteriorRef.current && feed.samplesVisibles.length > 0) {
+            idsAnteriorRef.current = claveIds;
+            setContextoSeleccion(feed.samplesVisibles);
+        }
+    }, [feed.samplesVisibles, setContextoSeleccion]);
     const pullToRefresh = usePullToRefresh({
         onRefrescar: feed.refrescar,
         habilitado: esMovil,

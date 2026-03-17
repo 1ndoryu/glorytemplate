@@ -20,6 +20,7 @@ const log = crearLogger('LibreriaIsland');
 
 /* C388: Tipos de ordenamiento disponibles */
 export type OrdenColecciones = 'recientes' | 'nombre' | 'totalSamples';
+export type VistaColecciones = 'cuadricula' | 'lista' | 'arbol';
 
 export function useLibreriaIsland() {
     const [colecciones, setColecciones] = useState<Coleccion[]>([]);
@@ -34,6 +35,7 @@ export function useLibreriaIsland() {
     const [tagsFrecuentes, setTagsFrecuentes] = useState<string[]>([]);
     const [tagActivo, setTagActivo] = useState<string | null>(null);
     const [orden, setOrden] = useState<OrdenColecciones>('recientes');
+    const [vista, setVista] = useState<VistaColecciones>('cuadricula');
 
     const tabActivaGlobal = useTabsTopBarStore(s => s.activa);
 
@@ -191,6 +193,72 @@ export function useLibreriaIsland() {
         return copia;
     }, [coleccionesPlanas, tagActivo, orden]);
 
+    /*
+     * QL118-EXTRA / QL131: Vista árbol — raíces ordenadas con hijas agrupadas debajo.
+     * Mantiene la jerarquía parent->children: cada raíz va seguida de sus hijas.
+     * Las hijas se ordenan entre sí con el mismo criterio que las raíces.
+     * Si un filtro tag incluye una hija, su padre se incluye automáticamente para
+     * evitar hijas huérfanas que rompen la jerarquía visual.
+     */
+    const coleccionesEnArbol: Coleccion[] = useMemo(() => {
+        let filtradas: Coleccion[];
+        if (tagActivo) {
+            const tagLower = tagActivo.toLowerCase();
+            const coinciden = coleccionesPlanas.filter(c =>
+                c.tags.some(t => t.toLowerCase() === tagLower)
+            );
+            /* QL131: Incluir padres de hijas que pasaron el filtro para mantener jerarquía */
+            const idsIncluidos = new Set(coinciden.map(c => c.id));
+            for (const c of coinciden) {
+                if (c.parentId !== null && !idsIncluidos.has(c.parentId)) {
+                    const padre = coleccionesPlanas.find(p => p.id === c.parentId);
+                    if (padre) {
+                        coinciden.push(padre);
+                        idsIncluidos.add(padre.id);
+                    }
+                }
+            }
+            filtradas = coinciden;
+        } else {
+            filtradas = coleccionesPlanas;
+        }
+
+        const raices = filtradas.filter(c => c.parentId === null);
+        const hijasPorPadre = new Map<number, Coleccion[]>();
+        for (const c of filtradas) {
+            if (c.parentId !== null) {
+                const lista = hijasPorPadre.get(c.parentId) ?? [];
+                lista.push(c);
+                hijasPorPadre.set(c.parentId, lista);
+            }
+        }
+
+        const ordenar = (arr: Coleccion[]) => {
+            const copia = [...arr];
+            switch (orden) {
+                case 'nombre':
+                    copia.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+                    break;
+                case 'totalSamples':
+                    copia.sort((a, b) => b.totalSamples - a.totalSamples);
+                    break;
+                default:
+                    break;
+            }
+            return copia;
+        };
+
+        const resultado: Coleccion[] = [];
+        for (const raiz of ordenar(raices)) {
+            resultado.push(raiz);
+            const hijas = hijasPorPadre.get(raiz.id);
+            if (hijas) {
+                for (const hija of ordenar(hijas)) resultado.push(hija);
+            }
+        }
+        return resultado;
+    }, [coleccionesPlanas, tagActivo, orden]);
+
     /* B1: Filtrar y ordenar colecciones públicas (explorar) con los mismos criterios */
     const publicasFiltradas: Coleccion[] = useMemo(() => {
         let filtradas: Coleccion[] = coleccionesPublicas;
@@ -260,13 +328,14 @@ export function useLibreriaIsland() {
     }, []);
 
     return {
-        colecciones: coleccionesFiltradas, coleccionesPublicas: publicasFiltradas,
+        colecciones: coleccionesFiltradas, coleccionesEnArbol, coleccionesPublicas: publicasFiltradas,
         coleccionesGuardadas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
         tabActiva,
         /* C388: Filtros y ordenamiento */
         tagsFrecuentes, tagActivo, setTagActivo,
         orden, setOrden, totalColecciones,
+        vista, setVista,
         abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     };
 }

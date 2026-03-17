@@ -307,3 +307,79 @@ export const listarColeccionesGuardadas = async (
 
     return { ok: false, data: null, error: resp.error, status: resp.status };
 };
+
+/* QL115: Combinar colecciones */
+export interface DatosCombinar {
+    origenId: number;
+    nombreFinal: string;
+    imagenFinal?: string | null;
+    manejoHijas?: 'mover' | 'aplanar';
+    usuarioDestinoId?: number;
+}
+
+export interface ResultadoCombinar {
+    ok: boolean;
+    destinoId: number;
+    samplesMovidos: number;
+    totalEnDestino: number;
+    undoId: number | null;
+    undoExpira: string;
+}
+
+export const combinarColecciones = async (
+    destinoId: number,
+    datos: DatosCombinar
+): Promise<RespuestaApi<ResultadoCombinar>> => {
+    return apiPost<ResultadoCombinar>(`/colecciones/${destinoId}/combinar`, {
+        origenId: datos.origenId,
+        nombreFinal: datos.nombreFinal,
+        imagenFinal: datos.imagenFinal ?? null,
+        manejoHijas: datos.manejoHijas ?? 'mover',
+        usuarioDestinoId: datos.usuarioDestinoId,
+    });
+};
+
+export const deshacerCombinacion = async (
+    destinoId: number,
+    undoId: number
+): Promise<RespuestaApi<{ ok: boolean; origenId: number; message: string }>> => {
+    return apiPost<{ ok: boolean; origenId: number; message: string }>(
+        `/colecciones/${destinoId}/deshacer-combinacion`,
+        { undoId }
+    );
+};
+
+export interface CombinacionPendiente {
+    hayCombinacion: boolean;
+    undoId?: number;
+    origenNombre?: string;
+    combinadoEn?: string;
+    expiraEn?: string;
+}
+
+export const obtenerCombinacionPendiente = async (
+    coleccionId: number
+): Promise<RespuestaApi<CombinacionPendiente>> => {
+    return apiGet<CombinacionPendiente>(`/colecciones/${coleccionId}/combinacion-pendiente`);
+};
+
+/* QL119: Eliminar colección con opciones configurables */
+export interface OpcionesEliminarColeccion {
+    borrarSamples?: boolean;
+    manejoHijas?: 'eliminar' | 'huerfanas';
+    borrarSamplesHijas?: boolean;
+}
+
+export interface ResultadoEliminar {
+    ok: boolean;
+    samplesEliminados: number;
+    hijasEliminadas: number;
+    hijasHuerfanas: number;
+}
+
+export const eliminarColeccionConOpciones = async (
+    coleccionId: number,
+    opciones: OpcionesEliminarColeccion
+): Promise<RespuestaApi<ResultadoEliminar>> => {
+    return apiDelete<ResultadoEliminar>(`/colecciones/${coleccionId}`, opciones);
+};

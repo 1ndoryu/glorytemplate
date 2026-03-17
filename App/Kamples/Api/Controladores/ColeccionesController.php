@@ -129,6 +129,22 @@ class ColeccionesController
             'methods' => 'DELETE', 'callback' => [self::class, 'desguardarColeccion'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
+
+        /* QL115: Combinar colecciones */
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/combinar', [
+            'methods' => 'POST', 'callback' => [ColeccionesCombinarController::class, 'combinar'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/deshacer-combinacion', [
+            'methods' => 'POST', 'callback' => [ColeccionesCombinarController::class, 'deshacerCombinacion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/combinacion-pendiente', [
+            'methods' => 'GET', 'callback' => [ColeccionesCombinarController::class, 'combinacionPendiente'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
     }
 
     /* C169: Soporte busqueda en mis colecciones. C388: tags_frecuentes. */

@@ -1,7 +1,8 @@
 <!--
   Icono de notificacion monocromatico para la barra de estado de Android.
   Debe ser blanco sobre transparente (Android lo tinta automaticamente).
-  Basado en la letra "K" de Kamples en forma de nota musical simplificada.
+  Logo Kamples: asterisco estilizado (misma forma que app-icon.svg).
+  Path original ocupa ~16.24x18.01, centrado en viewport 24x24 con translate.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
@@ -9,8 +10,11 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="#FFFFFF">
-    <!-- Silueta: nota musical estilizada con "K" -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM9,16V8h1.5v3.2L14,8h1.8l-4,3.9 4.2,4.1H14.2l-3.7,-3.7V16H9z"/>
+    <group
+        android:translateX="3.65"
+        android:translateY="3">
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M10.6,12.47 h5.87 v1.87 h-5.95 l2.31,2.28 -1.33,1.33 -2.22,-2.23 v2.29 h-1.86 v-2.33 l-2.26,2.28 -1.33,-1.35 2.28,-2.26 H0.23 v-1.87 h5.74 c-2,-1.99 -3.99,-3.98 -5.97,-5.96 l1.36,-1.35 c1.99,2 4,4.01 6.01,6.02 0.01,0 0.03,-0.02 0.04,-0.03 V0 h1.87 v11.15 l6,-6 1.33,1.32 c-1.99,1.99 -3.98,3.97 -6,5.99 h0Z"/>
+    </group>
 </vector>

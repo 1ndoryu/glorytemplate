@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight, Undo2 } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
@@ -14,6 +14,8 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { Badge } from '@app/components/ui/Badge';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
+import { ModalCombinarColeccion } from '@app/components/social/ModalCombinarColeccion';
+import { ModalEliminarColeccion } from '@app/components/social/ModalEliminarColeccion';
 import { SkeletonColeccionDetalle } from '@app/components/skeletons';
 import { SkeletonFeed } from '@app/components/skeletons';
 import { obtenerColeccion, obtenerSugerencias } from '@app/services/apiColecciones';
@@ -47,6 +49,10 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
+        modalCombinarAbierto, setModalCombinarAbierto,
+        combinacionPendiente, manejarDeshacerCombinacion, deshaciendoCombinacion,
+        manejarCombinado,
+        modalEliminarAbierto, setModalEliminarAbierto, manejarEliminado,
     } = useColeccionDetalle({ propSlug });
 
     /* QQ75/QL43: Preview de la colección — misma lógica que TarjetaColeccion */
@@ -202,6 +208,19 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                         >
                             <MoreHorizontal size={16} />
                         </BotonBase>
+                        {/* QL115: Botón deshacer combinación (7 días) */}
+                        {combinacionPendiente?.hayCombinacion && (
+                            <BotonBase variante="ghost"
+                                className="coleccionAccionBtn coleccionAccionUndo"
+                                type="button"
+                                title={`Deshacer combinación con "${combinacionPendiente.origenNombre}"`}
+                                onClick={manejarDeshacerCombinacion}
+                                disabled={deshaciendoCombinacion}
+                            >
+                                <Undo2 size={16} />
+                                <span>{deshaciendoCombinacion ? 'Deshaciendo...' : 'Deshacer'}</span>
+                            </BotonBase>
+                        )}
                     </div>
                 </div>
             </div>
@@ -239,6 +258,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                             mensajeVacio="Esta colección aún no tiene samples."
                             onLike={manejarLikeSamples}
                             filtroAdicional={filtrosColeccion.aplicar}
+                            busquedaLocal
                         />
                     )}
                 </>
@@ -251,6 +271,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                     infiniteScroll
                     virtualizar={false}
                     mensajeVacio="No hay sugerencias disponibles para esta colección."
+                    busquedaLocal
                 />
             )}
 
@@ -281,6 +302,27 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                     abierto={modalEditarAbierto}
                     onCerrar={() => setModalEditarAbierto(false)}
                     onGuardar={manejarGuardarEdicion}
+                    coleccion={coleccion}
+                />
+            )}
+
+            {/* QL115: Modal para combinar colecciones */}
+            {coleccion && (
+                <ModalCombinarColeccion
+                    abierto={modalCombinarAbierto}
+                    onCerrar={() => setModalCombinarAbierto(false)}
+                    onCombinado={manejarCombinado}
+                    coleccion={coleccion}
+                    esAdmin={usuario?.rol === 'admin'}
+                />
+            )}
+
+            {/* QL119: Modal para eliminar colección con opciones */}
+            {coleccion && (
+                <ModalEliminarColeccion
+                    abierto={modalEliminarAbierto}
+                    onCerrar={() => setModalEliminarAbierto(false)}
+                    onEliminado={manejarEliminado}
                     coleccion={coleccion}
                 />
             )}

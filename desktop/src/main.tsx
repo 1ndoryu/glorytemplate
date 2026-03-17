@@ -8,6 +8,8 @@
 
 /* QL98: Capturar errores globales no manejados para diagnostico en pantalla negra */
 window.addEventListener('error', (e) => {
+    /* QL129: ResizeObserver loop es warning benigno del browser, no un error real */
+    if (e.message?.includes('ResizeObserver loop')) return;
     console.error('[Kamples Desktop] Error global:', e.error ?? e.message);
     const appEl = document.getElementById('app');
     if (appEl && !appEl.children.length) {

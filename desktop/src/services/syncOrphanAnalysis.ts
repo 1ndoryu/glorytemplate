@@ -11,7 +11,7 @@
  *   4. Carpeta local vacia tras borrar todos sus archivos -> NO borrar coleccion (solo log)
  */
 
-import { estado, buscarEnIndicePorRuta } from './syncState';
+import { estado, buscarEnIndicePorRuta, guardarIndice } from './syncState';
 import { logSync } from './syncLogger';
 
 const EXTENSIONES_AUDIO = new Set(['wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg']);
@@ -118,17 +118,15 @@ export async function analizarArchivosHuerfanos(): Promise<ResultadoAnalisis> {
                     }
 
                     if (enIndice) {
-                        /* En indice legacy (v1) pero existe en disco. Si borrarAlSubirExitoso, borrar. */
-                        if (configAvanzada.borrarAlSubirExitoso) {
-                            try {
-                                await remove(rutaArchivo);
-                                resultado.archivosEliminados++;
-                                logSync.info('orphanAnalysis', `Archivo v1-indexed eliminado: ${entrada.name}`);
-                            } catch {
-                                /* No critico */
-                            }
+                        const idx = estado.indiceArchivos.indexOf(enIndice);
+                        if (idx >= 0) estado.indiceArchivos.splice(idx, 1);
+                        estado.indiceArchivosPorRuta.delete(rutaNorm);
+                        if (enIndice.nombreServidor) estado.indiceArchivosPorNombre.delete(enIndice.nombreServidor);
+                        if (enIndice.nombreOriginal && enIndice.nombreOriginal !== enIndice.nombreServidor) {
+                            estado.indiceArchivosPorNombre.delete(enIndice.nombreOriginal);
                         }
-                        continue;
+                        guardarIndice();
+                        logSync.warn('orphanAnalysis', `Entrada stale en indice legacy limpiada: ${entrada.name}`);
                     }
 
                     /* Archivo huerfano: no en cola, no en tracking, no en indice -> encolar */

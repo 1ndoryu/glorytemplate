@@ -1,0 +1,56 @@
+/*
+ * modalEliminarColeccion.css -- Kamples
+ * QL119: Estilos para el modal de eliminar colección con opciones.
+ */
+
+.modalEliminarContenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioLg);
+}
+
+.modalEliminarIcono {
+    display: flex;
+    justify-content: center;
+    color: var(--peligro, #e55353);
+}
+
+.modalEliminarTitulo {
+    margin: 0;
+    text-align: center;
+    font-size: var(--fuenteLg);
+    font-weight: var(--pesoSemibold);
+    color: var(--textoPrimario);
+}
+
+.modalEliminarDescripcion {
+    margin: 0;
+    text-align: center;
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+    line-height: 1.5;
+}
+
+.modalEliminarCampo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalEliminarCampoEtiqueta {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+}
+
+.modalEliminarAdvertencia {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    padding: var(--espacioSm) var(--espacioMd);
+    border-radius: var(--radio);
+    background-color: var(--fondoPeligroSutil, rgba(229, 83, 83, 0.1));
+    color: var(--peligro, #e55353);
+    font-size: var(--fuenteSm);
+    line-height: 1.4;
+}

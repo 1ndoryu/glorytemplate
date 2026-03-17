@@ -251,25 +251,45 @@ class ColeccionesCrudController
         $id = (int) $request->get_param('id');
         $esAdmin = UsuarioHelper::esAdmin();
 
-        if ($esAdmin) {
-            $rows = ColeccionesRepository::eliminarConSamples($id);
-        } else {
-            $rows = ColeccionesRepository::eliminarDelUsuario($id, $userId);
+        /* QL119: Opciones de eliminacion configurables */
+        $manejoHijasValidos = ['eliminar', 'huerfanas'];
+        $manejoHijas = $request->get_param('manejoHijas') ?? 'huerfanas';
+        if (!in_array($manejoHijas, $manejoHijasValidos, true)) {
+            $manejoHijas = 'huerfanas';
         }
 
+        $opciones = [
+            'borrarSamples' => (bool)($request->get_param('borrarSamples') ?? false),
+            'manejoHijas' => $manejoHijas,
+            'borrarSamplesHijas' => (bool)($request->get_param('borrarSamplesHijas') ?? false),
+        ];
+
+        $resultado = ColeccionesRepository::eliminarConOpcionesEnTransaccion($id, $userId, $esAdmin, $opciones);
+
         /* F2.1: Registrar eliminacion en changelog (M4: verificar retorno) */
-        if ($rows > 0) {
+        if ($resultado['eliminada']) {
             $changelogId = SyncChangelogRepository::registrar(
                 $userId,
                 SyncChangelogEnums::TIPO_COLLECTION_DELETED,
-                $id
+                $id,
+                [
+                    'opciones' => $opciones,
+                    'samplesEliminados' => $resultado['samplesEliminados'],
+                    'hijasEliminadas' => $resultado['hijasEliminadas'],
+                    'hijasHuerfanas' => $resultado['hijasHuerfanas'],
+                ]
             );
             if ($changelogId === null) {
                 KamplesLogger::critical('Fallo registrar changelog eliminar coleccion', ['userId' => $userId, 'colId' => $id]);
             }
         }
 
-        return new \WP_REST_Response(['ok' => $rows > 0], $rows > 0 ? 200 : 404);
+        return new \WP_REST_Response([
+            'ok' => $resultado['eliminada'],
+            'samplesEliminados' => $resultado['samplesEliminados'],
+            'hijasEliminadas' => $resultado['hijasEliminadas'],
+            'hijasHuerfanas' => $resultado['hijasHuerfanas'],
+        ], $resultado['eliminada'] ? 200 : 404);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::eliminar', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

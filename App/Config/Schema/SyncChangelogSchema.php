@@ -19,6 +19,7 @@ class SyncChangelogSchema extends TableSchema
             'tipo'       => ['tipo' => 'string', 'check' => [
                 'sample_added', 'sample_removed', 'sample_updated',
                 'collection_created', 'collection_renamed', 'collection_deleted',
+                'collection_merged',
             ]],
             'entidad_id' => ['tipo' => 'int'],
             'metadata'   => ['tipo' => 'jsonb', 'default' => '{}'],

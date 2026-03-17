@@ -15,9 +15,26 @@
     pointer-events: none;
 }
 
+/* QL123: En mobile, subir toasts por encima del nav inferior + safe area Android */
+@media (max-width: 768px) {
+    .contenedorToasts {
+        bottom: calc(var(--altoNavMobile) + var(--espacioMd) + env(safe-area-inset-bottom, 0px));
+        right: var(--espacioMd);
+        left: var(--espacioMd);
+        max-width: none;
+    }
+}
+
 /* Subir toasts cuando el reproductor global está activo */
 .layoutPrincipal:has(.reproductorGlobal) .contenedorToasts {
     bottom: 80px;
+}
+
+/* En mobile con reproductor, elevar por encima del nav + reproductor */
+@media (max-width: 768px) {
+    .layoutPrincipal:has(.reproductorGlobal) .contenedorToasts {
+        bottom: calc(var(--altoNavMobile) + 80px + env(safe-area-inset-bottom, 0px));
+    }
 }
 
 .toastItem {
