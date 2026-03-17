@@ -8,8 +8,10 @@ Arquitectura de 2 capas para reducir falsos positivos:
   2. Para la zona gris intermedia, validacion con LLM (Groq).
 
 Modelo: llama-3.3-70b-versatile (mejor razonamiento que 8b, igual de rapido en Groq).
-Fallback: si Groq falla (timeout, rate limit, API down), retorna True (permisivo) para
-no bloquear el pipeline.
+
+Manejo de errores (QL111):
+  - 429 rate limit / errores de red: permisivo (True) — transitorios, no bloquean pipeline.
+  - Respuesta JSON invalida / KeyError: restrictivo (False) — datos no confiables, rechazar match.
 
 Requiere: GROQ_API_KEY en .env
 """
@@ -90,7 +92,8 @@ def validar_match(
     Capa 2: Validacion LLM para zona gris.
 
     Retorna True si es match, False si no.
-    En caso de error de LLM, retorna True (permisivo).
+    En caso de error transitorio (429, red), retorna True (permisivo).
+    En caso de respuesta corrupta (JSON invalido, KeyError), retorna False (restrictivo).
     """
     # Capa 1: Pre-screening por similitud textual
     score = _similitud_combinada(
@@ -194,13 +197,27 @@ def _validar_con_llm(
 
     except urllib.error.HTTPError as e:
         if e.code == 429:
-            logger.warning("Groq rate limit (429) — permitiendo sin validacion")
+            # QL111: Extraer tiempo de retry sugerido del body para logging
+            retry_info = ""
+            try:
+                body = e.read().decode("utf-8", errors="replace")
+                import re as _re
+                match = _re.search(r"Please retry in\s*([0-9]+(?:\.[0-9]+)?)s", body)
+                if match:
+                    retry_info = f" (retry sugerido: {match.group(1)}s)"
+            except Exception:
+                pass
+            logger.warning("Groq rate limit (429)%s — permitiendo sin validacion", retry_info)
         else:
             logger.warning("Groq HTTP error %d — permitiendo sin validacion", e.code)
+        # Errores HTTP transitorios: permisivo para no bloquear pipeline
         return True
     except (urllib.error.URLError, OSError) as e:
+        # Errores de red transitorios: permisivo
         logger.warning("Groq conexion fallida — permitiendo sin validacion: %s", e)
         return True
     except (json.JSONDecodeError, KeyError, IndexError) as e:
-        logger.warning("Groq respuesta invalida — permitiendo sin validacion: %s", e)
-        return True
+        # QL111: Respuesta corrupta o formato inesperado = datos no confiables.
+        # Rechazar match (False) en vez de aceptar ciegamente.
+        logger.error("Groq respuesta invalida — rechazando match por datos no confiables: %s", e)
+        return False

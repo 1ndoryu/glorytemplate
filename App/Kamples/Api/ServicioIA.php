@@ -3,14 +3,15 @@
 /**
  * ServicioIA — Orquestador de análisis creativo de audio con IA
  *
- * Cadena de fallback: Groq Whisper (audio→texto) → Groq LLM (texto→JSON) → OpenAI LLM (fallback)
- * Whisper: whisper-large-v3 → whisper-large-v3-turbo
- * LLM Groq: openai/gpt-oss-120b → llama-3.3-70b → kimi-k2 → qwen3-32b → llama-4-scout → gpt-oss-20b
- * LLM OpenAI (fallback): gpt-4o-mini (si OPENAI_API_KEY está configurada)
+ * Cadena de fallback: Groq Whisper (audio->texto) -> Groq LLM (texto->JSON) -> OpenAI LLM (fallback)
+ * Whisper: whisper-large-v3 -> whisper-large-v3-turbo -> OpenAI whisper-1 (fallback, $0.006/min)
+ * LLM Groq: openai/gpt-oss-120b -> llama-3.3-70b -> kimi-k2 -> qwen3-32b -> llama-4-scout -> gpt-oss-20b
+ * LLM OpenAI (fallback): gpt-4o-mini (si OPENAI_API_KEY esta configurada)
  *
  * QK80: Cuando todos los modelos Groq fallan (rate limit de cuenta o downtime),
  * se intenta OpenAI como proveedor alternativo para la etapa LLM.
- * Whisper STT NO tiene fallback a OpenAI (Groq STT es gratuito; la cola retríes).
+ * QL111: Whisper STT ahora tiene fallback a OpenAI whisper-1 si Groq STT falla
+ * y OPENAI_API_KEY esta configurada. Costo bajo (~$0.006/min).
  *
  * Analiza archivos de audio para extraer metadata CREATIVA:
  * tags, emociones, instrumentos, géneros, descripción, artistas similares.
@@ -201,7 +202,22 @@ class ServicioIA
             KamplesLogger::warning('ServicioIA: STT sin texto útil', ['modelo' => $modelo]);
         }
 
-        KamplesLogger::warning('ServicioIA: Todos los modelos Whisper fallaron en STT');
+        KamplesLogger::warning('ServicioIA: Todos los modelos Whisper Groq fallaron en STT');
+
+        /* QL111: Fallback a OpenAI Whisper STT si esta configurado */
+        if (OpenAIHttpClient::estaConfigurada()) {
+            KamplesLogger::info('ServicioIA: Intentando fallback OpenAI Whisper STT');
+            $mimeType = self::detectarMime($rutaArchivo);
+            $textoOpenAI = OpenAIHttpClient::transcribirAudio($rutaArchivo, $mimeType);
+            if ($textoOpenAI !== null) {
+                KamplesLogger::info('ServicioIA: Transcripcion obtenida via OpenAI Whisper STT fallback', [
+                    'chars' => \mb_strlen($textoOpenAI),
+                ]);
+                return $textoOpenAI;
+            }
+            KamplesLogger::warning('ServicioIA: OpenAI Whisper STT fallback tambien fallo');
+        }
+
         return null;
     }
 

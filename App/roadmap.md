@@ -177,7 +177,7 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 
 ## QL108
 
-Pendiente: Revisar resiliencia del sistema de scrappy/extraccion/recorte de audio — solo procesos que involucran IA (rate limits, modelos de respaldo, comparar con cola IA interna). Ver QL111.
+✅ Completado como QL111 — ver QL111 para hallazgos y cambios.
 
 ## QL109 
 
@@ -196,7 +196,29 @@ Pendiente: Revisar resiliencia del sistema de scrappy/extraccion/recorte de audi
 
 ## QL111
 
-descarte los cambios de que hiciste sobre ql08, en realidad era una revision al sistema de scrappy y recorte pero solo a los procesos que involucran IA!
+✅ [AG-MNT] Revision del sistema de scraping/extraccion — procesos que involucran IA.
+
+**Auditoria de resiliencia — Hallazgos:**
+- **SOLIDO:** Multi-model LLM fallback (8 Groq + OpenAI gpt-4o-mini), 6 fuentes audio (SoundCloud→YouTube→Deezer→Spotify), validacion 2 capas (textual+LLM), cola IA con backoff exponencial (15→30→60→120min), rate limit detection con headers x-ratelimit-*, limite diario con persistencia.
+- **GAP CRITICO corregido:** Whisper STT no tenia fallback — si Groq STT caia, analisis de audio fallaba completamente. Ahora OpenAI whisper-1 actua como fallback ($0.006/min).
+- **GAP corregido:** groq_validator.py retornaba True (permisivo) en TODOS los errores, incluyendo JSON corrupto. Ahora: errores transitorios (429, red) → permisivo (True); datos corruptos (JSON/Key/IndexError) → restrictivo (False).
+- **Mejora:** groq_validator.py ahora extrae y loguea Retry-After de respuestas 429.
+
+**Archivos modificados:**
+- `OpenAIHttpClient.php`: Nuevo metodo `transcribirAudio()` — POST multipart a `/v1/audio/transcriptions` (whisper-1).
+- `ServicioIA.php`: `transcribirAudioConWhisper()` ahora intenta OpenAI STT tras fallar Groq.
+- `groq_validator.py`: Error handling diferenciado (transitorio=permisivo, corrupto=restrictivo) + Retry-After logging.
+
+**TO-DO futuros (medio impacto, no criticos):**
+- Circuit breaker pattern para GroqHttpClient (evitar martillar API caida).
+- Tracking distribuido de rate limit (Redis) para multiples workers.
+- Adaptive backoff respetando Retry-After header en ProcesadorColaIA.
+- Model-level quota tracking usando headers x-ratelimit-remaining-*.
+
+**Lecciones:**
+- [groq_validator]: Fallback permisivo blanket (True para todo error) es peligroso — JSON corrupto indica problema real, no transitorio. Diferenciar tipos de error.
+- [Whisper STT]: Groq STT gratuito + cola reintento parecen suficientes, pero si Groq STT tiene downtime prolongado el pipeline se bloquea completamente. OpenAI fallback cierra ese riesgo por ~$0.006/min.
+- [IA resilience]: El sistema ya es robusto para el volumen actual. Los TO-DO son para escalabilidad futura (multiples workers, alto volumen).
 
 ## QL112
 
@@ -235,25 +257,37 @@ descarte los cambios de que hiciste sobre ql08, en realidad era una revision al 
 - [useScrollHorizontal]: Hook generico ya existia — siempre buscar hooks reutilizables antes de crear nuevos.
 - [Preview button dentro de a]: Funciona correctamente con `e.stopPropagation()+e.preventDefault()` tanto en el container div como en el boton.
 
-# QL114 
+# QL114 ✅ [AG-MNT] — Commit `67e160ac`
 
-No hay una indicación de cuando una coleccion es una subcolección, o sea, digo que en donde aparece 
-<button class="botonBase varianteGhost tamanoMd botonVolver" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><span>Librería</span></button>
+**Cambios realizados:**
+1. **Breadcrumbs subcolecciones:** Cuando se ve una subcolección, el botón "← Librería" se reemplaza por migas: "Librería > Colección padre > Nombre actual". Para colecciones raíz, se mantiene el "← Librería".
+2. **Selector de padre en modal:** En modo edición, aparece un `SelectorMenu` para elegir colección padre o "Sin padre (raíz)". Solo muestra colecciones raíz del usuario (profundidad max 2). Validaciones backend: no self-parent, no circular, no hijos propios, verificar propiedad.
+3. **FiltroSubcolecciones reubicado:** Movido debajo de `BarraControlFeed` (dentro del tab samples). El skeleton de carga ahora solo afecta al FeedSamples, no barra ni filtro.
+4. **Contador colecciones padre corregido:** SQL `total_items` incluye samples de subcolecciones (`OR cs.coleccion_id IN (SELECT sub.id FROM colecciones sub WHERE sub.parent_id = c.id)`). Corregido en: `listarDelUsuario`, `explorarPublicas` (autenticado + anónimo).
+5. **Refactor SRP:** Menú contextual de colección extraído a `useColeccionDetalleMenu.tsx` para cumplir límite de líneas del hook.
 
-solo debe aparecer para las colecciones de primer nivel 
+**Archivos modificados:** ColeccionesCrudController (+parent_id en PUT), ColeccionesRepository (counter fix 3 queries), ColeccionDetalleIsland (breadcrumbs + reorder), useColeccionDetalle (coleccionPadre state + import menu hook), useColeccionDetalleMenu (nuevo), useModalColeccion (parentId state + opciones), ModalColeccion (SelectorMenu padre), apiColecciones (parentId en actualizarColeccion), coleccionDetalle.css (migas CSS), modalColeccion.css (campo padre CSS).
 
-y para las subcolecciones aparece migas de pan con el mismo estilo del boton 
+**Lecciones:**
+- [total_items SQL]: Para colecciones padre, el COUNT(*) del join directo siempre da 0 porque los samples están en las subcollecciones. La subquery con OR + IN resuelve esto sin CTE.
+- [parent_id en PUT]: array_key_exists necesario (no isset) porque null es un valor válido para hacer raíz.
+- [SelectorMenu]: Usa `valor: string`, hay que convertir `number|null` ↔ `string` ('' para null).
 
-tampoco hay una forma de cambiar la estructura, creo que para mantenerlo sencillo, en las configuraciones de la coleccion aparezca un select para elegir la coleccion padre o volverla superior. 
+## QL115
 
-Esto tiene que funcionar bien.
+Un boton en el menu contextual de las colecciones para combinar colecciones, esto abre un modal para elegir cual coleccion unir y cual nombre e imagen de portada conservar, solo se puede con las propias colecciones obviamente, sera dos slect como modalColeccionCampoPadre para elegir con quien combinar y cual sera el nombre y portada a conservar.
 
-Lo de las colecciones padre funciona bien, tienen filtroSubcolecciones pero, creo que filtroSubcolecciones tiene que estar de bajo de barraControlFeed, es todo, a demás de que las colecciones padre el contador funciona bien internamente pero en la lista de colecciones es 0
+## QL116 
+
+poder selecionar varios samples manteniendo control y shift para selecionar rango, esto mostrara un mini modal pequeño inferior igual como el reproductor, de hecho, si el reproductor esta abierto en ese momento, tiene que quitarlo para mostrar esto, pero tecnicamente el mismo tamño del reproductor, el mismo estilo con los botones, etc, contendra el boton de like, colecionar (no confundir con guardar en coleccion) y guardar en coleccion, eliminar (si el usuario esta selecionando sus samples), descargar, (iconos todos sin texto), reportar, y todas estas opciones tienen que manejar la capacidad de aplicar cambios a multiples samples. 
+
+cuando se selecione un sample simplemente su fondo se vuelve muted, 
+
 
 # Tarea final
 
-Build APK + instalador desktop tras QL106+QL107.
-
+Build APK + instalador desktop
+avisame de la ubicacion de ambos archivos.
 
 
 ---
