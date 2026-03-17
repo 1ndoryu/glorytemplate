@@ -5,6 +5,7 @@
  * Add your islands here.
  */
 
+import {Component, type ReactNode, type ErrorInfo} from 'react';
 import {registerAppBlocks} from './blocks/index';
 import {registrarServiceWorker} from '@app/utils/registrarServiceWorker';
 
@@ -49,6 +50,36 @@ registerAppBlocks();
 /* QK86: Registrar Service Worker de push notifications */
 registrarServiceWorker();
 
+/*
+ * QL98: Error boundary raíz para capturar errores de render en AppProvider.
+ * Sin esto, un error en InicializadorAuth/LayoutPrincipal mata React silenciosamente
+ * dejando la pantalla en negro sin diagnóstico visible.
+ */
+class RootErrorBoundary extends Component<{children: ReactNode}, {error: Error | null}> {
+    state: {error: Error | null} = { error: null };
+
+    static getDerivedStateFromError(error: Error): {error: Error} {
+        return { error };
+    }
+
+    componentDidCatch(error: Error, info: ErrorInfo): void {
+        console.error('[Kamples] Error de render en AppProvider:', error, info.componentStack);
+    }
+
+    render(): ReactNode {
+        if (this.state.error) {
+            return (
+                <div style={{ padding: '32px', color: '#ef4444', fontFamily: 'monospace', whiteSpace: 'pre-wrap', background: '#1a1a1a', height: '100vh', overflow: 'auto' }}>
+                    <h2 style={{ color: '#ef4444', marginBottom: '16px' }}>Error de render</h2>
+                    <pre>{this.state.error.message}</pre>
+                    <pre style={{ color: '#9ca3af', fontSize: '12px', marginTop: '12px' }}>{this.state.error.stack}</pre>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 /**
  * AppProvider
  * Envuelve TODAS las islas en el layout base de Kamples (sidebar + topbar + reproductor).
@@ -56,9 +87,11 @@ registrarServiceWorker();
  * InicializadorAuth verifica la sesión de WordPress al montar la app.
  */
 export const AppProvider: React.ComponentType<{children: React.ReactNode}> = ({ children }) => (
-    <InicializadorAuth>
-        <LayoutPrincipal>{children}</LayoutPrincipal>
-    </InicializadorAuth>
+    <RootErrorBoundary>
+        <InicializadorAuth>
+            <LayoutPrincipal>{children}</LayoutPrincipal>
+        </InicializadorAuth>
+    </RootErrorBoundary>
 );
 
 /**

@@ -92,6 +92,25 @@ class DescargasStreamController
         $mime = wp_check_filetype($rutaArchivo)['type'] ?? 'application/octet-stream';
         $tamano = \filesize($rutaArchivo);
 
+        /* QL99: Headers CORS manuales — este endpoint usa readfile()+exit en vez de
+         * WP_REST_Response, asi que rest_pre_serve_request nunca inyecta CORS.
+         * Sin esto, Tauri desktop/Android (http://tauri.localhost) no puede descargar. */
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $origenesPermitidos = [
+            'http://localhost:1420',
+            'https://localhost:1420',
+            'tauri://localhost',
+            'http://tauri.localhost',
+            'https://tauri.localhost',
+            'http://10.0.2.2:1420',
+            'http://10.8.0.2:1420',
+        ];
+        if (\in_array($origin, $origenesPermitidos, true)) {
+            \header('Access-Control-Allow-Origin: ' . $origin);
+            \header('Access-Control-Allow-Credentials: true');
+            \header('Vary: Origin');
+        }
+
         \header('Content-Type: ' . $mime);
         \header('Content-Disposition: attachment; filename="' . sanitize_file_name($nombre) . '"');
         \header('Content-Length: ' . $tamano);

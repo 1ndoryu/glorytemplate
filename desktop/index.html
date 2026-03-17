@@ -19,6 +19,24 @@
     </style>
 </head>
 <body>
+    <!-- QL98: diagnostico temporal — capturar errores de carga de modulos antes de React -->
+    <script>
+        window.__KAMPLES_INIT_LOGS__ = [];
+        window.addEventListener('error', function(e) {
+            document.title = 'ERROR: ' + (e.message || 'unknown');
+            var el = document.getElementById('app');
+            if (el && !el.children.length) {
+                el.innerHTML = '<div style="padding:32px;color:#ef4444;font-family:monospace;white-space:pre-wrap;background:#1a1a1a;height:100vh;overflow:auto"><h2>Error de carga</h2><pre>' + (e.error ? e.error.stack || e.error.message : e.message) + '</pre></div>';
+            }
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            document.title = 'REJECT: ' + String(e.reason).substring(0, 80);
+            var el = document.getElementById('app');
+            if (el && !el.children.length) {
+                el.innerHTML = '<div style="padding:32px;color:#f59e0b;font-family:monospace;white-space:pre-wrap;background:#1a1a1a;height:100vh;overflow:auto"><h2>Promesa rechazada</h2><pre>' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason)) + '</pre></div>';
+            }
+        });
+    </script>
     <!-- Contenedor principal donde se monta la app React -->
     <div id="app" data-island="InicioIsland" data-props="{}"></div>
     <script type="module" src="/src/main.tsx"></script>

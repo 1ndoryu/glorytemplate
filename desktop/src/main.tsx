@@ -6,6 +6,22 @@
  * define las rutas estáticamente e inicializa la app directamente.
  */
 
+/* QL98: Capturar errores globales no manejados para diagnostico en pantalla negra */
+window.addEventListener('error', (e) => {
+    console.error('[Kamples Desktop] Error global:', e.error ?? e.message);
+    const appEl = document.getElementById('app');
+    if (appEl && !appEl.children.length) {
+        appEl.innerHTML = `<div style="padding:32px;color:#ef4444;font-family:monospace;white-space:pre-wrap;background:#1a1a1a;height:100vh;overflow:auto"><h2>Error no capturado</h2><pre>${e.error?.stack ?? e.message}</pre></div>`;
+    }
+});
+window.addEventListener('unhandledrejection', (e) => {
+    console.error('[Kamples Desktop] Promesa rechazada:', e.reason);
+    const appEl = document.getElementById('app');
+    if (appEl && !appEl.children.length) {
+        appEl.innerHTML = `<div style="padding:32px;color:#ef4444;font-family:monospace;white-space:pre-wrap;background:#1a1a1a;height:100vh;overflow:auto"><h2>Promesa rechazada</h2><pre>${e.reason?.stack ?? String(e.reason)}</pre></div>`;
+    }
+});
+
 /* CSS del framework Glory (index.css incluye tailwind y resets) */
 import '@/index.css';
 
@@ -192,28 +208,42 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
 }
 
 async function init(): Promise<void> {
-    marcarEntornoDesktop();
-    inyectarRutas();
+    try {
+        console.warn('[Kamples Desktop] init() iniciando...');
+        marcarEntornoDesktop();
+        inyectarRutas();
 
-    /* F12 → abrir/cerrar DevTools en la app instalada para diagnostico */
-    window.addEventListener('keydown', async (e) => {
-        if (e.key === 'F12') {
-            try {
-                const { invoke } = await import('@tauri-apps/api/core');
-                await invoke('toggle_devtools');
-            } catch { /* no-op en web */ }
+        /* F12 → abrir/cerrar DevTools en la app instalada para diagnostico */
+        window.addEventListener('keydown', async (e) => {
+            if (e.key === 'F12') {
+                try {
+                    const { invoke } = await import('@tauri-apps/api/core');
+                    await invoke('toggle_devtools');
+                } catch { /* no-op en web */ }
+            }
+        });
+
+        console.warn('[Kamples Desktop] inicializarDesktop()...');
+        /* Inicializar servicios desktop (auth store, sync, offline queue) */
+        await inicializarDesktop();
+        console.warn('[Kamples Desktop] inicializarDesktop() completado');
+
+        console.warn('[Kamples Desktop] initializeIslands()...');
+        /* Inicializar el sistema de islas de Glory (hydration + SPA router) */
+        initializeIslands({ appProvider: AppProvider });
+        console.warn('[Kamples Desktop] initializeIslands() completado');
+    } catch (err) {
+        console.error('[Kamples Desktop] ERROR FATAL en init():', err);
+        /* Mostrar error visible en el DOM para diagnostico */
+        const container = document.getElementById('app');
+        if (container) {
+            container.innerHTML = `<div style="padding:32px;color:#ef4444;font-family:monospace;white-space:pre-wrap;background:#1a1a1a;height:100vh;overflow:auto"><h2 style="color:#ef4444">Error de inicializacion Desktop</h2><pre>${err instanceof Error ? `${err.message}\n\n${err.stack}` : String(err)}</pre></div>`;
         }
-    });
-
-    /* Inicializar servicios desktop (auth store, sync, offline queue) */
-    await inicializarDesktop();
-
-    /* Inicializar el sistema de islas de Glory (hydration + SPA router) */
-    initializeIslands({ appProvider: AppProvider });
+    }
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { init(); });
+    document.addEventListener('DOMContentLoaded', () => { init().catch(err => console.error('[Kamples Desktop] Unhandled init error:', err)); });
 } else {
-    init();
+    init().catch(err => console.error('[Kamples Desktop] Unhandled init error:', err));
 }

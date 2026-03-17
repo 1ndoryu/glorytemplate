@@ -100,13 +100,99 @@ Completado [AG-MNT] -- QL5-QL95 movidos a `docs/roadmap/completado.md` (seccion 
 
 ## Pendientes
 
-### QL96
+### QL96/QL98 — Desktop pantalla negra
 
-Algo pasa con la aplicacion de escritorio, se ve en negro y no aparece el sync (probando npm run tauri:dev)
+[EN CURSO — AG-MNT] React no monta en Tauri webview (dev y build). Diagnostico:
+- Body tiene clases plataformaTauri/plataformaEscritorio (init() empieza bien)
+- Sync funciona en background (inicializarDesktop() completa)
+- DOM #app queda vacio (React no renderiza o crash silencioso durante render)
+- Causa exacta: aun no identificada (build compila OK, type-check OK)
+
+**Cambios diagnosticos realizados:**
+- `RootErrorBoundary` en AppProvider (appIslands.tsx) — muestra errores de render en pantalla
+- Error handlers inline en index.html — captura errores de carga de modulos JS
+- console.warn en init() (desktop/src/main.tsx) — traza paso a paso de inicializacion
+- Proximo paso: ejecutar `npm run tauri:dev`, el RootErrorBoundary mostrara el error exacto en rojo
 
 ### QL97
 
-panelLateral se abre con 662px por defecto, es muy grande bajarlo a 360px
+✅ [AG-MNT] panelLateral: default 360px, max 500px (antes 340/700). Variable CSS actualizada.
+
+### QL99
+
+✅ [AG-MNT] CORS fix: endpoint `/descargas/stream` usa readfile()+exit (bypasea rest_pre_serve_request).
+Headers CORS manuales agregados en DescargasStreamController.php para origenes Tauri/dev.
+uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 676 {error: 'Failed to fetch'}
+xa @ uploadQueueService-CloPPvVM.js:49
+error @ uploadQueueService-CloPPvVM.js:50
+Ye @ syncCollectionService-BFD-5feJ.js:2
+await in Ye
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+Promise.then
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+ra @ syncCollectionService-BFD-5feJ.js:2
+await in ra
+Xt @ uploadQueueService-CloPPvVM.js:50
+(index):1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc3OjQ6MTc3MzcwNzA2ODplNWE3Mjc0MTkyODc5MWNjNGJmY2IzNWJlZTgzMzdjMTFiZTE2OWMyNmQ3OWNiMGJlMjAyNTY2YmExZWRiMGJl' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+uploadQueueService-CloPPvVM.js:50   GET https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc3OjQ6MTc3MzcwNzA2ODplNWE3Mjc0MTkyODc5MWNjNGJmY2IzNWJlZTgzMzdjMTFiZTE2OWMyNmQ3OWNiMGJlMjAyNTY2YmExZWRiMGJl net::ERR_FAILED 200 (OK)
+Rt.window.fetch @ uploadQueueService-CloPPvVM.js:50
+Ye @ syncCollectionService-BFD-5feJ.js:2
+await in Ye
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+Promise.then
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+ra @ syncCollectionService-BFD-5feJ.js:2
+await in ra
+Xt @ uploadQueueService-CloPPvVM.js:50
+uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 677 {error: 'Failed to fetch'}
+xa @ uploadQueueService-CloPPvVM.js:49
+error @ uploadQueueService-CloPPvVM.js:50
+Ye @ syncCollectionService-BFD-5feJ.js:2
+await in Ye
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+Promise.then
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+ra @ syncCollectionService-BFD-5feJ.js:2
+await in ra
+Xt @ uploadQueueService-CloPPvVM.js:50
+(index):1  Access to fetch at 'https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc5OjQ6MTc3MzcwNzA2OTo0OGZkMTdkYWMyMTAxOWRlMzQ2ZDllMDRmMjBkMWIyMzU2ODQ1NDY0YzIwZWI3ZWMyOGVkYWY1MzhlOWFiODc3' from origin 'http://tauri.localhost' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+uploadQueueService-CloPPvVM.js:50   GET https://kamples.com/wp-json/kamples/v1/descargas/stream?token=Njc5OjQ6MTc3MzcwNzA2OTo0OGZkMTdkYWMyMTAxOWRlMzQ2ZDllMDRmMjBkMWIyMzU2ODQ1NDY0YzIwZWI3ZWMyOGVkYWY1MzhlOWFiODc3 net::ERR_FAILED 200 (OK)
+Rt.window.fetch @ uploadQueueService-CloPPvVM.js:50
+Ye @ syncCollectionService-BFD-5feJ.js:2
+await in Ye
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+Promise.then
+(anonymous) @ syncCollectionService-BFD-5feJ.js:2
+ra @ syncCollectionService-BFD-5feJ.js:2
+await in ra
+Xt @ uploadQueueService-CloPPvVM.js:50
+uploadQueueService-CloPPvVM.js:49  [sync:syncCollection] Error descargando sample 679 {error: 'Failed to fetch'}
+
+</body>
+
+### QL100 
+
+La aplicación la instale en mi telefono, varios problemas que vi
+
+los svg de landing de inicio no carga, pero no vamos a arreglar esto, dejamos que el modal de inicia sesion de quede encima sin quitarse (sin la x), y se pueda cambiar entre de iniciar sesion y registrar, esto es lo normal en una apk, solo el login (no confundas el landing de login con los modales de login, el landing o isla de login no se usa)
+
+el loggin con google no funciona, dice: no se puede completar la autenticación con google, intenta de nuevo
+
+los audios no se descargan, intente descargar y la aplicacion se quedo colgada
+
+el modal de notifiaciones no tiene un padding top y parte superior de android de la hora y notificaciones lo cubre, pero en realidad lo son todos los modales, todo lo que abre y cubra la pantalla completa choca con la barra superior de android, el chat, la lista de mensajes, etc
+
+las notificaciones no tienen el logo de kamples
+
+### QL101
+
+DIJE ANTERIROMENTE QUE EL MODAL DE CONFIGURAICON DEBE SER UNO DIFERENTE PARA EL MOVIL 
+
+NO DEBE SER UN MODAL SI NO PARECER UN DROPDOWN COMO CUANDO ABRES UN MENU CONTEXTUAL EN MOVIL; DEBE SER IGUAL PERO CON EL AGREGADO DE LAS OPCIONES SE ABREN Y CADA BOTON ES INNECESARIO QUE TENGA UN SEPARADOR
+
+### QL102
+
+Parece que las notificaciones si se reciben en la apk pero no cuando esta cerrado.
 
 ---
 

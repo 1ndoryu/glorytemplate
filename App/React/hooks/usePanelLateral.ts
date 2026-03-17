@@ -11,8 +11,8 @@ import { crearLogger } from '@app/services/logger';
 
 const LS_KEY_ANCHO = 'kamples:anchoPanelLateral';
 const ANCHO_MIN = 280;
-const ANCHO_MAX = 700;
-const ANCHO_DEFAULT = 340;
+const ANCHO_MAX = 500;
+const ANCHO_DEFAULT = 360;
 const log = crearLogger('PanelLateral');
 
 const leerAnchoGuardado = (): number => {
