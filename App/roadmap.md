@@ -406,10 +406,11 @@ uploadQueueService-CloPPvVM.js:49 [sync:tracking] Estado recuperado desde journa
 
 ## QL135
 
-⚠️ [AG-COL] Cliente endurecido antes de purga servidor:
+✅ [AG-COL] Sync endurecido + reset servidor completado:
 - orphanAnalysis ya no borra archivos locales basandose solo en el indice legacy stale; ahora limpia la entrada y re-encola.
 - borrarAlSubirExitoso ahora exige confirmacion persistida (tracking activo o sampleIdServidor) antes de borrar local.
-- Pendiente operativo: commit/push/deploy y purga de samples del usuario 4 en servidor para re-subida limpia.
+- Deploy realizado a produccion con commit `17b0533`.
+- Purga servidor usuario 4 ejecutada via `SamplesRepository::eliminarConCascada()`; verificacion posterior: `remaining=0`.
 
 ## QL136
 
