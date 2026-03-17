@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { crearColeccion, actualizarColeccion, subirImagenColeccion } from '@app/services/apiColecciones';
+import { crearColeccion, actualizarColeccion, subirImagenColeccion, listarColecciones } from '@app/services/apiColecciones';
 import { crearLogger } from '@app/services/logger';
 import { toast } from '@app/stores/toastStore';
 import type { Coleccion } from '@app/types';
@@ -35,6 +35,10 @@ export const useModalColeccion = ({
     const [archivoImagen, setArchivoImagen] = useState<File | null>(null);
     const [previewImagen, setPreviewImagen] = useState<string | null>(null);
 
+    /* QL114: Estado de parentId + opciones de colecciones padre */
+    const [parentId, setParentId] = useState<number | null>(null);
+    const [opcionesPadre, setOpcionesPadre] = useState<{ valor: string; etiqueta: string }[]>([]);
+
     /* Pre-rellenar en modo edición y limpiar al cerrar */
     useEffect(() => {
         if (coleccion) {
@@ -42,14 +46,47 @@ export const useModalColeccion = ({
             setDescripcion(coleccion.descripcion);
             setEsPublica(coleccion.esPublica);
             setPreviewImagen(coleccion.imagenUrl ?? null);
+            setParentId(coleccion.parentId ?? null);
         } else {
             setNombre('');
             setDescripcion('');
             setEsPublica(true);
             setPreviewImagen(null);
+            setParentId(null);
         }
         setArchivoImagen(null);
     }, [coleccion, abierto]);
+
+    /*
+     * QL114: Cargar colecciones del usuario para opciones de padre.
+     * Solo en modo edición y al abrir el modal.
+     * Excluye la colección actual y sus subcolecciones del listado.
+     */
+    useEffect(() => {
+        if (!abierto || !esEdicion) {
+            setOpcionesPadre([]);
+            return;
+        }
+        const cargar = async () => {
+            const resp = await listarColecciones();
+            if (!resp.ok || !resp.data) return;
+
+            /* Flatten: listarColecciones devuelve padres con .subcolecciones anidadas */
+            const idActual = coleccion?.id ?? 0;
+            const opciones: { valor: string; etiqueta: string }[] = [
+                { valor: '', etiqueta: 'Sin padre (colección raíz)' },
+            ];
+            for (const col of resp.data.colecciones) {
+                /* Excluir la coleccion actual */
+                if (col.id === idActual) continue;
+                /* Solo colecciones raíz pueden ser padres (profundidad max = 2) */
+                if (col.parentId !== null) continue;
+                opciones.push({ valor: String(col.id), etiqueta: col.nombre });
+            }
+            setOpcionesPadre(opciones);
+        };
+        cargar();
+    }, [abierto, esEdicion, coleccion?.id]);
 
     /* Liberar object URLs creadas para preview local */
     useEffect(() => {
@@ -93,6 +130,11 @@ export const useModalColeccion = ({
                     esPublica,
                 };
                 if (imagenUrl !== undefined) datos.imagenUrl = imagenUrl;
+                /* QL114: Incluir parentId si cambió respecto al original */
+                const parentIdOriginal = coleccion.parentId ?? null;
+                if (parentId !== parentIdOriginal) {
+                    datos.parentId = parentId;
+                }
                 const resp = await actualizarColeccion(coleccion.id, datos);
                 if (resp.ok) {
                     /*
@@ -105,6 +147,7 @@ export const useModalColeccion = ({
                         nombre: nombre.trim(),
                         descripcion: descripcion.trim(),
                         esPublica,
+                        parentId,
                         ...(imagenUrl !== undefined ? { imagenUrl } : {}),
                     };
                     onGuardar?.(actualizada);
@@ -144,5 +187,8 @@ export const useModalColeccion = ({
         manejarSeleccionImagen,
         previewImagen,
         titulo,
+        parentId,
+        setParentId,
+        opcionesPadre,
     };
 };

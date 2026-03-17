@@ -18,6 +18,37 @@
 
 /* C347: clase .coleccionVolver eliminada — ahora usa .botonVolver (botonBase.css) */
 
+/* QL114: Migas de pan para subcolecciones */
+.coleccionMigas {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacioXs);
+    font-size: var(--fuenteSm);
+    color: var(--textoSecundario);
+}
+
+.coleccionMigasEnlace {
+    color: var(--textoSecundario);
+    padding: 0 !important;
+    font-size: var(--fuenteSm);
+    transition: color var(--transicionRapida);
+}
+
+.coleccionMigasEnlace:hover {
+    color: var(--textoPrimario);
+    background: unset !important;
+}
+
+.coleccionMigasSeparador {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.coleccionMigasActual {
+    color: var(--textoPrimario);
+    font-weight: var(--pesoMedio);
+}
+
 /* Header: imagen + info lado a lado */
 .coleccionHeader {
     display: grid;

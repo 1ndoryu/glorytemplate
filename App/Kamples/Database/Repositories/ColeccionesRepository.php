@@ -106,9 +106,21 @@ class ColeccionesRepository extends BaseRepository
         $csColeccionId = ColeccionSamplesCols::COLECCION_ID;
         $colId = ColeccionesCols::ID;
 
+        /*
+         * QL114: total_items incluye samples propios + samples de subcolecciones.
+         * Para padres (parent_id IS NULL), la subquery agrega samples de sus hijos.
+         * Para subcolecciones, el IN no matchea nada adicional (profundidad max = 2).
+         */
+        $parentIdCol = ColeccionesCols::PARENT_ID;
+
         $todas = static::consultar(
             "SELECT c.*,
-                    (SELECT COUNT(*) FROM {$tcs} cs WHERE cs.{$csColeccionId} = c.{$colId}) as total_items,
+                    (SELECT COUNT(*) FROM {$tcs} cs
+                     WHERE cs.{$csColeccionId} = c.{$colId}
+                        OR cs.{$csColeccionId} IN (
+                            SELECT sub.{$colId} FROM {$t} sub WHERE sub.{$parentIdCol} = c.{$colId}
+                        )
+                    ) as total_items,
                     COALESCE(
                         (SELECT array_agg(DISTINCT tag_val)
                          FROM {$tcs} cs2
@@ -320,7 +332,13 @@ class ColeccionesRepository extends BaseRepository
                 )
                 SELECT sub.* FROM (
                     SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
-                           COALESCE(ct.items, 0) as total_items,
+                           /* QL114: total_items incluye samples de subcolecciones para padres */
+                           (SELECT COUNT(*) FROM {$tcs} csx
+                            WHERE csx.{$coleccionId} = c." . ColeccionesCols::ID . "
+                               OR csx.{$coleccionId} IN (
+                                   SELECT sub_c." . ColeccionesCols::ID . " FROM {$t} sub_c WHERE sub_c." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
+                               )
+                           ) as total_items,
                            {$subqueryTagsMeta} as tags,
                            COALESCE((
                                SELECT SUM(ut.afinidad)
@@ -337,7 +355,12 @@ class ColeccionesRepository extends BaseRepository
                     LEFT JOIN coleccion_tags ct ON ct.{$coleccionId} = c." . ColeccionesCols::ID . "
                     WHERE {$whereVisibilidad}
                       AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
-                      AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2 WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ")) >= 0
+                      AND COALESCE(ct.items, (SELECT COUNT(*) FROM {$tcs} cs2
+                           WHERE cs2." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "
+                              OR cs2." . ColeccionSamplesCols::COLECCION_ID . " IN (
+                                  SELECT sub3." . ColeccionesCols::ID . " FROM {$t} sub3 WHERE sub3." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
+                              )
+                      )) >= 0
                       {$whereBusqueda}
                 ) sub
                 ORDER BY sub.propio_boost DESC,
@@ -351,15 +374,26 @@ class ColeccionesRepository extends BaseRepository
                 LIMIT 20 OFFSET :offset
             ";
         } else {
+            /* QL114: total_items incluye samples de subcolecciones para padres */
             $sql = "
                 SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
-                       (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items,
+                       (SELECT COUNT(*) FROM {$tcs} cs
+                        WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "
+                           OR cs." . ColeccionSamplesCols::COLECCION_ID . " IN (
+                               SELECT sub." . ColeccionesCols::ID . " FROM {$t} sub WHERE sub." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
+                           )
+                       ) as total_items,
                        {$subqueryTagsMeta} as tags
                 FROM {$t} c
                 JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                 WHERE c." . ColeccionesCols::PUBLICA . " = true
                   AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
-                  AND (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") > 0
+                  AND (SELECT COUNT(*) FROM {$tcs} cs
+                       WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "
+                          OR cs." . ColeccionSamplesCols::COLECCION_ID . " IN (
+                              SELECT sub." . ColeccionesCols::ID . " FROM {$t} sub WHERE sub." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
+                          )
+                  ) > 0
                   {$whereBusqueda}
                 ORDER BY c." . ColeccionesCols::UPDATED_AT . " DESC
                 LIMIT 20 OFFSET :offset

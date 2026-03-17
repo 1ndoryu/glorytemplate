@@ -158,6 +158,45 @@ class ColeccionesCrudController
             $params['imagen'] = esc_url_raw($body['imagenUrl']);
         }
 
+        /*
+         * QL114: Cambio de parent_id — mover colección a otro padre o hacerla raíz.
+         * array_key_exists porque null es un valor válido (= hacer raíz).
+         */
+        if (array_key_exists('parent_id', $body)) {
+            $nuevoParentId = $body['parent_id'] !== null ? (int) $body['parent_id'] : null;
+
+            /* No puede ser su propio padre */
+            if ($nuevoParentId === $id) {
+                return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'Una colección no puede ser su propio padre'], 400);
+            }
+
+            if ($nuevoParentId !== null) {
+                /* Verificar que el padre existe y pertenece al mismo usuario */
+                $padre = ColeccionesRepository::obtenerConCreador($nuevoParentId);
+                if (!$padre) {
+                    return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'La colección padre no existe'], 400);
+                }
+                $ownerIdPadre = (int) ($padre[ColeccionesCols::USUARIO_ID] ?? 0);
+                if (!$esAdmin && $ownerIdPadre !== $userId) {
+                    return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'La colección padre no pertenece al usuario'], 403);
+                }
+                /* Profundidad máxima 2: padre no puede tener parent_id */
+                if (!empty($padre[ColeccionesCols::PARENT_ID])) {
+                    return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'Profundidad máxima excedida (2 niveles)'], 400);
+                }
+                /* No puede mover a un hijo propio (circular) */
+                $hijos = ColeccionesRepository::listarSubcolecciones($id);
+                foreach ($hijos as $hijo) {
+                    if ((int) $hijo[ColeccionesCols::ID] === $nuevoParentId) {
+                        return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'No se puede mover a una subcolección propia'], 400);
+                    }
+                }
+            }
+
+            $campos[] = ColeccionesCols::PARENT_ID . ' = :parentId';
+            $params['parentId'] = $nuevoParentId;
+        }
+
         if (empty($campos)) {
             return new \WP_REST_Response(['code' => 'sin_cambios'], 400);
         }

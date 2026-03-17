@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, BookmarkPlus, BookmarkCheck, Lock, Globe, Download, Play, Pause, MoreHorizontal, Loader2, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { BarraControlFeed, OPCIONES_ORDEN_COLECCION } from '@app/components/feed/BarraControlFeed';
 import type { TipoOrdenFeed } from '@app/components/feed/BarraControlFeed';
@@ -43,6 +43,7 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
         coleccion, cargando, guardada, descargando, navegar,
         tabActiva, usuario, samples, metasComunes,
         subcolecciones, subActiva, setSubActiva, cargandoSub,
+        coleccionPadre,
         menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
         modalEditarAbierto, setModalEditarAbierto, manejarGuardarEdicion,
         manejarGuardar, manejarDescargarZip, manejarLikeSamples,
@@ -103,11 +104,25 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
 
     return (
         <div className="coleccionDetalle" id="coleccionDetalle">
-            {/* Botón volver */}
-            <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
-                <ArrowLeft size={18} />
-                <span>Librería</span>
-            </BotonBase>
+            {/* QL114: Breadcrumbs para subcollecciones, botón volver para raíz */}
+            {coleccion.parentId !== null && coleccionPadre ? (
+                <nav className="coleccionMigas" aria-label="Navegación colección">
+                    <BotonBase variante="ghost" tamano="ninguno" className="coleccionMigasEnlace" onClick={() => navegar('/libreria/')} type="button">
+                        Librería
+                    </BotonBase>
+                    <ChevronRight size={14} className="coleccionMigasSeparador" />
+                    <BotonBase variante="ghost" tamano="ninguno" className="coleccionMigasEnlace" onClick={() => navegar(`/coleccion/${coleccionPadre.slug ?? coleccionPadre.id}/`)} type="button">
+                        {coleccionPadre.nombre}
+                    </BotonBase>
+                    <ChevronRight size={14} className="coleccionMigasSeparador" />
+                    <span className="coleccionMigasActual">{coleccion.nombre}</span>
+                </nav>
+            ) : (
+                <BotonBase variante="ghost" className="botonVolver" onClick={() => navegar('/libreria/')} type="button">
+                    <ArrowLeft size={18} />
+                    <span>Librería</span>
+                </BotonBase>
+            )}
 
             {/* Header de la colección */}
             <div className="coleccionHeader">
@@ -191,17 +206,10 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                 </div>
             </div>
 
-            {/* C387: Badges de subcolecciones como filtro */}
-            <FiltroSubcolecciones
-                subcolecciones={subcolecciones}
-                activa={subActiva}
-                onChange={setSubActiva}
-            />
+            {/* QL114: FiltroSubcolecciones se movió dentro de tab samples, debajo de BarraControlFeed */}
 
             {/* Contenido según tab activa — key distinta fuerza desmontaje para evitar race conditions (C46) */}
-            {cargandoSub ? (
-                <SkeletonFeed cantidad={3} />
-            ) : tabActiva === 'samples' ? (
+            {tabActiva === 'samples' ? (
                 <>
                     <BarraControlFeed
                         opciones={OPCIONES_ORDEN_COLECCION}
@@ -212,18 +220,27 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                             <SlidersHorizontal size={16} />
                         </BotonBase>
                     </BarraControlFeed>
-                    <FeedSamples
-                        key={`coleccion-samples-${subActiva ?? 'raiz'}-${ordenColeccion}`}
-                        samplesIniciales={ordenColeccion === 'posicion' ? samples : undefined}
-                        proveedor={proveedorSamples}
-                        claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}_${ordenColeccion}`}
-                        infiniteScroll={false}
-                        virtualizar={false}
-                        mostrarTags
-                        mensajeVacio="Esta colección aún no tiene samples."
-                        onLike={manejarLikeSamples}
-                        filtroAdicional={filtrosColeccion.aplicar}
+                    <FiltroSubcolecciones
+                        subcolecciones={subcolecciones}
+                        activa={subActiva}
+                        onChange={setSubActiva}
                     />
+                    {cargandoSub ? (
+                        <SkeletonFeed cantidad={3} />
+                    ) : (
+                        <FeedSamples
+                            key={`coleccion-samples-${subActiva ?? 'raiz'}-${ordenColeccion}`}
+                            samplesIniciales={ordenColeccion === 'posicion' ? samples : undefined}
+                            proveedor={proveedorSamples}
+                            claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}_${ordenColeccion}`}
+                            infiniteScroll={false}
+                            virtualizar={false}
+                            mostrarTags
+                            mensajeVacio="Esta colección aún no tiene samples."
+                            onLike={manejarLikeSamples}
+                            filtroAdicional={filtrosColeccion.aplicar}
+                        />
+                    )}
                 </>
             ) : (
                 <FeedSamples

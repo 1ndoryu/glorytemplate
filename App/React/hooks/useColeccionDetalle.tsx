@@ -6,7 +6,6 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Link2, Trash2, Flag, Edit3 } from 'lucide-react';
 import { obtenerColeccion, obtenerColeccionPorSlug, descargarColeccionZip, guardarColeccionBookmark, desguardarColeccionBookmark } from '@app/services/apiColecciones';
 import { useNavigationStore } from '@/core/router';
 import { useIslaActiva } from '@app/hooks/useIslaActiva';
@@ -18,7 +17,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { useAuthModalStore } from '@app/stores/authModalStore';
 import { toast } from '@app/stores/toastStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
-import { copiarAlPortapapeles } from '@app/services/clipboard';
+import { useColeccionDetalleMenu } from '@app/hooks/useColeccionDetalleMenu';
 import type { Coleccion, ColeccionResumen, SampleResumen } from '@app/types';
 
 const TABS_COLECCION_DETALLE = [
@@ -36,6 +35,9 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [guardada, setGuardada] = useState(false);
     const [descargando, setDescargando] = useState(false);
     const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
+
+    /* QL114: Info del padre para breadcrumbs en subcolecciones */
+    const [coleccionPadre, setColeccionPadre] = useState<{ id: number; nombre: string; slug: string | null } | null>(null);
 
     /*
      * C387: Subcolecciones — filtro por sub.
@@ -122,6 +124,35 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         cargar();
         return () => { controller.abort(); };
     }, [segmento, id, activa]);
+
+    /*
+     * QL114: Cargar info del padre para breadcrumbs.
+     * Se ejecuta cuando la coleccion cargada tiene parentId.
+     */
+    useEffect(() => {
+        if (!coleccion?.parentId) {
+            setColeccionPadre(null);
+            return;
+        }
+        const controller = new AbortController();
+        const cargarPadre = async () => {
+            try {
+                const resp = await obtenerColeccion(coleccion.parentId!);
+                if (controller.signal.aborted) return;
+                if (resp.ok && resp.data) {
+                    setColeccionPadre({
+                        id: resp.data.id,
+                        nombre: resp.data.nombre,
+                        slug: resp.data.slug,
+                    });
+                }
+            } catch {
+                /* Breadcrumbs degradan a boton volver si falla */
+            }
+        };
+        cargarPadre();
+        return () => { controller.abort(); };
+    }, [coleccion?.parentId]);
 
     /*
      * QL92: Guardar/desguardar coleccion con persistencia en backend.
@@ -263,79 +294,10 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
             .map(([tag]) => tag.charAt(0).toUpperCase() + tag.slice(1));
     }, [samplesVisibles]);
 
-    /* Menu contextual de la coleccion */
-    const [menuColeccion, setMenuColeccion] = useState<{ abierto: boolean; x: number; y: number }>({
-        abierto: false, x: 0, y: 0
-    });
-
-    const abrirMenuColeccion = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setMenuColeccion({ abierto: true, x: e.clientX, y: e.clientY });
-    }, []);
-
-    const cerrarMenuColeccion = useCallback(() => {
-        setMenuColeccion(prev => ({ ...prev, abierto: false }));
-    }, []);
-
-    const itemsMenuColeccion = useMemo(() => {
-        if (!coleccion) return [];
-        const esPropietario = usuario?.id !== undefined && String(coleccion.usuarioId) === String(usuario.id);
-        const esAdmin = usuario?.rol === 'admin';
-        const items: { id: string; etiqueta: string; icono: JSX.Element; onClick: () => void; peligro?: boolean; separadorDespues?: boolean }[] = [];
-
-        items.push({
-            id: 'copiar-enlace',
-            etiqueta: 'Copiar enlace',
-            icono: <Link2 size={16} />,
-            separadorDespues: true,
-            onClick: () => {
-                copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.slug ?? coleccion.id}/`);
-                cerrarMenuColeccion();
-            }
-        });
-
-        if (esPropietario || esAdmin) {
-            items.push({
-                id: 'editar',
-                etiqueta: 'Editar colección',
-                icono: <Edit3 size={16} />,
-                separadorDespues: true,
-                onClick: () => {
-                    cerrarMenuColeccion();
-                    setModalEditarAbierto(true);
-                }
-            });
-        }
-
-        if (esPropietario || esAdmin) {
-            items.push({
-                id: 'eliminar',
-                etiqueta: 'Eliminar colección',
-                icono: <Trash2 size={16} />,
-                peligro: true,
-                onClick: () => {
-                    toast.confirmar('¿Eliminar esta colección?', async () => {
-                        const { apiDelete } = await import('@app/services/apiCliente');
-                        const resp = await apiDelete(`/colecciones/${coleccion.id}`);
-                        if (resp.ok) {
-                            toast.exito('Colección eliminada');
-                            navegar('/libreria/');
-                        }
-                    });
-                    cerrarMenuColeccion();
-                }
-            });
-        }
-
-        items.push({
-            id: 'reportar',
-            etiqueta: 'Reportar',
-            icono: <Flag size={16} />,
-            onClick: () => { cerrarMenuColeccion(); }
-        });
-
-        return items;
-    }, [coleccion, usuario, navegar, cerrarMenuColeccion]);
+    /* Menu contextual — extraído a hook separado (SRP) */
+    const {
+        menuColeccion, abrirMenuColeccion, cerrarMenuColeccion, itemsMenuColeccion,
+    } = useColeccionDetalleMenu({ coleccion, usuario, navegar, setModalEditarAbierto });
 
     /* Actualiza el estado local de la coleccion tras una edicion en el modal */
     const manejarGuardarEdicion = useCallback((coleccionActualizada: Coleccion) => {
@@ -358,6 +320,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         subActiva,
         setSubActiva,
         cargandoSub,
+        coleccionPadre,
         menuColeccion,
         abrirMenuColeccion,
         cerrarMenuColeccion,

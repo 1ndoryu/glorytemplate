@@ -13,6 +13,7 @@ import { BotonBase } from '@app/components/ui/BotonBase';
 import { ModalAcciones } from '@app/components/ui/ModalAcciones';
 import { Checkbox } from '@app/components/ui/Checkbox';
 import { Input } from '@app/components/ui/Input';
+import { SelectorMenu } from '@app/components/ui/SelectorMenu';
 import { useModalColeccion } from '@app/hooks/useModalColeccion';
 import type { Coleccion } from '@app/types';
 import '../../styles/componentes/modalColeccion.css';
@@ -44,6 +45,9 @@ export const ModalColeccion = ({
         manejarGuardar,
         manejarSeleccionImagen,
         previewImagen,
+        parentId,
+        setParentId,
+        opcionesPadre,
     } = useModalColeccion({ abierto, onCerrar, onGuardar, coleccion });
 
     return (
@@ -120,6 +124,19 @@ export const ModalColeccion = ({
                         Otros usuarios podrán ver esta colección
                     </span>
                 </label>
+
+                {/* QL114: Selector de colección padre — solo en modo edición, con opciones cargadas */}
+                {esEdicion && opcionesPadre.length > 1 && (
+                    <div className="modalColeccionCampoPadre">
+                        <span className="modalColeccionCampoPadreEtiqueta">Colección padre</span>
+                        <SelectorMenu
+                            opciones={opcionesPadre}
+                            valor={parentId !== null ? String(parentId) : ''}
+                            onChange={(val) => setParentId(val ? Number(val) : null)}
+                            placeholder="Sin padre (raíz)"
+                        />
+                    </div>
+                )}
 
                 <ModalAcciones>
                     <BotonBase variante="secundario" onClick={onCerrar}>

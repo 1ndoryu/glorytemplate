@@ -99,3 +99,16 @@
     font-size: var(--fuenteXs);
     color: var(--textoTerciario);
 }
+
+/* QL114: Selector de colección padre */
+.modalColeccionCampoPadre {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacioXs);
+}
+
+.modalColeccionCampoPadreEtiqueta {
+    font-size: var(--fuenteSm);
+    font-weight: var(--pesoMedio);
+    color: var(--textoSecundario);
+}

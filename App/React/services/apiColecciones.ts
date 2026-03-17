@@ -179,16 +179,17 @@ export const crearColeccion = async (datos: {
     return apiPost<Coleccion>('/colecciones', body);
 };
 
-/* Actualizar colección */
+/* Actualizar colección — QL114: incluye parentId para reasignar padre */
 export const actualizarColeccion = async (
     id: number,
-    datos: Partial<{ nombre: string; descripcion: string; esPublica: boolean; imagenUrl: string | null }>
+    datos: Partial<{ nombre: string; descripcion: string; esPublica: boolean; imagenUrl: string | null; parentId: number | null }>
 ): Promise<RespuestaApi<Coleccion>> => {
     const body: Record<string, unknown> = {};
     if (datos.nombre !== undefined) body.nombre = datos.nombre;
     if (datos.descripcion !== undefined) body.descripcion = datos.descripcion;
     if (datos.esPublica !== undefined) body.publica = datos.esPublica;
     if (datos.imagenUrl !== undefined) body.imagen_url = datos.imagenUrl;
+    if (datos.parentId !== undefined) body.parent_id = datos.parentId;
     return apiPut<Coleccion>(`/colecciones/${id}`, body);
 };
 
