@@ -428,16 +428,7 @@ Planifica una mejora para la detencion de duplicados, antispam sin romper la cap
 
 Enfocate en hacer el sync mas depurable, un log local para que puedas leer todo lo que hace darte cuenta de cualquier fallo.
 
-## Haz commit y sube todos los cambios. 
 
-
-# Tarea final
-
-Haz rebuil de apk y aplicacion para ver si arreglo el problema comentando anterior del icono, y esas cosas etc.
-
-# TAREA FINAL FINAL
-
-ASEGURATE DE QUE REALMENTE LA APK Y BUILD ESTEN ACTUALIZADA SEGUN LA ULTIMA VEZ DIJISTE QUE PROBABLEMENTE NO PORQUE NO TENIA CAMBIOS A PESAR DE GENERAR LOAS BUILDS
 
 
 

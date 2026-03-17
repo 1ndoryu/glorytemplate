@@ -212,6 +212,7 @@
 - [Sync historial per-sample]: Modelo `EntradaHistorialSample` con upsert dual-index: `indiceSampleHistorial` (Map<sampleId, index>) + `indiceNombreSampleHistorial` (Map<nombreLower, index>). Pre-upload usa nombreArchivo como key (sampleId=0). Post-upload actualiza con sampleId real. `obtenerImagenSampleDesdeServidor()` async post-upload para imagen de portada. MAX_HISTORIAL_SAMPLES=100. El legacy `AccionHistorial[]` se preserva para `SincPanelTabs`.
 - [Sync logger JSONL]: Un archivo `.jsonl` no sirve para diagnóstico real si las líneas se guardan como texto formateado humano. La persistencia debe escribir JSON por línea y formatear a texto solo al exportar o renderizar.
 - [Sync diagnóstico exportable]: Para depurar un sync distribuido entre watcher, cola, tracking y journal, las últimas líneas de log no bastan. El reporte útil debe incluir también snapshot de config activa, resumen de uploads y resumen de tracking en el mismo artefacto.
+- [Sync console bridge dev]: Mientras existan `console.info/warn/error` legacy en módulos de sync, el logger debe interceptarlos en modo dev y persistir solo los prefijos del dominio sync. Si `logSync` usa el `console` parcheado, entra en recursión; por eso debe emitir por referencias nativas guardadas antes del hook.
 
 ### Watcher / Filesystem
 - [Rename race condition]: `moverArchivoASinColeccion()` hace `rename()` interno que genera CREATE en watcher. Solución: `marcarDescargaEnCurso(nuevaRuta)` ANTES del rename. El grace period de 10s (GRACIA_DESCARGA_MS) cubre el procesamiento async del watcher.

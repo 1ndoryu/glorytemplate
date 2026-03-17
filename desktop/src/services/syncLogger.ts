@@ -54,6 +54,9 @@ const MAX_ARCHIVO_BYTES = 5 * 1024 * 1024;
 const MAX_ARCHIVOS_ROTACION = 3;
 const FLUSH_INTERVALO_MS = 10_000;
 const NOMBRE_LOG = 'sync-log';
+const PREFIJOS_LOG_SYNC = ['[Sync', '[UploadQueue]', '[SyncCollection]', '[SyncTracking]', '[sync:'];
+
+type MetodoConsole = 'log' | 'info' | 'warn' | 'error';
 
 let nivelActivo: NivelLog = 'info';
 let buffer: EntradaLog[] = [];
@@ -61,6 +64,14 @@ let flushTimer: ReturnType<typeof setInterval> | null = null;
 let inicializado = false;
 let archivoActualIdx = 0;
 let secuenciaActual = 0;
+let consolaInterceptada = false;
+
+const consolaNativa = {
+    log: console.log.bind(console),
+    info: console.info.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+};
 
 const sesionLogger = crearSesionLogger();
 
@@ -100,6 +111,110 @@ function formatearEntrada(e: EntradaLog): string {
 
 function serializarEntradaJsonl(e: EntradaLog): string {
     return JSON.stringify(e);
+}
+
+function normalizarNivelDesdeConsole(metodo: MetodoConsole): NivelLog {
+    if (metodo === 'error') return 'error';
+    if (metodo === 'warn') return 'warn';
+    return 'info';
+}
+
+function serializarDatoLog(dato: unknown): unknown {
+    if (dato instanceof Error) {
+        return {
+            nombre: dato.name,
+            mensaje: dato.message,
+            stack: dato.stack,
+        };
+    }
+
+    if (typeof dato === 'string' || typeof dato === 'number' || typeof dato === 'boolean' || dato === null) {
+        return dato;
+    }
+
+    if (Array.isArray(dato)) {
+        return dato.map(serializarDatoLog);
+    }
+
+    if (typeof dato === 'object') {
+        return dato;
+    }
+
+    return String(dato);
+}
+
+function normalizarArgumentosConsole(args: unknown[]): { mensaje: string; data?: unknown } {
+    if (args.length === 0) {
+        return { mensaje: '(sin mensaje)' };
+    }
+
+    const [primero, ...resto] = args;
+    const mensaje = typeof primero === 'string'
+        ? primero
+        : primero instanceof Error
+            ? primero.message
+            : String(primero);
+
+    if (resto.length === 0) {
+        return { mensaje, data: serializarDatoLog(primero instanceof Error ? primero : undefined) };
+    }
+
+    return {
+        mensaje,
+        data: resto.map(serializarDatoLog),
+    };
+}
+
+function esLogSyncConsole(args: unknown[]): boolean {
+    if (args.length === 0) return false;
+    const primero = args[0];
+    if (typeof primero !== 'string') return false;
+    return PREFIJOS_LOG_SYNC.some(prefijo => primero.startsWith(prefijo));
+}
+
+function inferirModuloDesdeMensaje(mensaje: string): string {
+    if (mensaje.startsWith('[UploadQueue]')) return 'uploadQueueConsole';
+    if (mensaje.startsWith('[SyncCollection]')) return 'syncCollectionConsole';
+    if (mensaje.startsWith('[SyncTracking]')) return 'syncTrackingConsole';
+    if (mensaje.startsWith('[sync:')) {
+        const moduloMatch = mensaje.match(/^\[sync:([^\]]+)\]/i);
+        if (moduloMatch?.[1]) return moduloMatch[1];
+    }
+    return 'syncConsole';
+}
+
+function instalarIntercepcionConsole(): void {
+    if (consolaInterceptada) return;
+    consolaInterceptada = true;
+
+    const crearWrapper = (metodo: MetodoConsole): typeof console.log => {
+        return (...args: unknown[]) => {
+            if (esLogSyncConsole(args)) {
+                const { mensaje, data } = normalizarArgumentosConsole(args);
+                const entrada = crearEntrada(normalizarNivelDesdeConsole(metodo), inferirModuloDesdeMensaje(mensaje), mensaje, data);
+                buffer.push(entrada);
+                if (buffer.length > MAX_BUFFER) {
+                    buffer.splice(0, buffer.length - MAX_BUFFER);
+                }
+            }
+
+            consolaNativa[metodo](...args as Parameters<typeof console.log>);
+        };
+    };
+
+    console.log = crearWrapper('log');
+    console.info = crearWrapper('info');
+    console.warn = crearWrapper('warn');
+    console.error = crearWrapper('error');
+}
+
+function restaurarIntercepcionConsole(): void {
+    if (!consolaInterceptada) return;
+    console.log = consolaNativa.log;
+    console.info = consolaNativa.info;
+    console.warn = consolaNativa.warn;
+    console.error = consolaNativa.error;
+    consolaInterceptada = false;
 }
 
 function parsearEntradaPersistida(linea: string): EntradaLog | null {
@@ -169,9 +284,9 @@ function agregarAlBuffer(entrada: EntradaLog): void {
     }
 
     /* También emitir a consola en desarrollo */
-    const consoleFn = entrada.nivel === 'error' ? console.error
-        : entrada.nivel === 'warn' ? console.warn
-            : console.log;
+    const consoleFn = entrada.nivel === 'error' ? consolaNativa.error
+        : entrada.nivel === 'warn' ? consolaNativa.warn
+            : consolaNativa.log;
     consoleFn(`[sync:${entrada.modulo}]`, entrada.msg, entrada.data ?? '');
 }
 
@@ -188,6 +303,9 @@ export function obtenerNivelLog(): NivelLog {
 export async function inicializarSyncLogger(): Promise<void> {
     if (inicializado) return;
     inicializado = true;
+    if (import.meta.env.DEV) {
+        instalarIntercepcionConsole();
+    }
     flushTimer = setInterval(() => { flush().catch(() => {}); }, FLUSH_INTERVALO_MS);
 }
 
@@ -197,6 +315,7 @@ export async function detenerSyncLogger(): Promise<void> {
         flushTimer = null;
     }
     await flush();
+    restaurarIntercepcionConsole();
     inicializado = false;
 }
 
