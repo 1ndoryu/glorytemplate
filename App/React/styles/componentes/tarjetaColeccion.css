@@ -1,8 +1,8 @@
 /*
- * tarjetaColeccion.css — Kamples (C141 + QQ75)
+ * tarjetaColeccion.css — Kamples (C141 + QQ75 + QL113)
  * Tarjeta visual tipo card para colecciones.
  * Botón 3 puntos en esquina superior derecha con menú contextual.
- * Botón play preview en esquina inferior derecha de la portada.
+ * Botón play preview centrado sobre la portada.
  * El menuContenedor está FUERA del <a> interno pero dentro del div exterior.
  */
 
@@ -55,11 +55,13 @@
     padding: var(--espacioLg);
     border-radius: var(--radioMd);
     overflow: hidden;
+    /* QL113: Leve reduccion de brillo permanente para contraste del boton centrado */
+    filter: brightness(0.9);
 }
 
-/* Hover: oscurecer ligeramente la imagen de portada */
+/* Hover: oscurecer mas la imagen de portada */
 .tarjetaColeccion:hover .tarjetaColeccionPortada img {
-    filter: brightness(0.8);
+    filter: brightness(0.72);
 }
 /* C141: Botón 3 puntos — esquina superior derecha sobre la imagen */
 .tarjetaColeccionMenuContenedor {
@@ -149,13 +151,12 @@
     z-index: 3;
 }
 
-/* QQ75: Botón preview — esquina inferior derecha sobre la portada.
- * Posición calculada: la sección info ocupa ~52px (padding + 2 líneas de texto).
- * Usar espacioXs offset para no pegar el botón al borde exacto de la portada. */
+/* QL113: Botón preview — centrado sobre la portada de la colección */
 .tarjetaColeccionPreviewContenedor {
     position: absolute;
-    bottom: calc(52px + var(--espacioXs));
-    right: var(--espacioSm);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 5;
 }
 
@@ -163,15 +164,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
     border-radius: var(--radioFull);
     border: none;
     background: var(--acento);
     color: var(--blanco);
     cursor: pointer;
     opacity: 0;
-    transform: translateY(4px);
+    transform: scale(0.85);
     transition:
         opacity var(--transicionRapida),
         transform var(--transicionRapida),
@@ -181,7 +182,7 @@
 .tarjetaColeccion:hover .tarjetaColeccionPreviewBtn,
 .tarjetaColeccionPreviewActivo {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
 }
 
 .tarjetaColeccionPreviewBtn:hover {
@@ -190,7 +191,7 @@
 
 .tarjetaColeccionPreviewActivo {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
     background: var(--acento);
 }
 

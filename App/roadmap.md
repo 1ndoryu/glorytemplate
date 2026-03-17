@@ -222,9 +222,18 @@ descarte los cambios de que hiciste sobre ql08, en realidad era una revision al 
 
 ## QL113
 
-filaColecciones no puede moverse el scroll con el mouse, debería, y veo que parece que esta filtrando por usuario, deben aparecer todas las colecciones publicadas ordenadas por relevancia y likes. 
+✅ [AG-MNT] FilaColecciones mouse-drag scroll + TarjetaColeccion play/pause centrado.
 
-Y el boton de play pause en las lista de colecciones no aparece en el centro, debe aparecer en el centro y bajar el brillo un poco a la imagen. Me refiero a tarjetaColeccion.
+**Cambios:**
+- FilaColecciones: Integrado hook `useScrollHorizontal` existente para arrastre con mouse. CSS: `cursor: grab/grabbing`.
+- FilaColecciones ya listaba TODAS las colecciones publicas via `/colecciones/explorar` — no habia filtro por usuario.
+- TarjetaColeccion: Boton preview movido DENTRO de `.tarjetaColeccionPortada` con `top:50%;left:50%;transform:translate(-50%,-50%)` — centrado sobre la imagen.
+- TarjetaColeccion: Imagen portada con `filter: brightness(0.9)` permanente, `brightness(0.72)` en hover.
+- TarjetaColeccion: Boton preview agrandado a 42px, animacion `scale(0.85)→scale(1)` en hover.
+
+**Lecciones:**
+- [useScrollHorizontal]: Hook generico ya existia — siempre buscar hooks reutilizables antes de crear nuevos.
+- [Preview button dentro de a]: Funciona correctamente con `e.stopPropagation()+e.preventDefault()` tanto en el container div como en el boton.
 
 # QL114 
 

@@ -121,6 +121,20 @@ export const TarjetaColeccion = ({
                             <FolderTree size={12} />
                         </span>
                     )}
+                    {/* QL113: Preview centrado sobre la portada */}
+                    {coleccion.totalSamples > 0 && (
+                        <div className="tarjetaColeccionPreviewContenedor" onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
+                            <BotonBase variante="ghost"
+                                className={`tarjetaColeccionPreviewBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
+                                onClick={manejarPreview}
+                                type="button"
+                                aria-label={esPreviewActiva ? 'Detener preview' : 'Preview coleccion'}
+                                disabled={cargando}
+                            >
+                                {iconoPreview}
+                            </BotonBase>
+                        </div>
+                    )}
                 </div>
 
                 <div className="tarjetaColeccionInfo">
@@ -148,21 +162,6 @@ export const TarjetaColeccion = ({
                     <MoreVertical size={16} />
                 </BotonBase>
             </div>
-
-            {/* QQ75: Boton preview -- esquina inferior derecha de la portada */}
-            {coleccion.totalSamples > 0 && (
-                <div className="tarjetaColeccionPreviewContenedor">
-                    <BotonBase variante="ghost"
-                        className={`tarjetaColeccionPreviewBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
-                        onClick={manejarPreview}
-                        type="button"
-                        aria-label={esPreviewActiva ? 'Detener preview' : 'Preview coleccion'}
-                        disabled={cargando}
-                    >
-                        {iconoPreview}
-                    </BotonBase>
-                </div>
-            )}
 
             <MenuContextual
                 abierto={menu.abierto}
