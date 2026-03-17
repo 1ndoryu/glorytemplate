@@ -277,6 +277,12 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 
 Un boton en el menu contextual de las colecciones para combinar colecciones, esto abre un modal para elegir cual coleccion unir y cual nombre e imagen de portada conservar, solo se puede con las propias colecciones obviamente, sera dos slect como modalColeccionCampoPadre para elegir con quien combinar y cual sera el nombre y portada a conservar.
 
+El admin puede combinar cualquier coleccion de cualquier usuario, y si son de usuarios diferente tendra un select extra para elegir cual usuario se queda con la nueva coleccion
+
+por supuesto, esto no duplica la coleccion, combinar es pasar de 2 colecciones a 1
+
+que este proceso se pueda deshacerse, habrá un boton de durara 7 dias para restaurar el estado anterior, 
+
 ## QL116 
 
 poder selecionar varios samples manteniendo control y shift para selecionar rango, esto mostrara un mini modal pequeño inferior igual como el reproductor, de hecho, si el reproductor esta abierto en ese momento, tiene que quitarlo para mostrar esto, pero tecnicamente el mismo tamño del reproductor, el mismo estilo con los botones, etc, contendra el boton de like, colecionar (no confundir con guardar en coleccion) y guardar en coleccion, eliminar (si el usuario esta selecionando sus samples), descargar, (iconos todos sin texto), reportar, y todas estas opciones tienen que manejar la capacidad de aplicar cambios a multiples samples. 
@@ -284,10 +290,59 @@ poder selecionar varios samples manteniendo control y shift para selecionar rang
 cuando se selecione un sample simplemente su fondo se vuelve muted, 
 
 
+## QL117
+
+vi que se nombraba OpenAI gpt-4o-mini, nosotros no tenemos esa api, solo tenemos grop
+
+Y estas seguroo de lo que dices? porque me referia, porque en groq validartor hay _GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+_GROQ_MODEL = "llama-3.3-70b-versatile"
+_GROQ_TIMEOUT = 12
+
+o sea solo esta usando llama para decidir si un resultado es valido o no? tiene los modelos de respaldo? 
+
+## QL118
+
+Un boton al lado del ordenamiento en la pagina de librería para cambiar la vista de las colecciones, la vista actual es cuadricula por defecto la que tiene ahora, y la que propongo nueva como opciones vista de lista, 
+
+## QL119
+
+No se que sucede exactamente cuando se borra una coleccion, pero supongo que los samples se quedan sin coleccion. 
+
+Entonces lo que quiero, es que cuando se de borrar a una coleccion se abra un modal con un select para elegir si se borra los samples o sin borrar los samples. Si es una coleccion con hijas, entonces pregunta si borrar las hijas o simplemente dejarlas sin padre, otro select para preguntar si borrar tambien los samples de las hijas que caso de que se eliga borrar las colecciones hija o dejar los samples de las colecciones sin colecciones, todo esto debe manejarse bien y pulirse. 
+
+## QL120
+
+Tenog una duda sobre lo que propongo de combinar colecciones, cuando combinas dos colecciones padre ¿que pasa con sus hijas? esto tiene que manejarse bien el modal. Y si combinas una hija con un padre, pero esa hija tiene tambien colecciones ia. 
+
+## QL121 
+
+Algo fatal paso, habia subido una carpeta, con subcarpetas, las colecciones se crearon bien, todo esta bien, pero luego subi otra carpeta nueva con mas subcarpetas, se estaban subiendo pero se borraon las colecciones anteriores, esto no tiene que suceder, es fatal, cuando la opcion de borrar localmente despues de subir este activa, las colecciones no tienen que borrarse, pero no fue como eliminar, fue como un renombre, por ejemplo 
+veo que dice la url https://kamples.com/coleccion/freddie-dredd-drum-kit-vol-1-7/ pero el nombre de la coleccion cambio a DJ Smokey NukeKiT y todo lo de esa carpeta se combino con la coleccion freddie, entocnes el problema es que el sync uso compartamiento por defecto de ordenar las colecciones en base a las carpetas del usuario, pero esto no debe sucuder cuando el modo es "eliminar tras subida" 
+
+no solo necesito evitar que este problema vuelva a suceder, tambien necesito arreglarlo
+
+solo tengo 2 opciones, la ubicacion de las carpetas de subida se guardo en el servidor, entonces quiero que reodernes los samples de @wan (ID: 4), incluyendo la jerarquía 
+
+el 98% de los samples se subieron desde el sync, si no tienen ubicación guardada, entonces elimina todos los samples para poder volverlos a subir, y revisa que el sync detecte bien que estan elimiandos en el servidor para dejar que los suba
+
+
 # Tarea final
 
-Build APK + instalador desktop
-avisame de la ubicacion de ambos archivos.
+✅ [AG-MNT] Build APK + instalador desktop completado.
+
+**APK Android (arm64, firmado):** `desktop\src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release-unsigned.apk` (15.7 MB)
+**Instalador Windows NSIS:** `C:\cargo-target\kamples\release\bundle\nsis\Kamples_0.1.0_x64-setup.exe` (4.4 MB)
+**Instalador Windows MSI:** `C:\cargo-target\kamples\release\bundle\msi\Kamples_0.1.0_x64_en-US.msi` (6.2 MB)
+
+**Fixes aplicados durante build:**
+- `tauri.conf.json`: deep-link `"scheme": "kamples"` → `"scheme": ["kamples"]` (tauri-plugin-deep-link v2.4.7 requiere array).
+- WDAC: artifacts stale en `C:\cargo-target\kamples\release\build\tauri-plugin-deep-link-*` bloqueaban build. Limpiados.
+- Build universal (4 archs) fallaba en x86/i686 — compilado solo arm64 (aarch64) que cubre 99%+ dispositivos reales.
+
+**Lecciones:**
+- [tauri deep-link]: Plugin v2.4.7 cambió `scheme` de string a array. Error: `"invalid type: string, expected a sequence"`.
+- [Android build]: Build universal compila 4 targets (aarch64, armv7, i686, x86_64). Si x86 falla por WDAC o timeout, usar `--target aarch64` para arm64-only.
+- [WDAC]: Windows Application Control puede bloquear build scripts autogenerados por Cargo en OneDrive. `CARGO_TARGET_DIR` fuera de OneDrive es obligatorio, pero stale artifacts aún pueden causar bloqueo.
 
 
 ---

@@ -82,7 +82,7 @@
   "plugins": {
     "deep-link": {
       "mobile": [
-        { "scheme": "kamples", "host": "auth" }
+        { "scheme": ["kamples"], "host": "auth" }
       ]
     },
     "updater": {
