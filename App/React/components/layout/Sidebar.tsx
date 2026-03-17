@@ -6,7 +6,7 @@
  * Musica/Libreria/Coleccionados se mueven al menu hamburguesa del TopBar en movil.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
     Home,
     Users,
@@ -94,14 +94,16 @@ export const Sidebar = ({
 
     const alternarNotisMovil = useCallback(() => {
         setMsgsAbiertos(false);
-        setNotisAbiertas(prev => {
-            if (!prev && totalNotisNoLeidas > 0) {
-                marcarTodasLeidasLocal();
-                void marcarTodasLeidas();
-            }
-            return !prev;
-        });
-    }, [marcarTodasLeidasLocal, totalNotisNoLeidas]);
+        setNotisAbiertas(prev => !prev);
+    }, []);
+
+    /* Marcar leídas fuera del updater para evitar setState-during-render */
+    useEffect(() => {
+        if (notisAbiertas && totalNotisNoLeidas > 0) {
+            marcarTodasLeidasLocal();
+            void marcarTodasLeidas();
+        }
+    }, [notisAbiertas, totalNotisNoLeidas, marcarTodasLeidasLocal]);
 
     const alternarMsgsMovil = useCallback(() => {
         setNotisAbiertas(false);

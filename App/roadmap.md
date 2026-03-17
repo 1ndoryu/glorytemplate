@@ -1,4 +1,4 @@
-# Kamples -- Roadmap Integral de Producto
+﻿# Kamples -- Roadmap Integral de Producto
 
 > **Version:** 4.3 | **Ultima actualizacion:** 08/06/2026 | **Stack:** Glory Framework (WP + React Islands + TS)
 
@@ -100,32 +100,32 @@ Completado [AG-MNT] -- QL5-QL95 movidos a `docs/roadmap/completado.md` (seccion 
 
 ## Pendientes
 
-### QL96/QL98 — Desktop pantalla negra
+### QL96/QL98 â€” Desktop pantalla negra
 
-[EN CURSO — AG-MNT] React no monta en Tauri webview (dev y build). Diagnostico:
+[EN CURSO â€” AG-MNT] React no monta en Tauri webview (dev y build). Diagnostico:
 - Body tiene clases plataformaTauri/plataformaEscritorio (init() empieza bien)
 - Sync funciona en background (inicializarDesktop() completa)
 - DOM #app queda vacio (React no renderiza o crash silencioso durante render)
 - Causa exacta: aun no identificada (build compila OK, type-check OK)
 
 **Cambios diagnosticos realizados:**
-- `RootErrorBoundary` en AppProvider (appIslands.tsx) — muestra errores de render en pantalla
-- Error handlers inline en index.html — captura errores de carga de modulos JS
-- console.warn en init() (desktop/src/main.tsx) — traza paso a paso de inicializacion
+- `RootErrorBoundary` en AppProvider (appIslands.tsx) â€” muestra errores de render en pantalla
+- Error handlers inline en index.html â€” captura errores de carga de modulos JS
+- console.warn en init() (desktop/src/main.tsx) â€” traza paso a paso de inicializacion
 - Proximo paso: ejecutar `npm run tauri:dev`, el RootErrorBoundary mostrara el error exacto en rojo
 
 ### QL97
 
-✅ [AG-MNT] panelLateral: default 360px, max 500px (antes 340/700). Variable CSS actualizada.
+âœ… [AG-MNT] panelLateral: default 360px, max 500px (antes 340/700). Variable CSS actualizada.
 
 ### QL99
 
-✅ [AG-MNT] CORS fix: endpoint `/descargas/stream` usa readfile()+exit (bypasea rest_pre_serve_request).
+âœ… [AG-MNT] CORS fix: endpoint `/descargas/stream` usa readfile()+exit (bypasea rest_pre_serve_request).
 Headers CORS manuales agregados en DescargasStreamController.php para origenes Tauri/dev.
 
 ### QL100
 
-✅ [AG-MNT] Multiples fixes APK Android:
+âœ… [AG-MNT] Multiples fixes APK Android:
 - **QL100a** Login persistente: modal sin X en APK, auto-abre si no autenticado, layout single-column
 - **QL100b** Google OAuth Mobile: deep-link `kamples://auth`, servicio `googleAuthMobileService.ts`, PHP `mobileCallback()` con PKCE, plugin deep-link en Tauri. **NOTA:** redirect URI `https://kamples.com/wp-json/kamples/v1/auth/google/mobile-callback` debe registrarse en Google Cloud Console.
 - **QL100c** Descargas: reemplazado `<a download>` (no funciona en WebView) por `fetch()` + `@tauri-apps/plugin-fs writeFile` a Downloads
@@ -134,111 +134,54 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 
 ### QL101
 
-✅ [AG-MNT] Config movil: bottom-sheet parcial (max-height 75vh) con overlay backdrop en vez de fullscreen. Separadores entre botones eliminados.
+âœ… [AG-MNT] Config movil: bottom-sheet parcial (max-height 75vh) con overlay backdrop en vez de fullscreen. Separadores entre botones eliminados.
 
 ### QL102
 
-✅ [AG-MNT] FCM background: agregado campo `notification` al payload FCM (antes solo data). Android muestra automaticamente la notificacion cuando la app esta cerrada. Canal configurable por tipo (mensajes vs notificaciones).
+âœ… [AG-MNT] FCM background: agregado campo `notification` al payload FCM (antes solo data). Android muestra automaticamente la notificacion cuando la app esta cerrada. Canal configurable por tipo (mensajes vs notificaciones).
 
 ### QL103
 
-✅ [AG-MNT] Sync loop fix: flag `descargaMasivaActiva` en syncGuards, suprime eventos de carpeta/subcarpeta durante descarga masiva. Guard de tracking en subcarpeta callback. Gracia de descarga aumentada 10s→30s.
+âœ… [AG-MNT] Sync loop fix: flag `descargaMasivaActiva` en syncGuards, suprime eventos de carpeta/subcarpeta durante descarga masiva. Guard de tracking en subcarpeta callback. Gracia de descarga aumentada 10sâ†’30s.
 
 ---
 
 ## Lecciones aprendidas (sesion actual)
 
-- [APK/Download]: `<a download>` no funciona en Android WebView — cuelga la app intentando renderizar binario como HTML. Usar fetch+fs plugin.
-- [APK/OAuth]: Android no soporta TcpListener localhost. Flujo mobile: browser → server callback → deep link `kamples://auth?payload=base64url`
+- [APK/Download]: `<a download>` no funciona en Android WebView â€” cuelga la app intentando renderizar binario como HTML. Usar fetch+fs plugin.
+- [APK/OAuth]: Android no soporta TcpListener localhost. Flujo mobile: browser â†’ server callback â†’ deep link `kamples://auth?payload=base64url`
 - [FCM]: Data-only messages con `high` priority pueden no entregarse en background en algunos OEMs Android. Siempre incluir campo `notification` junto con `data`.
 - [CSS/Safe-area]: Variables centralizadas `--safeAreaTop`/`--safeAreaBottom` con override en `body.plataformaAndroid` usando `env(safe-area-inset-top)`. Requiere `viewport-fit=cover` en meta viewport.
 - [Sync/Loop]: Los eventos NTFS de carpeta/subcarpeta se disparan con cada `mkdir`/`writeFile` durante sync masivo. Flag global `descargaMasivaActiva` es la solucion mas limpia.
 - [Toast API]: El store usa `toast.exito()` no `toast.success()` (esta en espanol).
-- [Config modal]: Tauri plugin deep-link v2 expone `onOpenUrl()` en JS — el plugin maneja forwarding automatico sin necesidad de emitir eventos desde Rust.
+- [Config modal]: Tauri plugin deep-link v2 expone `onOpenUrl()` en JS â€” el plugin maneja forwarding automatico sin necesidad de emitir eventos desde Rust.
 
 ## QL104
 
-[EN CURSO — AG-MNT] Samples que no suben/eliminan durante sync. Crear diagnostico de estado de archivos locales vs servidor.
-- Si estan duplicados, se suben igualmente y se eliminan (con opcion de eliminar al subir activa). El servidor resuelve dedup.
+âœ… [AG-MNT] Diagnostico sync: archivos duplicados ya no se re-suben. Resuelto en sesion anterior.
 
 ## QL105
 
-[EN CURSO — AG-MNT] Desktop crash: deep-link plugin config espera sequence, no string.
-Error: `invalid type: string "kamples", expected a sequence` en `plugins.deep-link`.
+âœ… [AG-MNT] Desktop crash: deep-link plugin config corregida (sequence en vez de string).
 
-## L106
+## QL106
 
-ya vi quen o quearon archivos, esta resuelto lo de QL104, solo creo falta una revision para ver que realmente no se borren archivos 
+âœ… [AG-MNT] Tres bugs reportados por usuario:
+- **setState-during-render**: `marcarTodasLeidasLocal()` (Zustand set) se llamaba dentro del updater de `setNotificacionesAbiertas`, disparando re-render de Sidebar durante render de TopBar. Fix: extraer a `useEffect` en useTopBar.ts y Sidebar.tsx.
+- **Duplicados silenciosos**: Hash conocido con archivo activo causaba `return false` sin feedback. Fix: log claro `"Duplicado confirmado..."` + eliminacion del archivo local del disco.
+- **Descargas con borrarAlSubirExitoso**: Polling periodico en syncWatcherSetup.ts llamaba `sincronizarColecciones(soloEstructura=false)` sin verificar flag. Fix: pasar `soloEstructura=true` cuando borrarAlSubirExitoso activo + defensa en profundidad en syncCollectionService.ts.
 
-vi eeste error en la aplicacion de escritorio
+## QL107
 
-notificacionesStore.ts:84 
- Warning: Cannot update a component (`Sidebar`) while rendering a different component (`TopBar`). To locate the bad setState() call inside `TopBar`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
-    at TopBar (
+[EN CURSO â€” AG-MNT] Corregir errores TypeScript pre-existentes en desktop/src/services.
 
-Probando un poco el comportamiento noto que bien, no vuelve a subir los archivos duplicados
+## QL108
 
-Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
-authDesktopService.ts:72 [AuthDesktop] Init — LS: OK | tokenLS: true | userLS: true
-authDesktopService.ts:84 [AuthDesktop] TauriStore — token: true | user: true
-authDesktopService.ts:149 [AuthDesktop] Init OK — token: true, user: true
-syncLogger.ts:108 [sync:syncService] Inicializando sync service Object
-syncLogger.ts:108 [sync:journal] Checkpoint cargado correctamente 
-syncLogger.ts:108 [sync:tracking] Estado recuperado desde journal 
-syncLogger.ts:108 [sync:watcher] Observando carpeta: C:\Users\Owner\OneDrive\Documentos\test 
-syncWatcherSetup.ts:1159 [Sync] Sync bidireccional activado
-syncLogger.ts:108 [sync:syncWatcher] Reconciliación de descargas: 1773712298s sin sync completa, forzando 
-syncCollectionService.ts:471 [SyncCollection] Omitiendo purge por ventana de gracia (sample reciente): 829 Rim-Reverb_KgmE_2upra.wav
-syncLogger.ts:108 [sync:orphanAnalysis] Analisis periodico de huerfanos iniciado (cada 30min) 
-(index):1 [Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
-syncWatcherSetup.ts:155 [Sync] Escaneo local: 1 archivo(s) nuevo(s) encolado(s) para subida
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: SM_PW_synth_bass_connection_F#.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
-uploadQueueService.ts:556 [UploadQueue] Hash conocido pero sin archivo activo en tracking, evictando hash stale: SM_PW_synth_bass_connection_F#.wav
-uploadQueueService.ts:600 [UploadQueue] Archivo encolado: SM_PW_synth_bass_connection_F#.wav
-syncRegistroService.ts:183 [Sync] Archivo movido a Sin colección: SM_PW_synth_bass_connection_F#.wav
-uploadQueueService.ts:1125 [UploadQueue] Subido exitosamente: SM_PW_synth_bass_connection_F#.wav → sample_id: 830
-syncLogger.ts:108 [sync:uploadQueue] Archivo local borrado tras subida: SM_PW_synth_bass_connection_F#.wav 
-syncLogger.ts:108 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav 
-syncLogger.ts:108 [sync:orphanAnalysis] Archivo huerfano encolado: Rim-Reverb_KgmE_2upra.wav 
-syncLogger.ts:108 [sync:orphanAnalysis] Analisis completado {encolados: 1, eliminados: 0, reintentados: 0, carpetasVacias: 1}
-syncLogger.ts:108 [sync:watcher] Eliminación confirmada (no fue move): C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav 
-syncWatcherSetup.ts:751 [Sync] Ignorando DELETE de ruta movida internamente: C:\Users\Owner\OneDrive\Documentos\test\SM_PW_synth_bass_connection_F#.wav
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: SM_PW_synth_bass_connection_F#.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 2 archivos nuevos acumulados 
-uploadQueueService.ts:465 [UploadQueue] Archivo ya en proceso de encolamiento, ignorando: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
-uploadQueueService.ts:556 [UploadQueue] Hash conocido pero sin archivo activo en tracking, evictando hash stale: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
-uploadQueueService.ts:600 [UploadQueue] Archivo encolado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
-syncRegistroService.ts:183 [Sync] Archivo movido a Sin colección: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
-uploadQueueService.ts:1125 [UploadQueue] Subido exitosamente: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav → sample_id: 831
-syncLogger.ts:108 [sync:uploadQueue] Archivo local borrado tras subida: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
-syncLogger.ts:108 [sync:watcher] Eliminación detectada (esperando 5000ms por posible move): C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
-syncLogger.ts:108 [sync:watcher] Eliminación confirmada (no fue move): C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav 
-syncWatcherSetup.ts:751 [Sync] Ignorando DELETE de ruta movida internamente: C:\Users\Owner\OneDrive\Documentos\test\looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient.wav
-
-voy a probar cambiar el nombre de uno pero con el mismo sonido
-
-[sync:watcher] Archivo nuevo detectado: looperman-l-6724938-0404393-clams-casino-half-beat-chops-ethereal-ambient-nombrecambiado.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
-
-no lo sube, no digo que este compartamiento este mal, digo que ahora debe ser menos agresivo la detección duplicados, tambien pasa que no deja claro la razon por la cual no lo sube, osea que al menos diga, no se sube porque esta duplicado, pero en ese caso al menos tiene que borrarlo y no dejarlo ahi, realmente tiene que borrar si el duplicado es seguro, si no es seguro subirlo al servidor y dejar que se decida alla manualmente si se publica o no, es todo, revisa bien
-
-tambien vi que intenta descargar samples o los descarga cuando la opcion de borrar archivo local al subir esta activa, esto no debe pasar, es fatal
-
-[SyncCollection] Omitiendo purge por ventana de gracia (sample reciente): 829 Rim-Reverb_KgmE_2upra.wav
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: F Sharp Synth Bass One Shot F#.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
-syncWatcherSetup.ts:868 [Sync] Ignorando create propio (descarga en curso): F Sharp Synth Bass One Shot F#.wav
-syncLogger.ts:108 [sync:watcher] Archivo nuevo detectado: Ethereal Chopped Ambient Loop 126bpm Fm.wav carpetas:  
-syncLogger.ts:108 [sync:watcher] Flush batch: 1 archivos nuevos acumulados 
-syncWatcherSetup.ts:868 [Sync] Ignorando create propio (descarga en curso): Ethereal Chopped Ambient Loop 126bpm Fm.wav
+Pendiente: Revisar resiliencia del sistema de scrappy/extraccion/recorte de audio â€” rate limits IA, modelos de respaldo, comparar con cola IA interna.
 
 # Tarea final
 
-Cuando se resuelva QL104+QL105: actualizar APK + instalador desktop.
+Build APK + instalador desktop tras QL106+QL107.
 
 
 
@@ -272,29 +215,7 @@ Cuando se resuelva QL104+QL105: actualizar APK + instalador desktop.
   - [Traefik labels]: Cambio FQDN en Coolify requiere force-recreate del contenedor. Datos persisten en volumenes.
   - [SSL]: Traefik emite cert automatico con certresolver letsencrypt. Verificar: `docker exec coolify-proxy grep kamples /traefik/acme.json`.
   - [Coolify DB]: Stacks Docker Compose en `services` + `service_applications`. UUID stack: `mo4so4440c488g8woow4cow0`.
-  - [Android build WDAC]: `tauri android build` falla con "os error 4551" (Control de Aplicaciones bloquea build scripts en OneDrive). Fix: `$env:CARGO_TARGET_DIR = "C:\cargo-target\kamples"` antes de ejecutar. El `.cargo/config.toml` solo aplica al cargo directo, no al invocado por Gradle.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Comando para actualizar produccion
+  - [Android build WDAC]: `tauri android build` falla con "os error 4551" (Control de Aplicaciones bloquea build scripts en OneDrive). Fix: `$env:CARGO_TARGET_DIR = "C:\cargo-target\kamples"` antes de ejecutar. El `.cargo/config.toml` solo aplica al cargo directo, no al invocado por Gradle.`n`n## Comando para actualizar produccion
 
 ```powershell
 cd .agent/coolify-manager-rs

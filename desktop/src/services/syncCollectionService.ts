@@ -713,7 +713,14 @@ export async function sincronizarColecciones(
     } catch { /* puede existir */ }
 
     /* Modo soloEstructura: no descargar archivos (usado por polling periodico) */
-    if (soloEstructura) {
+    /* QL106: Defensa en profundidad — si borrarAlSubirExitoso está activo,
+     * forzar soloEstructura aunque el caller no lo indique. Evita que
+     * cualquier ruta futura dispare descargas cuando el usuario quiere
+     * mantener archivos solo en servidor. */
+    if (soloEstructura || estado.configAvanzada.borrarAlSubirExitoso) {
+        if (estado.configAvanzada.borrarAlSubirExitoso && !soloEstructura) {
+            logSync.debug('collectionSync', 'Descargas bloqueadas: borrarAlSubirExitoso activo');
+        }
         return { nuevos: 0, errores: 0 };
     }
 

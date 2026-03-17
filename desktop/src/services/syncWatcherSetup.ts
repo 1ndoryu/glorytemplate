@@ -704,12 +704,17 @@ async function sincronizarEstructuraCarpetas(): Promise<boolean> {
     if (collectionModule) {
         try {
             /*
-             * C289: soloEstructura=false → descarga samples nuevos del servidor.
-             * Antes siempre era true, lo que impedía descargar samples publicados
-             * desde la web. La lógica de descarga tiene guards (esDescargaEnCurso,
-             * verificación de existencia) que evitan re-descargas y conflictos.
+             * QL106: Si borrarAlSubirExitoso está activo, forzar soloEstructura=true
+             * para mantener tracking de carpetas pero NO descargar archivos.
+             * Sin este guard, el polling periódico descarga samples que el usuario
+             * quiere mantener solo en servidor (el orquestador tiene su propio guard,
+             * pero esta ruta bypasea el orquestador).
              */
-            const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, false);
+            const soloEstructura = estado.configAvanzada.borrarAlSubirExitoso;
+            if (soloEstructura) {
+                logSync.debug('syncWatcher', 'Descargas omitidas en polling: borrarAlSubirExitoso activo');
+            }
+            const resultado = await collectionModule.sincronizarColecciones(config.carpetaLocal, undefined, soloEstructura);
             /* C289b: Actualizar timestamp de última sync completa con descargas */
             ultimaSyncConDescargas = Date.now();
             /* Hubo cambios si se descargaron nuevos archivos o se crearon carpetas */

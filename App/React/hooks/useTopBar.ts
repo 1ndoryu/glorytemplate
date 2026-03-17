@@ -159,17 +159,18 @@ export const useTopBar = () => {
 
     const alternarNotificaciones = useCallback(() => {
         setMensajesAbiertos(false);
-        setNotificacionesAbiertas((prev) => {
-            const siguiente = !prev;
+        setNotificacionesAbiertas(prev => !prev);
+    }, []);
 
-            if (siguiente && totalNotificacionesNoLeidas > 0) {
-                marcarTodasLeidasLocal();
-                void marcarTodasLeidas();
-            }
-
-            return siguiente;
-        });
-    }, [marcarTodasLeidasLocal, totalNotificacionesNoLeidas]);
+    /* Marcar leídas FUERA del updater de setState para evitar
+     * "Cannot update Sidebar while rendering TopBar" (Zustand set() síncrono
+     * notifica suscriptores durante la fase de render del updater). */
+    useEffect(() => {
+        if (notificacionesAbiertas && totalNotificacionesNoLeidas > 0) {
+            marcarTodasLeidasLocal();
+            void marcarTodasLeidas();
+        }
+    }, [notificacionesAbiertas, totalNotificacionesNoLeidas, marcarTodasLeidasLocal]);
 
     const alternarMensajes = useCallback(() => {
         setNotificacionesAbiertas(false);

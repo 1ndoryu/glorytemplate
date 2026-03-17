@@ -544,11 +544,12 @@ async function encolarArchivoInterno(
     if (hash && hashesConocidos.has(hash)) {
         /*
          * C6 fix: Hash conocido → verificar si ALGÚN archivo activo en tracking
-         * tiene ese contenido. Antes se buscaba solo por ruta del archivo nuevo,
-         * lo que fallaba para copias cross-carpeta (ruta diferente, contenido idéntico).
+         * tiene ese contenido. Si existe, es duplicado confirmado (mismo contenido,
+         * posiblemente nombre diferente). El servidor ya tiene este sample.
          *
-         * QL66-EXTRA: Ya NO mueve a duplicados/. El archivo ya fue subido previamente
-         * al servidor, no necesita re-subirse. El skip evita bandwidth, no dedup.
+         * QL106: Duplicado confirmado → borrar archivo local + log claro.
+         * Hash parcial (size + primeros/últimos 8KB SHA-256) es suficientemente
+         * fiable para audio. El servidor tiene dedup adicional en PipelineAudio.
          */
         if (estado.trackingModule) {
             const hayActivoConHash = existeArchivoActivoConHash(hash);
@@ -557,7 +558,14 @@ async function encolarArchivoInterno(
                 hashesConocidos.delete(hash);
                 /* Continuar con encolamiento normal */
             } else {
-                logSync.debug('uploadQueue', `Hash ya subido previamente, ignorando sin mover: ${nombreNormalizado}`);
+                console.info(`[UploadQueue] Duplicado confirmado — "${nombreNormalizado}" tiene el mismo contenido que un sample ya subido. Eliminando archivo local.`);
+                try {
+                    const { remove } = await import('@tauri-apps/plugin-fs');
+                    await remove(rutaArchivo);
+                    logSync.info('uploadQueue', `Archivo duplicado eliminado de disco: ${nombreNormalizado}`);
+                } catch (errBorrar) {
+                    logSync.warn('uploadQueue', `No se pudo eliminar duplicado "${nombreNormalizado}": ${errBorrar instanceof Error ? errBorrar.message : String(errBorrar)}`);
+                }
                 return false;
             }
         } else {
