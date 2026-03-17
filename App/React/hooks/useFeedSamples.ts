@@ -465,6 +465,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         manejarClickTitulo,
         manejarComentar,
 
+        /* QL109: Refresco manual (pull-to-refresh) */
+        refrescar: useCallback(async () => { await cargarPagina(1, true); }, [cargarPagina]),
+
         /* Throttle paginacion — pausa automatica, sin boton manual */
     };
 }

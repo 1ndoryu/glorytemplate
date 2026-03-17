@@ -244,6 +244,20 @@ class PipelineAudio
         if ($hashArchivo) {
             $actualizaciones['audio_hash'] = $hashArchivo;
 
+            /*
+             * QL110: Persistir hash INMEDIATAMENTE antes de la verificacion de duplicados.
+             * Sin esto, uploads paralelos de sync no se detectan mutuamente porque ambos
+             * estan en 'procesando' con audio_hash=NULL hasta que se ejecuta el paso 8.
+             * Al escribir el hash aqui, el segundo pipeline en entrar lo encontrara.
+             */
+            try {
+                PipelineAudioHelpers::actualizarSample($sampleId, [SamplesCols::AUDIO_HASH => $hashArchivo]);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Pipeline: Error persistiendo hash inmediato, continuando', [
+                    'sampleId' => $sampleId, 'error' => $e->getMessage(),
+                ]);
+            }
+
             /* Saltar verificacion de duplicados si el sample fue aprobado por admin */
             if (!$omitirDedup) {
             $duplicados = SamplesRepository::buscarConHash($hashArchivo, $sampleId);

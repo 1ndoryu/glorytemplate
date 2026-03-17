@@ -158,11 +158,11 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 
 ## QL104
 
-âœ… [AG-MNT] Diagnostico sync: archivos duplicados ya no se re-suben. Resuelto en sesion anterior.
+[AG-MNT] Diagnostico sync: archivos duplicados ya no se re-suben. Resuelto en sesion anterior.
 
 ## QL105
 
-âœ… [AG-MNT] Desktop crash: deep-link plugin config corregida (sequence en vez de string).
+[AG-MNT] Desktop crash: deep-link plugin config corregida (sequence en vez de string).
 
 ## QL106
 
@@ -173,11 +173,55 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 
 ## QL107
 
-[EN CURSO â€” AG-MNT] Corregir errores TypeScript pre-existentes en desktop/src/services.
+✅ [AG-MNT] Fix 6 errores TypeScript pre-existentes en desktop/src/services: tipos locales para fs plugin, wrappers Uint8Array, casts Parameters<>.
 
 ## QL108
 
-Pendiente: Revisar resiliencia del sistema de scrappy/extraccion/recorte de audio â€” rate limits IA, modelos de respaldo, comparar con cola IA interna.
+Pendiente: Revisar resiliencia del sistema de scrappy/extraccion/recorte de audio — solo procesos que involucran IA (rate limits, modelos de respaldo, comparar con cola IA interna). Ver QL111.
+
+## QL109 
+
+✅ [AG-MNT] Pull-to-refresh + estado offline para Android/movil:
+- **useConectividad.ts**: Zustand store + hook que detecta online/offline via navigator.onLine + eventos del browser.
+- **usePullToRefresh.ts**: Hook touch-based con refs para closure safety, threshold 80px, resistencia 0.4.
+- **FeedSamples.tsx**: Estado offline completo (sin datos + sin conexion), banner offline (datos cached + desconexion), indicador pull-to-refresh con spinner.
+- **feedSamples.css**: Estilos para pull indicator, estados offline, animacion girarRefresh.
+- Audio cache: delegado al HTTP cache del browser/WebView (HTMLAudioElement con preload='metadata').
+
+## QL110 
+
+✅ [AG-MNT] Fix deteccion duplicados sync — dos causas raiz:
+- **Race condition**: buscarConHash() solo buscaba estado=activo, uploads paralelos de sync ambos en procesando no se detectaban mutuamente. Fix: expandido a estado != eliminado.
+- **Hash no persistido**: SHA-256 se acumulaba en actualizaciones y solo se guardaba al final del pipeline (paso 8). Fix: persistir hash inmediatamente tras computarlo (antes del dup check) con PipelineAudioHelpers::actualizarSample().
+
+## QL111
+
+descarte los cambios de que hiciste sobre ql08, en realidad era una revision al sistema de scrappy y recorte pero solo a los procesos que involucran IA!
+
+## QL112
+
+Revisar que cuando se elimine a un usuario, todo su contenido se borre tambien, o cuando este suspendido o baneando su contenido incluyendo samples, publicaciones, colecciones, esten ocultos. 
+
+## QL113
+
+filaColecciones no puede moverse el scroll con el mouse, debería, y veo que parece que esta filtrando por usuario, deben aparecer todas las colecciones publicadas ordenadas por relevancia y likes. 
+
+Y el boton de play pause en las lista de colecciones no aparece en el centro, debe aparecer en el centro y bajar el brillo un poco a la imagen. Me refiero a tarjetaColeccion.
+
+# QL114 
+
+No hay una indicación de cuando una coleccion es una subcolección, o sea, digo que en donde aparece 
+<button class="botonBase varianteGhost tamanoMd botonVolver" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg><span>Librería</span></button>
+
+solo debe aparecer para las colecciones de primer nivel 
+
+y para las subcolecciones aparece migas de pan con el mismo estilo del boton 
+
+tampoco hay una forma de cambiar la estructura, creo que para mantenerlo sencillo, en las configuraciones de la coleccion aparezca un select para elegir la coleccion padre o volverla superior. 
+
+Esto tiene que funcionar bien.
+
+Lo de las colecciones padre funciona bien, tienen 
 
 # Tarea final
 

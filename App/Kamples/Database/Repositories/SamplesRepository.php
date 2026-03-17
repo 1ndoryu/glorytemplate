@@ -1161,7 +1161,11 @@ class SamplesRepository extends BaseRepository
 
     /*
      * Buscar samples duplicados por audio_hash (excluye el sample original).
-     * Usado por DeduplicadorAudio.
+     * Usado por PipelineAudio (paso 2.5) y DeduplicadorAudio.
+     *
+     * QL110: Busca en TODOS los estados excepto 'eliminado'.
+     * Antes solo buscaba 'activo', causando race condition cuando uploads
+     * paralelos de sync estaban ambos en 'procesando'.
      */
     public static function buscarConHash(string $hash, int $excluirId): array
     {
@@ -1170,7 +1174,7 @@ class SamplesRepository extends BaseRepository
         return static::consultar(
             "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID . ", " . SamplesCols::TITULO
             . " FROM {$ts} WHERE " . SamplesCols::AUDIO_HASH . " = :hash AND " . SamplesCols::ID . " != :id"
-            . " AND " . SamplesCols::ESTADO . " = '" . SamplesEnums::ESTADO_ACTIVO . "'",
+            . " AND " . SamplesCols::ESTADO . " != '" . SamplesEnums::ESTADO_ELIMINADO . "'",
             ['hash' => $hash, 'id' => $excluirId]
         );
     }

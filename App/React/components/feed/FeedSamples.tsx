@@ -7,7 +7,7 @@
  * Lógica extraída a useFeedSamples (SRP).
  */
 
-import { Music } from 'lucide-react';
+import { Music, WifiOff, RefreshCw } from 'lucide-react';
 import '../../styles/componentes/feedSamples.css';
 import { TarjetaSample } from '@app/components/ui/TarjetaSample';
 
@@ -16,6 +16,9 @@ import { ModalInspectorSample } from '@app/components/ui/ModalInspectorSample';
 import { FiltroTags } from '@app/components/feed/FiltroTags';
 import { SkeletonTarjetaSample } from '@app/components/skeletons';
 import { useFeedSamples } from '@app/hooks/useFeedSamples';
+import { useConectividad } from '@app/hooks/useConectividad';
+import { usePullToRefresh } from '@app/hooks/usePullToRefresh';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import type { SampleResumen } from '@app/types';
 
 /* QL35: Resultado del proveedor — distingue exito de error para que el hook
@@ -86,6 +89,14 @@ export const FeedSamples = ({
         filtroAdicional,
     });
 
+    /* QL109: Estado de conectividad y pull-to-refresh */
+    const enLinea = useConectividad();
+    const esMovil = useEsMovil();
+    const pullToRefresh = usePullToRefresh({
+        onRefrescar: feed.refrescar,
+        habilitado: esMovil,
+    });
+
     /* QL20: Mostrar skeleton hasta que haya al menos una carga exitosa.
      * primeraCargaCompleta es false solo cuando: no hay cache persistente Y la API no ha
      * respondido todavia. Esto elimina el flash de "No se encontraron samples" que ocurria
@@ -106,8 +117,46 @@ export const FeedSamples = ({
         );
     }
 
+    /* QL109: Si no hay conexion y no hay datos cacheados, mostrar estado offline */
+    if (!enLinea && feed.samplesFiltrados.length === 0) {
+        return (
+            <div className={`feedSamplesContenedor ${className}`} id={id}>
+                <div className="feedSamplesOffline">
+                    <WifiOff size={48} />
+                    <h3>Sin conexion a internet</h3>
+                    <p>Revisa tu conexion e intenta de nuevo.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className={`feedSamplesContenedor ${className}`} id={id}>
+        <div
+            className={`feedSamplesContenedor ${className}`}
+            id={id}
+            ref={pullToRefresh.contenedorRef}
+        >
+            {/* QL109: Indicador pull-to-refresh */}
+            {esMovil && (pullToRefresh.distanciaArrastre > 0 || pullToRefresh.refrescando) && (
+                <div
+                    className={`feedPullIndicador ${pullToRefresh.refrescando ? 'feedPullRefrescando' : ''}`}
+                    style={{ height: pullToRefresh.distanciaArrastre }}
+                >
+                    <RefreshCw
+                        size={20}
+                        className={pullToRefresh.refrescando ? 'feedPullGirando' : ''}
+                    />
+                </div>
+            )}
+
+            {/* QL109: Banner offline con datos cacheados */}
+            {!enLinea && (
+                <div className="feedSamplesBannerOffline">
+                    <WifiOff size={14} />
+                    <span>Sin conexion — mostrando datos guardados</span>
+                </div>
+            )}
+
             {/* Filtros de tags y BPM — componente reutilizable */}
             {mostrarTags && (
                 <FiltroTags
