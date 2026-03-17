@@ -1,20 +1,39 @@
 /*
  * Hook: useModalAuth
  * Lógica del modal de autenticación: acceso a store y navegación entre vistas.
- * Extraído de ModalAuth.tsx para cumplir SRP.
+ * QL100a: En Android (APK), el modal es persistente — no se puede cerrar sin autenticarse.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAuthModalStore } from '@app/stores/authModalStore';
+import { useAuthStore } from '@app/stores/authStore';
+import { esAndroid } from '@app/utils/plataforma';
 
 export const useModalAuth = () => {
     const abierto = useAuthModalStore(s => s.abierto);
     const vista = useAuthModalStore(s => s.vista);
-    const cerrar = useAuthModalStore(s => s.cerrar);
+    const cerrarStore = useAuthModalStore(s => s.cerrar);
+    const abrirStore = useAuthModalStore(s => s.abrir);
     const cambiarVista = useAuthModalStore(s => s.cambiarVista);
+    const autenticado = useAuthStore(s => s.autenticado);
+
+    const esApk = esAndroid();
+
+    /* QL100a: En APK, forzar modal abierto cuando no hay sesión */
+    useEffect(() => {
+        if (esApk && !autenticado) {
+            abrirStore('login');
+        }
+    }, [esApk, autenticado, abrirStore]);
+
+    /* En APK sin autenticar, cerrar es no-op */
+    const cerrar = useCallback(() => {
+        if (esApk && !autenticado) return;
+        cerrarStore();
+    }, [esApk, autenticado, cerrarStore]);
 
     const cambiarALogin = useCallback(() => cambiarVista('login'), [cambiarVista]);
     const cambiarARegistro = useCallback(() => cambiarVista('registro'), [cambiarVista]);
 
-    return { abierto, vista, cerrar, cambiarALogin, cambiarARegistro };
+    return { abierto, vista, cerrar, cambiarALogin, cambiarARegistro, puedesCerrar: !(esApk && !autenticado) };
 };

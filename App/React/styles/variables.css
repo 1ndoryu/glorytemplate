@@ -106,6 +106,10 @@
     --landingPaddingHeroSuperior: 4rem;
     --landingFuenteTitulo: 'Junicode Landing', 'Times New Roman', serif;
     --landingFuenteSubtitulo: 'Bricolage Landing', var(--fuentePrincipal);
+
+    /* Safe area — overridden por plataforma Android/iOS cuando viewport-fit=cover */
+    --safeAreaTop: 0px;
+    --safeAreaBottom: 0px;
 }
 
 :root[data-theme='light'] {

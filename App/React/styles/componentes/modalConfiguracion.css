@@ -354,17 +354,38 @@ nav.configNavLista button {
 }
 
 /*
- * QL89: Pantalla completa móvil (sin Modal wrapper)
- * Renderizado como portal directo a body, con animación slide-up.
+ * QL89+QL101: Bottom sheet parcial tipo menu contextual movil.
+ * Reemplaza la pantalla completa por un panel anclado abajo con max-height.
  */
-.configMovilPantalla {
+
+/* Overlay semitransparente — click fuera cierra */
+.configMovilOverlay {
     position: fixed;
     inset: 0;
     z-index: var(--zModal);
-    background-color: var(--fondoBase);
+    background-color: var(--overlayOscuro);
+    display: flex;
+    align-items: flex-end;
+    animation: configFadeIn 0.2s ease-out;
+}
+
+@keyframes configFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.configMovilPantalla {
+    position: relative;
+    width: 100%;
+    max-height: 75vh;
+    z-index: var(--zModal);
+    background-color: var(--fondoElevado1);
     display: flex;
     flex-direction: column;
+    padding-bottom: var(--safeAreaBottom);
+    border-radius: var(--radioLg) var(--radioLg) 0 0;
     animation: configSlideUp 0.25s ease-out;
+    overflow: hidden;
 }
 
 @keyframes configSlideUp {
@@ -412,7 +433,6 @@ nav.configNavLista button {
 .configMovilNav .configNavItem {
     padding: var(--espacioMd) var(--espacioLg);
     font-size: var(--fuenteSm);
-    border-bottom: 1px solid var(--bordeSutil);
     border-radius: 0;
     min-height: 48px;
 }

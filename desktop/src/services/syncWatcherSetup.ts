@@ -1099,6 +1099,13 @@ export async function inicializarSyncBidireccional(): Promise<void> {
                         return;
                     }
 
+                    /* QL103: Guard — omitir si la subcolección ya existe en tracking */
+                    const subExistente = trackingModule.buscarSubcoleccion(carpetaPadre, nombreSub);
+                    if (subExistente) {
+                        console.info('[Sync] Subcarpeta ya vinculada en tracking, omitiendo:', carpetaPadre, '/', nombreSub, '→ id:', subExistente.id);
+                        return;
+                    }
+
                     console.info('[Sync] Subcarpeta nueva → crear subcolección:', nombreSub, 'en', carpetaPadre, '(padreId:', padre.id, ')');
                     colMod.crearColeccionDesdeLocal(nombreSub, padre.id).catch(err => {
                         console.error('[Sync] Error creando subcolección desde subcarpeta local:', err);

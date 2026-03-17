@@ -10,11 +10,29 @@
  * syncService y syncCollectionService ambos necesitan estas utilidades.
  */
 
+/* Descarga masiva en curso — suprime eventos de carpeta del watcher durante sync */
+
+let descargaMasivaActiva = false;
+
+/**
+ * Activa/desactiva el modo de descarga masiva.
+ * Mientras está activo, fileWatcherService ignora eventos de carpeta/subcarpeta
+ * para evitar que mkdir + writeFile durante sync dispare cientos de callbacks
+ * redundantes de crearColeccionDesdeLocal.
+ */
+export function marcarDescargaMasiva(activa: boolean): void {
+    descargaMasivaActiva = activa;
+}
+
+export function esDescargaMasivaEnCurso(): boolean {
+    return descargaMasivaActiva;
+}
+
 /* Descargas en curso */
 
 const descargasEnCurso = new Set<string>();
 const descargasTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-const GRACIA_DESCARGA_MS = 10_000;
+const GRACIA_DESCARGA_MS = 30_000;
 
 /**
  * Marca una ruta como descarga en curso para que el watcher la ignore.

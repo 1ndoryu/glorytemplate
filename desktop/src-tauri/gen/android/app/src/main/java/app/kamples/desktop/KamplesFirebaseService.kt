@@ -75,7 +75,7 @@ class KamplesFirebaseService : FirebaseMessagingService() {
 
         try {
             val notifBuilder = NotificationCompat.Builder(this, canalId)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(titulo)
                 .setContentText(cuerpo)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

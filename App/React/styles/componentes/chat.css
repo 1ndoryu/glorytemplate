@@ -213,5 +213,6 @@
         margin: 0;
         z-index: calc(var(--zModal) - 1);
         background-color: var(--fondoBase);
+        padding-top: var(--safeAreaTop);
     }
 }

@@ -84,6 +84,12 @@
     pointer-events: none;
 }
 
+/* QL100d: Android safe area — activar variables globales cuando hay status bar */
+body.plataformaAndroid {
+    --safeAreaTop: env(safe-area-inset-top, 0px);
+    --safeAreaBottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Responsive - sidebar como nav inferior en mobile */
 @media (max-width: 768px) {
     .layoutPrincipal {
@@ -117,7 +123,7 @@
     }
 
     .areaTopbar {
-        padding-left: 16px;
+        padding-left: var(--espacioLg);
     }
 
     /* QL45: Safe area top para Android — la barra de estado tapa el contenido */

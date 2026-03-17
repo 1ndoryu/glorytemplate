@@ -200,6 +200,7 @@
         border-radius: 0;
         border: none;
         transform: none;
+        padding-top: var(--safeAreaTop);
         animation: bottomSheetEntrar 0.25s ease-out;
     }
 

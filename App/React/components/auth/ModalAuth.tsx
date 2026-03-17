@@ -179,7 +179,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
 };
 
 export const ModalAuth = (): JSX.Element | null => {
-    const { abierto, vista, cerrar, cambiarALogin, cambiarARegistro } = useModalAuth();
+    const { abierto, vista, cerrar, cambiarALogin, cambiarARegistro, puedesCerrar } = useModalAuth();
 
     const manejarEscape = useCallback(
         (e: KeyboardEvent) => { if (e.key === 'Escape') cerrar(); },
@@ -199,20 +199,24 @@ export const ModalAuth = (): JSX.Element | null => {
     if (!abierto) return null;
 
     return createPortal(
-        <div className="authPantallaCompleta" role="dialog" aria-modal="true">
-            <aside className="authPanelImagen">
-                <img src={imagenAuth} alt="Kamples" className="authImagen" loading="lazy" />
-            </aside>
+        <div className={`authPantallaCompleta${puedesCerrar ? '' : ' authSoloFormulario'}`} role="dialog" aria-modal="true">
+            {puedesCerrar && (
+                <aside className="authPanelImagen">
+                    <img src={imagenAuth} alt="Kamples" className="authImagen" loading="lazy" />
+                </aside>
+            )}
             <section className="authPanelContenido">
-                <BotonBase
-                    variante="ghost"
-                    className="authBtnCerrar"
-                    onClick={cerrar}
-                    aria-label="Cerrar"
-                    type="button"
-                >
-                    <X size={20} />
-                </BotonBase>
+                {puedesCerrar && (
+                    <BotonBase
+                        variante="ghost"
+                        className="authBtnCerrar"
+                        onClick={cerrar}
+                        aria-label="Cerrar"
+                        type="button"
+                    >
+                        <X size={20} />
+                    </BotonBase>
+                )}
                 {vista === 'login'
                     ? <FormularioLogin onCambiar={cambiarARegistro} />
                     : <FormularioRegistro onCambiar={cambiarALogin} />

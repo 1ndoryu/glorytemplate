@@ -69,8 +69,24 @@ class ServicioFcm
                             'titulo' => $titulo,
                             'cuerpo' => $mensaje,
                         ]),
+                        /*
+                         * QL102: notification field para entrega con app cerrada.
+                         * Con solo data field, algunos OEMs Android suprimen el mensaje
+                         * si la app esta killed. Con notification field presente,
+                         * Android lo muestra automaticamente en background.
+                         * En foreground, onMessageReceived() sigue usando el data field.
+                         */
+                        'notification' => [
+                            'title' => $titulo,
+                            'body'  => $mensaje,
+                        ],
                         'android' => [
                             'priority' => 'high',
+                            'notification' => [
+                                'channel_id'         => ($datosString['tipo'] ?? '') === 'mensaje_nuevo' ? 'mensajes' : 'notificaciones',
+                                'default_sound'      => true,
+                                'notification_count' => 1,
+                            ],
                         ],
                     ],
                 ];

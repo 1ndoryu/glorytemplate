@@ -5,7 +5,7 @@
 
 .contenedorNotificaciones {
     position: fixed;
-    top: var(--espacioXl);
+    top: max(var(--espacioXl), var(--safeAreaTop));
     right: var(--espacioXl);
     z-index: var(--zNotificacion);
     display: flex;

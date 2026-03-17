@@ -24,6 +24,7 @@
 import { esDesktop } from './desktopService';
 import { obtenerConfigSync } from './syncService';
 import { logSync } from './syncLogger';
+import { esDescargaMasivaEnCurso } from './syncGuards';
 
 const EXTENSIONES_AUDIO = new Set([
     'wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg',
@@ -816,6 +817,9 @@ function procesarEventoCarpeta(
     nombreCarpeta: string,
     _baseNormalizada: string,
 ): void {
+    /* QL103: Suprimir eventos de carpeta durante sync masivo (mkdir + writeFile) */
+    if (esDescargaMasivaEnCurso()) return;
+
     if (esEventoCreacion(tipo)) {
         /* Verificar si hay una carpeta eliminada pendiente → es un rename */
         const pendiente = encuentraCarpetaEliminadaPendiente();
@@ -930,6 +934,9 @@ function procesarEventoSubcarpeta(
     carpetaPadre: string,
     _baseNormalizada: string,
 ): void {
+    /* QL103: Suprimir eventos de subcarpeta durante sync masivo */
+    if (esDescargaMasivaEnCurso()) return;
+
     const claveCompuesta = `${carpetaPadre.toLowerCase()}/${nombreSubcarpeta.toLowerCase()}`;
 
     if (esEventoCreacion(tipo)) {

@@ -15,7 +15,14 @@
     z-index: var(--zModal);
     display: grid;
     grid-template-columns: 55% 45%;
+    padding-top: var(--safeAreaTop);
     animation: authEntrada var(--transicionNormal) ease;
+}
+
+/* QL100a: APK sin autenticar — solo formulario centrado, sin imagen */
+.authSoloFormulario {
+    grid-template-columns: 1fr;
+    background-color: var(--fondoBase);
 }
 
 /* Panel imagen — mitad izquierda */

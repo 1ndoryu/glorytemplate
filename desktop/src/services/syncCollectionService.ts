@@ -15,7 +15,7 @@
  */
 
 import { estaOnline } from './desktopService';
-import { marcarDescargaEnCurso, marcarMovimientoInterno, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta, tieneTokenSync } from './syncGuards';
+import { marcarDescargaEnCurso, marcarMovimientoInterno, marcarDescargaMasiva, obtenerBaseUrlSync, obtenerHeadersSync, obtenerHeadersSyncGet, extraerErrorRespuesta, tieneTokenSync } from './syncGuards';
 import { encolarOperacion } from './offlineQueueService';
 import { Semaforo } from './semaforo';
 import { estado } from './syncState';
@@ -540,6 +540,15 @@ export async function sincronizarColecciones(
     const totalSamples = datosServidor.colecciones.reduce((sum, c) => sum + c.samples.length, 0)
         + datosServidor.sinColeccion.length;
 
+    /*
+     * QL103: Activar flag de descarga masiva para suprimir eventos de carpeta
+     * en el watcher. Sin esto, cada mkdir + writeFile genera cientos de eventos
+     * de carpeta/subcarpeta redundantes que saturan crearColeccionDesdeLocal.
+     */
+    marcarDescargaMasiva(true);
+
+    try {
+
     /* Fase 1: Crear/actualizar estructura de carpetas */
     onProgreso?.({ fase: 'estructura', actual: 0, total: datosServidor.colecciones.length + 1 });
 
@@ -818,6 +827,11 @@ export async function sincronizarColecciones(
     }
 
     return { nuevos, errores };
+
+    } finally {
+        /* QL103: Desactivar flag de descarga masiva, incluso si hubo error */
+        marcarDescargaMasiva(false);
+    }
 }
 
 /* Descarga individual */

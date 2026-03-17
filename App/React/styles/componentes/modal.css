@@ -12,6 +12,7 @@
     justify-content: center;
     z-index: var(--zModal);
     padding: var(--espacio2xl);
+    padding-top: max(var(--espacio2xl), var(--safeAreaTop));
     animation: fadeInOverlay 150ms ease;
 }
 

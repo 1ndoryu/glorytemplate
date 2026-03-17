@@ -197,6 +197,7 @@
         right: 0;
         flex-direction: column;
         gap: 0;
+        padding-top: var(--safeAreaTop);
     }
 
     .chatFlotanteVentana {

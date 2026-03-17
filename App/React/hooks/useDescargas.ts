@@ -14,6 +14,7 @@ import { useAuthStore } from '@app/stores/authStore';
 import { usePlanesModalStore } from '@app/stores/planesModalStore';
 import { toast } from '@app/stores/toastStore';
 import { crearLogger } from '@app/services/logger';
+import { esTauri } from '@app/utils/plataforma';
 
 const log = crearLogger('useDescargas');
 
@@ -68,11 +69,31 @@ export const useDescargas = (): RetornoDescargas => {
                     );
                     log.info('Sample descargado', { sampleId });
 
-                    /* Trigger descarga en el navegador */
-                    const link = document.createElement('a');
-                    link.href = resp.data.url;
-                    link.download = resp.data.nombre;
-                    link.click();
+                    /* Tauri (desktop/Android): fetch + write al filesystem.
+                     * <a download> no funciona en Android WebView — cuelga la app
+                     * porque intenta renderizar el binario como HTML. */
+                    if (esTauri()) {
+                        try {
+                            const response = await fetch(resp.data.url);
+                            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                            const arrayBuffer = await response.arrayBuffer();
+                            const { writeFile, BaseDirectory } = await import('@tauri-apps/plugin-fs');
+                            await writeFile(resp.data.nombre, new Uint8Array(arrayBuffer), {
+                                baseDir: BaseDirectory.Download,
+                            });
+                            toast.exito(`"${resp.data.nombre}" guardado en Descargas`);
+                        } catch (dlErr) {
+                            log.error('Error escribiendo descarga a disco', dlErr);
+                            toast.error('Error guardando el archivo');
+                            return false;
+                        }
+                    } else {
+                        /* Web: patron estandar que funciona en browsers */
+                        const link = document.createElement('a');
+                        link.href = resp.data.url;
+                        link.download = resp.data.nombre;
+                        link.click();
+                    }
 
                     return true;
                 }

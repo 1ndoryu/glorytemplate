@@ -37,6 +37,7 @@ import { inicializarDesktop } from '@desktop/services/desktopService';
 import { guardarToken, guardarUsuario, cerrarSesionDesktop } from '@desktop/services/authDesktopService';
 /* Google OAuth PKCE para desktop — inyectado en window para evitar imports cross-project */
 import { iniciarGoogleOAuthDesktop } from '@desktop/services/googleAuthDesktopService';
+import { iniciarGoogleOAuthMobile } from '@desktop/services/googleAuthMobileService';
 
 /* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
 import {
@@ -202,9 +203,11 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         cerrarSesionDesktop,
     };
 
-    /* Google OAuth PKCE — expuesto via window para que useAuth.ts (código compartido)
-     * no necesite importar código Tauri directamente. Mismo patrón que AUTH_PERSIST. */
-    window.__KAMPLES_GOOGLE_OAUTH__ = iniciarGoogleOAuthDesktop;
+    /* Google OAuth — Android usa deep links, desktop usa TcpListener local.
+     * Mismo patron de inyeccion que AUTH_PERSIST. */
+    window.__KAMPLES_GOOGLE_OAUTH__ = /android/i.test(navigator.userAgent)
+        ? iniciarGoogleOAuthMobile
+        : iniciarGoogleOAuthDesktop;
 }
 
 async function init(): Promise<void> {

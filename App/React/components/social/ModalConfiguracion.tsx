@@ -34,39 +34,42 @@ const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => (
     </Modal>
 );
 
-/* QL89: Movil  pantalla completa con drill-down, sin wrapper Modal */
+/* QL89+QL101: Movil  bottom sheet parcial tipo dropdown/menu contextual */
+/* code-sentinel-disable: bottom-sheet requiere overlay custom, no el <Modal> estandar */
 const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
-    <div className="configMovilPantalla">
-        {h.movilEnMenu ? (
-            <div className="configMovilNav">
-                <div className="configMovilCabecera">
-                    <h3 className="configNavTitulo">Configuracion</h3>
-                    <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
-                        <X size={20} />
-                    </BotonBase>
+    <div className="configMovilOverlay" onClick={h.manejarCerrar}>
+        <div className="configMovilPantalla" onClick={(e) => e.stopPropagation()}>
+            {h.movilEnMenu ? (
+                <div className="configMovilNav">
+                    <div className="configMovilCabecera">
+                        <h3 className="configNavTitulo">Configuracion</h3>
+                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
+                            <X size={20} />
+                        </BotonBase>
+                    </div>
+                    <NavSecciones h={h} />
                 </div>
-                <NavSecciones h={h} />
-            </div>
-        ) : (
-            <div className="configMovilDetalle">
-                <div className="configMovilCabecera">
-                    <BotonBase variante="ghost" className="configMovilVolver" onClick={h.volverAlMenuMovil} type="button">
-                        <ArrowLeft size={18} />
-                        <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? 'Configuracion'}</span>
-                    </BotonBase>
-                    <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
-                        <X size={20} />
-                    </BotonBase>
+            ) : (
+                <div className="configMovilDetalle">
+                    <div className="configMovilCabecera">
+                        <BotonBase variante="ghost" className="configMovilVolver" onClick={h.volverAlMenuMovil} type="button">
+                            <ArrowLeft size={18} />
+                            <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? 'Configuracion'}</span>
+                        </BotonBase>
+                        <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
+                            <X size={20} />
+                        </BotonBase>
+                    </div>
+                    <div className="configMovilContenido"><ContenidoSeccion h={h} /></div>
+                    <div className="configAcciones">
+                        <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>Cancelar</BotonBase>
+                        <BotonBase variante="primario" onClick={h.manejarGuardar} disabled={h.guardando}>
+                            <Save size={14} /> {h.guardando ? 'Guardando...' : 'Guardar'}
+                        </BotonBase>
+                    </div>
                 </div>
-                <div className="configMovilContenido"><ContenidoSeccion h={h} /></div>
-                <div className="configAcciones">
-                    <BotonBase variante="ghost" onClick={h.manejarCerrar} disabled={h.guardando}>Cancelar</BotonBase>
-                    <BotonBase variante="primario" onClick={h.manejarGuardar} disabled={h.guardando}>
-                        <Save size={14} /> {h.guardando ? 'Guardando...' : 'Guardar'}
-                    </BotonBase>
-                </div>
-            </div>
-        )}
+            )}
+        </div>
     </div>,
     document.body
 );
