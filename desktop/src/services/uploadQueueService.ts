@@ -942,7 +942,8 @@ async function subirArchivo(item: ItemUploadCola): Promise<boolean> {
         const mimeType = obtenerMimeType(metaRuta.extension);
 
         /* Construir FormData */
-        const blob = new Blob([contenidoArchivo], { type: mimeType });
+        /* QL107: TS 5.9 no acepta Uint8Array<ArrayBufferLike> como BlobPart — crear vista con buffer concreto */
+        const blob = new Blob([new Uint8Array(contenidoArchivo)], { type: mimeType });
         const formData = new FormData();
         formData.append('audio', blob, item.nombreArchivo);
         formData.append('titulo', titulo);

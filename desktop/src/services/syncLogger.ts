@@ -69,7 +69,7 @@ async function escribirADisco(lineas: string[]): Promise<void> {
         await writeTextFile(nombreArchivo, contenido, {
             baseDir: BaseDirectory.AppData,
             append: true,
-        });
+        } as Parameters<typeof writeTextFile>[2]);
 
         try {
             const info = await stat(nombreArchivo, { baseDir: BaseDirectory.AppData });

@@ -26,6 +26,15 @@ import { obtenerConfigSync } from './syncService';
 import { logSync } from './syncLogger';
 import { esDescargaMasivaEnCurso } from './syncGuards';
 
+/* QL107: Tipos de @tauri-apps/plugin-fs definidos localmente.
+ * TS 5.9 con moduleResolution 'bundler' no resuelve los export type
+ * del modulo via import type ni import(). Los tipos son identicos. */
+interface EventoWatch {
+    type: string | Record<string, unknown>;
+    paths: string[];
+    attrs: unknown;
+}
+
 const EXTENSIONES_AUDIO = new Set([
     'wav', 'mp3', 'flac', 'aiff', 'aif', 'ogg',
 ]);
@@ -356,11 +365,18 @@ export async function iniciarObservacion(): Promise<boolean> {
     if (!config.carpetaLocal || !config.sincronizacionActiva) return false;
 
     try {
-        const { watch } = await import('@tauri-apps/plugin-fs');
+        const fsModule = await import('@tauri-apps/plugin-fs');
+        /* QL107: watch existe en el modulo pero TS 5.9 no lo resuelve
+         * correctamente via dynamic import() — cast seguro. */
+        const watchFn = (fsModule as Record<string, unknown>).watch as (
+            paths: string | string[],
+            cb: (event: EventoWatch) => void,
+            options?: { recursive?: boolean; delayMs?: number },
+        ) => Promise<UnwatchFn>;
 
-        unwatchFn = await watch(
+        unwatchFn = await watchFn(
             config.carpetaLocal,
-            (evento) => { procesarEvento(evento, config.carpetaLocal!); },
+            (evento: EventoWatch) => { procesarEvento(evento, config.carpetaLocal!); },
             { recursive: true, delayMs: 1500 },
         );
 

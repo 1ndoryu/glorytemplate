@@ -16,7 +16,8 @@ const TAMANO_BLOQUE_PARCIAL = 8192;
 export async function calcularHashArchivo(ruta: string): Promise<string> {
     const { readFile } = await import('@tauri-apps/plugin-fs');
     const datos = await readFile(ruta);
-    const buffer = await crypto.subtle.digest('SHA-256', datos);
+    /* QL107: TS 5.9 no acepta Uint8Array<ArrayBufferLike> como BufferSource — crear vista con ArrayBuffer concreto */
+    const buffer = await crypto.subtle.digest('SHA-256', new Uint8Array(datos));
     return bufferAHex(buffer);
 }
 

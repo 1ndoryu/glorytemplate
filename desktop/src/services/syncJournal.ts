@@ -276,7 +276,7 @@ async function escribirAlJournal(op: OperacionJournal): Promise<void> {
         await writeTextFile(JOURNAL_FILE, linea, {
             baseDir: BaseDirectory.AppData,
             append: true,
-        });
+        } as Parameters<typeof writeTextFile>[2]);
     } catch (error) {
         logSync.error('journal', 'Error escribiendo al journal', {
             error: error instanceof Error ? error.message : String(error)
