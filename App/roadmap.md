@@ -414,6 +414,10 @@ uploadQueueService-CloPPvVM.js:49 [sync:tracking] Estado recuperado desde journa
 
 ## QL136
 
+[EN CURSO — AG-COL] Auditoria/refactor sync v2.
+
+**Estado:** auditoria SOLID en marcha + primera fase enfocada en depuracion/observabilidad local (reporte diagnostico, resumen de cola/tracking y unificacion progresiva de logs estructurados).
+
 Antes de hacer esto primero asegurate de que todo este commiteado.
 
 Veo que el sync no es un buen codigo, tiene mucha logica dispersa, no maneja bien los archivo dependiendo de que modo esta, etc. 

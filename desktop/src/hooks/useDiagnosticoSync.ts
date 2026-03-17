@@ -13,8 +13,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { circuitoSync } from '../services/syncGuards';
 import { obtenerPendientes, obtenerCola, type OperacionPendiente } from '../services/offlineQueueService';
 import { operacionesPendientesCount, estaInicializado as journalInicializado } from '../services/syncJournal';
-import { obtenerNivelLog, obtenerUltimasEntradas, exportarLogs, type EntradaLog } from '../services/syncLogger';
+import {
+    obtenerNivelLog,
+    obtenerSesionLogger,
+    obtenerUltimasEntradas,
+    exportarLogs,
+    generarReporteDiagnosticoSync,
+    type EntradaLog,
+} from '../services/syncLogger';
 import { estado as syncEstado } from '../services/syncState';
+import { obtenerResumenDebugUploadQueue, type ResumenDebugUploadQueue } from '../services/uploadQueueService';
+import { obtenerResumenDebugTracking, type ResumenDebugTracking } from '../services/syncTrackingService';
 
 export interface DatosDiagnostico {
     /* Circuit breakers */
@@ -32,7 +41,10 @@ export interface DatosDiagnostico {
     intervaloPollingMs: number;
     /* Logger */
     nivelLog: string;
+    sesionLogger: string;
     ultimasEntradas: ReadonlyArray<EntradaLog>;
+    resumenUploads: ResumenDebugUploadQueue;
+    resumenTracking: ResumenDebugTracking;
     /* Ultima sync */
     ultimaSyncMs: number;
 }
@@ -43,6 +55,7 @@ export function useDiagnosticoSync(): {
     datos: DatosDiagnostico;
     refrescar: () => void;
     exportarLogsCompletos: () => Promise<string>;
+    exportarReporteDiagnostico: () => Promise<{ nombreArchivo: string; contenido: string }>;
 } {
     const recopilar = useCallback((): DatosDiagnostico => {
         let circuitoSyncEstado = 'desconocido';
@@ -62,7 +75,10 @@ export function useDiagnosticoSync(): {
             cursorDelta: syncEstado.ultimoCursorDelta,
             intervaloPollingMs: syncEstado.intervaloPollingMs,
             nivelLog: obtenerNivelLog(),
+            sesionLogger: obtenerSesionLogger(),
             ultimasEntradas: obtenerUltimasEntradas(30),
+            resumenUploads: obtenerResumenDebugUploadQueue(),
+            resumenTracking: obtenerResumenDebugTracking(),
             ultimaSyncMs: syncEstado.config.ultimaSync,
         };
     }, []);
@@ -82,5 +98,6 @@ export function useDiagnosticoSync(): {
         datos,
         refrescar,
         exportarLogsCompletos: exportarLogs,
+        exportarReporteDiagnostico: generarReporteDiagnosticoSync,
     };
 }

@@ -141,7 +141,7 @@ export async function inicializarSyncService(
     try {
         const { listen } = await import('@tauri-apps/api/event');
         await listen('config-sync-actualizada', async () => {
-            console.info('[Sync] Config actualizada desde ventana independiente, recargando...');
+            logSync.info('syncService', 'Config actualizada desde ventana independiente, recargando');
             await cargarConfigAvanzada();
 
             /* QL78: Si borrarAlSubirExitoso se acaba de activar, limpiar archivos

@@ -119,6 +119,31 @@ export interface BaseSyncLocal {
     userId?: number;
 }
 
+export interface ResumenDebugTracking {
+    totalArchivos: number;
+    totalColecciones: number;
+    totalSinColeccion: number;
+    totalDeshabilitados: number;
+    totalHistorial: number;
+    totalHistorialSamples: number;
+    espacioTotalBytes: number;
+    checkpointVersion: number;
+    versionLocalConocida: number;
+    userId: number | null;
+    muestrasColecciones: Array<{
+        id: number;
+        nombre: string;
+        carpetaLocal: string;
+        parentId: number | null;
+    }>;
+    muestrasDeshabilitados: Array<{
+        sampleId: number;
+        nombreLocal: string;
+        coleccionId: number | null;
+        rutaLocal: string;
+    }>;
+}
+
 /* Estado interno */
 const MAX_HISTORIAL = 200;
 
@@ -939,6 +964,40 @@ export async function actualizarEstadoSample(entrada: {
  */
 export function obtenerHistorialSamples(limite = 50): EntradaHistorialSample[] {
     return datos.historialSamples.slice(0, limite).map(e => ({ ...e }));
+}
+
+export function obtenerResumenDebugTracking(): ResumenDebugTracking {
+    const archivos = Object.values(datos.archivos);
+    const colecciones = Object.values(datos.colecciones);
+    const deshabilitados = archivos
+        .filter(archivo => archivo.syncDeshabilitado)
+        .slice(0, 15)
+        .map(archivo => ({
+            sampleId: archivo.sampleId,
+            nombreLocal: archivo.nombreLocal,
+            coleccionId: archivo.coleccionId,
+            rutaLocal: archivo.rutaLocal,
+        }));
+
+    return {
+        totalArchivos: archivos.length,
+        totalColecciones: colecciones.length,
+        totalSinColeccion: datos.sinColeccion.length,
+        totalDeshabilitados: archivos.filter(archivo => archivo.syncDeshabilitado).length,
+        totalHistorial: datos.historial.length,
+        totalHistorialSamples: datos.historialSamples.length,
+        espacioTotalBytes: archivos.reduce((total, archivo) => total + archivo.tamano, 0),
+        checkpointVersion: datos.checkpointVersion ?? 0,
+        versionLocalConocida,
+        userId: datos.userId ?? null,
+        muestrasColecciones: colecciones.slice(0, 15).map(coleccion => ({
+            id: coleccion.id,
+            nombre: coleccion.nombre,
+            carpetaLocal: coleccion.carpetaLocal,
+            parentId: coleccion.parentId,
+        })),
+        muestrasDeshabilitados: deshabilitados,
+    };
 }
 
 /**

@@ -13,6 +13,7 @@ import { useDiagnosticoSync, type DatosDiagnostico } from '../hooks/useDiagnosti
 import { circuitoSync } from '../services/syncGuards';
 import { reintentarErroresOffline } from '../services/offlineQueueService';
 import type { EntradaLog } from '../services/syncLogger';
+import { BotonBase } from '@app/components/ui/BotonBase';
 import '@app/styles/componentes/diagnosticoSync.css';
 
 function formatearMs(ms: number): string {
@@ -66,9 +67,9 @@ function SeccionCircuitBreaker({ datos }: { datos: DatosDiagnostico }): JSX.Elem
             </div>
             {datos.circuitoSyncEstado !== 'cerrado' && (
                 <div className="diagSyncAcciones">
-                    <button className="diagSyncBoton" onClick={resetearCircuito}>
+                    <BotonBase className="diagSyncBoton" variante="ghost" tamano="ninguno" type="button" onClick={resetearCircuito}>
                         Resetear circuito
-                    </button>
+                    </BotonBase>
                 </div>
             )}
         </div>
@@ -98,12 +99,72 @@ function SeccionColaOffline({ datos }: { datos: DatosDiagnostico }): JSX.Element
                         ))}
                     </div>
                     <div className="diagSyncAcciones">
-                        <button className="diagSyncBoton" onClick={reintentar}>
+                        <BotonBase className="diagSyncBoton" variante="ghost" tamano="ninguno" type="button" onClick={reintentar}>
                             Reintentar todo
-                        </button>
+                        </BotonBase>
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+function SeccionUploads({ datos }: { datos: DatosDiagnostico }): JSX.Element {
+    return (
+        <div className="diagSyncSeccion">
+            <div className="diagSyncSeccionTitulo">Uploads</div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Sesion logger</span>
+                <span className="diagSyncValor">{datos.sesionLogger}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Cola total</span>
+                <span className="diagSyncValor">{datos.resumenUploads.totalItems}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Pendientes / subiendo</span>
+                <span className="diagSyncValor">{datos.resumenUploads.totalPendientes} / {datos.resumenUploads.totalSubiendo}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Errores / duplicados</span>
+                <span className="diagSyncValor">{datos.resumenUploads.totalErrores} / {datos.resumenUploads.totalDuplicados}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Rutas en vuelo</span>
+                <span className="diagSyncValor">{datos.resumenUploads.rutasEnVuelo}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Hashes conocidos / bloqueados</span>
+                <span className="diagSyncValor">{datos.resumenUploads.hashesConocidos} / {datos.resumenUploads.hashesBloqueadosAntispam}</span>
+            </div>
+        </div>
+    );
+}
+
+function SeccionTracking({ datos }: { datos: DatosDiagnostico }): JSX.Element {
+    return (
+        <div className="diagSyncSeccion">
+            <div className="diagSyncSeccionTitulo">Tracking</div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Archivos / colecciones</span>
+                <span className="diagSyncValor">{datos.resumenTracking.totalArchivos} / {datos.resumenTracking.totalColecciones}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Sin colección</span>
+                <span className="diagSyncValor">{datos.resumenTracking.totalSinColeccion}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Deshabilitados</span>
+                <span className="diagSyncValor">{datos.resumenTracking.totalDeshabilitados}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Historial v2</span>
+                <span className="diagSyncValor">{datos.resumenTracking.totalHistorialSamples}</span>
+            </div>
+            <div className="diagSyncFila">
+                <span className="diagSyncEtiqueta">Checkpoint / versión local</span>
+                <span className="diagSyncValor">{datos.resumenTracking.checkpointVersion} / {datos.resumenTracking.versionLocalConocida}</span>
+            </div>
         </div>
     );
 }
@@ -138,7 +199,15 @@ function SeccionEstadoGeneral({ datos }: { datos: DatosDiagnostico }): JSX.Eleme
     );
 }
 
-function SeccionLogs({ entradas, onExportar }: { entradas: ReadonlyArray<EntradaLog>; onExportar: () => void }): JSX.Element {
+function SeccionLogs({
+    entradas,
+    onExportar,
+    onExportarReporte,
+}: {
+    entradas: ReadonlyArray<EntradaLog>;
+    onExportar: () => void;
+    onExportarReporte: () => void;
+}): JSX.Element {
     return (
         <div className="diagSyncSeccion">
             <div className="diagSyncSeccionTitulo">Logs recientes</div>
@@ -151,17 +220,21 @@ function SeccionLogs({ entradas, onExportar }: { entradas: ReadonlyArray<Entrada
                 ))}
             </div>
             <div className="diagSyncAcciones">
-                <button className="diagSyncBoton" onClick={onExportar}>
+                <BotonBase className="diagSyncBoton" variante="ghost" tamano="ninguno" type="button" onClick={onExportar}>
                     Exportar logs
-                </button>
+                </BotonBase>
+                <BotonBase className="diagSyncBoton" variante="ghost" tamano="ninguno" type="button" onClick={onExportarReporte}>
+                    Copiar reporte JSON
+                </BotonBase>
             </div>
         </div>
     );
 }
 
 export default function DiagnosticoSync(): JSX.Element {
-    const { datos, refrescar, exportarLogsCompletos } = useDiagnosticoSync();
+    const { datos, refrescar, exportarLogsCompletos, exportarReporteDiagnostico } = useDiagnosticoSync();
     const [exportando, setExportando] = useState(false);
+    const [exportandoReporte, setExportandoReporte] = useState(false);
 
     const manejarExportar = useCallback(async () => {
         setExportando(true);
@@ -173,19 +246,31 @@ export default function DiagnosticoSync(): JSX.Element {
         setExportando(false);
     }, [exportarLogsCompletos]);
 
+    const manejarExportarReporte = useCallback(async () => {
+        setExportandoReporte(true);
+        try {
+            const reporte = await exportarReporteDiagnostico();
+            await navigator.clipboard.writeText(reporte.contenido);
+        } catch { /* clipboard puede fallar en algunos entornos */ }
+        setExportandoReporte(false);
+    }, [exportarReporteDiagnostico]);
+
     return (
         <div className="diagSyncPanel">
             <SeccionEstadoGeneral datos={datos} />
+            <SeccionUploads datos={datos} />
+            <SeccionTracking datos={datos} />
             <SeccionCircuitBreaker datos={datos} />
             <SeccionColaOffline datos={datos} />
             <SeccionLogs
                 entradas={datos.ultimasEntradas}
                 onExportar={exportando ? () => {} : manejarExportar}
+                onExportarReporte={exportandoReporte ? () => {} : manejarExportarReporte}
             />
             <div className="diagSyncAcciones">
-                <button className="diagSyncBoton" onClick={refrescar}>
+                <BotonBase className="diagSyncBoton" variante="ghost" tamano="ninguno" type="button" onClick={refrescar}>
                     Refrescar
-                </button>
+                </BotonBase>
             </div>
         </div>
     );

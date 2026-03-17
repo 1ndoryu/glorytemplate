@@ -114,7 +114,9 @@ async function ejecutarSync(
             if (uploadCambios) {
                 await uploadStore.set('upload_cola', uploadCola);
                 await uploadStore.save();
-                console.info('[Sync] Reseteados items con error en upload-queue.json (Store directo)');
+                logSync.info('syncOrchestrator', 'Reseteados items con error en upload-queue.json', {
+                    totalPendientes: uploadCola.filter(item => item.estado === 'pendiente').length,
+                });
             }
         }
 
@@ -137,7 +139,7 @@ async function ejecutarSync(
             if (offlineCambios) {
                 await offlineStore.set('operaciones_pendientes', offlineCola);
                 await offlineStore.save();
-                console.info('[Sync] Reseteados intentos en offline-queue.json (Store directo)');
+                logSync.info('syncOrchestrator', 'Reseteados intentos en offline-queue.json');
             }
         }
 
@@ -168,7 +170,7 @@ async function ejecutarSync(
             if (trackingCambios) {
                 await trackingStore.set('sync_tracking_v2', tracking);
                 await trackingStore.save();
-                console.info('[Sync] Reseteadas entradas de error en tracking historial (Store directo)');
+                logSync.info('syncOrchestrator', 'Reseteadas entradas de error en tracking historial');
             }
         }
 
@@ -273,7 +275,10 @@ export async function sincronizarSampleIndividual(
             { method: 'POST', headers: obtenerHeadersSyncGet() },
         );
         if (!respDescarga.ok) {
-            console.error(`[SyncIndividual] No se pudo obtener URL de descarga: ${respDescarga.status}`);
+            logSync.error('syncOrchestrator', 'No se pudo obtener URL de descarga para sample individual', {
+                sampleId,
+                status: respDescarga.status,
+            });
             return null;
         }
         const { url: audioUrl, nombre, formato }: ResultadoDescargaApi =
@@ -281,7 +286,10 @@ export async function sincronizarSampleIndividual(
 
         const audioResp = await fetch(audioUrl);
         if (!audioResp.ok) {
-            console.error(`[SyncIndividual] Error al descargar audio: ${audioResp.status}`);
+            logSync.error('syncOrchestrator', 'Error al descargar audio de sample individual', {
+                sampleId,
+                status: audioResp.status,
+            });
             return null;
         }
         const buffer = await audioResp.arrayBuffer();
@@ -320,10 +328,13 @@ export async function sincronizarSampleIndividual(
         await writeFile(rutaArchivo, new Uint8Array(buffer));
         await registrarDescarga(sampleId, rutaArchivo, nombre, nombreArchivo, coleccionId ?? null);
 
-        console.info(`[SyncIndividual] Sample ${sampleId} descargado a: ${rutaArchivo}`);
+        logSync.info('syncOrchestrator', 'Sample individual descargado', { sampleId, rutaArchivo });
         return rutaArchivo;
     } catch (err) {
-        console.error(`[SyncIndividual] Error sincronizando sample ${sampleId}:`, err);
+        logSync.error('syncOrchestrator', 'Error sincronizando sample individual', {
+            sampleId,
+            error: err instanceof Error ? err.message : String(err),
+        });
         return null;
     }
 }

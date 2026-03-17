@@ -140,6 +140,33 @@ export interface ProgresoUpload {
     posicionEnCola: number;
 }
 
+export interface ResumenDebugUploadQueue {
+    totalItems: number;
+    totalPendientes: number;
+    totalSubiendo: number;
+    totalErrores: number;
+    totalCompletados: number;
+    totalDuplicados: number;
+    procesando: boolean;
+    rutasEnCola: number;
+    rutasEnVuelo: number;
+    hashesConocidos: number;
+    hashesEnVuelo: number;
+    hashesPendientesEncola: number;
+    hashesMapeados: number;
+    hashesBloqueadosAntispam: number;
+    muestrasActivas: Array<{
+        id: string;
+        nombreArchivo: string;
+        estado: EstadoUpload;
+        intentos: number;
+        rutaArchivo: string;
+        sampleIdServidor?: number;
+        ultimoError?: string;
+        timestampActualizado: number;
+    }>;
+}
+
 type OnProgresoUploadFn = (progreso: ProgresoUpload) => void;
 
 let cola: ItemUploadCola[] = [];
@@ -1434,6 +1461,40 @@ export function obtenerEstadoCola(): {
         totalPendientes: cola.filter(i => i.estado === 'pendiente' || i.estado === 'subiendo').length,
         totalErrores: cola.filter(i => i.estado === 'error').length,
         procesando,
+    };
+}
+
+export function obtenerResumenDebugUploadQueue(): ResumenDebugUploadQueue {
+    const muestrasActivas = cola
+        .filter(item => item.estado !== 'completado')
+        .slice(0, 15)
+        .map(item => ({
+            id: item.id,
+            nombreArchivo: item.nombreArchivo,
+            estado: item.estado,
+            intentos: item.intentos,
+            rutaArchivo: item.rutaArchivo,
+            sampleIdServidor: item.sampleIdServidor,
+            ultimoError: item.ultimoError,
+            timestampActualizado: item.timestampActualizado,
+        }));
+
+    return {
+        totalItems: cola.length,
+        totalPendientes: cola.filter(i => i.estado === 'pendiente').length,
+        totalSubiendo: cola.filter(i => i.estado === 'subiendo').length,
+        totalErrores: cola.filter(i => i.estado === 'error').length,
+        totalCompletados: cola.filter(i => i.estado === 'completado').length,
+        totalDuplicados: cola.filter(i => i.estado === 'duplicado').length,
+        procesando,
+        rutasEnCola: rutasEnCola.size,
+        rutasEnVuelo: rutasEnVuelo.size,
+        hashesConocidos: hashesConocidos.size,
+        hashesEnVuelo: hashesEnVuelo.size,
+        hashesPendientesEncola: hashesPendientesEncola.size,
+        hashesMapeados: hashARutas.size,
+        hashesBloqueadosAntispam: Array.from(contadorHashDetectado.values()).filter(c => c >= MAX_DETECCIONES_HASH).length,
+        muestrasActivas,
     };
 }
 
