@@ -764,7 +764,7 @@ function esEventoEliminacion(tipo: unknown): boolean {
  * con el mismo nombre → en ese caso es un MOVE, no un archivo nuevo.
  */
 function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carpetaBase: string): void {
-    /* Extraer las 3 carpetas padre relativas a la carpeta base de sync */
+    /* Extraer todas las carpetas padre relativas a la carpeta base de sync */
     const baseNormalizada = carpetaBase.replace(/\\/g, '/');
     const relativa = rutaNormalizada.startsWith(baseNormalizada + '/')
         ? rutaNormalizada.slice(baseNormalizada.length + 1)
@@ -787,7 +787,7 @@ function manejarArchivoNuevo(rutaOriginal: string, rutaNormalizada: string, carp
      * para que el server trate estos archivos como "sin colección" en vez
      * de crear una colección con ese nombre.
      */
-    const carpetas = partes.slice(0, 3).filter(
+    const carpetas = partes.filter(
         c => !CARPETAS_SISTEMA_NO_COLECCION.has(c.toLowerCase()),
     );
 

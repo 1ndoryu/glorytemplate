@@ -27,6 +27,7 @@ use App\Config\Schema\_generated\CancionesCols;
 use App\Config\Schema\_generated\RelacionesSampleCols;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Kamples\Api\Helpers\OrdenamientoHelper;
+use App\Kamples\Config\SampleMetadataKeys;
 use App\Kamples\Database\Repositories\BloqueosRepository;
 use App\Kamples\Database\Repositories\ReportesRepository;
 use App\Kamples\Database\Repositories\ColaExtraccionSamplesRepository;
@@ -1180,7 +1181,7 @@ class SamplesRepository extends BaseRepository
     }
 
     /*
-     * Guardar hash perceptual de audio.
+     * Guardar hash exacto de audio (SHA-256).
      */
     public static function actualizarHash(int $id, string $hash): void
     {
@@ -1189,6 +1190,48 @@ class SamplesRepository extends BaseRepository
         static::ejecutar(
             "UPDATE {$ts} SET " . SamplesCols::AUDIO_HASH . " = :hash WHERE " . SamplesCols::ID . " = :id",
             ['hash' => $hash, 'id' => $id]
+        );
+    }
+
+    /*
+     * Guardar fingerprint perceptual versionado dentro de metadata JSONB.
+     * Se mantiene separado de audio_hash para no contaminar la deduplicacion exacta.
+     */
+    public static function actualizarHashPerceptual(int $id, string $hash): void
+    {
+        $tabla = SamplesCols::TABLA;
+        $colMeta = SamplesCols::METADATA;
+        $claveDedup = SampleMetadataKeys::DEDUPLICACION;
+        $claveHash = SampleMetadataKeys::HASH_PERCEPTUAL_V1;
+        $rutaJson = '{' . $claveDedup . ',' . $claveHash . '}';
+
+        static::ejecutar(
+            "UPDATE {$tabla} SET {$colMeta} = jsonb_set("
+            . "COALESCE({$colMeta}, '{}'::jsonb), "
+            . "'{$rutaJson}', "
+            . "to_jsonb(:hash::text), true), "
+            . SamplesCols::UPDATED_AT . " = NOW() WHERE " . SamplesCols::ID . " = :id",
+            ['hash' => $hash, 'id' => $id]
+        );
+    }
+
+    /*
+     * Buscar sample por fingerprint perceptual versionado.
+     * Se usa solo para deduplicacion perceptual diferida y NO para dedup exacta.
+     */
+    public static function buscarConHashPerceptual(string $hash, int $excluirId): array
+    {
+        $ts = SamplesCols::TABLA;
+        $meta = SamplesCols::METADATA;
+        $claveDedup = SampleMetadataKeys::DEDUPLICACION;
+        $claveHash = SampleMetadataKeys::HASH_PERCEPTUAL_V1;
+
+        return static::consultar(
+            "SELECT " . SamplesCols::ID . ", " . SamplesCols::CREADOR_ID . ", " . SamplesCols::TITULO
+            . " FROM {$ts} WHERE COALESCE({$meta}->'{$claveDedup}'->>'{$claveHash}', '') = :hash"
+            . " AND " . SamplesCols::ID . " != :id"
+            . " AND " . SamplesCols::ESTADO . " != '" . SamplesEnums::ESTADO_ELIMINADO . "'",
+            ['hash' => $hash, 'id' => $excluirId]
         );
     }
 

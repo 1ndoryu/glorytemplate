@@ -632,7 +632,10 @@ async function encolarArchivoInterno(
         descripcion: `Archivo detectado: "${nombreArchivo}"`,
     }).catch(() => { /* No bloquear encolamiento por fallo en historial */ });
 
-    console.info('[UploadQueue] Archivo encolado:', nombreArchivo);
+    logSync.debug('uploadQueue', `Archivo encolado: ${nombreArchivo}`, {
+        carpetas,
+        longitudCola: cola.length,
+    });
 
     /* Si estamos online, procesar inmediatamente */
     if (estaOnline()) {

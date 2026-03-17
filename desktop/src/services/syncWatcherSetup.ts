@@ -49,11 +49,21 @@ const EXTENSIONES_AUDIO_SCAN = new Set(['wav', 'mp3', 'flac', 'aiff', 'aif', 'og
  */
 const CARPETAS_EXCLUIDAS_SCAN = new Set(['.papelera']);
 
+interface ResumenEscaneoLocal {
+    directoriosEscaneados: number;
+    audiosDetectados: number;
+    encolados: number;
+    yaSincronizados: number;
+    staleLegacyLimpiados: number;
+    carpetasIgnoradas: number;
+    errores: number;
+}
+
 /*
  * Escanea la carpeta de sync en busca de archivos de audio locales que no
  * están en el tracking (no fueron detectados por el watcher — arranque,
  * archivos copiados mientras la app estaba cerrada, etc.) y los encola para
- * subida. Máximo 2 niveles de profundidad (coleccion/subcoleccion).
+ * subida. Recorre toda la jerarquía sin límite artificial de profundidad.
  *
  * Idempotente: encolarArchivo ya tiene guards de dedup (ruta + hash).
  * Se puede llamar múltiples veces sin efectos secundarios.
@@ -74,7 +84,15 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
         const { encolarArchivo } = await import('./uploadQueueService');
 
         const carpetaBase = config.carpetaLocal;
-        let encolados = 0;
+        const resumen: ResumenEscaneoLocal = {
+            directoriosEscaneados: 0,
+            audiosDetectados: 0,
+            encolados: 0,
+            yaSincronizados: 0,
+            staleLegacyLimpiados: 0,
+            carpetasIgnoradas: 0,
+            errores: 0,
+        };
 
         const procesarArchivo = async (
             rutaArchivo: string,
@@ -82,10 +100,14 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
             carpetas: string[],
         ): Promise<void> => {
             const rutaNorm = rutaArchivo.replace(/\\/g, '/');
+            resumen.audiosDetectados++;
 
             if (trackingModule) {
                 const enTracking = trackingModule.buscarArchivoPorRuta(rutaNorm);
-                if (enTracking && !enTracking.syncDeshabilitado) return;
+                if (enTracking && !enTracking.syncDeshabilitado) {
+                    resumen.yaSincronizados++;
+                    return;
+                }
             }
             /* QL130: Si tracking v2 no tiene el archivo pero indice legacy si,
              * la entrada es stale (ej: samples eliminados del servidor). Limpiar. */
@@ -99,82 +121,70 @@ export async function escanearCarpetaYEncolar(): Promise<number> {
                     estado.indiceArchivosPorNombre.delete(porRutaScan.nombreOriginal);
                 }
                 guardarIndice();
+                resumen.staleLegacyLimpiados++;
             }
 
-            encolados++;
-            await encolarArchivo(rutaArchivo, nombreArchivo, carpetas);
+            const fueEncolado = await encolarArchivo(rutaArchivo, nombreArchivo, carpetas);
+            if (fueEncolado) {
+                resumen.encolados++;
+            }
         };
 
-        const entradas = await readDir(carpetaBase);
+        const escanearDirectorio = async (
+            rutaDirectorio: string,
+            carpetasServidor: string[],
+            sinColeccionDesdeAqui: boolean,
+        ): Promise<void> => {
+            resumen.directoriosEscaneados++;
 
-        for (const entrada of entradas) {
-            if (!entrada.name) continue;
-            const nombreLower = entrada.name.toLowerCase();
-            if (CARPETAS_EXCLUIDAS_SCAN.has(nombreLower)) continue;
+            let entradas;
+            try {
+                entradas = await readDir(rutaDirectorio);
+            } catch (errDir) {
+                resumen.errores++;
+                logSync.warn('syncWatcher', 'Error escaneando directorio local', {
+                    rutaDirectorio,
+                    error: errDir instanceof Error ? errDir.message : String(errDir),
+                });
+                return;
+            }
 
-            if (entrada.isDirectory) {
-                /*
-                 * QL70: Carpetas de sistema (sin colección, duplicados) se escanean
-                 * pero sus archivos se encolan con carpetas vacías para que el server
-                 * los trate como "sin colección" en vez de crear una colección homonima.
-                 */
-                const esCarpetaSistema = CARPETAS_SISTEMA_SYNC.has(nombreLower);
+            for (const entrada of entradas) {
+                if (!entrada.name) continue;
 
-                const rutaCarpeta = await join(carpetaBase, entrada.name);
-                try {
-                    const subEntradas = await readDir(rutaCarpeta);
-                    for (const sub of subEntradas) {
-                        if (!sub.name) continue;
+                const nombreLower = entrada.name.toLowerCase();
+                const rutaEntrada = await join(rutaDirectorio, entrada.name);
 
-                        /*
-                         * C387: Nivel 2 — subdirectorio dentro de colección = subcolección.
-                         * Escanear audio dentro de subcarpetas (max profundidad 2).
-                         */
-                        if (sub.isDirectory) {
-                            if (CARPETAS_EXCLUIDAS_SCAN.has(sub.name.toLowerCase())) continue;
-                            if (CARPETAS_SISTEMA_SYNC.has(sub.name.toLowerCase())) continue;
-                            /* No crear subcolecciones dentro de carpetas de sistema */
-                            if (esCarpetaSistema) continue;
-
-                            const rutaSubcarpeta = await join(rutaCarpeta, sub.name);
-                            try {
-                                const subSubEntradas = await readDir(rutaSubcarpeta);
-                                for (const archivo of subSubEntradas) {
-                                    if (!archivo.name) continue;
-                                    const extSub = archivo.name.split('.').pop()?.toLowerCase() ?? '';
-                                    if (!EXTENSIONES_AUDIO_SCAN.has(extSub)) continue;
-                                    const rutaArchivo = await join(rutaSubcarpeta, archivo.name);
-                                    await procesarArchivo(rutaArchivo, archivo.name, [entrada.name, sub.name]);
-                                }
-                            } catch (errSub2) {
-                                console.warn('[Sync] Error escaneando subcarpeta nivel 2:', rutaSubcarpeta, errSub2);
-                            }
-                            continue;
-                        }
-
-                        const ext = sub.name.split('.').pop()?.toLowerCase() ?? '';
-                        if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
-                        const rutaArchivo = await join(rutaCarpeta, sub.name);
-                        /* QL70: Carpetas sistema → carpetas vacías para no crear colección */
-                        await procesarArchivo(rutaArchivo, sub.name, esCarpetaSistema ? [] : [entrada.name]);
+                if (entrada.isDirectory) {
+                    if (CARPETAS_EXCLUIDAS_SCAN.has(nombreLower)) {
+                        resumen.carpetasIgnoradas++;
+                        continue;
                     }
-                } catch (errSub) {
-                    console.warn('[Sync] Error escaneando carpeta colección:', rutaCarpeta, errSub);
+
+                    const esCarpetaSistema = CARPETAS_SISTEMA_SYNC.has(nombreLower);
+                    const siguienteSinColeccion = sinColeccionDesdeAqui || esCarpetaSistema;
+                    const siguientesCarpetas = siguienteSinColeccion
+                        ? []
+                        : [...carpetasServidor, entrada.name];
+
+                    await escanearDirectorio(rutaEntrada, siguientesCarpetas, siguienteSinColeccion);
+                    continue;
                 }
-            } else {
+
                 const ext = entrada.name.split('.').pop()?.toLowerCase() ?? '';
                 if (!EXTENSIONES_AUDIO_SCAN.has(ext)) continue;
-                const rutaArchivo = await join(carpetaBase, entrada.name);
-                await procesarArchivo(rutaArchivo, entrada.name, []);
+                await procesarArchivo(rutaEntrada, entrada.name, carpetasServidor);
             }
-        }
+        };
 
-        if (encolados > 0) {
-            console.info(`[Sync] Escaneo local: ${encolados} archivo(s) nuevo(s) encolado(s) para subida`);
-        }
-        return encolados;
+        await escanearDirectorio(carpetaBase, [], false);
+
+        logSync.info('syncWatcher', 'Escaneo local completado', resumen);
+        return resumen.encolados;
     } catch (err) {
-        console.error('[Sync] Error en escaneo de carpeta local:', err);
+        logSync.error('syncWatcher', 'Error en escaneo de carpeta local', {
+            error: err instanceof Error ? err.message : String(err),
+        });
         return 0;
     }
 }

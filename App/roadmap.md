@@ -416,7 +416,7 @@ uploadQueueService-CloPPvVM.js:49 [sync:tracking] Estado recuperado desde journa
 
 [EN CURSO — AG-COL] Auditoria/refactor sync v2.
 
-**Estado:** auditoria SOLID en marcha + primera fase enfocada en depuracion/observabilidad local (reporte diagnostico, resumen de cola/tracking y unificacion progresiva de logs estructurados).
+**Estado:** auditoria SOLID en marcha + subfase aplicada. Ya corregido en código: (1) escaneo inicial recursivo sin límite artificial; (2) watcher de archivos pasa la ruta completa de carpetas al upload, sin truncar profundidad; (3) `DeduplicadorAudio` deja de reutilizar `audio_hash` y guarda el fingerprint perceptual separado/versionado; (4) el encolado por archivo baja a `debug` y el escaneo emite un resumen estructurado por sesión.
 
 Antes de hacer esto primero asegurate de que todo este commiteado.
 

@@ -81,13 +81,13 @@ class DeduplicadorAudio
                 return;
             }
 
-            /* Guardar hash en BD */
-            SamplesRepository::actualizarHash($sampleId, $hash);
+            /* Guardar fingerprint perceptual separado del hash exacto */
+            SamplesRepository::actualizarHashPerceptual($sampleId, $hash);
 
             KamplesLogger::info('DeduplicadorAudio: hash calculado', ['sampleId' => $sampleId, 'hash' => $hash]);
 
-            /* Buscar duplicados (de otros creadores) */
-            $duplicados = SamplesRepository::buscarConHash($hash, $sampleId);
+            /* Buscar duplicados perceptuales (de otros creadores) */
+            $duplicados = SamplesRepository::buscarConHashPerceptual($hash, $sampleId);
 
             if (empty($duplicados)) return;
 
