@@ -73,6 +73,24 @@ export function useTooltipPerfil() {
         return () => window.removeEventListener('scroll', manejar, { capture: true });
     }, [username, cerrarInmediato]);
 
+    /* [183A-39] Cerrar al navegar (click en nombre de usuario fuera del tooltip) */
+    const rutaActual = useNavigationStore(s => s.rutaActual);
+    useEffect(() => {
+        if (username) cerrarInmediato();
+    }, [rutaActual, cerrarInmediato]);
+
+    /* [183A-39] Cerrar al hacer click fuera del tooltip */
+    useEffect(() => {
+        if (!username) return;
+        const manejar = (e: MouseEvent) => {
+            if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+                cerrarInmediato();
+            }
+        };
+        document.addEventListener('mousedown', manejar);
+        return () => document.removeEventListener('mousedown', manejar);
+    }, [username, cerrarInmediato]);
+
     const manejarSeguir = useCallback(async () => {
         if (!perfil) return;
         const estabaS = siguiendo;
