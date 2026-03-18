@@ -73,48 +73,16 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-61:** Completada 2026-03-18. Contador colección prioriza total_items real de BD sobre samples.length paginado.
 - **183A-56:** Completada 2026-03-18. Cola IA limitada a 400 items/día con gap mínimo de 216s entre items (transients de contador diario + timestamp último item).
 - **183A-60:** Completada 2026-03-18. Botón play/preview en tarjetaColeccionMenuContenedor.
+- **183A-30+183A-25:** Completadas 2026-03-18. Cache feed: stale-while-revalidate extendido a pag2/3 (TTL 1h), precalentamiento de pag2/3 en background tras pag1 fresh, documentacion arquitectura cache + plan 50ms.
 
 ## Tareas pendientes
 
-## 183A-25
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
 
 ## 183A-29
 
 Vi que implementaste una tabla de like paras las colecciones, bien, puedes ahora hacer un plan para mejorar el algoritmo de las colecciones, para que se ordenen por relevancia al usuario, algo optimizado y minimalista. 
-
-## 183A-30 
-
-ya entiendo sobre la tarea de 183A-25, esto se implemento anteriormente lo de cache en la primera pagina, no esta mal pero, ese cache debería actualizarse despues de que el usuario lo ve y en tiempo real, o sea, es para que tenga un respuesta rapida pero despues se actualice con los datos reales, no para que el usuario vea datos desactualizados. 
-
-+----------------------------------------------------+----------+
-| Componente                                         | Tiempo   |
-+----------------------------------------------------+----------+
-| PerfilUsuario::construir (sin cache)               |    32.9ms |
-| Conteo samples activos (SQL COUNT)                 |     9.3ms |
-| Verificacion pgvector                              |     9.2ms |
-| SQL gen: Comportamiento (0.27)                     |     0.1ms |
-| SQL gen: Contexto (0.15)                           |     0.0ms |
-| SQL gen: Tendencias (0.12)                         |     0.0ms |
-| SQL gen: Grafo Social (0.1)                        |     0.0ms |
-| SQL gen: Similitud pgvector (0.28)                 |     0.8ms |
-| >> FEED pag1 sin cache fresco <<                   |     3.6ms |
-| >> FEED pag2 sin cache <<                          |   199.8ms |
-| >> FEED pag3 sin cache <<                          |   266.1ms |
-| Feed pag3 cache hit                                |     2.9ms |
-+----------------------------------------------------+----------+
-| PROMEDIO feed sin cache (3 pags)                   |   156.5ms |
-+----------------------------------------------------+----------+
-
-=== RESUMEN (para documentacion) ===
-Fecha: 2026-03-18 07:07:24 | Config: df224c3e
-Samples: 984 | pgvector: SI | Pipeline: NO
-Feed pag1 (sin cache fresco): 4ms | pag2: 200ms | pag3: 266ms | promedio: 157ms | cache: 3ms
-Perfil: 33ms | Conteo: 9ms
-=== FIN ===
-
-Lo que necesito un plan agresivo y revision del algorito (ya habia un plan en los docs viejo, revisa), planifica mas optimizaciones agresivas sin que el algoritmo pierda calidad, la meta reducir el tiempo a 50ms promedio sin cache. 
 
 ## 183A-31
 
@@ -171,7 +139,9 @@ En movil solo debe reproducir el audio, en movil no abre el panel lateral tocand
 
 ## 183A-72
 
-No veo la info en el panel lateral sobre la coleccion original del sample, revisar y corregir para que se muestre esa info. 183A-55 no se cumplio. Pedi que se viera la imagen en 4:3 con el titulo abajo, 100% de ancho, estilo spotify
+panelColeccionPortada no aparece la imagen, a veces las colecciones tienen una imagen de colors temporal, usar la misma que tenga la coleccion temporalmente hasta que el usuario ponga una. 
+
+panelColeccionPortada tambien de aparecer con los detalles del sample caund osbre el panel lateral, son dos tipos de paneles, vamos a simplificarlo a uno solo, al de cuando se da click "Abri panel", en ese panel hacer que También te podría gustar tenga mas samples, y que aparezca panelColeccionPortada, el otro panel es que se abre cuando se da like, debe un solo panel ahora de estos dos. 
 
 ## Tarea final cuando completes todo
 
