@@ -279,6 +279,7 @@ class AuthController
             }
 
             /* Crear registro nuevo — C193: incluir avatar_url de WP */
+            /* [183A-69] Guardar IP de registro para detectar cuentas múltiples. */
             $avatarWp = get_avatar_url($wpId, ['size' => 256]) ?: null;
             UsuariosExtRepository::crearDesdeWP([
                 'wp_user_id'   => $wpId,
@@ -286,6 +287,7 @@ class AuthController
                 'email'        => $email,
                 'display_name' => $displayName,
                 'avatar_url'   => $avatarWp,
+                'registro_ip'  => RateLimiter::obtenerIp(),
             ]);
 
             $nuevo = UsuariosExtRepository::buscarPorWpId($wpId);

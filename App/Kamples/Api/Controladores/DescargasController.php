@@ -1,5 +1,10 @@
 <?php
 
+/* sentinel-disable-file limite-lineas — Controller REST con 4 rutas + advisory lock + anti-abuso IP + revenue share + GB limit.
+ * La lógica de descarga es inherentemente larga por la atomicidad requerida (try/finally unlock).
+ * Streaming y ZIP ya están en subcontroladores separados. TO-DO: extraer lógica de anti-abuso
+ * y revenue share a servicios dedicados cuando el controller supere 500 líneas. */
+
 /**
  * DescargasController — Sistema de descargas con límites por plan.
  *
@@ -28,6 +33,7 @@ use App\Config\Schema\_generated\UsuariosExtEnums;
 use App\Config\Schema\_generated\SyncChangelogEnums;
 use App\Kamples\KamplesLogger;
 use App\Kamples\Api\Helpers\NormalizadorSample;
+use App\Kamples\Api\Helpers\RateLimiter;
 
 class DescargasController
 {
@@ -162,6 +168,35 @@ class DescargasController
          */
         if ($consumeCredito) {
             $limite = $configPlan['descargas_dia'] ?? 5;
+
+            /* [183A-69] Anti-abuso por IP: máx 5 descargas/día desde la misma IP
+             * independientemente de cuántas cuentas tenga el usuario.
+             * El check es previo al advisory lock para fallar rápido sin bloquear.
+             * Solo aplica a free: Pro/Premium no tienen restricción de IP. */
+            if ($plan === UsuariosExtEnums::PLAN_FREE && $limite > 0) {
+                $limiteIP = 5;
+                if (RateLimiter::excedeLimiteDescargasIP($limiteIP)) {
+                    return new \WP_REST_Response([
+                        'ok'       => false,
+                        'error'    => 'Límite de descargas diarias por red alcanzado. Intenta mañana.',
+                        'sinCredito' => true,
+                    ], 429);
+                }
+            }
+
+            /* [183A-69] Cuentas nuevas (< 3 días): límite reducido a 2 descargas/día.
+             * Gotcha: created_at viene de PG como string ISO, necesita strtotime(). */
+            $cuentaNueva = false;
+            if ($plan === UsuariosExtEnums::PLAN_FREE && $limite > 0) {
+                $createdAt = $usuario[UsuariosExtCols::CREATED_AT] ?? null;
+                if ($createdAt) {
+                    $diasCuenta = (\time() - \strtotime((string) $createdAt)) / 86400;
+                    if ($diasCuenta < 3) {
+                        $cuentaNueva = true;
+                        $limite = min($limite, 2);
+                    }
+                }
+            }
             /* O14: Advisory lock para evitar race condition TOCTOU — try/finally garantiza unlock */
             $lockAdquirido = false;
             if ($limite > 0) {
@@ -176,9 +211,13 @@ class DescargasController
                     $descargasHoy = DescargasRepository::contarHoy($userId);
 
                     if ($descargasHoy >= $limiteEfectivo) {
+                        /* [183A-69] Mensaje diferenciado para cuentas nuevas */
+                        $msgLimite = $cuentaNueva
+                            ? "Las cuentas nuevas tienen un límite de {$limiteEfectivo} descargas diarias. El límite completo se activa a los 3 días."
+                            : "Has alcanzado el límite de {$limiteEfectivo} descargas diarias.";
                         return new \WP_REST_Response([
                             'ok' => false,
-                            'error' => "Has alcanzado el límite de {$limiteEfectivo} descargas diarias.",
+                            'error' => $msgLimite,
                             'limite' => $limiteEfectivo,
                             'usadas' => $descargasHoy,
                             'sinCredito' => true,

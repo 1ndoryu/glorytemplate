@@ -46,6 +46,8 @@ class UsuariosExtSchema extends TableSchema
             'suspension_razon'       => ['tipo' => 'text', 'nullable' => true],
             'marcado_eliminacion_en' => ['tipo' => 'datetime', 'nullable' => true],
             'sera_eliminado_en'      => ['tipo' => 'datetime', 'nullable' => true],
+            /* [183A-69] IP de registro para detectar cuentas múltiples desde la misma IP. */
+            'registro_ip'            => ['tipo' => 'string', 'max' => 45, 'nullable' => true],
         ];
     }
 }

@@ -239,23 +239,32 @@ class UsuariosExtRepository extends BaseRepository
     /*
      * Crear registro de usuario desde datos de WordPress.
      * Retorna el ID generado.
+     * [183A-69] Acepta registro_ip opcional para detectar cuentas múltiples desde la misma IP.
      */
     public static function crearDesdeWP(array $wpUser): int
     {
         $tabla = UsuariosExtCols::TABLA;
 
+        $tieneIp = !empty($wpUser['registro_ip']);
+        $sqlIp   = $tieneIp ? (', ' . UsuariosExtCols::REGISTRO_IP) : '';
+        $valIp   = $tieneIp ? ', :registroIp' : '';
+        $params  = [
+            'wpId'     => $wpUser['wp_user_id'],
+            'username' => $wpUser['username'],
+            'nombre'   => $wpUser['display_name'],
+            'email'    => $wpUser['email'],
+            'avatar'   => $wpUser['avatar_url'],
+        ];
+        if ($tieneIp) {
+            $params['registroIp'] = $wpUser['registro_ip'];
+        }
+
         return static::insertar(
             "INSERT INTO {$tabla} (" . UsuariosExtCols::WP_USER_ID . ", " . UsuariosExtCols::USERNAME . ", "
-            . UsuariosExtCols::NOMBRE_VISIBLE . ", " . UsuariosExtCols::EMAIL . ", " . UsuariosExtCols::AVATAR_URL . ")
-             VALUES (:wpId, :username, :nombre, :email, :avatar)
+            . UsuariosExtCols::NOMBRE_VISIBLE . ", " . UsuariosExtCols::EMAIL . ", " . UsuariosExtCols::AVATAR_URL . $sqlIp . ")
+             VALUES (:wpId, :username, :nombre, :email, :avatar" . $valIp . ")
              RETURNING " . UsuariosExtCols::ID,
-            [
-                'wpId'     => $wpUser['wp_user_id'],
-                'username' => $wpUser['username'],
-                'nombre'   => $wpUser['display_name'],
-                'email'    => $wpUser['email'],
-                'avatar'   => $wpUser['avatar_url'],
-            ]
+            $params
         );
     }
 

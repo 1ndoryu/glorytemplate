@@ -72,10 +72,21 @@ class RateLimiter
         return null;
     }
 
+    /* [183A-69] Anti-abuso de descargas por IP.
+     * Un usuario no puede bajar más de $maximo samples/día independientemente
+     * de cuántas cuentas use. Retorna true si está bloqueado. */
+    public static function excedeLimiteDescargasIP(int $maximo): bool
+    {
+        $ip  = self::obtenerIp();
+        $hoy = \date('Ymd');
+        return self::excedeLimite("descarga_ip_{$ip}_{$hoy}", $maximo, 86400);
+    }
+
     /**
      * Obtener IP real del cliente (soporta proxies).
+     * Público para reutilización en anti-abuso (registro IP, descargas por IP, etc.)
      */
-    private static function obtenerIp(): string
+    public static function obtenerIp(): string
     {
         $headers = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'REMOTE_ADDR'];
         foreach ($headers as $header) {
