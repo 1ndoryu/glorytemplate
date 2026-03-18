@@ -76,6 +76,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-30+183A-25:** Completadas 2026-03-18. Cache feed: stale-while-revalidate extendido a pag2/3 (TTL 1h), precalentamiento de pag2/3 en background tras pag1 fresh, documentacion arquitectura cache + plan 50ms.
 - **183A-67:** Completada 2026-03-18. Feed personalizado ahora incluye imagen_coleccion_propietario (portada coleccion del creador). Extraido como metodo publico sqlImagenColeccionPropietario() en NormalizadorSample.
 - **183A-69:** Completada 2026-03-18. Anti-abuso descargas: rate limit 5/dia por IP (cross-account), limite 2/dia cuentas nuevas (<3 dias), registro_ip en usuarios_ext, migration v062.
+- **183A-64:** Completada 2026-03-18. Correcciones ortograficas (~100 tildes faltantes) en 20 archivos React/TS de texto UI visible al usuario.
 
 ## Tareas pendientes
 
@@ -113,9 +114,6 @@ No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en
 
 pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien calcule tiempo de "También te podría gustar" cuando se da me gusta a un sample, que calcule el feed la pagina de musica, y el "mas ideas" de varias colecciones de al menos 200 samples, para ver cuanto dura cada cosa, luego hacer un script similar en la tab de procesos del panel de admin y correr y ver los resultados cuando se quiera. No se que otra cosa faltaría medir. 
 
-## 183A-64
-
-Respecot a 183A-64 me refería a los errores ortograficos, 
 
 ## 183A-70
 
@@ -135,6 +133,10 @@ En movil solo debe reproducir el audio, en movil no abre el panel lateral tocand
 panelColeccionPortada no aparece la imagen, a veces las colecciones tienen una imagen de colors temporal, usar la misma que tenga la coleccion temporalmente hasta que el usuario ponga una. 
 
 panelColeccionPortada tambien de aparecer con los detalles del sample caund osbre el panel lateral, son dos tipos de paneles, vamos a simplificarlo a uno solo, al de cuando se da click "Abri panel", en ese panel hacer que También te podría gustar tenga mas samples, y que aparezca panelColeccionPortada, el otro panel es que se abre cuando se da like, debe un solo panel ahora de estos dos. 
+
+## 183A-73
+
+No funciona descargar samples desde la app, documentate bien en internet sobre esto, es una tarea que has fallado antes.
 
 ## Tarea final cuando completes todo
 
