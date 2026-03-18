@@ -177,6 +177,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         if (claveCacheAnteriorRef.current !== claveCache) {
             claveCacheAnteriorRef.current = claveCache;
             cacheFeedRef.current = {};
+            desyncRecargaRef.current = false;
             setPaginaActual(1);
             setHayMasPaginas(true);
             setIndiceInicio(0);
@@ -196,6 +197,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
     /* Guard contra race conditions */
     const requestIdRef = useRef(0);
+    /* [183A-86] Prevenir loops infinitos de recarga por desync stale/fresh */
+    const desyncRecargaRef = useRef(false);
 
     /* Carga de datos paginada con stale-while-revalidate en pagina 1.
      * QK39: Lee cache persistente (localStorage) si no hay cache en memoria.
@@ -266,11 +269,33 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                 setSamples(datos);
                 setPrimeraCargaCompleta(true);
             } else {
+                let desyncDetectado = false;
                 setSamples(prev => {
                     const idsExistentes = new Set(prev.map(s => s.id));
                     const nuevos = datos.filter(s => !idsExistentes.has(s.id));
+                    /* [183A-86] Si TODOS los items de la siguiente página son duplicados
+                     * (nuevos=0 pero datos>0), hay desync entre stale local (seed viejo) y
+                     * datos frescos del servidor (seed nuevo del bulk-fetch). El dedup descarta
+                     * todo y la paginación parece rota. Detectar y marcar para recarga. */
+                    if (nuevos.length === 0 && datos.length > 0 && !desyncRecargaRef.current) {
+                        desyncDetectado = true;
+                        return prev;
+                    }
+                    desyncRecargaRef.current = false;
                     return [...prev, ...nuevos];
                 });
+                /* [183A-86] Desync: limpiar cache local y recargar página 1 fresca.
+                 * El warm del servidor ya completó (~37ms), así que la API devuelve datos
+                 * frescos consistentes. El guard desyncRecargaRef evita loops infinitos. */
+                if (desyncDetectado) {
+                    desyncRecargaRef.current = true;
+                    cacheFeedRef.current = {};
+                    limpiarCachePersistente();
+                    setPaginaActual(1);
+                    setHayMasPaginas(true);
+                    cargarPagina(1, true);
+                    return;
+                }
             }
         } finally {
             /* QL24: Resetear flags de carga SIEMPRE, incluso si requestId guard canceló.
