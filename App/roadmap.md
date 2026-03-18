@@ -46,6 +46,7 @@ Ubicacion: `App/docs (ignorar)/`
 - Detalle en `App/Agente/completados/tareas-2026-03-18.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 - **183A-41, 183A-42, 183A-43, 183A-37:** Completadas 2026-03-18. Modal login APK restaura sesión desde token nativo. SHA-1 debug. Push notifications: service account + tabla fcm_tokens + FcmController fix (`obtenerActual()` → `obtenerPorWpId()`) + verificado E2E con notificación en bandeja Android.
+- **183A-44:** Completada 2026-03-18. Fix React error #310: `useLayoutEffect` después de returns condicionales en `MenuContextual.tsx`.
 
 ## Tareas pendientes
 
@@ -126,26 +127,38 @@ Error visual, el modal de usuario cuando se pone el cursor sobre el nombre, a da
 
 Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
 
-## 183A-44
-
-a dar click a la foto de perfil o cualquier parte (antes de que arreglaras las notificaciones pasaba esto)
-
-Error de render
-Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
-Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
-    at qt (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:39:18245)
-    at mc (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:39:21217)
-    at Object.ih [as useLayoutEffect] (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:39:21550)
-    at D1.Ye.useLayoutEffect (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:10:6209)
-    at ja (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:853:9060)
-    at Qd (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:39:17650)
-    at ou (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:3158)
-    at rg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:45517)
-    at eg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:40334)
-    at x1 (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:40262)
-
-main-UIhFmBAv.js:18 [Glory] Error en isla "InicioIsland": Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
-
-# # 183A-45
+## 183A-45
 
 Las notificaciones funcionan pero el logo de la notifiacion (K) no es el logo de kamples el logo de kamples es el del favicon
+
+## 183A-46
+
+PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate>npm run dev
+
+> glory-theme@1.0.0 dev
+> npm run dev --prefix Glory/assets/react
+
+
+> glory-react@1.0.0 dev
+> vite
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://10.8.0.2:5173/
+  ➜  Network: http://192.168.0.127:5173/
+  ➜  press h + enter to show help
+Error: The following dependencies are imported but could not be resolved:
+
+  @tauri-apps/api/app (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/hooks/useVerificadorVersion.ts)        
+  @tauri-apps/plugin-shell (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/utils/plataforma.ts)
+  @tauri-apps/plugin-notification (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/services/notificacionNativa.ts)
+
+Are they installed?
+    at file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:14849:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:47014:28
+
+## Tarea final cuando completes todo
+
+1. rehacer el instalador de la aplicación de escritorio 
+2. generar el apk para probar en un dispositivo real
+3. indicarme donde estan los archivos.
