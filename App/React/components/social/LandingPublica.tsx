@@ -12,6 +12,7 @@ import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
 import { useState, type KeyboardEvent } from 'react';
+import { useNavigationStore } from '@/core/router';
 import '../../styles/componentes/landingPublica.css';
 
 /* Versión de assets SVG para cache-busting (incrementar al modificar los SVGs) */
@@ -33,15 +34,17 @@ const SVG_H = 717;
 
 export const LandingPublica = (): JSX.Element => {
     const {abrirAuth} = useLandingPublica();
+    const navegar = useNavigationStore(s => s.navegar);
     const svgs = rutasSvg();
     const [busqueda, setBusqueda] = useState('');
 
+    /* [183A-35] Navegación SPA en vez de window.location.href para evitar recarga */
     const irADescubrir = () => {
         const q = busqueda.trim();
         const url = q
-            ? `https://kamples.com/descubrir/?q=${encodeURIComponent(q)}`
-            : 'https://kamples.com/descubrir/';
-        window.location.href = url;
+            ? `/descubrir/?q=${encodeURIComponent(q)}`
+            : '/descubrir/';
+        navegar(url);
     };
 
     const manejarTecla = (e: KeyboardEvent<HTMLInputElement>) => {
