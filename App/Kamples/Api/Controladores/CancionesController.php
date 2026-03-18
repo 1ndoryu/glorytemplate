@@ -318,12 +318,30 @@ class CancionesController
     /**
      * GET /canciones/secciones — Secciones estilo Spotify (QK18/QK22).
      * Retorna multiples secciones de canciones agrupadas con dedup entre ellas.
+     * [183A-31] Cache: 30min anon / 10min auth para evitar 8+ queries en serie por visita.
      */
     public static function secciones(\WP_REST_Request $request): \WP_REST_Response
     {
         try {
             $porSeccion = (int) $request->get_param('por_seccion');
             $userId = UsuarioHelper::obtenerIdPg();
+
+            /* [183A-31] Cache por usuario (personalizado) o anonimo (compartido).
+             * TTL menor para auth porque "Para Ti" es heuristico semi-personal.
+             * La llave incluye por_seccion para no mezclar respuestas de distinto tamano. */
+            $claveCache = $userId
+                ? "secciones_canciones_u{$userId}_ps{$porSeccion}"
+                : "secciones_canciones_anon_ps{$porSeccion}";
+            $ttl = $userId ? 600 : 1800; /* 10 min auth / 30 min anon */
+
+            $cached = \App\Kamples\Services\ServicioCache::obtener($claveCache);
+            if ($cached !== false) {
+                $decoded = \json_decode($cached, true);
+                if (\json_last_error() === JSON_ERROR_NONE && \is_array($decoded)) {
+                    return new \WP_REST_Response(['ok' => true, 'data' => $decoded]);
+                }
+                /* Cache corrupto — continuar sin cache y regenerar */
+            }
 
             $seccionesRaw = CancionesRepository::secciones($porSeccion, $userId);
 
@@ -343,6 +361,8 @@ class CancionesController
                 }
                 return $result;
             }, $seccionesRaw);
+
+            \App\Kamples\Services\ServicioCache::guardar($claveCache, \json_encode($secciones), $ttl);
 
             return new \WP_REST_Response([
                 'ok'   => true,
