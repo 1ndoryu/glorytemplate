@@ -120,6 +120,14 @@
     align-items: center;
 }
 
+.landingHeroBuscador button {
+    border-radius: 100px;
+}
+
+.landingHeroAcciones {
+    display: none;
+}
+
 /* [183A-18] Buscador en el hero del landing para usuarios no autenticados */
 .landingHeroBuscador {
     display: flex;
@@ -132,6 +140,7 @@
     width: 100%;
     max-width: 36rem;
     transition: border-color var(--transicionRapida), box-shadow var(--transicionRapida);
+    height: 50px;
 }
 
 .landingHeroBuscador:focus-within {

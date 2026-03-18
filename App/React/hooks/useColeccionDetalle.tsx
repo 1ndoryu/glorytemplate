@@ -30,6 +30,24 @@ interface ColeccionDetalleParams {
     propSlug?: string;
 }
 
+const hidratarColeccionDetalle = (coleccion: Coleccion, previa?: Coleccion | null): Coleccion => {
+    const samples = coleccion.samples ?? previa?.samples;
+    const subcolecciones = coleccion.subcolecciones ?? previa?.subcolecciones;
+    const coleccionPadre = coleccion.coleccionPadre ?? previa?.coleccionPadre ?? null;
+    const totalSamples = Array.isArray(samples) && samples.length > 0
+        ? samples.length
+        : coleccion.totalSamples;
+
+    return {
+        ...previa,
+        ...coleccion,
+        samples,
+        subcolecciones,
+        coleccionPadre,
+        totalSamples,
+    };
+};
+
 export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [coleccion, setColeccion] = useState<Coleccion | null>(null);
     const [cargando, setCargando] = useState(true);
@@ -106,7 +124,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
                     : await obtenerColeccionPorSlug(segmento, opts);
                 if (controller.signal.aborted) return;
                 if (resp.ok && resp.data) {
-                    setColeccion(resp.data);
+                    setColeccion(prev => hidratarColeccionDetalle(resp.data!, prev));
                     /* QL92: Cargar estado de bookmark desde la respuesta del servidor */
                     const rawData = resp.data as unknown as Record<string, unknown>;
                     setGuardada(Boolean(rawData.esta_guardada ?? rawData.estaGuardada ?? false));
@@ -285,7 +303,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
 
     /* Actualiza el estado local de la coleccion tras una edicion en el modal */
     const manejarGuardarEdicion = useCallback((coleccionActualizada: Coleccion) => {
-        setColeccion(coleccionActualizada);
+        setColeccion(prev => hidratarColeccionDetalle(coleccionActualizada, prev));
         setModalEditarAbierto(false);
     }, []);
 
