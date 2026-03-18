@@ -400,6 +400,39 @@ class NormalizadorSample
      * PDO no puede parametrizar dentro de subqueries correlacionadas con la query principal,
      * pero validamos el tipo estrictamente para prevenir inyección.
      */
+    /**
+     * [183A-67] Genera la subquery SQL correlacionada para imagen_coleccion_propietario.
+     * Busca la portada de la primera coleccion del creador del sample que tenga imagen custom.
+     * Alias de columna: imagen_coleccion_propietario.
+     * El alias 's' referencia la tabla padre (debe existir en el contexto FROM).
+     * Cadena: imagen directa (s.imagen_url) > portada coleccion propietario > null (colors frontend).
+     */
+    public static function sqlImagenColeccionPropietario(): string
+    {
+        $sImagen = SamplesCols::IMAGEN_URL;
+        $sId = SamplesCols::ID;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $csTabla = ColeccionSamplesCols::TABLA;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
+        $cTabla = ColeccionesCols::TABLA;
+        $cId = ColeccionesCols::ID;
+        $cUsuarioId = ColeccionesCols::USUARIO_ID;
+        $cImagenUrl = ColeccionesCols::IMAGEN_URL;
+
+        return "CASE WHEN s.{$sImagen} IS NOT NULL THEN NULL ELSE (
+            SELECT c_img.{$cImagenUrl}
+            FROM {$csTabla} cs_img
+            JOIN {$cTabla} c_img ON cs_img.{$csColId} = c_img.{$cId}
+            WHERE cs_img.{$csSampleId} = s.{$sId}
+              AND c_img.{$cUsuarioId} = s.{$sCreadorId}
+              AND c_img.{$cImagenUrl} IS NOT NULL
+            ORDER BY cs_img.{$csAddedAt} ASC
+            LIMIT 1
+        ) END";
+    }
+
     public static function sqlSelectSamples(?int $userId = null, bool $soloCreadorActivo = true): string
     {
         /*
@@ -562,29 +595,9 @@ class NormalizadorSample
 
         /*
          * QL93: Imagen heredada de coleccion del propietario.
-         * Solo se busca si el sample NO tiene imagen directa (CASE WHEN).
-         * Busca la primera coleccion del creador del sample que tenga imagen personalizada.
-         * Condiciones: coleccion.usuario_id = sample.creador_id AND coleccion.imagen_url IS NOT NULL.
+         * [183A-67] Delegado a sqlImagenColeccionPropietario() para reutilizacion en MotorRecomendacion.
          */
-        $csTablaImg = ColeccionSamplesCols::TABLA;
-        $csColIdImg = ColeccionSamplesCols::COLECCION_ID;
-        $csSampleIdImg = ColeccionSamplesCols::SAMPLE_ID;
-        $csAddedAtImg = ColeccionSamplesCols::ADDED_AT;
-        $cTablaImg = ColeccionesCols::TABLA;
-        $cIdImg = ColeccionesCols::ID;
-        $cUsuarioIdImg = ColeccionesCols::USUARIO_ID;
-        $cImagenUrlImg = ColeccionesCols::IMAGEN_URL;
-
-        $imagenColeccionExpr = "CASE WHEN s.{$sImagen} IS NOT NULL THEN NULL ELSE (
-            SELECT c_img.{$cImagenUrlImg}
-            FROM {$csTablaImg} cs_img
-            JOIN {$cTablaImg} c_img ON cs_img.{$csColIdImg} = c_img.{$cIdImg}
-            WHERE cs_img.{$csSampleIdImg} = s.{$sId}
-              AND c_img.{$cUsuarioIdImg} = s.{$sCreadorId}
-              AND c_img.{$cImagenUrlImg} IS NOT NULL
-            ORDER BY cs_img.{$csAddedAtImg} ASC
-            LIMIT 1
-        ) END";
+        $imagenColeccionExpr = self::sqlImagenColeccionPropietario();
 
         /*
          * QL112: Cuando $soloCreadorActivo=true (default), usar INNER JOIN para ocultar

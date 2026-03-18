@@ -404,6 +404,10 @@ class MotorRecomendacion
                            uc.sample_id IS NOT NULL AS ya_guardado_en_coleccion,
                            ucom.sample_id IS NOT NULL AS ya_comentado,
                            (s.{$sCreadorId} = {$userId_int}) AS es_mio,
+                           /* [183A-67] imagen_coleccion_propietario faltaba en el feed personalizado.
+                            * Sin esto, los samples sin imagen_url directa mostraban colors temporales
+                            * en vez de la portada de la coleccion del creador. */
+                           " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlImagenColeccionPropietario() . " AS imagen_coleccion_propietario,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
