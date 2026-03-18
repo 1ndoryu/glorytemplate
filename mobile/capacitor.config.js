@@ -11,7 +11,12 @@ const config = {
     server: liveReloadUrl ? {
         url: liveReloadUrl,
         cleartext: liveReloadUrl.startsWith('http://')
-    } : undefined
+    } : undefined,
+    plugins: {
+        PushNotifications: {
+            presentationOptions: ["badge", "sound", "alert"],
+        },
+    }
 };
 
 module.exports = config;

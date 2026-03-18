@@ -73,7 +73,7 @@ export const useNotificacionesNativas = (): void => {
 
     /* QL45: Procesar click-to-navigate de FCM al volver a primer plano (Android) */
     useEffect(() => {
-        if (!esTauri() || !autenticado) return;
+        if ((!esTauri() && !esAndroid()) || !autenticado) return;
 
         const manejarVisibilidad = () => {
             if (document.visibilityState === 'visible') {
