@@ -66,6 +66,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-64:** Completada 2026-03-18. Seguridad endpoint DMCA: rate limiting + eliminar auto-desactivación de samples.
 - **183A-65:** Completada 2026-03-18. Buscador landing: corregido param ?buscar= y query pasado al API.
 - **183A-63:** Completada 2026-03-18. Modal login APK: espera restauración de sesión + cierra al autenticar.
+- **183A-59:** Completada 2026-03-18. Rutas desktop con params para extracción de id/slug dinámicos.
 
 ## Tareas pendientes
 
@@ -142,10 +143,6 @@ En el panel lateral de los samples, arriba de También te podría gustar agregar
 ## 183A-56
 
 La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
-
-## 183A-59
-
-Algo pasa en la aplicacion de escritorio, viendo el modo dev, cuando voy a un sampleo https://kamples.com/sampleo/24770/larsht-touch-samplea/, dice "ID de relación no válido" eso no pasa en produccion. 
 
 ## 183A-60
 
