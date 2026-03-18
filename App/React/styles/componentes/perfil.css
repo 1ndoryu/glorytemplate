@@ -142,6 +142,11 @@
     .perfilPortada {
         height: 140px;
     }
+
+    /* [183A-47] Ocultar boton editar perfil en movil — ya esta en menu 3 puntos */
+    .perfilBtnEditar {
+        display: none;
+    }
 }
 
 /* Metadata del perfil (ubicación, web) */

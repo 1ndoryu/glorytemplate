@@ -153,7 +153,7 @@ export const PerfilIsland = ({ username: usernameProp }: PerfilIslandProps): JSX
 
                     <div className="perfilAcciones">
                         {esPropietario ? (
-                            <BotonBase variante="secundario" onClick={() => abrirConfiguracion()}>
+                            <BotonBase variante="secundario" className="perfilBtnEditar" onClick={() => abrirConfiguracion()}>
                                 <Settings size={14} />
                                 Editar perfil
                             </BotonBase>
