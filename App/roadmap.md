@@ -69,6 +69,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-59:** Completada 2026-03-18. Rutas desktop con params para extracción de id/slug dinámicos.
 - **183A-54:** Completada 2026-03-18. Quitar padding botones colección + panel lateral modo colección.
 - **183A-50:** Completada 2026-03-18. Acciones múltiples emiten eventos CRUD para actualizar UI en tiempo real.
+- **183A-55:** Completada 2026-03-18. Info colección original en panel lateral de sugerencias (portada 3:2 estilo Spotify).
 
 ## Tareas pendientes
 
@@ -129,10 +130,6 @@ deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo
 asegurar que a dar click vayan al contenido relacionado
 asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
 tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
-
-## 183A-55
-
-En el panel lateral de los samples, arriba de También te podría gustar agregar info de que coleccion pertece, el sample, la imagen de portada en proporcion 3:2 cover, estilo spotify, y dentro sobre la imagen en la esquina abajo izquierda el titulo y abajo el autor de la coleccion, siempre muestra la coleccion de quien subio el sample, sino, la de cualquier otro usuario. Que esto este optmizado, 
 
 ## 183A-56
 
