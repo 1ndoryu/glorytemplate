@@ -69,17 +69,18 @@ export const useDescubrirIsland = () => {
         const tipo = ordenamiento === 'recientes' ? 'recientes'
             : ordenamiento === 'destacados' ? 'trending'
             : 'descubrir';
-        const resp = await obtenerFeed(tipo, pagina);
+        /* [183A-65] Pasar busqueda al API para que el endpoint filtre */
+        const resp = await obtenerFeed(tipo, pagina, busqueda);
         if (resp.total != null) setTotalServidor(resp.total);
         return { ok: resp.ok, data: resp.ok && resp.data ? resp.data : [] };
-    }, [ordenamiento]);
+    }, [ordenamiento, busqueda]);
 
     /* QL24: Resetear totalServidor al cambiar ordenamiento */
     useEffect(() => {
         setTotalServidor(null);
     }, [ordenamiento]);
 
-    const claveCache = `descubrir_${ordenamiento}_${periodoDestacados}`;
+    const claveCache = `descubrir_${ordenamiento}_${periodoDestacados}_${busqueda}`;
 
     const obtenerEtiquetaOrden = useCallback((): string => {
         if (ordenamiento === 'destacados') {

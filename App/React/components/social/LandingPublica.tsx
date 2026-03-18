@@ -38,11 +38,12 @@ export const LandingPublica = (): JSX.Element => {
     const svgs = rutasSvg();
     const [busqueda, setBusqueda] = useState('');
 
-    /* [183A-35] Navegación SPA en vez de window.location.href para evitar recarga */
+    /* [183A-35] Navegación SPA en vez de window.location.href para evitar recarga
+     * [183A-65] Corregido: usa ?buscar= para coincidir con useUrlFiltros */
     const irADescubrir = () => {
         const q = busqueda.trim();
         const url = q
-            ? `/descubrir/?q=${encodeURIComponent(q)}`
+            ? `/descubrir/?buscar=${encodeURIComponent(q)}`
             : '/descubrir/';
         navegar(url);
     };
