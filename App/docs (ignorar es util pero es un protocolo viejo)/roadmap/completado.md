@@ -83,6 +83,7 @@
 - **C384b** Fix ciclo infinito reintentos. Retornar `true` (completado) cuando archivo no existe. Listener solo resetea `intentos < MAX_REINTENTOS`. Filter al cargar store.
 - **C385** Escaneo local en "Sincronizar ahora". `escanearCarpetaYEncolar()` scan readDir 2 niveles, skip carpetas sistema. Se invoca en startup + listener Tauri `escanear-subidas-local`.
 - **C387** ✅ Historial sync panel converge a la portada actual del sample. `syncService.ts` ahora reconcilia `imagenUrl` contra el snapshot completo de `/me/sync/colecciones` aunque la entrada ya tuviera imagen persistida; `syncTrackingService.ts` fusiona historial cross-window sin perder la portada más nueva; `VentanaSincPanel.tsx` añade versión `_sv` controlada al `src` y además usa el mismo fallback determinista `colors/` del resto de la app cuando el backend sync todavía devuelve `imagen_url = null`; `PipelineAudioHelpers.php` deja de filtrar `imagen_url` fuera de la whitelist de actualización.
+- **C367f** ✅ Dedup atómico de colecciones. `ColeccionesRepository::crear()` deja el patrón check-then-insert y pasa a inserción atómica con `ON CONFLICT DO NOTHING` sobre el índice único jerárquico ya existente (`usuario_id`, `COALESCE(parent_id,0)`, `LOWER(nombre)`). `ColeccionesCrudController::crear()` ahora diferencia creación real de reutilización, evita changelog falso y devuelve la colección completa. `ColeccionesCrudController::actualizar()` detecta choques de rename en la misma jerarquía y responde 409 en vez de devolver ok silencioso.
 
 ---
 

@@ -176,7 +176,9 @@ export const crearColeccion = async (datos: {
     if (datos.descripcion !== undefined) body.descripcion = datos.descripcion;
     if (datos.esPublica !== undefined) body.publica = datos.esPublica;
     if (datos.parentId !== undefined) body.parent_id = datos.parentId;
-    return apiPost<Coleccion>('/colecciones', body);
+    const resp = await apiPost<Coleccion>('/colecciones', body);
+    if (resp.ok && resp.data) resp.data = normalizarColeccion(resp.data as unknown as Record<string, unknown>);
+    return resp;
 };
 
 /* Actualizar colección — QL114: incluye parentId para reasignar padre */

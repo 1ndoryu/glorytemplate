@@ -244,7 +244,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [ ] **367b** Integridad al mover archivos: Verificar hash pre/post `moverArchivoASinColeccion`. Si hash difiere, revertir.
 - [ ] **367c** Pipeline IA resilience: Auditar `ProcesadorColaIA` — qué pasa si Groq caído 24h, sample borrado entre encolado y procesamiento, respuesta IA malformada.
 - [ ] **367d** Upload queue edge cases: Archivos >100MB (timeout?), 0 bytes, corruptos (header WAV inválido), nombres con unicode especial.
-- [EN CURSO — AG-UNQ] **367f** Dedup atómico de colecciones: cerrar race condition de creación apoyando el índice único por jerarquía existente y eliminando el patrón check-then-insert. **Estado:** auditando repository + migraciones para dejar creación atómica.
+- ✅ [AG-UNQ] **367f** Dedup atómico de colecciones: creación migrada a `INSERT ... ON CONFLICT DO NOTHING` contra el índice único jerárquico existente (`usuario_id + COALESCE(parent_id,0) + LOWER(nombre)`), lookup de recuperación por jerarquía y conflicto de rename reportado con 409 en vez de éxito falso.
 
 > 367e completado [AG-DDP]: server-side dedup endpoint `POST /samples/check-duplicate` + pre-check en uploadQueueService.
 

@@ -92,6 +92,14 @@ class ColeccionesCrudController
             ], 500);
         }
 
+        $coleccionCreada = ColeccionesRepository::buscarPorId($id);
+        if (!$coleccionCreada) {
+            return new \WP_REST_Response([
+                'code' => 'coleccion_no_encontrada',
+                'message' => 'La colección fue creada pero no se pudo recuperar su detalle.',
+            ], 500);
+        }
+
         /* F2.1: Registrar en changelog para delta sync (M4: verificar retorno) */
         if ($creada) {
             $changelogId = SyncChangelogRepository::registrar(
@@ -105,7 +113,11 @@ class ColeccionesCrudController
             }
         }
 
-        return new \WP_REST_Response(['ok' => true, 'id' => $id, 'creada' => $creada], $creada ? 201 : 200);
+        return new \WP_REST_Response([
+            'ok' => true,
+            'data' => $coleccionCreada,
+            'creada' => $creada,
+        ], $creada ? 201 : 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::crear', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
