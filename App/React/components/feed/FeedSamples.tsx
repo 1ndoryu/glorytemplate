@@ -40,6 +40,7 @@ export interface FeedSamplesProps {
     samplesIniciales?: SampleResumen[];
     claveCache?: string;
     mostrarTags?: boolean;
+    habilitarRefresco?: boolean;
     infiniteScroll?: boolean;
     virtualizar?: boolean;
     maxRenderizados?: number;
@@ -63,6 +64,7 @@ export const FeedSamples = ({
     samplesIniciales,
     claveCache = 'default',
     mostrarTags = false,
+    habilitarRefresco = true,
     infiniteScroll = true,
     virtualizar = false,
     maxRenderizados = 50,
@@ -83,6 +85,7 @@ export const FeedSamples = ({
         samplesIniciales,
         claveCache,
         mostrarTags,
+        habilitarRefresco,
         infiniteScroll,
         virtualizar,
         maxRenderizados,

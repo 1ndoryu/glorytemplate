@@ -39,14 +39,6 @@ Ubicacion: `App/docs (ignorar)/`
 ## Tareas pendientes
 
 
-## 183A-13
-
-Sigue la inconsistencia de contenteo entre la lista de colecciones y el conteo interno de la coleccion
-
-## 183A-14
-
-Estoy en una colección y de repente pasa esto "Esta colección aún no tiene samples." desaparecen los samples y despues vuelven a aparecer.
-
 ## 183A-15
 
 Agregar un boton de like al lado del boton de 3 puntos en las lista de colecciones.
@@ -55,13 +47,16 @@ Agregar un boton de like al lado del boton de 3 puntos en las lista de coleccion
 
 La miga de pan de dentro de las colecciones, tarda demasiado en aparecer, esto parece que necesita optmización. 
 
-## 18A-18
+## 183A-18
 
 Cambiar los botones de inicio por un buscador que rediriga a https://kamples.com/descubrir/ haciendo una busqueda. 
 
-## 18A-19
+## 183A-19
 
 La apk en android studio hice el rebuild y no aparece con el logo de kamples la aplicacion
 
-el boton de inicio sesion con google no aparece en el modal del login
+el boton de inicio sesion con google no aparece en el modal del login y las notificaciones del sistema no aparecen, de hecho en la info dice, "this app has not posted any notification", creo que necesita sdocumentarte en internet sobr eesto. 
 
+## 183A-20
+
+Es raro que haya creado un usuario con el nombre test, luego intenramente en las configuraciones de perfil cambie el nombre a wan, pero, sigo inicio sesion a ese usuario con el nombre test, esta mal obviamente, debo iniciar sesion con el nombre que usuario que cambien.

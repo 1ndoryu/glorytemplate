@@ -249,9 +249,10 @@ const ColeccionDetalleBase = ({ coleccionSlug: propSlug }: ColeccionDetalleIslan
                     ) : (
                         <FeedSamples
                             key={`coleccion-samples-${subActiva ?? 'raiz'}-${ordenColeccion}`}
-                            samplesIniciales={ordenColeccion === 'posicion' ? samples : undefined}
+                            samplesIniciales={samples}
                             proveedor={proveedorSamples}
                             claveCache={`coleccion_${coleccion.id}_sub_${subActiva ?? 'raiz'}_${ordenColeccion}`}
+                            habilitarRefresco={false}
                             infiniteScroll={false}
                             virtualizar={false}
                             mostrarTags

@@ -34,10 +34,12 @@ Describir el sistema vigente de colecciones: lectura, edición, mezcla, jerarqu�
 - La vista árbol fue reforzada para mantener visibles los padres aunque el match venga por una hija.
 - Se expuso la colección original del sample desde backend hasta el detalle y menús contextuales.
 - 173A-7 añadió el nombre del padre en la meta de la tarjeta de subcolecciones.
+- 183A-13 corrigió el detalle para recalcular `total_items` y `total_samples` desde los samples realmente cargados cuando el payload incluye subcolecciones o vistas expandidas.
+- 183A-14 desactivó el refresco automático del feed dentro del detalle de colección y evita que un fallo transitorio del proveedor se pinte como colección vacía.
 
 ## Riesgos y gotchas
-- Sigue pendiente investigar la inconsistencia entre conteo de tarjeta y conteo interno reportada en 183A-13.
-- El flash “Esta colección aún no tiene samples” de 183A-14 apunta a una carrera entre fetch, caché o reseteo de estado en UI.
+- El detalle no debe confiar en campos agregados viejos si ya recibió `samples`; en ese caso el total visible debe salir del array normalizado.
+- El `FeedSamples` reutilizado dentro de una colección no debe usar el mismo refresco por visibilidad/polling que el feed general, porque una caída puntual del proveedor produce flashes de vacío.
 - Las jerarquías deben documentarse siempre como estructura de backend primero y vista filtrada después; si se hace al revés aparecen incoherencias.
 
 ## Regla Sentinel

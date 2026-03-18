@@ -1,3 +1,4 @@
+/* sentinel-disable-file limite-lineas: hook central del feed con cache, paginacion, filtros, likes y eventos CRUD; dividirlo completo durante 183A-14 mezclaría una refactorización estructural mayor ajena al fix del falso vacío. */
 /*
  * Hook: useFeedSamples
  * Lógica principal del feed: carga paginada, infinite scroll, virtualización,
@@ -37,6 +38,7 @@ export interface UseFeedSamplesOpciones {
     samplesIniciales?: SampleResumen[];
     claveCache?: string;
     mostrarTags?: boolean;
+    habilitarRefresco?: boolean;
     infiniteScroll?: boolean;
     virtualizar?: boolean;
     maxRenderizados?: number;
@@ -66,6 +68,7 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
         proveedor,
         samplesIniciales,
         claveCache = 'default',
+        habilitarRefresco = true,
         infiniteScroll = true,
         virtualizar = false,
         maxRenderizados = 50,
@@ -247,13 +250,12 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
             } else {
                 const resultado = await proveedor(pagina);
                 if (requestIdRef.current !== thisRequest) return;
+                if (!resultado.ok) return;
                 /* QL35: Solo cachear resultados exitosos — un error de API no debe
                  * persistir array vacio en localStorage corrompiendo futuras cargas. */
-                if (resultado.ok) {
-                    cacheFeedRef.current[key] = resultado.data;
-                    if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
-                    if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
-                }
+                cacheFeedRef.current[key] = resultado.data;
+                if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
+                if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
                 datos = resultado.data;
             }
 
@@ -290,7 +292,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     }, [cargarPagina, samplesIniciales]);
 
     /* QK55: Polling cada 5 min + refresco al volver a la pestana */
-    useFeedRefresco({ paginaActual, cargando, cargandoMas, cargarPagina });
+    /* [183A-14] En detalle de colección el refresco automático puede convertir un fallo transitorio
+     * en un vacío visual. Se desactiva por prop sin alterar el comportamiento del feed general. */
+    useFeedRefresco({ paginaActual, cargando, cargandoMas, cargarPagina, habilitado: habilitarRefresco });
 
     /* Actualizar samples si cambian los iniciales desde fuera */
     useEffect(() => {

@@ -13,31 +13,39 @@ import type { Coleccion, ColeccionResumen, SampleResumen, UsuarioResumen } from 
  * a la interfaz Coleccion (camelCase).
  * Acepta ambos formatos para robustez.
  */
-const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => ({
-    id: (raw.id ?? 0) as number,
-    usuarioId: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
-    nombre: (raw.nombre ?? '') as string,
-    slug: (raw.slug ?? null) as string | null,
-    descripcion: (raw.descripcion ?? '') as string,
-    esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
-    imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
-    totalSamples: (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number,
-    creadoAt: (raw.created_at ?? raw.creadoAt ?? '') as string,
-    actualizadoAt: (raw.updated_at ?? raw.actualizadoAt ?? '') as string,
-    parentId: (raw.parent_id ?? raw.parentId ?? null) as number | null,
-    tags: Array.isArray(raw.tags) ? raw.tags as string[] : [],
-    usuario: raw.username ? {
-        id: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
-        username: raw.username as string,
-        nombreVisible: (raw.nombre_visible ?? raw.nombreVisible ?? raw.username) as string,
-        avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
-    } as UsuarioResumen : raw.usuario as Coleccion['usuario'],
-    samples: raw.samples as Coleccion['samples'],
-    subcolecciones: Array.isArray(raw.subcolecciones)
-        ? (raw.subcolecciones as Record<string, unknown>[]).map(normalizarColeccionResumen)
-        : undefined,
-    contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
-});
+const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => {
+    const samples = raw.samples as Coleccion['samples'];
+    const totalSamples = Array.isArray(samples)
+        ? samples.length
+        : (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number;
+
+    return {
+        id: (raw.id ?? 0) as number,
+        usuarioId: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
+        nombre: (raw.nombre ?? '') as string,
+        slug: (raw.slug ?? null) as string | null,
+        descripcion: (raw.descripcion ?? '') as string,
+        esPublica: (raw.publica ?? raw.esPublica ?? true) as boolean,
+        imagenUrl: (raw.imagen_url ?? raw.imagenUrl ?? null) as string | null,
+        /* [183A-13] El detalle prioriza el total del payload ya cargado para no mostrar 0 incorrecto. */
+        totalSamples,
+        creadoAt: (raw.created_at ?? raw.creadoAt ?? '') as string,
+        actualizadoAt: (raw.updated_at ?? raw.actualizadoAt ?? '') as string,
+        parentId: (raw.parent_id ?? raw.parentId ?? null) as number | null,
+        tags: Array.isArray(raw.tags) ? raw.tags as string[] : [],
+        usuario: raw.username ? {
+            id: (raw.usuario_id ?? raw.usuarioId ?? 0) as number,
+            username: raw.username as string,
+            nombreVisible: (raw.nombre_visible ?? raw.nombreVisible ?? raw.username) as string,
+            avatarUrl: (raw.avatar_url ?? raw.avatarUrl ?? null) as string | null,
+        } as UsuarioResumen : raw.usuario as Coleccion['usuario'],
+        samples,
+        subcolecciones: Array.isArray(raw.subcolecciones)
+            ? (raw.subcolecciones as Record<string, unknown>[]).map(normalizarColeccionResumen)
+            : undefined,
+        contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
+    };
+};
 
 /* Normalizador para resumen de subcolección */
 const normalizarColeccionResumen = (raw: Record<string, unknown>): ColeccionResumen => ({

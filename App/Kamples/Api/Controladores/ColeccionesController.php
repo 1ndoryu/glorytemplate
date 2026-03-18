@@ -265,6 +265,11 @@ class ColeccionesController
         }
 
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
+        /* [183A-13] El detalle debe usar el mismo total real que el listado visible.
+         * Gotcha: los campos agregados de BD pueden quedar desfasados al incluir subcolecciones.
+         * Pendiente: centralizar este conteo en repository si vuelve a reutilizarse. */
+        $coleccion['total_items'] = \count($coleccion['samples']);
+        $coleccion['total_samples'] = $coleccion['total_items'];
 
         /* Subcolecciones (solo para colecciones raíz) */
         if ($parentId === null) {
@@ -338,6 +343,9 @@ class ColeccionesController
             }
 
             $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
+            /* [183A-13] Mantener consistente el total expuesto por slug e ID. */
+            $coleccion['total_items'] = \count($coleccion['samples']);
+            $coleccion['total_samples'] = $coleccion['total_items'];
 
             if ($parentId === null) {
                 $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
