@@ -51,6 +51,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-35:** Completada 2026-03-18. Buscador landing pública usa SPA nav en vez de `window.location.href`.
 - **183A-39:** Completada 2026-03-18. Tooltip perfil se cierra al hacer click fuera o al navegar.
 - **183A-34:** Completada 2026-03-18. Click derecho y long-press abren menú contextual en tarjetas de colección.
+- **183A-32:** Completada 2026-03-18. Botón like en tarjetas de canción (TarjetaCancionGrande) y detalle de canción.
 
 ## Tareas pendientes
 
@@ -97,12 +98,6 @@ Lo que necesito un plan agresivo y revision del algorito (ya habia un plan en lo
 ## 183A-31
 
 La pagina de musica carga lento a veces, revisar y optimizar.
-
-## 183A-32
-
-agregar un boton del like a a las caciones dentro de 
-<div class="tarjetaCancionGrandeInfo" role="button" tabindex="0"><p class="tarjetaCancionGrandeTitulo">Think (About It)</p><p class="tarjetaCancionGrandeArtista">Lyn Collins</p></div>
-tambien falta uno al lado del boton de 3 puntos dentro de la cancion 
 
 
 ## 183A-36
@@ -160,10 +155,18 @@ y toda su logica si es que tiene alguna
 ## 183A-49
 
 Hacer una revision profunda de las notificaciones
-deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo como @Wan comento tu publicacion "titulo de la publicacion" o algo asi,
+deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo como @Wan comento tu publicacion "titulo de la publicac..." o algo asi,
 asegurar que a dar click vayan al contenido relacionado
-asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo
+asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada
 
+## 183A-50
+
+Las acciones multiples en los samples no actualizan en tiempo real los samples afectados, revisar en profundidad esta funcionalidad y ajustar.
+
+## 183A-51
+
+letras raras, probe subir una carpeta al sync, la pose con este nombre 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 
+el enlace aparece con esas letras, pero, no funciona, imagino que es un problema que no se previno, hay que revisar que pasa, dice Colección no encontrada
 
 ## Tarea final cuando completes todo
 
