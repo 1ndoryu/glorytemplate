@@ -116,3 +116,15 @@ Nota del agente 2026-03-18: el archivo ya fue copiado a `mobile/android/app/goog
 
 Siguen sin aparecer las notificaciones en android sobre la app.
 Sigue el mensaje de this app has not posted any norifications. 
+
+## 183A-38
+
+En la parte de las publicaciones de comunidad y feed de samples hace falta que al tirar hacia arriba en movil, recargue. 
+
+## 183A-39
+
+Error visual, el modal de usuario cuando se pone el cursor sobre el nombre, a dar click al nombre el modal se queda, debería desaparecer a dar click al usuario o fuera del modal.
+
+## 183A-40
+
+Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
