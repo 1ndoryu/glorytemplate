@@ -29,7 +29,7 @@ Ubicacion: `App/docs (ignorar)/`
 ## Historial compactado
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
-- **183A-9, 173A-7:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
+- **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
 - Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
@@ -131,7 +131,3 @@ Perfil: 56ms | Conteo: 4ms
 ## 173A-8
 
 Ya hice el build de la app con android studio, las notificaciones deben funcionar, aparecer sin que la app este abierta, falta usar el logo de kamples en la app, y en las notificaciones, el loggin de google tiene que funcionar. 
-
-## 183A-10
-
-El agente cometio el error de hacer commit sin pull request y se salto pasos del flujo. Ajustar .github\instructions\test.instructions.md para reforzar que se cumpla el flujo. 
