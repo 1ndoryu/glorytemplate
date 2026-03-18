@@ -68,6 +68,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-63:** Completada 2026-03-18. Modal login APK: espera restauración de sesión + cierra al autenticar.
 - **183A-59:** Completada 2026-03-18. Rutas desktop con params para extracción de id/slug dinámicos.
 - **183A-54:** Completada 2026-03-18. Quitar padding botones colección + panel lateral modo colección.
+- **183A-50:** Completada 2026-03-18. Acciones múltiples emiten eventos CRUD para actualizar UI en tiempo real.
 
 ## Tareas pendientes
 
@@ -128,10 +129,6 @@ deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo
 asegurar que a dar click vayan al contenido relacionado
 asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
 tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
-
-## 183A-50
-
-Las acciones multiples en los samples no actualizan en tiempo real los samples afectados, revisar en profundidad esta funcionalidad y ajustar.
 
 ## 183A-55
 
