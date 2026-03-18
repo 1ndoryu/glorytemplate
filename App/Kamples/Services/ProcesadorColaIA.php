@@ -42,7 +42,15 @@ class ProcesadorColaIA
 
     /* QL67: Pausa entre procesamiento de items para no saturar rate limits */
     private const PAUSA_ENTRE_ITEMS_SEGUNDOS = 60;
-
+    /*
+     * [183A-56] Límite diario de procesamiento de IA.
+     * 400 items/día = 86400s / 400 = 216s mínimo entre items.
+     * Distribución: 400 items en 24h, sin importar si la cola tiene más.
+     */
+    private const LIMITE_DIARIO = 400;
+    private const GAP_MINIMO_SEGUNDOS = 216; /* 86400 / 400 = 216s ≈ 3.6 min */
+    private const TRANSIENT_CONTADOR_DIARIO = 'kmpl_ia_daily_count';
+    private const TRANSIENT_ULTIMO_ITEM = 'kmpl_ia_ultimo_item';
     /* Nombre del hook WP Cron */
     public const CRON_HOOK = 'kamples_cola_ia_cron';
 
@@ -101,6 +109,29 @@ class ProcesadorColaIA
 
         if (empty($pendientes)) {
             return $resultado;
+        }
+
+        /* [183A-56] Verificar límite diario antes de procesar */
+        $contadorDiario = (int) get_transient(self::TRANSIENT_CONTADOR_DIARIO);
+        if ($contadorDiario >= self::LIMITE_DIARIO) {
+            KamplesLogger::info('ProcesadorColaIA: Límite diario alcanzado', [
+                'procesados_hoy' => $contadorDiario,
+                'limite' => self::LIMITE_DIARIO,
+            ]);
+            return $resultado;
+        }
+
+        /* [183A-56] Verificar gap mínimo entre items */
+        $ultimoItem = (int) get_transient(self::TRANSIENT_ULTIMO_ITEM);
+        if ($ultimoItem > 0) {
+            $transcurrido = time() - $ultimoItem;
+            if ($transcurrido < self::GAP_MINIMO_SEGUNDOS) {
+                KamplesLogger::info('ProcesadorColaIA: Gap mínimo no alcanzado', [
+                    'transcurrido' => $transcurrido,
+                    'gap_requerido' => self::GAP_MINIMO_SEGUNDOS,
+                ]);
+                return $resultado;
+            }
         }
 
         KamplesLogger::info('ProcesadorColaIA: Iniciando procesamiento', [
@@ -179,6 +210,8 @@ class ProcesadorColaIA
                 if ($exito) {
                     ColaProcesamientoIaRepository::marcarCompletado($id);
                     $resultado['exitosos']++;
+                    /* [183A-56] Registrar para límite diario y gap mínimo */
+                    self::registrarItemProcesado();
                 } elseif (GroqHttpClient::fueRateLimited()) {
                     /*
                      * Rate limit de nuevo — marcarError gestiona backoff exponencial (QK78).
@@ -407,6 +440,19 @@ class ProcesadorColaIA
     /**
      * Decodifica metadata JSON del item de cola.
      */
+    /**
+     * [183A-56] Registra un item procesado exitosamente: incrementa el contador diario
+     * y actualiza el timestamp de ultimo item para el control de gap minimo.
+     * El contador diario expira a medianoche; el timestamp expira en GAP_MINIMO_SEGUNDOS.
+     */
+    private static function registrarItemProcesado(): void
+    {
+        $actual = (int) \get_transient(self::TRANSIENT_CONTADOR_DIARIO);
+        $segundosHastaMedianoche = \strtotime('tomorrow') - \time();
+        \set_transient(self::TRANSIENT_CONTADOR_DIARIO, $actual + 1, $segundosHastaMedianoche);
+        \set_transient(self::TRANSIENT_ULTIMO_ITEM, \time(), self::GAP_MINIMO_SEGUNDOS);
+    }
+
     private static function decodificarMetadata(?string $json): array
     {
         if ($json === null || $json === '') {
