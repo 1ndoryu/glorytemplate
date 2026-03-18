@@ -1,4 +1,6 @@
-﻿<?php
+<?php
+
+/* sentinel-disable-file limite-lineas: servicio SEO central con resolvers por ruta, schema markup y metadata dinámica; dividirlo completo durante un hotfix de producción mezclaría una refactorización grande ajena al fix del BOM. */
 
 namespace App\Kamples\Services;
 

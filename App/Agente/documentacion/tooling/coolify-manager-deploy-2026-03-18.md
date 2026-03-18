@@ -23,6 +23,7 @@ Documentar el flujo real de deploy del tema y el fallo corregido en 183A-12 para
 - theme_manager.rs reinstala siempre dependencias JS durante deploy cuando hay build React.
 - npm install y npm run build ahora son fatales: si fallan, el deploy aborta de inmediato.
 - deploy_theme.rs reporta commits aplicados también en rutas de fallo y rollbackea tanto tema como Glory.
+- El 500 que seguía apareciendo tras corregir el build no era del manager: provenía de un BOM en App/Kamples/Services/SeoKamples.php que rompía PHP al cargar WordPress.
 
 ## Implicación práctica
 Cuando se agreguen imports nuevos en App/React o Glory/assets/react, el deploy remoto ya no dependerá del estado previo del contenedor. El contenedor reinstala dependencias y falla temprano si el árbol no es consistente.
