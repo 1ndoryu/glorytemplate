@@ -65,6 +65,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-58:** Completada 2026-03-18. Like canción sincronizado en detalle + tendencias priorizan samples/youtube.
 - **183A-64:** Completada 2026-03-18. Seguridad endpoint DMCA: rate limiting + eliminar auto-desactivación de samples.
 - **183A-65:** Completada 2026-03-18. Buscador landing: corregido param ?buscar= y query pasado al API.
+- **183A-63:** Completada 2026-03-18. Modal login APK: espera restauración de sesión + cierra al autenticar.
 
 ## Tareas pendientes
 
@@ -153,10 +154,6 @@ tarjetaColeccionMenuContenedor un boton de play para reproducir la preview
 ## 183A-61
 
 tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez del total, este problema se repite, no siempre pasa
-
-## 183A-63
-
-Sigue el problema en la apk que cada vez que abro la apk, el modal de login aparece auqnue ya iniciado sesion, si le doy a la x se cierra y todo funciona normal. 
 
 ## 183A-66
 
