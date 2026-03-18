@@ -34,26 +34,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 173A-2
-
-En la pagina de librería donde aparece las colecciones, la vida y el ordenamiento tiene que persistir aunque se recargue. 
-
-La vista de arbol esta mal, los hijos no se muestran debajo de su padre tiene que ser una condición estricta independientemente del ordenamiento. 
-
-## 173A-3
-
-La busqueda dentro de las colecciones sigue sin funcionar. 
-
-## 173A-4
-
-Hay incosistencias entre el contador afuera de la coleccion en la lista de colecciones y el contador dentro de la colección ¿cual es la real? tambien hay inconsistencia entre el menu contextual de 3 puntos en la lista de colecciones y dentro de las colecciones.
-
-## 173A-5
-
-Un boton en el menu contextual de los samples para ir la colección original, eso significa que si el sample esta en una coleccion que pertenece al quien lo subio, entonces el boton lleva a esa coleccion, sino no se muestra el boton. 
-
-tambien implica que en la pagina de detalles de ese sample, haya un boton especifico fuera de los 3 puntos para abrir la coleccion original, en detalleAcciones. Y que en detalleTagsHome haya un tag especifica que abra esa coleccion original con ese nombre.
-
 ## 173A-6
 
 Intenta bajar la primera pagina a 50 ms, no se, alguna tecnica o algo que haga que la primera carga sea ligera y despues de fondo cargue el resto, hay un md sobre esto, se necesitan mas optimizaciones para poder escalar a 1.000.000 samples 
@@ -126,3 +106,8 @@ Perfil: 56ms | Conteo: 4ms
 ## 173A-8
 
 Ya hice el build de la app con android studio, las notificaciones deben funcionar, aparecer sin que la app este abierta, falta usar el logo de kamples en la app, y en las notificaciones, el loggin de google tiene que funcionar. 
+
+
+## 183A-10
+
+Agregar documentaciones detalladas nuevas sin basarte en los md viejos del algoritmo, funcionalidad de colecciones, canciones y sampleos, y el sincronizador. 

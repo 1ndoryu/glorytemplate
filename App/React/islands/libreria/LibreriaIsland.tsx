@@ -11,6 +11,7 @@ import { BotonBase } from '@app/components/ui';
 import { Badge } from '@app/components/ui/Badge';
 import { TarjetaColeccion } from '@app/components/social/TarjetaColeccion';
 import { ModalColeccion } from '@app/components/social/ModalColeccion';
+import { ModalCombinarColeccion } from '@app/components/social/ModalCombinarColeccion';
 import { SkeletonTarjetaColeccion } from '@app/components/skeletons';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { conAutenticacion } from '@app/components/auth/ConAutenticacion';
@@ -35,13 +36,18 @@ const OPCIONES_ORDEN: { id: OrdenColecciones; etiqueta: string }[] = [
 
 export const LibreriaIsland = (): JSX.Element => {
     const {
-        colecciones, coleccionesEnArbol, coleccionesPublicas, coleccionesGuardadas, coleccionesPlanas, cargando,
+        colecciones, coleccionesEnArbol,
+        coleccionesPublicas, coleccionesPublicasEnArbol,
+        coleccionesGuardadas, coleccionesGuardadasEnArbol,
+        coleccionesPlanas, cargando,
         modalColeccionAbierto, setModalColeccionAbierto, coleccionEditando,
+        modalCombinarAbierto, setModalCombinarAbierto, coleccionCombinando,
         tabActiva,
         tagsFrecuentes, tagActivo, setTagActivo,
         orden, setOrden, totalColecciones,
         vista, setVista,
-        abrirNuevaColeccion, manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
+        abrirNuevaColeccion, abrirCombinarColeccion, manejarColeccionCombinada,
+        manejarEditarColeccion, manejarEliminarColeccion, manejarGuardarColeccion,
     } = useLibreriaIsland();
     const usuario = useAuthStore(s => s.usuario);
     const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
@@ -179,7 +185,7 @@ export const LibreriaIsland = (): JSX.Element => {
                             />
                         ) : (
                             <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
-                                {coleccionesPublicas.map(col => {
+                                {(vista === 'arbol' ? coleccionesPublicasEnArbol : coleccionesPublicas).map(col => {
                                     const esPropia = usuario?.id !== undefined && String(col.usuarioId) === String(usuario.id);
                                     const esAdmin = usuario?.rol === 'admin';
                                     return (
@@ -187,6 +193,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                             esSubcoleccion={col.parentId !== null}
                                             parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
                                             onEditar={(esPropia || esAdmin) ? manejarEditarColeccion : undefined}
+                                            onCombinar={(esPropia || esAdmin) ? abrirCombinarColeccion : undefined}
                                             onEliminar={(esPropia || esAdmin) ? manejarEliminarColeccion : undefined}
                                         />
                                     );
@@ -202,7 +209,7 @@ export const LibreriaIsland = (): JSX.Element => {
                             />
                         ) : (
                             <div className={vista === 'arbol' ? 'libreriaArbolColecciones' : vista === 'lista' ? 'libreriaListaColecciones' : 'libreriaGridColecciones'}>
-                                {coleccionesGuardadas.map(col => (
+                                {(vista === 'arbol' ? coleccionesGuardadasEnArbol : coleccionesGuardadas).map(col => (
                                     <TarjetaColeccion key={col.id} coleccion={col} vista={vista}
                                         esSubcoleccion={col.parentId !== null}
                                         parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
@@ -231,6 +238,7 @@ export const LibreriaIsland = (): JSX.Element => {
                                     esSubcoleccion={col.parentId !== null}
                                     parentNombre={col.parentId !== null ? (mapaColecciones.get(col.parentId) ?? null) : null}
                                     onEditar={manejarEditarColeccion}
+                                    onCombinar={abrirCombinarColeccion}
                                     onEliminar={manejarEliminarColeccion}
                                 />
                             ))}
@@ -241,6 +249,13 @@ export const LibreriaIsland = (): JSX.Element => {
 
             <ModalColeccion abierto={modalColeccionAbierto} onCerrar={() => setModalColeccionAbierto(false)}
                 onGuardar={manejarGuardarColeccion} coleccion={coleccionEditando} />
+            <ModalCombinarColeccion
+                abierto={modalCombinarAbierto}
+                onCerrar={() => setModalCombinarAbierto(false)}
+                onCombinado={manejarColeccionCombinada}
+                coleccion={coleccionCombinando}
+                esAdmin={usuario?.rol === 'admin'}
+            />
         </div>
     );
 };

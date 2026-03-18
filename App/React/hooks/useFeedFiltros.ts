@@ -102,10 +102,23 @@ export function useFeedFiltros({ samples, idsExcluidos, idsCreadoresIncluidos, b
             const termino = busqueda.trim().toLowerCase();
             resultado = resultado.filter(s => {
                 const titulo = (s.titulo ?? '').toLowerCase();
+                const descripcion = (s.descripcion ?? '').toLowerCase();
                 const creador = (s.creador?.nombreVisible ?? '').toLowerCase();
+                const username = (s.creador?.username ?? '').toLowerCase();
                 const tags = extraerTagsMetadata(s).map(t => t.toLowerCase());
+                const descripcionMeta = String(
+                    s.metadata?.descripcion_corta
+                    ?? s.metadata?.descripcionCorta
+                    ?? s.metadata?.descripcion
+                    ?? s.metadata?.descripcionEs
+                    ?? s.metadata?.descripcion_es
+                    ?? ''
+                ).toLowerCase();
                 return titulo.includes(termino)
+                    || descripcion.includes(termino)
                     || creador.includes(termino)
+                    || username.includes(termino)
+                    || descripcionMeta.includes(termino)
                     || tags.some(t => t.includes(termino));
             });
         }

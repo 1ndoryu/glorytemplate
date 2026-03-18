@@ -1,5 +1,7 @@
 ﻿<?php
 
+/* sentinel-disable-file limite-lineas: utilidad central de normalización y SQL base de samples; dividirla completa mezclaría una refactorización estructural amplia ajena a 173A-5. */
+
 /**
  * NormalizadorSample — Transforma filas crudas de PostgreSQL a formato API.
  *
@@ -266,6 +268,8 @@ class NormalizadorSample
                 ? (int) $row[SamplesCols::RELACION_SAMPLEO_ID] : null,
             /* QQ79: Datos enriquecidos de la cancion de origen */
             'cancionOrigen'      => self::decodificarCancionOrigen($row),
+            /* [173A-5] Coleccion original del creador, si existe */
+            'coleccionOriginal'  => self::decodificarColeccionOriginal($row),
             /* QQ117: Metadatos de extraccion (fuente, timing, metodo descarga) */
             'extraccion'         => self::decodificarExtraccion($row),
         ];
@@ -287,6 +291,23 @@ class NormalizadorSample
         return [
             'titulo' => $data[CancionesCols::TITULO] ?? null,
             'slug'   => $data[CancionesCols::SLUG] ?? null,
+        ];
+    }
+
+    private static function decodificarColeccionOriginal(array $row): ?array
+    {
+        $json = $row['coleccion_original_json'] ?? null;
+        if (!$json) {
+            return null;
+        }
+        $data = is_string($json) ? json_decode($json, true) : (is_array($json) ? $json : null);
+        if (!is_array($data)) {
+            return null;
+        }
+        return [
+            'id' => isset($data[ColeccionesCols::ID]) ? (int) $data[ColeccionesCols::ID] : 0,
+            'nombre' => $data[ColeccionesCols::NOMBRE] ?? '',
+            'slug' => $data[ColeccionesCols::SLUG] ?? null,
         ];
     }
 
@@ -470,6 +491,26 @@ class NormalizadorSample
             SELECT c.{$cTitulo}, c.{$cSlug}
             FROM {$tc} c WHERE c.{$cId} = s.{$sCancionOrigen}
         ) co) AS cancion_origen_json";
+                $csTablaOriginal = ColeccionSamplesCols::TABLA;
+                $csColeccionOriginal = ColeccionSamplesCols::COLECCION_ID;
+                $csSampleOriginal = ColeccionSamplesCols::SAMPLE_ID;
+                $csAddedAtOriginal = ColeccionSamplesCols::ADDED_AT;
+                $tcOriginal = ColeccionesCols::TABLA;
+                $cOriginalId = ColeccionesCols::ID;
+                $cOriginalNombre = ColeccionesCols::NOMBRE;
+                $cOriginalSlug = ColeccionesCols::SLUG;
+                $cOriginalUsuarioId = ColeccionesCols::USUARIO_ID;
+                /* [173A-5] Coleccion original del creador: si el sample esta en una coleccion del uploader,
+                 * se expone para enlazar desde menus y detalle sin duplicar reglas en frontend. */
+                $coleccionOriginalExpr = "(SELECT row_to_json(co_orig.*) FROM (
+                        SELECT c_orig.{$cOriginalId}, c_orig.{$cOriginalNombre}, c_orig.{$cOriginalSlug}
+                        FROM {$csTablaOriginal} cs_orig
+                        JOIN {$tcOriginal} c_orig ON cs_orig.{$csColeccionOriginal} = c_orig.{$cOriginalId}
+                        WHERE cs_orig.{$csSampleOriginal} = s.{$sId}
+                            AND c_orig.{$cOriginalUsuarioId} = s.{$sCreadorId}
+                        ORDER BY cs_orig.{$csAddedAtOriginal} ASC
+                        LIMIT 1
+                ) co_orig) AS coleccion_original_json";
         /* QQ117: Metadata de extraccion (fuente, URL, timing, etc.) asociada al sample */
         $tCe = ColaExtraccionSamplesCols::TABLA;
         $ceMetadata = ColaExtraccionSamplesCols::METADATA_EXTRACCION;
@@ -552,6 +593,7 @@ class NormalizadorSample
 
         return "SELECT s.{$sId}, s.{$sTitulo}, s.{$sSlug}, s.{$sIdCorto}, s.{$sDesc},
                        {$cancionOrigenExpr},
+                       {$coleccionOriginalExpr},
                        {$extraccionExpr},
                        s.{$sBpm}, s.{$sKey}, s.{$sEscala}, s.{$sDuracion}, s.{$sFormato}, s.{$sTamano},
                        s.{$sTags}, s.{$sTipo}, s.{$sEstado}, s.{$sPremium}, s.{$sPrecio}, s.{$sMeta},

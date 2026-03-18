@@ -16,7 +16,7 @@ import { requiereAuth } from '@app/utils/requiereAuth';
 import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO, EVENTO_SAMPLE_ACTUALIZADO } from '@app/hooks/useMenuContextualSample';
 import {
     Play, Eye, FolderPlus, Download, User, Link, Sparkles, PanelRight,
-    ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2,
+    ExternalLink, Pencil, BrainCircuit, Scissors, BadgeCheck, Unlink2, FolderTree,
     Search, Trash2, Flag,
 } from 'lucide-react';
 
@@ -45,9 +45,19 @@ const ic = (componente: typeof Play) => createElement(componente, { size: 16 });
 
 export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
     const s = d.sample;
+    const rutaColeccionOriginal = s.coleccionOriginal
+        ? `/coleccion/${s.coleccionOriginal.slug ?? s.coleccionOriginal.id}/`
+        : null;
     const items: MenuItemDef[] = [
         { id: 'reproducir', etiqueta: 'Reproducir', icono: ic(Play), onClick: () => d.reproducir(s) },
         { id: 'detalle', etiqueta: 'Ver detalle', icono: ic(Eye), href: `/sample/${s.slug}/`, onClick: () => d.navegar(`/sample/${s.slug}/`), separadorDespues: true },
+        ...(rutaColeccionOriginal && s.coleccionOriginal ? [{
+            id: 'coleccion-original',
+            etiqueta: `Ir a colección original: ${s.coleccionOriginal.nombre}`,
+            icono: ic(FolderTree),
+            href: rutaColeccionOriginal,
+            onClick: () => d.navegar(rutaColeccionOriginal),
+        }] : []),
         { id: 'coleccion', etiqueta: 'Añadir a colección', icono: ic(FolderPlus), onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
         { id: 'descargar', etiqueta: 'Descargar archivo', icono: ic(Download), onClick: async () => {
             if (!requiereAuth()) return;

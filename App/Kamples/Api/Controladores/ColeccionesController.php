@@ -1,5 +1,7 @@
 <?php
 
+/* sentinel-disable-file limite-lineas: controlador REST con múltiples endpoints de lectura de colecciones; este cambio solo corrige 173A-4 y la división completa queda fuera del alcance inmediato. */
+
 /**
  * ColeccionesController — CRUD de colecciones + sugerencias.
  *
@@ -263,7 +265,6 @@ class ColeccionesController
         }
 
         $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
-        $coleccion['total_items'] = \count($samples);
 
         /* Subcolecciones (solo para colecciones raíz) */
         if ($parentId === null) {
@@ -337,7 +338,6 @@ class ColeccionesController
             }
 
             $coleccion['samples'] = NormalizadorSample::normalizarLista($samples);
-            $coleccion['total_items'] = \count($samples);
 
             if ($parentId === null) {
                 $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);

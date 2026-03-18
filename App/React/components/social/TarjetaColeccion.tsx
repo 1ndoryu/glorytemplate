@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
-import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree, Play, Pause, Loader2 } from 'lucide-react';
+import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree, Play, Pause, Loader2, Combine, Flag } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
@@ -28,6 +28,7 @@ interface TarjetaColeccionProps {
     /** [173A-7] Nombre de la coleccion padre, visible en la meta si la coleccion es hija */
     parentNombre?: string | null;
     onEditar?: (coleccion: Coleccion) => void;
+    onCombinar?: (coleccion: Coleccion) => void;
     onEliminar?: (coleccion: Coleccion) => void;
     className?: string;
 }
@@ -38,6 +39,7 @@ export const TarjetaColeccion = ({
     vista = 'cuadricula',
     parentNombre = null,
     onEditar,
+    onCombinar,
     onEliminar,
     className = '',
 }: TarjetaColeccionProps): JSX.Element => {
@@ -83,25 +85,43 @@ export const TarjetaColeccion = ({
         if (onEditar) {
             items.push({
                 id: 'editar',
-                etiqueta: 'Editar',
+                etiqueta: 'Editar colección',
                 icono: <Edit3 size={16} />,
                 separadorDespues: false,
                 onClick: () => onEditar(coleccion),
             });
         }
 
+        if (onCombinar) {
+            items.push({
+                id: 'combinar',
+                etiqueta: 'Combinar colecciones',
+                icono: <Combine size={16} />,
+                separadorDespues: false,
+                onClick: () => onCombinar(coleccion),
+            } as typeof items[0]);
+        }
+
         if (onEliminar) {
             items.push({
                 id: 'eliminar',
-                etiqueta: 'Eliminar',
+                etiqueta: 'Eliminar colección',
                 icono: <Trash2 size={16} />,
                 separadorDespues: false,
                 onClick: () => onEliminar(coleccion),
             } as typeof items[0]);
         }
 
+        items.push({
+            id: 'reportar',
+            etiqueta: 'Reportar',
+            icono: <Flag size={16} />,
+            separadorDespues: false,
+            onClick: () => undefined,
+        } as typeof items[0]);
+
         return items;
-    }, [coleccion, onEditar, onEliminar]);
+    }, [coleccion, onEditar, onCombinar, onEliminar]);
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = [

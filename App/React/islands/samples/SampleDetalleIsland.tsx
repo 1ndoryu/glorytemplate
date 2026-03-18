@@ -60,6 +60,9 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
         targetId: sample?.id ?? 0,
         cargarAlAbrir: true,
     });
+    const rutaColeccionOriginal = sample?.coleccionOriginal
+        ? `/coleccion/${sample.coleccionOriginal.slug ?? sample.coleccionOriginal.id}/`
+        : null;
 
     const manejarToggleComentarios = useCallback(() => {
         setComentariosVisibles(prev => !prev);
@@ -202,6 +205,16 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                                     {tag.texto}
                                 </Badge>
                             ))}
+                            {sample.coleccionOriginal && rutaColeccionOriginal && (
+                                <Badge
+                                    variante="info"
+                                    estilo="borde"
+                                    interactivo
+                                    onClick={() => navegar(rutaColeccionOriginal)}
+                                >
+                                    {sample.coleccionOriginal.nombre}
+                                </Badge>
+                            )}
                         </div>
                     )}
 
@@ -230,6 +243,8 @@ export const SampleDetalleIsland = ({ slug: slugProp }: SampleDetalleProps): JSX
                         onDescargar={manejarDescargar}
                         esPremiumBloqueado={!!(sample.esPremium && usuarioAuth?.plan === 'free' && !esPropietario)}
                         onAbrirPlanes={abrirPlanes}
+                        onAbrirColeccionOriginal={rutaColeccionOriginal ? () => navegar(rutaColeccionOriginal) : undefined}
+                        nombreColeccionOriginal={sample.coleccionOriginal?.nombre ?? null}
                         onAbrirMenu={menu.abrirMenu}
                         sample={sample as unknown as SampleResumen}
                         seccionComentarios={seccionComentarios}

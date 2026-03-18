@@ -3,7 +3,7 @@
  * Extraído de SampleDetalleIsland para cumplir límite de 300 líneas (SRP).
  */
 
-import { Heart, MessageCircle, Download, Lock, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Download, Lock, MoreHorizontal, FolderTree } from 'lucide-react';
 import { TooltipReacciones } from '@app/components/ui/TooltipReacciones';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useComentarios } from '@app/hooks/useComentarios';
@@ -24,6 +24,8 @@ interface SampleDetalleAccionesProps {
     onDescargar: () => Promise<void>;
     esPremiumBloqueado: boolean;
     onAbrirPlanes: () => void;
+    onAbrirColeccionOriginal?: () => void;
+    nombreColeccionOriginal?: string | null;
     onAbrirMenu: (e: React.MouseEvent, sample: SampleResumen) => void;
     sample: SampleResumen;
     seccionComentarios: RetornoComentarios;
@@ -35,6 +37,7 @@ export function SampleDetalleAcciones({
     comentariosVisibles, onToggleComentarios,
     descargado, onDescargar,
     esPremiumBloqueado, onAbrirPlanes,
+    onAbrirColeccionOriginal, nombreColeccionOriginal,
     onAbrirMenu, sample,
     seccionComentarios, onClickAutorComentario,
 }: SampleDetalleAccionesProps): JSX.Element {
@@ -76,6 +79,18 @@ export function SampleDetalleAcciones({
                 >
                     <Download size={18} />
                 </BotonBase>
+
+                {onAbrirColeccionOriginal && nombreColeccionOriginal && (
+                    <BotonBase variante="ghost" tamano="ninguno"
+                        className="detalleAccionPlano"
+                        onClick={onAbrirColeccionOriginal}
+                        type="button"
+                        aria-label={`Abrir colección original ${nombreColeccionOriginal}`}
+                        title={`Abrir colección original ${nombreColeccionOriginal}`}
+                    >
+                        <FolderTree size={18} />
+                    </BotonBase>
+                )}
 
                 {esPremiumBloqueado && (
                     <BotonBase variante="ghost" tamano="ninguno"

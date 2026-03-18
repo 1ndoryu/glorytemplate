@@ -106,6 +106,8 @@ export interface Sample {
     relacionSampleoId?: number | null;
     /* QQ79: Datos enriquecidos de la cancion de origen */
     cancionOrigen?: { titulo: string; slug: string } | null;
+    /* [173A-5] Coleccion original del creador que contiene este sample, si existe */
+    coleccionOriginal?: { id: number; nombre: string; slug: string | null } | null;
     /* QQ117: Metadatos de extraccion (fuente, timing, metodo descarga) */
     extraccion?: ExtraccionSample | null;
 }
@@ -202,6 +204,8 @@ export interface SampleResumen {
     /* QQ51: relaciones de sampleo (columna DB, siempre viene del backend) */
     cancionOrigenId?: number | null;
     relacionSampleoId?: number | null;
+    /* [173A-5] Coleccion original del creador que contiene este sample, si existe */
+    coleccionOriginal?: { id: number; nombre: string; slug: string | null } | null;
     /* QK30: El backend siempre retorna extraccion (null si no hay datos) */
     extraccion?: ExtraccionSample | null;
 }
