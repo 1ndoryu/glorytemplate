@@ -41,6 +41,8 @@ class MotorRecomendacion
     private const CACHE_PREFIX = 'kamples_feed_';
     private const CACHE_STALE_PREFIX = 'kamples_feed_stale_';
     private const CACHE_STALE_TTL = 21600; /* 6 horas — escudo stale para primera pagina */
+    /* [183A-30] Stale extendido a paginas 2+: 1h (menor que p1 porque se actualizan con menos frecuencia) */
+    private const CACHE_STALE_TTL_PAGINAS = 3600;
     private const WARM_LOCK_PREFIX = 'kamples_warm_feed_';
     private const LIMITES_WARM_PRIMERA_PAGINA = [12, 30];
 
@@ -49,14 +51,19 @@ class MotorRecomendacion
         return self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset;
     }
 
-    private static function staleCacheKey(int $userId, int $limite): string
+    /* [183A-30] staleCacheKey acepta offset para cubrir paginas 2+ con stale-while-revalidate. */
+    private static function staleCacheKey(int $userId, int $limite, int $offset = 0): string
     {
-        return self::CACHE_STALE_PREFIX . $userId . '_' . $limite . '_0';
+        return self::CACHE_STALE_PREFIX . $userId . '_' . $limite . '_' . $offset;
     }
 
-    private static function warmLockKey(int $userId, int $limite): string
+    /* [183A-30] warmLockKey acepta offset para evitar doble-warm de la misma pagina. */
+    private static function warmLockKey(int $userId, int $limite, int $offset = 0): string
     {
-        return self::WARM_LOCK_PREFIX . $userId . '_' . $limite;
+        if ($offset === 0) {
+            return self::WARM_LOCK_PREFIX . $userId . '_' . $limite;
+        }
+        return self::WARM_LOCK_PREFIX . $userId . '_' . $limite . '_' . $offset;
     }
 
     private static function guardarResultadoEnCache(int $userId, int $limite, int $offset, array $resultado): void
@@ -68,20 +75,27 @@ class MotorRecomendacion
         $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
         ServicioCache::guardar(self::cacheKey($userId, $limite, $offset), $resultado, $ttl);
 
-        /* [173A-6] Conservamos una copia stale de la primera página para responder
-         * en ~1ms y recalcular detrás de escena cuando la cache fresca expiró. */
+        /* [173A-6] Copia stale de p1 para responder en ~1ms mientras recalcula.
+         * [183A-30] Extendido a paginas 2+: 1h de stale en vez de 6h (datos menos criticos). */
         if ($offset === 0) {
-            ServicioCache::guardar(self::staleCacheKey($userId, $limite), $resultado, self::CACHE_STALE_TTL);
+            ServicioCache::guardar(self::staleCacheKey($userId, $limite, 0), $resultado, self::CACHE_STALE_TTL);
+        } else {
+            ServicioCache::guardar(self::staleCacheKey($userId, $limite, $offset), $resultado, self::CACHE_STALE_TTL_PAGINAS);
         }
     }
 
-    private static function programarWarmPrimeraPagina(int $userId, int $limite): void
+    /**
+     * [183A-30] Programa el recalculo de cualquier pagina del feed en post-respuesta.
+     * Generaliza programarWarmPrimeraPagina para cubrir paginas 2+.
+     * En PHP-FPM usa fastcgi_finish_request para no bloquear al usuario.
+     */
+    private static function programarWarm(int $userId, int $limite, int $offset): void
     {
-        if (PHP_SAPI === 'cli' || !ServicioCache::adquirirLock(self::warmLockKey($userId, $limite), 90)) {
+        if (PHP_SAPI === 'cli' || !ServicioCache::adquirirLock(self::warmLockKey($userId, $limite, $offset), 90)) {
             return;
         }
 
-        add_action('shutdown', function () use ($userId, $limite) {
+        add_action('shutdown', function () use ($userId, $limite, $offset) {
             if (function_exists('fastcgi_finish_request')) {
                 fastcgi_finish_request();
             } else {
@@ -99,17 +113,24 @@ class MotorRecomendacion
             }
 
             try {
-                self::feedPersonalizado($userId, $limite, 0, false);
+                self::feedPersonalizado($userId, $limite, $offset, false);
             } catch (\Throwable $e) {
-                KamplesLogger::warning('Algoritmo: Warm async de primera pagina fallo', [
+                KamplesLogger::warning('Algoritmo: Warm async fallo', [
                     'userId' => $userId,
                     'limite' => $limite,
+                    'offset' => $offset,
                     'error' => $e->getMessage(),
                 ]);
             } finally {
-                ServicioCache::liberarLock(self::warmLockKey($userId, $limite));
+                ServicioCache::liberarLock(self::warmLockKey($userId, $limite, $offset));
             }
         }, 0);
+    }
+
+    /* Retrocompatibilidad: mantener el nombre anterior apuntando al nuevo metodo. */
+    private static function programarWarmPrimeraPagina(int $userId, int $limite): void
+    {
+        self::programarWarm($userId, $limite, 0);
     }
 
     /**
@@ -174,12 +195,12 @@ class MotorRecomendacion
             return $cached;
         }
 
-        if ($permitirStale && $offset === 0) {
-            $stale = ServicioCache::obtener(self::staleCacheKey($userId, $limite));
+        /* [173A-6] p1: paint ligero con stale, recalcula tras respuesta.
+         * [183A-30] Extendido a paginas 2+: misma logica, TTL stale 1h en vez de 6h. */
+        if ($permitirStale) {
+            $stale = ServicioCache::obtener(self::staleCacheKey($userId, $limite, $offset));
             if ($stale !== false && \is_array($stale)) {
-                /* [173A-6] Primer paint ligero: devolvemos la última p1 conocida
-                 * y dejamos el recálculo personalizado para post-respuesta. */
-                self::programarWarmPrimeraPagina($userId, $limite);
+                self::programarWarm($userId, $limite, $offset);
                 return $stale;
             }
         }
@@ -409,6 +430,14 @@ class MotorRecomendacion
             $resultado = self::inyectarSerendipia($resultado, $userId, $config);
 
             self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
+
+            /* [183A-30] Quick win: precalentar pag2 y pag3 en background cuando se
+             * acaba de computar pag1 fresh. El usuario hace scroll ~30s despues,
+             * las paginas siguientes estaran calientes (TTL 15min). */
+            if ($offset === 0 && !empty($resultado)) {
+                self::programarWarm($userId, $limite, $limite);
+                self::programarWarm($userId, $limite, $limite * 2);
+            }
 
             return $resultado;
         } finally {
