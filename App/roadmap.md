@@ -78,6 +78,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-69:** Completada 2026-03-18. Anti-abuso descargas: rate limit 5/dia por IP (cross-account), limite 2/dia cuentas nuevas (<3 dias), registro_ip en usuarios_ext, migration v062.
 - **183A-64:** Completada 2026-03-18. Correcciones ortograficas (~100 tildes faltantes) en 20 archivos React/TS de texto UI visible al usuario.
 - **183A-29+183A-66:** Completadas 2026-03-18. Algoritmo colecciones incorpora likes directos (colecciones_likes) en score. Branch autenticado: pesos 0.55 tag + 0.10 likes + 0.20 frescura + 0.15 items. No autenticado: ordena por total_likes DESC. Documentacion en algoritmo/colecciones-relevancia-2026-03-18.md con plan fase-2 clicks/busquedas.
+- **183A-71:** Completada 2026-03-18. Click en nombre sample abre panel lateral (no detalles). FeedSamples pasaba onClickTitulo={undefined}; corregido a feed.manejarClickTitulo cuando panel habilitado. Comentarios protectores en TarjetaSample y FeedSamples.
 
 ## Tareas pendientes
 
@@ -116,10 +117,6 @@ tambien pedi que un boton para abrir los samples de una coleccion en el panel la
 
 primero pasa que la tarjeta de los samples no es la indicada , tiene que ser la misma tarjeta que usan los samples por ejemplo de También te podría gustar, que son una version compacta
 
-## 183A-71
-
-En las tarjetas de sample, dar click al nombre no debe abrir los detalles, debe abrir el panel lateral. (esto se suele dañar cuando se toca el codigo, deja comentarios claro esto, no cambiar esta funcionalidad)
-En movil solo debe reproducir el audio, en movil no abre el panel lateral tocando el sample. 
 
 ## 183A-72
 
