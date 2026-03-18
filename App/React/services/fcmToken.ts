@@ -39,11 +39,20 @@ async function leerTokenFcm(): Promise<string | null> {
 }
 
 async function registrarTokenEnBackend(token: string): Promise<void> {
+    /* [183A-43] Debug temporal: console.error siempre visible en producción.
+     * Logger normal está silenciado (nivel ERROR). Remover cuando push funcione. */
+    console.error('[FCM-DEBUG] registrarTokenEnBackend llamado, token (primeros 20):', token.slice(0, 20));
+    /* Ver si hay auth disponible */
+    const jwtDisponible = !!localStorage.getItem('kamples_auth_token');
+    const nonce = ((window as unknown as Record<string, unknown>).GLORY_CONTEXT as Record<string, unknown> | undefined)?.nonce;
+    console.error('[FCM-DEBUG] JWT en localStorage:', jwtDisponible, '| nonce GLORY_CONTEXT:', !!nonce);
     try {
         const resp = await apiPost('/fcm/registrar', {
             token,
             plataforma: 'android',
         });
+
+        console.error('[FCM-DEBUG] Respuesta /fcm/registrar:', JSON.stringify(resp));
 
         if (resp.ok) {
             sessionStorage.setItem(CLAVE_REGISTRADO, '1');
@@ -53,6 +62,7 @@ async function registrarTokenEnBackend(token: string): Promise<void> {
 
         log.warn('Error registrando token FCM:', resp.error);
     } catch (err) {
+        console.error('[FCM-DEBUG] Excepcion en registrarTokenEnBackend:', err);
         log.warn('Excepcion registrando token FCM:', err);
     }
 }
@@ -106,10 +116,16 @@ async function inicializarPushCapacitor(): Promise<void> {
         listenersCapacitorRegistrados = true;
 
         await PushNotifications.addListener('registration', (tokenEvento) => {
+            /* [183A-43] Debug temporal: ver qué contiene realmente el evento */
+            console.error('[FCM-DEBUG] registration event raw:', JSON.stringify(tokenEvento));
             const token = tokenEvento as { value?: string } | null | undefined;
             const valor = typeof token?.value === 'string' ? token.value.trim() : '';
-            if (!valor) return;
-            log.info('Token FCM obtenido, registrando en backend...');
+            console.error('[FCM-DEBUG] valor extraido:', valor ? valor.slice(0, 20) + '...' : '(vacío)');
+            if (!valor) {
+                console.error('[FCM-DEBUG] TOKEN VACIO — abortando registro');
+                return;
+            }
+            console.error('[FCM-DEBUG] Token FCM obtenido, llamando registrarTokenEnBackend...');
             void registrarTokenEnBackend(valor);
         });
 
