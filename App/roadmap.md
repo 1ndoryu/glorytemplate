@@ -70,6 +70,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-54:** Completada 2026-03-18. Quitar padding botones colección + panel lateral modo colección.
 - **183A-50:** Completada 2026-03-18. Acciones múltiples emiten eventos CRUD para actualizar UI en tiempo real.
 - **183A-55:** Completada 2026-03-18. Info colección original en panel lateral de sugerencias (portada 3:2 estilo Spotify).
+- **183A-61:** Completada 2026-03-18. Contador colección prioriza total_items real de BD sobre samples.length paginado.
 
 ## Tareas pendientes
 
@@ -138,10 +139,6 @@ La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un
 ## 183A-60
 
 tarjetaColeccionMenuContenedor un boton de play para reproducir la preview 
-
-## 183A-61
-
-tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez del total, este problema se repite, no siempre pasa
 
 ## 183A-66
 
