@@ -15,9 +15,12 @@ import type { Coleccion, ColeccionResumen, SampleResumen, UsuarioResumen } from 
  */
 const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => {
     const samples = raw.samples as Coleccion['samples'];
-    const totalSamples = Array.isArray(samples)
-        ? samples.length
-        : (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? 0) as number;
+    /* [183A-61] Priorizar total_items (count real de BD) sobre samples.length (paginado).
+     * Antes: si raw.samples existía, usaba su length (ej: 30 del LIMIT) como total.
+     * Ahora: siempre prioriza el count real, fallback a array length si no hay total. */
+    const totalReal = (raw.total_items ?? raw.total_samples ?? raw.totalSamples ?? null) as number | null;
+    const totalSamples = totalReal != null ? totalReal
+        : (Array.isArray(samples) ? samples.length : 0);
 
     return {
         id: (raw.id ?? 0) as number,
