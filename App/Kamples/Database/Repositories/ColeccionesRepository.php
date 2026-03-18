@@ -1183,7 +1183,16 @@ class ColeccionesRepository extends BaseRepository
                 );
             }
 
-            /* 4. Actualizar nombre e imagen del destino */
+            /* [183A-53] 4. Eliminar la colección origen ANTES de actualizar destino.
+             * El UNIQUE INDEX idx_colecciones_nombre_unico_por_padre impide renombrar
+             * el destino al nombre del origen si este aún existe. CASCADE elimina
+             * likes y guardados asociados. */
+            static::ejecutar(
+                "DELETE FROM {$t} WHERE {$colId} = :id",
+                ['id' => $origenId]
+            );
+
+            /* 5. Actualizar nombre e imagen del destino */
             $setCampos = [ColeccionesCols::NOMBRE . " = :nombre"];
             $paramsUpd = ['nombre' => $nombreFinal, 'id' => $destinoId];
 
@@ -1201,12 +1210,6 @@ class ColeccionesRepository extends BaseRepository
             static::ejecutar(
                 "UPDATE {$t} SET " . implode(', ', $setCampos) . " WHERE {$colId} = :id",
                 $paramsUpd
-            );
-
-            /* 5. Eliminar la colección origen */
-            static::ejecutar(
-                "DELETE FROM {$t} WHERE {$colId} = :id",
-                ['id' => $origenId]
             );
 
             $db::confirmar();
@@ -1255,7 +1258,29 @@ class ColeccionesRepository extends BaseRepository
         $db::iniciarTransaccion();
 
         try {
-            /* 1. Recrear colección origen con ID original usando INSERT con id explícito */
+            /* [183A-53] 1. Restaurar nombre e imagen del destino PRIMERO.
+             * Evita UNIQUE conflict en idx_colecciones_nombre_unico_por_padre
+             * si el destino fue renombrado al nombre del origen durante la combinación. */
+            $setRestore = [ColeccionesCols::NOMBRE . " = :nombre"];
+            $prRestore = ['nombre' => $backupMeta['destinoNombreAnterior'] ?? $destino[ColeccionesCols::NOMBRE], 'id' => $destinoId];
+
+            if (isset($backupMeta['destinoImagenAnterior'])) {
+                $setRestore[] = ColeccionesCols::IMAGEN_URL . " = :imagen";
+                $prRestore['imagen'] = $backupMeta['destinoImagenAnterior'];
+            }
+
+            /* Restaurar slug */
+            $slugRestore = static::generarSlug($prRestore['nombre'], $destinoId);
+            $setRestore[] = ColeccionesCols::SLUG . " = :slug";
+            $prRestore['slug'] = $slugRestore;
+
+            $setRestore[] = ColeccionesCols::UPDATED_AT . " = NOW()";
+            static::ejecutar(
+                "UPDATE {$t} SET " . implode(', ', $setRestore) . " WHERE {$colId} = :id",
+                $prRestore
+            );
+
+            /* 2. Recrear colección origen con ID original usando INSERT con id explícito */
             $origenNombre = $backupMeta['origenNombre'] ?? 'Colección restaurada';
             $origenUsuarioId = (int) ($backupMeta['origenUsuarioId'] ?? $destino[ColeccionesCols::USUARIO_ID]);
             $origenDesc = $backupMeta['origenDescripcion'] ?? '';
@@ -1372,26 +1397,6 @@ class ColeccionesRepository extends BaseRepository
                     );
                 }
             }
-
-            /* 4. Restaurar nombre e imagen del destino */
-            $setRestore = [ColeccionesCols::NOMBRE . " = :nombre"];
-            $prRestore = ['nombre' => $backupMeta['destinoNombreAnterior'] ?? $destino[ColeccionesCols::NOMBRE], 'id' => $destinoId];
-
-            if (isset($backupMeta['destinoImagenAnterior'])) {
-                $setRestore[] = ColeccionesCols::IMAGEN_URL . " = :imagen";
-                $prRestore['imagen'] = $backupMeta['destinoImagenAnterior'];
-            }
-
-            /* Restaurar slug */
-            $slugRestore = static::generarSlug($prRestore['nombre'], $destinoId);
-            $setRestore[] = ColeccionesCols::SLUG . " = :slug";
-            $prRestore['slug'] = $slugRestore;
-
-            $setRestore[] = ColeccionesCols::UPDATED_AT . " = NOW()";
-            static::ejecutar(
-                "UPDATE {$t} SET " . implode(', ', $setRestore) . " WHERE {$colId} = :id",
-                $prRestore
-            );
 
             /* 5. Restaurar propietario si se cambió */
             if (isset($backupMeta['destinoUsuarioId'])) {
