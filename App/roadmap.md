@@ -64,6 +64,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-57:** Completada 2026-03-18. Padding reducido en modalCuerpo de seguidores.
 - **183A-58:** Completada 2026-03-18. Like canción sincronizado en detalle + tendencias priorizan samples/youtube.
 - **183A-64:** Completada 2026-03-18. Seguridad endpoint DMCA: rate limiting + eliminar auto-desactivación de samples.
+- **183A-65:** Completada 2026-03-18. Buscador landing: corregido param ?buscar= y query pasado al API.
 
 ## Tareas pendientes
 
@@ -157,10 +158,6 @@ tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez d
 
 Sigue el problema en la apk que cada vez que abro la apk, el modal de login aparece auqnue ya iniciado sesion, si le doy a la x se cierra y todo funciona normal. 
 
-## 183A-65
-
-El buscador en el landing de no autenticados, no hace busquedas, revisar y corregir.
-
 ## 183A-66
 
 No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en click, busquedas, likes, etc. para ordenar las colecciones, revisar y optimizar. 
@@ -172,6 +169,10 @@ Parece ser que en el feed sample con el orndamiento inteligente, los smaples no 
 ## 183A-68
 
 pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien calcule tiempo de "También te podría gustar" cuando se da me gusta a un sample, que calcule el feed la pagina de musica, y el "mas ideas" de varias colecciones de al menos 200 samples, para ver cuanto dura cada cosa, luego hacer un script similar en la tab de procesos del panel de admin y correr y ver los resultados cuando se quiera. No se que otra cosa faltaría medir. 
+
+## 183A-64
+
+Respecot a 183A-64 me refería a los errores ortograficos, 
 
 ## Tarea final cuando completes todo
 
