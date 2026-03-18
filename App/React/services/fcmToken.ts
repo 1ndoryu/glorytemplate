@@ -57,8 +57,50 @@ async function registrarTokenEnBackend(token: string): Promise<void> {
     }
 }
 
+/* [183A-37] Crear canales de notificación Android via Capacitor API.
+ * Sin canales, Android descarta silenciosamente las push que llegan con un channel_id
+ * que no existe en el dispositivo. El backend envía channel_id "notificaciones" o "mensajes". */
+async function crearCanalesCapacitor(PushNotifications: {
+    createChannel: (channel: {
+        id: string;
+        name: string;
+        description: string;
+        importance: number;
+        visibility: number;
+        vibration: boolean;
+        sound: string;
+    }) => Promise<void>;
+}): Promise<void> {
+    try {
+        await PushNotifications.createChannel({
+            id: 'notificaciones',
+            name: 'Notificaciones',
+            description: 'Likes, follows, comentarios y actividad',
+            importance: 3,
+            visibility: 0,
+            vibration: true,
+            sound: 'default',
+        });
+        await PushNotifications.createChannel({
+            id: 'mensajes',
+            name: 'Mensajes',
+            description: 'Mensajes directos de otros usuarios',
+            importance: 4,
+            visibility: 0,
+            vibration: true,
+            sound: 'default',
+        });
+        log.info('Canales de notificación Android creados');
+    } catch (err) {
+        log.warn('Error creando canales de notificación Android:', err);
+    }
+}
+
 async function inicializarPushCapacitor(): Promise<void> {
     const { PushNotifications } = await import('@capacitor/push-notifications');
+
+    /* Crear canales Android antes de registrar listeners (Android 8+ los requiere) */
+    await crearCanalesCapacitor(PushNotifications as unknown as Parameters<typeof crearCanalesCapacitor>[0]);
 
     if (!listenersCapacitorRegistrados) {
         listenersCapacitorRegistrados = true;
@@ -67,11 +109,20 @@ async function inicializarPushCapacitor(): Promise<void> {
             const token = tokenEvento as { value?: string } | null | undefined;
             const valor = typeof token?.value === 'string' ? token.value.trim() : '';
             if (!valor) return;
+            log.info('Token FCM obtenido, registrando en backend...');
             void registrarTokenEnBackend(valor);
         });
 
         await PushNotifications.addListener('registrationError', (error) => {
             log.warn('Error registrando PushNotifications en Capacitor', error);
+        });
+
+        /* [183A-37] Listener para notificaciones recibidas con la app en foreground.
+         * Sin esto, Capacitor intercepta la push y no la muestra en la bandeja. */
+        await (PushNotifications as unknown as {
+            addListener: (event: string, cb: (n: unknown) => void) => Promise<unknown>;
+        }).addListener('pushNotificationReceived', (notificacion: unknown) => {
+            log.info('Push recibida en foreground:', notificacion);
         });
 
         await PushNotifications.addListener('pushNotificationActionPerformed', (eventoDesconocido) => {
@@ -107,6 +158,7 @@ async function inicializarPushCapacitor(): Promise<void> {
     }
 
     await PushNotifications.register();
+    log.info('PushNotifications.register() completado');
 }
 
 /**
