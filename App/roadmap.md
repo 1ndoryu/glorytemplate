@@ -86,18 +86,12 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-40:** Completada 2026-03-18. `ImgOptimizada` via Jetpack Photon CDN. Equivalente React de `ImageUtility::optimizar()`. Aplicado en portadas de samples, colecciones y canciones.
 - **183A-72:** Completada 2026-03-18. Unificación paneles sugerencias/detalle.
 - **183A-49:** Completada 2026-03-18. Notificaciones descriptivas + imagen actorAvatarUrl en FCM + follow deep link + reproductor Media Session ya activo en WebView.
+- **183A-68:** Completada 2026-03-18. Benchmark algoritmo extendido a 11 steps (similares, secciones musica, más ideas colección grande) + endpoint POST /admin/procesos/benchmark + UI en tab Procesos del panel admin.
 
 ## Tareas pendientes
 
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-
-## 183A-68
-
-pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien calcule tiempo de "También te podría gustar" cuando se da me gusta a un sample, que calcule el feed la pagina de musica, y el "mas ideas" de varias colecciones de al menos 200 samples, para ver cuanto dura cada cosa, luego hacer un script similar en la tab de procesos del panel de admin y correr y ver los resultados cuando se quiera. No se que otra cosa faltaría medir. 
-
-
 
 
 ## 183A-73
