@@ -71,6 +71,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-50:** Completada 2026-03-18. Acciones múltiples emiten eventos CRUD para actualizar UI en tiempo real.
 - **183A-55:** Completada 2026-03-18. Info colección original en panel lateral de sugerencias (portada 3:2 estilo Spotify).
 - **183A-61:** Completada 2026-03-18. Contador colección prioriza total_items real de BD sobre samples.length paginado.
+- **183A-60:** Completada 2026-03-18. Botón play/preview en tarjetaColeccionMenuContenedor.
 
 ## Tareas pendientes
 
@@ -136,10 +137,6 @@ tambien que aparezca un reproductor cuando se reproduzca un sample en android, q
 
 La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
 
-## 183A-60
-
-tarjetaColeccionMenuContenedor un boton de play para reproducir la preview 
-
 ## 183A-66
 
 No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en click, busquedas, likes, etc. para ordenar las colecciones, revisar y optimizar. 
@@ -155,6 +152,11 @@ pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien
 ## 183A-64
 
 Respecot a 183A-64 me refería a los errores ortograficos, 
+
+## 183A-69
+
+Revision profunda al sistema de creditos de descarga, esto nunca se le ha hecho una auditoría desde que es creo.
+Agregar un sistema anti abusos basado en ip, cookies, no se, lo que sea, para no regalar creditos a usuarios que se crean varias cuentas, 5 creditos diario por usuario, no 5 creditos por cuenta. 
 
 ## Tarea final cuando completes todo
 
