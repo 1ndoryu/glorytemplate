@@ -961,10 +961,17 @@ class ColeccionesRepository extends BaseRepository
     /*
      * Generar slug SEO para una colección: sanitize_title(nombre) + '-' + id.
      * Formato: "mi-coleccion-42"
+     * [183A-51] sanitize_title convierte unicode multi-byte (ej: fraktur 𝔐𝔢𝔪) a
+     * secuencias %XX que rompen el route pattern de WordPress REST. Se limpian
+     * los percent-encoded chars para producir slugs ASCII puros.
      */
     public static function generarSlug(string $nombre, int $id): string
     {
         $base = \sanitize_title($nombre);
+        /* Eliminar secuencias %XX que utf8_uri_encode genera para unicode */
+        $base = preg_replace('/%[a-f0-9]{2}/i', '', $base);
+        $base = preg_replace('/-+/', '-', $base);
+        $base = trim($base, '-');
         if (empty($base)) {
             $base = 'coleccion';
         }
@@ -991,17 +998,28 @@ class ColeccionesRepository extends BaseRepository
         );
     }
 
+    /* [183A-51] Actualizar slug de una colección existente. */
+    public static function actualizarSlug(int $id, string $nuevoSlug): void
+    {
+        $t = ColeccionesCols::TABLA;
+        static::ejecutar(
+            "UPDATE {$t} SET " . ColeccionesCols::SLUG . " = :slug WHERE " . ColeccionesCols::ID . " = :id",
+            ['slug' => $nuevoSlug, 'id' => $id]
+        );
+    }
+
     /*
-     * Generar slugs faltantes para colecciones existentes (post-migración PHP).
-     * Útil si la migración SQL no cubre bien caracteres especiales.
+     * Generar slugs faltantes o reparar slugs rotos para colecciones existentes.
+     * [183A-51] También corrige slugs con secuencias %XX de unicode mal procesado.
      */
     public static function generarSlugsFaltantes(): int
     {
         $t = ColeccionesCols::TABLA;
         $sinSlug = static::consultar(
             "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::NOMBRE
-            . " FROM {$t} WHERE " . ColeccionesCols::SLUG . " IS NULL OR " . ColeccionesCols::SLUG . " = ''",
-            []
+            . " FROM {$t} WHERE " . ColeccionesCols::SLUG . " IS NULL OR " . ColeccionesCols::SLUG . " = ''"
+            . " OR " . ColeccionesCols::SLUG . " LIKE :patron",
+            ['patron' => '%\\%%']
         );
 
         $actualizados = 0;

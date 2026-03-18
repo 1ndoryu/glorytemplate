@@ -60,8 +60,10 @@ class ColeccionesController
             'permission_callback' => '__return_true',
         ]);
 
-        /* QQ13: Obtener colección por slug SEO */
-        register_rest_route($namespace, '/colecciones/por-slug/(?P<slug>[a-zA-Z0-9_-]+)', [
+        /* QQ13: Obtener colección por slug SEO
+         * [183A-51] Pattern incluye % para backward compat con slugs unicode
+         * generados antes del fix de generarSlug() */
+        register_rest_route($namespace, '/colecciones/por-slug/(?P<slug>[a-zA-Z0-9%_-]+)', [
             'methods' => 'GET', 'callback' => [self::class, 'obtenerPorSlug'],
             'permission_callback' => '__return_true',
         ]);
@@ -325,6 +327,20 @@ class ColeccionesController
             $coleccion = ColeccionesRepository::obtenerPorSlug($slug);
             if (!$coleccion) {
                 return new \WP_REST_Response(['code' => 'coleccion_no_encontrada'], 404);
+            }
+
+            /* [183A-51] Auto-reparar slugs con secuencias %XX (unicode mal codificado) */
+            $slugActual = $coleccion[ColeccionesCols::SLUG] ?? '';
+            if (str_contains($slugActual, '%')) {
+                $nuevoSlug = ColeccionesRepository::generarSlug(
+                    $coleccion[ColeccionesCols::NOMBRE],
+                    (int) $coleccion[ColeccionesCols::ID]
+                );
+                ColeccionesRepository::actualizarSlug(
+                    (int) $coleccion[ColeccionesCols::ID],
+                    $nuevoSlug
+                );
+                $coleccion[ColeccionesCols::SLUG] = $nuevoSlug;
             }
 
             /* Seguridad: colecciones privadas solo visibles al propietario */
