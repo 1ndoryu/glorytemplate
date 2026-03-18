@@ -111,12 +111,14 @@ class ColeccionesRepository extends BaseRepository
          * QL114: total_items incluye samples propios + samples de subcolecciones.
          * Para padres (parent_id IS NULL), la subquery agrega samples de sus hijos.
          * Para subcolecciones, el IN no matchea nada adicional (profundidad max = 2).
+         * [183A-23] JOIN a samples para filtrar solo estado=activo (mismo criterio que el detalle).
          */
         $parentIdCol = ColeccionesCols::PARENT_ID;
 
         $todas = static::consultar(
             "SELECT c.*,
                     (SELECT COUNT(*) FROM {$tcs} cs
+                     JOIN {$ts} s_cnt ON cs.{$csSampleId} = s_cnt.{$sampleId} AND s_cnt.{$sampleEstado} = '{$estadoActivo}'
                      WHERE cs.{$csColeccionId} = c.{$colId}
                         OR cs.{$csColeccionId} IN (
                             SELECT sub.{$colId} FROM {$t} sub WHERE sub.{$parentIdCol} = c.{$colId}
@@ -226,12 +228,16 @@ class ColeccionesRepository extends BaseRepository
     {
         $t = ColeccionesCols::TABLA;
         $tcs = ColeccionSamplesCols::TABLA;
+        $ts = SamplesCols::TABLA;
+        $estadoActivo = SamplesEnums::ESTADO_ACTIVO;
+        /* [183A-23] JOIN a samples con filtro estado=activo para que total_items coincida con el detalle */
+        $sql = "SELECT c.*,
+                (SELECT COUNT(*) FROM {$tcs} cs
+                 JOIN {$ts} s_cnt ON cs." . ColeccionSamplesCols::SAMPLE_ID . " = s_cnt." . SamplesCols::ID . " AND s_cnt." . SamplesCols::ESTADO . " = '{$estadoActivo}'
+                 WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items
+                FROM {$t} c WHERE c." . ColeccionesCols::PARENT_ID . " = :parentId ORDER BY c." . ColeccionesCols::NOMBRE . " ASC";
 
-        return static::consultar(
-            "SELECT c.*, (SELECT COUNT(*) FROM {$tcs} cs WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . ") as total_items
-             FROM {$t} c WHERE c." . ColeccionesCols::PARENT_ID . " = :parentId ORDER BY c." . ColeccionesCols::NOMBRE . " ASC",
-            ['parentId' => $parentId]
-        );
+        return static::consultar($sql, ['parentId' => $parentId]);
     }
 
     /*
@@ -336,8 +342,9 @@ class ColeccionesRepository extends BaseRepository
                 )
                 SELECT sub.* FROM (
                     SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
-                           /* QL114: total_items incluye samples de subcolecciones para padres */
+                           /* QL114+183A-23: total_items solo cuenta samples activos (mismo criterio que el detalle) */
                            (SELECT COUNT(*) FROM {$tcs} csx
+                            JOIN {$ts} s_cnt ON csx.{$csSampleId} = s_cnt.{$sampleId} AND s_cnt.{$sampleEstado} = '{$estadoActivo}'
                             WHERE csx.{$coleccionId} = c." . ColeccionesCols::ID . "
                                OR csx.{$coleccionId} IN (
                                    SELECT sub_c." . ColeccionesCols::ID . " FROM {$t} sub_c WHERE sub_c." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
@@ -384,10 +391,11 @@ class ColeccionesRepository extends BaseRepository
                 LIMIT 20 OFFSET :offset
             ";
         } else {
-            /* QL114: total_items incluye samples de subcolecciones para padres */
+            /* QL114+183A-23: total_items y filtro > 0 solo cuentan samples activos */
             $sql = "
                 SELECT c.*, u." . UsuariosExtCols::USERNAME . ", u." . UsuariosExtCols::NOMBRE_VISIBLE . ", u." . UsuariosExtCols::AVATAR_URL . ", u." . UsuariosExtCols::WP_USER_ID . ",
                        (SELECT COUNT(*) FROM {$tcs} cs
+                        JOIN {$ts} s_cnt ON cs.{$csSampleId} = s_cnt.{$sampleId} AND s_cnt.{$sampleEstado} = '{$estadoActivo}'
                         WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "
                            OR cs." . ColeccionSamplesCols::COLECCION_ID . " IN (
                                SELECT sub." . ColeccionesCols::ID . " FROM {$t} sub WHERE sub." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
@@ -399,6 +407,7 @@ class ColeccionesRepository extends BaseRepository
                 WHERE c." . ColeccionesCols::PUBLICA . " = true
                   AND u." . UsuariosExtCols::ESTADO . " = '" . UsuariosExtEnums::ESTADO_ACTIVO . "'
                   AND (SELECT COUNT(*) FROM {$tcs} cs
+                       JOIN {$ts} s_cnt2 ON cs.{$csSampleId} = s_cnt2.{$sampleId} AND s_cnt2.{$sampleEstado} = '{$estadoActivo}'
                        WHERE cs." . ColeccionSamplesCols::COLECCION_ID . " = c." . ColeccionesCols::ID . "
                           OR cs." . ColeccionSamplesCols::COLECCION_ID . " IN (
                               SELECT sub." . ColeccionesCols::ID . " FROM {$t} sub WHERE sub." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "

@@ -36,6 +36,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
 - **183A-20:** Login con nombre actualizado (fallback por PG username). 2026-03-18.
 - **183A-22+22-A+22-B:** Botones like y guardar separados en tarjeta de colección. 2026-03-18.
+- **183A-23:** Inconsistencia de conteo entre lista y detalle (total_items sin filtro estado). 2026-03-18.
 - Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
@@ -51,9 +52,6 @@ La apk en android studio hice el rebuild y no aparece con el logo de kamples la 
 
 el boton de inicio sesion con google no aparece en el modal del login y las notificaciones del sistema no aparecen, de hecho en la info dice, "this app has not posted any notification", creo que necesita sdocumentarte en internet sobr eesto. 
 
-## 183A-23
-
-La incosistencia de conteo sigue entre afuera en la lista de coleccion y adentro de la colección, no en todas las colecicones pasa. 
 
 ## 183A-24
 
