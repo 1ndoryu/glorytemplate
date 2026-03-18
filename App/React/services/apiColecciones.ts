@@ -44,6 +44,7 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => {
             ? (raw.subcolecciones as Record<string, unknown>[]).map(normalizarColeccionResumen)
             : undefined,
         contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
+        estaGuardada: (raw.estaGuardada ?? raw.esta_guardada) as boolean | undefined,
     };
 };
 
@@ -306,7 +307,10 @@ export const listarColeccionesGuardadas = async (
         return {
             ok: true,
             data: {
-                colecciones: normalizarLista(resp.data.colecciones),
+                colecciones: normalizarLista(resp.data.colecciones).map(coleccion => ({
+                    ...coleccion,
+                    estaGuardada: true,
+                })),
                 total: resp.data.total ?? 0,
                 page: resp.data.page ?? page,
             },

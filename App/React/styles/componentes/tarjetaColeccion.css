@@ -69,9 +69,13 @@
     top: var(--espacioXs);
     right: var(--espacioXs);
     z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--espacioXs);
 }
 
-.tarjetaColeccionMenuBtn {
+.tarjetaColeccionMenuBtn,
+.tarjetaColeccionGuardarBtn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -87,12 +91,20 @@
     transition: opacity var(--transicionRapida), background var(--transicionRapida);
 }
 
-.tarjetaColeccion:hover .tarjetaColeccionMenuBtn {
+.tarjetaColeccion:hover .tarjetaColeccionMenuBtn,
+.tarjetaColeccion:hover .tarjetaColeccionGuardarBtn,
+.tarjetaColeccionGuardarBtnActiva {
     opacity: 1;
 }
 
-.tarjetaColeccionMenuBtn:hover {
+.tarjetaColeccionMenuBtn:hover,
+.tarjetaColeccionGuardarBtn:hover {
     background: var(--overlayOscuro);
+}
+
+.tarjetaColeccionGuardarBtnActiva {
+    background: var(--acento);
+    color: var(--blanco);
 }
 
 /* Info debajo de la imagen */
@@ -257,13 +269,20 @@
     flex-shrink: 0;
 }
 
-.tarjetaColeccionLista .tarjetaColeccionMenuBtn {
+.tarjetaColeccionLista .tarjetaColeccionMenuBtn,
+.tarjetaColeccionLista .tarjetaColeccionGuardarBtn {
     opacity: 1;
     background: transparent;
     color: var(--textoTerciario);
 }
 
-.tarjetaColeccionLista .tarjetaColeccionMenuBtn:hover {
+.tarjetaColeccionLista .tarjetaColeccionMenuBtn:hover,
+.tarjetaColeccionLista .tarjetaColeccionGuardarBtn:hover {
     background: var(--fondoElevado3);
     color: var(--textoPrimario);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionGuardarBtnActiva {
+    background: var(--fondoElevado3);
+    color: var(--acento);
 }

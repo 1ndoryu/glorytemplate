@@ -6,14 +6,11 @@
  * El boton esta FUERA del <a> para evitar navegacion accidental al hacer click.
  */
 
-import { useCallback, useMemo, useState, type MouseEvent } from 'react';
-import { Globe, Lock, MoreVertical, Edit3, Trash2, Link2, FolderTree, Play, Pause, Loader2, Combine, Flag } from 'lucide-react';
+import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, BookmarkPlus, BookmarkCheck } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
-import { copiarAlPortapapeles } from '@app/services/clipboard';
-import { useReproductorStore } from '@app/stores/reproductorStore';
-import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
+import { useTarjetaColeccion } from '@app/hooks/useTarjetaColeccion';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import { MenuContextual } from '../ui/MenuContextual';
 import { BotonBase } from '../ui/BotonBase';
@@ -43,85 +40,19 @@ export const TarjetaColeccion = ({
     onEliminar,
     className = '',
 }: TarjetaColeccionProps): JSX.Element => {
-    const [menu, setMenu] = useState<{ abierto: boolean; x: number; y: number }>({
-        abierto: false, x: 0, y: 0,
-    });
-
-    /* QQ75: Preview aleatorio de la coleccion */
-    const { iniciarPreview, cargando } = useColeccionPreview();
-    const coleccionPreviewId = useReproductorStore(s => s.coleccionPreviewId);
-    const reproduciendo = useReproductorStore(s => s.reproduciendo);
-    const esPreviewActiva = coleccionPreviewId === coleccion.id && reproduciendo;
-
-    const manejarPreview = useCallback((e: MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        iniciarPreview(coleccion.id);
-    }, [iniciarPreview, coleccion.id]);
-
-    const abrirMenu = useCallback((e: MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        setMenu({ abierto: true, x: e.clientX, y: e.clientY });
-    }, []);
-
-    const cerrarMenu = useCallback(() => {
-        setMenu(prev => ({ ...prev, abierto: false }));
-    }, []);
-
-    const itemsMenu = useMemo(() => {
-        const items = [
-            {
-                id: 'copiar-enlace',
-                etiqueta: 'Copiar enlace',
-                icono: <Link2 size={16} />,
-                separadorDespues: true,
-                onClick: () => {
-                    copiarAlPortapapeles(`${window.location.origin}/coleccion/${coleccion.slug ?? coleccion.id}/`);
-                },
-            },
-        ];
-
-        if (onEditar) {
-            items.push({
-                id: 'editar',
-                etiqueta: 'Editar colección',
-                icono: <Edit3 size={16} />,
-                separadorDespues: false,
-                onClick: () => onEditar(coleccion),
-            });
-        }
-
-        if (onCombinar) {
-            items.push({
-                id: 'combinar',
-                etiqueta: 'Combinar colecciones',
-                icono: <Combine size={16} />,
-                separadorDespues: false,
-                onClick: () => onCombinar(coleccion),
-            } as typeof items[0]);
-        }
-
-        if (onEliminar) {
-            items.push({
-                id: 'eliminar',
-                etiqueta: 'Eliminar colección',
-                icono: <Trash2 size={16} />,
-                separadorDespues: false,
-                onClick: () => onEliminar(coleccion),
-            } as typeof items[0]);
-        }
-
-        items.push({
-            id: 'reportar',
-            etiqueta: 'Reportar',
-            icono: <Flag size={16} />,
-            separadorDespues: false,
-            onClick: () => undefined,
-        } as typeof items[0]);
-
-        return items;
-    }, [coleccion, onEditar, onCombinar, onEliminar]);
+    const {
+        menu,
+        guardada,
+        guardando,
+        esPreviewActiva,
+        esPropia,
+        cargandoPreview,
+        manejarPreview,
+        abrirMenu,
+        cerrarMenu,
+        manejarToggleGuardada,
+        itemsMenu,
+    } = useTarjetaColeccion({ coleccion, onEditar, onCombinar, onEliminar });
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = [
@@ -133,7 +64,7 @@ export const TarjetaColeccion = ({
     ].filter(Boolean).join(' ');
 
     /* Icono del boton preview segun estado */
-    const iconoPreview = cargando
+    const iconoPreview = cargandoPreview
         ? <Loader2 size={18} className="tarjetaColeccionSpinner" />
         : esPreviewActiva
             ? <Pause size={18} />
@@ -157,7 +88,7 @@ export const TarjetaColeccion = ({
                                 onClick={manejarPreview}
                                 type="button"
                                 aria-label={esPreviewActiva ? 'Detener preview' : 'Preview coleccion'}
-                                disabled={cargando}
+                                disabled={cargandoPreview}
                             >
                                 {iconoPreview}
                             </BotonBase>
@@ -183,6 +114,18 @@ export const TarjetaColeccion = ({
 
             {/* Boton 3 puntos -- FUERA del <a> para evitar navegacion al hacer click */}
             <div className="tarjetaColeccionMenuContenedor">
+                {/* [183A-15] Reutiliza el bookmark de detalle para guardar colecciones desde el listado. */}
+                {!esPropia && (
+                    <BotonBase variante="ghost"
+                        className={`tarjetaColeccionGuardarBtn ${guardada ? 'tarjetaColeccionGuardarBtnActiva' : ''}`}
+                        onClick={manejarToggleGuardada}
+                        type="button"
+                        aria-label={guardada ? 'Quitar colección de guardadas' : 'Guardar colección'}
+                        cargando={guardando}
+                    >
+                        {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
+                    </BotonBase>
+                )}
                 <BotonBase variante="ghost"
                     className="tarjetaColeccionMenuBtn"
                     onClick={abrirMenu}

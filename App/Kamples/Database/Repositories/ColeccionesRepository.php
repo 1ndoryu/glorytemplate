@@ -17,6 +17,7 @@ use App\Config\Schema\_generated\ColeccionSamplesCols;
 use App\Config\Schema\_generated\UsuariosExtCols;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
+use App\Config\Schema\_generated\ColeccionesGuardadasCols;
 use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\FollowsCols;
@@ -297,6 +298,9 @@ class ColeccionesRepository extends BaseRepository
             $params['userId'] = $userId;
             $params['userIdVisibilidad'] = $userId;
             $whereVisibilidad = "(c.{$colPublica} = true OR c.{$colUsuarioId} = :userIdVisibilidad)";
+            $tg = ColeccionesGuardadasCols::TABLA;
+            $gUsuarioId = ColeccionesGuardadasCols::USUARIO_ID;
+            $gColeccionId = ColeccionesGuardadasCols::COLECCION_ID;
             $tagsLiked = ConstructorSenales::sqlTagsEnriquecidos('s_l');
             $tipoSample = LikesEnums::TIPO_SAMPLE;
             $reaccionLike = LikesEnums::REACCION_LIKE;
@@ -339,6 +343,12 @@ class ColeccionesRepository extends BaseRepository
                                    SELECT sub_c." . ColeccionesCols::ID . " FROM {$t} sub_c WHERE sub_c." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
                                )
                            ) as total_items,
+                           EXISTS(
+                               SELECT 1
+                               FROM {$tg} guardadas
+                               WHERE guardadas.{$gUsuarioId} = :userId
+                                 AND guardadas.{$gColeccionId} = c." . ColeccionesCols::ID . "
+                           ) as esta_guardada,
                            {$subqueryTagsMeta} as tags,
                            COALESCE((
                                SELECT SUM(ut.afinidad)

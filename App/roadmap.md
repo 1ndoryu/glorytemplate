@@ -39,10 +39,6 @@ Ubicacion: `App/docs (ignorar)/`
 ## Tareas pendientes
 
 
-## 183A-15
-
-Agregar un boton de like al lado del boton de 3 puntos en las lista de colecciones.
-
 ## 183A-16
 
 La miga de pan de dentro de las colecciones, tarda demasiado en aparecer, esto parece que necesita optmización. 
@@ -60,3 +56,12 @@ el boton de inicio sesion con google no aparece en el modal del login y las noti
 ## 183A-20
 
 Es raro que haya creado un usuario con el nombre test, luego intenramente en las configuraciones de perfil cambie el nombre a wan, pero, sigo inicio sesion a ese usuario con el nombre test, esta mal obviamente, debo iniciar sesion con el nombre que usuario que cambien.
+
+## 183A-21
+ahora el contador interno de las colecciones literalmente se queda en cero, estas trabajando en esto sin verificar
+<span class="coleccionStats">0 samples</span>
+
+agrega algo estricto en .github\instructions\test.instructions.md para que dejes de cometer este error de marcar tareas como completadas que no verificas cuando incluso puedes comprobar localmente sin recurrir al servidor. 
+
+## 183A-22
+
