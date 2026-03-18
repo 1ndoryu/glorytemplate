@@ -79,7 +79,7 @@ export function ModalReporteLegal({
                             form="formReporteLegal"
                             disabled={estado.cargando || !declaracion}
                         >
-                            {estado.cargando ? 'Enviando...' : 'Enviar reclamacion'}
+                            {estado.cargando ? 'Enviando...' : 'Enviar reclamación'}
                         </BotonBase>
                     </div>
                 )
@@ -87,10 +87,10 @@ export function ModalReporteLegal({
         >
             {estado.exito ? (
                 <div className="modalReporteLegalExito">
-                    <p>Reclamacion enviada correctamente.</p>
+                    <p>Reclamación enviada correctamente.</p>
                     <p className="modalReporteLegalExitoSub">
-                        Nuestro equipo la revisara en un plazo de 72 horas habiles.
-                        Recibiras actualizaciones en el email proporcionado.
+                        Nuestro equipo la revisará en un plazo de 72 horas hábiles.
+                        Recibirás actualizaciones en el email proporcionado.
                     </p>
                     <BotonBase variante="ghost" onClick={cerrar} className="modalReporteLegalCerrar">
                         Cerrar
@@ -151,11 +151,11 @@ export function ModalReporteLegal({
                             value={obraProtegida}
                             onChange={(e) => setObraProtegida(e.target.value)}
                             required
-                            placeholder="Titulo de la obra, numero de registro, etc."
+                            placeholder="Título de la obra, número de registro, etc."
                         />
 
                         <div className="modalReporteLegalCampo">
-                            <label className="modalReporteLegalLabel">Descripcion de la infraccion</label>
+                            <label className="modalReporteLegalLabel">Descripción de la infracción</label>
                             <textarea
                                 className="modalReporteLegalTextarea"
                                 value={razon}
@@ -163,7 +163,7 @@ export function ModalReporteLegal({
                                 required
                                 minLength={10}
                                 rows={4}
-                                placeholder="Describa como el contenido infringe sus derechos..."
+                                placeholder="Describa cómo el contenido infringe sus derechos..."
                             />
                         </div>
                     </div>
@@ -171,8 +171,7 @@ export function ModalReporteLegal({
                     <Checkbox
                         checked={declaracion}
                         onChange={(e) => setDeclaracion((e.target as HTMLInputElement).checked)}
-                        label="Declaro de buena fe que el uso del material reclamado no esta autorizado por el titular
-                               de los derechos, su agente o la ley. La informacion proporcionada es veridica."
+                        label="Declaro de buena fe que el uso del material reclamado no está autorizado por el titular de los derechos, su agente o la ley. La información proporcionada es verídica."
                     />
 
                     {estado.error && (

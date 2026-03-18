@@ -98,7 +98,7 @@ export const ModalEdicionRelacion = ({
                             etiqueta="Razon (min. 10 caracteres)"
                             multilínea
                             rows={3}
-                            placeholder="Explica por que esta relacion es incorrecta o no deberia existir..."
+                            placeholder="Explica por qué esta relación es incorrecta o no debería existir..."
                             value={hook.razon}
                             onChange={(e) => hook.setRazon((e.target as HTMLTextAreaElement).value)}
                         />
@@ -107,7 +107,7 @@ export const ModalEdicionRelacion = ({
                     /* Modo edicion: campos editables */
                     <div className="modalEdicionRelacionCampos">
                         <SelectorMenu
-                            etiqueta="Tipo de relacion"
+                            etiqueta="Tipo de relación"
                             valor={hook.tipoRelacion}
                             onChange={(v) => hook.setTipoRelacion(v as TipoRelacion)}
                             opciones={Object.entries(ETIQUETAS_TIPO_RELACION).map(([valor, etiqueta]) => ({ valor, etiqueta }))}

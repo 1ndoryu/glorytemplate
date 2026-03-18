@@ -143,8 +143,8 @@ export const FeedSamples = ({
             <div className={`feedSamplesContenedor ${className}`} id={id}>
                 <div className="feedSamplesOffline">
                     <WifiOff size={48} />
-                    <h3>Sin conexion a internet</h3>
-                    <p>Revisa tu conexion e intenta de nuevo.</p>
+                    <h3>Sin conexión a internet</h3>
+                    <p>Revisa tu conexión e intenta de nuevo.</p>
                 </div>
             </div>
         );
@@ -173,7 +173,7 @@ export const FeedSamples = ({
             {!enLinea && (
                 <div className="feedSamplesBannerOffline">
                     <WifiOff size={14} />
-                    <span>Sin conexion — mostrando datos guardados</span>
+                    <span>Sin conexión — mostrando datos guardados</span>
                 </div>
             )}
 

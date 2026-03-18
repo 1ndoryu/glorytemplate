@@ -44,7 +44,7 @@ export const TabCancionesAdmin = (): JSX.Element => {
                     <CampoTexto
                         className="adminUsuariosBusqueda"
                         variante="bordado"
-                        placeholder="Buscar por titulo o artista..."
+                        placeholder="Buscar por título o artista..."
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
                     />

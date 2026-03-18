@@ -26,12 +26,12 @@ export const ModalCorregirIA = (): JSX.Element | null => {
     /* Metadata actual para contexto visual */
     const metaActual = sample.metadata ?? {};
     const camposActuales = [
-        { clave: 'Titulo', valor: sample.titulo },
+        { clave: 'Título', valor: sample.titulo },
         { clave: 'Tags', valor: Array.isArray(sample.tags) ? sample.tags.join(', ') : '' },
         { clave: 'BPM', valor: sample.bpm?.toString() ?? 'N/A' },
         { clave: 'Key', valor: sample.key ?? 'N/A' },
-        { clave: 'Genero', valor: Array.isArray(metaActual.genero) ? (metaActual.genero as string[]).join(', ') : 'N/A' },
-        { clave: 'Emocion', valor: typeof metaActual.emocion === 'string' ? metaActual.emocion : 'N/A' },
+        { clave: 'Género', valor: Array.isArray(metaActual.genero) ? (metaActual.genero as string[]).join(', ') : 'N/A' },
+        { clave: 'Emoción', valor: typeof metaActual.emocion === 'string' ? metaActual.emocion : 'N/A' },
     ];
 
     return (
@@ -43,8 +43,8 @@ export const ModalCorregirIA = (): JSX.Element | null => {
                 </div>
 
                 <p className="corregirIADescripcion">
-                    Este sample fue generado automaticamente. Si la IA cometio errores en el titulo,
-                    tags, genero u otros datos, escribe las correcciones necesarias.
+                    Este sample fue generado automáticamente. Si la IA cometió errores en el título,
+                    tags, género u otros datos, escribe las correcciones necesarias.
                 </p>
 
                 {/* Metadata actual como referencia */}
@@ -63,12 +63,12 @@ export const ModalCorregirIA = (): JSX.Element | null => {
                 {/* Input de instrucciones */}
                 <div className="corregirIAGrupo">
                     <label className="corregirIALabel" htmlFor="instrucciones-ia">
-                        Instrucciones de correccion
+                        Instrucciones de corrección
                     </label>
                     <textarea
                         id="instrucciones-ia"
                         className="corregirIATextarea"
-                        placeholder="Ej: El titulo correcto es 'Artista - Cancion'. El genero es hip-hop, no jazz. Los tags deberian incluir 'boom bap'..."
+                        placeholder="Ej: El título correcto es 'Artista - Canción'. El género es hip-hop, no jazz. Los tags deberían incluir 'boom bap'..."
                         value={instrucciones}
                         onChange={e => setInstrucciones(e.target.value)}
                         rows={4}
@@ -89,7 +89,7 @@ export const ModalCorregirIA = (): JSX.Element | null => {
                         onClick={enviar}
                         disabled={enviando || instrucciones.trim().length < 5}
                     >
-                        {enviando ? 'Corrigiendo...' : 'Enviar correccion'}
+                        {enviando ? 'Corrigiendo...' : 'Enviar corrección'}
                     </BotonBase>
                 </ModalAcciones>
             </div>

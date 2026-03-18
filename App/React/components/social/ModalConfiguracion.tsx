@@ -19,7 +19,7 @@ import '../../styles/componentes/modalConfiguracion.css';
 const ConfiguracionDesktop = (h: HookConfiguracion): JSX.Element => (
     <Modal abierto={h.abierto && h.autenticado} onCerrar={h.manejarCerrar} className="configModalLayout">
         <div className="configNavLateral">
-            <h3 className="configNavTitulo">Configuracion</h3>
+            <h3 className="configNavTitulo">Configuración</h3>
             <NavSecciones h={h} />
         </div>
         <div className="configContenido">
@@ -42,7 +42,7 @@ const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
             {h.movilEnMenu ? (
                 <div className="configMovilNav">
                     <div className="configMovilCabecera">
-                        <h3 className="configNavTitulo">Configuracion</h3>
+                        <h3 className="configNavTitulo">Configuración</h3>
                         <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
                             <X size={20} />
                         </BotonBase>
@@ -54,7 +54,7 @@ const ConfiguracionMovil = (h: HookConfiguracion): JSX.Element => createPortal(
                     <div className="configMovilCabecera">
                         <BotonBase variante="ghost" className="configMovilVolver" onClick={h.volverAlMenuMovil} type="button">
                             <ArrowLeft size={18} />
-                            <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? 'Configuracion'}</span>
+                            <span>{SECCIONES_NAV.find(s => s.id === h.seccionActiva)?.etiqueta ?? 'Configuración'}</span>
                         </BotonBase>
                         <BotonBase variante="ghost" className="configMovilCerrar" onClick={h.manejarCerrar} type="button" aria-label="Cerrar">
                             <X size={20} />

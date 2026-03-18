@@ -32,13 +32,13 @@ const TAM_ICONO = 16;
 
 const TABS_ADMIN: TabTopBar[] = [
     { id: 'usuarios', etiqueta: 'Usuarios', icono: <Users size={TAM_ICONO} /> },
-    { id: 'moderacion', etiqueta: 'Moderacion', icono: <Shield size={TAM_ICONO} /> },
+    { id: 'moderacion', etiqueta: 'Moderación', icono: <Shield size={TAM_ICONO} /> },
     { id: 'cola-ia', etiqueta: 'Cola IA', icono: <BrainCircuit size={TAM_ICONO} /> },
     { id: 'duplicados', etiqueta: 'Duplicados', icono: <Copy size={TAM_ICONO} /> },
     { id: 'procesos', etiqueta: 'Procesos', icono: <Cog size={TAM_ICONO} /> },
     { id: 'contribuciones', etiqueta: 'Contribuciones', icono: <HandHeart size={TAM_ICONO} /> },
     { id: 'scrapers', etiqueta: 'Scrapers', icono: <Globe size={TAM_ICONO} /> },
-    { id: 'cola-extraccion', etiqueta: 'Cola Extraccion', icono: <Headphones size={TAM_ICONO} /> },
+    { id: 'cola-extraccion', etiqueta: 'Cola Extracción', icono: <Headphones size={TAM_ICONO} /> },
     { id: 'canciones', etiqueta: 'Canciones', icono: <Music size={TAM_ICONO} /> },
 ];
 

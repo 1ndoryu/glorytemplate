@@ -48,7 +48,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         if (!sample || enviando) return false;
 
         if (segAntes === 0 && segDespues === 0) {
-            toast.error('Agrega al menos 1 segundo de extension');
+            toast.error('Agrega al menos 1 segundo de extensión');
             return false;
         }
 
@@ -81,7 +81,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
             return false;
         } catch (err) {
             log.error('Error inesperado al extender recorte', err);
-            toast.error('Error de red al enviar extension');
+            toast.error('Error de red al enviar extensión');
             return false;
         } finally {
             setEnviando(false);
@@ -92,7 +92,7 @@ export const useExtenderRecorte = (): RetornoExtenderRecorte => {
         if (!sample || enviando) return false;
 
         if (duracionSiguiente <= 0) {
-            toast.error('La duracion debe ser mayor a 0');
+            toast.error('La duración debe ser mayor a 0');
             return false;
         }
 

@@ -108,7 +108,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="Premium" valor={datos.esPremium} />
                         <Campo etiqueta="Precio" valor={datos.precio} numerico />
                         <Campo etiqueta="Liked" valor={datos.liked} />
-                        <Campo etiqueta="Reaccion" valor={datos.reaccion} />
+                        <Campo etiqueta="Reacción" valor={datos.reaccion} />
                         {completo && <Campo etiqueta="Estado" valor={(datos as Sample).estado} />}
                         {completo && <Campo etiqueta="Formato" valor={(datos as Sample).formato} />}
                         {completo && <Campo etiqueta="Tamano" valor={`${((datos as Sample).tamano / 1024 / 1024).toFixed(2)} MB`} />}
@@ -138,7 +138,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                             {(datos as Sample).cancionOrigen?.slug && (
                                 <Campo etiqueta="Enlace Fuente" valor={`/cancion/${(datos as Sample).cancionOrigen!.slug}/`} ancho />
                             )}
-                            <Campo etiqueta="Relacion Sampleo ID" valor={(datos as Sample).relacionSampleoId} numerico />
+                            <Campo etiqueta="Relación Sampleo ID" valor={(datos as Sample).relacionSampleoId} numerico />
                         </div>
                     </div>
                 )}
@@ -157,7 +157,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                         <Campo etiqueta="BPM" valor={datos.bpm} numerico />
                         <Campo etiqueta="Key" valor={datos.key} />
                         <Campo etiqueta="Escala" valor={datos.escala} />
-                        <Campo etiqueta="Duracion" valor={datos.duracion ? formatearDuracion(datos.duracion) : null} />
+                        <Campo etiqueta="Duración" valor={datos.duracion ? formatearDuracion(datos.duracion) : null} />
                         <Campo etiqueta="Audio Hash" valor={completo ? (datos as Sample).audioHash : (datos as SampleResumen).audioHash} ancho />
                         <Campo etiqueta="Ruta Preview" valor={datos.rutaPreview} ancho />
                         <Campo etiqueta="Ruta Waveform" valor={datos.rutaWaveform} ancho />
@@ -197,7 +197,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                                 Array.isArray(m.instrumentos) ? m.instrumentos.join(', ') :
                                 typeof m.instrumentos === 'string' ? m.instrumentos : null
                             } ancho />
-                            <Campo etiqueta="Emocion" valor={String(m.emocion || m.emocion_es || (Array.isArray(m.sentimiento) ? m.sentimiento.join(', ') : '') || '—')} ancho />
+                            <Campo etiqueta="Emoción" valor={String(m.emocion || m.emocion_es || (Array.isArray(m.sentimiento) ? m.sentimiento.join(', ') : '') || '—')} ancho />
                             <Campo etiqueta="Artista Vibes" valor={
                                 Array.isArray(m.artista_vibes || m.artistaVibes)
                                     ? (m.artista_vibes as string[] || m.artistaVibes as string[]).join(', ')
@@ -252,7 +252,7 @@ export const ModalInspectorSample = ({abierto, onCerrar, sample}: ModalInspector
                     <div className="inspectorGrid">
                         <Campo etiqueta="Es Mio" valor={'esMio' in datos ? (datos as Sample).esMio : null} />
                         <Campo etiqueta="Ya Coleccionado" valor={'yaColeccionado' in datos ? (datos as Sample).yaColeccionado : null} />
-                        <Campo etiqueta="En Coleccion" valor={'yaGuardadoEnColeccion' in datos ? (datos as Sample).yaGuardadoEnColeccion : null} />
+                        <Campo etiqueta="En Colección" valor={'yaGuardadoEnColeccion' in datos ? (datos as Sample).yaGuardadoEnColeccion : null} />
                         <Campo etiqueta="Ya Comentado" valor={'yaComentado' in datos ? (datos as Sample).yaComentado : null} />
                         <Campo etiqueta="Ya Comprado" valor={'yaComprado' in datos ? (datos as Sample).yaComprado : null} />
                     </div>

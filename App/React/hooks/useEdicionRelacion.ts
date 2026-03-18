@@ -93,7 +93,7 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
 
         if (modoEliminacion) {
             if (razon.trim().length < 10) {
-                toast.error('La razon debe tener al menos 10 caracteres.');
+                toast.error('La razón debe tener al menos 10 caracteres.');
                 setCargando(false);
                 return false;
             }
@@ -102,7 +102,7 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
             setCargando(false);
 
             if (resp.ok && resp.data?.ok) {
-                toast.exito('Propuesta de eliminacion enviada. Sera revisada por un moderador.');
+                toast.exito('Propuesta de eliminación enviada. Será revisada por un moderador.');
                 cerrar();
                 return true;
             }
@@ -153,7 +153,7 @@ export const useEdicionRelacion = (): RetornoEdicionRelacion => {
         setCargando(false);
 
         if (resp.ok && resp.data?.ok) {
-            toast.exito('Edicion propuesta enviada. Sera revisada por un moderador.');
+            toast.exito('Edición propuesta enviada. Será revisada por un moderador.');
             cerrar();
             return true;
         }

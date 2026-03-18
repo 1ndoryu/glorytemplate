@@ -31,7 +31,7 @@ export const useCorregirIA = (): RetornoCorregirIA => {
 
         const textoLimpio = instrucciones.trim();
         if (textoLimpio.length < 5) {
-            toast.error('Escribe instrucciones mas detalladas (minimo 5 caracteres)');
+            toast.error('Escribe instrucciones más detalladas (mínimo 5 caracteres)');
             return false;
         }
 
@@ -60,7 +60,7 @@ export const useCorregirIA = (): RetornoCorregirIA => {
             return false;
         } catch (err) {
             log.error('Error inesperado al corregir metadata IA', err);
-            toast.error('Error de red al enviar correccion');
+            toast.error('Error de red al enviar corrección');
             return false;
         } finally {
             setEnviando(false);

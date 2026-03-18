@@ -21,7 +21,7 @@ interface BuscadorCancionesProps {
 }
 
 export function BuscadorCanciones({
-    placeholder = 'Buscar cancion por titulo o artista...',
+    placeholder = 'Buscar canción por título o artista...',
     onSeleccionar,
     onAgregarNueva,
     cancionActual = null,
@@ -146,7 +146,7 @@ export function BuscadorCanciones({
 
                     {resultados.length === 0 && query.length >= 2 && (
                         <li className="buscadorSinResultados">
-                            <span>No se encontro "{query}"</span>
+                            <span>No se encontró "{query}"</span>
                             {onAgregarNueva && (
                                 <BotonBase
                                     variante="ghost"

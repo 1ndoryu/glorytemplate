@@ -55,11 +55,11 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
                     <span className="extenderRecorteSubtitulo">Sample actual</span>
                     <div className="extenderRecorteCampos">
                         <div className="extenderRecorteCampo">
-                            <span className="extenderRecorteCampoLabel">Titulo</span>
+                            <span className="extenderRecorteCampoLabel">Título</span>
                             <span className="extenderRecorteCampoValor">{sample.titulo}</span>
                         </div>
                         <div className="extenderRecorteCampo">
-                            <span className="extenderRecorteCampoLabel">Duracion</span>
+                            <span className="extenderRecorteCampoLabel">Duración</span>
                             <span className="extenderRecorteCampoValor">{duracionActual.toFixed(1)}s</span>
                         </div>
                         {sample.bpm && (
@@ -87,7 +87,7 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
                             variante="bordado"
                         />
                         <CampoTexto
-                            etiqueta="Segundos despues"
+                            etiqueta="Segundos después"
                             type="number"
                             min={0}
                             max={30}
@@ -100,10 +100,10 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
                     </div>
                     <div className="extenderRecortePrevisualizacion">
                         <Badge variante="neutro" tamano="sm">
-                            Duracion estimada: {duracionEstimada.toFixed(1)}s
+                            Duración estimada: {duracionEstimada.toFixed(1)}s
                         </Badge>
                         {duracionEstimada > 60 && (
-                            <Badge variante="advertencia" tamano="sm">Maximo 60s</Badge>
+                            <Badge variante="advertencia" tamano="sm">Máximo 60s</Badge>
                         )}
                     </div>
                     <BotonBase
@@ -129,7 +129,7 @@ export const ModalExtenderRecorte = (): JSX.Element | null => {
                     </p>
                     <div className="extenderRecorteControles">
                         <CampoTexto
-                            etiqueta="Duracion del nuevo segmento (seg)"
+                            etiqueta="Duración del nuevo segmento (seg)"
                             type="number"
                             min={1}
                             max={60}

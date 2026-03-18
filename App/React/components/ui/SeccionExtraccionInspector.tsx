@@ -133,11 +133,11 @@ export const SeccionExtraccionInspector = ({ extraccion, sampleSlug }: SeccionEx
                 )}
                 <Campo etiqueta="BPM Detectado" valor={extraccion.bpmDetectado} numerico />
                 {extraccion.duracionCompasSeg != null && (
-                    <Campo etiqueta="Duracion Compas" valor={`${extraccion.duracionCompasSeg}s`} numerico />
+                    <Campo etiqueta="Duración Compás" valor={`${extraccion.duracionCompasSeg}s`} numerico />
                 )}
                 <Campo etiqueta="Recorte por Compas" valor={extraccion.recortePorCompas} />
                 {extraccion.duracionExtraida != null && (
-                    <Campo etiqueta="Duracion Extraida" valor={`${extraccion.duracionExtraida}s`} numerico />
+                    <Campo etiqueta="Duración Extraída" valor={`${extraccion.duracionExtraida}s`} numerico />
                 )}
                 <Campo etiqueta="Formato" valor={extraccion.formatoExtraido} />
                 {extraccion.tamanoBytes != null && (

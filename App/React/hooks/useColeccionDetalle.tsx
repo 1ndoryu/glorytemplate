@@ -162,7 +162,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
 
         if (!resp.ok) {
             setGuardada(valorAnterior);
-            toast.error(valorAnterior ? 'Error al quitar de guardadas' : 'Error al guardar coleccion');
+            toast.error(valorAnterior ? 'Error al quitar de guardadas' : 'Error al guardar colección');
         }
     }, [usuario, abrirAuth, coleccion?.id, guardada]);
 

@@ -21,16 +21,16 @@ const PASOS: PasoOnboarding[] = [
     {
         icono: '🎵',
         titulo: 'Descubre samples',
-        descripcion: 'Explora miles de loops y one-shots de creadores de todo el mundo. Filtra por BPM, tonalidad y genero.',
+        descripcion: 'Explora miles de loops y one-shots de creadores de todo el mundo. Filtra por BPM, tonalidad y género.',
     },
     {
         icono: '📤',
-        titulo: 'Sube tu musica',
+        titulo: 'Sube tu música',
         descripcion: 'Comparte tus samples con la comunidad. Agrega metadata, tags y deja que otros productores los encuentren.',
     },
     {
         icono: '📚',
-        titulo: 'Crea tu libreria',
+        titulo: 'Crea tu librería',
         descripcion: 'Guarda tus samples favoritos en colecciones organizadas. Accede a ellos cuando los necesites.',
     },
 ];

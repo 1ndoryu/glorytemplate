@@ -31,7 +31,7 @@ const OPCIONES_ESTADO = [
 const OPCIONES_TIPO = [
     { valor: '', etiqueta: 'Todos los tipos' },
     { valor: 'sample', etiqueta: 'Sample' },
-    { valor: 'publicacion', etiqueta: 'Publicacion' },
+    { valor: 'publicacion', etiqueta: 'Publicación' },
     { valor: 'comentario', etiqueta: 'Comentario' },
 ];
 
@@ -40,7 +40,7 @@ const COLUMNAS = [
     { col: 'id', etiqueta: 'ID' },
     { col: 'tipo', etiqueta: 'Tipo' },
     { col: 'entidad_id', etiqueta: 'Entidad' },
-    { col: 'operacion', etiqueta: 'Operacion' },
+    { col: 'operacion', etiqueta: 'Operación' },
     { col: 'estado', etiqueta: 'Estado' },
     { col: 'intentos', etiqueta: 'Intentos' },
     { col: 'ultimo_error', etiqueta: 'Error' },
@@ -65,7 +65,7 @@ export const TabColaIaAdmin = (): JSX.Element => {
                         <CampoTexto
                             className="adminUsuariosBusqueda"
                             variante="bordado"
-                            placeholder="Buscar en operacion, error, metadata..."
+                            placeholder="Buscar en operación, error, metadata..."
                             value={cola.busqueda}
                             onChange={(e) => cola.setBusqueda(e.target.value)}
                         />

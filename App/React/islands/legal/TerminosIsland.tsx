@@ -1,7 +1,8 @@
 /*
  * TerminosIsland — Kamples
- * Pagina estatica de terminos de servicio.
+ * Página estática de términos de servicio.
  * Cubre: uso aceptable, propiedad intelectual, DMCA takedown, limitaciones.
+ * [183A-64] Tildes corregidas en textos visibles al usuario.
  */
 
 import '../../styles/variables.css';
@@ -9,33 +10,33 @@ import '../../styles/legal.css';
 
 export const TerminosIsland = (): JSX.Element => (
     <div className="contenedorLegal" id="paginaTerminos">
-        <h1 className="tituloLegal">Terminos de Servicio</h1>
-        <p className="fechaLegal">Ultima actualizacion: Marzo 2026</p>
+        <h1 className="tituloLegal">Términos de Servicio</h1>
+        <p className="fechaLegal">Última actualización: Marzo 2026</p>
 
         <section className="seccionLegal">
-            <h2>1. Aceptacion de los terminos</h2>
+            <h2>1. Aceptación de los términos</h2>
             <p>
-                Al acceder o utilizar Kamples, aceptas estar sujeto a estos terminos.
-                Si no estas de acuerdo, no utilices la plataforma.
+                Al acceder o utilizar Kamples, aceptas estar sujeto a estos términos.
+                Si no estás de acuerdo, no utilices la plataforma.
             </p>
         </section>
 
         <section className="seccionLegal">
-            <h2>2. Descripcion del servicio</h2>
+            <h2>2. Descripción del servicio</h2>
             <p>
-                Kamples es una plataforma de descubrimiento y comparticion de samples de audio.
+                Kamples es una plataforma de descubrimiento y compartición de samples de audio.
                 Los usuarios pueden explorar, subir, descargar y organizar samples musicales,
-                asi como descubrir relaciones de sampleo entre canciones.
+                así como descubrir relaciones de sampleo entre canciones.
             </p>
         </section>
 
         <section className="seccionLegal">
             <h2>3. Cuentas de usuario</h2>
             <ul>
-                <li>Debes tener al menos 13 anos para crear una cuenta.</li>
-                <li>Eres responsable de mantener la seguridad de tu cuenta y contrasena.</li>
-                <li>No puedes usar la cuenta de otra persona sin autorizacion.</li>
-                <li>Nos reservamos el derecho de suspender cuentas que violen estos terminos.</li>
+                <li>Debes tener al menos 13 años para crear una cuenta.</li>
+                <li>Eres responsable de mantener la seguridad de tu cuenta y contraseña.</li>
+                <li>No puedes usar la cuenta de otra persona sin autorización.</li>
+                <li>Nos reservamos el derecho de suspender cuentas que violen estos términos.</li>
             </ul>
         </section>
 
@@ -56,25 +57,25 @@ export const TerminosIsland = (): JSX.Element => (
         <section className="seccionLegal">
             <h2>5. Propiedad intelectual y DMCA</h2>
             <p>
-                Kamples respeta la propiedad intelectual. Los recortes de audio estan
+                Kamples respeta la propiedad intelectual. Los recortes de audio están
                 disponibles con fines educativos y de referencia para la comunidad de productores.
             </p>
             <p>
                 Si consideras que contenido en Kamples infringe tus derechos de autor,
-                puedes enviar una notificacion DMCA a: <strong>dmca@kamples.com</strong>
+                puedes enviar una notificación DMCA a: <strong>dmca@kamples.com</strong>
             </p>
             <p>
-                Tu notificacion debe incluir:
+                Tu notificación debe incluir:
             </p>
             <ul>
-                <li>Identificacion de la obra protegida.</li>
+                <li>Identificación de la obra protegida.</li>
                 <li>URL del contenido infractor en Kamples.</li>
-                <li>Tu informacion de contacto.</li>
-                <li>Declaracion de buena fe de que el uso no esta autorizado.</li>
-                <li>Tu firma electronica o fisica.</li>
+                <li>Tu información de contacto.</li>
+                <li>Declaración de buena fe de que el uso no está autorizado.</li>
+                <li>Tu firma electrónica o física.</li>
             </ul>
             <p>
-                Procesaremos solicitudes validas de forma expedita conforme al DMCA (17 U.S.C. §512).
+                Procesaremos solicitudes válidas de forma expedita conforme al DMCA (17 U.S.C. §512).
             </p>
         </section>
 
@@ -83,19 +84,19 @@ export const TerminosIsland = (): JSX.Element => (
             <p>Queda prohibido:</p>
             <ul>
                 <li>Usar la plataforma para distribuir malware o spam.</li>
-                <li>Intentar acceder sin autorizacion a sistemas o datos de otros usuarios.</li>
+                <li>Intentar acceder sin autorización a sistemas o datos de otros usuarios.</li>
                 <li>Realizar scraping automatizado sin permiso previo.</li>
-                <li>Evadir medidas de seguridad o limites de descarga.</li>
+                <li>Evadir medidas de seguridad o límites de descarga.</li>
                 <li>Usar bots, scripts o herramientas automatizadas para manipular la plataforma.</li>
             </ul>
         </section>
 
         <section className="seccionLegal">
-            <h2>7. Limitacion de responsabilidad</h2>
+            <h2>7. Limitación de responsabilidad</h2>
             <p>
-                Kamples se proporciona &quot;tal cual&quot; sin garantias de ningun tipo.
-                No nos hacemos responsables de danos indirectos, incidentales o consecuentes
-                derivados del uso de la plataforma. Nuestra responsabilidad maxima se limita
+                Kamples se proporciona &quot;tal cual&quot; sin garantías de ningún tipo.
+                No nos hacemos responsables de daños indirectos, incidentales o consecuentes
+                derivados del uso de la plataforma. Nuestra responsabilidad máxima se limita
                 al monto pagado por el usuario en los 12 meses anteriores al evento.
             </p>
         </section>
@@ -103,9 +104,9 @@ export const TerminosIsland = (): JSX.Element => (
         <section className="seccionLegal">
             <h2>8. Modificaciones</h2>
             <p>
-                Podemos actualizar estos terminos periodicamente. Los cambios sustanciales
-                se notificaran a traves de la plataforma. El uso continuado despues de
-                las modificaciones constituye aceptacion de los nuevos terminos.
+                Podemos actualizar estos términos periódicamente. Los cambios sustanciales
+                se notificarán a través de la plataforma. El uso continuado después de
+                las modificaciones constituye aceptación de los nuevos términos.
             </p>
         </section>
 

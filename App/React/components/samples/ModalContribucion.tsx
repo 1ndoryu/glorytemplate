@@ -19,7 +19,7 @@ const TIPOS_RELACION = [
     { valor: 'sample',        etiqueta: 'Sample directo' },
     { valor: 'cover',         etiqueta: 'Cover' },
     { valor: 'remix',         etiqueta: 'Remix' },
-    { valor: 'interpolation', etiqueta: 'Interpolacion' },
+    { valor: 'interpolation', etiqueta: 'Interpolación' },
 ] as const;
 
 interface ModalContribucionProps {
@@ -93,7 +93,7 @@ export function ModalContribucion({
                             form="formContribucion"
                             disabled={estado.cargando}
                         >
-                            {estado.cargando ? 'Enviando...' : 'Enviar contribucion'}
+                            {estado.cargando ? 'Enviando...' : 'Enviar contribución'}
                         </BotonBase>
                     </div>
                 )
@@ -101,9 +101,9 @@ export function ModalContribucion({
         >
             {estado.exito ? (
                 <div className="modalContribucionExito">
-                    <p>Contribucion enviada. </p>
+                    <p>Contribución enviada. </p>
                     <p className="modalContribucionExitoSub">
-                        Un moderador la revisara pronto. Gracias por contribuir.
+                        Un moderador la revisará pronto. Gracias por contribuir.
                     </p>
                 </div>
             ) : (
@@ -117,7 +117,7 @@ export function ModalContribucion({
                                 value="esta_samplea"
                                 checked={modo === 'esta_samplea'}
                                 onChange={() => { setModo('esta_samplea'); seleccionarCancion(null); }}
-                                label="Esta cancion samplea a..."
+                                label="Esta canción samplea a..."
                                 className={`modalContribucionModo${modo === 'esta_samplea' ? ' activo' : ''}`}
                             />
                             <Radio
@@ -125,7 +125,7 @@ export function ModalContribucion({
                                 value="fue_sampleada"
                                 checked={modo === 'fue_sampleada'}
                                 onChange={() => { setModo('fue_sampleada'); seleccionarCancion(null); }}
-                                label="Esta cancion fue sampleada por..."
+                                label="Esta canción fue sampleada por..."
                                 className={`modalContribucionModo${modo === 'fue_sampleada' ? ' activo' : ''}`}
                             />
                         </div>
@@ -134,7 +134,7 @@ export function ModalContribucion({
                     {/* Buscar cancion relacionada */}
                     <div className="modalContribucionCampo">
                         <label className="modalContribucionLabel">
-                            {modo === 'esta_samplea' ? 'Cancion fuente (la original)' : 'Cancion que la sampleo'}
+                            {modo === 'esta_samplea' ? 'Canción fuente (la original)' : 'Canción que la sampleó'}
                         </label>
                         {!agregarNueva && (
                             <BuscadorCanciones
@@ -150,7 +150,7 @@ export function ModalContribucion({
                     {agregarNueva && (
                         <div className="modalContribucionNueva">
                             <div className="modalContribucionNuevaHeader">
-                                <span>Nueva cancion</span>
+                                <span>Nueva canción</span>
                                 <BotonBase
                                     variante="ghost"
                                     tamano="sm"
@@ -161,7 +161,7 @@ export function ModalContribucion({
                                 </BotonBase>
                             </div>
                             <CampoTexto
-                                etiqueta="Titulo de la cancion"
+                                etiqueta="Título de la canción"
                                 value={nuevoTitulo}
                                 onChange={(e) => setNuevoTitulo(e.target.value)}
                                 required
@@ -185,7 +185,7 @@ export function ModalContribucion({
 
                     {/* Tipo de relacion */}
                     <div className="modalContribucionCampo">
-                        <label className="modalContribucionLabel">Tipo de relacion</label>
+                        <label className="modalContribucionLabel">Tipo de relación</label>
                         <div className="modalContribucionOpciones">
                             {TIPOS_RELACION.map((t) => (
                                 <Radio
