@@ -91,6 +91,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-79+183A-76:** Completadas 2026-03-18. 183A-79: `panelColeccionPortada` ahora usa `detalle?.coleccionOriginal ?? sample.coleccionOriginal` — info de colección aparece en panel lateral. 183A-76: removidos iconos SVG (Mail, Lock) de los labels Email/Contraseña en ConfiguracionSecciones.
 
 - **183A-75:** Secciones música optimizado de 894ms a 314ms (2 queries + arsort + v063 índices).
+- **183A-85+183A-85-A:** Completadas 2026-03-18. 183A-85: respuestas sobre la optimización bulk-fetch (la optimización es real, pag2/3 son cache hits). 183A-85-A: benchmark actualizado para reflejar bulk-fetch — pag2/3 sin invalidar cache entre tests.
 - **183A-80:** Completada 2026-03-18. Bulk-fetch 3 páginas en 1 query (LIMIT 90 OFFSET 0) + CTE `ignored_samples` (samples reproducidos 5+ veces en 30 días sin like). Serendipia movida dentro del bulk loop, NO eliminada. Filosofía algoritmo documentada: todos los samples se evalúan, no pierden calidad por antigüedad.
 - **183A-82+183A-83:** Completadas 2026-03-18. 183A-82: serendipia no se borró, se movió al bulk loop. 183A-83: `coleccion_original_json` añadido al SELECT del feed inteligente — antes solo estaba en recientes. Método `sqlColeccionOriginalJson()` centralizado en NormalizadorSample.
 
@@ -118,29 +119,6 @@ Correo electronicos de bievenida,
 verificar que el correo de cambio de contraseña funcione
 
 
-## 183A-85
-
-Esta fue la optimizacion 183A-80 
-
-esta muy bien, pero, con el resto de paginas? es una optimizacion real? es mucho mas de lo que esperaba, que implica? O sea, no digo que este mal solo que me impresiona. ¿Se puede ser mas preciso con el bench, cuanto tarda en calcular todos los samples? y si el usuario quiere cargar todas las paginas posibles, cuanto tardaría? 
-+----------------------------------------------------+----------+
-| PerfilUsuario::construir (sin cache)               |    47.3ms |
-| Conteo samples activos (SQL COUNT)                 |     6.0ms |
-| Verificacion pgvector                              |     5.6ms |
-| SQL gen: Comportamiento (0.27)                     |     0.2ms |
-| SQL gen: Contexto (0.15)                           |     0.0ms |
-| SQL gen: Tendencias (0.12)                         |     0.0ms |
-| SQL gen: Grafo Social (0.1)                        |     0.0ms |
-| SQL gen: Similitud pgvector (0.28)                 |     0.4ms |
-| >> FEED pag1 sin cache fresco <<                   |    37.2ms |
-| >> FEED pag2 sin cache <<                          |    35.5ms |
-| >> FEED pag3 sin cache <<                          |    38.2ms |
-| Feed pag3 cache hit                                |    11.8ms |
-
-## 183A-85-A
-
-Entiendo que dicen que dices que las 3 paginas estan cacheadas pero, entonces hay que actualizar el bench para reflejar eso y calcular las 3 paginas sin cache vs cache. 
-
 ## 183A-86
 
 Despues de la optimizacion 183A-80, no carga la siguiente pagina en el feed de samples al hacer scroll, en el ordenamiento inteligente, pero si cambio de inteligete a reciente y luego vuelvo, si carga, algo pasa.
@@ -158,7 +136,12 @@ Las imagenes de las colecciones en el inicio no estan cargando optimizadas como 
 
 ## 183A-89
 
-| >> Secciones pagina Musica (sin cache) <<          |   272.1ms | (esto se puede cachear 24 horas por usuario, no es relevante que este acutualizado)
+Repaso 
+
+| >> Secciones pagina Musica (sin cache) <<          |   272.1ms | (esto se puede cachear 24 horas por usuario, no es relevante que este acutualizado siempre, igualmente el contenido de los sampleos incluso se puede cachear por 1 semana los sampleos en cada cancion) Tambine se puede optimizar mas agresivamente aunque el algoritmo pierda calidad.
+
+| >> Mas Ideas coleccion >= 200 samples <<           |    65.6ms | (se puede cachear 1 dia)
+| >> FEED pag1 sin cache fresco <<                   |   105.2ms | (se puede cachear por 5 minutos con un algoritmo sencillo, un calculo complejo y de mejor calidad se puede hacer de background cada )
 
 ## Tarea final cuando completes todo
 

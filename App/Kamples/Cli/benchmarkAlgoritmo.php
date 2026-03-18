@@ -187,27 +187,27 @@ if ($pgvectorActivo) {
     echo "      Similitud:      " . number_format($m['ms'], 2) . "ms\n";
 }
 
-echo "[5/11] FEED pag 1 (sin cache fresco)...\n";
+echo "[5/11] FEED pag 1 (sin cache, trigger bulk-fetch)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, 0));
 $tiempos['feed_pag1'] = $m['ms'];
 $countPag1 = count($m['resultado']);
 echo "      " . number_format($m['ms'], 1) . "ms ({$countPag1} samples)\n";
 
-echo "[6/11] FEED pag 2 (sin cache)...\n";
-invalidarCaches($userId);
+/* [183A-85-A] pag2/pag3 sin invalidar: deben servirse del bulk-fetch de pag1.
+ * Esto refleja el escenario real donde el usuario scrollea a pag2/3 después de cargar pag1. */
+echo "[6/11] FEED pag 2 (bulk-cache de pag1)...\n";
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage));
 $tiempos['feed_pag2'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms (" . count($m['resultado']) . " samples)\n";
 
-echo "[7/11] FEED pag 3 (sin cache)...\n";
-invalidarCaches($userId);
+echo "[7/11] FEED pag 3 (bulk-cache de pag1)...\n";
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage * 2));
 $tiempos['feed_pag3'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms (" . count($m['resultado']) . " samples)\n";
 
-echo "[8/11] FEED pag 3 con cache (hit)...\n";
-$m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage * 2));
+echo "[8/11] FEED pag 1 cache hit (todo en cache)...\n";
+$m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, 0));
 $tiempos['feed_cache_hit'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
 
@@ -290,10 +290,10 @@ $etiquetas = [
     'sql_tendencias'     => 'SQL gen: Tendencias (' . ($pesos['tendencias'] ?? '?') . ')',
     'sql_social'         => 'SQL gen: Grafo Social (' . ($pesos['grafo_social'] ?? '?') . ')',
     'sql_similitud'      => 'SQL gen: Similitud pgvector (' . ($pesos['similitud_contenido'] ?? '?') . ')',
-    'feed_pag1'          => '>> FEED pag1 sin cache fresco <<',
-    'feed_pag2'          => '>> FEED pag2 sin cache <<',
-    'feed_pag3'          => '>> FEED pag3 sin cache <<',
-    'feed_cache_hit'     => 'Feed pag3 cache hit',
+    'feed_pag1'          => '>> FEED pag1 (sin cache, bulk-fetch) <<',
+    'feed_pag2'          => '>> FEED pag2 (bulk-cache de pag1) <<',
+    'feed_pag3'          => '>> FEED pag3 (bulk-cache de pag1) <<',
+    'feed_cache_hit'     => 'Feed pag1 cache hit (todo en cache)',
     'similares'          => '>> samplesSimilares "Te podria gustar" (12) <<',
     'secciones_musica'   => '>> Secciones pagina Musica (sin cache) <<',
     'mas_ideas_grande'   => '>> Mas Ideas coleccion >= 200 samples <<',
@@ -318,11 +318,11 @@ echo "\n=== RESUMEN (para documentacion) ===\n";
 echo "Fecha: " . date('Y-m-d H:i:s') . " | Config: {$versionAlgoritmo}\n";
 echo "Samples: {$totalSamplesActivos} | pgvector: " . ($pgvectorActivo ? 'SI' : 'NO');
 echo " | Pipeline: " . ($usarPipeline ? 'SI' : 'NO') . "\n";
-echo "Feed pag1 (sin cache fresco): " . number_format($tiempos['feed_pag1'], 0) . "ms";
-echo " | pag2: " . number_format($tiempos['feed_pag2'], 0) . "ms";
-echo " | pag3: " . number_format($tiempos['feed_pag3'], 0) . "ms";
+echo "Feed pag1 (sin cache, bulk-fetch): " . number_format($tiempos['feed_pag1'], 0) . "ms";
+echo " | pag2 (bulk-cache): " . number_format($tiempos['feed_pag2'], 0) . "ms";
+echo " | pag3 (bulk-cache): " . number_format($tiempos['feed_pag3'], 0) . "ms";
 echo " | promedio: " . number_format($feedProm, 0) . "ms";
-echo " | cache: " . number_format($tiempos['feed_cache_hit'], 0) . "ms\n";
+echo " | cache hit: " . number_format($tiempos['feed_cache_hit'], 0) . "ms\n";
 echo "Te podria gustar (similares): " . ($tiempos['similares'] > 0 ? number_format($tiempos['similares'], 0) . "ms" : "SKIP") . "\n";
 echo "Secciones musica (sin cache): " . number_format($tiempos['secciones_musica'], 0) . "ms\n";
 echo "Mas Ideas coleccion grande: " . ($tiempos['mas_ideas_grande'] > 0 ? number_format($tiempos['mas_ideas_grande'], 0) . "ms" : "SKIP") . "\n";
