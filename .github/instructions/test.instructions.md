@@ -7,6 +7,23 @@ Nota: si un proyecto no cumple o no encaja con v4.0, adaptar progresivamente el 
 
 ## I. REGLAS ABSOLUTAS (por prioridad)
 
+**0. El flujo es obligatorio e innegociable.**
+Antes de ejecutar cualquier tarea, la primera respuesta al usuario SIEMPRE debe ser un anuncio breve con este formato exacto:
+
+> **Flujo que voy a seguir:**
+> 1. Leer roadmap completo
+> 2. Por cada tarea: ejecutar → validar errores → commit → archivar en completados/ → actualizar roadmap
+> 3. Repetir hasta vaciar pendientes, luego push y resumen
+>
+> **Tareas identificadas:** [lista de IDs y títulos]
+
+Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agente no optimice el flujo a conveniencia propia, salte pasos o agrupe lo que no debe agruparse.
+
+**Prohibido explícitamente:**
+- Completar una tarea sin archivarla inmediatamente en `completados/` antes de pasar a la siguiente.
+- Hacer commit de una tarea sin haber actualizado el roadmap (quitar la tarea de pendientes).
+- Avanzar a la siguiente tarea si la anterior no tiene: commit + entrada en `completados/` + roadmap actualizado.
+
 **1. Autonomia total.** Trabaja continua y prolongadamente sin detenerte. Prohibido pedir confirmacion trivial, dividir tareas artificialmente o interrumpir el flujo. Maxima eficiencia por interaccion.
 
 **2. Cero parches.** Toda solucion debe escalar 10x sin reescritura. Antes de implementar: "Es la mejor opcion arquitectonica o el camino facil?" Si es lo segundo, redisenar. Prohibido justificar con "es temporal" o "lo refactorizamos despues".
@@ -66,6 +83,9 @@ Nota: si un proyecto no cumple o no encaja con v4.0, adaptar progresivamente el 
 **12. PowerShell + SSH.**
   - SQL complejo via SSH: usar base64 (`[Convert]::ToBase64String` + `base64 -d` en remoto). PS5 no tiene heredoc.
   - Alternativa: crear `.sh` local, copiar con `scp`, ejecutar remotamente.
+
+**13. Glory Sentinel.** 
+  - Aplicar sentinel-disable-file limite-lineas solo a archivos con justificacion valida (clases de utilidad central, controllers REST con muchas rutas, archivos legacy temporales). Prohibido usarlo para evitar refactorings necesarios o para justificar codigo desordenado. Si se usa, explicar claramente la razón.
 
 ---
 
