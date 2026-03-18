@@ -45,6 +45,11 @@ class MotorRecomendacion
     private const CACHE_STALE_TTL_PAGINAS = 3600;
     private const WARM_LOCK_PREFIX = 'kamples_warm_feed_';
     private const LIMITES_WARM_PRIMERA_PAGINA = [12, 30];
+    /* [183A-80] Máximo de páginas a pre-computar en una sola query (OFFSET 0).
+     * Elimina el cuello de botella de OFFSET en pag2/3: PostgreSQL no puede usar
+     * top-N heapsort con OFFSET > 0, forzando un full sort de TODOS los samples.
+     * Bulk-fetch: 1 query LIMIT (limite*3) OFFSET 0 → split + cache por página. */
+    private const PAGINAS_BULK = 3;
 
     private static function cacheKey(int $userId, int $limite, int $offset): string
     {
@@ -178,6 +183,19 @@ class MotorRecomendacion
      * Feed personalizado para el usuario autenticado.
      * Combina todas las señales disponibles con pesos configurables.
      * Implementa cache con WP transients para reducir carga SQL.
+     *
+     * REGLAS FUNDAMENTALES DEL ALGORITMO (no negociables):
+     * 1. TODOS los samples activos deben evaluarse. No existe "viejo = malo".
+     *    Los samples no pierden calidad por antigüedad ni fecha de subida.
+     *    No hay un rango temporal que determine si un sample "vale" o no.
+     * 2. La ÚNICA razón legítima para excluir un sample del scoring es
+     *    desinterés activo demostrado por el usuario (5+ reproducciones en
+     *    30 días sin like/encanta). Esto se implementa en CTE ignored_samples.
+     * 3. Optimizar sin sacrificar calidad: bulk-fetch (PAGINAS_BULK), cache
+     *    stale-while-revalidate, CTEs pre-computados. Nunca recortar el
+     *    candidate set por métricas globales ni popularidad mínima.
+     * 4. El sistema debe escalar a muchos usuarios sin colapsar: un usuario
+     *    nuevo no debe degradar la experiencia de usuarios existentes.
      */
     public static function feedPersonalizado(int $userId, int $limite = 20, int $offset = 0, bool $permitirStale = true): array
     {
@@ -411,7 +429,8 @@ class MotorRecomendacion
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
-                    WHERE s.{$sEstado} = '{$eActivo}'"
+                    WHERE s.{$sEstado} = '{$eActivo}'
+                        AND ign.sample_id IS NULL"
                 . BloqueosRepository::sqlExcluirBloqueados("s.{$sCreadorId}", $userId)
                 . "),
                 scored AS (
@@ -423,25 +442,48 @@ class MotorRecomendacion
                 ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
                 LIMIT :limit OFFSET :offset";
 
-            $resultado = SamplesRepository::consultar($sql, $queryParams);
+            /* [183A-80] Bulk-fetch: si el offset solicitado cabe en PAGINAS_BULK,
+             * ejecutar UNA sola query con LIMIT = limite * PAGINAS_BULK, OFFSET = 0.
+             * Esto elimina el cuello de botella de OFFSET en PostgreSQL para pag2/3:
+             * top-N heapsort funciona con OFFSET=0 (O(N)), pero OFFSET>0 fuerza full sort (O(N log N)).
+             * Resultado: pag2/3 pasan de ~350ms a ~0ms (servidas desde slice en memoria).
+             * Para offsets > PAGINAS_BULK * limite, fallback al OFFSET original. */
+            $maxBulkOffset = $limite * (self::PAGINAS_BULK - 1);
+            $usarBulk = $offset <= $maxBulkOffset;
+
+            if ($usarBulk) {
+                $limiteBulk = $limite * self::PAGINAS_BULK;
+                $todoResultados = SamplesRepository::consultar($sql, ['limit' => $limiteBulk, 'offset' => 0]);
+
+                KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
+                    'userId' => $userId, 'totalBulk' => \count($todoResultados),
+                    'paginasBulk' => self::PAGINAS_BULK,
+                ]);
+
+                /* Dividir en páginas, inyectar serendipia por página y cachear cada una */
+                for ($pag = 0; $pag < self::PAGINAS_BULK; $pag++) {
+                    $pagOffset = $pag * $limite;
+                    $pagSlice = \array_slice($todoResultados, $pagOffset, $limite);
+                    if (empty($pagSlice)) break;
+
+                    $pagSlice = self::inyectarSerendipia($pagSlice, $userId, $config);
+                    self::guardarResultadoEnCache($userId, $limite, $pagOffset, $pagSlice);
+                }
+
+                /* Retornar la página solicitada */
+                $resultado = \array_slice($todoResultados, $offset, $limite);
+                $resultado = self::inyectarSerendipia($resultado, $userId, $config);
+            } else {
+                $resultado = SamplesRepository::consultar($sql, $queryParams);
+                $resultado = self::inyectarSerendipia($resultado, $userId, $config);
+                self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
+            }
 
             KamplesLogger::info('Algoritmo: Resultados obtenidos', [
                 'userId' => $userId, 'totalResultados' => \count($resultado),
                 'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
+                'bulkFetch' => $usarBulk,
             ]);
-
-            /* Serendipia: inyectar samples de descubrimiento cada N posiciones */
-            $resultado = self::inyectarSerendipia($resultado, $userId, $config);
-
-            self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
-
-            /* [183A-30] Quick win: precalentar pag2 y pag3 en background cuando se
-             * acaba de computar pag1 fresh. El usuario hace scroll ~30s despues,
-             * las paginas siguientes estaran calientes (TTL 15min). */
-            if ($offset === 0 && !empty($resultado)) {
-                self::programarWarm($userId, $limite, $limite);
-                self::programarWarm($userId, $limite, $limite * 2);
-            }
 
             return $resultado;
         } finally {

@@ -1,5 +1,7 @@
 <?php
 
+/* sentinel-disable-file limite-lineas: clase utilitaria central que genera 18 CTEs SQL para el feed. Cada CTE es un método corto (~15 líneas) pero son muchos por diseño. Fragmentar por niveles de CTE crearía dependencias circulares innecesarias. */
+
 /**
  * PrecomputadorFeed — Genera CTEs de pre-cómputo para la query del feed.
  *
@@ -69,6 +71,11 @@ class PrecomputadorFeed
         $ctes['repro_peso'] = self::cteReproPeso($uid, $config);
         $ctes['likes_seguidos_cte'] = self::cteLikesSeguidos();
 
+        /* [183A-80] Nivel 2: samples ignorados — reproducidos >=5 veces en los últimos
+         * 30 días sin like. Optimización legítima: reduce candidate set sin sacrificar
+         * calidad (el usuario demostró desinterés activo). */
+        $ctes['ignored_samples'] = self::cteIgnoredSamples($uid, $config);
+
         return $ctes;
     }
 
@@ -99,6 +106,7 @@ class PrecomputadorFeed
              . "                    LEFT JOIN score_tags st ON s.{$sId} = st.sample_id\n"
              . "                    LEFT JOIN repro_peso rp ON s.{$sId} = rp.sample_id\n"
              . "                    LEFT JOIN likes_seguidos_cte ls ON s.{$sId} = ls.sample_id\n"
+             . "                    LEFT JOIN ignored_samples ign ON s.{$sId} = ign.sample_id\n"
              . "                    ";
     }
 
@@ -575,5 +583,61 @@ class PrecomputadorFeed
             AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
             AND l.{$lUid} IN (SELECT user_id FROM followed_ids)
         GROUP BY l.{$lTarget}";
+    }
+
+    /**
+     * [183A-80] CTE ignored_samples: samples reproducidos >= umbral veces en los últimos
+     * N días sin reacción positiva (like/encanta). Optimización de candidate set legítima:
+     * el usuario demostró desinterés activo — escuchó repetidamente sin engagement.
+     * Se usa como LEFT JOIN + IS NULL en base_scores para excluirlos del scoring.
+     *
+     * IMPORTANTE — Regla de negocio del algoritmo:
+     * TODOS los samples deben evaluarse por defecto. Los samples no pierden calidad por
+     * antigüedad ni fecha de subida. No existe un rango "esto es bueno y esto no".
+     * La UNICA razón legítima para excluir un sample del scoring es desinterés activo
+     * demostrado por el usuario actual (no por otros usuarios ni por métricas globales).
+     */
+    private static function cteIgnoredSamples(int $uid, array $config): string
+    {
+        $ignoradosConfig = $config['parametros']['ignorados'] ?? [];
+        $umbralRepro = (int) ($ignoradosConfig['umbral_reproducciones'] ?? 5);
+        $diasVentana = (int) ($ignoradosConfig['dias_ventana'] ?? 30);
+
+        /* Whitelist INTERVAL para evitar inyección SQL */
+        $diasPermitidos = [7, 14, 30, 60, 90];
+        if (!\in_array($diasVentana, $diasPermitidos, true)) {
+            $diasVentana = 30;
+        }
+        if ($umbralRepro < 1) {
+            $umbralRepro = 5;
+        }
+
+        $trep = ReproduccionesCols::TABLA;
+        $trUid = ReproduccionesCols::USUARIO_ID;
+        $trSid = ReproduccionesCols::SAMPLE_ID;
+        $trCreado = ReproduccionesCols::CREATED_AT;
+
+        $tl = LikesCols::TABLA;
+        $lTipo = LikesCols::TIPO;
+        $lTarget = LikesCols::TARGET_ID;
+        $lReacc = LikesCols::REACCION;
+        $lUid = LikesCols::USUARIO_ID;
+        $ltSample = LikesEnums::TIPO_SAMPLE;
+        $lrLike = LikesEnums::REACCION_LIKE;
+        $lrEncanta = LikesEnums::REACCION_ENCANTA;
+
+        return "SELECT r.{$trSid} AS sample_id
+            FROM {$trep} r
+            WHERE r.{$trUid} = {$uid}
+                AND r.{$trCreado} > NOW() - INTERVAL '{$diasVentana} days'
+            GROUP BY r.{$trSid}
+            HAVING COUNT(*) >= {$umbralRepro}
+                AND NOT EXISTS (
+                    SELECT 1 FROM {$tl} l
+                    WHERE l.{$lUid} = {$uid}
+                        AND l.{$lTipo} = '{$ltSample}'
+                        AND l.{$lTarget} = r.{$trSid}
+                        AND l.{$lReacc} IN ('{$lrLike}', '{$lrEncanta}')
+                )";
     }
 }
