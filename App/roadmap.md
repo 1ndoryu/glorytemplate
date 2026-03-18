@@ -33,43 +33,23 @@ Ubicacion: `App/docs (ignorar)/`
 ## Historial compactado
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
-- **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
+- **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18.
 - **183A-20:** Login con nombre actualizado (fallback por PG username). 2026-03-18.
 - **183A-22+22-A+22-B:** Botones like y guardar separados en tarjeta de colección. 2026-03-18.
-- **183A-23:** Inconsistencia de conteo entre lista y detalle (total_items sin filtro estado). 2026-03-18.
-- **183A-18:** Buscador en el landing de no autenticados → /descubrir/. 2026-03-18.
-- Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
+- **183A-23:** Inconsistencia de conteo total_items sin filtro estado. 2026-03-18.
+- **183A-18:** Buscador en el landing de no autenticados. 2026-03-18.
+- **183A-27:** Sincronizar WP user_login al actualizar username. 2026-03-18.
+- **183A-19:** Logo APK, botón Google reactivo, instrucciones google-services.json. 2026-03-18.
+- **183A-24:** Contadores de descargas estabilizados con total real cacheado. 2026-03-18.
+- **183A-26:** Menu contextual clamped al viewport usando medidas reales. 2026-03-18.
+- **183A-28+183A-33:** Protocolo reforzado para ambiguedad, raiz arquitectonica, validacion React y pull/deploy/health. 2026-03-18.
+- Detalle en `App/Agente/completados/tareas-2026-03-18.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
-
-
-## 183A-19
-
-La apk en android studio hice el rebuild y no aparece con el logo de kamples la aplicacion
-
-el boton de inicio sesion con google no aparece en el modal del login y las notificaciones del sistema no aparecen, de hecho en la info dice, "this app has not posted any notification", creo que necesita sdocumentarte en internet sobr eesto. 
-
-
-## 183A-24
-
-https://kamples.com/descargas/ los contadores no dicen el numero completo a veces si pero luego cambia a 30 siempre.
 
 ## 183A-25
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-## 183A-26
-
-El menu contextual se sale de la pantalla a veces, ese el que parece cuando das click derecho a un sample o botones de 3 puntos, corregir.
-
-## 183A-27
-
-no estoy segura que si la solucion que aplicaste sobre 183A-20 es real o es un parche, o sea el cambio de usuario detecta nombres ya usads? arreglaste que si cambio el nombre tambien se cambie en wp?? 
-
-
-## 183A-28
-
-Deja algo en .github\instructions\test.instructions.md indicando que si una tarea en el roadmap no es suficientemente clara, dejas una nota pidiendo aclaración y pasas a otra tarea meintras tanto. Tambien deja un aviso de coolify-manager-rs se puede mejorar para cualquier escenario necesario. 
 
 ## 183A-29
 
@@ -117,4 +97,17 @@ agregar un boton del like a a las caciones dentro de
 <div class="tarjetaCancionGrandeInfo" role="button" tabindex="0"><p class="tarjetaCancionGrandeTitulo">Think (About It)</p><p class="tarjetaCancionGrandeArtista">Lyn Collins</p></div>
 tambien falta uno al lado del boton de 3 puntos dentro de la cancion 
 
-## 
+## 183A-34
+
+Que dar click derecho a una coleccion abra su menu contextual.
+
+## 183A-35
+
+El buscador en el landing deslogeada no funciona y recarga la pagina, cosa que no deebería de pasar. 
+
+## 183A-36
+
+App\React\logs\google-services.json deje el archivo ahi, continua con lo que falta de las ntoificaciones en la apk.
+la apk se cierra apenas la abro.
+
+

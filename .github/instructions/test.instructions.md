@@ -7,6 +7,9 @@ Nota: si un proyecto no cumple o no encaja con v4.0, adaptar progresivamente el 
 
 ## I. REGLAS ABSOLUTAS (por prioridad)
 
+**-1. LO MAS DIFICIL PRIMERO.** 
+Siempre abordar primero lo mas complejo, la tarea mas dificil primero. 
+
 **0. El flujo es obligatorio e innegociable.**
 Antes de ejecutar cualquier tarea, la primera respuesta al usuario SIEMPRE debe ser un anuncio breve con este formato exacto:
 
@@ -29,6 +32,8 @@ Sin este anuncio, no se inicia ninguna tarea. Esta regla existe para que el agen
 **1. Autonomia total.** Trabaja continua y prolongadamente sin detenerte. Prohibido pedir confirmacion trivial, dividir tareas artificialmente o interrumpir el flujo. Maxima eficiencia por interaccion.
 
 **2. Cero parches.** Toda solucion debe escalar 10x sin reescritura. Antes de implementar: "Es la mejor opcion arquitectonica o el camino facil?" Si es lo segundo, redisenar. Prohibido justificar con "es temporal" o "lo refactorizamos despues".
+
+**2.1 Pensamiento expansivo obligatorio.** Incluso si la tarea parece pequena, primero evaluar si revela un problema de arquitectura, sincronizacion, contratos, cache, observabilidad o UX mas profundo. No limitarse al sintoma pedido si existe una solucion raiz claramente superior. Cada tarea es una oportunidad para mejorar el sistema, no solo para apagar un fuego local.
 
 **3. Ediciones controladas.** Prohibido editar muchos archivos simultaneamente en un solo parche. Los cambios grandes fallan — dividir en ediciones pequenas, archivo por archivo, validando despues de cada uno. Un parche que toca 10 archivos a la vez es un parche que rompe cosas. Secuencia: editar archivo → validar → siguiente archivo.
 
@@ -108,6 +113,8 @@ Cada tarea recibe un ID unico basado en la fecha: `{DD}{M}{A}-{N}`
 ### Paso 1 — Leer roadmap y planes
 Leer `App/roadmap.md` completo. Identificar tareas pendientes. Revisar `App/Agente/planes/` por planes activos que requieran continuacion.
 
+Si una tarea del roadmap no es suficientemente clara para ejecutarse con seguridad tecnica, dejar una nota breve pidiendo aclaracion en el lugar adecuado del flujo del agente, saltar a la siguiente tarea y volver luego. Prohibido bloquear el ciclo completo por una ambiguedad aislada.
+
 ### Paso 2 — Ejecutar tarea
 Tomar una tarea pendiente y completarla. Reglas:
 - **2.1** Cada tarea = un commit separado con mensaje claro.
@@ -120,14 +127,20 @@ Tomar una tarea pendiente y completarla. Reglas:
 ### Paso 3 — Validar y corregir errores reportados
 Despues de cada tarea, ejecutar los comandos de validacion correspondientes (ver seccion V). **Si los comandos reportan errores — aunque no tengan relacion con la tarea actual — corregirlos antes de continuar.** Los errores reportados por herramientas son tu responsabilidad. No se avanza con errores pendientes.
 
+Si la tarea toca React, hooks, stores, islands o servicios frontend, no alcanza con type-check abstracto: revisar especificamente que el flujo renderizado afectado siga funcionando y que no haya regresiones evidentes en hydration, estados vacios, modales, menus, contadores o navegacion.
+
 Si Glory Sentinel reporta un **falso positivo** (la regla no aplica al caso concreto), crear un MD en `App/Agente/prevencion/` describiendo el falso positivo y la correccion necesaria en la regla de Sentinel para evitarlo en el futuro.
 
 ### Paso 4 — Testear la tarea
 Antes de marcar como completada, verificar que la funcionalidad implementada o corregida funciona:
 - Ejecutar la feature o el fix en local y confirmar el resultado esperado.
+- Si el problema es visible en UI/HTML/CSS o texto renderizado, la verificacion local debe incluir abrir el flujo afectado y comprobar exactamente el elemento cambiado. No alcanza con type-check, lectura de codigo o asumir que "deberia funcionar".
 - Si hay tests existentes, ejecutarlos. Si la tarea lo amerita y es viable, agregar un test.
 - Solo si no es posible testear en local (dependencia de terceros, hardware, etc.), omitir con justificacion en el comentario del commit.
 - **Una tarea no se marca como completada hasta que este testeada y confirmada.**
+
+### Regla adicional de cierre
+- Prohibido mover una tarea a completados si el sintoma original sigue visible localmente o si no se verifico el selector/texto/flujo exacto reportado por el usuario cuando el entorno local permite hacerlo.
 
 ### Paso 5 — Archivar tarea completada
 Mover la tarea completada del roadmap a un archivo en `App/Agente/completados/` con nombre `tareas-YYYY-MM-DD.md`. Si ya existe uno con la fecha de hoy, agregar ahi. El roadmap nunca acumula tareas completadas. Si la tarea tenia un plan en `App/Agente/planes/`, mover el plan a `App/Agente/planes/completados/`.
@@ -147,7 +160,9 @@ Leer `App/Agente/prevencion/`. Si hay MDs pendientes de implementar:
 - Si no hay pendientes, saltar este paso.
 
 ### Paso 9 — Commit, push y deploy
-Hacer commit final. Si el roadmap del proyecto indica que aplica deploy, usar `.agent/coolify-manager-rs` para subir al servidor. **Despues de cada deploy, verificar que el servidor sigue funcionando** (health check a la URL de produccion, revisar logs si hay errores). Si el deploy rompe algo, revertir antes de continuar.
+Hacer commit final. Luego sincronizar la rama local con remoto (`git pull --rebase` o equivalente no interactivo si aplica al flujo del repo) antes del push/deploy. Si el roadmap del proyecto indica que aplica deploy, usar `.agent/coolify-manager-rs` para subir al servidor. **Despues de cada deploy, verificar que el servidor sigue funcionando** (health check a la URL de produccion, revisar logs si hay errores). Si el deploy rompe algo, revertir antes de continuar.
+
+`coolify-manager-rs` debe tratarse como herramienta viva: si durante una tarea aparece un escenario de deploy, health, logs, restart, backup, restore o exec que no cubre bien, dejar constancia de que puede y debe mejorarse para soportar ese caso de uso de forma robusta.
 
 ### Paso 10 — Volver al Paso 1
 Releer el roadmap completo (el usuario puede haber agregado tareas mientras trabajabas). Repetir el ciclo hasta que no queden tareas pendientes. Solo entonces, cerrar con un resumen breve de lo realizado.
