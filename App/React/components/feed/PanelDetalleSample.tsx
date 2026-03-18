@@ -15,6 +15,7 @@ import { ListaComentarios } from '@app/components/social/ListaComentarios';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { usePanelDetalleSample } from '@app/hooks/usePanelDetalleSample';
 import { useRelacionDiscovery } from '@app/hooks/useRelacionDiscovery';
+import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import type { SampleResumen } from '@app/types';
 
 interface PanelDetalleSampleProps {
@@ -193,6 +194,36 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                     />
                 </div>
             )}
+
+            {/* [183A-72] Portada de colección origen — fallback de color si no hay imagen */}
+            {(() => {
+                const coleccion = sample.coleccionOriginal ?? null;
+                if (!coleccion) return null;
+                const imgSrc = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
+                const slug = coleccion.slug ?? String(coleccion.id);
+                return (
+                    <div
+                        className="panelColeccionPortada"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => navegar(`/coleccion/${slug}/`)}
+                        onKeyDown={e => e.key === 'Enter' && navegar(`/coleccion/${slug}/`)}
+                    >
+                        <img
+                            className="panelColeccionPortadaImg"
+                            src={imgSrc}
+                            alt={coleccion.nombre}
+                            loading="lazy"
+                        />
+                        <div className="panelColeccionPortadaInfo">
+                            <span className="panelColeccionPortadaNombre">{coleccion.nombre}</span>
+                            {sample.creador?.username && (
+                                <span className="panelColeccionPortadaAutor">por @{sample.creador.username}</span>
+                            )}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Similares */}
             {similares.length > 0 && (

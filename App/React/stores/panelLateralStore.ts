@@ -104,13 +104,15 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
         sample,
     }),
 
+    /* [183A-72] abrirSugerencias unificado: usa el mismo panel de detalle para no tener dos paneles distintos.
+     * Antes abria modo 'sugerencias'; ahora abre modo 'detalle' que ya incluye panelColeccionPortada + similares. */
     abrirSugerencias: (sample) => {
         /* C155: Solo abrir si la preferencia esta activa */
         if (!get().sugerenciasAlDarLike) return;
         /* QL55: No auto-abrir sugerencias en movil (panel no visible) */
         if (typeof window !== 'undefined' && window.innerWidth <= 1024) return;
         set({
-            modo: 'sugerencias',
+            modo: 'detalle',
             sampleId: sample.id,
             sampleSlug: sample.slug,
             sample,

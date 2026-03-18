@@ -41,7 +41,7 @@ export function usePanelDetalleSample(sample: SampleResumen) {
         const cargar = async () => {
             const [respDetalle, respSimilares] = await Promise.all([
                 obtenerSample(sample.slug),
-                obtenerSimilares(sample.id, 4),
+                obtenerSimilares(sample.id, 12),
             ]);
             if (controller.signal.aborted) return;
             if (respDetalle.ok && respDetalle.data) setDetalle(respDetalle.data);
