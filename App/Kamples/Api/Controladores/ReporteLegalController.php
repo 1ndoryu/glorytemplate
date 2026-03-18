@@ -19,7 +19,6 @@ namespace App\Kamples\Api\Controladores;
 use WP_REST_Request;
 use WP_REST_Response;
 use App\Kamples\Database\Repositories\ReportesRepository;
-use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
 
 class ReporteLegalController
@@ -67,6 +66,13 @@ class ReporteLegalController
      */
     public static function crearReporteLegal(WP_REST_Request $request): WP_REST_Response
     {
+        /* [183A-64] Rate limiting: max 3 reclamaciones por IP por hora.
+         * Previene abuso masivo del endpoint publico (spam, DoS, takedowns falsos). */
+        $rlCheck = self::verificarRateLimit();
+        if ($rlCheck !== null) {
+            return $rlCheck;
+        }
+
         $tipo      = sanitize_text_field((string) ($request->get_param('tipo') ?? ''));
         $targetId  = (int) ($request->get_param('target_id') ?? 0);
         $razon     = sanitize_textarea_field((string) ($request->get_param('razon') ?? ''));
@@ -127,10 +133,10 @@ class ReporteLegalController
                 return new WP_REST_Response(['error' => 'error_crear_reporte'], 500);
             }
 
-            /* Auto-supervision de samples legales para revision inmediata */
-            if ($tipo === self::TIPO_SAMPLE) {
-                SamplesRepository::desactivarPorDMCA($targetId);
-            }
+            /* [183A-64] No auto-desactivar sample con una reclamacion sin verificar.
+             * Un atacante podria desactivar samples de competidores enviando
+             * reclamaciones falsas. El sample queda activo hasta revision manual
+             * del admin via GET /admin/reportes/legales. */
 
             return new WP_REST_Response([
                 'ok'         => true,
@@ -184,5 +190,24 @@ class ReporteLegalController
     {
         /* WP usa $_SERVER['REMOTE_ADDR'] como fuente autoritativa */
         return sanitize_text_field($_SERVER['REMOTE_ADDR'] ?? '');
+    }
+
+    /* [183A-64] Rate limiting basado en transients de WP.
+     * Limita a 3 reclamaciones por IP por hora para prevenir abuso. */
+    private static function verificarRateLimit(): ?WP_REST_Response
+    {
+        $ip = self::obtenerIpCliente();
+        $cacheKey = 'dmca_rl_' . md5($ip);
+        $intentos = (int) (get_transient($cacheKey) ?: 0);
+
+        if ($intentos >= 3) {
+            return new WP_REST_Response(
+                ['error' => 'demasiadas_solicitudes'],
+                429
+            );
+        }
+
+        set_transient($cacheKey, $intentos + 1, HOUR_IN_SECONDS);
+        return null;
     }
 }
