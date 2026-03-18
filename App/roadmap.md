@@ -59,6 +59,8 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-53:** Completada 2026-03-18. Fix combinar colecciones: reordenar DELETE/UPDATE para evitar UNIQUE constraint.
 - **183A-51:** Completada 2026-03-18. Fix slugs unicode en colecciones: limpiar percent-encoding, auto-reparar, route pattern.
 
+- **183A-52:** Completada 2026-03-18. Click en portada/texto del reproductor navega al sample.
+
 ## Tareas pendientes
 
 ## 183A-25
@@ -123,10 +125,6 @@ tambien que aparezca un reproductor cuando se reproduzca un sample en android, q
 
 Las acciones multiples en los samples no actualizan en tiempo real los samples afectados, revisar en profundidad esta funcionalidad y ajustar.
 
-## 183A-52
-
-al dar click a la imagen de portada o texto del sample en el reproductor, ir directo a la pagina de ese sample.
-
 ## 183A-54
 
 quitar el padding de los botones .tarjetaColeccionMenuContenedor y agregar un boton que abra los samples de esa coleccion en el panellateral
@@ -151,7 +149,21 @@ Si doy like a una cancion pero luego abro la pagina de esa cancion, el boton de 
 
 Algo pasa en la aplicacion de escritorio, viendo el modo dev, cuando voy a un sampleo https://kamples.com/sampleo/24770/larsht-touch-samplea/, dice "ID de relación no válido" eso no pasa en produccion. 
 
-## 
+## 183A-60
+
+tarjetaColeccionMenuContenedor un boton de play para reproducir la preview 
+
+## 183A-61
+
+tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez del total, este problema se repite, no siempre pasa
+
+## 183A-62
+
+los mensajes, revisar la paginacion de los mensajes, debe ser por scroll, y siempre aparecen los primeros mensajes pero no aparecen los ultimos que enviaron, si llegan las notificaciones de que llegan los mensajes, pero no aparecen, solo aparecen los primeros. 
+
+## 183A-63
+
+Sigue el problema en la apk que cada vez que abro la apk, el modal de login aparece auqnue ya iniciado sesion, si le doy a la x se cierra y todo funciona normal. 
 
 ## Tarea final cuando completes todo
 

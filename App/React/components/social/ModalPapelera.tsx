@@ -95,7 +95,6 @@ export const ModalPapelera = (): JSX.Element | null => {
         <Modal
             abierto={abierto}
             onCerrar={cerrar}
-            titulo="Papelera"
             tamano="grande"
         >
             <div className="papeleraContenido">
