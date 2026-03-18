@@ -308,6 +308,10 @@ class NormalizadorSample
             'id' => isset($data[ColeccionesCols::ID]) ? (int) $data[ColeccionesCols::ID] : 0,
             'nombre' => $data[ColeccionesCols::NOMBRE] ?? '',
             'slug' => $data[ColeccionesCols::SLUG] ?? null,
+            /* [183A-55] Imagen de portada para mostrar en panel lateral estilo Spotify */
+            'imagenUrl' => !empty($data[ColeccionesCols::IMAGEN_URL])
+                ? self::rutaAUrl((string) $data[ColeccionesCols::IMAGEN_URL])
+                : null,
         ];
     }
 
@@ -500,10 +504,12 @@ class NormalizadorSample
                 $cOriginalNombre = ColeccionesCols::NOMBRE;
                 $cOriginalSlug = ColeccionesCols::SLUG;
                 $cOriginalUsuarioId = ColeccionesCols::USUARIO_ID;
+                $cOriginalImagenUrl = ColeccionesCols::IMAGEN_URL;
                 /* [173A-5] Coleccion original del creador: si el sample esta en una coleccion del uploader,
-                 * se expone para enlazar desde menus y detalle sin duplicar reglas en frontend. */
+                 * se expone para enlazar desde menus y detalle sin duplicar reglas en frontend.
+                 * [183A-55] Se agrega imagen_url para mostrar portada en panel lateral. */
                 $coleccionOriginalExpr = "(SELECT row_to_json(co_orig.*) FROM (
-                        SELECT c_orig.{$cOriginalId}, c_orig.{$cOriginalNombre}, c_orig.{$cOriginalSlug}
+                        SELECT c_orig.{$cOriginalId}, c_orig.{$cOriginalNombre}, c_orig.{$cOriginalSlug}, c_orig.{$cOriginalImagenUrl}
                         FROM {$csTablaOriginal} cs_orig
                         JOIN {$tcOriginal} c_orig ON cs_orig.{$csColeccionOriginal} = c_orig.{$cOriginalId}
                         WHERE cs_orig.{$csSampleOriginal} = s.{$sId}

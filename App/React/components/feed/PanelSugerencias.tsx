@@ -2,6 +2,7 @@
  * Componente: PanelSugerencias — Kamples (C86)
  * Panel de "También te podría gustar" para la columna lateral.
  * Carga samples similares al sample origen.
+ * [183A-55] Agrega info de la colección original arriba de las sugerencias.
  */
 
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
     const [cargando, setCargando] = useState(true);
     const navegar = useNavigationStore(s => s.navegar);
     const cerrar = usePanelLateralStore(s => s.cerrar);
+    const coleccion = sample.coleccionOriginal ?? null;
 
     useEffect(() => {
         let activo = true;
@@ -49,6 +51,32 @@ export const PanelSugerencias = ({ sample }: PanelSugerenciasProps): JSX.Element
                     <X size={16} />
                 </BotonBase>
             </div>
+
+            {/* [183A-55] Info de la colección original del sample, estilo Spotify */}
+            {coleccion && (
+                <div
+                    className="panelColeccionPortada"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navegar(`/coleccion/${coleccion.slug ?? coleccion.id}/`)}
+                    onKeyDown={e => e.key === 'Enter' && navegar(`/coleccion/${coleccion.slug ?? coleccion.id}/`)}
+                >
+                    {coleccion.imagenUrl ? (
+                        <img
+                            className="panelColeccionPortadaImg"
+                            src={coleccion.imagenUrl}
+                            alt={coleccion.nombre}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="panelColeccionPortadaPlaceholder" />
+                    )}
+                    <div className="panelColeccionPortadaInfo">
+                        <span className="panelColeccionPortadaNombre">{coleccion.nombre}</span>
+                        <span className="panelColeccionPortadaAutor">por @{sample.creador?.username}</span>
+                    </div>
+                </div>
+            )}
 
             {cargando ? (
                 <div className="panelSugerenciasCargando">Buscando sugerencias...</div>
