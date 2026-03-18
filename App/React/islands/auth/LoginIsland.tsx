@@ -16,12 +16,10 @@ export const LoginIsland = (): JSX.Element => {
      * al DOM antes del submit. onChange sincroniza el estado en cada keystroke. */
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleDesktop, esDesktopApp } = useAuth();
+    const { cargando, error, iniciarSesion, googleBotonRef, loginGoogleNativo, esGoogleNativo } = useAuth();
 
-    /* DEBUG-TEMP: alert para ver exactamente qué valores captura el form */
     const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        alert(`DEBUG submit\nemail=[${email}] len=${email.length}\npass=[${password.replace(/./g, '*')}] len=${password.length}`);
         iniciarSesion(email.trim(), password);
     };
 
@@ -40,12 +38,12 @@ export const LoginIsland = (): JSX.Element => {
 
                 {/* En desktop: botón nativo que abre el browser del sistema con Google OAuth PKCE.
                  * En web: Google Identity Services renderiza su propio botón en el div. */}
-                {esDesktopApp ? (
+                {esGoogleNativo ? (
                     <BotonBase
                         variante="secundario"
                         anchoCompleto
                         cargando={cargando}
-                        onClick={loginGoogleDesktop}
+                        onClick={loginGoogleNativo}
                     >
                         Continuar con Google
                     </BotonBase>
@@ -82,8 +80,7 @@ export const LoginIsland = (): JSX.Element => {
                         anchoCompleto
                         cargando={cargando}
                     >
-                        {/* DEBUG-TEMP: muestra longitud del estado para verificar onChange */}
-                        Iniciar sesión (e:{email.length} p:{password.length})
+                        Iniciar sesión
                     </BotonBase>
                 </form>
 

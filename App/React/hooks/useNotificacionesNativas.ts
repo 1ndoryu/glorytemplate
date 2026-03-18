@@ -24,7 +24,7 @@ import {
 import { registrarTokenFcmSiDisponible } from '@app/services/fcmToken';
 import { procesarNavegacionFcm } from '@app/services/navegacionFcm';
 import { crearLogger } from '@app/services/logger';
-import { esTauri } from '@app/utils/plataforma';
+import { esAndroid, esTauri } from '@app/utils/plataforma';
 
 const log = crearLogger('useNotificacionesNativas');
 
@@ -34,16 +34,22 @@ export const useNotificacionesNativas = (): void => {
 
     /* Inicializar canales una sola vez cuando el usuario se autentica en Tauri */
     useEffect(() => {
-        if (!esTauri() || !autenticado || inicializadoRef.current) return;
+        if (!autenticado || inicializadoRef.current) return;
 
-        inicializarCanalesNotificacion().then(ok => {
-            if (ok) {
-                inicializadoRef.current = true;
-                log.info('Notificaciones nativas inicializadas');
-            }
-        });
+        if (esTauri()) {
+            inicializarCanalesNotificacion().then(ok => {
+                if (ok) {
+                    inicializadoRef.current = true;
+                    log.info('Notificaciones nativas inicializadas');
+                }
+            });
+        } else if (esAndroid()) {
+            inicializadoRef.current = true;
+        } else {
+            return;
+        }
 
-        /* QL34: Registrar token FCM en backend (Android) */
+        /* QL34/173A-8: Registrar token FCM en backend para Android Tauri o Capacitor */
         registrarTokenFcmSiDisponible();
     }, [autenticado]);
 

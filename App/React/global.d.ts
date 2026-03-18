@@ -182,3 +182,30 @@ declare module '@tauri-apps/api/app' {
 declare module '@tauri-apps/plugin-shell' {
     export function open(path: string): Promise<void>;
 }
+
+declare module '@capacitor/app' {
+    export const App: {
+        addListener: (
+            eventName: 'appUrlOpen',
+            listenerFunc: (event: { url: string }) => void,
+        ) => Promise<{ remove: () => Promise<void> }>;
+    };
+}
+
+declare module '@capacitor/browser' {
+    export const Browser: {
+        open: (options: { url: string }) => Promise<void>;
+        close: () => Promise<void>;
+    };
+}
+
+declare module '@capacitor/push-notifications' {
+    export const PushNotifications: {
+        requestPermissions: () => Promise<{ receive: 'prompt' | 'prompt-with-rationale' | 'granted' | 'denied' }>;
+        register: () => Promise<void>;
+        addListener: (
+            eventName: 'registration' | 'registrationError' | 'pushNotificationActionPerformed',
+            listenerFunc: (payload: unknown) => void,
+        ) => Promise<{ remove: () => Promise<void> }>;
+    };
+}

@@ -13,7 +13,7 @@ export const useRegistroIsland = () => {
     /* Solo necesitamos estado para el error de contraseñas (feedback en tiempo real).
      * Los valores del formulario se leen de FormData en submit. */
     const [errorPassword, setErrorPassword] = useState<string | undefined>(undefined);
-    const { cargando, error, registrar, iniciarSesionGoogle, googleBotonRef } = useAuth();
+    const { cargando, error, registrar, iniciarSesionGoogle, googleBotonRef, esGoogleNativo, loginGoogleNativo } = useAuth();
 
     const manejarCambioPassword = useCallback((e: React.FormEvent<HTMLInputElement>) => {
         const form = e.currentTarget.form;
@@ -43,6 +43,8 @@ export const useRegistroIsland = () => {
         cargando,
         error,
         iniciarSesionGoogle,
+        esGoogleNativo,
+        loginGoogleNativo,
         googleBotonRef,
         manejarSubmit,
         manejarCambioPassword,

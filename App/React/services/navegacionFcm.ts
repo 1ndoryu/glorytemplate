@@ -11,7 +11,8 @@
  */
 
 import { crearLogger } from './logger';
-import { esAndroid } from '@app/utils/plataforma';
+import { esAndroid, esCapacitor } from '@app/utils/plataforma';
+import { leerNavegacionFcmCapacitor } from './fcmToken';
 
 const log = crearLogger('navegacionFcm');
 /* Navegaciones mas antiguas a 5 minutos se descartan */
@@ -23,6 +24,10 @@ const MAX_ANTIGUEDAD_MS = 5 * 60 * 1000;
  */
 export async function leerNavegacionPendiente(): Promise<string | null> {
     if (!esAndroid()) return null;
+
+    if (esCapacitor()) {
+        return leerNavegacionFcmCapacitor();
+    }
 
     try {
         const contenido = await window.__KAMPLES_ANDROID_BRIDGE__?.leerNavegacionFcmPendiente?.();

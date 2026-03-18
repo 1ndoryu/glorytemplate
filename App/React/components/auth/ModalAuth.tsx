@@ -23,7 +23,7 @@ const imagenAuth = resolverRutaAsset('/wp-content/themes/glorytemplate/App/Asset
 const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, iniciarSesion, googleBotonRef, esDesktopApp, loginGoogleDesktop } = useAuth();
+    const { cargando, error, iniciarSesion, googleBotonRef, esGoogleNativo, loginGoogleNativo } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -35,11 +35,11 @@ const FormularioLogin = ({ onCambiar }: { onCambiar: () => void }): JSX.Element 
             <h2 className="authTitulo">Inicia sesión</h2>
 
             {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
-            {esDesktopApp ? (
+            {esGoogleNativo ? (
                 <BotonBase
                     variante="secundario"
                     anchoCompleto
-                    onClick={loginGoogleDesktop}
+                    onClick={loginGoogleNativo}
                     cargando={cargando}
                     className="authGoogleBtnDesktop"
                     type="button"
@@ -99,7 +99,7 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const { cargando, error, registrar, googleBotonRef, esDesktopApp, loginGoogleDesktop } = useAuth();
+    const { cargando, error, registrar, googleBotonRef, esGoogleNativo, loginGoogleNativo } = useAuth();
 
     const manejarSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -111,11 +111,11 @@ const FormularioRegistro = ({ onCambiar }: { onCambiar: () => void }): JSX.Eleme
             <h2 className="authTitulo">Crea tu cuenta</h2>
 
             {/* QL32: En desktop/APK, Google GSI no funciona en WebView; mostrar boton propio */}
-            {esDesktopApp ? (
+            {esGoogleNativo ? (
                 <BotonBase
                     variante="secundario"
                     anchoCompleto
-                    onClick={loginGoogleDesktop}
+                    onClick={loginGoogleNativo}
                     cargando={cargando}
                     className="authGoogleBtnDesktop"
                     type="button"

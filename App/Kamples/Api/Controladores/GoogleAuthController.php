@@ -1,5 +1,7 @@
 <?php
 
+/* sentinel-disable-file limite-lineas: controlador REST central de autenticacion Google con rutas web, desktop y mobile; dividirlo ahora mezclaría una refactorizacion amplia ajena al cierre de 173A-8. */
+
 /**
  * GoogleAuthController — Login/registro con Google Identity Services.
  *
@@ -36,9 +38,9 @@ class GoogleAuthController
             'permission_callback' => '__return_true',
         ]);
 
-        /* QL100b: Flujo OAuth para Android APK — callback server-side.
+        /* QL100b: Flujo OAuth para Android APK/Capacitor — callback server-side.
          * Google redirige aquí con ?code=XXX, el servidor intercambia por tokens,
-         * genera JWT y redirige al deep link kamples://auth?token=JWT. */
+         * genera JWT y redirige al deep link nativo configurado por la app. */
         register_rest_route($namespace, '/auth/google/mobile-callback', [
             'methods'             => 'GET',
             'callback'            => [GoogleAuthMobileController::class, 'mobileCallback'],
@@ -171,11 +173,10 @@ class GoogleAuthController
     }
 
     /**
-     * GET /auth/google/mobile-callback
-     * QL100b: Callback server-side para OAuth de Android APK.
-     * Google redirige aquí con ?code=XXX&state=XXX. El servidor intercambia el código,
-     * autentica al usuario y redirige a kamples://auth?token=JWT para que el deep link
-     * devuelva el control a la app.
+    * GET /auth/google/mobile-callback
+    * QL100b: Callback server-side para OAuth de Android APK/Capacitor.
+    * Google redirige aquí con ?code=XXX&state=XXX. El servidor intercambia el código,
+    * autentica al usuario y redirige al deep link nativo para que la app recupere el control.
      *
      * state contiene el PKCE code_verifier codificado en base64url (generado por la app).
      */
@@ -249,72 +250,84 @@ class GoogleAuthController
      */
     public static function procesarUsuarioGoogle(array $googleData): \WP_REST_Response
     {
-        $email        = $googleData['email'];
-        $nombre       = $googleData['name'] ?? '';
-        $avatarGoogle = $googleData['picture'] ?? '';
+        try {
+            $email        = $googleData['email'];
+            $nombre       = $googleData['name'] ?? '';
+            $avatarGoogle = $googleData['picture'] ?? '';
 
-        /* Buscar usuario WP existente por email */
-        $wpUser = get_user_by('email', $email);
+            /* Buscar usuario WP existente por email */
+            $wpUser = get_user_by('email', $email);
 
-        if ($wpUser) {
-            /* Usuario existente — iniciar sesión */
-            wp_set_current_user($wpUser->ID);
-            wp_set_auth_cookie($wpUser->ID, true);
-        } else {
-            /* Nuevo usuario — crear en WordPress */
-            $username = self::generarUsernameDesdeGoogle($email, $nombre);
-            $password = wp_generate_password(32, true, true);
+            if ($wpUser) {
+                /* Usuario existente — iniciar sesión */
+                wp_set_current_user($wpUser->ID);
+                wp_set_auth_cookie($wpUser->ID, true);
+            } else {
+                /* Nuevo usuario — crear en WordPress */
+                $username = self::generarUsernameDesdeGoogle($email, $nombre);
+                $password = wp_generate_password(32, true, true);
 
-            $wpUserId = wp_create_user($username, $password, $email);
+                $wpUserId = wp_create_user($username, $password, $email);
 
-            if (is_wp_error($wpUserId)) {
-                KamplesLogger::error('Error creando usuario WP desde Google', [
-                    'email' => $email,
-                    'error' => $wpUserId->get_error_message(),
-                ]);
-                return new \WP_REST_Response([
-                    'ok'    => false,
-                    'error' => 'Error al crear la cuenta.',
-                ], 500);
+                if (is_wp_error($wpUserId)) {
+                    KamplesLogger::error('Error creando usuario WP desde Google', [
+                        'email' => $email,
+                        'error' => $wpUserId->get_error_message(),
+                    ]);
+                    return new \WP_REST_Response([
+                        'ok'    => false,
+                        'error' => 'Error al crear la cuenta.',
+                    ], 500);
+                }
+
+                $wpUser = get_userdata($wpUserId);
+                if ($wpUser) {
+                    $wpUser->set_role('subscriber');
+                    if ($nombre) {
+                        wp_update_user([
+                            'ID'           => $wpUserId,
+                            'display_name' => sanitize_text_field($nombre),
+                        ]);
+                    }
+                }
+
+                wp_set_current_user($wpUserId);
+                wp_set_auth_cookie($wpUserId, true);
             }
 
-            $wpUser = get_userdata($wpUserId);
-            if ($wpUser) {
-                $wpUser->set_role('subscriber');
-                if ($nombre) {
-                    wp_update_user([
-                        'ID'           => $wpUserId,
-                        'display_name' => sanitize_text_field($nombre),
-                    ]);
+            /* Obtener o crear usuario extendido en PostgreSQL */
+            $pgUser = AuthController::obtenerOCrearUsuarioPg($wpUser);
+
+            /* Si el usuario PG no tiene avatar pero Google sí provee uno, actualizar */
+            if ($avatarGoogle && empty($pgUser['avatarUrl'])) {
+                $sanitizedAvatar = esc_url_raw($avatarGoogle);
+                if ($sanitizedAvatar) {
+                    UsuariosExtRepository::actualizarAvatar((int) $wpUser->ID, $sanitizedAvatar);
+                    $pgUser['avatarUrl'] = $sanitizedAvatar;
                 }
             }
 
-            wp_set_current_user($wpUserId);
-            wp_set_auth_cookie($wpUserId, true);
+            /* Generar JWT para clientes desktop */
+            $token = JwtService::generar($wpUser->ID, $wpUser->user_login);
+
+            return new \WP_REST_Response([
+                'ok'   => true,
+                'data' => [
+                    'token'   => $token,
+                    'usuario' => $pgUser,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error procesando usuario autenticado con Google', [
+                'message' => $e->getMessage(),
+                'email' => isset($googleData['email']) && is_string($googleData['email']) ? $googleData['email'] : '',
+            ]);
+
+            return new \WP_REST_Response([
+                'ok' => false,
+                'error' => 'Error procesando la autenticación con Google.',
+            ], 500);
         }
-
-        /* Obtener o crear usuario extendido en PostgreSQL */
-        $pgUser = AuthController::obtenerOCrearUsuarioPg($wpUser);
-
-        /* Si el usuario PG no tiene avatar pero Google sí provee uno, actualizar */
-        if ($avatarGoogle && empty($pgUser['avatarUrl'])) {
-            $sanitizedAvatar = esc_url_raw($avatarGoogle);
-            if ($sanitizedAvatar) {
-                UsuariosExtRepository::actualizarAvatar((int) $wpUser->ID, $sanitizedAvatar);
-                $pgUser['avatarUrl'] = $sanitizedAvatar;
-            }
-        }
-
-        /* Generar JWT para clientes desktop */
-        $token = JwtService::generar($wpUser->ID, $wpUser->user_login);
-
-        return new \WP_REST_Response([
-            'ok'   => true,
-            'data' => [
-                'token'   => $token,
-                'usuario' => $pgUser,
-            ],
-        ]);
     }
 
     /**

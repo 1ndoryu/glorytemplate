@@ -7,6 +7,7 @@
 import { crearLogger } from './logger';
 
 const log = crearLogger('ApiCliente');
+const LS_KEY_TOKEN = 'kamples_auth_token';
 
 export interface RespuestaApi<T> {
     ok: boolean;
@@ -48,6 +49,27 @@ const obtenerNonce = (): string => {
     return glory?.nonce ?? '';
 };
 
+const obtenerTokenNativo = (): string => {
+    if (typeof window === 'undefined') return '';
+
+    const esDesktop = !!(window as Window).__KAMPLES_DESKTOP__;
+    const esCapacitor = (() => {
+        try {
+            return !!window.Capacitor?.isNativePlatform?.();
+        } catch {
+            return false;
+        }
+    })();
+
+    if (!esDesktop && !esCapacitor) return '';
+
+    try {
+        return localStorage.getItem(LS_KEY_TOKEN) ?? '';
+    } catch {
+        return '';
+    }
+};
+
 /*
  * Construye query string desde un objeto de parámetros.
  * Ignora valores undefined.
@@ -73,6 +95,7 @@ export const apiPeticion = async <T>(
     const { method = 'GET', body, headers = {}, params, signal } = opciones;
     const baseUrl = obtenerBaseUrl();
     const nonce = obtenerNonce();
+    const tokenNativo = obtenerTokenNativo();
     const url = `${baseUrl}/kamples/v1${endpoint}${construirParams(params)}`;
 
     /*
@@ -86,6 +109,10 @@ export const apiPeticion = async <T>(
         headers: {
             ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
             ...(nonce ? { 'X-WP-Nonce': nonce } : {}),
+            ...(tokenNativo ? {
+                Authorization: `Bearer ${tokenNativo}`,
+                'X-Kamples-Auth': `Bearer ${tokenNativo}`,
+            } : {}),
             ...headers,
         },
         credentials: 'same-origin',

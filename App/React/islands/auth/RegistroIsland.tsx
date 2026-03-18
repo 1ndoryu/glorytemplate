@@ -15,6 +15,8 @@ export const RegistroIsland = (): JSX.Element => {
         cargando,
         error,
         googleBotonRef,
+        esGoogleNativo,
+        loginGoogleNativo,
         manejarSubmit,
         manejarCambioPassword,
         errorPassword,
@@ -33,9 +35,19 @@ export const RegistroIsland = (): JSX.Element => {
                     Empieza a descubrir y compartir samples
                 </p>
 
-                {/* QK5: Botón de Google renderizado por GSI — abre popup nativo,
-                 * funciona en incógnito sin third-party cookies. */}
-                <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
+                {esGoogleNativo ? (
+                    <BotonBase
+                        variante="secundario"
+                        anchoCompleto
+                        cargando={cargando}
+                        onClick={loginGoogleNativo}
+                        type="button"
+                    >
+                        Continuar con Google
+                    </BotonBase>
+                ) : (
+                    <div ref={googleBotonRef} className="loginGoogleBtnContenedor" />
+                )}
 
                 <div className="loginSeparador">o</div>
 

@@ -13,8 +13,11 @@ import { useNavigationStore } from '@/core/router/navigationStore';
 import { useGoogleAuth } from './useGoogleAuth';
 import { useTooltipPerfilStore } from '../stores/tooltipPerfilStore';
 import type { UsuarioAutenticado } from '../types/usuario';
+import { esAndroid, esCapacitor } from '../utils/plataforma';
 
 const log = crearLogger('useAuth');
+const LS_KEY_TOKEN = 'kamples_auth_token';
+const LS_KEY_USUARIO = 'kamples_auth_usuario';
 
 /*
  * QK1: Limpia todos los Zustand stores que contienen datos de usuario.
@@ -71,10 +74,41 @@ function obtenerPersistorDesktop(): AuthPersistInterface | null {
 
 async function persistirTokenDesktop(token: string, usuario: UsuarioAutenticado | null): Promise<void> {
     const persistor = obtenerPersistorDesktop();
-    if (!persistor) return;
+    if (persistor) {
+        await persistor.guardarToken(token);
+        if (usuario) await persistor.guardarUsuario(usuario as unknown as Record<string, unknown>);
+        return;
+    }
 
-    await persistor.guardarToken(token);
-    if (usuario) await persistor.guardarUsuario(usuario as unknown as Record<string, unknown>);
+    try {
+        localStorage.setItem(LS_KEY_TOKEN, token);
+        if (usuario) {
+            localStorage.setItem(LS_KEY_USUARIO, JSON.stringify(usuario));
+        }
+    } catch (err) {
+        log.warn('No se pudo persistir la sesión nativa', err);
+    }
+
+    const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+    if (ctx && usuario) {
+        ctx.isLoggedIn = true;
+        ctx.userId = usuario.wpUserId ?? usuario.id ?? 1;
+    }
+}
+
+function limpiarSesionNativa(): void {
+    try {
+        localStorage.removeItem(LS_KEY_TOKEN);
+        localStorage.removeItem(LS_KEY_USUARIO);
+    } catch {
+        /* noop */
+    }
+
+    const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+    if (ctx) {
+        ctx.isLoggedIn = false;
+        ctx.userId = undefined;
+    }
 }
 
 interface DatosRegistro {
@@ -92,6 +126,9 @@ export const useAuth = () => {
     const cerrarSesion = useAuthStore(s => s.cerrarSesion);
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const esDesktopApp = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
+    const esAndroidCapacitor = esCapacitor() && esAndroid();
+    const esGoogleNativo = esDesktopApp || esAndroidCapacitor;
 
     /* Cargar usuario actual al montar */
     useEffect(() => {
@@ -128,7 +165,7 @@ export const useAuth = () => {
                  * El await es crítico: sin él, window.location.href recarga la página
                  * antes de que el token quede persistido en el Tauri Store,
                  * y configurarApiDesktop() lo lee como null en la siguiente carga. */
-                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (datos.token && esGoogleNativo) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
@@ -140,7 +177,7 @@ export const useAuth = () => {
                  * feed fallan auth justo después del login (bug 523).
                  * Desktop (Tauri): SPA navigation — window.location.href causa re-init
                  * y pierde el token antes de persistirlo. */
-                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (esGoogleNativo) {
                     useNavigationStore.getState().navegar('/');
                 } else {
                     window.location.href = '/';
@@ -154,7 +191,7 @@ export const useAuth = () => {
         } finally {
             setCargando(false);
         }
-    }, [setUsuario]);
+    }, [esGoogleNativo, setUsuario]);
 
     const registrar = useCallback(async (datos: DatosRegistro) => {
         setError(null);
@@ -175,7 +212,7 @@ export const useAuth = () => {
                 setUsuario(usuarioResp);
 
                 /* En desktop (Tauri): guardar JWT ANTES de navegar */
-                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (datos.token && esGoogleNativo) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
@@ -183,7 +220,7 @@ export const useAuth = () => {
                 useAuthModalStore.getState().cerrar();
 
                 /* Mismo patrón que iniciarSesion: recarga en web para nonce fresco */
-                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (esGoogleNativo) {
                     useNavigationStore.getState().navegar('/');
                 } else {
                     window.location.href = '/';
@@ -197,7 +234,7 @@ export const useAuth = () => {
         } finally {
             setCargando(false);
         }
-    }, [setUsuario]);
+    }, [esGoogleNativo, setUsuario]);
 
     const manejarCredencialGoogle = useCallback(async (credential: string) => {
         setError(null);
@@ -211,13 +248,13 @@ export const useAuth = () => {
                 const usuarioResp = datos.usuario ?? (resp.data as unknown as UsuarioAutenticado);
                 setUsuario(usuarioResp);
 
-                if (datos.token && (window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (datos.token && esGoogleNativo) {
                     await persistirTokenDesktop(datos.token, datos.usuario ?? null);
                 }
 
                 useAuthModalStore.getState().cerrar();
 
-                if ((window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__) {
+                if (esGoogleNativo) {
                     useNavigationStore.getState().navegar('/');
                 } else {
                     window.location.href = '/';
@@ -231,10 +268,9 @@ export const useAuth = () => {
         } finally {
             setCargando(false);
         }
-    }, [setUsuario]);
+    }, [esGoogleNativo, setUsuario]);
 
     /* GSI: disparar popup de Google Sign-In — solo activo en web */
-    const esDesktopApp = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
     const { disparar: dispararGoogle, botonContenedorRef: googleBotonRef } = useGoogleAuth(manejarCredencialGoogle);
 
     const iniciarSesionGoogle = useCallback(() => {
@@ -249,18 +285,23 @@ export const useAuth = () => {
      * (igual que __KAMPLES_AUTH_PERSIST__, __KAMPLES_SYNC__, etc.).
      * Esto evita imports directos de código Tauri en hooks compartidos web/desktop.
      */
-    const loginGoogleDesktop = useCallback(async () => {
+    const loginGoogleNativo = useCallback(async () => {
         setError(null);
         setCargando(true);
         try {
-            const googleOAuth = (window as unknown as Record<string, unknown>).__KAMPLES_GOOGLE_OAUTH__ as
-                | (() => Promise<{ token: string; usuario: UsuarioAutenticado }>) | undefined;
+            const datos = esDesktopApp
+                ? await ((window as unknown as Record<string, unknown>).__KAMPLES_GOOGLE_OAUTH__ as
+                    | (() => Promise<{ token: string; usuario: UsuarioAutenticado }>)
+                    | undefined)?.()
+                : await (async () => {
+                    const { iniciarGoogleOAuthCapacitor } = await import('../services/googleAuthMobileCapacitor');
+                    return iniciarGoogleOAuthCapacitor();
+                })();
 
-            if (!googleOAuth) {
-                throw new Error('Google OAuth desktop no disponible');
+            if (!datos) {
+                throw new Error('Google OAuth nativo no disponible');
             }
 
-            const datos = await googleOAuth();
             setUsuario(datos.usuario);
 
             if (datos.token) {
@@ -270,12 +311,12 @@ export const useAuth = () => {
             useAuthModalStore.getState().cerrar();
             useNavigationStore.getState().navegar('/');
         } catch (err) {
-            log.error('Error en Google OAuth desktop', err);
+            log.error('Error en Google OAuth nativo', err);
             setError('No se pudo completar la autenticación con Google. Intenta de nuevo.');
         } finally {
             setCargando(false);
         }
-    }, [setUsuario]);
+    }, [esDesktopApp, setUsuario]);
 
     const logout = useCallback(async () => {
         /*
@@ -289,6 +330,7 @@ export const useAuth = () => {
         if (persistor) {
             try { await persistor.cerrarSesionDesktop(); } catch { /* noop en web */ }
         }
+        limpiarSesionNativa();
         cerrarSesion();
 
         /* QK1: Limpiar stores con datos de usuario para evitar fuga
@@ -306,9 +348,10 @@ export const useAuth = () => {
         iniciarSesion,
         registrar,
         iniciarSesionGoogle,
-        loginGoogleDesktop,
-        googleBotonRef: esDesktopApp ? null : googleBotonRef,
+        loginGoogleNativo,
+        googleBotonRef: esGoogleNativo ? null : googleBotonRef,
         esDesktopApp,
+        esGoogleNativo,
         logout,
     };
 };
