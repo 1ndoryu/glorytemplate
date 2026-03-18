@@ -47,6 +47,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **183A-41, 183A-42, 183A-43, 183A-37:** Completadas 2026-03-18. Modal login APK restaura sesión desde token nativo. SHA-1 debug. Push notifications: service account + tabla fcm_tokens + FcmController fix (`obtenerActual()` → `obtenerPorWpId()`) + verificado E2E con notificación en bandeja Android.
 - **183A-44:** Completada 2026-03-18. Fix React error #310: `useLayoutEffect` después de returns condicionales en `MenuContextual.tsx`.
+- **183A-45:** Completada 2026-03-18. Icono de notificación push actualizado al favicon real de Kamples.
 
 ## Tareas pendientes
 
@@ -126,10 +127,6 @@ Error visual, el modal de usuario cuando se pone el cursor sobre el nombre, a da
 ## 183A-40
 
 Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
-
-## 183A-45
-
-Las notificaciones funcionan pero el logo de la notifiacion (K) no es el logo de kamples el logo de kamples es el del favicon
 
 ## 183A-46
 
