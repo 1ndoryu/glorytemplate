@@ -84,12 +84,15 @@ class ServicioFcm
                         ],
                         'android' => [
                             'priority' => 'high',
-                            'notification' => [
+                            'notification' => array_filter([
+                                /* [183A-49] channel_id, icono, sonido y count base */
                                 'channel_id'         => ($datosString['tipo'] ?? '') === 'mensaje_nuevo' ? 'mensajes' : 'notificaciones',
                                 'icon'               => 'ic_notification',
                                 'default_sound'      => true,
                                 'notification_count' => 1,
-                            ],
+                                /* [183A-49] Imagen del actor (avatar) si está disponible — aparece en la notificacion expandida */
+                                'image'              => ($datos['actorAvatarUrl'] ?? null) ?: null,
+                            ], fn($v) => $v !== null),
                         ],
                     ],
                 ];

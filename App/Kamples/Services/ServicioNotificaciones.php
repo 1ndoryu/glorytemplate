@@ -128,11 +128,14 @@ class ServicioNotificaciones
                 $datosCanalesPush
             );
 
-            /* QL34: FCM push (Android nativo) — llega con app cerrada.
+            /* [183A-49] QL34: FCM push (Android nativo) — llega con app cerrada.
+             * Titulo: si no se proporciona, se genera uno descriptivo por tipo en vez de usar
+             * el string raw del tipo (ej: 'like' → 'Nuevo like').
              * Fire-and-forget: si FCM no esta configurado, no hace nada (graceful). */
+            $tituloPush = $titulo !== '' ? $titulo : self::tituloParaTipo($tipo);
             ServicioFcm::enviarAUsuario(
                 $destinatarioId,
-                $titulo !== '' ? $titulo : $tipo,
+                $tituloPush,
                 $mensaje,
                 $datosCanalesPush
             );
@@ -250,6 +253,7 @@ class ServicioNotificaciones
     {
         $actorNombre = self::obtenerNombreActor($seguidorId);
 
+        /* [183A-49] Enlace al perfil del seguidor para navegar al dar click en la notificacion */
         self::crear(
             $destinatarioId,
             'follow',
@@ -257,7 +261,7 @@ class ServicioNotificaciones
             ['seguidor_id' => $seguidorId],
             $seguidorId,
             '',
-            null
+            "/perfil/{$actorNombre}/"
         );
     }
 
@@ -397,6 +401,28 @@ class ServicioNotificaciones
     private static function obtenerNombreActor(int $actorId): string
     {
         return self::obtenerDatosActor($actorId)['username'];
+    }
+
+    /**
+     * [183A-49] Generar titulo descriptivo para push cuando no se proporciona titulo.
+     * Evita que FCM muestre el string raw del tipo ('like', 'follow', etc.).
+     */
+    private static function tituloParaTipo(string $tipo): string
+    {
+        return match ($tipo) {
+            'like'       => 'Nuevo like',
+            'encanta'    => 'Le encanta tu sample',
+            'follow'     => 'Nuevo seguidor',
+            'comentario' => 'Nuevo comentario',
+            'mencion'    => 'Te mencionaron',
+            'descarga'   => 'Descargaron tu sample',
+            'repost'     => 'Repost de tu sample',
+            'venta'      => 'Venta de sample',
+            'pago'       => 'Pago recibido',
+            'moderacion' => 'Aviso de moderación',
+            'sistema'    => 'Kamples',
+            default      => 'Kamples',
+        };
     }
 
     /**
