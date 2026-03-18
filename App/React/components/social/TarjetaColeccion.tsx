@@ -17,6 +17,7 @@ import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import { MenuContextual } from '../ui/MenuContextual';
 import { BotonBase } from '../ui/BotonBase';
 import '../../styles/componentes/tarjetaColeccion.css';
+import { ImgOptimizada } from '../ui/ImgOptimizada';
 
 interface TarjetaColeccionProps {
     coleccion: Coleccion;
@@ -113,7 +114,7 @@ export const TarjetaColeccion = ({
         >
             <EnlaceNavegacion href={`/coleccion/${coleccion.slug ?? coleccion.id}/`} className="tarjetaColeccionEnlace">
                 <div className="tarjetaColeccionPortada">
-                    <img src={imagenPortada} alt={coleccion.nombre} loading="lazy" />
+                    <ImgOptimizada src={imagenPortada} alt={coleccion.nombre} w={300} quality={80} />
                     {esSubcoleccion && (
                         <span className="tarjetaColeccionSubBadge" title="Subcoleccion">
                             <FolderTree size={12} />

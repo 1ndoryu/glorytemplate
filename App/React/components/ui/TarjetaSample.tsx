@@ -19,6 +19,7 @@ import { useReproducidosStore } from '@app/stores/reproducidosStore';
 import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import '../../styles/componentes/tarjetaSample.css';
 import { BotonBase } from './BotonBase';
+import { ImgOptimizada } from './ImgOptimizada';
 
 interface TarjetaSampleProps {
     sample: SampleResumen;
@@ -122,7 +123,7 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
         >
             {/* Portada con overlay play/pause */}
             <div className="tarjetaPortada" aria-label={estaReproduciendo ? 'Pausar' : 'Reproducir'}>
-                <img className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} loading="lazy" />
+                <ImgOptimizada className="tarjetaPortadaImg" src={imagenPortada} alt={sample.titulo} w={80} quality={75} />
                 <div className={`tarjetaPortadaOverlay ${estaReproduciendo ? 'tarjetaPortadaOverlayActivo' : ''}`}>
                     {estaReproduciendo ? <Pause size={16} /> : <Play size={16} />}
                 </div>

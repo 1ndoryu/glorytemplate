@@ -9,6 +9,7 @@ import { type MouseEvent } from 'react';
 import { Music, Play, Pause, Heart } from 'lucide-react';
 import type { Cancion } from '@app/types/cancion';
 import { BotonBase } from '../ui/BotonBase';
+import { ImgOptimizada } from '../ui/ImgOptimizada';
 
 interface Props {
     cancion: Cancion;
@@ -49,7 +50,7 @@ export const TarjetaCancionGrande = ({
                 aria-label={tieneSample ? (reproduciendo ? 'Pausar' : 'Reproducir sample') : cancion.titulo}
             >
                 {cancion.imagenUrl ? (
-                    <img src={cancion.imagenUrl} alt={cancion.titulo} loading="lazy" />
+                    <ImgOptimizada src={cancion.imagenUrl} alt={cancion.titulo} w={300} quality={80} />
                 ) : (
                     <div className="tarjetaCancionGrandeImagenPlaceholder">
                         <Music size={32} color="var(--textoTerciario)" />

@@ -16,6 +16,7 @@ import { useComentarios } from '@app/hooks/useComentarios';
 import { usePanelDetalleSample } from '@app/hooks/usePanelDetalleSample';
 import { useRelacionDiscovery } from '@app/hooks/useRelacionDiscovery';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
+import { ImgOptimizada } from '@app/components/ui/ImgOptimizada';
 import type { SampleResumen } from '@app/types';
 
 interface PanelDetalleSampleProps {
@@ -209,11 +210,12 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                         onClick={() => navegar(`/coleccion/${slug}/`)}
                         onKeyDown={e => e.key === 'Enter' && navegar(`/coleccion/${slug}/`)}
                     >
-                        <img
+                        <ImgOptimizada
                             className="panelColeccionPortadaImg"
                             src={imgSrc}
                             alt={coleccion.nombre}
-                            loading="lazy"
+                            w={320}
+                            quality={80}
                         />
                         <div className="panelColeccionPortadaInfo">
                             <span className="panelColeccionPortadaNombre">{coleccion.nombre}</span>
