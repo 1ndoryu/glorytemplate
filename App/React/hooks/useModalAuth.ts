@@ -16,15 +16,21 @@ export const useModalAuth = () => {
     const abrirStore = useAuthModalStore(s => s.abrir);
     const cambiarVista = useAuthModalStore(s => s.cambiarVista);
     const autenticado = useAuthStore(s => s.autenticado);
+    const cargando = useAuthStore(s => s.cargando);
 
     const esApk = esAndroid();
 
-    /* QL100a: En APK, forzar modal abierto cuando no hay sesión */
+    /* [183A-63] En APK: esperar a que termine la restauración de sesión (cargando=false)
+     * antes de decidir si abrir el modal. Si el usuario ya está autenticado, cerrar
+     * cualquier modal que se haya abierto prematuramente. */
     useEffect(() => {
-        if (esApk && !autenticado) {
+        if (!esApk || cargando) return;
+        if (!autenticado) {
             abrirStore('login');
+        } else {
+            cerrarStore();
         }
-    }, [esApk, autenticado, abrirStore]);
+    }, [esApk, autenticado, cargando, abrirStore, cerrarStore]);
 
     /* En APK sin autenticar, cerrar es no-op */
     const cerrar = useCallback(() => {
