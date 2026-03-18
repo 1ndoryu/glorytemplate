@@ -75,6 +75,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-60:** Completada 2026-03-18. Botón play/preview en tarjetaColeccionMenuContenedor.
 - **183A-30+183A-25:** Completadas 2026-03-18. Cache feed: stale-while-revalidate extendido a pag2/3 (TTL 1h), precalentamiento de pag2/3 en background tras pag1 fresh, documentacion arquitectura cache + plan 50ms.
 - **183A-67:** Completada 2026-03-18. Feed personalizado ahora incluye imagen_coleccion_propietario (portada coleccion del creador). Extraido como metodo publico sqlImagenColeccionPropietario() en NormalizadorSample.
+- **183A-69:** Completada 2026-03-18. Anti-abuso descargas: rate limit 5/dia por IP (cross-account), limite 2/dia cuentas nuevas (<3 dias), registro_ip en usuarios_ext, migration v062.
 
 ## Tareas pendientes
 
@@ -115,11 +116,6 @@ pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien
 ## 183A-64
 
 Respecot a 183A-64 me refería a los errores ortograficos, 
-
-## 183A-69
-
-Revision profunda al sistema de creditos de descarga, esto nunca se le ha hecho una auditoría desde que es creo.
-Agregar un sistema anti abusos basado en ip, cookies, no se, lo que sea, para no regalar creditos a usuarios que se crean varias cuentas, 5 creditos diario por usuario, no 5 creditos por cuenta. 
 
 ## 183A-70
 
