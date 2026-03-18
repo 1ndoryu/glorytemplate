@@ -60,6 +60,28 @@ export const MenuContextual = ({
         return () => document.removeEventListener('keydown', manejarKeyDown);
     }, [abierto, manejarKeyDown]);
 
+    /* [183A-44] useLayoutEffect ANTES de returns condicionales para cumplir reglas de hooks.
+     * Antes estaba después de `if (!abierto) return null` y `if (esMovil) return ...`,
+     * causando error React #310 "Rendered more hooks than previous render" al abrir el menú. */
+    useLayoutEffect(() => {
+        if (!abierto || esMovil) return;
+
+        const ajustar = () => {
+            const nodo = menuRef.current;
+            const margen = 8;
+            const anchoReal = nodo?.offsetWidth ?? 160;
+            const altoReal = nodo?.offsetHeight ?? (items.length * 36 + 8);
+            const posX = alinearDerecha ? x - anchoReal : x;
+            const left = Math.max(margen, Math.min(posX, window.innerWidth - anchoReal - margen));
+            const top = Math.max(margen, Math.min(y, window.innerHeight - altoReal - margen));
+            setPosicionAjustada({ left, top });
+        };
+
+        ajustar();
+        window.addEventListener('resize', ajustar);
+        return () => window.removeEventListener('resize', ajustar);
+    }, [abierto, esMovil, items.length, x, y, alinearDerecha]);
+
     if (!abierto) return null;
 
     /* Contenido de items reutilizado en ambos modos */
@@ -119,28 +141,6 @@ export const MenuContextual = ({
             document.body
         );
     }
-
-    /* [183A-26] Desktop: medir el tamaño real del menú para evitar desbordes.
-     * El cálculo fijo por cantidad de ítems fallaba con separadores, texto largo y estilos variables,
-     * causando que el menú se saliera del viewport por abajo o por la derecha. */
-    useLayoutEffect(() => {
-        if (!abierto || esMovil) return;
-
-        const ajustar = () => {
-            const nodo = menuRef.current;
-            const margen = 8;
-            const anchoReal = nodo?.offsetWidth ?? 160;
-            const altoReal = nodo?.offsetHeight ?? (items.length * 36 + 8);
-            const posX = alinearDerecha ? x - anchoReal : x;
-            const left = Math.max(margen, Math.min(posX, window.innerWidth - anchoReal - margen));
-            const top = Math.max(margen, Math.min(y, window.innerHeight - altoReal - margen));
-            setPosicionAjustada({ left, top });
-        };
-
-        ajustar();
-        window.addEventListener('resize', ajustar);
-        return () => window.removeEventListener('resize', ajustar);
-    }, [abierto, esMovil, items.length, x, y, alinearDerecha]);
 
     return createPortal(
         <>
