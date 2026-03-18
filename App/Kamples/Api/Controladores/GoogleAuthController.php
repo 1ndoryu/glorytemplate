@@ -41,7 +41,13 @@ class GoogleAuthController
          * genera JWT y redirige al deep link kamples://auth?token=JWT. */
         register_rest_route($namespace, '/auth/google/mobile-callback', [
             'methods'             => 'GET',
-            'callback'            => [self::class, 'mobileCallback'],
+            'callback'            => [GoogleAuthMobileController::class, 'mobileCallback'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        register_rest_route($namespace, '/auth/google/mobile-status', [
+            'methods'             => 'GET',
+            'callback'            => [GoogleAuthMobileController::class, 'obtenerEstadoMobile'],
             'permission_callback' => '__return_true',
         ]);
     }
@@ -173,108 +179,13 @@ class GoogleAuthController
      *
      * state contiene el PKCE code_verifier codificado en base64url (generado por la app).
      */
-    public static function mobileCallback(\WP_REST_Request $request): \WP_REST_Response
-    {
-        try {
-            $limitResp = RateLimiter::verificarIp('google_mobile_auth', 10, 900);
-            if ($limitResp) return $limitResp;
-
-            $code  = $request->get_param('code');
-            $state = $request->get_param('state');
-            $error = $request->get_param('error');
-
-            if ($error) {
-                KamplesLogger::warning('Google OAuth mobile error', ['error' => $error]);
-                return self::responderCallbackHtml('Error de autenticación: ' . sanitize_text_field($error));
-            }
-
-            if (empty($code) || !is_string($code) || empty($state) || !is_string($state)) {
-                return self::responderCallbackHtml('Parámetros de autenticación incompletos.');
-            }
-
-            /* Decodificar code_verifier del state (base64url) */
-            $codeVerifier = base64_decode(strtr($state, '-_', '+/'));
-            if (!$codeVerifier) {
-                return self::responderCallbackHtml('Estado de autenticación inválido.');
-            }
-
-            /* redirect_uri DEBE coincidir exactamente con el usado en la petición original */
-            $redirectUri = rest_url('kamples/v1/auth/google/mobile-callback');
-
-            $idToken = self::intercambiarCodigoGooglePorIdToken($code, $codeVerifier, $redirectUri);
-            if (!$idToken) {
-                return self::responderCallbackHtml('Error al verificar con Google. Inténtalo de nuevo.');
-            }
-
-            $googleData = self::verificarTokenGoogle($idToken);
-            if (!$googleData) {
-                return self::responderCallbackHtml('Token de Google inválido.');
-            }
-
-            /* Procesar usuario normalmente */
-            $resp = self::procesarUsuarioGoogle($googleData);
-            $data = $resp->get_data();
-
-            if (empty($data['ok']) || empty($data['data']['token'])) {
-                return self::responderCallbackHtml('Error al crear la sesión.');
-            }
-
-            $token      = $data['data']['token'];
-            $usuarioJson = wp_json_encode($data['data']['usuario']);
-
-            /* Codificar token + usuario en base64url para el deep link (evita problemas con chars especiales) */
-            $payload = base64_encode(wp_json_encode([
-                'token'   => $token,
-                'usuario' => $data['data']['usuario'],
-            ]));
-            $payloadUrlSafe = strtr($payload, '+/', '-_');
-
-            $deepLink = 'kamples://auth?payload=' . rawurlencode($payloadUrlSafe);
-
-            /* Responder con HTML que redirige al deep link */
-            \header('Content-Type: text/html; charset=utf-8');
-            echo '<!DOCTYPE html><html><head><meta charset="utf-8">';
-            echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
-            echo '<title>Kamples - Autenticación</title></head>';
-            echo '<body style="font-family:system-ui;text-align:center;padding:60px;background:#0f0f0f;color:#fff">';
-            echo '<h2>Autenticación completada</h2>';
-            echo '<p>Regresando a Kamples...</p>';
-            echo '<script>window.location.href=' . wp_json_encode($deepLink) . ';</script>';
-            echo '<noscript><a href="' . esc_attr($deepLink) . '">Toca aquí para regresar a Kamples</a></noscript>';
-            echo '</body></html>';
-            exit;
-        } catch (\Throwable $e) {
-            KamplesLogger::error('Error en GoogleAuthController::mobileCallback', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return self::responderCallbackHtml('Error interno. Inténtalo de nuevo.');
-        }
-    }
-
-    /**
-     * Genera una respuesta HTML de error para el callback mobile.
-     */
-    private static function responderCallbackHtml(string $mensaje): \WP_REST_Response
-    {
-        \header('Content-Type: text/html; charset=utf-8');
-        echo '<!DOCTYPE html><html><head><meta charset="utf-8">';
-        echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
-        echo '<title>Kamples</title></head>';
-        echo '<body style="font-family:system-ui;text-align:center;padding:60px;background:#0f0f0f;color:#fff">';
-        echo '<h2>' . esc_html($mensaje) . '</h2>';
-        echo '<p><a href="kamples://auth?error=' . rawurlencode($mensaje) . '" style="color:#4a665b">Volver a Kamples</a></p>';
-        echo '</body></html>';
-        exit;
-    }
-
     /**
      * Intercambia un authorization code OAuth 2.0 por los tokens de Google.
      * Requiere el code_verifier PKCE y el redirect_uri originales.
      * El client_secret se obtiene del servidor (nunca sale al cliente).
      * Retorna el id_token si el intercambio es exitoso, null en caso de error.
      */
-    private static function intercambiarCodigoGooglePorIdToken(
+    public static function intercambiarCodigoGooglePorIdToken(
         string $code,
         string $codeVerifier,
         string $redirectUri
@@ -336,7 +247,7 @@ class GoogleAuthController
      * inicia sesión WordPress, sincroniza con PostgreSQL y emite JWT.
      * Reutilizado tanto por el flujo web (GSI) como por el flujo desktop (PKCE).
      */
-    private static function procesarUsuarioGoogle(array $googleData): \WP_REST_Response
+    public static function procesarUsuarioGoogle(array $googleData): \WP_REST_Response
     {
         $email        = $googleData['email'];
         $nombre       = $googleData['name'] ?? '';
@@ -410,7 +321,7 @@ class GoogleAuthController
      * Verifica un ID token de Google Identity Services con la API de Google.
      * Retorna los claims del token si es válido, null si no.
      */
-    private static function verificarTokenGoogle(string $credential): ?array
+    public static function verificarTokenGoogle(string $credential): ?array
     {
         $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
         if (empty($clientId)) {

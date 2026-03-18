@@ -9,6 +9,7 @@ import { esDesktop } from './desktopService';
 import { actualizarTokenApi, limpiarAuthApi } from './apiDesktopAdapter';
 import { establecerTokenSync } from './syncGuards';
 import { emitirCambioAuth } from './authDesktopEventos';
+import type { UsuarioAutenticado } from '@app/types/usuario';
 
 /* Clave del store seguro de Tauri */
 const STORE_KEY_TOKEN = 'auth_token';
@@ -205,6 +206,27 @@ export async function guardarUsuario(usuario: Record<string, unknown>): Promise<
         await store.save();
     } catch (err) {
         console.error('[AuthDesktop] Error guardarUsuario TauriStore:', err);
+    }
+}
+
+/*
+ * Aplica una sesión autenticada completa en desktop/APK.
+ * Centraliza persistencia, estado global y contexto para recuperaciones OAuth y futuros reingresos.
+ */
+export async function aplicarSesionAutenticadaDesktop(
+    token: string,
+    usuario: UsuarioAutenticado
+): Promise<void> {
+    await guardarToken(token);
+    await guardarUsuario(usuario as unknown as Record<string, unknown>);
+
+    const { useAuthStore } = await import('@app/stores/authStore');
+    useAuthStore.getState().setUsuario(usuario, false);
+
+    const ctx = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+    if (ctx) {
+        ctx.isLoggedIn = true;
+        ctx.userId = usuario.wpUserId ?? usuario.id ?? 1;
     }
 }
 

@@ -40,7 +40,17 @@ interface ProgresoSyncGlobal {
 interface Window {
     /* GLORY_CONTEXT ya está declarado en Glory/assets/react/src/types/glory.ts */
     __KAMPLES_DESKTOP__?: boolean;
+    __KAMPLES_MOBILE__?: boolean;
     __KAMPLES_VERSION__?: string;
+    Capacitor?: {
+        isNativePlatform?: () => boolean;
+        getPlatform?: () => string;
+    };
+    __KAMPLES_ANDROID_BRIDGE__?: {
+        leerTokenFcm: () => Promise<string | null>;
+        leerNavegacionFcmPendiente: () => Promise<string | null>;
+        leerDeepLinkPendiente: () => Promise<string | null>;
+    };
     __KAMPLES_SYNC__?: {
         elegirCarpetaSync: () => Promise<string | null>;
         toggleSincronizacion: (activa: boolean) => Promise<void>;

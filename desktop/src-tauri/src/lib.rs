@@ -3,11 +3,15 @@
  * Registra plugins, comandos custom y tray icon.
  */
 
+use std::path::PathBuf;
+
+use tauri::Manager;
+
 #[cfg(desktop)]
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WindowEvent,
+    WindowEvent,
 };
 
 /* Comando: toggle DevTools (inspector de WebView2) — disponible en produccion para diagnostico */
@@ -203,6 +207,71 @@ fn obtener_tamano_archivo(ruta: String) -> Result<u64, String> {
     std::fs::metadata(&ruta)
         .map(|m| m.len())
         .map_err(|e| format!("Error al leer metadata de {}: {}", ruta, e))
+}
+
+fn agregar_ruta_si_no_duplicada(rutas: &mut Vec<PathBuf>, ruta: PathBuf) {
+    if !rutas.iter().any(|existente| existente == &ruta) {
+        rutas.push(ruta);
+    }
+}
+
+fn obtener_rutas_candidatas_android(app: &tauri::AppHandle, archivo: &str) -> Vec<PathBuf> {
+    let mut rutas = Vec::new();
+
+    for resolver in [app.path().app_data_dir(), app.path().app_local_data_dir()] {
+        let Ok(base) = resolver else {
+            continue;
+        };
+
+        agregar_ruta_si_no_duplicada(&mut rutas, base.join(archivo));
+
+        if let Some(parent) = base.parent() {
+            agregar_ruta_si_no_duplicada(&mut rutas, parent.join(archivo));
+            agregar_ruta_si_no_duplicada(&mut rutas, parent.join("files").join(archivo));
+            agregar_ruta_si_no_duplicada(&mut rutas, parent.join("no_backup").join(archivo));
+        }
+    }
+
+    rutas
+}
+
+fn leer_archivo_app_data(app: &tauri::AppHandle, archivo: &str, limpiar: bool) -> Result<Option<String>, String> {
+    let rutas = obtener_rutas_candidatas_android(app, archivo);
+
+    for ruta in rutas {
+        if !ruta.exists() {
+            continue;
+        }
+
+        let contenido = std::fs::read_to_string(&ruta)
+            .map_err(|e| format!("No se pudo leer {}: {}", archivo, e))?;
+
+        println!("[AndroidBridge] {} leido desde {}", archivo, ruta.display());
+
+        if limpiar {
+            let _ = std::fs::remove_file(&ruta);
+        }
+
+        return Ok(Some(contenido));
+    }
+
+    println!("[AndroidBridge] {} no encontrado en rutas candidatas", archivo);
+    Ok(None)
+}
+
+#[tauri::command]
+fn leer_token_fcm_android(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    leer_archivo_app_data(&app, "fcm_token.txt", false)
+}
+
+#[tauri::command]
+fn leer_navegacion_fcm_pendiente(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    leer_archivo_app_data(&app, "pending_navigation.json", true)
+}
+
+#[tauri::command]
+fn leer_deep_link_android_pendiente(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    leer_archivo_app_data(&app, "pending_deep_link.txt", true)
 }
 
 /* Comando: obtener espacio disponible en disco para una ruta dada (bytes) */
@@ -449,6 +518,9 @@ pub fn run() {
         obtener_plataforma,
         archivo_existe,
         obtener_tamano_archivo,
+        leer_token_fcm_android,
+        leer_navegacion_fcm_pendiente,
+        leer_deep_link_android_pendiente,
         obtener_espacio_disponible,
         abrir_carpeta,
         seleccionar_archivo,
@@ -464,6 +536,9 @@ pub fn run() {
         obtener_plataforma,
         archivo_existe,
         obtener_tamano_archivo,
+        leer_token_fcm_android,
+        leer_navegacion_fcm_pendiente,
+        leer_deep_link_android_pendiente,
     ]);
 
     /* Setup: desktop configura tray + ventana sync behavior */

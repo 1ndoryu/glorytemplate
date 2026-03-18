@@ -38,6 +38,7 @@
 
 ## FASE 10 — Móvil (Capacitor)
 
+- [x] Preparar proyecto `mobile/` con Capacitor + Android Studio usando shell nativo separado, scripts `android:sync/open/run` y plataforma Android generada. ✅ [AG-CAP]
 - [ ] UI móvil, push notifications, background playback, offline cache
 
 ---
@@ -243,7 +244,7 @@ D1. **Sync server→local bidireccional:** Samples publicados desde web se sincr
 - [ ] **367b** Integridad al mover archivos: Verificar hash pre/post `moverArchivoASinColeccion`. Si hash difiere, revertir.
 - [ ] **367c** Pipeline IA resilience: Auditar `ProcesadorColaIA` — qué pasa si Groq caído 24h, sample borrado entre encolado y procesamiento, respuesta IA malformada.
 - [ ] **367d** Upload queue edge cases: Archivos >100MB (timeout?), 0 bytes, corruptos (header WAV inválido), nombres con unicode especial.
-- [ ] **367f** Constraint UNIQUE: Agregar `UNIQUE (usuario_id, LOWER(nombre))` a tabla colecciones para dedup atómico.
+- [EN CURSO — AG-UNQ] **367f** Dedup atómico de colecciones: cerrar race condition de creación apoyando el índice único por jerarquía existente y eliminando el patrón check-then-insert. **Estado:** auditando repository + migraciones para dejar creación atómica.
 
 > 367e completado [AG-DDP]: server-side dedup endpoint `POST /samples/check-duplicate` + pre-check en uploadQueueService.
 

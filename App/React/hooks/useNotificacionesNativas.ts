@@ -24,11 +24,9 @@ import {
 import { registrarTokenFcmSiDisponible } from '@app/services/fcmToken';
 import { procesarNavegacionFcm } from '@app/services/navegacionFcm';
 import { crearLogger } from '@app/services/logger';
+import { esTauri } from '@app/utils/plataforma';
 
 const log = crearLogger('useNotificacionesNativas');
-
-/* Solo activar en entorno Tauri */
-const esTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
 export const useNotificacionesNativas = (): void => {
     const autenticado = useAuthStore(s => s.autenticado);
@@ -36,7 +34,7 @@ export const useNotificacionesNativas = (): void => {
 
     /* Inicializar canales una sola vez cuando el usuario se autentica en Tauri */
     useEffect(() => {
-        if (!esTauri || !autenticado || inicializadoRef.current) return;
+        if (!esTauri() || !autenticado || inicializadoRef.current) return;
 
         inicializarCanalesNotificacion().then(ok => {
             if (ok) {
@@ -51,7 +49,7 @@ export const useNotificacionesNativas = (): void => {
 
     /* Suscribir a eventos WS para despachar notificaciones nativas */
     useEffect(() => {
-        if (!esTauri || !autenticado) return;
+        if (!esTauri() || !autenticado) return;
 
         const unsubNotif = wsService.on('notificacion', (datos: unknown) => {
             mostrarNotificacionNativa(datos as Record<string, unknown>);
@@ -69,7 +67,7 @@ export const useNotificacionesNativas = (): void => {
 
     /* QL45: Procesar click-to-navigate de FCM al volver a primer plano (Android) */
     useEffect(() => {
-        if (!esTauri || !autenticado) return;
+        if (!esTauri() || !autenticado) return;
 
         const manejarVisibilidad = () => {
             if (document.visibilityState === 'visible') {

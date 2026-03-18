@@ -11,6 +11,15 @@
 
 import { useRef, useCallback, useState, useEffect } from 'react';
 
+function obtenerScrollTop(el: HTMLElement): number {
+    return Math.max(
+        el.scrollTop,
+        window.scrollY,
+        document.documentElement.scrollTop,
+        document.body.scrollTop,
+    );
+}
+
 interface PullToRefreshOpciones {
     /** Funcion async que ejecuta el refresco de datos */
     onRefrescar: () => Promise<void>;
@@ -56,7 +65,7 @@ export function usePullToRefresh({
         if (!el || !habilitado) return;
 
         const alIniciarTouch = (e: TouchEvent) => {
-            if (el.scrollTop > 5 || refrescandoRef.current) return;
+            if (obtenerScrollTop(el) > 5 || refrescandoRef.current) return;
             touchStartY.current = e.touches[0].clientY;
             arrastrando.current = true;
         };

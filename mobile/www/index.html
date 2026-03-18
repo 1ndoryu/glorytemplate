@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kamples</title>
+  <style>
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #070707;
+      color: #f5f1e8;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .contenedor {
+      max-width: 420px;
+    }
+
+    .textoSecundario {
+      opacity: 0.72;
+      line-height: 1.5;
+    }
+
+    .enlaceFallback {
+      color: #d6c39a;
+    }
+  </style>
+</head>
+<body>
+  <main class="contenedor">
+    <h1>Kamples</h1>
+    <p class="textoSecundario">Abriendo la app móvil…</p>
+    <p class="textoSecundario">Si no redirige automáticamente, abre <a class="enlaceFallback" href="https://kamples.com">https://kamples.com</a>.</p>
+  </main>
+  <script>
+    window.location.replace("https://kamples.com");
+  </script>
+</body>
+</html>

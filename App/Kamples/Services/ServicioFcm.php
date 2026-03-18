@@ -84,6 +84,7 @@ class ServicioFcm
                             'priority' => 'high',
                             'notification' => [
                                 'channel_id'         => ($datosString['tipo'] ?? '') === 'mensaje_nuevo' ? 'mensajes' : 'notificaciones',
+                                'icon'               => 'ic_notification',
                                 'default_sound'      => true,
                                 'notification_count' => 1,
                             ],
@@ -204,6 +205,13 @@ class ServicioFcm
             }
 
             $body = json_decode($response->getBody()->getContents(), true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($body)) {
+                KamplesLogger::error('ServicioFcm: respuesta OAuth invalida', [
+                    'jsonError' => json_last_error_msg(),
+                ]);
+                return null;
+            }
+
             if (!isset($body['access_token'])) {
                 KamplesLogger::error('ServicioFcm: respuesta OAuth sin access_token');
                 return null;

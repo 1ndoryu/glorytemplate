@@ -3,13 +3,63 @@
  * Centralizan checks de Tauri, Android, desktop para evitar duplicación.
  */
 
+function tieneMarcaDesktop(): boolean {
+    return typeof window !== 'undefined' && !!window.__KAMPLES_DESKTOP__;
+}
+
+function tieneMarcaMobile(): boolean {
+    return typeof window !== 'undefined' && !!window.__KAMPLES_MOBILE__;
+}
+
+function tieneBridgeTauri(): boolean {
+    return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
+
+function obtenerPlataformaCapacitor(): string | null {
+    if (typeof window === 'undefined' || !window.Capacitor) {
+        return null;
+    }
+
+    try {
+        const plataforma = window.Capacitor.getPlatform?.();
+        return typeof plataforma === 'string' ? plataforma : null;
+    } catch {
+        return null;
+    }
+}
+
+function tieneBridgeCapacitor(): boolean {
+    if (typeof window === 'undefined' || !window.Capacitor) {
+        return false;
+    }
+
+    try {
+        return !!window.Capacitor.isNativePlatform?.() || obtenerPlataformaCapacitor() !== null;
+    } catch {
+        return obtenerPlataformaCapacitor() !== null;
+    }
+}
+
+function tieneClasePlataforma(clase: string): boolean {
+    return typeof document !== 'undefined' && document.body.classList.contains(clase);
+}
+
+export const esCapacitor = (): boolean =>
+    tieneMarcaMobile() || tieneBridgeCapacitor() || tieneClasePlataforma('plataformaCapacitor');
+
 /** Detecta si la app corre dentro de un contexto Tauri (desktop o APK) */
 export const esTauri = (): boolean =>
-    typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+    tieneMarcaDesktop() || tieneBridgeTauri() || tieneClasePlataforma('plataformaTauri');
 
-/** Detecta si la app corre en Android (APK Tauri) */
+export const esNativo = (): boolean => esTauri() || esCapacitor();
+
+/** Detecta si la app corre en Android nativo (Tauri anterior o Capacitor actual) */
 export const esAndroid = (): boolean =>
-    esTauri() && /android/i.test(navigator.userAgent);
+    esNativo() && (
+        /android/i.test(navigator.userAgent)
+        || obtenerPlataformaCapacitor() === 'android'
+        || tieneClasePlataforma('plataformaAndroid')
+    );
 
 /** Detecta si la app corre en desktop Tauri (Windows/Mac/Linux) */
 export const esEscritorio = (): boolean =>

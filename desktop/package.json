@@ -10,8 +10,6 @@
         "tauri": "tauri",
         "tauri:dev": "tauri dev",
         "tauri:build": "tauri build",
-        "tauri:android:dev": "cross-env TAURI_DEV_HOST=192.168.0.127 tauri android dev",
-        "tauri:android:build": "tauri android build",
         "type-check": "tsc --noEmit"
     },
     "dependencies": {

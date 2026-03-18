@@ -40,6 +40,7 @@ import { guardarToken, guardarUsuario, cerrarSesionDesktop } from '@desktop/serv
 /* Google OAuth PKCE para desktop — inyectado en window para evitar imports cross-project */
 import { iniciarGoogleOAuthDesktop } from '@desktop/services/googleAuthDesktopService';
 import { iniciarGoogleOAuthMobile } from '@desktop/services/googleAuthMobileService';
+import { procesarOAuthGooglePendienteAlArrancar } from '@desktop/services/googleAuthResumeService';
 
 /* Sync service — expuesto en window para que el hook en App/React lo consuma sin dynamic imports */
 import {
@@ -125,6 +126,19 @@ const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unkn
  */
 function inyectarRutas(): void {    window.__GLORY_ROUTES__ = RUTAS_DESKTOP;}
 
+async function detectarAndroidTauri(): Promise<boolean> {
+    if (/android/i.test(navigator.userAgent)) {
+        return true;
+    }
+
+    try {
+        const { platform } = await import('@tauri-apps/plugin-os');
+        return (await platform()) === 'android';
+    } catch {
+        return false;
+    }
+}
+
 /*
  * Marca el entorno como desktop para que los services puedan bifurcar lógica.
  * Los services de la app (apiCliente, auth, etc.) leen esta flag para:
@@ -132,8 +146,9 @@ function inyectarRutas(): void {    window.__GLORY_ROUTES__ = RUTAS_DESKTOP;}
  * - Almacenar tokens en el store seguro de Tauri
  * - Registrar reproducciones offline en queue local
  */
-function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
+async function marcarEntornoDesktop(): Promise<void> {    window.__KAMPLES_DESKTOP__ = true;
     window.__KAMPLES_VERSION__ = '0.1.0';
+    const esAndroidTauri = await detectarAndroidTauri();
 
     /*
      * QL17: Inyectar clases de plataforma en <body> para CSS condicional.
@@ -143,7 +158,7 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
      * Uso en CSS: body.plataformaAndroid .miClase { ... }
      */
     document.body.classList.add('plataformaTauri');
-    if (/android/i.test(navigator.userAgent)) {
+    if (esAndroidTauri) {
         document.body.classList.add('plataformaAndroid');
     } else {
         document.body.classList.add('plataformaEscritorio');
@@ -205,17 +220,25 @@ function marcarEntornoDesktop(): void {    window.__KAMPLES_DESKTOP__ = true;
         cerrarSesionDesktop,
     };
 
+    const { invoke } = await import('@tauri-apps/api/core');
+    window.__KAMPLES_ANDROID_BRIDGE__ = {
+        leerTokenFcm: async () => invoke<string | null>('leer_token_fcm_android'),
+        leerNavegacionFcmPendiente: async () => invoke<string | null>('leer_navegacion_fcm_pendiente'),
+        leerDeepLinkPendiente: async () => invoke<string | null>('leer_deep_link_android_pendiente'),
+    };
+
     /* Google OAuth — Android usa deep links, desktop usa TcpListener local.
      * Mismo patron de inyeccion que AUTH_PERSIST. */
-    window.__KAMPLES_GOOGLE_OAUTH__ = /android/i.test(navigator.userAgent)
+    window.__KAMPLES_GOOGLE_OAUTH__ = esAndroidTauri
         ? iniciarGoogleOAuthMobile
         : iniciarGoogleOAuthDesktop;
 }
 
 async function init(): Promise<void> {
     try {
+        let oauthGooglePendienteRecuperado = false;
         console.warn('[Kamples Desktop] init() iniciando...');
-        marcarEntornoDesktop();
+        await marcarEntornoDesktop();
         inyectarRutas();
 
         /* F12 → abrir/cerrar DevTools en la app instalada para diagnostico */
@@ -231,12 +254,18 @@ async function init(): Promise<void> {
         console.warn('[Kamples Desktop] inicializarDesktop()...');
         /* Inicializar servicios desktop (auth store, sync, offline queue) */
         await inicializarDesktop();
+        oauthGooglePendienteRecuperado = await procesarOAuthGooglePendienteAlArrancar();
         console.warn('[Kamples Desktop] inicializarDesktop() completado');
 
         console.warn('[Kamples Desktop] initializeIslands()...');
         /* Inicializar el sistema de islas de Glory (hydration + SPA router) */
         initializeIslands({ appProvider: AppProvider });
         console.warn('[Kamples Desktop] initializeIslands() completado');
+
+        if (oauthGooglePendienteRecuperado) {
+            const { useNavigationStore } = await import('@/core/router/navigationStore');
+            useNavigationStore.getState().navegar('/');
+        }
     } catch (err) {
         console.error('[Kamples Desktop] ERROR FATAL en init():', err);
         /* Mostrar error visible en el DOM para diagnostico */

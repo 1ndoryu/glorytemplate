@@ -30,7 +30,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 **Infraestructura & Deploy:**
 - `App/docs/plan-websocket.md` -- WebSocket Bun standalone (chat/notif, Traefik SSL)
 - `App/docs/plan-desktop-distribucion.md` -- Distribucion desktop (exe/MSI/NSIS, auto-updates)
-- `App/docs/plan-android.md` -- Plan Android Tauri v2 (4 fases, scaffolding a nativo)
+- `App/docs/alternativa-apk-capacitor.md` -- Alternativa APK desacoplada con Capacitor
 
 **Sync & Desktop:**
 - `App/docs/plan-sync-optimizacion.md` -- Optimizacion sync (delta, indices, cache)
@@ -76,7 +76,7 @@ Este roadmap esta organizado en archivos modulares para facilitar la navegacion 
 ## Tareas QK -- Estado actual
 
 > **QK1-QK105** completadas. Detalle en `docs/roadmap/completado.md` (secciones "Sprint QK" y "Sprint QK-II").
-> **QK12/QK37** Plan Android en `App/docs/plan-android.md`. **QK18/QK22** Rediseno musica Spotify. **QK68** WebSocket real-time.
+> **QK12/QK37** vía Android/Tauri descartada; ver `App/docs/alternativa-apk-capacitor.md`. **QK18/QK22** Rediseno musica Spotify. **QK68** WebSocket real-time.
 
 ## Tareas QL -- Coolify Manager RS + Mantenimiento
 
@@ -266,14 +266,7 @@ Headers CORS manuales agregados en DescargasStreamController.php para origenes T
 4. **Contador colecciones padre corregido:** SQL `total_items` incluye samples de subcolecciones (`OR cs.coleccion_id IN (SELECT sub.id FROM colecciones sub WHERE sub.parent_id = c.id)`). Corregido en: `listarDelUsuario`, `explorarPublicas` (autenticado + anónimo).
 5. **Refactor SRP:** Menú contextual de colección extraído a `useColeccionDetalleMenu.tsx` para cumplir límite de líneas del hook.
 
-**Archivos modificados:** ColeccionesCrudController (+parent_id en PUT), ColeccionesRepository (counter fix 3 queries), ColeccionDetalleIsland (breadcrumbs + reorder), useColeccionDetalle (coleccionPadre state + import menu hook), useColeccionDetalleMenu (nuevo), useModalColeccion (parentId state + opciones), ModalColeccion (SelectorMenu padre), apiColecciones (parentId en actualizarColeccion), coleccionDetalle.css (migas CSS), modalColeccion.css (campo padre CSS).
-
-**Lecciones:**
-- [total_items SQL]: Para colecciones padre, el COUNT(*) del join directo siempre da 0 porque los samples están en las subcollecciones. La subquery con OR + IN resuelve esto sin CTE.
-- [parent_id en PUT]: array_key_exists necesario (no isset) porque null es un valor válido para hacer raíz.
-- [SelectorMenu]: Usa `valor: string`, hay que convertir `number|null` ↔ `string` ('' para null).
-
-## QL115
+## QL115 ✅ Completado
 
 Un boton en el menu contextual de las colecciones para combinar colecciones, esto abre un modal para elegir cual coleccion unir y cual nombre e imagen de portada conservar, solo se puede con las propias colecciones obviamente, sera dos slect como modalColeccionCampoPadre para elegir con quien combinar y cual sera el nombre y portada a conservar.
 
@@ -283,14 +276,14 @@ por supuesto, esto no duplica la coleccion, combinar es pasar de 2 colecciones a
 
 que este proceso se pueda deshacerse, habrá un boton de durara 7 dias para restaurar el estado anterior, 
 
-## QL116 
+## QL116 ✅ Completado
 
 poder selecionar varios samples manteniendo control y shift para selecionar rango, esto mostrara un mini modal pequeño inferior igual como el reproductor, de hecho, si el reproductor esta abierto en ese momento, tiene que quitarlo para mostrar esto, pero tecnicamente el mismo tamño del reproductor, el mismo estilo con los botones, etc, contendra el boton de like, colecionar (no confundir con guardar en coleccion) y guardar en coleccion, eliminar (si el usuario esta selecionando sus samples), descargar, (iconos todos sin texto), reportar, y todas estas opciones tienen que manejar la capacidad de aplicar cambios a multiples samples. 
 
 cuando se selecione un sample simplemente su fondo se vuelve muted, 
 
 
-## QL117
+## QL117 ✅ Completado
 
 ✅ [AG-COL] Rotación de modelos en groq_validator.py.
 
@@ -302,21 +295,21 @@ cuando se selecione un sample simplemente su fondo se vuelve muted,
 - `groq_validator.py`: Rotación de 3 modelos (`llama-3.3-70b-versatile` → `qwen/qwen3-32b` → `meta-llama/llama-4-scout-17b-16e-instruct`). Cada modelo tiene cuota independiente en Groq — un 429 en uno no afecta otro. Nueva función `_intentar_modelo()` retorna `bool|None` (None=reintentable, pasa al siguiente). Errores 400/401/403 no reintentan (permanentes). Headers User-Agent falsos eliminados.
 - Manejo de errores QL111 preservado: JSON corrupto → rechazar (False), red/429 → probar siguiente modelo, todos fallan → permisivo (True).
 
-## QL118
+## QL118 ✅ Completado
 
 Un boton al lado del ordenamiento en la pagina de librería para cambiar la vista de las colecciones, la vista actual es cuadricula por defecto la que tiene ahora, y la que propongo nueva como opciones vista de lista, 
 
-## QL119
+## QL119 ✅ Completado
 
 No se que sucede exactamente cuando se borra una coleccion, pero supongo que los samples se quedan sin coleccion. 
 
 Entonces lo que quiero, es que cuando se de borrar a una coleccion se abra un modal con un select para elegir si se borra los samples o sin borrar los samples. Si es una coleccion con hijas, entonces pregunta si borrar las hijas o simplemente dejarlas sin padre, otro select para preguntar si borrar tambien los samples de las hijas que caso de que se eliga borrar las colecciones hija o dejar los samples de las colecciones sin colecciones, todo esto debe manejarse bien y pulirse. 
 
-## QL120
+## QL120 ✅ Completado
 
 Tenog una duda sobre lo que propongo de combinar colecciones, cuando combinas dos colecciones padre ¿que pasa con sus hijas? esto tiene que manejarse bien el modal. Y si combinas una hija con un padre, pero esa hija tiene tambien colecciones ia. 
 
-## QL121 La mas importante
+## QL121 ✅ Completado
 
 Algo fatal paso, habia subido una carpeta, con subcarpetas, las colecciones se crearon bien, todo esta bien, pero luego subi otra carpeta nueva con mas subcarpetas, se estaban subiendo pero se borraon las colecciones anteriores, esto no tiene que suceder, es fatal, cuando la opcion de borrar localmente despues de subir este activa, las colecciones no tienen que borrarse, pero no fue como eliminar, fue como un renombre, por ejemplo 
 veo que dice la url https://kamples.com/coleccion/freddie-dredd-drum-kit-vol-1-7/ pero el nombre de la coleccion cambio a DJ Smokey NukeKiT y todo lo de esa carpeta se combino con la coleccion freddie, entocnes el problema es que el sync uso compartamiento por defecto de ordenar las colecciones en base a las carpetas del usuario, pero esto no debe sucuder cuando el modo es "eliminar tras subida" 
@@ -327,26 +320,6 @@ solo tengo 2 opciones, la ubicacion de las carpetas de subida se guardo en el se
 
 el 98% de los samples se subieron desde el sync, si no tienen ubicación guardada, entonces elimina todos los samples para poder volverlos a subir, y revisa que el sync detecte bien que estan elimiandos en el servidor para dejar que los suba
 
-## QL121-EXTRA 
-
-¿Estas seguro? Veo samples de freddie en https://kamples.com/coleccion/dj-smokey-nukekit/ 
-
-y https://kamples.com/coleccion/dj-smokey-nukekit/ no tiene las subcarpeta originales o sea no tiene subcolecciones
-
-repito, si no se puede restaurar el orden correcto porque no se guardo la metadata de la ubicación original, entonces ajusta para que todo lo que suba mediante el sync se guarde la carpeta en la metadata y borra todo lo del usuario 4 para volver a subir todo desde cero. 
-
-Ahora hay otro problema, despues de tus cambios en QL121, ya no se detecta o sube mas samples xddd, no veo logs de subida ni nada, no esta subiendo nada. 
-
-La verdad esto es un desastre, reptio, sino hay info de la metadata de la ubicación original para poder restablecer bien las colecciones entonces borra todos los samples del usuario 4 y yo vuelvo a subir, pero esta vez, asegurate de que todo funcione bien, y ve proque dejo detectarse para subir.
-
-estos son los unicos logs
-
-[AuthDesktop] Init — LS: OK | tokenLS: true | userLS: true
-uploadQueueService-CloPPvVM.js:50 [AuthDesktop] TauriStore — token: true | user: true
-uploadQueueService-CloPPvVM.js:50 [AuthDesktop] Init OK — token: true, user: true
-uploadQueueService-CloPPvVM.js:49 [sync:syncService] Inicializando sync service Object
-uploadQueueService-CloPPvVM.js:49 [sync:journal] Checkpoint cargado correctamente 
-uploadQueueService-CloPPvVM.js:49 [sync:tracking] Estado recuperado desde journal 
 
 ## QL122
 
@@ -414,25 +387,119 @@ uploadQueueService-CloPPvVM.js:49 [sync:tracking] Estado recuperado desde journa
 
 ## QL136
 
-[EN CURSO — AG-COL] Auditoria/refactor sync v2.
+✅ [AG-APK] Línea Android/Tauri descartada y retirada del árbol operativo.
 
-**Estado:** auditoria SOLID en marcha + subfase aplicada. Ya corregido en código: (1) escaneo inicial recursivo sin límite artificial; (2) watcher de archivos pasa la ruta completa de carpetas al upload, sin truncar profundidad; (3) `DeduplicadorAudio` deja de reutilizar `audio_hash` y guarda el fingerprint perceptual separado/versionado; (4) el encolado por archivo baja a `debug` y el escaneo emite un resumen estructurado por sesión.
+**Decisión 2026-03-17:** a petición del proyecto, se abandona la vía APK con Tauri. Se eliminaron scripts Android, artefactos APK firmados, targets Android de Rust y el proyecto Gradle generado en `desktop/src-tauri/gen/android`.
 
-Antes de hacer esto primero asegurate de que todo este commiteado.
+**Estado resultante:**
+- Desktop actual se conserva.
+- Ya no existe una ruta soportada para compilar APK desde este repo.
+- La alternativa propuesta para retomar Android está documentada en `App/docs/alternativa-apk-capacitor.md`.
 
-Veo que el sync no es un buen codigo, tiene mucha logica dispersa, no maneja bien los archivo dependiendo de que modo esta, etc. 
+**Lección:** no volver a acoplar Android al empaquetado desktop. La próxima APK debe vivir en un proyecto móvil separado.
 
-Haz una auditoria solid completa y detallada al sync, con todas las posibles mejoras, problemas, riegos de rafactorizacion y una planificacion detallada para refactorizar, pulir, mitigando riegos, y trabaja en ello, con cuidado. 
+## QL136-CAP
 
-Planifica una mejora para la detencion de duplicados, antispam sin romper la capacidad de subir archivos fueron eliminados, que no existen el servidor, etc. 
+[AG-CAP] Scaffold móvil Capacitor para correr la app desde Android Studio sin reintroducir Android en Tauri.
 
-Enfocate en hacer el sync mas depurable, un log local para que puedas leer todo lo que hace darte cuenta de cualquier fallo.
+**Resultado:** `mobile/` creado como proyecto nativo separado con Capacitor, `mobile/android/` generado, scripts `android:sync`, `android:open` y `android:run` listos. La carga actual se hace por URL web real porque la base `Glory/assets/react` sigue siendo un build de WordPress/islas y no una SPA standalone.
 
+**Ajuste 2026-03-17:** wrapper Android cambiado a `gradle-8.2.1-bin.zip` y `android:open` separado de `android:sync` para no repetir descargas y sincronizaciones pesadas al abrir Android Studio.
 
+**Lección:** para una APK completamente autónoma habrá que extraer una entrada móvil propia; mientras tanto, Android Studio ya puede usarse sobre el shell nativo separado.
 
+## RP1
 
+Compactar las tareas completadas anteriores o volverlas a otro md. 
 
+## RP2 
 
+En la pagina de librería donde aparece las colecciones, la vida y el ordenamiento tiene que persistir aunque se recargue. 
+
+La vista de arbol esta mal, los hijos no se muestran debajo de su padre tiene que ser una condición estricta independientemente del ordenamiento. 
+
+## RP3
+
+La busqueda dentro de las colecciones sigue sin funcionar. 
+
+## RP4 
+
+Hay incosistencias entre el contador afuera de la coleccion en la lista de colecciones y el contador dentro de la colección ¿cual es la real? tambien hay inconsistencia entre el menu contextual de 3 puntos en la lista de colecciones y dentro de las colecciones.
+
+## RP5
+
+Un boton en el menu contextual de los samples para ir la colección original, eso significa que si el sample esta en una coleccion que pertenece al quien lo subio, entonces el boton lleva a esa coleccion, sino no se muestra el boton. 
+
+tambien implica que en la pagina de detalles de ese sample, haya un boton especifico fuera de los 3 puntos para abrir la coleccion original, en detalleAcciones. Y que en detalleTagsHome haya un tag especifica que abra esa coleccion original con ese nombre.
+
+## RP6 
+
+Intenta bajar la primera pagina a 30 ms, no se, alguna tecnica o algo que haga que la primera carga sea ligera y despues de fondo cargue el resto, hay un md sobre esto
+
+PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate> ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"
+Ejecutando benchmark: userId=1 perPage=30
+Timeout: 120s
+
+==========================================================
+  BENCHMARK ALGORITMO — KAMPLES (ejecucion unica)
+==========================================================
+Fecha:                2026-03-18 01:02:52
+Usuario ID:           1
+Samples por pagina:   30
+Total samples activos:984
+pgvector activo:      SI
+Pipeline candidatos:  NO (<5000)
+Vista mat. trending:  SI
+Config version:       df224c3e
+Pesos: sim=0.28 comp=0.27 ctx=0.15 trend=0.12 social=0.1 nov=0.08
+Timeout: 120s proceso / 30s por query PG
+==========================================================
+
+[1/8] Perfil usuario (sin cache)...
+      55.7ms
+[2/8] Conteo samples activos...
+      3.7ms (984 samples)
+[3/8] Verificacion pgvector...
+      15.4ms
+[4/8] Generacion SQL senales...
+      Comportamiento: 0.78ms
+      Contexto:       0.19ms
+      Tendencias:     0.02ms
+      Grafo social:   0.01ms
+      Similitud:      3.21ms
+[5/8] FEED pag 1 (sin cache)...
+      259.3ms (33 samples)
+[6/8] FEED pag 2 (sin cache)...
+      169.7ms (33 samples)
+[7/8] FEED pag 3 (sin cache)...
+      162.5ms (33 samples)
+[8/8] FEED pag 3 con cache (hit)...
+      1.2ms
+
++----------------------------------------------------+----------+
+| Componente                                         | Tiempo   |
++----------------------------------------------------+----------+
+| PerfilUsuario::construir (sin cache)               |    55.7ms |
+| Conteo samples activos (SQL COUNT)                 |     3.7ms |
+| Verificacion pgvector                              |    15.4ms |
+| SQL gen: Comportamiento (0.27)                     |     0.8ms |
+| SQL gen: Contexto (0.15)                           |     0.2ms |
+| SQL gen: Tendencias (0.12)                         |     0.0ms |
+| SQL gen: Grafo Social (0.1)                        |     0.0ms |
+| SQL gen: Similitud pgvector (0.28)                 |     3.2ms |
+| >> FEED pag1 sin cache <<                          |   259.3ms |
+| >> FEED pag2 sin cache <<                          |   169.7ms |
+| >> FEED pag3 sin cache <<                          |   162.5ms |
+| Feed pag3 cache hit                                |     1.2ms |
++----------------------------------------------------+----------+
+| PROMEDIO feed sin cache (3 pags)                   |   197.2ms |
++----------------------------------------------------+----------+
+
+=== RESUMEN (para documentacion) ===
+Fecha: 2026-03-18 01:02:52 | Config: df224c3e
+Samples: 984 | pgvector: SI | Pipeline: NO
+Feed pag1: 259ms | pag2: 170ms | pag3: 162ms | promedio: 197ms | cache: 1ms
+Perfil: 56ms | Conteo: 4ms
 
 
 
@@ -440,27 +507,21 @@ Enfocate en hacer el sync mas depurable, un log local para que puedas leer todo 
 
 # Build 
 
-✅ [AG-MNT] Build APK + instalador desktop completado.
+✅ [AG-MNT] Build desktop completado.
 
 **Rebuild QL122-QL132 validado:**
-- **APK Android firmado:** `desktop\src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release-unsigned.apk` (50.2 MB)
 - **Instalador Windows NSIS:** `C:\cargo-target\kamples\release\bundle\nsis\Kamples_0.1.0_x64-setup.exe`
 - **Instalador Windows MSI:** `C:\cargo-target\kamples\release\bundle\msi\Kamples_0.1.0_x64_en-US.msi`
 
 **Warnings no bloqueantes del rebuild:**
 - Vite: warnings de chunking/dynamic import (sin fallo de build).
 - Rust/Tauri: `tauri_plugin_shell::Shell::open` deprecated; pendiente migrar a opener plugin.
-- Gradle: warnings deprecados compatibles con build actual; APK generado correctamente.
 
 **Fixes aplicados durante build:**
 - `tauri.conf.json`: deep-link `"scheme": "kamples"` → `"scheme": ["kamples"]` (tauri-plugin-deep-link v2.4.7 requiere array).
-- WDAC: artifacts stale en `C:\cargo-target\kamples\release\build\tauri-plugin-deep-link-*` bloqueaban build. Limpiados.
-- Build universal (4 archs) fallaba en x86/i686 — compilado solo arm64 (aarch64) que cubre 99%+ dispositivos reales.
 
 **Lecciones:**
 - [tauri deep-link]: Plugin v2.4.7 cambió `scheme` de string a array. Error: `"invalid type: string, expected a sequence"`.
-- [Android build]: Build universal compila 4 targets (aarch64, armv7, i686, x86_64). Si x86 falla por WDAC o timeout, usar `--target aarch64` para arm64-only.
-- [WDAC]: Windows Application Control puede bloquear build scripts autogenerados por Cargo en OneDrive. `CARGO_TARGET_DIR` fuera de OneDrive es obligatorio, pero stale artifacts aún pueden causar bloqueo.
 
 
 ---

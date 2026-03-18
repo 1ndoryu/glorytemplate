@@ -8,6 +8,11 @@ interface Window {
     __KAMPLES_DESKTOP__?: boolean;
     __KAMPLES_VERSION__?: string;
     __TAURI_INTERNALS__?: unknown;
+    __KAMPLES_ANDROID_BRIDGE__?: {
+        leerTokenFcm: () => Promise<string | null>;
+        leerNavegacionFcmPendiente: () => Promise<string | null>;
+        leerDeepLinkPendiente: () => Promise<string | null>;
+    };
     /* GLORY_CONTEXT y __GLORY_ROUTES__ se declaran en Glory/assets/react/src/types/glory.ts.
      * No re-declararlos aqui para evitar conflictos de tipado (TS2717). */
     /* C341: Sync bidireccional — funciones expuestas en window */

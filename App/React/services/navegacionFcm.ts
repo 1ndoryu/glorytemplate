@@ -11,18 +11,11 @@
  */
 
 import { crearLogger } from './logger';
+import { esAndroid } from '@app/utils/plataforma';
 
 const log = crearLogger('navegacionFcm');
-
-const ARCHIVO_NAVEGACION = 'pending_navigation.json';
 /* Navegaciones mas antiguas a 5 minutos se descartan */
 const MAX_ANTIGUEDAD_MS = 5 * 60 * 1000;
-
-const esTauri = (): boolean =>
-    typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
-
-const esAndroid = (): boolean =>
-    esTauri() && /android/i.test(navigator.userAgent);
 
 /**
  * Verificar si hay una navegacion pendiente de una notificacion FCM.
@@ -32,19 +25,8 @@ export async function leerNavegacionPendiente(): Promise<string | null> {
     if (!esAndroid()) return null;
 
     try {
-        const { readTextFile, remove, exists, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-
-        const existeArchivo = await exists(ARCHIVO_NAVEGACION, { baseDir: BaseDirectory.AppData });
-        if (!existeArchivo) return null;
-
-        const contenido = await readTextFile(ARCHIVO_NAVEGACION, { baseDir: BaseDirectory.AppData });
-
-        /* Eliminar inmediatamente para evitar re-procesamiento */
-        try {
-            await remove(ARCHIVO_NAVEGACION, { baseDir: BaseDirectory.AppData });
-        } catch {
-            /* No critico si falla la eliminacion */
-        }
+        const contenido = await window.__KAMPLES_ANDROID_BRIDGE__?.leerNavegacionFcmPendiente?.();
+        if (!contenido) return null;
 
         const datos = JSON.parse(contenido) as { enlace?: string; timestamp?: number };
         if (!datos.enlace) return null;

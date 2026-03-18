@@ -11,14 +11,9 @@
 
 import { crearLogger } from './logger';
 import { apiPost } from './apiCliente';
+import { esAndroid } from '@app/utils/plataforma';
 
 const log = crearLogger('fcmToken');
-
-const esTauri = (): boolean =>
-    typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
-
-const esAndroid = (): boolean =>
-    esTauri() && /android/i.test(navigator.userAgent);
 
 /**
  * Leer token FCM del archivo escrito por el servicio nativo.
@@ -28,25 +23,8 @@ async function leerTokenFcm(): Promise<string | null> {
     if (!esAndroid()) return null;
 
     try {
-        const { readTextFile, exists, BaseDirectory } = await import('@tauri-apps/plugin-fs');
-        const archivo = 'fcm_token.txt';
-
-        /* Verificar si el archivo existe en appData */
-        const existeAppData = await exists(archivo, { baseDir: BaseDirectory.AppData });
-        if (existeAppData) {
-            const token = await readTextFile(archivo, { baseDir: BaseDirectory.AppData });
-            return token.trim() || null;
-        }
-
-        /* Fallback: intentar en AppLocalData */
-        const existeLocal = await exists(archivo, { baseDir: BaseDirectory.AppLocalData });
-        if (existeLocal) {
-            const token = await readTextFile(archivo, { baseDir: BaseDirectory.AppLocalData });
-            return token.trim() || null;
-        }
-
-        log.debug('Archivo fcm_token.txt no encontrado');
-        return null;
+        const token = await window.__KAMPLES_ANDROID_BRIDGE__?.leerTokenFcm?.();
+        return token && token.trim() ? token.trim() : null;
     } catch (err) {
         log.debug('Error leyendo token FCM:', err);
         return null;

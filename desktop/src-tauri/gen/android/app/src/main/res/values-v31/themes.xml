@@ -1,8 +1,0 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Android 12+ Splash Screen API (QL26) -->
-    <style name="Theme.kamples_desktop" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">#070707</item>
-        <item name="android:windowSplashScreenBackground">#070707</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-    </style>
-</resources>

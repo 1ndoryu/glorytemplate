@@ -73,17 +73,27 @@ class ColeccionesCrudController
         }
 
         /* parentId: la validación de profundidad y propiedad se delega al repository */
-        $id = ColeccionesRepository::crear($userId, $nombre, $descripcion, $publica, $parentId);
+        $resultadoCreacion = ColeccionesRepository::crear($userId, $nombre, $descripcion, $publica, $parentId);
+        $id = $resultadoCreacion['id'] ?? null;
+        $creada = (bool) ($resultadoCreacion['creada'] ?? false);
+        $errorCreacion = $resultadoCreacion['error'] ?? null;
 
-        if ($id === null && $parentId !== null) {
+        if ($errorCreacion === 'parent_invalido') {
             return new \WP_REST_Response([
                 'code' => 'parent_invalido',
                 'message' => 'El padre no existe, no pertenece al usuario o excede la profundidad máxima (2 niveles)',
             ], 400);
         }
 
+        if ($id === null) {
+            return new \WP_REST_Response([
+                'code' => 'error_crear_coleccion',
+                'message' => 'No se pudo crear la colección',
+            ], 500);
+        }
+
         /* F2.1: Registrar en changelog para delta sync (M4: verificar retorno) */
-        if ($id !== null) {
+        if ($creada) {
             $changelogId = SyncChangelogRepository::registrar(
                 $userId,
                 SyncChangelogEnums::TIPO_COLLECTION_CREATED,
@@ -95,7 +105,7 @@ class ColeccionesCrudController
             }
         }
 
-        return new \WP_REST_Response(['ok' => true, 'id' => $id], 201);
+        return new \WP_REST_Response(['ok' => true, 'id' => $id, 'creada' => $creada], $creada ? 201 : 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesCrudController::crear', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
@@ -153,9 +163,10 @@ class ColeccionesCrudController
             $params[ColeccionesCols::PUBLICA] = ((bool) $body['publica']) ? 'true' : 'false';
         }
         /* imagenUrl es el campo canónico del frontend (normalizarColeccion → imagen_url) */
-        if (isset($body['imagenUrl'])) {
+        if (array_key_exists('imagenUrl', $body) || array_key_exists(ColeccionesCols::IMAGEN_URL, $body)) {
             $campos[] = ColeccionesCols::IMAGEN_URL . ' = :imagen';
-            $params['imagen'] = esc_url_raw($body['imagenUrl']);
+            $imagenBruta = $body['imagenUrl'] ?? $body[ColeccionesCols::IMAGEN_URL] ?? null;
+            $params['imagen'] = $imagenBruta !== null ? esc_url_raw((string) $imagenBruta) : null;
         }
 
         /*
@@ -177,8 +188,9 @@ class ColeccionesCrudController
                     return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'La colección padre no existe'], 400);
                 }
                 $ownerIdPadre = (int) ($padre[ColeccionesCols::USUARIO_ID] ?? 0);
-                if (!$esAdmin && $ownerIdPadre !== $userId) {
-                    return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'La colección padre no pertenece al usuario'], 403);
+                $ownerIdColeccion = (int) ($coleccion[ColeccionesCols::USUARIO_ID] ?? $userId);
+                if ($ownerIdPadre !== $ownerIdColeccion) {
+                    return new \WP_REST_Response(['code' => 'parent_invalido', 'message' => 'La colección padre debe pertenecer al mismo usuario que la colección editada'], 403);
                 }
                 /* Profundidad máxima 2: padre no puede tener parent_id */
                 if (!empty($padre[ColeccionesCols::PARENT_ID])) {
@@ -205,13 +217,38 @@ class ColeccionesCrudController
         $versionCliente = isset($body['version']) ? (int) $body['version'] : null;
         $actualizado = ColeccionesRepository::actualizarCampos($id, $campos, $params, $versionCliente);
 
-        if (!$actualizado && $versionCliente !== null) {
-            /* Version mismatch: otro cliente/tab modifico la coleccion primero */
+        if (!$actualizado) {
+            $ownerIdColeccion = (int) ($coleccion[ColeccionesCols::USUARIO_ID] ?? $userId);
+            $nombreObjetivo = (string) ($params['nombre'] ?? ($coleccion[ColeccionesCols::NOMBRE] ?? ''));
+            $parentIdObjetivo = array_key_exists('parentId', $params)
+                ? ($params['parentId'] !== null ? (int) $params['parentId'] : null)
+                : (isset($coleccion[ColeccionesCols::PARENT_ID]) ? (int) $coleccion[ColeccionesCols::PARENT_ID] : null);
+
+            $conflictoNombre = $nombreObjetivo !== ''
+                ? ColeccionesRepository::buscarIdPorNombreEnJerarquia($ownerIdColeccion, $nombreObjetivo, $parentIdObjetivo, $id)
+                : null;
+
+            if ($conflictoNombre !== null) {
+                return new \WP_REST_Response([
+                    'code' => 'conflicto_nombre',
+                    'message' => 'Ya existe otra colección con ese nombre en la misma ubicación.',
+                    'coleccionId' => $conflictoNombre,
+                ], 409);
+            }
+
+            if ($versionCliente !== null) {
+                /* Version mismatch: otro cliente/tab modifico la coleccion primero */
+                return new \WP_REST_Response([
+                    'code' => 'conflicto_version',
+                    'message' => 'La colección fue modificada por otro cliente. Sincroniza y reintenta.',
+                    'versionServidor' => (int) ($coleccion[ColeccionesCols::VERSION] ?? 1),
+                ], 409);
+            }
+
             return new \WP_REST_Response([
-                'code' => 'conflicto_version',
-                'message' => 'La colección fue modificada por otro cliente. Sincroniza y reintenta.',
-                'versionServidor' => (int) ($coleccion[ColeccionesCols::VERSION] ?? 1),
-            ], 409);
+                'code' => 'error_actualizar_coleccion',
+                'message' => 'No se pudo actualizar la colección.',
+            ], 500);
         }
 
         /* F2.1: Registrar rename en changelog si cambio el nombre (M4: verificar retorno) */

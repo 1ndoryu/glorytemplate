@@ -12,16 +12,9 @@
  */
 
 import { crearLogger } from './logger';
+import { esAndroid, esTauri } from '@app/utils/plataforma';
 
 const log = crearLogger('notificacionNativa');
-
-/* Detectar si estamos en entorno Tauri */
-const esTauri = (): boolean =>
-    typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
-
-/* Detectar si estamos en Android */
-const esAndroid = (): boolean =>
-    esTauri() && /android/i.test(navigator.userAgent);
 
 /* IDs de canales Android (POST_NOTIFICATIONS requiere canales en API 26+) */
 const CANAL_NOTIFICACIONES = 'notificaciones';

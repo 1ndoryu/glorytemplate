@@ -475,21 +475,55 @@ class ColeccionesRepository extends BaseRepository
         $t = ColeccionesCols::TABLA;
 
         return static::consultarUno(
-            "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::VERSION
+            "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::VERSION
             . " FROM {$t} WHERE " . ColeccionesCols::ID . " = :id AND " . ColeccionesCols::USUARIO_ID . " = :userId",
             ['id' => $id, 'userId' => $userId]
         );
     }
 
     /*
-     * Crear colección y retornar ID.
-     * Incluye dedup: si ya existe una colección con el mismo nombre
-     * (case-insensitive) para el mismo usuario dentro del mismo padre, retorna el ID existente.
+     * Buscar colección por nombre dentro de la misma jerarquía (raíz o mismo padre).
+     * Se usa como lectura de apoyo para dedup y conflictos de rename.
+     */
+    public static function buscarIdPorNombreEnJerarquia(int $userId, string $nombre, ?int $parentId, ?int $excluirId = null): ?int
+    {
+        $t = ColeccionesCols::TABLA;
+        $params = ['userId' => $userId, 'nombre' => $nombre];
+        $wherePadre = $parentId !== null
+            ? 'c.' . ColeccionesCols::PARENT_ID . ' = :parentId'
+            : 'c.' . ColeccionesCols::PARENT_ID . ' IS NULL';
+
+        if ($parentId !== null) {
+            $params['parentId'] = $parentId;
+        }
+
+        $sql = "SELECT c." . ColeccionesCols::ID . " FROM {$t} c"
+            . " WHERE c." . ColeccionesCols::USUARIO_ID . " = :userId"
+            . " AND LOWER(c." . ColeccionesCols::NOMBRE . ") = LOWER(:nombre)"
+            . " AND {$wherePadre}";
+
+        if ($excluirId !== null) {
+            $sql .= " AND c." . ColeccionesCols::ID . " <> :excluirId";
+            $params['excluirId'] = $excluirId;
+        }
+
+        $sql .= " LIMIT 1";
+
+        $fila = static::consultarUno($sql, $params);
+
+        return $fila ? (int) $fila[ColeccionesCols::ID] : null;
+    }
+
+    /*
+     * Crear colección y retornar resultado.
+     * Incluye dedup atómico apoyado en el índice único por (usuario, padre/raíz, LOWER(nombre)).
      * parentId: null = colección raíz, int = subcolección.
      * Validación de profundidad máxima (2 niveles) se realiza aquí:
      * si el padre ya tiene parent_id, se rechaza la creación.
+     *
+     * @return array{id: ?int, creada: bool, error: ?string}
      */
-    public static function crear(int $userId, string $nombre, string $descripcion, bool $publica, ?int $parentId = null): ?int
+    public static function crear(int $userId, string $nombre, string $descripcion, bool $publica, ?int $parentId = null): array
     {
         $t = ColeccionesCols::TABLA;
 
@@ -502,59 +536,40 @@ class ColeccionesRepository extends BaseRepository
             );
 
             if (!$padre) {
-                return null;
+                return ['id' => null, 'creada' => false, 'error' => 'parent_invalido'];
             }
 
             /* Padre debe pertenecer al mismo usuario */
             if ((int) $padre[ColeccionesCols::USUARIO_ID] !== $userId) {
-                return null;
+                return ['id' => null, 'creada' => false, 'error' => 'parent_invalido'];
             }
 
             /* Máximo 2 niveles: padre no puede tener parent_id */
             if (!empty($padre[ColeccionesCols::PARENT_ID])) {
-                return null;
+                return ['id' => null, 'creada' => false, 'error' => 'parent_invalido'];
             }
-        }
-
-        /* Dedup: verificar existencia por (usuario, nombre, padre) — case-insensitive */
-        $parentCondition = $parentId !== null
-            ? ColeccionesCols::PARENT_ID . " = :parentId"
-            : ColeccionesCols::PARENT_ID . " IS NULL";
-
-        $params = ['userId' => $userId, 'nombre' => $nombre];
-        if ($parentId !== null) {
-            $params['parentId'] = $parentId;
-        }
-
-        $existente = static::consultarUno(
-            "SELECT " . ColeccionesCols::ID . " FROM {$t} WHERE " . ColeccionesCols::USUARIO_ID . " = :userId AND LOWER(" . ColeccionesCols::NOMBRE . ") = LOWER(:nombre) AND {$parentCondition} LIMIT 1",
-            $params
-        );
-        if ($existente) {
-            return (int) $existente[ColeccionesCols::ID];
         }
 
         $insertParams = [
             'userId' => $userId,
+            'parentId' => $parentId,
             'nombre' => $nombre,
             'desc' => $descripcion,
             ColeccionesCols::PUBLICA => $publica ? 'true' : 'false',
         ];
 
-        if ($parentId !== null) {
-            $insertParams['parentId'] = $parentId;
-            $newId = static::insertar(
-                "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
-                 VALUES (:userId, :parentId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
-                $insertParams
-            );
-        } else {
-            $newId = static::insertar(
-                "INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")
-                 VALUES (:userId, :nombre, :desc, :publica) RETURNING " . ColeccionesCols::ID,
-                $insertParams
-            );
-        }
+        $insertada = static::consultarUno(
+            "WITH insertada AS ("
+            . " INSERT INTO {$t} (" . ColeccionesCols::USUARIO_ID . ", " . ColeccionesCols::PARENT_ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::DESCRIPCION . ", " . ColeccionesCols::PUBLICA . ")"
+            . " VALUES (:userId, :parentId, :nombre, :desc, :publica)"
+            . " ON CONFLICT (" . ColeccionesCols::USUARIO_ID . ", (COALESCE(" . ColeccionesCols::PARENT_ID . ", 0)), (LOWER(" . ColeccionesCols::NOMBRE . "))) DO NOTHING"
+            . " RETURNING " . ColeccionesCols::ID . " AS " . ColeccionesCols::ID
+            . ")"
+            . " SELECT " . ColeccionesCols::ID . " FROM insertada",
+            $insertParams
+        );
+
+        $newId = $insertada ? (int) $insertada[ColeccionesCols::ID] : null;
 
         /* Generar y asignar slug con el ID recién creado */
         if ($newId) {
@@ -563,9 +578,16 @@ class ColeccionesRepository extends BaseRepository
                 "UPDATE {$t} SET " . ColeccionesCols::SLUG . " = :slug WHERE " . ColeccionesCols::ID . " = :id",
                 ['slug' => $slug, 'id' => $newId]
             );
+
+            return ['id' => $newId, 'creada' => true, 'error' => null];
         }
 
-        return $newId;
+        $existenteId = self::buscarIdPorNombreEnJerarquia($userId, $nombre, $parentId);
+        if ($existenteId !== null) {
+            return ['id' => $existenteId, 'creada' => false, 'error' => null];
+        }
+
+        return ['id' => null, 'creada' => false, 'error' => 'insert_fallido'];
     }
 
     /*
