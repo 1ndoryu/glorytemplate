@@ -335,7 +335,10 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
     /* Infinite scroll con IntersectionObserver estable + throttle progresivo.
      * El observer se crea una sola vez y lee estado desde refs para evitar churn.
-     * rootMargin: 600px da mas buffer de prefetch para carga fluida. */
+     * rootMargin: 600px da mas buffer de prefetch para carga fluida.
+     * [183A-86] primeraCargaCompleta en deps: cuando no hay cache, el componente
+     * muestra skeleton (early return) sin sentinel en el DOM. El observer necesita
+     * re-crearse cuando primeraCargaCompleta pasa a true y el sentinel aparece. */
     useEffect(() => {
         if (!infiniteScroll) return;
         const sentinela = sentinelaRef.current;
@@ -361,7 +364,34 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
 
         observer.observe(sentinela);
         return () => observer.disconnect();
-    }, [infiniteScroll, cargarPagina, throttle.programarCarga]);
+    }, [infiniteScroll, cargarPagina, throttle.programarCarga, primeraCargaCompleta]);
+
+    /* [183A-86] Fallback: IntersectionObserver solo dispara cuando la intersección
+     * CAMBIA (entra/sale de zona). Si el sentinel ya estaba visible cuando el observer
+     * se creó y el guard (cargandoRef) bloqueó, el observer no re-dispara porque el
+     * sentinel nunca sale y re-entra en la zona de 600px. Este effect complementa al
+     * observer: cuando una carga termina (cargando/cargandoMas → false), verifica
+     * manualmente si el sentinel sigue visible para disparar la siguiente página. */
+    useEffect(() => {
+        if (!infiniteScroll || cargando || cargandoMas) return;
+        if (!hayMasPaginas || !primeraCargaCompleta) return;
+        const sentinela = sentinelaRef.current;
+        if (!sentinela) return;
+
+        const raf = requestAnimationFrame(() => {
+            const rect = sentinela.getBoundingClientRect();
+            const enZona = rect.top < window.innerHeight + 600;
+            if (enZona && !cargandoMasRef.current && !cargandoRef.current && hayMasPaginasRef.current) {
+                const nuevaPagina = paginaActualRef.current + 1;
+                throttle.programarCarga(nuevaPagina, () => {
+                    setPaginaActual(nuevaPagina);
+                    cargarPagina(nuevaPagina, false);
+                });
+            }
+        });
+
+        return () => cancelAnimationFrame(raf);
+    }, [cargando, cargandoMas, infiniteScroll, hayMasPaginas, primeraCargaCompleta, cargarPagina, throttle.programarCarga]);
 
     /* Virtualización: ajustar rango visible al scroll */
     useEffect(() => {
