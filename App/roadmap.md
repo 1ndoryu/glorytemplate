@@ -37,14 +37,11 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-20:** Login con nombre actualizado (fallback por PG username). 2026-03-18.
 - **183A-22+22-A+22-B:** Botones like y guardar separados en tarjeta de colección. 2026-03-18.
 - **183A-23:** Inconsistencia de conteo entre lista y detalle (total_items sin filtro estado). 2026-03-18.
+- **183A-18:** Buscador en el landing de no autenticados → /descubrir/. 2026-03-18.
 - Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
 
-
-## 183A-18
-
-Cambiar los botones de inicio por un buscador que rediriga a https://kamples.com/descubrir/ haciendo una busqueda. 
 
 ## 183A-19
 
@@ -109,3 +106,15 @@ Perfil: 33ms | Conteo: 9ms
 === FIN ===
 
 Lo que necesito un plan agresivo y revision del algorito (ya habia un plan en los docs viejo, revisa), planifica mas optimizaciones agresivas sin que el algoritmo pierda calidad, la meta reducir el tiempo a 50ms promedio sin cache. 
+
+## 183A-31
+
+La pagina de musica carga lento a veces, revisar y optimizar.
+
+## 183A-32
+
+agregar un boton del like a a las caciones dentro de 
+<div class="tarjetaCancionGrandeInfo" role="button" tabindex="0"><p class="tarjetaCancionGrandeTitulo">Think (About It)</p><p class="tarjetaCancionGrandeArtista">Lyn Collins</p></div>
+tambien falta uno al lado del boton de 3 puntos dentro de la cancion 
+
+## 

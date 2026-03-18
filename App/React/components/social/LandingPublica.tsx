@@ -5,11 +5,13 @@
  * Lógica extraída a useLandingPublica.
  */
 
-import {Download} from 'lucide-react';
+import {Download, Search} from 'lucide-react';
 import {BotonBase} from '@app/components/ui/BotonBase';
+import {Input} from '@app/components/ui/Input';
 import {useLandingPublica} from '@app/hooks/useLandingPublica';
 import {GloryLink} from '@/core/router';
 import { resolverRutaAsset } from '@app/utils/resolverRutaAsset';
+import { useState, type KeyboardEvent } from 'react';
 import '../../styles/componentes/landingPublica.css';
 
 /* Versión de assets SVG para cache-busting (incrementar al modificar los SVGs) */
@@ -32,6 +34,19 @@ const SVG_H = 717;
 export const LandingPublica = (): JSX.Element => {
     const {abrirAuth} = useLandingPublica();
     const svgs = rutasSvg();
+    const [busqueda, setBusqueda] = useState('');
+
+    const irADescubrir = () => {
+        const q = busqueda.trim();
+        const url = q
+            ? `https://kamples.com/descubrir/?q=${encodeURIComponent(q)}`
+            : 'https://kamples.com/descubrir/';
+        window.location.href = url;
+    };
+
+    const manejarTecla = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') irADescubrir();
+    };
 
     return (
         <div className="landingPublica" id="landingPublica">
@@ -45,6 +60,22 @@ export const LandingPublica = (): JSX.Element => {
                 <p className="landingHeroDescripcion">
                     Descubre, descarga y sincroniza samples. Algoritmo inteligente, comunidad de productores y DAW integrado.
                 </p>
+                {/* [183A-18] Buscador que redirige a /descubrir/?q= */}
+                <div className="landingHeroBuscador">
+                    <Search size={18} className="landingHeroBuscadorIcono" />
+                    <Input
+                        type="text"
+                        className="landingHeroBuscadorInput"
+                        placeholder="Busca samples, géneros, BPM..."
+                        value={busqueda}
+                        onChange={e => setBusqueda(e.target.value)}
+                        onKeyDown={manejarTecla}
+                        aria-label="Buscar samples"
+                    />
+                    <BotonBase variante="primario" tamano="sm" onClick={irADescubrir} type="button">
+                        Buscar
+                    </BotonBase>
+                </div>
                 <div className="landingHeroAcciones">
                     <BotonBase variante="secundario" tamano="md" onClick={() => abrirAuth('registro')}>
                         Crear cuenta gratis

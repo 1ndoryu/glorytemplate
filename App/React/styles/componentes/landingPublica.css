@@ -120,6 +120,44 @@
     align-items: center;
 }
 
+/* [183A-18] Buscador en el hero del landing para usuarios no autenticados */
+.landingHeroBuscador {
+    display: flex;
+    align-items: center;
+    gap: var(--espacioSm);
+    background: var(--fondoElevado2);
+    border: 1px solid var(--bordeSutil);
+    border-radius: var(--radioFull);
+    padding: var(--espacioSm) var(--espacioMd);
+    width: 100%;
+    max-width: 36rem;
+    transition: border-color var(--transicionRapida), box-shadow var(--transicionRapida);
+}
+
+.landingHeroBuscador:focus-within {
+    border-color: var(--acento);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--acento) 20%, transparent);
+}
+
+.landingHeroBuscadorIcono {
+    color: var(--textoTerciario);
+    flex-shrink: 0;
+}
+
+.landingHeroBuscadorInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: var(--textoSm);
+    color: var(--textoPrimario);
+    min-width: 0;
+}
+
+.landingHeroBuscadorInput::placeholder {
+    color: var(--textoTerciario);
+}
+
 /* Enlace envolvente para el botón de descarga (evita estilos de <a> por defecto) */
 .landingHeroDescargarEnlace {
     text-decoration: none;
