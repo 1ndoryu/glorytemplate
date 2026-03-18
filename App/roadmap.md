@@ -38,20 +38,16 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
+## Error de tareas pasadas
 
-## 183A-10
-
-Agregar documentaciones detalladas nuevas sin basarte en los md viejos del algoritmo, funcionalidad de colecciones, canciones y sampleos, y el sincronizador. 
-
-
-## 183A-11
-
-No creaste ninguna documentacion nueva sobre las funcionalidades que tocaste o trataste las tareas, ajusta .github\instructions\test.instructions.md para que sea obligatorio crear en caso de que no o actualizar la documentacion despues de completar una tarea, y crea documentacion de todas las funcionalidades de las tareas de ayer y hoy
-
-tambien agrega una regla de que si una tarea es complicada o se repite mucho debe si o si debe tener un plan, 
-
-que en el md todas tareas deben especificar si necesita una regla para glory sentinel o no
-
+[plugin:vite:import-analysis] Failed to resolve import "@capacitor/push-notifications" from "../App/React/services/fcmToken.ts". Does the file exist?
+C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/services/fcmToken.ts:61:47
+36 |  }
+37 |  async function inicializarPushCapacitor() {
+38 |    const { PushNotifications } = await import("@capacitor/push-notifications");
+   |                                               ^
+39 |    if (!listenersCapacitorRegistrados) {
+40 |      listenersCapacitorRegistrados = true;
 ## 183A-12
 
 la aplicacion no da error pero coolify dice esto, no se porque, corregir, presiento que no se estan haciendo los commit,ajusta coolify rs y verifica qu si se hacen los commit
