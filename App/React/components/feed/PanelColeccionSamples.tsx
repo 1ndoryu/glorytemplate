@@ -60,11 +60,14 @@ export const PanelColeccionSamples = ({ coleccion }: PanelColeccionSamplesProps)
                 <div className="panelSugerenciasVacio">Esta colección no tiene samples</div>
             ) : (
                 <div className="panelSugerenciasLista">
+                    {/* [183A-70] className panelDetalleTarjetaMini para tarjeta compacta (igual que "También te podría gustar" en PanelDetalleSample) */}
                     {samples.map(s => (
                         <TarjetaSample
                             key={s.id}
                             sample={s}
                             contexto={samples}
+                            onClickCreador={(u) => navegar(`/perfil/${u}/`)}
+                            className="panelDetalleTarjetaMini"
                         />
                     ))}
                 </div>

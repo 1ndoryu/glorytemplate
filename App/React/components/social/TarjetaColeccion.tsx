@@ -152,10 +152,12 @@ export const TarjetaColeccion = ({
             </EnlaceNavegacion>
 
             {/* Botón 3 puntos -- FUERA del <a> para evitar navegacion al hacer click */}
+            {/* [183A-70] tamano="ninguno" en todos para evitar que .botonBase.tamanoMd (2 clases) sobreescriba padding:0 de tarjetaColeccionMenuBtn (1 clase) */}
             <div className="tarjetaColeccionMenuContenedor">
                 {/* [183A-22] Dos botones distintos: bookmark (guardar) y heart (like) */}
                 {!esPropia && (
                     <BotonBase variante="ghost"
+                        tamano="ninguno"
                         className={`tarjetaColeccionLikeBtn ${likeada ? 'tarjetaColeccionLikeBtnActiva' : ''}`}
                         onClick={manejarToggleLike}
                         type="button"
@@ -167,6 +169,7 @@ export const TarjetaColeccion = ({
                 )}
                 {!esPropia && (
                     <BotonBase variante="ghost"
+                        tamano="ninguno"
                         className={`tarjetaColeccionGuardarBtn ${guardada ? 'tarjetaColeccionGuardarBtnActiva' : ''}`}
                         onClick={manejarToggleGuardada}
                         type="button"
@@ -179,6 +182,7 @@ export const TarjetaColeccion = ({
                 {/* [183A-54] Abrir samples en panel lateral */}
                 {coleccion.totalSamples > 0 && (
                     <BotonBase variante="ghost"
+                        tamano="ninguno"
                         className="tarjetaColeccionMenuBtn"
                         onClick={() => abrirColeccionPanel(coleccion)}
                         type="button"
@@ -190,6 +194,7 @@ export const TarjetaColeccion = ({
                 {/* [183A-60] Play rápido desde el menú (misma acción que preview de portada) */}
                 {coleccion.totalSamples > 0 && (
                     <BotonBase variante="ghost"
+                        tamano="ninguno"
                         className={`tarjetaColeccionMenuBtn ${esPreviewActiva ? 'tarjetaColeccionPreviewActivo' : ''}`}
                         onClick={manejarPreview}
                         type="button"
@@ -201,6 +206,7 @@ export const TarjetaColeccion = ({
                     </BotonBase>
                 )}
                 <BotonBase variante="ghost"
+                    tamano="ninguno"
                     className="tarjetaColeccionMenuBtn"
                     onClick={abrirMenu}
                     type="button"
