@@ -34,11 +34,6 @@ Ubicacion: `App/docs (ignorar)/`
 
 ## Tareas pendientes
 
-## 173A-1 
-
-Scaffold móvil Capacitor — ya instalado y funcional. Ver completados QL136-CAP en `tareas-2026-03-17.md`.
-
-
 ## 173A-2
 
 En la pagina de librería donde aparece las colecciones, la vida y el ordenamiento tiene que persistir aunque se recargue. 
