@@ -39,9 +39,6 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
     const [modalCombinarAbierto, setModalCombinarAbierto] = useState(false);
     const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
 
-    /* QL114: Info del padre para breadcrumbs en subcolecciones */
-    const [coleccionPadre, setColeccionPadre] = useState<{ id: number; nombre: string; slug: string | null } | null>(null);
-
     /*
      * C387: Subcolecciones — filtro por sub.
      * subActiva = null → muestra samples del padre (por defecto).
@@ -128,34 +125,7 @@ export function useColeccionDetalle({ propSlug }: ColeccionDetalleParams) {
         return () => { controller.abort(); };
     }, [segmento, id, activa]);
 
-    /*
-     * QL114: Cargar info del padre para breadcrumbs.
-     * Se ejecuta cuando la coleccion cargada tiene parentId.
-     */
-    useEffect(() => {
-        if (!coleccion?.parentId) {
-            setColeccionPadre(null);
-            return;
-        }
-        const controller = new AbortController();
-        const cargarPadre = async () => {
-            try {
-                const resp = await obtenerColeccion(coleccion.parentId!);
-                if (controller.signal.aborted) return;
-                if (resp.ok && resp.data) {
-                    setColeccionPadre({
-                        id: resp.data.id,
-                        nombre: resp.data.nombre,
-                        slug: resp.data.slug,
-                    });
-                }
-            } catch {
-                /* Breadcrumbs degradan a boton volver si falla */
-            }
-        };
-        cargarPadre();
-        return () => { controller.abort(); };
-    }, [coleccion?.parentId]);
+    const coleccionPadre = coleccion?.coleccionPadre ?? null;
 
     /*
      * QL92: Guardar/desguardar coleccion con persistencia en backend.

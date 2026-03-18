@@ -37,11 +37,13 @@ Describir el sistema vigente de colecciones: lectura, edición, mezcla, jerarqu�
 - 183A-13 corrigió el detalle para recalcular `total_items` y `total_samples` desde los samples realmente cargados cuando el payload incluye subcolecciones o vistas expandidas.
 - 183A-14 desactivó el refresco automático del feed dentro del detalle de colección y evita que un fallo transitorio del proveedor se pinte como colección vacía.
 - 183A-15 añadió el guardado rápido en TarjetaColeccion reutilizando el bookmark del detalle, con estado `esta_guardada` en explorar y guardado optimista en la UI.
+- 183A-16 eliminó el segundo fetch del breadcrumb: el detalle de subcolección ahora trae `coleccion_padre` en el mismo payload inicial.
 
 ## Riesgos y gotchas
 - El detalle no debe confiar en campos agregados viejos si ya recibió `samples`; en ese caso el total visible debe salir del array normalizado.
 - El `FeedSamples` reutilizado dentro de una colección no debe usar el mismo refresco por visibilidad/polling que el feed general, porque una caída puntual del proveedor produce flashes de vacío.
 - La tarjeta pública necesita recibir `esta_guardada` desde backend o inferirlo explícitamente en la lista de guardadas; si no, el botón rápido muestra un estado inicial incorrecto.
+- Los breadcrumbs de subcolección no deben depender de un fetch secuencial al padre; ese roundtrip retrasa la miga y se nota aunque el resto del header ya esté renderizado.
 - Las jerarquías deben documentarse siempre como estructura de backend primero y vista filtrada después; si se hace al revés aparecen incoherencias.
 
 ## Regla Sentinel

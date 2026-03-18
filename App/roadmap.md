@@ -39,10 +39,6 @@ Ubicacion: `App/docs (ignorar)/`
 ## Tareas pendientes
 
 
-## 183A-16
-
-La miga de pan de dentro de las colecciones, tarda demasiado en aparecer, esto parece que necesita optmización. 
-
 ## 183A-18
 
 Cambiar los botones de inicio por un buscador que rediriga a https://kamples.com/descubrir/ haciendo una busqueda. 

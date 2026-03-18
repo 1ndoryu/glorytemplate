@@ -276,6 +276,7 @@ class ColeccionesController
             $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
         } else {
             $coleccion['subcolecciones'] = [];
+            $coleccion['coleccion_padre'] = ColeccionesRepository::obtenerResumen((int) $parentId);
         }
 
         /* C193: Fallback avatar propietario */
@@ -351,6 +352,7 @@ class ColeccionesController
                 $coleccion['subcolecciones'] = ColeccionesRepository::listarSubcolecciones($id);
             } else {
                 $coleccion['subcolecciones'] = [];
+                $coleccion['coleccion_padre'] = ColeccionesRepository::obtenerResumen((int) $parentId);
             }
 
             $coleccion[UsuariosExtCols::AVATAR_URL] = UsuarioHelper::resolverAvatarUrl(

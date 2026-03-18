@@ -43,6 +43,11 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => {
         subcolecciones: Array.isArray(raw.subcolecciones)
             ? (raw.subcolecciones as Record<string, unknown>[]).map(normalizarColeccionResumen)
             : undefined,
+        coleccionPadre: raw.coleccionPadre
+            ? raw.coleccionPadre as Coleccion['coleccionPadre']
+            : raw.coleccion_padre
+                ? raw.coleccion_padre as Coleccion['coleccionPadre']
+                : null,
         contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
         estaGuardada: (raw.estaGuardada ?? raw.esta_guardada) as boolean | undefined,
     };

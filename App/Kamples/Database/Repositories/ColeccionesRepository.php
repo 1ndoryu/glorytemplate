@@ -477,6 +477,20 @@ class ColeccionesRepository extends BaseRepository
     }
 
     /*
+     * 183A-16: Resumen mínimo del padre para renderizar breadcrumbs sin roundtrip extra.
+     */
+    public static function obtenerResumen(int $id): ?array
+    {
+        $t = ColeccionesCols::TABLA;
+
+        return static::consultarUno(
+            "SELECT " . ColeccionesCols::ID . ", " . ColeccionesCols::NOMBRE . ", " . ColeccionesCols::SLUG
+            . " FROM {$t} WHERE " . ColeccionesCols::ID . " = :id",
+            ['id' => $id]
+        );
+    }
+
+    /*
      * Verificar que una colección pertenece al usuario.
      * Retorna registro con id, nombre y version (necesario para changelog y optimistic locking).
      */

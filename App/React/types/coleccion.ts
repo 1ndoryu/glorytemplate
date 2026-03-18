@@ -28,6 +28,7 @@ export interface Coleccion {
     usuario?: UsuarioResumen;
     samples?: SampleResumen[];
     subcolecciones?: ColeccionResumen[];
+    coleccionPadre?: Pick<ColeccionResumen, 'id' | 'nombre' | 'slug'> | null;
 
     /* Campo calculado: indica si un sample específico ya está en esta colección */
     contieneElSample?: boolean;
