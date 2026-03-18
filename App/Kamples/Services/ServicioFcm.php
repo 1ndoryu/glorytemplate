@@ -33,6 +33,8 @@ class ServicioFcm
     {
         $serviceAccount = self::obtenerServiceAccount();
         if ($serviceAccount === null) {
+            /* [183A-43] Log explícito cuando FCM no está configurado para no fallar silenciosamente */
+            KamplesLogger::warning('ServicioFcm: KAMPLES_FCM_SERVICE_ACCOUNT_JSON no configurada, push deshabilitado');
             return;
         }
 

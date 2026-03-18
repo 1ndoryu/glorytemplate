@@ -9,8 +9,10 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@app/stores/authStore';
 import { obtenerUsuarioActual } from '@app/services/apiAuth';
 import { crearLogger } from '@app/services/logger';
+import { esNativo } from '@app/utils/plataforma';
 
 const log = crearLogger('InicializadorAuth');
+const LS_KEY_TOKEN = 'kamples_auth_token';
 
 interface GloryContextUser {
     id: number;
@@ -41,8 +43,34 @@ export const useInicializadorAuth = (): void => {
         const inicializar = async () => {
             const ctx = obtenerContexto();
 
-            /* Si PHP dice que no hay sesión, marcar como no autenticado */
+            /* Si PHP dice que no hay sesión, verificar token nativo antes de cerrar */
             if (!ctx?.isLoggedIn || !ctx.userId) {
+                /* [183A-41] En Capacitor/Tauri, la sesión PHP puede expirar entre reinicios
+                 * pero el JWT persiste en localStorage. Intentar restaurar sesión desde el
+                 * token antes de mostrar el modal de login. apiCliente ya adjunta el Bearer
+                 * automáticamente en plataformas nativas. */
+                if (esNativo()) {
+                    try {
+                        const tokenGuardado = localStorage.getItem(LS_KEY_TOKEN);
+                        if (tokenGuardado) {
+                            const resp = await obtenerUsuarioActual();
+                            if (cancelado) return;
+                            if (resp.ok && resp.data) {
+                                setUsuario(resp.data);
+                                /* Sincronizar GLORY_CONTEXT para evitar desync */
+                                const ctxMutable = window.GLORY_CONTEXT as Record<string, unknown> | undefined;
+                                if (ctxMutable) {
+                                    ctxMutable.isLoggedIn = true;
+                                    ctxMutable.userId = resp.data.wpUserId ?? resp.data.id;
+                                }
+                                log.debug('Sesión restaurada desde token nativo persistido');
+                                return;
+                            }
+                        }
+                    } catch {
+                        log.debug('Token nativo expirado o inválido, mostrando login');
+                    }
+                }
                 if (!cancelado) setUsuario(null);
                 return;
             }
