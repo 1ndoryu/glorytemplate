@@ -56,6 +56,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-46:** Completada 2026-03-18. Fix `npm run dev` con plugin Vite para stubs de módulos Tauri/Capacitor.
 - **183A-48:** Completada 2026-03-18. Eliminado botón DevTools y lógica de override en LayoutPrincipal.
 - **183A-47:** Completada 2026-03-18. Botón editar perfil oculto en móvil (ya está en menú contextual).
+- **183A-53:** Completada 2026-03-18. Fix combinar colecciones: reordenar DELETE/UPDATE para evitar UNIQUE constraint.
 
 ## Tareas pendientes
 
@@ -130,10 +131,6 @@ el enlace aparece con esas letras, pero, no funciona, imagino que es un problema
 
 al dar click a la imagen de portada o texto del sample en el reproductor, ir directo a la pagina de ese sample.
 
-## 183A-53
-
-Lo de combinar colecciones, no funciona. Hacer una revision profunda.
-
 ## 183A-54
 
 quitar el padding de los botones .tarjetaColeccionMenuContenedor y agregar un boton que abra los samples de esa coleccion en el panellateral
@@ -141,6 +138,14 @@ quitar el padding de los botones .tarjetaColeccionMenuContenedor y agregar un bo
 ## 183A-55
 
 En el panel lateral de los samples, arriba de También te podría gustar agregar info de que coleccion pertece, el sample, la imagen de portada en proporcion 3:2 cover, estilo spotify, y dentro sobre la imagen en la esquina abajo izquierda el titulo y abajo el autor de la coleccion, siempre muestra la coleccion de quien subio el sample, sino, la de cualquier otro usuario. Que esto este optmizado, 
+
+## 183A-56
+
+La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
+
+## 183A-57
+
+Que el modalCuerpo de los seguidores tenga padding: var(--espacioXs);
 
 ## Tarea final cuando completes todo
 
