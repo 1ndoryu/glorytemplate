@@ -470,9 +470,13 @@ class MotorRecomendacion
                     self::guardarResultadoEnCache($userId, $limite, $pagOffset, $pagSlice);
                 }
 
-                /* Retornar la página solicitada */
-                $resultado = \array_slice($todoResultados, $offset, $limite);
-                $resultado = self::inyectarSerendipia($resultado, $userId, $config);
+                /* Retornar la página solicitada (ya tiene serendipia del loop anterior) */
+                $resultado = ServicioCache::obtener(self::cacheKey($userId, $limite, $offset));
+                if ($resultado === false || !\is_array($resultado)) {
+                    /* Fallback: slice directo si el cache fallo */
+                    $resultado = \array_slice($todoResultados, $offset, $limite);
+                    $resultado = self::inyectarSerendipia($resultado, $userId, $config);
+                }
             } else {
                 $resultado = SamplesRepository::consultar($sql, $queryParams);
                 $resultado = self::inyectarSerendipia($resultado, $userId, $config);

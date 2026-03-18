@@ -90,12 +90,9 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-73:** Completada 2026-03-18. Descarga de samples nativa en Capacitor Android: `descargarArchivo.ts` detecta plataforma → web usa `<a download>`, nativo usa fetch → base64 → `Filesystem.writeFile(Cache)` → `Share.share`. Instalados `@capacitor/filesystem@6.0.4` + `@capacitor/share@6.0.4` + `cap sync` registró plugins Android. tsconfig actualizado con paths. file_paths.xml actualizado.
 - **183A-79+183A-76:** Completadas 2026-03-18. 183A-79: `panelColeccionPortada` ahora usa `detalle?.coleccionOriginal ?? sample.coleccionOriginal` — info de colección aparece en panel lateral. 183A-76: removidos iconos SVG (Mail, Lock) de los labels Email/Contraseña en ConfiguracionSecciones.
 
+- **183A-80:** Completada 2026-03-18. Bulk-fetch 3 páginas en 1 query (LIMIT 90 OFFSET 0) + CTE `ignored_samples` (samples reproducidos 5+ veces en 30 días sin like). Serendipia movida dentro del bulk loop, NO eliminada. Filosofía algoritmo documentada: todos los samples se evalúan, no pierden calidad por antigüedad.
+
 ## Tareas pendientes
-
-
-El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-NOTA: ya se resolvio lo de las imagenes de portdas en el feed, dejarlo asi.
 
 ## 183A-74
 
@@ -114,38 +111,21 @@ la busqueda no funciona, la del landing sin logearse, redirige a descubrir pero 
 
 He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la cookie", despues recargue y estaba logeada, intentar que esto no vuelva a suceder. 
 
-## 183A-80
-
-Se requiere reducir mas el tiempo de carga del feed (360 ms), optimizaciones, revision profunda a que parte de las peticiones tarda mas, revisar indices, revisar queries, revisar que no haga operaciones costosas en PHP, revisar que no haga N+1 queries, revisar mecanismos nuevos para evitar que cuando hayan mas y mas samples la web se ponga mas lenta. 
-
-+----------------------------------------------------+----------+
-| Componente                                         | Tiempo   |
-+----------------------------------------------------+----------+
-| PerfilUsuario::construir (sin cache)               |    40.1ms |
-| Conteo samples activos (SQL COUNT)                 |     2.9ms |
-| Verificacion pgvector                              |    26.9ms |
-| SQL gen: Comportamiento (0.27)                     |     0.2ms |
-| SQL gen: Contexto (0.15)                           |     0.0ms |
-| SQL gen: Tendencias (0.12)                         |     0.0ms |
-| SQL gen: Grafo Social (0.1)                        |     0.0ms |
-| SQL gen: Similitud pgvector (0.28)                 |     2.8ms |
-| >> FEED pag1 sin cache fresco <<                   |     2.1ms |
-| >> FEED pag2 sin cache <<                          |   366.4ms |
-| >> FEED pag3 sin cache <<                          |   287.1ms |
-| Feed pag3 cache hit                                |     3.2ms |
-| >> samplesSimilares "Te podria gustar" (12) <<     |    38.1ms |
-| >> Secciones pagina Musica (sin cache) <<          |   894.8ms |
-| >> Mas Ideas coleccion >= 200 samples <<           |    45.8ms |
-+----------------------------------------------------+----------+
-| PROMEDIO feed sin cache (3 pags)                   |   218.5ms |
-+----------------------------------------------------+----------+
-
 ## 183A-81
 
 Mejorar la busqueda, por ejemplo, si busco lick en vez de kick, muestre kick, no se que nombre tiene esto pero funciona en youtube y aqui no se ha implementado, la busqueda no tiene que ser asi tan cerrada, los usuarios a veces escribien mal las palabras. 
+
+## 183A-83
+
+Me acabo de dar cuetna que panelColeccionPortada si aparecía pero nada mas en los samples de ordenamiento reciente, no en lo samples de ordenamiento inteligente (a veces si aparece, a veces no, pero mayoritariamente si)
+
+## 183A-84
+
+Correo electronicos de bievenida, 
+verificar que el correo de cambio de contraseña funcione
 
 
 ## Tarea final cuando completes todo
 
 1. rehacer el instalador de la aplicación de escritorio 
-3. indicarme donde esta en lnuevo instalador
+3. indicarme donde esta en nuevo instalador
