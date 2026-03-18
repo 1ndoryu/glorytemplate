@@ -7,11 +7,12 @@
  */
 
 import { useRef, useCallback } from 'react';
-import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, Heart, Bookmark } from 'lucide-react';
+import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, Heart, Bookmark, PanelRight } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
 import { useTarjetaColeccion } from '@app/hooks/useTarjetaColeccion';
+import { usePanelLateralStore } from '@app/stores/panelLateralStore';
 import { EnlaceNavegacion } from '../ui/EnlaceNavegacion';
 import { MenuContextual } from '../ui/MenuContextual';
 import { BotonBase } from '../ui/BotonBase';
@@ -57,6 +58,8 @@ export const TarjetaColeccion = ({
         manejarToggleLike,
         itemsMenu,
     } = useTarjetaColeccion({ coleccion, onEditar, onCombinar, onEliminar });
+
+    const abrirColeccionPanel = usePanelLateralStore(s => s.abrirColeccion);
 
     const imagenPortada = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
     const clases = [
@@ -171,6 +174,17 @@ export const TarjetaColeccion = ({
                         cargando={guardando}
                     >
                         <Bookmark size={16} fill={guardada ? 'currentColor' : 'none'} />
+                    </BotonBase>
+                )}
+                {/* [183A-54] Abrir samples en panel lateral */}
+                {coleccion.totalSamples > 0 && (
+                    <BotonBase variante="ghost"
+                        className="tarjetaColeccionMenuBtn"
+                        onClick={() => abrirColeccionPanel(coleccion)}
+                        type="button"
+                        aria-label="Ver samples en panel lateral"
+                    >
+                        <PanelRight size={16} />
                     </BotonBase>
                 )}
                 <BotonBase variante="ghost"

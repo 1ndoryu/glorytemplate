@@ -28,6 +28,7 @@ const leerAnchoGuardado = (): number => {
 export const usePanelLateral = () => {
     const modo = usePanelLateralStore(s => s.modo);
     const sample = usePanelLateralStore(s => s.sample);
+    const coleccionActiva = usePanelLateralStore(s => s.coleccionActiva);
     const habilitado = usePanelLateralStore(s => s.habilitado);
     const expandido = usePanelLateralStore(s => s.expandido);
     const [ancho, setAncho] = useState(leerAnchoGuardado);
@@ -37,7 +38,9 @@ export const usePanelLateral = () => {
     /* Determinar si el panel debe mostrarse */
     const esMezclador = modo === 'mezclador';
     const esModoConSample = (modo === 'detalle' || modo === 'comentarios' || modo === 'sugerencias') && sample;
-    const mostrar = habilitado && modo && (esMezclador || esModoConSample);
+    /* [183A-54] Soporte para modo colección */
+    const esModoColeccion = modo === 'coleccion' && coleccionActiva;
+    const mostrar = habilitado && modo && (esMezclador || esModoConSample || esModoColeccion);
 
     /* Inicio del resize con el handle */
     const iniciarResize = useCallback((e: React.MouseEvent) => {
@@ -104,6 +107,7 @@ export const usePanelLateral = () => {
     return {
         modo,
         sample,
+        coleccionActiva,
         expandido,
         ancho,
         panelRef,

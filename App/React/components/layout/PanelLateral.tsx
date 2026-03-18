@@ -8,6 +8,7 @@
 
 import { PanelDetalleSample } from '@app/components/feed/PanelDetalleSample';
 import { PanelSugerencias } from '@app/components/feed/PanelSugerencias';
+import { PanelColeccionSamples } from '@app/components/feed/PanelColeccionSamples';
 /* PanelLibreria: sin uso temporal, pendiente reutilizacion en Explorador (C281) */
 import { ErrorBoundaryMezclador } from '@mezclador/components/ErrorBoundaryMezclador';
 import { MezcladorPanel } from '@mezclador/components/MezcladorPanel';
@@ -16,7 +17,7 @@ import '@app/styles/componentes/panelLateral.css';
 
 export const PanelLateral = (): JSX.Element | null => {
     const {
-        modo, sample, expandido, ancho, panelRef,
+        modo, sample, coleccionActiva, expandido, ancho, panelRef,
         esMezclador, mostrar, iniciarResize,
     } = usePanelLateral();
 
@@ -42,6 +43,9 @@ export const PanelLateral = (): JSX.Element | null => {
                 )}
                 {modo === 'sugerencias' && sample && (
                     <PanelSugerencias sample={sample} />
+                )}
+                {modo === 'coleccion' && coleccionActiva && (
+                    <PanelColeccionSamples coleccion={coleccionActiva} />
                 )}
                 {esMezclador && (
                     <ErrorBoundaryMezclador>

@@ -8,10 +8,10 @@
  */
 
 import { create } from 'zustand';
-import type { SampleResumen } from '@app/types';
+import type { SampleResumen, Coleccion } from '@app/types';
 import { crearLogger } from '@app/services/logger';
 
-type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | 'mezclador' | 'libreria' | null;
+type ModoPanelLateral = 'sugerencias' | 'detalle' | 'comentarios' | 'mezclador' | 'libreria' | 'coleccion' | null;
 
 /* C155: Clave localStorage para persistir preferencia */
 const LS_KEY_SUGERENCIAS = 'kamples:sugerenciasAlDarLike';
@@ -57,6 +57,10 @@ interface PanelLateralState {
     /* C280: Abrir modo libreria */
     abrirLibreria: () => void;
 
+    /* [183A-54] Abrir samples de una colección en el panel */
+    coleccionActiva: Coleccion | null;
+    abrirColeccion: (coleccion: Coleccion) => void;
+
     /* C241: Expandir panel a ancho completo (toggle) */
     expandido: boolean;
     toggleExpandido: () => void;
@@ -71,6 +75,7 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     sampleSlug: null,
     sample: null,
     habilitado: false,
+    coleccionActiva: null,
     sugerenciasAlDarLike: leerPreferenciaSugerencias(),
 
     setSugerenciasAlDarLike: (valor) => {
@@ -116,11 +121,21 @@ export const usePanelLateralStore = create<PanelLateralState>((set, get) => ({
     abrirMezclador: () => set({ modo: 'mezclador', sampleId: null, sampleSlug: null, sample: null, habilitado: true }),
 
     /* C280: Abrir modo libreria — no necesita sample */
-    abrirLibreria: () => set({ modo: 'libreria', sampleId: null, sampleSlug: null, sample: null, habilitado: true }),
+    abrirLibreria: () => set({ modo: 'libreria', sampleId: null, sampleSlug: null, sample: null, coleccionActiva: null, habilitado: true }),
+
+    /* [183A-54] Abrir samples de una colección en el panel */
+    abrirColeccion: (coleccion) => set({
+        modo: 'coleccion',
+        sampleId: null,
+        sampleSlug: null,
+        sample: null,
+        coleccionActiva: coleccion,
+        habilitado: true,
+    }),
 
     /* C241: Expandir panel a ancho completo */
     expandido: false,
     toggleExpandido: () => set((s) => ({ expandido: !s.expandido })),
 
-    cerrar: () => set({ modo: null, sampleId: null, sampleSlug: null, sample: null, expandido: false }),
+    cerrar: () => set({ modo: null, sampleId: null, sampleSlug: null, sample: null, coleccionActiva: null, expandido: false }),
 }));

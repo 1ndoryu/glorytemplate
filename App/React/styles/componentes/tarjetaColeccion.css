@@ -82,6 +82,8 @@
     justify-content: center;
     width: 28px;
     height: 28px;
+    /* [183A-54] Sobreescribir padding de BotonBase para que el icono quede centrado */
+    padding: 0;
     border-radius: var(--radioFull);
     border: none;
     background: var(--overlaySuave);
