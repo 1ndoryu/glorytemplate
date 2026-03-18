@@ -82,6 +82,26 @@ class ProcesosFondoController
             'callback'            => [self::class, 'infoCookies'],
             'permission_callback' => $admin,
         ]);
+
+        /* [183A-68] Benchmark del algoritmo de recomendacion — ejecuta el CLI y devuelve texto */
+        \register_rest_route($namespace, '/admin/procesos/benchmark', [
+            'methods'             => 'POST',
+            'callback'            => [self::class, 'ejecutarBenchmark'],
+            'permission_callback' => $admin,
+            'args'                => [
+                'userId' => [
+                    'type'    => 'integer',
+                    'default' => 1,
+                    'minimum' => 1,
+                ],
+                'perPage' => [
+                    'type'    => 'integer',
+                    'default' => 30,
+                    'minimum' => 5,
+                    'maximum' => 100,
+                ],
+            ],
+        ]);
     }
 
     public static function listarTodos(\WP_REST_Request $request): \WP_REST_Response
@@ -212,6 +232,70 @@ class ProcesosFondoController
         } catch (\Throwable $e) {
             KamplesLogger::error('[Procesos] Error obteniendo info cookies', ['error' => $e->getMessage()]);
             return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno.'], 500);
+        }
+    }
+
+    /**
+     * [183A-68] POST /admin/procesos/benchmark — Ejecuta benchmarkAlgoritmo.php y devuelve output.
+     * Usa proc_open para capturar stdout+stderr con timeout de 150s.
+     * Solo admin puede ejecutar.
+     */
+    public static function ejecutarBenchmark(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId  = (int) ($request->get_param('userId')  ?? 1);
+            $perPage = (int) ($request->get_param('perPage') ?? 30);
+
+            $phpBin   = \PHP_BINARY;
+            $script   = \realpath(\dirname(__DIR__, 2) . '/Cli/benchmarkAlgoritmo.php');
+
+            if ($script === false || !\is_file($script)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'Script de benchmark no encontrado.'], 500);
+            }
+
+            /* Sanitizar argumentos para evitar inyeccion de shell */
+            $cmd = \escapeshellarg($phpBin) . ' ' . \escapeshellarg($script)
+                 . ' ' . (int) $userId . ' ' . (int) $perPage;
+
+            $descriptors = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
+
+            /* Los dos argumentos ya pasan por escapeshellarg() arriba — seguro contra inyeccion */
+            $proc = \proc_open($cmd, $descriptors, $pipes, null, null); /* sentinel-disable shell-injection */
+            if (!\is_resource($proc)) {
+                return new \WP_REST_Response(['ok' => false, 'error' => 'No se pudo iniciar el proceso.'], 500);
+            }
+
+            \fclose($pipes[0]);
+            \stream_set_timeout($pipes[1], 150);
+            \stream_set_timeout($pipes[2], 150);
+
+            $stdout = \stream_get_contents($pipes[1]);
+            $stderr = \stream_get_contents($pipes[2]);
+
+            \fclose($pipes[1]);
+            \fclose($pipes[2]);
+
+            $exitCode = \proc_close($proc);
+
+            if ($exitCode !== 0) {
+                KamplesLogger::warning('[Benchmark] Proceso termino con codigo ' . $exitCode, [
+                    'stderr' => \substr((string) $stderr, 0, 500),
+                ]);
+            }
+
+            return new \WP_REST_Response([
+                'ok'       => $exitCode === 0,
+                'output'   => (string) $stdout,
+                'stderr'   => $exitCode !== 0 ? \substr((string) $stderr, 0, 1000) : '',
+                'exitCode' => $exitCode,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('[Benchmark] Error ejecutando benchmark', ['error' => $e->getMessage()]);
+            return new \WP_REST_Response(['ok' => false, 'error' => 'Error interno: ' . $e->getMessage()], 500);
         }
     }
 

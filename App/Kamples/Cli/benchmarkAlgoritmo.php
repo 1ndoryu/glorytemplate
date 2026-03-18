@@ -53,6 +53,9 @@ use App\Kamples\Services\PerfilUsuario;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Services\SelectorCandidatos;
 use App\Kamples\Database\Repositories\SamplesRepository;
+use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
+use App\Kamples\Database\Repositories\CancionesRepository;
+use App\Kamples\Api\Helpers\NormalizadorSample;
 use App\Config\Schema\_generated\SamplesCols;
 use App\Config\Schema\_generated\SamplesEnums;
 use App\Kamples\Services\ServicioCache;
@@ -132,14 +135,14 @@ function invalidarCaches(int $userId): void
 
 $tiempos = [];
 
-echo "[1/8] Perfil usuario (sin cache)...\n";
+echo "[1/11] Perfil usuario (sin cache)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => PerfilUsuario::construir($userId));
 $tiempos['perfil_usuario'] = $m['ms'];
 $perfilUsuario = $m['resultado'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
 
-echo "[2/8] Conteo samples activos...\n";
+echo "[2/11] Conteo samples activos...\n";
 ServicioCache::eliminar('kamples_total_samples_activos');
 $m = medirMs(function () {
     $sEstado = SamplesCols::ESTADO;
@@ -149,13 +152,13 @@ $m = medirMs(function () {
 $tiempos['conteo_activos'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms ({$m['resultado']} samples)\n";
 
-echo "[3/8] Verificacion pgvector...\n";
+echo "[3/11] Verificacion pgvector...\n";
 ServicioCache::eliminar('kamples_pgvector_activo');
 $m = medirMs(fn() => SamplesRepository::verificarPgvector());
 $tiempos['verificar_pgvector'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
 
-echo "[4/8] Generacion SQL senales...\n";
+echo "[4/11] Generacion SQL senales...\n";
 $qp = ['userId' => $userId, 'limit' => $perPage, 'offset' => 0];
 
 $m = medirMs(fn() => ConstructorSenales::sqlComportamiento($userId, $pesos['comportamiento'] ?? 0.27, $config, $qp));
@@ -184,29 +187,94 @@ if ($pgvectorActivo) {
     echo "      Similitud:      " . number_format($m['ms'], 2) . "ms\n";
 }
 
-echo "[5/8] FEED pag 1 (sin cache fresco)...\n";
+echo "[5/11] FEED pag 1 (sin cache fresco)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, 0));
 $tiempos['feed_pag1'] = $m['ms'];
 $countPag1 = count($m['resultado']);
 echo "      " . number_format($m['ms'], 1) . "ms ({$countPag1} samples)\n";
 
-echo "[6/8] FEED pag 2 (sin cache)...\n";
+echo "[6/11] FEED pag 2 (sin cache)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage));
 $tiempos['feed_pag2'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms (" . count($m['resultado']) . " samples)\n";
 
-echo "[7/8] FEED pag 3 (sin cache)...\n";
+echo "[7/11] FEED pag 3 (sin cache)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage * 2));
 $tiempos['feed_pag3'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms (" . count($m['resultado']) . " samples)\n";
 
-echo "[8/8] FEED pag 3 con cache (hit)...\n";
+echo "[8/11] FEED pag 3 con cache (hit)...\n";
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, $perPage * 2));
 $tiempos['feed_cache_hit'] = $m['ms'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
+
+/* [183A-68] Paso 9: "Te podria gustar" — samplesSimilares para el primer sample activo */
+echo "[9/11] samplesSimilares 'Te podria gustar' (12 resultados, sin cache)...\n";
+$primerSampleIdRows = SamplesRepository::consultar(
+    "SELECT id FROM samples WHERE estado = :estado ORDER BY id LIMIT 1",
+    ['estado' => SamplesEnums::ESTADO_ACTIVO]
+);
+$sampleIdTest = (int) ($primerSampleIdRows[0]['id'] ?? 0);
+if ($sampleIdTest > 0) {
+    ServicioCache::eliminar('similares_' . $sampleIdTest);
+    ServicioCache::eliminar('similares_u' . $userId . '_' . $sampleIdTest);
+    $m = medirMs(fn() => MotorRecomendacion::samplesSimilares($sampleIdTest, 12, $userId));
+    $tiempos['similares'] = $m['ms'];
+    echo "      " . number_format($m['ms'], 1) . "ms (sample_id={$sampleIdTest}, " . count($m['resultado']) . " similares)\n";
+} else {
+    $tiempos['similares'] = 0;
+    echo "      SKIP — no hay samples activos\n";
+}
+
+/* [183A-68] Paso 10: Secciones pagina de musica (CancionesRepository::secciones) */
+echo "[10/11] Secciones pagina Musica (sin cache)...\n";
+ServicioCache::eliminar('secciones_canciones_anon_ps10');
+ServicioCache::eliminar('secciones_canciones_u' . $userId . '_ps10');
+$m = medirMs(fn() => CancionesRepository::secciones(10, $userId));
+$tiempos['secciones_musica'] = $m['ms'];
+$nSecciones = count($m['resultado']);
+echo "      " . number_format($m['ms'], 1) . "ms ({$nSecciones} secciones)\n";
+
+/* [183A-68] Paso 11: Mas Ideas de una coleccion grande (>= 200 samples) */
+echo "[11/11] Mas Ideas coleccion >= 200 samples (sin cache)...\n";
+$bigColRows = SamplesRepository::consultar(
+    'SELECT cs.coleccion_id, COUNT(*) AS total FROM coleccion_samples cs GROUP BY cs.coleccion_id HAVING COUNT(*) >= 200 ORDER BY total DESC LIMIT 1',
+    []
+);
+$colIdGrande = (int) ($bigColRows[0]['coleccion_id'] ?? 0);
+if ($colIdGrande > 0) {
+    $contextoCols = ColeccionSamplesRepository::contextoParaSugerencias($colIdGrande);
+    $allTags = [];
+    $allBpms = [];
+    $allKeys = [];
+    foreach ($contextoCols as $row) {
+        $tags = NormalizadorSample::pgArrayToPhp($row[SamplesCols::TAGS] ?? '');
+        $allTags = array_merge($allTags, $tags);
+        if (!empty($row[SamplesCols::BPM])) {
+            $allBpms[] = (int) $row[SamplesCols::BPM];
+        }
+        if (!empty($row[SamplesCols::KEY])) {
+            $allKeys[] = $row[SamplesCols::KEY];
+        }
+    }
+    $tagCounts = array_count_values($allTags);
+    arsort($tagCounts);
+    $topTags = array_slice(array_keys($tagCounts), 0, 10);
+    $idsExcluir = ColeccionSamplesRepository::idsDeColeccion($colIdGrande);
+    $avgBpm = !empty($allBpms) ? (int) (array_sum($allBpms) / count($allBpms)) : 120;
+    $keyCounts = !empty($allKeys) ? array_count_values($allKeys) : [];
+    arsort($keyCounts);
+    $dominantKey = !empty($keyCounts) ? array_key_first($keyCounts) : null;
+    $m = medirMs(fn() => SamplesRepository::sugerenciasPorContexto($topTags, $avgBpm, $dominantKey, $idsExcluir, 20, 0));
+    $tiempos['mas_ideas_grande'] = $m['ms'];
+    echo "      " . number_format($m['ms'], 1) . "ms (col_id={$colIdGrande}, excl=" . count($idsExcluir) . ", " . count($m['resultado']) . " sugerencias)\n";
+} else {
+    $tiempos['mas_ideas_grande'] = 0;
+    echo "      SKIP — no hay coleccion con >= 200 samples\n";
+}
 
 /* ===== TABLA ===== */
 echo "\n+----------------------------------------------------+----------+\n";
@@ -226,10 +294,17 @@ $etiquetas = [
     'feed_pag2'          => '>> FEED pag2 sin cache <<',
     'feed_pag3'          => '>> FEED pag3 sin cache <<',
     'feed_cache_hit'     => 'Feed pag3 cache hit',
+    'similares'          => '>> samplesSimilares "Te podria gustar" (12) <<',
+    'secciones_musica'   => '>> Secciones pagina Musica (sin cache) <<',
+    'mas_ideas_grande'   => '>> Mas Ideas coleccion >= 200 samples <<',
 ];
 
 foreach ($tiempos as $key => $ms) {
     $label = $etiquetas[$key] ?? $key;
+    if ($ms === 0 && in_array($key, ['similares', 'mas_ideas_grande'], true)) {
+        printf("| %-50s | %8s |\n", $label, 'SKIP');
+        continue;
+    }
     printf("| %-50s | %7.1fms |\n", $label, $ms);
 }
 
@@ -248,6 +323,9 @@ echo " | pag2: " . number_format($tiempos['feed_pag2'], 0) . "ms";
 echo " | pag3: " . number_format($tiempos['feed_pag3'], 0) . "ms";
 echo " | promedio: " . number_format($feedProm, 0) . "ms";
 echo " | cache: " . number_format($tiempos['feed_cache_hit'], 0) . "ms\n";
+echo "Te podria gustar (similares): " . ($tiempos['similares'] > 0 ? number_format($tiempos['similares'], 0) . "ms" : "SKIP") . "\n";
+echo "Secciones musica (sin cache): " . number_format($tiempos['secciones_musica'], 0) . "ms\n";
+echo "Mas Ideas coleccion grande: " . ($tiempos['mas_ideas_grande'] > 0 ? number_format($tiempos['mas_ideas_grande'], 0) . "ms" : "SKIP") . "\n";
 echo "Perfil: " . number_format($tiempos['perfil_usuario'], 0) . "ms";
 echo " | Conteo: " . number_format($tiempos['conteo_activos'], 0) . "ms\n";
 echo "=== FIN ===\n";

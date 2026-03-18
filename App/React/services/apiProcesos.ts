@@ -75,3 +75,16 @@ export async function actualizarCookies(contenido: string, tipo: TipoCookies = '
 export async function infoCookies() {
     return apiGet<{ ok: boolean; cookies: Record<TipoCookies, InfoCookies> }>('/admin/procesos/cookies');
 }
+
+/* [183A-68] Benchmark del algoritmo de recomendacion */
+export interface RespuestaBenchmark {
+    ok: boolean;
+    output: string;
+    stderr?: string;
+    exitCode?: number;
+    error?: string;
+}
+
+export async function ejecutarBenchmark(userId = 1, perPage = 30) {
+    return apiPost<RespuestaBenchmark>('/admin/procesos/benchmark', { userId, perPage });
+}
