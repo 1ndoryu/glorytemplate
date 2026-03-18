@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * ColeccionesCrudController — Operaciones de escritura de colecciones.

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * SamplesUploadController — Subida de samples con pipeline async.

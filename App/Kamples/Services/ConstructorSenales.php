@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * ConstructorSenales — Genera fragmentos SQL de scoring para el motor de recomendación.

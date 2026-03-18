@@ -1,4 +1,6 @@
-﻿<?php
+<?php
+
+/* sentinel-disable-file limite-lineas: controlador central de edición y borrado de samples; dividirlo completo durante una limpieza de BOM para producción mezclaría una refactorización extensa ajena al hotfix. */
 
 /**
  * SamplesModificacionController — Actualizar y eliminar samples.

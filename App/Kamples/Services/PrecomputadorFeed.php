@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * PrecomputadorFeed — Genera CTEs de pre-cómputo para la query del feed.

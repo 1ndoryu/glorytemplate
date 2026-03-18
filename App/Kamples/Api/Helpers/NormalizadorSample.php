@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /* sentinel-disable-file limite-lineas: utilidad central de normalización y SQL base de samples; dividirla completa mezclaría una refactorización estructural amplia ajena a 173A-5. */
 

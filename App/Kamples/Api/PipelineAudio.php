@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * PipelineAudio — Orquestador del pipeline de procesamiento de audio

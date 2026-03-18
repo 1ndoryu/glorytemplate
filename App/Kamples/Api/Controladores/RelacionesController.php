@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * RelacionesController — API REST para Relaciones de Sampleo.
