@@ -7,6 +7,7 @@
 
 import { useCallback, useRef, useEffect, type MouseEvent } from 'react';
 import { useReproductorStore } from '../stores/reproductorStore';
+import { useNavigationStore } from '@/core/router';
 import { darLike, quitarLike } from '../services/apiSocial';
 import { EVENTO_LIKE_CAMBIADO } from './useFeedLikes';
 
@@ -23,6 +24,7 @@ export const useReproductorGlobal = () => {
     const progreso = useReproductorStore(s => s.progreso);
     const duracion = useReproductorStore(s => s.duracion);
     const aleatorio = useReproductorStore(s => s.aleatorio);
+    const navegar = useNavigationStore(s => s.navegar);
 
     const togglePlay = useReproductorStore(s => s.togglePlay);
     const toggleAleatorio = useReproductorStore(s => s.toggleAleatorio);
@@ -81,6 +83,12 @@ export const useReproductorGlobal = () => {
         return () => window.removeEventListener(EVENTO_LIKE_CAMBIADO, manejar);
     }, [actualizarLike]);
 
+    /* [183A-52] Navegar a la página del sample al hacer click en portada/título */
+    const irASample = useCallback(() => {
+        if (!sampleActual) return;
+        navegar(`/sample/${sampleActual.slug ?? sampleActual.id}/`);
+    }, [sampleActual, navegar]);
+
     return {
         sampleActual,
         reproduciendo,
@@ -97,5 +105,6 @@ export const useReproductorGlobal = () => {
         manejarSeekProgreso,
         progresoBarraRef,
         formatearTiempo,
+        irASample,
     };
 };

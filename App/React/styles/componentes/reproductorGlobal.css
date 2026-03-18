@@ -78,6 +78,11 @@
     color: var(--textoTerciario);
 }
 
+/* Elementos clickeables que navegan al sample */
+.reproductorClickable {
+    cursor: pointer;
+}
+
 /* Info truncada */
 .reproductorInfo {
     display: flex;

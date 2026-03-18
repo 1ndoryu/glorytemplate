@@ -25,6 +25,7 @@ export const ReproductorGlobal = (): JSX.Element | null => {
         manejarSeekProgreso,
         progresoBarraRef,
         formatearTiempo,
+        irASample,
     } = useReproductorGlobal();
 
     if (!sampleActual) return null;
@@ -45,16 +46,16 @@ export const ReproductorGlobal = (): JSX.Element | null => {
                 <div className="reproductorTimelineRelleno" style={{ width: `${progreso * 100}%` }} />
             </div>
 
-            {/* Portada circular */}
-            <div className="reproductorPortada">
+            {/* [183A-52] Portada circular — click navega al sample */}
+            <div className="reproductorPortada reproductorClickable" onClick={irASample} title="Ir al sample">
                 {sampleActual.imagenUrl
                     ? <img src={sampleActual.imagenUrl} alt={sampleActual.titulo} />
                     : <Music size={16} className="reproductorPortadaIcono" />
                 }
             </div>
 
-            {/* Info */}
-            <div className="reproductorInfo">
+            {/* [183A-52] Info — click navega al sample */}
+            <div className="reproductorInfo reproductorClickable" onClick={irASample} title="Ir al sample">
                 <span className="reproductorTitulo">{sampleActual.titulo}</span>
                 <span className="reproductorArtista">
                     {sampleActual.creador.nombreVisible || sampleActual.creador.username}
