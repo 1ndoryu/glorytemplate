@@ -67,6 +67,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-65:** Completada 2026-03-18. Buscador landing: corregido param ?buscar= y query pasado al API.
 - **183A-63:** Completada 2026-03-18. Modal login APK: espera restauración de sesión + cierra al autenticar.
 - **183A-59:** Completada 2026-03-18. Rutas desktop con params para extracción de id/slug dinámicos.
+- **183A-54:** Completada 2026-03-18. Quitar padding botones colección + panel lateral modo colección.
 
 ## Tareas pendientes
 
@@ -131,10 +132,6 @@ tambien que aparezca un reproductor cuando se reproduzca un sample en android, q
 ## 183A-50
 
 Las acciones multiples en los samples no actualizan en tiempo real los samples afectados, revisar en profundidad esta funcionalidad y ajustar.
-
-## 183A-54
-
-quitar el padding de los botones .tarjetaColeccionMenuContenedor y agregar un boton que abra los samples de esa coleccion en el panellateral
 
 ## 183A-55
 
