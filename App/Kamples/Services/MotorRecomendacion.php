@@ -41,8 +41,10 @@ class MotorRecomendacion
     private const CACHE_PREFIX = 'kamples_feed_';
     private const CACHE_STALE_PREFIX = 'kamples_feed_stale_';
     private const CACHE_STALE_TTL = 21600; /* 6 horas — escudo stale para primera pagina */
-    /* [183A-30] Stale extendido a paginas 2+: 1h (menor que p1 porque se actualizan con menos frecuencia) */
-    private const CACHE_STALE_TTL_PAGINAS = 3600;
+    /* [183A-86] Stale TTL igualado a pag1 (6h). Con TTL desigual (1h vs 6h),
+     * entre la hora 1-6 pag1 tiene stale (viejo seed) pero pag2 no → pag2
+     * se recalcula con nuevo seed → dedup descarta todo → paginación rota. */
+    private const CACHE_STALE_TTL_PAGINAS = 21600;
     private const WARM_LOCK_PREFIX = 'kamples_warm_feed_';
     private const LIMITES_WARM_PRIMERA_PAGINA = [12, 30];
     /* [183A-80] Máximo de páginas a pre-computar en una sola query (OFFSET 0).
@@ -223,21 +225,34 @@ class MotorRecomendacion
             }
         }
 
-        /*
-         * Stampede protection: si el cache esta vacio y otro request ya esta
-         * recalculando, esperar brevemente en vez de duplicar la query pesada.
-         */
-        $lockKey = 'kamples_lock_feed_' . $userId . '_' . $limite . '_' . $offset;
+        /* [183A-86] Stampede protection: lock unificado para todo el rango bulk.
+         * Sin esto, pag2 obtiene un lock diferente al de pag1, permitiendo
+         * bulk-fetches concurrentes con seeds RANDOM() distintas.
+         * El dedup del frontend descarta los duplicados → pag2 parece vacía. */
+        $maxBulkOffset = $limite * (self::PAGINAS_BULK - 1);
+        $esBulkRango = $offset <= $maxBulkOffset;
+        $lockOffset = $esBulkRango ? 0 : $offset;
+        $lockKey = 'kamples_lock_feed_' . $userId . '_' . $limite . '_' . $lockOffset;
         $lockAdquirido = ServicioCache::adquirirLock($lockKey, 30);
 
         if (!$lockAdquirido) {
-            /* Otro request esta recalculando — esperar 80ms y reintentar cache */
-            \usleep(80000);
-            $cached = ServicioCache::obtener($cacheKey);
-            if ($cached !== false && \is_array($cached)) {
-                return $cached;
+            /* [183A-86] Para páginas bulk, esperar hasta 500ms (el bulk tarda ~37ms)
+             * con reintentos de cache cada 50ms. Para páginas individuales, 80ms simple. */
+            if ($esBulkRango) {
+                for ($intento = 0; $intento < 10; $intento++) {
+                    \usleep(50000);
+                    $cached = ServicioCache::obtener($cacheKey);
+                    if ($cached !== false && \is_array($cached)) {
+                        return $cached;
+                    }
+                }
+            } else {
+                \usleep(80000);
+                $cached = ServicioCache::obtener($cacheKey);
+                if ($cached !== false && \is_array($cached)) {
+                    return $cached;
+                }
             }
-            /* Sin cache disponible aun — seguir con calculo propio como fallback */
         }
 
         try {
@@ -457,7 +472,14 @@ class MotorRecomendacion
 
             if ($usarBulk) {
                 $limiteBulk = $limite * self::PAGINAS_BULK;
-                $todoResultados = SamplesRepository::consultar($sql, ['limit' => $limiteBulk, 'offset' => 0]);
+                /* [183A-86] Usar $queryParams completo (incluye params de señales como
+                 * :bpmProm, :keyFav, embedding, etc.) con limit/offset sobrescritos.
+                 * Sin esto, el prepared statement recibe 2 params cuando necesita ~8,
+                 * causando SQLSTATE[08P01] y retorno vacío → fallback a recientes. */
+                $bulkParams = $queryParams;
+                $bulkParams['limit'] = $limiteBulk;
+                $bulkParams['offset'] = 0;
+                $todoResultados = SamplesRepository::consultar($sql, $bulkParams);
 
                 KamplesLogger::info('Algoritmo: Bulk-fetch completado', [
                     'userId' => $userId, 'totalBulk' => \count($todoResultados),
