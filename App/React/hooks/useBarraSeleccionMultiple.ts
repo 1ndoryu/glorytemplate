@@ -10,6 +10,7 @@ import { useSeleccionSamplesStore } from '@app/stores/seleccionSamplesStore';
 import { useColeccionPickerStore } from '@app/stores/coleccionPickerStore';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
+import { descargarArchivo } from '@app/utils/descargarArchivo';
 import { eliminarSample } from '@app/services/apiSamples';
 import { EVENTO_SAMPLE_ELIMINADO, EVENTO_SAMPLE_RESTAURADO } from '@app/hooks/useMenuContextualSample';
 import { EVENTO_LIKE_CAMBIADO } from '@app/hooks/useFeedLikes';
@@ -72,14 +73,21 @@ export function useBarraSeleccionMultiple() {
         abrirPicker(samplesArr[0]);
     }, [samplesArr, abrirPicker]);
 
-    /* QL116: Descargar todos los seleccionados */
+    /* [183A-73] Descargar todos los seleccionados — cross-platform */
     const manejarDescargarTodos = useCallback(async () => {
         if (procesando) return;
         setProcesando(true);
         let exitos = 0;
         for (const s of samplesArr) {
             const resp = await descargarSample(s.id);
-            if (resp.ok) exitos++;
+            if (resp.ok && resp.data?.url) {
+                try {
+                    await descargarArchivo(resp.data.url, resp.data.nombre || s.titulo || 'sample');
+                    exitos++;
+                } catch {
+                    /* seguir con los siguientes aunque uno falle */
+                }
+            }
         }
         toast.exito(`${exitos} samples descargados`);
         limpiarSeleccion();

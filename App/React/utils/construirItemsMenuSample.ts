@@ -10,6 +10,7 @@ import type { MenuItemDef } from '@app/components/ui/MenuContextual';
 import { eliminarSample, actualizarSample } from '@app/services/apiSamples';
 import { desvincularSample } from '@app/services/apiRelaciones';
 import { descargarSample } from '@app/services/apiDescargas';
+import { descargarArchivo } from '@app/utils/descargarArchivo';
 import { toast } from '@app/stores/toastStore';
 import { useReportarStore } from '@app/stores/reportarStore';
 import { requiereAuth } from '@app/utils/requiereAuth';
@@ -59,17 +60,13 @@ export const construirItemsMenuSample = (d: DepsMenuSample): MenuItemDef[] => {
             onClick: () => d.navegar(rutaColeccionOriginal),
         }] : []),
         { id: 'coleccion', etiqueta: 'Añadir a colección', icono: ic(FolderPlus), onClick: () => { if (requiereAuth()) d.abrirColeccionPicker(s); } },
+        /* [183A-73] Descarga cross-platform: web usa <a>, nativo usa Filesystem+Share */
         { id: 'descargar', etiqueta: 'Descargar archivo', icono: ic(Download), onClick: async () => {
             if (!requiereAuth()) return;
             try {
                 const resp = await descargarSample(s.id);
                 if (resp.ok && resp.data?.url) {
-                    const a = document.createElement('a');
-                    a.href = resp.data.url;
-                    a.download = resp.data.nombre || s.titulo || 'sample';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
+                    await descargarArchivo(resp.data.url, resp.data.nombre || s.titulo || 'sample');
                 } else if (resp.status === 429 || resp.status === 403) {
                     toast.error(resp.error ?? 'Has alcanzado el límite de descargas');
                 }

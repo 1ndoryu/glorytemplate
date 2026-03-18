@@ -2,4 +2,7 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="my_images" path="." />
     <cache-path name="my_cache_images" path="." />
+    <!-- [183A-73] Exponer cache para Share al descargar samples -->
+    <cache-path name="sample_downloads" path="." />
+    <external-cache-path name="sample_downloads_ext" path="." />
 </paths>

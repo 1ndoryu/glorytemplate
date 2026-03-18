@@ -7,6 +7,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { obtenerSample } from '@app/services/apiSamples';
 import { darLike, quitarLike } from '@app/services/apiSocial';
 import { descargarSample } from '@app/services/apiDescargas';
+import { descargarArchivo } from '@app/utils/descargarArchivo';
 import { etiquetaBpm } from '@app/services/bpmUtils';
 import { useAuthStore } from '@app/stores/authStore';
 import { useNavigationStore } from '@/core/router';
@@ -104,18 +105,19 @@ export function useSampleDetalle({ slugProp }: SampleDetalleParams) {
 
     /* ---- Callbacks de reacciones ---- */
 
-    /* Descarga con validacion de plan y feedback de error */
+    /* [183A-73] Descarga con validacion de plan y feedback de error.
+     * En nativo (Capacitor Android) usa descargarArchivo → Filesystem + Share.
+     * En web usa el patrón <a download>. */
     const manejarDescargar = useCallback(async () => {
         if (!sample) return;
         const resp = await descargarSample(sample.id);
         if (resp.ok && resp.data?.url) {
             setDescargado(true);
-            const a = document.createElement('a');
-            a.href = resp.data.url;
-            a.download = resp.data.nombre || sample.titulo || 'sample';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            try {
+                await descargarArchivo(resp.data.url, resp.data.nombre || sample.titulo || 'sample');
+            } catch {
+                toast.error('Error al guardar el archivo');
+            }
         } else if (resp.status === 429) {
             toast.error(resp.error ?? 'Has alcanzado el límite de descargas diarias');
             abrirPlanes();
