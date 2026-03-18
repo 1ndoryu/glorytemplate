@@ -110,4 +110,9 @@ El buscador en el landing deslogeada no funciona y recarga la pagina, cosa que n
 App\React\logs\google-services.json deje el archivo ahi, continua con lo que falta de las ntoificaciones en la apk.
 la apk se cierra apenas la abro.
 
+Nota del agente 2026-03-18: el archivo ya fue copiado a `mobile/android/app/google-services.json`, `cap sync` y `gradlew assembleDebug/installDebug` funcionan, y `processDebugGoogleServices` resolvio `google_app_id = 1:903865707437:android:dab0b5259ae7db18d9cf24` (cliente correcto de `com.kamples.mobile`). En el emulador la app queda abierta y MainActivity sigue en foreground; no pude reproducir el cierre. Lo pendiente de 183A-36 es capturar el crash real si sigue ocurriendo en otro dispositivo/flujo.
 
+## 183A-37
+
+Siguen sin aparecer las notificaciones en android sobre la app.
+Sigue el mensaje de this app has not posted any norifications. 
