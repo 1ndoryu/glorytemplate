@@ -61,6 +61,7 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **183A-52:** Completada 2026-03-18. Click en portada/texto del reproductor navega al sample.
 - **183A-62:** Completada 2026-03-18. Paginación por cursor en mensajes — carga últimos primero, scroll arriba carga antiguos.
+- **183A-57:** Completada 2026-03-18. Padding reducido en modalCuerpo de seguidores.
 
 ## Tareas pendientes
 
@@ -138,10 +139,6 @@ En el panel lateral de los samples, arriba de También te podría gustar agregar
 
 La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
 
-## 183A-57
-
-Que el modalCuerpo de los seguidores tenga padding: var(--espacioXs);
-
 ## 183A-58
 
 Si doy like a una cancion pero luego abro la pagina de esa cancion, el boton de like no aparece como activo, revisar que el estado de like se refleje correctamente en tiempo real en toda la app. Tambien revisar que los like de las canciones influyan en el algoritmo de las canciones (para ti) y Tendencias. El algortimo de tendencia de las canciones (no se si tiene algoritmo eso pero debería), deberia darle prioridad a las canciones qeu si tienen samples adjuntos y mayor click por busquedas, si tiene video de youtube etc. 
@@ -176,7 +173,10 @@ No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en
 
 ## 183A-67
 
-## 
+Parece ser que en el feed sample con el orndamiento inteligente, los smaples no aparecen con la portada de su coleccion de quien la subio, sino con la imagen temporal de colors. En recientes si, no se si ps por la cache. Esto esta relacionado con 183A-25
+
+## 183A-68
+
 
 ## Tarea final cuando completes todo
 
