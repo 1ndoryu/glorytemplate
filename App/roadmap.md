@@ -60,6 +60,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-51:** Completada 2026-03-18. Fix slugs unicode en colecciones: limpiar percent-encoding, auto-reparar, route pattern.
 
 - **183A-52:** Completada 2026-03-18. Click en portada/texto del reproductor navega al sample.
+- **183A-62:** Completada 2026-03-18. Paginación por cursor en mensajes — carga últimos primero, scroll arriba carga antiguos.
 
 ## Tareas pendientes
 
@@ -157,13 +158,25 @@ tarjetaColeccionMenuContenedor un boton de play para reproducir la preview
 
 tarjetaColeccionMenuContenedor el contador de descargas sigue siendo 30 en vez del total, este problema se repite, no siempre pasa
 
-## 183A-62
-
-los mensajes, revisar la paginacion de los mensajes, debe ser por scroll, y siempre aparecen los primeros mensajes pero no aparecen los ultimos que enviaron, si llegan las notificaciones de que llegan los mensajes, pero no aparecen, solo aparecen los primeros. 
-
 ## 183A-63
 
 Sigue el problema en la apk que cada vez que abro la apk, el modal de login aparece auqnue ya iniciado sesion, si le doy a la x se cierra y todo funciona normal. 
+
+## 183A-64
+
+Corregir errores de seguridad en paginas de politica y privacidad. 
+
+## 183A-65
+
+El buscador en el landing de no autenticados, no hace busquedas, revisar y corregir.
+
+## 183A-66
+
+No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en click, busquedas, likes, etc. para ordenar las colecciones, revisar y optimizar. 
+
+## 183A-67
+
+## 
 
 ## Tarea final cuando completes todo
 
