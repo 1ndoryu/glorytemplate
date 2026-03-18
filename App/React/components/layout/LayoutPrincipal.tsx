@@ -36,14 +36,12 @@ import { TooltipGlobal } from '../ui/TooltipGlobal';
 import { ChatFlotante } from '../social/ChatFlotante';
 import { OverlaySuspension } from '../social/OverlaySuspension';
 import { PlanesIsland } from '@app/islands/planes/PlanesIsland';
-import { BotonDevTools } from '../ui/BotonDevTools';
 import { ModalAuth } from '../auth/ModalAuth';
 import { NavPublico } from './NavPublico';
 import { ContenedorToasts } from '../ui/ContenedorToasts';
 import { NotificacionesToastBridge } from '../ui/NotificacionesToastBridge';
 import { useNavigationStore } from '@/core/router';
 import { useAuthStore } from '@app/stores/authStore';
-import { useDevToolsStore } from '@app/stores/devToolsStore';
 import { inicializarTemaApp } from '@app/services/tema';
 import '../../styles/variables.css';
 import '../../styles/reset.css';
@@ -111,7 +109,6 @@ export const LayoutPrincipal = ({
     const rutaActual = useNavigationStore((s) => s.rutaActual);
     const autenticado = useAuthStore(s => s.autenticado);
     const cargandoAuth = useAuthStore(s => s.cargando);
-    const override = useDevToolsStore((s) => s.override);
     const usuario = useAuthStore(s => s.usuario);
 
     /* QL116: Mostrar barra de selección múltiple en lugar del reproductor */
@@ -141,8 +138,7 @@ export const LayoutPrincipal = ({
         useSeleccionSamplesStore.getState().limpiarSeleccion();
     }, [rutaActual]);
 
-    /* Modo de autenticación efectivo: real o simulado */
-    const autenticadoEfectivo = override?.simulaDeslogueado ? false : autenticado;
+    /* [183A-48] DevTools eliminado — auth real siempre */
 
     const activa = useMemo(
         () => paginaActiva ?? detectarPaginaActiva(rutaActual),
@@ -152,19 +148,17 @@ export const LayoutPrincipal = ({
     /* Si no está autenticado y no está cargando, mostrar contenido público (landing).
      * F11: Durante carga de auth, mostrar layout completo con sidebar/topbar para evitar
      * flash público → privado. El skeleton del contenido lo maneja cada island. */
-    if (!autenticadoEfectivo && !cargandoAuth) {
+    if (!autenticado && !cargandoAuth) {
         return (
             <div className="layoutPublico">
                 <NavPublico />
                 <main className="areaContenidoPublico">
                     {children}
                 </main>
-                {/* Dev tools siempre visible para admin real */}
                 <ModalAuth />
                 <NotificacionesToastBridge />
                 <ContenedorToasts />
                 <TooltipGlobal />
-                <BotonDevTools />
             </div>
         );
     }
@@ -254,9 +248,6 @@ export const LayoutPrincipal = ({
 
             {/* QK54: Tooltip global — cualquier elemento con data-tooltip muestra tooltip */}
             <TooltipGlobal />
-
-            {/* Dev tools: cambio de modo (solo admin) */}
-            <BotonDevTools />
         </div>
     );
 };
