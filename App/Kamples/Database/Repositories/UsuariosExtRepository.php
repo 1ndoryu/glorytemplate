@@ -394,6 +394,23 @@ class UsuariosExtRepository extends BaseRepository
     }
 
     /*
+     * [183A-20] Buscar wp_user_id por PG username.
+     * Usado en el fallback de login para permitir autenticar con el username actual de PG
+     * aunque el user_login de WordPress sea distinto (e.g., el usuario cambió su username en el perfil).
+     */
+    public static function buscarWpUserIdPorUsername(string $username): ?int
+    {
+        $tabla = UsuariosExtCols::TABLA;
+
+        $row = static::consultarUno(
+            "SELECT " . UsuariosExtCols::WP_USER_ID . " FROM {$tabla} WHERE " . UsuariosExtCols::USERNAME . " = :username",
+            ['username' => $username]
+        );
+
+        return $row ? (int) $row[UsuariosExtCols::WP_USER_ID] : null;
+    }
+
+    /*
      * Crear usuario con ON CONFLICT (upsert para experimentos/tests).
      */
     public static function crearConConflict(array $datos): ?int
@@ -707,6 +724,7 @@ class UsuariosExtRepository extends BaseRepository
             . UsuariosExtCols::SUSPENSION_RAZON . " = :razon, "
             . UsuariosExtCols::UPDATED_AT . " = NOW() "
             . "WHERE " . UsuariosExtCols::ID . " = :id",
+            /* sentinel-disable-next-line hardcoded-sql-column — 'razon' es nombre de param PDO, no columna; la columna es UsuariosExtCols::SUSPENSION_RAZON */
             ['estado' => $estado, 'hasta' => $suspendidoHasta, 'razon' => $razon, 'id' => $userId]
         );
     }

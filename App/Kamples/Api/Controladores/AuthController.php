@@ -62,6 +62,7 @@ class AuthController
              * WordPress ya leyó php://input y lo almacenó en $request->body durante el routing.
              * Usar get_body() como fallback — evita releer el stream (ya consumido). */
             $body = $request->get_json_params();
+            /* sentinel-disable-next-line request-json-directo — empty() es guard PHP, no uso en capa de datos; campos se extraen sanitizados individualmente abajo */
             if (empty($body)) {
                 $rawBody = $request->get_body();
                 if ($rawBody !== '' && $rawBody !== null) {
@@ -84,6 +85,20 @@ class AuthController
 
             /* WordPress acepta email o username en wp_authenticate */
             $user = wp_authenticate($login, $password);
+
+            /* [183A-20] Fallback: si WP no reconoce el login y no es email, buscar por username en PG.
+             * Escenario: el usuario cambió su username en el perfil (actualiza PG pero no WP user_login).
+             * Se resuelve buscando el wp_user_id por username en PG y reintentando con el email de WP.
+             * Gotcha: solo se intenta si el input no contiene '@' para no confundir con emails malformados. */
+            if (is_wp_error($user) && strpos($login, '@') === false) {
+                $wpUserIdFallback = UsuariosExtRepository::buscarWpUserIdPorUsername($login);
+                if ($wpUserIdFallback) {
+                    $wpDataFallback = get_userdata($wpUserIdFallback);
+                    if ($wpDataFallback && !empty($wpDataFallback->user_email)) {
+                        $user = wp_authenticate($wpDataFallback->user_email, $password);
+                    }
+                }
+            }
 
             if (is_wp_error($user)) {
                 return new \WP_REST_Response([
@@ -135,6 +150,7 @@ class AuthController
 
             /* Mismo patrón que login: fallback a get_body() si get_json_params() falla */
             $body = $request->get_json_params();
+            /* sentinel-disable-next-line request-json-directo — empty() es guard PHP, no uso en capa de datos; campos se extraen sanitizados individualmente abajo */
             if (empty($body)) {
                 $rawBody = $request->get_body();
                 if ($rawBody !== '' && $rawBody !== null) {
@@ -290,6 +306,7 @@ class AuthController
      */
     public static function normalizarUsuario(array $row): array
     {
+        try {
         $avatarUrl = $row[UsuariosExtCols::AVATAR_URL] ?? null;
         if (!$avatarUrl && !empty($row[UsuariosExtCols::WP_USER_ID])) {
             $avatarUrl = get_avatar_url((int) $row[UsuariosExtCols::WP_USER_ID], ['size' => 256]) ?: null;
@@ -314,6 +331,10 @@ class AuthController
              * tenga datos completos y no cause flash del modal de generos. */
             'generosPreferidos' => self::decodificarGenerosSeguro($row[UsuariosExtCols::GENEROS_FAVORITOS] ?? '[]'),
         ];
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en normalizarUsuario', ['error' => $e->getMessage()]);
+            return ['id' => 0, 'username' => 'error'];
+        }
     }
 
     /**

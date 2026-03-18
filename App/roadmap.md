@@ -34,6 +34,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **QK1-QK105:** Sprint QK completo.
 - **QL1-QL136 + QL136-CAP:** Sprint QL completo.
 - **183A-9, 173A-7, 183A-10:** Completadas 2026-03-18. Detalle en `App/Agente/completados/tareas-2026-03-18.md`.
+- **183A-20:** Login con nombre actualizado (fallback por PG username). 2026-03-18.
 - Detalle anterior en `App/Agente/completados/tareas-2026-03-17.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
 ## Tareas pendientes
@@ -49,15 +50,22 @@ La apk en android studio hice el rebuild y no aparece con el logo de kamples la 
 
 el boton de inicio sesion con google no aparece en el modal del login y las notificaciones del sistema no aparecen, de hecho en la info dice, "this app has not posted any notification", creo que necesita sdocumentarte en internet sobr eesto. 
 
-## 183A-20
+## 183A-23
 
-Es raro que haya creado un usuario con el nombre test, luego intenramente en las configuraciones de perfil cambie el nombre a wan, pero, sigo inicio sesion a ese usuario con el nombre test, esta mal obviamente, debo iniciar sesion con el nombre que usuario que cambien.
+La incosistencia de conteo sigue entre afuera en la lista de coleccion y adentro de la colección, no en todas las colecicones pasa. 
 
-## 183A-21
-ahora el contador interno de las colecciones literalmente se queda en cero, estas trabajando en esto sin verificar
-<span class="coleccionStats">0 samples</span>
+## 183A-24
 
-agrega algo estricto en .github\instructions\test.instructions.md para que dejes de cometer este error de marcar tareas como completadas que no verificas cuando incluso puedes comprobar localmente sin recurrir al servidor. 
+https://kamples.com/descargas/ los contadores no dicen el numero completo a veces si pero luego cambia a 30 siempre.
 
-## 183A-22
+## 183A-25
 
+El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
+
+## 183A-26
+
+El menu contextual se sale de la pantalla a veces, ese el que parece cuando das click derecho a un sample o botones de 3 puntos, corregir.
+
+## 183A-27
+
+no estoy segura que si la solucion que aplicaste sobre 183A-20 es real o es un parche, o sea el cambio de usuario detecta nombres ya usads? arreglaste que si cambio el nombre tambien se cambie en wp?? 
