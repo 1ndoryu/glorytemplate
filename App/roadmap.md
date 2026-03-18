@@ -53,6 +53,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-34:** Completada 2026-03-18. Click derecho y long-press abren menú contextual en tarjetas de colección.
 - **183A-32:** Completada 2026-03-18. Botón like en tarjetas de canción (TarjetaCancionGrande) y detalle de canción.
 - **183A-38:** Completada 2026-03-18. Pull-to-refresh en feed de comunidad para móvil.
+- **183A-46:** Completada 2026-03-18. Fix `npm run dev` con plugin Vite para stubs de módulos Tauri/Capacitor.
 
 ## Tareas pendientes
 
@@ -104,33 +105,7 @@ La pagina de musica carga lento a veces, revisar y optimizar.
 
 Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
 
-## 183A-46
-
-PS C:\Users\Owner\OneDrive\Documentos\WP\app\public\wp-content\themes\glorytemplate>npm run dev
-
-> glory-theme@1.0.0 dev
-> npm run dev --prefix Glory/assets/react
-
-
-> glory-react@1.0.0 dev
-> vite
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: http://10.8.0.2:5173/
-  ➜  Network: http://192.168.0.127:5173/
-  ➜  press h + enter to show help
-Error: The following dependencies are imported but could not be resolved:
-
-  @tauri-apps/api/app (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/hooks/useVerificadorVersion.ts)        
-  @tauri-apps/plugin-shell (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/utils/plataforma.ts)
-  @tauri-apps/plugin-notification (imported by C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/App/React/services/notificacionNativa.ts)
-
-Are they installed?
-    at file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:14849:15
-    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
-    at async file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:47014:28
-
-## 183A-47
+## 183A-40
 
 perfilAcciones el boton de editar perfil ocultalo en movil, que se quede dentro del menu contextual de 3 puntos (ya esta ahi)
 
@@ -146,7 +121,8 @@ y toda su logica si es que tiene alguna
 Hacer una revision profunda de las notificaciones
 deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo como @Wan comento tu publicacion "titulo de la publicac..." o algo asi,
 asegurar que a dar click vayan al contenido relacionado
-asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada
+asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
+tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
 
 ## 183A-50
 
@@ -156,6 +132,10 @@ Las acciones multiples en los samples no actualizan en tiempo real los samples a
 
 letras raras, probe subir una carpeta al sync, la puse con este nombre 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 
 el enlace aparece con esas letras, pero, no funciona, imagino que es un problema que no se previno, hay que revisar que pasa, dice Colección no encontrada, con colecciones con nombres normales no pasa eso, los archivos tambien tienen esas letras, espero que no afecte la generaicon de json o cosas asi o aumete los token de la ia.
+
+## 183A-52
+
+al dar click a la imagen de portada o texto del sample en el reproductor, ir directo a la pagina de ese sample.
 
 ## Tarea final cuando completes todo
 
