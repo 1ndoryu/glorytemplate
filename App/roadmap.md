@@ -57,6 +57,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-48:** Completada 2026-03-18. Eliminado botón DevTools y lógica de override en LayoutPrincipal.
 - **183A-47:** Completada 2026-03-18. Botón editar perfil oculto en móvil (ya está en menú contextual).
 - **183A-53:** Completada 2026-03-18. Fix combinar colecciones: reordenar DELETE/UPDATE para evitar UNIQUE constraint.
+- **183A-51:** Completada 2026-03-18. Fix slugs unicode en colecciones: limpiar percent-encoding, auto-reparar, route pattern.
 
 ## Tareas pendientes
 
@@ -122,11 +123,6 @@ tambien que aparezca un reproductor cuando se reproduzca un sample en android, q
 
 Las acciones multiples en los samples no actualizan en tiempo real los samples afectados, revisar en profundidad esta funcionalidad y ajustar.
 
-## 183A-51
-
-letras raras, probe subir una carpeta al sync, la puse con este nombre 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 
-el enlace aparece con esas letras, pero, no funciona, imagino que es un problema que no se previno, hay que revisar que pasa, dice Colección no encontrada, con colecciones con nombres normales no pasa eso, los archivos tambien tienen esas letras, espero que no afecte la generaicon de json o cosas asi o aumete los token de la ia.
-
 ## 183A-52
 
 al dar click a la imagen de portada o texto del sample en el reproductor, ir directo a la pagina de ese sample.
@@ -146,6 +142,16 @@ La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un
 ## 183A-57
 
 Que el modalCuerpo de los seguidores tenga padding: var(--espacioXs);
+
+## 183A-58
+
+Si doy like a una cancion pero luego abro la pagina de esa cancion, el boton de like no aparece como activo, revisar que el estado de like se refleje correctamente en tiempo real en toda la app. Tambien revisar que los like de las canciones influyan en el algoritmo de las canciones (para ti) y Tendencias. El algortimo de tendencia de las canciones (no se si tiene algoritmo eso pero debería), deberia darle prioridad a las canciones qeu si tienen samples adjuntos y mayor click por busquedas, si tiene video de youtube etc. 
+
+## 183A-59
+
+Algo pasa en la aplicacion de escritorio, viendo el modo dev, cuando voy a un sampleo https://kamples.com/sampleo/24770/larsht-touch-samplea/, dice "ID de relación no válido" eso no pasa en produccion. 
+
+## 
 
 ## Tarea final cuando completes todo
 
