@@ -87,11 +87,11 @@ islandRegistry.registerAll(appIslands);
  * En la web, PHP genera esto dinámicamente via __GLORY_ROUTES__.
  * En desktop, las rutas son fijas y conocidas.
  */
-const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unknown>; title: string }> = {
+const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unknown>; title: string; params?: string }> = {
     '/': { island: 'InicioIsland', props: {}, title: 'Inicio' },
     '/auth/login/': { island: 'LoginIsland', props: {}, title: 'Login' },
     '/auth/registro/': { island: 'RegistroIsland', props: {}, title: 'Registro' },
-    '/perfil/': { island: 'PerfilIsland', props: { username: '' }, title: 'Perfil' },
+    '/perfil/': { island: 'PerfilIsland', props: { username: '' }, title: 'Perfil', params: ':username' },
     '/perfil/editar/': { island: 'EditarPerfilIsland', props: {}, title: 'Editar Perfil' },
     '/libreria/': { island: 'LibreriaIsland', props: {}, title: 'Libreria' },
     '/descargas/': { island: 'DescargasIsland', props: {}, title: 'Descargas' },
@@ -102,20 +102,20 @@ const RUTAS_DESKTOP: Record<string, { island: string; props: Record<string, unkn
     '/planes/': { island: 'PlanesIsland', props: {}, title: 'Planes' },
     '/comunidad/': { island: 'ComunidadIsland', props: {}, title: 'Comunidad' },
     '/explorador/': { island: 'ExploradorIsland', props: {}, title: 'Explorador' },
-    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' }, title: 'Coleccion' },
+    '/coleccion/': { island: 'ColeccionDetalleIsland', props: { coleccionSlug: '' }, title: 'Coleccion', params: ':coleccionSlug' },
     '/colecciones/': { island: 'ColeccionesIsland', props: {}, title: 'Colecciones' },
     '/mensajes/': { island: 'MensajesIsland', props: {}, title: 'Mensajes' },
-    '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' }, title: 'Chat' },
+    '/mensajes/chat/': { island: 'ChatIsland', props: { conversacionId: '' }, title: 'Chat', params: ':conversacionId' },
     '/admin/dashboard/': { island: 'DashboardCreadorIsland', props: {}, title: 'Dashboard' },
     '/admin/panel/': { island: 'AdminPanelIsland', props: {}, title: 'Admin' },
-    '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' }, title: 'Sample' },
+    '/sample/': { island: 'SampleDetalleIsland', props: { slug: '' }, title: 'Sample', params: ':slug' },
     /* QK104: En movil, / muestra comunidad; /samples/ da acceso directo al feed */
     '/samples/': { island: 'FeedSamplesIsland', props: {}, title: 'Samples' },
     '/musica/': { island: 'ExplorarCancionesIsland', props: {}, title: 'Música' },
-    '/cancion/': { island: 'CancionDetalleIsland', props: { slug: '' }, title: 'Canción' },
-    '/sampleo/': { island: 'RelacionDetalleIsland', props: { id: '' }, title: 'Sampleo' },
-    '/artista/': { island: 'ArtistaDetalleIsland', props: { slug: '' }, title: 'Artista' },
-    '/publicacion/': { island: 'PublicacionIsland', props: { publicacionId: '' }, title: 'Publicación' },
+    '/cancion/': { island: 'CancionDetalleIsland', props: { slug: '' }, title: 'Canción', params: ':slug' },
+    '/sampleo/': { island: 'RelacionDetalleIsland', props: { id: '' }, title: 'Sampleo', params: ':id/:slug?' },
+    '/artista/': { island: 'ArtistaDetalleIsland', props: { slug: '' }, title: 'Artista', params: ':slug' },
+    '/publicacion/': { island: 'PublicacionIsland', props: { publicacionId: '' }, title: 'Publicación', params: ':publicacionId' },
     '/privacy/': { island: 'PrivacidadIsland', props: {}, title: 'Privacidad' },
     '/terms/': { island: 'TerminosIsland', props: {}, title: 'Términos' },
 };
