@@ -320,57 +320,30 @@ class CancionesRepository extends BaseRepository
         return (int) (static::consultarValor($sql) ?? 0);
     }
 
-    /*
-     * QK18/QK22: Secciones estilo Spotify para la pagina de musica.
-     * Un solo request retorna multiples secciones con dedup entre ellas.
-     * Cada seccion tiene tipo, titulo y lista de canciones o artistas.
-     * Dedup: una cancion nunca aparece en dos secciones.
+    /* [183A-75] Secciones estilo Spotify — optimización 2 queries.
+     * Antes: 8-13 queries con EXISTS en ORDER BY (~609ms).
+     * Después: 1 ranking ligero + 1 enriquecimiento selectivo + 1 artistas (~3 queries).
      *
-     * @return array Lista de secciones [{tipo, titulo, canciones/artistas}]
-     */
+     * Fase 1: ranking ligero (todas las canciones, sin subqueries pesadas).
+     * Fase 2: scoring + dedup en PHP (O(N), trivial, ~0ms).
+     * Fase 3: enriquecimiento solo para las ~75 seleccionadas (reaccion + sample adjunto).
+     * Géneros populares se computan del ranking en PHP, eliminando query extra. */
     public static function secciones(int $porSeccion = 15, ?int $userId = null): array
     {
-        $idsUsados = [];
-        $secciones = [];
-        $selectBase = self::buildSelectBase($userId);
+        $ranking = self::fetchRankingLigero();
+        $asignaciones = self::computarSecciones($ranking, $porSeccion);
 
-        /* 1. "Para Ti" — heuristico inteligente */
-        $paraTi = self::fetchSeccionOrdenada($selectBase, 'inteligente', $porSeccion, $idsUsados);
-        self::acumularIds($idsUsados, $paraTi);
-        if (!empty($paraTi)) {
-            $secciones[] = ['tipo' => 'para_ti', 'titulo' => 'Para Ti', 'canciones' => $paraTi];
-        }
-
-        /* 2. "Tendencia" — canciones mas populares por likes */
-        $hot = self::fetchSeccionOrdenada($selectBase, 'tendencia', $porSeccion, $idsUsados);
-        self::acumularIds($idsUsados, $hot);
-        if (!empty($hot)) {
-            $secciones[] = ['tipo' => 'tendencia', 'titulo' => 'Tendencia', 'canciones' => $hot];
-        }
-
-        /* 3. "Mas Sampleadas" — top all-time */
-        $top = self::fetchSeccionOrdenada($selectBase, 'top', $porSeccion, $idsUsados);
-        self::acumularIds($idsUsados, $top);
-        if (!empty($top)) {
-            $secciones[] = ['tipo' => 'top', 'titulo' => 'Más Sampleadas', 'canciones' => $top];
-        }
-
-        /* 4. Secciones por genero — top generos con minimo 5 canciones */
-        $generos = self::generosPopulares(6);
-        foreach ($generos as $genero) {
-            $cancionesGenero = self::fetchSeccionGenero($selectBase, $genero, $porSeccion, $idsUsados);
-            if (\count($cancionesGenero) >= 5) {
-                self::acumularIds($idsUsados, $cancionesGenero);
-                $secciones[] = [
-                    'tipo'      => 'genero',
-                    'titulo'    => $genero,
-                    'genero'    => $genero,
-                    'canciones' => $cancionesGenero,
-                ];
+        $todosIds = [];
+        foreach ($asignaciones as $sec) {
+            foreach ($sec['ids'] as $id) {
+                $todosIds[] = $id;
             }
         }
 
-        /* 5. Artistas populares */
+        $enriquecidas = self::enriquecerCanciones($todosIds, $userId);
+        $secciones = self::ensamblarSecciones($asignaciones, $enriquecidas);
+
+        /* Artistas populares (query independiente, ya optimizada) */
         $artistas = ArtistasMusicalesRepository::topPorCanciones($porSeccion);
         if (!empty($artistas)) {
             $secciones[] = ['tipo' => 'artistas', 'titulo' => 'Artistas Populares', 'artistas' => $artistas];
@@ -435,117 +408,196 @@ class CancionesRepository extends BaseRepository
         ) sq) AS sample_adjunto_json";
     }
 
-    /* Fetch una seccion con orden especifico, excluyendo IDs ya usados (dedup) */
-    private static function fetchSeccionOrdenada(
-        string $selectBase,
-        string $tipo,
-        int $limit,
-        array $idsUsados
-    ): array {
-        $exclusion = self::buildExclusion($idsUsados);
-        $params = \array_merge(['limit' => $limit], $exclusion['params']);
-
-        switch ($tipo) {
-            case 'inteligente':
-                /* QL14: +3.0 bonus para canciones con sample adjunto reproducible */
-                $ts = SamplesCols::TABLA;
-                $eActivo = SamplesEnums::ESTADO_ACTIVO;
-                $order = "ORDER BY (
-                    LN(c." . CancionesCols::TOTAL_SAMPLEADA . " + 1) * 3.0
-                    + GREATEST(0, 1.0 - EXTRACT(EPOCH FROM (NOW() - c." . CancionesCols::CREATED_AT . ")) / 31536000.0) * 2.0
-                    + RANDOM() * 1.5
-                    + (CASE WHEN EXISTS (
-                        SELECT 1 FROM {$ts} s
-                        WHERE s." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
-                          AND s." . SamplesCols::ESTADO . " = '{$eActivo}'
-                          AND s." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
-                    ) THEN 3.0 ELSE 0.0 END)
-                ) DESC";
-                break;
-            case 'tendencia':
-                /* [183A-58] Tendencias: likes + bonus sample adjunto + bonus youtube.
-                 * score = total_likes + (sample_adjunto ? 5) + (youtube_id ? 2) + total_sampleada * 0.5 */
-                $ts2 = SamplesCols::TABLA;
-                $eActivo2 = SamplesEnums::ESTADO_ACTIVO;
-                $order = "ORDER BY (
-                    c." . CancionesCols::TOTAL_LIKES . "
-                    + (CASE WHEN EXISTS (
-                        SELECT 1 FROM {$ts2} s2
-                        WHERE s2." . SamplesCols::CANCION_ORIGEN_ID . " = c." . CancionesCols::ID . "
-                          AND s2." . SamplesCols::ESTADO . " = '{$eActivo2}'
-                          AND s2." . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
-                    ) THEN 5 ELSE 0 END)
-                    + (CASE WHEN c." . CancionesCols::YOUTUBE_ID . " IS NOT NULL THEN 2 ELSE 0 END)
-                    + c." . CancionesCols::TOTAL_SAMPLEADA . " * 0.5
-                ) DESC";
-                break;
-            default: /* top */
-                $order = "ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC";
-                break;
-        }
-
-        $sql = "{$selectBase} WHERE 1=1 {$exclusion['sql']} {$order} LIMIT :limit";
-        return static::consultar($sql, $params);
-    }
-
-    /* Fetch canciones de un genero especifico con dedup */
-    private static function fetchSeccionGenero(
-        string $selectBase,
-        string $genero,
-        int $limit,
-        array $idsUsados
-    ): array {
-        $exclusion = self::buildExclusion($idsUsados);
-        $params = \array_merge(
-            ['genero' => $genero, 'limit' => $limit],
-            $exclusion['params']
-        );
-
-        $sql = "{$selectBase}
-                WHERE c." . CancionesCols::GENERO . " = :genero
-                {$exclusion['sql']}
-                ORDER BY c." . CancionesCols::TOTAL_SAMPLEADA . " DESC
-                LIMIT :limit";
-
-        return static::consultar($sql, $params);
-    }
-
-    /* Top generos por cantidad de canciones, minimo 5 para que la seccion tenga contenido */
-    private static function generosPopulares(int $limit = 6): array
+    /* [183A-75] Query ligero: columnas mínimas para scoring, sin subqueries pesadas.
+     * LEFT JOIN pre-agregado para flag tiene_sample (hash join, no per-row EXISTS). */
+    private static function fetchRankingLigero(): array
     {
         $tc = CancionesCols::TABLA;
-        $rows = static::consultar(
-            "SELECT " . CancionesCols::GENERO . " AS genero, COUNT(*) AS total
-             FROM {$tc}
-             WHERE " . CancionesCols::GENERO . " IS NOT NULL
-               AND " . CancionesCols::GENERO . " != ''
-             GROUP BY " . CancionesCols::GENERO . "
-             HAVING COUNT(*) >= 5
-             ORDER BY total DESC
-             LIMIT :limit",
-            ['limit' => $limit]
+        $ts = SamplesCols::TABLA;
+        $eActivo = SamplesEnums::ESTADO_ACTIVO;
+
+        return static::consultar(
+            "SELECT c." . CancionesCols::ID . ",
+                    c." . CancionesCols::GENERO . ",
+                    c." . CancionesCols::TOTAL_SAMPLEADA . ",
+                    c." . CancionesCols::TOTAL_LIKES . ",
+                    c." . CancionesCols::YOUTUBE_ID . ",
+                    c." . CancionesCols::CREATED_AT . ",
+                    CASE WHEN sf.cid IS NOT NULL THEN 1 ELSE 0 END AS tiene_sample
+             FROM {$tc} c
+             LEFT JOIN (
+                 SELECT DISTINCT " . SamplesCols::CANCION_ORIGEN_ID . " AS cid
+                 FROM {$ts}
+                 WHERE " . SamplesCols::ESTADO . " = '{$eActivo}'
+                   AND " . SamplesCols::RUTA_PREVIEW . " IS NOT NULL
+             ) sf ON sf.cid = c." . CancionesCols::ID
         );
-        return \array_map(fn($r) => $r['genero'], $rows);
     }
 
-    /* Exclusion parametrizada con array PG para dedup entre secciones */
-    private static function buildExclusion(array $idsUsados): array
+    /* [183A-75] Scoring + dedup + asignación de secciones enteramente en PHP.
+     * O(N) donde N = total canciones (~1000). Elimina EXISTS per-row en ORDER BY. */
+    private static function computarSecciones(array $ranking, int $porSeccion): array
     {
-        if (empty($idsUsados)) {
-            return ['sql' => '', 'params' => []];
+        $usados = [];
+        $secciones = [];
+        $ahora = \time();
+
+        /* 1. Para Ti — heurístico inteligente */
+        $scored = [];
+        foreach ($ranking as $c) {
+            $edadSeg = $ahora - \strtotime($c['created_at']);
+            $scored[] = [
+                'id'    => (int) $c['id'],
+                'score' => \log((int) $c['total_sampleada'] + 1) * 3.0
+                         + \max(0.0, 1.0 - $edadSeg / 31536000.0) * 2.0
+                         + \mt_rand() / \mt_getrandmax() * 1.5
+                         + ((int) $c['tiene_sample'] ? 3.0 : 0.0),
+            ];
         }
-        $pgArray = '{' . \implode(',', \array_map('intval', $idsUsados)) . '}';
-        return [
-            'sql'    => ' AND NOT (c.' . CancionesCols::ID . ' = ANY(:ids_excluidos::int[]))',
-            'params' => ['ids_excluidos' => $pgArray],
-        ];
+        \usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        $ids = self::pickTopIds($scored, $porSeccion, $usados);
+        if (!empty($ids)) {
+            $secciones[] = ['tipo' => 'para_ti', 'titulo' => 'Para Ti', 'ids' => $ids];
+        }
+
+        /* 2. Tendencia — likes + bonus sample + bonus youtube */
+        $scored = [];
+        foreach ($ranking as $c) {
+            $id = (int) $c['id'];
+            if (isset($usados[$id])) {
+                continue;
+            }
+            $scored[] = [
+                'id'    => $id,
+                'score' => (int) $c['total_likes']
+                         + ((int) $c['tiene_sample'] ? 5 : 0)
+                         + ($c['youtube_id'] !== null ? 2 : 0)
+                         + (int) $c['total_sampleada'] * 0.5,
+            ];
+        }
+        \usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        $ids = self::pickTopIds($scored, $porSeccion, $usados);
+        if (!empty($ids)) {
+            $secciones[] = ['tipo' => 'tendencia', 'titulo' => 'Tendencia', 'ids' => $ids];
+        }
+
+        /* 3. Más Sampleadas — top all-time */
+        $scored = [];
+        foreach ($ranking as $c) {
+            $id = (int) $c['id'];
+            if (isset($usados[$id])) {
+                continue;
+            }
+            $scored[] = ['id' => $id, 'score' => (int) $c['total_sampleada']];
+        }
+        \usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+        $ids = self::pickTopIds($scored, $porSeccion, $usados);
+        if (!empty($ids)) {
+            $secciones[] = ['tipo' => 'top', 'titulo' => 'Más Sampleadas', 'ids' => $ids];
+        }
+
+        /* 4. Géneros populares — computados del ranking, sin query extra */
+        $conteo = [];
+        foreach ($ranking as $c) {
+            $g = $c['genero'] ?? '';
+            if ($g !== '') {
+                $conteo[$g] = ($conteo[$g] ?? 0) + 1;
+            }
+        }
+        \arsort($conteo);
+        $topGeneros = \array_slice(
+            \array_keys(\array_filter($conteo, fn($n) => $n >= 5)),
+            0,
+            6
+        );
+
+        foreach ($topGeneros as $genero) {
+            $scored = [];
+            foreach ($ranking as $c) {
+                $id = (int) $c['id'];
+                if (isset($usados[$id])) {
+                    continue;
+                }
+                if (($c['genero'] ?? '') !== $genero) {
+                    continue;
+                }
+                $scored[] = ['id' => $id, 'score' => (int) $c['total_sampleada']];
+            }
+            \usort($scored, fn($a, $b) => $b['score'] <=> $a['score']);
+            $ids = self::pickTopIds($scored, $porSeccion, $usados);
+            if (\count($ids) >= 5) {
+                $secciones[] = [
+                    'tipo'   => 'genero',
+                    'titulo' => $genero,
+                    'genero' => $genero,
+                    'ids'    => $ids,
+                ];
+            }
+        }
+
+        return $secciones;
     }
 
-    /* Acumula IDs de canciones para tracking de dedup entre secciones */
-    private static function acumularIds(array &$idsUsados, array $items): void
+    /* Selecciona top N IDs con dedup, marcando usados en el hashmap */
+    private static function pickTopIds(array $scored, int $limit, array &$usados): array
     {
-        foreach ($items as $item) {
-            $idsUsados[] = (int) $item['id'];
+        $result = [];
+        foreach ($scored as $item) {
+            if (isset($usados[$item['id']])) {
+                continue;
+            }
+            $result[] = $item['id'];
+            $usados[$item['id']] = true;
+            if (\count($result) >= $limit) {
+                break;
+            }
         }
+        return $result;
+    }
+
+    /* [183A-75] Enriquecimiento: subqueries pesadas solo para IDs seleccionados (~75 filas).
+     * Reutiliza buildSelectBase para mantener DRY con feed() y buscarPorSlugConUsuario(). */
+    private static function enriquecerCanciones(array $ids, ?int $userId): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+        $pgArray = '{' . \implode(',', \array_map('intval', $ids)) . '}';
+        $sql = self::buildSelectBase($userId)
+             . " WHERE c." . CancionesCols::ID . " = ANY(:ids::int[])";
+        $rows = static::consultar($sql, ['ids' => $pgArray]);
+
+        $indexado = [];
+        foreach ($rows as $row) {
+            $indexado[(int) $row['id']] = $row;
+        }
+        return $indexado;
+    }
+
+    /* Ensambla secciones finales preservando orden de IDs por score */
+    private static function ensamblarSecciones(array $asignaciones, array $enriquecidas): array
+    {
+        $secciones = [];
+        foreach ($asignaciones as $sec) {
+            $canciones = [];
+            foreach ($sec['ids'] as $id) {
+                if (isset($enriquecidas[$id])) {
+                    $canciones[] = $enriquecidas[$id];
+                }
+            }
+            if (empty($canciones)) {
+                continue;
+            }
+            $entry = [
+                'tipo'      => $sec['tipo'],
+                'titulo'    => $sec['titulo'],
+                'canciones' => $canciones,
+            ];
+            if (isset($sec['genero'])) {
+                $entry['genero'] = $sec['genero'];
+            }
+            $secciones[] = $entry;
+        }
+        return $secciones;
     }
 }
