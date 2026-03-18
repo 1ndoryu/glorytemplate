@@ -15,7 +15,23 @@ export interface GoogleAuthMobileCapacitorResult {
 }
 
 function obtenerBaseApi(): string {
-    return window.location.origin.replace(/\/+$/, '');
+    const glory = (window as unknown as Record<string, unknown>).GLORY_CONTEXT as
+        | { apiUrl?: string; restUrl?: string }
+        | undefined;
+    
+    const urlBackend = glory?.apiUrl ?? glory?.restUrl;
+    if (urlBackend) {
+        try {
+            const urlObj = new URL(urlBackend);
+            return urlObj.origin;
+        } catch {
+            return 'https://kamples.com';
+        }
+    }
+    
+    // Si estamos en Capacitor WebView (localhost), forzamos la URL de producción
+    // para que Google autorice el redirect_uri configurado en su consola.
+    return 'https://kamples.com';
 }
 
 function obtenerRedirectUri(): string {
