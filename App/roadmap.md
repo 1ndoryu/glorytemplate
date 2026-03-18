@@ -62,6 +62,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-52:** Completada 2026-03-18. Click en portada/texto del reproductor navega al sample.
 - **183A-62:** Completada 2026-03-18. Paginación por cursor en mensajes — carga últimos primero, scroll arriba carga antiguos.
 - **183A-57:** Completada 2026-03-18. Padding reducido en modalCuerpo de seguidores.
+- **183A-58:** Completada 2026-03-18. Like canción sincronizado en detalle + tendencias priorizan samples/youtube.
 
 ## Tareas pendientes
 
@@ -139,10 +140,6 @@ En el panel lateral de los samples, arriba de También te podría gustar agregar
 
 La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
 
-## 183A-58
-
-Si doy like a una cancion pero luego abro la pagina de esa cancion, el boton de like no aparece como activo, revisar que el estado de like se refleje correctamente en tiempo real en toda la app. Tambien revisar que los like de las canciones influyan en el algoritmo de las canciones (para ti) y Tendencias. El algortimo de tendencia de las canciones (no se si tiene algoritmo eso pero debería), deberia darle prioridad a las canciones qeu si tienen samples adjuntos y mayor click por busquedas, si tiene video de youtube etc. 
-
 ## 183A-59
 
 Algo pasa en la aplicacion de escritorio, viendo el modo dev, cuando voy a un sampleo https://kamples.com/sampleo/24770/larsht-touch-samplea/, dice "ID de relación no válido" eso no pasa en produccion. 
@@ -173,10 +170,11 @@ No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en
 
 ## 183A-67
 
-Parece ser que en el feed sample con el orndamiento inteligente, los smaples no aparecen con la portada de su coleccion de quien la subio, sino con la imagen temporal de colors. En recientes si, no se si ps por la cache. Esto esta relacionado con 183A-25
+Parece ser que en el feed sample con el orndamiento inteligente, los smaples no aparecen con la portada de su coleccion de quien la subio, sino con la imagen temporal de colors. En recientes si, no se si ps por la cache. Esto esta relacionado con 183A-25 y 183A-30, revisar y corregir para que los samples siempre muestren la portada de su coleccion, o al menos que se actualice rapido despues de mostrar la imagen temporal.
 
 ## 183A-68
 
+pulir ssh root@66.94.100.241 "bash /tmp/run-benchmark.sh 1 30"  para que tambien calcule tiempo de "También te podría gustar" cuando se da me gusta a un sample, que calcule el feed la pagina de musica, y el "mas ideas" de varias colecciones de al menos 200 samples, para ver cuanto dura cada cosa, luego hacer un script similar en la tab de procesos del panel de admin y correr y ver los resultados cuando se quiera. No se que otra cosa faltaría medir. 
 
 ## Tarea final cuando completes todo
 
