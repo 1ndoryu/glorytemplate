@@ -1,5 +1,4 @@
-/* sentinel-disable-file limite-lineas — TO-DO: extraer hashUtils, retryLogic y chunkUpload a modulos separados */
-/*
+﻿/*
  * Servicio: uploadQueueService — Cola de subida de samples al servidor.
  *
  * Gestiona la subida automática de archivos detectados por fileWatcherService.

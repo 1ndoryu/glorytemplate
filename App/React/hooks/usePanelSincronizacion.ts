@@ -1,5 +1,4 @@
-/* sentinel-disable-file limite-lineas — TO-DO: extraer logica de cada tab (estado/historial/colecciones) a hooks separados */
-/*
+﻿/*
  * Hook: usePanelSincronizacion
  * Lógica del panel de sincronización estilo Google Drive.
  * Lee syncService desde window.__KAMPLES_SYNC__ inyectado por desktop/main.tsx.

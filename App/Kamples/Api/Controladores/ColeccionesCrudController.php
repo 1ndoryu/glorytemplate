@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — CRUD colecciones cohesivo: crear/editar/eliminar/reordenar, apenas sobre limite (314/300) */
+﻿<?php
 
 /**
  * ColeccionesCrudController — Operaciones de escritura de colecciones.

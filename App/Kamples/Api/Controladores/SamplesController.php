@@ -1,6 +1,5 @@
-<?php
+﻿<?php
 
-/* sentinel-disable-file limite-lineas — 307 efectivas, ya dividido en 5 sub-controllers. Excedente minimo por busqueda full-text QK75. */
 
 /**
  * SamplesController — Coordinador + lectura + feed de samples.

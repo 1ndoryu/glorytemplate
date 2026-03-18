@@ -1,5 +1,4 @@
-/* sentinel-disable-file limite-lineas — TO-DO: extraer initWatcher, bidirectionalSync y localOps a modulos separados */
-/*
+﻿/*
  * Servicio: syncWatcherSetup — Sync bidireccional y operaciones locales.
  *
  * Gestiona:

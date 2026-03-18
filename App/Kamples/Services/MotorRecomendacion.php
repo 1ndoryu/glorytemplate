@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — orquestador de scoring cohesivo, apenas sobre limite (407/400) */
+﻿<?php
 
 /**
  * MotorRecomendacion — Orquestador de scoring y recomendación v3.

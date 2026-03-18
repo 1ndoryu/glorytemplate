@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — servicio cohesivo: CTEs + scoring pre-agregado, 3 niveles acoplados */
+﻿<?php
 
 /**
  * PrecomputadorFeed — Genera CTEs de pre-cómputo para la query del feed.

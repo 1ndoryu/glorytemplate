@@ -1,5 +1,4 @@
-/* sentinel-disable-file limite-lineas — barra de navegacion cohesiva: tabs + busqueda + notificaciones + avatar, apenas sobre limite */
-/*
+﻿/*
  * Componente: TopBar
  * Barra superior con tabs dinámicas, búsqueda global, notificaciones, mensajes y avatar.
  * Las tabs se establecen desde cada isla via useTabsTopBarStore.

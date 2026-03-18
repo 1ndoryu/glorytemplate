@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — controlador update/delete cohesivo, sobre limite por C800 corregir-ia */
+﻿<?php
 
 /**
  * SamplesModificacionController — Actualizar y eliminar samples.

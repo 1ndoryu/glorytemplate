@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — generacion SEO cohesiva: meta tags + structured data + OG comparten contexto de pagina */
+﻿<?php
 
 namespace App\Kamples\Services;
 

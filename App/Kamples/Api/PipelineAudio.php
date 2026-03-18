@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — pipeline de procesamiento secuencial cohesivo, apenas sobre limite (309/300) */
+﻿<?php
 
 /**
  * PipelineAudio — Orquestador del pipeline de procesamiento de audio

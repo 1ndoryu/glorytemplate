@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — pipeline de subida cohesivo: validacion+hash+storage, apenas sobre limite (315/300) */
+﻿<?php
 
 /**
  * SamplesUploadController — Subida de samples con pipeline async.

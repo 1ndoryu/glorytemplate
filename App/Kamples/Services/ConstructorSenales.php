@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — fragmentos SQL de scoring cohesivos, comparten config/pesos; TO-DO: extraer senal por dominio */
+﻿<?php
 
 /**
  * ConstructorSenales — Genera fragmentos SQL de scoring para el motor de recomendación.

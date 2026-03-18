@@ -1,5 +1,4 @@
-/* sentinel-disable-file limite-lineas — componente ventana raiz con tabs; TO-DO: extraer TabEstado/TabHistorial/TabColecciones a sub-componentes */
-/*
+﻿/*
  * VentanaSincPanel — Componente raiz de la ventana de sincronizacion.
  * Se renderiza como ventana Tauri independiente (sin Modal, sin layout).
  * Reutiliza usePanelSincronizacion y los sub-componentes de tabs existentes.

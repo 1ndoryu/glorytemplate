@@ -1,5 +1,4 @@
-<?php
-/* sentinel-disable-file limite-lineas — dominio cohesivo: todos los endpoints de relaciones de sampleo */
+﻿<?php
 
 /**
  * RelacionesController — API REST para Relaciones de Sampleo.
