@@ -54,6 +54,8 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-32:** Completada 2026-03-18. Botón like en tarjetas de canción (TarjetaCancionGrande) y detalle de canción.
 - **183A-38:** Completada 2026-03-18. Pull-to-refresh en feed de comunidad para móvil.
 - **183A-46:** Completada 2026-03-18. Fix `npm run dev` con plugin Vite para stubs de módulos Tauri/Capacitor.
+- **183A-48:** Completada 2026-03-18. Eliminado botón DevTools y lógica de override en LayoutPrincipal.
+- **183A-47:** Completada 2026-03-18. Botón editar perfil oculto en móvil (ya está en menú contextual).
 
 ## Tareas pendientes
 
@@ -105,16 +107,7 @@ La pagina de musica carga lento a veces, revisar y optimizar.
 
 Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
 
-## 183A-40
 
-perfilAcciones el boton de editar perfil ocultalo en movil, que se quede dentro del menu contextual de 3 puntos (ya esta ahi)
-
-## 183A-48
-
-eliminar este boton
-<button class="botonBase varianteGhost tamanoMd devToolsBoton" type="button" aria-label="Dev Tools" title="Modo: Real"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-
-y toda su logica si es que tiene alguna 
 
 ## 183A-49
 
@@ -136,6 +129,18 @@ el enlace aparece con esas letras, pero, no funciona, imagino que es un problema
 ## 183A-52
 
 al dar click a la imagen de portada o texto del sample en el reproductor, ir directo a la pagina de ese sample.
+
+## 183A-53
+
+Lo de combinar colecciones, no funciona. Hacer una revision profunda.
+
+## 183A-54
+
+quitar el padding de los botones .tarjetaColeccionMenuContenedor y agregar un boton que abra los samples de esa coleccion en el panellateral
+
+## 183A-55
+
+En el panel lateral de los samples, arriba de También te podría gustar agregar info de que coleccion pertece, el sample, la imagen de portada en proporcion 3:2 cover, estilo spotify, y dentro sobre la imagen en la esquina abajo izquierda el titulo y abajo el autor de la coleccion, siempre muestra la coleccion de quien subio el sample, sino, la de cualquier otro usuario. Que esto este optmizado, 
 
 ## Tarea final cuando completes todo
 
