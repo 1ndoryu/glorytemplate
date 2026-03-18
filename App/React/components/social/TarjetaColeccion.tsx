@@ -6,7 +6,7 @@
  * El boton esta FUERA del <a> para evitar navegacion accidental al hacer click.
  */
 
-import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, BookmarkPlus, BookmarkCheck } from 'lucide-react';
+import { Globe, Lock, MoreVertical, FolderTree, Play, Pause, Loader2, Heart, Bookmark } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import type { VistaColecciones } from '@app/hooks/useLibreriaIsland';
 import { obtenerImagenColorPorTexto } from '@app/services/imagenesColor';
@@ -44,6 +44,8 @@ export const TarjetaColeccion = ({
         menu,
         guardada,
         guardando,
+        likeada,
+        likeando,
         esPreviewActiva,
         esPropia,
         cargandoPreview,
@@ -51,6 +53,7 @@ export const TarjetaColeccion = ({
         abrirMenu,
         cerrarMenu,
         manejarToggleGuardada,
+        manejarToggleLike,
         itemsMenu,
     } = useTarjetaColeccion({ coleccion, onEditar, onCombinar, onEliminar });
 
@@ -112,18 +115,29 @@ export const TarjetaColeccion = ({
                 </div>
             </EnlaceNavegacion>
 
-            {/* Boton 3 puntos -- FUERA del <a> para evitar navegacion al hacer click */}
+            {/* Botón 3 puntos -- FUERA del <a> para evitar navegacion al hacer click */}
             <div className="tarjetaColeccionMenuContenedor">
-                {/* [183A-15] Reutiliza el bookmark de detalle para guardar colecciones desde el listado. */}
+                {/* [183A-22] Dos botones distintos: bookmark (guardar) y heart (like) */}
+                {!esPropia && (
+                    <BotonBase variante="ghost"
+                        className={`tarjetaColeccionLikeBtn ${likeada ? 'tarjetaColeccionLikeBtnActiva' : ''}`}
+                        onClick={manejarToggleLike}
+                        type="button"
+                        aria-label={likeada ? 'Quitar like de colección' : 'Dar like a colección'}
+                        cargando={likeando}
+                    >
+                        <Heart size={16} fill={likeada ? 'currentColor' : 'none'} />
+                    </BotonBase>
+                )}
                 {!esPropia && (
                     <BotonBase variante="ghost"
                         className={`tarjetaColeccionGuardarBtn ${guardada ? 'tarjetaColeccionGuardarBtnActiva' : ''}`}
                         onClick={manejarToggleGuardada}
                         type="button"
-                        aria-label={guardada ? 'Quitar colección de guardadas' : 'Guardar colección'}
+                        aria-label={guardada ? 'Quitar de guardadas' : 'Guardar colección'}
                         cargando={guardando}
                     >
-                        {guardada ? <BookmarkCheck size={16} /> : <BookmarkPlus size={16} />}
+                        <Bookmark size={16} fill={guardada ? 'currentColor' : 'none'} />
                     </BotonBase>
                 )}
                 <BotonBase variante="ghost"

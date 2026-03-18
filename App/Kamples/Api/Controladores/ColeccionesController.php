@@ -23,6 +23,7 @@ namespace App\Kamples\Api\Controladores;
 
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\ColeccionesGuardadasRepository;
+use App\Kamples\Database\Repositories\ColeccionesLikesRepository;
 use App\Kamples\Database\Repositories\ColeccionSamplesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Auth\AuthMiddleware;
@@ -129,6 +130,12 @@ class ColeccionesController
 
         register_rest_route($namespace, '/colecciones/(?P<id>\d+)/guardar', [
             'methods' => 'DELETE', 'callback' => [self::class, 'desguardarColeccion'],
+            'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
+        ]);
+
+        /* [183A-22] Toggle like de coleccion — distinto del bookmark/guardar */
+        register_rest_route($namespace, '/colecciones/(?P<id>\d+)/like', [
+            'methods' => 'POST', 'callback' => [self::class, 'toggleLike'],
             'permission_callback' => [AuthMiddleware::class, 'requerirAuth'],
         ]);
 
@@ -289,7 +296,10 @@ class ColeccionesController
         /* QL92: Flag de coleccion guardada (bookmark) */
         if ($userId) {
             $coleccion['esta_guardada'] = ColeccionesGuardadasRepository::estaGuardada($userId, $id);
+            /* [183A-22] Flag de like (distinto al bookmark) */
+            $coleccion['esta_likeada'] = ColeccionesLikesRepository::estaLikeada($userId, $id);
         }
+        $coleccion['total_likes'] = ColeccionesLikesRepository::contarLikes($id);
 
         return new \WP_REST_Response(['data' => $coleccion], 200);
         } catch (\Throwable $e) {
@@ -364,7 +374,10 @@ class ColeccionesController
             /* QL92: Flag de coleccion guardada (bookmark) */
             if ($userId) {
                 $coleccion['esta_guardada'] = ColeccionesGuardadasRepository::estaGuardada($userId, $id);
+                /* [183A-22] Flag de like */
+                $coleccion['esta_likeada'] = ColeccionesLikesRepository::estaLikeada($userId, $id);
             }
+            $coleccion['total_likes'] = ColeccionesLikesRepository::contarLikes($id);
 
             return new \WP_REST_Response(['data' => $coleccion], 200);
         } catch (\Throwable $e) {
@@ -553,6 +566,40 @@ class ColeccionesController
             ], 200);
         } catch (\Throwable $e) {
             KamplesLogger::error('Error en ColeccionesController::listarGuardadas', [
+                'error' => $e->getMessage(),
+            ]);
+            return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /*
+     * [183A-22] Toggle like de coleccion.
+     * POST retorna { likeada: bool, total_likes: int }.
+     * El like es independiente del bookmark: los usuarios pueden guardar para acceso rápido
+     * o likear para mostrar apreciación; son dos gestos distintos.
+     */
+    public static function toggleLike(\WP_REST_Request $request): \WP_REST_Response
+    {
+        try {
+            $userId = UsuarioHelper::obtenerIdPg();
+            if (!$userId) return UsuarioHelper::respuestaNoEncontrado();
+
+            $coleccionId = (int) $request->get_param('id');
+
+            /* Verificar que la colección existe y es pública (no tiene sentido likearse la propia) */
+            if (!ColeccionesRepository::esPublica($coleccionId)) {
+                return new \WP_REST_Response(['code' => 'no_encontrada', 'message' => 'Coleccion no encontrada o privada'], 404);
+            }
+
+            $likeada = ColeccionesLikesRepository::toggle($userId, $coleccionId);
+            $totalLikes = ColeccionesLikesRepository::contarLikes($coleccionId);
+
+            return new \WP_REST_Response([
+                'likeada' => $likeada,
+                'total_likes' => $totalLikes,
+            ], 200);
+        } catch (\Throwable $e) {
+            KamplesLogger::error('Error en ColeccionesController::toggleLike', [
                 'error' => $e->getMessage(),
             ]);
             return new \WP_REST_Response(['code' => 'error_interno', 'message' => 'Error interno del servidor'], 500);

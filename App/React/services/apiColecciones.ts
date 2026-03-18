@@ -50,6 +50,9 @@ const normalizarColeccion = (raw: Record<string, unknown>): Coleccion => {
                 : null,
         contieneElSample: (raw.contieneElSample ?? raw.contiene_el_sample) as boolean | undefined,
         estaGuardada: (raw.estaGuardada ?? raw.esta_guardada) as boolean | undefined,
+        /* [183A-22] Like de colección */
+        estaLikeada: (raw.estaLikeada ?? raw.esta_likeada) as boolean | undefined,
+        totalLikes: (raw.totalLikes ?? raw.total_likes ?? 0) as number,
     };
 };
 
@@ -291,6 +294,22 @@ export const desguardarColeccionBookmark = async (
     coleccionId: number
 ): Promise<RespuestaApi<{ guardada: boolean }>> => {
     return apiDelete<{ guardada: boolean }>(`/colecciones/${coleccionId}/guardar`);
+};
+
+/* [183A-22] Toggle like de coleccion (distinto del bookmark) */
+export const toggleLikeColeccion = async (
+    coleccionId: number
+): Promise<RespuestaApi<{ likeada: boolean; totalLikes: number }>> => {
+    const resp = await apiPost<{ likeada: boolean; total_likes: number }>(`/colecciones/${coleccionId}/like`);
+    if (resp.ok && resp.data) {
+        return {
+            ok: true,
+            data: { likeada: resp.data.likeada, totalLikes: resp.data.total_likes ?? 0 },
+            error: null,
+            status: resp.status,
+        };
+    }
+    return { ok: false, data: null, error: resp.error, status: resp.status };
 };
 
 /* QL92: Listar colecciones guardadas (bookmarkeadas) del usuario con paginacion */

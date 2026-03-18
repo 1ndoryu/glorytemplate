@@ -35,6 +35,10 @@ export interface Coleccion {
 
     /* Campo calculado: indica si el usuario autenticado tiene esta colección guardada */
     estaGuardada?: boolean;
+
+    /* [183A-22] Like de colección (distinto al bookmark/guardar) */
+    estaLikeada?: boolean;
+    totalLikes?: number;
 }
 
 export interface ColeccionResumen {

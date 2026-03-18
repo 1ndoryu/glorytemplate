@@ -75,7 +75,8 @@
 }
 
 .tarjetaColeccionMenuBtn,
-.tarjetaColeccionGuardarBtn {
+.tarjetaColeccionGuardarBtn,
+.tarjetaColeccionLikeBtn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,18 +94,27 @@
 
 .tarjetaColeccion:hover .tarjetaColeccionMenuBtn,
 .tarjetaColeccion:hover .tarjetaColeccionGuardarBtn,
-.tarjetaColeccionGuardarBtnActiva {
+.tarjetaColeccion:hover .tarjetaColeccionLikeBtn,
+.tarjetaColeccionGuardarBtnActiva,
+.tarjetaColeccionLikeBtnActiva {
     opacity: 1;
 }
 
 .tarjetaColeccionMenuBtn:hover,
-.tarjetaColeccionGuardarBtn:hover {
+.tarjetaColeccionGuardarBtn:hover,
+.tarjetaColeccionLikeBtn:hover {
     background: var(--overlayOscuro);
 }
 
 .tarjetaColeccionGuardarBtnActiva {
     background: var(--acento);
     color: var(--blanco);
+}
+
+/* [183A-22] Color diferenciado para like (heart) vs bookmark */
+.tarjetaColeccionLikeBtnActiva {
+    background: var(--errorMuted);
+    color: var(--error);
 }
 
 /* Info debajo de la imagen */
@@ -270,14 +280,16 @@
 }
 
 .tarjetaColeccionLista .tarjetaColeccionMenuBtn,
-.tarjetaColeccionLista .tarjetaColeccionGuardarBtn {
+.tarjetaColeccionLista .tarjetaColeccionGuardarBtn,
+.tarjetaColeccionLista .tarjetaColeccionLikeBtn {
     opacity: 1;
     background: transparent;
     color: var(--textoTerciario);
 }
 
 .tarjetaColeccionLista .tarjetaColeccionMenuBtn:hover,
-.tarjetaColeccionLista .tarjetaColeccionGuardarBtn:hover {
+.tarjetaColeccionLista .tarjetaColeccionGuardarBtn:hover,
+.tarjetaColeccionLista .tarjetaColeccionLikeBtn:hover {
     background: var(--fondoElevado3);
     color: var(--textoPrimario);
 }
@@ -285,4 +297,9 @@
 .tarjetaColeccionLista .tarjetaColeccionGuardarBtnActiva {
     background: var(--fondoElevado3);
     color: var(--acento);
+}
+
+.tarjetaColeccionLista .tarjetaColeccionLikeBtnActiva {
+    background: var(--fondoElevado3);
+    color: var(--error);
 }

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'reac
 import { Edit3, Trash2, Link2, Combine, Flag } from 'lucide-react';
 import type { Coleccion } from '@app/types';
 import { copiarAlPortapapeles } from '@app/services/clipboard';
-import { guardarColeccionBookmark, desguardarColeccionBookmark } from '@app/services/apiColecciones';
+import { guardarColeccionBookmark, desguardarColeccionBookmark, toggleLikeColeccion } from '@app/services/apiColecciones';
 import { useReproductorStore } from '@app/stores/reproductorStore';
 import { useAuthStore } from '@app/stores/authStore';
 import { useColeccionPreview } from '@app/hooks/useColeccionPreview';
@@ -34,6 +34,9 @@ export function useTarjetaColeccion({
     });
     const [guardada, setGuardada] = useState(Boolean(coleccion.estaGuardada));
     const [guardando, setGuardando] = useState(false);
+    /* [183A-22] Like de colección (distinto al bookmark) */
+    const [likeada, setLikeada] = useState(Boolean(coleccion.estaLikeada));
+    const [likeando, setLikeando] = useState(false);
     const { iniciarPreview, cargando } = useColeccionPreview();
     const coleccionPreviewId = useReproductorStore(s => s.coleccionPreviewId);
     const reproduciendo = useReproductorStore(s => s.reproduciendo);
@@ -43,6 +46,10 @@ export function useTarjetaColeccion({
     useEffect(() => {
         setGuardada(Boolean(coleccion.estaGuardada));
     }, [coleccion.estaGuardada]);
+
+    useEffect(() => {
+        setLikeada(Boolean(coleccion.estaLikeada));
+    }, [coleccion.estaLikeada]);
 
     const manejarPreview = useCallback((e: MouseEvent) => {
         e.stopPropagation();
@@ -81,6 +88,29 @@ export function useTarjetaColeccion({
 
         setGuardando(false);
     }, [coleccion.id, esPropia, guardada, guardando]);
+
+    /* [183A-22] Toggle like con rollback optimitsta */
+    const manejarToggleLike = useCallback(async (e: MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (!requiereAuth() || likeando || esPropia) return;
+
+        const valorAnterior = likeada;
+        setLikeando(true);
+        setLikeada(!valorAnterior);
+
+        const resp = await toggleLikeColeccion(coleccion.id);
+
+        if (!resp.ok) {
+            setLikeada(valorAnterior);
+            toast.error('Error al procesar like');
+        } else if (resp.data) {
+            setLikeada(resp.data.likeada);
+        }
+
+        setLikeando(false);
+    }, [coleccion.id, esPropia, likeada, likeando]);
 
     const itemsMenu = useMemo(() => {
         const items = [
@@ -140,6 +170,8 @@ export function useTarjetaColeccion({
         menu,
         guardada,
         guardando,
+        likeada,
+        likeando,
         esPreviewActiva,
         esPropia,
         cargandoPreview: cargando,
@@ -147,6 +179,7 @@ export function useTarjetaColeccion({
         abrirMenu,
         cerrarMenu,
         manejarToggleGuardada,
+        manejarToggleLike,
         itemsMenu,
     };
 }
