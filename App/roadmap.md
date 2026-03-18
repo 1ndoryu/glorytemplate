@@ -45,7 +45,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-28+183A-33:** Protocolo reforzado para ambiguedad, raiz arquitectonica, validacion React y pull/deploy/health. 2026-03-18.
 - Detalle en `App/Agente/completados/tareas-2026-03-18.md` y `App/docs (ignorar)/roadmap/completado.md`.
 
-- **183A-41, 183A-42, 183A-43:** Completadas 2026-03-18. Modal login en APK restaura sesión desde token nativo. SHA-1 debug: `66:96:CC:30:9F:D0:76:3A:B7:A3:34:6F:DD:68:28:A8:27:C5:73:B3`. Push notifications: service account configurado en servidor, tabla fcm_tokens creada, OAuth2 operativo.
+- **183A-41, 183A-42, 183A-43, 183A-37:** Completadas 2026-03-18. Modal login APK restaura sesión desde token nativo. SHA-1 debug. Push notifications: service account + tabla fcm_tokens + FcmController fix (`obtenerActual()` → `obtenerPorWpId()`) + verificado E2E con notificación en bandeja Android.
 
 ## Tareas pendientes
 
@@ -114,11 +114,6 @@ la apk se cierra apenas la abro.
 
 Nota del agente 2026-03-18: el archivo ya fue copiado a `mobile/android/app/google-services.json`, `cap sync` y `gradlew assembleDebug/installDebug` funcionan, y `processDebugGoogleServices` resolvio `google_app_id = 1:903865707437:android:dab0b5259ae7db18d9cf24` (cliente correcto de `com.kamples.mobile`). En el emulador la app queda abierta y MainActivity sigue en foreground; no pude reproducir el cierre. Lo pendiente de 183A-36 es capturar el crash real si sigue ocurriendo en otro dispositivo/flujo.
 
-## 183A-37
-
-Siguen sin aparecer las notificaciones en android sobre la app.
-Sigue el mensaje de this app has not posted any norifications. 
-
 ## 183A-38
 
 En la parte de las publicaciones de comunidad y feed de samples hace falta que al tirar hacia arriba en movil, recargue. 
@@ -133,7 +128,7 @@ Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equi
 
 ## 183A-44
 
-a dar click a la foto de perfil
+a dar click a la foto de perfil o cualquier parte (antes de que arreglaras las notificaciones pasaba esto)
 
 Error de render
 Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
@@ -148,3 +143,9 @@ Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.h
     at rg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:45517)
     at eg (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:40334)
     at x1 (https://kamples.com/wp-content/themes/glorytemplate/Glory/assets/react/dist/assets/main-Dgfp5M_m.js:41:40262)
+
+main-UIhFmBAv.js:18 [Glory] Error en isla "InicioIsland": Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+
+# # 183A-45
+
+Las notificaciones funcionan pero el logo de la notifiacion (K) no es el logo de kamples el logo de kamples es el del favicon
