@@ -71,6 +71,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-50:** Completada 2026-03-18. Acciones múltiples emiten eventos CRUD para actualizar UI en tiempo real.
 - **183A-55:** Completada 2026-03-18. Info colección original en panel lateral de sugerencias (portada 3:2 estilo Spotify).
 - **183A-61:** Completada 2026-03-18. Contador colección prioriza total_items real de BD sobre samples.length paginado.
+- **183A-56:** Completada 2026-03-18. Cola IA limitada a 400 items/día con gap mínimo de 216s entre items (transients de contador diario + timestamp último item).
 - **183A-60:** Completada 2026-03-18. Botón play/preview en tarjetaColeccionMenuContenedor.
 
 ## Tareas pendientes
@@ -133,9 +134,6 @@ asegurar que a dar click vayan al contenido relacionado
 asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
 tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
 
-## 183A-56
-
-La cola de Ia para procesar las metadata de los samples, va muy rapida, hacer un calculo, si quiero que diario se procesen 400 samples maximo, cada cuanto tiempo se tiene que procesar uno, o sea, agregar periodos de pausa sin importar que no haya nada en cola. Obviamente esto no tiene que afectar la subida ni el procesamiento normal. 
 
 ## 183A-66
 
@@ -157,6 +155,23 @@ Respecot a 183A-64 me refería a los errores ortograficos,
 
 Revision profunda al sistema de creditos de descarga, esto nunca se le ha hecho una auditoría desde que es creo.
 Agregar un sistema anti abusos basado en ip, cookies, no se, lo que sea, para no regalar creditos a usuarios que se crean varias cuentas, 5 creditos diario por usuario, no 5 creditos por cuenta. 
+
+## 183A-70
+
+habia pedido que los botones de tarjetaColeccionMenuContenedor no tengan padding
+
+tambien pedi que un boton para abrir los samples de una coleccion en el panel lateral pero hay algunos detalles
+
+primero pasa que la tarjeta de los samples no es la indicada , tiene que ser la misma tarjeta que usan los samples por ejemplo de También te podría gustar, que son una version compacta
+
+## 183A-71
+
+En las tarjetas de sample, dar click al nombre no debe abrir los detalles, debe abrir el panel lateral. (esto se suele dañar cuando se toca el codigo, deja comentarios claro esto, no cambiar esta funcionalidad)
+En movil solo debe reproducir el audio, en movil no abre el panel lateral tocando el sample. 
+
+## 183A-72
+
+No veo la info en el panel lateral sobre la coleccion original del sample, revisar y corregir para que se muestre esa info. 183A-55 no se cumplio. Pedi que se viera la imagen en 4:3 con el titulo abajo, 100% de ancho, estilo spotify
 
 ## Tarea final cuando completes todo
 
