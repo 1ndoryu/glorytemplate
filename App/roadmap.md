@@ -50,6 +50,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-45:** Completada 2026-03-18. Icono de notificación push actualizado al favicon real de Kamples.
 - **183A-35:** Completada 2026-03-18. Buscador landing pública usa SPA nav en vez de `window.location.href`.
 - **183A-39:** Completada 2026-03-18. Tooltip perfil se cierra al hacer click fuera o al navegar.
+- **183A-34:** Completada 2026-03-18. Click derecho y long-press abren menú contextual en tarjetas de colección.
 
 ## Tareas pendientes
 
@@ -103,10 +104,6 @@ agregar un boton del like a a las caciones dentro de
 <div class="tarjetaCancionGrandeInfo" role="button" tabindex="0"><p class="tarjetaCancionGrandeTitulo">Think (About It)</p><p class="tarjetaCancionGrandeArtista">Lyn Collins</p></div>
 tambien falta uno al lado del boton de 3 puntos dentro de la cancion 
 
-## 183A-34
-
-Que dar click derecho a una coleccion abra su menu contextual.
-
 
 ## 183A-36
 
@@ -149,9 +146,24 @@ Are they installed?
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
     at async file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:47014:28
 
-## 183A-50
+## 183A-47
 
 perfilAcciones el boton de editar perfil ocultalo en movil, que se quede dentro del menu contextual de 3 puntos (ya esta ahi)
+
+## 183A-48
+
+eliminar este boton
+<button class="botonBase varianteGhost tamanoMd devToolsBoton" type="button" aria-label="Dev Tools" title="Modo: Real"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+
+y toda su logica si es que tiene alguna 
+
+## 183A-49
+
+Hacer una revision profunda de las notificaciones
+deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo como @Wan comento tu publicacion "titulo de la publicacion" o algo asi,
+asegurar que a dar click vayan al contenido relacionado
+asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo
+
 
 ## Tarea final cuando completes todo
 
