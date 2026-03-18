@@ -49,6 +49,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-44:** Completada 2026-03-18. Fix React error #310: `useLayoutEffect` después de returns condicionales en `MenuContextual.tsx`.
 - **183A-45:** Completada 2026-03-18. Icono de notificación push actualizado al favicon real de Kamples.
 - **183A-35:** Completada 2026-03-18. Buscador landing pública usa SPA nav en vez de `window.location.href`.
+- **183A-39:** Completada 2026-03-18. Tooltip perfil se cierra al hacer click fuera o al navegar.
 
 ## Tareas pendientes
 
@@ -118,10 +119,6 @@ Nota del agente 2026-03-18: el archivo ya fue copiado a `mobile/android/app/goog
 
 En la parte de las publicaciones de comunidad y feed de samples hace falta que al tirar hacia arriba en movil, recargue. 
 
-## 183A-39
-
-Error visual, el modal de usuario cuando se pone el cursor sobre el nombre, a dar click al nombre el modal se queda, debería desaparecer a dar click al usuario o fuera del modal.
-
 ## 183A-40
 
 Utilizar optimizarImagen de glory para todas las imagenes, que tenga alguna equivalencia el react la funcion de glory, para optimizar las imagenes automaticamente, eso incluye las imagenes de portada de los samples, publicaciones, imagenes en los mensajes, foto de perfil, portadas de canciones y en los sampleos, etc.
@@ -151,6 +148,10 @@ Are they installed?
     at file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:14849:15
     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
     at async file:///C:/Users/Owner/OneDrive/Documentos/WP/app/public/wp-content/themes/glorytemplate/Glory/assets/react/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:47014:28
+
+## 183A-50
+
+perfilAcciones el boton de editar perfil ocultalo en movil, que se quede dentro del menu contextual de 3 puntos (ya esta ahi)
 
 ## Tarea final cuando completes todo
 
