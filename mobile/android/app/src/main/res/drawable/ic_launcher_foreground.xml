@@ -1,15 +1,15 @@
+<!-- [183A-19] Foreground del adaptive icon — logo Kamples.
+     Paths derivados del SVG desktop (app-icon-fg.svg, viewBox 512x512, transform translate(142,130) scale(14)).
+     Convertidos y reescalados al viewport Android 108x108.
+     Fondo: @color/ic_launcher_background (#101010). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M28,18H42V90H28Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,54L75,18H92L60,56Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,54L60,52L92,90H75Z" />
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group android:translateX="142" android:translateY="130" android:scaleX="14" android:scaleY="14">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M10.6,12.47h5.87v1.87h-5.95l2.31,2.28-1.33,1.33-2.22-2.23v2.29h-1.86v-2.33l-2.26,2.28-1.33-1.35,2.28-2.26H.23v-1.87h5.74c-2-1.99-3.99-3.98-5.97-5.96l1.36-1.35c1.99,2,4,4.01,6.01,6.02.01,0,.03-.02.04-.03V0h1.87v11.15l6-6,1.33,1.32c-1.99,1.99-3.98,3.97-6,5.99h0Z" />
+    </group>
 </vector>

@@ -127,7 +127,19 @@ export const useAuth = () => {
     const [cargando, setCargando] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const esDesktopApp = !!(window as unknown as Record<string, unknown>).__KAMPLES_DESKTOP__;
-    const esAndroidCapacitor = esCapacitor() && esAndroid();
+
+    /* [183A-19] Detección reactiva de Capacitor.
+     * Capacitor puede no estar inyectado en el primer render de hydration (timing race).
+     * Se evalúa al montar para garantizar que el botón Google nativo aparezca en Android. */
+    const [esAndroidCapacitorEstado, setEsAndroidCapacitorEstado] = useState(() => esCapacitor() && esAndroid());
+    useEffect(() => {
+        const valorActual = esCapacitor() && esAndroid();
+        if (valorActual !== esAndroidCapacitorEstado) {
+            setEsAndroidCapacitorEstado(valorActual);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    const esAndroidCapacitor = esAndroidCapacitorEstado;
     const esGoogleNativo = esDesktopApp || esAndroidCapacitor;
 
     /* Cargar usuario actual al montar */
