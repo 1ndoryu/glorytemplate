@@ -52,6 +52,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-39:** Completada 2026-03-18. Tooltip perfil se cierra al hacer click fuera o al navegar.
 - **183A-34:** Completada 2026-03-18. Click derecho y long-press abren menú contextual en tarjetas de colección.
 - **183A-32:** Completada 2026-03-18. Botón like en tarjetas de canción (TarjetaCancionGrande) y detalle de canción.
+- **183A-38:** Completada 2026-03-18. Pull-to-refresh en feed de comunidad para móvil.
 
 ## Tareas pendientes
 
@@ -98,18 +99,6 @@ Lo que necesito un plan agresivo y revision del algorito (ya habia un plan en lo
 ## 183A-31
 
 La pagina de musica carga lento a veces, revisar y optimizar.
-
-
-## 183A-36
-
-App\React\logs\google-services.json deje el archivo ahi, continua con lo que falta de las ntoificaciones en la apk.
-la apk se cierra apenas la abro.
-
-Nota del agente 2026-03-18: el archivo ya fue copiado a `mobile/android/app/google-services.json`, `cap sync` y `gradlew assembleDebug/installDebug` funcionan, y `processDebugGoogleServices` resolvio `google_app_id = 1:903865707437:android:dab0b5259ae7db18d9cf24` (cliente correcto de `com.kamples.mobile`). En el emulador la app queda abierta y MainActivity sigue en foreground; no pude reproducir el cierre. Lo pendiente de 183A-36 es capturar el crash real si sigue ocurriendo en otro dispositivo/flujo.
-
-## 183A-38
-
-En la parte de las publicaciones de comunidad y feed de samples hace falta que al tirar hacia arriba en movil, recargue. 
 
 ## 183A-40
 
@@ -165,8 +154,8 @@ Las acciones multiples en los samples no actualizan en tiempo real los samples a
 
 ## 183A-51
 
-letras raras, probe subir una carpeta al sync, la pose con este nombre 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 
-el enlace aparece con esas letras, pero, no funciona, imagino que es un problema que no se previno, hay que revisar que pasa, dice Colección no encontrada
+letras raras, probe subir una carpeta al sync, la puse con este nombre 𝔐𝔢𝔪𝔭𝔥𝔦𝔰 𝔄𝔠𝔞𝔭𝔢𝔩𝔩𝔞𝔰 
+el enlace aparece con esas letras, pero, no funciona, imagino que es un problema que no se previno, hay que revisar que pasa, dice Colección no encontrada, con colecciones con nombres normales no pasa eso, los archivos tambien tienen esas letras, espero que no afecte la generaicon de json o cosas asi o aumete los token de la ia.
 
 ## Tarea final cuando completes todo
 
