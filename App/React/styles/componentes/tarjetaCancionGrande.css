@@ -76,6 +76,14 @@
 }
 
 /* QL14: Info clickeable con cursor pointer */
+/* [183A-32] Wrapper fila para info + like */
+.tarjetaCancionGrandeInfoFila {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio2xs);
+    min-width: 0;
+}
+
 .tarjetaCancionGrandeInfo {
     display: flex;
     flex-direction: column;
@@ -83,6 +91,24 @@
     padding: 0 var(--espacio2xs);
     min-width: 0;
     cursor: pointer;
+    flex: 1;
+}
+
+/* [183A-32] Boton like junto al titulo/artista */
+.tarjetaCancionGrandeLikeBtn {
+    flex-shrink: 0;
+    color: var(--textoTerciario);
+    opacity: 0;
+    transition: opacity var(--transicionRapida), color var(--transicionRapida);
+}
+
+.tarjetaCancionGrande:hover .tarjetaCancionGrandeLikeBtn {
+    opacity: 1;
+}
+
+.tarjetaCancionGrandeLikeBtnActiva {
+    color: var(--acento);
+    opacity: 1;
 }
 
 .tarjetaCancionGrandeTitulo {

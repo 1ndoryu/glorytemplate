@@ -29,11 +29,18 @@
     position: relative;
 }
 
-/* Boton 3 puntos para menu contextual de acciones */
-.cancionDetalleMenuBtn {
+/* [183A-32] Contenedor acciones: like + 3 puntos */
+.cancionDetalleAcciones {
     position: absolute;
     top: 0;
     right: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--espacio2xs);
+}
+
+/* Boton 3 puntos para menu contextual de acciones */
+.cancionDetalleMenuBtn {
     color: var(--textoSecundario);
     border-radius: var(--radioSm);
     padding: var(--espacioXs);
@@ -41,6 +48,22 @@
 }
 
 .cancionDetalleMenuBtn:hover {
+    color: var(--acento);
+}
+
+/* [183A-32] Like en detalle de cancion */
+.cancionDetalleLikeBtn {
+    color: var(--textoSecundario);
+    border-radius: var(--radioSm);
+    padding: var(--espacioXs);
+    transition: color 0.15s;
+}
+
+.cancionDetalleLikeBtn:hover {
+    color: var(--acento);
+}
+
+.cancionDetalleLikeBtnActiva {
     color: var(--acento);
 }
 

@@ -6,8 +6,9 @@
  */
 
 import { type MouseEvent } from 'react';
-import { Music, Play, Pause } from 'lucide-react';
+import { Music, Play, Pause, Heart } from 'lucide-react';
 import type { Cancion } from '@app/types/cancion';
+import { BotonBase } from '../ui/BotonBase';
 
 interface Props {
     cancion: Cancion;
@@ -20,6 +21,7 @@ interface Props {
 export const TarjetaCancionGrande = ({
     cancion,
     onClick,
+    onLike,
     onPlay,
     reproduciendo = false,
 }: Props): JSX.Element => {
@@ -63,12 +65,25 @@ export const TarjetaCancionGrande = ({
                     </div>
                 )}
             </div>
-            {/* QL14: Click en titulo/info navega a detalles de la cancion */}
-            <div className="tarjetaCancionGrandeInfo" onClick={onClick} role="button" tabIndex={0}>
-                <p className="tarjetaCancionGrandeTitulo">{cancion.titulo}</p>
-                <p className="tarjetaCancionGrandeArtista">
-                    {cancion.artistaNombre ?? 'Artista desconocido'}
-                </p>
+            {/* [183A-32] Fila con info + like */}
+            <div className="tarjetaCancionGrandeInfoFila">
+                {/* QL14: Click en titulo/info navega a detalles de la cancion */}
+                <div className="tarjetaCancionGrandeInfo" onClick={onClick} role="button" tabIndex={0}>
+                    <p className="tarjetaCancionGrandeTitulo">{cancion.titulo}</p>
+                    <p className="tarjetaCancionGrandeArtista">
+                        {cancion.artistaNombre ?? 'Artista desconocido'}
+                    </p>
+                </div>
+                <BotonBase
+                    variante="ghost"
+                    tamano="ninguno"
+                    className={`tarjetaCancionGrandeLikeBtn${cancion.liked ? ' tarjetaCancionGrandeLikeBtnActiva' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onLike(cancion.id); }}
+                    type="button"
+                    aria-label={cancion.liked ? 'Quitar like' : 'Dar like'}
+                >
+                    <Heart size={14} fill={cancion.liked ? 'currentColor' : 'none'} />
+                </BotonBase>
             </div>
         </div>
     );

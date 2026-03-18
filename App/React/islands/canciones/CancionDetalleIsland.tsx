@@ -4,7 +4,7 @@
  * Lógica extraída a useCancionDetalle (SRP).
  */
 
-import { Music, AlertCircle, MoreVertical, ArrowLeft } from 'lucide-react';
+import { Music, AlertCircle, MoreVertical, ArrowLeft, Heart } from 'lucide-react';
 import { Badge } from '@app/components/ui/Badge';
 import { BotonBase } from '@app/components/ui/BotonBase';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
@@ -18,10 +18,11 @@ import { FeedSamples } from '@app/components/feed/FeedSamples';
 import { useTabsIsla } from '@app/hooks/useTabsIsla';
 import { useCancionDetalle } from '@app/hooks/useCancionDetalle';
 import { useMenuCancionDetalle } from '@app/hooks/useMenuCancionDetalle';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { obtenerSamplesDeCancion } from '@app/services/apiSamples';
 import type { SampleResumen } from '@app/types';
 import { useAuthStore } from '@app/stores/authStore';
+import { darLike, quitarLike } from '@app/services/apiSocial';
 import { ETIQUETAS_ROL } from '@app/types/cancion';
 import { EstadoVacio } from '@app/components/ui/EstadoVacio';
 import '../../styles/componentes/cancionDetalle.css';
@@ -70,6 +71,30 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                 .catch(() => ({ ok: false, data: [] as SampleResumen[] })),
         [slug]
     );
+
+    /* [183A-32] Like de canción con rollback optimista */
+    const [liked, setLiked] = useState(detalle?.cancion?.liked ?? false);
+    const [likeando, setLikeando] = useState(false);
+
+    /* Sincronizar liked cuando cambia la canción cargada */
+    useEffect(() => {
+        if (detalle?.cancion) setLiked(detalle.cancion.liked ?? false);
+    }, [detalle?.cancion?.id]);
+
+    const manejarToggleLike = useCallback(async () => {
+        if (!autenticado || likeando || !detalle) return;
+        const anterior = liked;
+        setLikeando(true);
+        setLiked(!anterior);
+
+        const resp = anterior
+            ? await quitarLike('cancion', detalle.cancion.id)
+            : await darLike('cancion', detalle.cancion.id);
+
+        if (!resp.ok) setLiked(anterior);
+        else if (resp.data) setLiked(resp.data.liked);
+        setLikeando(false);
+    }, [autenticado, likeando, liked, detalle]);
 
     useTabsIsla('CancionDetalleIsland', TABS_CANCION, 'cancion');
 
@@ -171,17 +196,29 @@ export const CancionDetalleIsland = ({ slug }: CancionDetalleProps): JSX.Element
                         </div>
                     </div>
 
-                    {/* Boton 3 puntos: menu contextual de acciones */}
+                    {/* [183A-32] Like + 3 puntos: acciones de cancion */}
                     {autenticado && (
-                        <BotonBase
-                            variante="ghost"
-                            tamano="ninguno"
-                            className="cancionDetalleMenuBtn"
-                            onClick={menuCtx.abrirMenu}
-                            aria-label="Acciones"
-                        >
-                            <MoreVertical size={20} />
-                        </BotonBase>
+                        <div className="cancionDetalleAcciones">
+                            <BotonBase
+                                variante="ghost"
+                                tamano="ninguno"
+                                className={`cancionDetalleLikeBtn${liked ? ' cancionDetalleLikeBtnActiva' : ''}`}
+                                onClick={manejarToggleLike}
+                                aria-label={liked ? 'Quitar like' : 'Dar like'}
+                                cargando={likeando}
+                            >
+                                <Heart size={20} fill={liked ? 'currentColor' : 'none'} />
+                            </BotonBase>
+                            <BotonBase
+                                variante="ghost"
+                                tamano="ninguno"
+                                className="cancionDetalleMenuBtn"
+                                onClick={menuCtx.abrirMenu}
+                                aria-label="Acciones"
+                            >
+                                <MoreVertical size={20} />
+                            </BotonBase>
+                        </div>
                     )}
                 </div>
 
