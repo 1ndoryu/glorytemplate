@@ -138,6 +138,10 @@ export const TarjetaSample = (props: TarjetaSampleProps): JSX.Element => {
                             if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                /* [183A-71] IMPORTANTE: click en nombre abre panel lateral, NO navega a detalles.
+                                 * onClickTitulo se pasa desde el island/feed padre con panelLateralStore.abrirDetalle().
+                                 * En móvil: reproduce el audio (QL90). En desktop sin panel: navega a URL como fallback.
+                                 * NO cambiar este comportamiento sin revisar todos los usos de onClickTitulo en App/React. */
                                 if (onClickTitulo) {
                                     onClickTitulo(sample);
                                 } else if (esMovil) {

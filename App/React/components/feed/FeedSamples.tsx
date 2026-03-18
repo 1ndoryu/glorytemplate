@@ -208,6 +208,9 @@ export const FeedSamples = ({
                     )}
 
                     {feed.samplesVisibles.map(s => (
+                        /* [183A-71] onClickTitulo abre panel lateral (no navega a detalles).
+                         * En móvil TarjetaSample reproduce audio directamente.
+                         * Si panel no habilitado, navega a URL como fallback. NO poner undefined sin razón. */
                         <TarjetaSample
                             key={s.id}
                             sample={s}
@@ -215,7 +218,7 @@ export const FeedSamples = ({
                             onLike={feed.manejarLike}
                             onMenu={feed.menu.abrirMenu}
                             onClickCreador={u => feed.navegar(`/perfil/${u}`)}
-                            onClickTitulo={undefined}
+                            onClickTitulo={feed.panelHabilitado ? feed.manejarClickTitulo : undefined}
                             onComentar={feed.panelHabilitado ? feed.manejarComentar : undefined}
                             onFiltrarMeta={feed.manejarIncluirTag}
                         />
