@@ -91,6 +91,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-79+183A-76:** Completadas 2026-03-18. 183A-79: `panelColeccionPortada` ahora usa `detalle?.coleccionOriginal ?? sample.coleccionOriginal` — info de colección aparece en panel lateral. 183A-76: removidos iconos SVG (Mail, Lock) de los labels Email/Contraseña en ConfiguracionSecciones.
 
 - **183A-80:** Completada 2026-03-18. Bulk-fetch 3 páginas en 1 query (LIMIT 90 OFFSET 0) + CTE `ignored_samples` (samples reproducidos 5+ veces en 30 días sin like). Serendipia movida dentro del bulk loop, NO eliminada. Filosofía algoritmo documentada: todos los samples se evalúan, no pierden calidad por antigüedad.
+- **183A-82+183A-83:** Completadas 2026-03-18. 183A-82: serendipia no se borró, se movió al bulk loop. 183A-83: `coleccion_original_json` añadido al SELECT del feed inteligente — antes solo estaba en recientes. Método `sqlColeccionOriginalJson()` centralizado en NormalizadorSample.
 
 ## Tareas pendientes
 
@@ -115,15 +116,30 @@ He intentado iniciar sesion y falla, dice "Ha fallado la comprobación de la coo
 
 Mejorar la busqueda, por ejemplo, si busco lick en vez de kick, muestre kick, no se que nombre tiene esto pero funciona en youtube y aqui no se ha implementado, la busqueda no tiene que ser asi tan cerrada, los usuarios a veces escribien mal las palabras. 
 
-## 183A-83
-
-Me acabo de dar cuetna que panelColeccionPortada si aparecía pero nada mas en los samples de ordenamiento reciente, no en lo samples de ordenamiento inteligente (a veces si aparece, a veces no, pero mayoritariamente si)
-
 ## 183A-84
 
 Correo electronicos de bievenida, 
 verificar que el correo de cambio de contraseña funcione
 
+
+## 183A-85
+
+Esta fue la optimizacion 183A-80 
+
+esta muy bien, pero, con el resto de paginas? es una optimizacion real? es mucho mas de lo que esperaba, que implica? O sea, no digo que este mal solo que me impresiona. ¿Se puede ser mas preciso con el bench, cuanto tarda en calcular todos los samples? y si el usuario quiere cargar todas las paginas posibles, cuanto tardaría? 
++----------------------------------------------------+----------+
+| PerfilUsuario::construir (sin cache)               |    47.3ms |
+| Conteo samples activos (SQL COUNT)                 |     6.0ms |
+| Verificacion pgvector                              |     5.6ms |
+| SQL gen: Comportamiento (0.27)                     |     0.2ms |
+| SQL gen: Contexto (0.15)                           |     0.0ms |
+| SQL gen: Tendencias (0.12)                         |     0.0ms |
+| SQL gen: Grafo Social (0.1)                        |     0.0ms |
+| SQL gen: Similitud pgvector (0.28)                 |     0.4ms |
+| >> FEED pag1 sin cache fresco <<                   |    37.2ms |
+| >> FEED pag2 sin cache <<                          |    35.5ms |
+| >> FEED pag3 sin cache <<                          |    38.2ms |
+| Feed pag3 cache hit                                |    11.8ms |
 
 ## Tarea final cuando completes todo
 
