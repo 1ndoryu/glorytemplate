@@ -90,6 +90,7 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-73:** Completada 2026-03-18. Descarga de samples nativa en Capacitor Android: `descargarArchivo.ts` detecta plataforma → web usa `<a download>`, nativo usa fetch → base64 → `Filesystem.writeFile(Cache)` → `Share.share`. Instalados `@capacitor/filesystem@6.0.4` + `@capacitor/share@6.0.4` + `cap sync` registró plugins Android. tsconfig actualizado con paths. file_paths.xml actualizado.
 - **183A-79+183A-76:** Completadas 2026-03-18. 183A-79: `panelColeccionPortada` ahora usa `detalle?.coleccionOriginal ?? sample.coleccionOriginal` — info de colección aparece en panel lateral. 183A-76: removidos iconos SVG (Mail, Lock) de los labels Email/Contraseña en ConfiguracionSecciones.
 
+- **183A-75:** Secciones música optimizado de 894ms a 314ms (2 queries + arsort + v063 índices).
 - **183A-80:** Completada 2026-03-18. Bulk-fetch 3 páginas en 1 query (LIMIT 90 OFFSET 0) + CTE `ignored_samples` (samples reproducidos 5+ veces en 30 días sin like). Serendipia movida dentro del bulk loop, NO eliminada. Filosofía algoritmo documentada: todos los samples se evalúan, no pierden calidad por antigüedad.
 - **183A-82+183A-83:** Completadas 2026-03-18. 183A-82: serendipia no se borró, se movió al bulk loop. 183A-83: `coleccion_original_json` añadido al SELECT del feed inteligente — antes solo estaba en recientes. Método `sqlColeccionOriginalJson()` centralizado en NormalizadorSample.
 
@@ -98,11 +99,6 @@ Ubicacion: `App/docs (ignorar)/`
 ## 183A-74
 
 Tirar hacia arriba para recargar en las publicaciones y lista de samples funciona mal o sea, debería activarse solo cuando se esta arriba el scroll, no cuando se esta bajando y despues se quiere subir, por cierto, es raro en la web movil si funciona en la lista de samples pero en la apk ese gesto no funciona, si funciona en las publicaciones. 
-
-## 183A-75
-
-| >> Secciones pagina Musica (sin cache) <<          |   894.8ms | 
-tarda demasiado, optimizar, revisar que tenga cache, revisar queries, revisar indices, revisar que no haga N+1 queries, revisar que no haga operaciones costosas en PHP, etc. 
 
 ## 183A-77
 
@@ -140,6 +136,29 @@ esta muy bien, pero, con el resto de paginas? es una optimizacion real? es mucho
 | >> FEED pag2 sin cache <<                          |    35.5ms |
 | >> FEED pag3 sin cache <<                          |    38.2ms |
 | Feed pag3 cache hit                                |    11.8ms |
+
+## 183A-85-A
+
+Entiendo que dicen que dices que las 3 paginas estan cacheadas pero, entonces hay que actualizar el bench para reflejar eso y calcular las 3 paginas sin cache vs cache. 
+
+## 183A-86
+
+Despues de la optimizacion 183A-80, no carga la siguiente pagina en el feed de samples al hacer scroll, en el ordenamiento inteligente, pero si cambio de inteligete a reciente y luego vuelvo, si carga, algo pasa.
+
+## 183A-87
+
+En la aplicacion de escritorio al intentar suscribirse al premiun, al regresar, se deslogea bueno, no se exactamente, aparece el landing deslogeado, pero si cierro la aplicación y la vuelvo abrir, vuelvo a estar logeada. 
+
+## 183A-88
+
+Las imagenes de las colecciones en el inicio no estan cargando optimizadas como las de los samples 
+
+<img class="filaColeccionImg" src="https://kamples.com/wp-content/uploads/2026/03/54c3ef7d53c10235a8f937fa64a81778-1.jpg" alt="" loading="lazy">
+<img src="https://i0.wp.com/kamples.com/wp-content/uploads/2026/03/5459dbd136fdfbd523f93efa9a432cb4.jpg?strip=all&amp;quality=75&amp;w=80" alt="Memphis Acapella Whatcha Gonna Do 65bpm Cm" loading="lazy" class="tarjetaPortadaImg">
+
+## 183A-89
+
+| >> Secciones pagina Musica (sin cache) <<          |   272.1ms | (esto se puede cachear 24 horas por usuario, no es relevante que este acutualizado)
 
 ## Tarea final cuando completes todo
 
