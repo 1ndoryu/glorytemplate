@@ -1,5 +1,7 @@
 <?php
 
+/* sentinel-disable-file limite-lineas: inicializador central del módulo con hooks, cron y CORS; fragmentarlo completo implicaría un refactor transversal fuera del alcance de 173A-6. */
+
 /**
  * Kamples — Inicializador
  *
@@ -17,6 +19,7 @@ use App\Kamples\Api\KamplesController;
 use App\Kamples\Api\Controladores\DescargasZipController;
 use App\Kamples\Auth\AuthMiddleware;
 use App\Kamples\Auth\GuardiaWpAdmin;
+use App\Kamples\Database\Repositories\AlgoritmoEstadoRepository;
 use App\Kamples\Database\Repositories\ColeccionesRepository;
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Kamples\Services\DeduplicadorAudio;
@@ -31,6 +34,7 @@ use App\Kamples\Servicios\ServicioPapelera;
 use App\Kamples\Servicios\ServicioLimpiezaModeracion;
 use App\Kamples\Services\ServicioCache;
 use App\Kamples\Services\ConstructorSenales;
+use App\Kamples\Services\MotorRecomendacion;
 
 class KamplesInit
 {
@@ -145,12 +149,13 @@ class KamplesInit
 
         /* Manejar preflight OPTIONS antes de que WP responda */
         add_action('init', function () use ($origenesPermitidos, $headersCorsPermitidos): void {
-            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+            $origin = (string) (filter_input(INPUT_SERVER, 'HTTP_ORIGIN') ?? '');
             if (!in_array($origin, $origenesPermitidos, true)) {
                 return;
             }
 
-            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            $requestMethod = (string) (filter_input(INPUT_SERVER, 'REQUEST_METHOD') ?? '');
+            if ($requestMethod === 'OPTIONS') {
                 header('Access-Control-Allow-Origin: ' . $origin);
                 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
                 header('Access-Control-Allow-Headers: ' . $headersCorsPermitidos);
@@ -245,6 +250,20 @@ class KamplesInit
                 ConstructorSenales::precalcularPercentiles();
             } catch (\Throwable $e) {
                 KamplesLogger::error('Cron: Error precalculando percentiles', ['error' => $e->getMessage()]);
+            }
+
+            /* [173A-6] Mantener caliente la p1 de usuarios activos recientes.
+             * El objetivo no es recalentar todo, sino asegurar primer paint ligero. */
+            try {
+                $usuariosWarm = AlgoritmoEstadoRepository::obtenerUsuariosActivosParaWarmup(86400, 12);
+                foreach ($usuariosWarm as $usuarioWarm) {
+                    $userIdWarm = (int) ($usuarioWarm['usuario_id'] ?? 0);
+                    if ($userIdWarm > 0) {
+                        MotorRecomendacion::precalentarPrimeraPagina($userIdWarm);
+                    }
+                }
+            } catch (\Throwable $e) {
+                KamplesLogger::error('Cron: Error precalentando feeds activos', ['error' => $e->getMessage()]);
             }
         });
 

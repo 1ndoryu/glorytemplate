@@ -186,4 +186,22 @@ class AlgoritmoEstadoRepository extends BaseRepository
             "SELECT " . AlgoritmoEstadoCols::USUARIO_ID . " FROM {$tabla}"
         );
     }
+
+    /*
+     * [173A-6] Usuarios con actividad reciente, priorizados para warmup de p1.
+     * Evita recalentar feeds de cuentas dormidas y mantiene el costo del cron acotado.
+     */
+    public static function obtenerUsuariosActivosParaWarmup(int $segundosInactividadMax, int $limite): array
+    {
+        $tabla = AlgoritmoEstadoCols::TABLA;
+        return static::consultar(
+            "SELECT " . AlgoritmoEstadoCols::USUARIO_ID . ",
+                    EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMA_ACTIVIDAD . ")::int as seg_inactivo
+             FROM {$tabla}
+             WHERE EXTRACT(EPOCH FROM NOW() - " . AlgoritmoEstadoCols::ULTIMA_ACTIVIDAD . ") <= :segundosInactividadMax
+             ORDER BY " . AlgoritmoEstadoCols::ULTIMA_ACTIVIDAD . " DESC
+             LIMIT :limite",
+            ['segundosInactividadMax' => $segundosInactividadMax, 'limite' => $limite]
+        );
+    }
 }

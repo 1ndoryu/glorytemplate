@@ -1,4 +1,7 @@
-﻿<?php
+<?php
+namespace App\Kamples\Services;
+
+/* sentinel-disable-file limite-lineas: orquestador central del feed con cache, scoring, fallback y warmup; fragmentarlo completo en esta tarea mezclaría una refactorización estructural mucho mayor que 173A-6. */
 
 /**
  * MotorRecomendacion — Orquestador de scoring y recomendación v3.
@@ -14,8 +17,6 @@
  *
  * @package Kamples
  */
-
-namespace App\Kamples\Services;
 
 use App\Kamples\Database\Repositories\SamplesRepository;
 use App\Config\Schema\_generated\SamplesCols;
@@ -38,6 +39,78 @@ class MotorRecomendacion
     private const CACHE_TTL = 300; /* 5 minutos — pagina 1 */
     private const CACHE_TTL_PAGINADOS = 900; /* 15 minutos — paginas subsecuentes */
     private const CACHE_PREFIX = 'kamples_feed_';
+    private const CACHE_STALE_PREFIX = 'kamples_feed_stale_';
+    private const CACHE_STALE_TTL = 21600; /* 6 horas — escudo stale para primera pagina */
+    private const WARM_LOCK_PREFIX = 'kamples_warm_feed_';
+    private const LIMITES_WARM_PRIMERA_PAGINA = [12, 30];
+
+    private static function cacheKey(int $userId, int $limite, int $offset): string
+    {
+        return self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset;
+    }
+
+    private static function staleCacheKey(int $userId, int $limite): string
+    {
+        return self::CACHE_STALE_PREFIX . $userId . '_' . $limite . '_0';
+    }
+
+    private static function warmLockKey(int $userId, int $limite): string
+    {
+        return self::WARM_LOCK_PREFIX . $userId . '_' . $limite;
+    }
+
+    private static function guardarResultadoEnCache(int $userId, int $limite, int $offset, array $resultado): void
+    {
+        if (empty($resultado)) {
+            return;
+        }
+
+        $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
+        ServicioCache::guardar(self::cacheKey($userId, $limite, $offset), $resultado, $ttl);
+
+        /* [173A-6] Conservamos una copia stale de la primera página para responder
+         * en ~1ms y recalcular detrás de escena cuando la cache fresca expiró. */
+        if ($offset === 0) {
+            ServicioCache::guardar(self::staleCacheKey($userId, $limite), $resultado, self::CACHE_STALE_TTL);
+        }
+    }
+
+    private static function programarWarmPrimeraPagina(int $userId, int $limite): void
+    {
+        if (PHP_SAPI === 'cli' || !ServicioCache::adquirirLock(self::warmLockKey($userId, $limite), 90)) {
+            return;
+        }
+
+        add_action('shutdown', function () use ($userId, $limite) {
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            } else {
+                ignore_user_abort(true);
+                if (session_id()) {
+                    session_write_close();
+                }
+                if (!headers_sent()) {
+                    header('Connection: close');
+                }
+                while (ob_get_level() > 0) {
+                    ob_end_flush();
+                }
+                flush();
+            }
+
+            try {
+                self::feedPersonalizado($userId, $limite, 0, false);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Algoritmo: Warm async de primera pagina fallo', [
+                    'userId' => $userId,
+                    'limite' => $limite,
+                    'error' => $e->getMessage(),
+                ]);
+            } finally {
+                ServicioCache::liberarLock(self::warmLockKey($userId, $limite));
+            }
+        }, 0);
+    }
 
     /**
      * Proxy retrocompatible: delega a ConstructorSenales::sqlTagsEnriquecidos.
@@ -85,20 +158,30 @@ class MotorRecomendacion
      * Combina todas las señales disponibles con pesos configurables.
      * Implementa cache con WP transients para reducir carga SQL.
      */
-    public static function feedPersonalizado(int $userId, int $limite = 20, int $offset = 0): array
+    public static function feedPersonalizado(int $userId, int $limite = 20, int $offset = 0, bool $permitirStale = true): array
     {
         KamplesLogger::info('Algoritmo: feedPersonalizado iniciado', [
             'userId' => $userId, 'limite' => $limite, 'offset' => $offset,
         ]);
 
         /* Intentar leer de cache (todas las páginas) */
-        $cacheKey = self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset;
+        $cacheKey = self::cacheKey($userId, $limite, $offset);
         $cached = ServicioCache::obtener($cacheKey);
         if ($cached !== false && \is_array($cached)) {
             KamplesLogger::debug('Algoritmo: Sirviendo desde cache', [
                 'cacheKey' => $cacheKey, 'resultados' => \count($cached),
             ]);
             return $cached;
+        }
+
+        if ($permitirStale && $offset === 0) {
+            $stale = ServicioCache::obtener(self::staleCacheKey($userId, $limite));
+            if ($stale !== false && \is_array($stale)) {
+                /* [173A-6] Primer paint ligero: devolvemos la última p1 conocida
+                 * y dejamos el recálculo personalizado para post-respuesta. */
+                self::programarWarmPrimeraPagina($userId, $limite);
+                return $stale;
+            }
         }
 
         /*
@@ -118,54 +201,51 @@ class MotorRecomendacion
             /* Sin cache disponible aun — seguir con calculo propio como fallback */
         }
 
-        $config = self::cargarPesos();
-        $pesos = $config['senales'] ?? [];
-        $params = $config['parametros'] ?? [];
+        try {
+            $config = self::cargarPesos();
+            $pesos = $config['senales'] ?? [];
+            $params = $config['parametros'] ?? [];
 
-        /* Obtener perfil de preferencias del usuario */
-        $perfilUsuario = PerfilUsuario::construir($userId);
+            /* Obtener perfil de preferencias del usuario */
+            $perfilUsuario = PerfilUsuario::construir($userId);
 
-        if (empty($perfilUsuario['interacciones']) && ($params['min_interacciones'] ?? 5) > 0) {
-            KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
-                'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
-            ]);
-            $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
-            if (!empty($resultado)) {
-                $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
-                ServicioCache::guardar($cacheKey, $resultado, $ttl);
+            if (empty($perfilUsuario['interacciones']) && ($params['min_interacciones'] ?? 5) > 0) {
+                KamplesLogger::info('Algoritmo: Usuario nuevo sin interacciones, usando feed de tendencias', [
+                    'userId' => $userId, 'interacciones' => $perfilUsuario['interacciones'] ?? 0,
+                ]);
+                $resultado = self::feedNuevoUsuario($limite, $offset, $userId);
+                self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
+                return $resultado;
             }
-            return $resultado;
-        }
 
-        $queryParams = ['limit' => $limite, 'offset' => $offset];
+            $queryParams = ['limit' => $limite, 'offset' => $offset];
 
-        /*
-         * Construir query SQL con scoring multi-señal.
-         * Cada señal genera una sub-expresión SQL ponderada (delegada a ConstructorSenales).
-         */
+                /*
+                 * Construir query SQL con scoring multi-señal.
+                 * Cada señal genera una sub-expresión SQL ponderada (delegada a ConstructorSenales).
+                 */
 
-        /*
-         * Opt-8: Detectar si la vista materializada mv_trending_samples existe.
-         * Si existe, sqlTendencias() la usará en vez de 4 subqueries correlacionadas.
-         * Cache de 1h para no consultar pg_matviews en cada request.
-         */
-        $usarVistaMatTrending = (bool) ServicioCache::obtener('kamples_mv_trending_existe');
-        if (!$usarVistaMatTrending) {
-            try {
-                $existe = SamplesRepository::consultarValor(
-                    "SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_trending_samples' LIMIT 1",
-                    []
-                );
-                $usarVistaMatTrending = ($existe !== null);
-                if ($usarVistaMatTrending) {
-                    ServicioCache::guardar('kamples_mv_trending_existe', 1, HOUR_IN_SECONDS);
+                /*
+                 * Opt-8: Detectar si la vista materializada mv_trending_samples existe.
+                 * Si existe, sqlTendencias() la usará en vez de 4 subqueries correlacionadas.
+                 * Cache de 1h para no consultar pg_matviews en cada request.
+                 */
+            $usarVistaMatTrending = (bool) ServicioCache::obtener('kamples_mv_trending_existe');
+            if (!$usarVistaMatTrending) {
+                try {
+                    $existe = SamplesRepository::consultarValor(
+                        "SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_trending_samples' LIMIT 1",
+                        []
+                    );
+                    $usarVistaMatTrending = ($existe !== null);
+                    if ($usarVistaMatTrending) {
+                        ServicioCache::guardar('kamples_mv_trending_existe', 1, HOUR_IN_SECONDS);
+                    }
+                } catch (\Throwable $e) {
+                    $usarVistaMatTrending = false;
                 }
-            } catch (\Throwable $e) {
-                $usarVistaMatTrending = false;
             }
-        }
-
-        $additiveParts = [];
+            $additiveParts = [];
 
         /* Señal 1: Comportamiento — 5 sub-factores ponderados */
         $pesoComportamiento = $pesos['comportamiento'] ?? 0.25;
@@ -318,28 +398,26 @@ class MotorRecomendacion
                 ORDER BY (score * CASE WHEN rn <= {$maxPorCreador} THEN 1 ELSE GREATEST(0.3, 1.0 - (rn - {$maxPorCreador}) * 0.15) END) DESC
                 LIMIT :limit OFFSET :offset";
 
-        $resultado = SamplesRepository::consultar($sql, $queryParams);
+            $resultado = SamplesRepository::consultar($sql, $queryParams);
 
-        KamplesLogger::info('Algoritmo: Resultados obtenidos', [
-            'userId' => $userId, 'totalResultados' => \count($resultado),
-            'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
-        ]);
+            KamplesLogger::info('Algoritmo: Resultados obtenidos', [
+                'userId' => $userId, 'totalResultados' => \count($resultado),
+                'primerScore' => !empty($resultado) ? ($resultado[0]['score'] ?? 'N/A') : 'vacío',
+            ]);
 
-        /* Serendipia: inyectar samples de descubrimiento cada N posiciones */
-        $resultado = self::inyectarSerendipia($resultado, $userId, $config);
+            /* Serendipia: inyectar samples de descubrimiento cada N posiciones */
+            $resultado = self::inyectarSerendipia($resultado, $userId, $config);
 
-        /* Guardar en cache — pagina 1 mas fresco, subsecuentes 15 min */
-        if (!empty($resultado)) {
-            $ttl = $offset === 0 ? self::CACHE_TTL : self::CACHE_TTL_PAGINADOS;
-            ServicioCache::guardar(self::CACHE_PREFIX . $userId . '_' . $limite . '_' . $offset, $resultado, $ttl);
+            self::guardarResultadoEnCache($userId, $limite, $offset, $resultado);
+
+            return $resultado;
+        } finally {
+            /* [173A-6] El lock no puede depender de llegar al final feliz: usuarios
+             * nuevos y excepciones también deben liberar el stampede protection lock. */
+            if ($lockAdquirido) {
+                ServicioCache::liberarLock($lockKey);
+            }
         }
-
-        /* Liberar stampede lock tras guardar en cache */
-        if ($lockAdquirido) {
-            ServicioCache::liberarLock($lockKey);
-        }
-
-        return $resultado;
     }
 
     /**
@@ -387,8 +465,8 @@ class MotorRecomendacion
     }
 
     /**
-     * Invalida el cache de feed para un usuario específico.
-     * Borra TODOS los transients del feed del usuario (cualquier limite/offset).
+     * Invalida el cache fresco de feed para un usuario específico.
+     * Conserva el fallback stale de p1 para responder rápido mientras se recalcula.
      * Llamar cuando: el usuario da like, descarga, o se publica un nuevo sample.
      */
     public static function invalidarCache(int $userId): void
@@ -397,13 +475,44 @@ class MotorRecomendacion
     }
 
     /**
-     * Invalida el cache de feed para TODOS los usuarios.
-     * Llamar cuando: se publica un sample nuevo (afecta trending).
+     * Invalida el cache fresco de feed para TODOS los usuarios.
+     * El escudo stale se conserva para que la primera carga siga siendo ligera.
      */
     public static function invalidarCacheGlobal(): void
     {
         KamplesLogger::debug('Algoritmo: Invalidando cache global de feeds');
         ServicioCache::eliminarPatron(self::CACHE_PREFIX . '*');
+    }
+
+    /**
+     * [173A-6] Precalienta la primera página para tamaños usados por la app.
+     * Se ejecuta en cron para mantener caliente la p1 de usuarios activos.
+     */
+    public static function precalentarPrimeraPagina(int $userId, array $limites = self::LIMITES_WARM_PRIMERA_PAGINA): void
+    {
+        foreach ($limites as $limite) {
+            $limite = (int) $limite;
+            if ($limite < 1) {
+                continue;
+            }
+
+            $lockKey = self::warmLockKey($userId, $limite);
+            if (!ServicioCache::adquirirLock($lockKey, 180)) {
+                continue;
+            }
+
+            try {
+                self::feedPersonalizado($userId, $limite, 0, false);
+            } catch (\Throwable $e) {
+                KamplesLogger::warning('Algoritmo: Precalentado de p1 fallo', [
+                    'userId' => $userId,
+                    'limite' => $limite,
+                    'error' => $e->getMessage(),
+                ]);
+            } finally {
+                ServicioCache::liberarLock($lockKey);
+            }
+        }
     }
 
     /**

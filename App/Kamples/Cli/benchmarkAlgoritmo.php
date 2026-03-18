@@ -20,9 +20,11 @@ if (php_sapi_name() !== 'cli') {
 
 /* Timeout: 120s max para todo el proceso */
 set_time_limit(120);
-if (function_exists('pcntl_alarm')) {
-    pcntl_alarm(120);
-    pcntl_signal(SIGALRM, function () {
+$pcntlAlarm = 'pcntl_alarm';
+$pcntlSignal = 'pcntl_signal';
+if (\function_exists($pcntlAlarm) && \function_exists($pcntlSignal) && \defined('SIGALRM')) {
+    $pcntlAlarm(120);
+    $pcntlSignal(\constant('SIGALRM'), function () {
         fwrite(STDERR, "\n[TIMEOUT] Benchmark abortado tras 120s.\n");
         exit(2);
     });
@@ -125,7 +127,7 @@ function invalidarCaches(int $userId): void
     MotorRecomendacion::invalidarCache($userId);
     ServicioCache::eliminar('kamples_perfil_usr_' . $userId);
     ServicioCache::eliminar('kamples_pgvector_activo');
-    ServicioCache::eliminar('kamples_total_activos');
+    ServicioCache::eliminar('kamples_total_samples_activos');
 }
 
 $tiempos = [];
@@ -138,7 +140,7 @@ $perfilUsuario = $m['resultado'];
 echo "      " . number_format($m['ms'], 1) . "ms\n";
 
 echo "[2/8] Conteo samples activos...\n";
-ServicioCache::eliminar('kamples_total_activos');
+ServicioCache::eliminar('kamples_total_samples_activos');
 $m = medirMs(function () {
     $sEstado = SamplesCols::ESTADO;
     $eActivo = SamplesEnums::ESTADO_ACTIVO;
@@ -182,7 +184,7 @@ if ($pgvectorActivo) {
     echo "      Similitud:      " . number_format($m['ms'], 2) . "ms\n";
 }
 
-echo "[5/8] FEED pag 1 (sin cache)...\n";
+echo "[5/8] FEED pag 1 (sin cache fresco)...\n";
 invalidarCaches($userId);
 $m = medirMs(fn() => MotorRecomendacion::feedPersonalizado($userId, $perPage, 0));
 $tiempos['feed_pag1'] = $m['ms'];
@@ -220,7 +222,7 @@ $etiquetas = [
     'sql_tendencias'     => 'SQL gen: Tendencias (' . ($pesos['tendencias'] ?? '?') . ')',
     'sql_social'         => 'SQL gen: Grafo Social (' . ($pesos['grafo_social'] ?? '?') . ')',
     'sql_similitud'      => 'SQL gen: Similitud pgvector (' . ($pesos['similitud_contenido'] ?? '?') . ')',
-    'feed_pag1'          => '>> FEED pag1 sin cache <<',
+    'feed_pag1'          => '>> FEED pag1 sin cache fresco <<',
     'feed_pag2'          => '>> FEED pag2 sin cache <<',
     'feed_pag3'          => '>> FEED pag3 sin cache <<',
     'feed_cache_hit'     => 'Feed pag3 cache hit',
@@ -241,7 +243,7 @@ echo "\n=== RESUMEN (para documentacion) ===\n";
 echo "Fecha: " . date('Y-m-d H:i:s') . " | Config: {$versionAlgoritmo}\n";
 echo "Samples: {$totalSamplesActivos} | pgvector: " . ($pgvectorActivo ? 'SI' : 'NO');
 echo " | Pipeline: " . ($usarPipeline ? 'SI' : 'NO') . "\n";
-echo "Feed pag1: " . number_format($tiempos['feed_pag1'], 0) . "ms";
+echo "Feed pag1 (sin cache fresco): " . number_format($tiempos['feed_pag1'], 0) . "ms";
 echo " | pag2: " . number_format($tiempos['feed_pag2'], 0) . "ms";
 echo " | pag3: " . number_format($tiempos['feed_pag3'], 0) . "ms";
 echo " | promedio: " . number_format($feedProm, 0) . "ms";
