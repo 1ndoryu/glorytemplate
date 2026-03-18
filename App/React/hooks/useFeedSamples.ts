@@ -27,7 +27,7 @@ import { useFeedFiltros } from '@app/hooks/useFeedFiltros';
 import { useFeedArrastreTags } from '@app/hooks/useFeedArrastreTags';
 import { usePaginacionProgresiva } from '@app/hooks/usePaginacionProgresiva';
 import { useFeedLikes } from '@app/hooks/useFeedLikes';
-import { leerCacheFeed, guardarCacheFeed, invalidarCacheFeed as limpiarCachePersistente } from '@app/utils/cacheFeedPersistente';
+import { leerCacheFeed, guardarCacheFeed, leerTotalCacheFeed, invalidarCacheFeed as limpiarCachePersistente } from '@app/utils/cacheFeedPersistente';
 import { useFeedRefresco } from '@app/hooks/useFeedRefresco';
 import type { SampleResumen } from '@app/types';
 import { requiereAuth } from '@app/utils/requiereAuth';
@@ -134,8 +134,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
     /* Cache por clave */
     const cacheFeedRef = useRef<Record<string, SampleResumen[]>>({});
     const claveCacheAnteriorRef = useRef(claveCache);
-    /* QL82: Total real del servidor para contadores precisos */
-    const totalServidorRef = useRef<number | null>(null);
+    /* QL82: Total real del servidor para contadores precisos.
+     * [183A-24] Se inicializa desde cache para evitar mostrar 30 al cargar datos stale. */
+    const totalServidorRef = useRef<number | null>(leerTotalCacheFeed(claveCache));
 
     const navegar = useNavigationStore(s => s.navegar);
     const menu = useMenuContextualSample();
@@ -224,9 +225,9 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                 if (requestIdRef.current !== thisRequest) return;
                 if (resultado.ok) {
                     cacheFeedRef.current[key] = resultado.data;
-                    if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
-                    if (resultado.data.length === 0) setHayMasPaginas(false);
                     if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
+                        if (pagina === 1) guardarCacheFeed(claveCache, resultado.data, resultado.total);
+                        if (resultado.data.length === 0) setHayMasPaginas(false);
                     setSamples(resultado.data);
                 }
             } catch {
@@ -254,8 +255,8 @@ export function useFeedSamples(opciones: UseFeedSamplesOpciones) {
                 /* QL35: Solo cachear resultados exitosos — un error de API no debe
                  * persistir array vacio en localStorage corrompiendo futuras cargas. */
                 cacheFeedRef.current[key] = resultado.data;
-                if (pagina === 1) guardarCacheFeed(claveCache, resultado.data);
                 if (resultado.total !== undefined) totalServidorRef.current = resultado.total;
+                if (pagina === 1) guardarCacheFeed(claveCache, resultado.data, resultado.total);
                 datos = resultado.data;
             }
 

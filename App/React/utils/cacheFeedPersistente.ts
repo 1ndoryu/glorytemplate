@@ -22,6 +22,8 @@ const TTL_MAXIMO_MS = 7 * 24 * 60 * 60 * 1000;
 interface EntradaCache {
     ts: number;
     datos: SampleResumen[];
+    /* [183A-24] Total real del servidor para evitar mostrar 30 cuando hay datos stale. */
+    total?: number;
 }
 
 function clave(feedKey: string): string {
@@ -63,12 +65,24 @@ export function esCacheStale(feedKey: string): boolean {
     }
 }
 
-export function guardarCacheFeed(feedKey: string, datos: SampleResumen[]): void {
+export function guardarCacheFeed(feedKey: string, datos: SampleResumen[], total?: number): void {
     try {
-        const entrada: EntradaCache = { ts: Date.now(), datos };
+        const entrada: EntradaCache = { ts: Date.now(), datos, total };
         localStorage.setItem(clave(feedKey), JSON.stringify(entrada));
     } catch {
         /* localStorage lleno o no disponible — silencioso */
+    }
+}
+
+/* [183A-24] Leer total cacheado sin cargar los datos completos. */
+export function leerTotalCacheFeed(feedKey: string): number | null {
+    try {
+        const raw = localStorage.getItem(clave(feedKey));
+        if (!raw) return null;
+        const entrada: EntradaCache = JSON.parse(raw);
+        return entrada.total ?? null;
+    } catch {
+        return null;
     }
 }
 
