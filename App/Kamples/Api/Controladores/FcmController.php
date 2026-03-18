@@ -53,7 +53,9 @@ class FcmController
                 $plataforma = 'android';
             }
 
-            $usuario = UsuarioHelper::obtenerActual();
+            /* [183A-43] Obtener usuario PG actual. obtenerActual() no existe en UsuarioHelper;
+             * el método correcto es obtenerPorWpId() que lee el WP user_id del JWT/nonce. */
+            $usuario = UsuarioHelper::obtenerPorWpId();
             if (!$usuario) {
                 return new \WP_REST_Response(['ok' => false, 'error' => 'Usuario no encontrado'], 404);
             }
