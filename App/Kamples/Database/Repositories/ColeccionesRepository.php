@@ -22,6 +22,7 @@ use App\Config\Schema\_generated\LikesCols;
 use App\Config\Schema\_generated\LikesEnums;
 use App\Config\Schema\_generated\FollowsCols;
 use App\Config\Schema\_generated\UsuariosExtEnums;
+use App\Config\Schema\_generated\ColeccionesLikesCols;
 use App\Kamples\Services\ConstructorSenales;
 use App\Kamples\Api\Helpers\NormalizadorSample;
 
@@ -300,6 +301,14 @@ class ColeccionesRepository extends BaseRepository
             ARRAY[]::TEXT[]
         )";
 
+        /* [183A-29+183A-66] Subquery de likes de coleccion — señal de relevancia social.
+         * Pesos actualizados: tag_score 0.55, likes 0.10, frescura 0.20, items 0.15.
+         * Pendiente: agregar tracking de clicks/búsquedas (tabla colecciones_eventos) para
+         * incorporar engagement directo como señal adicional en una fase 2. */
+        $tlike = ColeccionesLikesCols::TABLA;
+        $likeColId = ColeccionesLikesCols::COLECCION_ID;
+        $subqueryLikes = "(SELECT COUNT(*) FROM {$tlike} cl WHERE cl.{$likeColId} = c.{$colId})";
+
         if ($userId) {
             $params['userId'] = $userId;
             $params['userIdVisibilidad'] = $userId;
@@ -357,6 +366,7 @@ class ColeccionesRepository extends BaseRepository
                                  AND guardadas.{$gColeccionId} = c." . ColeccionesCols::ID . "
                            ) as esta_guardada,
                            {$subqueryTagsMeta} as tags,
+                           {$subqueryLikes} as total_likes,
                            COALESCE((
                                SELECT SUM(ut.afinidad)
                                FROM user_tags ut
@@ -382,10 +392,11 @@ class ColeccionesRepository extends BaseRepository
                 ) sub
                 ORDER BY sub.propio_boost DESC,
                 (
-                    COALESCE(sub.tag_score, 0) * 0.60
+                    COALESCE(sub.tag_score, 0) * 0.55
                     * sub.follow_boost
                     + sub.frescura * 0.20
-                    + LEAST(sub.total_items::float / 20.0, 1.0) * 0.20
+                    + LEAST(sub.total_items::float / 20.0, 1.0) * 0.15
+                    + LEAST(sub.total_likes::float / 10.0, 1.0) * 0.10
                 ) DESC,
                 sub." . ColeccionesCols::UPDATED_AT . " DESC
                 LIMIT 20 OFFSET :offset
@@ -401,7 +412,8 @@ class ColeccionesRepository extends BaseRepository
                                SELECT sub." . ColeccionesCols::ID . " FROM {$t} sub WHERE sub." . ColeccionesCols::PARENT_ID . " = c." . ColeccionesCols::ID . "
                            )
                        ) as total_items,
-                       {$subqueryTagsMeta} as tags
+                       {$subqueryTagsMeta} as tags,
+                       {$subqueryLikes} as total_likes
                 FROM {$t} c
                 JOIN {$tu} u ON c." . ColeccionesCols::USUARIO_ID . " = u." . UsuariosExtCols::ID . "
                 WHERE c." . ColeccionesCols::PUBLICA . " = true
@@ -414,7 +426,7 @@ class ColeccionesRepository extends BaseRepository
                           )
                   ) > 0
                   {$whereBusqueda}
-                ORDER BY c." . ColeccionesCols::UPDATED_AT . " DESC
+                ORDER BY total_likes DESC, c." . ColeccionesCols::UPDATED_AT . " DESC
                 LIMIT 20 OFFSET :offset
             ";
         }
