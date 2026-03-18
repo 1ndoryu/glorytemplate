@@ -4,7 +4,7 @@
  * Extraído para cumplir SRP y limite de 300 líneas.
  */
 
-import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, Mail, Lock, ChevronRight, Scale, ExternalLink} from 'lucide-react';
+import {ImagePlus, Bell, BellOff, User, Shield, Palette, Ban, Music, ChevronRight, Scale, ExternalLink} from 'lucide-react';
 import {obtenerImagenColor} from '@app/services/imagenesColor';
 import {Avatar} from '@app/components/ui/Avatar';
 import {BotonBase} from '@app/components/ui/BotonBase';
@@ -123,7 +123,7 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
             return (
                 <>
                     <div className="configSeccion">
-                        <label className="configLabel"><Mail size={14} /> Email</label>
+                        <label className="configLabel">Email</label>
                         <span className="configSubtexto">{h.usuario?.email ?? ''}</span>
                         {!h.emailEditando ? (
                             <BotonBase variante="secundario" tamano="sm" onClick={() => h.setEmailEditando(true)}>Cambiar email</BotonBase>
@@ -141,7 +141,7 @@ export const ContenidoSeccion = ({h}: {h: HookConfiguracion}): JSX.Element | nul
                         )}
                     </div>
                     <div className="configSeccion">
-                        <label className="configLabel"><Lock size={14} /> Contraseña</label>
+                        <label className="configLabel">Contraseña</label>
                         {!h.passwordEditando ? (
                             <BotonBase variante="secundario" tamano="sm" onClick={() => h.setPasswordEditando(true)}>Cambiar contraseña</BotonBase>
                         ) : (

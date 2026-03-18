@@ -196,9 +196,12 @@ export const PanelDetalleSample = ({ sample }: PanelDetalleSampleProps): JSX.Ele
                 </div>
             )}
 
-            {/* [183A-72] Portada de colección origen — fallback de color si no hay imagen */}
+            {/* [183A-72] Portada de colección origen — fallback de color si no hay imagen.
+              * [183A-79] Usa detalle?.coleccionOriginal primero: el sample del prop puede no
+              * traer coleccionOriginal si viene del feed (campo opcional). El detalle completo
+              * siempre lo incluye cuando el sample pertenece a una colección. */}
             {(() => {
-                const coleccion = sample.coleccionOriginal ?? null;
+                const coleccion = detalle?.coleccionOriginal ?? sample.coleccionOriginal ?? null;
                 if (!coleccion) return null;
                 const imgSrc = coleccion.imagenUrl || obtenerImagenColorPorTexto(coleccion.nombre);
                 const slug = coleccion.slug ?? String(coleccion.id);
