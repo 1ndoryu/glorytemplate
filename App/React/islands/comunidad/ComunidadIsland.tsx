@@ -5,7 +5,7 @@
  * Extras de isla: botón seguir (+) sobre el avatar, CardPerfil, sección comentarios.
  */
 
-import { Users, TrendingUp, Clock, Plus } from 'lucide-react';
+import { Users, TrendingUp, Clock, Plus, RefreshCw } from 'lucide-react';
 import { TarjetaPublicacion } from '@app/components/social/TarjetaPublicacion';
 import { MenuContextual } from '@app/components/ui/MenuContextual';
 import { ListaComentarios } from '@app/components/social/ListaComentarios';
@@ -18,6 +18,8 @@ import { useAuthStore } from '@app/stores/authStore';
 import { LandingPublica } from '@app/components/social/LandingPublica';
 import { useComentarios } from '@app/hooks/useComentarios';
 import { useComunidadIsland, type FiltroComunidad } from '@app/hooks/useComunidadIsland';
+import { usePullToRefresh } from '@app/hooks/usePullToRefresh';
+import { useEsMovil } from '@app/hooks/useEsMovil';
 import { useTooltipPerfilStore } from '@app/stores/tooltipPerfilStore';
 import type { UsuarioResumen } from '@app/types/usuario';
 import '../../styles/componentes/comunidad.css';
@@ -61,6 +63,13 @@ const ComunidadContenido = (): JSX.Element => {
 
     useTabsIsla('ComunidadIsland', TABS_COMUNIDAD, 'comunidad');
 
+    /* [183A-38] Pull-to-refresh en comunidad para movil */
+    const esMovil = useEsMovil();
+    const pullToRefresh = usePullToRefresh({
+        onRefrescar: recargarFeed,
+        habilitado: esMovil,
+    });
+
     /* QQ47: Abrir tooltip de perfil al hacer clic en el boton + sobre el avatar */
     const abrirCardPerfil = (e: React.MouseEvent, autor: UsuarioResumen) => {
         e.stopPropagation();
@@ -93,7 +102,20 @@ const ComunidadContenido = (): JSX.Element => {
                 </div>
             </div>
 
-            <div className="comunidadFeed">
+            <div className="comunidadFeed" ref={pullToRefresh.contenedorRef}>
+                {/* [183A-38] Indicador pull-to-refresh */}
+                {esMovil && (pullToRefresh.distanciaArrastre > 0 || pullToRefresh.refrescando) && (
+                    <div
+                        className={`feedPullIndicador ${pullToRefresh.refrescando ? 'feedPullRefrescando' : ''}`}
+                        style={{ height: pullToRefresh.distanciaArrastre }}
+                    >
+                        <RefreshCw
+                            size={20}
+                            className={pullToRefresh.refrescando ? 'feedPullGirando' : ''}
+                            style={{ transform: `rotate(${pullToRefresh.distanciaArrastre * 3}deg)` }}
+                        />
+                    </div>
+                )}
                 {cargando ? (
                     <>
                         <SkeletonTarjetaPublicacion />
