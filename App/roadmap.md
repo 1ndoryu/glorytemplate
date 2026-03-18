@@ -85,19 +85,12 @@ Ubicacion: `App/docs (ignorar)/`
 
 - **183A-40:** Completada 2026-03-18. `ImgOptimizada` via Jetpack Photon CDN. Equivalente React de `ImageUtility::optimizar()`. Aplicado en portadas de samples, colecciones y canciones.
 - **183A-72:** Completada 2026-03-18. Unificación paneles sugerencias/detalle.
+- **183A-49:** Completada 2026-03-18. Notificaciones descriptivas + imagen actorAvatarUrl en FCM + follow deep link + reproductor Media Session ya activo en WebView.
 
 ## Tareas pendientes
 
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-## 183A-49
-
-Hacer una revision profunda de las notificaciones
-deben ser en vez de "Alguien comento en tu publicacion" debe ser mas descriptivo como @Wan comento tu publicacion "titulo de la publicac..." o algo asi,
-asegurar que a dar click vayan al contenido relacionado
-asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
-tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
 
 
 ## 183A-68
