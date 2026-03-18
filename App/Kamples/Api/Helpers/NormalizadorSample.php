@@ -433,6 +433,38 @@ class NormalizadorSample
         ) END";
     }
 
+    /**
+     * [183A-83] Subquery SQL para obtener la coleccion original del creador.
+     * Retorna JSON con id, nombre, slug, imagen_url de la primera coleccion
+     * del uploader donde aparece el sample. Compatible con row_to_json.
+     * El alias 's' referencia la tabla padre (debe existir en el contexto FROM).
+     */
+    public static function sqlColeccionOriginalJson(): string
+    {
+        $sId = SamplesCols::ID;
+        $sCreadorId = SamplesCols::CREADOR_ID;
+        $csTabla = ColeccionSamplesCols::TABLA;
+        $csColId = ColeccionSamplesCols::COLECCION_ID;
+        $csSampleId = ColeccionSamplesCols::SAMPLE_ID;
+        $csAddedAt = ColeccionSamplesCols::ADDED_AT;
+        $cTabla = ColeccionesCols::TABLA;
+        $cId = ColeccionesCols::ID;
+        $cNombre = ColeccionesCols::NOMBRE;
+        $cSlug = ColeccionesCols::SLUG;
+        $cUsuarioId = ColeccionesCols::USUARIO_ID;
+        $cImagenUrl = ColeccionesCols::IMAGEN_URL;
+
+        return "(SELECT row_to_json(co_orig.*) FROM (
+            SELECT c_orig.{$cId}, c_orig.{$cNombre}, c_orig.{$cSlug}, c_orig.{$cImagenUrl}
+            FROM {$csTabla} cs_orig
+            JOIN {$cTabla} c_orig ON cs_orig.{$csColId} = c_orig.{$cId}
+            WHERE cs_orig.{$csSampleId} = s.{$sId}
+                AND c_orig.{$cUsuarioId} = s.{$sCreadorId}
+            ORDER BY cs_orig.{$csAddedAt} ASC
+            LIMIT 1
+        ) co_orig)";
+    }
+
     public static function sqlSelectSamples(?int $userId = null, bool $soloCreadorActivo = true): string
     {
         /*
@@ -528,28 +560,11 @@ class NormalizadorSample
             SELECT c.{$cTitulo}, c.{$cSlug}
             FROM {$tc} c WHERE c.{$cId} = s.{$sCancionOrigen}
         ) co) AS cancion_origen_json";
-                $csTablaOriginal = ColeccionSamplesCols::TABLA;
-                $csColeccionOriginal = ColeccionSamplesCols::COLECCION_ID;
-                $csSampleOriginal = ColeccionSamplesCols::SAMPLE_ID;
-                $csAddedAtOriginal = ColeccionSamplesCols::ADDED_AT;
-                $tcOriginal = ColeccionesCols::TABLA;
-                $cOriginalId = ColeccionesCols::ID;
-                $cOriginalNombre = ColeccionesCols::NOMBRE;
-                $cOriginalSlug = ColeccionesCols::SLUG;
-                $cOriginalUsuarioId = ColeccionesCols::USUARIO_ID;
-                $cOriginalImagenUrl = ColeccionesCols::IMAGEN_URL;
                 /* [173A-5] Coleccion original del creador: si el sample esta en una coleccion del uploader,
                  * se expone para enlazar desde menus y detalle sin duplicar reglas en frontend.
-                 * [183A-55] Se agrega imagen_url para mostrar portada en panel lateral. */
-                $coleccionOriginalExpr = "(SELECT row_to_json(co_orig.*) FROM (
-                        SELECT c_orig.{$cOriginalId}, c_orig.{$cOriginalNombre}, c_orig.{$cOriginalSlug}, c_orig.{$cOriginalImagenUrl}
-                        FROM {$csTablaOriginal} cs_orig
-                        JOIN {$tcOriginal} c_orig ON cs_orig.{$csColeccionOriginal} = c_orig.{$cOriginalId}
-                        WHERE cs_orig.{$csSampleOriginal} = s.{$sId}
-                            AND c_orig.{$cOriginalUsuarioId} = s.{$sCreadorId}
-                        ORDER BY cs_orig.{$csAddedAtOriginal} ASC
-                        LIMIT 1
-                ) co_orig) AS coleccion_original_json";
+                 * [183A-55] Se agrega imagen_url para mostrar portada en panel lateral.
+                 * [183A-83] Centralizado en sqlColeccionOriginalJson() para reusar en feed inteligente. */
+                $coleccionOriginalExpr = self::sqlColeccionOriginalJson() . " AS coleccion_original_json";
         /* QQ117: Metadata de extraccion (fuente, URL, timing, etc.) asociada al sample */
         $tCe = ColaExtraccionSamplesCols::TABLA;
         $ceMetadata = ColaExtraccionSamplesCols::METADATA_EXTRACCION;

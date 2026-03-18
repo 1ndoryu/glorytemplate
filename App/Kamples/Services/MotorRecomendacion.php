@@ -426,6 +426,10 @@ class MotorRecomendacion
                             * Sin esto, los samples sin imagen_url directa mostraban colors temporales
                             * en vez de la portada de la coleccion del creador. */
                            " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlImagenColeccionPropietario() . " AS imagen_coleccion_propietario,
+                           /* [183A-83] coleccion_original_json faltaba en el feed inteligente.
+                            * Sin esto, panelColeccionPortada no mostraba info de la coleccion
+                            * en samples del feed algoritmico (solo funcionaba en recientes). */
+                           " . \App\Kamples\Api\Helpers\NormalizadorSample::sqlColeccionOriginalJson() . " AS coleccion_original_json,
                            ({$scoreTotal}) as score
                     FROM {$ts} s
                     {$joinsPrecomputo}{$joinCandidatos}{$joinTrendingMV}LEFT JOIN {$tu} u ON s.{$sCreadorId} = u.{$uId}
