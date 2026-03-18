@@ -77,15 +77,12 @@ Ubicacion: `App/docs (ignorar)/`
 - **183A-67:** Completada 2026-03-18. Feed personalizado ahora incluye imagen_coleccion_propietario (portada coleccion del creador). Extraido como metodo publico sqlImagenColeccionPropietario() en NormalizadorSample.
 - **183A-69:** Completada 2026-03-18. Anti-abuso descargas: rate limit 5/dia por IP (cross-account), limite 2/dia cuentas nuevas (<3 dias), registro_ip en usuarios_ext, migration v062.
 - **183A-64:** Completada 2026-03-18. Correcciones ortograficas (~100 tildes faltantes) en 20 archivos React/TS de texto UI visible al usuario.
+- **183A-29+183A-66:** Completadas 2026-03-18. Algoritmo colecciones incorpora likes directos (colecciones_likes) en score. Branch autenticado: pesos 0.55 tag + 0.10 likes + 0.20 frescura + 0.15 items. No autenticado: ordena por total_likes DESC. Documentacion en algoritmo/colecciones-relevancia-2026-03-18.md con plan fase-2 clicks/busquedas.
 
 ## Tareas pendientes
 
 
 El cache de feed de sampled me parece muy agresivo, pero necesito saber como funciona, hacer una documentacion sobre el cache del feed de samples.  Veo que los samples cargan imagenes de portada de colors (temporales) cuando ya tienen una imagen en su coleccion, no se si es por el cache o porque falla algo, al menos en recientes las imagenes si aparecen bien. 
-
-## 183A-29
-
-Vi que implementaste una tabla de like paras las colecciones, bien, puedes ahora hacer un plan para mejorar el algoritmo de las colecciones, para que se ordenen por relevancia al usuario, algo optimizado y minimalista. 
 
 ## 183A-31
 
@@ -105,10 +102,6 @@ asegurar que a dar click vayan al contenido relacionado
 asegurar que todas las notificaciones aparezcan en android, ya probe que funciona pero hay que asegurarnos que sea descriptivo tambien, y que aparezca la imagen relacionada si hay alguna
 tambien que aparezca un reproductor cuando se reproduzca un sample en android, que se pueda controlar desde la notificacion, y que al dar click en la notificacion vaya a la pagina del sample o de la cancion relacionada.
 
-
-## 183A-66
-
-No se si filaColecciones tiene algoritmo, pero debe tener uno ligero, basarse en click, busquedas, likes, etc. para ordenar las colecciones, revisar y optimizar. 
 
 ## 183A-68
 
