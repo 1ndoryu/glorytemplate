@@ -5,7 +5,7 @@
  * Se cierra al hacer click fuera, presionar Escape o botón de cierre.
  */
 
-import { type ReactNode, useEffect, useCallback, Fragment } from 'react';
+import { type ReactNode, useEffect, useCallback, Fragment, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import '../../styles/componentes/menuContextual.css';
 import { BotonBase } from './BotonBase';
@@ -42,6 +42,8 @@ export const MenuContextual = ({
     forzarDropdown = false,
 }: MenuContextualProps): JSX.Element | null => {
     const esMovil = useEsMovil() && !forzarDropdown;
+    const menuRef = useRef<HTMLDivElement | null>(null);
+    const [posicionAjustada, setPosicionAjustada] = useState({ left: x, top: y });
 
     const manejarKeyDown = useCallback(
         (e: KeyboardEvent) => {
@@ -118,21 +120,35 @@ export const MenuContextual = ({
         );
     }
 
-    /* Desktop: posicionamiento absoluto */
-    const menuAncho = 160;
-    const menuAlto = items.length * 36 + 8;
-    const posX = alinearDerecha ? x - menuAncho : x;
-    const ajusteX = posX + menuAncho > window.innerWidth
-        ? window.innerWidth - menuAncho - 8
-        : Math.max(8, posX);
-    const ajusteY = y + menuAlto > window.innerHeight ? window.innerHeight - menuAlto - 8 : y;
+    /* [183A-26] Desktop: medir el tamaño real del menú para evitar desbordes.
+     * El cálculo fijo por cantidad de ítems fallaba con separadores, texto largo y estilos variables,
+     * causando que el menú se saliera del viewport por abajo o por la derecha. */
+    useLayoutEffect(() => {
+        if (!abierto || esMovil) return;
+
+        const ajustar = () => {
+            const nodo = menuRef.current;
+            const margen = 8;
+            const anchoReal = nodo?.offsetWidth ?? 160;
+            const altoReal = nodo?.offsetHeight ?? (items.length * 36 + 8);
+            const posX = alinearDerecha ? x - anchoReal : x;
+            const left = Math.max(margen, Math.min(posX, window.innerWidth - anchoReal - margen));
+            const top = Math.max(margen, Math.min(y, window.innerHeight - altoReal - margen));
+            setPosicionAjustada({ left, top });
+        };
+
+        ajustar();
+        window.addEventListener('resize', ajustar);
+        return () => window.removeEventListener('resize', ajustar);
+    }, [abierto, esMovil, items.length, x, y, alinearDerecha]);
 
     return createPortal(
         <>
             <div className="menuContextualOverlay" onClick={onCerrar} />
             <div
                 className="menuContextual"
-                style={{ left: ajusteX, top: ajusteY }}
+                ref={menuRef}
+                style={{ left: posicionAjustada.left, top: posicionAjustada.top }}
                 role="menu"
             >
                 {contenidoItems}
